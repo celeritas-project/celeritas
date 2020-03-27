@@ -1,0 +1,25 @@
+spack:
+  specs: 
+    - cmake
+    - cuda
+    - openmpi
+    - python +uuid
+    - root cxxstd=14
+    - veccore +cuda
+    - vecgeom cxxstd=14 +cuda
+  view: true
+  concretization: together
+  packages:
+    pcre:
+      variants: +jit
+    python:
+      variants: +libxml2 +shared
+    root:
+      variants: ~x ~opengl
+    xerces-c:
+      variants: cxxstd=14
+    all:
+      providers:
+        blas: [openblas]
+        lapack: [openblas]
+        mpi: [openmpi]

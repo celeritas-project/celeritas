@@ -1,0 +1,25 @@
+spack:
+  specs: 
+    - cmake
+    - geant4 cxxstd=14
+    - llvm +clang
+    - openmpi
+    - root +aqua +gdml cxxstd=14
+    - veccore
+    - vecgeom cxxstd=14 +gdml +root
+  view: true
+  concretization: together
+  packages:
+    pcre:
+      variants: +jit
+    python:
+      variants: +libxml2 +shared
+    root:
+      variants: ~examples ~x ~opengl
+    xerces-c:
+      variants: cxxstd=14
+    all:
+      providers:
+        blas: [openblas]
+        lapack: [openblas]
+        mpi: [openmpi]
