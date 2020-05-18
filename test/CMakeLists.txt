@@ -46,3 +46,13 @@ celeritas_setup_tests(PREFIX comm)
 celeritas_add_test(comm/Communicator.test.cc)
 
 #-----------------------------------------------------------------------------#
+# Random
+
+celeritas_setup_tests(SERIAL PREFIX random)
+celeritas_add_test(random/RadialDistribution.test.cc)
+
+if(CELERITAS_USE_CUDA)
+  celeritas_add_test(random/RadialDistribution.test.cu SUFFIX cuda)
+endif()
+
+#-----------------------------------------------------------------------------#
