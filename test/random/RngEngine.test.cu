@@ -3,12 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RadialDistribution.test.cu
+//! \file RngEngine.test.cu
 //---------------------------------------------------------------------------//
-#include "random/RadialDistribution.hh"
+#include "random/UniformRealDistribution.hh"
 #include "random/RngStateContainer.cuh"
 
-#include <limits>
 #include <random>
 #include <thrust/copy.h>
 #include <thrust/device_ptr.h>
@@ -18,25 +17,25 @@
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.cuh"
 
-using celeritas::RadialDistribution;
 using celeritas::RngStateContainer;
 using celeritas::RngStateView;
+using celeritas::UniformRealDistribution;
 
 //---------------------------------------------------------------------------//
 // CUDA KERNELS
 //---------------------------------------------------------------------------//
 
 __global__ void
-sample(RngStateView view, double* samples, RadialDistribution<> sample_radial)
+sample(RngStateView view, double* samples,
+       UniformRealDistribution<> sample_uniform)
 {
-    unsigned int local_thread_id
-        = celeritas::KernelParamCalculator::thread_id().get();
-    if (local_thread_id < view.num_samples)
+    int local_thread_id = celeritas::KernelParamCalculator::thread_id();
+    if (local_thread_id < view.size())
     {
         auto rng = view[local_thread_id];
-        samples[local_thread_id] = sample_radial(rng);
+        samples[local_thread_id] = sample_uniform(rng);
     }
 }
 
@@ -44,7 +43,7 @@ sample(RngStateView view, double* samples, RadialDistribution<> sample_radial)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class RadialDistributionTestCu : public celeritas::Test
+class RngEngineTestCu : public celeritas::Test
 {
   protected:
     void SetUp() override {}
@@ -56,43 +55,74 @@ class RadialDistributionTestCu : public celeritas::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(RadialDistributionTestCu, bin)
+TEST_F(RngEngineTestCu, container)
 {
-    int num_samples = 1000;
+    int num_samples = 100;
 
-    double radius = 5.0;
-    RadialDistribution<> sample_radial{radius};
+    UniformRealDistribution<> sample_uniform;
 
     // Allocate device memory for results
     samples.resize(num_samples);
 
     // Initialize the RNG states on device
     RngStateContainer container(num_samples);
+    EXPECT_EQ(container.size(), num_samples);
 
     celeritas::KernelParamCalculator calc_launch_params;
     auto params = calc_launch_params(num_samples);
     sample<<<params.grid_size, params.block_size>>>(
         container.device_view(),
         thrust::raw_pointer_cast(samples.data()),
-        sample_radial);
-
-    cudaDeviceSynchronize();
+        sample_uniform);
 
     // Copy data back to host
     thrust::host_vector<double> host_samples = this->samples;
-
-    // Bin the data
-    std::vector<int> counters(5);
+    EXPECT_EQ(host_samples.size(), num_samples);
     for (double sample : host_samples)
     {
         EXPECT_GE(sample, 0.0);
-        EXPECT_LE(sample, radius);
-        counters[int(sample)] += 1;
+        EXPECT_LE(sample, 1.0);
     }
 
-    for (int count : counters)
+    // Increase the number of threads
+    num_samples = 1000;
+    samples.resize(num_samples);
+    container.resize(num_samples);
+    EXPECT_EQ(container.size(), num_samples);
+    
+    params = calc_launch_params(num_samples);
+    sample<<<params.grid_size, params.block_size>>>(
+        container.device_view(),
+        thrust::raw_pointer_cast(samples.data()),
+        sample_uniform);
+
+    // Copy data back to host
+    host_samples = this->samples;
+    EXPECT_EQ(host_samples.size(), num_samples);
+    for (double sample : host_samples)
     {
-        cout << count << ' ';
+        EXPECT_GE(sample, 0.0);
+        EXPECT_LE(sample, 1.0);
     }
-    cout << endl;
+
+    // Decrease the number of threads
+    num_samples = 50;
+    samples.resize(num_samples);
+    container.resize(num_samples);
+    EXPECT_EQ(container.size(), num_samples);
+    
+    params = calc_launch_params(num_samples);
+    sample<<<params.grid_size, params.block_size>>>(
+        container.device_view(),
+        thrust::raw_pointer_cast(samples.data()),
+        sample_uniform);
+
+    // Copy data back to host
+    host_samples = this->samples;
+    EXPECT_EQ(host_samples.size(), num_samples);
+    for (double sample : host_samples)
+    {
+        EXPECT_GE(sample, 0.0);
+        EXPECT_LE(sample, 1.0);
+    }
 }
