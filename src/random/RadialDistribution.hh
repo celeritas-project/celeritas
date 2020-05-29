@@ -8,23 +8,9 @@
 #ifndef random_RadialDistribution_hh
 #define random_RadialDistribution_hh
 
-#include "base/Macros.hh"
+#include "random/UniformRealDistribution.hh"
 
-#ifndef __NVCC__
-#    include <random>
-using UniformDistribution_t = std::uniform_real_distribution<double>;
-#else
-struct NotUniformRealDistribution
-{
-    double vmin, vmax;
-    template<class G>
-    CELER_INLINE_FUNCTION double operator()(G&)
-    {
-        return 1.0;
-    }
-};
-using UniformDistribution_t = NotUniformRealDistribution;
-#endif
+#include "base/Macros.hh"
 
 namespace celeritas
 {
@@ -56,8 +42,8 @@ class RadialDistribution
     CELER_INLINE_FUNCTION real_type radius() const { return radius_; }
 
   private:
-    RealType              radius_;
-    UniformDistribution_t sample_uniform_;
+    RealType                  radius_;
+    UniformRealDistribution<> sample_uniform_;
 };
 
 //---------------------------------------------------------------------------//
