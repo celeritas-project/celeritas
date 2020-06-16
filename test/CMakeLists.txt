@@ -53,6 +53,14 @@ celeritas_setup_tests(PREFIX comm)
 celeritas_add_test(comm/Communicator.test.cc)
 
 #-----------------------------------------------------------------------------#
+# Geometry
+
+celeritas_setup_tests(PREFIX geometry)
+if(CELERITAS_USE_VECGEOM)
+  celeritas_add_test(geometry/VGHost.test.cc)
+endif()
+
+#-----------------------------------------------------------------------------#
 # Random
 
 celeritas_setup_tests(SERIAL PREFIX random)

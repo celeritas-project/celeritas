@@ -8,6 +8,7 @@
 # CONFIGURE FILE
 #----------------------------------------------------------------------------#
 
+set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
 set(_CONFIG_NAME "celeritas_config.h")
 configure_file("${_CONFIG_NAME}.in" "${_CONFIG_NAME}" @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${_CONFIG_NAME}"
@@ -45,6 +46,13 @@ else()
     comm/Communicator.serial.cc
     comm/ScopedMpiInit.serial.cc
   )
+endif()
+
+if(CELERITAS_USE_VECGEOM)
+  list(APPEND SOURCES
+    geometry/VGHost.cc
+  )
+  list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
 endif()
 
 add_library(celeritas ${SOURCES})

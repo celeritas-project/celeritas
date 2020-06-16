@@ -80,10 +80,25 @@ endif()
 
 if(CELERITAS_USE_VECGEOM)
   find_package(VecGeom REQUIRED)
+  # 1.1.7 is required, but the VecGeomConfig.cmake doesn't supply version
+  if(NOT TARGET VecGeom::vecgeom)
+    message(SEND_ERROR "The version of VecGeom at ${VECGEOM_INSTALL_DIR} "
+      "does not define the expected library targets")
+  endif()
 
-  if(CELERITAS_USE_CUDA AND VECGEOM_CUDA_ARCH STREQUAL "none")
-    message(FATAL_ERROR "The VecGeom installation at ${VECGEOM_INSTALL_DIR} "
-      "was configured without CUDA, so CELERITAS_USE_CUDA cannot be used")
+  if(NOT VECGEOM_CUDA_ARCH STREQUAL "none")
+    set(_vecgeom_cuda TRUE)
+  endif()
+  if((CELERITAS_USE_CUDA AND NOT VECGEOM_CUDA_ARCH)
+      OR (NOT CELERITAS_USE_CUDA AND VECGEOM_CUDA_ARCH))
+    message(SEND_ERROR "CUDA mismatch between the VecGeom installation "
+      "at ${VECGEOM_INSTALL_DIR} (VECGEOM_CUDA_ARCH=${VECGEOM_CUDA_ARCH}) "
+      "and Celeritas (CELERITAS_USE_CUDA=${CELERITAS_USE_CUDA})"
+    )
+  endif()
+  set(_vecgeom_cuda)
+  if(NOT VecGeom_GDML_FOUND)
+    message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
   endif()
 endif()
 

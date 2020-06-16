@@ -1,7 +1,7 @@
 # Celeritas options
 set(CELERITAS_USE_CUDA ON CACHE BOOL "")
 set(CELERITAS_USE_ROOT OFF CACHE BOOL "")
-set(CELERITAS_USE_VECGEOM OFF CACHE BOOL "")
+set(CELERITAS_USE_VECGEOM ON CACHE BOOL "")
 
 # Set rpath based on environment (loaded Spack modules); VecGeom does not
 # correctly set rpath for downstream use
