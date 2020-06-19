@@ -1,0 +1,58 @@
+#----------------------------------*-CMake-*----------------------------------#
+# Copyright 2020 UT-Battelle, LLC and other Celeritas Developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# TEST LIBRARY
+#-----------------------------------------------------------------------------#
+
+add_library(CeleritasTest
+  gtest/Test.cc
+  gtest/detail/NonMasterResultPrinter.cc
+  gtest/detail/ParallelHandler.cc
+  gtest/detail/TestMain.cc
+  gtest/detail/Utils.cc
+)
+add_library(Celeritas::Test ALIAS CeleritasTest)
+target_link_libraries(CeleritasTest PUBLIC celeritas GTest::GTest)
+
+target_include_directories(CeleritasTest
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+
+#-----------------------------------------------------------------------------#
+# TESTS
+#-----------------------------------------------------------------------------#
+
+include(CeleritasAddTest)
+
+#-----------------------------------------------------------------------------#
+# Base
+
+celeritas_setup_tests(SERIAL PREFIX base)
+celeritas_add_test(base/Array.test.cc)
+celeritas_add_test(base/Interpolator.test.cc)
+celeritas_add_test(base/OpaqueId.test.cc)
+celeritas_add_test(base/Range.test.cc)
+celeritas_add_test(base/SoftEqual.test.cc)
+celeritas_add_test(base/Span.test.cc)
+
+#-----------------------------------------------------------------------------#
+# Comm
+
+celeritas_setup_tests(PREFIX comm)
+celeritas_add_test(comm/Communicator.test.cc)
+
+#-----------------------------------------------------------------------------#
+# Random
+
+celeritas_setup_tests(SERIAL PREFIX random)
+celeritas_add_test(random/RadialDistribution.test.cc)
+
+if(CELERITAS_USE_CUDA)
+  celeritas_add_test(random/RadialDistribution.test.cu SUFFIX cuda)
+endif()
+
+#-----------------------------------------------------------------------------#

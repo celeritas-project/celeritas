@@ -3,7 +3,7 @@
 The Celeritas project plans to implement certain HEP detector physics on GPU
 accelerator hardware.
 
-# Development environment
+# Installation and development
 
 This project requires third-party libraries (TPLs) to build:
 
@@ -33,4 +33,8 @@ the required prerequisites for this project. A script at
 Run `scripts/dev/install-commit-hooks.sh` to install a git post-commit hook
 that will amend each commit with clang-format updates if necessary.
 
+## More details
+
+See the `doc/development.rst` document for guidelines and best practices for
+the project.
 

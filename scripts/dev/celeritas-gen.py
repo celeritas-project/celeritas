@@ -33,19 +33,20 @@ namespace celeritas {{
  *
  * Optional detailed class description, and possibly example usage:
  * \code
-  {name} ...;
+    {name} ...;
    \endcode
  */
-class {name} {{
- public:
-  //@{{
-  //! Type aliases
-  <++>
-  //@}}
+class {name}
+{{
+  public:
+    //@{{
+    //! Type aliases
+    <++>
+    //@}}
 
- public:
-  // Construct with defaults
-  inline {name}();
+  public:
+    // Construct with defaults
+    inline {name}();
 }};
 
 //---------------------------------------------------------------------------//
@@ -63,7 +64,8 @@ namespace celeritas {{
 /*!
  * Construct with defaults.
  */
-{name}::{name}() {{
+{name}::{name}()
+{{
 }}
 
 //---------------------------------------------------------------------------//
@@ -80,9 +82,36 @@ namespace celeritas {{
 }}  // namespace celeritas
 '''
 
+TEST_FILE = '''\
+#include "{name}.{hext}"
+
+#include "gtest/Main.hh"
+#include "gtest/Test.hh"
+
+using celeritas::{name};
+
+//---------------------------------------------------------------------------//
+// TEST HARNESS
+//---------------------------------------------------------------------------//
+
+class {name}Test : public celeritas::Test
+{{
+  protected:
+    void SetUp() override {{}}
+}};
+
+//---------------------------------------------------------------------------//
+// TESTS
+//---------------------------------------------------------------------------//
+
+TEST_F({name}Test, all)
+{{
+}}
+'''
+
 CMAKE_TOP = '''\
 #{modeline:-^77s}#
-# Copyright 2020 UT-Battelle, LLC and other VecGeomTest Developers.
+# Copyright 2020 UT-Battelle, LLC and other Celeritas Developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 '''
@@ -98,7 +127,7 @@ CMAKELISTS_FILE = '''\
 CMAKE_FILE = '''\
 #[=======================================================================[.rst:
 
-{basename}
+{name}
 -------------------
 
 Description of overall module contents goes here.
@@ -128,11 +157,13 @@ endfunction()
 
 
 TEMPLATES = {
-    'h': HEADER_FILE,
-    'i.h': INLINE_FILE,
+    'hh': HEADER_FILE,
+    'i.hh': INLINE_FILE,
     'cc': CODE_FILE,
     'cu': CODE_FILE,
     'cuh': HEADER_FILE,
+    'test.cc': TEST_FILE,
+    'test.cu': TEST_FILE,
     'k.cuh': INLINE_FILE,
     'i.cuh': INLINE_FILE,
     't.cuh': INLINE_FILE,
@@ -142,10 +173,12 @@ TEMPLATES = {
 
 LANG = {
     'h': "C++",
+    'hh': "C++",
     'cc': "C++",
     'cu': "CUDA",
     'cuh': "CUDA",
     'cmake': "CMake",
+    'CMakeLists.txt': "CMake",
 }
 
 TOPS = {
@@ -155,7 +188,7 @@ TOPS = {
 }
 
 HEXT = {
-    'C++': "h",
+    'C++': "hh",
     'CUDA': "cuh",
 }
 
@@ -163,35 +196,35 @@ def generate(root, filename):
     if os.path.exists(filename):
         print("Skipping existing file " + filename)
         return
+
     relpath = os.path.relpath(filename, start=root)
-    (basename, _, longext) = filename.partition('.')
+    basename = os.path.basename(filename)
+    (name, _, longext) = basename.partition('.')
 
-    template = TEMPLATES.get(filename, None)
-    if template is None:
-        template = TEMPLATES.get(longext, None)
-    if template is None:
-        print("Invalid extension ." + longext)
-        sys.exit(1)
-
+    lang = None
+    template = None
     ext = longext.split('.')[-1]
-    for check_lang in [filename, longext, ext]:
-        try:
-            lang = LANG[check_lang]
-        except KeyError:
-            continue
-        else:
-            break
-    else:
-        raise KeyError("Missing extension in LANG")
+    for check_lang in [basename, longext, ext]:
+        if not lang:
+            lang = LANG.get(check_lang, None)
+        if not template:
+            template = TEMPLATES.get(check_lang, None)
+    if not lang:
+        print(f"No known language for '.{ext}' files")
+    if not template:
+        print(f"No configured template for '.{ext}' files")
+    if not lang or not template:
+        sys.exit(1)
 
     top = TOPS[lang]
 
+    relpath = re.sub(r'^[./]+', '', relpath)
     variables = {
         'longext': longext,
         'ext': ext,
         'hext': HEXT.get(lang, ext),
         'modeline': "-*-{}-*-".format(lang),
-        'name': re.sub(r'\..*', '', os.path.basename(filename)),
+        'name': name,
         'header_guard': re.sub(r'\W', '_', relpath),
         'filename': filename,
         'basename': basename,
