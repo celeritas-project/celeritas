@@ -31,7 +31,9 @@ template<class Generator>
 CELER_INLINE_FUNCTION auto
 UniformRealDistribution<T>::operator()(Generator& rng) -> result_type
 {
-    return delta_ * this->sample_uniform_(rng) + a_;
+    //GenerateCanonical<Generator, T> sample_uniform;
+    //return delta_ * sample_uniform(rng) + a_;
+    return delta_ * GenerateCanonical<Generator, T>()(rng) + a_;
 }
 
 //---------------------------------------------------------------------------//

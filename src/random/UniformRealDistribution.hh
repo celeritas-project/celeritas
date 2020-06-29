@@ -8,23 +8,9 @@
 #ifndef random_UniformRealDistribution_hh
 #define random_UniformRealDistribution_hh
 
-#include "base/Macros.hh"
+#include "random/GenerateCanonical.hh"
 
-#ifndef __NVCC__
-#    include <random>
-using UniformDistribution_t = std::uniform_real_distribution<double>;
-#else
-#    include "random/RngEngine.cuh"
-struct CurandUniform
-{
-    template<class G>
-    __device__ inline double operator()(G& rng)
-    {
-        return rng.sample_uniform();
-    }
-};
-using UniformDistribution_t = CurandUniform;
-#endif
+#include "base/Macros.hh"
 
 namespace celeritas
 {
@@ -60,9 +46,8 @@ class UniformRealDistribution
     CELER_INLINE_FUNCTION real_type b() const { return delta_ + a_; }
 
   private:
-    RealType              a_;
-    RealType              delta_;
-    UniformDistribution_t sample_uniform_;
+    RealType a_;
+    RealType delta_;
 };
 
 //---------------------------------------------------------------------------//
