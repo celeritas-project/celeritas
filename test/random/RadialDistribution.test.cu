@@ -16,7 +16,7 @@
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
 
-#include "base/KernelParamCalculator.cuh"
+#include "base/KernelParamCalculator.cuda.hh"
 
 using celeritas::RadialDistribution;
 

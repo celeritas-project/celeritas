@@ -3,12 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KernelParamCalculator.cuh
+//! \file KernelParamCalculator.cuda.hh
 //---------------------------------------------------------------------------//
-#ifndef base_KernelParamCalculator_cuh
-#define base_KernelParamCalculator_cuh
+#ifndef base_KernelParamCalculator_cuda_hh
+#define base_KernelParamCalculator_cuda_hh
 
 #include <cstddef>
+#include <cuda_runtime_api.h>
+#include "Macros.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -31,8 +34,7 @@ class KernelParamCalculator
   public:
     //@{
     //! Type aliases
-    using dim_type  = unsigned int;
-    using size_type = std::size_t;
+    using dim_type = unsigned int;
     //@}
 
     struct LaunchParams
@@ -43,13 +45,13 @@ class KernelParamCalculator
 
   public:
     // Construct with defaults
-    explicit __host__ KernelParamCalculator(dim_type block_size = 256);
+    explicit KernelParamCalculator(dim_type block_size = 256u);
 
     // Get launch parameters
     LaunchParams operator()(size_type min_num_threads) const;
 
     // Get the thread ID
-    __device__ inline static dim_type thread_id();
+    CELER_INLINE_FUNCTION static dim_type thread_id();
 
   private:
     //! Default threads per block
@@ -59,6 +61,6 @@ class KernelParamCalculator
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "KernelParamCalculator.i.cuh"
+#include "KernelParamCalculator.cuda.i.hh"
 
 #endif // base_KernelParamCalculator_cuh
