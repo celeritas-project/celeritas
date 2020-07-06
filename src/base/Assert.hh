@@ -10,27 +10,29 @@
 
 #include "celeritas_config.h"
 #include "Macros.hh"
-#include <cassert>
+#ifndef __CUDA_ARCH__
+#    include <cassert>
+#endif
 
-#define CELERITAS_ASSERT_(COND) \
+#define CELER_ASSERT_(COND) \
+    do                      \
+    {                       \
+        assert(COND);       \
+    } while (0)
+#define CELER_NOASSERT_(COND)   \
     do                          \
     {                           \
-        assert(COND);           \
-    } while (0)
-#define CELERITAS_NOASSERT_(COND) \
-    do                            \
-    {                             \
-        if (false && (COND)) {}   \
+        if (false && (COND)) {} \
     } while (0)
 
 #ifdef CELERITAS_DEBUG
-#    define REQUIRE(x) CELERITAS_ASSERT_(x)
-#    define CHECK(x) CELERITAS_ASSERT_(x)
-#    define ENSURE(x) CELERITAS_ASSERT_(x)
+#    define REQUIRE(x) CELER_ASSERT_(x)
+#    define CHECK(x) CELER_ASSERT_(x)
+#    define ENSURE(x) CELER_ASSERT_(x)
 #else
-#    define REQUIRE(x) CELERITAS_NOASSERT_(x)
-#    define CHECK(x) CELERITAS_NOASSERT_(x)
-#    define ENSURE(x) CELERITAS_NOASSERT_(x)
+#    define REQUIRE(x) CELER_NOASSERT_(x)
+#    define CHECK(x) CELER_NOASSERT_(x)
+#    define ENSURE(x) CELER_NOASSERT_(x)
 #endif
 
 #endif // base_Assert_hh

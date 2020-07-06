@@ -8,41 +8,24 @@
 #ifndef base_Constants_hh
 #define base_Constants_hh
 
-#ifdef __CUDA_ARCH__
-#    include <math_constants.h>
-#else
-#    include <limits>
-#endif
+#include "Types.hh"
 
 namespace celeritas
 {
-#ifdef __CUDA_ARCH__
-template<typename Numeric>
-struct numeric_limits;
-
-template<>
-struct numeric_limits<float>
+namespace constants
 {
-    static constexpr __device__ float epsilon() { return FLT_EPSILON; }
-    static constexpr __device__ float quiet_NaN() { return CUDART_NAN_F; }
-    static constexpr __device__ float infinity() { return CUDART_INF_F; }
-};
+//---------------------------------------------------------------------------//
+/*!
+ * \namespace constants
+ *
+ * Mathematical and numerical constants.
+ */
 
-template<>
-struct numeric_limits<double>
-{
-    static constexpr __device__ double epsilon() { return DBL_EPSILON; }
-    static constexpr __device__ double quiet_NaN() { return CUDART_NAN; }
-    static constexpr __device__ double infinity() { return CUDART_INF; }
-};
+constexpr real_type pi     = 3.14159265358979323846;
+constexpr real_type two_pi = 2. * pi;
 
-#else // not __CUDA_ARCH__
+} // namespace constants
 
-// Use default numeric limits
-template<class Numeric>
-using numeric_limits = std::numeric_limits<Numeric>;
-
-#endif // __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
