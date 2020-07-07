@@ -8,6 +8,10 @@
 #ifndef random_GenerateCanonical_hh
 #define random_GenerateCanonical_hh
 
+#ifdef __NVCC__
+#    include "random/RngEngine.cuh"
+#endif
+
 #include <random>
 
 #include "base/Macros.hh"
@@ -36,13 +40,7 @@ class GenerateCanonical
     CELER_INLINE_FUNCTION result_type operator()(Generator& rng);
 };
 
-} // namespace celeritas
-
 #ifdef __NVCC__
-#    include "random/RngEngine.cuh"
-
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 /*!
  * Specialization for RngEngine, float
@@ -87,9 +85,9 @@ class GenerateCanonical<RngEngine, double>
     inline __device__ result_type operator()(RngEngine& rng);
 };
 
+#endif
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-#endif
 
 #include "GenerateCanonical.i.hh"
 

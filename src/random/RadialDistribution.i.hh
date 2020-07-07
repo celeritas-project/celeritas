@@ -18,8 +18,7 @@ namespace celeritas
  */
 template<typename T>
 CELER_INLINE_FUNCTION
-RadialDistribution<T>::RadialDistribution(real_type radius)
-    : radius_(radius), sample_uniform_{0, 1}
+RadialDistribution<T>::RadialDistribution(real_type radius) : radius_(radius)
 {
     REQUIRE(radius_ > 0);
 }
@@ -33,8 +32,8 @@ template<class Generator>
 CELER_INLINE_FUNCTION auto RadialDistribution<T>::operator()(Generator& rng)
     -> result_type
 {
-    return std::pow(this->sample_uniform_(rng),
-                    static_cast<real_type>(1.0 / 3.0))
+    GenerateCanonical<Generator, T> sample_uniform;
+    return std::pow(sample_uniform(rng), static_cast<real_type>(1.0 / 3.0))
            * radius_;
 }
 

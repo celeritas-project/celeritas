@@ -8,7 +8,7 @@
 #ifndef random_RadialDistribution_hh
 #define random_RadialDistribution_hh
 
-#include "random/UniformRealDistribution.hh"
+#include "random/GenerateCanonical.hh"
 
 #include "base/Macros.hh"
 
@@ -42,8 +42,7 @@ class RadialDistribution
     CELER_INLINE_FUNCTION real_type radius() const { return radius_; }
 
   private:
-    RealType                  radius_;
-    UniformRealDistribution<> sample_uniform_;
+    RealType radius_;
 };
 
 //---------------------------------------------------------------------------//

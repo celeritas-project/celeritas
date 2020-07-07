@@ -19,6 +19,7 @@ GenerateCanonical<Generator, T>::operator()(Generator& rng) -> result_type
     return std::generate_canonical<result_type,
         std::numeric_limits<result_type>::digits>(rng);
 }
+
 #ifdef __NVCC__
 //---------------------------------------------------------------------------//
 /*!
@@ -39,7 +40,7 @@ GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)
 {
     return rng.sample_uniform<double>();
 }
-#endif
 
+#endif
 //---------------------------------------------------------------------------//
 } // namespace celeritas
