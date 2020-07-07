@@ -22,6 +22,7 @@ set(PRIVATE_DEPS)
 set(PUBLIC_DEPS)
 
 list(APPEND SOURCES
+  base/Assert.cc
   base/ColorUtils.cc
 )
 if(CELERITAS_USE_CUDA)

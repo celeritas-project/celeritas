@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "NumericLimits.test.hh"
 
+#include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 #include "base/NumericLimits.hh"
 
@@ -44,17 +45,21 @@ NLTestOutput<T> nl_test()
 {
     // Allocate output data
     NLTestOutput<T>* result_device;
-    cudaMalloc(&result_device, sizeof(NLTestOutput<T>));
+    CELER_CUDA_CALL(cudaMalloc(&result_device, sizeof(NLTestOutput<T>)));
 
     celeritas::KernelParamCalculator calc_launch_params;
-    auto                             params = calc_launch_params(3);
+
+    auto params = calc_launch_params(3);
     nl_test_kernel<<<params.grid_size, params.block_size>>>(result_device);
+    CELER_CUDA_CHECK_ERROR();
 
     // Copy to host
     NLTestOutput<T> result;
-    cudaMemcpy(
-        &result, result_device, sizeof(NLTestOutput<T>), cudaMemcpyDeviceToHost);
-    cudaFree(result_device);
+    CELER_CUDA_CALL(cudaMemcpy(&result,
+                               result_device,
+                               sizeof(NLTestOutput<T>),
+                               cudaMemcpyDeviceToHost));
+    CELER_CUDA_CALL(cudaFree(result_device));
     return result;
 }
 

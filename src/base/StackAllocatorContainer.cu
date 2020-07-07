@@ -92,6 +92,7 @@ void StackAllocatorContainer::clear()
     auto                             params = calc_launch_params(1);
     stack_allocator_clear_impl<<<params.grid_size, params.block_size>>>(
         this->device_view());
+    CELER_CUDA_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//
