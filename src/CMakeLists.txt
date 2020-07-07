@@ -21,6 +21,9 @@ set(SOURCES)
 set(PRIVATE_DEPS)
 set(PUBLIC_DEPS)
 
+list(APPEND SOURCES
+  base/ColorUtils.cc
+)
 if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
     base/KernelParamCalculator.cuda.cc

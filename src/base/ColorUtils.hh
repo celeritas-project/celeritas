@@ -3,29 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.cc
+//! \file ColorUtils.hh
 //---------------------------------------------------------------------------//
-#include "Utils.hh"
-
-#include <string>
-#include "base/ColorUtils.hh"
+#ifndef base_ColorUtils_hh
+#define base_ColorUtils_hh
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-/*!
- * \brief Get the "skip" message for the skip macro
- */
-const char* skip_cstring()
-{
-    static const std::string str = std::string(color_code('y'))
-                                   + std::string("[   SKIP   ]")
-                                   + std::string(color_code('d'));
-    return str.c_str();
-}
+// Whether colors are enabled (currently read-only)
+bool use_color();
 
 //---------------------------------------------------------------------------//
-} // namespace detail
+// Get an ANSI color code: [y]ellow / [r]ed / [ ]default / ...
+const char* color_code(char abbrev);
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
+
+#endif // base_ColorUtils_hh

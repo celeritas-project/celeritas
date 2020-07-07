@@ -8,6 +8,7 @@
 #include "ParallelHandler.hh"
 
 #include "Utils.hh"
+#include "base/ColorUtils.hh"
 #include "comm/Communicator.hh"
 
 namespace celeritas

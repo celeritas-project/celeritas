@@ -8,6 +8,7 @@
 #include "TestMain.hh"
 
 #include "celeritas_config.h"
+#include "base/ColorUtils.hh"
 #include "comm/Communicator.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "NonMasterResultPrinter.hh"
