@@ -11,6 +11,7 @@
 #include "base/ColorUtils.hh"
 #include "comm/Communicator.hh"
 #include "comm/ScopedMpiInit.hh"
+#include "comm/Utils.hh"
 #include "NonMasterResultPrinter.hh"
 #include "ParallelHandler.hh"
 #include "Utils.hh"
@@ -24,6 +25,9 @@ int test_main(int argc, char** argv)
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
     Communicator  comm = Communicator::comm_world();
+
+    // Initialize device
+    celeritas::initialize_device(comm);
 
     // Initialize google test
     ::testing::InitGoogleTest(&argc, argv);

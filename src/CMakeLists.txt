@@ -24,6 +24,7 @@ set(PUBLIC_DEPS)
 list(APPEND SOURCES
   base/Assert.cc
   base/ColorUtils.cc
+  comm/Utils.cc
 )
 if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
