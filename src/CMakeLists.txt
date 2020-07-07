@@ -24,6 +24,7 @@ set(PUBLIC_DEPS)
 if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
     base/KernelParamCalculator.cuda.cc
+    base/StackAllocatorContainer.cu
   )
   list(APPEND PRIVATE_DEPS CUDA::cudart)
 endif()
