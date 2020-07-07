@@ -35,9 +35,8 @@ class RngEngine
     // Sample a random number
     __device__ inline result_type operator()();
 
-    // Sample a random number uniformly distributed on (0.0, 1.0]
-    template<class ResultType = double>
-    __device__ inline ResultType sample_uniform();
+    // RNG state; use for implementation only!
+    __device__ inline RngState* state() { return state_; }
 
     // Initialize state from seed
     __device__ void initialize_state(seed_type seed)

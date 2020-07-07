@@ -26,24 +26,4 @@ __device__ auto RngEngine::operator()() -> result_type
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Sample a random float
- */
-template<>
-__device__ float RngEngine::sample_uniform()
-{
-    return curand_uniform(state_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Sample a random double
- */
-template<>
-__device__ double RngEngine::sample_uniform()
-{
-    return curand_uniform_double(state_);
-}
-
-//---------------------------------------------------------------------------//
 } // namespace celeritas

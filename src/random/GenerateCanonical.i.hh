@@ -28,7 +28,7 @@ GenerateCanonical<Generator, T>::operator()(Generator& rng) -> result_type
 __device__ float
 GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 {
-    return rng.sample_uniform<float>();
+    return curand_uniform(rng.state());
 }
 
 //---------------------------------------------------------------------------//
@@ -38,7 +38,7 @@ GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 __device__ double
 GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)
 {
-    return rng.sample_uniform<double>();
+    return curand_uniform_double(rng.state());
 }
 
 #endif
