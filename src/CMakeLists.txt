@@ -53,6 +53,14 @@ if(CELERITAS_USE_VECGEOM)
     geometry/VGHost.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
+  if(CELERITAS_USE_CUDA)
+    list(APPEND SOURCES
+      geometry/detail/VGNavStateContainer.cuda.cc
+      geometry/VGDevice.cuda.cc
+      geometry/VGStateContainer.cu
+    )
+    list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)
+  endif()
 endif()
 
 add_library(celeritas ${SOURCES})
