@@ -29,8 +29,8 @@ struct StackAllocatorContainerPimpl
  */
 __global__ void stack_allocator_clear_impl(StackAllocatorView data)
 {
-    int local_thread_id = KernelParamCalculator::thread_id();
-    if (local_thread_id == 0)
+    auto local_thread_id = KernelParamCalculator::thread_id();
+    if (local_thread_id.get() == 0)
     {
         *data.size = 0;
     }

@@ -9,18 +9,22 @@
 #define base_Types_hh
 
 #include <cstddef>
+#include "OpaqueId.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
 template<typename T, std::size_t N>
 class array;
 
+class Thread;
+//---------------------------------------------------------------------------//
 using size_type    = std::size_t;
 using ssize_type   = int;
 using real_type    = double;
 using RealPointer3 = array<real_type*, 3>;
 using Real3        = array<real_type, 3>;
+
+using ThreadId = OpaqueId<Thread, unsigned int>;
 
 //---------------------------------------------------------------------------//
 

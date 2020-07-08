@@ -23,7 +23,8 @@ namespace celeritas_test
 // Allocate based on input values, incrementing thread-local num_allocations
 __global__ void sa_test_kernel(SATestInput input, int* num_allocations)
 {
-    const int local_thread_id = celeritas::KernelParamCalculator::thread_id();
+    const int local_thread_id
+        = celeritas::KernelParamCalculator::thread_id().get();
     if (local_thread_id >= input.num_threads)
         return;
 

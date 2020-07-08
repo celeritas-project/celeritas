@@ -51,7 +51,7 @@ class KernelParamCalculator
     LaunchParams operator()(size_type min_num_threads) const;
 
     // Get the thread ID
-    CELER_INLINE_FUNCTION static dim_type thread_id();
+    CELER_INLINE_FUNCTION static ThreadId thread_id();
 
   private:
     //! Default threads per block

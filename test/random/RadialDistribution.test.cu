@@ -40,7 +40,7 @@ struct RngStateView
 
 __global__ void sample(RngStateView view)
 {
-    int local_thread_id = celeritas::KernelParamCalculator::thread_id();
+    int local_thread_id = celeritas::KernelParamCalculator::thread_id().get();
     if (local_thread_id < view.num_samples)
     {
         view.result[local_thread_id] = view.sample_radial(view.engine);
