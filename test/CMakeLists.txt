@@ -55,8 +55,11 @@ celeritas_add_test(comm/Communicator.test.cc)
 #-----------------------------------------------------------------------------#
 # Geometry
 
-celeritas_setup_tests(PREFIX geometry)
 if(CELERITAS_USE_VECGEOM)
+  celeritas_setup_tests(SERIAL PREFIX geometry
+    LINK_LIBRARIES VecGeom::vecgeom)
+
+  celeritas_add_test(geometry/VGGeometry.test.cc)
   celeritas_add_test(geometry/VGHost.test.cc)
 endif()
 

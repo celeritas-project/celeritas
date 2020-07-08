@@ -16,6 +16,12 @@ class Geometry;
 //---------------------------------------------------------------------------//
 using VolumeId = OpaqueId<Geometry, unsigned int>;
 
+enum class Boundary : bool
+{
+    outside = false,
+    inside  = true
+};
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 

@@ -15,6 +15,8 @@ namespace celeritas
 {
 template<typename T, std::size_t N>
 class array;
+template<typename T, std::size_t N>
+class span;
 
 class Thread;
 //---------------------------------------------------------------------------//
@@ -23,7 +25,9 @@ using ssize_type   = int;
 using real_type    = double;
 using RealPointer3 = array<real_type*, 3>;
 using Real3        = array<real_type, 3>;
+using SpanReal3    = span<real_type, 3>;
 
+//! Index of the current CUDA thread, with type safety for containers.
 using ThreadId = OpaqueId<Thread, unsigned int>;
 
 //---------------------------------------------------------------------------//
