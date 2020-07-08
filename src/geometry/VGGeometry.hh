@@ -21,7 +21,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Operate on the device with persistent data and local state.
+ * Operate on the device with shared (persistent) data and local state.
  *
  * \code
     VGGeometry geom(vg_view, vg_state_view);

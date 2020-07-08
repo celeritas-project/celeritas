@@ -11,11 +11,14 @@
 #include <VecGeom/navigation/NavigationState.h>
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
-#include "geometry/VGHost.hh"
 #include "celeritas_config.h"
-// #include "VGGeometry.test.hh"
+#include "geometry/VGHost.hh"
+#include "geometry/VGStateContainer.hh"
+#include "geometry/VGDevice.hh"
+#include "VGGeometry.test.hh"
 
 using namespace celeritas;
+using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -115,3 +118,46 @@ TEST_F(VGGeometryHostTest, track_line)
 
     geo.destroy();
 }
+
+#ifdef CELERITAS_USE_CUDA
+//---------------------------------------------------------------------------//
+// DEVICE TESTS
+//---------------------------------------------------------------------------//
+
+class VGGeometryDeviceTest : public VGGeometryTest
+{
+  public:
+    using NavState = vecgeom::cxx::NavigationState;
+
+    void SetUp() override
+    {
+        // Copy geometry to device
+        device_geom = std::make_shared<VGDevice>(host_geom());
+    }
+    std::shared_ptr<VGDevice> device_geom;
+};
+
+TEST_F(VGGeometryDeviceTest, track_lines)
+{
+    CHECK(device_geom);
+
+    // Set up test input
+    VGGTestInput input;
+    input.init = {
+        {-6, 0, 0}, {1, 0, 0}, {0, 0, 0}, {1, 1, 0}, {50, 0, 0}, {-1, 0, 0}};
+    input.max_segments = 3;
+    input.shared       = device_geom->device_view();
+
+    VGStateContainer device_states(device_geom, input.init.size());
+    input.state = device_states.device_view();
+
+    // Run kernel
+    auto output = vgg_test(input);
+
+    // Check results
+    EXPECT_EQ(output.ids, std::vector<int>());
+    EXPECT_EQ(output.distances, std::vector<double>());
+}
+
+//---------------------------------------------------------------------------//
+#endif

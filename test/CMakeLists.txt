@@ -59,8 +59,26 @@ if(CELERITAS_USE_VECGEOM)
   celeritas_setup_tests(SERIAL PREFIX geometry
     LINK_LIBRARIES VecGeom::vecgeom)
 
-  celeritas_add_test(geometry/VGGeometry.test.cc)
   celeritas_add_test(geometry/VGHost.test.cc)
+
+  # CUDA tests: link cuda sources as needed
+  if(CELERITAS_USE_CUDA)
+    list(APPEND CELERITASTEST_LINK_LIBRARIES
+      VecGeom::vecgeomcuda
+      VecGeom::vecgeomcuda_static)
+
+    celeritas_add_test(geometry/VGGeometry.test.cc
+      SOURCES geometry/VGGeometry.test.cu)
+    # XXX use ADDED_TARGET instead of manually entering target name
+    set_target_properties(geometry_VGGeometry PROPERTIES
+      CUDA_SEPARABLE_COMPILATION ON
+      POSITION_INDEPENDENT_CODE ON
+    )
+  else()
+    celeritas_add_test(geometry/VGGeometry.test.cc)
+  endif()
+
+  set(CELERITASTEST_LINK_LIBRARIES)
 endif()
 
 #-----------------------------------------------------------------------------#

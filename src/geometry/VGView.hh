@@ -31,6 +31,8 @@ namespace celeritas
 struct VGView
 {
     const vecgeom::VPlacedVolume* world_volume = nullptr;
+
+    CELER_FUNCTION operator bool() const { return bool(world_volume); }
 };
 
 //---------------------------------------------------------------------------//
