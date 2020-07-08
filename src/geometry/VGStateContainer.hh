@@ -16,7 +16,7 @@ namespace celeritas
 {
 class VGDevice;
 class VGStateContainerPimpl;
-class VGStateView;
+struct VGStateView;
 //---------------------------------------------------------------------------//
 /*!
  * Manage on-device VecGeom geometry and states.

@@ -10,13 +10,15 @@
 #include <thrust/device_vector.h>
 #include "base/Array.hh"
 #include "VGDevice.hh"
-#include "detail/VGNavStateContainer.cuda.hh"
+#include "VGStateView.hh"
+#include "detail/VGNavStateContainer.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 struct VGStateContainerPimpl
 {
+    int                           vgmaxdepth;
     detail::VGNavStateContainer   vgstate;
     detail::VGNavStateContainer   vgnext;
     thrust::device_vector<Real3>  pos;
@@ -44,8 +46,35 @@ VGStateContainer::VGStateContainer(constSPVGDevice device_geom, size_type size)
     int max_depth = device_geom_->max_depth();
 
     state_data_          = std::make_unique<VGStateContainerPimpl>();
+    state_data_->vgmaxdepth = max_depth;
     state_data_->vgstate = detail::VGNavStateContainer(size, max_depth);
     state_data_->vgnext  = detail::VGNavStateContainer(size, max_depth);
+    state_data_->pos.resize(state_size_);
+    state_data_->dir.resize(state_size_);
+    state_data_->next_step.resize(state_size_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief Get a view to on-device states
+ */
+VGStateView VGStateContainer::device_view() const
+{
+    REQUIRE(state_data_);
+
+    using thrust::raw_pointer_cast;
+
+    VGStateView result;
+    result.size       = state_size_;
+    result.vgmaxdepth = state_data_->vgmaxdepth;
+    result.vgstate    = state_data_->vgstate.device_view();
+    result.vgnext     = state_data_->vgnext.device_view();
+    result.pos        = raw_pointer_cast(state_data_->pos.data());
+    result.dir        = raw_pointer_cast(state_data_->dir.data());
+    result.next_step  = raw_pointer_cast(state_data_->next_step.data());
+
+    ENSURE(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

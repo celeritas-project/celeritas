@@ -8,6 +8,7 @@
 #ifndef geometry_VGGeometry_hh
 #define geometry_VGGeometry_hh
 
+#include <VecGeom/volumes/PlacedVolume.h>
 #include <VecGeom/navigation/NavigationState.h>
 
 #include "base/NumericLimits.hh"
@@ -29,11 +30,6 @@ namespace celeritas
 class VGGeometry
 {
   public:
-    //@{
-    //! Type aliases
-    //@}
-
-  public:
     // Construct from persistent and state data
     CELER_INLINE_FUNCTION
     VGGeometry(const VGView&      data,
@@ -51,9 +47,9 @@ class VGGeometry
 
     //@{
     //! State accessors
-    CELER_FUNCTION const Real3& pos() const { return *state_.pos; }
-    CELER_FUNCTION const Real3& dir() const { return *state_.dir; }
-    CELER_FUNCTION real_type    next_step() const { return *state_.next_step; }
+    CELER_FUNCTION const Real3& pos() const { return pos_; }
+    CELER_FUNCTION const Real3&    dir() const { return dir_; }
+    CELER_FUNCTION real_type       next_step() const { return next_step_; }
     CELER_INLINE_FUNCTION VolumeId volume_id() const;
     CELER_INLINE_FUNCTION Boundary boundary() const;
     //@}
@@ -62,12 +58,31 @@ class VGGeometry
     static CELER_CONSTEXPR_FUNCTION double step_fudge() { return 1e-6; }
 
   private:
-    // Get a reference to the current volume
-    CELER_INLINE_FUNCTION const vecgeom::VPlacedVolume& volume() const;
+    //@{
+    //! Type aliases
+    using Volume   = vecgeom::VPlacedVolume;
+    using NavState = vecgeom::NavigationState;
+    //@}
+
+    //! Shared/persistent geometry data
+    const VGView& shared_;
+
+    //@{
+    //! Referenced thread-local data
+    NavState&  vgstate_;
+    NavState&  vgnext_;
+    Real3&     pos_;
+    Real3&     dir_;
+    real_type& next_step_;
+    //@}
 
   private:
-    const VGView&    data_;
-    VGStateView::Ref state_;
+    // Get a reference to the state from a NavStatePool's pointer
+    static CELER_INLINE_FUNCTION NavState&
+                                 get_nav_state(void* state, int vgmaxdepth, ThreadId thread);
+
+    // Get a reference to the current volume
+    CELER_INLINE_FUNCTION const Volume& volume() const;
 };
 
 //---------------------------------------------------------------------------//

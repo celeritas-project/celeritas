@@ -19,7 +19,14 @@ CELER_FUNCTION
 VGGeometry::VGGeometry(const VGView&      data,
                        const VGStateView& stateview,
                        const ThreadId&    id)
-    : data_(data), state_(stateview[id])
+    : shared_(data)
+    , vgstate_(VGGeometry::get_nav_state(
+          stateview.vgstate, stateview.vgmaxdepth, id))
+    , vgnext_(VGGeometry::get_nav_state(
+          stateview.vgnext, stateview.vgmaxdepth, id))
+    , pos_(stateview.pos[id.get()])
+    , dir_(stateview.dir[id.get()])
+    , next_step_(stateview.next_step[id.get()])
 {
 }
 
@@ -30,22 +37,22 @@ VGGeometry::VGGeometry(const VGView&      data,
 CELER_FUNCTION void VGGeometry::construct(const Real3& pos, const Real3& dir)
 {
     // Initialize position/direction
-    *state_.pos = pos;
-    *state_.dir = dir;
+    pos_ = pos;
+    dir_ = dir;
 
     // Set up current state and locate daughter volume.
-    state_.vgstate->Clear();
-    const vecgeom::VPlacedVolume* volume         = data_.world_volume;
+    vgstate_.Clear();
+    const vecgeom::VPlacedVolume* volume         = shared_.world_volume;
     const bool                    contains_point = true;
 
-    // Note that LocateGlobalPoint sets state->vgstate.
+    // Note that LocateGlobalPoint sets vgstate.
     volume = vecgeom::GlobalLocator::LocateGlobalPoint(
-        volume, detail::to_vector(pos), *state_.vgstate, contains_point);
+        volume, detail::to_vector(pos_), vgstate_, contains_point);
     CHECK(volume);
 
     // Set up next state
-    state_.vgnext->Clear();
-    *state_.next_step = celeritas::numeric_limits<real_type>::quiet_NaN();
+    vgnext_.Clear();
+    next_step_ = celeritas::numeric_limits<real_type>::quiet_NaN();
 }
 
 //---------------------------------------------------------------------------//
@@ -54,8 +61,8 @@ CELER_FUNCTION void VGGeometry::construct(const Real3& pos, const Real3& dir)
  */
 CELER_FUNCTION void VGGeometry::destroy()
 {
-    state_.vgstate->Clear();
-    state_.vgnext->Clear();
+    vgstate_.Clear();
+    vgnext_.Clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -66,12 +73,12 @@ CELER_FUNCTION void VGGeometry::find_next_step()
 {
     vecgeom::VNavigator const* navigator
         = this->volume().GetLogicalVolume()->GetNavigator();
-    *state_.next_step = navigator->ComputeStepAndPropagatedState(
-        detail::to_vector(*state_.pos),
-        detail::to_vector(*state_.dir),
-        vecgeom::kInfLength,
-        *state_.vgstate,
-        *state_.vgnext);
+    next_step_
+        = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
+                                                   detail::to_vector(dir_),
+                                                   vecgeom::kInfLength,
+                                                   vgstate_,
+                                                   vgnext_);
 }
 
 //---------------------------------------------------------------------------//
@@ -80,11 +87,11 @@ CELER_FUNCTION void VGGeometry::find_next_step()
  */
 CELER_FUNCTION void VGGeometry::move_next_step()
 {
-    *state_.vgstate = *state_.vgnext;
-    state_.vgnext->Clear();
+    vgstate_ = vgnext_;
+    vgnext_.Clear();
 
     // Move the next step plus an extra fudge distance
-    axpy(*state_.next_step + step_fudge(), *state_.dir, state_.pos);
+    axpy(next_step_ + step_fudge(), dir_, &pos_);
 }
 
 //---------------------------------------------------------------------------//
@@ -102,18 +109,39 @@ CELER_FUNCTION VolumeId VGGeometry::volume_id() const
  */
 CELER_FUNCTION Boundary VGGeometry::boundary() const
 {
-    return state_.vgstate->IsOutside() ? Boundary::outside : Boundary::inside;
+    return vgstate_.IsOutside() ? Boundary::outside : Boundary::inside;
 }
 
 //---------------------------------------------------------------------------//
 // PRIVATE CLASS FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Determine the pointer to the navigation state for a particular index.
+ *
+ * When using the "cuda"-namespace navigation state (i.e., compiling with NVCC)
+ * it's necessary to transform the raw data pointer into an index.
+ */
+CELER_FUNCTION auto
+VGGeometry::get_nav_state(void* state, int vgmaxdepth, ThreadId thread)
+    -> NavState&
+{
+    char* ptr = reinterpret_cast<char*>(state);
+#ifdef __NVCC__
+    ptr += vecgeom::cuda::NavigationState::SizeOf(vgmaxdepth) * thread.get();
+#else
+    REQUIRE(thread.get() == 0);
+#endif
+    ENSURE(ptr);
+    return *reinterpret_cast<NavState*>(ptr);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a reference to the current volume.
  */
 CELER_FUNCTION const vecgeom::VPlacedVolume& VGGeometry::volume() const
 {
-    const vecgeom::VPlacedVolume* vol_ptr = state_.vgstate->Top();
+    const vecgeom::VPlacedVolume* vol_ptr = vgstate_.Top();
     ENSURE(vol_ptr);
     return *vol_ptr;
 }

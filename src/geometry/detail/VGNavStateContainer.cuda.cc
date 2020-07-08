@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file VGNavStateContainer.cuda.cc
 //---------------------------------------------------------------------------//
-#include "VGNavStateContainer.cuda.hh"
+#include "VGNavStateContainer.hh"
 
 #include <VecGeom/navigation/NavStatePool.h>
 #include "base/Assert.hh"

@@ -48,7 +48,7 @@ class VGGeometryTest : public celeritas::Test
 VGGeometryTest::constSPVGHost VGGeometryTest::host_geom_ = nullptr;
 
 //---------------------------------------------------------------------------//
-// TESTS
+// HOST TESTS
 //---------------------------------------------------------------------------//
 
 class VGGeometryHostTest : public VGGeometryTest
@@ -62,13 +62,13 @@ class VGGeometryHostTest : public VGGeometryTest
         state.reset(NavState::MakeInstance(max_depth));
         next_state.reset(NavState::MakeInstance(max_depth));
 
-        view_params.size       = 1;
-        view_params.vgmaxdepth = max_depth;
-        view_params.pos        = &this->pos;
-        view_params.dir        = &this->dir;
-        view_params.next_step  = &this->next_step;
-        view_params.vgstate    = this->state.get();
-        view_params.vgnext     = this->next_state.get();
+        state_view.size       = 1;
+        state_view.vgmaxdepth = max_depth;
+        state_view.pos        = &this->pos;
+        state_view.dir        = &this->dir;
+        state_view.next_step  = &this->next_step;
+        state_view.vgstate    = this->state.get();
+        state_view.vgnext     = this->next_state.get();
 
         host_view = host_geom()->host_view();
         CHECK(host_view.world_volume);
@@ -83,15 +83,15 @@ class VGGeometryHostTest : public VGGeometryTest
     std::unique_ptr<NavState> next_state;
 
     // Views
-    VGStateView::Params view_params;
-    VGView              host_view;
+    VGStateView state_view;
+    VGView      host_view;
 };
 
 TEST_F(VGGeometryHostTest, track_line)
 {
     // Construct geometry interface from persistent geometry data, state view,
     // and thread ID (which for CPU is just zero).
-    VGGeometry geo(host_view, VGStateView(view_params), ThreadId(0));
+    VGGeometry geo(host_view, state_view, ThreadId(0));
 
     geo.construct({-6, 0, 0}, {1, 0, 0});
     EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
