@@ -6,15 +6,14 @@
 //! \file RngEngine.i.cuh
 //---------------------------------------------------------------------------//
 
-#include <cstddef>
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct from state
  */
-__device__ RngEngine::RngEngine(RngState* state) : state_(state) {}
+__device__ RngEngine::RngEngine(const RngStateView& view, int id)
+    : state_(view.rng + id) {}
 
 //---------------------------------------------------------------------------//
 /*!

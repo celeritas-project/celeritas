@@ -6,9 +6,8 @@
 //! \file RadialDistribution.test.cu
 //---------------------------------------------------------------------------//
 #include "random/RadialDistribution.hh"
-#include "random/RngStateContainer.cuh"
-
-#include <limits>
+#include "random/RngStateContainer.hh"
+#include "random/RngEngine.cuh"
 #include <random>
 #include <thrust/copy.h>
 #include <thrust/device_ptr.h>
@@ -17,12 +16,12 @@
 #include "base/Range.hh"
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
-
 #include "base/KernelParamCalculator.cuda.hh"
 
 using celeritas::RadialDistribution;
 using celeritas::RngStateContainer;
 using celeritas::RngStateView;
+using celeritas::RngEngine;
 
 //---------------------------------------------------------------------------//
 // CUDA KERNELS
@@ -31,12 +30,11 @@ using celeritas::RngStateView;
 __global__ void
 sample(RngStateView view, double* samples, RadialDistribution<> sample_radial)
 {
-    unsigned int local_thread_id
-        = celeritas::KernelParamCalculator::thread_id().get();
-    if (local_thread_id < view.num_samples)
+    unsigned int tid = celeritas::KernelParamCalculator::thread_id().get();
+    if (tid < view.size)
     {
-        auto rng = view[local_thread_id];
-        samples[local_thread_id] = sample_radial(rng);
+        RngEngine rng(view, tid);
+        samples[tid] = sample_radial(rng);
     }
 }
 

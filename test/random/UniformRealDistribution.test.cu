@@ -6,8 +6,8 @@
 //! \file UniformRealDistribution.test.cu
 //---------------------------------------------------------------------------//
 #include "random/UniformRealDistribution.hh"
-#include "random/RngStateContainer.cuh"
-
+#include "random/RngStateContainer.hh"
+#include "random/RngEngine.cuh"
 #include <random>
 #include <thrust/copy.h>
 #include <thrust/device_ptr.h>
@@ -16,26 +16,26 @@
 #include "base/Range.hh"
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
-
 #include "base/KernelParamCalculator.cuh"
 
 using celeritas::UniformRealDistribution;
 using celeritas::RngStateContainer;
 using celeritas::RngStateView;
+using celeritas::RngEngine;
 
 //---------------------------------------------------------------------------//
 // CUDA KERNELS
 //---------------------------------------------------------------------------//
 
 __global__ void
-sample(RngStateView view, double* samples,
-       UniformRealDistribution<> sample_uniform)
+sample(RngStateView view, double* samples, UniformRealDistribution<>
+       sample_uniform)
 {
-    int local_thread_id = celeritas::KernelParamCalculator::thread_id();
-    if (local_thread_id < view.size())
+    auto tid = celeritas::KernelParamCalculator::thread_id();
+    if (tid < view.size)
     {
-        auto rng = view[local_thread_id];
-        samples[local_thread_id] = sample_uniform(rng);
+        RngEngine rng(view, tid);
+        samples[tid] = sample_uniform(rng);
     }
 }
 

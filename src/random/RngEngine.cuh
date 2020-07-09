@@ -9,7 +9,7 @@
 #define random_RngEngine_cuh
 
 #include <curand_kernel.h>
-#include <cstddef>
+#include "RngStateView.cuh"
 
 namespace celeritas
 {
@@ -23,14 +23,11 @@ class RngEngine
     //@{
     //! Type aliases
     using result_type = unsigned int;
-    using size_type   = std::size_t;
-    using seed_type   = unsigned long long;
-    using RngState    = curandState_t;
     //@}
 
   public:
     // Construct from state
-    __device__ inline RngEngine(RngState* state);
+    __device__ inline RngEngine(const RngStateView& view, const int id);
 
     // Sample a random number
     __device__ inline result_type operator()();

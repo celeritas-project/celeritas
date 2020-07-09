@@ -5,64 +5,76 @@
 //---------------------------------------------------------------------------//
 //! \file RngStateContainer.cu
 //---------------------------------------------------------------------------//
-#include "random/RngStateContainer.cuh"
+#include "RngStateContainer.hh"
 
-#include <thrust/host_vector.h>
-
+#include <vector>
+#include <thrust/device_vector.h>
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuh"
+#include "RngEngine.cuh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+struct RngStateContainerPimpl
+{
+    thrust::device_vector<RngState> rng;
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
 __global__ void
-initialize_states(RngStateView view, RngStateContainer::seed_type* seeds)
+initialize_states(RngStateView view, seed_type* seeds)
 {
-    int local_thread_id = celeritas::KernelParamCalculator::thread_id();
-    if (local_thread_id < view.size())
+    auto tid = celeritas::KernelParamCalculator::thread_id();
+    if (tid < view.size)
     {
-        auto rng = view[local_thread_id];
-        rng.initialize_state(seeds[local_thread_id]);
+        RngEngine rng(view, tid);
+        rng.initialize_state(seeds[tid]);
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with no states.
- */
-RngStateContainer::RngStateContainer() = default;
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct with the number of RNG states.
  */
-RngStateContainer::RngStateContainer(size_type count, seed_type host_seed)
+RngStateContainer::RngStateContainer(ssize_type size, seed_type host_seed)
     : host_rng_(host_seed)
 {
-    this->resize(count);
+    this->resize(size);
 }
+
+//---------------------------------------------------------------------------//
+// Default constructor/destructor/move
+RngStateContainer::RngStateContainer()                               = default;
+RngStateContainer::~RngStateContainer()                              = default;
+RngStateContainer::RngStateContainer(RngStateContainer&&)            = default;
+RngStateContainer& RngStateContainer::operator=(RngStateContainer&&) = default;
 
 //---------------------------------------------------------------------------//
 /*!
  * Resize the RNG state vector, initializing new states if the number requested
  * is larger than the current size.
  */
-void RngStateContainer::resize(size_type count)
+void RngStateContainer::resize(ssize_type size)
 {
-    using thrust::raw_pointer_cast;
+    int num_states     = this->size();
+    int num_new_states = size - num_states;
 
-    int current_states = this->size();
-    int new_states     = count - current_states;
+    // Allocate and copy data to device
+    if (this->size() == 0)
+    {
+        data_ = std::make_unique<RngStateContainerPimpl>();
+    }
+    data_->rng.resize(size);
+    size_ = size;
 
-    rng_.resize(count);
-
-    if (new_states > 0)
+    if (num_new_states > 0)
     {
         // Create seeds on host
-        thrust::host_vector<seed_type> host_seeds(new_states);
+        std::vector<seed_type> host_seeds(num_new_states);
         for (auto& seed : host_seeds)
             seed = sample_uniform_int_(host_rng_);
  
@@ -70,18 +82,32 @@ void RngStateContainer::resize(size_type count)
         thrust::device_vector<seed_type> seeds = host_seeds;
  
         // Create a view of new states to initialize
-        RngStateView::Params view_params;
-        view_params.size  = new_states;
-        view_params.rng   = raw_pointer_cast(rng_.data()) + current_states;
-        RngStateView view = RngStateView(view_params);
+        RngStateView view;
+        view.size = num_new_states;
+        view.rng  = thrust::raw_pointer_cast(data_->rng.data()) + num_states;
 
         // Launch kernel to build RNG states on device
         celeritas::KernelParamCalculator calc_launch_params;
-        auto params = calc_launch_params(new_states);
+        auto params = calc_launch_params(num_new_states);
         initialize_states<<<params.grid_size, params.block_size>>>(
-            view, raw_pointer_cast(seeds.data()));
+            view, thrust::raw_pointer_cast(seeds.data()));
     }
-    ENSURE(rng_.size() == count);
+    ENSURE(data_->rng.size() == size);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a view to on-device memory
+ */
+RngStateView RngStateContainer::device_view() const
+{
+    REQUIRE(data_);
+
+    RngStateView view;
+    view.size = data_->rng.size();
+    view.rng  = thrust::raw_pointer_cast(data_->rng.data());
+
+    return view;
 }
 
 //---------------------------------------------------------------------------//

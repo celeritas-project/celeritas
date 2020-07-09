@@ -3,22 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngStateContainer.cuh
+//! \file RngStateContainer.hh
 //---------------------------------------------------------------------------//
-#ifndef random_RngStateContainer_cuh
-#define random_RngStateContainer_cuh
+#ifndef random_RngStateContainer_hh
+#define random_RngStateContainer_hh
 
-#include "random/RngEngine.cuh"
-#include "random/RngStateView.cuh"
-
+#include <memory>
 #include <random>
-
-#include <thrust/device_vector.h>
-
 #include "base/Types.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
+struct RngStateContainerPimpl;
+struct RngStateView;
 //---------------------------------------------------------------------------//
 /*!
  * Manage ownership of on-device random number generator.
@@ -26,40 +24,39 @@ namespace celeritas
 class RngStateContainer
 {
   public:
+    // Construct with the number of RNG states
+    RngStateContainer(ssize_type size, seed_type host_seed = 12345);
+
     //@{
-    //! Type aliases
-    using size_type = celeritas::ssize_type;
-    using seed_type = RngEngine::seed_type;
-    using RngState  = RngStateView::RngState;
+    //! Defaults that cause thrust to launch kernels
+    RngStateContainer();
+    ~RngStateContainer();
+    RngStateContainer(RngStateContainer&&);
+    RngStateContainer& operator=(RngStateContainer&&);
     //@}
 
-  public:
-    // Default constructor
-    RngStateContainer();
-
-    // Construct with the number of RNG states
-    RngStateContainer(size_type count, seed_type host_seed = 12345);
-
-    // Emit a view to on-device memory
-    inline RngStateView device_view();
-
     //! Number of states
-    size_type size() const { return rng_.size(); }
+    ssize_type size() const { return size_; }
 
     //! Resize the RNG state vector, initializing new states if necessary
-    void resize(size_type count);
+    void resize(ssize_type size);
+
+    // Emit a view to on-device memory
+    RngStateView device_view() const;
 
   private:
-    thrust::device_vector<RngState> rng_;
-
     // Host-side RNG for seeding device RNG
     std::mt19937                             host_rng_;
     std::uniform_int_distribution<seed_type> sample_uniform_int_;
+
+    // Number of states
+    ssize_type size_ = 0;
+
+    // Stored RNG states on device
+    std::unique_ptr<RngStateContainerPimpl> data_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "RngStateContainer.i.cuh"
-
-#endif // random_RngStateContainer_cuh
+#endif // random_RngStateContainer_hh

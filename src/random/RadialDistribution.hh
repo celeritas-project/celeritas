@@ -8,8 +8,7 @@
 #ifndef random_RadialDistribution_hh
 #define random_RadialDistribution_hh
 
-#include "random/GenerateCanonical.hh"
-
+#include "GenerateCanonical.hh"
 #include "base/Macros.hh"
 
 namespace celeritas

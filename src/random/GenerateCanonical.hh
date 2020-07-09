@@ -9,11 +9,9 @@
 #define random_GenerateCanonical_hh
 
 #ifdef __NVCC__
-#    include "random/RngEngine.cuh"
+#    include "RngEngine.cuh"
 #endif
-
 #include <random>
-
 #include "base/Macros.hh"
 
 namespace celeritas
