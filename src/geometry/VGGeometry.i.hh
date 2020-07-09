@@ -39,19 +39,6 @@ CELER_FUNCTION void VGGeometry::construct(const Real3& pos, const Real3& dir)
     // Initialize position/direction
     pos_ = pos;
     dir_ = dir;
-
-    // Set up current state and locate daughter volume.
-    vgstate_.Clear();
-    const vecgeom::VPlacedVolume* volume         = shared_.world_volume;
-    const bool                    contains_point = true;
-
-    // Note that LocateGlobalPoint sets vgstate.
-    volume = vecgeom::GlobalLocator::LocateGlobalPoint(
-        volume, detail::to_vector(pos_), vgstate_, contains_point);
-    CHECK(volume);
-
-    // Set up next state
-    vgnext_.Clear();
     next_step_ = celeritas::numeric_limits<real_type>::quiet_NaN();
 }
 
@@ -61,8 +48,6 @@ CELER_FUNCTION void VGGeometry::construct(const Real3& pos, const Real3& dir)
  */
 CELER_FUNCTION void VGGeometry::destroy()
 {
-    vgstate_.Clear();
-    vgnext_.Clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -71,14 +56,7 @@ CELER_FUNCTION void VGGeometry::destroy()
  */
 CELER_FUNCTION void VGGeometry::find_next_step()
 {
-    vecgeom::VNavigator const* navigator
-        = this->volume().GetLogicalVolume()->GetNavigator();
-    next_step_
-        = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
-                                                   detail::to_vector(dir_),
-                                                   vecgeom::kInfLength,
-                                                   vgstate_,
-                                                   vgnext_);
+    next_step_ = 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -87,9 +65,6 @@ CELER_FUNCTION void VGGeometry::find_next_step()
  */
 CELER_FUNCTION void VGGeometry::move_next_step()
 {
-    vgstate_ = vgnext_;
-    vgnext_.Clear();
-
     // Move the next step plus an extra fudge distance
     axpy(next_step_ + step_fudge(), dir_, &pos_);
 }
@@ -109,7 +84,7 @@ CELER_FUNCTION VolumeId VGGeometry::volume_id() const
  */
 CELER_FUNCTION Boundary VGGeometry::boundary() const
 {
-    return vgstate_.IsOutside() ? Boundary::outside : Boundary::inside;
+    return Boundary::outside;
 }
 
 //---------------------------------------------------------------------------//
@@ -141,7 +116,8 @@ VGGeometry::get_nav_state(void* state, int vgmaxdepth, ThreadId thread)
  */
 CELER_FUNCTION const vecgeom::VPlacedVolume& VGGeometry::volume() const
 {
-    const vecgeom::VPlacedVolume* vol_ptr = vgstate_.Top();
+    const vecgeom::VPlacedVolume* vol_ptr = nullptr;
+    // const vecgeom::VPlacedVolume* vol_ptr = vgstate_.Top();
     ENSURE(vol_ptr);
     return *vol_ptr;
 }

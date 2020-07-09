@@ -65,12 +65,16 @@ if(CELERITAS_USE_VECGEOM)
   if(CELERITAS_USE_CUDA)
     list(APPEND CELERITASTEST_LINK_LIBRARIES
       VecGeom::vecgeomcuda
-      VecGeom::vecgeomcuda_static)
+      # XXX removing the line below allows the test to launch without segfault
+      VecGeom::vecgeomcuda_static
+    )
+
 
     celeritas_add_test(geometry/VGGeometry.test.cc
       SOURCES geometry/VGGeometry.test.cu)
     # XXX use ADDED_TARGET instead of manually entering target name
     set_target_properties(geometry_VGGeometry PROPERTIES
+      LINKER_LANGUAGE CUDA
       CUDA_SEPARABLE_COMPILATION ON
       POSITION_INDEPENDENT_CODE ON
     )
