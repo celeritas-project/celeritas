@@ -63,14 +63,6 @@ class OpaqueId
         return value_;
     }
 
-    //! Whether the ID is a valid index for the given container
-    template<class Container>
-    CELER_FUNCTION bool is_valid_index_for(const Container& c) const
-    {
-        using csize_type = decltype(c.size());
-        return static_cast<csize_type>(this->unchecked_get()) < c.size();
-    }
-
   private:
     // >>> DATA
 
