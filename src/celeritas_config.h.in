@@ -7,14 +7,14 @@
  * Configuration-specific options for Celeritas.
  *---------------------------------------------------------------------------*/
 
-#ifndef celeritas_config_h_in
-#define celeritas_config_h_in
+#ifndef celeritas_config_h
+#define celeritas_config_h
 
-#cmakedefine CELERITAS_USE_CUDA
-#cmakedefine CELERITAS_USE_MPI
-#cmakedefine CELERITAS_USE_ROOT
-#cmakedefine CELERITAS_USE_VECGEOM
+#cmakedefine01 CELERITAS_USE_CUDA
+#cmakedefine01 CELERITAS_USE_MPI
+#cmakedefine01 CELERITAS_USE_ROOT
+#cmakedefine01 CELERITAS_USE_VECGEOM
 
-#cmakedefine CELERITAS_DEBUG
+#cmakedefine01 CELERITAS_DEBUG
 
-#endif /* celeritas_config_h_in */
+#endif /* celeritas_config_h */

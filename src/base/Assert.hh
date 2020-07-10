@@ -49,11 +49,11 @@
         if (false && (COND)) {} \
     } while (0)
 
-#if defined(CELERITAS_DEBUG) && defined(__CUDA_ARCH__)
+#if CELERITAS_DEBUG && defined(__CUDA_ARCH__)
 #    define REQUIRE(x) CELER_CUDA_ASSERT_(x)
 #    define CHECK(x) CELER_CUDA_ASSERT_(x)
 #    define ENSURE(x) CELER_CUDA_ASSERT_(x)
-#elif defined(CELERITAS_DEBUG) && !defined(__CUDA_ARCH__)
+#elif CELERITAS_DEBUG && !defined(__CUDA_ARCH__)
 #    define REQUIRE(x) CELER_ASSERT_(x)
 #    define CHECK(x) CELER_ASSERT_(x)
 #    define ENSURE(x) CELER_ASSERT_(x)

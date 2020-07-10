@@ -9,14 +9,14 @@
 #define comm_Types_hh
 
 #include "celeritas_config.h"
-#ifdef CELERITAS_USE_MPI
+#if CELERITAS_USE_MPI
 #    include <mpi.h>
 #endif
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-#ifdef CELERITAS_USE_MPI
+#if CELERITAS_USE_MPI
 using MpiComm = MPI_Comm;
 #else
 

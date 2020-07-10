@@ -30,7 +30,7 @@ void ParallelHandler::OnTestProgramStart(const ::testing::UnitTest&)
     if (comm_.rank() == 0)
     {
         std::cout << color_code('x') << "Testing "
-#ifdef CELERITAS_USE_MPI
+#if CELERITAS_USE_MPI
                   << "on " << comm_.size() << " process"
                   << (comm_.size() > 1 ? "es" : "")
 #else
