@@ -26,13 +26,19 @@ list(APPEND SOURCES
   base/ColorUtils.cc
   comm/Utils.cc
 )
+
 if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
+    base/DeviceAllocation.cuda.cc
     base/KernelParamCalculator.cuda.cc
     base/StackAllocatorContainer.cu
     random/RngStateContainer.cu
   )
   list(APPEND PRIVATE_DEPS CUDA::cudart)
+else()
+  list(APPEND SOURCES
+    base/DeviceAllocation.nocuda.cc
+  )
 endif()
 
 if(CELERITAS_USE_MPI)

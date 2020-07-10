@@ -172,7 +172,9 @@ inline void contract_violation(const char* msg)
 #ifdef TCB_SPAN_HAVE_STD_BYTE
 using byte = std::byte;
 #else
-using byte = unsigned char;
+enum class byte : unsigned char
+{
+};
 #endif
 
 #if defined(TCB_SPAN_HAVE_CPP17)

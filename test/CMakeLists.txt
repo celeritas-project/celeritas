@@ -33,6 +33,8 @@ include(CeleritasAddTest)
 
 celeritas_setup_tests(SERIAL PREFIX base)
 celeritas_add_test(base/Array.test.cc)
+celeritas_add_test(base/DeviceAllocation.test.cc)
+celeritas_add_test(base/DeviceVector.test.cc)
 celeritas_add_test(base/Interpolator.test.cc)
 celeritas_add_test(base/OpaqueId.test.cc)
 celeritas_add_test(base/Range.test.cc)
