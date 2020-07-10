@@ -17,16 +17,21 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${_CONFIG_NAME}"
 #----------------------------------------------------------------------------#
 # LIBRARY
 #----------------------------------------------------------------------------#
-set(SOURCES
-  base/KernelParamCalculator.cu
-)
-set(LIBRARY_DEPS
-)
+set(SOURCES)
+set(PRIVATE_DEPS)
+set(PUBLIC_DEPS)
 
+list(APPEND SOURCES
+  base/Assert.cc
+  base/ColorUtils.cc
+  comm/Utils.cc
+)
 if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
-    base/KernelParamCalculator.cu
+    base/KernelParamCalculator.cuda.cc
+    base/StackAllocatorContainer.cu
   )
+  list(APPEND PRIVATE_DEPS CUDA::cudart)
 endif()
 
 if(CELERITAS_USE_MPI)
@@ -34,7 +39,7 @@ if(CELERITAS_USE_MPI)
     comm/Communicator.mpi.cc
     comm/ScopedMpiInit.mpi.cc
   )
-  list(APPEND LIBRARY_DEPS MPI::MPI_CXX)
+  list(APPEND PUBLIC_DEPS MPI::MPI_CXX)
 else()
   list(APPEND SOURCES
     comm/Communicator.serial.cc
@@ -43,7 +48,10 @@ else()
 endif()
 
 add_library(celeritas ${SOURCES})
-target_link_libraries(celeritas ${LIBRARY_DEPS})
+target_link_libraries(celeritas
+  PRIVATE ${PRIVATE_DEPS}
+  PUBLIC ${PUBLIC_DEPS}
+)
 
 target_include_directories(celeritas
   PUBLIC

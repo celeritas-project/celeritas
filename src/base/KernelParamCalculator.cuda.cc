@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KernelParamCalculator.cu
+//! \file KernelParamCalculator.cuda.cc
 //---------------------------------------------------------------------------//
 #include <cassert>
 #include <limits>
 
-#include "KernelParamCalculator.cuh"
+#include "KernelParamCalculator.cuda.hh"
 #include "Assert.hh"
 
 namespace
@@ -31,8 +31,7 @@ namespace celeritas
  *
  * Require at least two warps per block.
  */
-__host__ KernelParamCalculator::KernelParamCalculator(dim_type size)
-    : block_size_(size)
+KernelParamCalculator::KernelParamCalculator(dim_type size) : block_size_(size)
 {
     REQUIRE(size >= 64);
     REQUIRE(size % 32 == 0);

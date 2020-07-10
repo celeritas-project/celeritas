@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "random/RadialDistribution.hh"
 
+#include <limits>
 #include <random>
 #include <thrust/copy.h>
 #include <thrust/device_ptr.h>
@@ -16,7 +17,7 @@
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
 
-#include "base/KernelParamCalculator.cuh"
+#include "base/KernelParamCalculator.cuda.hh"
 
 using celeritas::RadialDistribution;
 
@@ -40,7 +41,8 @@ struct RngStateView
 
 __global__ void sample(RngStateView view)
 {
-    int local_thread_id = celeritas::KernelParamCalculator::thread_id();
+    unsigned int local_thread_id
+        = celeritas::KernelParamCalculator::thread_id().get();
     if (local_thread_id < view.num_samples)
     {
         view.result[local_thread_id] = view.sample_radial(view.engine);

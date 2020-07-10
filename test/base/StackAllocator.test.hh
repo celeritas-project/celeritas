@@ -3,38 +3,36 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Types.hh
+//! \file StackAllocator.test.hh
 //---------------------------------------------------------------------------//
-#ifndef base_Types_hh
-#define base_Types_hh
 
-#include <cstddef>
-#include "OpaqueId.hh"
+#include "base/StackAllocatorView.hh"
 
-namespace celeritas
+namespace celeritas_test
 {
-template<typename T, std::size_t N>
-class array;
-
-class Thread;
+using namespace celeritas;
 //---------------------------------------------------------------------------//
-using size_type    = std::size_t;
-using ssize_type   = int;
-using real_type    = double;
-using RealPointer3 = array<real_type*, 3>;
-using Real3        = array<real_type, 3>;
-
-using ThreadId = OpaqueId<Thread, unsigned int>;
-
+// TESTING INTERFACE
 //---------------------------------------------------------------------------//
-
-enum class Interp
+//! Input data
+struct SATestInput
 {
-    Linear,
-    Log
+    int                num_threads;
+    int                num_iters;
+    int                alloc_size;
+    StackAllocatorView sa_view;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+//! Output results
+struct SATestOutput
+{
+    int num_allocations;
+};
 
-#endif // base_Types_hh
+//---------------------------------------------------------------------------//
+//! Run on device and return results
+SATestOutput sa_run(SATestInput);
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas_test

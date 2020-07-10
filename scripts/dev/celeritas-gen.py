@@ -26,7 +26,8 @@ HEADER_FILE = '''\
 #ifndef {header_guard}
 #define {header_guard}
 
-namespace celeritas {{
+namespace celeritas
+{{
 //---------------------------------------------------------------------------//
 /*!
  * Brief class description.
@@ -50,7 +51,7 @@ class {name}
 }};
 
 //---------------------------------------------------------------------------//
-}}  // namespace celeritas
+}} // namespace celeritas
 
 #include "{name}.i.{hext}"
 
@@ -59,7 +60,8 @@ class {name}
 
 INLINE_FILE = '''\
 
-namespace celeritas {{
+namespace celeritas
+{{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with defaults.
@@ -75,20 +77,24 @@ namespace celeritas {{
 CODE_FILE = '''\
 #include "{name}.{hext}"
 
-namespace celeritas {{
+namespace celeritas
+{{
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-}}  // namespace celeritas
+}} // namespace celeritas
 '''
 
-TEST_FILE = '''\
-#include "{name}.{hext}"
+TEST_HARNESS_FILE = '''\
+#include "{dirname}/{name}.{hext}"
 
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
+#include "gmock/gmock.h"
+#include "{name}.test.hh"
 
 using celeritas::{name};
+using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -106,8 +112,81 @@ class {name}Test : public celeritas::Test
 
 TEST_F({name}Test, all)
 {{
+    // {capabbr}TestInput input;
+    // input.num_threads = 0;
+    // auto result = {lowabbr}_test(input);
+    // using testing::ElementsAreArray;
+    // EXPECT_THAT(result.foo, ElementsAreArray(expected_foo));
 }}
 '''
+
+TEST_HEADER_FILE = '''
+namespace celeritas_test
+{{
+using namespace celeritas;
+//---------------------------------------------------------------------------//
+// TESTING INTERFACE
+//---------------------------------------------------------------------------//
+//! Input data
+struct {capabbr}TestInput
+{{
+    int num_threads;
+}};
+
+//---------------------------------------------------------------------------//
+//! Output results
+struct {capabbr}TestOutput
+{{
+}};
+
+//---------------------------------------------------------------------------//
+//! Run on device and return results
+{capabbr}TestOutput {lowabbr}_test({capabbr}TestInput);
+
+//---------------------------------------------------------------------------//
+}} // namespace celeritas_test
+'''
+
+TEST_CODE_FILE = '''\
+#include "{name}.test.hh"
+
+#include <thrust/device_vector.h>
+#include "base/KernelParamCalculator.cuda.hh"
+
+using thrust::raw_pointer_cast;
+
+namespace celeritas_test
+{{
+//---------------------------------------------------------------------------//
+// KERNELS
+//---------------------------------------------------------------------------//
+
+__global__ void {lowabbr}_test_kernel(int size)
+{{
+    int local_thread_id = celeritas::KernelParamCalculator::thread_id();
+    if (local_thread_id >= size)
+        return;
+}}
+
+//---------------------------------------------------------------------------//
+// TESTING INTERFACE
+//---------------------------------------------------------------------------//
+//! Run on device and return results
+{capabbr}TestOutput {lowabbr}_test({capabbr}TestInput input)
+{{
+    celeritas::KernelParamCalculator calc_launch_params;
+    auto params = calc_launch_params(input.num_threads);
+    {lowabbr}_test_kernel<<<params.grid_size, params.block_size>>>(
+        input.num_threads);
+
+    {capabbr}TestOutput result;
+    return result;
+}}
+
+//---------------------------------------------------------------------------//
+}} // namespace celeritas_test
+'''
+
 
 CMAKE_TOP = '''\
 #{modeline:-^77s}#
@@ -162,8 +241,9 @@ TEMPLATES = {
     'cc': CODE_FILE,
     'cu': CODE_FILE,
     'cuh': HEADER_FILE,
-    'test.cc': TEST_FILE,
-    'test.cu': TEST_FILE,
+    'test.cc': TEST_HARNESS_FILE,
+    'test.cu': TEST_CODE_FILE,
+    'test.hh': TEST_HEADER_FILE,
     'k.cuh': INLINE_FILE,
     'i.cuh': INLINE_FILE,
     't.cuh': INLINE_FILE,
@@ -198,6 +278,7 @@ def generate(root, filename):
         return
 
     relpath = os.path.relpath(filename, start=root)
+    dirname = os.path.dirname(relpath)
     basename = os.path.basename(filename)
     (name, _, longext) = basename.partition('.')
 
@@ -219,6 +300,7 @@ def generate(root, filename):
     top = TOPS[lang]
 
     relpath = re.sub(r'^[./]+', '', relpath)
+    capabbr = re.sub(r'[^A-Z]+', '', name)
     variables = {
         'longext': longext,
         'ext': ext,
@@ -228,6 +310,9 @@ def generate(root, filename):
         'header_guard': re.sub(r'\W', '_', relpath),
         'filename': filename,
         'basename': basename,
+        'dirname': dirname,
+        'capabbr': capabbr,
+        'lowabbr': capabbr.lower(),
         }
     with open(filename, 'w') as f:
         f.write((top + template).format(**variables))

@@ -34,7 +34,7 @@ Applications:
 - Use only ``const`` data when sharing. Non-const shared data is almost like
   using global variables.
 - Use ``OpaqueId`` instead of integers and magic sentinel values for
-  integer identifiers that aren't supposed to be arithmetical .
+  integer identifiers that aren't supposed to be arithmetical.
 
 Examples:
 
@@ -153,20 +153,22 @@ corresponding ``.hh`` files for C++ headers.
 
 Thus we have the following rules:
 
-- ``.hh`` is for C++ code compatible with host compilers. It may declare Thrust
-  objects, since thrust type declarations are compatible with the host
-  compiler. It can also use host/device keywords if it includes the CUDA
-  runtime API or hides the keywords with macros.
+- ``.hh`` is for C++ header code compatible with host compilers. The code in
+  this file can be compatible with device code if it uses the
+  ``CELER_FUNCTION`` family of macros defined in ``base/Macros.hh``.
 - ``.cc`` is for C++ code that will invariably be compiled by the host
   compiler.
-- ``.cu`` is for ``__global__`` kernels and functions that launch them
+- ``.cu`` is for ``__global__`` kernels and functions that launch them,
+  including code that initializes device memory.
 - ``.cuh`` is for header files that require compilation by NVCC: contain
   ``__device __``-only code or include CUDA directives without ``#include
   <cuda_runtime_api.h>``.
-
-Ideally we could keep ``thrust`` includes isolated from ``.cu`` code to speed
-compilation and to potentially allow host testing of ``__device__``--annotated
-code.
+- ``.cuda.hh`` and ``.cuda.cc`` require CUDA to be enabled and use CUDA runtime
+  libraries and headers, but they do not execute any device code and thus can
+  be built by a host compiler.  Memory-management code is a good example of
+  this.
+- ``.mpi.cc`` and ``.serial.cc`` code requires MPI to be enabled or disabled,
+  respectively.
 
 Some files have special extensions:
 - ``.i.hh`` is for ``inline`` function implementations. If a function or member
@@ -188,4 +190,23 @@ self-documenting. Avoid shorthand and "transliterated" mathematical
 expressions: prefer ``constants::avogadro`` to ``N_A`` or express the constant
 functionally with ``atoms_per_mole``.
 
+Data management
+===============
 
+Data management should be isolated from data use as much as possible. This
+allows low-level physics classes to operate on references to data using the
+exact same device/host code.
+
+Container
+  Provide a CPU-based interface to allocate, store, and retrieve GPU data using
+  ``thrust`` vectors or other means. These can only be accessed via host code
+  but they use the CUDA API to manage data on the device. They can contain
+  metadata (string names, etc.) suitable for host-side debug output.
+
+View
+  A standalone plain-old-data reference to data owned by a container, used to
+  transfer GPU pointers and other kernel parameters between host and device.
+  The view's user should be closely linked with the Container: for example, the
+  device utility ``StackAllocator`` uses the ``StackAllocatorView`` to find
+  GPU-owned data managed by the ``StackAllocatorContainer``. Views can contain
+  other views (usually by value).

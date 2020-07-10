@@ -1,32 +1,24 @@
-//---------------------------------*-CUDA-*----------------------------------//
+//----------------------------------*-C++-*----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Constants.hh
+//! \file ColorUtils.hh
 //---------------------------------------------------------------------------//
-#ifndef base_Constants_hh
-#define base_Constants_hh
-
-#include "Types.hh"
+#ifndef base_ColorUtils_hh
+#define base_ColorUtils_hh
 
 namespace celeritas
 {
-namespace constants
-{
 //---------------------------------------------------------------------------//
-/*!
- * \namespace constants
- *
- * Mathematical and numerical constants.
- */
+// Whether colors are enabled (currently read-only)
+bool use_color();
 
-constexpr real_type pi     = 3.14159265358979323846;
-constexpr real_type two_pi = 2. * pi;
-
-} // namespace constants
+//---------------------------------------------------------------------------//
+// Get an ANSI color code: [y]ellow / [r]ed / [ ]default / ...
+const char* color_code(char abbrev);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // base_Constants_hh
+#endif // base_ColorUtils_hh

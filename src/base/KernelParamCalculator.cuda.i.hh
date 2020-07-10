@@ -3,30 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Constants.hh
+//! \file KernelParamCalculator.i.cuh
 //---------------------------------------------------------------------------//
-#ifndef base_Constants_hh
-#define base_Constants_hh
-
-#include "Types.hh"
 
 namespace celeritas
 {
-namespace constants
-{
 //---------------------------------------------------------------------------//
 /*!
- * \namespace constants
- *
- * Mathematical and numerical constants.
+ * Get the linear thread ID.
  */
-
-constexpr real_type pi     = 3.14159265358979323846;
-constexpr real_type two_pi = 2. * pi;
-
-} // namespace constants
+CELER_INLINE_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
+{
+#ifdef __CUDA_ARCH__
+    return ThreadId{blockIdx.x * blockDim.x + threadIdx.x};
+#else
+    return ThreadId{0u};
+#endif
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-#endif // base_Constants_hh

@@ -13,10 +13,6 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-// Get an ANSI color code: [y]ellow / [r]ed / [ ]clear
-const char* color_code(char abbrev);
-
-//---------------------------------------------------------------------------//
 // Get the "skip" message for the skip macro
 const char* skip_cstring();
 

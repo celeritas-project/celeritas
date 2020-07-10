@@ -12,7 +12,7 @@ Include this file *directly* from the parent directory to set up GoogleTest.
 #]=======================================================================]
 
 # Set up options
-set(BUILD_GMOCK OFF CACHE BOOL "")
+set(BUILD_GMOCK ON CACHE BOOL "")
 set(INSTALL_GTEST OFF CACHE BOOL "")
 set(gtest_disable_pthreads OFF CACHE BOOL "")
 if(MSVC)
@@ -26,6 +26,10 @@ add_subdirectory(googletest)
 # Define the same library alias used when Googletest is installed externally
 add_library(gtest_celeritas INTERFACE)
 target_link_libraries(gtest_celeritas INTERFACE gtest)
+if(BUILD_GMOCK)
+  target_link_libraries(gtest_celeritas INTERFACE gmock)
+endif()
+
 add_library(GTest::GTest ALIAS gtest_celeritas)
 
 # Google compile definitions don't get propagated correctly

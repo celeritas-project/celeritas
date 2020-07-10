@@ -3,18 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KernelParamCalculator.i.cuh
+//! \file StackAllocator.i.hh
 //---------------------------------------------------------------------------//
+
+#include "base/Atomics.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get the linear thread ID.
+ * Construct with a reference to the storage pointers
  */
-__device__ KernelParamCalculator::dim_type KernelParamCalculator::thread_id()
+CELER_INLINE_FUNCTION
+StackAllocator::StackAllocator(const StackAllocatorView& data) : data_(data) {}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Allocate like malloc.
+ */
+CELER_INLINE_FUNCTION auto StackAllocator::operator()(size_type size)
+    -> result_type
 {
-    return blockIdx.x * blockDim.x + threadIdx.x;
+    size_type start = atomic_add(data_.size, size);
+    if (start + size > data_.capacity)
+        return nullptr;
+    return data_.data + start;
 }
 
 //---------------------------------------------------------------------------//

@@ -1,32 +1,35 @@
-//---------------------------------*-CUDA-*----------------------------------//
+//----------------------------------*-C++-*----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Constants.hh
+//! \file Atomics.hh
 //---------------------------------------------------------------------------//
-#ifndef base_Constants_hh
-#define base_Constants_hh
+#ifndef base_Atomics_hh
+#define base_Atomics_hh
 
-#include "Types.hh"
+#include "Assert.hh"
+#include "Macros.hh"
 
 namespace celeritas
 {
-namespace constants
-{
 //---------------------------------------------------------------------------//
 /*!
- * \namespace constants
- *
- * Mathematical and numerical constants.
+ * Add to a value, returning the original value.
  */
-
-constexpr real_type pi     = 3.14159265358979323846;
-constexpr real_type two_pi = 2. * pi;
-
-} // namespace constants
-
+template<class T>
+CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
+{
+#ifdef __CUDA_ARCH__
+    return atomicAdd(address, value);
+#else
+    REQUIRE(address);
+    T initial = *address;
+    *address += value;
+    return initial;
+#endif
+}
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // base_Constants_hh
+#endif // base_Atomics_hh

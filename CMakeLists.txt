@@ -10,6 +10,10 @@ project(Celeritas VERSION 0.0.1 LANGUAGES CXX)
 cmake_policy(VERSION 3.13...3.16)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+if(CMAKE_VERSION VERSION_LESS 3.18)
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/backport/3.18")
+endif()
+
 include(GNUInstallDirs)
 include(CeleritasUtils)
 
@@ -62,6 +66,8 @@ if(CELERITAS_USE_CUDA)
   enable_language(CUDA)
   set(CMAKE_CUDA_STANDARD 14)
   set(CMAKE_CUDA_EXTENSIONS OFF)
+
+  find_package(CUDAToolkit REQUIRED QUIET)
 endif()
 
 if(CELERITAS_USE_MPI)

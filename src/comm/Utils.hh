@@ -1,32 +1,22 @@
-//---------------------------------*-CUDA-*----------------------------------//
+//----------------------------------*-C++-*----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Constants.hh
+//! \file Utils.hh
 //---------------------------------------------------------------------------//
-#ifndef base_Constants_hh
-#define base_Constants_hh
+#ifndef comm_Utils_hh
+#define comm_Utils_hh
 
-#include "Types.hh"
+#include "Communicator.hh"
 
 namespace celeritas
 {
-namespace constants
-{
 //---------------------------------------------------------------------------//
-/*!
- * \namespace constants
- *
- * Mathematical and numerical constants.
- */
-
-constexpr real_type pi     = 3.14159265358979323846;
-constexpr real_type two_pi = 2. * pi;
-
-} // namespace constants
+// Initialize device in a round-robin fashion from a communicator
+void initialize_device(const Communicator& comm);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // base_Constants_hh
+#endif // comm_Utils_hh

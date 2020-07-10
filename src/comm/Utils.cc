@@ -3,38 +3,34 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Types.hh
+//! \file Utils.cuda.cc
 //---------------------------------------------------------------------------//
-#ifndef base_Types_hh
-#define base_Types_hh
+#include "Utils.hh"
 
-#include <cstddef>
-#include "OpaqueId.hh"
+#ifdef CELERITAS_USE_CUDA
+#    include <cuda_runtime_api.h>
+#endif
+#include "base/Assert.hh"
 
 namespace celeritas
 {
-template<typename T, std::size_t N>
-class array;
-
-class Thread;
 //---------------------------------------------------------------------------//
-using size_type    = std::size_t;
-using ssize_type   = int;
-using real_type    = double;
-using RealPointer3 = array<real_type*, 3>;
-using Real3        = array<real_type, 3>;
-
-using ThreadId = OpaqueId<Thread, unsigned int>;
-
-//---------------------------------------------------------------------------//
-
-enum class Interp
+// Initialize device in a round-robin fashion from a communicator
+void initialize_device(const Communicator& comm)
 {
-    Linear,
-    Log
-};
+#ifdef CELERITAS_USE_CUDA
+    // Get number of devices
+    int num_devices = -1;
+    CELER_CUDA_CALL(cudaGetDeviceCount(&num_devices));
+    CHECK(num_devices > 0);
+
+    // Set device based on communicator
+    int device_id = comm.rank() % num_devices;
+    CELER_CUDA_CALL(cudaSetDevice(device_id));
+#else
+    (void)sizeof(comm);
+#endif
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-#endif // base_Types_hh
