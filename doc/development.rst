@@ -170,10 +170,6 @@ Thus we have the following rules:
 - ``.mpi.cc`` and ``.serial.cc`` code requires MPI to be enabled or disabled,
   respectively.
 
-Ideally we could keep ``thrust`` includes isolated from ``.cu`` code to speed
-compilation and to potentially allow host testing of ``__device__``--annotated
-code.
-
 Some files have special extensions:
 - ``.i.hh`` is for ``inline`` function implementations. If a function or member
   function is marked ``inline`` in the main header file, its
@@ -208,8 +204,9 @@ Container
   metadata (string names, etc.) suitable for host-side debug output.
 
 View
-  A standalone reference to data in a container, with accessors suitable for
-  GPU access (using OpaqueId for persistent "absolute" indexing or standard
-  indexes for containers that behave like arrays).
-
-
+  A standalone plain-old-data reference to data owned by a container, used to
+  transfer GPU pointers and other kernel parameters between host and device.
+  The view's user should be closely linked with the Container: for example, the
+  device utility ``StackAllocator`` uses the ``StackAllocatorView`` to find
+  GPU-owned data managed by the ``StackAllocatorContainer``. Views can contain
+  other views (usually by value).
