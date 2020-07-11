@@ -3,33 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocator.i.hh
+//! \file Utils.cu
 //---------------------------------------------------------------------------//
+#include "Utils.hh"
 
-#include "base/Atomics.hh"
+#include <thrust/uninitialized_fill.h>
+#include <thrust/device_malloc.h>
+#include <thrust/execution_policy.h>
+#include <thrust/device_ptr.h>
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct with a reference to the storage pointers
- */
-CELER_FUNCTION
-StackAllocator::StackAllocator(const StackAllocatorView& view) : shared_(view)
+namespace detail
 {
+//---------------------------------------------------------------------------//
+void device_memset(void* data, int fill_value, size_type count)
+{
+    auto* data_char = static_cast<unsigned char*>(data);
+
+    thrust::uninitialized_fill_n(
+        thrust::device,
+        thrust::device_pointer_cast<unsigned char>(data_char),
+        count,
+        static_cast<unsigned int>(fill_value));
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Allocate like malloc.
- */
-CELER_FUNCTION auto StackAllocator::operator()(size_type size) -> result_type
-{
-    size_type start = atomic_add(shared_.size, size);
-    if (start + size > shared_.storage.size())
-        return nullptr;
-    return shared_.storage.data() + start;
-}
-
-//---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

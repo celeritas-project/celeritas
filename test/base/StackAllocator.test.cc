@@ -5,14 +5,14 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocator.test.cc
 //---------------------------------------------------------------------------//
-#include "base/StackAllocatorContainer.hh"
+#include "base/StackAllocatorStore.hh"
 
 #include <memory>
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
 #include "StackAllocator.test.hh"
 
-using celeritas::StackAllocatorContainer;
+using celeritas::StackAllocatorStore;
 using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
@@ -25,9 +25,9 @@ class StackAllocatorTest : public celeritas::Test
     void SetUp() override
     {
         // Allocate 8 kiB of device stack space
-        storage = StackAllocatorContainer(1024 * 8);
+        storage = StackAllocatorStore(1024 * 8);
     }
-    StackAllocatorContainer storage;
+    StackAllocatorStore storage;
 };
 
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ TEST_F(StackAllocatorTest, all)
     EXPECT_EQ(1024 - 256, result.num_allocations);
 
     // Swap with another (smaller) stack
-    StackAllocatorContainer other(128 * 8);
+    StackAllocatorStore other(128 * 8);
     storage.swap(other);
     input.sa_view = storage.device_view();
     EXPECT_EQ(128 * 8, storage.capacity());

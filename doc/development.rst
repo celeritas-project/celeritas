@@ -165,9 +165,11 @@ Thus we have the following rules:
   <cuda_runtime_api.h>``.
 - ``.cuda.hh`` and ``.cuda.cc`` require CUDA to be enabled and use CUDA runtime
   libraries and headers, but they do not execute any device code and thus can
-  be built by a host compiler.  Memory-management code is a good example of
-  this.
-- ``.mpi.cc`` and ``.serial.cc`` code requires MPI to be enabled or disabled,
+  be built by a host compiler. If the CUDA-related code is guarded by ``#if
+  CELERITAS_USE_CUDA`` macros then the special extension is not necessary. A
+  ``.nocuda.cc`` file can specify alternative code paths to ``.cuda.cc`` files
+  (mainly for error checking code).
+- ``.mpi.cc`` and ``.nompi.cc`` code requires MPI to be enabled or disabled,
   respectively.
 
 Some files have special extensions:
@@ -195,18 +197,45 @@ Data management
 
 Data management should be isolated from data use as much as possible. This
 allows low-level physics classes to operate on references to data using the
-exact same device/host code.
+exact same device/host code. Furthermore, state data (one per track) and
+shared data (definitions, persistent data, model data) should be separately
+allocated and managed.
 
-Container
-  Provide a CPU-based interface to allocate, store, and retrieve GPU data using
-  ``thrust`` vectors or other means. These can only be accessed via host code
-  but they use the CUDA API to manage data on the device. They can contain
-  metadata (string names, etc.) suitable for host-side debug output.
+Params (model parameters)
+  Provide a CPU-based interface to manage and provide access to constant shared
+  GPU data, usually model parameters or the like. The store class itself  can
+  only be accessed via host code, but it should use the
+  ``celeritas::DeviceVector`` or ``thrust`` or ``VecGeom`` wrappers to manage
+  on-device data. A store class can contain metadata (string
+  names, etc.) suitable for host-side debug output and for helping related
+  classes convert from user-friendly input (e.g. particle name) to
+  device-friendly IDs (e.g. particle def ID).
 
-View
-  A standalone plain-old-data reference to data owned by a container, used to
-  transfer GPU pointers and other kernel parameters between host and device.
-  The view's user should be closely linked with the Container: for example, the
-  device utility ``StackAllocator`` uses the ``StackAllocatorView`` to find
-  GPU-owned data managed by the ``StackAllocatorContainer``. Views can contain
-  other views (usually by value).
+State (state variables)
+  Thread-local data that corresponds to the model/store. Usually a simple
+  storage class, since the state is meaningless without the model parameters.
+
+Views
+  A standalone plain-old-data reference to data owned by a Model, a Store, or a
+  State,
+  used to transfer GPU pointers and other kernel parameters between host and
+  device. Views can hold other views as data members. Inside unit tests for
+  debugging, views can point to *host* data if the corresponding functions
+  being called are also on-host.
+
+Model/Access
+  Device-compatible class that combines the state variables and model
+  parameters. This can be named arbitrarily.
+
+.. example::
+
+   All SM physics particles share a common set of properties such as mass,
+   charge; and each instance of particle has a particular set of
+   associated variables such as kinetic energy. The shared data (SM parameters)
+   reside in the ParticleStore, and the particle track properties are managed
+   by a ParticleStates class.
+
+   A separate class, the Particle, acts as an accessor to the stored data and
+   can calculate properties that depend on both the state and parameters. For
+   example, momentum depends on the mass of a particle (constant, set by the
+   model), and speed depends on the particle's kinetic energy state.

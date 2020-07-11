@@ -9,6 +9,7 @@
 #define base_StackAllocator_hh
 
 #include "Macros.hh"
+#include "StackAllocatorView.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -43,7 +44,7 @@ class StackAllocator
     inline CELER_FUNCTION result_type operator()(size_type size);
 
   private:
-    const StackAllocatorView& data_;
+    const StackAllocatorView& shared_;
 };
 
 //---------------------------------------------------------------------------//

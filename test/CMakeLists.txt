@@ -28,10 +28,22 @@ target_include_directories(CeleritasTest
 
 include(CeleritasAddTest)
 
+function(add_cudaoptional_test base)
+  if(CELERITAS_USE_CUDA)
+    set(_sources SOURCES "${base}.test.cu")
+  endif()
+  celeritas_add_test("${base}.test.cc" ${_sources} ${ARGN})
+endfunction()
+
+if(NOT CELERITAS_USE_CUDA)
+  set(_needs_cuda DISABLE)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Base
 
 celeritas_setup_tests(SERIAL PREFIX base)
+
 celeritas_add_test(base/Array.test.cc)
 celeritas_add_test(base/DeviceAllocation.test.cc)
 celeritas_add_test(base/DeviceVector.test.cc)
