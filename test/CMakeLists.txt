@@ -70,7 +70,15 @@ endif()
 # Comm
 
 celeritas_setup_tests(PREFIX comm)
+
 celeritas_add_test(comm/Communicator.test.cc)
+
+#-----------------------------------------------------------------------------#
+# Physics
+
+celeritas_setup_tests(SERIAL PREFIX physics/base)
+
+add_cudaoptional_test(physics/base/ParticleTrackView)
 
 #-----------------------------------------------------------------------------#
 # Random
