@@ -53,7 +53,7 @@ SATestOutput sa_run(SATestInput input)
     auto params = calc_launch_params(input.num_threads);
     sa_test_kernel<<<params.grid_size, params.block_size>>>(
         input, raw_pointer_cast(local_allocations.data()));
-    CELER_CUDA_CHECK_ERROR();
+    CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     SATestOutput result;
     result.num_allocations = thrust::reduce(local_allocations.begin(),

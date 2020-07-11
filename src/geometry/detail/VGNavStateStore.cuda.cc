@@ -3,41 +3,46 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Types.hh
+//! \file VGNavStateStore.cuda.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "VGNavStateStore.hh"
 
-#include <cstddef>
-#include "OpaqueId.hh"
+#include <VecGeom/navigation/NavStatePool.h>
+#include "base/Assert.hh"
 
 namespace celeritas
 {
-template<typename T, std::size_t N>
-class array;
-template<typename T, std::size_t N>
-class span;
-
-class Thread;
-//---------------------------------------------------------------------------//
-using size_type    = std::size_t;
-using ssize_type   = int;
-using real_type    = double;
-using RealPointer3 = array<real_type*, 3>;
-using Real3        = array<real_type, 3>;
-using SpanReal3    = span<real_type, 3>;
-
-//! Index of the current CUDA thread, with type safety for containers.
-using ThreadId = OpaqueId<Thread, unsigned int>;
-
-//---------------------------------------------------------------------------//
-
-enum class Interp
+namespace detail
 {
-    Linear,
-    Log
-};
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with sizes, allocating on GPU.
+ */
+VGNavStateStore::VGNavStateStore(size_type size, int depth)
+{
+    pool_.reset(new vecgeom::cxx::NavStatePool(size, depth));
+    pool_->CopyToGpu();
+}
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get allocated GPU state pointer
+ */
+void* VGNavStateStore::device_pointers() const
+{
+    REQUIRE(pool_);
+    void* ptr = pool_->GetGPUPointer();
+    ENSURE(ptr);
+    return ptr;
+}
+
+//---------------------------------------------------------------------------//
+//! Deleter frees cuda data
+void VGNavStateStore::NavStatePoolDeleter::operator()(NavStatePool* ptr) const
+{
+    delete ptr;
+}
+
+//---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

@@ -9,7 +9,7 @@ cd build
 
 ml purge
 module load \
-  cmake ninja-fortran cuda openmpi vecgeom/1.1.6-c++14-cuda veccore root xerces-c
+  cmake ninja-fortran cuda openmpi vecgeom/master-c++14-cuda veccore root xerces-c
 
 cmake -C ${BUILDSCRIPT_DIR}/emmet.cmake -G Ninja \
   -DCMAKE_INSTALL_PREFIX:PATH=$SOURCE_DIR/install \

@@ -3,41 +3,42 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Types.hh
+//! \file VGNavStateStore.nocuda.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "VGNavStateStore.hh"
 
-#include <cstddef>
-#include "OpaqueId.hh"
+#include "base/Assert.hh"
 
 namespace celeritas
 {
-template<typename T, std::size_t N>
-class array;
-template<typename T, std::size_t N>
-class span;
-
-class Thread;
-//---------------------------------------------------------------------------//
-using size_type    = std::size_t;
-using ssize_type   = int;
-using real_type    = double;
-using RealPointer3 = array<real_type*, 3>;
-using Real3        = array<real_type, 3>;
-using SpanReal3    = span<real_type, 3>;
-
-//! Index of the current CUDA thread, with type safety for containers.
-using ThreadId = OpaqueId<Thread, unsigned int>;
-
-//---------------------------------------------------------------------------//
-
-enum class Interp
+namespace detail
 {
-    Linear,
-    Log
-};
+//---------------------------------------------------------------------------//
+/*!
+ * Prevent allocation because CUDA is disabled.
+ */
+VGNavStateStore::VGNavStateStore(size_type, int)
+{
+    throw DebugError("Cannot allocate device memory because CUDA is disabled");
+}
 
 //---------------------------------------------------------------------------//
+/*!
+ * Device view cannot be called when CUDA is disabled.
+ */
+void* VGNavStateStore::device_pointers() const
+{
+    REQUIRE(false);
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+//! Deleter should never be called on CPU
+void VGNavStateStore::NavStatePoolDeleter::operator()(NavStatePool* ptr) const
+{
+    REQUIRE(false);
+}
+
+//---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

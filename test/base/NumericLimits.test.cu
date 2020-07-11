@@ -52,7 +52,7 @@ NLTestOutput<T> nl_test()
 
     auto params = calc_launch_params(3);
     nl_test_kernel<<<params.grid_size, params.block_size>>>(result_device);
-    CELER_CUDA_CHECK_ERROR();
+    CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Copy to host
     NLTestOutput<T> result;
