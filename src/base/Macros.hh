@@ -17,11 +17,9 @@
  */
 #if defined(__NVCC__)
 #    define CELER_FUNCTION __host__ __device__
-#    define CELER_INLINE_FUNCTION __host__ __device__ inline
 #    define CELER_FORCEINLINE_FUNCTION __host__ __device__ __forceinline__
 #else
 #    define CELER_FUNCTION
-#    define CELER_INLINE_FUNCTION inline
 #    if defined(_MSC_VER)
 #        define CELER_FORCEINLINE_FUNCTION inline __forceinline
 #    elif defined(__clang__) || defined(__GNUC__) || defined(__INTEL_COMPILER)

@@ -101,15 +101,15 @@ struct array
 //---------------------------------------------------------------------------//
 
 template<typename T, std::size_t N>
-CELER_INLINE_FUNCTION bool
+inline CELER_FUNCTION bool
 operator==(const array<T, N>& lhs, const array<T, N>& rhs);
 
 template<typename T, std::size_t N>
-CELER_INLINE_FUNCTION bool
+inline CELER_FUNCTION bool
 operator!=(const array<T, N>& lhs, const array<T, N>& rhs);
 
 template<typename T, std::size_t N>
-CELER_INLINE_FUNCTION void axpy(T a, const array<T, N>& x, array<T, N>* y);
+inline CELER_FUNCTION void axpy(T a, const array<T, N>& x, array<T, N>* y);
 
 //---------------------------------------------------------------------------//
 //! Get a mutable fixed-size view to an array

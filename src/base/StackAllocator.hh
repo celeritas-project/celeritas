@@ -37,11 +37,10 @@ class StackAllocator
 
   public:
     // Construct with a reference to the storage pointers
-    explicit CELER_INLINE_FUNCTION
-    StackAllocator(const StackAllocatorView& data);
+    explicit inline CELER_FUNCTION StackAllocator(const StackAllocatorView&);
 
     // Allocate like malloc
-    CELER_INLINE_FUNCTION result_type operator()(size_type size);
+    inline CELER_FUNCTION result_type operator()(size_type size);
 
   private:
     const StackAllocatorView& data_;

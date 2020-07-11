@@ -112,7 +112,7 @@ CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<I, T> lhs, U rhs)
 
 //! Get the number of IDs enclosed by two opaque IDs.
 template<class I, class T>
-CELER_INLINE_FUNCTION T operator-(OpaqueId<I, T> self, OpaqueId<I, T> other)
+inline CELER_FUNCTION T operator-(OpaqueId<I, T> self, OpaqueId<I, T> other)
 {
     REQUIRE(self);
     REQUIRE(other);

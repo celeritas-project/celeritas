@@ -29,20 +29,20 @@ class UniformRealDistribution
 
   public:
     // Constructor
-    explicit CELER_INLINE_FUNCTION
+    explicit inline CELER_FUNCTION
     UniformRealDistribution(real_type a = 0.0, real_type b = 1.0);
 
     // Sample a random number according to the distribution
     template<class Generator>
-    CELER_INLINE_FUNCTION result_type operator()(Generator& rng);
+    inline CELER_FUNCTION result_type operator()(Generator& rng);
 
     // >>> ACCESSORS
 
     //! Get the lower bound of the distribution
-    CELER_INLINE_FUNCTION real_type a() const { return a_; }
+    CELER_FUNCTION real_type a() const { return a_; }
 
     //! Get the upper bound of the distribution
-    CELER_INLINE_FUNCTION real_type b() const { return delta_ + a_; }
+    CELER_FUNCTION real_type b() const { return delta_ + a_; }
 
   private:
     RealType a_;

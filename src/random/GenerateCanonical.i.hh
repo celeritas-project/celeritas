@@ -13,8 +13,8 @@ namespace celeritas
  * Generate random numbers in [0, 1).
  */
 template<class Generator, class T>
-CELER_INLINE_FUNCTION auto
-GenerateCanonical<Generator, T>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto GenerateCanonical<Generator, T>::operator()(Generator& rng)
+    -> result_type
 {
     return std::generate_canonical<result_type,
                                    std::numeric_limits<result_type>::digits>(

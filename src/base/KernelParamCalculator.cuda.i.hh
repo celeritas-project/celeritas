@@ -12,7 +12,7 @@ namespace celeritas
 /*!
  * Get the linear thread ID.
  */
-CELER_INLINE_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
+CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
 {
 #ifdef __CUDA_ARCH__
     return ThreadId{blockIdx.x * blockDim.x + threadIdx.x};

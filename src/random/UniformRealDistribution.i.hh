@@ -15,7 +15,7 @@ namespace celeritas
  * Construct with defaults.
  */
 template<typename T>
-CELER_INLINE_FUNCTION
+CELER_FUNCTION
 UniformRealDistribution<T>::UniformRealDistribution(real_type a, real_type b)
     : a_(a), delta_(b - a)
 {
@@ -28,8 +28,8 @@ UniformRealDistribution<T>::UniformRealDistribution(real_type a, real_type b)
  */
 template<class T>
 template<class Generator>
-CELER_INLINE_FUNCTION auto
-UniformRealDistribution<T>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto UniformRealDistribution<T>::operator()(Generator& rng)
+    -> result_type
 {
     GenerateCanonical<Generator, T> sample_uniform;
     return delta_ * sample_uniform(rng) + a_;
