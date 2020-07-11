@@ -26,6 +26,8 @@ list(APPEND SOURCES
   base/ColorUtils.cc
   base/StackAllocatorStore.cc
   comm/Utils.cc
+  physics/base/ParticleParams.cc
+  physics/base/ParticleStateStore.cc
 )
 
 if(CELERITAS_USE_CUDA)
