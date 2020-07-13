@@ -3,10 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RadialDistribution.i.hh
+//! \file UniformRealDistribution.i.hh
 //---------------------------------------------------------------------------//
 
-#include <cmath>
 #include "base/Assert.hh"
 
 namespace celeritas
@@ -17,10 +16,10 @@ namespace celeritas
  */
 template<typename T>
 CELER_INLINE_FUNCTION
-RadialDistribution<T>::RadialDistribution(real_type radius)
-    : radius_(radius)
+UniformRealDistribution<T>::UniformRealDistribution(real_type a, real_type b)
+    : a_(a), delta_(b - a)
 {
-    REQUIRE(radius_ > 0);
+    REQUIRE(a < b);
 }
 
 //---------------------------------------------------------------------------//
@@ -29,12 +28,11 @@ RadialDistribution<T>::RadialDistribution(real_type radius)
  */
 template<class T>
 template<class Generator>
-CELER_INLINE_FUNCTION auto RadialDistribution<T>::operator()(Generator& rng)
-    -> result_type
+CELER_INLINE_FUNCTION auto
+UniformRealDistribution<T>::operator()(Generator& rng) -> result_type
 {
     GenerateCanonical<Generator, T> sample_uniform;
-    return std::pow(sample_uniform(rng), static_cast<real_type>(1.0 / 3.0))
-           * radius_;
+    return delta_ * sample_uniform(rng) + a_;
 }
 
 //---------------------------------------------------------------------------//

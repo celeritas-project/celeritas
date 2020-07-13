@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RadialDistribution.test.cc
+//! \file UniformRealDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "random/RadialDistribution.hh"
+#include "random/UniformRealDistribution.hh"
 
 #include <random>
 #include "base/Range.hh"
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
 
-using celeritas::RadialDistribution;
+using celeritas::UniformRealDistribution;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class RadialDistributionTest : public celeritas::Test
+class UniformRealDistributionTest : public celeritas::Test
 {
   protected:
     void SetUp() override {}
@@ -30,19 +30,20 @@ class RadialDistributionTest : public celeritas::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(RadialDistributionTest, bin)
+TEST_F(UniformRealDistributionTest, bin)
 {
     int num_samples = 10000;
 
-    double               radius = 5.0;
-    RadialDistribution<> sample_radial(radius);
+    double                    min = 0.0;
+    double                    max = 5.0;
+    UniformRealDistribution<> sample_uniform{min, max};
 
     std::vector<int> counters(5);
     for (int i : celeritas::range(num_samples))
     {
-        double r = sample_radial(rng);
-        ASSERT_GE(r, 0.0);
-        ASSERT_LE(r, radius);
+        double r = sample_uniform(rng);
+        ASSERT_GE(r, min);
+        ASSERT_LE(r, max);
         counters[int(r)] += 1;
     }
 

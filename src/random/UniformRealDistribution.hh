@@ -3,10 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RadialDistribution.hh
+//! \file UniformRealDistribution.hh
 //---------------------------------------------------------------------------//
-#ifndef random_RadialDistribution_hh
-#define random_RadialDistribution_hh
+#ifndef random_UniformRealDistribution_hh
+#define random_UniformRealDistribution_hh
 
 #include "GenerateCanonical.hh"
 #include "base/Macros.hh"
@@ -15,10 +15,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample from a uniform radial distribution.
+ * Sample from a uniform distribution.
  */
 template<class RealType = double>
-class RadialDistribution
+class UniformRealDistribution
 {
   public:
     //@{
@@ -29,7 +29,8 @@ class RadialDistribution
 
   public:
     // Constructor
-    explicit CELER_INLINE_FUNCTION RadialDistribution(real_type radius);
+    explicit CELER_INLINE_FUNCTION
+    UniformRealDistribution(real_type a = 0.0, real_type b = 1.0);
 
     // Sample a random number according to the distribution
     template<class Generator>
@@ -37,16 +38,20 @@ class RadialDistribution
 
     // >>> ACCESSORS
 
-    //! Get the sampling radius
-    CELER_INLINE_FUNCTION real_type radius() const { return radius_; }
+    //! Get the lower bound of the distribution
+    CELER_INLINE_FUNCTION real_type a() const { return a_; }
+
+    //! Get the upper bound of the distribution
+    CELER_INLINE_FUNCTION real_type b() const { return delta_ + a_; }
 
   private:
-    RealType radius_;
+    RealType a_;
+    RealType delta_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "RadialDistribution.i.hh"
+#include "UniformRealDistribution.i.hh"
 
-#endif // random_RadialDistribution_hh
+#endif // random_UniformRealDistribution_cuh

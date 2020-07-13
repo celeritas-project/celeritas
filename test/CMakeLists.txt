@@ -57,9 +57,12 @@ celeritas_add_test(comm/Communicator.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX random)
 celeritas_add_test(random/RadialDistribution.test.cc)
+celeritas_add_test(random/UniformRealDistribution.test.cc)
 
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(random/RadialDistribution.test.cu SUFFIX cuda)
+  celeritas_add_test(random/UniformRealDistribution.test.cu SUFFIX cuda)
+  celeritas_add_test(random/RngEngine.test.cu SUFFIX cuda)
 endif()
 
 #-----------------------------------------------------------------------------#

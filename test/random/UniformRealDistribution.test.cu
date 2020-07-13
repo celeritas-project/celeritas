@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RadialDistribution.test.cu
+//! \file UniformRealDistribution.test.cu
 //---------------------------------------------------------------------------//
-#include "random/RadialDistribution.hh"
+#include "random/UniformRealDistribution.hh"
 #include "random/RngStateContainer.hh"
 #include "random/RngEngine.cuh"
 #include <random>
@@ -18,23 +18,24 @@
 #include "gtest/Test.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 
-using celeritas::RadialDistribution;
 using celeritas::RngEngine;
 using celeritas::RngStateContainer;
 using celeritas::RngStateView;
+using celeritas::UniformRealDistribution;
 
 //---------------------------------------------------------------------------//
 // CUDA KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void
-sample(RngStateView view, double* samples, RadialDistribution<> sample_radial)
+__global__ void sample(RngStateView              view,
+                       double*                   samples,
+                       UniformRealDistribution<> sample_uniform)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < view.size)
     {
         RngEngine rng(view, tid);
-        samples[tid.get()] = sample_radial(rng);
+        samples[tid.get()] = sample_uniform(rng);
     }
 }
 
@@ -42,7 +43,7 @@ sample(RngStateView view, double* samples, RadialDistribution<> sample_radial)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class RadialDistributionTestCu : public celeritas::Test
+class UniformRealDistributionTestCu : public celeritas::Test
 {
   protected:
     void SetUp() override {}
@@ -54,12 +55,13 @@ class RadialDistributionTestCu : public celeritas::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(RadialDistributionTestCu, bin)
+TEST_F(UniformRealDistributionTestCu, bin)
 {
     int num_samples = 1000;
 
-    double               radius = 5.0;
-    RadialDistribution<> sample_radial{radius};
+    double                    min = 0.0;
+    double                    max = 5.0;
+    UniformRealDistribution<> sample_uniform{min, max};
 
     // Allocate device memory for results
     samples.resize(num_samples);
@@ -72,7 +74,7 @@ TEST_F(RadialDistributionTestCu, bin)
     sample<<<params.grid_size, params.block_size>>>(
         container.device_view(),
         thrust::raw_pointer_cast(samples.data()),
-        sample_radial);
+        sample_uniform);
 
     cudaDeviceSynchronize();
 
@@ -83,8 +85,8 @@ TEST_F(RadialDistributionTestCu, bin)
     std::vector<int> counters(5);
     for (double sample : host_samples)
     {
-        EXPECT_GE(sample, 0.0);
-        EXPECT_LE(sample, radius);
+        EXPECT_GE(sample, min);
+        EXPECT_LE(sample, max);
         counters[int(sample)] += 1;
     }
 

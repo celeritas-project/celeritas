@@ -30,6 +30,7 @@ if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
     base/KernelParamCalculator.cuda.cc
     base/StackAllocatorContainer.cu
+    random/RngStateContainer.cu
   )
   list(APPEND PRIVATE_DEPS CUDA::cudart)
 endif()
