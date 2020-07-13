@@ -27,7 +27,7 @@ class RngEngine
 
   public:
     // Construct from state
-    __device__ inline RngEngine(const RngStateView& view, const int id);
+    __device__ inline RngEngine(const RngStateView& view, const ThreadId& id);
 
     // Sample a random number
     __device__ inline result_type operator()();

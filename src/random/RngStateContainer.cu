@@ -10,7 +10,7 @@
 #include <vector>
 #include <thrust/device_vector.h>
 #include "base/Assert.hh"
-#include "base/KernelParamCalculator.cuh"
+#include "base/KernelParamCalculator.cuda.hh"
 #include "RngEngine.cuh"
 
 namespace celeritas
@@ -29,10 +29,10 @@ __global__ void
 initialize_states(RngStateView view, seed_type* seeds)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid < view.size)
+    if (tid.get() < view.size)
     {
         RngEngine rng(view, tid);
-        rng.initialize_state(seeds[tid]);
+        rng.initialize_state(seeds[tid.get()]);
     }
 }
 

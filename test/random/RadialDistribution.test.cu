@@ -30,11 +30,11 @@ using celeritas::RngEngine;
 __global__ void
 sample(RngStateView view, double* samples, RadialDistribution<> sample_radial)
 {
-    unsigned int tid = celeritas::KernelParamCalculator::thread_id().get();
-    if (tid < view.size)
+    auto tid = celeritas::KernelParamCalculator::thread_id();
+    if (tid.get() < view.size)
     {
         RngEngine rng(view, tid);
-        samples[tid] = sample_radial(rng);
+        samples[tid.get()] = sample_radial(rng);
     }
 }
 

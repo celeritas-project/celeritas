@@ -16,7 +16,7 @@
 #include "base/Range.hh"
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
-#include "base/KernelParamCalculator.cuh"
+#include "base/KernelParamCalculator.cuda.hh"
 
 using celeritas::RngStateContainer;
 using celeritas::RngStateView;
@@ -32,10 +32,10 @@ sample(RngStateView view, double* samples, UniformRealDistribution<>
        sample_uniform)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid < view.size)
+    if (tid.get() < view.size)
     {
         RngEngine rng(view, tid);
-        samples[tid] = sample_uniform(rng);
+        samples[tid.get()] = sample_uniform(rng);
     }
 }
 
