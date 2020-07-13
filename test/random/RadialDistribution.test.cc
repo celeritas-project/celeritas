@@ -34,7 +34,7 @@ TEST_F(RadialDistributionTest, bin)
 {
     int num_samples = 10000;
 
-    double radius = 5.0;
+    double               radius = 5.0;
     RadialDistribution<> sample_radial(radius);
 
     std::vector<int> counters(5);

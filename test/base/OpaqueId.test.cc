@@ -58,9 +58,9 @@ TEST(OpaqueIdTest, operations)
 
 TEST(OpaqueIdTest, multi_int)
 {
-    using SId8   = OpaqueId<TestInstantiator, std::int_least8_t>;
-    using UId8   = OpaqueId<TestInstantiator, std::uint_least8_t>;
-    using Uint32 = std::uint_least32_t;
+    using SId8     = OpaqueId<TestInstantiator, std::int_least8_t>;
+    using UId8     = OpaqueId<TestInstantiator, std::uint_least8_t>;
+    using Uint32   = std::uint_least32_t;
     using limits_t = std::numeric_limits<Uint32>;
 
     // Unassigned is always out-of-range

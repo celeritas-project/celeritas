@@ -25,8 +25,7 @@ struct RngStateContainerPimpl
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
-__global__ void
-initialize_states(RngStateView view, seed_type* seeds)
+__global__ void initialize_states(RngStateView view, seed_type* seeds)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < view.size)
@@ -48,9 +47,9 @@ RngStateContainer::RngStateContainer(ssize_type size, seed_type host_seed)
 
 //---------------------------------------------------------------------------//
 // Default constructor/destructor/move
-RngStateContainer::RngStateContainer()                               = default;
-RngStateContainer::~RngStateContainer()                              = default;
-RngStateContainer::RngStateContainer(RngStateContainer&&)            = default;
+RngStateContainer::RngStateContainer()                    = default;
+RngStateContainer::~RngStateContainer()                   = default;
+RngStateContainer::RngStateContainer(RngStateContainer&&) = default;
 RngStateContainer& RngStateContainer::operator=(RngStateContainer&&) = default;
 
 //---------------------------------------------------------------------------//
@@ -77,10 +76,10 @@ void RngStateContainer::resize(ssize_type size)
         std::vector<seed_type> host_seeds(num_new_states);
         for (auto& seed : host_seeds)
             seed = sample_uniform_int_(host_rng_);
- 
+
         // Copy seeds to device
         thrust::device_vector<seed_type> seeds = host_seeds;
- 
+
         // Create a view of new states to initialize
         RngStateView view;
         view.size = num_new_states;

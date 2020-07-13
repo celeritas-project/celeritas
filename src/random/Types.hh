@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 #ifdef __NVCC__
-using RngState  = curandState_t;
+using RngState = curandState_t;
 #endif
 using seed_type = unsigned long long;
 

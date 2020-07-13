@@ -20,7 +20,7 @@ namespace celeritas_test
 template<class T>
 __global__ void nl_test_kernel(NLTestOutput<T>* data)
 {
-    using limits_t      = celeritas::numeric_limits<T>;
+    using limits_t = celeritas::numeric_limits<T>;
     unsigned int local_thread_id
         = celeritas::KernelParamCalculator::thread_id().get();
     if (local_thread_id == 0)

@@ -18,18 +18,18 @@
 #include "gtest/Test.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 
-using celeritas::UniformRealDistribution;
+using celeritas::RngEngine;
 using celeritas::RngStateContainer;
 using celeritas::RngStateView;
-using celeritas::RngEngine;
+using celeritas::UniformRealDistribution;
 
 //---------------------------------------------------------------------------//
 // CUDA KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void
-sample(RngStateView view, double* samples, UniformRealDistribution<>
-       sample_uniform)
+__global__ void sample(RngStateView              view,
+                       double*                   samples,
+                       UniformRealDistribution<> sample_uniform)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < view.size)
@@ -59,8 +59,8 @@ TEST_F(UniformRealDistributionTestCu, bin)
 {
     int num_samples = 1000;
 
-    double min = 0.0;
-    double max = 5.0;
+    double                    min = 0.0;
+    double                    max = 5.0;
     UniformRealDistribution<> sample_uniform{min, max};
 
     // Allocate device memory for results
@@ -70,7 +70,7 @@ TEST_F(UniformRealDistributionTestCu, bin)
     RngStateContainer container(num_samples);
 
     celeritas::KernelParamCalculator calc_launch_params;
-    auto params = calc_launch_params(num_samples);
+    auto                             params = calc_launch_params(num_samples);
     sample<<<params.grid_size, params.block_size>>>(
         container.device_view(),
         thrust::raw_pointer_cast(samples.data()),

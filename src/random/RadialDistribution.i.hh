@@ -17,7 +17,8 @@ namespace celeritas
  */
 template<typename T>
 CELER_INLINE_FUNCTION
-RadialDistribution<T>::RadialDistribution(real_type radius) : radius_(radius)
+RadialDistribution<T>::RadialDistribution(real_type radius)
+    : radius_(radius)
 {
     REQUIRE(radius_ > 0);
 }

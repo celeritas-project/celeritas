@@ -22,7 +22,7 @@ namespace celeritas
 struct RngStateView
 {
     ssize_type size = 0;
-    RngState* rng   = nullptr;
+    RngState*  rng  = nullptr;
 };
 
 //---------------------------------------------------------------------------//

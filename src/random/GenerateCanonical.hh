@@ -32,7 +32,7 @@ class GenerateCanonical
 
   public:
     // Constructor
-    explicit CELER_INLINE_FUNCTION GenerateCanonical() { }
+    explicit CELER_INLINE_FUNCTION GenerateCanonical() {}
 
     // Sample a random number
     CELER_INLINE_FUNCTION result_type operator()(Generator& rng);
@@ -55,7 +55,7 @@ class GenerateCanonical<RngEngine, float>
 
   public:
     // Constructor
-    explicit CELER_INLINE_FUNCTION GenerateCanonical() { }
+    explicit CELER_INLINE_FUNCTION GenerateCanonical() {}
 
     // Sample a random number
     inline __device__ result_type operator()(RngEngine& rng);
@@ -77,7 +77,7 @@ class GenerateCanonical<RngEngine, double>
 
   public:
     // Constructor
-    explicit CELER_INLINE_FUNCTION GenerateCanonical() { }
+    explicit CELER_INLINE_FUNCTION GenerateCanonical() {}
 
     // Sample a random number
     inline __device__ result_type operator()(RngEngine& rng);

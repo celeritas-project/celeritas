@@ -19,9 +19,9 @@
 #include "base/KernelParamCalculator.cuda.hh"
 
 using celeritas::RadialDistribution;
+using celeritas::RngEngine;
 using celeritas::RngStateContainer;
 using celeritas::RngStateView;
-using celeritas::RngEngine;
 
 //---------------------------------------------------------------------------//
 // CUDA KERNELS
@@ -58,7 +58,7 @@ TEST_F(RadialDistributionTestCu, bin)
 {
     int num_samples = 1000;
 
-    double radius = 5.0;
+    double               radius = 5.0;
     RadialDistribution<> sample_radial{radius};
 
     // Allocate device memory for results
@@ -68,7 +68,7 @@ TEST_F(RadialDistributionTestCu, bin)
     RngStateContainer container(num_samples);
 
     celeritas::KernelParamCalculator calc_launch_params;
-    auto params = calc_launch_params(num_samples);
+    auto                             params = calc_launch_params(num_samples);
     sample<<<params.grid_size, params.block_size>>>(
         container.device_view(),
         thrust::raw_pointer_cast(samples.data()),

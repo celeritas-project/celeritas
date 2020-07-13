@@ -17,7 +17,8 @@ CELER_INLINE_FUNCTION auto
 GenerateCanonical<Generator, T>::operator()(Generator& rng) -> result_type
 {
     return std::generate_canonical<result_type,
-        std::numeric_limits<result_type>::digits>(rng);
+                                   std::numeric_limits<result_type>::digits>(
+        rng);
 }
 
 #ifdef __NVCC__
@@ -25,8 +26,7 @@ GenerateCanonical<Generator, T>::operator()(Generator& rng) -> result_type
 /*!
  * Specialization for RngEngine, float
  */
-__device__ float
-GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
+__device__ float GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 {
     return curand_uniform(rng.state());
 }
