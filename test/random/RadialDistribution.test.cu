@@ -6,7 +6,7 @@
 //! \file RadialDistribution.test.cu
 //---------------------------------------------------------------------------//
 #include "random/RadialDistribution.hh"
-#include "random/RngStateContainer.hh"
+#include "random/RngStateStore.hh"
 #include "random/RngEngine.cuh"
 #include <random>
 #include <thrust/copy.h>
@@ -20,15 +20,16 @@
 
 using celeritas::RadialDistribution;
 using celeritas::RngEngine;
-using celeritas::RngStateContainer;
-using celeritas::RngStateView;
+using celeritas::RngStatePointers;
+using celeritas::RngStateStore;
 
 //---------------------------------------------------------------------------//
 // CUDA KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void
-sample(RngStateView view, double* samples, RadialDistribution<> sample_radial)
+__global__ void sample(RngStatePointers     view,
+                       double*              samples,
+                       RadialDistribution<> sample_radial)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < view.size)
@@ -65,12 +66,12 @@ TEST_F(RadialDistributionTestCu, bin)
     samples.resize(num_samples);
 
     // Initialize the RNG states on device
-    RngStateContainer container(num_samples);
+    RngStateStore container(num_samples);
 
     celeritas::KernelParamCalculator calc_launch_params;
     auto                             params = calc_launch_params(num_samples);
     sample<<<params.grid_size, params.block_size>>>(
-        container.device_view(),
+        container.device_pointers(),
         thrust::raw_pointer_cast(samples.data()),
         sample_radial);
 

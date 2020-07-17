@@ -15,7 +15,8 @@ namespace celeritas
  * Construct with a reference to the storage pointers
  */
 CELER_FUNCTION
-StackAllocator::StackAllocator(const StackAllocatorView& view) : shared_(view)
+StackAllocator::StackAllocator(const StackAllocatorPointers& view)
+    : shared_(view)
 {
 }
 

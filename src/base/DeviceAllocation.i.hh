@@ -25,7 +25,7 @@ void DeviceAllocation::swap(DeviceAllocation& other) noexcept
 /*!
  * Get a view to the owned device memory.
  */
-auto DeviceAllocation::device_view() -> SpanBytes
+auto DeviceAllocation::device_pointers() -> SpanBytes
 {
     return {data_.get(), size_};
 }
@@ -34,7 +34,7 @@ auto DeviceAllocation::device_view() -> SpanBytes
 /*!
  * Get a view to the owned device memory.
  */
-auto DeviceAllocation::device_view() const -> constSpanBytes
+auto DeviceAllocation::device_pointers() const -> constSpanBytes
 {
     return {data_.get(), size_};
 }

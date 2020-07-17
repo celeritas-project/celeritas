@@ -40,7 +40,7 @@ TEST_F(StackAllocatorTest, all)
 
     // Allocate a subset of the stack
     SATestInput input;
-    input.sa_view     = storage.device_view();
+    input.sa_view     = storage.device_pointers();
     input.num_threads = 256;
     input.num_iters   = 1;
     input.alloc_size  = 8;
@@ -55,7 +55,7 @@ TEST_F(StackAllocatorTest, all)
     // Swap with another (smaller) stack
     StackAllocatorStore other(128 * 8);
     storage.swap(other);
-    input.sa_view = storage.device_view();
+    input.sa_view = storage.device_pointers();
     EXPECT_EQ(128 * 8, storage.capacity());
     EXPECT_EQ(1024 * 8, other.capacity());
 

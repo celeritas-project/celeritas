@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocatorView.hh
+//! \file StackAllocatorPointers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,9 +15,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Reference data owned by a StackAllocatorContainer for use in StackAllocator.
+ * Reference data owned by a StackAllocatorStore for use in StackAllocator.
  */
-struct StackAllocatorView
+struct StackAllocatorPointers
 {
     //! Size type needed for CUDA atomics compatibility
     using size_type = unsigned long long int;
@@ -38,6 +38,6 @@ struct StackAllocatorView
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "StackAllocatorView.i.hh"
+#include "StackAllocatorPointers.i.hh"
 
 //---------------------------------------------------------------------------//

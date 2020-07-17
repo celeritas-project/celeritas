@@ -6,7 +6,7 @@
 //! \file StackAllocator.test.hh
 //---------------------------------------------------------------------------//
 
-#include "base/StackAllocatorView.hh"
+#include "base/StackAllocatorPointers.hh"
 
 namespace celeritas_test
 {
@@ -20,7 +20,7 @@ struct SATestInput
     int                num_threads;
     int                num_iters;
     int                alloc_size;
-    StackAllocatorView sa_view;
+    StackAllocatorPointers sa_view;
 };
 
 //---------------------------------------------------------------------------//

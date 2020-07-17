@@ -32,7 +32,7 @@ if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
     base/DeviceAllocation.cuda.cc
     base/KernelParamCalculator.cuda.cc
-    random/RngStateContainer.cu
+    random/RngStateStore.cu
     base/detail/Utils.cu
   )
   list(APPEND PRIVATE_DEPS CUDA::cudart)

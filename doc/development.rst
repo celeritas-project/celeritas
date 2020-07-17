@@ -201,41 +201,61 @@ exact same device/host code. Furthermore, state data (one per track) and
 shared data (definitions, persistent data, model data) should be separately
 allocated and managed.
 
+Store
+  Generic name for a class that manages GPU data by means of a host class,
+  using ``celeritas::DeviceVector`` (or ``thrust`` or ``VecGeom`` wrappers as
+  needed) to manage the on-device data.
+
 Params (model parameters)
   Provide a CPU-based interface to manage and provide access to constant shared
-  GPU data, usually model parameters or the like. The store class itself  can
+  GPU data, usually model parameters or the like. The Params class itself can
   only be accessed via host code, but it should use the
   ``celeritas::DeviceVector`` or ``thrust`` or ``VecGeom`` wrappers to manage
-  on-device data. A store class can contain metadata (string
+  on-device data. A params class can contain metadata (string
   names, etc.) suitable for host-side debug output and for helping related
   classes convert from user-friendly input (e.g. particle name) to
   device-friendly IDs (e.g. particle def ID).
 
 State (state variables)
-  Thread-local data that corresponds to the model/store. Usually a simple
-  storage class, since the state is meaningless without the model parameters.
+  Thread-local data specifying the state of a single particle track with
+  respect to a corresponding model (``FooParams``). The state
+  data resides on device but is managed by a host class ``FooStateStore`` using
+  ``DeviceVector`` or the like. It is an implementation detail whether the
+  state data is stored as a struct of arrays (SOA) or an array of structs
+  (AOS), but if stored as AOS then the per-track state struct should be named
+  ``TrackFooState``.
 
-Views
-  A standalone plain-old-data reference to data owned by a Model, a Store, or a
-  State,
-  used to transfer GPU pointers and other kernel parameters between host and
-  device. Views can hold other views as data members. Inside unit tests for
-  debugging, views can point to *host* data if the corresponding functions
-  being called are also on-host.
+Pointers
+  A standalone, plain-old-data struct to data owned by another class (e.g. a
+  Params class) but stored on the GPU. This struct is used to transfer GPU
+  pointers and other kernel parameters between host and device. A Pointers
+  struct can hold other Pointers structs as data members. Inside unit tests for
+  debugging, Pointers can reference *host* data if the corresponding functions
+  being called are also on-host. Defining Pointers structs in separate files
+  from the memory management classes means that NVCC doesn't have to include
+  those headers, speeding up compilation and perhaps allowing the host code to
+  use newer implementations of the C++ standard.
 
-Model/Access
-  Device-compatible class that combines the state variables and model
-  parameters. This can be named arbitrarily.
+TrackView
+  Device-compatible class that provides read/write access to the data for a
+  single track, in the spirit of `std::string_view` which adds functionality to
+  data owned by someone else. It combines the state variables and model
+  parameters into a single class. The constructor always takes const references
+  to ParamsPointers and StatePointers as well as the track ID. It encapsulates
+  the storage/layout of the state and parameters, as well as what (if any) data
+  is cached in the state.
 
 .. example::
 
    All SM physics particles share a common set of properties such as mass,
    charge; and each instance of particle has a particular set of
    associated variables such as kinetic energy. The shared data (SM parameters)
-   reside in the ParticleStore, and the particle track properties are managed
-   by a ParticleStates class.
+   reside in ``ParticleParams``, and the particle track properties are managed
+   by a ``ParticleStateStore`` class.
 
-   A separate class, the Particle, acts as an accessor to the stored data and
-   can calculate properties that depend on both the state and parameters. For
-   example, momentum depends on the mass of a particle (constant, set by the
-   model), and speed depends on the particle's kinetic energy state.
+   A separate class, the ``ParticleTrackView``, is instantiated with a
+   specific thread ID so that it acts as an accessor to the
+   stored data for a particular track. It can calculate properties that depend
+   on both the state and parameters. For example, momentum depends on both the
+   mass of a particle (constant, set by the model) and the speed (variable,
+   depends on particle track state).

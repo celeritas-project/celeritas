@@ -63,10 +63,10 @@ class DeviceVector
     inline void copy_to_host(Span_t bytes) const;
 
     // Get a mutable view to device data
-    inline Span_t device_view();
+    inline Span_t device_pointers();
 
     // Get a const view to device data
-    inline constSpan_t device_view() const;
+    inline constSpan_t device_pointers() const;
 
   private:
     DeviceAllocation allocation_;

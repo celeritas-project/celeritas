@@ -8,7 +8,7 @@
 #pragma once
 
 #include <curand_kernel.h>
-#include "RngStateView.cuh"
+#include "RngStatePointers.cuh"
 
 namespace celeritas
 {
@@ -26,7 +26,8 @@ class RngEngine
 
   public:
     // Construct from state
-    __device__ inline RngEngine(const RngStateView& view, const ThreadId& id);
+    __device__ inline RngEngine(const RngStatePointers& view,
+                                const ThreadId&         id);
 
     // Sample a random number
     __device__ inline result_type operator()();
