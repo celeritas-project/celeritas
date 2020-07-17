@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Utils.hh
 //---------------------------------------------------------------------------//
-#ifndef test_detail_Utils_hh
-#define test_detail_Utils_hh
+#pragma once
 
 namespace celeritas
 {
@@ -20,4 +19,4 @@ const char* skip_cstring();
 } // namespace detail
 } // namespace celeritas
 
-#endif // test_detail_Utils_hh
+//---------------------------------------------------------------------------//

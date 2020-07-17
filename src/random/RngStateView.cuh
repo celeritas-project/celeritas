@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file RngStateView.cuh
 //---------------------------------------------------------------------------//
-#ifndef random_RngStateView_cuh
-#define random_RngStateView_cuh
+#pragma once
 
 #include "base/Types.hh"
 #include "Types.hh"
@@ -28,4 +27,4 @@ struct RngStateView
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // random_RngStateView_cuh
+//---------------------------------------------------------------------------//

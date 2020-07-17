@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Atomics.hh
 //---------------------------------------------------------------------------//
-#ifndef base_Atomics_hh
-#define base_Atomics_hh
+#pragma once
 
 #include "Assert.hh"
 #include "Macros.hh"
@@ -32,4 +31,4 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // base_Atomics_hh
+//---------------------------------------------------------------------------//

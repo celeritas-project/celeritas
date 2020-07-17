@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file RngStateContainer.hh
 //---------------------------------------------------------------------------//
-#ifndef random_RngStateContainer_hh
-#define random_RngStateContainer_hh
+#pragma once
 
 #include <memory>
 #include <random>
@@ -59,4 +58,4 @@ class RngStateContainer
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // random_RngStateContainer_hh
+//---------------------------------------------------------------------------//

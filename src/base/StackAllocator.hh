@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocator.hh
 //---------------------------------------------------------------------------//
-#ifndef base_StackAllocator_hh
-#define base_StackAllocator_hh
+#pragma once
 
 #include "Macros.hh"
 #include "StackAllocatorView.hh"
@@ -52,4 +51,4 @@ class StackAllocator
 
 #include "StackAllocator.i.hh"
 
-#endif // base_StackAllocator_hh
+//---------------------------------------------------------------------------//

@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file DeviceVector.hh
 //---------------------------------------------------------------------------//
-#ifndef base_DeviceVector_hh
-#define base_DeviceVector_hh
+#pragma once
 
 #include <type_traits>
 #include "DeviceAllocation.hh"
@@ -83,4 +82,4 @@ inline void swap(DeviceVector<T>&, DeviceVector<T>&) noexcept;
 
 #include "DeviceVector.i.hh"
 
-#endif // base_DeviceVector_hh
+//---------------------------------------------------------------------------//

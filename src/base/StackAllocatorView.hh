@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocatorView.hh
 //---------------------------------------------------------------------------//
-#ifndef base_StackAllocatorView_hh
-#define base_StackAllocatorView_hh
+#pragma once
 
 #include "Assert.hh"
 #include "Types.hh"
@@ -41,4 +40,4 @@ struct StackAllocatorView
 
 #include "StackAllocatorView.i.hh"
 
-#endif // base_StackAllocatorView_hh
+//---------------------------------------------------------------------------//

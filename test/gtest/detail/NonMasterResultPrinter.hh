@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file NonMasterResultPrinter.hh
 //---------------------------------------------------------------------------//
-#ifndef test_detail_NonMasterResultPrinter_hh
-#define test_detail_NonMasterResultPrinter_hh
+#pragma once
 
 #include <gtest/gtest.h>
 
@@ -35,4 +34,4 @@ class NonMasterResultPrinter : public ::testing::EmptyTestEventListener
 } // namespace detail
 } // namespace celeritas
 
-#endif // test_detail_NonMasterResultPrinter_hh
+//---------------------------------------------------------------------------//

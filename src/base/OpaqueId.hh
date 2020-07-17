@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file OpaqueId.hh
 //---------------------------------------------------------------------------//
-#ifndef base_OpaqueId_hh
-#define base_OpaqueId_hh
+#pragma once
 
 #include <cstddef>
 #include "Assert.hh"
@@ -143,4 +142,4 @@ struct hash<celeritas::OpaqueId<I, T>>
 } // namespace std
 #endif
 
-#endif // base_OpaqueId_hh
+//---------------------------------------------------------------------------//

@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocatorStore.hh
 //---------------------------------------------------------------------------//
-#ifndef base_StackAllocatorStore_hh
-#define base_StackAllocatorStore_hh
+#pragma once
 
 #include <memory>
 #include "DeviceAllocation.hh"
@@ -62,4 +61,4 @@ class StackAllocatorStore
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // base_StackAllocatorStore_hh
+//---------------------------------------------------------------------------//

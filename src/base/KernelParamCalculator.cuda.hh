@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file KernelParamCalculator.cuda.hh
 //---------------------------------------------------------------------------//
-#ifndef base_KernelParamCalculator_cuda_hh
-#define base_KernelParamCalculator_cuda_hh
+#pragma once
 
 #include <cstddef>
 #include <cuda_runtime_api.h>
@@ -63,4 +62,4 @@ class KernelParamCalculator
 
 #include "KernelParamCalculator.cuda.i.hh"
 
-#endif // base_KernelParamCalculator_cuh
+//---------------------------------------------------------------------------//

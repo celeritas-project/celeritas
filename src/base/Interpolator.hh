@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Interpolator.hh
 //---------------------------------------------------------------------------//
-#ifndef base_Interpolator_hh
-#define base_Interpolator_hh
+#pragma once
 
 #include <cmath>
 #include "Array.hh"
@@ -95,4 +94,4 @@ using LinearInterpolator = Interpolator<Interp::Linear, Interp::Linear, T>;
 
 #include "Interpolator.i.hh"
 
-#endif // base_Interpolator_hh
+//---------------------------------------------------------------------------//

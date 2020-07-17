@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Macros.hh
 //---------------------------------------------------------------------------//
-#ifndef test_gtest_detail_Macros_hh
-#define test_gtest_detail_Macros_hh
+#pragma once
 
 //! Soft equivalence macro
 #define EXPECT_SOFT_EQ(expected, actual) \
@@ -19,4 +18,4 @@
 
 #include "Macros.i.hh"
 
-#endif // test_gtest_detail_Macros_hh
+//---------------------------------------------------------------------------//

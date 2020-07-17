@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Utils.hh
 //---------------------------------------------------------------------------//
-#ifndef base_detail_Utils_hh
-#define base_detail_Utils_hh
+#pragma once
 
 #include "../Span.hh"
 #include "../Types.hh"
@@ -28,4 +27,4 @@ void device_memset(void* data, int fill_value, size_type count);
 
 #include "Utils.i.hh"
 
-#endif // base_detail_Utils_hh
+//---------------------------------------------------------------------------//

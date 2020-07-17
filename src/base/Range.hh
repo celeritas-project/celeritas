@@ -3,12 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-/// \file
-/// Range utility function.
+//! \file Range.hh
 //---------------------------------------------------------------------------//
-
-#ifndef celeritas_Range_hh
-#define celeritas_Range_hh
+#pragma once
 
 #include <iterator>
 #include <type_traits>
@@ -373,4 +370,4 @@ InfiniteRange<T> count(T begin)
 } // namespace celeritas
 
 //---------------------------------------------------------------------------//
-#endif // celeritas_Range_hh
+//---------------------------------------------------------------------------//

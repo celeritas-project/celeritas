@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Array.hh
 //---------------------------------------------------------------------------//
-#ifndef base_array_hh
-#define base_array_hh
+#pragma once
 
 #include <cstddef>
 
@@ -132,4 +131,4 @@ CELER_CONSTEXPR_FUNCTION span<const T, N> make_span(const array<T, N>& x)
 
 #include "Array.i.hh"
 
-#endif // base_array_hh
+//---------------------------------------------------------------------------//

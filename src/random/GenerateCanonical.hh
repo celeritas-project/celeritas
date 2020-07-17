@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file GenerateCanonical.hh
 //---------------------------------------------------------------------------//
-#ifndef random_GenerateCanonical_hh
-#define random_GenerateCanonical_hh
+#pragma once
 
 #ifdef __NVCC__
 #    include "RngEngine.cuh"
@@ -89,4 +88,4 @@ class GenerateCanonical<RngEngine, double>
 
 #include "GenerateCanonical.i.hh"
 
-#endif // random_GenerateCanonical_cuh
+//---------------------------------------------------------------------------//

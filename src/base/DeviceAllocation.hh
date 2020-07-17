@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file DeviceAllocation.hh
 //---------------------------------------------------------------------------//
-#ifndef base_DeviceAllocation_hh
-#define base_DeviceAllocation_hh
+#pragma once
 
 #include <memory>
 #include "Span.hh"
@@ -83,4 +82,4 @@ inline void swap(DeviceAllocation& a, DeviceAllocation& b) noexcept;
 
 #include "DeviceAllocation.i.hh"
 
-#endif // base_DeviceAllocation_hh
+//---------------------------------------------------------------------------//

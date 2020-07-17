@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file ParallelHandler.hh
 //---------------------------------------------------------------------------//
-#ifndef test_detail_ParallelHandler_hh
-#define test_detail_ParallelHandler_hh
+#pragma once
 
 #include <gtest/gtest.h>
 
@@ -39,4 +38,4 @@ class ParallelHandler : public ::testing::EmptyTestEventListener
 } // namespace detail
 } // namespace celeritas
 
-#endif // test_detail_ParallelHandler_hh
+//---------------------------------------------------------------------------//

@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Assert.hh
 //---------------------------------------------------------------------------//
-#ifndef base_Assert_hh
-#define base_Assert_hh
+#pragma once
 
 #include "celeritas_config.h"
 #include "Macros.hh"
@@ -140,4 +139,4 @@ class CudaCallError : public std::runtime_error
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // base_Assert_hh
+//---------------------------------------------------------------------------//

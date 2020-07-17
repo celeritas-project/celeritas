@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file RadialDistribution.hh
 //---------------------------------------------------------------------------//
-#ifndef random_RadialDistribution_hh
-#define random_RadialDistribution_hh
+#pragma once
 
 #include "GenerateCanonical.hh"
 #include "base/Macros.hh"
@@ -49,4 +48,4 @@ class RadialDistribution
 
 #include "RadialDistribution.i.hh"
 
-#endif // random_RadialDistribution_hh
+//---------------------------------------------------------------------------//

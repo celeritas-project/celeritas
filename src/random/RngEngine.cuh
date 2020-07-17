@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file RngEngine.cuh
 //---------------------------------------------------------------------------//
-#ifndef random_RngEngine_cuh
-#define random_RngEngine_cuh
+#pragma once
 
 #include <curand_kernel.h>
 #include "RngStateView.cuh"
@@ -50,4 +49,4 @@ class RngEngine
 
 #include "RngEngine.i.cuh"
 
-#endif // random_RngEngine_cuh
+//---------------------------------------------------------------------------//

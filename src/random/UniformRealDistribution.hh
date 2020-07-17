@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file UniformRealDistribution.hh
 //---------------------------------------------------------------------------//
-#ifndef random_UniformRealDistribution_hh
-#define random_UniformRealDistribution_hh
+#pragma once
 
 #include "GenerateCanonical.hh"
 #include "base/Macros.hh"
@@ -54,4 +53,4 @@ class UniformRealDistribution
 
 #include "UniformRealDistribution.i.hh"
 
-#endif // random_UniformRealDistribution_cuh
+//---------------------------------------------------------------------------//

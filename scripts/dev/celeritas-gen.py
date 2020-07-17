@@ -23,8 +23,7 @@ CLIKE_TOP = '''\
 '''
 
 HEADER_FILE = '''\
-#ifndef {header_guard}
-#define {header_guard}
+#pragma once
 
 namespace celeritas
 {{
@@ -54,8 +53,7 @@ class {name}
 }} // namespace celeritas
 
 #include "{name}.i.{hext}"
-
-#endif // {header_guard}
+//---------------------------------------------------------------------------//
 '''
 
 INLINE_FILE = '''\
@@ -308,7 +306,6 @@ def generate(root, filename):
         'hext': HEXT.get(lang, ext),
         'modeline': "-*-{}-*-".format(lang),
         'name': name,
-        'header_guard': re.sub(r'\W', '_', relpath),
         'filename': filename,
         'basename': basename,
         'dirname': dirname,
