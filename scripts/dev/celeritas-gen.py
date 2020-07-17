@@ -88,7 +88,6 @@ TEST_HARNESS_FILE = '''\
 
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
-#include "gmock/gmock.h"
 #include "{name}.test.hh"
 
 using celeritas::{name};
@@ -113,8 +112,8 @@ TEST_F({name}Test, all)
     // {capabbr}TestInput input;
     // input.num_threads = 0;
     // auto result = {lowabbr}_test(input);
-    // using testing::ElementsAreArray;
-    // EXPECT_THAT(result.foo, ElementsAreArray(expected_foo));
+    // PRINT_EXPECTED(result.foo);
+    // EXPECT_VEC_SOFT_EQ(expected_foo, result.foo);
 }}
 '''
 

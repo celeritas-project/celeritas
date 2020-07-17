@@ -40,6 +40,12 @@ if(NOT CELERITAS_USE_CUDA)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Gtest additions
+celeritas_setup_tests(SERIAL PREFIX gtest/detail)
+
+celeritas_add_test(gtest/detail/test/Macros.test.cc)
+
+#-----------------------------------------------------------------------------#
 # Base
 
 celeritas_setup_tests(SERIAL PREFIX base)
