@@ -32,10 +32,10 @@ StackAllocatorStore::StackAllocatorStore(size_type capacity)
 /*!
  * Get a view to the managed data.
  */
-StackAllocatorView StackAllocatorStore::device_view()
+StackAllocatorPointers StackAllocatorStore::device_pointers()
 {
-    StackAllocatorView view;
-    view.storage = span<byte>{allocation_.device_view().data(), capacity_};
+    StackAllocatorPointers view;
+    view.storage = span<byte>{allocation_.device_pointers().data(), capacity_};
     view.size = reinterpret_cast<size_type*>(view.storage.data() + capacity_);
     return view;
 }
@@ -46,7 +46,7 @@ StackAllocatorView StackAllocatorStore::device_view()
  */
 void StackAllocatorStore::clear()
 {
-    detail::device_memset_zero(allocation_.device_view());
+    detail::device_memset_zero(allocation_.device_pointers());
 }
 
 //---------------------------------------------------------------------------//

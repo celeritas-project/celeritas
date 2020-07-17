@@ -9,7 +9,7 @@
 
 #include <memory>
 #include "DeviceAllocation.hh"
-#include "StackAllocatorView.hh"
+#include "StackAllocatorPointers.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -26,7 +26,7 @@ class StackAllocatorStore
   public:
     //@{
     //! Public types
-    using size_type = StackAllocatorView::size_type;
+    using size_type = StackAllocatorPointers::size_type;
     //@}
   public:
     // Construct without data assignment
@@ -49,7 +49,7 @@ class StackAllocatorStore
     // >>> DEVICE ACCESSORS
 
     // Get a view to the managed data
-    StackAllocatorView device_view();
+    StackAllocatorPointers device_pointers();
 
   private:
     // Number of bytes allocated

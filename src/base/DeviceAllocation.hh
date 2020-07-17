@@ -50,10 +50,10 @@ class DeviceAllocation
     // >>> DEVICE ACCESSORS
 
     // Get the device pointer
-    inline SpanBytes device_view();
+    inline SpanBytes device_pointers();
 
     // Get the device pointer
-    inline constSpanBytes device_view() const;
+    inline constSpanBytes device_pointers() const;
 
     // Copy data to device
     void copy_to_device(constSpanBytes bytes);

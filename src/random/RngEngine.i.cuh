@@ -12,7 +12,8 @@ namespace celeritas
 /*!
  * Construct from state
  */
-__device__ RngEngine::RngEngine(const RngStateView& view, const ThreadId& id)
+__device__
+RngEngine::RngEngine(const RngStatePointers& view, const ThreadId& id)
     : state_(view.rng + id.get())
 {
 }

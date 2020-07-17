@@ -1,25 +1,30 @@
-//----------------------------------*-C++-*----------------------------------//
+//---------------------------------*-CUDA-*----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocatorView.i.hh
+//! \file RngStatePointers.cuh
 //---------------------------------------------------------------------------//
+#pragma once
+
+#include "base/Types.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Check whether the state is consistently assigned.
+ * Device view to a vector of CUDA random number generator states.
  *
- * This is called as part of the bool operator, which should be checked as part
- * of an assertion immediately before launching a kernel and when returning a
- * state.
+ * This "view" is expected to be an argument to a kernel launch.
  */
-CELER_FUNCTION bool StackAllocatorView::valid() const
+struct RngStatePointers
 {
-    return storage.empty() == bool(size);
-}
+    ssize_type size = 0;
+    RngState*  rng  = nullptr;
+};
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
+
+//---------------------------------------------------------------------------//

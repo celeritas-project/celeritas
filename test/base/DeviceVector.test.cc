@@ -45,12 +45,12 @@ TEST_F(DeviceVectorTest, all)
 
     {
         Vec_t other(128);
-        int*  orig_vec   = vec.device_view().data();
-        int*  orig_other = other.device_view().data();
+        int*  orig_vec   = vec.device_pointers().data();
+        int*  orig_other = other.device_pointers().data();
         swap(vec, other);
         EXPECT_EQ(1024, other.size());
-        EXPECT_EQ(orig_other, vec.device_view().data());
-        EXPECT_EQ(orig_vec, other.device_view().data());
+        EXPECT_EQ(orig_other, vec.device_pointers().data());
+        EXPECT_EQ(orig_vec, other.device_pointers().data());
     }
     EXPECT_EQ(128, vec.size());
 

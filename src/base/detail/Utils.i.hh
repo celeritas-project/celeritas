@@ -15,9 +15,10 @@ namespace detail
  * Call memset on device data.
  */
 template<class T>
-void device_memset_zero(span<T> device_view)
+void device_memset_zero(span<T> device_pointers)
 {
-    device_memset(device_view.data(), 0, device_view.size() * sizeof(T));
+    device_memset(
+        device_pointers.data(), 0, device_pointers.size() * sizeof(T));
 }
 
 //---------------------------------------------------------------------------//

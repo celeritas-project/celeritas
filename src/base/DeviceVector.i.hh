@@ -59,9 +59,9 @@ void DeviceVector<T>::copy_to_host(Span_t data) const
  * Get an on-device view to the data.
  */
 template<class T>
-auto DeviceVector<T>::device_view() -> Span_t
+auto DeviceVector<T>::device_pointers() -> Span_t
 {
-    return {reinterpret_cast<T*>(allocation_.device_view().data()),
+    return {reinterpret_cast<T*>(allocation_.device_pointers().data()),
             this->size()};
 }
 
@@ -70,9 +70,9 @@ auto DeviceVector<T>::device_view() -> Span_t
  * Get an on-device view to the data.
  */
 template<class T>
-auto DeviceVector<T>::device_view() const -> constSpan_t
+auto DeviceVector<T>::device_pointers() const -> constSpan_t
 {
-    return {reinterpret_cast<const T*>(allocation_.device_view().data()),
+    return {reinterpret_cast<const T*>(allocation_.device_pointers().data()),
             this->size()};
 }
 

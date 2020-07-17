@@ -47,12 +47,12 @@ TEST_F(DeviceAllocationTest, all)
 
     {
         DeviceAllocation other(128);
-        byte*            orig_alloc = alloc.device_view().data();
-        byte*            orig_other = other.device_view().data();
+        byte*            orig_alloc = alloc.device_pointers().data();
+        byte*            orig_other = other.device_pointers().data();
         swap(alloc, other);
         EXPECT_EQ(1024, other.size());
-        EXPECT_EQ(orig_other, alloc.device_view().data());
-        EXPECT_EQ(orig_alloc, other.device_view().data());
+        EXPECT_EQ(orig_other, alloc.device_pointers().data());
+        EXPECT_EQ(orig_alloc, other.device_pointers().data());
     }
     EXPECT_EQ(128, alloc.size());
 
