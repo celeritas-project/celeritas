@@ -15,7 +15,7 @@ namespace celeritas
 template<typename T, std::size_t N>
 class array;
 
-class Thread;
+struct Thread;
 //---------------------------------------------------------------------------//
 using size_type    = std::size_t;
 using ssize_type   = int;

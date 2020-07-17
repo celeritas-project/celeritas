@@ -8,6 +8,9 @@
 #pragma once
 
 #include <cstddef>
+#ifndef __CUDA_ARCH__
+#    include <functional>
+#endif
 #include "Assert.hh"
 #include "Macros.hh"
 
@@ -121,8 +124,7 @@ inline CELER_FUNCTION T operator-(OpaqueId<I, T> self, OpaqueId<I, T> other)
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#ifndef __NVCC__
-#    include <functional>
+#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * \brief Specialization for std::hash for unordered storage.
