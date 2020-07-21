@@ -55,7 +55,7 @@ int test_main(int argc, char** argv)
     // Accumulate the result so that all processors will have the same result
     // XXX replace with celeritas comm wrappers
     int global_failed = failed;
-#ifdef CELERITAS_USE_MPI
+#if CELERITAS_USE_MPI
     MPI_Allreduce(
         &failed, &global_failed, 1, MPI_INT, MPI_MAX, comm.mpi_comm());
 #endif

@@ -11,7 +11,6 @@
 #include <limits>
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
-#include "gmock/gmock.h"
 #include "NumericLimits.test.hh"
 
 using namespace celeritas_test;
@@ -34,12 +33,12 @@ TYPED_TEST_SUITE(NumericLimitsTest, RealTypes);
 // TESTS
 //---------------------------------------------------------------------------//
 
+// Test that on-device and on-host values are equivalent
 TYPED_TEST(NumericLimitsTest, all)
 {
     using limits_t = celeritas::numeric_limits<TypeParam>;
     auto result    = nl_test<TypeParam>();
 
-    using testing::ElementsAreArray;
     EXPECT_EQ(limits_t::epsilon(), result.eps);
     EXPECT_TRUE(std::isnan(result.nan));
     EXPECT_EQ(limits_t::infinity(), result.inf);

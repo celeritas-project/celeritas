@@ -5,8 +5,11 @@
 //---------------------------------------------------------------------------//
 //! \file Macros.hh
 //---------------------------------------------------------------------------//
-#ifndef test_gtest_detail_Macros_hh
-#define test_gtest_detail_Macros_hh
+#pragma once
+
+//! Container equality macro
+#define EXPECT_VEC_EQ(expected, actual) \
+    EXPECT_PRED_FORMAT2(::celeritas::detail::IsVecEq, expected, actual)
 
 //! Soft equivalence macro
 #define EXPECT_SOFT_EQ(expected, actual) \
@@ -17,6 +20,26 @@
     EXPECT_PRED_FORMAT3(                              \
         ::celeritas::detail::IsSoftEquiv, expected, actual, rel_error)
 
+//! Container soft equivalence macro
+#define EXPECT_VEC_SOFT_EQ(expected, actual) \
+    EXPECT_PRED_FORMAT2(::celeritas::detail::IsVecSoftEquiv, expected, actual)
+
+//! Container soft equivalence macro with relative error
+#define EXPECT_VEC_NEAR(expected, actual, rel_error) \
+    EXPECT_PRED_FORMAT3(                             \
+        ::celeritas::detail::IsVecSoftEquiv, expected, actual, rel_error)
+
+//! Container soft equivalence macro with relative and absolute error
+#define EXPECT_VEC_CLOSE(expected, actual, rel_error, abs_thresh) \
+    EXPECT_PRED_FORMAT4(::celeritas::detail::IsVecSoftEquiv,      \
+                        expected,                                 \
+                        actual,                                   \
+                        rel_error,                                \
+                        abs_thresh)
+
+//! Print the given container as an array for regression testing
+#define PRINT_EXPECTED(data) ::celeritas::detail::print_expected(data, #data)
+
 #include "Macros.i.hh"
 
-#endif // test_gtest_detail_Macros_hh
+//---------------------------------------------------------------------------//

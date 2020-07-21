@@ -23,8 +23,7 @@ CLIKE_TOP = '''\
 '''
 
 HEADER_FILE = '''\
-#ifndef {header_guard}
-#define {header_guard}
+#pragma once
 
 namespace celeritas
 {{
@@ -54,8 +53,7 @@ class {name}
 }} // namespace celeritas
 
 #include "{name}.i.{hext}"
-
-#endif // {header_guard}
+//---------------------------------------------------------------------------//
 '''
 
 INLINE_FILE = '''\
@@ -90,7 +88,6 @@ TEST_HARNESS_FILE = '''\
 
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
-#include "gmock/gmock.h"
 #include "{name}.test.hh"
 
 using celeritas::{name};
@@ -115,8 +112,8 @@ TEST_F({name}Test, all)
     // {capabbr}TestInput input;
     // input.num_threads = 0;
     // auto result = {lowabbr}_test(input);
-    // using testing::ElementsAreArray;
-    // EXPECT_THAT(result.foo, ElementsAreArray(expected_foo));
+    // PRINT_EXPECTED(result.foo);
+    // EXPECT_VEC_SOFT_EQ(expected_foo, result.foo);
 }}
 '''
 
@@ -161,9 +158,10 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void {lowabbr}_test_kernel(int size)
+__global__ void {lowabbr}_test_kernel(unsigned int size)
 {{
-    int local_thread_id = celeritas::KernelParamCalculator::thread_id();
+    unsigned int local_thread_id
+        = celeritas::KernelParamCalculator::thread_id().get();
     if (local_thread_id >= size)
         return;
 }}
@@ -307,7 +305,6 @@ def generate(root, filename):
         'hext': HEXT.get(lang, ext),
         'modeline': "-*-{}-*-".format(lang),
         'name': name,
-        'header_guard': re.sub(r'\W', '_', relpath),
         'filename': filename,
         'basename': basename,
         'dirname': dirname,

@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file SoftEqualTraits.hh
 //---------------------------------------------------------------------------//
-#ifndef base_detail_SoftEqualTraits_hh
-#define base_detail_SoftEqualTraits_hh
+#pragma once
 
 namespace celeritas
 {
@@ -91,4 +90,4 @@ struct SoftPrecisionType<float, double>
 } // namespace detail
 } // namespace celeritas
 
-#endif // base_detail_SoftEqualTraits_hh
+//---------------------------------------------------------------------------//

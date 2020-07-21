@@ -165,9 +165,11 @@ Thus we have the following rules:
   <cuda_runtime_api.h>``.
 - ``.cuda.hh`` and ``.cuda.cc`` require CUDA to be enabled and use CUDA runtime
   libraries and headers, but they do not execute any device code and thus can
-  be built by a host compiler.  Memory-management code is a good example of
-  this.
-- ``.mpi.cc`` and ``.serial.cc`` code requires MPI to be enabled or disabled,
+  be built by a host compiler. If the CUDA-related code is guarded by ``#if
+  CELERITAS_USE_CUDA`` macros then the special extension is not necessary. A
+  ``.nocuda.cc`` file can specify alternative code paths to ``.cuda.cc`` files
+  (mainly for error checking code).
+- ``.mpi.cc`` and ``.nompi.cc`` code requires MPI to be enabled or disabled,
   respectively.
 
 Some files have special extensions:
@@ -195,18 +197,65 @@ Data management
 
 Data management should be isolated from data use as much as possible. This
 allows low-level physics classes to operate on references to data using the
-exact same device/host code.
+exact same device/host code. Furthermore, state data (one per track) and
+shared data (definitions, persistent data, model data) should be separately
+allocated and managed.
 
-Container
-  Provide a CPU-based interface to allocate, store, and retrieve GPU data using
-  ``thrust`` vectors or other means. These can only be accessed via host code
-  but they use the CUDA API to manage data on the device. They can contain
-  metadata (string names, etc.) suitable for host-side debug output.
+Store
+  Generic name for a class that manages GPU data by means of a host class,
+  using ``celeritas::DeviceVector`` (or ``thrust`` or ``VecGeom`` wrappers as
+  needed) to manage the on-device data.
 
-View
-  A standalone plain-old-data reference to data owned by a container, used to
-  transfer GPU pointers and other kernel parameters between host and device.
-  The view's user should be closely linked with the Container: for example, the
-  device utility ``StackAllocator`` uses the ``StackAllocatorView`` to find
-  GPU-owned data managed by the ``StackAllocatorContainer``. Views can contain
-  other views (usually by value).
+Params (model parameters)
+  Provide a CPU-based interface to manage and provide access to constant shared
+  GPU data, usually model parameters or the like. The Params class itself can
+  only be accessed via host code, but it should use the
+  ``celeritas::DeviceVector`` or ``thrust`` or ``VecGeom`` wrappers to manage
+  on-device data. A params class can contain metadata (string
+  names, etc.) suitable for host-side debug output and for helping related
+  classes convert from user-friendly input (e.g. particle name) to
+  device-friendly IDs (e.g. particle def ID).
+
+State (state variables)
+  Thread-local data specifying the state of a single particle track with
+  respect to a corresponding model (``FooParams``). The state
+  data resides on device but is managed by a host class ``FooStateStore`` using
+  ``DeviceVector`` or the like. It is an implementation detail whether the
+  state data is stored as a struct of arrays (SOA) or an array of structs
+  (AOS), but if stored as AOS then the per-track state struct should be named
+  ``TrackFooState``.
+
+Pointers
+  A standalone, plain-old-data struct to data owned by another class (e.g. a
+  Params class) but stored on the GPU. This struct is used to transfer GPU
+  pointers and other kernel parameters between host and device. A Pointers
+  struct can hold other Pointers structs as data members. Inside unit tests for
+  debugging, Pointers can reference *host* data if the corresponding functions
+  being called are also on-host. Defining Pointers structs in separate files
+  from the memory management classes means that NVCC doesn't have to include
+  those headers, speeding up compilation and perhaps allowing the host code to
+  use newer implementations of the C++ standard.
+
+TrackView
+  Device-compatible class that provides read/write access to the data for a
+  single track, in the spirit of `std::string_view` which adds functionality to
+  data owned by someone else. It combines the state variables and model
+  parameters into a single class. The constructor always takes const references
+  to ParamsPointers and StatePointers as well as the track ID. It encapsulates
+  the storage/layout of the state and parameters, as well as what (if any) data
+  is cached in the state.
+
+.. example::
+
+   All SM physics particles share a common set of properties such as mass,
+   charge; and each instance of particle has a particular set of
+   associated variables such as kinetic energy. The shared data (SM parameters)
+   reside in ``ParticleParams``, and the particle track properties are managed
+   by a ``ParticleStateStore`` class.
+
+   A separate class, the ``ParticleTrackView``, is instantiated with a
+   specific thread ID so that it acts as an accessor to the
+   stored data for a particular track. It can calculate properties that depend
+   on both the state and parameters. For example, momentum depends on both the
+   mass of a particle (constant, set by the model) and the speed (variable,
+   depends on particle track state).

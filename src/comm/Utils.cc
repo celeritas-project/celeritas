@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "Utils.hh"
 
-#ifdef CELERITAS_USE_CUDA
+#include "celeritas_config.h"
+#if CELERITAS_USE_CUDA
 #    include <cuda_runtime_api.h>
 #endif
 #include "base/Assert.hh"
@@ -18,7 +19,7 @@ namespace celeritas
 // Initialize device in a round-robin fashion from a communicator
 void initialize_device(const Communicator& comm)
 {
-#ifdef CELERITAS_USE_CUDA
+#if CELERITAS_USE_CUDA
     // Get number of devices
     int num_devices = -1;
     CELER_CUDA_CALL(cudaGetDeviceCount(&num_devices));

@@ -28,11 +28,31 @@ target_include_directories(CeleritasTest
 
 include(CeleritasAddTest)
 
+function(add_cudaoptional_test base)
+  if(CELERITAS_USE_CUDA)
+    set(_sources SOURCES "${base}.test.cu")
+  endif()
+  celeritas_add_test("${base}.test.cc" ${_sources} ${ARGN})
+endfunction()
+
+if(NOT CELERITAS_USE_CUDA)
+  set(_needs_cuda DISABLE)
+endif()
+
+#-----------------------------------------------------------------------------#
+# Gtest additions
+celeritas_setup_tests(SERIAL PREFIX gtest/detail)
+
+celeritas_add_test(gtest/detail/test/Macros.test.cc)
+
 #-----------------------------------------------------------------------------#
 # Base
 
 celeritas_setup_tests(SERIAL PREFIX base)
+
 celeritas_add_test(base/Array.test.cc)
+celeritas_add_test(base/DeviceAllocation.test.cc)
+celeritas_add_test(base/DeviceVector.test.cc)
 celeritas_add_test(base/Interpolator.test.cc)
 celeritas_add_test(base/OpaqueId.test.cc)
 celeritas_add_test(base/Range.test.cc)

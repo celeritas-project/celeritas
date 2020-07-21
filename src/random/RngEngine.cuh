@@ -5,11 +5,10 @@
 //---------------------------------------------------------------------------//
 //! \file RngEngine.cuh
 //---------------------------------------------------------------------------//
-#ifndef random_RngEngine_cuh
-#define random_RngEngine_cuh
+#pragma once
 
 #include <curand_kernel.h>
-#include "RngStateView.cuh"
+#include "RngStatePointers.cuh"
 
 namespace celeritas
 {
@@ -27,7 +26,8 @@ class RngEngine
 
   public:
     // Construct from state
-    __device__ inline RngEngine(const RngStateView& view, const ThreadId& id);
+    __device__ inline RngEngine(const RngStatePointers& view,
+                                const ThreadId&         id);
 
     // Sample a random number
     __device__ inline result_type operator()();
@@ -50,4 +50,4 @@ class RngEngine
 
 #include "RngEngine.i.cuh"
 
-#endif // random_RngEngine_cuh
+//---------------------------------------------------------------------------//

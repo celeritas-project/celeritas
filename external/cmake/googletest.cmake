@@ -12,7 +12,7 @@ Include this file *directly* from the parent directory to set up GoogleTest.
 #]=======================================================================]
 
 # Set up options
-set(BUILD_GMOCK ON CACHE BOOL "")
+set(BUILD_GMOCK OFF CACHE BOOL "")
 set(INSTALL_GTEST OFF CACHE BOOL "")
 set(gtest_disable_pthreads OFF CACHE BOOL "")
 if(MSVC)

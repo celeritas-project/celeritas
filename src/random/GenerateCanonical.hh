@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file GenerateCanonical.hh
 //---------------------------------------------------------------------------//
-#ifndef random_GenerateCanonical_hh
-#define random_GenerateCanonical_hh
+#pragma once
 
 #ifdef __NVCC__
 #    include "RngEngine.cuh"
@@ -32,10 +31,10 @@ class GenerateCanonical
 
   public:
     // Constructor
-    explicit CELER_INLINE_FUNCTION GenerateCanonical() {}
+    explicit CELER_FUNCTION GenerateCanonical() {}
 
     // Sample a random number
-    CELER_INLINE_FUNCTION result_type operator()(Generator& rng);
+    CELER_FUNCTION result_type operator()(Generator& rng);
 };
 
 #ifdef __NVCC__
@@ -55,7 +54,7 @@ class GenerateCanonical<RngEngine, float>
 
   public:
     // Constructor
-    explicit CELER_INLINE_FUNCTION GenerateCanonical() {}
+    explicit CELER_FUNCTION GenerateCanonical() {}
 
     // Sample a random number
     inline __device__ result_type operator()(RngEngine& rng);
@@ -77,7 +76,7 @@ class GenerateCanonical<RngEngine, double>
 
   public:
     // Constructor
-    explicit CELER_INLINE_FUNCTION GenerateCanonical() {}
+    explicit CELER_FUNCTION GenerateCanonical() {}
 
     // Sample a random number
     inline __device__ result_type operator()(RngEngine& rng);
@@ -89,4 +88,4 @@ class GenerateCanonical<RngEngine, double>
 
 #include "GenerateCanonical.i.hh"
 
-#endif // random_GenerateCanonical_cuh
+//---------------------------------------------------------------------------//

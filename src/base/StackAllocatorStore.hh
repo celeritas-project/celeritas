@@ -3,18 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocatorContainer.hh
+//! \file StackAllocatorStore.hh
 //---------------------------------------------------------------------------//
-#ifndef base_StackAllocatorContainer_hh
-#define base_StackAllocatorContainer_hh
+#pragma once
 
 #include <memory>
+#include "DeviceAllocation.hh"
+#include "StackAllocatorPointers.hh"
 #include "Types.hh"
-#include "StackAllocatorView.hh"
 
 namespace celeritas
 {
-struct StackAllocatorContainerPimpl;
 //---------------------------------------------------------------------------//
 /*!
  * Manage a chunk of device memory as an in-kernel stack.
@@ -22,24 +21,19 @@ struct StackAllocatorContainerPimpl;
  * This low-level class should be used by other containers to ensure alignment
  * requirements are met.
  */
-class StackAllocatorContainer
+class StackAllocatorStore
 {
   public:
     //@{
     //! Public types
-    using size_type = StackAllocatorView::size_type;
+    using size_type = StackAllocatorPointers::size_type;
     //@}
   public:
-    // Construct with the number of bytes to allocate on device
-    explicit StackAllocatorContainer(size_type capacity);
+    // Construct without data assignment
+    StackAllocatorStore() = default;
 
-    //@{
-    //! Defaults that cause thrust to launch kernels
-    StackAllocatorContainer();
-    ~StackAllocatorContainer();
-    StackAllocatorContainer(StackAllocatorContainer&&);
-    StackAllocatorContainer& operator=(StackAllocatorContainer&&);
-    //@}
+    // Construct with the number of bytes to allocate on device
+    explicit StackAllocatorStore(size_type capacity);
 
     // >>> HOST ACCESSORS
 
@@ -50,21 +44,21 @@ class StackAllocatorContainer
     void clear();
 
     // Swap with another stack allocator
-    void swap(StackAllocatorContainer& other);
+    void swap(StackAllocatorStore& other);
 
     // >>> DEVICE ACCESSORS
 
     // Get a view to the managed data
-    StackAllocatorView device_view() const;
+    StackAllocatorPointers device_pointers();
 
   private:
     // Number of bytes allocated
     size_type capacity_ = 0;
     // Stored memory on device
-    std::unique_ptr<StackAllocatorContainerPimpl> data_;
+    DeviceAllocation allocation_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // base_StackAllocatorContainer_hh
+//---------------------------------------------------------------------------//

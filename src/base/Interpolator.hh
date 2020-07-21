@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Interpolator.hh
 //---------------------------------------------------------------------------//
-#ifndef base_Interpolator_hh
-#define base_Interpolator_hh
+#pragma once
 
 #include <cmath>
 #include "Array.hh"
@@ -74,10 +73,10 @@ class Interpolator
 
   public:
     // Construct with left and right values for x and y
-    CELER_INLINE_FUNCTION Interpolator(Point left, Point right);
+    inline CELER_FUNCTION Interpolator(Point left, Point right);
 
     // Interpolate
-    CELER_INLINE_FUNCTION real_type operator()(real_type x) const;
+    inline CELER_FUNCTION real_type operator()(real_type x) const;
 
   private:
     // Private traits and constants
@@ -95,4 +94,4 @@ using LinearInterpolator = Interpolator<Interp::Linear, Interp::Linear, T>;
 
 #include "Interpolator.i.hh"
 
-#endif // base_Interpolator_hh
+//---------------------------------------------------------------------------//

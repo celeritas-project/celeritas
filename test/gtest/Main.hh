@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Main.hh
 //---------------------------------------------------------------------------//
-#ifndef test_Main_hh
-#define test_Main_hh
+#pragma once
 
 #include "detail/TestMain.hh"
 #include "detail/Macros.hh"
@@ -24,4 +23,4 @@ int main(int argc, char** argv)
     return celeritas::detail::test_main(argc, argv);
 }
 
-#endif // test_Main_hh
+//---------------------------------------------------------------------------//

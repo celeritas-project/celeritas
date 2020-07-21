@@ -14,20 +14,22 @@ namespace celeritas
 /*!
  * Construct with a reference to the storage pointers
  */
-CELER_INLINE_FUNCTION
-StackAllocator::StackAllocator(const StackAllocatorView& data) : data_(data) {}
+CELER_FUNCTION
+StackAllocator::StackAllocator(const StackAllocatorPointers& view)
+    : shared_(view)
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!
  * Allocate like malloc.
  */
-CELER_INLINE_FUNCTION auto StackAllocator::operator()(size_type size)
-    -> result_type
+CELER_FUNCTION auto StackAllocator::operator()(size_type size) -> result_type
 {
-    size_type start = atomic_add(data_.size, size);
-    if (start + size > data_.capacity)
+    size_type start = atomic_add(shared_.size, size);
+    if (start + size > shared_.storage.size())
         return nullptr;
-    return data_.data + start;
+    return shared_.storage.data() + start;
 }
 
 //---------------------------------------------------------------------------//

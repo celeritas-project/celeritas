@@ -3,10 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngStateContainer.hh
+//! \file RngStateStore.hh
 //---------------------------------------------------------------------------//
-#ifndef random_RngStateContainer_hh
-#define random_RngStateContainer_hh
+#pragma once
 
 #include <memory>
 #include <random>
@@ -16,23 +15,23 @@
 namespace celeritas
 {
 struct RngStateContainerPimpl;
-struct RngStateView;
+struct RngStatePointers;
 //---------------------------------------------------------------------------//
 /*!
  * Manage ownership of on-device random number generator.
  */
-class RngStateContainer
+class RngStateStore
 {
   public:
     // Construct with the number of RNG states
-    RngStateContainer(ssize_type size, seed_type host_seed = 12345);
+    RngStateStore(ssize_type size, seed_type host_seed = 12345);
 
     //@{
     //! Defaults that cause thrust to launch kernels
-    RngStateContainer();
-    ~RngStateContainer();
-    RngStateContainer(RngStateContainer&&);
-    RngStateContainer& operator=(RngStateContainer&&);
+    RngStateStore();
+    ~RngStateStore();
+    RngStateStore(RngStateStore&&);
+    RngStateStore& operator=(RngStateStore&&);
     //@}
 
     //! Number of states
@@ -42,7 +41,7 @@ class RngStateContainer
     void resize(ssize_type size);
 
     // Emit a view to on-device memory
-    RngStateView device_view() const;
+    RngStatePointers device_pointers() const;
 
   private:
     // Host-side RNG for seeding device RNG
@@ -59,4 +58,4 @@ class RngStateContainer
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // random_RngStateContainer_hh
+//---------------------------------------------------------------------------//

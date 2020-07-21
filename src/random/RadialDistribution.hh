@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file RadialDistribution.hh
 //---------------------------------------------------------------------------//
-#ifndef random_RadialDistribution_hh
-#define random_RadialDistribution_hh
+#pragma once
 
 #include "GenerateCanonical.hh"
 #include "base/Macros.hh"
@@ -29,16 +28,16 @@ class RadialDistribution
 
   public:
     // Constructor
-    explicit CELER_INLINE_FUNCTION RadialDistribution(real_type radius);
+    explicit inline CELER_FUNCTION RadialDistribution(real_type radius);
 
     // Sample a random number according to the distribution
     template<class Generator>
-    CELER_INLINE_FUNCTION result_type operator()(Generator& rng);
+    inline CELER_FUNCTION result_type operator()(Generator& rng);
 
     // >>> ACCESSORS
 
     //! Get the sampling radius
-    CELER_INLINE_FUNCTION real_type radius() const { return radius_; }
+    inline CELER_FUNCTION real_type radius() const { return radius_; }
 
   private:
     RealType radius_;
@@ -49,4 +48,4 @@ class RadialDistribution
 
 #include "RadialDistribution.i.hh"
 
-#endif // random_RadialDistribution_hh
+//---------------------------------------------------------------------------//

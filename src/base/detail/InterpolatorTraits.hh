@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file InterpolatorTraits.hh
 //---------------------------------------------------------------------------//
-#ifndef base_detail_InterpolatorTraits_hh
-#define base_detail_InterpolatorTraits_hh
+#pragma once
 
 #include "../Types.hh"
 #include "../Macros.hh"
@@ -67,4 +66,4 @@ struct InterpolatorTraits<Interp::Log, T>
 } // namespace detail
 } // namespace celeritas
 
-#endif // base_detail_InterpolatorTraits_hh
+//---------------------------------------------------------------------------//

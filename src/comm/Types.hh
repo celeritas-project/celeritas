@@ -5,18 +5,17 @@
 //---------------------------------------------------------------------------//
 //! \file Types.hh
 //---------------------------------------------------------------------------//
-#ifndef comm_Types_hh
-#define comm_Types_hh
+#pragma once
 
 #include "celeritas_config.h"
-#ifdef CELERITAS_USE_MPI
+#if CELERITAS_USE_MPI
 #    include <mpi.h>
 #endif
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-#ifdef CELERITAS_USE_MPI
+#if CELERITAS_USE_MPI
 using MpiComm = MPI_Comm;
 #else
 
@@ -39,4 +38,4 @@ inline bool operator!=(MpiComm a, MpiComm b)
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // comm_Types_hh
+//---------------------------------------------------------------------------//

@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Types.hh
 //---------------------------------------------------------------------------//
-#ifndef base_Types_hh
-#define base_Types_hh
+#pragma once
 
 #include <cstddef>
 #include "OpaqueId.hh"
@@ -16,7 +15,7 @@ namespace celeritas
 template<typename T, std::size_t N>
 class array;
 
-class Thread;
+struct Thread;
 //---------------------------------------------------------------------------//
 using size_type    = std::size_t;
 using ssize_type   = int;
@@ -37,4 +36,4 @@ enum class Interp
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#endif // base_Types_hh
+//---------------------------------------------------------------------------//

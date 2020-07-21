@@ -5,8 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file Utils.hh
 //---------------------------------------------------------------------------//
-#ifndef test_detail_Utils_hh
-#define test_detail_Utils_hh
+#pragma once
+
+#include <string>
 
 namespace celeritas
 {
@@ -17,7 +18,18 @@ namespace detail
 const char* skip_cstring();
 
 //---------------------------------------------------------------------------//
+// Number of base-10 digits in an unsigned integer
+unsigned int num_digits(unsigned int val);
+
+//---------------------------------------------------------------------------//
+std::string char_to_hex_string(unsigned char value);
+
+//---------------------------------------------------------------------------//
+const char*
+trunc_string(unsigned int digits, const char* str, const char* trunc);
+
+//---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas
 
-#endif // test_detail_Utils_hh
+//---------------------------------------------------------------------------//

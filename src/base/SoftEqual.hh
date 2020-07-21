@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file SoftEqual.hh
 //---------------------------------------------------------------------------//
-#ifndef base_SoftEqual_hh
-#define base_SoftEqual_hh
+#pragma once
 
 #include "detail/SoftEqualTraits.hh"
 
@@ -117,4 +116,4 @@ class SoftZero
 
 #include "SoftEqual.i.hh"
 
-#endif // base_SoftEqual_hh
+//---------------------------------------------------------------------------//

@@ -24,15 +24,23 @@ set(PUBLIC_DEPS)
 list(APPEND SOURCES
   base/Assert.cc
   base/ColorUtils.cc
+  base/StackAllocatorStore.cc
   comm/Utils.cc
 )
+
 if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
+    base/DeviceAllocation.cuda.cc
     base/KernelParamCalculator.cuda.cc
-    base/StackAllocatorContainer.cu
-    random/RngStateContainer.cu
+    random/RngStateStore.cu
+    base/detail/Utils.cu
   )
   list(APPEND PRIVATE_DEPS CUDA::cudart)
+else()
+  list(APPEND SOURCES
+    base/DeviceAllocation.nocuda.cc
+    base/detail/Utils.nocuda.cc
+  )
 endif()
 
 if(CELERITAS_USE_MPI)

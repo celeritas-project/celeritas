@@ -5,10 +5,10 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocator.hh
 //---------------------------------------------------------------------------//
-#ifndef base_StackAllocator_hh
-#define base_StackAllocator_hh
+#pragma once
 
 #include "Macros.hh"
+#include "StackAllocatorPointers.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -32,19 +32,19 @@ class StackAllocator
     //@{
     //! Type aliases
     using result_type = void*;
-    using size_type   = StackAllocatorView::size_type;
+    using size_type   = StackAllocatorPointers::size_type;
     //@}
 
   public:
     // Construct with a reference to the storage pointers
-    explicit CELER_INLINE_FUNCTION
-    StackAllocator(const StackAllocatorView& data);
+    explicit inline CELER_FUNCTION
+    StackAllocator(const StackAllocatorPointers&);
 
     // Allocate like malloc
-    CELER_INLINE_FUNCTION result_type operator()(size_type size);
+    inline CELER_FUNCTION result_type operator()(size_type size);
 
   private:
-    const StackAllocatorView& data_;
+    const StackAllocatorPointers& shared_;
 };
 
 //---------------------------------------------------------------------------//
@@ -52,4 +52,4 @@ class StackAllocator
 
 #include "StackAllocator.i.hh"
 
-#endif // base_StackAllocator_hh
+//---------------------------------------------------------------------------//

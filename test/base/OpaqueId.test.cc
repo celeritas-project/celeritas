@@ -38,8 +38,8 @@ TEST(OpaqueIdTest, operations)
     EXPECT_TRUE(!unassigned);
     EXPECT_EQ(unassigned, unassigned);
     EXPECT_EQ(unassigned, Id_t{});
-#ifdef REQUIRE_ON
-    EXPECT_THROW(unassigned.get(), nemesis::assertion);
+#if CELERITAS_DEBUG
+    EXPECT_THROW(unassigned.get(), celeritas::DebugError);
 #endif
     EXPECT_EQ(static_cast<size_t>(-1), Id_t{}.unchecked_get());
     EXPECT_EQ(std::hash<std::size_t>()(-1), std::hash<Id_t>()(unassigned));

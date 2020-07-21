@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngStateContainer.cu
+//! \file RngStateStore.cu
 //---------------------------------------------------------------------------//
-#include "RngStateContainer.hh"
+#include "RngStateStore.hh"
 
 #include <vector>
 #include <thrust/device_vector.h>
@@ -25,7 +25,7 @@ struct RngStateContainerPimpl
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
-__global__ void initialize_states(RngStateView view, seed_type* seeds)
+__global__ void initialize_states(RngStatePointers view, seed_type* seeds)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < view.size)
@@ -39,7 +39,7 @@ __global__ void initialize_states(RngStateView view, seed_type* seeds)
 /*!
  * Construct with the number of RNG states.
  */
-RngStateContainer::RngStateContainer(ssize_type size, seed_type host_seed)
+RngStateStore::RngStateStore(ssize_type size, seed_type host_seed)
     : host_rng_(host_seed)
 {
     this->resize(size);
@@ -47,17 +47,17 @@ RngStateContainer::RngStateContainer(ssize_type size, seed_type host_seed)
 
 //---------------------------------------------------------------------------//
 // Default constructor/destructor/move
-RngStateContainer::RngStateContainer()                    = default;
-RngStateContainer::~RngStateContainer()                   = default;
-RngStateContainer::RngStateContainer(RngStateContainer&&) = default;
-RngStateContainer& RngStateContainer::operator=(RngStateContainer&&) = default;
+RngStateStore::RngStateStore()                = default;
+RngStateStore::~RngStateStore()               = default;
+RngStateStore::RngStateStore(RngStateStore&&) = default;
+RngStateStore& RngStateStore::operator=(RngStateStore&&) = default;
 
 //---------------------------------------------------------------------------//
 /*!
  * Resize the RNG state vector, initializing new states if the number requested
  * is larger than the current size.
  */
-void RngStateContainer::resize(ssize_type size)
+void RngStateStore::resize(ssize_type size)
 {
     int num_states     = this->size();
     int num_new_states = size - num_states;
@@ -81,7 +81,7 @@ void RngStateContainer::resize(ssize_type size)
         thrust::device_vector<seed_type> seeds = host_seeds;
 
         // Create a view of new states to initialize
-        RngStateView view;
+        RngStatePointers view;
         view.size = num_new_states;
         view.rng  = thrust::raw_pointer_cast(data_->rng.data()) + num_states;
 
@@ -98,11 +98,11 @@ void RngStateContainer::resize(ssize_type size)
 /*!
  * Return a view to on-device memory
  */
-RngStateView RngStateContainer::device_view() const
+RngStatePointers RngStateStore::device_pointers() const
 {
     REQUIRE(data_);
 
-    RngStateView view;
+    RngStatePointers view;
     view.size = data_->rng.size();
     view.rng  = thrust::raw_pointer_cast(data_->rng.data());
 

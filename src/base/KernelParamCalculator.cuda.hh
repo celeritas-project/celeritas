@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file KernelParamCalculator.cuda.hh
 //---------------------------------------------------------------------------//
-#ifndef base_KernelParamCalculator_cuda_hh
-#define base_KernelParamCalculator_cuda_hh
+#pragma once
 
 #include <cstddef>
 #include <cuda_runtime_api.h>
@@ -51,7 +50,7 @@ class KernelParamCalculator
     LaunchParams operator()(size_type min_num_threads) const;
 
     // Get the thread ID
-    CELER_INLINE_FUNCTION static ThreadId thread_id();
+    inline CELER_FUNCTION static ThreadId thread_id();
 
   private:
     //! Default threads per block
@@ -63,4 +62,4 @@ class KernelParamCalculator
 
 #include "KernelParamCalculator.cuda.i.hh"
 
-#endif // base_KernelParamCalculator_cuh
+//---------------------------------------------------------------------------//

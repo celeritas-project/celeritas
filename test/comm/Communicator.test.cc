@@ -30,7 +30,7 @@ TEST_F(CommunicatorTest, rank)
 {
     Communicator comm = Communicator::comm_world();
 
-#ifdef CELERITAS_USE_MPI
+#if CELERITAS_USE_MPI
     EXPECT_EQ(MPI_COMM_WORLD, comm.mpi_comm());
 
     // Test MPI-specific functionality

@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file NumericLimits.hh
 //---------------------------------------------------------------------------//
-#ifndef base_NumericLimits_hh
-#define base_NumericLimits_hh
+#pragma once
 
 #include <cfloat>
 
@@ -47,5 +46,4 @@ using numeric_limits = std::numeric_limits<Numeric>;
 #endif // __CUDA_ARCH__
 
 } // namespace celeritas
-
-#endif // base_NumericLimits_hh
+//---------------------------------------------------------------------------//
