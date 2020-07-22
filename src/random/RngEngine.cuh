@@ -12,6 +12,9 @@
 
 namespace celeritas
 {
+template<class Generator, class RealType>
+class GenerateCanonical;
+
 //---------------------------------------------------------------------------//
 /*!
  * Sample random numbers on device.
@@ -24,25 +27,31 @@ class RngEngine
     using result_type = unsigned int;
     //@}
 
+    struct RngSeed
+    {
+        unsigned long long seed;
+    };
+
   public:
     // Construct from state
     __device__ inline RngEngine(const RngStatePointers& view,
                                 const ThreadId&         id);
 
+    // Initialize state from seed
+    __device__ RngEngine& operator=(RngSeed s)
+    {
+        curand_init(s.seed, 0, 0, state_);
+        return *this;
+    }
+
     // Sample a random number
     __device__ inline result_type operator()();
 
-    // RNG state; use for implementation only!
-    __device__ inline RngState* state() { return state_; }
-
-    // Initialize state from seed
-    __device__ void initialize_state(seed_type seed)
-    {
-        curand_init(seed, 0, 0, state_);
-    }
-
   private:
     RngState* state_ = nullptr;
+
+    template<class Generator, class RealType>
+    friend class GenerateCanonical;
 };
 
 //---------------------------------------------------------------------------//

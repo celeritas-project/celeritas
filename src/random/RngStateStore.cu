@@ -12,15 +12,12 @@
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 #include "RngEngine.cuh"
+#include "RngStatePointers.cuh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-struct RngStateContainerPimpl
-{
-    thrust::device_vector<RngState> rng;
-};
-
+// KERNELS
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
@@ -31,10 +28,27 @@ __global__ void initialize_states(RngStatePointers view, seed_type* seeds)
     if (tid.get() < view.size)
     {
         RngEngine rng(view, tid);
-        rng.initialize_state(seeds[tid.get()]);
+        rng = RngEngine::RngSeed{seeds[tid.get()]};
     }
 }
 
+//---------------------------------------------------------------------------//
+// HELPER CLASSES
+//---------------------------------------------------------------------------//
+struct RngStateStorePimpl
+{
+    thrust::device_vector<RngState> rng;
+};
+
+//---------------------------------------------------------------------------//
+//! Private deleter for the unique pointer to
+void RngStateStore::StateStoreDeleter::operator()(RngStateStorePimpl* ptr)
+{
+    delete ptr;
+}
+
+//---------------------------------------------------------------------------//
+// METHODS
 //---------------------------------------------------------------------------//
 /*!
  * Construct with the number of RNG states.
@@ -44,13 +58,6 @@ RngStateStore::RngStateStore(ssize_type size, seed_type host_seed)
 {
     this->resize(size);
 }
-
-//---------------------------------------------------------------------------//
-// Default constructor/destructor/move
-RngStateStore::RngStateStore()                = default;
-RngStateStore::~RngStateStore()               = default;
-RngStateStore::RngStateStore(RngStateStore&&) = default;
-RngStateStore& RngStateStore::operator=(RngStateStore&&) = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -65,7 +72,7 @@ void RngStateStore::resize(ssize_type size)
     // Allocate and copy data to device
     if (this->size() == 0)
     {
-        data_ = std::make_unique<RngStateContainerPimpl>();
+        data_.reset(new RngStateStorePimpl());
     }
     data_->rng.resize(size);
     size_ = size;

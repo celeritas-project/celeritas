@@ -28,7 +28,7 @@ CELER_FUNCTION auto GenerateCanonical<Generator, T>::operator()(Generator& rng)
  */
 __device__ float GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 {
-    return curand_uniform(rng.state());
+    return curand_uniform(rng.state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -38,7 +38,7 @@ __device__ float GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 __device__ double
 GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)
 {
-    return curand_uniform_double(rng.state());
+    return curand_uniform_double(rng.state_);
 }
 
 #endif
