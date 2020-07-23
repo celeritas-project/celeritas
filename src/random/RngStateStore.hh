@@ -14,7 +14,7 @@
 
 namespace celeritas
 {
-struct RngStateContainerPimpl;
+struct RngStateStorePimpl;
 struct RngStatePointers;
 //---------------------------------------------------------------------------//
 /*!
@@ -26,14 +26,6 @@ class RngStateStore
     // Construct with the number of RNG states
     RngStateStore(ssize_type size, seed_type host_seed = 12345);
 
-    //@{
-    //! Defaults that cause thrust to launch kernels
-    RngStateStore();
-    ~RngStateStore();
-    RngStateStore(RngStateStore&&);
-    RngStateStore& operator=(RngStateStore&&);
-    //@}
-
     //! Number of states
     ssize_type size() const { return size_; }
 
@@ -44,6 +36,11 @@ class RngStateStore
     RngStatePointers device_pointers() const;
 
   private:
+    struct StateStoreDeleter
+    {
+        void operator()(RngStateStorePimpl*);
+    };
+
     // Host-side RNG for seeding device RNG
     std::mt19937                             host_rng_;
     std::uniform_int_distribution<seed_type> sample_uniform_int_;
@@ -52,7 +49,7 @@ class RngStateStore
     ssize_type size_ = 0;
 
     // Stored RNG states on device
-    std::unique_ptr<RngStateContainerPimpl> data_;
+    std::unique_ptr<RngStateStorePimpl, StateStoreDeleter> data_;
 };
 
 //---------------------------------------------------------------------------//
