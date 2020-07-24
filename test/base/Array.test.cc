@@ -29,9 +29,4 @@ TEST(ArrayTest, all)
     array<int, 3> y{20, 30, 40};
     EXPECT_EQ(x, x);
     EXPECT_NE(x, y);
-
-    celeritas::axpy(4, x, &y);
-    EXPECT_EQ(4 * 1 + 20, y[0]);
-    EXPECT_EQ(4 * 3 + 30, y[1]);
-    EXPECT_EQ(4 * 2 + 40, y[2]);
 }
