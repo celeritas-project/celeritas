@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file RadialDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "random/RadialDistribution.hh"
+#include "random/distributions/RadialDistribution.hh"
 
 #include <random>
 #include "base/Range.hh"

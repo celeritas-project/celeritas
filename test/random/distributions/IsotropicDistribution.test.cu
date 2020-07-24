@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UniformRealDistribution.test.cu
+//! \file IsotropicDistribution.test.cu
 //---------------------------------------------------------------------------//
-#include "random/UniformRealDistribution.hh"
-#include "random/RngStateStore.hh"
-#include "random/RngEngine.cuh"
+#include "random/distributions/IsotropicDistribution.hh"
+#include "random/cuda/RngStateStore.hh"
+#include "random/cuda/RngEngine.cuh"
 #include <random>
 #include <thrust/copy.h>
 #include <thrust/device_ptr.h>
@@ -18,24 +18,24 @@
 #include "gtest/Test.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 
+using celeritas::IsotropicDistribution;
 using celeritas::RngEngine;
 using celeritas::RngStatePointers;
 using celeritas::RngStateStore;
-using celeritas::UniformRealDistribution;
 
 //---------------------------------------------------------------------------//
 // CUDA KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void sample(RngStatePointers          view,
-                       double*                   samples,
-                       UniformRealDistribution<> sample_uniform)
+__global__ void sample(RngStatePointers                      view,
+                       IsotropicDistribution<>::result_type* samples,
+                       IsotropicDistribution<>               sample_isotropic)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < view.size)
     {
         RngEngine rng(view, tid);
-        samples[tid.get()] = sample_uniform(rng);
+        samples[tid.get()] = sample_isotropic(rng);
     }
 }
 
@@ -43,25 +43,23 @@ __global__ void sample(RngStatePointers          view,
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UniformRealDistributionTestCu : public celeritas::Test
+class IsotropicDistributionTestCu : public celeritas::Test
 {
   protected:
     void SetUp() override {}
 
-    thrust::device_vector<double> samples;
+    thrust::device_vector<IsotropicDistribution<>::result_type> samples;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(UniformRealDistributionTestCu, bin)
+TEST_F(IsotropicDistributionTestCu, bin)
 {
-    int num_samples = 1000;
+    int num_samples = 10000;
 
-    double                    min = 0.0;
-    double                    max = 5.0;
-    UniformRealDistribution<> sample_uniform{min, max};
+    IsotropicDistribution<> sample_isotropic;
 
     // Allocate device memory for results
     samples.resize(num_samples);
@@ -74,25 +72,33 @@ TEST_F(UniformRealDistributionTestCu, bin)
     sample<<<params.grid_size, params.block_size>>>(
         container.device_pointers(),
         thrust::raw_pointer_cast(samples.data()),
-        sample_uniform);
+        sample_isotropic);
 
     cudaDeviceSynchronize();
 
     // Copy data back to host
-    thrust::host_vector<double> host_samples = this->samples;
+    thrust::host_vector<IsotropicDistribution<>::result_type> host_samples
+        = this->samples;
 
-    // Bin the data
-    std::vector<int> counters(5);
-    for (double sample : host_samples)
+    std::vector<int> octant_tally(8, 0);
+    for (auto u : host_samples)
     {
-        EXPECT_GE(sample, min);
-        EXPECT_LE(sample, max);
-        counters[int(sample)] += 1;
+        // Make sure sampled point is on the surface of the unit sphere
+        double r = std::sqrt(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
+        ASSERT_DOUBLE_EQ(r, 1.0);
+
+        // Tally octant
+        int tally_bin = 1 * (u[0] >= 0) + 2 * (u[1] >= 0) + 4 * (u[2] >= 0);
+        ASSERT_GE(tally_bin, 0);
+        ASSERT_LE(tally_bin, octant_tally.size() - 1);
+        ++octant_tally[tally_bin];
     }
 
-    for (int count : counters)
+    for (int count : octant_tally)
     {
-        cout << count << ' ';
+        double octant = static_cast<double>(count) / num_samples;
+        EXPECT_NEAR(octant, 1. / 8, 0.01);
+        cout << octant << ' ';
     }
     cout << endl;
 }

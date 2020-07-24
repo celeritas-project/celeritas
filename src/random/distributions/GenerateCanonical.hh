@@ -8,7 +8,7 @@
 #pragma once
 
 #ifdef __NVCC__
-#    include "RngEngine.cuh"
+#    include "random/cuda/RngEngine.cuh"
 #endif
 #include <random>
 #include "base/Macros.hh"
