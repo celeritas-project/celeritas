@@ -5,9 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file RadialDistribution.test.cu
 //---------------------------------------------------------------------------//
-#include "random/RadialDistribution.hh"
-#include "random/RngStateStore.hh"
-#include "random/RngEngine.cuh"
+#include "random/distributions/RadialDistribution.hh"
+#include "random/cuda/RngStateStore.hh"
+#include "random/cuda/RngEngine.cuh"
 #include <random>
 #include <thrust/copy.h>
 #include <thrust/device_ptr.h>

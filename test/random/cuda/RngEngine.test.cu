@@ -5,9 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file RngEngine.test.cu
 //---------------------------------------------------------------------------//
-#include "random/UniformRealDistribution.hh"
-#include "random/RngStateStore.hh"
-#include "random/RngEngine.cuh"
+#include "random/distributions/UniformRealDistribution.hh"
+#include "random/cuda/RngStateStore.hh"
+#include "random/cuda/RngEngine.cuh"
 #include <random>
 #include <thrust/copy.h>
 #include <thrust/device_ptr.h>
