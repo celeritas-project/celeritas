@@ -1,7 +1,8 @@
 # Celeritas
 
-The Celeritas project plans to implement certain HEP detector physics on GPU
-accelerator hardware.
+The Celeritas project implements HEP detector physics on GPU accelerator
+hardware with the ultimate goal of supporting the massive computational
+requirements of LHC-HL upgrade.
 
 # Installation and development
 
@@ -12,8 +13,11 @@ This project requires third-party libraries (TPLs) to build:
 - VecGeom: on-device navigation of GDML or ROOT-defined detector geometry
 - CUDA: on-device computation.
 
-The CMake build system is also required, and LLVM is required for development
-to enforce clang-format.
+Development/testing requirements:
+- CMake (build system)
+- [Git-LFS](https://git-lfs.github.com) (large test files, binary
+  documentation)
+- LLVM/Clang (formatting enforcement)
 
 ## Installing with Spack
 
@@ -35,6 +39,10 @@ that will amend each commit with clang-format updates if necessary.
 
 ## More details
 
-See the `doc/development.rst` document for guidelines and best practices for
-the project.
+See the [development wiki page
+](https://github.com/celeritas-project/celeritas/wiki/Development) for
+guidelines and best practices for code in the project.
 
+The [code design page](https://github.com/celeritas-project/celeritas/wiki/Code-design) outlines the basic physics design philosophy and classes.
+
+Some [codebase images and graphs](https://github.com/celeritas-project/celeritas-docs/tree/master/celeritas-code) are available on the celeritas-docs repo.
