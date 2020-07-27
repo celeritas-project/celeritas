@@ -13,7 +13,7 @@ spack:
     pcre:
       variants: +jit
     python:
-      variants: +libxml2 +shared
+      variants: +libxml2 +shared +uuid
     root:
       variants: ~examples ~x ~opengl
     xerces-c:
