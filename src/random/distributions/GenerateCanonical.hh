@@ -7,21 +7,35 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#ifdef __NVCC__
-#    include "random/cuda/RngEngine.cuh"
-#endif
-#include <random>
+#include <type_traits>
 #include "base/Macros.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Helper function to generate a random uniform number
+template<class RealType, class Generator>
+inline CELER_FUNCTION RealType generate_canonical(Generator& g);
+
+//---------------------------------------------------------------------------//
+//! Sample a celeritas::real_type on [0, 1).
+template<class Generator>
+inline CELER_FUNCTION real_type generate_canonical(Generator& g);
+
+//---------------------------------------------------------------------------//
 /*!
  * Generate random numbers in [0, 1).
+ *
+ * This is essentially an implementation detail; it can be overridden to
+ * specialize on the Generator type.
  */
 template<class Generator, class RealType = double>
 class GenerateCanonical
 {
+    static_assert(std::is_floating_point<RealType>::value,
+                  "RealType must be float or double");
+
   public:
     //@{
     //! Type aliases
@@ -34,56 +48,9 @@ class GenerateCanonical
     explicit CELER_FUNCTION GenerateCanonical() {}
 
     // Sample a random number
-    CELER_FUNCTION result_type operator()(Generator& rng);
+    result_type operator()(Generator& rng);
 };
 
-#ifdef __NVCC__
-//---------------------------------------------------------------------------//
-/*!
- * Specialization for RngEngine, float
- */
-template<>
-class GenerateCanonical<RngEngine, float>
-{
-  public:
-    //@{
-    //! Type aliases
-    using real_type   = float;
-    using result_type = real_type;
-    //@}
-
-  public:
-    // Constructor
-    explicit CELER_FUNCTION GenerateCanonical() {}
-
-    // Sample a random number
-    inline __device__ result_type operator()(RngEngine& rng);
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Specialization for RngEngine, double
- */
-template<>
-class GenerateCanonical<RngEngine, double>
-{
-  public:
-    //@{
-    //! Type aliases
-    using real_type   = double;
-    using result_type = real_type;
-    //@}
-
-  public:
-    // Constructor
-    explicit CELER_FUNCTION GenerateCanonical() {}
-
-    // Sample a random number
-    inline __device__ result_type operator()(RngEngine& rng);
-};
-
-#endif
-//---------------------------------------------------------------------------//
 } // namespace celeritas
 
 #include "GenerateCanonical.i.hh"

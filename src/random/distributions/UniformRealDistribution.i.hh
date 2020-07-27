@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include "base/Assert.hh"
+#include "GenerateCanonical.hh"
 
 namespace celeritas
 {
@@ -24,15 +25,14 @@ UniformRealDistribution<T>::UniformRealDistribution(real_type a, real_type b)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Sample a random number according to the distribution
+ * Sample a random number according to the distribution.
  */
 template<class T>
 template<class Generator>
 CELER_FUNCTION auto UniformRealDistribution<T>::operator()(Generator& rng)
     -> result_type
 {
-    GenerateCanonical<Generator, T> sample_uniform;
-    return delta_ * sample_uniform(rng) + a_;
+    return delta_ * generate_canonical<T>(rng) + a_;
 }
 
 //---------------------------------------------------------------------------//

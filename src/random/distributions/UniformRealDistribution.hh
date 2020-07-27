@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "GenerateCanonical.hh"
 #include "base/Macros.hh"
 
 namespace celeritas

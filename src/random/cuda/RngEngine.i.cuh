@@ -28,4 +28,25 @@ __device__ auto RngEngine::operator()() -> result_type
 }
 
 //---------------------------------------------------------------------------//
+// Specializations for GenerateCanonical
+//---------------------------------------------------------------------------//
+/*!
+ * Specialization for RngEngine, float
+ */
+__device__ float GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
+{
+    return curand_uniform(rng.state_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Specialization for RngEngine, double
+ */
+__device__ double
+GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)
+{
+    return curand_uniform_double(rng.state_);
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
