@@ -8,6 +8,7 @@
 #pragma once
 
 #include "detail/SoftEqualTraits.hh"
+#include "Macros.hh"
 
 namespace celeritas
 {
@@ -38,26 +39,27 @@ class SoftEqual
 
   public:
     // Construct with default relative/absolute precision
-    inline SoftEqual();
+    inline CELER_FUNCTION SoftEqual();
 
     // Construct with default absolute precision
-    inline explicit SoftEqual(value_type rel);
+    inline explicit CELER_FUNCTION SoftEqual(value_type rel);
 
     // Construct with both relative and absolute precision
-    inline SoftEqual(value_type rel, value_type abs);
+    inline CELER_FUNCTION SoftEqual(value_type rel, value_type abs);
 
     // >>> COMPARISON
 
     // Compare two values (implicitly casting arguments)
-    bool operator()(value_type expected, value_type actual) const;
+    bool CELER_FUNCTION operator()(value_type expected,
+                                   value_type actual) const;
 
     // >>> ACCESSORS
 
     //! Relative allowable error
-    value_type rel() const { return d_rel; }
+    CELER_FUNCTION value_type rel() const { return d_rel; }
 
     //! Absolute tolerance
-    value_type abs() const { return d_abs; }
+    CELER_FUNCTION value_type abs() const { return d_abs; }
 
   private:
     // >>> DATA
@@ -95,20 +97,20 @@ class SoftZero
     // >>> CONSTRUCTION
 
     // Construct with default relative/absolute precision
-    inline SoftZero();
+    inline CELER_FUNCTION SoftZero();
 
     // Construct with absolute precision
-    inline explicit SoftZero(value_type abs);
+    inline explicit CELER_FUNCTION SoftZero(value_type abs);
 
     // >>> COMPARISON
 
     // Compare the given value to zero
-    inline bool operator()(value_type actual) const;
+    inline CELER_FUNCTION bool operator()(value_type actual) const;
 
     // >>> ACCESSORS
 
     //! Absolute tolerance
-    value_type abs() const { return d_abs; }
+    CELER_FUNCTION value_type abs() const { return d_abs; }
 };
 
 //---------------------------------------------------------------------------//

@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Macros.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -23,14 +25,14 @@ struct SoftEqualTraits
     using value_type = T;
 
     //! Default relative error
-    static constexpr value_type rel_prec()
+    static CELER_CONSTEXPR_FUNCTION value_type rel_prec()
     {
         static_assert(sizeof(T) == 0, "Invalid type for softeq!");
         return T();
     }
 
     //! Default absolute error
-    static constexpr value_type abs_thresh()
+    static CELER_CONSTEXPR_FUNCTION value_type abs_thresh()
     {
         static_assert(sizeof(T) == 0, "Invalid type for softeq!");
         return T();
@@ -41,24 +43,24 @@ template<>
 struct SoftEqualTraits<long double>
 {
     using value_type = long double;
-    static constexpr value_type rel_prec() { return 1.0e-14; }
-    static constexpr value_type abs_thresh() { return 1.0e-15; }
+    static CELER_CONSTEXPR_FUNCTION value_type rel_prec() { return 1.0e-14; }
+    static CELER_CONSTEXPR_FUNCTION value_type abs_thresh() { return 1.0e-15; }
 };
 
 template<>
 struct SoftEqualTraits<double>
 {
     using value_type = double;
-    static constexpr value_type rel_prec() { return 1.0e-12; }
-    static constexpr value_type abs_thresh() { return 1.0e-14; }
+    static CELER_CONSTEXPR_FUNCTION value_type rel_prec() { return 1.0e-12; }
+    static CELER_CONSTEXPR_FUNCTION value_type abs_thresh() { return 1.0e-14; }
 };
 
 template<>
 struct SoftEqualTraits<float>
 {
     using value_type = float;
-    static constexpr value_type rel_prec() { return 1.0e-6f; }
-    static constexpr value_type abs_thresh() { return 1.0e-8f; }
+    static CELER_CONSTEXPR_FUNCTION value_type rel_prec() { return 1.0e-6f; }
+    static CELER_CONSTEXPR_FUNCTION value_type abs_thresh() { return 1.0e-8f; }
 };
 
 //---------------------------------------------------------------------------//
