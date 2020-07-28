@@ -11,7 +11,7 @@
 #include <thrust/reduce.h>
 #include <thrust/functional.h>
 #include "base/KernelParamCalculator.cuda.hh"
-#include "base/StackAllocator.hh"
+#include "base/StackAllocatorView.hh"
 
 using thrust::raw_pointer_cast;
 
@@ -30,7 +30,7 @@ __global__ void sa_test_kernel(SATestInput input, int* num_allocations)
 
     num_allocations[local_thread_id] = 0;
 
-    StackAllocator allocate(input.sa_view);
+    StackAllocatorView allocate(input.sa_view);
     for (int i = 0; i < input.num_iters; ++i)
     {
         void* new_data = allocate(input.alloc_size);

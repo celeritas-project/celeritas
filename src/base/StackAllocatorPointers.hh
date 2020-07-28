@@ -15,7 +15,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Reference data owned by a StackAllocatorStore for use in StackAllocator.
+ * Reference data owned by a StackAllocatorStore for use in StackAllocatorView.
  */
 struct StackAllocatorPointers
 {
