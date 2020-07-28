@@ -46,8 +46,9 @@ endif()
 
 # Build flags
 option(CELERITAS_DEBUG "Enable runtime assertions" ON)
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type" FORCE)
+if(NOT CMAKE_BUILD_TYPE AND (CMAKE_GENERATOR STREQUAL "Ninja"
+    OR CMAKE_GENERATOR STREQUAL "Unix Makefiles"))
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type" FORCE)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
