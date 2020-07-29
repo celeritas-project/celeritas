@@ -9,12 +9,10 @@
 
 #include <curand_kernel.h>
 #include "RngStatePointers.cuh"
+#include "random/distributions/GenerateCanonical.hh"
 
 namespace celeritas
 {
-template<class Generator, class RealType>
-class GenerateCanonical;
-
 //---------------------------------------------------------------------------//
 /*!
  * Sample random numbers on device.
@@ -52,6 +50,44 @@ class RngEngine
 
     template<class Generator, class RealType>
     friend class GenerateCanonical;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Specialization of GenerateCanonical for RngEngine, float
+ */
+template<>
+class GenerateCanonical<RngEngine, float>
+{
+  public:
+    //@{
+    //! Type aliases
+    using real_type   = float;
+    using result_type = real_type;
+    //@}
+
+  public:
+    // Sample a random number
+    inline __device__ result_type operator()(RngEngine& rng);
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Specialization for RngEngine, double
+ */
+template<>
+class GenerateCanonical<RngEngine, double>
+{
+  public:
+    //@{
+    //! Type aliases
+    using real_type   = double;
+    using result_type = real_type;
+    //@}
+
+  public:
+    // Sample a random number
+    inline __device__ result_type operator()(RngEngine& rng);
 };
 
 //---------------------------------------------------------------------------//

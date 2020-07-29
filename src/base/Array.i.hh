@@ -36,17 +36,4 @@ CELER_FUNCTION bool operator!=(const array<T, N>& lhs, const array<T, N>& rhs)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Increment a vector by another vector multiplied by a scalar.
- */
-template<typename T, std::size_t N>
-CELER_FUNCTION void axpy(T a, const array<T, N>& x, array<T, N>* y)
-{
-    for (std::size_t i = 0; i != N; ++i)
-    {
-        (*y)[i] = a * x[i] + (*y)[i];
-    }
-}
-
-//---------------------------------------------------------------------------//
 } // namespace celeritas

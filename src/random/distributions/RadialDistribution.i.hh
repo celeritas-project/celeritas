@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include "base/Assert.hh"
+#include "GenerateCanonical.hh"
 
 namespace celeritas
 {
@@ -31,9 +32,8 @@ template<class Generator>
 CELER_FUNCTION auto RadialDistribution<T>::operator()(Generator& rng)
     -> result_type
 {
-    GenerateCanonical<Generator, T> sample_uniform;
-    return std::pow(sample_uniform(rng), static_cast<real_type>(1.0 / 3.0))
-           * radius_;
+    constexpr auto one_third = static_cast<T>(1.0 / 3.0);
+    return std::pow(generate_canonical<T>(rng), one_third) * radius_;
 }
 
 //---------------------------------------------------------------------------//

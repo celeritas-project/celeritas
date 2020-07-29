@@ -16,7 +16,7 @@ namespace celeritas
  * Construct with default relative/absolute precision
  */
 template<typename T1, typename T2>
-SoftEqual<T1, T2>::SoftEqual()
+CELER_FUNCTION SoftEqual<T1, T2>::SoftEqual()
     : SoftEqual(traits_t::rel_prec(), traits_t::abs_thresh())
 {
 }
@@ -26,7 +26,7 @@ SoftEqual<T1, T2>::SoftEqual()
  * Construct with scaled absolute precision
  */
 template<typename T1, typename T2>
-SoftEqual<T1, T2>::SoftEqual(value_type rel)
+CELER_FUNCTION SoftEqual<T1, T2>::SoftEqual(value_type rel)
     : SoftEqual(rel, rel * (traits_t::abs_thresh() / traits_t::rel_prec()))
 {
     REQUIRE(rel > 0);
@@ -37,7 +37,7 @@ SoftEqual<T1, T2>::SoftEqual(value_type rel)
  * Construct with both relative and absolute precision
  */
 template<typename T1, typename T2>
-SoftEqual<T1, T2>::SoftEqual(value_type rel, value_type abs)
+CELER_FUNCTION SoftEqual<T1, T2>::SoftEqual(value_type rel, value_type abs)
     : d_rel(rel), d_abs(abs)
 {
     REQUIRE(rel > 0);
@@ -52,7 +52,8 @@ SoftEqual<T1, T2>::SoftEqual(value_type rel, value_type abs)
  * \param actual   scalar floating point value
  */
 template<typename T1, typename T2>
-bool SoftEqual<T1, T2>::operator()(value_type expected, value_type actual) const
+CELER_FUNCTION bool
+SoftEqual<T1, T2>::operator()(value_type expected, value_type actual) const
 {
     value_type abs_e = std::fabs(expected);
 
@@ -90,7 +91,7 @@ bool SoftEqual<T1, T2>::operator()(value_type expected, value_type actual) const
  * Construct with default relative/absolute precision
  */
 template<typename T>
-SoftZero<T>::SoftZero() : SoftZero(traits_t::abs_thresh())
+CELER_FUNCTION SoftZero<T>::SoftZero() : SoftZero(traits_t::abs_thresh())
 {
 }
 
@@ -99,7 +100,7 @@ SoftZero<T>::SoftZero() : SoftZero(traits_t::abs_thresh())
  * Construct with default absolute precision
  */
 template<typename T>
-SoftZero<T>::SoftZero(value_type abs) : d_abs(abs)
+CELER_FUNCTION SoftZero<T>::SoftZero(value_type abs) : d_abs(abs)
 {
     REQUIRE(abs > 0);
 }
@@ -111,7 +112,7 @@ SoftZero<T>::SoftZero(value_type abs) : d_abs(abs)
  * \param actual   scalar floating point value
  */
 template<typename T>
-bool SoftZero<T>::operator()(value_type actual) const
+CELER_FUNCTION bool SoftZero<T>::operator()(value_type actual) const
 {
     // Return whether the absolute value is within tolerance
     return std::fabs(actual) < d_abs;

@@ -37,7 +37,7 @@ TEST_F(IsotropicDistributionTest, bin)
     IsotropicDistribution<> sample_isotropic;
 
     std::vector<int> octant_tally(8, 0);
-    for (int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
     {
         auto u = sample_isotropic(rng);
 

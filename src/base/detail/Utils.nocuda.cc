@@ -12,7 +12,7 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-void device_memset(void* data, int fill_value, size_type count)
+void device_memset(void*, int, size_type)
 {
     REQUIRE(0);
 }

@@ -42,7 +42,7 @@ class FloatingTest : public celeritas::Test
 };
 
 using FloatTypes = ::testing::Types<float, double, long double>;
-TYPED_TEST_SUITE(FloatingTest, FloatTypes);
+TYPED_TEST_SUITE(FloatingTest, FloatTypes, );
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -144,7 +144,7 @@ class MixedTest : public celeritas::Test
 
 using MixedTypes
     = ::testing::Types<std::pair<float, double>, std::pair<double, float>>;
-TYPED_TEST_SUITE(MixedTest, MixedTypes);
+TYPED_TEST_SUITE(MixedTest, MixedTypes, );
 
 //---------------------------------------------------------------------------//
 TYPED_TEST(MixedTest, comparison)

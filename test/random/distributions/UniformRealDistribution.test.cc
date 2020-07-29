@@ -39,7 +39,7 @@ TEST_F(UniformRealDistributionTest, bin)
     UniformRealDistribution<> sample_uniform{min, max};
 
     std::vector<int> counters(5);
-    for (int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
     {
         double r = sample_uniform(rng);
         ASSERT_GE(r, min);

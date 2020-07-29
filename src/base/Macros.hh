@@ -12,7 +12,8 @@
  *
  * Decorate a function that works on both host and device, with and without
  * NVCC. This is meant for small utility classes (trivially copyable!) that
- * will be used on host and device, not for complicated classes.
+ * will be used on host and device, not for complicated classes. The name of
+ * these functions is based on the Kokkos naming scheme.
  */
 #if defined(__NVCC__)
 #    define CELER_FUNCTION __host__ __device__
@@ -53,6 +54,30 @@
 #else
 // No other compilers seem to have a similar builtin
 #    define CELER_UNLIKELY(COND) COND
+#endif
+
+/*!
+ * \def CELER_MAYBE_UNUSED
+ *
+ * Mark a function, type, or variable as being potentially unused. This is
+ * especially useful for debug-only variables and "celeritas::range" loop
+ * variables where the index is left unused.
+ *
+ * \code
+   for (CELER_MAYBE_UNUSED int x : range(100))
+   {
+      do_noop();
+   }
+   \endcode
+ */
+
+#if __cplusplus >= 201710L
+#    define CELER_MAYBE_UNUSED [[maybe_unused]]
+#elif defined(__GNUC__)
+// Valid for GCC 4.8+ and Clang
+#    define CELER_MAYBE_UNUSED [[gnu::unused]]
+#else
+#    define CELER_MAYBE_UNUSED
 #endif
 
 //---------------------------------------------------------------------------//

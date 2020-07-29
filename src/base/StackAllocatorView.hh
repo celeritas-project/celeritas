@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocator.hh
+//! \file StackAllocatorView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -22,11 +22,11 @@ namespace celeritas
  * performs no initialization on the data.
  *
  * \code
-    StackAllocator alloc(view);
+    StackAllocatorView alloc(view);
     double* temp_dbl = alloc(4 * sizeof(double));
    \endcode
  */
-class StackAllocator
+class StackAllocatorView
 {
   public:
     //@{
@@ -38,7 +38,7 @@ class StackAllocator
   public:
     // Construct with a reference to the storage pointers
     explicit inline CELER_FUNCTION
-    StackAllocator(const StackAllocatorPointers&);
+    StackAllocatorView(const StackAllocatorPointers&);
 
     // Allocate like malloc
     inline CELER_FUNCTION result_type operator()(size_type size);
@@ -50,6 +50,6 @@ class StackAllocator
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "StackAllocator.i.hh"
+#include "StackAllocatorView.i.hh"
 
 //---------------------------------------------------------------------------//

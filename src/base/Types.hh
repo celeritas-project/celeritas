@@ -13,7 +13,7 @@
 namespace celeritas
 {
 template<typename T, std::size_t N>
-class array;
+struct array;
 
 struct Thread;
 //---------------------------------------------------------------------------//

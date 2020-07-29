@@ -6,41 +6,47 @@
 //! \file GenerateCanonical.i.hh
 //---------------------------------------------------------------------------//
 
+#ifndef __CUDA_ARCH__
+#    include <random>
+#endif
+
 namespace celeritas
 {
+#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Generate random numbers in [0, 1).
+ *
+ * This is the default implementation, for CPU only code.
  */
-template<class Generator, class T>
-CELER_FUNCTION auto GenerateCanonical<Generator, T>::operator()(Generator& rng)
+template<class Generator, class RealType>
+auto GenerateCanonical<Generator, RealType>::operator()(Generator& rng)
     -> result_type
 {
-    return std::generate_canonical<result_type,
-                                   std::numeric_limits<result_type>::digits>(
-        rng);
+    using limits_t = std::numeric_limits<result_type>;
+    return std::generate_canonical<result_type, limits_t::digits>(rng);
 }
-
-#ifdef __NVCC__
-//---------------------------------------------------------------------------//
-/*!
- * Specialization for RngEngine, float
- */
-__device__ float GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
-{
-    return curand_uniform(rng.state_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Specialization for RngEngine, double
- */
-__device__ double
-GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)
-{
-    return curand_uniform_double(rng.state_);
-}
-
 #endif
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to generate a random real number in [0, 1).
+ */
+template<class RealType, class Generator>
+CELER_FUNCTION RealType generate_canonical(Generator& g)
+{
+    return GenerateCanonical<Generator, RealType>()(g);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to generate a random real number in [0, 1).
+ */
+template<class Generator>
+CELER_FUNCTION real_type generate_canonical(Generator& g)
+{
+    return GenerateCanonical<Generator, real_type>()(g);
+}
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas
