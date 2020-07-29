@@ -16,5 +16,6 @@
 #cmakedefine01 CELERITAS_USE_VECGEOM
 
 #cmakedefine01 CELERITAS_DEBUG
+#cmakedefine CELERITAS_SOURCE_DIR "@CELERITAS_SOURCE_DIR@"
 
 #endif /* celeritas_config_h */

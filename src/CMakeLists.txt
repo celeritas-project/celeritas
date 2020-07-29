@@ -8,6 +8,7 @@
 # CONFIGURE FILE
 #----------------------------------------------------------------------------#
 
+set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
 set(_CONFIG_NAME "celeritas_config.h")
 configure_file("${_CONFIG_NAME}.in" "${_CONFIG_NAME}" @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${_CONFIG_NAME}"
@@ -57,6 +58,24 @@ else()
     comm/Communicator.nompi.cc
     comm/ScopedMpiInit.nompi.cc
   )
+endif()
+
+if(CELERITAS_USE_VECGEOM)
+  list(APPEND SOURCES
+    geometry/GeoParams.cc
+    geometry/GeoStateStore.cc
+  )
+  list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
+  if(CELERITAS_USE_CUDA)
+    list(APPEND SOURCES
+      geometry/detail/VGNavStateStore.cuda.cc
+    )
+    list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)
+  else()
+    list(APPEND SOURCES
+      geometry/detail/VGNavStateStore.nocuda.cc
+    )
+  endif()
 endif()
 
 add_library(celeritas ${SOURCES})
