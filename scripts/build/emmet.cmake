@@ -28,7 +28,7 @@ set(MPI_CXX_COMPILE_OPTIONS
 set(MPI_CXX_SKIP_MPICXX TRUE CACHE BOOL "")
 
 # Enable color diagnostics when using Ninja
-foreach(LANG C CXX)
-  set(CMAKE_${LANG}_FLAGS "${CMAKE_${LANG}_FLAGS} -fdiagnostics-color=always"
-      CACHE STRING "" FORCE)
-endforeach()
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always"
+  CACHE STRING "" FORCE)
+set(CMAKE_CUDA_FLAGS "-Werror all-warnings ${CMAKE_CUDA_FLAGS}"
+  CACHE STRING "" FORCE)

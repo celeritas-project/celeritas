@@ -38,7 +38,7 @@ TEST_F(RadialDistributionTest, bin)
     RadialDistribution<> sample_radial(radius);
 
     std::vector<int> counters(5);
-    for (int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
     {
         double r = sample_radial(rng);
         ASSERT_GE(r, 0.0);

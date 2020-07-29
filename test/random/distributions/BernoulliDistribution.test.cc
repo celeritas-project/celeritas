@@ -25,7 +25,7 @@ TEST(BernoulliDistributionTest, single_constructor)
     EXPECT_SOFT_EQ(0.25, quarter_true.p());
 
     int num_true = 0;
-    for (auto i : celeritas::range(1000))
+    for (CELER_MAYBE_UNUSED auto i : celeritas::range(1000))
     {
         if (quarter_true(rng))
         {
