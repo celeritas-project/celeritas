@@ -3,41 +3,39 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Types.hh
+//! \file VGHost.test.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "geometry/VGHost.hh"
 
-#include <cstddef>
-#include "OpaqueId.hh"
+#include "gtest/Main.hh"
+#include "gtest/Test.hh"
+#include "celeritas_config.h"
 
-namespace celeritas
+using celeritas::VGHost;
+using VolumeId = celeritas::VolumeId;
+
+//---------------------------------------------------------------------------//
+// TEST HARNESS
+//---------------------------------------------------------------------------//
+
+class VGHostTest : public celeritas::Test
 {
-template<typename T, std::size_t N>
-struct array;
-template<typename T, std::size_t N>
-class span;
-
-struct Thread;
-//---------------------------------------------------------------------------//
-using size_type    = std::size_t;
-using ssize_type   = int;
-using real_type    = double;
-using RealPointer3 = array<real_type*, 3>;
-using Real3        = array<real_type, 3>;
-using SpanReal3    = span<real_type, 3>;
-
-//! Index of the current CUDA thread, with type safety for containers.
-using ThreadId = OpaqueId<Thread, unsigned int>;
-
-//---------------------------------------------------------------------------//
-
-enum class Interp
-{
-    Linear,
-    Log
+  protected:
+    void SetUp() override {}
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
-
+// TESTS
 //---------------------------------------------------------------------------//
+
+TEST_F(VGHostTest, all)
+{
+    std::string test_file = std::string(CELERITAS_SOURCE_DIR)
+                            + "/test/geometry/data/twoBoxes.gdml";
+    VGHost host(test_file.c_str());
+
+    EXPECT_EQ(2, host.num_volumes());
+    EXPECT_EQ(2, host.max_depth());
+    EXPECT_EQ("Detector", host.id_to_label(VolumeId{0}));
+    EXPECT_EQ("World", host.id_to_label(VolumeId{1}));
+}
