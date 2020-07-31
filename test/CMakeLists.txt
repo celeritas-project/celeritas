@@ -63,22 +63,31 @@ celeritas_add_test(base/Span.test.cc)
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(base/NumericLimits.test.cc
     SOURCES base/NumericLimits.test.cu)
-  celeritas_add_test(base/StackAllocator.test.cc
-    SOURCES base/StackAllocator.test.cu)
 endif()
 
 #-----------------------------------------------------------------------------#
 # Comm
 
 celeritas_setup_tests(PREFIX comm)
+
 celeritas_add_test(comm/Communicator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Physics
 
+add_library(CeleritasPhysicsTest
+  physics/HostDebugSecondaryStorage.cc
+)
+target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
+set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
+
 celeritas_setup_tests(SERIAL PREFIX physics/base)
 
 add_cudaoptional_test(physics/base/Particle)
+add_cudaoptional_test(physics/base/SecondaryAllocator)
+
+# END PHYSICS TESTS
+set(CELERITASTEST_LINK_LIBRARIES)
 
 #-----------------------------------------------------------------------------#
 # Random

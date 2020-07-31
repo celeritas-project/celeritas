@@ -3,41 +3,43 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocatorPointers.hh
+//! \file SecondaryAllocatorPointers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Assert.hh"
-#include "Types.hh"
-#include "Span.hh"
+#include "base/Macros.hh"
+#include "base/Span.hh"
+#include "Secondary.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Reference data owned by a StackAllocatorStore for use in StackAllocatorView.
+ * View to data for allocating secondaries.
  */
-struct StackAllocatorPointers
+struct SecondaryAllocatorPointers
 {
     //! Size type needed for CUDA atomics compatibility
     using size_type = unsigned long long int;
 
-    span<byte> storage;
-    size_type* size;
+    span<Secondary> storage;        // View to storage space for secondaries
+    size_type*      size = nullptr; // Total number of secondaries stored
 
-    //! Check whether the view is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        REQUIRE(this->valid());
-        return !storage.empty();
-    }
-
-    inline CELER_FUNCTION bool valid() const;
+    // Whether the pointers are assigned
+    explicit inline CELER_FUNCTION operator bool() const;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
-
-#include "StackAllocatorPointers.i.hh"
+// INLINE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Check whether the pointers are assigned.
+ */
+CELER_FUNCTION SecondaryAllocatorPointers::operator bool() const
+{
+    REQUIRE(storage.empty() || size);
+    return !storage.empty();
+}
 
 //---------------------------------------------------------------------------//
+} // namespace celeritas

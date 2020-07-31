@@ -3,10 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocator.test.hh
+//! \file SecondaryAllocator.test.hh
 //---------------------------------------------------------------------------//
-
-#include "base/StackAllocatorPointers.hh"
+#include "physics/base/SecondaryAllocatorPointers.hh"
 
 namespace celeritas_test
 {
@@ -17,22 +16,28 @@ using namespace celeritas;
 //! Input data
 struct SATestInput
 {
-    int                num_threads;
-    int                num_iters;
-    int                alloc_size;
-    StackAllocatorPointers sa_view;
+    int                        num_threads;
+    int                        num_iters;
+    int                        alloc_size;
+    SecondaryAllocatorPointers sa_view;
 };
 
 //---------------------------------------------------------------------------//
 //! Output results
 struct SATestOutput
 {
-    int num_allocations;
+    using ull_int = unsigned long long int;
+
+    int     num_errors             = 0;
+    int     num_allocations        = 0;
+    int     max_size               = 0;
+    int     view_size              = 0;
+    ull_int last_secondary_address = 0;
 };
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-SATestOutput sa_run(SATestInput);
+SATestOutput sa_test(SATestInput);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

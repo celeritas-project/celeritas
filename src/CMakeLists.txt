@@ -24,10 +24,10 @@ set(PUBLIC_DEPS)
 list(APPEND SOURCES
   base/Assert.cc
   base/ColorUtils.cc
-  base/StackAllocatorStore.cc
   comm/Utils.cc
   physics/base/ParticleParams.cc
   physics/base/ParticleStateStore.cc
+  physics/base/SecondaryAllocatorStore.cc
 )
 
 if(CELERITAS_USE_CUDA)
