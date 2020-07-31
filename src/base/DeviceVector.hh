@@ -58,10 +58,10 @@ class DeviceVector
     // >>> DEVICE ACCESSORS
 
     // Copy data to device
-    inline void copy_to_device(constSpan_t bytes);
+    inline void copy_to_device(constSpan_t host_data);
 
     // Copy data to host
-    inline void copy_to_host(Span_t bytes) const;
+    inline void copy_to_host(Span_t host_data) const;
 
     // Get a mutable view to device data
     inline Span_t device_pointers();

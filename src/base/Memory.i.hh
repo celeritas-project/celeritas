@@ -3,28 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.hh
+//! \file Memory.i.hh
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "../Span.hh"
-#include "../Types.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
+/*!
+ * Call memset on device data.
+ */
 template<class T>
-inline void device_memset_zero(span<T> data);
+void device_memset_zero(span<T> device_pointers)
+{
+    device_memset(
+        device_pointers.data(), 0, device_pointers.size() * sizeof(T));
+}
 
 //---------------------------------------------------------------------------//
-void device_memset(void* data, int fill_value, size_type count);
-
-//---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas
-
-#include "Utils.i.hh"
-
-//---------------------------------------------------------------------------//

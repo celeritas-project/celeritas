@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.cu
+//! \file Memory.cu
 //---------------------------------------------------------------------------//
-#include "Utils.hh"
+#include "Memory.hh"
 
 #include <thrust/uninitialized_fill.h>
 #include <thrust/device_malloc.h>
@@ -13,8 +13,6 @@
 #include <thrust/device_ptr.h>
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 void device_memset(void* data, int fill_value, size_type count)
@@ -29,5 +27,4 @@ void device_memset(void* data, int fill_value, size_type count)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

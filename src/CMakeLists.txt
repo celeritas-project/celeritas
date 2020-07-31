@@ -33,13 +33,13 @@ if(CELERITAS_USE_CUDA)
     base/DeviceAllocation.cuda.cc
     base/KernelParamCalculator.cuda.cc
     random/cuda/RngStateStore.cu
-    base/detail/Utils.cu
+    base/Memory.cu
   )
   list(APPEND PRIVATE_DEPS CUDA::cudart)
 else()
   list(APPEND SOURCES
     base/DeviceAllocation.nocuda.cc
-    base/detail/Utils.nocuda.cc
+    base/Memory.nocuda.cc
   )
 endif()
 

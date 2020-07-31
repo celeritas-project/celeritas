@@ -1,22 +1,27 @@
-//---------------------------------*-C++-*-----------------------------------//
+//----------------------------------*-C++-*----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.cc
+//! \file Memory.hh
 //---------------------------------------------------------------------------//
-#include "Utils.hh"
+#pragma once
+
+#include "Span.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-void device_memset(void*, int, size_type)
-{
-    REQUIRE(0);
-}
+template<class T>
+inline void device_memset_zero(span<T> data);
 
 //---------------------------------------------------------------------------//
-} // namespace detail
+void device_memset(void* data, int fill_value, size_type count);
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
+
+#include "Memory.i.hh"
+
+//---------------------------------------------------------------------------//

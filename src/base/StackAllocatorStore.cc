@@ -9,7 +9,7 @@
 
 #include "Assert.hh"
 #include "Macros.hh"
-#include "detail/Utils.hh"
+#include "Memory.hh"
 
 namespace celeritas
 {
@@ -46,7 +46,7 @@ StackAllocatorPointers StackAllocatorStore::device_pointers()
  */
 void StackAllocatorStore::clear()
 {
-    detail::device_memset_zero(allocation_.device_pointers());
+    device_memset_zero(allocation_.device_pointers());
 }
 
 //---------------------------------------------------------------------------//
