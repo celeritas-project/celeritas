@@ -9,6 +9,7 @@
 
 #include <type_traits>
 #include "DeviceAllocation.hh"
+#include "detail/InitializedValue.hh"
 
 namespace celeritas
 {
@@ -70,7 +71,7 @@ class DeviceVector
 
   private:
     DeviceAllocation allocation_;
-    size_type        size_ = 0;
+    detail::InitializedValue<size_type> size_;
 };
 
 // Swap two vectors

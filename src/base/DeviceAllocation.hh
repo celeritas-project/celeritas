@@ -10,6 +10,7 @@
 #include <memory>
 #include "Span.hh"
 #include "Types.hh"
+#include "detail/InitializedValue.hh"
 
 namespace celeritas
 {
@@ -70,7 +71,7 @@ class DeviceAllocation
 
     // >>> DATA
 
-    size_type       size_ = 0;
+    detail::InitializedValue<size_type> size_;
     DeviceUniquePtr data_;
 };
 
