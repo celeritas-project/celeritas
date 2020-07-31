@@ -51,8 +51,8 @@ if(CELERITAS_USE_MPI)
   list(APPEND PUBLIC_DEPS MPI::MPI_CXX)
 else()
   list(APPEND SOURCES
-    comm/Communicator.serial.cc
-    comm/ScopedMpiInit.serial.cc
+    comm/Communicator.nompi.cc
+    comm/ScopedMpiInit.nompi.cc
   )
 endif()
 

@@ -3,48 +3,49 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file src/comm/ScopedMpiInit.serial.cc
+//! \file Communicator.nompi.cc
 //---------------------------------------------------------------------------//
-#include "ScopedMpiInit.hh"
+#include "Communicator.hh"
 
 #include "base/Assert.hh"
-
-namespace
-{
-bool g_initialized = false;
-}
+#include "ScopedMpiInit.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * \brief Construct with argc/argv references
+ * Construct with a "self" MPI communicator: always world size of 1
  */
-ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
+Communicator Communicator::comm_self()
 {
-    REQUIRE((argc == nullptr) == (argv == nullptr));
-    REQUIRE(!ScopedMpiInit::initialized());
-    g_initialized = true;
-    ENSURE(ScopedMpiInit::initialized());
+    return Communicator(MpiComm{1});
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Call MPI finalize on destruction
+ * Construct with a "world" MPI communicator: always global size
  */
-ScopedMpiInit::~ScopedMpiInit()
+Communicator Communicator::comm_world()
 {
-    g_initialized = false;
+    return Communicator(MpiComm{2});
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Whether MPI has been initialized
+ * Construct with a native MPI communicator
  */
-bool ScopedMpiInit::initialized()
+Communicator::Communicator(MpiComm comm) : comm_(comm), rank_(0), size_(1)
 {
-    return g_initialized;
+    REQUIRE(ScopedMpiInit::initialized());
+
+    ENSURE(this->rank() >= 0 && this->rank() < this->size());
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief Wait for all processes in this communicator to reach the barrier
+ */
+void Communicator::barrier() const {}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
