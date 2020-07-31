@@ -9,6 +9,7 @@
 
 #include "Assert.hh"
 #include "Macros.hh"
+#include "Algorithms.hh"
 
 namespace celeritas
 {
@@ -28,6 +29,24 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
     return initial;
 #endif
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the value to the minimum of the actual and given, returning old.
+ */
+template<class T>
+CELER_FORCEINLINE_FUNCTION T atomic_min(T* address, T value)
+{
+#ifdef __CUDA_ARCH__
+    return atomicMin(address, value);
+#else
+    REQUIRE(address);
+    T initial = *address;
+    *address  = celeritas::min(initial, value);
+    return initial;
+#endif
+}
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
