@@ -52,11 +52,12 @@ class GeoTrackView
 
     //@{
     //! State accessors
-    CELER_FUNCTION const Real3& pos() const { return pos_; }
+    CELER_FUNCTION const Real3&    pos() const { return pos_; }
     CELER_FUNCTION const Real3&    dir() const { return dir_; }
     CELER_FUNCTION real_type       next_step() const { return next_step_; }
     inline CELER_FUNCTION VolumeId volume_id() const;
     inline CELER_FUNCTION Boundary boundary() const;
+    inline CELER_FUNCTION size_type charge() const { return 0; }
     //@}
 
   private:

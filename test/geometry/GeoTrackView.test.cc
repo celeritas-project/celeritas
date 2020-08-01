@@ -14,6 +14,7 @@
 #include "celeritas_config.h"
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoStateStore.hh"
+#include "magfield/FieldPropagationHandler.hh"
 #include "GeoTrackView.test.hh"
 
 using namespace celeritas;
@@ -158,6 +159,35 @@ TEST_F(GeoTrackViewHostTest, track_line)
         EXPECT_SOFT_EQ(45.0, geo.next_step());
         geo.move_next_step();
         EXPECT_EQ(Boundary::outside, geo.boundary());
+    }
+}
+
+TEST_F(GeoTrackViewHostTest, track_magfield)
+{
+    // Construct geometry interface from persistent geometry data, state view,
+    // and thread ID (which for CPU is just zero).
+    GeoTrackView geo(host_view, state_view, ThreadId(0));
+
+    // Construct magfield propagation handler
+    FieldPropagationHandler propagHandler;
+
+    {
+        // Track from outside detector, moving right
+        geo = {{-6, 0, 0}, {1, 0, 0}};
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        EXPECT_EQ(Boundary::inside, geo.boundary());
+
+        geo.find_next_step();
+        //EXPECT_SOFT_EQ(1.0, geo.next_step());
+        EXPECT_SOFT_EQ(1.0, propagHandler.Propagate(geo));
+        geo.move_next_step();
+        EXPECT_SOFT_EQ(-5.0, geo.pos()[0]);
+        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+
+        geo.find_next_step();
+        EXPECT_SOFT_EQ(10.0, geo.next_step());
+        geo.move_next_step();
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
     }
 }
 

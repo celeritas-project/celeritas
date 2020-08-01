@@ -27,7 +27,7 @@ CELER_FUNCTION void axpy(T a, const array<T, N>& x, array<T, N>* y)
 
 //---------------------------------------------------------------------------//
 /*!
- * Increment a vector by another vector multiplied by a scalar.
+ * Dot product x . y
  */
 template<typename T, std::size_t N>
 CELER_FUNCTION T dot_product(const array<T, N>& x, const array<T, N>& y)
@@ -38,6 +38,17 @@ CELER_FUNCTION T dot_product(const array<T, N>& x, const array<T, N>& y)
         result += x[i] * y[i];
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Cross product A x B
+ */
+template<typename T, std::size_t N>
+CELER_FUNCTION array<T, N> cross_product(const array<T, N>& A, const array<T, N>& B)
+{
+  array<T, N> result = { A[1]*B[2] - A[2]*B[1], A[2]*B[0] - A[0]*B[2], A[0]*B[1] - A[1]*B[0] }; 
+  return std::move(result);
 }
 
 //---------------------------------------------------------------------------//

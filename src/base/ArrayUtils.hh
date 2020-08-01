@@ -23,6 +23,11 @@ template<typename T, std::size_t N>
 inline CELER_FUNCTION T dot_product(const array<T, N>& x, const array<T, N>& y);
 
 //---------------------------------------------------------------------------//
+// Calculate product of two vectors
+template<typename T, std::size_t N>
+inline CELER_FUNCTION array<T, N> cross_product(const array<T, N>& x, const array<T, N>& y);
+
+//---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) norm of a vector
 template<typename T, std::size_t N>
 inline CELER_FUNCTION T norm(const array<T, N>& vec);
