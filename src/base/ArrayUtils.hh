@@ -29,12 +29,15 @@ inline CELER_FUNCTION T norm(const array<T, N>& vec);
 
 //---------------------------------------------------------------------------//
 // Divide the given vector by its Euclidian norm
-inline CELER_FUNCTION void normalize_direction(array<real_type, 3>* direction);
+inline CELER_FUNCTION void normalize_direction(Real3* direction);
 
 //---------------------------------------------------------------------------//
-// Rotate the direction about the given polar coordinates
-inline CELER_FUNCTION void
-rotate_polar(real_type costheta, real_type phi, array<real_type, 3>* direction);
+// Calculate a cartesian unit vector from spherical coordinates
+inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi);
+
+//---------------------------------------------------------------------------//
+// Rotate the direction according to the given scattering vector
+inline CELER_FUNCTION void rotate(const Real3 scatter, Real3* direction);
 
 //---------------------------------------------------------------------------//
 // Test for being approximately a unit vector

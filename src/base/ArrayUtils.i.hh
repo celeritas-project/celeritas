@@ -60,17 +60,46 @@ CELER_FUNCTION void normalize_direction(array<real_type, 3>* direction)
 
 //---------------------------------------------------------------------------//
 /*!
- * Rotate the direction about the given Z-based polar coordinates.
+ * Calculate a Cartesian vector from spherical coordinates.
  *
- * Note that rotation has loss of precision near the z axis. If this is a
- * problem we should consider using quaternions or another method robust for
- * rotations.
+ * Theta is the angle between the Z axis and the outgoing vector, and phi is
+ * the angle between the x axis and the projection of the vector onto the x-y
+ * plane.
  */
-inline CELER_FUNCTION void
-rotate_polar(real_type costheta, real_type phi, array<real_type, 3>* dir)
+inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi)
 {
-    REQUIRE(is_soft_unit_vector(*dir, SoftEqual<real_type>(1e-6)));
     REQUIRE(costheta >= -1 && costheta <= 1);
+
+    const real_type sintheta = std::sqrt(1 - costheta * costheta);
+    return {sintheta * std::cos(phi), sintheta * std::sin(phi), costheta};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Rotate the direction about the given Z-based scatter direction.
+ *
+ * The equivalent to Shift's \code
+ * void cartesian_vector_transform(
+    double      costheta,
+    double      phi,
+    Vector_View vector)
+ * \endcode
+ * is the call
+ * \code
+   rotate(from_spherical(costheta, phi), &vector);
+ * \endcode
+ *
+ * Note that rotation has loss of precision when the original direction is
+ * close to the z axis. If this is a problem we should consider using
+ * quaternions or another method robust for rotations.
+ *
+ * Also note that the input "scatter" vector is const *value*, to avoid
+ * aliasing.
+ */
+inline CELER_FUNCTION void rotate(const Real3 scat, Real3* dir)
+{
+    REQUIRE(is_soft_unit_vector(scat, SoftEqual<real_type>(1e-6)));
+    REQUIRE(is_soft_unit_vector(*dir, SoftEqual<real_type>(1e-6)));
 
     // Direction enumeration
     enum
@@ -80,34 +109,30 @@ rotate_polar(real_type costheta, real_type phi, array<real_type, 3>* dir)
         Z = 2
     };
 
-    const double sintheta = std::sqrt(1.0 - costheta * costheta);
-    const double stcosphi = sintheta * std::cos(phi);
-    const double stsinphi = sintheta * std::sin(phi);
+    // Copy the original directions to avoid aliasing
+    const Real3 orig = *dir;
 
-    // Copy the original direction
-    const array<real_type, 3> orig = *dir;
     // Calculate how close the original axis is to the pole of the polar
     // direction
-    const double alpha = std::sqrt(1 - orig[Z] * orig[Z]);
-
-    if (alpha >= real_type(1e-6))
+    real_type alpha = 1 - orig[Z] * orig[Z];
+    if (alpha >= detail::SoftEqualTraits<real_type>::abs_thresh())
     {
-        const real_type inv_alpha = 1.0 / alpha;
+        alpha = std::sqrt(alpha);
 
-        (*dir)[X] = orig[X] * costheta
-                    + inv_alpha
-                          * (orig[X] * orig[Z] * stcosphi - orig[Y] * stsinphi);
-        (*dir)[Y] = orig[Y] * costheta
-                    + inv_alpha
-                          * (orig[Y] * orig[Z] * stcosphi + orig[X] * stsinphi);
-        (*dir)[Z] = orig[Z] * costheta - alpha * stcosphi;
+        (*dir)[X] = orig[X] * scat[Z]
+                    + (1 / alpha)
+                          * (orig[X] * orig[Z] * scat[X] - orig[Y] * scat[Y]);
+        (*dir)[Y] = orig[Y] * scat[Z]
+                    + (1 / alpha)
+                          * (orig[Y] * orig[Z] * scat[X] + orig[X] * scat[Y]);
+        (*dir)[Z] = orig[Z] * scat[Z] - alpha * scat[X];
     }
     else
     {
         // Degenerate case: snap to polar axis
-        (*dir)[X] = stcosphi;
-        (*dir)[Y] = stsinphi;
-        (*dir)[Z] = std::copysign(costheta, orig[Z]); // +-costheta
+        (*dir)[X] = scat[X];
+        (*dir)[Y] = scat[Y];
+        (*dir)[Z] = (orig[Z] < 0 ? -1 : 1) * scat[Z];
     }
 
     normalize_direction(dir);

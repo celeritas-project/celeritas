@@ -66,7 +66,7 @@ TEST(ArrayUtilsTest, normalize_direction)
     EXPECT_VEC_SOFT_EQ(expected, direction);
 }
 
-TEST(ArrayUtilsTest, rotate_polar)
+TEST(ArrayUtilsTest, rotate)
 {
     array<double, 3> vec = {-1.1, 2.3, 0.9};
     celeritas::normalize_direction(&vec);
@@ -83,18 +83,18 @@ TEST(ArrayUtilsTest, rotate_polar)
            vec[Y] * costheta + vec[Z] * vec[Y] * sintheta * cos(phi) * a
                + vec[X] * sintheta * sin(phi) * a,
            vec[Z] * costheta - sintheta * cos(phi) / a};
-    celeritas::rotate_polar(costheta, phi, &vec);
+    celeritas::rotate(celeritas::from_spherical(costheta, phi), &vec);
     EXPECT_VEC_SOFT_EQ(expected, vec);
 
     // Transform degenerate vector along y
     expected = {sintheta * cos(phi), sintheta * sin(phi), -costheta};
     vec      = {0.0, 0.0, -1.0};
-    celeritas::rotate_polar(costheta, phi, &vec);
+    celeritas::rotate(celeritas::from_spherical(costheta, phi), &vec);
     EXPECT_VEC_SOFT_EQ(expected, vec);
 
     expected = {sintheta * cos(phi), sintheta * sin(phi), costheta};
     vec      = {0.0, 0.0, 1.0};
-    celeritas::rotate_polar(costheta, phi, &vec);
+    celeritas::rotate(celeritas::from_spherical(costheta, phi), &vec);
     EXPECT_VEC_SOFT_EQ(expected, vec);
 
     // Switch scattered z direction
@@ -102,11 +102,11 @@ TEST(ArrayUtilsTest, rotate_polar)
 
     expected = {sintheta * cos(phi), sintheta * sin(phi), -costheta};
     vec      = {0.0, 0.0, -1.0};
-    celeritas::rotate_polar(costheta, phi, &vec);
+    celeritas::rotate(celeritas::from_spherical(costheta, phi), &vec);
     EXPECT_VEC_SOFT_EQ(expected, vec);
 
     expected = {sintheta * cos(phi), sintheta * sin(phi), costheta};
     vec      = {0.0, 0.0, 1.0};
-    celeritas::rotate_polar(costheta, phi, &vec);
+    celeritas::rotate(celeritas::from_spherical(costheta, phi), &vec);
     EXPECT_VEC_SOFT_EQ(expected, vec);
 }
