@@ -72,9 +72,9 @@ TEST(ArrayUtilsTest, rotate_polar)
     celeritas::normalize_direction(&vec);
 
     // transform through some directions
-    const double costheta = std::cos(2.0 / 3.0);
-    const double sintheta = std::sqrt(1.0 - costheta * costheta);
-    const double phi      = celeritas::constants::two_pi / 3.0;
+    double costheta = std::cos(2.0 / 3.0);
+    double sintheta = std::sqrt(1.0 - costheta * costheta);
+    double phi      = celeritas::constants::two_pi / 3.0;
 
     double           a = 1.0 / sqrt(1.0 - vec[Z] * vec[Z]);
     array<double, 3> expected
@@ -87,6 +87,19 @@ TEST(ArrayUtilsTest, rotate_polar)
     EXPECT_VEC_SOFT_EQ(expected, vec);
 
     // Transform degenerate vector along y
+    expected = {sintheta * cos(phi), sintheta * sin(phi), -costheta};
+    vec      = {0.0, 0.0, -1.0};
+    celeritas::rotate_polar(costheta, phi, &vec);
+    EXPECT_VEC_SOFT_EQ(expected, vec);
+
+    expected = {sintheta * cos(phi), sintheta * sin(phi), costheta};
+    vec      = {0.0, 0.0, 1.0};
+    celeritas::rotate_polar(costheta, phi, &vec);
+    EXPECT_VEC_SOFT_EQ(expected, vec);
+
+    // Switch scattered z direction
+    costheta *= -1;
+
     expected = {sintheta * cos(phi), sintheta * sin(phi), -costheta};
     vec      = {0.0, 0.0, -1.0};
     celeritas::rotate_polar(costheta, phi, &vec);
