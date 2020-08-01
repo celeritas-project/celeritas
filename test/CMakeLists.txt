@@ -77,6 +77,9 @@ celeritas_add_test(comm/Communicator.test.cc)
 
 add_library(CeleritasPhysicsTest
   physics/HostDebugSecondaryStorage.cc
+  physics/InteractionIO.cc
+  physics/InteractorHostTestBase.cc
+  physics/SecondaryIO.cc
 )
 target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
 set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
@@ -85,6 +88,13 @@ celeritas_setup_tests(SERIAL PREFIX physics/base)
 
 add_cudaoptional_test(physics/base/Particle)
 add_cudaoptional_test(physics/base/SecondaryAllocator)
+
+#-----------------------------------------------------------------------------#
+# Physics (EM)
+
+celeritas_setup_tests(SERIAL PREFIX physics/em)
+
+celeritas_add_test(physics/em/KleinNishinaInteractor.test.cc)
 
 # END PHYSICS TESTS
 set(CELERITASTEST_LINK_LIBRARIES)
