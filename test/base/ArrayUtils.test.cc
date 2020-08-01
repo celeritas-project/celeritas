@@ -10,6 +10,7 @@
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
 #include "base/Constants.hh"
+#include "base/ArrayIO.hh"
 
 using celeritas::array;
 
@@ -23,6 +24,12 @@ enum
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
+TEST(ArrayUtilsTest, io)
+{
+    array<int, 3> x{1, 3, 2};
+    EXPECT_EQ("{1,3,2}", to_string(x));
+}
 
 TEST(ArrayUtilsTest, axpy)
 {
