@@ -5,9 +5,9 @@
 #----------------------------------------------------------------------------#
 
 # Note: 3.13 is the first CMake version that natively supports CUDA+MPI
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.12)
 project(Celeritas VERSION 0.0.1 LANGUAGES CXX)
-cmake_policy(VERSION 3.13...3.16)
+cmake_policy(VERSION 3.12...3.16)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 if(CMAKE_VERSION VERSION_LESS 3.18)
@@ -29,6 +29,11 @@ option(CELERITAS_USE_CUDA "Enable GPU transport" ON)
 option(CELERITAS_USE_MPI "Enable distributed memory parallelism" ON)
 option(CELERITAS_USE_ROOT "Enable ROOT I/O" OFF)
 option(CELERITAS_USE_VECGEOM "Enable VecGeom geometry" ON)
+
+if(CELERITAS_USE_MPI AND CELERITAS_USE_CUDA AND CMAKE_VERSION VERSION_LESS 3.13)
+  message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
+    "when building with CUDA + MPI.")
+endif()
 
 # Library
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
