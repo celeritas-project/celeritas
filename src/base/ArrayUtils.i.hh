@@ -86,20 +86,30 @@ inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi)
  * \endcode
  * is the call
  * \code
-   rotate(from_spherical(costheta, phi), &vector);
+   vector = rotate(from_spherical(costheta, phi), vector);
  * \endcode
  *
- * Note that rotation has loss of precision when the original direction is
- * close to the z axis. If this is a problem we should consider using
- * quaternions or another method robust for rotations.
+ * This code effectively decomposes the given rotation vector \c rot into two
+ * Eulerian transforms, one with an angle \em theta about the \em y axis and
+ * one about \em phi rotating around the \em z axis. These two angles are the
+ * spherical coordinate transform of the given \c rot cartesian direction
+ * vector.
  *
- * Also note that the input "scatter" vector is const *value*, to avoid
- * aliasing.
+ * There is some extra code in here to deal with loss of precision when the
+ * incident direction is along the \em z axis. As \c rot approaches \em z, the
+ * azimuthal angle \em phi must be calculated carefully from both the x and y
+ * components of the vector, not independently. If \c rot actually equals \em z
+ * then the azimuthal angle is completely indeterminate so we arbitrarily
+ * choose \c phi = 0.
+ *
+ * This function is often used for calculating exiting scattering angles. In
+ * that case, \c dir is the exiting angle from the scattering calculation, and
+ * \c rot is the original direction of the particle.
  */
-inline CELER_FUNCTION void rotate(const Real3 scat, Real3* dir)
+inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
 {
-    REQUIRE(is_soft_unit_vector(scat, SoftEqual<real_type>(1e-6)));
-    REQUIRE(is_soft_unit_vector(*dir, SoftEqual<real_type>(1e-6)));
+    REQUIRE(is_soft_unit_vector(dir, SoftEqual<real_type>(1e-6)));
+    REQUIRE(is_soft_unit_vector(rot, SoftEqual<real_type>(1e-6)));
 
     // Direction enumeration
     enum
@@ -109,33 +119,39 @@ inline CELER_FUNCTION void rotate(const Real3 scat, Real3* dir)
         Z = 2
     };
 
-    // Copy the original directions to avoid aliasing
-    const Real3 orig = *dir;
+    // Transform direction vector into theta, phi so we can use it as a
+    // rotation matrix
+    real_type sintheta = std::sqrt(1 - rot[Z] * rot[Z]);
+    real_type cosphi;
+    real_type sinphi;
 
-    // Calculate how close the original axis is to the pole of the polar
-    // direction
-    real_type alpha = 1 - orig[Z] * orig[Z];
-    if (alpha >= detail::SoftEqualTraits<real_type>::abs_thresh())
+    if (sintheta >= 1e-6)
     {
-        alpha = std::sqrt(alpha);
-
-        (*dir)[X] = orig[X] * scat[Z]
-                    + (1 / alpha)
-                          * (orig[X] * orig[Z] * scat[X] - orig[Y] * scat[Y]);
-        (*dir)[Y] = orig[Y] * scat[Z]
-                    + (1 / alpha)
-                          * (orig[Y] * orig[Z] * scat[X] + orig[X] * scat[Y]);
-        (*dir)[Z] = orig[Z] * scat[Z] - alpha * scat[X];
+        // Typical case: far enough from z axis to calculate correctly
+        const real_type inv_sintheta = 1 / (sintheta);
+        cosphi                       = rot[X] * inv_sintheta;
+        sinphi                       = rot[Y] * inv_sintheta;
+    }
+    else if (sintheta > 0)
+    {
+        // Gives "correct" answers as long as x or y is not zero
+        cosphi = rot[X] / std::sqrt(rot[X] * rot[X] + rot[Y] * rot[Y]);
+        sinphi = std::sqrt(1 - cosphi * cosphi);
     }
     else
     {
-        // Degenerate case: snap to polar axis
-        (*dir)[X] = scat[X];
-        (*dir)[Y] = scat[Y];
-        (*dir)[Z] = (orig[Z] < 0 ? -1 : 1) * scat[Z];
+        // NaN or 0: choose an arbitrary azimuthal angle for the incident dir
+        cosphi = 1;
+        sinphi = 0;
     }
 
-    normalize_direction(dir);
+    Real3 result
+        = {(rot[Z] * dir[X] + sintheta * dir[Z]) * cosphi - sinphi * dir[Y],
+           (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
+           -sintheta * dir[X] + rot[Z] * dir[Z]};
+
+    // normalize_direction(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

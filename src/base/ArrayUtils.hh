@@ -36,8 +36,8 @@ inline CELER_FUNCTION void normalize_direction(Real3* direction);
 inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi);
 
 //---------------------------------------------------------------------------//
-// Rotate the direction according to the given scattering vector
-inline CELER_FUNCTION void rotate(const Real3 scatter, Real3* direction);
+// Rotate the direction 'dir' according to the reference rotation axis 'rot'
+inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot);
 
 //---------------------------------------------------------------------------//
 // Test for being approximately a unit vector

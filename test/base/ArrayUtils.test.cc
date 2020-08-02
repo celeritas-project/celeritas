@@ -13,6 +13,7 @@
 #include "base/ArrayIO.hh"
 
 using celeritas::array;
+using Real3 = array<double, 3>;
 
 enum
 {
@@ -58,7 +59,7 @@ TEST(ArrayUtilsTest, norm)
 
 TEST(ArrayUtilsTest, normalize_direction)
 {
-    array<double, 3> direction{1, 2, 3};
+    Real3            direction{1, 2, 3};
     double           norm = 1 / std::sqrt(1 + 4 + 9);
     celeritas::normalize_direction(&direction);
 
@@ -68,7 +69,7 @@ TEST(ArrayUtilsTest, normalize_direction)
 
 TEST(ArrayUtilsTest, rotate)
 {
-    array<double, 3> vec = {-1.1, 2.3, 0.9};
+    Real3 vec = {-1.1, 2.3, 0.9};
     celeritas::normalize_direction(&vec);
 
     // transform through some directions
@@ -77,36 +78,38 @@ TEST(ArrayUtilsTest, rotate)
     double phi      = celeritas::constants::two_pi / 3.0;
 
     double           a = 1.0 / sqrt(1.0 - vec[Z] * vec[Z]);
-    array<double, 3> expected
+    Real3            expected
         = {vec[X] * costheta + vec[Z] * vec[X] * sintheta * cos(phi) * a
                - vec[Y] * sintheta * sin(phi) * a,
            vec[Y] * costheta + vec[Z] * vec[Y] * sintheta * cos(phi) * a
                + vec[X] * sintheta * sin(phi) * a,
            vec[Z] * costheta - sintheta * cos(phi) / a};
-    celeritas::rotate(celeritas::from_spherical(costheta, phi), &vec);
-    EXPECT_VEC_SOFT_EQ(expected, vec);
+
+    auto scatter = celeritas::from_spherical(costheta, phi);
+    EXPECT_VEC_SOFT_EQ(expected, celeritas::rotate(scatter, vec));
 
     // Transform degenerate vector along y
-    expected = {sintheta * cos(phi), sintheta * sin(phi), -costheta};
-    vec      = {0.0, 0.0, -1.0};
-    celeritas::rotate(celeritas::from_spherical(costheta, phi), &vec);
-    EXPECT_VEC_SOFT_EQ(expected, vec);
+    expected = {-sintheta * cos(phi), sintheta * sin(phi), -costheta};
+    EXPECT_VEC_SOFT_EQ(expected, celeritas::rotate(scatter, {0.0, 0.0, -1.0}));
 
     expected = {sintheta * cos(phi), sintheta * sin(phi), costheta};
-    vec      = {0.0, 0.0, 1.0};
-    celeritas::rotate(celeritas::from_spherical(costheta, phi), &vec);
-    EXPECT_VEC_SOFT_EQ(expected, vec);
+    EXPECT_VEC_SOFT_EQ(expected, celeritas::rotate(scatter, {0.0, 0.0, 1.0}));
+
+    // Transform almost degenerate vector
+    vec = {3e-8, 4e-8, 1};
+    celeritas::normalize_direction(&vec);
+    EXPECT_VEC_SOFT_EQ(
+        (Real3{-0.613930085414816, 0.0739664834328671, 0.785887275346237}),
+        celeritas::rotate(scatter, vec));
 
     // Switch scattered z direction
     costheta *= -1;
+    scatter = celeritas::from_spherical(costheta, phi);
 
-    expected = {sintheta * cos(phi), sintheta * sin(phi), -costheta};
-    vec      = {0.0, 0.0, -1.0};
-    celeritas::rotate(celeritas::from_spherical(costheta, phi), &vec);
-    EXPECT_VEC_SOFT_EQ(expected, vec);
+    expected = {-sintheta * cos(phi), sintheta * sin(phi), -costheta};
+    EXPECT_VEC_SOFT_EQ(expected, celeritas::rotate(scatter, {0.0, 0.0, -1.0}));
 
     expected = {sintheta * cos(phi), sintheta * sin(phi), costheta};
-    vec      = {0.0, 0.0, 1.0};
-    celeritas::rotate(celeritas::from_spherical(costheta, phi), &vec);
+    vec      = celeritas::rotate(scatter, {0.0, 0.0, 1.0});
     EXPECT_VEC_SOFT_EQ(expected, vec);
 }
