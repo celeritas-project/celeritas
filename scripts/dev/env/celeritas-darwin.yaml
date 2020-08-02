@@ -2,6 +2,7 @@ spack:
   specs: 
     - cmake
     - geant4 cxxstd=14
+    - hdf5 +mpi
     - llvm +clang
     - openmpi
     - root +aqua +gdml cxxstd=14
@@ -10,10 +11,6 @@ spack:
   view: true
   concretization: together
   packages:
-    pcre:
-      variants: +jit
-    python:
-      variants: +libxml2 +shared +uuid
     root:
       variants: ~examples ~x ~opengl
     xerces-c:
