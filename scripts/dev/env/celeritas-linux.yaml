@@ -2,23 +2,25 @@ spack:
   specs: 
     - cmake
     - cuda
-    - geant4 cxxstd=14
+    - geant4
+    - git
+    - git-lfs
+    - googletest
     - hdf5 +mpi
     - llvm +clang
+    - ninja
     - openmpi
     - python +uuid
-    - root cxxstd=14
-    - veccore +cuda
-    - vecgeom cxxstd=14 +gdml +cuda
+    - root
+    - veccore
+    - vecgeom +gdml
   view: true
   concretization: together
   packages:
     root:
       variants: ~x ~opengl
-    xerces-c:
-      variants: cxxstd=14
     all:
-      variants: # cuda_arch=35
+      variants: +cuda cxxstd=14 #cuda_arch=35
       providers:
         blas: [openblas]
         lapack: [openblas]
