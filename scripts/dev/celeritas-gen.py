@@ -84,14 +84,14 @@ namespace celeritas
 '''
 
 TEST_HARNESS_FILE = '''\
-#include "{dirname}/{name}.{hext}"
+#include "{dirfromtest}/{name}.{hext}"
 
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
 #include "{name}.test.hh"
 
 using celeritas::{name};
-using namespace celeritas_test;
+// using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -299,6 +299,7 @@ def generate(root, filename):
 
     relpath = re.sub(r'^[./]+', '', relpath)
     capabbr = re.sub(r'[^A-Z]+', '', name)
+    dirfromtest = re.sub(r'^test/', '', relpath)
     variables = {
         'longext': longext,
         'ext': ext,
@@ -307,7 +308,7 @@ def generate(root, filename):
         'name': name,
         'filename': filename,
         'basename': basename,
-        'dirname': dirname,
+        'dirfromtest': dirfromtest,
         'capabbr': capabbr,
         'lowabbr': capabbr.lower(),
         }

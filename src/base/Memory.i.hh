@@ -1,22 +1,27 @@
-//---------------------------------*-C++-*-----------------------------------//
+//----------------------------------*-C++-*----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.cc
+//! \file Memory.i.hh
 //---------------------------------------------------------------------------//
-#include "Utils.hh"
+
+#include <type_traits>
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-void device_memset(void*, int, size_type)
+/*!
+ * Call memset on device data.
+ */
+template<class T>
+void device_memset_zero(span<T> device_pointers)
 {
-    REQUIRE(0);
+    static_assert(std::is_trivially_copyable<T>::value,
+                  "Only trivially copyable types may be memset");
+    device_memset(
+        device_pointers.data(), 0, device_pointers.size() * sizeof(T));
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

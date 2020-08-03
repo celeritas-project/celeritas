@@ -64,4 +64,13 @@ TEST_F(DeviceVectorTest, all)
     vec.copy_to_host(celeritas::make_span(newdata));
     EXPECT_EQ(1, newdata.front());
     EXPECT_EQ(1234567, newdata.back());
+
+    // Test move construction/assignment
+    {
+        int*  orig_vec = vec.device_pointers().data();
+        Vec_t other(std::move(vec));
+        EXPECT_EQ(128, other.size());
+        EXPECT_EQ(0, vec.size());
+        EXPECT_EQ(orig_vec, other.device_pointers().data());
+    }
 }

@@ -3,35 +3,40 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Types.hh
+//! \file ArrayIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cstddef>
+#include <ostream>
+#include <sstream>
+#include <string>
 #include "Array.hh"
-#include "OpaqueId.hh"
+#include "SpanIO.hh"
 
 namespace celeritas
 {
-struct Thread;
 //---------------------------------------------------------------------------//
-using size_type    = std::size_t;
-using ssize_type   = int;
-using real_type    = double;
-using RealPointer3 = array<real_type*, 3>;
-using Real3        = array<real_type, 3>;
-
-using ThreadId = OpaqueId<Thread, unsigned int>;
-
-//---------------------------------------------------------------------------//
-
-enum class Interp
+/*!
+ * Write the elements of array \a a to stream \a os.
+ */
+template<class T, std::size_t N>
+std::ostream& operator<<(std::ostream& os, const array<T, N>& a)
 {
-    Linear,
-    Log
-};
+    os << make_span(a);
+    return os;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert an array to a string representation for debugging.
+ */
+template<class T, std::size_t N>
+std::string to_string(const array<T, N>& a)
+{
+    std::ostringstream os;
+    os << a;
+    return os.str();
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

@@ -30,6 +30,7 @@ DeviceAllocation::DeviceAllocation(size_type bytes) : size_(bytes)
  */
 void DeviceAllocation::copy_to_device(constSpanBytes bytes)
 {
+    REQUIRE(!this->empty());
     REQUIRE(bytes.size() == this->size());
     CELER_CUDA_CALL(cudaMemcpy(
         data_.get(), bytes.data(), bytes.size(), cudaMemcpyHostToDevice));
@@ -41,6 +42,7 @@ void DeviceAllocation::copy_to_device(constSpanBytes bytes)
  */
 void DeviceAllocation::copy_to_host(SpanBytes bytes) const
 {
+    REQUIRE(!this->empty());
     REQUIRE(bytes.size() == this->size());
     CELER_CUDA_CALL(cudaMemcpy(
         bytes.data(), data_.get(), this->size(), cudaMemcpyDeviceToHost));

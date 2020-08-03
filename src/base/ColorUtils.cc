@@ -65,19 +65,19 @@ const char* color_code(char abbrev)
     switch (abbrev)
     {
         case 'g':
-            return "\\e[32m";
+            return "\033[32m";
         case 'r':
-            return "\\e[31m";
+            return "\033[31m";
         case 'x':
-            return "\\e[37;2m";
+            return "\033[37;2m";
         case 'y':
-            return "\\e[33m";
+            return "\033[33m";
         case 'R':
-            return "\\e[31;1m";
+            return "\033[31;1m";
         case 'W':
-            return "\\e[37;1m";
+            return "\033[37;1m";
         case ' ':
-            return "\\e[0m";
+            return "\033[0m";
     }
 
     // Unknown color code: ignore

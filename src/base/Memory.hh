@@ -3,48 +3,27 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file src/comm/ScopedMpiInit.serial.cc
+//! \file Memory.hh
 //---------------------------------------------------------------------------//
-#include "ScopedMpiInit.hh"
+#pragma once
 
-#include "base/Assert.hh"
-
-namespace
-{
-bool g_initialized = false;
-}
+#include "Span.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * \brief Construct with argc/argv references
- */
-ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
-{
-    REQUIRE((argc == nullptr) == (argv == nullptr));
-    REQUIRE(!ScopedMpiInit::initialized());
-    g_initialized = true;
-    ENSURE(ScopedMpiInit::initialized());
-}
+// Fill all the pointed-to device data with zeroes.
+template<class T>
+inline void device_memset_zero(span<T> data);
 
 //---------------------------------------------------------------------------//
-/*!
- * \brief Call MPI finalize on destruction
- */
-ScopedMpiInit::~ScopedMpiInit()
-{
-    g_initialized = false;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * \brief Whether MPI has been initialized
- */
-bool ScopedMpiInit::initialized()
-{
-    return g_initialized;
-}
+// Equivalent of `std::memset` for a device pointer
+void device_memset(void* data, int fill_value, size_type count);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
+
+#include "Memory.i.hh"
+
+//---------------------------------------------------------------------------//

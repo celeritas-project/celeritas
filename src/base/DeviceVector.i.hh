@@ -32,7 +32,7 @@ void DeviceVector<T>::swap(DeviceVector& other) noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy data to device
+ * Copy data to device.
  */
 template<class T>
 void DeviceVector<T>::copy_to_device(constSpan_t data)

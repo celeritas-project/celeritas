@@ -66,4 +66,13 @@ TEST_F(DeviceAllocationTest, all)
     alloc.copy_to_host(celeritas::make_span(newdata));
     EXPECT_EQ(byte(1), newdata.front());
     EXPECT_EQ(byte(127), newdata.back());
+
+    // Test move construction/assignment
+    {
+        byte*            orig_ptr = alloc.device_pointers().data();
+        DeviceAllocation other(std::move(alloc));
+        EXPECT_EQ(128, other.size());
+        EXPECT_EQ(0, alloc.size());
+        EXPECT_EQ(orig_ptr, other.device_pointers().data());
+    }
 }

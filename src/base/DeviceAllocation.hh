@@ -10,12 +10,18 @@
 #include <memory>
 #include "Span.hh"
 #include "Types.hh"
+#include "detail/InitializedValue.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Allocate raw uninitialized memory.
+ *
+ * This class is intended to be used by host-compiler `.hh` code as a bridge to
+ * device memory. It allows Storage classes to allocate and manage device
+ * memory without using `thrust`, which requires NVCC and propagates that
+ * requirement into all upstream code.
  *
  * Note that \c byte is defined in \c Span.hh as an enum class with type
  * unsigned char.
@@ -70,7 +76,7 @@ class DeviceAllocation
 
     // >>> DATA
 
-    size_type       size_ = 0;
+    detail::InitializedValue<size_type> size_;
     DeviceUniquePtr data_;
 };
 

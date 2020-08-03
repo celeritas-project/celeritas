@@ -9,12 +9,16 @@
 
 #include <type_traits>
 #include "DeviceAllocation.hh"
+#include "detail/InitializedValue.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Host-compiler-friendly vector for uninitialized device-storage data.
+ *
+ * This class does *not* perform initialization on the data. The host code
+ * must define and copy over suitable data.
  *
  * \code
     DeviceVector<double> myvec(100);
@@ -57,10 +61,10 @@ class DeviceVector
     // >>> DEVICE ACCESSORS
 
     // Copy data to device
-    inline void copy_to_device(constSpan_t bytes);
+    inline void copy_to_device(constSpan_t host_data);
 
     // Copy data to host
-    inline void copy_to_host(Span_t bytes) const;
+    inline void copy_to_host(Span_t host_data) const;
 
     // Get a mutable view to device data
     inline Span_t device_pointers();
@@ -70,7 +74,7 @@ class DeviceVector
 
   private:
     DeviceAllocation allocation_;
-    size_type        size_ = 0;
+    detail::InitializedValue<size_type> size_;
 };
 
 // Swap two vectors

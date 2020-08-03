@@ -60,17 +60,62 @@ CELER_FUNCTION void normalize_direction(array<real_type, 3>* direction)
 
 //---------------------------------------------------------------------------//
 /*!
- * Rotate the direction about the given Z-based polar coordinates.
+ * Calculate a Cartesian vector from spherical coordinates.
  *
- * Note that rotation has loss of precision near the z axis. If this is a
- * problem we should consider using quaternions or another method robust for
- * rotations.
+ * Theta is the angle between the Z axis and the outgoing vector, and phi is
+ * the angle between the x axis and the projection of the vector onto the x-y
+ * plane.
  */
-inline CELER_FUNCTION void
-rotate_polar(real_type costheta, real_type phi, array<real_type, 3>* dir)
+inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi)
 {
-    REQUIRE(is_soft_unit_vector(*dir, SoftEqual<real_type>(1e-6)));
     REQUIRE(costheta >= -1 && costheta <= 1);
+
+    const real_type sintheta = std::sqrt(1 - costheta * costheta);
+    return {sintheta * std::cos(phi), sintheta * std::sin(phi), costheta};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Rotate the direction about the given Z-based scatter direction.
+ *
+ * The equivalent to Shift's \code
+ * void cartesian_vector_transform(
+    double      costheta,
+    double      phi,
+    Vector_View vector)
+ * \endcode
+ * is the call
+ * \code
+   vector = rotate(from_spherical(costheta, phi), vector);
+ * \endcode
+ *
+ * This code effectively decomposes the given rotation vector \c rot into two
+ * sequential transform matrices, one with an angle \em theta about the \em y
+ * axis and one about \em phi rotating around the \em z axis. These two angles
+ * are the spherical coordinate transform of the given \c rot cartesian
+ * direction vector.
+ *
+ * There is some extra code in here to deal with loss of precision when the
+ * incident direction is along the \em z axis. As \c rot approaches \em z, the
+ * azimuthal angle \em phi must be calculated carefully from both the x and y
+ * components of the vector, not independently. If \c rot actually equals \em z
+ * then the azimuthal angle is completely indeterminate so we arbitrarily
+ * choose \c phi = 0.
+ *
+ * This function is often used for calculating exiting scattering angles. In
+ * that case, \c dir is the exiting angle from the scattering calculation, and
+ * \c rot is the original direction of the particle. The direction vectors are
+ * defined
+ * \f[
+   \Omega =   \sin\theta\cos\phi\mathbf{i}
+            + \sin\theta\sin\phi\mathbf{j}
+            + \cos\theta\mathbf{k}
+ * \f]
+ */
+inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
+{
+    REQUIRE(is_soft_unit_vector(dir, SoftEqual<real_type>(1e-6)));
+    REQUIRE(is_soft_unit_vector(rot, SoftEqual<real_type>(1e-6)));
 
     // Direction enumeration
     enum
@@ -80,37 +125,39 @@ rotate_polar(real_type costheta, real_type phi, array<real_type, 3>* dir)
         Z = 2
     };
 
-    const double sintheta = std::sqrt(1.0 - costheta * costheta);
-    const double stcosphi = sintheta * std::cos(phi);
-    const double stsinphi = sintheta * std::sin(phi);
+    // Transform direction vector into theta, phi so we can use it as a
+    // rotation matrix
+    real_type sintheta = std::sqrt(1 - rot[Z] * rot[Z]);
+    real_type cosphi;
+    real_type sinphi;
 
-    // Copy the original direction
-    const array<real_type, 3> orig = *dir;
-    // Calculate how close the original axis is to the pole of the polar
-    // direction
-    const double alpha = std::sqrt(1 - orig[Z] * orig[Z]);
-
-    if (alpha >= real_type(1e-6))
+    if (sintheta >= 1e-6)
     {
-        const real_type inv_alpha = 1.0 / alpha;
-
-        (*dir)[X] = orig[X] * costheta
-                    + inv_alpha
-                          * (orig[X] * orig[Z] * stcosphi - orig[Y] * stsinphi);
-        (*dir)[Y] = orig[Y] * costheta
-                    + inv_alpha
-                          * (orig[Y] * orig[Z] * stcosphi + orig[X] * stsinphi);
-        (*dir)[Z] = orig[Z] * costheta - alpha * stcosphi;
+        // Typical case: far enough from z axis to calculate correctly
+        const real_type inv_sintheta = 1 / (sintheta);
+        cosphi                       = rot[X] * inv_sintheta;
+        sinphi                       = rot[Y] * inv_sintheta;
+    }
+    else if (sintheta > 0)
+    {
+        // Gives "correct" answers as long as x or y is not zero
+        cosphi = rot[X] / std::sqrt(rot[X] * rot[X] + rot[Y] * rot[Y]);
+        sinphi = std::sqrt(1 - cosphi * cosphi);
     }
     else
     {
-        // Degenerate case: snap to polar axis
-        (*dir)[X] = stcosphi;
-        (*dir)[Y] = stsinphi;
-        (*dir)[Z] = std::copysign(costheta, orig[Z]); // +-costheta
+        // NaN or 0: choose an arbitrary azimuthal angle for the incident dir
+        cosphi = 1;
+        sinphi = 0;
     }
 
-    normalize_direction(dir);
+    Real3 result
+        = {(rot[Z] * dir[X] + sintheta * dir[Z]) * cosphi - sinphi * dir[Y],
+           (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
+           -sintheta * dir[X] + rot[Z] * dir[Z]};
+
+    ENSURE(is_soft_unit_vector(result, SoftEqual<real_type>(1e-6)));
+    return result;
 }
 
 //---------------------------------------------------------------------------//
