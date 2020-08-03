@@ -42,7 +42,7 @@ class FloatingTest : public celeritas::Test
     using Limits_t   = std::numeric_limits<value_type>;
 };
 
-using FloatTypes = ::testing::Types<float, double, long double>;
+using FloatTypes = ::testing::Types<float, double>;
 TYPED_TEST_SUITE(FloatingTest, FloatTypes, );
 
 //---------------------------------------------------------------------------//
@@ -93,24 +93,7 @@ TYPED_TEST(FloatingTest, soft_equal)
     EXPECT_TRUE(comp(inf, inf));
     EXPECT_FALSE(comp(inf, -inf));
     EXPECT_FALSE(comp(-inf, inf));
-    if (!std::isinf(maxval))
-    {
-        // Don't test this if std::numeric_limits are the same. Apparently when
-        // running valgrind with the `long double`, "maxval" is actually
-        // infinity. See https://stackoverflow.com/questions/63120330 .
-        // In most cases, this *will* be tested.
-        EXPECT_FALSE(comp(inf, maxval));
-    }
-    else
-    {
-        using celeritas::color_code;
-        cout << color_code('y')
-             << "Warning: 'numeric_limits::max()' is infinite"
-             << color_code(' ')
-             << " (this is expected when running 'long double' under valgrind)"
-             << endl;
-        EXPECT_TRUE(comp(inf, maxval));
-    }
+    EXPECT_FALSE(comp(inf, maxval));
 }
 
 //---------------------------------------------------------------------------//

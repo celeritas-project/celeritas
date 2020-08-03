@@ -40,14 +40,6 @@ struct SoftEqualTraits
 };
 
 template<>
-struct SoftEqualTraits<long double>
-{
-    using value_type = long double;
-    static CELER_CONSTEXPR_FUNCTION value_type rel_prec() { return 1.0e-14; }
-    static CELER_CONSTEXPR_FUNCTION value_type abs_thresh() { return 1.0e-15; }
-};
-
-template<>
 struct SoftEqualTraits<double>
 {
     using value_type = double;
