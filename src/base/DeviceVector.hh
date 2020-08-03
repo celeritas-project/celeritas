@@ -17,6 +17,9 @@ namespace celeritas
 /*!
  * Host-compiler-friendly vector for uninitialized device-storage data.
  *
+ * This class does *not* perform initialization on the data. The host code
+ * must define and copy over suitable data.
+ *
  * \code
     DeviceVector<double> myvec(100);
     myvec.copy_to_device(make_span(hostvec));

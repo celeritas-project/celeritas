@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "Memory.hh"
 
+#include <limits>
 #include <thrust/uninitialized_fill.h>
 #include <thrust/device_malloc.h>
 #include <thrust/execution_policy.h>
@@ -15,15 +16,22 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Fill the pointed-to data with the given fill value. This function has the
+ * same signature as std::memset: the \c fill_value must look like a single
+ * byte of memory, and \c count is the size of the data in bytes.
+ */
 void device_memset(void* data, int fill_value, size_type count)
 {
+    REQUIRE(fill_value >= 0
+            && fill_value <= std::numeric_limits<unsigned char>::max());
     auto* data_char = static_cast<unsigned char*>(data);
 
     thrust::uninitialized_fill_n(
         thrust::device,
         thrust::device_pointer_cast<unsigned char>(data_char),
         count,
-        static_cast<unsigned int>(fill_value));
+        static_cast<unsigned char>(fill_value));
 }
 
 //---------------------------------------------------------------------------//

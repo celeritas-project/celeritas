@@ -34,7 +34,7 @@ class InitializedValue
         other.value_ = {};
     }
 
-    //! Clear other value on move sassign
+    //! Clear other value on move assign
     InitializedValue& operator=(InitializedValue&& other) noexcept
     {
         value_       = other.value_;

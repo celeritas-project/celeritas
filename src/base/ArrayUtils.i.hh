@@ -90,10 +90,10 @@ inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi)
  * \endcode
  *
  * This code effectively decomposes the given rotation vector \c rot into two
- * Eulerian transforms, one with an angle \em theta about the \em y axis and
- * one about \em phi rotating around the \em z axis. These two angles are the
- * spherical coordinate transform of the given \c rot cartesian direction
- * vector.
+ * sequential transform matrices, one with an angle \em theta about the \em y
+ * axis and one about \em phi rotating around the \em z axis. These two angles
+ * are the spherical coordinate transform of the given \c rot cartesian
+ * direction vector.
  *
  * There is some extra code in here to deal with loss of precision when the
  * incident direction is along the \em z axis. As \c rot approaches \em z, the
@@ -104,7 +104,13 @@ inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi)
  *
  * This function is often used for calculating exiting scattering angles. In
  * that case, \c dir is the exiting angle from the scattering calculation, and
- * \c rot is the original direction of the particle.
+ * \c rot is the original direction of the particle. The direction vectors are
+ * defined
+ * \f[
+   \Omega =   \sin\theta\cos\phi\mathbf{i}
+            + \sin\theta\sin\phi\mathbf{j}
+            + \cos\theta\mathbf{k}
+ * \f]
  */
 inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
 {
@@ -150,7 +156,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
            (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
            -sintheta * dir[X] + rot[Z] * dir[Z]};
 
-    // normalize_direction(result);
+    ENSURE(is_soft_unit_vector(result, SoftEqual<real_type>(1e-6)));
     return result;
 }
 
