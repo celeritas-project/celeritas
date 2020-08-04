@@ -23,29 +23,31 @@ function veval() { cecho "37;2" "> $1"; eval "$1"; }
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 info "This script is running from ${SCRIPT_DIR}"
 
-: ${SPACK_VERSION:=7df7b65ce}
+: ${SPACK_VERSION:=v0.15.3}
 
 ###############################################################################
 # Clone Spack and repositories
 ###############################################################################
 
-if [ -n "${CODE}" ]; then
-  : # do nothing
-elif [ -d "/rnsdhpc" ]; then
-  CODE=/rnsdhpc/code
-elif [ "$(uname -s)" == "Darwin" ]; then
-  CODE="/ornldev/code"
-else
-  CODE=/projects
-fi
+if [ -n "${SPACK_ROOT}" ]; then
+  if [ -n "${CODE}" ]; then
+    : # do nothing
+  elif [ -d "/rnsdhpc" ]; then
+    CODE=/rnsdhpc/code
+  elif [ "$(uname -s)" == "Darwin" ]; then
+    CODE="/ornldev/code"
+  else
+    CODE=/projects
+  fi
 
-if [ ! -e ${CODE} ]; then
-  status "Creating projects directory"
-  vcall sudo mkdir -p ${CODE}
-  vcall sudo chown ${USER} ${CODE}
-fi
+  if [ ! -e ${CODE} ]; then
+    status "Creating projects directory"
+    vcall sudo mkdir -p ${CODE}
+    vcall sudo chown ${USER} ${CODE}
+  fi
 
-: ${SPACK_ROOT:=${CODE}/spack}
+  SPACK_ROOT=${CODE}/spack
+fi
 
 if [ ! -d ${SPACK_ROOT} ]; then
   status "Installing spack"

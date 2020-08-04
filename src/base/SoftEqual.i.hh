@@ -46,7 +46,7 @@ CELER_FUNCTION SoftEqual<T1, T2>::SoftEqual(value_type rel, value_type abs)
 
 //---------------------------------------------------------------------------//
 /*!
- * Compare two values (implicitly casting arguments)
+ * Compare two values (implicitly casting arguments).
  *
  * \param expected scalar floating point reference to which value is compared
  * \param actual   scalar floating point value

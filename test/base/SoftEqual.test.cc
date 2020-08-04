@@ -10,6 +10,7 @@
 #include <limits>
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
+#include "base/ColorUtils.hh"
 
 using celeritas::SoftEqual;
 using celeritas::SoftZero;
@@ -41,7 +42,7 @@ class FloatingTest : public celeritas::Test
     using Limits_t   = std::numeric_limits<value_type>;
 };
 
-using FloatTypes = ::testing::Types<float, double, long double>;
+using FloatTypes = ::testing::Types<float, double>;
 TYPED_TEST_SUITE(FloatingTest, FloatTypes, );
 
 //---------------------------------------------------------------------------//
