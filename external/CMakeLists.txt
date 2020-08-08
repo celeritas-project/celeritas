@@ -4,14 +4,14 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-include(CeleritasLoadSubmodule)
-
 #----------------------------------------------------------------------------#
 # GOOGLETEST
 #----------------------------------------------------------------------------#
 
-if (CELERITAS_BUILD_TESTS)
-  # Pull integrated googletest
+if(CELERITAS_BUILD_TESTS AND NOT TARGET GTest::GTest)
+  include(CeleritasLoadSubmodule)
+
+  # Externally installed gtest is not in use: pull integrated googletest
   celeritas_load_submodule(googletest)
   # Compile googletest
   include(${CMAKE_CURRENT_LIST_DIR}/cmake/googletest.cmake)
