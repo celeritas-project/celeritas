@@ -93,6 +93,11 @@ if(CELERITAS_USE_VECGEOM)
   endif()
 endif()
 
+if(CELERITAS_BUILD_TESTS)
+  # Use external gtest if available
+  find_package(GTest)
+endif()
+
 add_subdirectory(external)
 
 #---------------------------------------------------------------------------##
