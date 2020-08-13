@@ -6,12 +6,16 @@
 # TEST LIBRARY
 #-----------------------------------------------------------------------------#
 
+set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
+configure_file(gtest/detail/TestConfig.cc.in TestConfig.cc @ONLY)
+
 add_library(CeleritasTest
   gtest/Test.cc
   gtest/detail/NonMasterResultPrinter.cc
   gtest/detail/ParallelHandler.cc
   gtest/detail/TestMain.cc
   gtest/detail/Utils.cc
+  "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 add_library(Celeritas::Test ALIAS CeleritasTest)
 target_link_libraries(CeleritasTest PUBLIC celeritas GTest::GTest)

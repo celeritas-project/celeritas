@@ -3,28 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Test.hh
+//! \file TestConfig.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <gtest/gtest.h>
-
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Googletest test harness for Celeritas codes.
- *
- * The test harness is constructed and destroyed once per subtest.
- */
-class Test : public ::testing::Test
+namespace detail
 {
-  public:
-    Test() = default;
+//---------------------------------------------------------------------------//
 
-    // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
-    std::string test_data_path(const char* subdir, const char* filename) const;
-};
+extern const char source_dir[];
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
