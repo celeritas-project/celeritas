@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "TestMain.hh"
 
+#include <stdexcept>
 #include "celeritas_config.h"
 #include "base/ColorUtils.hh"
 #include "comm/Communicator.hh"
@@ -27,7 +28,20 @@ int test_main(int argc, char** argv)
     Communicator  comm = Communicator::comm_world();
 
     // Initialize device
-    celeritas::initialize_device(comm);
+    try
+    {
+        celeritas::initialize_device(comm);
+    }
+    catch (const std::exception& e)
+    {
+        if (comm.rank() == 0)
+        {
+            std::cout << color_code('r') << "[  FAILED  ]" << color_code(' ')
+                      << " CUDA failed to initialize: " << e.what()
+                      << std::endl;
+        }
+        return 1;
+    }
 
     // Initialize google test
     ::testing::InitGoogleTest(&argc, argv);
@@ -66,7 +80,7 @@ int test_main(int argc, char** argv)
         if (comm.rank() == 0)
         {
             std::cout << color_code('r') << "[  FAILED  ]" << color_code(' ')
-                      << "No tests are written/enabled!" << std::endl;
+                      << " No tests are written/enabled!" << std::endl;
         }
 
         global_failed = 1;
