@@ -72,6 +72,9 @@ if(CELERITAS_USE_CUDA)
   enable_language(CUDA)
   set(CMAKE_CUDA_STANDARD 14)
   set(CMAKE_CUDA_EXTENSIONS OFF)
+  # Docker CUDA distribution links against static but misses the -lrt -ldl
+  # flags, causing link errors for unit tests
+  set(CMAKE_CUDA_RUNTIME_LIBRARY shared)
 
   find_package(CUDAToolkit REQUIRED QUIET)
 endif()
