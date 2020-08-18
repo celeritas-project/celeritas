@@ -35,13 +35,13 @@ size_type ParticleStateStore::size() const
 /*!
  * View to on-device state data.
  */
-ParticleStatePointers ParticleStateStore::device_pointers()
+DevicePointers<ParticleStatePointers> ParticleStateStore::device_pointers()
 {
-    ParticleStatePointers result;
-    result.vars = vars_.device_pointers();
+    ParticleStatePointers pointers;
+    pointers.vars = vars_.device_pointers().value;
 
     ENSURE(result);
-    return result;
+    return {std::move(pointers)};
 }
 
 //---------------------------------------------------------------------------//

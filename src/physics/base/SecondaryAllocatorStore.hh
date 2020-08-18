@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/DeviceValue.hh"
 #include "base/DeviceVector.hh"
 #include "SecondaryAllocatorPointers.hh"
 #include "Secondary.hh"
@@ -26,6 +27,7 @@ class SecondaryAllocatorStore
     //@{
     //! Type aliases
     using size_type = SecondaryAllocatorPointers::size_type;
+    using DevicePointers = DeviceValue<SecondaryAllocatorPointers>;
     //@}
 
   public:
@@ -49,7 +51,7 @@ class SecondaryAllocatorStore
     // >>> DEVICE ACCESSORS
 
     // Get a view to the managed data
-    SecondaryAllocatorPointers device_pointers();
+    DevicePointers device_pointers();
 
   private:
     DeviceVector<Secondary> allocation_;

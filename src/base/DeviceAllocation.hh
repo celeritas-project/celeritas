@@ -31,8 +31,10 @@ class DeviceAllocation
   public:
     //@{
     //! Type aliases
-    using SpanBytes      = span<byte>;
-    using constSpanBytes = span<const byte>;
+    using DevicePointers      = DeviceValue<span<byte>>;
+    using HostPointers        = HostValue<span<byte>>;
+    using constDevicePointers = DeviceValue<span<const byte>>;
+    using constHostPointers   = HostValue<span<const byte>>;
     //@}
 
   public:
@@ -56,16 +58,16 @@ class DeviceAllocation
     // >>> DEVICE ACCESSORS
 
     // Get the device pointer
-    inline SpanBytes device_pointers();
+    inline DevicePointers device_pointers();
 
     // Get the device pointer
-    inline constSpanBytes device_pointers() const;
+    inline constDevicePointers device_pointers() const;
 
     // Copy data to device
-    void copy_to_device(constSpanBytes bytes);
+    void copy_to_device(constHostPointers bytes);
 
     // Copy data to host
-    void copy_to_host(SpanBytes bytes) const;
+    void copy_to_host(HostPointers bytes) const;
 
   private:
     struct CudaFreeDeleter

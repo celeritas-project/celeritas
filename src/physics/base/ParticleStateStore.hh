@@ -20,6 +20,12 @@ namespace celeritas
 class ParticleStateStore
 {
   public:
+    //@{
+    //! Type aliases
+    using DevicePointers = DeviceValue<ParticleStatePointers>;
+    //@}
+
+  public:
     // Construct from number of track states
     explicit ParticleStateStore(size_type size);
 
@@ -29,7 +35,7 @@ class ParticleStateStore
     size_type size() const;
 
     // View on-device states
-    ParticleStatePointers device_pointers();
+    DevicePointers device_pointers();
 
   private:
     DeviceVector<ParticleTrackState> vars_;
