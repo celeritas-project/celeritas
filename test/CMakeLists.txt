@@ -77,6 +77,15 @@ celeritas_setup_tests(PREFIX comm)
 celeritas_add_test(comm/Communicator.test.cc)
 
 #-----------------------------------------------------------------------------#
+# ROOT I/O
+
+celeritas_setup_tests(SERIAL PREFIX io LINK_LIBRARIES Celeritas::IO)
+
+if(CELERITAS_USE_ROOT)
+  celeritas_add_test(io/GeantImporter.test.cc)
+endif()
+
+#-----------------------------------------------------------------------------#
 # Physics
 
 add_library(CeleritasPhysicsTest

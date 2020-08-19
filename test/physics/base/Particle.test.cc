@@ -52,7 +52,7 @@ class ParticleTrackViewTest : public celeritas::Test
         defs.push_back({{"gamma", pdg::gamma()},
                         {0, 0, ParticleDef::stable_decay_constant()}});
         defs.push_back(
-            {{"neutron", pdg::neutron()}, {939.565413, 0, 1.0 / 879.4}});
+            {{"neutron", PDGNumber{2112}}, {939.565413, 0, 1.0 / 879.4}});
 
         particle_params = std::make_shared<ParticleParams>(std::move(defs));
     }

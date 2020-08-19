@@ -17,6 +17,7 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${_CONFIG_NAME}"
 #----------------------------------------------------------------------------#
 # LIBRARY
 #----------------------------------------------------------------------------#
+
 set(SOURCES)
 set(PRIVATE_DEPS)
 set(PUBLIC_DEPS)
@@ -59,6 +60,7 @@ else()
 endif()
 
 add_library(celeritas ${SOURCES})
+add_library(Celeritas::Core ALIAS celeritas)
 target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
@@ -84,5 +86,29 @@ foreach(_SUBDIR base geom)
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${_SUBDIR}/"
   )
 endforeach()
+
+#----------------------------------------------------------------------------#
+# ROOT I/O MODULE
+#----------------------------------------------------------------------------#
+
+if(CELERITAS_USE_ROOT)
+  include(${ROOT_USE_FILE})
+
+  root_generate_dictionary(CeleritasRootGeantParticle
+    io/GeantParticle.hh
+    LINKDEF io/GeantParticleLinkDef.h
+  )
+
+  # Note that ROOT requires *shared* libraries due to runtime initialization.
+  # Tests that use ROOT to load the data will have to link against this library.
+  add_library(CeleritasIO SHARED
+    io/GeantImporter.cc
+    CeleritasRootGeantParticle.cxx
+  )
+  add_library(Celeritas::IO ALIAS CeleritasIO)
+  target_link_libraries(CeleritasIO
+    PRIVATE celeritas ROOT::Core ROOT::Tree
+  )
+endif()
 
 #---------------------------------------------------------------------------##

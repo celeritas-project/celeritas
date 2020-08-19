@@ -26,6 +26,7 @@ option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
 
 # TPLs
 option(CELERITAS_USE_CUDA "Enable GPU transport" ON)
+option(CELERITAS_USE_Geant4 "Enable Geant4 adapter tools" OFF)
 option(CELERITAS_USE_MPI "Enable distributed memory parallelism" ON)
 option(CELERITAS_USE_ROOT "Enable ROOT I/O" OFF)
 option(CELERITAS_USE_VECGEOM "Enable VecGeom geometry" ON)
@@ -76,6 +77,10 @@ if(CELERITAS_USE_CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
 endif()
 
+if(CELERITAS_USE_Geant4)
+  find_package(Geant4 REQUIRED)
+endif()
+
 if(CELERITAS_USE_MPI)
   find_package(MPI REQUIRED)
 endif()
@@ -111,9 +116,9 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 #---------------------------------------------------------------------------##
-# DEMO APP
+# DEMO/HELPER APPS
 #---------------------------------------------------------------------------##
 
-# add_subdirectory(app)
+add_subdirectory(app)
 
 #---------------------------------------------------------------------------##
