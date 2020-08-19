@@ -15,3 +15,4 @@ cmake -C ${BUILDSCRIPT_DIR}/emmet.cmake -G Ninja \
   -DCMAKE_INSTALL_PREFIX:PATH=$SOURCE_DIR/install \
   ..
 ninja -v
+ctest --output-on-failure

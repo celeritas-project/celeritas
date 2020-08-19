@@ -3,41 +3,39 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocatorPointers.hh
+//! \file ParticleStateStore.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Assert.hh"
-#include "Types.hh"
-#include "Span.hh"
+#include "base/DeviceVector.hh"
+#include "base/Types.hh"
+#include "ParticleStatePointers.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Reference data owned by a StackAllocatorStore for use in StackAllocatorView.
+ * Manage on-device particle physics states.
  */
-struct StackAllocatorPointers
+class ParticleStateStore
 {
-    //! Size type needed for CUDA atomics compatibility
-    using size_type = unsigned long long int;
+  public:
+    // Construct from number of track states
+    explicit ParticleStateStore(size_type size);
 
-    span<byte> storage;
-    size_type* size;
+    // >>> ACCESSORS
 
-    //! Check whether the view is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        REQUIRE(this->valid());
-        return !storage.empty();
-    }
+    // Number of states
+    size_type size() const;
 
-    inline CELER_FUNCTION bool valid() const;
+    // View on-device states
+    ParticleStatePointers device_pointers();
+
+  private:
+    DeviceVector<ParticleTrackState> vars_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-#include "StackAllocatorPointers.i.hh"
 
 //---------------------------------------------------------------------------//

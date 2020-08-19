@@ -14,4 +14,4 @@ cmake -C ${BUILDSCRIPT_DIR}/vostok.cmake -G Ninja \
   -DCMAKE_INSTALL_PREFIX:PATH=$SOURCE_DIR/install \
   ..
 ninja -v
-ctest
+ctest --output-on-failure

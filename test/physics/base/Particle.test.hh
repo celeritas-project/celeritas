@@ -3,36 +3,40 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocator.test.hh
+//! \file Particle.test.hh
 //---------------------------------------------------------------------------//
 
-#include "base/StackAllocatorPointers.hh"
+#include <vector>
+#include "physics/base/ParticleParamsPointers.hh"
+#include "physics/base/ParticleStatePointers.hh"
 
 namespace celeritas_test
 {
 using namespace celeritas;
+
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Input data
-struct SATestInput
+struct PTVTestInput
 {
-    int                num_threads;
-    int                num_iters;
-    int                alloc_size;
-    StackAllocatorPointers sa_view;
+    ParticleParamsPointers          params;
+    ParticleStatePointers           states;
+    std::vector<ParticleTrackState> init;
 };
 
 //---------------------------------------------------------------------------//
 //! Output results
-struct SATestOutput
+struct PTVTestOutput
 {
-    int num_allocations;
+    std::vector<double> props;
+
+    static CELER_CONSTEXPR_FUNCTION int props_per_thread() { return 8; }
 };
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-SATestOutput sa_run(SATestInput);
+PTVTestOutput ptv_test(PTVTestInput);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

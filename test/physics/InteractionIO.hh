@@ -3,23 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocatorPointers.i.hh
+//! \file InteractionIO.hh
 //---------------------------------------------------------------------------//
+#pragma once
+
+#include <iosfwd>
+#include "physics/base/Interaction.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Check whether the stack allocator pointers are consistently assigned.
- *
- * This is called as part of the bool operator, which should be checked as part
- * of an assertion immediately before launching a kernel and when returning a
- * state.
- */
-CELER_FUNCTION bool StackAllocatorPointers::valid() const
-{
-    return storage.empty() == bool(size);
-}
+// Write a host-side Interaction to a stream for debugging.
+std::ostream& operator<<(std::ostream& os, const Interaction& i);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
