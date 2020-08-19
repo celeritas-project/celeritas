@@ -16,9 +16,11 @@ set_cache_var(CMAKE_INSTALL_RPATH STRING "$ENV{prefix_dir}/lib;${_rpath}")
 # Export compile commands for microsoft visual code
 set_cache_var(CMAKE_EXPORT_COMPILE_COMMANDS BOOL ON)
 
-# Use CUDA
+# Use CUDA.
 set_cache_var(BUILD_SHARED_LIBS BOOL ON)
 set_cache_var(CMAKE_CUDA_FLAGS STRING "-arch=sm_35")
+# TODO: when using CMake 3.18, replace the above line with this one:
+# set_cache_var(CMAKE_CUDA_ARCHITECTURES STRING "35")
 set_cache_var(CMAKE_CUDA_FLAGS_DEBUG STRING "-g -G")
 set_cache_var(CMAKE_BUILD_TYPE STRING "Debug")
 
@@ -31,5 +33,7 @@ set_cache_var(MPI_CXX_COMPILE_OPTIONS STRING
 set_cache_var(MPI_CXX_SKIP_MPICXX BOOL TRUE)
 
 # Enable color diagnostics when using Ninja
-set_cache_var(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always")
-set_cache_var(CMAKE_CUDA_FLAGS "-Werror all-warnings ${CMAKE_CUDA_FLAGS}")
+set_cache_var(CMAKE_CXX_FLAGS STRING
+  "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always")
+set_cache_var(CMAKE_CUDA_FLAGS STRING
+  "-Werror all-warnings ${CMAKE_CUDA_FLAGS}")
