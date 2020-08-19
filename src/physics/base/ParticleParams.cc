@@ -72,7 +72,7 @@ ParticleParamsPointers ParticleParams::device_pointers() const
 {
     REQUIRE(!device_defs_.empty());
     ParticleParamsPointers result;
-    result.defs = device_defs_.device_pointers();
+    result.defs = device_defs_.device_pointers().value;
     ENSURE(result);
     return result;
 }

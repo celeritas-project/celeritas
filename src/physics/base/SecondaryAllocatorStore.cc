@@ -29,13 +29,13 @@ SecondaryAllocatorStore::SecondaryAllocatorStore(size_type capacity)
 /*!
  * Get a view to the managed data.
  */
-SecondaryAllocatorPointers SecondaryAllocatorStore::device_pointers()
+auto SecondaryAllocatorStore::device_pointers() -> DevicePointers
 {
     REQUIRE(!allocation_.empty());
     SecondaryAllocatorPointers view;
-    view.storage = allocation_.device_pointers();
-    view.size    = size_allocation_.device_pointers().data();
-    return view;
+    view.storage = allocation_.device_pointers().value;
+    view.size    = size_allocation_.device_pointers().value.data();
+    return {view};
 }
 
 //---------------------------------------------------------------------------//
@@ -48,7 +48,7 @@ SecondaryAllocatorPointers SecondaryAllocatorStore::device_pointers()
 void SecondaryAllocatorStore::clear()
 {
     REQUIRE(!size_allocation_.empty());
-    device_memset_zero(size_allocation_.device_pointers());
+    device_memset_zero(size_allocation_.device_pointers().value);
 }
 
 //---------------------------------------------------------------------------//
@@ -63,7 +63,7 @@ auto SecondaryAllocatorStore::get_size() -> size_type
 {
     REQUIRE(!size_allocation_.empty());
     size_type result;
-    size_allocation_.copy_to_host({&result, 1});
+    size_allocation_.copy_to_host({{&result, 1}});
     return result;
 }
 

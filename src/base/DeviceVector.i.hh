@@ -35,11 +35,12 @@ void DeviceVector<T>::swap(DeviceVector& other) noexcept
  * Copy data to device.
  */
 template<class T>
-void DeviceVector<T>::copy_to_device(constSpan_t data)
+void DeviceVector<T>::copy_to_device(constHostPointers data)
 {
-    REQUIRE(data.size() == this->size());
+    REQUIRE(data.value.size() == this->size());
     allocation_.copy_to_device(
-        {reinterpret_cast<const byte*>(data.data()), data.size() * sizeof(T)});
+        {reinterpret_cast<const byte*>(data.value.data()),
+         data.value.size() * sizeof(T)});
 }
 
 //---------------------------------------------------------------------------//
@@ -47,11 +48,11 @@ void DeviceVector<T>::copy_to_device(constSpan_t data)
  * Copy data to host.
  */
 template<class T>
-void DeviceVector<T>::copy_to_host(Span_t data) const
+void DeviceVector<T>::copy_to_host(HostPointers data) const
 {
-    REQUIRE(data.size() == this->size());
-    allocation_.copy_to_host(
-        {reinterpret_cast<byte*>(data.data()), data.size() * sizeof(T)});
+    REQUIRE(data.value.size() == this->size());
+    allocation_.copy_to_host({{reinterpret_cast<byte*>(data.value.data()),
+                               data.value.size() * sizeof(T)}});
 }
 
 //---------------------------------------------------------------------------//
@@ -59,10 +60,10 @@ void DeviceVector<T>::copy_to_host(Span_t data) const
  * Get an on-device view to the data.
  */
 template<class T>
-auto DeviceVector<T>::device_pointers() -> Span_t
+auto DeviceVector<T>::device_pointers() -> DevicePointers
 {
-    return {reinterpret_cast<T*>(allocation_.device_pointers().data()),
-            this->size()};
+    return {{reinterpret_cast<T*>(allocation_.device_pointers().value.data()),
+             this->size()}};
 }
 
 //---------------------------------------------------------------------------//
@@ -70,10 +71,11 @@ auto DeviceVector<T>::device_pointers() -> Span_t
  * Get an on-device view to the data.
  */
 template<class T>
-auto DeviceVector<T>::device_pointers() const -> constSpan_t
+auto DeviceVector<T>::device_pointers() const -> constDevicePointers
 {
-    return {reinterpret_cast<const T*>(allocation_.device_pointers().data()),
-            this->size()};
+    return {
+        {reinterpret_cast<const T*>(allocation_.device_pointers().value.data()),
+         this->size()}};
 }
 
 //---------------------------------------------------------------------------//

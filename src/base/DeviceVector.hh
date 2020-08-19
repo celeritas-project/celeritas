@@ -36,8 +36,10 @@ class DeviceVector
     //@{
     //! Type aliases
     using value_type  = T;
-    using Span_t      = span<T>;
-    using constSpan_t = span<const T>;
+    using DevicePointers      = DeviceValue<span<value_type>>;
+    using HostPointers        = HostValue<span<value_type>>;
+    using constDevicePointers = DeviceValue<span<const value_type>>;
+    using constHostPointers   = HostValue<span<const value_type>>;
     //@}
 
   public:
@@ -61,16 +63,16 @@ class DeviceVector
     // >>> DEVICE ACCESSORS
 
     // Copy data to device
-    inline void copy_to_device(constSpan_t host_data);
+    inline void copy_to_device(constHostPointers host_data);
 
     // Copy data to host
-    inline void copy_to_host(Span_t host_data) const;
+    inline void copy_to_host(HostPointers host_data) const;
 
     // Get a mutable view to device data
-    inline Span_t device_pointers();
+    inline DevicePointers device_pointers();
 
     // Get a const view to device data
-    inline constSpan_t device_pointers() const;
+    inline constDevicePointers device_pointers() const;
 
   private:
     DeviceAllocation allocation_;

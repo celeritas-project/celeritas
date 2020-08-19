@@ -28,24 +28,24 @@ DeviceAllocation::DeviceAllocation(size_type bytes) : size_(bytes)
 /*!
  * Copy data to device.
  */
-void DeviceAllocation::copy_to_device(constSpanBytes bytes)
+void DeviceAllocation::copy_to_device(constHostPointers bytes)
 {
     REQUIRE(!this->empty());
-    REQUIRE(bytes.size() == this->size());
+    REQUIRE(bytes.value.size() == this->size());
     CELER_CUDA_CALL(cudaMemcpy(
-        data_.get(), bytes.data(), bytes.size(), cudaMemcpyHostToDevice));
+        data_.get(), bytes.value.data(), bytes.size(), cudaMemcpyHostToDevice));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Copy data to host.
  */
-void DeviceAllocation::copy_to_host(SpanBytes bytes) const
+void DeviceAllocation::copy_to_host(HostPointers bytes) const
 {
     REQUIRE(!this->empty());
-    REQUIRE(bytes.size() == this->size());
+    REQUIRE(bytes.value.size() == this->size());
     CELER_CUDA_CALL(cudaMemcpy(
-        bytes.data(), data_.get(), this->size(), cudaMemcpyDeviceToHost));
+        bytes.value.data(), data_.get(), this->size(), cudaMemcpyDeviceToHost));
 }
 
 //---------------------------------------------------------------------------//

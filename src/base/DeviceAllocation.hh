@@ -8,6 +8,8 @@
 #pragma once
 
 #include <memory>
+#include "DeviceValue.hh"
+#include "HostValue.hh"
 #include "Span.hh"
 #include "Types.hh"
 #include "detail/InitializedValue.hh"

@@ -30,7 +30,7 @@ void DeviceAllocation::CudaFreeDeleter::operator()(byte*) const
 /*!
  * Copy data to device (not implemented when cuda is disabled).
  */
-void DeviceAllocation::copy_to_device(constSpanBytes)
+void DeviceAllocation::copy_to_device(constHostPointers)
 {
     REQUIRE(false);
 }
@@ -39,7 +39,7 @@ void DeviceAllocation::copy_to_device(constSpanBytes)
 /*!
  * Copy data to host (not implemented when cuda is disabled).
  */
-void DeviceAllocation::copy_to_host(SpanBytes) const
+void DeviceAllocation::copy_to_host(HostPointers) const
 {
     REQUIRE(false);
 }
