@@ -59,6 +59,7 @@ celeritas_add_test(base/OpaqueId.test.cc)
 celeritas_add_test(base/Range.test.cc)
 celeritas_add_test(base/SoftEqual.test.cc)
 celeritas_add_test(base/Span.test.cc)
+celeritas_add_test(base/Stopwatch.test.cc)
 
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(base/NumericLimits.test.cc
