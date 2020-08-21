@@ -5,11 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file RngEngine.test.cu
 //---------------------------------------------------------------------------//
-#include "random/distributions/UniformRealDistribution.hh"
 #include "random/cuda/RngStateStore.hh"
 #include "random/cuda/RngEngine.cuh"
-#include <random>
-#include <thrust/copy.h>
+
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
@@ -18,51 +16,51 @@
 #include "gtest/Test.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 
+using celeritas::generate_canonical;
 using celeritas::RngEngine;
 using celeritas::RngStatePointers;
 using celeritas::RngStateStore;
-using celeritas::UniformRealDistribution;
 
 //---------------------------------------------------------------------------//
 // CUDA KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void sample(RngStatePointers          view,
-                       double*                   samples,
-                       UniformRealDistribution<> sample_uniform)
+__global__ void sample_native(int                     num_samples,
+                              RngStatePointers        view,
+                              RngEngine::result_type* samples)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() < view.size)
+    if (tid.get() < num_samples)
     {
         RngEngine rng(view, tid);
-        samples[tid.get()] = sample_uniform(rng);
+        samples[tid.get()] = rng();
+    }
+}
+
+template<class RealType>
+__global__ void
+sample_real(int num_samples, RngStatePointers view, RealType* samples)
+{
+    auto tid = celeritas::KernelParamCalculator::thread_id();
+    if (tid.get() < num_samples)
+    {
+        RngEngine rng(view, tid);
+        samples[tid.get()] = generate_canonical<RealType>(rng);
     }
 }
 
 //---------------------------------------------------------------------------//
-// TEST HARNESS
+// INT TEST
 //---------------------------------------------------------------------------//
 
-class RngEngineTestCu : public celeritas::Test
+TEST(RngEngineIntTest, regression)
 {
-  protected:
-    void SetUp() override {}
+    using value_type = RngEngine::result_type;
 
-    thrust::device_vector<double> samples;
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
-TEST_F(RngEngineTestCu, container)
-{
-    int num_samples = 100;
-
-    UniformRealDistribution<> sample_uniform;
+    int num_samples = 1024;
 
     // Allocate device memory for results
-    samples.resize(num_samples);
+    thrust::device_vector<value_type> samples(num_samples);
 
     // Initialize the RNG states on device
     RngStateStore container(num_samples);
@@ -70,59 +68,87 @@ TEST_F(RngEngineTestCu, container)
 
     celeritas::KernelParamCalculator calc_launch_params;
     auto                             params = calc_launch_params(num_samples);
-    sample<<<params.grid_size, params.block_size>>>(
+    sample_native<<<params.grid_size, params.block_size>>>(
+        num_samples,
         container.device_pointers(),
-        thrust::raw_pointer_cast(samples.data()),
-        sample_uniform);
+        thrust::raw_pointer_cast(samples.data()));
+    CELER_CUDA_CHECK_ERROR();
 
     // Copy data back to host
-    thrust::host_vector<double> host_samples = this->samples;
-    EXPECT_EQ(host_samples.size(), num_samples);
-    for (double sample : host_samples)
+    std::vector<value_type> host_samples(num_samples);
+    thrust::copy(samples.begin(), samples.end(), host_samples.begin());
+
+    // Print a subset of the values
+    std::vector<value_type> test_values;
+    for (int i = 0; i < num_samples; i += 127)
     {
-        EXPECT_GE(sample, 0.0);
-        EXPECT_LE(sample, 1.0);
+        test_values.push_back(host_samples[i]);
     }
 
-    // Increase the number of threads
-    num_samples = 1000;
-    samples.resize(num_samples);
-    container.resize(num_samples);
+    // PRINT_EXPECTED(test_values);
+    static const unsigned int expected_test_values[] = {165860337u,
+                                                        3006138920u,
+                                                        2161337536u,
+                                                        390101068u,
+                                                        2347834113u,
+                                                        100129048u,
+                                                        4122784086u,
+                                                        473544901u,
+                                                        2822849608u};
+    EXPECT_VEC_EQ(test_values, expected_test_values);
+}
+
+//---------------------------------------------------------------------------//
+// FLOAT TEST
+//---------------------------------------------------------------------------//
+
+template<typename T>
+class RngEngineFloatTest : public celeritas::Test
+{
+};
+
+void check_expected_float_samples(const thrust::host_vector<float>& v)
+{
+    EXPECT_FLOAT_EQ(0.038617369, v[0]);
+    EXPECT_FLOAT_EQ(0.411269426, v[1]);
+}
+void check_expected_float_samples(const thrust::host_vector<double>& v)
+{
+    EXPECT_DOUBLE_EQ(0.283318433931184, v[0]);
+    EXPECT_DOUBLE_EQ(0.653335242131673, v[1]);
+}
+
+using FloatTypes = ::testing::Types<float, double>;
+TYPED_TEST_SUITE(RngEngineFloatTest, FloatTypes, );
+
+TYPED_TEST(RngEngineFloatTest, generate_canonical)
+{
+    using real_type = TypeParam;
+    int num_samples = 100;
+
+    // Allocate device memory for results
+    thrust::device_vector<real_type> samples(num_samples);
+
+    // Initialize the RNG states on device
+    RngStateStore container(num_samples);
     EXPECT_EQ(container.size(), num_samples);
 
-    params = calc_launch_params(num_samples);
-    sample<<<params.grid_size, params.block_size>>>(
+    celeritas::KernelParamCalculator calc_launch_params;
+    auto                             params = calc_launch_params(num_samples);
+    sample_real<<<params.grid_size, params.block_size>>>(
+        num_samples,
         container.device_pointers(),
-        thrust::raw_pointer_cast(samples.data()),
-        sample_uniform);
+        thrust::raw_pointer_cast(samples.data()));
+    CELER_CUDA_CHECK_ERROR();
 
     // Copy data back to host
-    host_samples = this->samples;
+    thrust::host_vector<real_type> host_samples = samples;
     EXPECT_EQ(host_samples.size(), num_samples);
-    for (double sample : host_samples)
+    for (real_type sample : host_samples)
     {
-        EXPECT_GE(sample, 0.0);
-        EXPECT_LE(sample, 1.0);
+        EXPECT_GE(sample, real_type(0));
+        EXPECT_LE(sample, real_type(1));
     }
 
-    // Decrease the number of threads
-    num_samples = 50;
-    samples.resize(num_samples);
-    container.resize(num_samples);
-    EXPECT_EQ(container.size(), num_samples);
-
-    params = calc_launch_params(num_samples);
-    sample<<<params.grid_size, params.block_size>>>(
-        container.device_pointers(),
-        thrust::raw_pointer_cast(samples.data()),
-        sample_uniform);
-
-    // Copy data back to host
-    host_samples = this->samples;
-    EXPECT_EQ(host_samples.size(), num_samples);
-    for (double sample : host_samples)
-    {
-        EXPECT_GE(sample, 0.0);
-        EXPECT_LE(sample, 1.0);
-    }
+    check_expected_float_samples(host_samples);
 }

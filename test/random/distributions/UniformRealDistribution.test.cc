@@ -47,9 +47,7 @@ TEST_F(UniformRealDistributionTest, bin)
         counters[int(r)] += 1;
     }
 
-    for (int count : counters)
-    {
-        cout << count << ' ';
-    }
-    cout << endl;
+    // PRINT_EXPECTED(counters);
+    const int expected_counters[] = {2071, 1955, 1991, 2013, 1970};
+    EXPECT_VEC_EQ(expected_counters, counters);
 }

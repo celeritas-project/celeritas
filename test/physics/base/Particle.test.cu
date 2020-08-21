@@ -66,6 +66,7 @@ PTVTestOutput ptv_test(PTVTestInput input)
         input.states,
         raw_pointer_cast(init.data()),
         raw_pointer_cast(result.data()));
+    CELER_CUDA_CHECK_ERROR();
 
     PTVTestOutput output;
     output.props.resize(result.size());

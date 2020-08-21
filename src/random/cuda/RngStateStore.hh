@@ -1,4 +1,4 @@
-//---------------------------------*-CUDA-*----------------------------------//
+//---------------------------------*-C++-*-----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,15 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <random>
+#include "base/DeviceVector.hh"
 #include "base/Types.hh"
-#include "Types.hh"
+#include "RngStatePointers.hh"
 
 namespace celeritas
 {
-struct RngStateStorePimpl;
-struct RngStatePointers;
 //---------------------------------------------------------------------------//
 /*!
  * Manage ownership of on-device random number generator.
@@ -23,36 +20,22 @@ struct RngStatePointers;
 class RngStateStore
 {
   public:
+    // Empty constructor
+    RngStateStore() = default;
+
     // Construct with the number of RNG states
-    RngStateStore(ssize_type size, seed_type host_seed = 12345);
+    explicit RngStateStore(size_type size, unsigned long host_seed = 12345u);
 
     //! Number of states
-    ssize_type size() const { return size_; }
+    size_type size() const { return data_.size(); }
 
-    //! Resize the RNG state vector, initializing new states if necessary
-    void resize(ssize_type size);
-
-    // Emit a view to on-device memory
-    RngStatePointers device_pointers() const;
+    // Access pointers to on-device memory
+    RngStatePointers device_pointers();
 
   private:
-    struct StateStoreDeleter
-    {
-        void operator()(RngStateStorePimpl*);
-    };
-
-    // Host-side RNG for seeding device RNG
-    std::mt19937                             host_rng_;
-    std::uniform_int_distribution<seed_type> sample_uniform_int_;
-
-    // Number of states
-    ssize_type size_ = 0;
-
     // Stored RNG states on device
-    std::unique_ptr<RngStateStorePimpl, StateStoreDeleter> data_;
+    DeviceVector<RngState> data_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//
