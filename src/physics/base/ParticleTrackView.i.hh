@@ -28,7 +28,7 @@ ParticleTrackView::ParticleTrackView(const ParticleParamsPointers& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Initialize the particle
+ * Initialize the particle.
  */
 CELER_FUNCTION ParticleTrackView&
 ParticleTrackView::operator=(const Initializer_t& other)
@@ -37,6 +37,21 @@ ParticleTrackView::operator=(const Initializer_t& other)
     REQUIRE(other.energy > 0);
     state_ = other;
     return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Change the particle's kinetic energy.
+ *
+ * This should only be used when the particle is in a valid state. For HEP
+ * applications, the new energy should always be less than the starting energy.
+ */
+CELER_FUNCTION
+void ParticleTrackView::energy(real_type value)
+{
+    REQUIRE(this->def_id());
+    REQUIRE(value >= 0);
+    state_.energy = value;
 }
 
 //---------------------------------------------------------------------------//
