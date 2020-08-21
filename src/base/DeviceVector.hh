@@ -45,7 +45,7 @@ class DeviceVector
     DeviceVector() = default;
 
     // Construct with a number of elements
-    DeviceVector(size_type num_bytes);
+    explicit DeviceVector(size_type num_bytes);
 
     // Swap with another vector
     inline void swap(DeviceVector& other) noexcept;
