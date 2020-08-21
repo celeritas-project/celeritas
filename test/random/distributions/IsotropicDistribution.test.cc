@@ -55,8 +55,6 @@ TEST_F(IsotropicDistributionTest, bin)
     for (int count : octant_tally)
     {
         double octant = static_cast<double>(count) / num_samples;
-        EXPECT_NEAR(octant, 1. / 8, 0.01);
-        cout << octant << ' ';
+        EXPECT_SOFT_NEAR(octant, 1. / 8, 0.1);
     }
-    cout << endl;
 }

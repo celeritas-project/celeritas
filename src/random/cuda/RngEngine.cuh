@@ -7,15 +7,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <curand_kernel.h>
-#include "RngStatePointers.cuh"
+#include "RngStatePointers.hh"
 #include "random/distributions/GenerateCanonical.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample random numbers on device.
+ * Generate random data on device.
+ *
+ * The RngEngine uses a C++11-like interface to generate random data. The
+ * sampling of uniform floating point data is done with specializations to the
+ * GenerateCanonical class.
  */
 class RngEngine
 {
@@ -23,12 +26,8 @@ class RngEngine
     //@{
     //! Type aliases
     using result_type = unsigned int;
+    using Initializer_t = RngSeed;
     //@}
-
-    struct RngSeed
-    {
-        unsigned long long seed;
-    };
 
   public:
     // Construct from state
@@ -36,17 +35,13 @@ class RngEngine
                                 const ThreadId&         id);
 
     // Initialize state from seed
-    __device__ RngEngine& operator=(RngSeed s)
-    {
-        curand_init(s.seed, 0, 0, state_);
-        return *this;
-    }
+    __device__ inline RngEngine& operator=(Initializer_t s);
 
     // Sample a random number
     __device__ inline result_type operator()();
 
   private:
-    RngState* state_ = nullptr;
+    RngState& state_;
 
     template<class Generator, class RealType>
     friend class GenerateCanonical;

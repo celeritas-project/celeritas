@@ -111,16 +111,7 @@ celeritas_add_test(random/distributions/RadialDistribution.test.cc)
 celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 
 if(CELERITAS_USE_CUDA)
-  celeritas_add_test(
-    random/distributions/IsotropicDistribution.test.cu SUFFIX cuda
-  )
-  celeritas_add_test(
-    random/distributions/RadialDistribution.test.cu SUFFIX cuda
-  )
-  celeritas_add_test(
-    random/distributions/UniformRealDistribution.test.cu SUFFIX cuda
-  )
-  celeritas_add_test(random/cuda/RngEngine.test.cu SUFFIX cuda)
+  celeritas_add_test(random/cuda/RngEngine.test.cu)
 endif()
 
 #-----------------------------------------------------------------------------#
