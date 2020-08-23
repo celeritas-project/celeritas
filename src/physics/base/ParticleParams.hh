@@ -36,6 +36,7 @@ class ParticleParams
     //@{
     //!
     using VecAnnotatedDefs = std::vector<std::pair<ParticleMd, ParticleDef>>;
+    using VecMd            = std::vector<ParticleMd>;
     //@}
 
   public:
@@ -46,6 +47,9 @@ class ParticleParams
 
     //! Number of particle definitions
     size_type size() const { return name_to_id_.size(); }
+
+    //! Get a vector of all available PDG codes and names
+    const VecMd& md() const { return md_; }
 
     // Find the ID from a name
     inline ParticleDefId find(const std::string& name) const;
@@ -65,6 +69,9 @@ class ParticleParams
     ParticleParamsPointers device_pointers() const;
 
   private:
+    // Saved copy of metadata
+    VecMd md_;
+
     // Map particle names to registered IDs
     std::map<std::string, ParticleDefId> name_to_id_;
 

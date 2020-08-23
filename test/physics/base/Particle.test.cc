@@ -72,6 +72,10 @@ TEST_F(ParticleTrackViewTest, params_accessors)
     EXPECT_EQ(ParticleDefId(0), defs.find("electron"));
     EXPECT_EQ(ParticleDefId(1), defs.find("gamma"));
     EXPECT_EQ(ParticleDefId(2), defs.find("neutron"));
+
+    ASSERT_EQ(3, defs.md().size());
+    EXPECT_EQ("electron", defs.md()[0].name);
+    EXPECT_EQ(PDGNumber(11), defs.md()[0].pdg_code);
 }
 
 //---------------------------------------------------------------------------//

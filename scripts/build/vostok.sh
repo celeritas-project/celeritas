@@ -7,8 +7,9 @@ cd $SOURCE_DIR
 mkdir build 2>/dev/null || true
 cd build
 
-module load vecgeom veccore xerces-c/3.2.2-c++14
-module load openmpi ninja
+CELERITAS_ENV=$SPACK_ROOT/var/spack/environments/celeritas/.spack-env/view
+export PATH=$CELERITAS_ENV/bin:${PATH}
+export CMAKE_PREFIX_PATH=$CELERITAS_ENV:${CMAKE_PREFIX_PATH}
 
 cmake -C ${BUILDSCRIPT_DIR}/vostok.cmake -G Ninja \
   -DCMAKE_INSTALL_PREFIX:PATH=$SOURCE_DIR/install \
