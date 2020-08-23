@@ -56,6 +56,8 @@ std::shared_ptr<ParticleParams> GeantImporter::load_particle_data()
     // Open the 'particles' branch and reserve size for the converted data
     std::unique_ptr<TTree> tree_particles(
         root_input_->Get<TTree>("particles"));
+    CHECK(tree_particles);
+
     ParticleParams::VecAnnotatedDefs defs(tree_particles->GetEntries());
     CHECK(!defs.empty());
 

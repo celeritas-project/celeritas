@@ -6,13 +6,11 @@
 //! \file geant-exporter.cc
 //! \brief Geant4 particle definition and physics tables exporter app
 //---------------------------------------------------------------------------//
-
-// C++
+#include <cstdlib>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
-// Geant4
 #include <G4RunManager.hh>
 #include <G4UImanager.hh>
 #include <FTFP_BERT.hh>
@@ -21,12 +19,10 @@
 #include <G4ParticleTable.hh>
 #include <G4SystemOfUnits.hh>
 
-// ROOT
 #include <TFile.h>
 #include <TTree.h>
 #include <TBranch.h>
 
-// Project
 #include "DetectorConstruction.hh"
 #include "ActionInitialization.hh"
 #include "io/GeantParticle.hh"
@@ -97,9 +93,9 @@ int main(int argc, char* argv[])
 {
     if (argc != 3)
     {
-        // If number of arguments is incorrect, print help
+        // Incorrect number of arguments: print help and exit
         cout << "Usage: " << argv[0] << " geometry.gdml output.root" << endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     std::string gdml_input_filename  = argv[1];
     std::string root_output_filename = argv[2];
@@ -144,4 +140,5 @@ int main(int argc, char* argv[])
     root_output.Close();
 
     cout << " done!" << endl;
+    return EXIT_SUCCESS;
 }
