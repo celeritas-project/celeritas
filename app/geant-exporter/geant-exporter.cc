@@ -58,8 +58,8 @@ void store_particles(TFile* root_file, G4ParticleTable* particle_table)
     {
         G4ParticleDefinition* g4_particle_def = particle_iterator->value();
 
-        // Skip the Geantino: shares "dummy" pdg encoding (0) with GenericIon
-        if (g4_particle_def->GetParticleName() == "geantino")
+        // Skip "dummy" particles: generic ion and geantino
+        if (g4_particle_def->GetPDGEncoding() == 0)
             continue;
 
         particle.name      = g4_particle_def->GetParticleName();

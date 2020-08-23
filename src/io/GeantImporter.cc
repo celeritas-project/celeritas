@@ -9,6 +9,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <tuple>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -88,6 +89,16 @@ std::shared_ptr<ParticleParams> GeantImporter::load_particle_data()
                                   : 1. / particle.lifetime);
         defs[i].second = std::move(particle_def);
     }
+
+    // Sort by increasing mass, then by PDG code. Placing lighter particles
+    // (more likely to be created by various processes, so more "light
+    // particle" tracks) together at the beginning of the list will make it
+    // easier to human-read the particles while debugging, and having them
+    // at adjacent memory locations could improve cacheing.
+    std::sort(defs.begin(), defs.end(), [](const auto& lhs, const auto& rhs) {
+        return std::make_tuple(lhs.second.mass, lhs.first.pdg_code)
+               < std::make_tuple(rhs.second.mass, rhs.first.pdg_code);
+    });
 
     // Construct ParticleParams from the definitions
     return std::make_shared<ParticleParams>(std::move(defs));
