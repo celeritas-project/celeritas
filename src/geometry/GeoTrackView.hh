@@ -11,6 +11,7 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 #include <VecGeom/navigation/NavigationState.h>
 
+#include "base/Constants.hh"
 #include "base/Macros.hh"
 #include "base/NumericLimits.hh"
 #include "GeoStatePointers.hh"
