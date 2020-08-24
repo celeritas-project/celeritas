@@ -40,7 +40,36 @@ GeoTrackView::GeoTrackView(const GeoParamsPointers& data,
     , num_steps_(stateview.num_steps[id.get()])
     , status_(stateview.status[id.get()])
 {
+  mass_ = 9.109e-31 * units::kg;  // hard-coded e- mass for now
+  //mass_ = constants::electron_mass_c2;
   energy_ = this->restEnergy();
+}
+
+CELER_FORCEINLINE_FUNCTION
+void GeoTrackView::setEnergy(real_type energy)
+{
+  using namespace celeritas::units;
+  using namespace celeritas::constants;
+  double restE = this->restEnergy();
+  energy_ = energy;
+  momentum_ = sqrt(energy_ * energy_ - restE * restE) / constants::cLight;
+}
+
+CELER_FORCEINLINE_FUNCTION
+void GeoTrackView::setKineticEnergy(real_type kinE)
+{
+  double restE = this->restEnergy();
+  energy_ = restE + kinE;
+  momentum_ = sqrt(energy_ * energy_ - restE * restE) / celeritas::constants::cLight;
+}
+
+CELER_FORCEINLINE_FUNCTION
+void GeoTrackView::setMomentum(real_type p)
+{
+  momentum_ = p;
+  double restE = this->restEnergy();
+  double pc = p * celeritas::constants::cLight;
+  energy_   = sqrt(restE * restE + pc * pc);
 }
 
 //---------------------------------------------------------------------------//
@@ -119,7 +148,19 @@ CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
  */
 CELER_FUNCTION Boundary GeoTrackView::boundary() const
 {
-    return vgstate_.IsOutside() ? Boundary::outside : Boundary::inside;
+  return vgstate_.IsOnBoundary() ? Boundary::Yes : Boundary::No;
+}
+
+CELER_FUNCTION Boundary GeoTrackView::next_boundary() const
+{
+  return vgnext_.IsOnBoundary() ? Boundary::Yes : Boundary::No;
+}
+
+CELER_FUNCTION bool GeoTrackView::next_exiting()
+{
+  bool exiting = vgnext_.IsOutside();
+  if ( exiting ) status_ = GeoTrackStatus::ExitingSetup;
+  return exiting;
 }
 
 //---------------------------------------------------------------------------//
