@@ -1,13 +1,17 @@
-# Options
-set(CELERITAS_USE_CUDA OFF CACHE BOOL "")
-set(CELERITAS_USE_Geant4 ON CACHE BOOL "")
-set(CELERITAS_USE_ROOT ON CACHE BOOL "")
-set(CELERITAS_USE_VecGeom ON CACHE BOOL "")
+macro(set_cache_var var type val)
+  set(${var} "${val}" CACHE "${type}" "emmet.sh")
+endmacro()
 
-# Libraries
-#string(REPLACE ":" ";" _rpath "$ENV{DYLD_FALLBACK_LIBRARY_PATH}")
-#set(CMAKE_BUILD_RPATH "${_rpath}" CACHE STRING "")
-#set(CMAKE_INSTALL_RPATH "${_rpath};$ENV{prefix_dir}/lib" CACHE STRING "")
+# Dependency options
+set_cache_var(CELERITAS_USE_CUDA BOOL OFF)
+set_cache_var(CELERITAS_USE_Geant4 BOOL ON)
+set_cache_var(CELERITAS_USE_GIT BOOL OFF)
+set_cache_var(CELERITAS_USE_MPI BOOL ON)
+set_cache_var(CELERITAS_USE_ROOT BOOL ON)
+set_cache_var(CELERITAS_USE_VecGeom BOOL ON)
 
-# Add all the warnings, and enable color diagnostics when using Ninja
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -Werror -fcolor-diagnostics" CACHE STRING "")
+# Build options
+set_cache_var(BUILD_SHARED_LIBS BOOL ON)
+set_cache_var(CMAKE_BUILD_TYPE STRING "Debug")
+set_cache_var(CMAKE_CXX_FLAGS STRING
+  "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always")
