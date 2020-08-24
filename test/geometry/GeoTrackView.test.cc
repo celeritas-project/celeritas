@@ -74,6 +74,18 @@ class GeoTrackViewHostTest : public GeoTrackViewTest
         state_view.vgstate    = this->state.get();
         state_view.vgnext     = this->next_state.get();
 
+	state_view.mass       = &this->energy;
+	state_view.energy     = &this->energy;
+	state_view.momentum   = &this->momentum;
+	state_view.total_length = &this->total_length;
+	state_view.proper_time  = &this->proper_time;
+	state_view.safety     = &this->safety;
+	state_view.step       = &this->step;
+	state_view.pstep      = &this->pstep;
+	state_view.snext      = &this->snext;
+	state_view.num_steps  = &this->num_steps;
+	state_view.status     = (GeoTrackStatus*)&this->status;
+
         host_view = params()->host_view();
         CHECK(host_view.world_volume);
     }
@@ -85,6 +97,18 @@ class GeoTrackViewHostTest : public GeoTrackViewTest
     real_type                 next_step;
     std::unique_ptr<NavState> state;
     std::unique_ptr<NavState> next_state;
+
+    real_type mass;
+    real_type energy;
+    real_type momentum;
+    real_type total_length;
+    real_type proper_time;
+    real_type safety;
+    real_type step;
+    real_type pstep;
+    real_type snext;
+    size_type num_steps;
+    short status;
 
     // Views
     GeoStatePointers  state_view;

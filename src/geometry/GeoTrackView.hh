@@ -36,6 +36,14 @@ class GeoTrackView
     {
         Real3 pos;
         Real3 dir;
+        real_type mass;
+        real_type energy;
+        real_type momentum;
+        real_type time;
+        real_type totlen;
+        real_type safety;
+        size_type num_steps;
+        GeoTrackStatus status;
     };
 
   public:
@@ -78,6 +86,20 @@ class GeoTrackView
     Real3&     pos_;
     Real3&     dir_;
     real_type& next_step_;
+
+    real_type& mass_;
+    real_type& energy_;
+    real_type& momentum_;
+
+    real_type& proper_time_;
+    real_type& total_length_;
+
+    real_type& safety_;
+    real_type& step_;
+    real_type& pstep_;
+    real_type& snext_;
+    size_type& num_steps_;
+    GeoTrackStatus& status_;
     //@}
 
   private:

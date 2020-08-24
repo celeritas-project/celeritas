@@ -28,7 +28,19 @@ GeoTrackView::GeoTrackView(const GeoParamsPointers& data,
     , pos_(stateview.pos[id.get()])
     , dir_(stateview.dir[id.get()])
     , next_step_(stateview.next_step[id.get()])
+    , mass_(stateview.mass[id.get()])
+    , energy_(stateview.energy[id.get()])
+    , momentum_(stateview.momentum[id.get()])
+    , total_length_(stateview.total_length[id.get()])
+    , proper_time_(stateview.proper_time[id.get()])
+    , safety_(stateview.safety[id.get()])
+    , step_(stateview.step[id.get()])
+    , pstep_(stateview.pstep[id.get()])
+    , snext_(stateview.snext[id.get()])
+    , num_steps_(stateview.num_steps[id.get()])
+    , status_(stateview.status[id.get()])
 {
+  energy_ = this->restEnergy();
 }
 
 //---------------------------------------------------------------------------//

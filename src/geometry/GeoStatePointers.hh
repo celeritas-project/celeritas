@@ -10,6 +10,7 @@
 
 #include "base/Array.hh"
 #include "base/Types.hh"
+#include "geometry/Types.hh"
 
 namespace celeritas
 {
@@ -34,6 +35,20 @@ struct GeoStatePointers
     Real3*     pos       = nullptr;
     Real3*     dir       = nullptr;
     real_type* next_step = nullptr;
+
+    real_type* mass      = nullptr;
+    real_type* energy    = nullptr;
+    real_type* momentum  = nullptr;
+    real_type* proper_time  = nullptr;
+    real_type* total_length = nullptr;
+
+    real_type* safety    = nullptr;
+    real_type* step      = nullptr;
+    real_type* pstep     = nullptr;
+    real_type* snext     = nullptr;
+
+    size_type* num_steps = nullptr;
+    GeoTrackStatus* status        = nullptr;
 
     // Check whether the view is assigned
     explicit inline CELER_FUNCTION operator bool() const
