@@ -36,7 +36,7 @@
 
 namespace celeritas {
 
-constexpr double gEpsDeflection = 1.E-2 * units::cm;
+constexpr double gEpsDeflection = 1.E-2 * units::centimeter;
 // constexpr auto stageAfterCrossing = SimulationStage::PostPropagationStage;
 
 static constexpr double kB2C = -0.299792458e-3;
@@ -191,9 +191,9 @@ void FieldPropagationHandler::PropagateInVolume(GeoTrackView &track, double crts
   //GL: denominator should be track Pt w.r.t. Bfield, not P().  Did not fix, as it is only used for debugging printout.
   double curvaturePlus = fabs(kB2C * Charge(track) * (bmag * toKiloGauss)) / (track.momentum() + 1.0e-30); // norm for step
   const double angle = crtstep * curvaturePlus;
-  std::cout<<"__PropagateInVolume(Single): Momentum= "<< track.momentum() <<"/"<< units::GeV <<"="<< (track.momentum()/units::GeV)
-	   <<" (GeV) Curvature= "<< Curvature(track) * units::mm <<" (1/mm)"
-	   <<"; step= "<< crtstep <<"/"<< units::mm <<"="<< crtstep / units::mm <<" (mm), Bmag="<< bmag <<"*"<< toKiloGauss
+  std::cout<<"__PropagateInVolume(Single): Momentum= "<< track.momentum() <<"/"<< units::giga_electron_volt <<"="<< (track.momentum()/units::giga_electron_volt)
+	   <<" (GeV) Curvature= "<< Curvature(track) * units::millimeter <<" (1/mm)"
+	   <<"; step= "<< crtstep <<"/"<< units::millimeter <<"="<< crtstep / units::millimeter <<" (mm), Bmag="<< bmag <<"*"<< toKiloGauss
 	   <<" = "<< bmag * toKiloGauss <<" KG   angle= "<< angle << std::endl;
 // Print("\n");
 #endif
@@ -289,7 +289,7 @@ void FieldPropagationHandler::PropagateInVolume(GeoTrackView &track, double crts
          track.GetNsteps(), method);
   printf("Start> Pos= %8.5f %8.5f %8.5f  Mom= %8.5f %8.5f %8.5f ", Position[0],
          Position[1], Position[2], Direction[0], Direction[1], Direction[2]);
-  printf(" s= %10.6f ang= %7.5f ", crtstep / units::mm, angle);
+  printf(" s= %10.6f ang= %7.5f ", crtstep / units::millimeter, angle);
   printf( // " FPH::PiV(1): "
       "End> Pos= %9.6f %9.6f %9.6f  Mom= %9.6f %9.6f %9.6f\n", PositionNew[0],
       PositionNew[1], PositionNew[2], DirectionNew[0], DirectionNew[1],

@@ -67,6 +67,13 @@ constexpr real_type speed_of_light    = 1.; // Natural unit
 constexpr real_type speed_of_light_sq = 1.;
 //@}
 
+//@{
+//! Magnetic field
+static constexpr double eplus     = 1.; // e+ electric charge
+static constexpr double volt      = electron_volt / eplus;
+static constexpr double tesla     = volt * second / meter / meter;
+static constexpr double gauss     = 1.e-4 * tesla;
+static constexpr double kilogauss = 1.e-1 * tesla;
 //---------------------------------------------------------------------------//
 } // namespace units
 } // namespace celeritas

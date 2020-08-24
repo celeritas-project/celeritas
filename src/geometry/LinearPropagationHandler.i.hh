@@ -8,7 +8,6 @@
 #pragma once
 
 #include "geometry/LinearPropagationHandler.hh"
-//#include "Geant/geometry/NavigationInterface.hpp"
 #include "base/ArrayUtils.hh"
 #include "geometry/Types.hh"
 
@@ -34,10 +33,6 @@ void LinearPropagationHandler::commitStepUpdates(GeoTrackView &track)
   track.proper_time() += track.step() / (track.beta() * constants::cLight);
   track.snext() -= track.step();
 
-  if (track.snext ()> 1.e-8 || track.safety() < 1.e-8 ) {
-    std::cout<<"***** LinearPropHandler::Propagate: forcing safety or snext to zero: snext="<< track.snext()
-	     <<", safety="<< track.safety() << std::endl;
-  }
   if (track.snext() < 1.E-8) track.snext() = 0.0;
   if (track.safety() < 1.E-8) track.safety() = 0.0;
 
@@ -53,7 +48,6 @@ bool LinearPropagationHandler::Propagate(GeoTrackView &track)
   // Scalar geometry length computation. The track is moved along track.dir() direction
   // by a distance track.snext()
   real_type step = track.snext();
-  std::cout<<" LinearPropHandle::Propagate(): step() = "<< &(track.step()) << std::endl;
   track.step() = 0;
   quickLinearStep(track, step);
 
@@ -64,7 +58,7 @@ bool LinearPropagationHandler::Propagate(GeoTrackView &track)
     track.status() = GeoTrackStatus::Boundary;
     // Find out location after boundary
     while ( not_at_boundary(track) && track.has_same_path() ) {
-      quickLinearStep(track, 1.E-4 * units::mm);
+      quickLinearStep(track, 1.E-4 * units::millimeter);
       nsmall++;
       if (nsmall > 10) {
         // Most likely a nasty overlap, some smarter action required. For now, just
@@ -99,7 +93,7 @@ bool LinearPropagationHandler::Propagate(GeoTrackView &track)
 CELER_FORCEINLINE_FUNCTION
 bool LinearPropagationHandler::not_at_boundary(GeoTrackView const& track) const
 {
-  static constexpr real_type boundary_tolerance = 1.0e-6 * units::mm;
+  static constexpr real_type boundary_tolerance = 1.0e-6 * units::millimeter;
   return ( track.safety() > boundary_tolerance && track.snext() > boundary_tolerance ); 
 }
 

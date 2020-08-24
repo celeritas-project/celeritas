@@ -125,15 +125,10 @@ class GeoTrackView
     {
       //real_type restE = mass_ * celeritas::constants::cLight * celeritas::constants::cLight;
       real_type restE = constants::electron_mass_c2;
-      std::cout <<"restEnergy(): &thisGTV="<< this <<": mass/kg="<< mass_/units::kg <<" @"<< &mass_
-		<<", mass/(GeV)="<< mass_/units::GeV
-		<<", mass/(GeV/cˆ2)="<< mass_/(units::GeV/constants::cLight/constants::cLight)
-		<<", restE/GeV = " << restE / units::GeV
-		<< std::endl;
       return restE;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const GeoTrackView& t)
+  friend std::ostream& operator<<(std::ostream& os, const GeoTrackView& t)
     {
       os <<" addr="<< (void*)&t
 	 <<", pos="<< t.pos()

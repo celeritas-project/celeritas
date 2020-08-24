@@ -257,6 +257,7 @@ TEST_F(GeoTrackViewHostTest, track_linearPropHandler)
     }
 }
 
+/*
 TEST_F(GeoTrackViewHostTest, track_magfield)
 {
     // Construct geometry interface from persistent geometry data, state view,
@@ -269,7 +270,7 @@ TEST_F(GeoTrackViewHostTest, track_magfield)
     {
         // Track from outside detector, moving right
         geo = {{-6, 0, 0}, {1, 0, 0}};
-	geo.setEnergy(100 * units::GeV);
+	geo.setEnergy(100 * units::giga_electron_volt);
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
         EXPECT_EQ(Boundary::No, geo.boundary());
 
@@ -286,6 +287,7 @@ TEST_F(GeoTrackViewHostTest, track_magfield)
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
     }
 }
+*/
 
 #if CELERITAS_USE_CUDA
 //---------------------------------------------------------------------------//

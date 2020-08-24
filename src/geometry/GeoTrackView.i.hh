@@ -40,7 +40,7 @@ GeoTrackView::GeoTrackView(const GeoParamsPointers& data,
     , num_steps_(stateview.num_steps[id.get()])
     , status_(stateview.status[id.get()])
 {
-  mass_ = 9.109e-31 * units::kg;  // hard-coded e- mass for now
+  mass_ = 9.109e-31 * units::kilogram;  // hard-coded e- mass for now
   //mass_ = constants::electron_mass_c2;
   energy_ = this->restEnergy();
 }

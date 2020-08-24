@@ -8,7 +8,7 @@
 #pragma once
 
 #include "Types.hh"
-#include "base/SystemOfUnits.hh"
+#include "physics/base/Units.hh"
 
 namespace celeritas
 {
@@ -25,7 +25,7 @@ namespace constants
   constexpr real_type two_pi = 2. * pi;
 
   static constexpr real_type cLight = 2.99792458e+8 * units::meter / units::second;
-  static constexpr real_type electron_mass_c2 = 0.510998910 * units::MeV;
+  static constexpr real_type electron_mass_c2 = 0.510998910 * units::mega_electron_volt;
 
 } // namespace constants
 
