@@ -31,7 +31,6 @@ list(APPEND SOURCES
   physics/base/ParticleParams.cc
   physics/base/ParticleStateStore.cc
   physics/base/SecondaryAllocatorStore.cc
-  random/cuda/RngStateStore.cc
 )
 
 if(CELERITAS_USE_CUDA)
@@ -40,6 +39,7 @@ if(CELERITAS_USE_CUDA)
     base/KernelParamCalculator.cuda.cc
     base/Memory.cu
     random/cuda/RngStateInit.cu
+    random/cuda/RngStateStore.cc
   )
   list(APPEND PRIVATE_DEPS CUDA::cudart)
 else()

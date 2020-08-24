@@ -7,21 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
-#if CELERITAS_USE_CUDA
-#    include <curand_kernel.h>
-#endif
+#include <curand_kernel.h>
+#include "base/Span.hh"
 #include "base/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 //! State data for a CUDA RNG
-#if CELERITAS_USE_CUDA
 using RngState = curandState_t;
-#else
-using RngState = int;
-#endif
 
 //---------------------------------------------------------------------------//
 //! Initializer for an RNG
@@ -42,5 +36,3 @@ struct RngStatePointers
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//
