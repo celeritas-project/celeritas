@@ -23,9 +23,10 @@ class FieldLookup
 {
 public:
   //using ThreeVector_t            = vecgeom::Vector3D<double>;
-  static qconstexpr double _bmag          = 3 * units::tesla;
-  //static const ThreeVector_t _bfield = ThreeVector_t{0.0, 0.0, _bmag};
-  static const Real3 _bfield = {0.0, 0.0, _bmag};
+  using ThreeVector_t = Real3;
+
+  static constexpr double _bmag          = 3 * units::tesla;
+  static constexpr ThreeVector_t _bfield = {0.0, 0.0, _bmag};
 
   // CELER_FUNCTION
   // static void GetFieldValue(const ThreeVector_t &pos, ThreeVector_t &magFld, double &bmag) {
@@ -33,8 +34,8 @@ public:
   //   magFld = _bfield;
   // }
 
-  CELER_FUNCTION
-  static void GetFieldValue(const Real3 &pos, Real3 &magFld, double &bmag) {
+  CELER_FORCEINLINE_FUNCTION
+  static void GetFieldValue(const ThreeVector_t &pos, ThreeVector_t &magFld, double &bmag) {
     bmag   = _bmag;
     magFld = _bfield; //.x(), _bfield.y(), _bfield.z()};
   }
@@ -43,10 +44,12 @@ public:
 class FieldPropagationHandler
 {
 public:
-   using ThreeVector_t            = vecgeom::Vector3D<double>;
+   //using ThreeVector_t     = vecgeom::Vector3D<double>;
+   using ThreeVector_t       = Real3;
 
    FieldPropagationHandler() = default;
    ~FieldPropagationHandler() = default;
+
 
    CELER_FUNCTION
    double Curvature(const GeoTrackView &track) const;
@@ -61,8 +64,8 @@ public:
    void PropagateInVolume(GeoTrackView &track, double crtstep, const ThreeVector_t &BfieldInitial, 
                           double bmag) const;
 
-   CELER_FUNCTION
-   bool IsSameLocation(GeoTrackView &track) const;
+   // CELER_FUNCTION
+   // bool IsSameLocation(GeoTrackView &track) const;
 
    CELER_FORCEINLINE_FUNCTION
    double SafeLength(const GeoTrackView &track, double eps, const ThreeVector_t &magFld, double bmag) const
@@ -77,9 +80,10 @@ public:
       return val;
    }
 
-#ifndef __NVCC__
-   void PrintStats() const;
-#endif
+
+// #ifndef __NVCC__
+//    void PrintStats() const;
+// #endif
 
    CELER_FUNCTION
    void CheckTrack(GeoTrackView &track, const char *msg, double epsilon = 1.0e-5) const;
@@ -87,4 +91,4 @@ public:
 
 } // namespace celeritas
 
-#include "FieldPropagatorHandler.i.hh"
+#include "FieldPropagationHandler.i.hh"

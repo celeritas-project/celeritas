@@ -51,13 +51,13 @@ public:
    * input: current position, current direction, some particle properties
    * output: new position, new direction of particle
    */
-  template <typename Real_v>
-  CELER_FORCEINLINE_FUNCTION void DoStep(Real_v const &posx, Real_v const &posy, Real_v const &posz,
-					 Real_v const &dirx, Real_v const &diry, Real_v const &dirz,
-					 Real_v const &charge, Real_v const &momentum,
-					 Real_v const &step, Real_v &newposx, Real_v &newposy,
-					 Real_v &newposz, Real_v &newdirx, Real_v &newdiry,
-					 Real_v &newdirz) const;
+  // template <typename Real_v>
+  // CELER_FORCEINLINE_FUNCTION void DoStep(Real_v const &posx, Real_v const &posy, Real_v const &posz,
+  // 					 Real_v const &dirx, Real_v const &diry, Real_v const &dirz,
+  // 					 Real_v const &charge, Real_v const &momentum,
+  // 					 Real_v const &step, Real_v &newposx, Real_v &newposy,
+  // 					 Real_v &newposz, Real_v &newdirx, Real_v &newdiry,
+  // 					 Real_v &newdirz) const;
 
   /**
    * basket version of dostep
@@ -131,7 +131,7 @@ ConstFieldHelixStepper::ConstFieldHelixStepper(Real3 const &Bfield) : fB(Bfield)
  * this function propagates the track along the "helix-solution" by a distance 'step'
  * input: current position (x0, y0, z0), current direction ( dirX0, dirY0, dirZ0 ), some particle properties
  * output: new position, new direction of particle
- */
+
 template <typename Real_v>
 CELER_FORCEINLINE_FUNCTION void ConstFieldHelixStepper::DoStep(Real_v const &x0, Real_v const &y0, Real_v const &z0,
                                                        Real_v const &dirX0, Real_v const &dirY0, Real_v const &dirZ0,
@@ -156,6 +156,7 @@ CELER_FORCEINLINE_FUNCTION void ConstFieldHelixStepper::DoStep(Real_v const &x0,
 
   // PrintStep(startPosition, startDirection, charge, momentum, step, endPosition, endDirection);
 }
+  */
 
 template <typename Real_v>
 CELER_FORCEINLINE_FUNCTION void ConstFieldHelixStepper::DoStep(Real3 const &startPosition,
@@ -185,20 +186,16 @@ CELER_FORCEINLINE_FUNCTION void ConstFieldHelixStepper::DoStep(Real3 const &star
 
   Real3 dir1Field(fUnit);
   Real_v UVdotUB = dot_product(startDirection, dir1Field); //  Limit cases 0.0 and 1.0
-  Real_v dt2     = Max(dot_product(startDirection, startDirection) - UVdotUB * UVdotUB, Real_v(0.0));
-  Real_v sinVB   = Sqrt(dt2) + kSmall;
+  Real_v dt2     = std::max(dot_product(startDirection, startDirection) - UVdotUB * UVdotUB, 0.0);
+  Real_v sinVB   = sqrt(dt2) + kSmall;
 
   // Real_v invnorm = 1. / sinVB;
 
   // radius has sign and determines the sense of rotation
   Real_v R = momentum * sinVB / (kB2C_local * charge * fBmag);
 
-  Real3 restVelX = startDirection - UVdotUB * dir1Field;
-  std::cout<<" ConstFieldHelixStepper DoStep(): spot 2: pos="<< startPosition <<", "<< restVelX <<"\n";
-
-  // Real3  dirVelX( 0.0, 0.0, 0.0 );            // OK if it is zero - ie. dir // B
-  // if( restVelX.Mag2() > 0.0 ) dirVelX = restVelX.Unit();
-  Real3 dirVelX    = restVelX;          // Unit must cope with 0 length !!
+  Real3 dirVelX = startDirection;
+  axpy(-UVdotUB, dir1Field, &dirVelX);
   normalize_direction( &dirVelX );
   Real3 dirCrossVB = cross_product(dirVelX, dir1Field); // OK if it is zero
   // Real3 dirCrossVB = restVelX.Cross(dir1Field);  // OK if it is zero
@@ -226,17 +223,25 @@ CELER_FORCEINLINE_FUNCTION void ConstFieldHelixStepper::DoStep(Real3 const &star
 
   Real_v cosphi;                 //  = Cos(phi);
   Real_v sinphi;                 //  = Sin(phi);
-  SinCos(phi, &sinphi, &cosphi); // Opportunity for new 'efficient' method !?
+  sincos(phi, &sinphi, &cosphi); // Opportunity for new 'efficient' method !?
 
-  endPosition = startPosition + R * (cosphi - 1) * dirCrossVB - R * sinphi * dirVelX +
-                step * UVdotUB * dir1Field; //   'Drift' along field direction
+  //endPosition = startPosition + R * (cosphi - 1) * dirCrossVB - R * sinphi * dirVelX +
+  //              step * UVdotUB * dir1Field; //   'Drift' along field direction
+  endPosition = startPosition;
+  axpy(R * (cosphi - 1.0), dirCrossVB, &endPosition);
+  axpy(-R * sinphi, dirVelX, &endPosition);
+  axpy(step * UVdotUB, dir1Field, &endPosition);
   std::cout<<" ConstFieldHelixStepper DoStep(): spot 4: endPos="<< endPosition <<", "<< sinphi <<"\n";
 
   // dx = dx0 * cosphi - sinphi * dy0;
   // dy = dy0 * cosphi + sinphi * dx0;
   // dz = dz0;
   // printf(" phi= %f, sin(phi)= %f , sin(V,B)= %f\n", phi, sinphi, sinVB );
-  endDirection = UVdotUB * dir1Field + cosphi * sinVB * dirVelX + sinphi * sinVB * dirCrossVB;
+  //endDirection = UVdotUB * dir1Field + cosphi * sinVB * dirVelX + sinphi * sinVB * dirCrossVB;
+  endDirection = {0, 0, 0};
+  axpy(UVdotUB, dir1Field, &endDirection);
+  axpy(cosphi * sinVB, dirVelX, &endDirection);
+  axpy(sinphi * sinVB, dirCrossVB, &endDirection);
 }
 
 // /**
