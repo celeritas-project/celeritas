@@ -138,7 +138,7 @@ CELER_FUNCTION void GeoTrackView::move_next_step()
  */
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {
-    REQUIRE(this->boundary() == Boundary::inside);
+    //REQUIRE( this->boundary() == Boundary::No );
     return VolumeId{this->volume().id()};
 }
 
@@ -185,6 +185,30 @@ GeoTrackView::get_nav_state(void* state, CELER_MAYBE_UNUSED int vgmaxdepth, Thre
 #endif
     ENSURE(ptr);
     return *reinterpret_cast<NavState*>(ptr);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check if current step has crossed a boundary, and update navState if necessary
+ *
+ * //When using the "cuda"-namespace navigation state (i.e., compiling with NVCC)
+ * //it's necessary to transform the raw data pointer into an index.
+ */
+CELER_FUNCTION
+bool GeoTrackView::has_same_path()
+{
+  //#### NOT USING YET THE NEW NAVIGATORS ####//
+  // TODO: not using the direction yet here !!
+  using namespace  vecgeom::GlobalLocator;
+  bool samepath = HasSamePath(detail::to_vector(pos_), vgstate_, vgnext_);
+  if (!samepath) {
+    //tmpstate.CopyTo(track.fGeometryState.fNextpath);
+#ifdef VECGEOM_CACHED_TRANS
+    track.vgnext_->UpdateTopMatrix();
+#endif
+  }
+
+  return samepath;
 }
 
 //---------------------------------------------------------------------------//

@@ -19,6 +19,8 @@
 #include "Types.hh"
 #include "detail/VGCompatibility.hh"
 
+#include "base/ArrayIO.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -74,6 +76,8 @@ class GeoTrackView
     inline CELER_FUNCTION void find_next_step();
     // Move to the next boundary
     inline CELER_FUNCTION void move_next_step();
+    // Check for boundary cross in step, update next state if needed
+    CELER_FUNCTION bool has_same_path();
 
     //@{
     //! State accessors
@@ -127,6 +131,25 @@ class GeoTrackView
 		<<", restE/GeV = " << restE / units::GeV
 		<< std::endl;
       return restE;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const GeoTrackView& t)
+    {
+      os <<" addr="<< (void*)&t
+	 <<", pos="<< t.pos()
+	 <<", dir="<< t.dir()
+	 <<", status="<< t.status()
+	 <<", #steps="<< t.num_steps()
+	// <<", step="<< t.
+	// <<", Pstep="<< t.
+	// <<", snext="<< t.
+	 <<", safety="<< t.safety()
+	 <<", time="<< t.proper_time()
+	 <<", totLen="<< t.total_length()
+	 <<"\n";
+      t.vgstate_.Print();
+      t.vgnext_.Print();
+      return os;
     }
 
     //@}
