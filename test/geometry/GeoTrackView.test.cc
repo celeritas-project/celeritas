@@ -16,10 +16,10 @@
 #include "geometry/GeoStateStore.hh"
 #include "geometry/LinearPropagationHandler.hh"
 #include "magfield/FieldPropagationHandler.hh"
-#include "GeoTrackView.test.hh"
+//#include "GeoTrackView.test.hh"
 
 using namespace celeritas;
-using namespace celeritas_test;
+//using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
