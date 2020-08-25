@@ -49,7 +49,7 @@ void GeoTrackView::setEnergy(real_type energy)
 {
   using namespace celeritas::units;
   using namespace celeritas::constants;
-  double restE = this->restEnergy();
+  real_type restE = this->restEnergy();
   energy_ = energy;
   momentum_ = sqrt(energy_ * energy_ - restE * restE) / constants::cLight;
 }
@@ -57,7 +57,7 @@ void GeoTrackView::setEnergy(real_type energy)
 CELER_FORCEINLINE_FUNCTION
 void GeoTrackView::setKineticEnergy(real_type kinE)
 {
-  double restE = this->restEnergy();
+  real_type restE = this->restEnergy();
   energy_ = restE + kinE;
   momentum_ = sqrt(energy_ * energy_ - restE * restE) / celeritas::constants::cLight;
 }
@@ -66,8 +66,8 @@ CELER_FORCEINLINE_FUNCTION
 void GeoTrackView::setMomentum(real_type p)
 {
   momentum_ = p;
-  double restE = this->restEnergy();
-  double pc = p * celeritas::constants::cLight;
+  real_type restE = this->restEnergy();
+  real_type pc = p * celeritas::constants::cLight;
   energy_   = sqrt(restE * restE + pc * pc);
 }
 
@@ -99,6 +99,12 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
     // Set up next state
     vgnext_.Clear();
     next_step_ = celeritas::numeric_limits<real_type>::quiet_NaN();
+
+    num_steps_ = 0;
+    pstep_ = vecgeom::kInfLength;
+    step_ = 0.0;
+    proper_time_ = 0.0;
+    total_length_ = 0.0;
     return *this;
 }
 
