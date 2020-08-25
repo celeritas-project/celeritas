@@ -18,6 +18,7 @@ namespace celeritas
  */
 ParticleParams::ParticleParams(const VecAnnotatedDefs& defs)
 {
+    md_.reserve(defs.size());
     host_defs_.reserve(defs.size());
     for (const auto& md_def : defs)
     {
@@ -36,6 +37,8 @@ ParticleParams::ParticleParams(const VecAnnotatedDefs& defs)
             = pdg_to_id_.insert({md_def.first.pdg_code, id});
         CHECK(inserted);
 
+        // Save the metadata on the host
+        md_.push_back(md_def.first);
         // Save a copy of the definitions on the host
         host_defs_.push_back(md_def.second);
     }

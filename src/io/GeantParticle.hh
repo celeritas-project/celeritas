@@ -3,27 +3,32 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Test.hh
+//! \file GeantParticle.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <gtest/gtest.h>
+#include <string>
+
+#include "base/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Googletest test harness for Celeritas codes.
+ * Struct used to store G4ParticleDefinition data from Geant4.
  *
- * The test harness is constructed and destroyed once per subtest.
+ * GeantParticle objects are stored into a ROOT file by the app/geant-exporter
+ * and retrieved from said ROOT file by the GeantImporter class.
  */
-class Test : public ::testing::Test
+struct GeantParticle
 {
-  public:
-    Test() = default;
-
-    // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
-    std::string test_data_path(const char* subdir, const char* filename) const;
+    std::string name;
+    ssize_type  pdg;
+    real_type   mass; // [MeV]
+    real_type   charge;
+    real_type   spin;
+    real_type   lifetime; // [s]
+    bool        is_stable;
 };
 
 //---------------------------------------------------------------------------//

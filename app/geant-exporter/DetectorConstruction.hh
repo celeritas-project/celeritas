@@ -3,28 +3,30 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Test.hh
+//! \file DetectorConstruction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <gtest/gtest.h>
+#include <memory>
+#include <G4VUserDetectorConstruction.hh>
 
-namespace celeritas
+namespace geant_exporter
 {
 //---------------------------------------------------------------------------//
 /*!
- * Googletest test harness for Celeritas codes.
- *
- * The test harness is constructed and destroyed once per subtest.
+ * Load the detector geometry from a GDML input file.
  */
-class Test : public ::testing::Test
+class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    Test() = default;
+    explicit DetectorConstruction(G4String gdmlInput);
+    ~DetectorConstruction();
 
-    // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
-    std::string test_data_path(const char* subdir, const char* filename) const;
+    G4VPhysicalVolume* Construct() override;
+
+  private:
+    std::unique_ptr<G4VPhysicalVolume> phys_vol_world_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace geant_exporter

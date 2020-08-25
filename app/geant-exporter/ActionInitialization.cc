@@ -3,28 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Test.hh
+//! \file ActionInitialization.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "ActionInitialization.hh"
 
-#include <gtest/gtest.h>
+#include "PrimaryGeneratorAction.hh"
 
-namespace celeritas
+namespace geant_exporter
 {
 //---------------------------------------------------------------------------//
 /*!
- * Googletest test harness for Celeritas codes.
- *
- * The test harness is constructed and destroyed once per subtest.
+ * Construct and invoke all other Geant4 classes.
  */
-class Test : public ::testing::Test
+void ActionInitialization::Build() const
 {
-  public:
-    Test() = default;
-
-    // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
-    std::string test_data_path(const char* subdir, const char* filename) const;
-};
+    this->SetUserAction(new PrimaryGeneratorAction());
+}
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace geant_exporter

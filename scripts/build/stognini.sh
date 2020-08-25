@@ -7,12 +7,10 @@ cd $SOURCE_DIR
 mkdir build 2>/dev/null || true
 cd build
 
-CELERITAS_ENV=$SPACK_ROOT/var/spack/environments/celeritas/.spack-env/view
-export PATH=$CELERITAS_ENV/bin:${PATH}
-export CMAKE_PREFIX_PATH=$CELERITAS_ENV:${CMAKE_PREFIX_PATH}
+module load openmpi
 
-cmake -C ${BUILDSCRIPT_DIR}/yuri.cmake -G Ninja \
+
+cmake -C ${BUILDSCRIPT_DIR}/stognini.cmake -G Ninja \
   -DCMAKE_INSTALL_PREFIX:PATH=$SOURCE_DIR/install \
   ..
 ninja -v
-ctest --output-on-failure

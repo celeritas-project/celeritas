@@ -3,28 +3,33 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Test.hh
+//! \file PrimaryGeneratorAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <gtest/gtest.h>
+#include <memory>
 
-namespace celeritas
+#include <G4VUserPrimaryGeneratorAction.hh>
+#include <G4Event.hh>
+#include <G4ParticleGun.hh>
+
+namespace geant_exporter
 {
 //---------------------------------------------------------------------------//
 /*!
- * Googletest test harness for Celeritas codes.
- *
- * The test harness is constructed and destroyed once per subtest.
+ * Define the particle gun used in the Geant4 run.
  */
-class Test : public ::testing::Test
+class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-    Test() = default;
+    PrimaryGeneratorAction();
+    ~PrimaryGeneratorAction();
 
-    // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
-    std::string test_data_path(const char* subdir, const char* filename) const;
+    void GeneratePrimaries(G4Event* event) override;
+
+  private:
+    std::unique_ptr<G4ParticleGun> particle_gun_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace geant_exporter
