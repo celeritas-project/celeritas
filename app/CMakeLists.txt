@@ -57,3 +57,28 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
 endif()
 
 #-----------------------------------------------------------------------------#
+
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
+  add_executable(demo-interactor
+    demo-interactor/demo-interactor.cc
+    demo-interactor/KNDemoIO.cc
+    demo-interactor/KNDemoRunner.cc
+    demo-interactor/KNDemoKernel.cu
+  )
+  target_link_libraries(demo-interactor celeritas
+    CUDA::cudart
+    nlohmann_json::nlohmann_json
+  )
+
+  if(CELERITAS_BUILD_TESTS)
+    add_test(NAME "app/demo-interactor"
+      COMMAND "${Python_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py"
+    )
+    set_tests_properties("app/demo-interactor" PROPERTIES
+      ENVIRONMENT "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
+    )
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------#

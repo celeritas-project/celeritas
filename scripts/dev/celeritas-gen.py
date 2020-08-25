@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 ###############################################################################
 # File: scripts/dev/celeritas-gen.py
@@ -14,7 +14,7 @@ import sys
 
 CLIKE_TOP = '''\
 //{modeline:-^75s}//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,7 +25,7 @@ CLIKE_TOP = '''\
 HEADER_FILE = '''\
 #pragma once
 
-namespace celeritas
+namespace {namespace}
 {{
 //---------------------------------------------------------------------------//
 /*!
@@ -50,7 +50,7 @@ class {name}
 }};
 
 //---------------------------------------------------------------------------//
-}} // namespace celeritas
+}} // namespace {namespace}
 
 #include "{name}.i.{hext}"
 //---------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ class {name}
 
 INLINE_FILE = '''\
 
-namespace celeritas
+namespace {namespace}
 {{
 //---------------------------------------------------------------------------//
 /*!
@@ -69,18 +69,18 @@ namespace celeritas
 }}
 
 //---------------------------------------------------------------------------//
-}}  // namespace celeritas
+}}  // namespace {namespace}
 '''
 
 CODE_FILE = '''\
 #include "{name}.{hext}"
 
-namespace celeritas
+namespace {namespace}
 {{
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-}} // namespace celeritas
+}} // namespace {namespace}
 '''
 
 TEST_HARNESS_FILE = '''\
@@ -90,7 +90,7 @@ TEST_HARNESS_FILE = '''\
 #include "gtest/Test.hh"
 #include "{name}.test.hh"
 
-using celeritas::{name};
+using {namespace}::{name};
 // using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
@@ -120,7 +120,7 @@ TEST_F({name}Test, all)
 TEST_HEADER_FILE = '''
 namespace celeritas_test
 {{
-using namespace celeritas;
+using namespace {namespace};
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
@@ -187,7 +187,7 @@ __global__ void {lowabbr}_test_kernel(unsigned int size)
 
 CMAKE_TOP = '''\
 #{modeline:-^77s}#
-# Copyright 2020 UT-Battelle, LLC and other Celeritas Developers.
+# Copyright {year} UT-Battelle, LLC and other Celeritas Developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 '''
@@ -231,6 +231,21 @@ endfunction()
 #-----------------------------------------------------------------------------#
 '''
 
+PYTHON_TOP = '''\
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Copyright {year} UT-Battelle, LLC and other Celeritas Developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+'''
+
+PYTHON_FILE = '''\
+"""
+"""
+
+'''
+
+YEAR = "2020"
 
 TEMPLATES = {
     'hh': HEADER_FILE,
@@ -246,6 +261,7 @@ TEMPLATES = {
     't.cuh': INLINE_FILE,
     'cmake': CMAKE_FILE,
     'CMakeLists.txt': CMAKELISTS_FILE,
+    'py': PYTHON_FILE,
 }
 
 LANG = {
@@ -256,12 +272,14 @@ LANG = {
     'cuh': "CUDA",
     'cmake': "CMake",
     'CMakeLists.txt': "CMake",
+    'py': "Python",
 }
 
 TOPS = {
     'C++': CLIKE_TOP,
     'CUDA': CLIKE_TOP,
     'CMake': CMAKE_TOP,
+    'Python': PYTHON_TOP,
 }
 
 HEXT = {
@@ -269,7 +287,7 @@ HEXT = {
     'CUDA': "cuh",
 }
 
-def generate(root, filename):
+def generate(root, filename, namespace):
     if os.path.exists(filename):
         print("Skipping existing file " + filename)
         return
@@ -305,11 +323,13 @@ def generate(root, filename):
         'hext': HEXT.get(lang, ext),
         'modeline': "-*-{}-*-".format(lang),
         'name': name,
+        'namespace': namespace,
         'filename': filename,
         'basename': basename,
         'dirfromtest': dirfromtest,
         'capabbr': capabbr,
         'lowabbr': capabbr.lower(),
+        'year': YEAR,
         }
     with open(filename, 'w') as f:
         f.write((top + template).format(**variables))
@@ -321,13 +341,16 @@ def main():
                         help='file names to generate')
     parser.add_argument('--basedir',
                         help='root source directory for file naming')
+    parser.add_argument('--namespace', '-n',
+                        default='celeritas',
+                        help='root source directory for file naming')
     args = parser.parse_args()
     basedir = args.basedir or os.path.join(
             subprocess.check_output(['git', 'rev-parse', '--show-toplevel'])
                 .decode().strip(),
             'src')
     for fn in args.filename:
-        generate(basedir, fn)
+        generate(basedir, fn, args.namespace)
 
 #-----------------------------------------------------------------------------#
 if __name__ == '__main__':
