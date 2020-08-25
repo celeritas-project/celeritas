@@ -74,6 +74,8 @@ class GeoTrackView
 
     // Find the distance to the next boundary
     inline CELER_FUNCTION void find_next_step();
+    // Find the distance to the next boundary and safety
+    inline CELER_FUNCTION void find_next_step_and_safety();
     // Move to the next boundary
     inline CELER_FUNCTION void move_next_step();
     // Check for boundary cross in step, update next state if needed
@@ -85,7 +87,8 @@ class GeoTrackView
     CELER_FUNCTION const Real3&    dir() const { return dir_; }
     CELER_FUNCTION       Real3&    pos()       { return pos_; }
     CELER_FUNCTION       Real3&    dir()       { return dir_; }
-    CELER_FUNCTION real_type       next_step() const { return next_step_; }
+    CELER_FUNCTION const real_type& next_step() const { return next_step_; }
+    CELER_FUNCTION       real_type& next_step()       { return next_step_; }
     CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
     CELER_FORCEINLINE_FUNCTION Boundary boundary() const;
     CELER_FORCEINLINE_FUNCTION Boundary next_boundary() const;

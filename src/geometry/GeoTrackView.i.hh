@@ -124,6 +124,17 @@ CELER_FUNCTION void GeoTrackView::find_next_step()
                                                    vgnext_);
 }
 
+CELER_FUNCTION void GeoTrackView::find_next_step_and_safety()
+{
+    vecgeom::VNavigator const* navigator
+        = this->volume().GetLogicalVolume()->GetNavigator();
+
+    navigator->FindNextBoundaryAndStepAndSafety(detail::to_vector(pos_),
+                                                detail::to_vector(dir_),
+                                                vgstate_, vgnext_, pstep_,
+                                                next_step_, true, safety_);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Move to the next boundary.
