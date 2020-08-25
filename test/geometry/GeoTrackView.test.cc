@@ -82,7 +82,6 @@ class GeoTrackViewHostTest : public GeoTrackViewTest
 	state_view.safety     = &this->safety;
 	state_view.step       = &this->step;
 	state_view.pstep      = &this->pstep;
-	state_view.snext      = &this->snext;
 	state_view.num_steps  = &this->num_steps;
 	state_view.status     = (GeoTrackStatus*)&this->status;
 
@@ -106,7 +105,6 @@ class GeoTrackViewHostTest : public GeoTrackViewTest
     real_type safety;
     real_type step;
     real_type pstep;
-    real_type snext;
     size_type num_steps;
     short status;
 

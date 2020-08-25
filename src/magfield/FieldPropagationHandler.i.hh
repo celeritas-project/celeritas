@@ -91,7 +91,7 @@ bool FieldPropagationHandler::Propagate(GeoTrackView &track) const
   std::cout<<" FieldPropH: Propagate(): spot 1: pos="<< track <<"\n";
   double step_min = Min(track.pstep(), step_push);
   // The track snext value is already the minimum between geometry and physics
-  double step_geom_phys = Max(step_min, track.snext());
+  double step_geom_phys = Max(step_min, track.next_step());
   // Field step limit. We use the track sagitta to estimate the "bending" error,
   // i.e. what is the propagated length for which the track deviation in
   // magnetic field with respect to straight propagation is less than epsilon.
@@ -362,9 +362,9 @@ void FieldPropagationHandler::PropagateInVolume(GeoTrackView &track, double crts
   }
 
   std::cout<<" FieldPropH: Propagate(): spot 16: pos="<< track <<"\n";
-  track.snext() -= crtstep;
-  if (track.snext() < 1.E-10) {
-    track.snext() = 0;
+  track.next_step() -= crtstep;
+  if (track.next_step() < 1.E-10) {
+    track.next_step() = 0;
     if (track.boundary() == Boundary::Yes) track.status() = GeoTrackStatus::Boundary;
   }
 
@@ -393,7 +393,7 @@ bool FieldPropagationHandler::IsSameLocation(GeoTrackView &track) const
   // Query geometry if the location has changed for a track
   // Returns number of tracks crossing the boundary (0 or 1)
 
-  if (track.safety() > 1.E-10 && track.snext() > 1.E-10) {
+  if (track.safety() > 1.E-10 && track.next_step() > 1.E-10) {
     // Track stays in the same volume
     track.fGeometryState.fBoundary = false;
     return true;

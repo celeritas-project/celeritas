@@ -45,7 +45,6 @@ struct GeoStatePointers
     real_type* safety    = nullptr;
     real_type* step      = nullptr;
     real_type* pstep     = nullptr;
-    real_type* snext     = nullptr;
 
     size_type* num_steps = nullptr;
     GeoTrackStatus* status        = nullptr;

@@ -31,9 +31,9 @@ void LinearPropagationHandler::commitStepUpdates(GeoTrackView &track)
   track.pstep() -= track.step();
   track.total_length() += track.step();
   track.proper_time() += track.step() / (track.beta() * constants::cLight);
-  track.snext() -= track.step();
+  track.next_step() -= track.step();
 
-  if (track.snext() < 1.E-8) track.snext() = 0.0;
+  if (track.next_step() < 1.E-8) track.next_step() = 0.0;
   if (track.safety() < 1.E-8) track.safety() = 0.0;
 
   track.has_same_path();  // ensure this is called at least once to update _vgstate
@@ -46,8 +46,8 @@ CELER_FORCEINLINE_FUNCTION
 bool LinearPropagationHandler::Propagate(GeoTrackView &track)
 {
   // Scalar geometry length computation. The track is moved along track.dir() direction
-  // by a distance track.snext()
-  real_type step = track.snext();
+  // by a distance track.next_step()
+  real_type step = track.next_step();
   track.step() = 0;
   quickLinearStep(track, step);
 
@@ -94,7 +94,7 @@ CELER_FORCEINLINE_FUNCTION
 bool LinearPropagationHandler::not_at_boundary(GeoTrackView const& track) const
 {
   static constexpr real_type boundary_tolerance = 1.0e-6 * units::millimeter;
-  return ( track.safety() > boundary_tolerance && track.snext() > boundary_tolerance ); 
+  return ( track.safety() > boundary_tolerance && track.next_step() > boundary_tolerance );
 }
 
 } // namespace celeritas

@@ -100,11 +100,9 @@ class GeoTrackView
     CELER_FORCEINLINE_FUNCTION real_type const& safety() const { return safety_; }
     CELER_FORCEINLINE_FUNCTION real_type const& step()   const { return step_;   }
     CELER_FORCEINLINE_FUNCTION real_type const& pstep()  const { return pstep_;  }
-    CELER_FORCEINLINE_FUNCTION real_type const& snext()  const { return snext_;  }
     CELER_FORCEINLINE_FUNCTION real_type& safety() { return safety_; }
     CELER_FORCEINLINE_FUNCTION real_type& step()   { return step_;   }
     CELER_FORCEINLINE_FUNCTION real_type& pstep()  { return pstep_;  }
-    CELER_FORCEINLINE_FUNCTION real_type& snext()  { return snext_;  }
 
     // particle params -- temporarily here until available from elsewhere
     CELER_FORCEINLINE_FUNCTION const real_type mass() const {
@@ -177,7 +175,6 @@ class GeoTrackView
     real_type& safety_;
     real_type& step_;
     real_type& pstep_;
-    real_type& snext_;
     size_type& num_steps_;
     GeoTrackStatus& status_;
     //@}

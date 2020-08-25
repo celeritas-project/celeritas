@@ -36,7 +36,6 @@ GeoTrackView::GeoTrackView(const GeoParamsPointers& data,
     , safety_(stateview.safety[id.get()])
     , step_(stateview.step[id.get()])
     , pstep_(stateview.pstep[id.get()])
-    , snext_(stateview.snext[id.get()])
     , num_steps_(stateview.num_steps[id.get()])
     , status_(stateview.status[id.get()])
 {
