@@ -165,22 +165,6 @@ void FieldPropagationHandler::PropagateInVolume(GeoTrackView &track, double crts
   std::cout<<" FieldPropH: Propagate(): spot 1: pos="<< track <<"\n";
   constexpr double toKiloGauss = 1.0 / units::kilogauss; // Converts to kilogauss
 
-// #if ENABLE_MORE_COMPLEX_FIELD
-//   bool useRungeKutta   = fPropagator->fConfig->fUseRungeKutta;
-//   auto fieldConfig     = FieldLookup::GetFieldConfig();
-//   auto fieldPropagator = fFieldPropagator;
-//   std::cout<<" FieldPropH: Propagate(): spot 1a: pos="<< track <<"\n";
-// #endif
-
-  /****
-  #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-    auto fieldPropagator = GetFieldPropagator(td);
-    if (!fieldPropagator && !td->fSpace4FieldProp) {
-      fieldPropagator = Initialize(td);
-    }
-  #endif
-  *****/
-
 #if DEBUG_FIELD
   bool verboseDiff = true; // If false, print just one line.  Else more details.
   bool epsilonRK   = td->fPropagator->fConfig->fEpsilonRK;
@@ -203,88 +187,26 @@ void FieldPropagationHandler::PropagateInVolume(GeoTrackView &track, double crts
   ThreeVector_t PositionNew = {0., 0., 0.};
   ThreeVector_t DirectionNew = {0., 0., 0.};
 
-  // char method= '0';
-
   std::cout<<" FieldPropH: Propagate(): spot 2: pos="<< track <<"\n";
-// #if ENABLE_MORE_COMPLEX_FIELD
-//   ThreeVector_t PositionNewCheck = {0., 0., 0.};
-//   ThreeVector_t DirectionNewCheck = {0., 0., 0.};
-//   if (useRungeKutta || !fieldConfig->IsFieldUniform()) {
-//     assert(fieldPropagator);
-//     std::cout<<" FieldPropH: Propagate(): spot 3: pos="<< track <<"\n";
-//     fieldPropagator->DoStep(Position, Direction, Charge(track), track.momentum(), crtstep,
-//                             PositionNew, DirectionNew);
-//     std::cout<<" FieldPropH: Propagate(): spot 4: pos="<< track <<"\n";
-//     assert((PositionNew - Position).Mag() < crtstep + 1.e-4);
-// #  ifdef DEBUG_FIELD
-// // cross check
-// #    ifndef CHECK_VS_BZ
-//     ConstFieldHelixStepper stepper(BfieldInitial * toKiloGauss);
-//     std::cout<<" FieldPropH: Propagate(): spot 5a: pos="<< track <<"\n";
-//     stepper.DoStep<double>(Position, Direction, Charge(track), track.momentum(), crtstep,
-//                            PositionNewCheck, DirectionNewCheck);
-// #    else
-//     double Bz = BfieldInitial[2] * toKiloGauss;
-//     ConstBzFieldHelixStepper stepper_bz(Bz); //
-//     stepper_bz.DoStep<ThreeVector, double, int>(Position, Direction, Charge(track),
-//                                                 track.momentum(), crtstep, PositionNewCheck,
-//                                                 DirectionNewCheck);
-// #    endif
 
-//     std::cout<<" FieldPropH: Propagate(): spot 6: pos="<< track <<"\n";
-//     double posShift = (PositionNew - PositionNewCheck).Mag();
-//     double dirShift = (DirectionNew - DirectionNewCheck).Mag();
+  // geant::
+  double BfieldArr[3] = {BfieldInitial[0] * toKiloGauss,
+			 BfieldInitial[1] * toKiloGauss,
+			 BfieldInitial[2] * toKiloGauss};
+  std::cout<<" FieldPropH: Propagate(): spot 7: pos="<< track <<"\n";
+  ConstFieldHelixStepper stepper(BfieldArr);
+  std::cout<<" FieldPropH: Propagate(): spot 8: pos="<< track <<"\n";
+  stepper.DoStep<double>(Position, Direction, Charge(track),
+			 track.momentum(), crtstep, PositionNew,
+			 DirectionNew);
 
-//     if (posShift > epsilonRK || dirShift > epsilonRK) {
-//       std::cout << "*** position/direction shift RK vs. HelixConstBz :" << posShift
-//                 << " / " << dirShift << "\n";
-//       if (verboseDiff) {
-//         printf("%s End> Pos= %9.6f %9.6f %9.6f  Mom= %9.6f %9.6f %9.6f\n",
-//                " FPH::PiV(1)-RK: ", PositionNew[0], PositionNew[1], PositionNew[2],
-//                DirectionNew[0], DirectionNew[1], DirectionNew[2]);
-//         printf("%s End> Pos= %9.6f %9.6f %9.6f  Mom= %9.6f %9.6f %9.6f\n",
-//                " FPH::PiV(1)-Bz: ", PositionNewCheck[0], PositionNewCheck[1],
-//                PositionNewCheck[2], DirectionNewCheck[0], DirectionNewCheck[1],
-//                DirectionNewCheck[2]);
-//       }
-//     }
-// #  endif
-// // method= 'R';
-// #  ifdef STATS_METHODS
-//     numRK++;
-//     numTot++;
-// #  endif
-//   } else {
-// #endif
-
-    // geant::
-    double BfieldArr[3] = {BfieldInitial[0] * toKiloGauss,
-                           BfieldInitial[1] * toKiloGauss,
-                           BfieldInitial[2] * toKiloGauss};
-    std::cout<<" FieldPropH: Propagate(): spot 7: pos="<< track <<"\n";
-    ConstFieldHelixStepper stepper(BfieldArr);
-    std::cout<<" FieldPropH: Propagate(): spot 8: pos="<< track <<"\n";
-    stepper.DoStep<double>(Position, Direction, Charge(track),
-                           track.momentum(), crtstep, PositionNew,
-                           DirectionNew);
-// method= 'v';
 #ifdef STATS_METHODS
-    numHelixGen++;
-    numTot++;
+  numHelixGen++;
+  numTot++;
 #endif
-// #if ENABLE_MORE_COMPLEX_FIELD
-//   }
-// #endif
 
   std::cout<<" FieldPropH: Propagate(): spot 9: pos="<< track <<", newPos="<< PositionNew <<", newDir="<< DirectionNew <<"\n";
 #ifdef PRINT_FIELD
-  // Print(" FPH::PiV(1): Start>", " Pos= %8.5f %8.5f %8.5f  Mom= %8.5f %8.5f %8.5f",
-  // Position[0], Position[1], Position[2], Direction[0], Direction[1], Direction[2]
-  // ); Print(" FPH::PiV(1): End>  ", " Pos= %8.5f %8.5f %8.5f  Mom= %8.5f %8.5f %8.5f",
-  // PositionNew[0], PositionNew[1], PositionNew[2], DirectionNew[0],
-  // DirectionNew[1], DirectionNew[2] );
-
-  // printf(" FPH::PiV(1): ");
   printf(" FPH::PiV(1):: ev= %3d trk= %3d %3d %c ", track.Event(), track.Particle(),
          track.GetNsteps(), method);
   printf("Start> Pos= %8.5f %8.5f %8.5f  Mom= %8.5f %8.5f %8.5f ", Position[0],
@@ -346,9 +268,6 @@ void FieldPropagationHandler::PropagateInVolume(GeoTrackView &track, double crts
 #else
   track.setPosition(PositionNew);
   track.setDirection(DirectionNew);
-  // TODO: need to add normlization of track.
-  // Normalize(track)
-  //track.dir().Normalize(); // GL: Not needed, DirectionNew is now normalized.
   std::cout<<" fDir new: ("<< track.dir()[0] <<"; "<< track.dir()[1] <<"; "<< track.dir()[2] <<")\n";
 
   // track.SetStatus(kInFlight);
@@ -477,19 +396,5 @@ void FieldPropagationHandler::CheckTrack(GeoTrackView &track, const char *msg,
   }
 }
 #endif
-
-  /*
-VECCORE_ATT_HOST
-void FieldPropagationHandler::PrintStats() const
-{
-#ifdef STATS_METHODS
-  unsigned long nTot = numTot;
-  unsigned long rk = numRK, hZ = numHelixZ, hGen = numHelixGen, vecRK = numVecRK;
-  std::cerr << "Step statistics (field Propagation):  total= " << nTot << " RK = " << rk << " ( vecRK = " << vecRK
-            << " ) "
-            << "  HelixGen = " << hGen << " Helix-Z = " << hZ << std::endl;
-#endif
-}
-*/
 
 } // namespace celeritas
