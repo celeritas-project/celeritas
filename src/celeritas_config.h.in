@@ -3,14 +3,14 @@
  * See the top-level COPYRIGHT file for details.
  * SPDX-License-Identifier: (Apache-2.0 OR MIT)
  *---------------------------------------------------------------------------*/
-/** \file celeritas_config.h
+/*! \file celeritas_config.h
  * Configuration-specific options for Celeritas.
  *---------------------------------------------------------------------------*/
-
 #ifndef celeritas_config_h
 #define celeritas_config_h
 
 #cmakedefine01 CELERITAS_USE_CUDA
+#cmakedefine01 CELERITAS_USE_GEANT4
 #cmakedefine01 CELERITAS_USE_MPI
 #cmakedefine01 CELERITAS_USE_ROOT
 #cmakedefine01 CELERITAS_USE_VECGEOM

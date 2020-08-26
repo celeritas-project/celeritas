@@ -2,7 +2,7 @@
 set(CELERITAS_USE_CUDA OFF CACHE BOOL "")
 set(CELERITAS_USE_ROOT ON CACHE BOOL "")
 set(CELERITAS_USE_Geant4 ON CACHE BOOL "")
-set(CELERITAS_USE_VECGEOM OFF CACHE BOOL "")
+set(CELERITAS_USE_VecGeom OFF CACHE BOOL "")
 
 # Add all the warnings, and enable color diagnostics when using Ninja
 #set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -Werror -fcolor-diagnostics" CACHE STRING "")

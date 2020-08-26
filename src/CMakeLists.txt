@@ -7,6 +7,8 @@
 #----------------------------------------------------------------------------#
 # CONFIGURE FILE
 #----------------------------------------------------------------------------#
+set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
+set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
 set(_CONFIG_NAME "celeritas_config.h")
 configure_file("${_CONFIG_NAME}.in" "${_CONFIG_NAME}" @ONLY)
