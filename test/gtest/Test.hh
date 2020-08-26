@@ -23,7 +23,7 @@ class Test : public ::testing::Test
     Test() = default;
 
     // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
-    std::string test_data_path(const char* subdir, const char* filename) const;
+    static std::string test_data_path(const char* subdir, const char* filename);
 };
 
 //---------------------------------------------------------------------------//

@@ -160,9 +160,8 @@ namespace celeritas_test
 
 __global__ void {lowabbr}_test_kernel(unsigned int size)
 {{
-    unsigned int local_thread_id
-        = celeritas::KernelParamCalculator::thread_id().get();
-    if (local_thread_id >= size)
+    auto local_thread_id = celeritas::KernelParamCalculator::thread_id();
+    if (local_thread_id.get() >= size)
         return;
 }}
 

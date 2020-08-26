@@ -3,31 +3,28 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Test.cc
+//! \file Types.hh
 //---------------------------------------------------------------------------//
-#include "Test.hh"
+#pragma once
 
-#include <fstream>
-#include "base/Assert.hh"
-#include "detail/TestConfig.hh"
+#include "base/OpaqueId.hh"
 
 namespace celeritas
 {
+class Geometry;
 //---------------------------------------------------------------------------//
-/*!
- * Get the path to a test file at `{source}/test/{subdir}/data/{filename}`.
- *
- * \post The given input file exists. (ifstream is used to check this)
- */
-std::string Test::test_data_path(const char* subdir, const char* filename)
-{
-    std::ostringstream os;
-    os << detail::source_dir << "/test/" << subdir << "/data/" << filename;
+using VolumeId = OpaqueId<Geometry, unsigned int>;
 
-    std::string result = os.str();
-    ENSURE(std::ifstream(result).good());
-    return result;
-}
+/*!
+ * Whether the particle is inside or outside the problem space.
+ *
+ * The particle tracking should terminate when the boundary state is "outside".
+ */
+enum class Boundary : bool
+{
+    outside = false,
+    inside  = true
+};
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -62,6 +62,24 @@ else()
   )
 endif()
 
+if(CELERITAS_USE_VecGeom)
+  list(APPEND SOURCES
+    geometry/GeoParams.cc
+    geometry/GeoStateStore.cc
+  )
+  list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
+  if(CELERITAS_USE_CUDA)
+    list(APPEND SOURCES
+      geometry/detail/VGNavStateStore.cuda.cc
+    )
+    list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)
+  else()
+    list(APPEND SOURCES
+      geometry/detail/VGNavStateStore.nocuda.cc
+    )
+  endif()
+endif()
+
 add_library(celeritas ${SOURCES})
 add_library(Celeritas::Core ALIAS celeritas)
 target_link_libraries(celeritas
