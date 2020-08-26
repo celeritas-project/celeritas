@@ -22,6 +22,7 @@ include(CeleritasUtils)
 #---------------------------------------------------------------------------##
 
 # Tests
+option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps" ON)
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
 
 # TPLs
@@ -54,7 +55,8 @@ endif()
 option(CELERITAS_DEBUG "Enable runtime assertions" ON)
 if(NOT CMAKE_BUILD_TYPE AND (CMAKE_GENERATOR STREQUAL "Ninja"
     OR CMAKE_GENERATOR STREQUAL "Unix Makefiles"))
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type" FORCE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
+    "Build type set to default by Celeritas CMakeLists" FORCE)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
@@ -66,9 +68,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(CELERITAS_USE_CUDA)
   # Use host compiler by default to ensure ABI consistency
-  set(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}" CACHE STRING "")
+  set(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}" CACHE STRING
+    "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists")
   # Default to building device debug code
-  set(CMAKE_CUDA_FLAGS_DEBUG "-g -G" CACHE STRING "")
+  set(CMAKE_CUDA_FLAGS_DEBUG "-g -G" CACHE STRING
+    "Set by Celeritas CMakeLists")
 
   enable_language(CUDA)
   set(CMAKE_CUDA_STANDARD 14)
@@ -104,9 +108,27 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
+if(CELERITAS_BUILD_TESTS AND CELERITAS_BUILD_DEMOS)
+  find_package(Python 3.6 COMPONENTS Interpreter REQUIRED)
+endif()
+
+#---------------------------------------------------------------------------##
+# EXTERNALS
+#---------------------------------------------------------------------------##
+include(CeleritasLoadSubmodule)
+
+if(NOT CELERITAS_GIT_SUBMODULE)
+  set(_required_when_no_git REQUIRED)
+else()
+  set(_required_when_no_git QUIET)
+endif()
+
+if(CELERITAS_BUILD_DEMOS)
+  find_package(nlohmann_json 3.7.0 ${_required_when_no_git})
+endif()
+
 if(CELERITAS_BUILD_TESTS)
-  # Use external gtest if available
-  find_package(GTest)
+  find_package(GTest ${_required_when_no_git})
 endif()
 
 add_subdirectory(external)
