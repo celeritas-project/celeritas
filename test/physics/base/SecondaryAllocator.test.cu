@@ -88,12 +88,12 @@ SATestOutput sa_test(SATestInput input)
     auto params = calc_launch_params(input.num_threads);
     sa_test_kernel<<<params.grid_size, params.block_size>>>(
         input, raw_pointer_cast(out.data()));
-    CELER_CUDA_CHECK_ERROR();
+    CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Access secondaries after the first kernel completed
     sa_post_test_kernel<<<params.grid_size, params.block_size>>>(
         input, raw_pointer_cast(out.data()));
-    CELER_CUDA_CHECK_ERROR();
+    CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Copy data back to host
     thrust::host_vector<SATestOutput> host_result = out;
