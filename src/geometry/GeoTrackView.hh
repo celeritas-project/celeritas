@@ -15,7 +15,6 @@
 #include "GeoStatePointers.hh"
 #include "GeoParamsPointers.hh"
 #include "Types.hh"
-#include "detail/VGCompatibility.hh"
 
 namespace celeritas
 {

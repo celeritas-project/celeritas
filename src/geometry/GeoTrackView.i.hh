@@ -8,6 +8,7 @@
 #include <VecGeom/navigation/GlobalLocator.h>
 #include <VecGeom/navigation/VNavigator.h>
 #include "base/ArrayUtils.hh"
+#include "detail/VGCompatibility.hh"
 
 namespace celeritas
 {
@@ -40,6 +41,10 @@ GeoTrackView::GeoTrackView(const GeoParamsPointers& data,
  */
 CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
 {
+#ifdef __CUDA_ARCH__
+    REQUIRE(false); // VecGeom CUDA global locator is not implemented
+#endif
+
     // Initialize position/direction
     pos_ = init.pos;
     dir_ = init.dir;
@@ -69,6 +74,7 @@ CELER_FUNCTION void GeoTrackView::find_next_step()
 {
     vecgeom::VNavigator const* navigator
         = this->volume().GetLogicalVolume()->GetNavigator();
+
     next_step_
         = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
                                                    detail::to_vector(dir_),
@@ -123,6 +129,7 @@ GeoTrackView::get_nav_state(void*                  state,
                             CELER_MAYBE_UNUSED int vgmaxdepth,
                             ThreadId               thread) -> NavState&
 {
+    REQUIRE(state);
     char* ptr = reinterpret_cast<char*>(state);
 #ifdef __NVCC__
     ptr += vecgeom::cuda::NavigationState::SizeOfInstanceAlignAware(vgmaxdepth)

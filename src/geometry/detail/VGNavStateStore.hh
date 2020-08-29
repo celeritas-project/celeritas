@@ -8,7 +8,7 @@
 #pragma once
 
 #include <memory>
-#include "base/Span.hh"
+#include "base/Assert.hh"
 #include "base/Types.hh"
 
 #ifdef __NVCC__
@@ -33,29 +33,52 @@ namespace detail
  *
  * Construction of the navstatepool has to be in a host compliation unit due to
  * VecGeom macro magic.
+ *
+ * This class is designed with a PIMPL-like idiom to hide VecGeom classes from
+ * downstream Celeritas code. It specifically also ensures that the
+ * construction and destruction of the NavStatePool are compiled using the host
+ * compiler (not NVCC), which is necessary by VecGeom's design.
  */
 class VGNavStateStore
 {
   public:
+    //@{
+    //! Type aliases
+    using NavStatePool = vecgeom::cxx::NavStatePool;
+    //@}
+
+  public:
     // Construct without allocating
     VGNavStateStore() = default;
 
-    // Construct with sizes, allocating on GPU
+    // Construct with sizes but do not yet copy to GPU
     VGNavStateStore(size_type size, int depth);
+
+    //! Whether the state is constructed
+    explicit operator bool() const { return static_cast<bool>(pool_); }
+
+    // Access the host pool (TODO: delete once cuda::GlobalLocator works)
+    NavStatePool& get()
+    {
+        REQUIRE(*this);
+        return *pool_;
+    }
+
+    // Copy host states to device
+    void copy_to_device();
 
     // View to array of allocated on-device data
     void* device_pointers() const;
 
   private:
-    using NavStatePool = vecgeom::cxx::NavStatePool;
 
     struct NavStatePoolDeleter
     {
         void operator()(NavStatePool*) const;
     };
-    using DeviceUniquePtr = std::unique_ptr<NavStatePool, NavStatePoolDeleter>;
+    using UPNavStatePool = std::unique_ptr<NavStatePool, NavStatePoolDeleter>;
 
-    DeviceUniquePtr pool_;
+    UPNavStatePool pool_;
 };
 
 //---------------------------------------------------------------------------//

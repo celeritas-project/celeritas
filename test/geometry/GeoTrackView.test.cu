@@ -32,7 +32,7 @@ __global__ void vgg_test_kernel(const GeoParamsPointers shared,
         return;
 
     GeoTrackView geo(shared, state, tid);
-    geo = start[tid.get()];
+    // geo = start[tid.get()];
     for (int seg = 0; seg < max_segments; ++seg)
     {
         if (geo.boundary() == Boundary::outside)

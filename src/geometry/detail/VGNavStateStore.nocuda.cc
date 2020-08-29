@@ -24,11 +24,20 @@ VGNavStateStore::VGNavStateStore(size_type, int)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Copy host states to device.
+ */
+void VGNavStateStore::copy_to_device()
+{
+    REQUIRE(false);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Device view cannot be called when CUDA is disabled.
  */
 void* VGNavStateStore::device_pointers() const
 {
-    REQUIRE(false);
+    REQUIRE(*this);
     return nullptr;
 }
 

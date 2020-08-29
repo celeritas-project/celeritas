@@ -10,13 +10,14 @@
 #include <memory>
 #include "base/Array.hh"
 #include "base/DeviceVector.hh"
+#include "base/Span.hh"
 #include "base/Types.hh"
-#include "GeoParams.hh"
 #include "GeoStatePointers.hh"
 #include "detail/VGNavStateStore.hh"
 
 namespace celeritas
 {
+class GeoParams;
 //---------------------------------------------------------------------------//
 /*!
  * Manage on-device VecGeom states.
@@ -27,13 +28,17 @@ class GeoStateStore
 {
   public:
     //@{
-    //! Type aliases
-    using SptrConstParams = std::shared_ptr<const GeoParams>;
+    //! Public types.
+    using SpanConstReal3 = span<const Real3>;
     //@}
 
   public:
     // Construct from device geometry and number of track states
-    GeoStateStore(SptrConstParams geom, size_type size);
+    GeoStateStore(const GeoParams& geo, size_type size);
+
+    // Locate positions/directions on host, and copy to device
+    // XXX temporary; delete once GlobalLocator works
+    void initialize(const GeoParams&, SpanConstReal3 pos, SpanConstReal3 dir);
 
     // >>> ACCESSORS
 
@@ -44,8 +49,7 @@ class GeoStateStore
     GeoStatePointers device_pointers();
 
   private:
-    SptrConstParams geom_;
-
+    int                     max_depth_;
     detail::VGNavStateStore vgstate_;
     detail::VGNavStateStore vgnext_;
     DeviceVector<Real3>     pos_;

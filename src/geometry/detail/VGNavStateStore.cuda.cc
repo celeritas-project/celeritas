@@ -21,16 +21,29 @@ namespace detail
 VGNavStateStore::VGNavStateStore(size_type size, int depth)
 {
     pool_.reset(new vecgeom::cxx::NavStatePool(size, depth));
-    pool_->CopyToGpu();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get allocated GPU state pointer
+ * Copy host states to device.
+ */
+void VGNavStateStore::copy_to_device()
+{
+    REQUIRE(*this);
+    pool_->CopyToGpu();
+    CELER_CUDA_CALL(cudaDeviceSynchronize());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get allocated GPU state pointer.
+ *
+ * copy_to_device must be called before this. If not, the GPU pointer may be
+ * null.
  */
 void* VGNavStateStore::device_pointers() const
 {
-    REQUIRE(pool_);
+    REQUIRE(*this);
     void* ptr = pool_->GetGPUPointer();
     ENSURE(ptr);
     return ptr;

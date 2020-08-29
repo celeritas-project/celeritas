@@ -167,11 +167,28 @@ TEST_F(GeoTrackViewHostTest, track_line)
 
 class GeoTrackViewDeviceTest : public GeoTrackViewTest
 {
+  protected:
+    void
+    initialize(GeoStateStore& store, const std::vector<VGGTestInit>& init_vec)
+    {
+        REQUIRE(store.size() == init_vec.size());
+        std::vector<Real3> pos;
+        std::vector<Real3> dir;
+
+        for (const auto& init : init_vec)
+        {
+            pos.push_back(init.pos);
+            dir.push_back(init.dir);
+        }
+
+        using celeritas::make_span;
+        store.initialize(*this->params(), make_span(pos), make_span(dir));
+    }
 };
 
 TEST_F(GeoTrackViewDeviceTest, track_lines)
 {
-    CHECK(params());
+    CHECK(this->params());
 
     // Set up test input
     VGGTestInput input;
@@ -182,9 +199,12 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
         {{50 - 1e-6, 0, 0}, {-1, 0, 0}},
     };
     input.max_segments = 3;
-    input.shared       = params()->device_pointers();
+    input.shared       = this->params()->device_pointers();
 
-    GeoStateStore device_states(params(), input.init.size());
+    GeoStateStore device_states(*this->params(), input.init.size());
+    // XXX initialization must be performed on host *before* copying to device
+    // because vecgeom global locator is not implemented in CUDA.
+    this->initialize(device_states, input.init);
     input.state = device_states.device_pointers();
 
     // Run kernel
