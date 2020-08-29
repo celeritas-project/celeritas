@@ -72,8 +72,12 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
  */
 CELER_FUNCTION void GeoTrackView::find_next_step()
 {
-    vecgeom::VNavigator const* navigator
+    const vecgeom::LogicalVolume* logical_vol
+        = this->volume().GetLogicalVolume();
+    CHECK(logical_vol);
+    const vecgeom::VNavigator* navigator
         = this->volume().GetLogicalVolume()->GetNavigator();
+    CHECK(navigator);
 
     next_step_
         = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
