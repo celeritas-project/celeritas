@@ -45,7 +45,7 @@ void rng_state_init_device(const RngStatePointers&         device_ptrs,
     auto params = calc_launch_params(device_seeds.size());
     init_impl<<<params.grid_size, params.block_size>>>(device_ptrs,
                                                        device_seeds.data());
-    CELER_CUDA_CHECK_ERROR();
+    CELER_CUDA_CALL(cudaDeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//

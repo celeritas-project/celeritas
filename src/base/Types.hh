@@ -21,6 +21,7 @@ using real_type    = double;
 using RealPointer3 = array<real_type*, 3>;
 using Real3        = array<real_type, 3>;
 
+//! Index of the current CUDA thread, with type safety for containers.
 using ThreadId = OpaqueId<Thread, unsigned int>;
 
 //---------------------------------------------------------------------------//

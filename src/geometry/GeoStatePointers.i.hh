@@ -3,30 +3,30 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Test.cc
+//! \file GeoStatePointers.i.hh
 //---------------------------------------------------------------------------//
-#include "Test.hh"
-
-#include <fstream>
 #include "base/Assert.hh"
-#include "detail/TestConfig.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get the path to a test file at `{source}/test/{subdir}/data/{filename}`.
+ * Check whether the state is consistently assigned.
  *
- * \post The given input file exists. (ifstream is used to check this)
+ * This is called as part of the bool operator, which should be checked as part
+ * of an assertion immediately before launching a kernel and when returning a
+ * state.
  */
-std::string Test::test_data_path(const char* subdir, const char* filename)
+CELER_FUNCTION bool GeoStatePointers::valid() const
 {
-    std::ostringstream os;
-    os << detail::source_dir << "/test/" << subdir << "/data/" << filename;
-
-    std::string result = os.str();
-    ENSURE(std::ifstream(result).good());
-    return result;
+    // clang-format off
+    return    bool(size) == bool(vgmaxdepth)
+           && bool(size) == bool(vgstate)
+           && bool(size) == bool(vgnext)
+           && bool(size) == bool(pos)
+           && bool(size) == bool(dir)
+           && bool(size) == bool(next_step);
+    // clang-format on
 }
 
 //---------------------------------------------------------------------------//

@@ -4,8 +4,11 @@ endmacro()
 
 # Celeritas options
 set_cache_var(CELERITAS_USE_CUDA BOOL ON)
-set_cache_var(CELERITAS_USE_ROOT BOOL OFF)
-set_cache_var(CELERITAS_USE_VECGEOM BOOL ON)
+set_cache_var(CELERITAS_USE_GIT BOOL OFF)
+set_cache_var(CELERITAS_USE_Geant4 BOOL OFF)
+set_cache_var(CELERITAS_USE_MPI BOOL ON)
+set_cache_var(CELERITAS_USE_ROOT BOOL ON)
+set_cache_var(CELERITAS_USE_VecGeom BOOL ON)
 
 # set_cache_var rpath based on environment (loaded Spack modules); VecGeom does not
 # correctly set_cache_var rpath for downstream use

@@ -29,7 +29,7 @@ option(CELERITAS_USE_CUDA "Enable GPU transport" ON)
 option(CELERITAS_USE_Geant4 "Enable Geant4 adapter tools" OFF)
 option(CELERITAS_USE_MPI "Enable distributed memory parallelism" ON)
 option(CELERITAS_USE_ROOT "Enable ROOT I/O" OFF)
-option(CELERITAS_USE_VECGEOM "Enable VecGeom geometry" ON)
+option(CELERITAS_USE_VecGeom "Enable VecGeom geometry" ON)
 
 if(CELERITAS_USE_MPI AND CELERITAS_USE_CUDA AND CMAKE_VERSION VERSION_LESS 3.13)
   message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
@@ -89,12 +89,18 @@ if(CELERITAS_USE_ROOT)
   find_package(ROOT REQUIRED)
 endif()
 
-if(CELERITAS_USE_VECGEOM)
-  find_package(VecGeom REQUIRED)
+if(CELERITAS_USE_VecGeom)
+  find_package(VecGeom REQUIRED) # Minimum 1.1.7
 
-  if(CELERITAS_USE_CUDA AND VECGEOM_CUDA_ARCH STREQUAL "none")
-    message(FATAL_ERROR "The VecGeom installation at ${VECGEOM_INSTALL_DIR} "
-      "was configured without CUDA, so CELERITAS_USE_CUDA cannot be used")
+  if((CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
+      OR (NOT CELERITAS_USE_CUDA AND VecGeom_CUDA_FOUND))
+    message(SEND_ERROR "CUDA mismatch between the VecGeom installation "
+      "at ${VECGEOM_INSTALL_DIR} (VecGeom_CUDA_FOUND=${VecGeom_CUDA_FOUND}) "
+      "and Celeritas (CELERITAS_USE_CUDA=${CELERITAS_USE_CUDA})"
+    )
+  endif()
+  if(NOT VecGeom_GDML_FOUND)
+    message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
   endif()
 endif()
 

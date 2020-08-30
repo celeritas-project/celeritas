@@ -7,6 +7,8 @@
 #----------------------------------------------------------------------------#
 # CONFIGURE FILE
 #----------------------------------------------------------------------------#
+set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
+set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
 set(_CONFIG_NAME "celeritas_config.h")
 configure_file("${_CONFIG_NAME}.in" "${_CONFIG_NAME}" @ONLY)
@@ -58,6 +60,24 @@ else()
     comm/Communicator.nompi.cc
     comm/ScopedMpiInit.nompi.cc
   )
+endif()
+
+if(CELERITAS_USE_VecGeom)
+  list(APPEND SOURCES
+    geometry/GeoParams.cc
+    geometry/GeoStateStore.cc
+  )
+  list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
+  if(CELERITAS_USE_CUDA)
+    list(APPEND SOURCES
+      geometry/detail/VGNavStateStore.cuda.cc
+    )
+    list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)
+  else()
+    list(APPEND SOURCES
+      geometry/detail/VGNavStateStore.nocuda.cc
+    )
+  endif()
 endif()
 
 add_library(celeritas ${SOURCES})
