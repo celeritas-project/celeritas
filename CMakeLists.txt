@@ -21,7 +21,7 @@ include(CeleritasUtils)
 # OPTIONS
 #---------------------------------------------------------------------------##
 
-# Tests
+# Components
 option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps" ON)
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
 
