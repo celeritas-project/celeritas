@@ -44,6 +44,9 @@ class ParticleTrackView
     inline CELER_FUNCTION ParticleTrackView&
                           operator=(const Initializer_t& other);
 
+    // Change the particle's energy
+    inline CELER_FUNCTION void energy(real_type);
+
     // >>> DYNAMIC PROPERTIES (pure accessors, free)
 
     // Unique particle type identifier

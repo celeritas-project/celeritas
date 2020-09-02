@@ -115,7 +115,7 @@ function(celeritas_load_submodule SUBDIR)
       " ${SUBDIR} failed (cwd ${CMAKE_CURRENT_SOURCE_DIR}): "
       "error code ${GIT_SUBMOD_RESULT}${GIT_SUBMOD_ERR}); "
       "${_ERROR_MSG}${GIT_SUBMOD_MSG}")
-  else()
+  elseif(GIT_SUBMOD_MSG)
     message(STATUS
       "Successfully updated git submodule \"${SUBDIR}\"${GIT_SUBMOD_MSG}")
   endif()

@@ -43,7 +43,7 @@ class SecondaryAllocatorStore
     // Get the actual size via a device->host copy
     size_type get_size();
 
-    // Clear allocated data
+    // Clear allocated data (kernel launch!)
     void clear();
 
     // >>> DEVICE ACCESSORS

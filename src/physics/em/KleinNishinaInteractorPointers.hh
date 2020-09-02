@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Macros.hh"
 #include "base/Types.hh"
 
 namespace celeritas
@@ -23,6 +24,12 @@ struct KleinNishinaInteractorPointers
     ParticleDefId electron_id;
     //! ID of a gamma
     ParticleDefId gamma_id;
+
+    //! Check whether the view is assigned
+    explicit inline CELER_FUNCTION operator bool() const
+    {
+        return inv_electron_mass_csq > 0 && electron_id && gamma_id;
+    }
 };
 
 //---------------------------------------------------------------------------//
