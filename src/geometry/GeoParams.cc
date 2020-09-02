@@ -16,6 +16,7 @@
 
 #include <celeritas_config.h>
 #if CELERITAS_USE_CUDA
+#    include <cuda_runtime_api.h>
 #    include <VecGeom/management/CudaManager.h>
 #endif
 
@@ -123,6 +124,20 @@ GeoParamsPointers GeoParams::device_pointers() const
     result.world_volume
         = static_cast<const vecgeom::VPlacedVolume*>(device_world_volume_);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Increase CUDA stack size to enable complex geometries.
+ *
+ * For example, CMS requires a stack limit of at least 8192 * 4.
+ */
+void GeoParams::set_cuda_stack_size(int limit)
+{
+    REQUIRE(limit > 0);
+#if CELERITAS_USE_CUDA
+    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
+#endif
 }
 
 //---------------------------------------------------------------------------//

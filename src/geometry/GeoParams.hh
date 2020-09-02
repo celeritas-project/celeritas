@@ -51,6 +51,11 @@ class GeoParams
     // Get a view to the managed on-device data
     GeoParamsPointers device_pointers() const;
 
+    // >>> DEVICE UTILITIES
+
+    // Increase CUDA stack size to enable complex geometries
+    static void set_cuda_stack_size(int limit);
+
   private:
     int       max_depth_   = 0;
     size_type num_volumes_ = 0;
