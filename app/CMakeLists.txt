@@ -88,8 +88,8 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
-  # Code dependent on separable compilation requires an independent library;
-  # Many varieties of errors if you try to build directly into the exe.
+  # Since the demo kernel links against VecGeom, which requires CUDA separable
+  # compilation, it cannot be linked directly into an executable.
   add_library(demo_rasterizer_cuda
     demo-rasterizer/RDemoRunner.cc
     demo-rasterizer/RDemoKernel.cu
@@ -118,6 +118,16 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     demo_rasterizer_cuda
     nlohmann_json::nlohmann_json
   )
+
+  if(CELERITAS_BUILD_TESTS)
+    add_test(NAME "app/demo-rasterizer"
+      COMMAND "${Python_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/demo-rasterizer/simple-driver.py"
+    )
+    set_tests_properties("app/demo-rasterizer" PROPERTIES
+      ENVIRONMENT "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-rasterizer>"
+    )
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
