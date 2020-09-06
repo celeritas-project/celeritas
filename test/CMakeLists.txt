@@ -15,10 +15,19 @@ add_library(CeleritasTest
   gtest/detail/ParallelHandler.cc
   gtest/detail/TestMain.cc
   gtest/detail/Utils.cc
+  geometry/GeoParamsTest.cc
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 add_library(Celeritas::Test ALIAS CeleritasTest)
 target_link_libraries(CeleritasTest PUBLIC celeritas GTest::GTest)
+
+if(CELERITAS_USE_CUDA)
+    target_link_libraries(CeleritasTest
+       PRIVATE
+          VecGeom::vecgeomcuda
+          VecGeom::vecgeomcuda_static
+    )
+endif(CELERITAS_USE_CUDA)
 
 target_include_directories(CeleritasTest
   PUBLIC
@@ -84,6 +93,7 @@ if(CELERITAS_USE_VecGeom)
   celeritas_setup_tests(SERIAL PREFIX geometry
     LINK_LIBRARIES VecGeom::vecgeom)
 
+  celeritas_add_test(geometry/GeoParams.test.cc)
   celeritas_add_test(geometry/GeoTrackView.test.cc)
 
   # CUDA tests: link cuda sources as needed
@@ -92,7 +102,7 @@ if(CELERITAS_USE_VecGeom)
     # discussion of the failures from trying to directly build an executable
     # from code with CUDA separable compilation. This extra test library is
     # necessary.
-    add_library(celeritas_vgtest geometry/GeoTrackView.test.cu)
+    add_library(celeritas_vgtest geometry/GeoTrackView.test.cu geometry/GeoParams.test.cu)
     target_link_libraries(celeritas_vgtest
       PRIVATE
       celeritas
@@ -104,6 +114,7 @@ if(CELERITAS_USE_VecGeom)
       CUDA_SEPARABLE_COMPILATION ON
       POSITION_INDEPENDENT_CODE ON
     )
+    target_link_libraries(geometry_GeoParams celeritas_vgtest)
     target_link_libraries(geometry_GeoTrackView celeritas_vgtest)
   endif()
 endif()
