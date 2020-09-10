@@ -7,9 +7,6 @@ cd $SOURCE_DIR
 mkdir build 2>/dev/null || true
 cd build
 
-module load openmpi
-
-
 cmake -C ${BUILDSCRIPT_DIR}/stognini.cmake -G Ninja \
   -DCMAKE_INSTALL_PREFIX:PATH=$SOURCE_DIR/install \
   ..
