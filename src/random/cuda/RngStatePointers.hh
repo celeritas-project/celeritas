@@ -7,6 +7,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+/*!
+ * \def QUALIFIERS
+ *
+ * Define NVCC QUALIFIERS so as to make curand functions work on both host
+ * and device. Note that QUALIFIERS defined in curand_kernel.h is only for
+ * device functions and re-definition of the macro with the host extension
+ * is a limited scope for the random module of celeritas.
+ */
+#define QUALIFIERS static __forceinline__ __host__ __device__
+
 #include <curand_kernel.h>
 #include "base/Span.hh"
 #include "base/Types.hh"
