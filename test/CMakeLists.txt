@@ -9,25 +9,35 @@
 set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
 configure_file(gtest/detail/TestConfig.cc.in TestConfig.cc @ONLY)
 
-add_library(CeleritasTest
+set(CELER_SOURCES)
+list(APPEND CELER_SOURCES
   gtest/Test.cc
   gtest/detail/NonMasterResultPrinter.cc
   gtest/detail/ParallelHandler.cc
   gtest/detail/TestMain.cc
   gtest/detail/Utils.cc
-  geometry/GeoParamsTest.cc
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
+
+if(CELERITAS_USE_VecGeom)
+  list(APPEND CELER_SOURCES
+    geometry/GeoParamsTest.cc
+  )
+endif()
+
+add_library(CeleritasTest ${CELER_SOURCES})
 add_library(Celeritas::Test ALIAS CeleritasTest)
 target_link_libraries(CeleritasTest PUBLIC celeritas GTest::GTest)
 
-if(CELERITAS_USE_CUDA)
+if(CELERITAS_USE_VecGeom)
+  if(CELERITAS_USE_CUDA)
     target_link_libraries(CeleritasTest
        PRIVATE
           VecGeom::vecgeomcuda
           VecGeom::vecgeomcuda_static
     )
-endif(CELERITAS_USE_CUDA)
+  endif(CELERITAS_USE_CUDA)
+endif(CELERITAS_USE_VecGeom)
 
 target_include_directories(CeleritasTest
   PUBLIC
