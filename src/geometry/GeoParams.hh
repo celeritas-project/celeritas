@@ -44,7 +44,7 @@ class GeoParams
     int max_depth() const { return max_depth_; }
 
     // View in-host geometry data for CPU debugging
-    GeoParamsPointers host_view() const;
+    GeoParamsPointers host_pointers() const;
 
     // >>> DEVICE ACCESSORS
 

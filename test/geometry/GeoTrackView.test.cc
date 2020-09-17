@@ -31,7 +31,7 @@ class GeoTrackViewHostTest : public GeoParamsTest
 
     void SetUp() override
     {
-        int max_depth = params()->max_depth();
+        int max_depth = this->params()->max_depth();
         state.reset(NavState::MakeInstance(max_depth));
         next_state.reset(NavState::MakeInstance(max_depth));
 
@@ -43,8 +43,8 @@ class GeoTrackViewHostTest : public GeoParamsTest
         state_view.vgstate    = this->state.get();
         state_view.vgnext     = this->next_state.get();
 
-        host_view = params()->host_view();
-        CHECK(host_view.world_volume);
+        params_view = this->params()->host_pointers();
+        CHECK(params_view.world_volume);
     }
 
   protected:
@@ -57,12 +57,12 @@ class GeoTrackViewHostTest : public GeoParamsTest
 
     // Views
     GeoStatePointers  state_view;
-    GeoParamsPointers host_view;
+    GeoParamsPointers params_view;
 };
 
 TEST_F(GeoTrackViewHostTest, accessors)
 {
-    const auto& geom = *params();
+    const auto& geom = *this->params();
     EXPECT_EQ(2, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
     EXPECT_EQ("Detector", geom.id_to_label(VolumeId{0}));
@@ -73,7 +73,7 @@ TEST_F(GeoTrackViewHostTest, track_line)
 {
     // Construct geometry interface from persistent geometry data, state view,
     // and thread ID (which for CPU is just zero).
-    GeoTrackView geo(host_view, state_view, ThreadId(0));
+    GeoTrackView geo(params_view, state_view, ThreadId(0));
 
     {
         // Track from outside detector, moving right
