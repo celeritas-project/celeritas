@@ -41,13 +41,6 @@ GPTestOutput gp_test(GPTestInput input)
     REQUIRE(input.shared);
     REQUIRE(input.max_segments > 0);
 
-    // Temporary device data for kernel
-    // thrust::device_vector<VGGTestInit> init(input.init.begin(),
-    //                                         input.init.end());
-    // thrust::device_vector<VolumeId> ids(input.init.size() *
-    // input.max_segments);
-    //                                         input.init.end());
-
     // Run kernel
     celeritas::KernelParamCalculator calc_launch_params;
     // auto params = calc_launch_params(init.size());
@@ -58,13 +51,6 @@ GPTestOutput gp_test(GPTestInput input)
 
     // Copy result back to CPU
     GPTestOutput result;
-    // for (auto id : thrust::host_vector<VolumeId>(ids))
-    // {
-    //     result.ids.push_back(id ? static_cast<int>(id.get()) : -1);
-    // }
-    // result.distances.resize(distances.size());
-    // thrust::copy(distances.begin(), distances.end(),
-    // result.distances.begin());
 
     return result;
 }
