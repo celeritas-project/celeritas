@@ -143,7 +143,8 @@ GeoParamsPointers GeoParams::device_pointers() const
 /*!
  * Increase CUDA stack size to enable complex geometries.
  *
- * For example, CMS requires a stack limit of at least 8192 * 4.
+ * For the cms2018.gdml detector geometry, the default stack size is too small,
+ * and a limit of 32768 is recommended.
  */
 void GeoParams::set_cuda_stack_size(int limit)
 {
