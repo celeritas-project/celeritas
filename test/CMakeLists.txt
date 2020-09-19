@@ -70,6 +70,8 @@ if(CELERITAS_USE_CUDA)
     SOURCES base/NumericLimits.test.cu)
 endif()
 
+add_cudaoptional_test(base/StackAllocator)
+
 #-----------------------------------------------------------------------------#
 # Comm
 
@@ -121,7 +123,6 @@ endif()
 # Physics
 
 add_library(CeleritasPhysicsTest
-  physics/HostDebugSecondaryStorage.cc
   physics/InteractionIO.cc
   physics/InteractorHostTestBase.cc
   physics/SecondaryIO.cc
@@ -132,7 +133,6 @@ set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_setup_tests(SERIAL PREFIX physics/base)
 
 add_cudaoptional_test(physics/base/Particle)
-add_cudaoptional_test(physics/base/SecondaryAllocator)
 
 #-----------------------------------------------------------------------------#
 # Physics (EM)

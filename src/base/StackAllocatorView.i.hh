@@ -3,10 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SecondaryAllocatorView.i.hh
+//! \file StackAllocatorView.i.hh
 //---------------------------------------------------------------------------//
-
-#include "base/Atomics.hh"
+#include <new>
+#include <type_traits>
+#include "Atomics.hh"
 
 namespace celeritas
 {
@@ -14,8 +15,8 @@ namespace celeritas
 /*!
  * Construct with defaults.
  */
-CELER_FUNCTION SecondaryAllocatorView::SecondaryAllocatorView(
-    const SecondaryAllocatorPointers& shared)
+template<class T>
+CELER_FUNCTION StackAllocatorView<T>::StackAllocatorView(const Pointers& shared)
     : shared_(shared)
 {
     REQUIRE(shared);
@@ -23,14 +24,18 @@ CELER_FUNCTION SecondaryAllocatorView::SecondaryAllocatorView(
 
 //---------------------------------------------------------------------------//
 /*!
- * Allocate space for this many secondaries.
+ * Allocate space for a given number of itemss.
  *
  * Returns NULL if allocation failed due to out-of-memory. Ensures that the
  * shared size reflects the amount of data allocated
  */
-CELER_FUNCTION auto SecondaryAllocatorView::operator()(size_type count)
+template<class T>
+CELER_FUNCTION auto StackAllocatorView<T>::operator()(size_type count)
     -> result_type
 {
+    static_assert(std::is_default_constructible<T>::value,
+                  "Value must be default constructible");
+
     // Atomic add 'count' to the shared size
     size_type start = atomic_add(shared_.size, count);
     if (CELER_UNLIKELY(start + count > shared_.storage.size()))
@@ -60,27 +65,33 @@ CELER_FUNCTION auto SecondaryAllocatorView::operator()(size_type count)
     }
 
     // Initialize the data at the newly "allocated" address
-    return new (shared_.storage.data() + start) Secondary[count];
+    value_type* result = new (shared_.storage.data() + start) value_type;
+    for (size_type i = 1; i < count; ++i)
+    {
+        // Initialize remaining values
+        new (shared_.storage.data() + start + i) value_type;
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * View all allocated secondaries.
- *
- * This cannot be called while any running kernel could be modifiying the size.
+ * Get the maximum number of values that can be allocated.
  */
-CELER_FUNCTION auto SecondaryAllocatorView::capacity() const -> size_type
+template<class T>
+CELER_FUNCTION auto StackAllocatorView<T>::capacity() const -> size_type
 {
     return shared_.storage.size();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * View all allocated secondaries.
+ * View all allocated data.
  *
  * This cannot be called while any running kernel could be modifiying the size.
  */
-CELER_FUNCTION auto SecondaryAllocatorView::secondaries() -> SpanSecondary
+template<class T>
+CELER_FUNCTION auto StackAllocatorView<T>::get() -> span_type
 {
     REQUIRE(*shared_.size <= this->capacity());
     return {shared_.storage.data(), *shared_.size};
@@ -88,12 +99,12 @@ CELER_FUNCTION auto SecondaryAllocatorView::secondaries() -> SpanSecondary
 
 //---------------------------------------------------------------------------//
 /*!
- * View all allocated secondaries (immutable).
+ * View all allocated data (const).
  *
  * This cannot be called while any running kernel could be modifiying the size.
  */
-CELER_FUNCTION auto SecondaryAllocatorView::secondaries() const
-    -> constSpanSecondary
+template<class T>
+CELER_FUNCTION auto StackAllocatorView<T>::get() const -> const_span_type
 {
     REQUIRE(*shared_.size <= this->capacity());
     return {shared_.storage.data(), *shared_.size};

@@ -3,51 +3,48 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Atomics.hh
+//! \file StackAllocatorPointers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Algorithms.hh"
-#include "Assert.hh"
 #include "Macros.hh"
+#include "Span.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Add to a value, returning the original value.
+ * Pointers to stack allocator data.
  */
 template<class T>
-CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
+struct StackAllocatorPointers
 {
-#ifdef __CUDA_ARCH__
-    return atomicAdd(address, value);
-#else
-    REQUIRE(address);
-    T initial = *address;
-    *address += value;
-    return initial;
-#endif
-}
+    //@{
+    //! Type aliases
+    using size_type  = ull_int;
+    using value_type = T;
+    //@}
+
+    span<T>    storage;        //!< Allocated capacity
+    size_type* size = nullptr; //!< Stored size
+
+    // Whether the pointers are assigned
+    explicit inline CELER_FUNCTION operator bool() const;
+};
 
 //---------------------------------------------------------------------------//
+// INLINE FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
- * Set the value to the minimum of the actual and given, returning old.
+ * Check whether the pointers are assigned.
  */
 template<class T>
-CELER_FORCEINLINE_FUNCTION T atomic_min(T* address, T value)
+CELER_FUNCTION StackAllocatorPointers<T>::operator bool() const
 {
-#ifdef __CUDA_ARCH__
-    return atomicMin(address, value);
-#else
-    REQUIRE(address);
-    T initial = *address;
-    *address  = celeritas::min(initial, value);
-    return initial;
-#endif
+    REQUIRE(storage.empty() || size);
+    return !storage.empty();
 }
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

@@ -106,7 +106,7 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
         SCOPED_TRACE(result);
         this->sanity_check(result);
         EXPECT_EQ(result.secondaries.data(),
-                  this->secondary_allocator().secondaries().data() + i);
+                  this->secondary_allocator().get().data() + i);
 
         // Add actual results to vector
         energy.push_back(result.energy);
@@ -117,7 +117,7 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
             result.secondaries.front().direction, this->direction()));
     }
 
-    EXPECT_EQ(4, this->secondary_allocator().secondaries().size());
+    EXPECT_EQ(4, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy[]
@@ -175,8 +175,7 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
                 // SCOPED_TRACE(result);
                 this->sanity_check(result);
             }
-            EXPECT_EQ(num_samples,
-                      this->secondary_allocator().secondaries().size());
+            EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
         }
     }
 }
