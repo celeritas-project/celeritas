@@ -18,7 +18,9 @@ namespace celeritas
  * Host-compiler-friendly vector for uninitialized device-storage data.
  *
  * This class does *not* perform initialization on the data. The host code
- * must define and copy over suitable data.
+ * must define and copy over suitable data. For more complex data usage
+ * (dynamic resizing and assignment without memory reallocation) uses \c
+ * thrust::device_vector.
  *
  * \code
     DeviceVector<double> myvec(100);
@@ -45,7 +47,7 @@ class DeviceVector
     DeviceVector() = default;
 
     // Construct with a number of elements
-    explicit DeviceVector(size_type num_bytes);
+    explicit DeviceVector(size_type count);
 
     // Swap with another vector
     inline void swap(DeviceVector& other) noexcept;

@@ -88,7 +88,7 @@
                 __FILE__,                                \
                 __LINE__);                               \
         }                                                \
-    } while (0);
+    } while (0)
 
 /*!
  * \def CELER_CUDA_CHECK_ERROR

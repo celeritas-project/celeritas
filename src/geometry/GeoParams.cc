@@ -16,12 +16,15 @@
 
 #include <celeritas_config.h>
 #if CELERITAS_USE_CUDA
+#    include <cuda_runtime_api.h>
 #    include <VecGeom/management/CudaManager.h>
 #endif
 
+#include "base/Stopwatch.hh"
+#include "base/ColorUtils.hh"
 #include "GeoParamsPointers.hh"
 
-using std::cout;
+using std::cerr;
 using std::endl;
 
 namespace celeritas
@@ -34,28 +37,39 @@ namespace celeritas
  */
 GeoParams::GeoParams(const char* gdml_filename)
 {
-    cout << "::: Loading from GDML at " << gdml_filename << endl;
+    cerr << "::: Loading from GDML at " << gdml_filename << "..." << std::flush;
     constexpr bool validate_xml_schema = false;
+    Stopwatch      get_time;
     vgdml::Frontend::Load(gdml_filename, validate_xml_schema);
+    cerr << color_code('x') << " (" << get_time() << " s)" << color_code(' ')
+         << endl;
 
-    cout << "::: Initializing tracking information" << endl;
+    cerr << "::: Initializing tracking information" << endl;
     vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
 
     num_volumes_ = vecgeom::VPlacedVolume::GetIdCount();
     max_depth_   = vecgeom::GeoManager::Instance().getMaxDepth();
 
 #if CELERITAS_USE_CUDA
-    cout << "::: Transferring geometry to GPU" << endl;
+    cerr << "::: Loading geometry..." << std::flush;
+    get_time           = {};
     auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
     // cuda_manager.set_verbose(1);
     cuda_manager.LoadGeometry();
     CELER_CUDA_CALL(cudaDeviceSynchronize());
+    cerr << color_code('x') << " (" << get_time() << " s)" << color_code(' ')
+         << endl;
 
+    get_time = {};
+    cerr << "::: Transferring geometry to GPU..." << std::flush;
     auto world_top_devptr = cuda_manager.Synchronize();
+    cerr << color_code('x') << " (" << get_time() << " s)" << color_code(' ')
+         << endl;
+
     CHECK(world_top_devptr != nullptr);
     device_world_volume_ = world_top_devptr.GetPtr();
     CELER_CUDA_CHECK_ERROR();
-    cout << ">>> Synchronized successfully!" << endl;
+    cerr << ">>> Synchronized successfully!" << endl;
 
     ENSURE(device_world_volume_);
 #endif
@@ -123,6 +137,21 @@ GeoParamsPointers GeoParams::device_pointers() const
     result.world_volume
         = static_cast<const vecgeom::VPlacedVolume*>(device_world_volume_);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Increase CUDA stack size to enable complex geometries.
+ *
+ * For the cms2018.gdml detector geometry, the default stack size is too small,
+ * and a limit of 32768 is recommended.
+ */
+void GeoParams::set_cuda_stack_size(int limit)
+{
+    REQUIRE(limit > 0);
+#if CELERITAS_USE_CUDA
+    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
+#endif
 }
 
 //---------------------------------------------------------------------------//

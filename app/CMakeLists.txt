@@ -57,6 +57,8 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
 endif()
 
 #-----------------------------------------------------------------------------#
+# DEMO: physics interactions
+#-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
   add_executable(demo-interactor
@@ -77,6 +79,53 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
     )
     set_tests_properties("app/demo-interactor" PROPERTIES
       ENVIRONMENT "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
+    )
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------#
+# DEMO: geometry tracking
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
+  # Since the demo kernel links against VecGeom, which requires CUDA separable
+  # compilation, it cannot be linked directly into an executable.
+  add_library(demo_rasterizer_cuda
+    demo-rasterizer/RDemoRunner.cc
+    demo-rasterizer/RDemoKernel.cu
+  )
+  set_target_properties(demo_rasterizer_cuda PROPERTIES
+    LINKER_LANGUAGE CUDA
+    CUDA_SEPARABLE_COMPILATION ON
+    POSITION_INDEPENDENT_CODE ON
+  )
+  target_link_libraries(demo_rasterizer_cuda
+    PRIVATE
+    celeritas
+    VecGeom::vecgeomcuda
+    VecGeom::vecgeomcuda_static
+  )
+
+  # Add the executable
+  add_executable(demo-rasterizer
+    demo-rasterizer/demo-rasterizer.cc
+    demo-rasterizer/ImageIO.cc
+    demo-rasterizer/ImageStore.cc
+  )
+  target_link_libraries(demo-rasterizer
+    celeritas
+    VecGeom::vecgeom
+    demo_rasterizer_cuda
+    nlohmann_json::nlohmann_json
+  )
+
+  if(CELERITAS_BUILD_TESTS)
+    add_test(NAME "app/demo-rasterizer"
+      COMMAND "${Python_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/demo-rasterizer/simple-driver.py"
+    )
+    set_tests_properties("app/demo-rasterizer" PROPERTIES
+      ENVIRONMENT "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-rasterizer>"
     )
   endif()
 endif()

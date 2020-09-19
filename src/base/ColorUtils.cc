@@ -41,7 +41,7 @@ bool determine_use_color(FILE* stream)
  */
 bool use_color()
 {
-    const static bool result = determine_use_color(stdout);
+    const static bool result = determine_use_color(stderr);
     return result;
 }
 
