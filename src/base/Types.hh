@@ -16,7 +16,6 @@ namespace celeritas
 struct Thread;
 //---------------------------------------------------------------------------//
 using size_type    = std::size_t;
-using ssize_type   = int;
 using real_type    = double;
 using RealPointer3 = array<real_type*, 3>;
 using Real3        = array<real_type, 3>;
