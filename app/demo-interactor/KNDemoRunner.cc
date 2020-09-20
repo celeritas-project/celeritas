@@ -61,21 +61,31 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     SecondaryAllocatorStore secondaries(args.num_tracks);
     ParticleStateStore      track_states(args.num_tracks);
     RngStateStore           rng_states(args.num_tracks, args.seed);
+    DeviceVector<Real3>     position(args.num_tracks);
     DeviceVector<Real3>     direction(args.num_tracks);
-    DeviceVector<double>    energy_deposition(args.num_tracks);
+    DeviceVector<double>    simtime(args.num_tracks);
     DeviceVector<bool>      alive(args.num_tracks);
+    DeviceVector<double>    energy_deposition(args.num_tracks);
+
+    // Construct pointers to device data
+    ParamPointers params;
+    params.particle      = pparams_->device_pointers();
+    params.kn_interactor = kn_pointers_;
+
+    InitialPointers initial;
+    initial.particle = ParticleTrackState{kn_pointers_.gamma_id,
+                                          units::MevEnergy{args.energy}};
+
+    StatePointers state;
+    state.particle  = track_states.device_pointers();
+    state.rng       = rng_states.device_pointers();
+    state.position  = position.device_pointers();
+    state.direction = direction.device_pointers();
+    state.simtime   = simtime.device_pointers();
+    state.alive     = alive.device_pointers();
 
     // Initialize particle states
-    ParticleTrackState initial_state{kn_pointers_.gamma_id,
-                                     units::MevEnergy{args.energy}};
-    initialize(launch_params_,
-               pparams_->device_pointers(),
-               track_states.device_pointers(),
-               initial_state,
-               rng_states.device_pointers(),
-               direction.device_pointers(),
-               alive.device_pointers());
-
+    initialize(launch_params_, params, state, initial);
     result.alive.push_back(args.num_tracks);
 
     size_type remaining_steps = args.max_steps;
@@ -84,16 +94,12 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
         // Launch the kernel
         Stopwatch elapsed_time;
         iterate(launch_params_,
-                pparams_->device_pointers(),
-                track_states.device_pointers(),
-                kn_pointers_,
+                params,
+                state,
                 secondaries.device_pointers(),
-                rng_states.device_pointers(),
-                direction.device_pointers(),
-                alive.device_pointers(),
                 energy_deposition.device_pointers());
 
-        // Save the time
+        // Save the wall time
         result.time.push_back(elapsed_time());
 
         // Calculate average energy deposition

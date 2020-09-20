@@ -29,23 +29,24 @@ namespace demo_interactor
  * operate on two 32-thread chunks of data.
  *  https://developer.nvidia.com/blog/cuda-pro-tip-write-flexible-kernels-grid-stride-loops/
  */
-__global__ void initialize_kn(const ParticleParamsPointers params,
-                              const ParticleStatePointers  states,
-                              const ParticleTrackState     initial_state,
-                              Real3*                       direction,
-                              bool*                        alive)
+__global__ void initialize_kn(ParamPointers const   params,
+                              StatePointers const   states,
+                              InitialPointers const init)
 {
     // Grid-stride loop, see
     for (int tid = blockIdx.x * blockDim.x + threadIdx.x;
-         tid < static_cast<int>(states.vars.size());
+         tid < static_cast<int>(states.size());
          tid += blockDim.x * gridDim.x)
     {
-        ParticleTrackView particle(params, states, ThreadId(tid));
-        particle = initial_state;
+        ParticleTrackView particle(
+            params.particle, states.particle, ThreadId(tid));
+        particle = init.particle;
 
         // Particles begin alive and in the +z direction
-        direction[tid] = {0, 0, 1};
-        alive[tid]     = true;
+        states.direction[tid] = {0, 0, 1};
+        states.position[tid]  = {0, 0, 0};
+        states.simtime[tid]   = 0;
+        states.alive[tid]     = true;
     }
 }
 
@@ -60,45 +61,54 @@ __global__ void initialize_kn(const ParticleParamsPointers params,
  * - Kills the secondary, depositing its local energy
  * - Applies the interaction (updating track direction and energy)
  */
-__global__ void iterate_kn(ParticleParamsPointers const         params,
-                           ParticleStatePointers const          states,
-                           KleinNishinaInteractorPointers const kn_params,
-                           SecondaryAllocatorPointers const     secondaries,
-                           RngStatePointers const               rng_states,
-                           Real3* const                         direction,
-                           bool* const                          alive,
-                           real_type* const energy_deposition)
+__global__ void iterate_kn(ParamPointers const              params,
+                           StatePointers const              states,
+                           SecondaryAllocatorPointers const secondaries,
+                           real_type* const                 energy_deposition)
 {
     SecondaryAllocatorView allocate_secondaries(secondaries);
 
     for (int tid = blockIdx.x * blockDim.x + threadIdx.x;
-         tid < static_cast<int>(states.vars.size());
+         tid < static_cast<int>(states.size());
          tid += blockDim.x * gridDim.x)
     {
         // Zero energy deposition from this thread, before skipping
         energy_deposition[tid] = 0;
 
         // Skip loop if already dead
-        if (!alive[tid])
+        if (!states.alive[tid])
         {
             continue;
         }
 
         // Construct particle accessor from immutable and thread-local data
-        ParticleTrackView particle(params, states, ThreadId(tid));
+        ParticleTrackView particle(
+            params.particle, states.particle, ThreadId(tid));
+        RngEngine rng(states.rng, ThreadId(tid));
+
+        /*! TODO:
+         * - calculate mean free path
+         * - sample distance to collision
+         * - move (update position, time)
+         */
 
         if (particle.energy() < KleinNishinaInteractor::min_incident_energy())
         {
+            /*! TODO:
+             * - tally deposition
+             */
+
             // Particle is below interaction energy; kill and deposit energy
             energy_deposition[tid] = particle.energy().value();
-            alive[tid]             = false;
+            states.alive[tid]      = false;
             continue;
         }
 
         // Construct RNG and interaction interfaces
-        RngEngine              rng(rng_states, ThreadId(tid));
-        KleinNishinaInteractor interact(
-            kn_params, particle, direction[tid], allocate_secondaries);
+        KleinNishinaInteractor interact(params.kn_interactor,
+                                        particle,
+                                        states.direction[tid],
+                                        allocate_secondaries);
 
         // Perform interaction: should emit a single particle (an electron)
         Interaction interaction = interact(rng);
@@ -110,7 +120,7 @@ __global__ void iterate_kn(ParticleParamsPointers const         params,
         energy_deposition[tid] = interaction.secondaries.front().energy.value();
 
         // Update post-interaction state (apply interaction)
-        direction[tid] = interaction.direction;
+        states.direction[tid] = interaction.direction;
         particle.energy(interaction.energy);
     }
 }
@@ -121,43 +131,28 @@ __global__ void iterate_kn(ParticleParamsPointers const         params,
 /*!
  * Initialize particle states.
  */
-void initialize(CudaGridParams         grid,
-                ParticleParamsPointers params,
-                ParticleStatePointers  states,
-                ParticleTrackState     initial_state,
-                RngStatePointers       rng_states,
-                span<Real3>            direction,
-                span<bool>             alive)
+void initialize(const CudaGridParams&  grid,
+                const ParamPointers&   params,
+                const StatePointers&   states,
+                const InitialPointers& initial)
 {
-    REQUIRE(alive.size() == rng_states.rng.size());
-    REQUIRE(alive.size() == states.vars.size());
-    initialize_kn<<<grid.grid_size, grid.block_size>>>(
-        params, states, initial_state, direction.data(), alive.data());
+    REQUIRE(states.alive.size() == states.size());
+    REQUIRE(states.rng.size() == states.size());
+    initialize_kn<<<grid.grid_size, grid.block_size>>>(params, states, initial);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Run an iteration.
  */
-void iterate(CudaGridParams                 kernel_params,
-             ParticleParamsPointers         particle_params,
-             ParticleStatePointers          particle_states,
-             KleinNishinaInteractorPointers kn_params,
-             SecondaryAllocatorPointers     secondaries,
-             RngStatePointers               rng_states,
-             span<Real3>                    direction,
-             span<bool>                     alive,
-             span<real_type>                energy_deposition)
+void iterate(const CudaGridParams&             grid,
+             const ParamPointers&              params,
+             const StatePointers&              state,
+             const SecondaryAllocatorPointers& secondaries,
+             celeritas::span<real_type>        energy_deposition)
 {
-    iterate_kn<<<kernel_params.grid_size, kernel_params.block_size>>>(
-        particle_params,
-        particle_states,
-        kn_params,
-        secondaries,
-        rng_states,
-        direction.data(),
-        alive.data(),
-        energy_deposition.data());
+    iterate_kn<<<grid.grid_size, grid.block_size>>>(
+        params, state, secondaries, energy_deposition.data());
 
     // Note: the device synchronize is useful for debugging and necessary for
     // timing diagnostics.
