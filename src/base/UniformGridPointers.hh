@@ -22,7 +22,8 @@ struct UniformGridPointers
     real_type front; //!< Value of first grid point
     real_type delta; //!< Grid cell width
 
-    CELER_FUNCTION explicit operator bool() const
+    //! Whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const
     {
         return size > 0 && delta > 0;
     }

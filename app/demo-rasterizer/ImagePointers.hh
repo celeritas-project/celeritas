@@ -27,8 +27,8 @@ struct ImagePointers
     celeritas::array<unsigned int, 2> dims;        //!< Image dimensions (j, i)
     celeritas::span<int>              image;       //!< Stored image [j][i]
 
-    //! Whether the interface has been assigned
-    explicit operator bool() const { return !image.empty(); }
+    //! Whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const { return !image.empty(); }
 };
 
 //---------------------------------------------------------------------------//

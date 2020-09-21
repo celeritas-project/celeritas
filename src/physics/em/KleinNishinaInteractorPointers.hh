@@ -25,8 +25,8 @@ struct KleinNishinaInteractorPointers
     //! ID of a gamma
     ParticleDefId gamma_id;
 
-    //! Check whether the view is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    //! Check whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const
     {
         return inv_electron_mass > 0 && electron_id && gamma_id;
     }

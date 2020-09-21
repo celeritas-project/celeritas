@@ -27,11 +27,8 @@ struct ParticleParamsPointers
 {
     span<const ParticleDef> defs;
 
-    //! Check whether the view is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return !defs.empty();
-    }
+    //! Check whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const { return !defs.empty(); }
 };
 
 //---------------------------------------------------------------------------//

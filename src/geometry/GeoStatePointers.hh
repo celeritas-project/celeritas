@@ -34,8 +34,8 @@ struct GeoStatePointers
     Real3*     dir       = nullptr;
     real_type* next_step = nullptr;
 
-    // Check whether the view is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    //! Check whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const
     {
         REQUIRE(this->valid());
         return bool(size);
