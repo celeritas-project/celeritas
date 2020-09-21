@@ -54,5 +54,3 @@ class GenerateCanonical
 } // namespace celeritas
 
 #include "GenerateCanonical.i.hh"
-
-//---------------------------------------------------------------------------//

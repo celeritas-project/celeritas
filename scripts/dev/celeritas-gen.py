@@ -53,7 +53,6 @@ class {name}
 }} // namespace {namespace}
 
 #include "{name}.i.{hext}"
-//---------------------------------------------------------------------------//
 '''
 
 INLINE_FILE = '''\

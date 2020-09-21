@@ -44,4 +44,3 @@ class IsotropicDistribution
 } // namespace celeritas
 
 #include "IsotropicDistribution.i.hh"
-//---------------------------------------------------------------------------//

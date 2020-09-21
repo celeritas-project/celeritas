@@ -54,7 +54,7 @@ namespace celeritas
  * At each evaluation of the instantiated Interpolator, only the
  * inverse-transform and add-transformed operation need be applied.
  */
-template<Interp XI = Interp::Linear, Interp YI = Interp::Linear, typename T = double>
+template<Interp XI = Interp::linear, Interp YI = Interp::linear, typename T = double>
 class Interpolator
 {
   public:
@@ -64,13 +64,6 @@ class Interpolator
     using Point     = array<T, 2>;
     //@}
 
-  private:
-    // >>> DATA
-
-    real_type d_intercept; //!> f_y(y_l)
-    real_type d_slope;     //!> ratio of g(y) to g(x)
-    real_type d_offset;    //!> n_x(x_l)
-
   public:
     // Construct with left and right values for x and y
     inline CELER_FUNCTION Interpolator(Point left, Point right);
@@ -79,7 +72,9 @@ class Interpolator
     inline CELER_FUNCTION real_type operator()(real_type x) const;
 
   private:
-    // Private traits and constants
+    real_type intercept_; //!> f_y(y_l)
+    real_type slope_;     //!> ratio of g(y) to g(x)
+    real_type offset_;    //!> n_x(x_l)
 
     using XTraits_t = detail::InterpolatorTraits<XI, real_type>;
     using YTraits_t = detail::InterpolatorTraits<YI, real_type>;
@@ -87,7 +82,7 @@ class Interpolator
 
 //! Linear interpolation
 template<class T>
-using LinearInterpolator = Interpolator<Interp::Linear, Interp::Linear, T>;
+using LinearInterpolator = Interpolator<Interp::linear, Interp::linear, T>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -46,5 +46,3 @@ class RadialDistribution
 } // namespace celeritas
 
 #include "RadialDistribution.i.hh"
-
-//---------------------------------------------------------------------------//

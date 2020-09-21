@@ -58,4 +58,3 @@ class BernoulliDistribution
 } // namespace celeritas
 
 #include "BernoulliDistribution.i.hh"
-//---------------------------------------------------------------------------//
