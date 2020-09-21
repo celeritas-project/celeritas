@@ -63,10 +63,15 @@ endif()
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
   add_executable(demo-interactor
     demo-interactor/demo-interactor.cc
+    demo-interactor/DetectorStore.cc
+    demo-interactor/HitAllocatorStore.cc
+    demo-interactor/LoadXs.cc
     demo-interactor/KNDemoIO.cc
     demo-interactor/KNDemoRunner.cc
     demo-interactor/KNDemoKernel.cu
-  )
+    demo-interactor/PhysicsArrayParams.cc
+    demo-interactor/detail/DetectorUtils.cu
+    )
   target_link_libraries(demo-interactor celeritas
     CUDA::cudart
     nlohmann_json::nlohmann_json

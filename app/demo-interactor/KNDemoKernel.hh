@@ -14,6 +14,8 @@
 #include "physics/base/SecondaryAllocatorPointers.hh"
 #include "physics/em/KleinNishinaInteractorPointers.hh"
 #include "random/cuda/RngStatePointers.hh"
+#include "PhysicsArrayPointers.hh"
+#include "DetectorPointers.hh"
 
 namespace demo_interactor
 {
@@ -29,7 +31,13 @@ struct CudaGridParams
 struct ParamPointers
 {
     celeritas::ParticleParamsPointers         particle;
+    celeritas::PhysicsArrayPointers           xs;
     celeritas::KleinNishinaInteractorPointers kn_interactor;
+
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return particle && xs && kn_interactor;
+    }
 };
 
 //! Pointers to initial conditoins
@@ -45,8 +53,14 @@ struct StatePointers
     celeritas::RngStatePointers           rng;
     celeritas::span<celeritas::Real3>     position;
     celeritas::span<celeritas::Real3>     direction;
-    celeritas::span<celeritas::real_type> simtime;
+    celeritas::span<celeritas::real_type> time;
     celeritas::span<bool>                 alive;
+
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return particle && rng && !position.empty() && !direction.empty()
+               && !time.empty() && !alive.empty();
+    }
 
     //! Number of tracks
     CELER_FUNCTION celeritas::size_type size() const
@@ -68,12 +82,7 @@ void iterate(const CudaGridParams&                        grid,
              const ParamPointers&                         params,
              const StatePointers&                         state,
              const celeritas::SecondaryAllocatorPointers& secondaries,
-             celeritas::span<celeritas::real_type>        energy_deposition);
-
-//---------------------------------------------------------------------------//
-// Sum the total energy deposition
-celeritas::real_type
-reduce_energy_dep(celeritas::span<celeritas::real_type> edep);
+             const celeritas::DetectorPointers&           detector);
 
 //---------------------------------------------------------------------------//
 // Sum the total number of living particles

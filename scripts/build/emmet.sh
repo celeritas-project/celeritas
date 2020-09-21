@@ -2,7 +2,7 @@
 
 BUILDSCRIPT_DIR="$(cd "$(dirname $BASH_SOURCE[0])" && pwd)"
 SOURCE_DIR="$(cd "${BUILDSCRIPT_DIR}" && git rev-parse --show-toplevel)"
-BUILD_DIR=${SOURCE_DIR}/build
+BUILD_DIR=${SOURCE_DIR}/build-opt
 
 printf "\e[2;37mBuilding in ${BUILD_DIR}\e[0m\n"
 mkdir ${BUILD_DIR} 2>/dev/null \

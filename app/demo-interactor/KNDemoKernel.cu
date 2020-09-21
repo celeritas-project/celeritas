@@ -9,11 +9,15 @@
 
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>
+#include "base/ArrayUtils.hh"
 #include "base/Assert.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/em/KleinNishinaInteractor.hh"
 #include "random/cuda/RngEngine.cuh"
+#include "random/distributions/ExponentialDistribution.hh"
+#include "PhysicsArrayCalculator.hh"
+#include "DetectorView.hh"
 
 using namespace celeritas;
 
@@ -45,7 +49,7 @@ __global__ void initialize_kn(ParamPointers const   params,
         // Particles begin alive and in the +z direction
         states.direction[tid] = {0, 0, 1};
         states.position[tid]  = {0, 0, 0};
-        states.simtime[tid]   = 0;
+        states.time[tid]      = 0;
         states.alive[tid]     = true;
     }
 }
@@ -64,17 +68,16 @@ __global__ void initialize_kn(ParamPointers const   params,
 __global__ void iterate_kn(ParamPointers const              params,
                            StatePointers const              states,
                            SecondaryAllocatorPointers const secondaries,
-                           real_type* const                 energy_deposition)
+                           DetectorPointers const           detector)
 {
     SecondaryAllocatorView allocate_secondaries(secondaries);
+    DetectorView           detector_hit(detector);
+    PhysicsArrayCalculator calc_xs(params.xs);
 
     for (int tid = blockIdx.x * blockDim.x + threadIdx.x;
          tid < static_cast<int>(states.size());
          tid += blockDim.x * gridDim.x)
     {
-        // Zero energy deposition from this thread, before skipping
-        energy_deposition[tid] = 0;
-
         // Skip loop if already dead
         if (!states.alive[tid])
         {
@@ -86,21 +89,33 @@ __global__ void iterate_kn(ParamPointers const              params,
             params.particle, states.particle, ThreadId(tid));
         RngEngine rng(states.rng, ThreadId(tid));
 
-        /*! TODO:
-         * - calculate mean free path
-         * - sample distance to collision
-         * - move (update position, time)
-         */
+        // Move to collision
+        {
+            // Calculate cross section at the particle's energy
+            real_type                          sigma = calc_xs(particle);
+            ExponentialDistribution<real_type> sample_distance(sigma);
+            // Sample distance-to-collision
+            real_type distance = sample_distance(rng);
+            // Move particle
+            axpy(distance, states.direction[tid], &states.position[tid]);
+            // Update time
+            states.time[tid] += distance * unit_cast(particle.speed());
+        }
+
+        Hit h;
+        h.pos    = states.position[tid];
+        h.thread = ThreadId(tid);
+        h.time   = states.time[tid];
 
         if (particle.energy() < KleinNishinaInteractor::min_incident_energy())
         {
-            /*! TODO:
-             * - tally deposition
-             */
+            // Particle is below interaction energy
+            h.dir              = states.direction[tid];
+            h.energy_deposited = particle.energy();
 
-            // Particle is below interaction energy; kill and deposit energy
-            energy_deposition[tid] = particle.energy().value();
-            states.alive[tid]      = false;
+            // Deposit energy and kill
+            detector_hit(h);
+            states.alive[tid] = false;
             continue;
         }
 
@@ -117,7 +132,12 @@ __global__ void iterate_kn(ParamPointers const              params,
 
         // Deposit energy from the secondary (effectively, an infinite energy
         // cutoff)
-        energy_deposition[tid] = interaction.secondaries.front().energy.value();
+        {
+            const auto& secondary = interaction.secondaries.front();
+            h.dir                 = secondary.direction;
+            h.energy_deposited    = secondary.energy;
+            detector_hit(h);
+        }
 
         // Update post-interaction state (apply interaction)
         states.direction[tid] = interaction.direction;
@@ -145,34 +165,18 @@ void initialize(const CudaGridParams&  grid,
 /*!
  * Run an iteration.
  */
-void iterate(const CudaGridParams&             grid,
-             const ParamPointers&              params,
-             const StatePointers&              state,
-             const SecondaryAllocatorPointers& secondaries,
-             celeritas::span<real_type>        energy_deposition)
+void iterate(const CudaGridParams&              grid,
+             const ParamPointers&               params,
+             const StatePointers&               state,
+             const SecondaryAllocatorPointers&  secondaries,
+             const celeritas::DetectorPointers& detector)
 {
     iterate_kn<<<grid.grid_size, grid.block_size>>>(
-        params, state, secondaries, energy_deposition.data());
+        params, state, secondaries, detector);
 
     // Note: the device synchronize is useful for debugging and necessary for
     // timing diagnostics.
     CELER_CUDA_CALL(cudaDeviceSynchronize());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Sum the total energy deposition.
- */
-real_type reduce_energy_dep(span<real_type> edep)
-{
-    real_type result = thrust::reduce(
-        thrust::device_pointer_cast(edep.data()),
-        thrust::device_pointer_cast(edep.data() + edep.size()),
-        real_type(0),
-        thrust::plus<real_type>());
-
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
-    return result;
 }
 
 //---------------------------------------------------------------------------//

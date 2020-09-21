@@ -13,6 +13,7 @@
 #include "physics/base/ParticleStateStore.hh"
 #include "physics/base/SecondaryAllocatorStore.hh"
 #include "physics/base/Units.hh"
+#include "DetectorStore.hh"
 
 using namespace celeritas;
 
@@ -22,11 +23,15 @@ namespace demo_interactor
 /*!
  * Construct with parameters.
  */
-KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
-                           CudaGridParams        solver)
-    : pparams_(std::move(particles)), launch_params_(std::move(solver))
+KNDemoRunner::KNDemoRunner(constSPParticleParams     particles,
+                           constSPPhysicsArrayParams xs,
+                           CudaGridParams            solver)
+    : pparams_(std::move(particles))
+    , xsparams_(std::move(xs))
+    , launch_params_(std::move(solver))
 {
     REQUIRE(pparams_);
+    REQUIRE(xsparams_);
     REQUIRE(launch_params_.block_size > 0);
     REQUIRE(launch_params_.grid_size > 0);
 
@@ -63,13 +68,14 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     RngStateStore           rng_states(args.num_tracks, args.seed);
     DeviceVector<Real3>     position(args.num_tracks);
     DeviceVector<Real3>     direction(args.num_tracks);
-    DeviceVector<double>    simtime(args.num_tracks);
+    DeviceVector<double>    time(args.num_tracks);
     DeviceVector<bool>      alive(args.num_tracks);
-    DeviceVector<double>    energy_deposition(args.num_tracks);
+    DetectorStore           detector(args.num_tracks, args.tally_grid);
 
     // Construct pointers to device data
     ParamPointers params;
     params.particle      = pparams_->device_pointers();
+    params.xs            = xsparams_->device_pointers();
     params.kn_interactor = kn_pointers_;
 
     InitialPointers initial;
@@ -81,7 +87,7 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     state.rng       = rng_states.device_pointers();
     state.position  = position.device_pointers();
     state.direction = direction.device_pointers();
-    state.simtime   = simtime.device_pointers();
+    state.time      = time.device_pointers();
     state.alive     = alive.device_pointers();
 
     // Initialize particle states
@@ -97,18 +103,17 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
                 params,
                 state,
                 secondaries.device_pointers(),
-                energy_deposition.device_pointers());
+                detector.device_pointers());
 
         // Save the wall time
         result.time.push_back(elapsed_time());
 
-        // Calculate average energy deposition
-        result.edep.push_back(
-            reduce_energy_dep(energy_deposition.device_pointers()));
-
         // Clear secondaries, which have all effectively been "killed" inside
         // the `iterate` kernel (local energy deposited)
         secondaries.clear();
+
+        // Bin detector depositions from the buffer into the grid
+        detector.bin_buffer();
 
         // Calculate and save number of living particles
         result.alive.push_back(reduce_alive(alive.device_pointers()));
@@ -119,6 +124,9 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
             break;
         }
     }
+
+    // Copy integrated energy deposition
+    result.edep = detector.finalize(1 / real_type(args.num_tracks));
 
     // Store total time
     result.total_time = total_time();

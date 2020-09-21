@@ -3,31 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UniformGridPointers.hh
+//! \file LoadXs.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include <memory>
+#include "PhysicsArrayParams.hh"
 
-namespace celeritas
+namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
-/*!
- * Data needed to do uniform grid interpolation.
- */
-struct UniformGridPointers
-{
-    size_type size;  //!< Number of grid edges/points
-    real_type front; //!< Value of first grid point
-    real_type delta; //!< Grid cell width
 
-    //! Whether the interface is initialized
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return size > 0 && delta > 0;
-    }
-};
+std::shared_ptr<celeritas::PhysicsArrayParams> load_xs();
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_interactor

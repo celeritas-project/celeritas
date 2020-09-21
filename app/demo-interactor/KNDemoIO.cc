@@ -31,7 +31,8 @@ void to_json(nlohmann::json& j, const KNDemoRunArgs& v)
     j = nlohmann::json{{"energy", v.energy},
                        {"seed", v.seed},
                        {"num_tracks", v.num_tracks},
-                       {"max_steps", v.max_steps}};
+                       {"max_steps", v.max_steps},
+                       {"tally_grid", v.tally_grid}};
 }
 
 void from_json(const nlohmann::json& j, KNDemoRunArgs& v)
@@ -40,24 +41,41 @@ void from_json(const nlohmann::json& j, KNDemoRunArgs& v)
     j.at("seed").get_to(v.seed);
     j.at("num_tracks").get_to(v.num_tracks);
     j.at("max_steps").get_to(v.max_steps);
+    j.at("tally_grid").get_to(v.tally_grid);
 }
 
 void to_json(nlohmann::json& j, const KNDemoResult& v)
 {
     j = nlohmann::json{{"time", v.time},
-                       {"edep", v.edep},
                        {"alive", v.alive},
+                       {"edep", v.edep},
                        {"total_time", v.total_time}};
 }
 
 void from_json(const nlohmann::json& j, KNDemoResult& v)
 {
     j.at("time").get_to(v.time);
-    j.at("edep").get_to(v.edep);
     j.at("alive").get_to(v.alive);
+    j.at("edep").get_to(v.edep);
     j.at("total_time").get_to(v.total_time);
 }
 //@}
 
 //---------------------------------------------------------------------------//
 } // namespace demo_interactor
+
+namespace celeritas
+{
+void to_json(nlohmann::json& j, const UniformGrid::Params& v)
+{
+    j = nlohmann::json{
+        {"size", v.size}, {"front", v.front}, {"delta", v.delta}};
+}
+
+void from_json(const nlohmann::json& j, UniformGrid::Params& v)
+{
+    j.at("size").get_to(v.size);
+    j.at("front").get_to(v.front);
+    j.at("delta").get_to(v.delta);
+}
+} // namespace celeritas

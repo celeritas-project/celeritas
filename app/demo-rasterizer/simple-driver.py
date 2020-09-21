@@ -27,13 +27,15 @@ pprint(inp)
 
 exe = environ.get('CELERITAS_DEMO_EXE', './demo-rasterizer')
 print("Running", exe)
-with subprocess.Popen([exe, '-'],
-                      stdin=subprocess.PIPE,
-                      stdout=subprocess.PIPE) as proc:
-    (output, _) = proc.communicate(input=json.dumps(inp).encode())
+result = subprocess.run([exe, '-'],
+                        input=json.dumps(inp).encode(),
+                        stdout=subprocess.PIPE)
+if result.returncode:
+    print("Run failed with error", result.returncode)
+    exit(result.returncode)
 
-print("Received {} bytes of data".format(len(output)))
-out_text = output.decode()
+print("Received {} bytes of data".format(len(result.stdout)))
+out_text = result.stdout.decode()
 try:
     result = json.loads(out_text)
 except json.decoder.JSONDecodeError as e:

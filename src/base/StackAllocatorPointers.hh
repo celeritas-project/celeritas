@@ -31,6 +31,9 @@ struct StackAllocatorPointers
 
     // Whether the interface is initialized
     explicit inline CELER_FUNCTION operator bool() const;
+
+    //! Total capacity of stack
+    CELER_FUNCTION size_type capacity() const { return storage.size(); }
 };
 
 //---------------------------------------------------------------------------//

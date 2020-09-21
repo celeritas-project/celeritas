@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SecondaryAllocatorStore.cc
+//! \file HitAllocatorStore.cc
 //---------------------------------------------------------------------------//
-#include "Secondary.hh"
+#include "DetectorPointers.hh"
 #include "base/StackAllocatorStore.t.hh"
 
 namespace celeritas
@@ -13,7 +13,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 
 // Explicitly instantiate stack allocator
-template class StackAllocatorStore<Secondary>;
+template class StackAllocatorStore<Hit>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

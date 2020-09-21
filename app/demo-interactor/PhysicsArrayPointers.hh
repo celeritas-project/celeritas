@@ -3,17 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SecondaryAllocatorStore.cc
+//! \file PhysicsArrayPointers.hh
 //---------------------------------------------------------------------------//
-#include "Secondary.hh"
-#include "base/StackAllocatorStore.t.hh"
+#pragma once
+
+#include "base/Span.hh"
+#include "base/UniformGrid.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Interface for passing physics array data to device.
+ */
+struct PhysicsArrayPointers
+{
+    UniformGrid::Params   log_energy;
+    real_type             prime_energy;
+    span<const real_type> xs;
 
-// Explicitly instantiate stack allocator
-template class StackAllocatorStore<Secondary>;
+    //! Whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return log_energy && !xs.empty();
+    }
+};
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
