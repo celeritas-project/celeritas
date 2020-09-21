@@ -60,15 +60,6 @@ class GeoTrackViewHostTest : public GeoParamsTest
     GeoParamsPointers params_view;
 };
 
-TEST_F(GeoTrackViewHostTest, accessors)
-{
-    const auto& geom = *this->params();
-    EXPECT_EQ(2, geom.num_volumes());
-    EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ("Detector", geom.id_to_label(VolumeId{0}));
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{1}));
-}
-
 TEST_F(GeoTrackViewHostTest, track_line)
 {
     // Construct geometry interface from persistent geometry data, state view,
