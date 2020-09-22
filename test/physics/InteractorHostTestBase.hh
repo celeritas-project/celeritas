@@ -14,15 +14,17 @@
 #include "base/Array.hh"
 #include "base/ArrayIO.hh"
 #include "base/Span.hh"
+#include "base/StackAllocatorPointers.hh"
 #include "base/Types.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleStatePointers.hh"
-#include "physics/base/SecondaryAllocatorPointers.hh"
-#include "HostDebugSecondaryStorage.hh"
+#include "physics/base/Secondary.hh"
+#include "base/HostStackAllocatorStore.hh"
 
 namespace celeritas
 {
-class SecondaryAllocatorView;
+template<class T>
+class StackAllocatorView;
 class ParticleTrackView;
 struct Interaction;
 struct Secondary;
@@ -30,7 +32,6 @@ struct Secondary;
 
 namespace celeritas_test
 {
-using namespace celeritas;
 //---------------------------------------------------------------------------//
 /*!
  * Test harness base class for a host-side Interactor.
@@ -43,10 +44,19 @@ class InteractorHostTestBase : public celeritas::Test
   public:
     //@{
     //! Type aliases
-    using Real3                = celeritas::Real3;
-    using Interaction          = celeritas::Interaction;
-    using RandomEngine         = std::mt19937;
-    using constSpanSecondaries = span<const Secondary>;
+    using RandomEngine = std::mt19937;
+
+    using real_type              = celeritas::real_type;
+    using PDGNumber              = celeritas::PDGNumber;
+    using Interaction            = celeritas::Interaction;
+    using ParticleParams         = celeritas::ParticleParams;
+    using ParticleTrackView      = celeritas::ParticleTrackView;
+    using Real3                  = celeritas::Real3;
+    using Secondary              = celeritas::Secondary;
+    using SecondaryAllocatorView = celeritas::StackAllocatorView<Secondary>;
+    using constSpanSecondaries   = celeritas::span<const Secondary>;
+
+    using HostSecondaryStore = HostStackAllocatorStore<Secondary>;
     //@}
 
   public:
@@ -77,10 +87,7 @@ class InteractorHostTestBase : public celeritas::Test
     //@{
     //! Secondary stack storage and access
     void                             resize_secondaries(int count);
-    const HostDebugSecondaryStorage& secondaries() const
-    {
-        return secondaries_;
-    }
+    const HostSecondaryStore& secondaries() const { return secondaries_; }
     SecondaryAllocatorView& secondary_allocator()
     {
         REQUIRE(sa_view_);
@@ -100,11 +107,11 @@ class InteractorHostTestBase : public celeritas::Test
     std::shared_ptr<ParticleParams> particle_params_;
     RandomEngine                    rng_;
 
-    ParticleTrackState        particle_state_;
-    ParticleParamsPointers    pp_pointers_;
-    ParticleStatePointers     ps_pointers_;
+    celeritas::ParticleTrackState     particle_state_;
+    celeritas::ParticleParamsPointers pp_pointers_;
+    celeritas::ParticleStatePointers  ps_pointers_;
     Real3                     inc_direction_ = {0, 0, 1};
-    HostDebugSecondaryStorage secondaries_;
+    HostSecondaryStore                secondaries_;
 
     // Views
     std::shared_ptr<ParticleTrackView>      pt_view_;

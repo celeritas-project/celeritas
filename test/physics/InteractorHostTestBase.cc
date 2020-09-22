@@ -14,6 +14,8 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "gtest/detail/Macros.hh"
 
+using namespace celeritas;
+
 namespace celeritas_test
 {
 //---------------------------------------------------------------------------//

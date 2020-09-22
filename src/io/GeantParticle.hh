@@ -23,7 +23,7 @@ namespace celeritas
 struct GeantParticle
 {
     std::string name;
-    ssize_type  pdg;
+    int         pdg;
     real_type   mass; // [MeV]
     real_type   charge;
     real_type   spin;

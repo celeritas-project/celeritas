@@ -3,19 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SecondaryAllocator.test.cu
+//! \file StackAllocator.test.cu
 //---------------------------------------------------------------------------//
-#include "SecondaryAllocator.test.hh"
+#include "StackAllocator.test.hh"
 
 #include <cstdint>
 #include <thrust/device_vector.h>
 #include "base/KernelParamCalculator.cuda.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocatorView.hh"
 
 using thrust::raw_pointer_cast;
 
 namespace celeritas_test
 {
+using StackAllocatorViewMock = celeritas::StackAllocatorView<MockSecondary>;
+
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
@@ -26,52 +28,46 @@ __global__ void sa_test_kernel(SATestInput input, SATestOutput* output)
     if (thread_idx >= input.num_threads)
         return;
 
-    SecondaryAllocatorView allocate(input.sa_view);
+    StackAllocatorViewMock allocate(input.sa_pointers);
     for (int i = 0; i < input.num_iters; ++i)
     {
-        Secondary* secondaries = allocate(input.alloc_size);
+        MockSecondary* secondaries = allocate(input.alloc_size);
         if (!secondaries)
         {
             continue;
         }
 
         atomicAdd(&output->num_allocations, input.alloc_size);
-        // Check that all secondaries are initialized correctly
         for (int j = 0; j < input.alloc_size; ++j)
         {
-            if (secondaries[j].def_id)
+            if (secondaries[j].def_id != -1)
             {
+                // Initialization failed (in-place new not called)
                 atomicAdd(&output->num_errors, 1);
             }
 
             // Initialize the secondary
-            secondaries[j].def_id = ParticleDefId{thread_idx % 4};
-            for (int ax = 0; ax < 3; ++ax)
-            {
-                secondaries[j].direction[ax] = 0;
-            }
-            secondaries[j].direction[thread_idx % 3] = 1;
-            secondaries[j].energy = 1 + 10 * real_type(thread_idx);
+            secondaries[j].def_id = thread_idx;
         }
-        static_assert(sizeof(void*) == sizeof(SATestOutput::ull_int),
+        static_assert(sizeof(void*) == sizeof(celeritas::ull_int),
                       "Wrong pointer size");
         atomicMax(&output->last_secondary_address,
-                  reinterpret_cast<SATestOutput::ull_int>(secondaries));
+                  reinterpret_cast<celeritas::ull_int>(secondaries));
     }
 
     // Do a max on the total in-kernel size, which *might* be under
     // modification by atomics!
-    atomicMax(&output->max_size, static_cast<int>(*input.sa_view.size));
+    atomicMax(&output->max_size, static_cast<int>(*input.sa_pointers.size));
 }
 
 __global__ void sa_post_test_kernel(SATestInput input, SATestOutput* output)
 {
     auto thread_id = celeritas::KernelParamCalculator::thread_id();
 
-    const SecondaryAllocatorView allocate(input.sa_view);
-    if (thread_id == ThreadId{0})
+    const StackAllocatorViewMock allocate(input.sa_pointers);
+    if (thread_id == celeritas::ThreadId{0})
     {
-        output->view_size = allocate.secondaries().size();
+        output->view_size = allocate.get().size();
     }
 }
 
