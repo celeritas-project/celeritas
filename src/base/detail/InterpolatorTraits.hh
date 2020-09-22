@@ -22,7 +22,7 @@ template<Interp I, typename T>
 struct InterpolatorTraits;
 
 template<typename T>
-struct InterpolatorTraits<Interp::Linear, T>
+struct InterpolatorTraits<Interp::linear, T>
 {
     static CELER_CONSTEXPR_FUNCTION T transform(T value) { return value; }
     static CELER_CONSTEXPR_FUNCTION T negate_transformed(T value)
@@ -38,7 +38,7 @@ struct InterpolatorTraits<Interp::Linear, T>
 };
 
 template<typename T>
-struct InterpolatorTraits<Interp::Log, T>
+struct InterpolatorTraits<Interp::log, T>
 {
     static CELER_CONSTEXPR_FUNCTION T transform(T value)
     {

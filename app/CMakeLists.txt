@@ -104,6 +104,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     celeritas
     VecGeom::vecgeomcuda
     VecGeom::vecgeomcuda_static
+    nlohmann_json::nlohmann_json
   )
 
   # Add the executable

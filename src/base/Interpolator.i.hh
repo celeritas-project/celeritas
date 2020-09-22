@@ -31,14 +31,14 @@ CELER_FUNCTION Interpolator<IX, IY, T>::Interpolator(Point left, Point right)
     REQUIRE(YTraits_t::valid_domain(left[Y]));
     REQUIRE(YTraits_t::valid_domain(right[Y]));
 
-    d_intercept = YTraits_t::transform(left[Y]);
-    d_slope     = (YTraits_t::add_transformed(
-                   YTraits_t::negate_transformed(left[Y]), right[Y])
-               / XTraits_t::add_transformed(
-                   XTraits_t::negate_transformed(left[X]), right[X]));
-    d_offset    = XTraits_t::negate_transformed(left[X]);
-    ENSURE(!std::isnan(d_intercept) && !std::isnan(d_slope)
-           && !std::isnan(d_offset));
+    intercept_ = YTraits_t::transform(left[Y]);
+    slope_     = (YTraits_t::add_transformed(
+                  YTraits_t::negate_transformed(left[Y]), right[Y])
+              / XTraits_t::add_transformed(
+                  XTraits_t::negate_transformed(left[X]), right[X]));
+    offset_    = XTraits_t::negate_transformed(left[X]);
+    ENSURE(!std::isnan(intercept_) && !std::isnan(slope_)
+           && !std::isnan(offset_));
 }
 
 //---------------------------------------------------------------------------//
@@ -51,7 +51,7 @@ CELER_FUNCTION auto Interpolator<IX, IY, T>::operator()(real_type x) const
 {
     REQUIRE(XTraits_t::valid_domain(x));
     real_type result = YTraits_t::transform_inv(
-        d_intercept + d_slope * (XTraits_t::add_transformed(d_offset, x)));
+        intercept_ + slope_ * (XTraits_t::add_transformed(offset_, x)));
 
     ENSURE(!std::isnan(result));
     return result;

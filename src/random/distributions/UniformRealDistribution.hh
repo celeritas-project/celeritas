@@ -51,5 +51,3 @@ class UniformRealDistribution
 } // namespace celeritas
 
 #include "UniformRealDistribution.i.hh"
-
-//---------------------------------------------------------------------------//

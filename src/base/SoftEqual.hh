@@ -9,6 +9,7 @@
 
 #include "detail/SoftEqualTraits.hh"
 #include "Macros.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -24,7 +25,7 @@ namespace celeritas
  * \param abs threshold for absolute error when comparing to zero
  *           (default 1.0e-14 for doubles)
  */
-template<typename T1, typename T2 = T1>
+template<typename T1 = real_type, typename T2 = T1>
 class SoftEqual
 {
   public:

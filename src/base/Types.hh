@@ -13,7 +13,6 @@
 
 namespace celeritas
 {
-struct Thread;
 //---------------------------------------------------------------------------//
 using size_type    = std::size_t;
 using ssize_type   = int;
@@ -22,14 +21,14 @@ using RealPointer3 = array<real_type*, 3>;
 using Real3        = array<real_type, 3>;
 
 //! Index of the current CUDA thread, with type safety for containers.
-using ThreadId = OpaqueId<Thread, unsigned int>;
+using ThreadId = OpaqueId<struct Thread, unsigned int>;
 
 //---------------------------------------------------------------------------//
 
 enum class Interp
 {
-    Linear,
-    Log
+    linear,
+    log
 };
 
 //---------------------------------------------------------------------------//
