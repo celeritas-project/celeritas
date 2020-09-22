@@ -6,15 +6,13 @@
 //! \file RngEngine.i.cuh
 //---------------------------------------------------------------------------//
 
-#include <curand_kernel.h>
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct from state.
  */
-__device__
+CELER_FUNCTION
 RngEngine::RngEngine(const RngStatePointers& view, const ThreadId& id)
     : state_(view.rng[id.get()])
 {
@@ -25,7 +23,7 @@ RngEngine::RngEngine(const RngStatePointers& view, const ThreadId& id)
 /*!
  * Initialize the RNG engine with a seed value.
  */
-__device__ RngEngine& RngEngine::operator=(RngSeed s)
+CELER_FUNCTION RngEngine& RngEngine::operator=(RngSeed s)
 {
     curand_init(s.seed, 0, 0, &state_);
     return *this;
@@ -35,7 +33,7 @@ __device__ RngEngine& RngEngine::operator=(RngSeed s)
 /*!
  * Sample a random number
  */
-__device__ auto RngEngine::operator()() -> result_type
+CELER_FUNCTION auto RngEngine::operator()() -> result_type
 {
     return curand(&state_);
 }
@@ -46,7 +44,8 @@ __device__ auto RngEngine::operator()() -> result_type
 /*!
  * Specialization for RngEngine, float
  */
-__device__ float GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
+CELER_FUNCTION float
+GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 {
     return curand_uniform(&rng.state_);
 }
@@ -55,7 +54,7 @@ __device__ float GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 /*!
  * Specialization for RngEngine, double
  */
-__device__ double
+CELER_FUNCTION double
 GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)
 {
     return curand_uniform_double(&rng.state_);
