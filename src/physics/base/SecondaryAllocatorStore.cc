@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/base/StackAllocatorStore.t.cc
+//! \file StackAllocatorStore.cc
 //---------------------------------------------------------------------------//
 #include "Secondary.hh"
 #include "base/StackAllocatorStore.t.hh"
