@@ -14,7 +14,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Generate random data on device.
+ * Generate random data on device and host.
  *
  * The RngEngine uses a C++11-like interface to generate random data. The
  * sampling of uniform floating point data is done with specializations to the
@@ -31,14 +31,13 @@ class RngEngine
 
   public:
     // Construct from state
-    __device__ inline RngEngine(const RngStatePointers& view,
-                                const ThreadId&         id);
+    CELER_FUNCTION RngEngine(const RngStatePointers& view, const ThreadId& id);
 
     // Initialize state from seed
-    __device__ inline RngEngine& operator=(Initializer_t s);
+    CELER_FUNCTION RngEngine& operator=(Initializer_t s);
 
     // Sample a random number
-    __device__ inline result_type operator()();
+    CELER_FUNCTION result_type operator()();
 
   private:
     RngState& state_;
@@ -63,7 +62,7 @@ class GenerateCanonical<RngEngine, float>
 
   public:
     // Sample a random number
-    inline __device__ result_type operator()(RngEngine& rng);
+    CELER_FUNCTION result_type operator()(RngEngine& rng);
 };
 
 //---------------------------------------------------------------------------//
@@ -82,7 +81,7 @@ class GenerateCanonical<RngEngine, double>
 
   public:
     // Sample a random number
-    inline __device__ result_type operator()(RngEngine& rng);
+    CELER_FUNCTION result_type operator()(RngEngine& rng);
 };
 
 //---------------------------------------------------------------------------//

@@ -18,6 +18,7 @@
 
 using celeritas::generate_canonical;
 using celeritas::RngEngine;
+using celeritas::RngState;
 using celeritas::RngStatePointers;
 using celeritas::RngStateStore;
 
@@ -151,4 +152,26 @@ TYPED_TEST(RngEngineFloatTest, generate_canonical)
     }
 
     check_expected_float_samples(host_samples);
+}
+
+//---------------------------------------------------------------------------//
+// TEST on CPU
+//---------------------------------------------------------------------------//
+TEST(RngEngineCPUTest, generate_on_cpu)
+{
+    int           num_samples = 1024 * 1000;
+    unsigned long seed        = 12345u;
+
+    RngState         host_state[1];
+    RngStatePointers host_pointers{celeritas::make_span(host_state)};
+    RngEngine        rng(host_pointers, celeritas::ThreadId{0});
+    rng = RngEngine::Initializer_t{seed};
+
+    double mean = 0;
+    for (int i = 0; i < num_samples; ++i)
+    {
+        mean += generate_canonical<double>(rng);
+    }
+    mean /= num_samples;
+    EXPECT_NEAR(0.5, mean, 0.0001);
 }
