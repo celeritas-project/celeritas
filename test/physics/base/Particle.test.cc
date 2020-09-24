@@ -43,16 +43,18 @@ class ParticleTrackViewTest : public celeritas::Test
     {
         namespace pdg = celeritas::pdg;
         using celeritas::ParticleDef;
+        using namespace celeritas::units;
 
         // Create particle defs, initialize on device
         ParticleParams::VecAnnotatedDefs defs;
-        defs.push_back(
-            {{"electron", pdg::electron()},
-             {0.5109989461, -1, ParticleDef::stable_decay_constant()}});
+        defs.push_back({{"electron", pdg::electron()},
+                        {0.5109989461 * mev_csq,
+                         -1 * elementary_charge,
+                         ParticleDef::stable_decay_constant()}});
         defs.push_back({{"gamma", pdg::gamma()},
                         {0, 0, ParticleDef::stable_decay_constant()}});
-        defs.push_back(
-            {{"neutron", PDGNumber{2112}}, {939.565413, 0, 1.0 / 879.4}});
+        defs.push_back({{"neutron", PDGNumber{2112}},
+                        {939.565413 * mev_csq, 0, 1.0 / (879.4 * second)}});
 
         particle_params = std::make_shared<ParticleParams>(std::move(defs));
     }

@@ -9,6 +9,7 @@
 
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
+#include "physics/base/Units.hh"
 
 using celeritas::GeantImporter;
 using celeritas::GeantParticle;
@@ -16,6 +17,7 @@ using celeritas::ParticleDef;
 using celeritas::ParticleDefId;
 using celeritas::ParticleParams;
 using celeritas::PDGNumber;
+using namespace celeritas::units;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -46,8 +48,8 @@ TEST_F(GeantImporterTest, import_particles)
     ParticleDefId electron_id = data.particle_params->find(PDGNumber(11));
     ParticleDef   electron    = data.particle_params->get(electron_id);
 
-    EXPECT_SOFT_EQ(0.510998910, electron.mass);
-    EXPECT_EQ(-1, electron.charge);
+    EXPECT_SOFT_EQ(0.510998910 * mev_csq, electron.mass);
+    EXPECT_EQ(-1 * elementary_charge, electron.charge);
     EXPECT_EQ(0, electron.decay_constant);
 
     std::vector<std::string> loaded_names;

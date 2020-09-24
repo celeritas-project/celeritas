@@ -31,11 +31,13 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
     void SetUp() override
     {
         using celeritas::ParticleDef;
-        using celeritas::units::speed_of_light_sq;
+        using namespace celeritas::units;
 
         Base::set_particle_params(
             {{{"electron", pdg::electron()},
-              {0.5109989461, -1, ParticleDef::stable_decay_constant()}},
+              {0.5109989461 * mev_csq,
+               -1 * elementary_charge,
+               ParticleDef::stable_decay_constant()}},
              {{"gamma", pdg::gamma()},
               {0, 0, ParticleDef::stable_decay_constant()}}});
 
@@ -47,7 +49,7 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
             = 1 / (params.get(pointers_.electron_id).mass * speed_of_light_sq);
 
         // Set default particle to incident 10 MeV photon
-        this->set_inc_particle(pdg::gamma(), 10 * MeV);
+        this->set_inc_particle(pdg::gamma(), 10 * mega_electron_volt);
         this->set_inc_direction({0, 0, 1});
     }
 

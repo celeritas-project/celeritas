@@ -18,9 +18,11 @@ namespace units
  * \namespace units
  * Description of the system of units in Celeritas.
  *
- * Celeritas uses a CGS-based system with:
  * - Natural units (c = 1)
  * - MeV as the standard unit for energy
+ * - cm for standard unit of length
+ * - s for standard unit of time
+ * - g for standard mass of macroscopic properties (e.g. material density)
  */
 
 //@{
@@ -46,6 +48,11 @@ constexpr real_type nanosecond  = 1.e-9 * second;
 //@}
 
 //@{
+//! Charge
+constexpr real_type elementary_charge = 1.;
+//@}
+
+//@{
 //! Energy
 constexpr real_type mega_electron_volt = 1.;
 constexpr real_type electron_volt      = 1.e-6 * mega_electron_volt;
@@ -65,6 +72,7 @@ constexpr real_type millibarn = 1.e-3 * barn;
 //! Derived quantities
 constexpr real_type speed_of_light    = 1.; // Natural unit
 constexpr real_type speed_of_light_sq = 1.;
+constexpr real_type mev_csq           = mega_electron_volt * speed_of_light_sq;
 //@}
 
 //---------------------------------------------------------------------------//
