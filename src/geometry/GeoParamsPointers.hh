@@ -16,8 +16,8 @@ namespace celeritas
 /*!
  * Pointers to persistent data used by VecGeom implementation.
  *
- * If the GeoParamsPointers is constructed by \c VGHost::host_view, it points
- * to a \c vecgeom::cxx::VPlacedVolume . If built by \c
+ * If the GeoParamsPointers is constructed by \c VGHost::host_pointers, it
+ * points to a \c vecgeom::cxx::VPlacedVolume . If built by \c
  * VGDevice::device_pointers, it points to a \c vecgeom::cuda::VPlacedVolume .
  *
  * Note that because of VecGeom default namespaces triggered by the presence of

@@ -9,57 +9,29 @@
 
 #include <memory>
 #include <VecGeom/navigation/NavigationState.h>
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoStateStore.hh"
-#include "GeoTrackView.test.hh"
+
+#include "GeoParamsTest.hh"
+#ifdef CELERITAS_USE_CUDA
+#    include "GeoTrackView.test.hh"
+#endif
 
 using namespace celeritas;
 using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class GeoTrackViewTest : public celeritas::Test
-{
-  protected:
-    using SptrConstParams = std::shared_ptr<const GeoParams>;
-
-    static void SetUpTestCase()
-    {
-        std::string test_file
-            = celeritas::Test::test_data_path("geometry", "twoBoxes.gdml");
-        geom_ = std::make_shared<GeoParams>(test_file.c_str());
-    }
-
-    static void TearDownTestCase() { geom_.reset(); }
-
-    const SptrConstParams& params()
-    {
-        ENSURE(geom_);
-        return geom_;
-    }
-
-  private:
-    static SptrConstParams geom_;
-};
-
-GeoTrackViewTest::SptrConstParams GeoTrackViewTest::geom_ = nullptr;
-
-//---------------------------------------------------------------------------//
 // HOST TESTS
 //---------------------------------------------------------------------------//
 
-class GeoTrackViewHostTest : public GeoTrackViewTest
+class GeoTrackViewHostTest : public GeoParamsTest
 {
   public:
     using NavState = vecgeom::cxx::NavigationState;
 
     void SetUp() override
     {
-        int max_depth = params()->max_depth();
+        int max_depth = this->params()->max_depth();
         state.reset(NavState::MakeInstance(max_depth));
         next_state.reset(NavState::MakeInstance(max_depth));
 
@@ -71,8 +43,8 @@ class GeoTrackViewHostTest : public GeoTrackViewTest
         state_view.vgstate    = this->state.get();
         state_view.vgnext     = this->next_state.get();
 
-        host_view = params()->host_view();
-        CHECK(host_view.world_volume);
+        params_view = this->params()->host_pointers();
+        CHECK(params_view.world_volume);
     }
 
   protected:
@@ -85,23 +57,14 @@ class GeoTrackViewHostTest : public GeoTrackViewTest
 
     // Views
     GeoStatePointers  state_view;
-    GeoParamsPointers host_view;
+    GeoParamsPointers params_view;
 };
-
-TEST_F(GeoTrackViewHostTest, accessors)
-{
-    const auto& geom = *params();
-    EXPECT_EQ(2, geom.num_volumes());
-    EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ("Detector", geom.id_to_label(VolumeId{0}));
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{1}));
-}
 
 TEST_F(GeoTrackViewHostTest, track_line)
 {
     // Construct geometry interface from persistent geometry data, state view,
     // and thread ID (which for CPU is just zero).
-    GeoTrackView geo(host_view, state_view, ThreadId(0));
+    GeoTrackView geo(params_view, state_view, ThreadId(0));
 
     {
         // Track from outside detector, moving right
@@ -165,7 +128,7 @@ TEST_F(GeoTrackViewHostTest, track_line)
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
 
-class GeoTrackViewDeviceTest : public GeoTrackViewTest
+class GeoTrackViewDeviceTest : public GeoParamsTest
 {
   protected:
     void

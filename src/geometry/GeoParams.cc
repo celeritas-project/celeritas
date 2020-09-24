@@ -119,7 +119,7 @@ auto GeoParams::label_to_id(const std::string& label) const -> VolumeId
 /*!
  * View in-host geometry data for CPU debugging.
  */
-GeoParamsPointers GeoParams::host_view() const
+GeoParamsPointers GeoParams::host_pointers() const
 {
     GeoParamsPointers result;
     result.world_volume = vecgeom::GeoManager::Instance().GetWorld();

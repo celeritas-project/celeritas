@@ -9,7 +9,8 @@
 set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
 configure_file(gtest/detail/TestConfig.cc.in TestConfig.cc @ONLY)
 
-add_library(CeleritasTest
+set(CELER_SOURCES)
+list(APPEND CELER_SOURCES
   gtest/Test.cc
   gtest/detail/NonMasterResultPrinter.cc
   gtest/detail/ParallelHandler.cc
@@ -17,8 +18,26 @@ add_library(CeleritasTest
   gtest/detail/Utils.cc
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
+
+if(CELERITAS_USE_VecGeom)
+  list(APPEND CELER_SOURCES
+    geometry/GeoParamsTest.cc
+  )
+endif()
+
+add_library(CeleritasTest ${CELER_SOURCES})
 add_library(Celeritas::Test ALIAS CeleritasTest)
 target_link_libraries(CeleritasTest PUBLIC celeritas GTest::GTest)
+
+if(CELERITAS_USE_VecGeom)
+  if(CELERITAS_USE_CUDA)
+    target_link_libraries(CeleritasTest
+       PRIVATE
+          VecGeom::vecgeomcuda
+          VecGeom::vecgeomcuda_static
+    )
+  endif(CELERITAS_USE_CUDA)
+endif(CELERITAS_USE_VecGeom)
 
 target_include_directories(CeleritasTest
   PUBLIC
@@ -86,6 +105,7 @@ if(CELERITAS_USE_VecGeom)
   celeritas_setup_tests(SERIAL PREFIX geometry
     LINK_LIBRARIES VecGeom::vecgeom)
 
+  celeritas_add_test(geometry/GeoParams.test.cc)
   celeritas_add_test(geometry/GeoTrackView.test.cc)
 
   # CUDA tests: link cuda sources as needed
@@ -106,6 +126,7 @@ if(CELERITAS_USE_VecGeom)
       CUDA_SEPARABLE_COMPILATION ON
       POSITION_INDEPENDENT_CODE ON
     )
+    target_link_libraries(geometry_GeoParams celeritas_vgtest)
     target_link_libraries(geometry_GeoTrackView celeritas_vgtest)
   endif()
 endif()
