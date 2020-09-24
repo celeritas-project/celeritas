@@ -112,7 +112,7 @@ if(CELERITAS_USE_VecGeom)
     # discussion of the failures from trying to directly build an executable
     # from code with CUDA separable compilation. This extra test library is
     # necessary.
-    add_library(celeritas_vgtest geometry/GeoTrackView.test.cu geometry/GeoParams.test.cu)
+    add_library(celeritas_vgtest geometry/GeoTrackView.test.cu)
     target_link_libraries(celeritas_vgtest
       PRIVATE
       celeritas
