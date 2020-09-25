@@ -11,10 +11,12 @@
 #include "gtest/Test.hh"
 #include "base/Span.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/Units.hh"
 
 using celeritas::EventReader;
 using celeritas::ParticleParams;
 using celeritas::Primary;
+using namespace celeritas::units;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -33,12 +35,19 @@ class EventReaderTest : public celeritas::Test,
         // Create shared standard model particle data
         ParticleParams::VecAnnotatedDefs defs
             = {{{"proton", pdg::proton()},
-                {938.27208816, 1, ParticleDef::stable_decay_constant()}},
+                {938.27208816 * mev_csq,
+                 1 * elementary_charge,
+                 ParticleDef::stable_decay_constant()}},
                {{"d_quark", PDGNumber(1)},
-                {4.7, -1 / 3, ParticleDef::stable_decay_constant()}},
+                {4.7 * mev_csq,
+                 -1 / 3 * elementary_charge,
+                 ParticleDef::stable_decay_constant()}},
                {{"anti_u_quark", PDGNumber(-2)},
-                {2.2, -2 / 3, ParticleDef::stable_decay_constant()}},
-               {{"w_minus", PDGNumber(-24)}, {8.0379e4, 0, 3.168e24}},
+                {2.2 * mev_csq,
+                 -2 / 3 * elementary_charge,
+                 ParticleDef::stable_decay_constant()}},
+               {{"w_minus", PDGNumber(-24)},
+                {8.0379e4 * mev_csq, 0, 1.0 / (3.157e-25 * second)}},
                {{"gamma", pdg::gamma()},
                 {0, 0, ParticleDef::stable_decay_constant()}}};
         particle_params_ = std::make_shared<ParticleParams>(std::move(defs));
@@ -54,14 +63,14 @@ class EventReaderTest : public celeritas::Test,
 
 TEST_P(EventReaderTest, all)
 {
-    // Determine the event record format and open the file
     filename_ = this->test_data_path("io", GetParam());
 
-    // Read event and primary particle information from event record
+    // Determine the event record format and open the file
     EventReader read_event(filename_.c_str(), particle_params_);
-    auto        event_record = read_event();
 
-    EXPECT_EQ(8, event_record.primaries.size());
+    // Read all primary particles from the event record
+    auto primaries = read_event();
+    EXPECT_EQ(8, primaries.size());
 
     // Expected PDG: 2212, 1, 2212, -2, 22, -24, 1, -2
     const int expected_def_id[] = {0, 1, 0, 2, 4, 3, 1, 2};
@@ -79,9 +88,9 @@ TEST_P(EventReaderTest, all)
         {-8.273504806466310e-2, 9.750892208717103e-1, 2.058055469649411e-1},
         {7.028153760960004e-2, -8.780402697122620e-1, -4.733981307893478e-1}};
 
-    for (std::size_t i = 0; i < event_record.primaries.size(); ++i)
+    for (std::size_t i = 0; i < primaries.size(); ++i)
     {
-        const auto& primary = event_record.primaries[i];
+        const auto& primary = primaries[i];
 
         // Check that the particle types were read correctly
         EXPECT_EQ(expected_def_id[i], primary.def_id.get());
@@ -89,7 +98,7 @@ TEST_P(EventReaderTest, all)
         // Check that the event IDs match
         EXPECT_EQ(0, primary.event_id.get());
 
-        // Check that the position, direction, and energy  was read correctly
+        // Check that the position, direction, and energy were read correctly
         const double expected_position[] = {0, 0, 0};
         EXPECT_VEC_SOFT_EQ(expected_position, primary.position);
         EXPECT_VEC_SOFT_EQ(expected_direction[i], primary.direction);

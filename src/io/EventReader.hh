@@ -22,15 +22,10 @@ namespace celeritas
 class EventReader
 {
   public:
-    struct result_type
-    {
-        std::vector<Primary> primaries;
-    };
-
-  public:
     //@{
     //! Type aliases
     using constSPParticleParams = std::shared_ptr<const ParticleParams>;
+    using result_type           = std::vector<Primary>;
     //@}
 
   public:

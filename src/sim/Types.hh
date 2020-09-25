@@ -12,12 +12,10 @@
 
 namespace celeritas
 {
-struct Event;
-struct Track;
 //---------------------------------------------------------------------------//
 
-using EventId = OpaqueId<Event>;
-using TrackId = OpaqueId<Track>;
+using EventId = OpaqueId<struct Event>;
+using TrackId = OpaqueId<struct Track>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
