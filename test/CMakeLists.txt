@@ -139,6 +139,10 @@ celeritas_setup_tests(SERIAL PREFIX io LINK_LIBRARIES Celeritas::IO)
 if(CELERITAS_USE_ROOT)
   celeritas_add_test(io/GeantImporter.test.cc)
 endif()
+if(CELERITAS_USE_HepMC3)
+  celeritas_add_test(io/EventReader.test.cc)
+  target_link_libraries(io_EventReader ${HEPMC3_LIB})
+endif()
 
 #-----------------------------------------------------------------------------#
 # Physics
