@@ -1,4 +1,4 @@
-//---------------------------------*-CUDA-*----------------------------------//
+//----------------------------------*-C++-*----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,25 +7,29 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Types.hh"
+#include "Units.hh"
 
 namespace celeritas
 {
 namespace constants
 {
 //---------------------------------------------------------------------------//
-/*!
- * \namespace constants
- *
- * Mathematical and numerical constants. Physical constants (some of whose
- * values depend on the unit system) are defined in
- * `physics/base/Constants.hh`.
+/*
+ * Physical constants. Some of these values depend on the unit system.
+ * Purely mathematical constants belong in base/Constants.hh
  */
 
-constexpr real_type pi     = 3.14159265358979323846;
-constexpr real_type two_pi = 2. * pi;
+//@{
+//! Speed of light
+constexpr real_type speed_of_light    = 1.; // Natural unit
+constexpr real_type speed_of_light_sq = 1.;
+//@}
 
-} // namespace constants
+//@{
+//! Derived quantities
+constexpr real_type mev_csq = units::mega_electron_volt * speed_of_light_sq;
+//@}
 
 //---------------------------------------------------------------------------//
+} // namespace constants
 } // namespace celeritas

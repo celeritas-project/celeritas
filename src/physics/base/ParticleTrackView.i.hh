@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "base/Assert.hh"
+#include "physics/base/Constants.hh"
 #include "physics/base/Units.hh"
 
 namespace celeritas
@@ -129,11 +130,11 @@ CELER_FUNCTION real_type ParticleTrackView::decay_constant() const
 CELER_FUNCTION real_type ParticleTrackView::speed() const
 {
     // Rest mass energy
-    real_type mcsq = this->mass() * units::speed_of_light_sq;
+    real_type mcsq = this->mass() * constants::speed_of_light_sq;
     // Inverse of lorentz factor (safe for m=0)
     real_type inv_gamma = mcsq / (this->energy() + mcsq);
 
-    return units::speed_of_light * std::sqrt(1 - inv_gamma * inv_gamma);
+    return constants::speed_of_light * std::sqrt(1 - inv_gamma * inv_gamma);
 }
 
 //---------------------------------------------------------------------------//
@@ -164,7 +165,7 @@ CELER_FUNCTION real_type ParticleTrackView::lorentz_factor() const
     REQUIRE(this->mass() > 0);
 
     real_type k_over_mc2 = this->energy()
-                           / (this->mass() * units::speed_of_light_sq);
+                           / (this->mass() * constants::speed_of_light_sq);
     return 1 + k_over_mc2;
 }
 
@@ -191,7 +192,7 @@ CELER_FUNCTION real_type ParticleTrackView::lorentz_factor() const
  */
 CELER_FUNCTION real_type ParticleTrackView::momentum_sq() const
 {
-    constexpr real_type inv_c_sq = 1 / units::speed_of_light_sq;
+    constexpr real_type inv_c_sq = 1 / constants::speed_of_light_sq;
 
     const real_type energy = this->energy();
     real_type result = energy * energy * inv_c_sq + 2 * this->mass() * energy;

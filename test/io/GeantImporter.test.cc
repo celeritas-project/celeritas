@@ -9,6 +9,7 @@
 
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
+#include "physics/base/Constants.hh"
 #include "physics/base/Units.hh"
 
 using celeritas::GeantImporter;
@@ -17,6 +18,7 @@ using celeritas::ParticleDef;
 using celeritas::ParticleDefId;
 using celeritas::ParticleParams;
 using celeritas::PDGNumber;
+using namespace celeritas::constants;
 using namespace celeritas::units;
 
 //---------------------------------------------------------------------------//

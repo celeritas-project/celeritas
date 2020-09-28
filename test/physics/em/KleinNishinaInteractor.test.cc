@@ -10,6 +10,7 @@
 #include "gtest/Main.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
+#include "physics/base/Constants.hh"
 #include "physics/base/Units.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
@@ -31,6 +32,7 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
     void SetUp() override
     {
         using celeritas::ParticleDef;
+        using namespace celeritas::constants;
         using namespace celeritas::units;
 
         Base::set_particle_params(

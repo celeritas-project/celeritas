@@ -44,6 +44,7 @@ class ParticleTrackViewTest : public celeritas::Test
         namespace pdg = celeritas::pdg;
         using celeritas::ParticleDef;
         using namespace celeritas::units;
+        using celeritas::constants::mev_csq;
 
         // Create particle defs, initialize on device
         ParticleParams::VecAnnotatedDefs defs;

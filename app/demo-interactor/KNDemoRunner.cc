@@ -12,6 +12,7 @@
 #include "random/cuda/RngStateStore.hh"
 #include "physics/base/ParticleStateStore.hh"
 #include "physics/base/SecondaryAllocatorStore.hh"
+#include "physics/base/Constants.hh"
 #include "physics/base/Units.hh"
 
 using namespace celeritas;
@@ -31,7 +32,7 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
     REQUIRE(launch_params_.grid_size > 0);
 
     // Set up KN interactor data;
-    using celeritas::units::speed_of_light_sq;
+    using celeritas::constants::speed_of_light_sq;
     namespace pdg            = celeritas::pdg;
     kn_pointers_.electron_id = pparams_->find(pdg::electron());
     kn_pointers_.gamma_id    = pparams_->find(pdg::gamma());

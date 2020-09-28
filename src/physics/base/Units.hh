@@ -68,15 +68,6 @@ constexpr real_type barn      = 1.e-24 * centimeter * centimeter;
 constexpr real_type millibarn = 1.e-3 * barn;
 //@}
 
-//@{
-//! Derived quantities
-constexpr real_type speed_of_light    = 1.; // Natural unit
-constexpr real_type speed_of_light_sq = 1.;
-constexpr real_type mev_csq           = mega_electron_volt * speed_of_light_sq;
-//@}
-
 //---------------------------------------------------------------------------//
 } // namespace units
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//
