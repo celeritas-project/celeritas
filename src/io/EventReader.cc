@@ -50,6 +50,22 @@ EventReader::result_type EventReader::operator()()
 
         for (auto gen_particle : gen_event.particles())
         {
+            // Check if this particle type is present in the problem data and
+            // skip the particle if not
+            bool found = false;
+            for (auto md : params_->md())
+            {
+                if (gen_particle->pid() == md.pdg_code.get())
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                continue;
+            }
+
             Primary primary;
 
             // Set the event number

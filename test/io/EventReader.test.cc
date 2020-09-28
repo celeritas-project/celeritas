@@ -14,6 +14,7 @@
 #include "physics/base/Units.hh"
 
 using celeritas::EventReader;
+using celeritas::ParticleDef;
 using celeritas::ParticleParams;
 using celeritas::Primary;
 using namespace celeritas::units;
@@ -29,7 +30,6 @@ class EventReaderTest : public celeritas::Test,
   protected:
     void SetUp() override
     {
-        using celeritas::ParticleDef;
         using celeritas::PDGNumber;
 
         // Create shared standard model particle data
@@ -61,7 +61,37 @@ class EventReaderTest : public celeritas::Test,
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_P(EventReaderTest, all)
+TEST_F(EventReaderTest, filter_pdg)
+{
+    // Create shared particle data with only photons
+    std::shared_ptr<ParticleParams>  particle_params;
+    ParticleParams::VecAnnotatedDefs defs
+        = {{{"gamma", pdg::gamma()},
+            {0, 0, ParticleDef::stable_decay_constant()}}};
+    particle_params = std::make_shared<ParticleParams>(std::move(defs));
+
+    filename_ = this->test_data_path("io", "event-record-2.hepmc3");
+
+    // Determine the event record format and open the file
+    EventReader read_event(filename_.c_str(), particle_params);
+
+    // Read only photons from the event record (5 events with 1 photon each)
+    auto primaries = read_event();
+    EXPECT_EQ(5, primaries.size());
+
+    for (std::size_t i = 0; i < primaries.size(); ++i)
+    {
+        const auto& primary = primaries[i];
+
+        // Check that all of the primaries read are photons
+        EXPECT_EQ(0, primary.def_id.get());
+
+        // Check that the event IDs match
+        EXPECT_EQ(i, primary.event_id.get());
+    }
+}
+
+TEST_P(EventReaderTest, read_all_formats)
 {
     filename_ = this->test_data_path("io", GetParam());
 
