@@ -8,6 +8,7 @@
 # CONFIGURE FILE
 #----------------------------------------------------------------------------#
 set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
+set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
 set(_CONFIG_NAME "celeritas_config.h")
@@ -47,6 +48,13 @@ else()
     base/DeviceAllocation.nocuda.cc
     base/Memory.nocuda.cc
   )
+endif()
+
+if(CELERITAS_USE_HepMC3)
+  list(APPEND SOURCES
+    io/EventReader.cc
+  )
+  list(APPEND PRIVATE_DEPS ${HEPMC3_LIB})
 endif()
 
 if(CELERITAS_USE_MPI)

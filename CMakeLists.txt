@@ -28,6 +28,7 @@ option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
 # TPLs
 option(CELERITAS_USE_CUDA "Enable GPU transport" ON)
 option(CELERITAS_USE_Geant4 "Enable Geant4 adapter tools" OFF)
+option(CELERITAS_USE_HepMC3 "Enable HepMC3 event record reader" OFF)
 option(CELERITAS_USE_MPI "Enable distributed memory parallelism" ON)
 option(CELERITAS_USE_ROOT "Enable ROOT I/O" OFF)
 option(CELERITAS_USE_VecGeom "Enable VecGeom geometry" ON)
@@ -83,6 +84,10 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   find_package(Geant4 REQUIRED)
+endif()
+
+if(CELERITAS_USE_HepMC3)
+  find_package(HepMC3 REQUIRED)
 endif()
 
 if(CELERITAS_USE_MPI)
