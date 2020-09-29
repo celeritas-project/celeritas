@@ -50,23 +50,16 @@ EventReader::result_type EventReader::operator()()
 
         for (auto gen_particle : gen_event.particles())
         {
-            // Check if this particle type is present in the problem data and
-            // skip the particle if not
-            bool found = false;
-            for (auto md : params_->md())
-            {
-                if (gen_particle->pid() == md.pdg_code.get())
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-            {
-                continue;
-            }
+            // Get the PDG code and check if this particle type is defined for
+            // the current physics
+            PDGNumber     pdg{gen_particle->pid()};
+            ParticleDefId def_id{params_->find(pdg)};
+            CHECK(def_id);
 
             Primary primary;
+
+            // Set the registered ID of the particle
+            primary.def_id = def_id;
 
             // Set the event number
             primary.event_id = EventId(event_id);
@@ -86,10 +79,6 @@ EventReader::result_type EventReader::operator()()
             primary.direction = {gen_particle->momentum().px() / momentum,
                                  gen_particle->momentum().py() / momentum,
                                  gen_particle->momentum().pz() / momentum};
-
-            // Get the registered ID of the particle from the PDG code
-            int pdg        = gen_particle->pid();
-            primary.def_id = params_->find(PDGNumber(pdg));
 
             // Get the energy of the primary
             primary.energy = gen_particle->momentum().e()

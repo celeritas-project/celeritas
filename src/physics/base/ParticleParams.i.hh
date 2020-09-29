@@ -17,7 +17,10 @@ namespace celeritas
 ParticleDefId ParticleParams::find(const std::string& name) const
 {
     auto iter = name_to_id_.find(name);
-    REQUIRE(iter != name_to_id_.end());
+    if (iter == name_to_id_.end())
+    {
+        return ParticleDefId{};
+    }
     return iter->second;
 }
 
@@ -28,7 +31,10 @@ ParticleDefId ParticleParams::find(const std::string& name) const
 ParticleDefId ParticleParams::find(PDGNumber pdg_code) const
 {
     auto iter = pdg_to_id_.find(pdg_code);
-    REQUIRE(iter != pdg_to_id_.end());
+    if (iter == pdg_to_id_.end())
+    {
+        return ParticleDefId{};
+    }
     return iter->second;
 }
 

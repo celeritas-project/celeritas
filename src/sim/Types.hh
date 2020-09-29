@@ -5,8 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Types.hh
 //---------------------------------------------------------------------------//
-#ifndef sim_Types_hh
-#define sim_Types_hh
+#pragma once
 
 #include "base/OpaqueId.hh"
 
@@ -19,5 +18,3 @@ using TrackId = OpaqueId<struct Track>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-#endif // sim_Types_hh
