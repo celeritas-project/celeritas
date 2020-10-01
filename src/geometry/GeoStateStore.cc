@@ -34,48 +34,6 @@ GeoStateStore::GeoStateStore(const GeoParams& geom, size_type size)
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize states on the host.
- *
- * This must currently be done independently of the device.
- */
-void GeoStateStore::initialize(const GeoParams&,
-                               SpanConstReal3 pos,
-                               SpanConstReal3 dir)
-{
-    REQUIRE(pos.size() == this->size());
-    REQUIRE(dir.size() == this->size());
-
-    auto& cur_state_pool  = vgstate_.get();
-    auto& next_state_pool = vgnext_.get();
-
-    // Initialize "current" state using host pointers
-    const vecgeom::VPlacedVolume* host_world
-        = vecgeom::GeoManager::Instance().GetWorld();
-    constexpr bool contains_point = true;
-    for (auto i : range(this->size()))
-    {
-        cur_state_pool[i]->Clear();
-        vecgeom::GlobalLocator::LocateGlobalPoint(host_world,
-                                                  detail::to_vector(pos[i]),
-                                                  *cur_state_pool[i],
-                                                  contains_point);
-        next_state_pool[i]->Clear();
-    }
-
-    // Clear 'next step'
-    std::vector<real_type> next_step(
-        this->size(), celeritas::numeric_limits<real_type>::quiet_NaN());
-
-    // Copy data to device
-    vgstate_.copy_to_device();
-    vgnext_.copy_to_device();
-    pos_.copy_to_device(pos);
-    dir_.copy_to_device(dir);
-    next_step_.copy_to_device(make_span(next_step));
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * \brief Get a view to on-device states
  */
 GeoStatePointers GeoStateStore::device_pointers()

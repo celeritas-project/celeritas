@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoTrackView.test.hh
+//! \file LinearPropagator.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 #include "geometry/GeoStatePointers.hh"
 #include "geometry/GeoParamsPointers.hh"
-#include "geometry/GeoTrackView.hh"
+#include "geometry/LinearPropagator.hh"
 
 namespace celeritas_test
 {
@@ -18,20 +18,20 @@ using namespace celeritas;
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
-using VGGTestInit = GeoStateInitializer;
+using LinPropTestInit = GeoStateInitializer;
 
 //! Input data
-struct VGGTestInput
+struct LinPropTestInput
 {
-    std::vector<VGGTestInit> init;
-    int                      max_segments = 0;
-    GeoParamsPointers        shared;
-    GeoStatePointers         state;
+    std::vector<LinPropTestInit> init;
+    int                          max_segments = 0;
+    GeoParamsPointers            shared;
+    GeoStatePointers             state;
 };
 
 //---------------------------------------------------------------------------//
 //! Output results
-struct VGGTestOutput
+struct LinPropTestOutput
 {
     std::vector<int>    ids;
     std::vector<double> distances;
@@ -39,7 +39,7 @@ struct VGGTestOutput
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-VGGTestOutput vgg_test(VGGTestInput);
+LinPropTestOutput linProp_test(LinPropTestInput);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

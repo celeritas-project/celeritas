@@ -3,27 +3,25 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoTrackView.test.cc
+//! \file LinearPropagator.test.cc
 //---------------------------------------------------------------------------//
-#include "geometry/GeoTrackView.hh"
-
-#include <VecGeom/navigation/NavigationState.h>
-#include "geometry/GeoParams.hh"
-#include "geometry/GeoStateStore.hh"
+#include "geometry/LinearPropagator.hh"
 
 #include "GeoParamsTest.hh"
+#include "geometry/GeoStateStore.hh"
+
 #ifdef CELERITAS_USE_CUDA
-#    include "GeoTrackView.test.hh"
+#    include "LinearPropagator.test.hh"
 #endif
 
 using namespace celeritas;
 using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
-// HOST TESTS
+// TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeoTrackViewHostTest : public GeoParamsTest
+class LinearPropagatorHostTest : public GeoParamsTest
 {
   public:
     using NavState = vecgeom::cxx::NavigationState;
@@ -59,11 +57,25 @@ class GeoTrackViewHostTest : public GeoParamsTest
     GeoParamsPointers params_view;
 };
 
-TEST_F(GeoTrackViewHostTest, track_line)
+//---------------------------------------------------------------------------//
+// HOST TESTS
+//---------------------------------------------------------------------------//
+
+TEST_F(LinearPropagatorHostTest, accessors)
 {
-    // Construct geometry interface from persistent geometry data, state view,
-    // and thread ID (which for CPU is just zero).
-    GeoTrackView geo(params_view, state_view, ThreadId(0));
+    const auto& geom = *params();
+    EXPECT_EQ(2, geom.num_volumes());
+    EXPECT_EQ(2, geom.max_depth());
+    EXPECT_EQ("Detector", geom.id_to_label(VolumeId{0}));
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{1}));
+}
+
+//----------------------------------------------------------------------------//
+
+TEST_F(LinearPropagatorHostTest, track_line)
+{
+    GeoTrackView     geo(params_view, state_view, ThreadId(0));
+    LinearPropagator propagate(geo); // one propagator per track
 
     {
         // Track from outside detector, moving right
@@ -72,19 +84,19 @@ TEST_F(GeoTrackViewHostTest, track_line)
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(1.0, geo.next_step());
-        geo.move_next_step();
+        propagate();
         EXPECT_SOFT_EQ(-5.0, geo.pos()[0]);
         EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(10.0, geo.next_step());
-        geo.move_next_step();
+        propagate();
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
         EXPECT_EQ(false, geo.is_outside());
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(45.0, geo.next_step());
-        geo.move_next_step();
+        propagate();
         EXPECT_EQ(true, geo.is_outside());
     }
 
@@ -101,7 +113,7 @@ TEST_F(GeoTrackViewHostTest, track_line)
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
         geo.find_next_step();
         EXPECT_SOFT_EQ(45.0 - 1e-6, geo.next_step());
-        geo.move_next_step();
+        propagate();
         EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
     }
     {
@@ -111,33 +123,82 @@ TEST_F(GeoTrackViewHostTest, track_line)
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(5.0, geo.next_step());
-        geo.move_next_step();
+        propagate();
         EXPECT_SOFT_EQ(5.0, geo.pos()[0]);
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
         EXPECT_EQ(false, geo.is_outside());
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(45.0, geo.next_step());
-        geo.move_next_step();
+        propagate();
         EXPECT_EQ(true, geo.is_outside());
     }
 }
 
-#if CELERITAS_USE_CUDA
+//----------------------------------------------------------------------------//
+
+TEST_F(LinearPropagatorHostTest, track_intraVolume)
+{
+    GeoTrackView     geo(params_view, state_view, ThreadId(0));
+    LinearPropagator propagate(geo); // one propagator per track
+
+    {
+        // Track from outside detector, moving right
+        geo = {{-6, 0, 0}, {1, 0, 0}};
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+
+        geo.find_next_step();
+        EXPECT_SOFT_EQ(1.0, geo.next_step());
+
+        // break next step into two
+        propagate(0.5 * geo.next_step());
+        EXPECT_SOFT_EQ(-5.5, geo.pos()[0]);
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+
+        propagate(geo.next_step()); // all remaining
+        EXPECT_SOFT_EQ(-5.0, geo.pos()[0]);
+        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+
+        // break next step into more than two, re-calculating next_step each
+        // time
+        geo.find_next_step();
+        EXPECT_SOFT_EQ(10.0, geo.next_step());
+
+        propagate(0.3 * geo.next_step()); // step 1 inside Detector
+        EXPECT_SOFT_EQ(-2.0, geo.pos()[0]);
+        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+
+        geo.find_next_step();
+        EXPECT_SOFT_EQ(7.0, geo.next_step());
+
+        propagate(0.5 * geo.next_step()); // step 2 inside Detector
+        EXPECT_SOFT_EQ(1.5, geo.pos()[0]);
+        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+
+        geo.find_next_step();
+        EXPECT_SOFT_EQ(3.5, geo.next_step());
+
+        propagate(geo.next_step()); // last step inside Detector
+        EXPECT_SOFT_EQ(5.0, geo.pos()[0]);
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+    }
+}
+
 //---------------------------------------------------------------------------//
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
+#if CELERITAS_USE_CUDA
 
-class GeoTrackViewDeviceTest : public GeoParamsTest
+class LinearPropagatorDeviceTest : public GeoParamsTest
 {
 };
 
-TEST_F(GeoTrackViewDeviceTest, track_lines)
+TEST_F(LinearPropagatorDeviceTest, track_lines)
 {
     CHECK(this->params());
 
     // Set up test input
-    VGGTestInput input;
+    LinPropTestInput input;
     input.init = {
         {{-6, 0, 0}, {1, 0, 0}},
         {{0, 0, 0}, {1, 0, 0}},
@@ -151,7 +212,7 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
     input.state = device_states.device_pointers();
 
     // Run kernel
-    auto output = vgg_test(input);
+    auto output = linProp_test(input);
 
     static const int expected_ids[] = {1, 0, 1, 0, 1, -1, -1, -1, -1, 1, 0, 1};
     static const double expected_distances[]

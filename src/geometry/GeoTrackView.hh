@@ -28,12 +28,7 @@ namespace celeritas
  */
 class GeoTrackView
 {
-  public:
-    struct Initializer_t
-    {
-        Real3 pos;
-        Real3 dir;
-    };
+    using Initializer_t = GeoStateInitializer;
 
   public:
     // Construct from persistent and state data
@@ -48,14 +43,33 @@ class GeoTrackView
     // Move to the next boundary
     inline CELER_FUNCTION void move_next_step();
 
+    // Update current volume, called whenever move reaches boundary
+    inline CELER_FUNCTION void move_next_volume();
+
     //@{
     //! State accessors
     CELER_FUNCTION const Real3& pos() const { return pos_; }
-    CELER_FUNCTION const Real3&    dir() const { return dir_; }
-    CELER_FUNCTION real_type       next_step() const { return next_step_; }
-    inline CELER_FUNCTION VolumeId volume_id() const;
-    inline CELER_FUNCTION Boundary boundary() const;
+    CELER_FUNCTION const Real3& dir() const { return dir_; }
+    CELER_FUNCTION real_type    next_step() const { return next_step_; }
     //@}
+
+    //@{
+    //! State modifiers via non-const references
+    CELER_FUNCTION Real3& pos() { return pos_; }
+    CELER_FUNCTION Real3& dir() { return dir_; }
+    CELER_FUNCTION real_type& next_step() { return next_step_; }
+    //@}
+
+    //! Get the volume ID in the current cell.
+    inline CELER_FUNCTION VolumeId volume_id() const;
+
+    //! Return whether the track is inside or outside the valid geometry
+    //! region.
+    CELER_FUNCTION bool is_outside() const { return vgstate_.IsOutside(); }
+
+    // A tiny push to make sure tracks go over boundaries, to minimize chances
+    // of getting stuck at boundaries
+    CELER_CONSTEXPR_FUNCTION static real_type tolerance() { return 1e-12; }
 
   private:
     //@{
@@ -77,11 +91,11 @@ class GeoTrackView
     //@}
 
   private:
-    // Get a reference to the state from a NavStatePool's pointer
+    //! Get a reference to the state from a NavStatePool's pointer
     static inline CELER_FUNCTION NavState&
                                  get_nav_state(void* state, int vgmaxdepth, ThreadId thread);
 
-    // Get a reference to the current volume
+    //! Get a reference to the current volume
     inline CELER_FUNCTION const Volume& volume() const;
 };
 

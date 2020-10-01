@@ -3,13 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoTrackView.test.cu
+//! \file LinearPropagator.test.cu
 //---------------------------------------------------------------------------//
-#include "GeoTrackView.test.hh"
+#include "LinearPropagator.test.hh"
 
 #include <thrust/device_vector.h>
 #include "base/KernelParamCalculator.cuda.hh"
 #include "geometry/GeoTrackView.hh"
+#include "geometry/LinearPropagator.hh"
 
 using thrust::raw_pointer_cast;
 
@@ -19,13 +20,13 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void vgg_test_kernel(const GeoParamsPointers shared,
-                                const GeoStatePointers  state,
-                                const int               size,
-                                const VGGTestInit*      start,
-                                const int               max_segments,
-                                VolumeId*               ids,
-                                double*                 distances)
+__global__ void linProp_test_kernel(const GeoParamsPointers shared,
+                                    const GeoStatePointers  state,
+                                    const int               size,
+                                    const LinPropTestInit*  start,
+                                    const int               max_segments,
+                                    VolumeId*               ids,
+                                    double*                 distances)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= size)
@@ -33,7 +34,19 @@ __global__ void vgg_test_kernel(const GeoParamsPointers shared,
 
     GeoTrackView geo(shared, state, tid);
     geo = start[tid.get()];
+    printf(
+        " ThreadId= %i - geo: %p, pos=(%8.3f, %8.3f, %8.3f), dir=(%8.3f, "
+        "%8.3f, %8.3f)\n",
+        tid.get(),
+        &geo,
+        geo.pos()[0],
+        geo.pos()[1],
+        geo.pos()[2],
+        geo.dir()[0],
+        geo.dir()[1],
+        geo.dir()[2]);
 
+    LinearPropagator propagate(geo);
     for (int seg = 0; seg < max_segments; ++seg)
     {
         if (geo.is_outside())
@@ -45,7 +58,7 @@ __global__ void vgg_test_kernel(const GeoParamsPointers shared,
         distances[tid.get() * max_segments + seg] = geo.next_step();
 
         // Move next step
-        geo.move_next_step();
+        propagate();
     }
 }
 
@@ -53,7 +66,7 @@ __global__ void vgg_test_kernel(const GeoParamsPointers shared,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-VGGTestOutput vgg_test(VGGTestInput input)
+LinPropTestOutput linProp_test(LinPropTestInput input)
 {
     REQUIRE(input.shared);
     REQUIRE(input.state);
@@ -61,15 +74,15 @@ VGGTestOutput vgg_test(VGGTestInput input)
     REQUIRE(input.max_segments > 0);
 
     // Temporary device data for kernel
-    thrust::device_vector<VGGTestInit> init(input.init.begin(),
-                                            input.init.end());
+    thrust::device_vector<LinPropTestInit> init(input.init.begin(),
+                                                input.init.end());
     thrust::device_vector<VolumeId> ids(input.init.size() * input.max_segments);
     thrust::device_vector<double>   distances(ids.size(), -1.0);
 
     // Run kernel
     celeritas::KernelParamCalculator calc_launch_params;
     auto                             params = calc_launch_params(init.size());
-    vgg_test_kernel<<<params.grid_size, params.block_size>>>(
+    linProp_test_kernel<<<params.grid_size, params.block_size>>>(
         input.shared,
         input.state,
         init.size(),
@@ -80,7 +93,7 @@ VGGTestOutput vgg_test(VGGTestInput input)
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Copy result back to CPU
-    VGGTestOutput result;
+    LinPropTestOutput result;
     for (auto id : thrust::host_vector<VolumeId>(ids))
     {
         result.ids.push_back(id ? static_cast<int>(id.get()) : -1);

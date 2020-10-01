@@ -44,6 +44,12 @@ struct GeoStatePointers
     inline CELER_FUNCTION bool valid() const;
 };
 
+struct GeoStateInitializer
+{
+    Real3 pos;
+    Real3 dir;
+};
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
