@@ -3,13 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantParticleLinkDef.h
-//! \brief Defines which classes should be added to the ROOT dictionary
+//! \file GdmlGeometryMapTypes.hh
+//! \brief Simple wrapper to differentiate material, element, and volume ids
 //---------------------------------------------------------------------------//
-#ifdef __CINT__
+#pragma once
 
-// clang-format off
-#pragma link C++ class celeritas::GeantParticle+;
-// clang-format on
-
-#endif
+namespace celeritas
+{
+//@{
+//! Type aliases
+using mat_id  = int;
+using elem_id = int;
+using vol_id  = int;
+//@}
+//---------------------------------------------------------------------------//
+} // namespace celeritas

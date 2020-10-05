@@ -3,32 +3,43 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DetectorConstruction.hh
-//! \brief Construct detector geometry from a given gdml input
+//! \file ImportProcess.hh
+//! \brief Enumerator for the available physics processes
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <G4VUserDetectorConstruction.hh>
+#include <string>
 
-namespace geant_exporter
+namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load the detector geometry from a GDML input file.
+ * This enum was created to safely access the many physics tables imported.
  */
-class DetectorConstruction : public G4VUserDetectorConstruction
+enum class ImportProcess
 {
-  public:
-    explicit DetectorConstruction(G4String gdmlInput);
-    ~DetectorConstruction();
+    // EM process list
+    not_defined,
+    ion_ioni,
+    msc,
+    h_ioni,
+    h_brems,
+    h_pair_prod,
+    coulomb_scat,
+    e_ioni,
+    e_brem,
+    photoelectric,
+    compton,
+    conversion,
+    rayleigh,
+    annihilation,
+    mu_ioni,
+    mu_brems,
+    mu_pair_prod,
 
-    G4VPhysicalVolume* Construct() override;
-    const G4VPhysicalVolume* get_world_volume() const;
-
-  private:
-    std::unique_ptr<G4VPhysicalVolume> phys_vol_world_;
+    // Extra
+    transportation
 };
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace celeritas

@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantImporter.cc
+//! \file RootImporter.cc
 //---------------------------------------------------------------------------//
-#include "GeantImporter.hh"
+#include "RootImporter.hh"
 
 #include <iomanip>
 #include <iostream>
@@ -26,7 +26,7 @@ namespace celeritas
 /*!
  * Constructor
  */
-GeantImporter::GeantImporter(const char* filename)
+RootImporter::RootImporter(const char* filename)
 {
     root_input_.reset(TFile::Open(filename, "read"));
     ENSURE(root_input_);
@@ -34,26 +34,31 @@ GeantImporter::GeantImporter(const char* filename)
 
 //---------------------------------------------------------------------------//
 //! Default destructor
-GeantImporter::~GeantImporter() = default;
+RootImporter::~RootImporter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
  * Load all data from the input file
  */
-GeantImporter::result_type GeantImporter::operator()()
+RootImporter::result_type RootImporter::operator()()
 {
     result_type geant_data;
     geant_data.particle_params = this->load_particle_data();
+    geant_data.physics_tables  = this->load_physics_table_data();
+    geant_data.geometry        = this->load_geometry_data();
 
     ENSURE(geant_data.particle_params);
+    ENSURE(geant_data.physics_tables);
+    ENSURE(geant_data.geometry);
+
     return geant_data;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Load and convert vector<GeantParticle> to ParticleParams
+ * Load all ImportParticle objects from the ROOT file as ParticleParams
  */
-std::shared_ptr<ParticleParams> GeantImporter::load_particle_data()
+std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
 {
     // Open the 'particles' branch and reserve size for the converted data
     std::unique_ptr<TTree> tree_particles(
@@ -64,9 +69,9 @@ std::shared_ptr<ParticleParams> GeantImporter::load_particle_data()
     CHECK(!defs.empty());
 
     // Load the particle data
-    GeantParticle  particle;
-    GeantParticle* temp_particle_ptr = &particle;
-    tree_particles->SetBranchAddress("GeantParticle", &temp_particle_ptr);
+    ImportParticle  particle;
+    ImportParticle* temp_particle_ptr = &particle;
+    tree_particles->SetBranchAddress("ImportParticle", &temp_particle_ptr);
     for (auto i : range(defs.size()))
     {
         // Load a single entry into particle
@@ -103,6 +108,57 @@ std::shared_ptr<ParticleParams> GeantImporter::load_particle_data()
 
     // Construct ParticleParams from the definitions
     return std::make_shared<ParticleParams>(std::move(defs));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load all ImportPhysicsTable objects from the ROOT file as a vector
+ */
+std::shared_ptr<std::vector<ImportPhysicsTable>>
+RootImporter::load_physics_table_data()
+{
+    // Open tables branch
+    std::unique_ptr<TTree> tree_tables(root_input_->Get<TTree>("tables"));
+    CHECK(tree_tables);
+    CHECK(tree_tables->GetEntries());
+
+    // Load branch
+    ImportPhysicsTable  a_table;
+    ImportPhysicsTable* temp_table_ptr = &a_table;
+    tree_tables->SetBranchAddress("ImportPhysicsTable", &temp_table_ptr);
+
+    std::vector<ImportPhysicsTable> tables;
+
+    // Populate physics table vector
+    for (size_type i : range(tree_tables->GetEntries()))
+    {
+        tree_tables->GetEntry(i);
+        tables.push_back(a_table);
+    }
+
+    return std::make_shared<std::vector<ImportPhysicsTable>>(std::move(tables));
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Load GdmlGeometryMap from the ROOT file
+ */
+std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
+{
+    // Open geometry branch
+    std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
+    CHECK(tree_geometry);
+    CHECK(tree_geometry->GetEntries()); // Must be 1
+
+    // Load branch and fetch data
+    GdmlGeometryMap  geometry;
+    GdmlGeometryMap* geometry_ptr = &geometry;
+    tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+    tree_geometry->GetEntry(0);
+
+    // The info from the GdmlGeometryMap will be used by a class that will be
+    // constructed on the host and will manage host/device data
+
+    return std::make_shared<GdmlGeometryMap>(std::move(geometry));
 }
 
 //---------------------------------------------------------------------------//

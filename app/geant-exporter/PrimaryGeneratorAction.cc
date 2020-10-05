@@ -5,7 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file PrimaryGeneratorAction.cc
 //---------------------------------------------------------------------------//
-
 #include "PrimaryGeneratorAction.hh"
 
 #include <G4ParticleTable.hh>

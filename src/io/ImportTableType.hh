@@ -3,32 +3,35 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DetectorConstruction.hh
-//! \brief Construct detector geometry from a given gdml input
+//! \file ImportTableType.hh
+//! \brief Enumerator for the physics table types
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <G4VUserDetectorConstruction.hh>
+#include <string>
 
-namespace geant_exporter
+namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load the detector geometry from a GDML input file.
+ * This enum was created to safely access the many imported physics tables.
  */
-class DetectorConstruction : public G4VUserDetectorConstruction
+enum class ImportTableType
 {
-  public:
-    explicit DetectorConstruction(G4String gdmlInput);
-    ~DetectorConstruction();
-
-    G4VPhysicalVolume* Construct() override;
-    const G4VPhysicalVolume* get_world_volume() const;
-
-  private:
-    std::unique_ptr<G4VPhysicalVolume> phys_vol_world_;
+    // Geant4 table types
+    not_defined,
+    dedx,
+    ionisation,
+    range,
+    range_sec,
+    inverse_range,
+    lambda,
+    lambda_prim,
+    lambda_mod_1,
+    lambda_mod_2,
+    lambda_mod_3,
+    lambda_mod_4
 };
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace celeritas

@@ -3,24 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantParticle.hh
+//! \file ImportParticle.hh
+//! \brief Store particle data
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
-
 #include "base/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Struct used to store G4ParticleDefinition data from Geant4.
+ * Store particle data.
  *
- * GeantParticle objects are stored into a ROOT file by the app/geant-exporter
- * and retrieved from said ROOT file by the GeantImporter class.
+ * ImportParticle objects are stored into a ROOT file by the app/geant-exporter
+ * and retrieved by the RootImporter class.
  */
-struct GeantParticle
+struct ImportParticle
 {
     std::string name;
     int         pdg;

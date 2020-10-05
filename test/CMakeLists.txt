@@ -137,10 +137,11 @@ endif()
 #-----------------------------------------------------------------------------#
 # I/O (ROOT)
 
-celeritas_setup_tests(SERIAL PREFIX io LINK_LIBRARIES Celeritas::IO)
+celeritas_setup_tests(SERIAL PREFIX io)
 
 if(CELERITAS_USE_ROOT)
-  celeritas_add_test(io/GeantImporter.test.cc)
+  celeritas_add_test(io/RootImporter.test.cc)
+  target_link_libraries(io_RootImporter Celeritas::IO)
 endif()
 if(CELERITAS_USE_HepMC3)
   celeritas_add_test(io/EventReader.test.cc)
