@@ -17,7 +17,7 @@ namespace celeritas
  */
 template<typename T>
 CELER_FUNCTION IsotropicDistribution<T>::IsotropicDistribution()
-    : sample_costheta_(-1, 1), sample_phi_(0, constants::two_pi)
+    : sample_costheta_(-1, 1), sample_phi_(0, 2 * constants::pi)
 {
 }
 

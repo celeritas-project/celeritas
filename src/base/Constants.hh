@@ -21,7 +21,6 @@ namespace constants
  */
 
 constexpr real_type pi     = 3.14159265358979323846;
-constexpr real_type two_pi = 2. * pi;
 
 } // namespace constants
 

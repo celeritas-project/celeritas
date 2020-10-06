@@ -104,7 +104,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     result.secondaries = {electron_secondary, 1};
 
     // Sample azimuthal direction and rotate the outgoing direction
-    UniformRealDistribution<real_type> sample_phi(0, constants::two_pi);
+    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
     result.direction
         = rotate(from_spherical(1 - one_minus_costheta, sample_phi(rng)),
                  result.direction);
