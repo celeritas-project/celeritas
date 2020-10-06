@@ -27,6 +27,7 @@ using celeritas::ParticleTrackView;
 
 using celeritas::real_type;
 using celeritas::ThreadId;
+using celeritas::units::MevEnergy;
 
 using namespace celeritas_test;
 
@@ -43,16 +44,18 @@ class ParticleTrackViewTest : public celeritas::Test
     {
         namespace pdg = celeritas::pdg;
         using celeritas::ParticleDef;
+        using namespace celeritas::units;
+
+        celeritas::ZeroQuantity zero;
+        auto                    stable = ParticleDef::stable_decay_constant();
 
         // Create particle defs, initialize on device
         ParticleParams::VecAnnotatedDefs defs;
-        defs.push_back(
-            {{"electron", pdg::electron()},
-             {0.5109989461, -1, ParticleDef::stable_decay_constant()}});
-        defs.push_back({{"gamma", pdg::gamma()},
-                        {0, 0, ParticleDef::stable_decay_constant()}});
-        defs.push_back(
-            {{"neutron", PDGNumber{2112}}, {939.565413, 0, 1.0 / 879.4}});
+        defs.push_back({{"electron", pdg::electron()},
+                        {MevMass{0.5109989461}, ElementaryCharge{-1}, stable}});
+        defs.push_back({{"gamma", pdg::gamma()}, {zero, zero, stable}});
+        defs.push_back({{"neutron", PDGNumber{2112}},
+                        {MevMass{939.565413}, zero, 1.0 / (879.4 * second)}});
 
         particle_params = std::make_shared<ParticleParams>(std::move(defs));
     }
@@ -106,35 +109,36 @@ class ParticleTrackViewTestHost : public ParticleTrackViewTest
 TEST_F(ParticleTrackViewTestHost, electron)
 {
     ParticleTrackView particle(params_view, state_view, ThreadId(0));
-    particle = Initializer_t{ParticleDefId{0}, 500 * units::kilo_electron_volt};
+    particle = Initializer_t{ParticleDefId{0}, MevEnergy{0.5}};
 
-    EXPECT_DOUBLE_EQ(0.5, particle.energy());
-    EXPECT_DOUBLE_EQ(0.5109989461, particle.mass());
-    EXPECT_DOUBLE_EQ(-1., particle.charge());
+    EXPECT_DOUBLE_EQ(0.5, particle.energy().value());
+    EXPECT_DOUBLE_EQ(0.5109989461, particle.mass().value());
+    EXPECT_DOUBLE_EQ(-1., particle.charge().value());
     EXPECT_DOUBLE_EQ(0.0, particle.decay_constant());
-    EXPECT_SOFT_EQ(0.86286196322132447, particle.speed()); // fraction of c
+    EXPECT_SOFT_EQ(0.86286196322132447, particle.speed().value());
+    EXPECT_SOFT_EQ(25867950886.882648, celeritas::unit_cast(particle.speed()));
     EXPECT_SOFT_EQ(1.9784755992474248, particle.lorentz_factor());
-    EXPECT_SOFT_EQ(0.87235253544653601, particle.momentum());
-    EXPECT_SOFT_EQ(0.7609989461, particle.momentum_sq());
+    EXPECT_SOFT_EQ(0.87235253544653601, particle.momentum().value());
+    EXPECT_SOFT_EQ(0.7609989461, particle.momentum_sq().value());
 }
 
 TEST_F(ParticleTrackViewTestHost, gamma)
 {
     ParticleTrackView particle(params_view, state_view, ThreadId(0));
-    particle = Initializer_t{ParticleDefId{1}, 10 * units::mega_electron_volt};
+    particle = Initializer_t{ParticleDefId{1}, MevEnergy{10}};
 
-    EXPECT_DOUBLE_EQ(0, particle.mass());
-    EXPECT_DOUBLE_EQ(10, particle.energy());
-    EXPECT_DOUBLE_EQ(1.0, particle.speed());
-    EXPECT_DOUBLE_EQ(10, particle.momentum()); // [1 / c]
+    EXPECT_DOUBLE_EQ(0, particle.mass().value());
+    EXPECT_DOUBLE_EQ(10, particle.energy().value());
+    EXPECT_DOUBLE_EQ(1.0, particle.speed().value());
+    EXPECT_DOUBLE_EQ(10, particle.momentum().value());
 }
 
 TEST_F(ParticleTrackViewTestHost, neutron)
 {
     ParticleTrackView particle(params_view, state_view, ThreadId(0));
-    particle = Initializer_t{ParticleDefId{2}, 20 * units::mega_electron_volt};
+    particle = Initializer_t{ParticleDefId{2}, MevEnergy{20}};
 
-    EXPECT_DOUBLE_EQ(20, particle.energy());
+    EXPECT_DOUBLE_EQ(20, particle.energy().value());
     EXPECT_DOUBLE_EQ(1.0 / 879.4, particle.decay_constant());
 }
 
@@ -151,9 +155,9 @@ class ParticleTrackViewTestDevice : public ParticleTrackViewTest
 TEST_F(ParticleTrackViewTestDevice, calc_props)
 {
     PTVTestInput input;
-    input.init = {{ParticleDefId{0}, 500 * units::kilo_electron_volt},
-                  {ParticleDefId{1}, 10 * units::mega_electron_volt},
-                  {ParticleDefId{2}, 20 * units::mega_electron_volt}};
+    input.init = {{ParticleDefId{0}, MevEnergy{0.5}},
+                  {ParticleDefId{1}, MevEnergy{10}},
+                  {ParticleDefId{2}, MevEnergy{20}}};
 
     ParticleStateStore pstates(input.init.size());
     input.params = particle_params->device_pointers();

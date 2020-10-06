@@ -58,13 +58,13 @@ const ParticleParams& InteractorHostTestBase::particle_params() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the incident particle data.
+ * Initialize the incident particle data
  */
-void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, real_type energy)
+void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
 {
     REQUIRE(particle_params_);
     REQUIRE(pdg);
-    REQUIRE(energy > 0);
+    REQUIRE(energy > zero_quantity());
 
     particle_state_.def_id = particle_params_->find(pdg);
     particle_state_.energy = energy;
@@ -118,8 +118,10 @@ void InteractorHostTestBase::check_conservation(const Interaction& interaction) 
         local_state.energy = interaction.energy;
         ParticleTrackView exiting_track(
             pp_pointers_, local_state_ptrs, ThreadId{0});
-        exit_energy += exiting_track.energy();
-        axpy(exiting_track.momentum(), interaction.direction, &exit_momentum);
+        exit_energy += exiting_track.energy().value();
+        axpy(exiting_track.momentum().value(),
+             interaction.direction,
+             &exit_momentum);
     }
 
     // Subtract contributions from exiting secondaries
@@ -129,21 +131,21 @@ void InteractorHostTestBase::check_conservation(const Interaction& interaction) 
         local_state.energy = s.energy;
         ParticleTrackView secondary_track(
             pp_pointers_, local_state_ptrs, ThreadId{0});
-        exit_energy += secondary_track.energy();
-        axpy(secondary_track.momentum(), s.direction, &exit_momentum);
+        exit_energy += secondary_track.energy().value();
+        axpy(secondary_track.momentum().value(), s.direction, &exit_momentum);
     }
 
     // Compare against incident particle
     {
         ParticleTrackView parent_track(pp_pointers_, ps_pointers_, ThreadId{0});
-        EXPECT_SOFT_EQ(parent_track.energy(), exit_energy);
+        EXPECT_SOFT_EQ(parent_track.energy().value(), exit_energy);
 
         Real3 delta_momentum = exit_momentum;
-        axpy(-parent_track.momentum(), inc_direction_, &delta_momentum);
+        axpy(-parent_track.momentum().value(), inc_direction_, &delta_momentum);
         EXPECT_SOFT_EQ(0.0, dot_product(delta_momentum, delta_momentum))
             << "Incident: " << inc_direction_
-            << " with p = " << parent_track.momentum()
-            << "; exiting p = " << exit_momentum;
+            << " with p = " << parent_track.momentum().value()
+            << "* MeV^2/c^2; exiting p = " << exit_momentum;
     }
 }
 

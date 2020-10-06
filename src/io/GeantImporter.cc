@@ -18,6 +18,7 @@
 
 #include "base/Assert.hh"
 #include "base/Range.hh"
+#include "physics/base/Units.hh"
 
 namespace celeritas
 {
@@ -82,8 +83,8 @@ std::shared_ptr<ParticleParams> GeantImporter::load_particle_data()
 
         // Convert data
         ParticleDef particle_def;
-        particle_def.mass   = particle.mass;
-        particle_def.charge = particle.charge;
+        particle_def.mass   = units::MevMass{particle.mass};
+        particle_def.charge = units::ElementaryCharge{particle.charge};
         particle_def.decay_constant
             = (particle.is_stable ? ParticleDef::stable_decay_constant()
                                   : 1. / particle.lifetime);

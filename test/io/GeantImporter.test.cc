@@ -46,8 +46,8 @@ TEST_F(GeantImporterTest, import_particles)
     ParticleDefId electron_id = data.particle_params->find(PDGNumber(11));
     ParticleDef   electron    = data.particle_params->get(electron_id);
 
-    EXPECT_SOFT_EQ(0.510998910, electron.mass);
-    EXPECT_EQ(-1, electron.charge);
+    EXPECT_SOFT_EQ(0.510998910, electron.mass.value());
+    EXPECT_EQ(-1, electron.charge.value());
     EXPECT_EQ(0, electron.decay_constant);
 
     std::vector<std::string> loaded_names;

@@ -7,10 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "ParticleStatePointers.hh"
-#include "ParticleParamsPointers.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "ParticleStatePointers.hh"
+#include "ParticleParamsPointers.hh"
+#include "Units.hh"
 
 namespace celeritas
 {
@@ -44,8 +45,8 @@ class ParticleTrackView
     inline CELER_FUNCTION ParticleTrackView&
                           operator=(const Initializer_t& other);
 
-    // Change the particle's energy
-    inline CELER_FUNCTION void energy(real_type);
+    // Change the particle's energy [MeV]
+    inline CELER_FUNCTION void energy(units::MevEnergy);
 
     // >>> DYNAMIC PROPERTIES (pure accessors, free)
 
@@ -53,15 +54,15 @@ class ParticleTrackView
     inline CELER_FUNCTION ParticleDefId def_id() const;
 
     // Kinetic energy [MeV]
-    inline CELER_FUNCTION real_type energy() const;
+    inline CELER_FUNCTION units::MevEnergy energy() const;
 
     // >>> STATIC PROPERTIES (requires an indirection)
 
     // Rest mass [MeV / c^2]
-    inline CELER_FUNCTION real_type mass() const;
+    inline CELER_FUNCTION units::MevMass mass() const;
 
     // Charge [elemental charge e+]
-    inline CELER_FUNCTION real_type charge() const;
+    inline CELER_FUNCTION units::ElementaryCharge charge() const;
 
     // Decay constant [1/s]
     inline CELER_FUNCTION real_type decay_constant() const;
@@ -69,16 +70,16 @@ class ParticleTrackView
     // >>> DERIVED PROPERTIES (indirection plus calculation)
 
     // Speed [1/c]
-    inline CELER_FUNCTION real_type speed() const;
+    inline CELER_FUNCTION units::LightSpeed speed() const;
 
     // Lorentz factor [unitless]
     inline CELER_FUNCTION real_type lorentz_factor() const;
 
     // Relativistic momentum [MeV / c]
-    inline CELER_FUNCTION real_type momentum() const;
+    inline CELER_FUNCTION units::MevMomentum momentum() const;
 
     // Relativistic momentum squared [MeV^2 / c^2]
-    inline CELER_FUNCTION real_type momentum_sq() const;
+    inline CELER_FUNCTION units::MevMomentumSq momentum_sq() const;
 
   private:
     const ParticleParamsPointers& params_;

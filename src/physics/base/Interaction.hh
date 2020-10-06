@@ -24,10 +24,10 @@ namespace celeritas
  */
 struct Interaction
 {
-    Action          action;      //!< Failure, scatter, absorption, ...
-    real_type       energy;      //!< Post-interaction energy
-    Real3           direction;   //!< Post-interaction direction
-    span<Secondary> secondaries; //!< Emitted secondaries
+    Action           action;      //!< Failure, scatter, absorption, ...
+    units::MevEnergy energy;      //!< Post-interaction energy
+    Real3            direction;   //!< Post-interaction direction
+    span<Secondary>  secondaries; //!< Emitted secondaries
 
     // Return an interaction representing a recoverable error
     static inline CELER_FUNCTION Interaction from_failure();

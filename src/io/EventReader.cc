@@ -6,6 +6,8 @@
 //! \file EventReader.cc
 //---------------------------------------------------------------------------//
 #include "EventReader.hh"
+
+#include "base/ArrayUtils.hh"
 #include "physics/base/Units.hh"
 #include "HepMC3/GenEvent.h"
 
@@ -70,19 +72,14 @@ EventReader::result_type EventReader::operator()()
                                 pos.y() * units::centimeter,
                                 pos.z() * units::centimeter};
 
-            // Calculate the magnitude of the momentum
-            real_type momentum = gen_particle->momentum().length()
-                                 * units::mega_electron_volt
-                                 / units::speed_of_light;
-
             // Get the direction of the primary
-            primary.direction = {gen_particle->momentum().px() / momentum,
-                                 gen_particle->momentum().py() / momentum,
-                                 gen_particle->momentum().pz() / momentum};
+            primary.direction = {gen_particle->momentum().px(),
+                                 gen_particle->momentum().py(),
+                                 gen_particle->momentum().pz()};
+            normalize_direction(&primary.direction);
 
             // Get the energy of the primary
-            primary.energy = gen_particle->momentum().e()
-                             * units::mega_electron_volt;
+            primary.energy = units::MevEnergy{gen_particle->momentum().e()};
 
             result.push_back(primary);
         }

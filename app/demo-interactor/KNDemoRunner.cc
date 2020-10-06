@@ -31,13 +31,11 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
     REQUIRE(launch_params_.grid_size > 0);
 
     // Set up KN interactor data;
-    using celeritas::units::speed_of_light_sq;
     namespace pdg            = celeritas::pdg;
     kn_pointers_.electron_id = pparams_->find(pdg::electron());
     kn_pointers_.gamma_id    = pparams_->find(pdg::gamma());
-    kn_pointers_.inv_electron_mass_csq
-        = 1
-          / (pparams_->get(kn_pointers_.electron_id).mass * speed_of_light_sq);
+    kn_pointers_.inv_electron_mass
+        = 1 / pparams_->get(kn_pointers_.electron_id).mass.value();
     ENSURE(kn_pointers_);
 }
 
@@ -68,10 +66,12 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     DeviceVector<bool>      alive(args.num_tracks);
 
     // Initialize particle states
+    ParticleTrackState initial_state{kn_pointers_.gamma_id,
+                                     units::MevEnergy{args.energy}};
     initialize(launch_params_,
                pparams_->device_pointers(),
                track_states.device_pointers(),
-               ParticleTrackState{kn_pointers_.gamma_id, args.energy},
+               initial_state,
                rng_states.device_pointers(),
                direction.device_pointers(),
                alive.device_pointers());

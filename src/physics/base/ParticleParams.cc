@@ -24,7 +24,7 @@ ParticleParams::ParticleParams(const VecAnnotatedDefs& defs)
     {
         REQUIRE(!md_def.first.name.empty());
         REQUIRE(md_def.first.pdg_code);
-        REQUIRE(md_def.second.mass >= 0);
+        REQUIRE(md_def.second.mass >= zero_quantity());
         REQUIRE(md_def.second.decay_constant >= 0);
 
         // Add host metadata

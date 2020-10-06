@@ -34,11 +34,14 @@ namespace demo_interactor
  */
 std::shared_ptr<ParticleParams> load_params()
 {
-    ParticleParams::VecAnnotatedDefs defs;
-    defs.push_back({{"gamma", pdg::gamma()},
-                    {0, 0, ParticleDef::stable_decay_constant()}});
-    defs.push_back({{"electron", pdg::electron()},
-                    {0.5109989461, -1, ParticleDef::stable_decay_constant()}});
+    using namespace celeritas::units;
+    celeritas::ZeroQuantity zero;
+    auto                    stable = ParticleDef::stable_decay_constant();
+
+    ParticleParams::VecAnnotatedDefs defs
+        = {{{"electron", pdg::electron()},
+            {MevMass{0.5109989461}, ElementaryCharge{-1}, stable}},
+           {{"gamma", pdg::gamma()}, {zero, zero, stable}}};
     return std::make_shared<ParticleParams>(std::move(defs));
 }
 
