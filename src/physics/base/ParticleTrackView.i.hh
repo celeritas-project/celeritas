@@ -34,7 +34,7 @@ CELER_FUNCTION ParticleTrackView&
 ParticleTrackView::operator=(const Initializer_t& other)
 {
     REQUIRE(other.def_id < params_.defs.size());
-    REQUIRE(other.energy > 0);
+    REQUIRE(other.energy > zero_quantity());
     state_ = other;
     return *this;
 }
@@ -47,11 +47,11 @@ ParticleTrackView::operator=(const Initializer_t& other)
  * applications, the new energy should always be less than the starting energy.
  */
 CELER_FUNCTION
-void ParticleTrackView::energy(real_type value)
+void ParticleTrackView::energy(units::MevEnergy quantity)
 {
     REQUIRE(this->def_id());
-    REQUIRE(value >= 0);
-    state_.energy = value;
+    REQUIRE(quantity >= zero_quantity());
+    state_.energy = quantity;
 }
 
 //---------------------------------------------------------------------------//
@@ -69,7 +69,7 @@ CELER_FUNCTION ParticleDefId ParticleTrackView::def_id() const
 /*!
  * Kinetic energy [MeV].
  */
-CELER_FUNCTION real_type ParticleTrackView::energy() const
+CELER_FUNCTION units::MevEnergy ParticleTrackView::energy() const
 {
     return state_.energy;
 }
@@ -80,7 +80,7 @@ CELER_FUNCTION real_type ParticleTrackView::energy() const
 /*!
  * Rest mass [MeV / c^2].
  */
-CELER_FUNCTION real_type ParticleTrackView::mass() const
+CELER_FUNCTION units::MevMass ParticleTrackView::mass() const
 {
     return this->particle_def().mass;
 }
@@ -89,7 +89,7 @@ CELER_FUNCTION real_type ParticleTrackView::mass() const
 /*!
  * Elementary charge.
  */
-CELER_FUNCTION real_type ParticleTrackView::charge() const
+CELER_FUNCTION units::ElementaryCharge ParticleTrackView::charge() const
 {
     return this->particle_def().charge;
 }
@@ -126,14 +126,14 @@ CELER_FUNCTION real_type ParticleTrackView::decay_constant() const
  * By choosing not to divide out the mass, this expression will work for
  * massless particles.
  */
-CELER_FUNCTION real_type ParticleTrackView::speed() const
+CELER_FUNCTION units::LightSpeed ParticleTrackView::speed() const
 {
-    // Rest mass energy
-    real_type mcsq = this->mass() * units::speed_of_light_sq;
+    // Rest mass as energy
+    real_type mcsq = this->mass().value();
     // Inverse of lorentz factor (safe for m=0)
-    real_type inv_gamma = mcsq / (this->energy() + mcsq);
+    real_type inv_gamma = mcsq / (this->energy().value() + mcsq);
 
-    return units::speed_of_light * std::sqrt(1 - inv_gamma * inv_gamma);
+    return units::LightSpeed{std::sqrt(1 - inv_gamma * inv_gamma)};
 }
 
 //---------------------------------------------------------------------------//
@@ -161,10 +161,9 @@ CELER_FUNCTION real_type ParticleTrackView::speed() const
  */
 CELER_FUNCTION real_type ParticleTrackView::lorentz_factor() const
 {
-    REQUIRE(this->mass() > 0);
+    REQUIRE(this->mass() > zero_quantity());
 
-    real_type k_over_mc2 = this->energy()
-                           / (this->mass() * units::speed_of_light_sq);
+    real_type k_over_mc2 = this->energy().value() / this->mass().value();
     return 1 + k_over_mc2;
 }
 
@@ -189,14 +188,12 @@ CELER_FUNCTION real_type ParticleTrackView::lorentz_factor() const
  * p = \frac{K^2}{c^2} + 2 * m * K
  * \f]
  */
-CELER_FUNCTION real_type ParticleTrackView::momentum_sq() const
+CELER_FUNCTION units::MevMomentumSq ParticleTrackView::momentum_sq() const
 {
-    constexpr real_type inv_c_sq = 1 / units::speed_of_light_sq;
-
-    const real_type energy = this->energy();
-    real_type result = energy * energy * inv_c_sq + 2 * this->mass() * energy;
+    const real_type energy = this->energy().value();
+    real_type result = energy * energy + 2 * this->mass().value() * energy;
     ENSURE(result > 0);
-    return result;
+    return units::MevMomentumSq{result};
 }
 
 //---------------------------------------------------------------------------//
@@ -205,9 +202,9 @@ CELER_FUNCTION real_type ParticleTrackView::momentum_sq() const
  *
  * This is calculated by taking the root of the square of the momentum.
  */
-CELER_FUNCTION real_type ParticleTrackView::momentum() const
+CELER_FUNCTION units::MevMomentum ParticleTrackView::momentum() const
 {
-    return std::sqrt(this->momentum_sq());
+    return units::MevMomentum{std::sqrt(this->momentum_sq().value())};
 }
 
 //---------------------------------------------------------------------------//

@@ -17,8 +17,6 @@
 using celeritas::KleinNishinaInteractor;
 namespace pdg = celeritas::pdg;
 
-constexpr double MeV = celeritas::units::mega_electron_volt;
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -31,23 +29,24 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
     void SetUp() override
     {
         using celeritas::ParticleDef;
-        using celeritas::units::speed_of_light_sq;
+        using namespace celeritas::units;
+        celeritas::ZeroQuantity zero;
+        auto                    stable = ParticleDef::stable_decay_constant();
 
         Base::set_particle_params(
             {{{"electron", pdg::electron()},
-              {0.5109989461, -1, ParticleDef::stable_decay_constant()}},
-             {{"gamma", pdg::gamma()},
-              {0, 0, ParticleDef::stable_decay_constant()}}});
+              {MevMass{0.5109989461}, ElementaryCharge{-1}, stable}},
+             {{"gamma", pdg::gamma()}, {zero, zero, stable}}});
 
         // TODO: this should be part of the process's data storage/management
         const auto& params    = this->particle_params();
         pointers_.electron_id = params.find(pdg::electron());
         pointers_.gamma_id    = params.find(pdg::gamma());
-        pointers_.inv_electron_mass_csq
-            = 1 / (params.get(pointers_.electron_id).mass * speed_of_light_sq);
+        pointers_.inv_electron_mass
+            = 1 / (params.get(pointers_.electron_id).mass.value());
 
         // Set default particle to incident 10 MeV photon
-        this->set_inc_particle(pdg::gamma(), 10 * MeV);
+        this->set_inc_particle(pdg::gamma(), MevEnergy{10});
         this->set_inc_direction({0, 0, 1});
     }
 
@@ -57,8 +56,9 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
         // SCOPED_TRACE(interaction);
 
         // Check change to parent track
-        EXPECT_GT(this->particle_track().energy(), interaction.energy);
-        EXPECT_LT(0, interaction.energy);
+        EXPECT_GT(this->particle_track().energy().value(),
+                  interaction.energy.value());
+        EXPECT_LT(0, interaction.energy.value());
         EXPECT_SOFT_EQ(1.0, celeritas::norm(interaction.direction));
         EXPECT_EQ(celeritas::Action::scattered, interaction.action);
 
@@ -67,8 +67,9 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
         const auto& electron = interaction.secondaries.front();
         EXPECT_TRUE(electron);
         EXPECT_EQ(pointers_.electron_id, electron.def_id);
-        EXPECT_GT(this->particle_track().energy(), electron.energy);
-        EXPECT_LT(0, electron.energy);
+        EXPECT_GT(this->particle_track().energy().value(),
+                  electron.energy.value());
+        EXPECT_LT(0, electron.energy.value());
         EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
 
         this->check_conservation(interaction);
@@ -109,10 +110,10 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
                   this->secondary_allocator().get().data() + i);
 
         // Add actual results to vector
-        energy.push_back(result.energy);
+        energy.push_back(result.energy.value());
         costheta.push_back(
             celeritas::dot_product(result.direction, this->direction()));
-        energy_electron.push_back(result.secondaries.front().energy);
+        energy_electron.push_back(result.secondaries.front().energy.value());
         costheta_electron.push_back(celeritas::dot_product(
             result.secondaries.front().direction, this->direction()));
     }
@@ -151,7 +152,7 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
     for (double inc_e : {0.01, 1.0, 10.0, 1000.0})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
-        this->set_inc_particle(pdg::gamma(), inc_e * MeV);
+        this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
 
         // Loop over several incident directions (shouldn't affect anything
         // substantial, but scattering near Z axis loses precision)

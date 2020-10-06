@@ -18,8 +18,8 @@ namespace celeritas
  */
 struct KleinNishinaInteractorPointers
 {
-    //! Gamma energy divided by electron mass * csquared
-    real_type inv_electron_mass_csq;
+    //! 1 / electron mass [1 / MevMass]
+    real_type inv_electron_mass;
     //! ID of an electron
     ParticleDefId electron_id;
     //! ID of a gamma
@@ -28,7 +28,7 @@ struct KleinNishinaInteractorPointers
     //! Check whether the view is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return inv_electron_mass_csq > 0 && electron_id && gamma_id;
+        return inv_electron_mass > 0 && electron_id && gamma_id;
     }
 };
 

@@ -90,7 +90,7 @@ __global__ void iterate_kn(ParticleParamsPointers const         params,
         if (particle.energy() < KleinNishinaInteractor::min_incident_energy())
         {
             // Particle is below interaction energy; kill and deposit energy
-            energy_deposition[tid] = particle.energy();
+            energy_deposition[tid] = particle.energy().value();
             alive[tid]             = false;
             continue;
         }
@@ -107,7 +107,7 @@ __global__ void iterate_kn(ParticleParamsPointers const         params,
 
         // Deposit energy from the secondary (effectively, an infinite energy
         // cutoff)
-        energy_deposition[tid] = interaction.secondaries.front().energy;
+        energy_deposition[tid] = interaction.secondaries.front().energy.value();
 
         // Update post-interaction state (apply interaction)
         direction[tid] = interaction.direction;

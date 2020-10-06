@@ -19,6 +19,7 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleStatePointers.hh"
 #include "physics/base/Secondary.hh"
+#include "physics/base/Units.hh"
 #include "base/HostStackAllocatorStore.hh"
 
 namespace celeritas
@@ -48,6 +49,8 @@ class InteractorHostTestBase : public celeritas::Test
 
     using real_type              = celeritas::real_type;
     using PDGNumber              = celeritas::PDGNumber;
+    using MevEnergy              = celeritas::units::MevEnergy;
+
     using Interaction            = celeritas::Interaction;
     using ParticleParams         = celeritas::ParticleParams;
     using ParticleTrackView      = celeritas::ParticleTrackView;
@@ -74,7 +77,7 @@ class InteractorHostTestBase : public celeritas::Test
 
     //@{
     //! Incident particle properties and access
-    void                     set_inc_particle(PDGNumber n, real_type energy);
+    void                     set_inc_particle(PDGNumber n, MevEnergy energy);
     void                     set_inc_direction(const Real3& dir);
     const Real3&             direction() const { return inc_direction_; }
     const ParticleTrackView& particle_track() const

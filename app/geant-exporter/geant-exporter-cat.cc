@@ -64,8 +64,8 @@ Name              | PDG Code    | Mass [MeV] | Charge [e] | Decay [1/s]
         // clang-format off
         cout << setw(17) << std::left << md.name << " | "
              << setw(11) << md.pdg_code.get() << " | "
-             << setw(10) << setprecision(6) << def.mass << " | "
-             << setw(10) << setprecision(3) << def.charge << " | "
+             << setw(10) << setprecision(6) << def.mass.value() << " | "
+             << setw(10) << setprecision(3) << def.charge.value() << " | "
              << setw(11) << setprecision(3) << def.decay_constant
              << '\n';
         // clang-format on

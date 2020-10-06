@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cfloat>
-
 #ifdef __CUDA_ARCH__
+#    include <cfloat>
 #    include <math_constants.h>
 #else
 #    include <limits>
@@ -39,11 +38,10 @@ struct numeric_limits<double>
 
 #else // not __CUDA_ARCH__
 
-// Use default numeric limits
+// Use standard library numeric limits
 template<class Numeric>
 using numeric_limits = std::numeric_limits<Numeric>;
 
 #endif // __CUDA_ARCH__
 
 } // namespace celeritas
-//---------------------------------------------------------------------------//

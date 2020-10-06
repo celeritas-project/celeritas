@@ -21,9 +21,9 @@ namespace celeritas
  */
 struct Secondary
 {
-    ParticleDefId def_id;    //!< New particle type
-    real_type     energy;    //!< New kinetic energy
-    Real3         direction; //!< New direction
+    ParticleDefId    def_id;    //!< New particle type
+    units::MevEnergy energy;    //!< New kinetic energy
+    Real3            direction; //!< New direction
 
     // Secondary failed to sample
     static inline CELER_FUNCTION Secondary from_failure();
@@ -45,7 +45,7 @@ CELER_FUNCTION Secondary Secondary::from_failure()
 {
     Secondary result;
     result.def_id = {};
-    result.energy = 0;
+    result.energy = zero_quantity();
     return result;
 }
 

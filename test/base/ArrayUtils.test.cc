@@ -75,7 +75,7 @@ TEST(ArrayUtilsTest, rotate)
     // transform through some directions
     double costheta = std::cos(2.0 / 3.0);
     double sintheta = std::sqrt(1.0 - costheta * costheta);
-    double phi      = celeritas::constants::two_pi / 3.0;
+    double phi      = 2 * celeritas::constants::pi / 3.0;
 
     double           a = 1.0 / sqrt(1.0 - vec[Z] * vec[Z]);
     Real3            expected

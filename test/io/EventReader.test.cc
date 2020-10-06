@@ -31,25 +31,28 @@ class EventReaderTest : public celeritas::Test,
     {
         using celeritas::ParticleDef;
         using celeritas::PDGNumber;
+        using celeritas::units::ElementaryCharge;
+        using celeritas::units::MevMass;
+        auto zero = celeritas::zero_quantity();
 
         // Create shared standard model particle data
         ParticleParams::VecAnnotatedDefs defs
             = {{{"proton", pdg::proton()},
-                {938.27208816 * mev_csq,
-                 1 * elementary_charge,
+                {MevMass{938.27208816},
+                 ElementaryCharge{1},
                  ParticleDef::stable_decay_constant()}},
                {{"d_quark", PDGNumber(1)},
-                {4.7 * mev_csq,
-                 -1 / 3 * elementary_charge,
+                {MevMass{4.7},
+                 ElementaryCharge{-1.0 / 3},
                  ParticleDef::stable_decay_constant()}},
                {{"anti_u_quark", PDGNumber(-2)},
-                {2.2 * mev_csq,
-                 -2 / 3 * elementary_charge,
+                {MevMass{2.2},
+                 ElementaryCharge{-2.0 / 3},
                  ParticleDef::stable_decay_constant()}},
                {{"w_minus", PDGNumber(-24)},
-                {8.0379e4 * mev_csq, 0, 1.0 / (3.157e-25 * second)}},
+                {MevMass{8.0379e4}, zero, 1.0 / (3.157e-25 * second)}},
                {{"gamma", pdg::gamma()},
-                {0, 0, ParticleDef::stable_decay_constant()}}};
+                {zero, zero, ParticleDef::stable_decay_constant()}}};
         particle_params_ = std::make_shared<ParticleParams>(std::move(defs));
     }
 
@@ -102,7 +105,7 @@ TEST_P(EventReaderTest, read_all_formats)
         const double expected_position[] = {0, 0, 0};
         EXPECT_VEC_SOFT_EQ(expected_position, primary.position);
         EXPECT_VEC_SOFT_EQ(expected_direction[i], primary.direction);
-        EXPECT_DOUBLE_EQ(expected_energy[i], primary.energy);
+        EXPECT_DOUBLE_EQ(expected_energy[i], primary.energy.value());
     }
 }
 

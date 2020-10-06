@@ -9,6 +9,7 @@
 
 #include "base/OpaqueId.hh"
 #include "base/Types.hh"
+#include "Units.hh"
 
 namespace celeritas
 {
@@ -25,9 +26,9 @@ namespace celeritas
  */
 struct ParticleDef
 {
-    real_type mass;           //!< Rest mass [MeV / c^2]
-    real_type charge;         //!< Charge in units of [e]
-    real_type decay_constant; //!< Decay constant [1/s]
+    units::MevMass          mass;           //!< Rest mass [MeV / c^2]
+    units::ElementaryCharge charge;         //!< Charge in units of [e]
+    real_type               decay_constant; //!< Decay constant [1/s]
 
     //! Value of decay_constant for a stable particle
     static CELER_CONSTEXPR_FUNCTION real_type stable_decay_constant()
@@ -41,5 +42,3 @@ using ParticleDefId = OpaqueId<ParticleDef>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

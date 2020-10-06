@@ -38,14 +38,14 @@ __global__ void ptv_test_kernel(unsigned int              size,
 
     // Calculate/write values from the track view
     CHECK(p.def_id() == init[local_thread_id.get()].def_id);
-    *result++ = p.energy();
-    *result++ = p.mass();
-    *result++ = p.charge();
+    *result++ = p.energy().value();
+    *result++ = p.mass().value();
+    *result++ = p.charge().value();
     *result++ = p.decay_constant();
-    *result++ = p.speed();
-    *result++ = (p.mass() > 0 ? p.lorentz_factor() : -1);
-    *result++ = p.momentum();
-    *result++ = p.momentum_sq();
+    *result++ = p.speed().value();
+    *result++ = (p.mass() > zero_quantity() ? p.lorentz_factor() : -1);
+    *result++ = p.momentum().value();
+    *result++ = p.momentum_sq().value();
 }
 
 //---------------------------------------------------------------------------//

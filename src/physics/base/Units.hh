@@ -3,78 +3,60 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Units.hh
+//! \file Constants.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
+#include "base/Constants.hh"
+#include "base/Units.hh"
+#include "base/Quantity.hh"
 
 namespace celeritas
 {
 namespace units
 {
 //---------------------------------------------------------------------------//
-/*!
- * \namespace units
- * Description of the system of units in Celeritas.
- *
- * Celeritas uses a CGS-based system with:
- * - Natural units (c = 1)
- * - MeV as the standard unit for energy
- */
+//! Unit for quantity such that the numeric value of 1 MeV is unity
+struct Mev
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return 1e6 * constants::e_electron * units::volt;
+    }
+};
 
-//@{
-//! Length
-constexpr real_type centimeter = 1.;
-constexpr real_type millimeter = centimeter / 10.;
-constexpr real_type meter      = 100. * centimeter;
-//@}
+//! Unit for relativistic speeds
+struct CLight
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return constants::c_light;
+    }
+};
 
-//@{
-//! Mass
-constexpr real_type gram      = 1.;
-constexpr real_type milligram = 1e-3 * gram;
-constexpr real_type kilogram  = 1e3 * gram;
-//@}
+//! Unit for precise representation of particle charges
+struct EElectron
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return constants::e_electron; // *Positive* sign
+    }
+};
 
-//@{
-//! Time
-constexpr real_type second      = 1.;
-constexpr real_type millisecond = 1.e-3 * second;
-constexpr real_type microsecond = 1.e-6 * second;
-constexpr real_type nanosecond  = 1.e-9 * second;
-//@}
+//! Unit for converting mass to an energy-valued quantity
+using CLightSq = UnitProduct<CLight, CLight>;
 
+//---------------------------------------------------------------------------//
 //@{
-//! Charge
-constexpr real_type elementary_charge = 1.;
-//@}
-
-//@{
-//! Energy
-constexpr real_type mega_electron_volt = 1.;
-constexpr real_type electron_volt      = 1.e-6 * mega_electron_volt;
-constexpr real_type kilo_electron_volt = 1.e-3 * mega_electron_volt;
-constexpr real_type giga_electron_volt = 1.e+3 * mega_electron_volt;
-constexpr real_type tera_electron_volt = 1.e+6 * mega_electron_volt;
-constexpr real_type peta_electron_volt = 1.e+9 * mega_electron_volt;
-//@}
-
-//@{
-//! Area
-constexpr real_type barn      = 1.e-24 * centimeter * centimeter;
-constexpr real_type millibarn = 1.e-3 * barn;
-//@}
-
-//@{
-//! Derived quantities
-constexpr real_type speed_of_light    = 1.; // Natural unit
-constexpr real_type speed_of_light_sq = 1.;
-constexpr real_type mev_csq           = mega_electron_volt * speed_of_light_sq;
+//! Units for particle quantities
+using ElementaryCharge = Quantity<EElectron>;
+using MevEnergy        = Quantity<Mev>;
+using MevMass          = Quantity<UnitDivide<Mev, CLightSq>>;
+using MevMomentum      = Quantity<UnitDivide<Mev, CLight>>;
+using MevMomentumSq    = Quantity<UnitDivide<UnitProduct<Mev, Mev>, CLightSq>>;
+using LightSpeed       = Quantity<CLight>;
 //@}
 
 //---------------------------------------------------------------------------//
-} // namespace units
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//
+} // namespace celeritas

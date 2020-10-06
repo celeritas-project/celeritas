@@ -50,16 +50,16 @@ class KleinNishinaInteractor
 
     //! Minimum incident energy for this model to be valid
     //! TODO: this isn't currently used.
-    static CELER_CONSTEXPR_FUNCTION real_type min_incident_energy()
+    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
     {
-        return 10 * units::kilo_electron_volt;
+        return units::MevEnergy{0.01}; // 10 keV
     }
 
   private:
     // Gamma energy divided by electron mass * csquared
     const KleinNishinaInteractorPointers& shared_;
     // Incident gamma energy
-    const real_type inc_energy_;
+    const units::MevEnergy inc_energy_;
     // Incident direction
     const Real3& inc_direction_;
     // Allocate space for a secondary particle

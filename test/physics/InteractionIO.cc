@@ -24,8 +24,8 @@ std::ostream& operator<<(std::ostream& os, const Interaction& i)
     if (i)
     {
         os << "Action{" << static_cast<int>(i.action) << "}, "
-           << i.energy / units::mega_electron_volt << " * MeV, " << i.direction
-           << ", {" << i.secondaries << '}';
+           << i.energy.value() << " MeV, " << i.direction << ", {"
+           << i.secondaries << '}';
     }
     os << '}';
     return os;

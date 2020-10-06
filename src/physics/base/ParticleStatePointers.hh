@@ -10,6 +10,7 @@
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "ParticleDef.hh"
+#include "Units.hh"
 
 namespace celeritas
 {
@@ -28,8 +29,8 @@ namespace celeritas
  */
 struct ParticleTrackState
 {
-    ParticleDefId def_id; //!< Type of particle (electron, gamma, ...)
-    real_type     energy; //!< Kinetic energy [MeV]
+    ParticleDefId    def_id; //!< Type of particle (electron, gamma, ...)
+    units::MevEnergy energy; //!< Kinetic energy [MeV]
 };
 
 //---------------------------------------------------------------------------//

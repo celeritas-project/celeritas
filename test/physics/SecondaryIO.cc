@@ -22,8 +22,7 @@ std::ostream& operator<<(std::ostream& os, const Secondary& s)
     if (s)
     {
         os << "ParticleDefId{" << s.def_id.unchecked_get() << "}, "
-           << s.energy / units::mega_electron_volt << " * MeV, "
-           << s.direction;
+           << s.energy.value() << " * MeV, " << s.direction;
     }
     os << '}';
     return os;

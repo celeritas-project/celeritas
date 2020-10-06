@@ -27,7 +27,7 @@ KleinNishinaInteractor::KleinNishinaInteractor(
     const Real3&                          inc_direction,
     SecondaryAllocatorView&               allocate)
     : shared_(shared)
-    , inc_energy_(particle.energy())
+    , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)
     , allocate_(allocate)
 {
@@ -54,8 +54,8 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     }
 
     // Value of epsilon corresponding to minimum photon energy
-    const real_type inc_energy_per_mecsq = inc_energy_
-                                           * shared_.inv_electron_mass_csq;
+    const real_type inc_energy_per_mecsq = inc_energy_.value()
+                                           * shared_.inv_electron_mass;
     const real_type epsilon_0     = 1 / (1 + 2 * inc_energy_per_mecsq);
     const real_type log_epsilon_0 = std::log(epsilon_0);
 
@@ -99,12 +99,12 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     // Construct interaction for change to primary (incident) particle
     Interaction result;
     result.action      = Action::scattered;
-    result.energy      = epsilon * inc_energy_;
+    result.energy      = units::MevEnergy{epsilon * inc_energy_.value()};
     result.direction   = inc_direction_;
     result.secondaries = {electron_secondary, 1};
 
     // Sample azimuthal direction and rotate the outgoing direction
-    UniformRealDistribution<real_type> sample_phi(0, constants::two_pi);
+    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
     result.direction
         = rotate(from_spherical(1 - one_minus_costheta, sample_phi(rng)),
                  result.direction);
@@ -112,13 +112,14 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     // Outgoing secondary is an electron
     electron_secondary->def_id = shared_.electron_id;
     // Construct secondary energy by neglecting electron binding energy
-    electron_secondary->energy = inc_energy_ - result.energy;
+    electron_secondary->energy
+        = units::MevEnergy{inc_energy_.value() - result.energy.value()};
     // Calculate exiting electron direction via conservation of momentum
     for (int i = 0; i < 3; ++i)
     {
-        electron_secondary->direction[i] = inc_direction_[i] * inc_energy_
-                                           - result.direction[i]
-                                                 * result.energy;
+        electron_secondary->direction[i]
+            = inc_direction_[i] * inc_energy_.value()
+              - result.direction[i] * result.energy.value();
     }
     normalize_direction(&electron_secondary->direction);
 
