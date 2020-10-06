@@ -10,6 +10,7 @@
 #include "Algorithms.hh"
 #include "Assert.hh"
 #include "Macros.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -30,6 +31,32 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
 #endif
 }
 
+#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 600)
+//---------------------------------------------------------------------------//
+/*!
+ * Atomic addition specialization for double-precision on older platforms.
+ *
+ * From CUDA C Programming guide v10.1 p127
+ */
+inline __device__ double atomic_add(double* address, double val)
+{
+    ull_int* address_as_ull = reinterpret_cast<ull_int*>(address);
+    ull_int  old            = *address_as_ull;
+    ull_int  assumed;
+    do
+    {
+        assumed = old;
+        old     = atomicCAS(
+            address_as_ull,
+            assumed,
+            __double_as_longlong(val + __longlong_as_double(assumed)));
+        // Note: uses integer comparison to avoid hang in case of NaN (since
+        // NaN != NaN)
+    } while (assumed != old);
+    return __longlong_as_double(old);
+}
+#endif
+
 //---------------------------------------------------------------------------//
 /*!
  * Set the value to the minimum of the actual and given, returning old.
@@ -46,6 +73,45 @@ CELER_FORCEINLINE_FUNCTION T atomic_min(T* address, T value)
     return initial;
 #endif
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the value to the maximum of the actual and given, returning old.
+ */
+template<class T>
+CELER_FORCEINLINE_FUNCTION T atomic_max(T* address, T value)
+{
+#ifdef __CUDA_ARCH__
+    return atomicMax(address, value);
+#else
+    REQUIRE(address);
+    T initial = *address;
+    *address  = celeritas::max(initial, value);
+    return initial;
+#endif
+}
+
+#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ <= 300)
+//---------------------------------------------------------------------------//
+/*!
+ * Software emulation of atomic max for older systems.
+ *
+ * This is a modification of the "software double-precision add" algorithm.
+ * TODO: combine this algorithm with the atomic_add and genericize on operation
+ * if we ever need to implement the atomics for other types.
+ */
+inline __device__ ull_int atomic_max(ull_int* address, ull_int val)
+{
+    ull_int old = *address;
+    ull_int assumed;
+    do
+    {
+        assumed = old;
+        old     = atomicCAS(address, assumed, celeritas::max(val, assumed));
+    } while (assumed != old);
+    return old;
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

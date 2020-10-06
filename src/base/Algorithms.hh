@@ -22,4 +22,14 @@ CELER_CONSTEXPR_FUNCTION const T& min(const T& a, const T& b)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return the higher of two values.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b)
+{
+    return (b > a) ? b : a;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
