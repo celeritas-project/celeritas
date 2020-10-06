@@ -114,8 +114,9 @@ inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi)
  */
 inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
 {
-    REQUIRE(is_soft_unit_vector(dir, SoftEqual<real_type>(1e-6)));
-    REQUIRE(is_soft_unit_vector(rot, SoftEqual<real_type>(1e-6)));
+    constexpr real_type sqrt_eps = 1e-6;
+    REQUIRE(is_soft_unit_vector(dir, SoftEqual<real_type>(sqrt_eps)));
+    REQUIRE(is_soft_unit_vector(rot, SoftEqual<real_type>(sqrt_eps)));
 
     // Direction enumeration
     enum
@@ -131,7 +132,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
     real_type cosphi;
     real_type sinphi;
 
-    if (sintheta >= 1e-6)
+    if (sintheta >= sqrt_eps)
     {
         // Typical case: far enough from z axis to calculate correctly
         const real_type inv_sintheta = 1 / (sintheta);
@@ -156,7 +157,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
            (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
            -sintheta * dir[X] + rot[Z] * dir[Z]};
 
-    ENSURE(is_soft_unit_vector(result, SoftEqual<real_type>(1e-6)));
+    ENSURE(is_soft_unit_vector(result, SoftEqual<real_type>(sqrt_eps)));
     return result;
 }
 
