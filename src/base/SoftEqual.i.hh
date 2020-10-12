@@ -38,7 +38,7 @@ CELER_FUNCTION SoftEqual<T1, T2>::SoftEqual(value_type rel)
  */
 template<typename T1, typename T2>
 CELER_FUNCTION SoftEqual<T1, T2>::SoftEqual(value_type rel, value_type abs)
-    : d_rel(rel), d_abs(abs)
+    : rel_(rel), abs_(abs)
 {
     REQUIRE(rel > 0);
     REQUIRE(abs > 0);
@@ -47,6 +47,9 @@ CELER_FUNCTION SoftEqual<T1, T2>::SoftEqual(value_type rel, value_type abs)
 //---------------------------------------------------------------------------//
 /*!
  * Compare two values (implicitly casting arguments).
+ *
+ * Note that to be safe with NaN, only return \c true inside an \c if
+ * conditional.
  *
  * \param expected scalar floating point reference to which value is compared
  * \param actual   scalar floating point value
@@ -58,20 +61,20 @@ SoftEqual<T1, T2>::operator()(value_type expected, value_type actual) const
     value_type abs_e = std::fabs(expected);
 
     // Typical case: relative error comparison to reference
-    if (std::fabs(actual - expected) < d_rel * abs_e)
+    if (std::fabs(actual - expected) < rel_ * abs_e)
     {
         return true;
     }
 
-    value_type eps_abs = d_abs;
+    value_type eps_abs = abs_;
     value_type abs_a   = std::fabs(actual);
     // If one is within the absolute threshold of zero, and the other within
     // relative of zero, they're equal
-    if ((abs_e < eps_abs) && (abs_a < d_rel))
+    if ((abs_e < eps_abs) && (abs_a < rel_))
     {
         return true;
     }
-    if ((abs_a < eps_abs) && (abs_e < d_rel))
+    if ((abs_a < eps_abs) && (abs_e < rel_))
     {
         return true;
     }
@@ -100,7 +103,7 @@ CELER_FUNCTION SoftZero<T>::SoftZero() : SoftZero(traits_t::abs_thresh())
  * Construct with default absolute precision
  */
 template<typename T>
-CELER_FUNCTION SoftZero<T>::SoftZero(value_type abs) : d_abs(abs)
+CELER_FUNCTION SoftZero<T>::SoftZero(value_type abs) : abs_(abs)
 {
     REQUIRE(abs > 0);
 }
@@ -115,7 +118,7 @@ template<typename T>
 CELER_FUNCTION bool SoftZero<T>::operator()(value_type actual) const
 {
     // Return whether the absolute value is within tolerance
-    return std::fabs(actual) < d_abs;
+    return std::fabs(actual) < abs_;
 }
 
 //---------------------------------------------------------------------------//

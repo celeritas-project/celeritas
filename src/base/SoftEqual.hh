@@ -57,16 +57,16 @@ class SoftEqual
     // >>> ACCESSORS
 
     //! Relative allowable error
-    CELER_FUNCTION value_type rel() const { return d_rel; }
+    CELER_FUNCTION value_type rel() const { return rel_; }
 
     //! Absolute tolerance
-    CELER_FUNCTION value_type abs() const { return d_abs; }
+    CELER_FUNCTION value_type abs() const { return abs_; }
 
   private:
     // >>> DATA
 
-    value_type d_rel;
-    value_type d_abs;
+    value_type rel_;
+    value_type abs_;
 
     using traits_t = detail::SoftEqualTraits<value_type>;
 };
@@ -92,7 +92,7 @@ class SoftZero
   private:
     // >>> DATA
 
-    value_type d_abs;
+    value_type abs_;
 
   public:
     // >>> CONSTRUCTION
@@ -111,7 +111,7 @@ class SoftZero
     // >>> ACCESSORS
 
     //! Absolute tolerance
-    CELER_FUNCTION value_type abs() const { return d_abs; }
+    CELER_FUNCTION value_type abs() const { return abs_; }
 };
 
 //---------------------------------------------------------------------------//
