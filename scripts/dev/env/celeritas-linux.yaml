@@ -11,7 +11,7 @@ spack:
     - ninja
     - nlohmann-json
     - openmpi
-    - python +uuid
+    - python
     - py-h5py
     - root
     - valgrind ~ubsan

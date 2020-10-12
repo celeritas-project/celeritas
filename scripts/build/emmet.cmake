@@ -1,5 +1,5 @@
 macro(set_cache_var var type val)
-  set(${var} "${val}" CACHE "${type}" "emmet.sh")
+  set(${var} "${val}" CACHE "${type}" "emmet.sh" FORCE)
 endmacro()
 
 # Celeritas dependency options
@@ -27,9 +27,14 @@ set_cache_var(CMAKE_CUDA_FLAGS_DEBUG STRING "-g -G")
 #set_cache_var(CMAKE_CUDA_FLAGS STRING
 #  "-Werror all-warnings ${CMAKE_CUDA_FLAGS}")
 
+set_cache_var(CELERITAS_DEBUG BOOL OFF)
 set_cache_var(CMAKE_BUILD_TYPE STRING "RelWithDebInfo")
 set_cache_var(CMAKE_CXX_FLAGS STRING
   "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always")
 
 # MPI flags
 set_cache_var(MPI_CXX_SKIP_MPICXX BOOL TRUE)
+if(CELERITAS_USE_MPI)
+  # In CMake 3.18, these break the CUDA link line...
+  set_cache_var(MPI_CXX_LINK_FLAGS STRING "")
+endif()

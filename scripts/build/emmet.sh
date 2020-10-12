@@ -1,10 +1,13 @@
 #!/bin/sh -e
 
+BUILD_SUBDIR=build
 BUILDSCRIPT_DIR="$(cd "$(dirname $BASH_SOURCE[0])" && pwd)"
 SOURCE_DIR="$(cd "${BUILDSCRIPT_DIR}" && git rev-parse --show-toplevel)"
-BUILD_DIR=${SOURCE_DIR}/build-opt
+HOST=${HOSTNAME%%.*}
+BUILD_DIR=${SOURCE_DIR}/${BUILD_SUBDIR}
+INSTALL_DIR=${SOURCE_DIR}/install
 
-printf "\e[2;37mBuilding in ${BUILD_DIR}\e[0m\n"
+printf "\e[2;37mBuilding for ${HOST} in ${BUILD_DIR}\e[0m\n"
 mkdir ${BUILD_DIR} 2>/dev/null \
   || printf "... \e[2;37mBuilding from existing cache\e[0m\n"
 cd ${BUILD_DIR}
@@ -20,8 +23,8 @@ export CXX=/usr/bin/g++
 # export MODULEPATH=/projects/spack/share/spack/lmod/linux-rhel8-x86_64/Core
 # module load vecgeom/8d0c478c-cuda
 
-cmake -C ${BUILDSCRIPT_DIR}/emmet.cmake -G Ninja \
-  -DCMAKE_INSTALL_PREFIX:PATH=${SOURCE_DIR}/install \
+cmake -C ${BUILDSCRIPT_DIR}/${HOST}.cmake -G Ninja \
+  -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_DIR} \
   ..
 ninja -v
 ctest -j32 --output-on-failure

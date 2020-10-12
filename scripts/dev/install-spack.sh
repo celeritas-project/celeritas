@@ -23,7 +23,7 @@ function veval() { cecho "37;2" "> $1"; eval "$1"; }
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 info "This script is running from ${SCRIPT_DIR}"
 
-: ${SPACK_VERSION:=v0.15.3}
+: ${SPACK_VERSION:=develop}
 
 ###############################################################################
 # Clone Spack and repositories
@@ -78,6 +78,7 @@ if [ -z "${COMPILER}" ]; then
     mojave | catalina ) COMPILER="clang@11.0.0-apple" ;;
     rhel6 ) COMPILER="gcc@4.4.7" ;;
     rhel7 ) COMPILER="gcc@4.8.5" ;;
+    rhel8 ) COMPILER="gcc@8.3.1" ;;
     *)
       action "set \$COMPILER manually and rerun this script"
       error "No core compiler default for platform $PLATFORM" ;;
@@ -104,33 +105,10 @@ fi
 
 SPACK_PACKAGES="${SPACK_ROOT}/etc/spack/packages.yaml"
 if [ ! -e "${SPACK_PACKAGES}" ]; then
-  status "Configuring packages at ${SPACK_PACKAGES}"
-  NVCC=$(which nvcc 2>/dev/null || true)
-  if [ -n "${NVCC}" ]; then
-    CUDA_ROOT=$(dirname $(dirname $NVCC))
-    CUDA_VERSION=$($NVCC --version \
-                  | grep release \
-                  | sed -e 's/.*release \([0-9.]\+\).*/\1/')
-    CUDA_PKG="\
-  cuda:
-    buildable: false
-    paths:
-      cuda@${CUDA_VERSION}: ${CUDA_ROOT}
-"
-  else
-    CUDA_PKG="# No CUDA version found"
+  if [ hash nvcc 2>/dev/null ]; then
+    status "Searching for external packages at ${SPACK_PACKAGES}"
+    spack external find --scope=site cuda
   fi
-  cat >> "${SPACK_PACKAGES}" << EOF
-packages:
-  ${CUDA_PKG}
-  hdf5:
-    variants: ~mpi
-  py-h5py:
-    variants: ~mpi
-  all:
-    providers:
-      mpi: [openmpi]
-EOF
 fi
 
 SPACK_MODULES="${SPACK_ROOT}/etc/spack/modules.yaml"
@@ -145,7 +123,7 @@ modules:
     blacklist_implicits: true
     core_compilers:
       - '${COMPILER}'
-    hash_length: 0
+    hash_length: 4
     ^python:
       autoload:  'direct'
     all:
@@ -168,7 +146,8 @@ modules:
         prepend_path:
           'LD_RUN_PATH': '\${PREFIX}/lib'
       filter:
-        environment_blacklist: ['CPATH', 'LIBRARY_PATH', 'LD_LIBRARY_PATH']
+        environment_blacklist: ['CPATH', 'LIBRARY_PATH', 'LD_LIBRARY_PATH',
+          'C_INCLUDE_PATH', 'CPLUS_INCLUDE_PATH', 'INCLUDE']
     libffi: &lib64
       environment:
         prepend_path:
