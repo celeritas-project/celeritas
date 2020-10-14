@@ -166,6 +166,7 @@ add_cudaoptional_test(physics/base/Particle)
 celeritas_setup_tests(SERIAL PREFIX physics/em)
 
 celeritas_add_test(physics/em/BetheBlochInteractor.test.cc)
+celeritas_add_test(physics/em/BetheHeitlerInteractor.test.cc)
 celeritas_add_test(physics/em/BremRelInteractor.test.cc)
 celeritas_add_test(physics/em/EPlusGGInteractor.test.cc)
 celeritas_add_test(physics/em/KleinNishinaInteractor.test.cc)
