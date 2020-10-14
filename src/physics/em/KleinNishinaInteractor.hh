@@ -35,7 +35,7 @@ namespace celeritas
 class KleinNishinaInteractor
 {
   public:
-    // Construct sampler from shared and state data
+    // Construct from shared and state data
     inline CELER_FUNCTION
     KleinNishinaInteractor(const KleinNishinaInteractorPointers& shared,
                            const ParticleTrackView&              particle,
@@ -56,7 +56,7 @@ class KleinNishinaInteractor
     }
 
   private:
-    // Gamma energy divided by electron mass * csquared
+    // Constant data
     const KleinNishinaInteractorPointers& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
