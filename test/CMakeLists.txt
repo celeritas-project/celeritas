@@ -170,7 +170,15 @@ add_cudaoptional_test(physics/base/Particle)
 
 celeritas_setup_tests(SERIAL PREFIX physics/em)
 
+celeritas_add_test(physics/em/BetheBlochInteractor.test.cc)
+celeritas_add_test(physics/em/BremRelInteractor.test.cc)
+celeritas_add_test(physics/em/EPlusGGInteractor.test.cc)
 celeritas_add_test(physics/em/KleinNishinaInteractor.test.cc)
+celeritas_add_test(physics/em/LivermoreInteractor.test.cc)
+celeritas_add_test(physics/em/MollerBhabhaInteractor.test.cc)
+celeritas_add_test(physics/em/RayleighInteractor.test.cc)
+celeritas_add_test(physics/em/UrbanInteractor.test.cc)
+celeritas_add_test(physics/em/WentzelInteractor.test.cc)
 
 # END PHYSICS TESTS
 set(CELERITASTEST_LINK_LIBRARIES)
