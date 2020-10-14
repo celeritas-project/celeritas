@@ -21,7 +21,7 @@ namespace celeritas
  * The incident particle must be above the energy threshold: this should be
  * handled in code *before* the interactor is constructed.
  */
-KleinNishinaInteractor::KleinNishinaInteractor(
+CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
     const KleinNishinaInteractorPointers& shared,
     const ParticleTrackView&              particle,
     const Real3&                          inc_direction,
