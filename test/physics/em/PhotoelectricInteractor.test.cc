@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermoreInteractor.test.cc
+//! \file PhotoelectricInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/LivermoreInteractor.hh"
+#include "physics/em/PhotoelectricInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
@@ -14,14 +14,15 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::LivermoreInteractor;
+using celeritas::PhotoelectricInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LivermoreInteractorTest : public celeritas_test::InteractorHostTestBase
+class PhotoelectricInteractorTest
+    : public celeritas_test::InteractorHostTestBase
 {
     using Base = celeritas_test::InteractorHostTestBase;
 
@@ -68,11 +69,11 @@ class LivermoreInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::LivermoreInteractorPointers pointers_;
+    celeritas::PhotoelectricInteractorPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(LivermoreInteractorTest, basic) {}
+TEST_F(PhotoelectricInteractorTest, basic) {}
