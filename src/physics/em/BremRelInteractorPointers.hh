@@ -14,6 +14,14 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Elemental data
+ */
+struct BremElement
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Device data for creating an interactor.
  */
 struct BremRelInteractorPointers
@@ -22,7 +30,15 @@ struct BremRelInteractorPointers
     ParticleDefId electron_id;
     //! ID of a gamma
     ParticleDefId gamma_id;
-    // XXX additional data
+    //! Whether to correct for the Landau-Pomeranchuk-Migdal effect
+    bool use_lpm;
+    //! Migdal's constant: 4 * pi * r_e * l_ec^2
+    real_type migdal_constant;
+    //! LPM constant: alpha * (m_e c^2)^2 / (4 * pi * hbar * c)
+    real_type lpm_constant; // [MeV/cm]
+
+    //! Elemental data needed for sampling [access by ElementId]
+    span<const BremElement> elements;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const

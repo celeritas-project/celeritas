@@ -22,6 +22,11 @@ namespace constants
  * constants listed here are *exact* numerical values: see the International
  * System of Units, 9th ed., for definition of constants and how they relate to
  * the different units.
+ *
+ * Celeritas     | CLHEP
+ * ------------- | ------------
+ * eps_electric  | epsilon0
+ * h_Planck      | h_planck
  */
 
 //@{
@@ -52,6 +57,7 @@ constexpr real_type eps_electric
       / (2 * alpha_fine_structure * h_planck * c_light); // vacuum permittivity
 constexpr real_type mu_magnetic
     = 1 / (eps_electric * c_light * c_light); // vaccum permeability
+constexpr real_type hbar_planck = h_planck / (2 * pi);
 //@}
 
 //---------------------------------------------------------------------------//

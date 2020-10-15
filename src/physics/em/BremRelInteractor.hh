@@ -7,9 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/NumericLimits.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Interaction.hh"
+#include "physics/base/MaterialTrackView.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Secondary.hh"
@@ -20,21 +22,31 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * Relativistic bremsstrahlung interaction for electrons.
  *
- * This is a model for XXXX process. Additional description
+ * This is a model for the bremsstrahlung process with relativistic effects and
+ * two higher-order corrections, Landau-Pomeranchuk-Migdal (multiple
+ * scattering) and Ter-Mikaelian (dialectric suppression).
+ *
+ * TODO:
+ * - Geant4 offers an option to disable LPM.
  *
  * \note This performs the same sampling routine as in Geant4's
- * XXXX class, as documented in section XXX of the Geant4 Physics
- * Reference (release 10.6).
+ * G4eBremsstrahlungRelModel class, as documented in section 10.2.2 of the
+ * Geant4 Physics Reference (release 10.6).
  */
 class BremRelInteractor
 {
+  public:
+    //@{
+    using MevEnergy = units::MevEnergy;
+    //@}
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
     BremRelInteractor(const BremRelInteractorPointers& shared,
                       const ParticleTrackView&         particle,
+                      const MaterialTrackView&         mat,
                       const Real3&                     inc_direction,
                       SecondaryAllocatorView&          allocate);
 
@@ -47,24 +59,45 @@ class BremRelInteractor
     //! Minimum incident energy for this model to be valid
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
     {
-        return units::MevEnergy{0}; // XXX
+        return MevEnergy{1};
     }
 
     //! Maximum incident energy for this model to be valid
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_incident_energy()
     {
-        return units::MevEnergy{0}; // XXX
+        return MevEnergy{celeritas::numeric_limits<real_type>::infinity()};
+    }
+
+  private:
+    // Characteristic energy for LPM effects [MeV]
+    CELER_FUNCTION real_type lpm_energy() const
+    {
+        return shared_.lpm_constant * mat_.radiation_length_tsai();
     }
 
   private:
     // Shared constant physics properties
     const BremRelInteractorPointers& shared_;
+    // Allocate space for one or more secondary particles
+    SecondaryAllocatorView& allocate_;
+
+    //@{
+    //! Material-dependent properties
+    // Material reference
+    const MaterialTrackView& mat_;
+    // Density correction for this material [MeV^2]
+    real_type density_corr_;
+    //@}
+
+    //@{
+    //! State-dependent properties
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
     // Incident direction
     const Real3& inc_direction_;
-    // Allocate space for one or more secondary particles
-    SecondaryAllocatorView& allocate_;
+    // Whether LPM correction is used for the material and energy
+    bool use_lpm_;
+    //@}
 };
 
 //---------------------------------------------------------------------------//

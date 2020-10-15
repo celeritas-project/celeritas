@@ -15,16 +15,37 @@ namespace celeritas
 CELER_FUNCTION
 BremRelInteractor::BremRelInteractor(const BremRelInteractorPointers& shared,
                                      const ParticleTrackView&         particle,
+                                     const MaterialTrackView&         mat,
                                      const Real3&            inc_direction,
                                      SecondaryAllocatorView& allocate)
     : shared_(shared)
-    , inc_energy_(particle.energy().value())
-    , inc_direction_(inc_direction)
     , allocate_(allocate)
+    , mat_(mat)
+    , inc_energy_(particle.energy())
+    , inc_direction_(inc_direction)
+    , use_lpm_(shared.use_lpm)
 {
     REQUIRE(inc_energy_ >= this->min_incident_energy()
             && inc_energy_ <= this->max_incident_energy());
     REQUIRE(particle.def_id() == shared_.gamma_id); // XXX
+
+    real_type density_factor = shared_.migdal_constant
+                               * mat_.electron_density();
+    if (use_lpm_)
+    {
+        real_type threshold = std::sqrt(density_factor) * this->lpm_energy();
+        if (particle.energy().value() < threshold)
+        {
+            // Energy is below material-based cutoff
+            use_lpm_ = false;
+        }
+    }
+
+    // Total energy: rest mass * c^2 + kinetic energy
+    real_type total_e = particle.energy().value() + particle.mass().value();
+    density_corr_     = density_factor * total_e * total_e;
+
+    ENSURE(density_corr_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -34,6 +55,13 @@ BremRelInteractor::BremRelInteractor(const BremRelInteractorPointers& shared,
 template<class Engine>
 CELER_FUNCTION Interaction BremRelInteractor::operator()(Engine& rng)
 {
+#if 0
+    // Select target atom
+    MatComponentSelector select_component(mat_, xs_);
+    MatElementId         component_id = select_element(rng);
+    ElementId            el           = mat_.element(component_id);
+#endif
+
     // Allocate space for XXX (electron, multiple particles, ...)
     Secondary* secondaries = this->allocate_(0); // XXX
     if (secondaries == nullptr)
