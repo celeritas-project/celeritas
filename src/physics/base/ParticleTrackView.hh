@@ -92,5 +92,3 @@ class ParticleTrackView
 } // namespace celeritas
 
 #include "ParticleTrackView.i.hh"
-
-//---------------------------------------------------------------------------//
