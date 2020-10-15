@@ -43,10 +43,10 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
              {"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& params    = this->particle_params();
         pointers_.electron_id = params.find(pdg::electron());
-        pointers_.gamma_id    = params.find(pdg::gamma());
+        pointers_.positron_id = params.find(pdg::positron());
 
         // Set default particle to incident XXX MeV photon
-        this->set_inc_particle(pdg::gamma(), MevEnergy{10});
+        this->set_inc_particle(pdg::electron(), MevEnergy{10});
         this->set_inc_direction({0, 0, 1});
     }
 
@@ -75,4 +75,4 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(MollerBhabhaInteractorTest, basic) {}
+// TEST_F(MollerBhabhaInteractorTest, basic) {}

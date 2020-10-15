@@ -20,14 +20,15 @@ struct MollerBhabhaInteractorPointers
 {
     //! ID of an electron
     ParticleDefId electron_id;
-    //! ID of a gamma
-    ParticleDefId gamma_id;
-    // XXX additional data
+    //! ID of a positron
+    ParticleDefId positron_id;
+    // Electron mass
+    const units::MevMass electron_mass_;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return electron_id && gamma_id; // XXX
+        return electron_id && positron_id;
     }
 };
 
