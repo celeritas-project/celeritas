@@ -41,4 +41,5 @@ TYPED_TEST(NumericLimitsTest, all)
     EXPECT_EQ(limits_t::epsilon(), result.eps);
     EXPECT_TRUE(std::isnan(result.nan));
     EXPECT_EQ(limits_t::infinity(), result.inf);
+    EXPECT_EQ(limits_t::max(), result.max);
 }
