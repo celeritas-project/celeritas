@@ -19,7 +19,7 @@ namespace
 {
 __device__ int geo_id(const GeoTrackView& geo)
 {
-    if (geo.boundary() == Boundary::outside)
+    if (geo.is_outside())
         return -1;
     return geo.volume_id().get();
 }
@@ -34,6 +34,9 @@ __global__ void trace_impl(const GeoParamsPointers geo_params,
 
     ImageTrackView image(image_state, tid);
     GeoTrackView   geo(geo_params, geo_state, tid);
+
+    // Start track at the leftmost point in the requested direction
+    geo = GeoStateInitializer{image.start_pos(), image.start_dir()};
 
     int cur_id = geo_id(geo);
     geo.find_next_step();

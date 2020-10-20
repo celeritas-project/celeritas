@@ -36,10 +36,6 @@ class GeoStateStore
     // Construct from device geometry and number of track states
     GeoStateStore(const GeoParams& geo, size_type size);
 
-    // Locate positions/directions on host, and copy to device
-    // XXX temporary; delete once GlobalLocator works
-    void initialize(const GeoParams&, SpanConstReal3 pos, SpanConstReal3 dir);
-
     // >>> ACCESSORS
 
     // Number of states

@@ -13,9 +13,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Construct from persistent and state data.
- */
+//! Construct from persistent and state data.
 CELER_FUNCTION
 GeoTrackView::GeoTrackView(const GeoParamsPointers& data,
                            const GeoStatePointers&  stateview,
@@ -41,10 +39,6 @@ GeoTrackView::GeoTrackView(const GeoParamsPointers& data,
  */
 CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
 {
-#ifdef __CUDA_ARCH__
-    REQUIRE(false); // VecGeom CUDA global locator is not implemented
-#endif
-
     // Initialize position/direction
     pos_ = init.pos;
     dir_ = init.dir;
@@ -67,9 +61,7 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Find the distance to the next geometric boundary.
- */
+//! Find the distance to the next geometric boundary.
 CELER_FUNCTION void GeoTrackView::find_next_step()
 {
     const vecgeom::LogicalVolume* logical_vol
@@ -88,35 +80,28 @@ CELER_FUNCTION void GeoTrackView::find_next_step()
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Move to the next boundary.
- */
+//! Move to the next boundary and update volume accordingly
 CELER_FUNCTION void GeoTrackView::move_next_step()
+{
+    // Move the next step plus an extra fudge distance
+    axpy(next_step_, dir_, &pos_);
+    this->move_next_volume();
+}
+
+//---------------------------------------------------------------------------//
+//! Update state to next volume
+CELER_FUNCTION void GeoTrackView::move_next_volume()
 {
     vgstate_ = vgnext_;
     vgnext_.Clear();
-
-    // Move the next step plus an extra fudge distance
-    axpy(next_step_, dir_, &pos_);
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Get the volume ID in the current cell.
- */
+//! Get the volume ID in the current cell.
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {
-    REQUIRE(this->boundary() == Boundary::inside);
+    REQUIRE(!this->is_outside());
     return VolumeId{this->volume().id()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return whether the track is inside or outside the valid geometry region.
- */
-CELER_FUNCTION Boundary GeoTrackView::boundary() const
-{
-    return vgstate_.IsOutside() ? Boundary::outside : Boundary::inside;
 }
 
 //---------------------------------------------------------------------------//
@@ -146,9 +131,7 @@ GeoTrackView::get_nav_state(void*                  state,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Get a reference to the current volume.
- */
+//! Get a reference to the current volume.
 CELER_FUNCTION const vecgeom::VPlacedVolume& GeoTrackView::volume() const
 {
     const vecgeom::VPlacedVolume* vol_ptr = vgstate_.Top();
@@ -156,5 +139,4 @@ CELER_FUNCTION const vecgeom::VPlacedVolume& GeoTrackView::volume() const
     return *vol_ptr;
 }
 
-//---------------------------------------------------------------------------//
 } // namespace celeritas
