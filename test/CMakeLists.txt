@@ -81,7 +81,6 @@ celeritas_add_test(base/DeviceVector.test.cc)
 celeritas_add_test(base/Interpolator.test.cc)
 celeritas_add_test(base/OpaqueId.test.cc)
 celeritas_add_test(base/Quantity.test.cc)
-celeritas_add_test(base/Range.test.cc)
 celeritas_add_test(base/SoftEqual.test.cc)
 celeritas_add_test(base/Span.test.cc)
 celeritas_add_test(base/SpanRemapper.test.cc)
@@ -94,6 +93,7 @@ if(CELERITAS_USE_CUDA)
     SOURCES base/NumericLimits.test.cu)
 endif()
 
+add_cudaoptional_test(base/Range)
 add_cudaoptional_test(base/StackAllocator)
 
 #-----------------------------------------------------------------------------#

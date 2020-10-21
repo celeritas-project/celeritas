@@ -9,6 +9,7 @@
 
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
+#include "Range.test.hh"
 
 using celeritas::count;
 using celeritas::range;
@@ -277,3 +278,8 @@ TEST(CountTest, backward)
 }
 
 //---------------------------------------------------------------------------//
+// DEVICE TESTS
+//---------------------------------------------------------------------------//
+#if CELERITAS_USE_CUDA
+
+#endif
