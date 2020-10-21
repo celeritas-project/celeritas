@@ -9,6 +9,11 @@ cmake_minimum_required(VERSION 3.12)
 project(Celeritas VERSION 0.0.1 LANGUAGES CXX)
 cmake_policy(VERSION 3.12...3.18)
 
+# Set Policies
+if(POLICY CMP0104)
+  cmake_policy(SET CMP0104 NEW)
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 if(CMAKE_VERSION VERSION_LESS 3.18)
   list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/backport/3.18")
