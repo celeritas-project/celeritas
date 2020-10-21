@@ -42,10 +42,16 @@ class PhysicsArrayParams
     // Access on-device data
     PhysicsArrayPointers device_pointers() const;
 
+    // Get host-side data
+    PhysicsArrayPointers host_pointers() const;
+
   private:
     UniformGrid::Params     log_energy_;
     DeviceVector<real_type> xs_;
     real_type               prime_energy_;
+
+    // Host side xs data
+    std::vector<real_type> host_xs_;
 };
 
 //---------------------------------------------------------------------------//

@@ -20,7 +20,9 @@ namespace celeritas
  * Construct with input data.
  */
 PhysicsArrayParams::PhysicsArrayParams(const Input& input)
-    : xs_(input.xs.size()), prime_energy_(input.prime_energy)
+    : xs_(input.xs.size())
+    , prime_energy_(input.prime_energy)
+    , host_xs_(input.xs)
 {
     REQUIRE(input.energy.size() >= 2);
     REQUIRE(input.energy.front() > 0);
@@ -63,6 +65,20 @@ PhysicsArrayPointers PhysicsArrayParams::device_pointers() const
     result.log_energy   = log_energy_;
     result.xs           = xs_.device_pointers();
     result.prime_energy = prime_energy_;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief Access on-host data
+ */
+PhysicsArrayPointers PhysicsArrayParams::host_pointers() const
+{
+    PhysicsArrayPointers result;
+    result.log_energy   = log_energy_;
+    result.prime_energy = prime_energy_;
+    result.xs           = make_span(host_xs_);
+
     return result;
 }
 
