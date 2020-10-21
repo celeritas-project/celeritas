@@ -19,6 +19,7 @@
 #include "physics/base/ParticleParams.hh"
 #include "KNDemoIO.hh"
 #include "KNDemoRunner.hh"
+#include "LoadXs.hh"
 
 using namespace celeritas;
 using namespace demo_interactor;
@@ -59,7 +60,7 @@ void run(std::istream& is)
 
     // Construct runner
     auto         grid_params = inp.at("grid_params").get<CudaGridParams>();
-    KNDemoRunner run(load_params(), grid_params);
+    KNDemoRunner run(load_params(), load_xs(), grid_params);
 
     // For now, only do a single run
     auto run_args = inp.at("run").get<KNDemoRunArgs>();

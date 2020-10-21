@@ -3,34 +3,38 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KleinNishinaInteractorPointers.hh
+//! \file DetectorView.i.hh
 //---------------------------------------------------------------------------//
-#pragma once
 
-#include "base/Macros.hh"
+#include "base/Assert.hh"
 #include "base/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating a KleinNishinaInteractor.
+ * Construct with defaults.
  */
-struct KleinNishinaInteractorPointers
+CELER_FUNCTION DetectorView::DetectorView(const DetectorPointers& pointers)
+    : allocate_(pointers.hit_buffer)
 {
-    //! 1 / electron mass [1 / MevMass]
-    real_type inv_electron_mass;
-    //! ID of an electron
-    ParticleDefId electron_id;
-    //! ID of a gamma
-    ParticleDefId gamma_id;
+}
 
-    //! Check whether the interface is initialized
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return inv_electron_mass > 0 && electron_id && gamma_id;
-    }
-};
+//---------------------------------------------------------------------------//
+/*!
+ * Push the given hit onto the back of the detector stack.
+ */
+CELER_FUNCTION void DetectorView::operator()(const Hit& hit)
+{
+    REQUIRE(hit.thread);
+    REQUIRE(hit.time > 0);
+    REQUIRE(hit.energy_deposited > zero_quantity());
+
+    // Allocate and assign the given hit
+    Hit* allocated = this->allocate_(1);
+    CHECK(allocated);
+    *allocated = hit;
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

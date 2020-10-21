@@ -180,3 +180,55 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
         }
     }
 }
+
+TEST_F(KleinNishinaInteractorTest, distributions)
+{
+    RandomEngine& rng_engine = this->rng();
+
+    const int    num_samples   = 10000;
+    const double inc_energy    = 1;
+    Real3        inc_direction = {0, 0, 1};
+    this->set_inc_particle(pdg::gamma(), MevEnergy{inc_energy});
+    this->set_inc_direction(inc_direction);
+    this->resize_secondaries(num_samples);
+
+    // Create interactor
+    KleinNishinaInteractor interact(pointers_,
+                                    this->particle_track(),
+                                    this->direction(),
+                                    this->secondary_allocator());
+
+    int              nbins = 10;
+    std::vector<int> eps_dist(nbins);
+    std::vector<int> costheta_dist(nbins);
+
+    // Loop over many particles
+    for (int i = 0; i < num_samples; ++i)
+    {
+        Interaction out = interact(rng_engine);
+        // Bin energy loss
+        double eps     = out.energy.value() / inc_energy;
+        int    eps_bin = eps * nbins;
+        if (eps_bin >= 0 && eps_bin < nbins)
+        {
+            ++eps_dist[eps_bin];
+        }
+
+        // Bin directional change
+        double costheta = celeritas::dot_product(inc_direction, out.direction);
+        int ct_bin = (1 + costheta) / 2 * nbins; // Remap from [-1,1] to [0,1]
+        if (ct_bin >= 0 && ct_bin < nbins)
+        {
+            ++costheta_dist[ct_bin];
+        }
+    }
+    EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
+    // PRINT_EXPECTED(eps_dist);
+    // PRINT_EXPECTED(costheta_dist);
+    const int expected_eps_dist[]
+        = {0, 0, 2010, 1365, 1125, 1067, 1077, 1066, 1123, 1167};
+    const int expected_costheta_dist[]
+        = {495, 459, 512, 528, 565, 701, 803, 1101, 1693, 3143};
+    EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
+    EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+}

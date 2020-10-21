@@ -13,11 +13,9 @@
 #include "physics/base/ParticleStatePointers.hh"
 #include "physics/base/SecondaryAllocatorPointers.hh"
 #include "physics/em/KleinNishinaInteractorPointers.hh"
-
-namespace celeritas
-{
-struct RngStatePointers;
-}
+#include "random/cuda/RngStatePointers.hh"
+#include "PhysicsArrayPointers.hh"
+#include "DetectorPointers.hh"
 
 namespace demo_interactor
 {
@@ -29,32 +27,62 @@ struct CudaGridParams
     unsigned int grid_size  = 32;  //!< Blocks per grid
 };
 
+//! Pointers to immutable problem data
+struct ParamPointers
+{
+    celeritas::ParticleParamsPointers         particle;
+    celeritas::PhysicsArrayPointers           xs;
+    celeritas::KleinNishinaInteractorPointers kn_interactor;
+
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return particle && xs && kn_interactor;
+    }
+};
+
+//! Pointers to initial conditoins
+struct InitialPointers
+{
+    celeritas::ParticleTrackState particle;
+};
+
+//! Pointers to thread-dependent state data
+struct StatePointers
+{
+    celeritas::ParticleStatePointers      particle;
+    celeritas::RngStatePointers           rng;
+    celeritas::span<celeritas::Real3>     position;
+    celeritas::span<celeritas::Real3>     direction;
+    celeritas::span<celeritas::real_type> time;
+    celeritas::span<bool>                 alive;
+
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return particle && rng && !position.empty() && !direction.empty()
+               && !time.empty() && !alive.empty();
+    }
+
+    //! Number of tracks
+    CELER_FUNCTION celeritas::size_type size() const
+    {
+        return particle.size();
+    }
+};
+
 //---------------------------------------------------------------------------//
 // Initialize particle states
-void initialize(CudaGridParams                    grid,
-                celeritas::ParticleParamsPointers params,
-                celeritas::ParticleStatePointers  states,
-                celeritas::ParticleTrackState     initial_state,
-                celeritas::RngStatePointers       rng_states,
-                celeritas::span<celeritas::Real3> direction,
-                celeritas::span<bool>             alive);
+void initialize(const CudaGridParams&  grid,
+                const ParamPointers&   params,
+                const StatePointers&   state,
+                const InitialPointers& initial);
 
 //---------------------------------------------------------------------------//
 // Run an iteration
-void iterate(CudaGridParams                            grid,
-             celeritas::ParticleParamsPointers         params,
-             celeritas::ParticleStatePointers          states,
-             celeritas::KleinNishinaInteractorPointers kn_params,
-             celeritas::SecondaryAllocatorPointers     secondaries,
-             celeritas::RngStatePointers               rng_states,
-             celeritas::span<celeritas::Real3>         direction,
-             celeritas::span<bool>                     alive,
-             celeritas::span<celeritas::real_type>     energy_deposition);
-
-//---------------------------------------------------------------------------//
-// Sum the total energy deposition
-celeritas::real_type
-reduce_energy_dep(celeritas::span<celeritas::real_type> edep);
+void iterate(const CudaGridParams&                        grid,
+             const ParamPointers&                         params,
+             const StatePointers&                         state,
+             const celeritas::SecondaryAllocatorPointers& secondaries,
+             const celeritas::DetectorPointers&           detector);
 
 //---------------------------------------------------------------------------//
 // Sum the total number of living particles

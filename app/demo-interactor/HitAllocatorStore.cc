@@ -3,34 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KleinNishinaInteractorPointers.hh
+//! \file HitAllocatorStore.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include "DetectorPointers.hh"
+#include "base/StackAllocatorStore.t.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Device data for creating a KleinNishinaInteractor.
- */
-struct KleinNishinaInteractorPointers
-{
-    //! 1 / electron mass [1 / MevMass]
-    real_type inv_electron_mass;
-    //! ID of an electron
-    ParticleDefId electron_id;
-    //! ID of a gamma
-    ParticleDefId gamma_id;
 
-    //! Check whether the interface is initialized
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return inv_electron_mass > 0 && electron_id && gamma_id;
-    }
-};
+// Explicitly instantiate stack allocator
+template class StackAllocatorStore<Hit>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

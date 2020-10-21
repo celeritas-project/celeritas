@@ -42,6 +42,12 @@ struct RngSeed
 struct RngStatePointers
 {
     span<RngState> rng;
+
+    //! Whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const { return !rng.empty(); }
+
+    //! State size
+    CELER_FUNCTION size_type size() const { return rng.size(); }
 };
 
 //---------------------------------------------------------------------------//

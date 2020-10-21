@@ -60,6 +60,11 @@ constexpr real_type volt     = joule / coulomb;
 constexpr real_type tesla    = kilogram / (coulomb * second);
 //@}
 
+//@{
+//! Other units
+constexpr real_type millimeter = 0.1 * centimeter;
+//@}
+
 //---------------------------------------------------------------------------//
 } // namespace units
 } // namespace celeritas

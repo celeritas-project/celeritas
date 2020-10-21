@@ -3,33 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Algorithms.hh
+//! \file DetectorUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Macros.hh"
+#include "../DetectorPointers.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Return the lower of two values.
- */
-template<class T>
-CELER_CONSTEXPR_FUNCTION const T& min(const T& a, const T& b)
+namespace detail
 {
-    return (b < a) ? b : a;
-}
+//---------------------------------------------------------------------------//
+// Bin energy deposition from the hit buffer into the tally grid
+void bin_buffer(const DetectorPointers& device_ptrs);
 
 //---------------------------------------------------------------------------//
-/*!
- * Return the higher of two values.
- */
-template<class T>
-CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b)
-{
-    return (b > a) ? b : a;
-}
+// Multiply tally deposition by the given value
+void normalize(const DetectorPointers& device_ptrs, real_type norm);
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

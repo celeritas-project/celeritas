@@ -3,35 +3,37 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleParamsPointers.hh
+//! \file ExponentialDistribution.i.hh
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "base/Macros.hh"
-#include "base/Span.hh"
-#include "ParticleDef.hh"
+#include <cmath>
+#include "base/Assert.hh"
+#include "GenerateCanonical.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access particle definitions on the device.
- *
- * This view is created from \c ParticleParams. The size of the \c defs data
- * member is the number of particle types (accessed by \c ParticleDefId).
- *
- * \sa ParticleParams (owns the pointed-to data)
- * \sa ParticleTrackView (uses the pointed-to data in a kernel)
+ * Construct from the mean of the exponential distribution.
  */
-struct ParticleParamsPointers
+template<class RT>
+CELER_FUNCTION
+ExponentialDistribution<RT>::ExponentialDistribution(real_type lambda)
+    : neg_inv_lambda_(real_type{-1} / lambda)
 {
-    span<const ParticleDef> defs;
+    REQUIRE(lambda > real_type{0});
+}
 
-    //! Check whether the interface is initialized
-    explicit CELER_FUNCTION operator bool() const { return !defs.empty(); }
-};
+//---------------------------------------------------------------------------//
+/*!
+ * Sample a random number according to the distribution.
+ */
+template<class RT>
+template<class Generator>
+CELER_FUNCTION auto ExponentialDistribution<RT>::operator()(Generator& rng)
+    -> result_type
+{
+    return std::log(generate_canonical<RT>(rng)) * neg_inv_lambda_;
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

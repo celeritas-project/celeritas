@@ -29,15 +29,18 @@ struct StackAllocatorPointers
     span<T>    storage;        //!< Allocated capacity
     size_type* size = nullptr; //!< Stored size
 
-    // Whether the pointers are assigned
+    // Whether the interface is initialized
     explicit inline CELER_FUNCTION operator bool() const;
+
+    //! Total capacity of stack
+    CELER_FUNCTION size_type capacity() const { return storage.size(); }
 };
 
 //---------------------------------------------------------------------------//
 // INLINE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Check whether the pointers are assigned.
+ * Whether the interface is initialized.
  */
 template<class T>
 CELER_FUNCTION StackAllocatorPointers<T>::operator bool() const

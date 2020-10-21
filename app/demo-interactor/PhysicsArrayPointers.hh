@@ -3,32 +3,29 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KleinNishinaInteractorPointers.hh
+//! \file PhysicsArrayPointers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include "base/Span.hh"
+#include "base/UniformGrid.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating a KleinNishinaInteractor.
+ * Interface for passing physics array data to device.
  */
-struct KleinNishinaInteractorPointers
+struct PhysicsArrayPointers
 {
-    //! 1 / electron mass [1 / MevMass]
-    real_type inv_electron_mass;
-    //! ID of an electron
-    ParticleDefId electron_id;
-    //! ID of a gamma
-    ParticleDefId gamma_id;
+    UniformGrid::Params   log_energy;
+    real_type             prime_energy;
+    span<const real_type> xs;
 
-    //! Check whether the interface is initialized
+    //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return inv_electron_mass > 0 && electron_id && gamma_id;
+        return log_energy && !xs.empty();
     }
 };
 

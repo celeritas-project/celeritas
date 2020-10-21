@@ -37,13 +37,13 @@ __global__ void sa_test_kernel(SATestInput input, SATestOutput* output)
             continue;
         }
 
-        atomicAdd(&output->num_allocations, input.alloc_size);
+        celeritas::atomic_add(&output->num_allocations, input.alloc_size);
         for (int j = 0; j < input.alloc_size; ++j)
         {
             if (secondaries[j].def_id != -1)
             {
                 // Initialization failed (in-place new not called)
-                atomicAdd(&output->num_errors, 1);
+                celeritas::atomic_add(&output->num_errors, 1);
             }
 
             // Initialize the secondary
@@ -51,8 +51,9 @@ __global__ void sa_test_kernel(SATestInput input, SATestOutput* output)
         }
         static_assert(sizeof(void*) == sizeof(celeritas::ull_int),
                       "Wrong pointer size");
-        atomicMax(&output->last_secondary_address,
-                  reinterpret_cast<celeritas::ull_int>(secondaries));
+        celeritas::atomic_max(
+            &output->last_secondary_address,
+            reinterpret_cast<celeritas::ull_int>(secondaries));
     }
 
     // Do a max on the total in-kernel size, which *might* be under

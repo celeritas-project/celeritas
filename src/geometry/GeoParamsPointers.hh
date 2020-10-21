@@ -32,7 +32,11 @@ struct GeoParamsPointers
 {
     const vecgeom::VPlacedVolume* world_volume = nullptr;
 
-    CELER_FUNCTION operator bool() const { return bool(world_volume); }
+    //! Check whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return bool(world_volume);
+    }
 };
 
 //---------------------------------------------------------------------------//

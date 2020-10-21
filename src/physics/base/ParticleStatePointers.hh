@@ -47,11 +47,11 @@ struct ParticleStatePointers
 {
     span<ParticleTrackState> vars;
 
-    //! Check whether the view is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return !vars.empty();
-    }
+    //! Check whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const { return !vars.empty(); }
+
+    //! State size
+    CELER_FUNCTION size_type size() const { return vars.size(); }
 };
 
 //---------------------------------------------------------------------------//
