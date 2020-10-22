@@ -20,7 +20,7 @@ __global__ void bin_buffer_kernel(DetectorPointers const detector)
 {
     auto        hits = StackAllocatorView<Hit>(detector.hit_buffer).get();
     UniformGrid grid(detector.tally_grid);
-    size_type thread_idx = KernelParamCalculator::thread_id().get();
+    size_type   thread_idx = KernelParamCalculator::thread_id().get();
 
     if (thread_idx < hits.size())
     {
@@ -38,9 +38,10 @@ __global__ void bin_buffer_kernel(DetectorPointers const detector)
         // Add energy deposition (NOTE: very slow on arch 600)
         atomic_add(&detector.tally_deposition[bin],
                    hit.energy_deposited.value());
-        // detector.tally_deposition[bin] += hit.energy_deposited.value();
     }
 }
+
+//---------------------------------------------------------------------------//
 
 __global__ void
 normalize_kernel(DetectorPointers const detector, real_type norm)
@@ -74,10 +75,7 @@ void bin_buffer(const DetectorPointers& detector)
 
 //---------------------------------------------------------------------------//
 /*!
- * Bin the buffer into the tally grid.
- *
- * The caller will have to clear the buffer after calling this. No
- * normalization is performed.
+ * Multiply the binned data by the given normalization.
  */
 void normalize(const DetectorPointers& device_ptrs, real_type norm)
 {

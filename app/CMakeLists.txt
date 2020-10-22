@@ -59,6 +59,9 @@ endif()
 #-----------------------------------------------------------------------------#
 # DEMO: physics interactions
 #-----------------------------------------------------------------------------#
+# The CPU version still requires CUDA because some of the data parameters will do
+# a copy to device (even though this isn't used by the CPU app) and that copy will
+# fail in the DeviceAllocator if CUDA is disabled
 
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
   add_executable(demo-interactor
@@ -71,7 +74,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
     demo-interactor/KNDemoKernel.cu
     demo-interactor/PhysicsArrayParams.cc
     demo-interactor/detail/DetectorUtils.cu
-    )
+  )
   target_link_libraries(demo-interactor celeritas
     CUDA::cudart
     nlohmann_json::nlohmann_json
@@ -86,6 +89,21 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
       ENVIRONMENT "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
     )
   endif()
+
+  # Build CPU version
+  add_executable(host-demo-interactor
+    demo-interactor/LoadXs.cc
+    demo-interactor/KNDemoIO.cc
+    demo-interactor/PhysicsArrayParams.cc
+    demo-interactor/host-demo-interactor.cc
+    demo-interactor/HostDetectorStore.cc
+    demo-interactor/HostKNDemoRunner.cc
+  )
+  target_link_libraries(host-demo-interactor celeritas
+    CUDA::cudart
+    nlohmann_json::nlohmann_json
+  )
+
 endif()
 
 #-----------------------------------------------------------------------------#
