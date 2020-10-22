@@ -15,7 +15,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Host side version of StackAllocatorStore
+ * Host side version of StackAllocatorStore.
  */
 template<class T>
 class HostStackAllocatorStore

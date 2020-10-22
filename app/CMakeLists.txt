@@ -81,13 +81,13 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
   )
 
   if(CELERITAS_BUILD_TESTS)
-  add_test(NAME "app/demo-interactor"
-    COMMAND "${Python_EXECUTABLE}"
-      "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py"
-  )
-  set_tests_properties("app/demo-interactor" PROPERTIES
-    ENVIRONMENT "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
-  )
+    add_test(NAME "app/demo-interactor"
+      COMMAND "${Python_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py"
+    )
+    set_tests_properties("app/demo-interactor" PROPERTIES
+      ENVIRONMENT "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
+    )
   endif()
 
   # Build CPU version

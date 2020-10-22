@@ -13,11 +13,11 @@
 #include "KNDemoIO.hh"
 #include "PhysicsArrayParams.hh"
 
-namespace demo_interactor_cpu
+namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
 /*!
- * Run interactions on the host CPU
+ * Run interactions on the host CPU.
  *
  * This is an analog to the demo_interactor::KNDemoRunner for device simulation
  * but does all the transport directly on the CPU side.
@@ -61,4 +61,4 @@ class HostKNDemoRunner
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor_cpu
+} // namespace demo_interactor

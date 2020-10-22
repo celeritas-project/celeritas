@@ -22,12 +22,12 @@
 #include "HostKNDemoRunner.hh"
 
 using namespace celeritas;
-using namespace demo_interactor_cpu;
+using namespace demo_interactor;
 using std::cerr;
 using std::cout;
 using std::endl;
 
-namespace demo_interactor_cpu
+namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -36,8 +36,8 @@ namespace demo_interactor_cpu
 std::shared_ptr<ParticleParams> load_params()
 {
     using namespace celeritas::units;
-    celeritas::ZeroQuantity zero;
-    auto                    stable = ParticleDef::stable_decay_constant();
+    ZeroQuantity zero;
+    auto         stable = ParticleDef::stable_decay_constant();
 
     ParticleParams::VecAnnotatedDefs defs
         = {{{"electron", pdg::electron()},
@@ -71,7 +71,7 @@ void run(std::istream& is)
     };
     cout << outp.dump() << endl;
 }
-} // namespace demo_interactor_cpu
+} // namespace demo_interactor
 
 //---------------------------------------------------------------------------//
 /*!

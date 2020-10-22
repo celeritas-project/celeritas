@@ -23,7 +23,9 @@
 #include "HostStackAllocatorStore.hh"
 #include "HostDetectorStore.hh"
 
-namespace demo_interactor_cpu
+using namespace celeritas;
+
+namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -49,7 +51,6 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams     particles,
 /*!
  * \brief Run given number of particles each for max steps.
  */
-
 auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     -> result_type
 {
@@ -63,8 +64,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     result.edep.reserve(args.max_steps);
 
     // Start timer for overall execution and transport-only time
-    celeritas::Stopwatch total_time;
-    double               transport_time = 0.0;
+    Stopwatch total_time;
+    double    transport_time = 0.0;
 
     // Random number generations
     std::mt19937 rng(args.seed);
@@ -73,17 +74,16 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     auto pp_host_ptrs = pparams_->host_pointers();
 
     // Physics calculator
-    auto xs_host_ptrs = xsparams_->host_pointers();
-    celeritas::PhysicsArrayCalculator calc_xs(xs_host_ptrs);
+    auto                   xs_host_ptrs = xsparams_->host_pointers();
+    PhysicsArrayCalculator calc_xs(xs_host_ptrs);
 
     // Make secondary store
-    celeritas::HostStackAllocatorStore<celeritas::Secondary> secondaries(
-        args.max_steps);
+    HostStackAllocatorStore<Secondary> secondaries(args.max_steps);
     auto secondary_host_ptrs = secondaries.host_pointers();
 
     // Make detector store
-    celeritas::HostDetectorStore detector(args.max_steps, args.tally_grid);
-    auto                         detector_host_ptrs = detector.host_pointers();
+    HostDetectorStore detector(args.max_steps, args.tally_grid);
+    auto              detector_host_ptrs = detector.host_pointers();
 
     // Loop over particle tracks and events per track
     for (CELER_MAYBE_UNUSED auto n : celeritas::range(args.num_tracks))
@@ -104,30 +104,28 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
         state.alive         = true;
 
         // Secondary pointers
-        celeritas::SecondaryAllocatorView allocate_secondaries(
-            secondary_host_ptrs);
+        SecondaryAllocatorView allocate_secondaries(secondary_host_ptrs);
         CHECK(secondaries.capacity() == args.max_steps);
         CHECK(allocate_secondaries.get().size() == 0);
 
         // Detector hits
-        celeritas::DetectorView detector_hit(detector_host_ptrs);
+        DetectorView detector_hit(detector_host_ptrs);
 
         // Step counter
         CELER_MAYBE_UNUSED size_type num_steps = 0;
 
-        celeritas::Stopwatch elapsed_time;
+        Stopwatch elapsed_time;
         while (state.alive && --remaining_steps > 0)
         {
             // Get a particle track view to a single particle
-            auto particle = celeritas::ParticleTrackView(
-                pp_host_ptrs, state.particle, celeritas::ThreadId(0));
+            auto particle
+                = ParticleTrackView(pp_host_ptrs, state.particle, ThreadId(0));
 
             // Move to collision
             {
-                celeritas::real_type sigma = calc_xs(particle);
-                celeritas::ExponentialDistribution<celeritas::real_type>
-                                     sample_distance(sigma);
-                celeritas::real_type distance = sample_distance(rng);
+                real_type                          sigma = calc_xs(particle);
+                ExponentialDistribution<real_type> sample_distance(sigma);
+                real_type distance = sample_distance(rng);
                 celeritas::axpy(distance, state.direction, &state.position);
                 state.time += distance * celeritas::unit_cast(particle.speed());
             }
@@ -136,14 +134,14 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             ++num_steps;
 
             // Hit analysis
-            celeritas::Hit h;
+            Hit h;
             h.pos    = state.position;
-            h.thread = celeritas::ThreadId(0);
+            h.thread = ThreadId(0);
             h.time   = state.time;
 
             // Check for below energy cutoff
             if (particle.energy()
-                < celeritas::KleinNishinaInteractor::min_incident_energy())
+                < KleinNishinaInteractor::min_incident_energy())
             {
                 // Particle is below interaction energy
                 h.dir              = state.direction;
@@ -156,7 +154,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             }
 
             // Construct the KN interactor
-            celeritas::KleinNishinaInteractor interact(
+            KleinNishinaInteractor interact(
                 kn_pointers_, particle, state.direction, allocate_secondaries);
 
             // Perform interactions - emits a single particle
@@ -182,8 +180,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
                   ? secondaries.get_size() == num_steps - 1
                   : secondaries.get_size() == num_steps);
         CHECK(secondaries.get_size() == allocate_secondaries.get().size());
-        CHECK(celeritas::StackAllocatorView<celeritas::Hit>(
-                  detector.host_pointers().hit_buffer)
+        CHECK(StackAllocatorView<Hit>(detector.host_pointers().hit_buffer)
                   .get()
                   .size()
               == num_steps);
@@ -200,7 +197,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     }
 
     // Copy integrated energy deposition
-    result.edep = detector.finalize(1 / celeritas::real_type(args.num_tracks));
+    result.edep = detector.finalize(1 / real_type(args.num_tracks));
 
     // Store timings
     result.time.push_back(transport_time);
@@ -210,4 +207,4 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor_cpu
+} // namespace demo_interactor
