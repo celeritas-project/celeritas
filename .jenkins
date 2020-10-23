@@ -14,8 +14,7 @@ pipeline {
                     agent {
                         docker {
                             image 'celeritas/ci:cuda11-3'
-                            // label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
-                            label 'sethrj'
+                            label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
                         }
                     }
                     steps {
