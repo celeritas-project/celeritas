@@ -13,7 +13,7 @@ pipeline {
                 stage('cuda-11') {
                     agent {
                         docker {
-                            image 'celeritas/ci:cuda11-1'
+                            image 'celeritas/ci:cuda11-2'
                             // label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
                             label 'sethrj'
                         }

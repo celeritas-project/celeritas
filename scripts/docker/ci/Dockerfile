@@ -60,7 +60,7 @@ RUN . /etc/profile.d/celeritas_spack_env.sh \
 # Install python (XXX: merge into spack install)
 RUN apt-get -yqq update \
  && apt-get -yqq install --no-install-recommends \
-    python \
+    python3 \
  && rm -rf /var/lib/apt/lists/*
 
 # Set up entrypoint and group
