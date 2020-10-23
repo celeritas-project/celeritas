@@ -52,15 +52,16 @@ RUN . /etc/profile.d/celeritas_spack_env.sh \
   && git clone --depth=1 https://gitlab.cern.ch/VecGeom/VecGeom.git vecgeom-src \
   && mkdir vecgeom-build \
   && cd vecgeom-build \
-  && cmake -DBACKEND:STRING=Scalar -DBUILTIN_VECCORE:BOOL=OFF -DNO_SPECIALIZATION:BOOL=ON -DVECGEOM_VECTOR:STRING=avx2 -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_STANDARD:STRING=14 -DCUDA:BOOL=ON -DGDML:BOOL=ON -DGEANT4:BOOL=OFF -DROOT:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DCTEST:BOOL=OFF -DGDMLTESTING:BOOL=OFF -DCUDA_ARCH:STRING=70 -DCMAKE_INSTALL_PREFIX:STRING=/opt/vecgeom -G Ninja ../vecgeom-src \
+  && cmake -DBACKEND:STRING=Scalar -DBUILTIN_VECCORE:BOOL=OFF -DNO_SPECIALIZATION:BOOL=ON -DVECGEOM_VECTOR:STRING=empty -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_STANDARD:STRING=14 -DCUDA:BOOL=ON -DGDML:BOOL=ON -DGEANT4:BOOL=OFF -DROOT:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DCTEST:BOOL=OFF -DGDMLTESTING:BOOL=OFF -DCUDA_ARCH:STRING=70 -DCMAKE_INSTALL_PREFIX:STRING=/opt/vecgeom -G Ninja ../vecgeom-src \
   && ninja install \
-  && rm -rf vecgeom-build vecgeom-src \
+  && rm -rf /opt/vecgeom-build /opt/vecgeom-src \
   && echo "export CMAKE_PREFIX_PATH=/opt/vecgeom:${CMAKE_PREFIX_PATH}" >> /etc/profile.d/celeritas_spack_env.sh
 
 # Install python (XXX: merge into spack install)
 RUN apt-get -yqq update \
  && apt-get -yqq install --no-install-recommends \
     python3 \
+    vim \
  && rm -rf /var/lib/apt/lists/*
 
 # Set up entrypoint and group

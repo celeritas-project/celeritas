@@ -38,6 +38,7 @@ cmake -G Ninja \
   -DCMAKE_BUILD_TYPE:STRING="Debug" \
   -DCMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Werror" \
   -DCMAKE_CUDA_FLAGS="-arch=sm_70 -Werror all-warnings" \
+  -DCMAKE_SHARED_LINKER_FLAGS:STRING="-Wl,--no-as-needed" \
   -DMPIEXEC_PREFLAGS="--allow-run-as-root" \
   ..
                             '''
