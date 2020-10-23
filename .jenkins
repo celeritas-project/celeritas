@@ -13,7 +13,7 @@ pipeline {
                 stage('cuda-11') {
                     agent {
                         docker {
-                            image 'celeritas/ci:cuda11-2'
+                            image 'celeritas/ci:cuda11-3'
                             // label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
                             label 'sethrj'
                         }
@@ -23,8 +23,6 @@ pipeline {
                         dir('build') {
                             sh '''
 . /etc/profile.d/celeritas_spack_env.sh
-env
-echo $0
 cmake -G Ninja \
   -DCELERITAS_BUILD_DEMOS:BOOL=ON \
   -DCELERITAS_BUILD_TESTS:BOOL=ON \
@@ -42,7 +40,7 @@ cmake -G Ninja \
   -DMPIEXEC_PREFLAGS="--allow-run-as-root" \
   ..
                             '''
-                            sh 'entrypoint-shell ninja -v'
+                            sh 'entrypoint-shell ninja -v -k0'
                             sh 'entrypoint-shell ctest $CTEST_ARGS'
                         }
                     }
