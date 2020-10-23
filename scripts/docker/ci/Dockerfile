@@ -46,7 +46,7 @@ RUN apt-get -yqq update \
         ssh \
  && rm -rf /var/lib/apt/lists/*
 
-# Install updated vecgeom
+# Install updated vecgeom (XXX: merge into spack install)
 RUN . /etc/profile.d/celeritas_spack_env.sh \
   && cd /opt \
   && git clone --depth=1 https://gitlab.cern.ch/VecGeom/VecGeom.git vecgeom-src \
@@ -56,6 +56,12 @@ RUN . /etc/profile.d/celeritas_spack_env.sh \
   && ninja install \
   && rm -rf vecgeom-build vecgeom-src \
   && echo "export CMAKE_PREFIX_PATH=/opt/vecgeom:${CMAKE_PREFIX_PATH}" >> /etc/profile.d/celeritas_spack_env.sh
+
+# Install python (XXX: merge into spack install)
+RUN apt-get -yqq update \
+ && apt-get -yqq install --no-install-recommends \
+    python \
+ && rm -rf /var/lib/apt/lists/*
 
 # Set up entrypoint and group
 RUN groupadd -g 999 celeritas \

@@ -13,7 +13,7 @@ pipeline {
                 stage('cuda-11') {
                     agent {
                         docker {
-                            image 'celeritas/ci:cuda11'
+                            image 'celeritas/ci:cuda11-1'
                             // label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
                             label 'sethrj'
                         }
@@ -26,12 +26,14 @@ pipeline {
 env
 echo $0
 cmake -G Ninja \
+  -DCELERITAS_BUILD_DEMOS:BOOL=ON \
+  -DCELERITAS_BUILD_TESTS:BOOL=ON \
   -DCELERITAS_USE_CUDA:BOOL=ON \
   -DCELERITAS_USE_Geant4:BOOL=ON \
+  -DCELERITAS_USE_HepMC3:BOOL=ON \
   -DCELERITAS_USE_MPI:BOOL=ON \
   -DCELERITAS_USE_ROOT:BOOL=ON \
-  -DCELERITAS_USE_VECGEOM:BOOL=ON \
-  -DCELERITAS_BUILD_TESTS:BOOL=ON \
+  -DCELERITAS_USE_VecGeom:BOOL=ON \
   -DCELERITAS_DEBUG:BOOL=ON \
   -DCMAKE_BUILD_TYPE:STRING="Debug" \
   -DCMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Werror" \
