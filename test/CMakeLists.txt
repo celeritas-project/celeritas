@@ -164,12 +164,10 @@ target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
 set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
 
 celeritas_setup_tests(SERIAL PREFIX physics/base)
-
 add_cudaoptional_test(physics/base/Particle)
 
 celeritas_setup_tests(SERIAL PREFIX physics/material)
-
-celeritas_add_test(physics/material/Material.test.cc)
+add_cudaoptional_test(physics/material/Material)
 
 #-----------------------------------------------------------------------------#
 # Physics (EM)

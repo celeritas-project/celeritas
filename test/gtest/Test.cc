@@ -29,5 +29,9 @@ std::string Test::test_data_path(const char* subdir, const char* filename)
     return result;
 }
 
+// Provide a definition for the "inf" value. (This is needed by C++ < 17 so
+// that the adddress off the static value can be taken.)
+constexpr double Test::inf;
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas

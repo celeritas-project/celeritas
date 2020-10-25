@@ -3,32 +3,36 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Test.hh
+//! \file Types.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <gtest/gtest.h>
-#include <cmath>
+#include "base/OpaqueId.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Googletest test harness for Celeritas codes.
- *
- * The test harness is constructed and destroyed once per subtest.
+ * Physical state of matter.
  */
-class Test : public ::testing::Test
+enum class MatterState
 {
-  public:
-    Test() = default;
-
-    // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
-    static std::string test_data_path(const char* subdir, const char* filename);
-
-    // Define "inf" value for subclass testing
-    static constexpr double inf = HUGE_VAL;
+    unspecified = 0,
+    solid,
+    liquid,
+    gas
 };
+
+//---------------------------------------------------------------------------//
+
+//! Opaque index to ElementDef in the global vector of elements
+using ElementDefId = OpaqueId<struct ElementDef>;
+
+//! Opaque index to one elemental component datum in a particular material
+using ElementComponentId = OpaqueId<struct MatElementComponent>;
+
+//! Opaque index to MaterialDef in a vector: represents a material ID
+using MaterialDefId = OpaqueId<struct MaterialDef>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
