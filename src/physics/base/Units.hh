@@ -43,6 +43,15 @@ struct EElectron
     }
 };
 
+//! Unit for atomic masses
+struct Amu
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return constants::atomic_mass;
+    }
+};
+
 //! Unit for converting mass to an energy-valued quantity
 using CLightSq = UnitProduct<CLight, CLight>;
 
@@ -55,8 +64,9 @@ using MevMass          = Quantity<UnitDivide<Mev, CLightSq>>;
 using MevMomentum      = Quantity<UnitDivide<Mev, CLight>>;
 using MevMomentumSq    = Quantity<UnitDivide<UnitProduct<Mev, Mev>, CLightSq>>;
 using LightSpeed       = Quantity<CLight>;
+using AmuMass          = Quantity<Amu>;
 //@}
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace units
 } // namespace celeritas

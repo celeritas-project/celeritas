@@ -75,6 +75,7 @@ celeritas_setup_tests(SERIAL PREFIX base)
 
 celeritas_add_test(base/Array.test.cc)
 celeritas_add_test(base/ArrayUtils.test.cc)
+celeritas_add_test(base/Constants.test.cc)
 celeritas_add_test(base/DeviceAllocation.test.cc)
 celeritas_add_test(base/DeviceVector.test.cc)
 celeritas_add_test(base/Interpolator.test.cc)
