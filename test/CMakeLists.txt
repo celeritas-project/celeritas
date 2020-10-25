@@ -166,6 +166,10 @@ celeritas_setup_tests(SERIAL PREFIX physics/base)
 
 add_cudaoptional_test(physics/base/Particle)
 
+celeritas_setup_tests(SERIAL PREFIX physics/material)
+
+celeritas_add_test(physics/material/Material.test.cc)
+
 #-----------------------------------------------------------------------------#
 # Physics (EM)
 
