@@ -22,5 +22,3 @@ int main(int argc, char** argv)
 {
     return celeritas::detail::test_main(argc, argv);
 }
-
-//---------------------------------------------------------------------------//

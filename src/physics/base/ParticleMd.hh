@@ -12,8 +12,7 @@
 
 namespace celeritas
 {
-struct ParticleMd;
-using PDGNumber = OpaqueId<ParticleMd, int>;
+using PDGNumber = OpaqueId<struct ParticleMd, int>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -35,10 +34,12 @@ struct ParticleMd
 /*!
  * \namespace pdg
  *
- * Unique standard model particle identifiers by the Particle Data Group. This
- * namespace acts an enumeration for PDG codes that are used by the various
- * processes in Celeritas. They should be extended as needed when new particle
- * types are used by processes.
+ * Unique standard model particle identifiers by the Particle Data Group.
+ *
+ * This namespace acts an enumeration for PDG codes that are used by the
+ * various processes in Celeritas. (Unlike an enumeration, though, PDG codes
+ * can be arbitary and aren't limited to the ones defined below.) They should
+ * be extended as needed when new particle types are used by processes.
  */
 namespace pdg
 {
