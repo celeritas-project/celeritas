@@ -84,6 +84,7 @@ celeritas_add_test(base/Quantity.test.cc)
 celeritas_add_test(base/Range.test.cc)
 celeritas_add_test(base/SoftEqual.test.cc)
 celeritas_add_test(base/Span.test.cc)
+celeritas_add_test(base/SpanRemapper.test.cc)
 celeritas_add_test(base/Stopwatch.test.cc)
 celeritas_add_test(base/UniformGrid.test.cc)
 
