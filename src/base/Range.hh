@@ -174,9 +174,20 @@ class step_range_iter : public range_iter<T>
         return copy;
     }
 
-    CELER_FUNCTION bool operator==(step_range_iter const& other) const
+    template<typename U = T>
+    CELER_FUNCTION
+        typename std::enable_if_t<std::is_signed<U>::value, bool>
+        operator==(step_range_iter const& other) const
     {
-        return step_ > 0 ? value_ >= other.value_ : value_ < other.value_;
+        return step_ >= 0 ? value_ >= other.value_ : value_ < other.value_;
+    }
+
+    template<typename U = T>
+    CELER_FUNCTION
+        typename std::enable_if_t<std::is_unsigned<U>::value, bool>
+        operator==(step_range_iter const& other) const
+    {
+        return value_ >= other.value_;
     }
 
     CELER_FUNCTION bool operator!=(step_range_iter const& other) const
@@ -290,7 +301,7 @@ class FiniteRange
     CELER_FUNCTION FiniteRange(T begin, T end) : begin_(begin), end_(end) {}
 
     //! Return a stepped range using a different integer type
-    template<typename U>
+    template<typename U, std::enable_if_t<std::is_signed<U>::value, U> = 0>
     CELER_FUNCTION StepRange<typename std::common_type<T, U>::type> step(U step)
     {
         if (step < 0)
@@ -300,6 +311,13 @@ class FiniteRange
             return {*end_ + step, *begin_, step};
         }
 
+        return {*begin_, *end_, step};
+    }
+
+    //! Return a stepped range using a different integer type
+    template<typename U, std::enable_if_t<std::is_unsigned<U>::value, U> = 0>
+    CELER_FUNCTION StepRange<typename std::common_type<T, U>::type> step(U step)
+    {
         return {*begin_, *end_, step};
     }
 
