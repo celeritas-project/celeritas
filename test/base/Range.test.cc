@@ -11,6 +11,8 @@
 #include "gtest/Test.hh"
 #include "Range.test.hh"
 
+using namespace celeritas_test;
+
 using celeritas::count;
 using celeritas::range;
 
@@ -281,5 +283,34 @@ TEST(CountTest, backward)
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
 #if CELERITAS_USE_CUDA
+TEST(DeviceRangeTest, grid_stride)
+{
+    // ~1M elements for saxpy
+    unsigned int N = 1 << 20;
+
+    // Set Inputs
+    RangeTestInput input;
+    input.a = 3;
+    input.x.assign(N, 1);
+    // y varies with index so we can verify common order on CPU vs Device
+    input.y.assign(N, 0);
+    for (auto i : range(N))
+    {
+        input.y[i] = i;
+    }
+    input.num_threads = 32;
+    input.num_blocks  = 256;
+
+    // Calculate saxpy using CPU
+    std::vector<int> z_cpu(N, 0.0);
+    for (auto i : range(N))
+    {
+        z_cpu[i] = input.a * input.x[i] + input.y[i];
+    }
+
+    // Calculate saxpy on Device
+    RangeTestOutput result = rangedev_test(input);
+    EXPECT_VEC_EQ(z_cpu, result.z);
+}
 
 #endif
