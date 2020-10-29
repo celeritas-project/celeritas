@@ -3,32 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DetectorConstruction.hh
-//! \brief Construct detector geometry from a given gdml input
+//! \file ImportVolume.hh
+//! \brief Store volume information
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <G4VUserDetectorConstruction.hh>
+#include <string>
 
-namespace geant_exporter
+#include "base/Types.hh"
+
+namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load the detector geometry from a GDML input file.
+ * Store data for each volume.
+ *
+ * Used by the GdmlGeometryMap class.
+ *
+ * The reason for this (currently absurdly simple) struct instead of just
+ * keeping tab of volume names directly in the GdmlGeometryMap, is to
+ * easily import further volume information in the future.
  */
-class DetectorConstruction : public G4VUserDetectorConstruction
+struct ImportVolume
 {
-  public:
-    explicit DetectorConstruction(G4String gdmlInput);
-    ~DetectorConstruction();
-
-    G4VPhysicalVolume* Construct() override;
-    const G4VPhysicalVolume* get_world_volume() const;
-
-  private:
-    std::unique_ptr<G4VPhysicalVolume> phys_vol_world_;
+    std::string name;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace celeritas

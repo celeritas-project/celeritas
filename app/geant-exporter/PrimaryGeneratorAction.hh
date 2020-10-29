@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file PrimaryGeneratorAction.hh
+//! \brief Generate primaries for a minimal simulation run
 //---------------------------------------------------------------------------//
 #pragma once
 

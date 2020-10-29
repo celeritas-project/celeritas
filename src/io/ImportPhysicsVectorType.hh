@@ -3,32 +3,28 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DetectorConstruction.hh
-//! \brief Construct detector geometry from a given gdml input
+//! \file ImportPhysicsVectorType.hh
+//! \brief Geant4 PhysicsVector type enumerator
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <G4VUserDetectorConstruction.hh>
-
-namespace geant_exporter
+namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load the detector geometry from a GDML input file.
+ * Geant4 equivalent enum for Physics vector types.
+ * [See Geant4's G4PhysicsVectorType.hh]
  */
-class DetectorConstruction : public G4VUserDetectorConstruction
+enum class ImportPhysicsVectorType
 {
-  public:
-    explicit DetectorConstruction(G4String gdmlInput);
-    ~DetectorConstruction();
-
-    G4VPhysicalVolume* Construct() override;
-    const G4VPhysicalVolume* get_world_volume() const;
-
-  private:
-    std::unique_ptr<G4VPhysicalVolume> phys_vol_world_;
+    base,
+    linear,
+    log,
+    ln,
+    free,
+    ordered_free,
+    low_energy_free
 };
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace celeritas

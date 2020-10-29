@@ -3,31 +3,27 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DetectorConstruction.hh
-//! \brief Construct detector geometry from a given gdml input
+//! \file PhysicsList.hh
+//! \brief Construct a user-defined list of particles and physics processes
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <G4VUserDetectorConstruction.hh>
+#include <G4VUserPhysicsList.hh>
 
 namespace geant_exporter
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load the detector geometry from a GDML input file.
+ * Construct a user-defined physics list
  */
-class DetectorConstruction : public G4VUserDetectorConstruction
+class PhysicsList : public G4VUserPhysicsList
 {
   public:
-    explicit DetectorConstruction(G4String gdmlInput);
-    ~DetectorConstruction();
+    PhysicsList();
+    ~PhysicsList();
 
-    G4VPhysicalVolume* Construct() override;
-    const G4VPhysicalVolume* get_world_volume() const;
-
-  private:
-    std::unique_ptr<G4VPhysicalVolume> phys_vol_world_;
+    void ConstructParticle() override;
+    void ConstructProcess() override;
 };
 
 //---------------------------------------------------------------------------//
