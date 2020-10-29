@@ -87,5 +87,3 @@ inline void swap(DeviceAllocation& a, DeviceAllocation& b) noexcept;
 } // namespace celeritas
 
 #include "DeviceAllocation.i.hh"
-
-//---------------------------------------------------------------------------//

@@ -38,11 +38,11 @@ struct array
     using const_iterator  = const_pointer;
     //@}
 
-    // >>> DATA
+    /// DATA ///
 
     T data_[N];
 
-    // >>> ACCESSORS
+    /// ACCESSORS ///
 
     //@{
     //! Element access
@@ -127,5 +127,3 @@ CELER_CONSTEXPR_FUNCTION span<const T, N> make_span(const array<T, N>& x)
 } // namespace celeritas
 
 #include "Array.i.hh"
-
-//---------------------------------------------------------------------------//

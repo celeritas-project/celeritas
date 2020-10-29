@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file PrimaryGeneratorAction.hh
-//! \brief Generate primaries for a minimal simulation run
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,6 +18,8 @@ namespace geant_exporter
 //---------------------------------------------------------------------------//
 /*!
  * Define the particle gun used in the Geant4 run.
+ *
+ * This generates primaries for a minimal simulation run.
  */
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {

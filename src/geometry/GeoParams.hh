@@ -29,7 +29,7 @@ class GeoParams
     // Clean up VecGeom on destruction
     ~GeoParams();
 
-    // >>> HOST ACCESSORS
+    /// HOST ACCESSORS ///
 
     // Get the label for a placed volume ID
     const std::string& id_to_label(VolumeId vol_id) const;
@@ -46,12 +46,12 @@ class GeoParams
     // View in-host geometry data for CPU debugging
     GeoParamsPointers host_pointers() const;
 
-    // >>> DEVICE ACCESSORS
+    /// DEVICE ACCESSORS ///
 
     // Get a view to the managed on-device data
     GeoParamsPointers device_pointers() const;
 
-    // >>> DEVICE UTILITIES
+    /// DEVICE UTILITIES ///
 
     // Increase CUDA stack size to enable complex geometries
     static void set_cuda_stack_size(int limit);

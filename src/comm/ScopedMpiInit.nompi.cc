@@ -18,7 +18,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * \brief Construct with argc/argv references
+ * Construct with argc/argv references.
  */
 ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
 {
@@ -30,7 +30,7 @@ ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Call MPI finalize on destruction
+ * Call MPI finalize on destruction.
  */
 ScopedMpiInit::~ScopedMpiInit()
 {
@@ -39,7 +39,7 @@ ScopedMpiInit::~ScopedMpiInit()
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Whether MPI has been initialized
+ * Whether MPI has been initialized.
  */
 bool ScopedMpiInit::initialized()
 {

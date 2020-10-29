@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportVolume.hh
-//! \brief Store volume information
+//! Store volume information.
 //---------------------------------------------------------------------------//
 #pragma once
 

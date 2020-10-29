@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportMaterial.hh
-//! \brief Store material information
+//! Store material information.
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,7 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Enum for storing G4State enumerators
+ * Enum for storing G4State enumerators.
  * [See G4Material.hh]
  */
 enum class ImportMaterialState

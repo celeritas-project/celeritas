@@ -19,7 +19,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 // SOFT EQUIVALENCE
 //---------------------------------------------------------------------------//
-//! Whether soft equivalence can be performed on the given types
+//! Whether soft equivalence can be performed on the given types.
 template<typename T1, typename T2>
 constexpr bool can_soft_equiv()
 {
@@ -29,7 +29,7 @@ constexpr bool can_soft_equiv()
 }
 
 //---------------------------------------------------------------------------//
-//! Compare a range of values
+//! Compare a range of values.
 template<class BinaryOp>
 ::testing::AssertionResult
 IsSoftEquivImpl(typename BinaryOp::value_type expected,
@@ -76,7 +76,7 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Predicate for relative error soft equiavelence
+ * Predicate for relative error soft equivalence.
  */
 template<class Value_E, class Value_A>
 ::testing::AssertionResult IsSoftEquiv(const char* expected_expr,
@@ -96,7 +96,7 @@ template<class Value_E, class Value_A>
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Predicate for relative error soft equiavelence
+ * Predicate for relative error soft equivalence.
  */
 template<class Value_E, class Value_A>
 ::testing::AssertionResult IsSoftEquiv(const char* expected_expr,
@@ -232,7 +232,7 @@ IsRangeEqImpl(Iter1                               e_iter,
 
 //-------------------------------------------------------------------------//
 /*!
- * \brief Custom vector comparison with soft equiavelence
+ * Custom vector comparison with soft equiavelence.
  *
  * This signature uses the default tolerance for the appropriate floating point
  * operations.
@@ -370,7 +370,7 @@ std::string float_failure_msg(const char* expected_expr,
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Print expected values.
+ * Print expected values.
  */
 template<class Container>
 void print_expected(const Container& data, const char* label)
@@ -386,7 +386,7 @@ void print_expected(const Container& data, const char* label)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Vector comparison.
+ * Vector comparison.
  */
 template<class ContainerE, class ContainerA>
 ::testing::AssertionResult IsVecEq(const char*       expected_expr,
@@ -427,7 +427,7 @@ template<class ContainerE, class ContainerA>
 
 //-------------------------------------------------------------------------//
 /*!
- * \brief Custom vector comparison with soft equivalence
+ * Custom vector comparison with soft equivalence.
  */
 template<class ContainerE, class ContainerA>
 ::testing::AssertionResult IsVecSoftEquiv(const char*       expected_expr,
@@ -453,7 +453,7 @@ template<class ContainerE, class ContainerA>
 
 //-------------------------------------------------------------------------//
 /*!
- * \brief Custom vector comparison with soft equiavelence
+ * Custom vector comparison with soft equiavelence.
  *
  * This signature uses the default tolerance for the appropriate floating point
  * operations.
@@ -482,7 +482,7 @@ template<class ContainerE, class ContainerA>
 
 //-------------------------------------------------------------------------//
 /*!
- * \brief Custom vector comparison with soft equiavelence
+ * Custom vector comparison with soft equiavelence.
  *
  * Used by EXPECT_VEC_CLOSE
  */

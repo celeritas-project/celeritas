@@ -26,12 +26,9 @@ class NonMasterResultPrinter : public ::testing::EmptyTestEventListener
     void OnTestPartResult(const ::testing::TestPartResult& result) override;
 
   private:
-    // >>> DATA
     int rank_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

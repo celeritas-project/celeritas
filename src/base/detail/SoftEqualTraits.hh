@@ -58,7 +58,7 @@ struct SoftEqualTraits<float>
 //---------------------------------------------------------------------------//
 /*!
  * \struct SoftPrecisionType
- * \brief Get a "least common denominator" for soft comparisons.
+ * Get a "least common denominator" for soft comparisons.
  */
 template<typename T1, typename T2>
 struct SoftPrecisionType
@@ -83,5 +83,3 @@ struct SoftPrecisionType<float, double>
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

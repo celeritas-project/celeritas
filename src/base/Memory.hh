@@ -25,5 +25,3 @@ void device_memset(void* data, int fill_value, size_type count);
 } // namespace celeritas
 
 #include "Memory.i.hh"
-
-//---------------------------------------------------------------------------//

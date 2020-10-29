@@ -48,13 +48,13 @@ class SoftEqual
     // Construct with both relative and absolute precision
     inline CELER_FUNCTION SoftEqual(value_type rel, value_type abs);
 
-    // >>> COMPARISON
+    /// COMPARISON ///
 
     // Compare two values (implicitly casting arguments)
     bool CELER_FUNCTION operator()(value_type expected,
                                    value_type actual) const;
 
-    // >>> ACCESSORS
+    /// ACCESSORS ///
 
     //! Relative allowable error
     CELER_FUNCTION value_type rel() const { return rel_; }
@@ -63,8 +63,6 @@ class SoftEqual
     CELER_FUNCTION value_type abs() const { return abs_; }
 
   private:
-    // >>> DATA
-
     value_type rel_;
     value_type abs_;
 
@@ -89,34 +87,28 @@ class SoftZero
     using traits_t      = detail::SoftEqualTraits<value_type>;
     //@}
 
-  private:
-    // >>> DATA
-
-    value_type abs_;
-
   public:
-    // >>> CONSTRUCTION
-
     // Construct with default relative/absolute precision
     inline CELER_FUNCTION SoftZero();
 
     // Construct with absolute precision
     inline explicit CELER_FUNCTION SoftZero(value_type abs);
 
-    // >>> COMPARISON
+    /// COMPARISON ///
 
     // Compare the given value to zero
     inline CELER_FUNCTION bool operator()(value_type actual) const;
 
-    // >>> ACCESSORS
+    /// ACCESSORS ///
 
     //! Absolute tolerance
     CELER_FUNCTION value_type abs() const { return abs_; }
+
+  private:
+    value_type abs_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
 #include "SoftEqual.i.hh"
-
-//---------------------------------------------------------------------------//

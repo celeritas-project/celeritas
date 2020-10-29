@@ -41,5 +41,3 @@
 #define PRINT_EXPECTED(data) ::celeritas::detail::print_expected(data, #data)
 
 #include "Macros.i.hh"
-
-//---------------------------------------------------------------------------//

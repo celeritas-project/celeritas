@@ -23,7 +23,7 @@ class ParticleStateStore
     // Construct from number of track states
     explicit ParticleStateStore(size_type size);
 
-    // >>> ACCESSORS
+    /// ACCESSORS ///
 
     // Number of states
     size_type size() const;
@@ -37,5 +37,3 @@ class ParticleStateStore
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

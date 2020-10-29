@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file GeantPhysicsTableWriter.hh
-//! \brief Write Geant physics tables into a ROOT file
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -32,7 +31,7 @@ namespace geant_exporter
 //---------------------------------------------------------------------------//
 /*!
  * Use an existing TFile address as input to create a new "tables" TTree used
- * store Geant physics tables
+ * store Geant physics tables.
  *
  * TFile passed to the constructor must be open with the "recreate" flag so the
  * class has writing privileges.

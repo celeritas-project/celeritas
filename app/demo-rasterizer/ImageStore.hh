@@ -36,7 +36,7 @@ class ImageStore
     // Construct with defaults
     explicit ImageStore(ImageRunArgs);
 
-    // >>> DEVICE ACCESSORS
+    /// DEVICE ACCESSORS ///
 
     //! Access image on host for initializing
     ImagePointers host_interface();
@@ -44,7 +44,7 @@ class ImageStore
     //! Access image on device for writing
     ImagePointers device_interface();
 
-    // >>> HOST ACCESSORS
+    /// HOST ACCESSORS ///
 
     //! Upper left corner of the image
     const Real3& origin() const { return origin_; }

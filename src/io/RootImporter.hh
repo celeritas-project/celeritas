@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file RootImporter.hh
-//! \brief Import all the data exported by the app/geant-exporter
+//! Import all the data exported by the app/geant-exporter.
 //---------------------------------------------------------------------------//
 #pragma once
 

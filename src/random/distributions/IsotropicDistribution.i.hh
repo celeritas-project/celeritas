@@ -23,7 +23,7 @@ CELER_FUNCTION IsotropicDistribution<T>::IsotropicDistribution()
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Sample a random unit vector
+ * Sample a random unit vector.
  */
 template<class T>
 template<class Generator>

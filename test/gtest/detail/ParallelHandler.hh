@@ -30,12 +30,9 @@ class ParallelHandler : public ::testing::EmptyTestEventListener
     void OnTestEnd(const ::testing::TestInfo&) override;
 
   private:
-    // >>> DATA
     const Communicator& comm_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

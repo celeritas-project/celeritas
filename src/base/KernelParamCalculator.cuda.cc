@@ -27,7 +27,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * \brief Initialize with the number of threads per block
+ * Initialize with the number of threads per block.
  *
  * Require at least two warps per block.
  */
@@ -39,7 +39,7 @@ KernelParamCalculator::KernelParamCalculator(dim_type size) : block_size_(size)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Calculate launch params given the number of threads
+ * Calculate launch params given the number of threads.
  */
 __host__ KernelParamCalculator::LaunchParams
 KernelParamCalculator::operator()(size_type min_num_threads) const

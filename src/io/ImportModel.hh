@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportModel.hh
-//! \brief Enumerator for the available physics models
+//! Enumerator for the available physics models.
 //---------------------------------------------------------------------------//
 #pragma once
 

@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file RootInterfaceLinkDef.h
-//! \brief Define the classes added to the ROOT dictionary
+//! Define the classes added to the ROOT dictionary.
 //---------------------------------------------------------------------------//
 #ifdef __CINT__
 

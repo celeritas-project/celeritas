@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportPhysicsTable.hh
-//! \brief Store Geant4 physics tables
 //---------------------------------------------------------------------------//
 #pragma once
 

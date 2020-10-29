@@ -36,7 +36,7 @@ TEST_F(SpanTest, basic)
     EXPECT_EQ(empty_span.end(), nullptr);
     EXPECT_EQ(empty_span.data(), nullptr);
 
-    // >>> Test a Span_Dbl with pointers
+    /// Test a Span_Dbl with pointers ///
 
     // Make a field
     std::vector<double> y(4);

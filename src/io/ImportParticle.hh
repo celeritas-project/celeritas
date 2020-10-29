@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportParticle.hh
-//! \brief Store particle data
+//! Store particle data.
 //---------------------------------------------------------------------------//
 #pragma once
 

@@ -66,12 +66,9 @@ class OpaqueId
     }
 
   private:
-    // >>> DATA
-
-    //! Index of the item in question
     value_type value_;
 
-    // >>> IMPLEMENTATION FUNCTIONS
+    /// IMPLEMENTATION FUNCTIONS ///
 
     //! Value indicating the ID is not assigned
     static CELER_CONSTEXPR_FUNCTION value_type invalid_value()
@@ -124,13 +121,14 @@ inline CELER_FUNCTION T operator-(OpaqueId<I, T> self, OpaqueId<I, T> other)
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
-/*!
- * \brief Specialization for std::hash for unordered storage.
- */
+// STD::HASH SPECIALIZATION FOR HOST CODE
+//---------------------------------------------------------------------------//
+
+#ifndef __CUDA_ARCH__
 namespace std
 {
+//! Specialization for std::hash for unordered storage.
 template<class I, class T>
 struct hash<celeritas::OpaqueId<I, T>>
 {
@@ -142,6 +140,4 @@ struct hash<celeritas::OpaqueId<I, T>>
     }
 };
 } // namespace std
-#endif
-
-//---------------------------------------------------------------------------//
+#endif // __CUDA_ARCH__

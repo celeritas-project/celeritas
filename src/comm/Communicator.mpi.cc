@@ -50,7 +50,7 @@ Communicator::Communicator(MpiComm comm) : comm_(comm), rank_(-1), size_(-1)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Wait for all processes in this communicator to reach the barrier
+ * Wait for all processes in this communicator to reach the barrier.
  */
 void Communicator::barrier() const
 {

@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportProcess.hh
-//! \brief Enumerator for the available physics processes
+//! Enumerator for the available physics processes.
 //---------------------------------------------------------------------------//
 #pragma once
 

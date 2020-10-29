@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file GeantPhysicsTableWriterHelper.hh
-//! \brief Helper functions to safely convert physics tables enums
+//! Helper functions to safely convert physics tables enums.
 //---------------------------------------------------------------------------//
 #pragma once
 
