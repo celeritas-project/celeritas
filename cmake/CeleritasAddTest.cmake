@@ -380,13 +380,11 @@ function(celeritas_add_test SOURCE_FILE)
       endif()
 
       if(PARSE_TIMEOUT)
-        # Extend test timeout
-        set_property(TEST "${_TEST_NAME}"
+        set_property(TEST ${_TEST_NAME}
           PROPERTY TIMEOUT ${PARSE_TIMEOUT})
       endif()
-      if(PARSE_DISABLED)
-        # Extend test timeout
-        set_property(TEST "${_TEST_NAME}"
+      if(PARSE_DISABLE)
+        set_property(TEST ${_TEST_NAME}
           PROPERTY DISABLED True)
       endif()
       set_property(TEST ${_TEST_NAME}

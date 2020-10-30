@@ -170,15 +170,17 @@ add_cudaoptional_test(physics/base/Particle)
 
 celeritas_setup_tests(SERIAL PREFIX physics/em)
 
-celeritas_add_test(physics/em/BetheBlochInteractor.test.cc)
-celeritas_add_test(physics/em/BremRelInteractor.test.cc)
-celeritas_add_test(physics/em/EPlusGGInteractor.test.cc)
+set(_not_impl DISABLE)
+# NOTE: Remove '${_not_impl}' below at the start of developing each class.
+celeritas_add_test(physics/em/BetheBlochInteractor.test.cc ${_not_impl})
+celeritas_add_test(physics/em/BremRelInteractor.test.cc ${_not_impl})
+celeritas_add_test(physics/em/EPlusGGInteractor.test.cc ${_not_impl})
 celeritas_add_test(physics/em/KleinNishinaInteractor.test.cc)
-celeritas_add_test(physics/em/LivermoreInteractor.test.cc)
-celeritas_add_test(physics/em/MollerBhabhaInteractor.test.cc)
-celeritas_add_test(physics/em/RayleighInteractor.test.cc)
-celeritas_add_test(physics/em/UrbanInteractor.test.cc)
-celeritas_add_test(physics/em/WentzelInteractor.test.cc)
+celeritas_add_test(physics/em/LivermoreInteractor.test.cc ${_not_impl})
+celeritas_add_test(physics/em/MollerBhabhaInteractor.test.cc ${_not_impl})
+celeritas_add_test(physics/em/RayleighInteractor.test.cc ${_not_impl})
+celeritas_add_test(physics/em/UrbanInteractor.test.cc ${_not_impl})
+celeritas_add_test(physics/em/WentzelInteractor.test.cc ${_not_impl})
 
 # END PHYSICS TESTS
 set(CELERITASTEST_LINK_LIBRARIES)
