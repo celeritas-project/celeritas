@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "base/DeviceVector.hh"
 #include "ParticleParamsPointers.hh"
@@ -73,10 +73,10 @@ class ParticleParams
     VecMd md_;
 
     // Map particle names to registered IDs
-    std::map<std::string, ParticleDefId> name_to_id_;
+    std::unordered_map<std::string, ParticleDefId> name_to_id_;
 
     // Map particle codes to registered IDs
-    std::map<PDGNumber, ParticleDefId> pdg_to_id_;
+    std::unordered_map<PDGNumber, ParticleDefId> pdg_to_id_;
 
     // Host copy of definitions for host construction of other classes
     std::vector<ParticleDef> host_defs_;

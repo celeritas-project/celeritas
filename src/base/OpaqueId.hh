@@ -26,7 +26,7 @@ namespace celeritas
  * This allows type-safe, read-only indexing/access for a class. The value is
  * 'true' if it's assigned, 'false' if invalid.
  */
-template<class Instantiator, class T = std::size_t>
+template<class Instantiator, class T = unsigned int>
 class OpaqueId
 {
   public:

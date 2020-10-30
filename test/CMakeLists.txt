@@ -75,6 +75,7 @@ celeritas_setup_tests(SERIAL PREFIX base)
 
 celeritas_add_test(base/Array.test.cc)
 celeritas_add_test(base/ArrayUtils.test.cc)
+celeritas_add_test(base/Constants.test.cc)
 celeritas_add_test(base/DeviceAllocation.test.cc)
 celeritas_add_test(base/DeviceVector.test.cc)
 celeritas_add_test(base/Interpolator.test.cc)
@@ -83,6 +84,7 @@ celeritas_add_test(base/Quantity.test.cc)
 celeritas_add_test(base/Range.test.cc)
 celeritas_add_test(base/SoftEqual.test.cc)
 celeritas_add_test(base/Span.test.cc)
+celeritas_add_test(base/SpanRemapper.test.cc)
 celeritas_add_test(base/Stopwatch.test.cc)
 celeritas_add_test(base/UniformGrid.test.cc)
 
@@ -162,8 +164,10 @@ target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
 set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
 
 celeritas_setup_tests(SERIAL PREFIX physics/base)
-
 add_cudaoptional_test(physics/base/Particle)
+
+celeritas_setup_tests(SERIAL PREFIX physics/material)
+add_cudaoptional_test(physics/material/Material)
 
 #-----------------------------------------------------------------------------#
 # Physics (EM)

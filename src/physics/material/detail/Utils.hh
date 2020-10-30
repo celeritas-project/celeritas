@@ -3,22 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Main.hh
+//! \file Utils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "detail/TestMain.hh"
-#include "detail/Macros.hh"
+#include "base/Types.hh"
 
-#include <iostream>
-#include <string>
-#include <vector>
-
-using std::cout;
-using std::endl;
-
-//! Define main
-int main(int argc, char** argv)
+namespace celeritas
 {
-    return celeritas::detail::test_main(argc, argv);
-}
+struct ElementDef;
+
+namespace detail
+{
+//---------------------------------------------------------------------------//
+real_type calc_mass_rad_coeff(const ElementDef& el);
+
+//---------------------------------------------------------------------------//
+} // namespace detail
+} // namespace celeritas

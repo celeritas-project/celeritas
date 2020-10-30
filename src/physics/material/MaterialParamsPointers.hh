@@ -3,32 +3,36 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KleinNishinaInteractorPointers.hh
+//! \file MaterialParamsPointers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Macros.hh"
-#include "base/Types.hh"
+#include "base/Span.hh"
+#include "ElementDef.hh"
+#include "MaterialDef.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating a KleinNishinaInteractor.
+ * Access material properties on the device.
+ *
+ * This view is created from \c MaterialParams.
+ *
+ * \sa MaterialParams (owns the pointed-to data)
+ * \sa ElementView (uses the pointed-to element data in a kernel)
+ * \sa MaterialView (uses the pointed-to material data in a kernel)
  */
-struct KleinNishinaInteractorPointers
+struct MaterialParamsPointers
 {
-    //! 1 / electron mass [1 / MevMass]
-    real_type inv_electron_mass;
-    //! ID of an electron
-    ParticleDefId electron_id;
-    //! ID of a gamma
-    ParticleDefId gamma_id;
+    span<const ElementDef>  elements;
+    span<const MaterialDef> materials;
 
-    //! Check whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const
+    //! Check whether the interface is assigned
+    explicit inline CELER_FUNCTION operator bool() const
     {
-        return inv_electron_mass > 0 && electron_id && gamma_id;
+        return !materials.empty();
     }
 };
 

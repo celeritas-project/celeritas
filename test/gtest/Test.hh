@@ -8,6 +8,7 @@
 #pragma once
 
 #include <gtest/gtest.h>
+#include <cmath>
 
 namespace celeritas
 {
@@ -24,6 +25,9 @@ class Test : public ::testing::Test
 
     // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
     static std::string test_data_path(const char* subdir, const char* filename);
+
+    // Define "inf" value for subclass testing
+    static constexpr double inf = HUGE_VAL;
 };
 
 //---------------------------------------------------------------------------//

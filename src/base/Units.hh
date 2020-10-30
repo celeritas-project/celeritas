@@ -54,10 +54,12 @@ constexpr real_type kelvin     = 1.; // Temperature
 //! Exact unit transformations for SI units
 constexpr real_type meter    = 100 * centimeter;
 constexpr real_type kilogram = 1000 * gram;
-constexpr real_type joule    = kilogram * meter * meter / (second * second);
+constexpr real_type newton   = kilogram * meter / (second * second);
+constexpr real_type joule    = newton * meter;
 constexpr real_type ampere   = coulomb / second;
 constexpr real_type volt     = joule / coulomb;
 constexpr real_type tesla    = kilogram / (coulomb * second);
+constexpr real_type farad    = coulomb / volt;
 //@}
 
 //@{
