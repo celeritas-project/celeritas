@@ -7,34 +7,27 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geometry/LinearPropagator.hh"
+#include <cmath>
 #include "base/ArrayUtils.hh"
 #include "geometry/Types.hh"
 #include "physics/base/Units.hh"
 
 namespace celeritas
 {
-//___________________________________________________________________________//
+//---------------------------------------------------------------------------//
 /*!
- * Do straight propagation to physics process or boundary and reduce next_step
- *
- * Scalar geometry length computation. The track is moved along track.dir()
- * direction by a distance track.next_step()
+ * Construct from persistent and state data.
  */
-CELER_FORCEINLINE_FUNCTION
-void LinearPropagator::apply_linear_step(real_type step)
+CELER_FUNCTION LinearPropagator::LinearPropagator(GeoTrackView& track)
+    : track_(track)
 {
-    axpy(step, track_.dir(), &track_.pos());
-    track_.next_step() -= step;
 }
 
-//___________________________________________________________________________//
+//---------------------------------------------------------------------------//
 /*!
- * No step provided -> self-aware move to next boundary.
- *
- * State gets updated to next volume
+ * Move track by next_step(), which takes it to next volume boundary.
  */
-CELER_FORCEINLINE_FUNCTION
+CELER_FUNCTION
 void LinearPropagator::operator()()
 {
     this->apply_linear_step(track_.next_step() + track_.tolerance());
@@ -43,13 +36,16 @@ void LinearPropagator::operator()()
     track_.move_next_volume();
 }
 
-//___________________________________________________________________________//
+//---------------------------------------------------------------------------//
 /*!
- * User-provided step: check that move and update state if necessary.
+ * Move track by a user-provided distance.
+ *
+ * Step must be within current volume. User can ask next_step() for maximum
+ * distance allowed before reaching volume boundary.
  *
  * \pre Assumes that next_step() has been properly called by client
  */
-CELER_FORCEINLINE_FUNCTION
+CELER_FUNCTION
 void LinearPropagator::operator()(real_type dist)
 {
     REQUIRE(dist > 0.);
@@ -60,6 +56,20 @@ void LinearPropagator::operator()(real_type dist)
     {
         track_.move_next_volume();
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Do straight propagation to physics process or boundary and reduce next_step
+ *
+ * Scalar geometry length computation. The track is moved along track.dir()
+ * direction by a distance track.next_step()
+ */
+CELER_FUNCTION
+void LinearPropagator::apply_linear_step(real_type step)
+{
+    axpy(step, track_.dir(), &track_.pos());
+    track_.next_step() -= step;
 }
 
 } // namespace celeritas
