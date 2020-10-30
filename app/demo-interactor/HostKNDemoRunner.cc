@@ -29,7 +29,7 @@ namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
 /*!
- * \brief Construct with parameters.
+ * Construct with parameters.
  */
 HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams     particles,
                                    constSPPhysicsArrayParams xs)
@@ -49,7 +49,7 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams     particles,
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Run given number of particles each for max steps.
+ * Run given number of particles each for max steps.
  */
 auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     -> result_type

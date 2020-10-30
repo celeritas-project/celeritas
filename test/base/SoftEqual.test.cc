@@ -37,7 +37,6 @@ template<typename T>
 class FloatingTest : public celeritas::Test
 {
   protected:
-    // >>> TYPE ALIASES
     using value_type = T;
     using Limits_t   = std::numeric_limits<value_type>;
 };
@@ -136,7 +135,6 @@ template<typename PairT>
 class MixedTest : public celeritas::Test
 {
   protected:
-    // >>> TYPE ALIASES
     using Comp_t
         = SoftEqual<typename PairT::first_type, typename PairT::second_type>;
     using value_type = typename Comp_t::value_type;

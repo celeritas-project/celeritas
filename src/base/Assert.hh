@@ -13,7 +13,6 @@
 #    include <stdexcept>
 #endif
 
-//---------------------------------------------------------------------------//
 /*!
  * \def REQUIRE
  *
@@ -62,7 +61,6 @@
 #    define ENSURE(x) CELER_NOASSERT_(x)
 #endif
 
-//---------------------------------------------------------------------------//
 /*!
  * \def CELER_CUDA_CALL
  *
@@ -102,10 +100,11 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// Construct and throw a DebugError.
 [[noreturn]] void
 throw_debug_error(const char* condition, const char* file, int line);
 
-//---------------------------------------------------------------------------//
+// Construct and throw a CudaCallError.
 [[noreturn]] void throw_cuda_call_error(const char* error_string,
                                         const char* code,
                                         const char* file,
@@ -134,7 +133,7 @@ class CudaCallError : public std::runtime_error
     explicit CudaCallError(const std::string& msg);
 };
 
-#endif
+#endif //__CUDA_ARCH__
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

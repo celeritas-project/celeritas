@@ -48,4 +48,3 @@ class Stopwatch
 } // namespace celeritas
 
 #include "Stopwatch.i.hh"
-//---------------------------------------------------------------------------//

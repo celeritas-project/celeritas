@@ -61,5 +61,3 @@ class KernelParamCalculator
 } // namespace celeritas
 
 #include "KernelParamCalculator.cuda.i.hh"
-
-//---------------------------------------------------------------------------//

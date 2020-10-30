@@ -36,7 +36,7 @@ class GeoStateStore
     // Construct from device geometry and number of track states
     GeoStateStore(const GeoParams& geo, size_type size);
 
-    // >>> ACCESSORS
+    /// ACCESSORS ///
 
     // Number of states
     size_type size() const { return pos_.size(); }

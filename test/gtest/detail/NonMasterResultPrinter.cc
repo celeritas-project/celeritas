@@ -18,13 +18,13 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * \brief Construct with MPI rank
+ * Construct with MPI rank.
  */
 NonMasterResultPrinter::NonMasterResultPrinter(int rank) : rank_(rank) {}
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Print output
+ * Print output.
  */
 void NonMasterResultPrinter::OnTestPartResult(
     const ::testing::TestPartResult& result)

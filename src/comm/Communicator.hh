@@ -23,12 +23,12 @@ class Communicator
     // Construct a communicator with MPI_COMM_WORLD
     static Communicator comm_world();
 
-    // >>> ACCESSORS
+    /// CONSTRUCTORS ///
 
     // Construct with a native MPI communicator
     explicit Communicator(MpiComm comm);
 
-    // >>> ACCESSORS
+    /// ACCESSORS ///
 
     //! Get the MPI communicator for low-level MPI calls
     MpiComm mpi_comm() const { return comm_; }
@@ -39,7 +39,7 @@ class Communicator
     //! Get the number of total processors
     int size() const { return size_; };
 
-    // >>> FUNCTIONS
+    /// FUNCTIONS ///
 
     // Wait for all processes in this communicator to reach the barrier
     void barrier() const;
@@ -54,5 +54,3 @@ class Communicator
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

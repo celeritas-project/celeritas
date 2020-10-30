@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * \fn range
  * \tparam T Value type to iterate over
- * \brief Get iterators over a range of values, or a semi-infinite range.
+ * Get iterators over a range of values, or a semi-infinite range.
  *
  * \par Code Sample:
  * \code
@@ -76,11 +76,11 @@ class range_iter : public std::iterator<std::input_iterator_tag, T>
     counter_type value_;
 
   public:
-    // >>> CONSTRUCTOR
+    /// CONSTRUCTOR ///
 
     range_iter(value_type value) : value_(static_cast<counter_type>(value)) {}
 
-    // >>> ACCESSORS
+    /// ACCESSORS ///
 
     value_type operator*() const { return static_cast<value_type>(value_); }
 
@@ -89,7 +89,7 @@ class range_iter : public std::iterator<std::input_iterator_tag, T>
         return static_cast<const value_type*>(&value_);
     }
 
-    // >>> ARITHMETIC
+    /// ARITHMETIC ///
 
     range_iter& operator++()
     {
@@ -142,10 +142,6 @@ class step_range_iter : public range_iter<T>
 {
     using Base = range_iter<T>;
 
-  protected:
-    using Base::value_;
-    T step_;
-
   public:
     step_range_iter(T value, T step) : Base(value), step_(step) {}
 
@@ -171,6 +167,10 @@ class step_range_iter : public range_iter<T>
     {
         return !(*this == other);
     }
+
+  private:
+    using Base::value_;
+    T step_;
 };
 
 //---------------------------------------------------------------------------//
@@ -368,6 +368,3 @@ InfiniteRange<T> count(T begin)
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//

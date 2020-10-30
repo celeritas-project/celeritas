@@ -34,7 +34,7 @@ class UniformRealDistribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
-    // >>> ACCESSORS
+    /// ACCESSORS ///
 
     //! Get the lower bound of the distribution
     CELER_FUNCTION real_type a() const { return a_; }

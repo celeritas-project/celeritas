@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file GdmlGeometryMap.hh
-//! \brief Store and link volume with material information
+//! Store and link volume with material information.
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -36,7 +36,7 @@ class GdmlGeometryMap
     GdmlGeometryMap();
     ~GdmlGeometryMap();
 
-    // >>> READ
+    /// READ ///
 
     // Find material id given volume id
     mat_id get_matid(vol_id volume_id) const;
@@ -50,7 +50,7 @@ class GdmlGeometryMap
     // Return a reference to the private member volid_to_matid_ map
     const std::map<vol_id, mat_id>& volid_to_matid_map();
 
-    // >>> WRITE (only used by geant-exporter app)
+    /// WRITE (only used by geant-exporter app) ///
 
     // Add pair <mat_id, material> to the map
     void add_material(mat_id id, const ImportMaterial& material);

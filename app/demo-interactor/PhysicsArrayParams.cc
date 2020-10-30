@@ -70,7 +70,7 @@ PhysicsArrayPointers PhysicsArrayParams::device_pointers() const
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Access on-host data
+ * Access on-host data.
  */
 PhysicsArrayPointers PhysicsArrayParams::host_pointers() const
 {

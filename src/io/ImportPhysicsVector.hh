@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportPhysicsVector.hh
-//! \brief Store Geant4 physics vector data
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Store Geant4 physics vector data [see Geant4's G4PhysicsVector.hh].
+ * Store imported physics vector data [see Geant4's G4PhysicsVector.hh].
  *
  * MeV and cm units are defined in
  * \c GeantPhysicsTableWriter::fill_physics_vectors(...)

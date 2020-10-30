@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportElement.hh
-//! \brief Store element information
+//! Store element information.
 //---------------------------------------------------------------------------//
 #pragma once
 

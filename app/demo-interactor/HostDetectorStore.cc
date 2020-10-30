@@ -13,7 +13,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * \brief Constructor
+ * Constructor.
  */
 HostDetectorStore::HostDetectorStore(size_type buffer_capacity,
                                      const UniformGrid::Params& grid)
@@ -25,7 +25,7 @@ HostDetectorStore::HostDetectorStore(size_type buffer_capacity,
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Get detector data
+ * Get detector data.
  */
 DetectorPointers HostDetectorStore::host_pointers()
 {
@@ -38,7 +38,7 @@ DetectorPointers HostDetectorStore::host_pointers()
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Bin the buffer onto the grid
+ * Bin the buffer onto the grid.
  */
 void HostDetectorStore::bin_buffer()
 {
@@ -74,7 +74,7 @@ void HostDetectorStore::bin_buffer()
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Finalize the tally result
+ * Finalize the tally result.
  */
 std::vector<real_type> HostDetectorStore::finalize(real_type norm)
 {

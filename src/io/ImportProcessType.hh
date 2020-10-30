@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportProcessType.hh
-//! \brief Enumerator for physics process types
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +11,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Same enum as in Geant4. [See Geant4's G4ProcessType.hh]
+ * Enumerator for physics process types.
+ *
+ * See Geant4's G4ProcessType.hh for the equivalent enum.
  */
 enum class ImportProcessType
 {

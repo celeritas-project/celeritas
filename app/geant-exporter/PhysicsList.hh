@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file PhysicsList.hh
-//! \brief Construct a user-defined list of particles and physics processes
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,7 +13,7 @@ namespace geant_exporter
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a user-defined physics list
+ * Construct a user-defined physics list of particles and physics processes.
  */
 class PhysicsList : public G4VUserPhysicsList
 {

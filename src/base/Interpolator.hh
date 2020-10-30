@@ -88,5 +88,3 @@ using LinearInterpolator = Interpolator<Interp::linear, Interp::linear, T>;
 } // namespace celeritas
 
 #include "Interpolator.i.hh"
-
-//---------------------------------------------------------------------------//

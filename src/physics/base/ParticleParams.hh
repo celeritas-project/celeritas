@@ -43,7 +43,7 @@ class ParticleParams
     // Construct with a vector of particle definitions
     explicit ParticleParams(const VecAnnotatedDefs& defs);
 
-    // >>> HOST ACCESSORS
+    /// HOST ACCESSORS ///
 
     //! Number of particle definitions
     size_type size() const { return name_to_id_.size(); }
@@ -63,7 +63,7 @@ class ParticleParams
     // TESTING ONLY: Get a view to the managed data
     ParticleParamsPointers host_pointers() const;
 
-    // >>> DEVICE ACCESSORS
+    /// DEVICE ACCESSORS ///
 
     // Get a view to the managed data
     ParticleParamsPointers device_pointers() const;
@@ -89,5 +89,3 @@ class ParticleParams
 } // namespace celeritas
 
 #include "ParticleParams.i.hh"
-
-//---------------------------------------------------------------------------//

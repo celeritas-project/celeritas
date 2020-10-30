@@ -14,7 +14,7 @@ namespace celeritas
 // INTERPOLATOR
 //---------------------------------------------------------------------------//
 /*!
- * \brief Construct with left and right values for x and y
+ * Construct with left and right values for x and y.
  */
 template<Interp IX, Interp IY, typename T>
 CELER_FUNCTION Interpolator<IX, IY, T>::Interpolator(Point left, Point right)
@@ -43,7 +43,7 @@ CELER_FUNCTION Interpolator<IX, IY, T>::Interpolator(Point left, Point right)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Interpolate linearly on the transformed type.
+ * Interpolate linearly on the transformed type.
  */
 template<Interp IX, Interp IY, typename T>
 CELER_FUNCTION auto Interpolator<IX, IY, T>::operator()(real_type x) const

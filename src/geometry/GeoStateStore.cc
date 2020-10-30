@@ -34,7 +34,7 @@ GeoStateStore::GeoStateStore(const GeoParams& geom, size_type size)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Get a view to on-device states
+ * Get a view to on-device states.
  */
 GeoStatePointers GeoStateStore::device_pointers()
 {

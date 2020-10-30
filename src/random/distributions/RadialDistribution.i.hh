@@ -25,7 +25,7 @@ CELER_FUNCTION RadialDistribution<T>::RadialDistribution(real_type radius)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Sample a random number according to the distribution
+ * Sample a random number according to the distribution.
  */
 template<class T>
 template<class Generator>

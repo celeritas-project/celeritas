@@ -4,12 +4,13 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file GdmlGeometryMapTypes.hh
-//! \brief Simple wrapper to differentiate material, element, and volume ids
+//! Simple wrapper to differentiate material, element, and volume ids.
 //---------------------------------------------------------------------------//
 #pragma once
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 //@{
 //! Type aliases
 using mat_id  = int;

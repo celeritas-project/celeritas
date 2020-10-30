@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportTableType.hh
-//! \brief Enumerator for the physics table types
 //---------------------------------------------------------------------------//
 #pragma once
 

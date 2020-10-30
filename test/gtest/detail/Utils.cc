@@ -31,7 +31,7 @@ const char* skip_cstring()
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Number of base-10 digits in an unsigned integer
+ * Number of base-10 digits in an unsigned integer.
  *
  * This function is useful for pre-calculating field widths for printing.
  */

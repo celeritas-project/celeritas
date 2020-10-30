@@ -14,7 +14,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * \brief Construct with a vector of particle definitions
+ * Construct with a vector of particle definitions.
  */
 ParticleParams::ParticleParams(const VecAnnotatedDefs& defs)
 {

@@ -33,7 +33,7 @@ class RadialDistribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
-    // >>> ACCESSORS
+    /// ACCESSORS ///
 
     //! Get the sampling radius
     inline CELER_FUNCTION real_type radius() const { return radius_; }

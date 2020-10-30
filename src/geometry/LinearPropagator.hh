@@ -7,48 +7,38 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geometry/GeoTrackView.hh"
 #include "base/NumericLimits.hh"
+#include "GeoTrackView.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 /*!
- * \brief Handler applying linear propagation to neutral tracks.
+ * Propagate (move) a particle in a straight line.
  */
 class LinearPropagator
 {
     using Initializer_t = GeoStateInitializer;
 
   public:
-    //! Construct from persistent and state data
-    CELER_FUNCTION
-    LinearPropagator(GeoTrackView& track) : track_(track) {}
+    // Construct from persistent and state data
+    inline CELER_FUNCTION LinearPropagator(GeoTrackView& track);
 
-    /*!
-     * \brief Move track by a user-provided distance.
-     *
-     * Step must be within current volume. User can ask next_step() for maximum
-     * distance allowed before reaching volume boundary.
-     */
-    CELER_FORCEINLINE_FUNCTION
-    void operator()(real_type dist);
+    // Move track by next_step(), which takes it to next volume boundary.
+    inline CELER_FUNCTION void operator()();
 
-    //! Move track by next_step(), which takes it to next volume boundary.
-    CELER_FORCEINLINE_FUNCTION
-    void operator()();
+    // Move track by a user-provided distance.
+    inline CELER_FUNCTION void operator()(real_type dist);
 
   private:
-    //! Fast move, update only the position.
-    CELER_FORCEINLINE_FUNCTION
-    void apply_linear_step(real_type step);
+    // Fast move, update only the position.
+    inline CELER_FUNCTION void apply_linear_step(real_type step);
 
   private:
-    //@{
-    //! Referenced thread-local data
     GeoTrackView& track_;
-    //@}
 };
 
+//---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "geometry/LinearPropagator.i.hh"
+#include "LinearPropagator.i.hh"

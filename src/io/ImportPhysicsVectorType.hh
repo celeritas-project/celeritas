@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportPhysicsVectorType.hh
-//! \brief Geant4 PhysicsVector type enumerator
 //---------------------------------------------------------------------------//
 #pragma once
 
