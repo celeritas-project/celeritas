@@ -285,8 +285,8 @@ TEST(CountTest, backward)
 #if CELERITAS_USE_CUDA
 TEST(DeviceRangeTest, grid_stride)
 {
-    // ~1M elements for saxpy
-    unsigned int N = 1 << 20;
+    // next prime after 1<<20 elements to avoid multiples of block/stride
+    unsigned int N = 1048583;
 
     // Set Inputs
     RangeTestInput input;
