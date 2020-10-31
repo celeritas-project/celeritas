@@ -75,10 +75,13 @@ fi
 
 if [ -z "${COMPILER}" ]; then
   case $PLATFORM in
-    mojave | catalina ) COMPILER="clang@11.0.0-apple" ;;
+    mojave ) COMPILER="clang@11.0.0-apple" ;;
+    catalina ) COMPILER="clang@12.0.0-apple" ;;
     rhel6 ) COMPILER="gcc@4.4.7" ;;
     rhel7 ) COMPILER="gcc@4.8.5" ;;
     rhel8 ) COMPILER="gcc@8.3.1" ;;
+    centos6 ) COMPILER="gcc@4.4.7" ;;
+    centos7 ) COMPILER="gcc@4.8.5" ;;
     *)
       action "set \$COMPILER manually and rerun this script"
       error "No core compiler default for platform $PLATFORM" ;;

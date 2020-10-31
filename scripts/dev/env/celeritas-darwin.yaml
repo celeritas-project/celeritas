@@ -2,21 +2,26 @@ spack:
   specs: 
     - cmake
     - geant4 cxxstd=14
+    - git
+    - git-lfs
+    - googletest
     - hdf5 +mpi
-    - llvm +clang
+    - hepmc3
+    - nlohmann-json
+    - ninja
     - openmpi
-    - root +aqua +gdml cxxstd=14
+    - root +aqua
     - veccore
-    - vecgeom cxxstd=14 +gdml +root
+    - vecgeom +gdml
   view: true
   concretization: together
   packages:
     root:
-      variants: ~examples ~x ~opengl
+      variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~math ~gsl cxxstd=14
     xerces-c:
-      variants: cxxstd=14
     all:
       providers:
         blas: [openblas]
         lapack: [openblas]
         mpi: [openmpi]
+      variants: cxxstd=14
