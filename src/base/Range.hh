@@ -10,6 +10,7 @@
 #include <iterator>
 #include <type_traits>
 #include <utility>
+#include "Macros.hh"
 
 namespace celeritas
 {
@@ -76,40 +77,46 @@ class range_iter : public std::iterator<std::input_iterator_tag, T>
     counter_type value_;
 
   public:
-    /// CONSTRUCTOR ///
+    // >>> CONSTRUCTOR
 
-    range_iter(value_type value) : value_(static_cast<counter_type>(value)) {}
+    CELER_FUNCTION range_iter(value_type value)
+        : value_(static_cast<counter_type>(value))
+    {
+    }
 
     /// ACCESSORS ///
 
-    value_type operator*() const { return static_cast<value_type>(value_); }
+    CELER_FUNCTION value_type operator*() const
+    {
+        return static_cast<value_type>(value_);
+    }
 
-    value_type const* operator->() const
+    CELER_FUNCTION value_type const* operator->() const
     {
         return static_cast<const value_type*>(&value_);
     }
 
-    /// ARITHMETIC ///
+    // >>> ARITHMETIC
 
-    range_iter& operator++()
+    CELER_FUNCTION range_iter& operator++()
     {
         ++value_;
         return *this;
     }
 
-    range_iter operator++(int)
+    CELER_FUNCTION range_iter operator++(int)
     {
         auto copy = *this;
         ++*this;
         return copy;
     }
 
-    bool operator==(range_iter const& other) const
+    CELER_FUNCTION bool operator==(range_iter const& other) const
     {
         return value_ == other.value_;
     }
 
-    bool operator!=(range_iter const& other) const
+    CELER_FUNCTION bool operator!=(range_iter const& other) const
     {
         return !(*this == other);
     }
@@ -127,10 +134,17 @@ class inf_range_iter : public range_iter<T>
     using Base = range_iter<T>;
 
   public:
-    inf_range_iter(T value_ = T()) : Base(value_) {}
+    CELER_FUNCTION inf_range_iter(T value_ = T()) : Base(value_) {}
 
-    bool operator==(inf_range_iter const&) const { return false; }
-    bool operator!=(inf_range_iter const&) const { return true; }
+    CELER_FUNCTION bool operator==(inf_range_iter const&) const
+    {
+        return false;
+    }
+
+    CELER_FUNCTION bool operator!=(inf_range_iter const&) const
+    {
+        return true;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -143,27 +157,40 @@ class step_range_iter : public range_iter<T>
     using Base = range_iter<T>;
 
   public:
-    step_range_iter(T value, T step) : Base(value), step_(step) {}
+    CELER_FUNCTION step_range_iter(T value, T step) : Base(value), step_(step)
+    {
+    }
 
-    step_range_iter& operator++()
+    CELER_FUNCTION step_range_iter& operator++()
     {
         value_ += step_;
         return *this;
     }
 
-    step_range_iter operator++(int)
+    CELER_FUNCTION step_range_iter operator++(int)
     {
         auto copy = *this;
         ++*this;
         return copy;
     }
 
-    bool operator==(step_range_iter const& other) const
+    template<typename U = T>
+    CELER_FUNCTION
+        typename std::enable_if_t<std::is_signed<U>::value, bool>
+        operator==(step_range_iter const& other) const
     {
-        return step_ > 0 ? value_ >= other.value_ : value_ < other.value_;
+        return step_ >= 0 ? value_ >= other.value_ : value_ < other.value_;
     }
 
-    bool operator!=(step_range_iter const& other) const
+    template<typename U = T>
+    CELER_FUNCTION
+        typename std::enable_if_t<std::is_unsigned<U>::value, bool>
+        operator==(step_range_iter const& other) const
+    {
+        return value_ >= other.value_;
+    }
+
+    CELER_FUNCTION bool operator!=(step_range_iter const& other) const
     {
         return !(*this == other);
     }
@@ -185,10 +212,20 @@ class inf_step_range_iter : public step_range_iter<T>
     using Base = step_range_iter<T>;
 
   public:
-    inf_step_range_iter(T current = T(), T step = T()) : Base(current, step) {}
+    CELER_FUNCTION inf_step_range_iter(T current = T(), T step = T())
+        : Base(current, step)
+    {
+    }
 
-    bool operator==(inf_step_range_iter const&) const { return false; }
-    bool operator!=(inf_step_range_iter const&) const { return true; }
+    CELER_FUNCTION bool operator==(inf_step_range_iter const&) const
+    {
+        return false;
+    }
+
+    CELER_FUNCTION bool operator!=(inf_step_range_iter const&) const
+    {
+        return true;
+    }
 };
 
 } // namespace internal
@@ -206,10 +243,14 @@ class StepRange
   public:
     using IterT = internal::step_range_iter<T>;
 
-    StepRange(T begin, T end, T step) : begin_(begin, step), end_(end, step) {}
+    CELER_FUNCTION StepRange(T begin, T end, T step)
+        : begin_(begin, step), end_(end, step)
+    {
+    }
 
-    IterT begin() const { return begin_; }
-    IterT end() const { return end_; }
+    CELER_FUNCTION IterT begin() const { return begin_; }
+
+    CELER_FUNCTION IterT end() const { return end_; }
 
   private:
     IterT begin_;
@@ -230,10 +271,11 @@ class InfStepRange
     using IterT = internal::inf_step_range_iter<T>;
 
     //! Construct from start/stop
-    InfStepRange(T begin, T step) : begin_(begin, step) {}
+    CELER_FUNCTION InfStepRange(T begin, T step) : begin_(begin, step) {}
 
-    IterT begin() const { return begin_; }
-    IterT end() const { return IterT(); }
+    CELER_FUNCTION IterT begin() const { return begin_; }
+
+    CELER_FUNCTION IterT end() const { return IterT(); }
 
   private:
     IterT begin_;
@@ -253,14 +295,14 @@ class FiniteRange
     using counter_type = typename internal::range_type_traits<T>::counter_type;
 
     //! Empty constructor for empty range
-    FiniteRange() : begin_(T()), end_(T()) {}
+    CELER_FUNCTION FiniteRange() : begin_(T()), end_(T()) {}
 
     //! Construct from start/stop
-    FiniteRange(T begin, T end) : begin_(begin), end_(end) {}
+    CELER_FUNCTION FiniteRange(T begin, T end) : begin_(begin), end_(end) {}
 
     //! Return a stepped range using a different integer type
-    template<typename U>
-    StepRange<typename std::common_type<T, U>::type> step(U step)
+    template<typename U, std::enable_if_t<std::is_signed<U>::value, U> = 0>
+    CELER_FUNCTION StepRange<typename std::common_type<T, U>::type> step(U step)
     {
         if (step < 0)
         {
@@ -272,10 +314,17 @@ class FiniteRange
         return {*begin_, *end_, step};
     }
 
-    IterT        begin() const { return begin_; }
-    IterT        end() const { return end_; }
-    counter_type size() const { return *end_ - *begin_; }
-    bool         empty() const { return end_ == begin_; }
+    //! Return a stepped range using a different integer type
+    template<typename U, std::enable_if_t<std::is_unsigned<U>::value, U> = 0>
+    CELER_FUNCTION StepRange<typename std::common_type<T, U>::type> step(U step)
+    {
+        return {*begin_, *end_, step};
+    }
+
+    CELER_FUNCTION IterT        begin() const { return begin_; }
+    CELER_FUNCTION IterT        end() const { return end_; }
+    CELER_FUNCTION counter_type size() const { return *end_ - *begin_; }
+    CELER_FUNCTION bool         empty() const { return end_ == begin_; }
 
   private:
     IterT begin_;
@@ -294,13 +343,13 @@ class InfiniteRange
   public:
     using IterT = internal::inf_range_iter<T>;
 
-    InfiniteRange(T begin) : begin_(begin) {}
+    CELER_FUNCTION InfiniteRange(T begin) : begin_(begin) {}
 
-    InfStepRange<T> step(T step) { return {*begin_, step}; }
+    CELER_FUNCTION InfStepRange<T> step(T step) { return {*begin_, step}; }
 
-    IterT begin() const { return begin_; }
-    IterT end() const { return IterT(); }
-    bool  empty() const { return false; }
+    CELER_FUNCTION IterT begin() const { return begin_; }
+    CELER_FUNCTION IterT end() const { return IterT(); }
+    CELER_FUNCTION bool  empty() const { return false; }
 
   private:
     IterT begin_;
@@ -313,7 +362,7 @@ class InfiniteRange
  * Return a range over fixed beginning and end values.
  */
 template<typename T>
-FiniteRange<T> range(T begin, T end)
+CELER_FUNCTION FiniteRange<T> range(T begin, T end)
 {
     return {begin, end};
 }
@@ -325,7 +374,7 @@ FiniteRange<T> range(T begin, T end)
  * Return a range over a pair of beginning and ending values.
  */
 template<typename T>
-FiniteRange<T> range(std::pair<T, T> begin_end)
+CELER_FUNCTION FiniteRange<T> range(std::pair<T, T> begin_end)
 {
     return {begin_end.first, begin_end.second};
 }
@@ -337,7 +386,7 @@ FiniteRange<T> range(std::pair<T, T> begin_end)
  * Return a range with the default start value (0 for numeric types)
  */
 template<typename T>
-FiniteRange<T> range(T end)
+CELER_FUNCTION FiniteRange<T> range(T end)
 {
     return {T(), end};
 }
@@ -349,7 +398,7 @@ FiniteRange<T> range(T end)
  * Count upward from zero.
  */
 template<typename T>
-InfiniteRange<T> count()
+CELER_FUNCTION InfiniteRange<T> count()
 {
     return {T()};
 }
@@ -361,7 +410,7 @@ InfiniteRange<T> count()
  * Count upward from a value.
  */
 template<typename T>
-InfiniteRange<T> count(T begin)
+CELER_FUNCTION InfiniteRange<T> count(T begin)
 {
     return {begin};
 }
