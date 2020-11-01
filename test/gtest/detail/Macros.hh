@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
+
 //! Container equality macro
 #define EXPECT_VEC_EQ(expected, actual) \
     EXPECT_PRED_FORMAT2(::celeritas::detail::IsVecEq, expected, actual)
@@ -39,5 +41,12 @@
 
 //! Print the given container as an array for regression testing
 #define PRINT_EXPECTED(data) ::celeritas::detail::print_expected(data, #data)
+
+//! Construct a test name that is disabled when assertions are enabled
+#if CELERITAS_DEBUG
+#    define TEST_IF_CELERITAS_DEBUG(name) name
+#else
+#    define TEST_IF_CELERITAS_DEBUG(name) DISABLED_##name
+#endif
 
 #include "Macros.i.hh"
