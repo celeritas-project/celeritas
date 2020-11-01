@@ -159,7 +159,7 @@ TEST_F(ElementSelectorTest, everything_even)
     }
 
     // Proportional to micro_xs (equal number density)
-    const int expected_tally[] = {998, 1945, 3031, 4026};
+    const int expected_tally[] = {1032, 2014, 2971, 3983};
     EXPECT_VEC_EQ(expected_tally, tally);
 }
 
@@ -185,7 +185,7 @@ TEST_F(ElementSelectorTest, everything_weighted)
     }
 
     // Equiprobable
-    const int expected_tally[] = {2442, 2589, 2395, 2574};
+    const int expected_tally[] = {2574, 2395, 2589, 2442};
     EXPECT_VEC_EQ(expected_tally, tally);
 }
 

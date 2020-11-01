@@ -46,12 +46,13 @@ CELER_FUNCTION ElementSelector::ElementSelector(const MaterialView& material,
 template<class Engine>
 CELER_FUNCTION ElementComponentId ElementSelector::operator()(Engine& rng) const
 {
-    real_type    accum_xs = mat_xs_ * generate_canonical(rng);
-    unsigned int i        = elements_.size() - 1;
-    for (; i > 0; --i)
+    real_type    accum_xs = -mat_xs_ * generate_canonical(rng);
+    unsigned int i        = 0;
+    unsigned int imax     = elements_.size() - 1;
+    for (; i != imax; ++i)
     {
-        accum_xs -= (elements_[i].fraction * el_xs_[i]);
-        if (accum_xs <= 0)
+        accum_xs += elements_[i].fraction * el_xs_[i];
+        if (accum_xs >= 0)
             break;
     }
     return ElementComponentId{i};
