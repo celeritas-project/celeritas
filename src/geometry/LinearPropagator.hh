@@ -25,10 +25,11 @@ class LinearPropagator
     inline CELER_FUNCTION LinearPropagator(GeoTrackView& track);
 
     // Move track by next_step(), which takes it to next volume boundary.
-    inline CELER_FUNCTION void operator()();
+    inline CELER_FUNCTION real_type operator()();
 
-    // Move track by a user-provided distance.
-    inline CELER_FUNCTION void operator()(real_type dist);
+    // Move track by a user-provided distance, or to the next boundary if distance is large enough.
+    // @return distance travelled along straight line
+    inline CELER_FUNCTION real_type operator()(real_type dist);
 
   private:
     // Fast move, update only the position.

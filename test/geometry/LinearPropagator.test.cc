@@ -82,21 +82,26 @@ TEST_F(LinearPropagatorHostTest, track_line)
         geo = {{-6, 0, 0}, {1, 0, 0}};
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
 
+        real_type travelled = 0;
         geo.find_next_step();
         EXPECT_SOFT_EQ(1.0, geo.next_step());
-        propagate();
+
+        travelled = propagate(1.e10); // very large proposed step
+        EXPECT_SOFT_EQ(1.0, travelled);
         EXPECT_SOFT_EQ(-5.0, geo.pos()[0]);
         EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(10.0, geo.next_step());
-        propagate();
+        travelled = propagate(1.0e+10);
+        EXPECT_SOFT_EQ(10.0, travelled);
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
         EXPECT_EQ(false, geo.is_outside());
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(45.0, geo.next_step());
-        propagate();
+        travelled = propagate();
+        EXPECT_SOFT_EQ(45.0, travelled);
         EXPECT_EQ(true, geo.is_outside());
     }
 
@@ -111,9 +116,11 @@ TEST_F(LinearPropagatorHostTest, track_line)
         geo = {{50 - 1e-6, 0, 0}, {-1, 0, 0}};
         EXPECT_EQ(false, geo.is_outside());
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+
         geo.find_next_step();
         EXPECT_SOFT_EQ(45.0 - 1e-6, geo.next_step());
-        propagate();
+        auto travelled = propagate();
+        EXPECT_SOFT_EQ(45.0 - 1.e-6, travelled);
         EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
     }
     {
@@ -123,14 +130,16 @@ TEST_F(LinearPropagatorHostTest, track_line)
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(5.0, geo.next_step());
-        propagate();
+        auto travelled = propagate();
         EXPECT_SOFT_EQ(5.0, geo.pos()[0]);
+        EXPECT_SOFT_EQ(5.0, travelled);
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
         EXPECT_EQ(false, geo.is_outside());
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(45.0, geo.next_step());
-        propagate();
+        travelled = propagate();
+        EXPECT_SOFT_EQ(45.0, travelled);
         EXPECT_EQ(true, geo.is_outside());
     }
 }
@@ -151,11 +160,13 @@ TEST_F(LinearPropagatorHostTest, track_intraVolume)
         EXPECT_SOFT_EQ(1.0, geo.next_step());
 
         // break next step into two
-        propagate(0.5 * geo.next_step());
+        auto travelled = propagate(0.5 * geo.next_step());
+        EXPECT_SOFT_EQ(0.5, travelled);
         EXPECT_SOFT_EQ(-5.5, geo.pos()[0]);
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
 
-        propagate(geo.next_step()); // all remaining
+        travelled = propagate(geo.next_step()); // all remaining
+        EXPECT_SOFT_EQ(0.5, travelled);
         EXPECT_SOFT_EQ(-5.0, geo.pos()[0]);
         EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
 
@@ -164,21 +175,24 @@ TEST_F(LinearPropagatorHostTest, track_intraVolume)
         geo.find_next_step();
         EXPECT_SOFT_EQ(10.0, geo.next_step());
 
-        propagate(0.3 * geo.next_step()); // step 1 inside Detector
+        travelled = propagate(0.3 * geo.next_step()); // step 1 inside Detector
+        EXPECT_SOFT_EQ(3.0, travelled);
         EXPECT_SOFT_EQ(-2.0, geo.pos()[0]);
         EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(7.0, geo.next_step());
 
-        propagate(0.5 * geo.next_step()); // step 2 inside Detector
+        travelled = propagate(0.5 * geo.next_step()); // step 2 inside Detector
+        EXPECT_SOFT_EQ(3.5, travelled);
         EXPECT_SOFT_EQ(1.5, geo.pos()[0]);
         EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(3.5, geo.next_step());
 
-        propagate(geo.next_step()); // last step inside Detector
+        travelled = propagate(geo.next_step()); // last step inside Detector
+        EXPECT_SOFT_EQ(3.5, travelled);
         EXPECT_SOFT_EQ(5.0, geo.pos()[0]);
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
     }
