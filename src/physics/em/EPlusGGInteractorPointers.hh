@@ -14,20 +14,21 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating an interactor.
+ * Device data for creating an EPlusGGInteractor.
  */
 struct EPlusGGInteractorPointers
 {
-    //! ID of an electron
-    ParticleDefId electron_id;
+    //! electron mass [MevMass]
+    real_type electron_mass;
+    //! ID of an positron
+    ParticleDefId positron_id;
     //! ID of a gamma
     ParticleDefId gamma_id;
-    // XXX additional data
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return electron_id && gamma_id; // XXX
+        return electron_mass > 0 && positron_id && gamma_id;
     }
 };
 
