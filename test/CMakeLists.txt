@@ -144,7 +144,7 @@ endif()
 celeritas_setup_tests(SERIAL PREFIX io)
 
 if(CELERITAS_USE_ROOT)
-  celeritas_add_test(io/RootImporter.test.cc)
+  celeritas_add_test(io/RootImporter.test.cc DISABLE)
   target_link_libraries(io_RootImporter Celeritas::IO)
 endif()
 if(CELERITAS_USE_HepMC3)
