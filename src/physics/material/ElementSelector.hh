@@ -69,15 +69,15 @@ class ElementSelector
     inline CELER_FUNCTION ElementComponentId operator()(Engine& rng) const;
 
     //! Weighted material microscopic cross section
-    CELER_FUNCTION real_type material_micro_xs() const { return mat_xs_; }
+    CELER_FUNCTION real_type material_micro_xs() const { return material_xs_; }
 
     // Individual (unweighted) microscopic cross sections
     inline CELER_FUNCTION SpanConstReal elemental_micro_xs() const;
 
   private:
     span<const MatElementComponent> elements_;
-    real_type                       mat_xs_;
-    real_type*                      el_xs_;
+    real_type                       material_xs_;
+    real_type*                      elemental_xs_;
 };
 
 //---------------------------------------------------------------------------//

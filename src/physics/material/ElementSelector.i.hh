@@ -20,7 +20,9 @@ template<class MicroXsCalc>
 CELER_FUNCTION ElementSelector::ElementSelector(const MaterialView& material,
                                                 MicroXsCalc&& calc_micro_xs,
                                                 SpanReal      storage)
-    : elements_(material.elements()), mat_xs_(0), el_xs_(storage.data())
+    : elements_(material.elements())
+    , material_xs_(0)
+    , elemental_xs_(storage.data())
 {
     REQUIRE(!elements_.empty());
     REQUIRE(storage.size() >= material.num_elements());
@@ -30,10 +32,10 @@ CELER_FUNCTION ElementSelector::ElementSelector(const MaterialView& material,
         CHECK(micro_xs >= 0);
         const real_type frac = elements_[i].fraction;
 
-        el_xs_[i] = micro_xs;
-        mat_xs_ += micro_xs * frac;
+        elemental_xs_[i] = micro_xs;
+        material_xs_ += micro_xs * frac;
     }
-    ENSURE(mat_xs_ >= 0);
+    ENSURE(material_xs_ >= 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -46,12 +48,12 @@ CELER_FUNCTION ElementSelector::ElementSelector(const MaterialView& material,
 template<class Engine>
 CELER_FUNCTION ElementComponentId ElementSelector::operator()(Engine& rng) const
 {
-    real_type    accum_xs = -mat_xs_ * generate_canonical(rng);
+    real_type    accum_xs = -material_xs_ * generate_canonical(rng);
     unsigned int i        = 0;
     unsigned int imax     = elements_.size() - 1;
     for (; i != imax; ++i)
     {
-        accum_xs += elements_[i].fraction * el_xs_[i];
+        accum_xs += elements_[i].fraction * elemental_xs_[i];
         if (accum_xs >= 0)
             break;
     }
@@ -64,7 +66,7 @@ CELER_FUNCTION ElementComponentId ElementSelector::operator()(Engine& rng) const
  */
 CELER_FUNCTION auto ElementSelector::elemental_micro_xs() const -> SpanConstReal
 {
-    return {el_xs_, elements_.size()};
+    return {elemental_xs_, elements_.size()};
 }
 
 //---------------------------------------------------------------------------//
