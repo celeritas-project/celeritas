@@ -74,6 +74,9 @@ class MaterialParams
     // Access material properties on the device
     MaterialParamsPointers device_pointers() const;
 
+    //! Maximum number of elements in any one material
+    size_type max_element_components() const { return max_el_; }
+
   private:
     std::vector<ElementDef>          host_elements_;
     std::vector<MatElementComponent> host_elcomponents_;
@@ -86,6 +89,7 @@ class MaterialParams
     std::vector<std::string>                       elnames_;
     std::vector<std::string>                       matnames_;
     std::unordered_map<std::string, MaterialDefId> matname_to_id_;
+    size_type                                      max_el_;
 
     // HELPER FUNCTIONS
     void                      append_element_def(const ElementInput& el);

@@ -139,6 +139,8 @@ TEST_F(MaterialTest, params)
     EXPECT_EQ("NaI", params->id_to_label(MaterialDefId{0}));
     EXPECT_EQ("hard vacuum", params->id_to_label(MaterialDefId{1}));
     EXPECT_EQ("H2", params->id_to_label(MaterialDefId{2}));
+
+    EXPECT_EQ(2, params->max_element_components());
 }
 
 TEST_F(MaterialTest, material_view)

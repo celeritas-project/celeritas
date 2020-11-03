@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Construct from a vector of material definitions.
  */
-MaterialParams::MaterialParams(const Input& inp)
+MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
 {
     REQUIRE(!inp.materials.empty());
 
@@ -231,6 +231,9 @@ void MaterialParams::append_material_def(const MaterialInput& inp)
     // Add to host vector
     host_materials_.push_back(result);
     matnames_.push_back(inp.name);
+
+    // Update maximum number of materials
+    max_el_ = std::max(max_el_, result.elements.size());
 
     ENSURE(result.number_density >= 0);
     ENSURE(result.temperature >= 0);

@@ -87,7 +87,7 @@ TEST_HARNESS_FILE = '''\
 
 #include "gtest/Main.hh"
 #include "gtest/Test.hh"
-#include "{name}.test.hh"
+// #include "{name}.test.hh"
 
 using {namespace}::{name};
 // using namespace celeritas_test;
@@ -315,7 +315,7 @@ def generate(root, filename, namespace):
 
     relpath = re.sub(r'^[./]+', '', relpath)
     capabbr = re.sub(r'[^A-Z]+', '', name)
-    dirfromtest = re.sub(r'^test/', '', relpath)
+    dirfromtest = re.sub(r'^test/', '', os.path.dirname(relpath))
     variables = {
         'longext': longext,
         'ext': ext,
