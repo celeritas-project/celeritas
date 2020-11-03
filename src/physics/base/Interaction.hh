@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Change in state to a particle during an interaction.
  *
- * TODO: we might also need local enery deposition for some inelastic
+ * TODO: we might also need local energy deposition for some inelastic
  * processes/models. (?)
  */
 struct Interaction
@@ -31,6 +31,9 @@ struct Interaction
 
     // Return an interaction representing a recoverable error
     static inline CELER_FUNCTION Interaction from_failure();
+
+    // Return an interaction representing an absorbed process
+    static inline CELER_FUNCTION Interaction from_absorption();
 
     // Whether the interaction succeeded
     explicit inline CELER_FUNCTION operator bool() const;
@@ -46,6 +49,19 @@ CELER_FUNCTION Interaction Interaction::from_failure()
 {
     Interaction result;
     result.action = Action::failed;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an interaction from a particle that was totally absorbed.
+ */
+CELER_FUNCTION Interaction Interaction::from_absorption()
+{
+    Interaction result;
+    result.action    = Action::absorbed;
+    result.energy    = ZeroQuantity();
+    result.direction = {0, 0, 0};
     return result;
 }
 

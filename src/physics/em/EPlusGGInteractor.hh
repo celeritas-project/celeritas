@@ -22,11 +22,14 @@ namespace celeritas
 /*!
  * Brief class description.
  *
- * This is a model for XXXX process. Additional description
+ * This is a model for the discrete positron-electron Annihilation process
+ * which simulates the in-flight annihilation of a positron with an atomic
+ * electron and produces into two photons. It is assumed that the atomic
+ * electron is initially free and at rest.
  *
  * \note This performs the same sampling routine as in Geant4's
- * XXXX class, as documented in section XXX of the Geant4 Physics
- * Reference (release 10.6).
+ * G4eeToTwoGammaModel class, as documented in section 10.3 of the Geant4
+ * Physics Reference (release 10.6).
  */
 class EPlusGGInteractor
 {
@@ -47,23 +50,23 @@ class EPlusGGInteractor
     //! Minimum incident energy for this model to be valid
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
     {
-        return units::MevEnergy{0}; // XXX
+        return units::MevEnergy{0}; // at rest
     }
 
     //! Maximum incident energy for this model to be valid
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_incident_energy()
     {
-        return units::MevEnergy{0}; // XXX
+        return units::MevEnergy{100000000}; // 100 TeV
     }
 
   private:
     // Shared constant physics properties
     const EPlusGGInteractorPointers& shared_;
-    // Incident gamma energy
+    // Incident positron energy
     const units::MevEnergy inc_energy_;
     // Incident direction
     const Real3& inc_direction_;
-    // Allocate space for one or more secondary particles
+    // Allocate space for secondary particles (two photons)
     SecondaryAllocatorView& allocate_;
 };
 
