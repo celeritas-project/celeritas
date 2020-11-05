@@ -28,14 +28,16 @@ CELER_FUNCTION LinearPropagator::LinearPropagator(GeoTrackView& track)
  * Move track by next_step(), which takes it to next volume boundary.
  */
 CELER_FUNCTION
-real_type LinearPropagator::operator()()
+LinearPropagator::OutputType LinearPropagator::operator()()
 {
-    real_type moved = track_.next_step();
-    this->apply_linear_step(track_.next_step() + track_.tolerance());
+    OutputType result;
+    result.distance =
+      this->apply_linear_step(track_.next_step() + track_.tolerance());
 
     // Update state
     track_.move_next_volume();
-    return moved;
+    result.volume = track_.volume_id();
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -48,19 +50,20 @@ real_type LinearPropagator::operator()()
  * \pre Assumes that next_step() has been properly called by client
  */
 CELER_FUNCTION
-real_type LinearPropagator::operator()(real_type dist)
+LinearPropagator::OutputType LinearPropagator::operator()(real_type dist)
 {
     REQUIRE(dist > 0.);
-    real_type moved = std::min(dist, track_.next_step());
+    OutputType result;
+    const real_type minstep = fmin(dist, track_.next_step() + track_.tolerance());
+    result.distance = this->apply_linear_step( minstep );
 
-    this->apply_linear_step( moved );
-
-    if (std::fabs(track_.next_step()) < track_.tolerance())
-    {
+    //.. for linear trajectory, assume that next_step() takes it to boundary
+    if (track_.next_step() < track_.tolerance()) {
         track_.move_next_volume();
     }
+    result.volume = track_.volume_id();
 
-    return moved;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -71,10 +74,11 @@ real_type LinearPropagator::operator()(real_type dist)
  * direction by a distance track.next_step()
  */
 CELER_FUNCTION
-void LinearPropagator::apply_linear_step(real_type step)
+real_type LinearPropagator::apply_linear_step(real_type step)
 {
     axpy(step, track_.dir(), &track_.pos());
     track_.next_step() -= step;
+    return step;
 }
 
 } // namespace celeritas
