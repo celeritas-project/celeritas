@@ -32,4 +32,15 @@ CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b)
 }
 
 //---------------------------------------------------------------------------//
+
+/*!
+ * Return the cube of the input value.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION T cube(const T& a)
+{
+    return a * a * a;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
