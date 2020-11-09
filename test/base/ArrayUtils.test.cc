@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "base/ArrayUtils.hh"
 
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 #include "base/Constants.hh"
 #include "base/ArrayIO.hh"
 

@@ -8,8 +8,7 @@
 #include "../Macros.hh"
 
 #include <limits>
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas::detail;
 

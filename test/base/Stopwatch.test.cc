@@ -8,8 +8,7 @@
 #include "base/Stopwatch.hh"
 
 #include <thread>
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 
 using celeritas::Stopwatch;
 

@@ -8,8 +8,7 @@
 #include "physics/base/ParticleTrackView.hh"
 
 #include "celeritas_config.h"
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 #include "base/Array.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleStateStore.hh"

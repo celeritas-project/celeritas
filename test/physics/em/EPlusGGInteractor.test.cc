@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "physics/em/EPlusGGInteractor.hh"
 
-#include "gtest/Main.hh"
+#include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "physics/base/Units.hh"

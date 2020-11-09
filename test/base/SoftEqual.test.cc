@@ -8,8 +8,7 @@
 #include "base/SoftEqual.hh"
 
 #include <limits>
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 #include "base/ColorUtils.hh"
 
 using celeritas::SoftEqual;
