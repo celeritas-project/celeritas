@@ -32,6 +32,9 @@ struct Interaction
     // Return an interaction representing a recoverable error
     static inline CELER_FUNCTION Interaction from_failure();
 
+    // Return an interaction representing an absorbed process
+    static inline CELER_FUNCTION Interaction from_absorption();
+
     // Whether the interaction succeeded
     explicit inline CELER_FUNCTION operator bool() const;
 };
@@ -46,6 +49,18 @@ CELER_FUNCTION Interaction Interaction::from_failure()
 {
     Interaction result;
     result.action = Action::failed;
+    return result;
+}
+
+/*!
+ * An interaction with an absorbed process.
+ */
+CELER_FUNCTION Interaction Interaction::from_absorption()
+{
+    Interaction result;
+    result.action    = Action::absorbed;
+    result.energy    = units::MevEnergy{0};
+    result.direction = {0, 0, 0};
     return result;
 }
 
