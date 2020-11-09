@@ -22,13 +22,13 @@ namespace celeritas
 /*!
  * Brief class description.
  *
- * This is a model for the discrete positron-electron Annihilation process 
- * which simulates the in-flight annihilation of a positron with an atomic 
- * electron and produces into two photons. It is assumed that the atomic 
- * electron is initially free and at rest.  
+ * This is a model for the discrete positron-electron Annihilation process
+ * which simulates the in-flight annihilation of a positron with an atomic
+ * electron and produces into two photons. It is assumed that the atomic
+ * electron is initially free and at rest.
  *
  * \note This performs the same sampling routine as in Geant4's
- * G4eeToTwoGammaModel class, as documented in section 10.3 of the Geant4 
+ * G4eeToTwoGammaModel class, as documented in section 10.3 of the Geant4
  * Physics Reference (release 10.6).
  */
 class EPlusGGInteractor
