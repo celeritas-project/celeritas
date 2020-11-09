@@ -3,14 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Main.hh
+//! \file celeritas_test.hh
+//! Meta-include to facilitate testing.
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "detail/TestMain.hh"
+#include "gtest/Main.hh"
+#include "gtest/Test.hh"
+#include "gtest/detail/Macros.hh"
+#include "celeritas_config.h"
 
-//! Define main
-int main(int argc, char** argv)
-{
-    return celeritas::detail::test_main(argc, argv);
-}
+#include <iostream>
+#include <string>
+#include <vector>
+
+using std::cout;
+using std::endl;
