@@ -9,8 +9,7 @@
 
 #include <type_traits>
 #include "base/Constants.hh"
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 
 using celeritas::Quantity;
 using celeritas::zero_quantity;

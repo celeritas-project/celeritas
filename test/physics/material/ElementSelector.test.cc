@@ -9,8 +9,7 @@
 
 #include <memory>
 #include <random>
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 #include "base/Range.hh"
 #include "physics/material/MaterialParams.hh"
 

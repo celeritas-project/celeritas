@@ -85,8 +85,7 @@ namespace {namespace}
 TEST_HARNESS_FILE = '''\
 #include "{dirfromtest}/{name}.{hext}"
 
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 // #include "{name}.test.hh"
 
 using {namespace}::{name};

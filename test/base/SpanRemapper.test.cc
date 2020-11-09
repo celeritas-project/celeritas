@@ -8,8 +8,7 @@
 #include "base/SpanRemapper.hh"
 
 #include <type_traits>
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 
 using celeritas::make_span;
 using celeritas::make_span_remapper;

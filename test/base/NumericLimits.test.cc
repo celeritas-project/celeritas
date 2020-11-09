@@ -9,8 +9,7 @@
 
 #include <cmath>
 #include <limits>
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 #include "NumericLimits.test.hh"
 
 using namespace celeritas_test;

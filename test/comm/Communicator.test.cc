@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "comm/Communicator.hh"
 
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 
 using celeritas::Communicator;
 

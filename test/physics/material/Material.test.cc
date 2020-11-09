@@ -13,8 +13,7 @@
 #include "physics/material/detail/Utils.hh"
 
 #include <limits>
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 #include "base/DeviceVector.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementDef.hh"

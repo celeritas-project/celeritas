@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "io/EventReader.hh"
 
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 #include "base/Span.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/Units.hh"

@@ -8,8 +8,7 @@
 #include "random/distributions/BernoulliDistribution.hh"
 
 #include <random>
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 #include "base/Range.hh"
 
 using celeritas::BernoulliDistribution;

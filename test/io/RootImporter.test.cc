@@ -14,8 +14,7 @@
 #include "base/Types.hh"
 #include "base/Range.hh"
 
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 
 using celeritas::elem_id;
 using celeritas::GdmlGeometryMap;

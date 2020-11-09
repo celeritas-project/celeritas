@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "base/DeviceAllocation.hh"
 
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 #include "base/Span.hh"
 
 using celeritas::byte;

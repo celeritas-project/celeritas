@@ -12,8 +12,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include "base/Range.hh"
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
+#include "celeritas_test.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 
 using celeritas::generate_canonical;
