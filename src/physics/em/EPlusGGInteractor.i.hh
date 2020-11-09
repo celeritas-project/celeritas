@@ -49,12 +49,9 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Construct interaction for change to the incident positron
-    Interaction result;
-    result.action      = Action::absorbed;
-    result.energy      = units::MevEnergy{0}; 
-    result.direction   = {0, 0, 0};
-    result.secondaries = {secondaries, 2};
+    // Construct an interaction with an absorbed process
+    Interaction result = Interaction::from_absorption();
+     result.secondaries = {secondaries, 2};
 
     // Sample two gammas
     secondaries[0].def_id = secondaries[1].def_id = shared_.gamma_id;
@@ -89,13 +86,13 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         real_type epsilqot = epsilmax/epsilmin;
 
         // Sample the energy rate of the created gammas
-        real_type epsil, acceptance_prob;
+        real_type epsil;
         do 
         {
 	    epsil = epsilmin
                 * std::exp(std::log(epsilqot)*generate_canonical(rng));
-            acceptance_prob = 1. - epsil + (2.*gam*epsil-1.)/(epsil*tau2*tau2);
-        } while (BernoulliDistribution(acceptance_prob)(rng));
+        } while (BernoulliDistribution(
+            1. - epsil + (2.*gam*epsil-1.)/(epsil*tau2*tau2))(rng));
 
         // Scattered Gamma angles
         real_type cost = (epsil*tau2-1.0)/(epsil*sqg2m1);
@@ -104,14 +101,14 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
 	// Kinematic of the gamma pair
 	real_type total_energy = inc_energy + 2.0*shared_.electron_mass;
         real_type gamma_energy = epsil*total_energy;
-	real_type eplus_moment = std::sqrt(inc_energy*(total_energy));
+	real_type eplus_moment = std::sqrt(inc_energy*total_energy);
 
         // Sample and save outgoing secondary data
 	UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
 
         secondaries[0].energy = units::MevEnergy{gamma_energy};
         secondaries[0].direction 
-             = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_); 
+            = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_); 
 
         secondaries[1].energy = units::MevEnergy{total_energy-gamma_energy};
         for(int i = 0 ; i < 3 ; ++i) 
