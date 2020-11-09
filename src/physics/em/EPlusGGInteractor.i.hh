@@ -51,7 +51,7 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
 
     // Construct an interaction with an absorbed process
     Interaction result = Interaction::from_absorption();
-     result.secondaries = {secondaries, 2};
+    result.secondaries = {secondaries, 2};
 
     // Sample two gammas
     secondaries[0].def_id = secondaries[1].def_id = shared_.gamma_id;
