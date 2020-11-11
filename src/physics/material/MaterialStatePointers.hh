@@ -30,12 +30,18 @@ struct MaterialTrackState
  * The size of the view will be the size of the vector of tracks. Each particle
  * track state corresponds to the thread ID (\c ThreadId).
  *
+ * The "element scratch space" is a 2D array of reals, indexed with
+ * [track_id][el_component_id], where the fast-moving dimension has the
+ * greatest number of element components of any material in the problem. This
+ * can be used for the physics to calculate microscopic cross sections.
+ *
  * \sa MaterialStateStore (owns the pointed-to data)
  * \sa MaterialTrackView (uses the pointed-to data in a kernel)
  */
 struct MaterialStatePointers
 {
     span<MaterialTrackState> state;
+    span<real_type> element_scratch; // 2D array: [num states][max components]
 
     //! Check whether the view is assigned
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }

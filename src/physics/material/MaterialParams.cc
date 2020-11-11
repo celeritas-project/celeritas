@@ -88,6 +88,8 @@ MaterialParamsPointers MaterialParams::host_pointers() const
     MaterialParamsPointers result;
     result.elements  = make_span(host_elements_);
     result.materials = make_span(host_materials_);
+    result.max_element_components = this->max_element_components();
+
     ENSURE(result);
     return result;
 }
@@ -102,6 +104,8 @@ MaterialParamsPointers MaterialParams::device_pointers() const
     MaterialParamsPointers result;
     result.elements  = device_elements_.device_pointers();
     result.materials = device_materials_.device_pointers();
+    result.max_element_components = this->max_element_components();
+
     ENSURE(result);
     return result;
 }

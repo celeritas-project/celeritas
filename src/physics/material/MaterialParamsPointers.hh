@@ -28,6 +28,7 @@ struct MaterialParamsPointers
 {
     span<const ElementDef>  elements;
     span<const MaterialDef> materials;
+    size_type               max_element_components;
 
     //! Check whether the interface is assigned
     explicit inline CELER_FUNCTION operator bool() const

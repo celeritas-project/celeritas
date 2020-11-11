@@ -10,6 +10,7 @@
 #include "physics/material/MaterialParams.hh"
 #include "physics/material/MaterialTrackView.hh"
 #include "physics/material/MaterialStatePointers.hh"
+#include "physics/material/MaterialStateStore.hh"
 #include "physics/material/detail/Utils.hh"
 
 #include <limits>
@@ -210,9 +211,15 @@ TEST_F(MaterialDeviceTest, all)
     MTestInput input;
     input.init = {{MaterialDefId{0}}, {MaterialDefId{1}}, {MaterialDefId{2}}};
 
-    DeviceVector<MaterialTrackState> states(input.init.size());
-    input.params       = params->device_pointers();
-    input.states.state = states.device_pointers();
+    MaterialStateStore states(*params, input.init.size());
+    input.params = params->device_pointers();
+    input.states = states.device_pointers();
+
+    EXPECT_EQ(params->max_element_components(),
+              input.params.max_element_components);
+    EXPECT_EQ(3, input.states.state.size());
+    EXPECT_EQ(3 * params->max_element_components(),
+              input.states.element_scratch.size());
 
     // Run GPU test
     auto result = m_test(input);

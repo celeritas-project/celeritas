@@ -26,6 +26,10 @@ namespace celeritas
  * the results rather than calling the function repeatedly. If any of the
  * calculations prove to be hot spots we will experiment with cacheing some of
  * the variables.
+ *
+ * The element scratch space is "thread-private" data with a fixed size
+ * *greater than or equal to* the number of elemental components in the current
+ * material.
  */
 class MaterialTrackView
 {
@@ -46,15 +50,21 @@ class MaterialTrackView
     inline CELER_FUNCTION MaterialTrackView&
                           operator=(const Initializer_t& other);
 
-    //! Current material identifier
-    CELER_FUNCTION MaterialDefId def_id() const { return state_.def_id; }
+    // Current material identifier
+    inline CELER_FUNCTION MaterialDefId def_id() const;
 
     // Get a view to material properties
     inline CELER_FUNCTION MaterialView material_view() const;
 
+    // Access scratch space with at least one real per element component
+    inline CELER_FUNCTION span<real_type> element_scratch();
+
   private:
     const MaterialParamsPointers& params_;
-    MaterialTrackState&           state_;
+    const MaterialStatePointers&  states_;
+    ThreadId                      tid_;
+
+    inline CELER_FUNCTION MaterialTrackState& state() const;
 };
 
 //---------------------------------------------------------------------------//
