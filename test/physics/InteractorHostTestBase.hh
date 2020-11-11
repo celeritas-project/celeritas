@@ -20,6 +20,8 @@
 #include "physics/base/ParticleStatePointers.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
+#include "physics/material/MaterialParams.hh"
+#include "physics/material/MaterialStatePointers.hh"
 #include "base/HostStackAllocatorStore.hh"
 
 namespace celeritas
@@ -27,6 +29,7 @@ namespace celeritas
 template<class T>
 class StackAllocatorView;
 class ParticleTrackView;
+class MaterialTrackView;
 struct Interaction;
 struct Secondary;
 } // namespace celeritas
@@ -51,6 +54,9 @@ class InteractorHostTestBase : public celeritas::Test
     using PDGNumber              = celeritas::PDGNumber;
     using MevEnergy              = celeritas::units::MevEnergy;
 
+    using MaterialParams    = celeritas::MaterialParams;
+    using MaterialTrackView = celeritas::MaterialTrackView;
+
     using Interaction            = celeritas::Interaction;
     using ParticleParams         = celeritas::ParticleParams;
     using ParticleTrackView      = celeritas::ParticleTrackView;
@@ -70,9 +76,25 @@ class InteractorHostTestBase : public celeritas::Test
     //@}
 
     //@{
+    //! Set and get material properties
+    void                  set_material_params(MaterialParams::Input inp);
+    const MaterialParams& material_params() const;
+    //@}
+
+    //@{
     //! Set and get particle params
     void set_particle_params(const ParticleParams::VecAnnotatedDefs& defs);
     const ParticleParams& particle_params() const;
+    //@}
+
+    //@{
+    //! Material properties
+    void               set_material(const std::string& name);
+    MaterialTrackView& material_track()
+    {
+        REQUIRE(mt_view_);
+        return *mt_view_;
+    }
     //@}
 
     //@{
@@ -107,16 +129,23 @@ class InteractorHostTestBase : public celeritas::Test
     void check_conservation(const Interaction& interaction) const;
 
   private:
+    std::shared_ptr<MaterialParams> material_params_;
     std::shared_ptr<ParticleParams> particle_params_;
     RandomEngine                    rng_;
+
+    celeritas::MaterialTrackState     mat_state_;
+    std::vector<real_type>            mat_element_scratch_;
+    celeritas::MaterialParamsPointers mp_pointers_;
+    celeritas::MaterialStatePointers  ms_pointers_;
 
     celeritas::ParticleTrackState     particle_state_;
     celeritas::ParticleParamsPointers pp_pointers_;
     celeritas::ParticleStatePointers  ps_pointers_;
-    Real3                     inc_direction_ = {0, 0, 1};
+    Real3                             inc_direction_ = {0, 0, 1};
     HostSecondaryStore                secondaries_;
 
     // Views
+    std::shared_ptr<MaterialTrackView>      mt_view_;
     std::shared_ptr<ParticleTrackView>      pt_view_;
     std::shared_ptr<SecondaryAllocatorView> sa_view_;
 };
