@@ -45,8 +45,8 @@ class ParticleTrackViewTest : public celeritas::Test
         using celeritas::ParticleDef;
         using namespace celeritas::units;
 
-        celeritas::ZeroQuantity zero;
-        auto                    stable = ParticleDef::stable_decay_constant();
+        constexpr auto zero   = celeritas::zero_quantity();
+        constexpr auto stable = ParticleDef::stable_decay_constant();
 
         // Create particle defs, initialize on device
         ParticleParams::VecAnnotatedDefs defs;

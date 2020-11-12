@@ -50,13 +50,13 @@ class EPlusGGInteractor
     //! Minimum incident energy for this model to be valid
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
     {
-        return units::MevEnergy{0}; // at rest
+        return zero_quantity(); // at rest
     }
 
     //! Maximum incident energy for this model to be valid
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_incident_energy()
     {
-        return units::MevEnergy{100000000}; // 100 TeV
+        return max_quantity();
     }
 
   private:

@@ -83,3 +83,13 @@ TEST(QuantityTest, comparators)
     EXPECT_TRUE(Revolution{5} >= Revolution{4});
     EXPECT_FALSE(Revolution{5} == Revolution{4});
 }
+
+TEST(QuantityTest, infinities)
+{
+    using celeritas::max_quantity;
+    using celeritas::neg_max_quantity;
+    EXPECT_TRUE(neg_max_quantity() < Revolution{-1e300});
+    EXPECT_TRUE(neg_max_quantity() < zero_quantity());
+    EXPECT_TRUE(zero_quantity() < max_quantity());
+    EXPECT_TRUE(max_quantity() > Revolution{1e300});
+}

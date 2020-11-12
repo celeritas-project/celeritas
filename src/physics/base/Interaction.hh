@@ -60,7 +60,7 @@ CELER_FUNCTION Interaction Interaction::from_absorption()
 {
     Interaction result;
     result.action    = Action::absorbed;
-    result.energy    = ZeroQuantity();
+    result.energy    = zero_quantity();
     result.direction = {0, 0, 0};
     return result;
 }
