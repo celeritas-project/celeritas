@@ -42,10 +42,12 @@ Communicator::Communicator(MpiComm comm) : comm_(comm), rank_(0), size_(1)
 }
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
  * Wait for all processes in this communicator to reach the barrier.
  */
-void Communicator::barrier() const {}
+void barrier(const Communicator&) {}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

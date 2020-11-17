@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Types.hh"
+#include "MpiTypes.hh"
 
 namespace celeritas
 {
@@ -39,18 +39,17 @@ class Communicator
     //! Get the number of total processors
     int size() const { return size_; };
 
-    /// FUNCTIONS ///
-
-    // Wait for all processes in this communicator to reach the barrier
-    void barrier() const;
-
-    // TODO: Nemesis HDF5-like interface for send/recv/reduce/etc.
-
   private:
     MpiComm comm_;
     int     rank_;
     int     size_;
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+// Wait for all processes in this communicator to reach the barrier
+void barrier(const Communicator& comm);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

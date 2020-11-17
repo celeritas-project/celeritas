@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Types.hh
+//! \file MpiTypes.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,6 +14,8 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// MPI TYPES
 //---------------------------------------------------------------------------//
 #if CELERITAS_USE_MPI
 using MpiComm = MPI_Comm;
