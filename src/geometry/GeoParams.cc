@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "GeoParams.hh"
 
-#include <iostream>
-
 #include <VecGeom/gdml/Frontend.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/GeoManager.h>
@@ -22,10 +20,24 @@
 
 #include "base/Stopwatch.hh"
 #include "base/ColorUtils.hh"
+#include "comm/Logger.hh"
 #include "GeoParamsPointers.hh"
 
-using std::cerr;
-using std::endl;
+namespace
+{
+//---------------------------------------------------------------------------//
+void print_time(double time_sec)
+{
+    using celeritas::color_code;
+
+    if (time_sec > 0.01)
+    {
+        CELER_LOG(diagnostic) << color_code('x') << "... " << time_sec << " s"
+                              << color_code(' ');
+    }
+}
+//---------------------------------------------------------------------------//
+} // namespace
 
 namespace celeritas
 {
@@ -37,39 +49,36 @@ namespace celeritas
  */
 GeoParams::GeoParams(const char* gdml_filename)
 {
-    cerr << "::: Loading from GDML at " << gdml_filename << "..." << std::flush;
+    CELER_LOG(info) << "Loading from GDML at " << gdml_filename;
     constexpr bool validate_xml_schema = false;
     Stopwatch      get_time;
     vgdml::Frontend::Load(gdml_filename, validate_xml_schema);
-    cerr << color_code('x') << " (" << get_time() << " s)" << color_code(' ')
-         << endl;
+    print_time(get_time());
 
-    cerr << "::: Initializing tracking information" << endl;
+    CELER_LOG(status) << "Initializing tracking information";
+    get_time = {};
     vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
+    print_time(get_time());
 
     num_volumes_ = vecgeom::VPlacedVolume::GetIdCount();
     max_depth_   = vecgeom::GeoManager::Instance().getMaxDepth();
 
 #if CELERITAS_USE_CUDA
-    cerr << "::: Loading geometry..." << std::flush;
+    CELER_LOG(status) << "Converting to CUDA geometry";
     get_time           = {};
     auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
     // cuda_manager.set_verbose(1);
     cuda_manager.LoadGeometry();
     CELER_CUDA_CALL(cudaDeviceSynchronize());
-    cerr << color_code('x') << " (" << get_time() << " s)" << color_code(' ')
-         << endl;
+    print_time(get_time());
 
+    CELER_LOG(status) << "Transferring geometry to GPU";
     get_time = {};
-    cerr << "::: Transferring geometry to GPU..." << std::flush;
     auto world_top_devptr = cuda_manager.Synchronize();
-    cerr << color_code('x') << " (" << get_time() << " s)" << color_code(' ')
-         << endl;
-
     CHECK(world_top_devptr != nullptr);
     device_world_volume_ = world_top_devptr.GetPtr();
     CELER_CUDA_CHECK_ERROR();
-    cerr << ">>> Synchronized successfully!" << endl;
+    print_time(get_time());
 
     ENSURE(device_world_volume_);
 #endif
