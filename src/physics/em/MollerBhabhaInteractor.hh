@@ -12,9 +12,6 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 
-#include "random/distributions/GenerateCanonical.hh"
-#include "random/distributions/UniformRealDistribution.hh"
-
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
@@ -43,7 +40,6 @@ class MollerBhabhaInteractor
     MollerBhabhaInteractor(const MollerBhabhaInteractorPointers& shared,
                            const ParticleTrackView&              particle,
                            const Real3&                          inc_direction,
-                           const bool&                           is_electron,
                            SecondaryAllocatorView& allocate);
 
     // Sample an interaction with the given RNG
@@ -52,15 +48,15 @@ class MollerBhabhaInteractor
 
     //// COMMON PROPERTIES ////
 
-    //! Minimum incident energy for this model to be valid
+    // Minimum incident energy for this model to be valid
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
     {
         return units::MevEnergy{0.001}; // Must be at least 1 keV
     }
 
-    //! Maximum incident energy for this model to be valid
-    //! 100 TeV is the current EM limit
-    //! This model's limit is worth double checking
+    // Maximum incident energy for this model to be valid
+    // 100 TeV is the current EM limit
+    // TODO: This model's limit is worth double checking
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_incident_energy()
     {
         return units::MevEnergy{100E6};
@@ -75,7 +71,7 @@ class MollerBhabhaInteractor
     const units::MevMomentum inc_momentum_;
     // Incident direction
     const Real3& inc_direction_;
-    // Incident particle type flag (electron or positron)
+    // Incident particle flag for selecting Moller or Bhabha
     bool inc_particle_is_electron_;
 
     // Allocate space for one or more secondary particles

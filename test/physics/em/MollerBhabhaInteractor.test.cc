@@ -33,7 +33,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         constexpr auto zero   = celeritas::zero_quantity();
         constexpr auto stable = ParticleDef::stable_decay_constant();
 
-        // XXX Update these based on particles needed by interactor
+        // Particles needed by interactor
         Base::set_particle_params(
             {{"electron",
               pdg::electron(),
@@ -45,7 +45,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         pointers_.electron_id = params.find(pdg::electron());
         pointers_.positron_id = params.find(pdg::positron());
 
-        // Set default particle to incident XXX MeV photon
+        // Set default particle to incident 10 MeV electron
         this->set_inc_particle(pdg::electron(), MevEnergy{10});
         this->set_inc_direction({0, 0, 1});
     }
@@ -61,7 +61,15 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_SOFT_EQ(1.0, celeritas::norm(interaction.direction));
         EXPECT_EQ(celeritas::Action::scattered, interaction.action);
 
-        // XXX Check secondaries
+        // Check secondaries
+        ASSERT_EQ(1, interaction.secondaries.size());
+        const auto& electron = interaction.secondaries.front();
+        EXPECT_TRUE(electron);
+        EXPECT_EQ(pointers_.electron_id, electron.def_id);
+        EXPECT_GT(this->particle_track().energy().value(),
+                  electron.energy.value());
+        EXPECT_LT(0, electron.energy.value());
+        EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
 
         // Check conservation between primary and secondaries
         this->check_conservation(interaction);
@@ -75,4 +83,19 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-// TEST_F(MollerBhabhaInteractorTest, basic) {}
+/*
+TEST_F(MollerBhabhaInteractorTest, single_interaction_10_MeV)
+{
+    this->resize_secondaries(1);
+
+    // Create interactor
+    MollerBhabhaInteractor mb_interactor(pointers_,
+                                         this->particle_track(),
+                                         this->direction(),
+                                         this->secondary_allocator());
+    RandomEngine&          rng_engine = this->rng();
+
+    Interaction result = mb_interactor(rng_engine);
+    this->sanity_check(result);
+}
+*/
