@@ -49,8 +49,9 @@ bool use_color()
 /*!
  * Get an ANSI color codes if colors are enabled.
  *
- *  - [y]ellow
+ *  - [b]lue
  *  - [g]reen
+ *  - [y]ellow
  *  - [r]ed
  *  - [x] gray
  *  - [R]ed bold
@@ -66,6 +67,8 @@ const char* color_code(char abbrev)
     {
         case 'g':
             return "\033[32m";
+        case 'b':
+            return "\033[34m";
         case 'r':
             return "\033[31m";
         case 'x':
