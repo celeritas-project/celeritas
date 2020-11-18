@@ -28,7 +28,7 @@ VGNavStateStore::VGNavStateStore(size_type, int)
  */
 void VGNavStateStore::copy_to_device()
 {
-    REQUIRE(false);
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//
@@ -37,15 +37,14 @@ void VGNavStateStore::copy_to_device()
  */
 void* VGNavStateStore::device_pointers() const
 {
-    REQUIRE(*this);
-    return nullptr;
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//
 //! Deleter should never be called on CPU
 void VGNavStateStore::NavStatePoolDeleter::operator()(NavStatePool*) const
 {
-    REQUIRE(false);
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//

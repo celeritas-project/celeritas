@@ -85,7 +85,7 @@ to_geant_physics_vector_type(const G4PhysicsVectorType g4_vector_type)
         case G4PhysicsVectorType::T_G4LPhysicsFreeVector:
             return ImportPhysicsVectorType::low_energy_free;
     }
-    CHECK(false);
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//
@@ -124,7 +124,7 @@ ImportProcessType to_geant_process_type(const G4ProcessType g4_process_type)
         case G4ProcessType::fUCN:
             return ImportProcessType::ucn;
     }
-    CHECK(false);
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//
