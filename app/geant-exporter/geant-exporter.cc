@@ -196,7 +196,7 @@ ImportMaterialState to_material_state(const G4State& g4_material_state)
         case G4State::kStateGas:
             return ImportMaterialState::gas;
     }
-    CHECK(false);
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//

@@ -1,4 +1,4 @@
-//---------------------------------*-CUDA-*----------------------------------//
+//----------------------------------*-C++-*----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -47,7 +47,6 @@
  * instructions, improving instruction locality. It should be used primarily
  * for error checking conditions.
  */
-
 #if defined(__clang__) || defined(__GNUC__)
 // GCC and Clang support the same builtin
 #    define CELER_UNLIKELY(COND) __builtin_expect(!!(COND), 0)
@@ -70,7 +69,6 @@
    }
    \endcode
  */
-
 #if __cplusplus >= 201710L
 #    define CELER_MAYBE_UNUSED [[maybe_unused]]
 #elif defined(__GNUC__)
@@ -78,4 +76,24 @@
 #    define CELER_MAYBE_UNUSED [[gnu::unused]]
 #else
 #    define CELER_MAYBE_UNUSED
+#endif
+
+/*!
+ * \def CELER_UNREACHABLE
+ *
+ * Mark a point in code as being impossible to reach in normal execution.
+ *
+ * See https://clang.llvm.org/docs/LanguageExtensions.html#builtin-unreachable
+ * or https://msdn.microsoft.com/en-us/library/1b3fsfxw.aspx=
+ *
+ * \note This macro is usually unused; instead, the macro \c
+ * CELER_CHECK_UNREACHABLE defined in DBC.hh should be used instead (to provide
+ * a more detailed error message in case the point *is* reached).
+ */
+#if defined(__clang__) || defined(__GNUC__)
+#    define CELER_UNREACHABLE __builtin_unreachable()
+#elif defined(_MSC_VER)
+#    define CELER_UNREACHABLE __assume(false)
+#else
+#    define CELER_UNREACHABLE
 #endif

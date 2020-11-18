@@ -23,7 +23,7 @@ DeviceAllocation::DeviceAllocation(size_type)
 //! Deleter should never be called on CPU
 void DeviceAllocation::CudaFreeDeleter::operator()(byte*) const
 {
-    REQUIRE(false);
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//
@@ -32,7 +32,7 @@ void DeviceAllocation::CudaFreeDeleter::operator()(byte*) const
  */
 void DeviceAllocation::copy_to_device(constSpanBytes)
 {
-    REQUIRE(false);
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//
@@ -41,7 +41,7 @@ void DeviceAllocation::copy_to_device(constSpanBytes)
  */
 void DeviceAllocation::copy_to_host(SpanBytes) const
 {
-    REQUIRE(false);
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//

@@ -51,14 +51,17 @@
 #    define REQUIRE(x) CELER_CUDA_ASSERT_(x)
 #    define CHECK(x) CELER_CUDA_ASSERT_(x)
 #    define ENSURE(x) CELER_CUDA_ASSERT_(x)
+#    define CHECK_UNREACHABLE CELER_CUDA_ASSERT_(false)
 #elif CELERITAS_DEBUG && !defined(__CUDA_ARCH__)
 #    define REQUIRE(x) CELER_ASSERT_(x)
 #    define CHECK(x) CELER_ASSERT_(x)
 #    define ENSURE(x) CELER_ASSERT_(x)
+#    define CHECK_UNREACHABLE CELER_ASSERT_(false)
 #else
 #    define REQUIRE(x) CELER_NOASSERT_(x)
 #    define CHECK(x) CELER_NOASSERT_(x)
 #    define ENSURE(x) CELER_NOASSERT_(x)
+#    define CHECK_UNREACHABLE CELER_UNREACHABLE
 #endif
 
 /*!
