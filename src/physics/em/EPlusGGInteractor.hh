@@ -20,16 +20,17 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * Annihilate a positron to create two gammas.
  *
- * This is a model for the discrete positron-electron Annihilation process
+ * This is a model for the discrete positron-electron annihilation process
  * which simulates the in-flight annihilation of a positron with an atomic
  * electron and produces into two photons. It is assumed that the atomic
  * electron is initially free and at rest.
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4eeToTwoGammaModel class, as documented in section 10.3 of the Geant4
- * Physics Reference (release 10.6).
+ * Physics Reference (release 10.6). The maximum energy for the model is
+ * specified in Geant4.
  */
 class EPlusGGInteractor
 {
@@ -56,14 +57,14 @@ class EPlusGGInteractor
     //! Maximum incident energy for this model to be valid
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_incident_energy()
     {
-        return max_quantity();
+        return units::MevEnergy{1e8}; // 100 TeV
     }
 
   private:
     // Shared constant physics properties
     const EPlusGGInteractorPointers& shared_;
     // Incident positron energy
-    const units::MevEnergy inc_energy_;
+    const real_type inc_energy_;
     // Incident direction
     const Real3& inc_direction_;
     // Allocate space for secondary particles (two photons)
