@@ -64,7 +64,7 @@ void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
 {
     REQUIRE(particle_params_);
     REQUIRE(pdg);
-    REQUIRE(energy > zero_quantity());
+    REQUIRE(energy >= zero_quantity());
 
     particle_state_.def_id = particle_params_->find(pdg);
     particle_state_.energy = energy;
