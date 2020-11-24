@@ -44,3 +44,5 @@ except json.decoder.JSONDecodeError as e:
     print("fatal:", str(e))
     exit(1)
 pprint(result)
+with open('rasterized.json', 'w') as f:
+    json.dump(result, f)
