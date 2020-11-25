@@ -21,7 +21,7 @@ CELER_FUNCTION
 MaterialTrackView::MaterialTrackView(const MaterialParamsPointers& params,
                                      const MaterialStatePointers&  states,
                                      ThreadId                      id)
-    : params_(params), state_(states.state[id.get()])
+    : params_(params), states_(states), tid_(id)
 {
     REQUIRE(id < states.state.size());
 }
@@ -34,17 +34,48 @@ CELER_FUNCTION MaterialTrackView&
 MaterialTrackView::operator=(const Initializer_t& other)
 {
     REQUIRE(other.def_id < params_.materials.size());
-    state_ = other;
+    this->state() = other;
     return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Current material identifier.
+ */
+CELER_FORCEINLINE_FUNCTION MaterialDefId MaterialTrackView::def_id() const
+{
+    return this->state().def_id;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get material properties for the current material.
  */
-CELER_FUNCTION MaterialView MaterialTrackView::material_view() const
+CELER_FORCEINLINE_FUNCTION MaterialView MaterialTrackView::material_view() const
 {
     return MaterialView(params_, this->def_id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access scratch space with at least one real per element component.
+ */
+CELER_FUNCTION span<real_type> MaterialTrackView::element_scratch()
+{
+    auto offset = tid_.get() * params_.max_element_components;
+    ENSURE(offset + params_.max_element_components
+           <= states_.element_scratch.size());
+    return {states_.element_scratch.data() + offset,
+            params_.max_element_components};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the thread-local state.
+ */
+CELER_FORCEINLINE_FUNCTION MaterialTrackState& MaterialTrackView::state() const
+{
+    return states_.state[tid_.get()];
 }
 
 //---------------------------------------------------------------------------//

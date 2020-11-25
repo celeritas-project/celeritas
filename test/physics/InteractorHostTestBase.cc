@@ -12,6 +12,7 @@
 #include "physics/base/Interaction.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/ParticleTrackView.hh"
+#include "physics/material/MaterialTrackView.hh"
 #include "gtest/detail/Macros.hh"
 
 using namespace celeritas;
@@ -25,6 +26,7 @@ namespace celeritas_test
 InteractorHostTestBase::InteractorHostTestBase()
 {
     this->resize_secondaries(128);
+    ms_pointers_.state = {&mat_state_, 1};
     ps_pointers_.vars = {&particle_state_, 1};
 }
 
@@ -33,6 +35,43 @@ InteractorHostTestBase::InteractorHostTestBase()
  * Default destructor.
  */
 InteractorHostTestBase::~InteractorHostTestBase() = default;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set particle parameters.
+ */
+void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
+{
+    REQUIRE(!inp.materials.empty());
+
+    material_params_ = std::make_shared<MaterialParams>(std::move(inp));
+    mp_pointers_     = material_params_->host_pointers();
+    mat_element_scratch_.resize(material_params_->max_element_components());
+    ms_pointers_.element_scratch = make_span(mat_element_scratch_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the incident track's material
+ */
+void InteractorHostTestBase::set_material(const std::string& name)
+{
+    REQUIRE(material_params_);
+
+    mat_state_.def_id = material_params_->find(name);
+    mt_view_          = std::make_shared<MaterialTrackView>(
+        mp_pointers_, ms_pointers_, ThreadId{0});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access material parameters.
+ */
+const MaterialParams& InteractorHostTestBase::material_params() const
+{
+    REQUIRE(material_params_);
+    return *material_params_;
+}
 
 //---------------------------------------------------------------------------//
 /*!

@@ -36,6 +36,7 @@ list(APPEND SOURCES
   physics/base/ParticleStateStore.cc
   physics/base/SecondaryAllocatorStore.cc
   physics/material/MaterialParams.cc
+  physics/material/MaterialStateStore.cc
   physics/material/detail/Utils.cc
 )
 

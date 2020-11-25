@@ -8,6 +8,7 @@
 #include "Material.test.hh"
 
 #include <thrust/device_vector.h>
+#include "base/Range.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 #include "physics/material/MaterialTrackView.hh"
 
@@ -42,16 +43,21 @@ __global__ void m_test_kernel(unsigned int const           size,
     temperatures[tid.get()] = mat.temperature();
     rad_len[tid.get()]      = mat.radiation_length();
 
-    // Loop over elements (TODO replace with range)
-    real_type tz = 0.0;
-    for (unsigned int ec = 0, ecmax = mat.num_elements(); ec != ecmax; ++ec)
-    {
-        // Get ec'th component of the current material
-        const auto& element = mat.element_view(ElementComponentId{ec});
+    // Fill elements with finctional cross sections
+    celeritas::span<real_type> scratch = mat_track.element_scratch();
 
+    for (auto ec : celeritas::range(mat.num_elements()))
+    {
+        // Pretend to calculate cross section for the ec'th element
+        const auto& element = mat.element_view(ElementComponentId{ec});
+        scratch[ec]         = static_cast<real_type>(element.atomic_number());
+    }
+
+    real_type tz = 0.0;
+    for (auto ec : celeritas::range(mat.num_elements()))
+    {
         // Get its atomic number weighted by its fractional number density
-        tz += element.atomic_number()
-              * mat.get_element_density(ElementComponentId{ec});
+        tz += scratch[ec] * mat.get_element_density(ElementComponentId{ec});
     }
     tot_z[tid.get()] = tz;
 }
