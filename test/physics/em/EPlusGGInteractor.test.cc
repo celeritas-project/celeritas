@@ -30,8 +30,8 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
     {
         using celeritas::ParticleDef;
         using namespace celeritas::units;
-        celeritas::ZeroQuantity zero;
-        auto                    stable = ParticleDef::stable_decay_constant();
+        constexpr auto zero   = celeritas::zero_quantity();
+        constexpr auto stable = ParticleDef::stable_decay_constant();
 
         Base::set_particle_params(
             {{{"electron", pdg::electron()},
@@ -152,19 +152,52 @@ TEST_F(EPlusGGInteractorTest, basic)
     }
 }
 
+TEST_F(EPlusGGInteractorTest, at_rest)
+{
+    this->set_inc_direction({1, 0, 0});
+    this->set_inc_particle(pdg::positron(), celeritas::zero_quantity());
+    const int num_samples = 4;
+
+    // Reserve  num_samples*2 secondaries;
+    this->resize_secondaries(num_samples * 2);
+
+    // Create the interactor
+    EPlusGGInteractor interact(pointers_,
+                               this->particle_track(),
+                               this->direction(),
+                               this->secondary_allocator());
+    RandomEngine&     rng_engine = this->rng();
+
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    {
+        Interaction result = interact(rng_engine);
+        SCOPED_TRACE(result);
+        this->sanity_check(result);
+
+        ASSERT_EQ(2, result.secondaries.size());
+        EXPECT_SOFT_EQ(-1,
+                       celeritas::dot_product(result.secondaries[0].direction,
+                                              result.secondaries[1].direction));
+
+        EXPECT_SOFT_EQ(pointers_.electron_mass,
+                       result.secondaries[0].energy.value());
+        EXPECT_SOFT_EQ(pointers_.electron_mass,
+                       result.secondaries[1].energy.value());
+    }
+}
+
 TEST_F(EPlusGGInteractorTest, stress_test)
 {
     RandomEngine& rng_engine = this->rng();
 
     const int num_samples = 8192;
 
-    for (double inc_e : {0.01, 1.0, 10.0, 1000.0})
+    for (double inc_e : {0.0, 0.01, 1.0, 10.0, 1000.0})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::positron(), MevEnergy{inc_e});
 
-        // Loop over several incident directions (shouldn't affect anything
-        // substantial, but scattering near Z axis loses precision)
+        // Loop over several incident directions
         for (const Real3& inc_dir :
              {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
         {
@@ -182,7 +215,7 @@ TEST_F(EPlusGGInteractorTest, stress_test)
             for (int i = 0; i < num_samples; ++i)
             {
                 Interaction result = interact(rng_engine);
-                SCOPED_TRACE(result);
+                // SCOPED_TRACE(result);
                 this->sanity_check(result);
             }
             EXPECT_EQ(2 * num_samples,

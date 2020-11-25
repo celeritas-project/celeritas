@@ -36,8 +36,8 @@ namespace demo_interactor
 std::shared_ptr<ParticleParams> load_params()
 {
     using namespace celeritas::units;
-    ZeroQuantity zero;
-    auto         stable = ParticleDef::stable_decay_constant();
+    constexpr auto zero   = zero_quantity();
+    constexpr auto stable = ParticleDef::stable_decay_constant();
 
     ParticleParams::VecAnnotatedDefs defs
         = {{{"electron", pdg::electron()},

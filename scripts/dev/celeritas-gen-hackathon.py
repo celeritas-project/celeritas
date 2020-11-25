@@ -188,8 +188,8 @@ class {name}Test : public celeritas_test::InteractorHostTestBase
     {{
         using celeritas::ParticleDef;
         using namespace celeritas::units;
-        celeritas::ZeroQuantity zero;
-        auto                    stable = ParticleDef::stable_decay_constant();
+        constexpr auto zero   = celeritas::zero_quantity();
+        constexpr auto stable = ParticleDef::stable_decay_constant();
 
         // XXX Update these based on particles needed by interactor
         Base::set_particle_params(

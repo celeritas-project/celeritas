@@ -8,21 +8,13 @@
 #pragma once
 
 #include "Macros.hh"
+#include "NumericLimits.hh"
 #include "Types.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-//! Tag class for creating a quantity implicitly from a zero value
-struct ZeroQuantity
-{
-};
-
-//! Get a zero quantity (analogous to nullptr)
-CELER_CONSTEXPR_FUNCTION ZeroQuantity zero_quantity()
-{
-    return ZeroQuantity{};
-}
+template<class T>
+struct UnitlessQuantity;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -83,8 +75,8 @@ class Quantity
     {
     }
 
-    //! Construct implicitly from a zero
-    CELER_CONSTEXPR_FUNCTION Quantity(ZeroQuantity) : value_(0) {}
+    // Construct implicitly from a unitless quantity
+    CELER_CONSTEXPR_FUNCTION Quantity(UnitlessQuantity<ValueT>);
 
     //! Get numeric value, discarding units.
     CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
@@ -94,26 +86,58 @@ class Quantity
 };
 
 //---------------------------------------------------------------------------//
-// COMPARATORS
+/*!
+ * Implementation class for creating a nonnumeric value comparable to Quantity.
+ */
+template<class T>
+struct UnitlessQuantity
+{
+    T value_;
+};
+
+//! Get a zero quantity (analogous to nullptr)
+CELER_CONSTEXPR_FUNCTION UnitlessQuantity<real_type> zero_quantity()
+{
+    return {0};
+}
+
+//! Get an quantitity greater than any other numeric quantity
+CELER_CONSTEXPR_FUNCTION UnitlessQuantity<real_type> max_quantity()
+{
+    return {numeric_limits<real_type>::infinity()};
+}
+
+//! Get an quantitity less than any other numeric quantity
+CELER_CONSTEXPR_FUNCTION UnitlessQuantity<real_type> neg_max_quantity()
+{
+    return {-numeric_limits<real_type>::infinity()};
+}
+
 //---------------------------------------------------------------------------//
-#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                             \
-    template<class U, class T>                                       \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T> lhs, \
-                                                 Quantity<U, T> rhs) \
-    {                                                                \
-        return lhs.value() TOKEN rhs.value();                        \
-    }                                                                \
-    template<class U, class T>                                       \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T> lhs, \
-                                                 ZeroQuantity)       \
-    {                                                                \
-        return lhs.value() TOKEN T{0};                               \
-    }                                                                \
-    template<class U, class T>                                       \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(ZeroQuantity,       \
-                                                 Quantity<U, T> rhs) \
-    {                                                                \
-        return T{0} TOKEN rhs.value();                               \
+#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                                  \
+    template<class U, class T>                                            \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T> lhs,      \
+                                                 Quantity<U, T> rhs)      \
+    {                                                                     \
+        return lhs.value() TOKEN rhs.value();                             \
+    }                                                                     \
+    template<class U, class T>                                            \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T>      lhs, \
+                                                 UnitlessQuantity<T> rhs) \
+    {                                                                     \
+        return lhs.value() TOKEN rhs.value_;                              \
+    }                                                                     \
+    template<class U, class T>                                            \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(UnitlessQuantity<T> lhs, \
+                                                 Quantity<U, T>      rhs) \
+    {                                                                     \
+        return lhs.value_ TOKEN rhs.value();                              \
+    }                                                                     \
+    template<class T>                                                     \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(UnitlessQuantity<T> lhs, \
+                                                 UnitlessQuantity<T> rhs) \
+    {                                                                     \
+        return lhs.value_ TOKEN rhs.value_;                               \
     }
 
 //@{
@@ -129,7 +153,15 @@ CELER_DEFINE_QUANTITY_CMP(>=)
 #undef CELER_DEFINE_QUANTITY_CMP
 
 //---------------------------------------------------------------------------//
-// UNIT HELPERS
+/*!
+ * Construct implicitly from a unitless quantity.
+ */
+template<class U, class V>
+CELER_CONSTEXPR_FUNCTION Quantity<U, V>::Quantity(UnitlessQuantity<V> uq)
+    : value_(uq.value_)
+{
+}
+
 //---------------------------------------------------------------------------//
 //! Value is C1::value() / C2::value()
 template<class C1, class C2>
