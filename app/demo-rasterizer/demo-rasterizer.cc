@@ -13,8 +13,8 @@
 #include <nlohmann/json.hpp>
 #include "base/ColorUtils.hh"
 #include "base/Range.hh"
-#include "base/Stopwatch.hh"
 #include "comm/Communicator.hh"
+#include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "comm/Utils.hh"
 #include "RDemoRunner.hh"
@@ -63,25 +63,19 @@ void run(std::istream& is)
     }
 
     // Write image
-    cerr << "::: Transferring image from GPU to disk..." << std::flush;
-    Stopwatch   get_time;
+    CELER_LOG(status) << "Transferring image from GPU to disk";
     std::string out_filename = inp.at("output");
     auto        image_data   = image.data_to_host();
     std::ofstream(out_filename, std::ios::binary)
         .write(reinterpret_cast<const char*>(image_data.data()),
                image_data.size() * sizeof(decltype(image_data)::value_type));
-    cerr << color_code('x') << " (" << get_time() << " s)" << color_code(' ')
-         << endl;
 
     // Construct json output
-    cerr << "::: Exporting JSON metadata..." << std::flush;
-    get_time            = {};
+    CELER_LOG(status) << "Exporting JSON metadata";
     nlohmann::json outp = {
         {"metadata", image}, {"data", out_filename}, {"volumes", vol_names}};
     cout << outp.dump() << endl;
-    cerr << color_code('x') << " (" << get_time() << " s)" << color_code(' ')
-         << endl;
-    cerr << ">>> Complete!" << endl;
+    CELER_LOG(info) << "Exported image to " << out_filename;
 }
 
 } // namespace demo_rasterizer
@@ -96,14 +90,9 @@ void run(std::istream& is)
 int main(int argc, char* argv[])
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
-    Communicator  comm = Communicator::comm_world();
-    if (comm.size() != 1)
+    if (Communicator::comm_world().size() != 1)
     {
-        if (comm.rank() == 0)
-        {
-            cerr << "This app is currently serial-only. Run with 1 proc."
-                 << endl;
-        }
+        CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;
     }
 
@@ -122,8 +111,7 @@ int main(int argc, char* argv[])
         infile.open(args[1]);
         if (!infile)
         {
-            cerr << color_code('R') << "fatal" << color_code(' ')
-                 << ": failed to open '" << args[1] << "'" << endl;
+            CELER_LOG(critical) << "Failed to open '" << args[1] << "'";
             return EXIT_FAILURE;
         }
         instream_ptr = &infile;
@@ -141,8 +129,7 @@ int main(int argc, char* argv[])
     }
     catch (const std::exception& e)
     {
-        cerr << color_code('R') << "fatal" << color_code(' ')
-             << ": caught exception: " << e.what() << endl;
+        CELER_LOG(critical) << "caught exception: " << e.what();
         return EXIT_FAILURE;
     }
 

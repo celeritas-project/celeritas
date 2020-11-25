@@ -10,14 +10,13 @@
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
 #include "base/ColorUtils.hh"
+#include "comm/Logger.hh"
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoStateStore.hh"
 #include "ImageTrackView.hh"
 #include "RDemoKernel.hh"
 
 using namespace celeritas;
-using std::cerr;
-using std::endl;
 
 namespace demo_rasterizer
 {
@@ -41,13 +40,13 @@ void RDemoRunner::operator()(ImageStore* image) const
 
     GeoStateStore geo_state(*geo_params_, image->dims()[0]);
 
-    cerr << "::: Tracing geometry..." << std::flush;
+    CELER_LOG(status) << "Tracing geometry";
     Stopwatch get_time;
     trace(geo_params_->device_pointers(),
           geo_state.device_pointers(),
           image->device_interface());
-    cerr << color_code('x') << " (" << get_time() << " s)" << color_code(' ')
-         << endl;
+    CELER_LOG(diagnostic) << color_code('x') << "... " << get_time() << " s"
+                          << color_code(' ');
 }
 
 //---------------------------------------------------------------------------//

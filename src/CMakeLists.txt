@@ -28,7 +28,10 @@ set(PUBLIC_DEPS)
 list(APPEND SOURCES
   base/Assert.cc
   base/ColorUtils.cc
+  comm/Logger.cc
+  comm/LoggerTypes.cc
   comm/Utils.cc
+  comm/detail/LoggerMessage.cc
   physics/base/ParticleParams.cc
   physics/base/ParticleStateStore.cc
   physics/base/SecondaryAllocatorStore.cc

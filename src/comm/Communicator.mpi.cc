@@ -49,12 +49,14 @@ Communicator::Communicator(MpiComm comm) : comm_(comm), rank_(-1), size_(-1)
 }
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
  * Wait for all processes in this communicator to reach the barrier.
  */
-void Communicator::barrier() const
+void barrier(const Communicator& comm)
 {
-    int err = MPI_Barrier(comm_);
+    int err = MPI_Barrier(comm.mpi_comm());
     CHECK(err == MPI_SUCCESS);
 }
 

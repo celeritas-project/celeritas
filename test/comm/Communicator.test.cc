@@ -9,6 +9,7 @@
 
 #include "celeritas_test.hh"
 
+using celeritas::barrier;
 using celeritas::Communicator;
 
 //---------------------------------------------------------------------------//
@@ -25,7 +26,7 @@ class CommunicatorTest : public celeritas::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(CommunicatorTest, rank)
+TEST_F(CommunicatorTest, world)
 {
     Communicator comm = Communicator::comm_world();
 
@@ -42,9 +43,16 @@ TEST_F(CommunicatorTest, rank)
     EXPECT_EQ(expected_size, comm.size());
 #endif
 
-    comm.barrier();
+    barrier(comm);
+}
 
-    Communicator comm_self = Communicator::comm_self();
-    EXPECT_NE(comm.mpi_comm(), comm_self.mpi_comm());
-    comm_self.barrier();
+TEST_F(CommunicatorTest, self)
+{
+    Communicator comm = Communicator::comm_self();
+    EXPECT_NE(Communicator::comm_world().mpi_comm(), comm.mpi_comm());
+    barrier(comm);
+
+    // "self" comm always acts like it's running in serial
+    EXPECT_EQ(1, comm.size());
+    EXPECT_EQ(0, comm.rank());
 }

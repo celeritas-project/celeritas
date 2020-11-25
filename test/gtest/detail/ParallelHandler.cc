@@ -52,7 +52,7 @@ void ParallelHandler::OnTestProgramEnd(const ::testing::UnitTest&) {}
  */
 void ParallelHandler::OnTestStart(const ::testing::TestInfo&)
 {
-    comm_.barrier();
+    celeritas::barrier(comm_);
 }
 
 //---------------------------------------------------------------------------//
@@ -62,7 +62,7 @@ void ParallelHandler::OnTestStart(const ::testing::TestInfo&)
 void ParallelHandler::OnTestEnd(const ::testing::TestInfo&)
 {
     std::cout << std::flush;
-    comm_.barrier();
+    celeritas::barrier(comm_);
 }
 
 //---------------------------------------------------------------------------//

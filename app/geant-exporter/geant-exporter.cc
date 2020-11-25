@@ -29,6 +29,9 @@
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
 #include "GeantPhysicsTableWriter.hh"
+#include "comm/Communicator.hh"
+#include "comm/Logger.hh"
+#include "comm/ScopedMpiInit.hh"
 #include "io/ImportParticle.hh"
 #include "io/ImportPhysicsTable.hh"
 #include "io/GdmlGeometryMap.hh"
@@ -59,7 +62,7 @@ void store_particles(TFile* root_file, G4ParticleTable* particle_table)
     REQUIRE(root_file);
     REQUIRE(particle_table);
 
-    cout << "Exporting particles..." << endl;
+    CELER_LOG(status) << "Exporting particles";
     TTree tree_particles("particles", "particles");
 
     // Create temporary particle
@@ -115,7 +118,7 @@ void store_physics_tables(TFile* root_file, G4ParticleTable* particle_table)
     // Start table writer
     GeantPhysicsTableWriter table_writer(root_file);
 
-    cout << "Exporting physics tables..." << endl;
+    CELER_LOG(status) << "Exporting physics tables";
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -211,7 +214,7 @@ void store_geometry(TFile*                       root_file,
 {
     REQUIRE(root_file);
 
-    cout << "Exporting material and volume information..." << endl;
+    CELER_LOG(status) << "Exporting material and volume information";
 
     TTree tree_materials("geometry", "geometry");
 
@@ -289,11 +292,18 @@ void store_geometry(TFile*                       root_file,
  */
 int main(int argc, char* argv[])
 {
+    celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
+    if (celeritas::Communicator::comm_world().size() != 1)
+    {
+        CELER_LOG(critical) << "This app cannot run in parallel";
+        return EXIT_FAILURE;
+    }
+
     if (argc != 3)
     {
         // Incorrect number of arguments: print help and exit
         cout << "Usage: " << argv[0] << " geometry.gdml output.root" << endl;
-        return EXIT_FAILURE;
+        return 2;
     }
     std::string gdml_input_filename  = argv[1];
     std::string root_output_filename = argv[2];

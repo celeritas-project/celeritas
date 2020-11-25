@@ -3,37 +3,30 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Types.hh
+//! \file LoggerTypes.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "LoggerTypes.hh"
 
-#include "celeritas_config.h"
-#if CELERITAS_USE_MPI
-#    include <mpi.h>
-#endif
+#include "base/Assert.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-#if CELERITAS_USE_MPI
-using MpiComm = MPI_Comm;
-#else
-
-struct MpiComm
+const char* to_cstring(LogLevel lev)
 {
-    int value_;
-};
-
-inline bool operator==(MpiComm a, MpiComm b)
-{
-    return a.value_ == b.value_;
+    static const char* const levels[] = {
+        "debug",
+        "diagnostic",
+        "status",
+        "info",
+        "warning",
+        "error",
+        "critical",
+    };
+    int idx = static_cast<int>(lev);
+    ENSURE(idx * sizeof(const char*) < sizeof(levels));
+    return levels[idx];
 }
-
-inline bool operator!=(MpiComm a, MpiComm b)
-{
-    return !(a == b);
-}
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

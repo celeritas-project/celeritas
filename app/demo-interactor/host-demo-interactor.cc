@@ -14,6 +14,7 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 #include "comm/Communicator.hh"
+#include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "comm/Utils.hh"
 #include "physics/base/ParticleParams.hh"
@@ -80,14 +81,9 @@ void run(std::istream& is)
 int main(int argc, char* argv[])
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
-    Communicator  comm = Communicator::comm_world();
-    if (comm.size() != 1)
+    if (Communicator::comm_world().size() != 1)
     {
-        if (comm.rank() == 0)
-        {
-            cerr << "This app is currently serial-only. Run with 1 proc."
-                 << endl;
-        }
+        CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;
     }
 
@@ -104,7 +100,7 @@ int main(int argc, char* argv[])
         std::ifstream infile(args[1]);
         if (!infile)
         {
-            cerr << "fatal: failed to open '" << args[1] << "'" << endl;
+            CELER_LOG(critical) << "Failed to open '" << args[1] << "'";
             return EXIT_FAILURE;
         }
         run(infile);

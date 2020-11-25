@@ -13,6 +13,9 @@
 #    include <stdexcept>
 #endif
 
+//---------------------------------------------------------------------------//
+// MACROS
+//---------------------------------------------------------------------------//
 /*!
  * \def REQUIRE
  *
@@ -103,6 +106,8 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// FUNCTIONS
+//---------------------------------------------------------------------------//
 // Construct and throw a DebugError.
 [[noreturn]] void
 throw_debug_error(const char* condition, const char* file, int line);
@@ -114,6 +119,8 @@ throw_debug_error(const char* condition, const char* file, int line);
                                         int         line);
 
 #ifndef __CUDA_ARCH__
+//---------------------------------------------------------------------------//
+// TYPES
 //---------------------------------------------------------------------------//
 /*!
  * Error thrown by celeritas assertions.
