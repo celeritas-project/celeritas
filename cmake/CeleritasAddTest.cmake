@@ -49,10 +49,10 @@ Add a CUDA/C++ GoogleTest test::
       <filename>
       [TIMEOUT seconds]
       [NP n1 [n2 ...]]
-      [DEPLIBS lib1 [lib2 ...]]
+      [LINK_LIBRARIES lib1 [lib2 ...]]
       [DEPTEST deptest]
       [SUFFIX text]
-      [DEPENDS target1 [target2 ...]]
+      [ADD_DEPENDENCIES target1 [target2 ...]]
       [ARGS arg1 [arg2 ...]]
       [ENVIRONMENT VAR=value [VAR2=value2 ...]]
       [FILTER test1 [test2 ...]]
@@ -72,11 +72,11 @@ Add a CUDA/C++ GoogleTest test::
       is to use CELERITASTEST_NP (1, 2, and 4) for MPI builds and 1 for
       serial builds.
 
-    ``DEPLIBS``
+    ``LINK_LIBRARIES``
       Extra libraries to link to. By default, unit tests will link against the
       package's current library.
 
-    ``DEPENDS``
+    ``ADD_DEPENDENCIES``
       Extra dependencies for building the execuatable, e.g.  preprocessing data
       or copying files.
 
@@ -243,7 +243,7 @@ function(celeritas_add_test SOURCE_FILE)
   cmake_parse_arguments(PARSE
     "ISOLATE;DISABLE;DRIVER;REUSE_EXE"
     "TIMEOUT;DEPTEST;SUFFIX"
-    "DEPLIBS;DEPENDS;NP;ENVIRONMENT;ARGS;INPUTS;FILTER;SOURCES"
+    "LINK_LIBRARIES;ADD_DEPENDENCIES;NP;ENVIRONMENT;ARGS;INPUTS;FILTER;SOURCES"
     ${ARGN}
   )
 
@@ -308,12 +308,12 @@ function(celeritas_add_test SOURCE_FILE)
     add_executable(${_TARGET} "${SOURCE_FILE}" ${PARSE_SOURCES})
     target_link_libraries(${_TARGET}
       ${CELERITASTEST_LINK_LIBRARIES}
-      ${PARSE_DEPLIBS}
+      ${PARSE_LINK_LIBRARIES}
       Celeritas::Test)
 
-    if(PARSE_DEPENDS OR CELERITASTEST_ADD_DEPENDENCIES)
+    if(PARSE_ADD_DEPENDENCIES OR CELERITASTEST_ADD_DEPENDENCIES)
       # Add additional dependencies
-      add_dependencies(${_TARGET} ${PARSE_DEPENDS}
+      add_dependencies(${_TARGET} ${PARSE_ADD_DEPENDENCIES}
         ${CELERITASTEST_ADD_DEPENDENCIES})
     endif()
   endif()
@@ -366,7 +366,7 @@ function(celeritas_add_test SOURCE_FILE)
         _celeritasaddtest_test_name(_deptest_name
           "${PARSE_DEPTEST}" "${_np}" "${_suffix}")
         set_property(TEST "${_TEST_NAME}"
-          PROPERTY DEPENDS "${_deptest_name}")
+          PROPERTY ADD_DEPENDENCIES "${_deptest_name}")
       endif()
 
       if(PARSE_ISOLATE)

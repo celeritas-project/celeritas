@@ -1,10 +1,12 @@
-//---------------------------------*-CUDA-*----------------------------------//
+//---------------------------------*-C++-*-----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngEngine.i.cuh
+//! \file RngEngine.i.hh
 //---------------------------------------------------------------------------//
+
+#include "celeritas_config.h"
 
 namespace celeritas
 {
@@ -31,7 +33,7 @@ CELER_FUNCTION RngEngine& RngEngine::operator=(RngSeed s)
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample a random number
+ * Sample a random number.
  */
 CELER_FUNCTION auto RngEngine::operator()() -> result_type
 {
@@ -42,7 +44,7 @@ CELER_FUNCTION auto RngEngine::operator()() -> result_type
 // Specializations for GenerateCanonical
 //---------------------------------------------------------------------------//
 /*!
- * Specialization for RngEngine, float
+ * Specialization for RngEngine (float).
  */
 CELER_FUNCTION float
 GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
@@ -52,7 +54,7 @@ GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 
 //---------------------------------------------------------------------------//
 /*!
- * Specialization for RngEngine, double
+ * Specialization for RngEngine (double).
  */
 CELER_FUNCTION double
 GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)

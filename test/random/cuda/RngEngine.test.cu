@@ -6,7 +6,7 @@
 //! \file RngEngine.test.cu
 //---------------------------------------------------------------------------//
 #include "random/cuda/RngStateStore.hh"
-#include "random/cuda/RngEngine.cuh"
+#include "random/cuda/RngEngine.hh"
 
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>

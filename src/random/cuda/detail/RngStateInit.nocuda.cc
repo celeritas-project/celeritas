@@ -3,23 +3,26 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Memory.nocuda.cc
+//! \file RngStateInit.nocuda.cc
 //---------------------------------------------------------------------------//
-#include "Memory.hh"
+#include "RngStateInit.hh"
 
-#include "Assert.hh"
+#include "base/Assert.hh"
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
- * This function should never be called when CUDA is disabled. It is
- * implemented with an assertion to allow linking as a nullop implementation.
+ * Initialize the RNG states on device from seeds randomly generated on host.
  */
-void device_memset(void*, int, size_type)
+void rng_state_init_device(const RngStatePointers&,
+                           span<const RngSeed::value_type>)
 {
     CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

@@ -112,10 +112,6 @@ if(CELERITAS_USE_VecGeom)
   celeritas_setup_tests(SERIAL PREFIX geometry
     LINK_LIBRARIES VecGeom::vecgeom)
 
-  celeritas_add_test(geometry/GeoParams.test.cc)
-  celeritas_add_test(geometry/GeoTrackView.test.cc)
-  celeritas_add_test(geometry/LinearPropagator.test.cc)
-
   # CUDA tests: link cuda sources as needed
   if(CELERITAS_USE_CUDA)
     # See https://github.com/celeritas-project/celeritas/pull/10 for a
@@ -134,10 +130,12 @@ if(CELERITAS_USE_VecGeom)
       CUDA_SEPARABLE_COMPILATION ON
       POSITION_INDEPENDENT_CODE ON
     )
-    target_link_libraries(geometry_GeoParams celeritas_vgtest)
-    target_link_libraries(geometry_GeoTrackView celeritas_vgtest)
-    target_link_libraries(geometry_LinearPropagator celeritas_vgtest)
+    list(APPEND CELERITASTEST_LINK_LIBRARIES celeritas_vgtest)
   endif()
+
+  celeritas_add_test(geometry/GeoParams.test.cc)
+  celeritas_add_test(geometry/GeoTrackView.test.cc)
+  celeritas_add_test(geometry/LinearPropagator.test.cc)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -146,12 +144,12 @@ endif()
 celeritas_setup_tests(SERIAL PREFIX io)
 
 if(CELERITAS_USE_ROOT)
-  celeritas_add_test(io/RootImporter.test.cc DISABLE)
-  target_link_libraries(io_RootImporter Celeritas::IO)
+  celeritas_add_test(io/RootImporter.test.cc
+    LINK_LIBRARIES Celeritas::IO DISABLE)
 endif()
 if(CELERITAS_USE_HepMC3)
-  celeritas_add_test(io/EventReader.test.cc)
-  target_link_libraries(io_EventReader ${HEPMC3_LIB})
+  celeritas_add_test(io/EventReader.test.cc
+    LINK_LIBRARIES ${HEPMC3_LIB})
 endif()
 
 #-----------------------------------------------------------------------------#

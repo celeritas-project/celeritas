@@ -1,9 +1,9 @@
-//---------------------------------*-CUDA-*----------------------------------//
+//---------------------------------*-C++-*-----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngEngine.cuh
+//! \file RngEngine.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,13 +19,17 @@ namespace celeritas
  * The RngEngine uses a C++11-like interface to generate random data. The
  * sampling of uniform floating point data is done with specializations to the
  * GenerateCanonical class.
+ *
+ * \todo The CUDA random documentation suggests loading the RNG into local
+ * memory and then storing back to global memory at the end of a kernel. This
+ * could be safely achieved with a custom destructor.
  */
 class RngEngine
 {
   public:
     //@{
     //! Type aliases
-    using result_type = unsigned int;
+    using result_type   = unsigned int;
     using Initializer_t = RngSeed;
     //@}
 
@@ -87,4 +91,4 @@ class GenerateCanonical<RngEngine, double>
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "RngEngine.i.cuh"
+#include "RngEngine.i.hh"

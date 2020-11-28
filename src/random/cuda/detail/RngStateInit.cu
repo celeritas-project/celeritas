@@ -8,10 +8,11 @@
 #include "RngStateInit.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
-#include "RngEngine.cuh"
+#include "random/cuda/RngEngine.hh"
 
-namespace celeritas
+namespace
 {
+using namespace celeritas;
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
@@ -28,7 +29,13 @@ init_impl(RngStatePointers const state, const RngSeed::value_type* const seeds)
         rng = RngEngine::Initializer_t{seeds[tid.get()]};
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace
 
+namespace celeritas
+{
+namespace detail
+{
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
@@ -49,4 +56,5 @@ void rng_state_init_device(const RngStatePointers&         device_ptrs,
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

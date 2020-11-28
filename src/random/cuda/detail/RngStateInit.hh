@@ -8,9 +8,11 @@
 #pragma once
 
 #include "base/Span.hh"
-#include "RngStatePointers.hh"
+#include "random/cuda/RngStatePointers.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 // Initialize the RNG state on device
@@ -18,4 +20,5 @@ void rng_state_init_device(const RngStatePointers&         device_ptrs,
                            span<const RngSeed::value_type> device_seeds);
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

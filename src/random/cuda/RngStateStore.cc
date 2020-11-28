@@ -10,7 +10,7 @@
 #include <random>
 #include <vector>
 #include "base/Assert.hh"
-#include "RngStateInit.hh"
+#include "detail/RngStateInit.hh"
 
 namespace celeritas
 {
@@ -37,8 +37,8 @@ RngStateStore::RngStateStore(size_type size, unsigned long host_seed)
 
     DeviceVector<seed_type> device_seeds(size);
     device_seeds.copy_to_device(make_span(host_seeds));
-    rng_state_init_device(this->device_pointers(),
-                          device_seeds.device_pointers());
+    detail::rng_state_init_device(this->device_pointers(),
+                                  device_seeds.device_pointers());
 }
 
 //---------------------------------------------------------------------------//
