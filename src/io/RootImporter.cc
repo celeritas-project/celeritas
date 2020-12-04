@@ -46,10 +46,12 @@ RootImporter::result_type RootImporter::operator()()
     geant_data.particle_params = this->load_particle_data();
     geant_data.physics_tables  = this->load_physics_table_data();
     geant_data.geometry        = this->load_geometry_data();
+    geant_data.material_params = this->load_material_data();
 
     ENSURE(geant_data.particle_params);
     ENSURE(geant_data.physics_tables);
     ENSURE(geant_data.geometry);
+    ENSURE(geant_data.material_params);
 
     return geant_data;
 }
@@ -140,7 +142,12 @@ RootImporter::load_physics_table_data()
 }
 //---------------------------------------------------------------------------//
 /*!
- * Load GdmlGeometryMap from the ROOT file
+ * [TEMPORARY] Load GdmlGeometryMap object from the ROOT file
+ *
+ * For fully testing the loaded geometry information only.
+ *
+ * It will be removed as soon as we can load both MATERIAL and VOLUME
+ * information into host/device classes.
  */
 std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
 {
@@ -155,10 +162,87 @@ std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
     tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
     tree_geometry->GetEntry(0);
 
-    // The info from the GdmlGeometryMap will be used by a class that will be
-    // constructed on the host and will manage host/device data
-
     return std::make_shared<GdmlGeometryMap>(std::move(geometry));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load GdmlGeometryMap from the ROOT file and populate MaterialParams
+ *
+ */
+std::shared_ptr<MaterialParams> RootImporter::load_material_data()
+{
+    // Open geometry branch
+    std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
+    CHECK(tree_geometry);
+    CHECK(tree_geometry->GetEntries()); // Must be 1
+
+    // Load branch and fetch data
+    GdmlGeometryMap  geometry;
+    GdmlGeometryMap* geometry_ptr = &geometry;
+    tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+    tree_geometry->GetEntry(0);
+
+    // Create MaterialParams input for its constructor
+    MaterialParams::Input input;
+
+    // Populate input.elements
+    for (const auto& elem_key : geometry.elemid_to_element_map())
+    {
+        MaterialParams::ElementInput element_params;
+        element_params.atomic_number = elem_key.second.atomic_number;
+        element_params.atomic_mass
+            = units::AmuMass{elem_key.second.atomic_mass};
+        element_params.name = elem_key.second.name;
+
+        input.elements.push_back(element_params);
+    }
+
+    // Populate input.materials
+    for (const auto& mat_key : geometry.matid_to_material_map())
+    {
+        MaterialParams::MaterialInput material_params;
+        material_params.name           = mat_key.second.name;
+        material_params.temperature    = mat_key.second.temperature;
+        material_params.number_density = mat_key.second.number_density;
+        material_params.matter_state
+            = this->to_matter_state(mat_key.second.state);
+
+        for (const auto& elem_key : mat_key.second.elements_num_fractions)
+        {
+            ElementDefId elem_def_id{elem_key.first};
+
+            // Populate MaterialParams number fractions
+            material_params.elements_fractions.push_back(
+                {elem_def_id, elem_key.second});
+        }
+        input.materials.push_back(material_params);
+    }
+
+    // Construct MaterialParams and return it as a shared_ptr
+    MaterialParams materials(input);
+    return std::make_shared<MaterialParams>(std::move(materials));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Safely switch between MatterState [MaterialParams.hh] and
+ * ImportMaterialState [ImportMaterial.hh].
+ */
+MatterState RootImporter::to_matter_state(const ImportMaterialState state)
+{
+    switch (state)
+    {
+        case ImportMaterialState::not_defined:
+            return MatterState::unspecified;
+        case ImportMaterialState::solid:
+            return MatterState::solid;
+        case ImportMaterialState::liquid:
+            return MatterState::liquid;
+        case ImportMaterialState::gas:
+            return MatterState::gas;
+    }
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//

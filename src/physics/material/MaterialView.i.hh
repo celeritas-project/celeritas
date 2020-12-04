@@ -69,7 +69,7 @@ CELER_FUNCTION ElementView MaterialView::element_view(ElementComponentId id) con
 
 //---------------------------------------------------------------------------//
 /*!
- * Total number density of an element in this material [1/cm^3]
+ * Number density of an element in this material [1/cm^3]
  */
 CELER_FUNCTION real_type
 MaterialView::get_element_density(ElementComponentId id) const

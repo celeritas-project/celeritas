@@ -103,13 +103,16 @@ class MaterialTest : public celeritas::Test
             {53, AmuMass{126.90447}, "I"},
         };
         inp.materials = {
-            {0.05 * constants::na_avogadro, // XXX fix number density
+            // Sodium iodide
+            {2.948915064677e+22,
              293.0,
              MatterState::solid,
              {{ElementDefId{2}, 0.5}, {ElementDefId{3}, 0.5}},
              "NaI"},
-            {0.0, 0.0, MatterState::unspecified, {}, "hard vacuum"},
-            {1e-5 * constants::na_avogadro, // XXX fix number density
+            // Void
+            {0, 0, MatterState::unspecified, {}, "hard vacuum"},
+            // Diatomic hydrogen
+            {1.0739484359044669e+20,
              100.0,
              MatterState::gas,
              {{ElementDefId{0}, 1.0}},
@@ -126,6 +129,7 @@ class MaterialTest : public celeritas::Test
 TEST_F(MaterialTest, params)
 {
     ASSERT_TRUE(params);
+
     EXPECT_EQ(MaterialDefId{0}, params->find("NaI"));
     EXPECT_EQ(MaterialDefId{1}, params->find("hard vacuum"));
     EXPECT_EQ(MaterialDefId{2}, params->find("H2"));
@@ -150,12 +154,12 @@ TEST_F(MaterialTest, material_view)
         // NaI
         // TODO: update density and check against geant4 values
         MaterialView mat(host_ptrs, MaterialDefId{0});
-        EXPECT_SOFT_EQ(0.05, mat.number_density() / constants::na_avogadro);
+        EXPECT_SOFT_EQ(2.948915064677e+22, mat.number_density());
         EXPECT_SOFT_EQ(293.0, mat.temperature());
         EXPECT_EQ(MatterState::solid, mat.matter_state());
-        EXPECT_SOFT_EQ(3.7473559807049948, mat.density());
-        EXPECT_SOFT_EQ(9.635425216e+23, mat.electron_density());
-        EXPECT_SOFT_EQ(3.4662701145954062, mat.radiation_length());
+        EXPECT_SOFT_EQ(3.6700020622594716, mat.density());
+        EXPECT_SOFT_EQ(9.4365282069663997e+23, mat.electron_density());
+        EXPECT_SOFT_EQ(3.5393299034472663, mat.radiation_length());
 
         // Test element view
         auto els = mat.elements();
@@ -168,17 +172,31 @@ TEST_F(MaterialTest, material_view)
     {
         // vacuum
         MaterialView mat(host_ptrs, MaterialDefId{1});
-        EXPECT_SOFT_EQ(0.0, mat.number_density());
-        EXPECT_SOFT_EQ(0.0, mat.temperature());
+        EXPECT_SOFT_EQ(0, mat.number_density());
+        EXPECT_SOFT_EQ(0, mat.temperature());
         EXPECT_EQ(MatterState::unspecified, mat.matter_state());
-        EXPECT_SOFT_EQ(0.0, mat.density());
-        EXPECT_SOFT_EQ(0.0, mat.electron_density()); // FIXME
+        EXPECT_SOFT_EQ(0, mat.density());
+        EXPECT_SOFT_EQ(0, mat.electron_density());
         EXPECT_SOFT_EQ(std::numeric_limits<real_type>::infinity(),
                        mat.radiation_length());
 
         // Test element view
         auto els = mat.elements();
         ASSERT_EQ(0, els.size());
+    }
+    {
+        // H2
+        MaterialView mat(host_ptrs, MaterialDefId{2});
+        EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.number_density());
+        EXPECT_SOFT_EQ(100, mat.temperature());
+        EXPECT_EQ(MatterState::gas, mat.matter_state());
+        EXPECT_SOFT_EQ(0.00017976, mat.density());
+        EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.electron_density());
+        EXPECT_SOFT_EQ(350729.99844568834, mat.radiation_length());
+
+        // Test element view
+        auto els = mat.elements();
+        ASSERT_EQ(1, els.size());
     }
 }
 
@@ -225,8 +243,9 @@ TEST_F(MaterialDeviceTest, all)
     auto result = m_test(input);
 
     const double expected_temperatures[] = {293, 0, 100};
-    const double expected_rad_len[] = {3.466270114595, inf, 6254684.974443};
-    const double expected_tot_z[]   = {9.635425216e+23, 0, 6.02214076e+18};
+    const double expected_rad_len[] = {3.53932990344727, inf, 350729.998445688};
+    const double expected_tot_z[]
+        = {9.4365282069664e+23, 0, 1.07394843590447e+20};
 
     EXPECT_VEC_SOFT_EQ(expected_temperatures, result.temperatures);
     EXPECT_VEC_SOFT_EQ(expected_rad_len, result.rad_len);

@@ -17,6 +17,10 @@ GdmlGeometryMap::GdmlGeometryMap()  = default;
 GdmlGeometryMap::~GdmlGeometryMap() = default;
 
 //---------------------------------------------------------------------------//
+// READ
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
 /*!
  * Return the mat_id for a given vol_id
  */
@@ -61,12 +65,57 @@ const ImportElement& GdmlGeometryMap::get_element(elem_id element_id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a copy of private member volid_to_matid_
+ * Return the size of the largest material element list
+ *
+ * Can be used to preallocate storage for each thread for XS calculations
+ */
+size_type GdmlGeometryMap::max_num_elements() const
+{
+    size_type result = 0;
+    for (const auto& key : matid_to_material_)
+    {
+        result = std::min(result, key.second.elements_fractions.size());
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a reference to private member matid_to_material_
+ */
+const std::map<mat_id, ImportMaterial>& GdmlGeometryMap::matid_to_material_map()
+{
+    return matid_to_material_;
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Return a reference to private member volid_to_volume_
+ */
+const std::map<vol_id, ImportVolume>& GdmlGeometryMap::volid_to_volume_map()
+{
+    return volid_to_volume_;
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Return a reference to private member elemid_to_element_
+ */
+const std::map<elem_id, ImportElement>& GdmlGeometryMap::elemid_to_element_map()
+{
+    return elemid_to_element_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a reference to private member volid_to_matid_
  */
 const std::map<vol_id, mat_id>& GdmlGeometryMap::volid_to_matid_map()
 {
     return volid_to_matid_;
 }
+
+//---------------------------------------------------------------------------//
+// WRITE
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 /*!

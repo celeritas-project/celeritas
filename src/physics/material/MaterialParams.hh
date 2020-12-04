@@ -44,9 +44,9 @@ class MaterialParams
         real_type   number_density; //!< Atomic number density [1/cm^3]
         real_type   temperature;    //!< Temperature [K]
         MatterState matter_state;   //!< Solid, liquid, gas
-        std::vector<std::pair<ElementDefId, real_type>> elements;
-
-        std::string name;
+        std::vector<std::pair<ElementDefId, real_type>>
+                    elements_fractions; //!< Fraction of number density
+        std::string name;               //!< Material name
     };
 
     struct Input
@@ -66,6 +66,7 @@ class MaterialParams
     inline const std::string& id_to_label(MaterialDefId id) const;
 
     // Find a material from a name
+    // TODO: Map different MaterialDefIds with same material name
     inline MaterialDefId find(const std::string& name) const;
 
     // Access material properties on the host
@@ -92,9 +93,9 @@ class MaterialParams
     size_type                                      max_el_;
 
     // HELPER FUNCTIONS
-    void                      append_element_def(const ElementInput& el);
-    span<MatElementComponent> extend_elcomponents(const MaterialInput& el);
-    void                      append_material_def(const MaterialInput& el);
+    void                      append_element_def(const ElementInput& inp);
+    span<MatElementComponent> extend_elcomponents(const MaterialInput& inp);
+    void                      append_material_def(const MaterialInput& inp);
 };
 
 //---------------------------------------------------------------------------//
