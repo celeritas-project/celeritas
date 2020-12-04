@@ -32,12 +32,25 @@ CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return an integer power of the input value.
+ */
+template<unsigned int N, class T>
+CELER_CONSTEXPR_FUNCTION T ipow(T v)
+{
+    return (N == 0)       ? 1
+           : (N % 2 == 0) ? ipow<N / 2>(v) * ipow<N / 2>(v)
+                          : v * ipow<(N - 1) / 2>(v) * ipow<(N - 1) / 2>(v);
+}
 
+//---------------------------------------------------------------------------//
 /*!
  * Return the cube of the input value.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION T cube(const T& a)
+[[deprecated(
+    "Replace with celeritas::ipow<3>(value)")]] CELER_CONSTEXPR_FUNCTION T
+cube(const T& a)
 {
     return a * a * a;
 }

@@ -7,25 +7,26 @@
 //---------------------------------------------------------------------------//
 #include "base/Algorithms.hh"
 
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
-
-// using celeritas;
+#include "celeritas_test.hh"
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST(AlgorithmsTest, all)
+TEST(AlgorithmsTest, minmax)
 {
-    // Test min()
     EXPECT_EQ(1, celeritas::min<int>(1, 2));
     EXPECT_NE(0.2, celeritas::min<float>(0.1, 0.2));
-    // Test max()
     EXPECT_EQ(2, celeritas::max<int>(1, 2));
     EXPECT_NE(0.1, celeritas::max<float>(0.1, 0.2));
-    // Test cube()
-    EXPECT_EQ(8, celeritas::cube<int>(2));
-    EXPECT_EQ(0.001f, celeritas::cube<float>(0.1));
-    EXPECT_NE(125.000001, celeritas::cube<double>(5.0));
+}
+
+TEST(AlgorithmsTest, ipow)
+{
+    EXPECT_DOUBLE_EQ(1, celeritas::ipow<0>(0.0));
+    EXPECT_EQ(123.456, celeritas::ipow<1>(123.456));
+    EXPECT_EQ(8, (celeritas::ipow<3>(2)));
+    EXPECT_FLOAT_EQ(0.001f, celeritas::ipow<3>(0.1f));
+    EXPECT_EQ(1e4, celeritas::ipow<4>(10.0));
+    EXPECT_TRUE((std::is_same<int, decltype(celeritas::ipow<4>(5))>::value));
 }
