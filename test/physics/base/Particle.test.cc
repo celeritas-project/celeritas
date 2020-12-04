@@ -119,6 +119,11 @@ TEST_F(ParticleTrackViewTestHost, electron)
     EXPECT_SOFT_EQ(1.9784755992474248, particle.lorentz_factor());
     EXPECT_SOFT_EQ(0.87235253544653601, particle.momentum().value());
     EXPECT_SOFT_EQ(0.7609989461, particle.momentum_sq().value());
+
+    // Stop the particle
+    EXPECT_FALSE(particle.is_stopped());
+    particle.energy(zero_quantity());
+    EXPECT_TRUE(particle.is_stopped());
 }
 
 TEST_F(ParticleTrackViewTestHost, gamma)

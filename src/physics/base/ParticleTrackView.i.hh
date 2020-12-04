@@ -34,7 +34,7 @@ CELER_FUNCTION ParticleTrackView&
 ParticleTrackView::operator=(const Initializer_t& other)
 {
     REQUIRE(other.def_id < params_.defs.size());
-    REQUIRE(other.energy > zero_quantity());
+    REQUIRE(other.energy >= zero_quantity());
     state_ = other;
     return *this;
 }
@@ -72,6 +72,15 @@ CELER_FUNCTION ParticleDefId ParticleTrackView::def_id() const
 CELER_FUNCTION units::MevEnergy ParticleTrackView::energy() const
 {
     return state_.energy;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the track is stopped (zero kinetic energy).
+ */
+CELER_FUNCTION bool ParticleTrackView::is_stopped() const
+{
+    return state_.energy == zero_quantity();
 }
 
 //---------------------------------------------------------------------------//

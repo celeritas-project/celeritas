@@ -51,10 +51,13 @@ class ParticleTrackView
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Unique particle type identifier
-    inline CELER_FUNCTION ParticleDefId def_id() const;
+    CELER_FORCEINLINE_FUNCTION ParticleDefId def_id() const;
 
     // Kinetic energy [MeV]
-    inline CELER_FUNCTION units::MevEnergy energy() const;
+    CELER_FORCEINLINE_FUNCTION units::MevEnergy energy() const;
+
+    // Whether the particle is stopped (zero kinetic energy)
+    CELER_FORCEINLINE_FUNCTION bool is_stopped() const;
 
     //// STATIC PROPERTIES (requires an indirection) ////
 
