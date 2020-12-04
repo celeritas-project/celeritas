@@ -16,6 +16,7 @@ struct ElementDef;
 namespace detail
 {
 //---------------------------------------------------------------------------//
+real_type calc_coulomb_correction(int atomic_number);
 real_type calc_mass_rad_coeff(const ElementDef& el);
 
 //---------------------------------------------------------------------------//

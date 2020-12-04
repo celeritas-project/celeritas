@@ -19,17 +19,37 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate Coulomb correction factor (unitless).
+ */
+real_type calc_coulomb_correction(int atomic_number)
+{
+    REQUIRE(atomic_number > 0);
+    using constants::alpha_fine_structure;
+
+    // Eq 33.27 for calculating f(Z), the coulomb correction factor
+    real_type alphazsq = alpha_fine_structure * std::min(atomic_number, 92);
+    alphazsq *= alphazsq;
+    const real_type fz = alphazsq
+                         * (1 / (1 + alphazsq) + 0.20206 - 0.0369 * alphazsq
+                            + 0.0083 * alphazsq * alphazsq
+                            - 0.002 * alphazsq * alphazsq * alphazsq);
+
+    ENSURE(fz > 0);
+    return fz;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate inverse of Tsai radiation length for bremsstrahlung [cm^2/g].
  *
- * See \S33.4.2, pp.452--453, from Review of Particle Physics, calculation of
- * 1/X0. This is a
- * semi-empirical formula. The result is like an inverse mass attenuation
- * coefficient: it must be multiplied by density to produce a length.
+ * See ElementView::mass_radiation_coeff for details on this calculation and
+ * how it's used.
  */
 real_type calc_mass_rad_coeff(const ElementDef& el)
 {
     REQUIRE(el.atomic_number > 0);
     REQUIRE(el.atomic_mass > zero_quantity());
+    REQUIRE(el.coulomb_correction > 0);
     using constants::alpha_fine_structure;
     using constants::re_electron;
 
@@ -50,19 +70,12 @@ real_type calc_mass_rad_coeff(const ElementDef& el)
             lrad_prime = std::log(1194.0 * std::pow(z_real, -2.0 / 3));
     }
 
-    // Eq 33.27 for calculating f(Z), the coulomb correction factor
-    real_type alphazsq = alpha_fine_structure * std::min(el.atomic_number, 92);
-    alphazsq *= alphazsq;
-    const real_type fz = alphazsq
-                         * (1 / (1 + alphazsq) + 0.20206 - 0.0369 * alphazsq
-                            + 0.0083 * alphazsq * alphazsq
-                            - 0.002 * alphazsq * alphazsq * alphazsq);
-
     // Eq 33.26
     constexpr real_type inv_x0_factor = 4 * alpha_fine_structure * re_electron
                                         * re_electron;
     return inv_x0_factor / unit_cast(el.atomic_mass)
-           * (z_real * z_real * (lrad - fz) + z_real * lrad_prime);
+           * (z_real * z_real * (lrad - el.coulomb_correction)
+              + z_real * lrad_prime);
 }
 
 //---------------------------------------------------------------------------//

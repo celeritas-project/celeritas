@@ -36,6 +36,7 @@ struct ElementDef
     real_type cbrt_zzp; //!< (Z (Z + 1))^{1/3}
     real_type log_z;    //!< log Z
 
+    real_type coulomb_correction;   //!< f(Z)
     real_type mass_radiation_coeff; //!< 1/X_0 (bremsstrahlung)
 };
 

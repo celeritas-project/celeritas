@@ -21,8 +21,7 @@ using PDGNumber = OpaqueId<struct ParticleMd, int>;
  * The PDG Monte Carlo number is a unique "standard model" identifier for a
  * particle. See "Monte Carlo Particle Numbering Scheme" in the "Review of
  * Particle Physics":
- * http://pdg.lbl.gov/2019/reviews/rpp2019-rev-monte-carlo-numbering.pdf
- *
+ * https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf
  */
 struct ParticleMd
 {

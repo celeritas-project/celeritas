@@ -58,6 +58,10 @@ class ElementView
     CELER_FUNCTION real_type cbrt_zzp() const { return def_.cbrt_zzp; }
     //! log(z)
     CELER_FUNCTION real_type log_z() const { return def_.log_z; }
+
+    // Coulomb correction factor [unitless]
+    inline CELER_FUNCTION real_type coulomb_correction() const;
+
     // Mass radiation coefficient for Bremsstrahlung [cm^2/g]
     inline CELER_FUNCTION real_type mass_radiation_coeff() const;
 
