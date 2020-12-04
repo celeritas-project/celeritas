@@ -27,17 +27,17 @@ namespace celeritas
  */
 struct ElementDef
 {
-    int            atomic_number; //!< Z number
-    units::AmuMass atomic_mass;   //!< Isotope-weighted average atomic mass
+    int            atomic_number = 0; //!< Z number
+    units::AmuMass atomic_mass;       //!< Isotope-weighted average atomic mass
 
     // COMPUTED PROPERTIES
 
-    real_type cbrt_z;   //!< Z^{1/3}
-    real_type cbrt_zzp; //!< (Z (Z + 1))^{1/3}
-    real_type log_z;    //!< log Z
+    real_type cbrt_z   = 0; //!< Z^{1/3}
+    real_type cbrt_zzp = 0; //!< (Z (Z + 1))^{1/3}
+    real_type log_z    = 0; //!< log Z
 
-    real_type coulomb_correction;   //!< f(Z)
-    real_type mass_radiation_coeff; //!< 1/X_0 (bremsstrahlung)
+    real_type coulomb_correction   = 0; //!< f(Z)
+    real_type mass_radiation_coeff = 0; //!< 1/X_0 (bremsstrahlung)
 };
 
 //---------------------------------------------------------------------------//

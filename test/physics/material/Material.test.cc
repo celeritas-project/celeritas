@@ -32,9 +32,9 @@ TEST(MaterialUtils, coulomb_correction)
 {
     using celeritas::detail::calc_coulomb_correction;
 
-    EXPECT_SOFT_EQ(6.4008383023028605e-5, calc_coulomb_correction(1));
-    EXPECT_SOFT_EQ(0.010734662857664759, calc_coulomb_correction(13));
-    EXPECT_SOFT_EQ(0.39494049800766201, calc_coulomb_correction(92));
+    EXPECT_SOFT_EQ(6.4008218033384263e-05, calc_coulomb_correction(1));
+    EXPECT_SOFT_EQ(0.010734632775699565, calc_coulomb_correction(13));
+    EXPECT_SOFT_EQ(0.39494589680653375, calc_coulomb_correction(92));
 }
 
 /*!
@@ -56,7 +56,6 @@ TEST(MaterialUtils, radiation_length)
     auto calc_inv_rad_coeff
         = [](int atomic_number, real_type amu_mass) -> real_type {
         ElementDef el;
-        std::memset(&el, 0, sizeof(el));
         el.atomic_number      = atomic_number;
         el.atomic_mass        = units::AmuMass{amu_mass};
         el.coulomb_correction = detail::calc_coulomb_correction(atomic_number);
@@ -146,14 +145,13 @@ TEST_F(MaterialTest, material_view)
     auto host_ptrs = params->host_pointers();
     {
         // NaI
-        // TODO: update density and check against geant4 values
         MaterialView mat(host_ptrs, MaterialDefId{0});
         EXPECT_SOFT_EQ(2.948915064677e+22, mat.number_density());
         EXPECT_SOFT_EQ(293.0, mat.temperature());
         EXPECT_EQ(MatterState::solid, mat.matter_state());
         EXPECT_SOFT_EQ(3.6700020622594716, mat.density());
         EXPECT_SOFT_EQ(9.4365282069663997e+23, mat.electron_density());
-        EXPECT_SOFT_EQ(3.5393299034472663, mat.radiation_length());
+        EXPECT_SOFT_EQ(3.5393292693170424, mat.radiation_length());
 
         // Test element view
         auto els = mat.elements();
@@ -186,7 +184,7 @@ TEST_F(MaterialTest, material_view)
         EXPECT_EQ(MatterState::gas, mat.matter_state());
         EXPECT_SOFT_EQ(0.00017976, mat.density());
         EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.electron_density());
-        EXPECT_SOFT_EQ(350729.99844568834, mat.radiation_length());
+        EXPECT_SOFT_EQ(350729.99844063615, mat.radiation_length());
 
         // Test element view
         auto els = mat.elements();
@@ -205,8 +203,8 @@ TEST_F(MaterialTest, element_view)
         EXPECT_SOFT_EQ(std::pow(13.0, 1.0 / 3), el.cbrt_z());
         EXPECT_SOFT_EQ(std::pow(13.0 * 14.0, 1.0 / 3), el.cbrt_zzp());
         EXPECT_SOFT_EQ(std::log(13.0), el.log_z());
-        EXPECT_SOFT_EQ(0.010734662857664759, el.coulomb_correction());
-        EXPECT_SOFT_EQ(0.041647232662906583, el.mass_radiation_coeff());
+        EXPECT_SOFT_EQ(0.010734632775699565, el.coulomb_correction());
+        EXPECT_SOFT_EQ(0.04164723292591279, el.mass_radiation_coeff());
     }
 }
 
@@ -238,7 +236,8 @@ TEST_F(MaterialDeviceTest, all)
     auto result = m_test(input);
 
     const double expected_temperatures[] = {293, 0, 100};
-    const double expected_rad_len[] = {3.53932990344727, inf, 350729.998445688};
+    const double expected_rad_len[]
+        = {3.5393292693170424, inf, 350729.99844063615};
     const double expected_tot_z[]
         = {9.4365282069664e+23, 0, 1.07394843590447e+20};
 
