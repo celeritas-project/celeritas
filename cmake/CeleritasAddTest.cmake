@@ -323,6 +323,13 @@ function(celeritas_add_test SOURCE_FILE)
     list(APPEND PARSE_ENVIRONMENT "PYTHONPATH=${CELERITASTEST_PYTHONPATH}")
   endif()
 
+  if(CELERITAS_DEBUG)
+    list(APPEND PARSE_ENVIRONMENT
+      "CELER_LOG=debug"
+      "CELER_LOG_LOCAL=diagnostic"
+    )
+  endif()
+
   if(NOT PARSE_FILTER)
     # Set to a non-empty but false value
     set(PARSE_FILTER "OFF")

@@ -9,6 +9,8 @@
 
 #include <iomanip>
 #include <thread>
+#include <stdlib.h> // POSIX
+
 #include "celeritas_test.hh"
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
@@ -136,4 +138,35 @@ TEST_F(LoggerTest, performance)
             << "Never printed: " << i << ExpensiveToPrint{};
     }
     EXPECT_GT(0.1, get_time());
+}
+
+TEST_F(LoggerTest, env_setup)
+{
+    auto log_to_cout = [&](Provenance prov, LogLevel lev, std::string msg) {
+        cout << to_cstring(lev) << ':' << prov.file << ':' << prov.line << ':'
+             << msg << endl;
+        EXPECT_EQ("This should print", msg);
+    };
+    {
+        ::setenv("CELER_TEST_ENV", "debug", 1);
+        Logger log(celeritas::Communicator::comm_world(),
+                   log_to_cout,
+                   "CELER_TEST_ENV");
+        log({"<test>", 0}, LogLevel::debug) << "This should print";
+    }
+    {
+        ::setenv("CELER_TEST_ENV", "error", 1);
+        Logger log(celeritas::Communicator::comm_world(),
+                   log_to_cout,
+                   "CELER_TEST_ENV");
+        log({"<test>", 1}, LogLevel::warning) << "This should not";
+    }
+    {
+        std::cerr << "We should see a helpful warning here: ";
+        ::setenv("CELER_TEST_ENV", "TEST_INVALID_VALUE", 1);
+        Logger log(celeritas::Communicator::comm_world(),
+                   log_to_cout,
+                   "CELER_TEST_ENV");
+        log({"<test>", 1}, LogLevel::debug) << "Should not print";
+    }
 }
