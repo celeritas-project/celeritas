@@ -14,9 +14,9 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 #include "comm/Communicator.hh"
+#include "comm/Device.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
-#include "comm/Utils.hh"
 #include "physics/base/ParticleParams.hh"
 #include "KNDemoIO.hh"
 #include "KNDemoRunner.hh"
@@ -97,6 +97,12 @@ int main(int argc, char* argv[])
     if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
     {
         cerr << "usage: " << args[0] << " {input}.json" << endl;
+        return EXIT_FAILURE;
+    }
+
+    if (!celeritas::is_device_enabled())
+    {
+        CELER_LOG(critical) << "CUDA capability is disabled";
         return EXIT_FAILURE;
     }
 

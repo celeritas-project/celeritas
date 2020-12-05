@@ -11,8 +11,8 @@
 #include "celeritas_config.h"
 #include "base/ColorUtils.hh"
 #include "comm/Communicator.hh"
+#include "comm/Device.hh"
 #include "comm/ScopedMpiInit.hh"
-#include "comm/Utils.hh"
 #include "NonMasterResultPrinter.hh"
 #include "ParallelHandler.hh"
 #include "Utils.hh"
@@ -67,7 +67,7 @@ int test_main(int argc, char** argv)
     int failed = RUN_ALL_TESTS();
 
     // Accumulate the result so that all processors will have the same result
-    // XXX replace with celeritas comm wrappers
+    // TODO: replace with celeritas comm wrappers
     int global_failed = failed;
 #if CELERITAS_USE_MPI
     MPI_Allreduce(

@@ -8,6 +8,7 @@
 #include "ParticleParams.hh"
 
 #include "base/Macros.hh"
+#include "comm/Device.hh"
 #include "celeritas_config.h"
 
 namespace celeritas
@@ -43,11 +44,13 @@ ParticleParams::ParticleParams(const VecAnnotatedDefs& defs)
         host_defs_.push_back(md_def.second);
     }
 
-#if CELERITAS_USE_CUDA
-    device_defs_ = DeviceVector<ParticleDef>{host_defs_.size()};
-    device_defs_.copy_to_device(make_span(host_defs_));
-    ENSURE(device_defs_.size() == defs.size());
-#endif
+    if (celeritas::is_device_enabled())
+    {
+        device_defs_ = DeviceVector<ParticleDef>{host_defs_.size()};
+        device_defs_.copy_to_device(make_span(host_defs_));
+        ENSURE(device_defs_.size() == defs.size());
+    }
+
     ENSURE(name_to_id_.size() == defs.size());
     ENSURE(pdg_to_id_.size() == defs.size());
     ENSURE(host_defs_.size() == defs.size());

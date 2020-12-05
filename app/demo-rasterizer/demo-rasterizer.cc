@@ -14,9 +14,9 @@
 #include "base/ColorUtils.hh"
 #include "base/Range.hh"
 #include "comm/Communicator.hh"
+#include "comm/Device.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
-#include "comm/Utils.hh"
 #include "RDemoRunner.hh"
 
 using namespace celeritas;
@@ -120,6 +120,12 @@ int main(int argc, char* argv[])
     {
         // Read input from STDIN
         instream_ptr = &std::cin;
+    }
+
+    if (!celeritas::is_device_enabled())
+    {
+        CELER_LOG(critical) << "CUDA capability is disabled";
+        return EXIT_FAILURE;
     }
 
     try

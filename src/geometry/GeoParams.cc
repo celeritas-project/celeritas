@@ -20,6 +20,7 @@
 
 #include "base/Stopwatch.hh"
 #include "base/ColorUtils.hh"
+#include "comm/Device.hh"
 #include "comm/Logger.hh"
 #include "GeoParamsPointers.hh"
 
@@ -64,23 +65,26 @@ GeoParams::GeoParams(const char* gdml_filename)
     max_depth_   = vecgeom::GeoManager::Instance().getMaxDepth();
 
 #if CELERITAS_USE_CUDA
-    CELER_LOG(status) << "Converting to CUDA geometry";
-    get_time           = {};
-    auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
-    // cuda_manager.set_verbose(1);
-    cuda_manager.LoadGeometry();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
-    print_time(get_time());
+    if (celeritas::is_device_enabled())
+    {
+        CELER_LOG(status) << "Converting to CUDA geometry";
+        get_time           = {};
+        auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
+        // cuda_manager.set_verbose(1);
+        cuda_manager.LoadGeometry();
+        CELER_CUDA_CALL(cudaDeviceSynchronize());
+        print_time(get_time());
 
-    CELER_LOG(status) << "Transferring geometry to GPU";
-    get_time = {};
-    auto world_top_devptr = cuda_manager.Synchronize();
-    CHECK(world_top_devptr != nullptr);
-    device_world_volume_ = world_top_devptr.GetPtr();
-    CELER_CUDA_CHECK_ERROR();
-    print_time(get_time());
+        CELER_LOG(status) << "Transferring geometry to GPU";
+        get_time              = {};
+        auto world_top_devptr = cuda_manager.Synchronize();
+        CHECK(world_top_devptr != nullptr);
+        device_world_volume_ = world_top_devptr.GetPtr();
+        CELER_CUDA_CHECK_ERROR();
+        print_time(get_time());
 
-    ENSURE(device_world_volume_);
+        ENSURE(device_world_volume_);
+    }
 #endif
     ENSURE(num_volumes_ > 0);
     ENSURE(max_depth_ > 0);
@@ -93,7 +97,10 @@ GeoParams::GeoParams(const char* gdml_filename)
 GeoParams::~GeoParams()
 {
 #if CELERITAS_USE_CUDA
-    vecgeom::CudaManager::Instance().CleanGpu();
+    if (device_world_volume_)
+    {
+        vecgeom::CudaManager::Instance().CleanGpu();
+    }
 #endif
     vecgeom::GeoManager::Instance().Clear();
 }
@@ -158,6 +165,7 @@ GeoParamsPointers GeoParams::device_pointers() const
 void GeoParams::set_cuda_stack_size(int limit)
 {
     REQUIRE(limit > 0);
+    REQUIRE(celeritas::is_device_enabled());
 #if CELERITAS_USE_CUDA
     CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
 #endif

@@ -16,7 +16,6 @@
 #include "comm/Communicator.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
-#include "comm/Utils.hh"
 #include "physics/base/ParticleParams.hh"
 #include "LoadXs.hh"
 #include "KNDemoIO.hh"

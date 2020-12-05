@@ -30,7 +30,6 @@ list(APPEND SOURCES
   base/ColorUtils.cc
   comm/Logger.cc
   comm/LoggerTypes.cc
-  comm/Utils.cc
   comm/detail/LoggerMessage.cc
   physics/base/ParticleParams.cc
   physics/base/ParticleStateStore.cc
@@ -46,6 +45,7 @@ if(CELERITAS_USE_CUDA)
     base/DeviceAllocation.cuda.cc
     base/KernelParamCalculator.cuda.cc
     base/Memory.cu
+    comm/Device.cuda.cc
     random/cuda/detail/RngStateInit.cu
   )
   list(APPEND PRIVATE_DEPS CUDA::cudart)
@@ -53,6 +53,7 @@ else()
   list(APPEND SOURCES
     base/DeviceAllocation.nocuda.cc
     base/Memory.nocuda.cc
+    comm/Device.nocuda.cc
     random/cuda/curand.nocuda.cc
     random/cuda/detail/RngStateInit.nocuda.cc
   )

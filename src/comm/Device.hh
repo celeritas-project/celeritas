@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.hh
+//! \file Device.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,6 +11,10 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// Whether device code should be used
+bool is_device_enabled();
+
 //---------------------------------------------------------------------------//
 // Initialize device in a round-robin fashion from a communicator
 void initialize_device(const Communicator& comm);

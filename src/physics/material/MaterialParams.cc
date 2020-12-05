@@ -14,6 +14,7 @@
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "base/SpanRemapper.hh"
+#include "comm/Device.hh"
 #include "comm/Logger.hh"
 
 namespace celeritas
@@ -50,27 +51,30 @@ MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
         this->append_material_def(mat);
     }
 
-#if CELERITAS_USE_CUDA
-    // Allocate device vectors
-    device_elements_ = DeviceVector<ElementDef>{host_elements_.size()};
-    device_elcomponents_
-        = DeviceVector<MatElementComponent>{host_elcomponents_.size()};
-    device_materials_ = DeviceVector<MaterialDef>{host_materials_.size()};
-
-    // Remap material->elcomponent spans
-    std::vector<MaterialDef> temp_device_mats = host_materials_;
-    auto                     remap_elements   = make_span_remapper(
-        make_span(host_elcomponents_), device_elcomponents_.device_pointers());
-    for (MaterialDef& m : temp_device_mats)
+    if (celeritas::is_device_enabled())
     {
-        m.elements = remap_elements(m.elements);
-    }
+        // Allocate device vectors
+        device_elements_ = DeviceVector<ElementDef>{host_elements_.size()};
+        device_elcomponents_
+            = DeviceVector<MatElementComponent>{host_elcomponents_.size()};
+        device_materials_ = DeviceVector<MaterialDef>{host_materials_.size()};
 
-    // Copy vectors to device
-    device_elements_.copy_to_device(make_span(host_elements_));
-    device_elcomponents_.copy_to_device(make_span(host_elcomponents_));
-    device_materials_.copy_to_device(make_span(temp_device_mats));
-#endif
+        // Remap material->elcomponent spans
+        auto remap_elements
+            = make_span_remapper(make_span(host_elcomponents_),
+                                 device_elcomponents_.device_pointers());
+
+        std::vector<MaterialDef> temp_device_mats = host_materials_;
+        for (MaterialDef& m : temp_device_mats)
+        {
+            m.elements = remap_elements(m.elements);
+        }
+
+        // Copy vectors to device
+        device_elements_.copy_to_device(make_span(host_elements_));
+        device_elcomponents_.copy_to_device(make_span(host_elcomponents_));
+        device_materials_.copy_to_device(make_span(temp_device_mats));
+    }
 
     ENSURE(host_elements_.size() == inp.elements.size());
     ENSURE(host_elcomponents_.size() <= host_elcomponents_.capacity());
