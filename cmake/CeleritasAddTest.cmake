@@ -62,6 +62,7 @@ Add a CUDA/C++ GoogleTest test::
       [DISABLE]
       [DRIVER]
       [REUSE_EXE]
+      [GPU]
       )
 
     ``<filename>``
@@ -115,6 +116,9 @@ Add a CUDA/C++ GoogleTest test::
     ``REUSE_EXE``
       Assume the executable was already built from a previous celeritas_add_test
       command. This is useful for specifying combinations of NP/FILTER.
+
+    ``GPU``
+      Add a resource lock for so that only one GPU test will be run at once.
 
 Variables
 ^^^^^^^^^
@@ -241,7 +245,7 @@ endfunction()
 
 function(celeritas_add_test SOURCE_FILE)
   cmake_parse_arguments(PARSE
-    "ISOLATE;DISABLE;DRIVER;REUSE_EXE"
+    "ISOLATE;DISABLE;DRIVER;REUSE_EXE;GPU"
     "TIMEOUT;DEPTEST;SUFFIX"
     "LINK_LIBRARIES;ADD_DEPENDENCIES;NP;ENVIRONMENT;ARGS;INPUTS;FILTER;SOURCES"
     ${ARGN}
@@ -330,6 +334,14 @@ function(celeritas_add_test SOURCE_FILE)
     )
   endif()
 
+  if(CELERITAS_USE_CUDA)
+    if(NOT PARSE_GPU)
+      list(APPEND PARSE_ENVIRONMENT "CELER_DISABLE_DEVICE=1")
+    else()
+      set(PARSE_GPU)
+    endif()
+  endif()
+
   if(NOT PARSE_FILTER)
     # Set to a non-empty but false value
     set(PARSE_FILTER "OFF")
@@ -386,6 +398,12 @@ function(celeritas_add_test SOURCE_FILE)
         file(MAKE_DIRECTORY "${_test_dir}")
       endif()
 
+      # Resource lock slows down overall test time but gives more accurate
+      # per-test time readings
+      # if(PARSE_GPU)
+      #   set_property(TEST ${_TEST_NAME}
+      #     PROPERTY RESOURCE_LOCK gpu)
+      # endif()
       if(PARSE_TIMEOUT)
         set_property(TEST ${_TEST_NAME}
           PROPERTY TIMEOUT ${PARSE_TIMEOUT})

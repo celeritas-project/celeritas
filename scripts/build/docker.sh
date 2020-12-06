@@ -11,6 +11,7 @@ if [ -z "${BUILD_DIR}" ]; then
   BUILD_DIR=${SOURCE_DIR}/${BUILD_SUBDIR}
 fi
 : ${CTEST_ARGS:=--output-on-failure}
+CTEST_ARGS="-j$(grep -c processor /proc/cpuinfo) ${CTEST_ARGS}"
 
 printf "\e[2;37mBuilding in ${BUILD_DIR}\e[0m\n"
 mkdir ${BUILD_DIR} 2>/dev/null \
