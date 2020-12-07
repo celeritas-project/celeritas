@@ -6,11 +6,21 @@
 //! \file Communicator.test.cc
 //---------------------------------------------------------------------------//
 #include "comm/Communicator.hh"
+#include "comm/Operations.hh"
+#include "comm/ScopedMpiInit.hh"
 
 #include "celeritas_test.hh"
+#include "base/Span.hh"
 
-using celeritas::barrier;
 using celeritas::Communicator;
+using celeritas::Operation;
+using celeritas::ScopedMpiInit;
+
+#if CELERITAS_USE_MPI
+#    define TEST_IF_CELERITAS_MPI(name) name
+#else
+#    define TEST_IF_CELERITAS_MPI(name) DISABLED_##name
+#endif
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -26,7 +36,44 @@ class CommunicatorTest : public celeritas::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(CommunicatorTest, world)
+TEST_F(CommunicatorTest, null)
+{
+    using celeritas::make_span;
+
+    Communicator comm;
+    EXPECT_FALSE(comm);
+
+    // "null" comm always acts like it's running in serial
+    EXPECT_EQ(1, comm.size());
+    EXPECT_EQ(0, comm.rank());
+
+    // Barrier should be a null-op
+    celeritas::barrier(comm);
+
+    // Reduction should return the original value
+    EXPECT_EQ(123, celeritas::allreduce(comm, Operation::sum, 123));
+
+    // Not-in-place reduction should copy the values
+    const int src[] = {1234};
+    int       dst[] = {-1};
+    celeritas::allreduce(comm, Operation::max, make_span(src), make_span(dst));
+    EXPECT_EQ(1234, dst[0]);
+}
+
+TEST_F(CommunicatorTest, TEST_IF_CELERITAS_MPI(self))
+{
+    Communicator comm = Communicator::comm_self();
+    EXPECT_NE(Communicator::comm_world().mpi_comm(), comm.mpi_comm());
+
+    // "self" comm always acts like it's running in serial
+    EXPECT_EQ(1, comm.size());
+    EXPECT_EQ(0, comm.rank());
+
+    barrier(comm);
+    EXPECT_EQ(123, celeritas::allreduce(comm, Operation::sum, 123));
+}
+
+TEST_F(CommunicatorTest, TEST_IF_CELERITAS_MPI(world))
 {
     Communicator comm = Communicator::comm_world();
 
@@ -44,15 +91,6 @@ TEST_F(CommunicatorTest, world)
 #endif
 
     barrier(comm);
-}
 
-TEST_F(CommunicatorTest, self)
-{
-    Communicator comm = Communicator::comm_self();
-    EXPECT_NE(Communicator::comm_world().mpi_comm(), comm.mpi_comm());
-    barrier(comm);
-
-    // "self" comm always acts like it's running in serial
-    EXPECT_EQ(1, comm.size());
-    EXPECT_EQ(0, comm.rank());
+    EXPECT_EQ(123 * comm.size(), allreduce(comm, Operation::sum, 123));
 }

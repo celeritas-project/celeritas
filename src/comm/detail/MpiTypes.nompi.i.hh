@@ -3,39 +3,43 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MpiTypes.hh
+//! \file MpiTypes.nompi.i.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
-#if CELERITAS_USE_MPI
-#    include <mpi.h>
-#endif
-
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
-// MPI TYPES
-//---------------------------------------------------------------------------//
-#if CELERITAS_USE_MPI
-using MpiComm = MPI_Comm;
-#else
-
 struct MpiComm
 {
     int value_;
 };
 
-inline bool operator==(MpiComm a, MpiComm b)
+constexpr inline bool operator==(MpiComm a, MpiComm b)
 {
     return a.value_ == b.value_;
 }
 
-inline bool operator!=(MpiComm a, MpiComm b)
+constexpr inline bool operator!=(MpiComm a, MpiComm b)
 {
     return !(a == b);
 }
-#endif
+
+constexpr inline MpiComm MpiCommNull()
+{
+    return {0};
+}
+constexpr inline MpiComm MpiCommSelf()
+{
+    return {-1};
+}
+constexpr inline MpiComm MpiCommWorld()
+{
+    return {1};
+}
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

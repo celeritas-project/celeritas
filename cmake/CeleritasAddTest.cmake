@@ -118,7 +118,7 @@ Add a CUDA/C++ GoogleTest test::
       command. This is useful for specifying combinations of NP/FILTER.
 
     ``GPU``
-      Add a resource lock for so that only one GPU test will be run at once.
+      Add a resource lock so that only one GPU test will be run at once.
 
 Variables
 ^^^^^^^^^
@@ -334,12 +334,34 @@ function(celeritas_add_test SOURCE_FILE)
     )
   endif()
 
+  set(_COMMON_PROPS)
   if(CELERITAS_USE_CUDA)
     if(NOT PARSE_GPU)
       list(APPEND PARSE_ENVIRONMENT "CELER_DISABLE_DEVICE=1")
-    else()
-      set(PARSE_GPU)
+    elseif(NOT CELERITAS_DEBUG)
+      # Add a "resource lock" when building without debug checking to get more
+      # accurate test times (since multiple GPU processes won't be competing for
+      # the same card).
+      # To speed up overall test time, *do not* apply the resource lock when
+      # we're debugging because timings don't matter.
+      list(APPEND _COMMON_PROPS RESOURCE_LOCK gpu)
     endif()
+  endif()
+  if(PARSE_TIMEOUT)
+    list(APPEND _COMMON_PROPS TIMEOUT ${PARSE_TIMEOUT})
+  endif()
+  if(PARSE_DISABLE)
+    list(APPEND _COMMON_PROPS DISABLED True)
+  endif()
+  if(_CELERITASTEST_IS_GTEST OR _CELERITASTEST_IS_PYTHON)
+    list(APPEND _COMMON_PROPS
+      PASS_REGULAR_EXPRESSION "tests PASSED"
+      FAIL_REGULAR_EXPRESSION "tests FAILED"
+    )
+  endif()
+
+  if(CELERITAS_USE_MPI AND PARSE_NP STREQUAL "1")
+    list(APPEND PARSE_ENVIRONMENT "CELER_DISABLE_PARALLEL=1")
   endif()
 
   if(NOT PARSE_FILTER)
@@ -354,7 +376,7 @@ function(celeritas_add_test SOURCE_FILE)
         set(_suffix ":${_filter}")
       endif()
       _celeritasaddtest_test_name(_TEST_NAME
-      "${_PREFIX}${_BASENAME}${_SUFFIX}" "${_np}" "${_suffix}")
+        "${_PREFIX}${_BASENAME}${_SUFFIX}" "${_np}" "${_suffix}")
       if(NOT _TEST_NAME)
         continue()
       endif()
@@ -379,6 +401,7 @@ function(celeritas_add_test SOURCE_FILE)
       endif()
 
       add_test(NAME "${_TEST_NAME}" COMMAND ${_test_cmd} ${_test_args})
+      list(APPEND _ADDED_TESTS "${_TEST_NAME}")
 
       if(PARSE_DEPTEST)
         # Add dependency on another test
@@ -398,34 +421,20 @@ function(celeritas_add_test SOURCE_FILE)
         file(MAKE_DIRECTORY "${_test_dir}")
       endif()
 
-      # Resource lock slows down overall test time but gives more accurate
-      # per-test time readings
-      # if(PARSE_GPU)
-      #   set_property(TEST ${_TEST_NAME}
-      #     PROPERTY RESOURCE_LOCK gpu)
-      # endif()
-      if(PARSE_TIMEOUT)
-        set_property(TEST ${_TEST_NAME}
-          PROPERTY TIMEOUT ${PARSE_TIMEOUT})
-      endif()
-      if(PARSE_DISABLE)
-        set_property(TEST ${_TEST_NAME}
-          PROPERTY DISABLED True)
-      endif()
       set_property(TEST ${_TEST_NAME}
         PROPERTY ENVIRONMENT ${_test_env}
       )
-      set_property(TEST ${_TEST_NAME}
-        PROPERTY PROCESSORS ${_np}
-      )
-      if(_CELERITASTEST_IS_GTEST OR _CELERITASTEST_IS_PYTHON)
-        set_tests_properties(${_TEST_NAME} PROPERTIES
-          PASS_REGULAR_EXPRESSION "tests PASSED"
-          FAIL_REGULAR_EXPRESSION "tests FAILED"
+      if(_np GREATER 1)
+        set_property(TEST ${_TEST_NAME}
+          PROPERTY PROCESSORS ${_np}
         )
       endif()
     endforeach()
   endforeach()
+  if(_COMMON_PROPS AND _ADDED_TESTS)
+    # Set common properties
+    set_tests_properties(${_ADDED_TESTS} PROPERTIES ${_COMMON_PROPS})
+  endif()
 endfunction()
 
 #-----------------------------------------------------------------------------#

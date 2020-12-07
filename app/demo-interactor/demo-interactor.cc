@@ -57,7 +57,7 @@ void run(std::istream& is)
     auto inp = nlohmann::json::parse(is);
 
     // Initialize GPU
-    celeritas::initialize_device(Communicator::comm_world());
+    celeritas::initialize_device(Communicator{});
 
     // Construct runner
     auto         grid_params = inp.at("grid_params").get<CudaGridParams>();
@@ -86,7 +86,8 @@ void run(std::istream& is)
 int main(int argc, char* argv[])
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
-    if (Communicator::comm_world().size() != 1)
+    if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
+        && Communicator::comm_world().size() > 1)
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;

@@ -303,8 +303,10 @@ void store_geometry(TFile*                       root_file,
  */
 int main(int argc, char* argv[])
 {
-    celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
-    if (celeritas::Communicator::comm_world().size() != 1)
+    using namespace celeritas;
+    ScopedMpiInit scoped_mpi(&argc, &argv);
+    if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
+        && Communicator::comm_world().size() > 1)
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;

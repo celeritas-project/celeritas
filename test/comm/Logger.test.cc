@@ -15,7 +15,9 @@
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
 #include "comm/Communicator.hh"
+#include "comm/ScopedMpiInit.hh"
 
+using celeritas::Communicator;
 using celeritas::Logger;
 using celeritas::LogLevel;
 using celeritas::Provenance;
@@ -28,7 +30,18 @@ using celeritas::Provenance;
 class LoggerTest : public celeritas::Test
 {
   protected:
-    void SetUp() override {}
+    void SetUp() override
+    {
+        using celeritas::ScopedMpiInit;
+        if (ScopedMpiInit::status() != ScopedMpiInit::Status::disabled)
+        {
+            comm_self  = Communicator::comm_self();
+            comm_world = Communicator::comm_world();
+        }
+    }
+
+    Communicator comm_self;
+    Communicator comm_world;
 };
 
 //---------------------------------------------------------------------------//
@@ -59,20 +72,18 @@ TEST_F(LoggerTest, global_handlers)
     ::celeritas::world_logger().level(LogLevel::debug);
     CELER_LOG(debug) << "This should be shown now";
 
-    CELER_LOG_LOCAL(warning) << "Warning from rank "
-                             << celeritas::Communicator::comm_world().rank();
+    CELER_LOG_LOCAL(warning) << "Warning from rank " << comm_world.rank();
 
     // Replace 'local' with a null-op logger, so the log message will never
     // show
-    ::celeritas::self_logger()
-        = Logger(celeritas::Communicator::comm_self(), nullptr);
+    ::celeritas::self_logger() = Logger(comm_self, nullptr);
     CELER_LOG_LOCAL(critical) << "the last enemy that shall be destroyed is "
                                  "death";
 }
 
 TEST_F(LoggerTest, null)
 {
-    Logger log(celeritas::Communicator::comm_self(), nullptr);
+    Logger log(comm_self, nullptr);
 
     log({"<file>", 0}, LogLevel::info) << "This should be fine!";
 }
@@ -83,12 +94,11 @@ TEST_F(LoggerTest, custom_log)
     LogLevel    last_lev = LogLevel::debug;
     std::string last_msg;
 
-    Logger log(celeritas::Communicator::comm_self(),
-               [&](Provenance prov, LogLevel lev, std::string msg) {
-                   last_prov = prov;
-                   last_lev  = lev;
-                   last_msg  = std::move(msg);
-               });
+    Logger log(comm_self, [&](Provenance prov, LogLevel lev, std::string msg) {
+        last_prov = prov;
+        last_lev  = lev;
+        last_msg  = std::move(msg);
+    });
 
     // Update level
     EXPECT_EQ(LogLevel::status, log.level());
@@ -123,11 +133,9 @@ TEST_F(LoggerTest, performance)
 {
     // Construct a logger with an expensive output routine that will never be
     // called
-    Logger log(celeritas::Communicator::comm_self(),
-               [&](Provenance prov, LogLevel lev, std::string msg) {
-                   cout << prov.file << prov.line << static_cast<int>(lev)
-                        << msg << endl;
-               });
+    Logger log(comm_self, [&](Provenance prov, LogLevel lev, std::string msg) {
+        cout << prov.file << prov.line << static_cast<int>(lev) << msg << endl;
+    });
     log.level(LogLevel::critical);
 
     // Even in debug this takes only 26ms
@@ -147,26 +155,21 @@ TEST_F(LoggerTest, env_setup)
              << msg << endl;
         EXPECT_EQ("This should print", msg);
     };
+
     {
         ::setenv("CELER_TEST_ENV", "debug", 1);
-        Logger log(celeritas::Communicator::comm_world(),
-                   log_to_cout,
-                   "CELER_TEST_ENV");
+        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV");
         log({"<test>", 0}, LogLevel::debug) << "This should print";
     }
     {
         ::setenv("CELER_TEST_ENV", "error", 1);
-        Logger log(celeritas::Communicator::comm_world(),
-                   log_to_cout,
-                   "CELER_TEST_ENV");
+        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV");
         log({"<test>", 1}, LogLevel::warning) << "This should not";
     }
     {
         std::cerr << "We should see a helpful warning here: ";
         ::setenv("CELER_TEST_ENV", "TEST_INVALID_VALUE", 1);
-        Logger log(celeritas::Communicator::comm_world(),
-                   log_to_cout,
-                   "CELER_TEST_ENV");
+        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV");
         log({"<test>", 1}, LogLevel::debug) << "Should not print";
     }
 }

@@ -14,29 +14,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a "self" MPI communicator: always world size of 1
+ * Construct with a native MPI communicator.
  */
-Communicator Communicator::comm_self()
+Communicator::Communicator(MpiComm comm) : comm_(comm)
 {
-    return Communicator(MPI_COMM_SELF);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with a "world" MPI communicator: always global size
- */
-Communicator Communicator::comm_world()
-{
-    return Communicator(MPI_COMM_WORLD);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with a native MPI communicator
- */
-Communicator::Communicator(MpiComm comm) : comm_(comm), rank_(-1), size_(-1)
-{
-    REQUIRE(ScopedMpiInit::initialized());
+    REQUIRE(comm != detail::MpiCommNull());
+    REQUIRE(ScopedMpiInit::status() == ScopedMpiInit::Status::initialized);
 
     // Save rank and size
     int err;
@@ -46,18 +29,6 @@ Communicator::Communicator(MpiComm comm) : comm_(comm), rank_(-1), size_(-1)
     CHECK(err == MPI_SUCCESS);
 
     ENSURE(this->rank() >= 0 && this->rank() < this->size());
-}
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Wait for all processes in this communicator to reach the barrier.
- */
-void barrier(const Communicator& comm)
-{
-    int err = MPI_Barrier(comm.mpi_comm());
-    CHECK(err == MPI_SUCCESS);
 }
 
 //---------------------------------------------------------------------------//

@@ -8,46 +8,17 @@
 #include "Communicator.hh"
 
 #include "base/Assert.hh"
-#include "ScopedMpiInit.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a "self" MPI communicator: always world size of 1
- */
-Communicator Communicator::comm_self()
-{
-    return Communicator(MpiComm{1});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with a "world" MPI communicator: always global size
- */
-Communicator Communicator::comm_world()
-{
-    return Communicator(MpiComm{2});
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct with a native MPI communicator
  */
-Communicator::Communicator(MpiComm comm) : comm_(comm), rank_(0), size_(1)
+Communicator::Communicator(MpiComm)
 {
-    REQUIRE(ScopedMpiInit::initialized());
-
-    ENSURE(this->rank() >= 0 && this->rank() < this->size());
+    throw DebugError("Cannot build a communicator because MPI is disabled");
 }
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Wait for all processes in this communicator to reach the barrier.
- */
-void barrier(const Communicator&) {}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

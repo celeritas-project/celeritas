@@ -16,6 +16,7 @@
 #include "base/ColorUtils.hh"
 #include "base/Range.hh"
 #include "Communicator.hh"
+#include "ScopedMpiInit.hh"
 
 namespace
 {
@@ -128,8 +129,13 @@ Logger::Logger(const Communicator& comm,
  */
 Logger& world_logger()
 {
+    // Use the null communicator if MPI isn't enabled, otherwise comm_world
     static Logger logger(
-        Communicator::comm_world(), &default_global_handler, "CELER_LOG");
+        ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
+            ? Communicator::comm_world()
+            : Communicator{},
+        &default_global_handler,
+        "CELER_LOG");
     return logger;
 }
 
@@ -142,9 +148,16 @@ Logger& world_logger()
  */
 Logger& self_logger()
 {
-    static Logger logger(Communicator::comm_self(),
-                         LocalHandler{Communicator::comm_world()},
-                         "CELER_LOG_LOCAL");
+    // Use the null communicator if MPI isn't enabled, otherwise comm_local.
+    // If only
+    static Logger logger(
+        ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
+            ? Communicator::comm_world()
+            : Communicator{},
+        ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
+            ? LocalHandler{Communicator::comm_world()}
+            : LogHandler{&default_global_handler},
+        "CELER_LOG_LOCAL");
     return logger;
 }
 

@@ -9,41 +9,27 @@
 
 #include "base/Assert.hh"
 
-namespace
-{
-bool g_initialized = false;
-}
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with argc/argv references.
+ * Constructor is a null-op
  */
-ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
-{
-    REQUIRE((argc == nullptr) == (argv == nullptr));
-    REQUIRE(!ScopedMpiInit::initialized());
-    g_initialized = true;
-    ENSURE(ScopedMpiInit::initialized());
-}
+ScopedMpiInit::ScopedMpiInit(int*, char***) {}
 
 //---------------------------------------------------------------------------//
 /*!
  * Call MPI finalize on destruction.
  */
-ScopedMpiInit::~ScopedMpiInit()
-{
-    g_initialized = false;
-}
+ScopedMpiInit::~ScopedMpiInit() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether MPI has been initialized.
+ * MPI is disabled for this build.
  */
-bool ScopedMpiInit::initialized()
+auto ScopedMpiInit::status() -> Status
 {
-    return g_initialized;
+    return ScopedMpiInit::Status::disabled;
 }
 
 //---------------------------------------------------------------------------//
