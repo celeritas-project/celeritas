@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cuda_runtime_api.h>
 #include "base/Assert.hh"
+#include "base/Stopwatch.hh"
 #include "comm/Logger.hh"
 
 namespace
@@ -64,16 +65,22 @@ void initialize_device(const Communicator& comm)
     if (!is_device_enabled())
         return;
 
+    Stopwatch get_time;
+
     // Get number of devices
     int num_devices = -1;
     CELER_CUDA_CALL(cudaGetDeviceCount(&num_devices));
     CHECK(num_devices > 0);
 
-    // Set device based on communicator
+    // Set device based on communicator, and call cudaFree to wake up the
+    // device
     int device_id = comm.rank() % num_devices;
     CELER_LOG_LOCAL(debug) << "Initializing device ID " << device_id << " of "
                            << num_devices;
     CELER_CUDA_CALL(cudaSetDevice(device_id));
+    // Call cudaFree to wake up the device, making other timers more accurate
+    CELER_CUDA_CALL(cudaFree(nullptr));
+    CELER_LOG(debug) << "CUDA initialization took " << get_time() << "s";
 }
 
 //---------------------------------------------------------------------------//

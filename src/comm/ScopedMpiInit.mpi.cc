@@ -11,6 +11,8 @@
 #include <mpi.h>
 #include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "base/Stopwatch.hh"
+#include "Logger.hh"
 #include "Logger.hh"
 
 namespace celeritas
@@ -36,10 +38,11 @@ ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
             break;
         }
         case Status::uninitialized: {
-            int err = MPI_Init(argc, argv);
+            Stopwatch get_time;
+            int       err = MPI_Init(argc, argv);
             CHECK(err == MPI_SUCCESS);
-
             status_ = Status::initialized;
+            CELER_LOG(debug) << "MPI initialization took " << get_time() << "s";
             break;
         }
         case Status::initialized: {
