@@ -13,6 +13,7 @@
 #include "physics/material/MaterialStateStore.hh"
 #include "physics/material/detail/Utils.hh"
 
+#include <cstring>
 #include <limits>
 #include "celeritas_test.hh"
 #include "base/DeviceVector.hh"
@@ -26,6 +27,16 @@ using celeritas_test::m_test;
 using celeritas_test::MTestInput;
 
 //---------------------------------------------------------------------------//
+//! Test coulomb correction values
+TEST(MaterialUtils, coulomb_correction)
+{
+    using celeritas::detail::calc_coulomb_correction;
+
+    EXPECT_SOFT_EQ(6.4008218033384263e-05, calc_coulomb_correction(1));
+    EXPECT_SOFT_EQ(0.010734632775699565, calc_coulomb_correction(13));
+    EXPECT_SOFT_EQ(0.39494589680653375, calc_coulomb_correction(92));
+}
+
 /*!
  * Test mass radiation coefficient calculation.
  *
@@ -42,48 +53,30 @@ using celeritas_test::MTestInput;
  */
 TEST(MaterialUtils, radiation_length)
 {
-    using celeritas::detail::calc_mass_rad_coeff;
-    using celeritas::units::AmuMass;
+    auto calc_inv_rad_coeff
+        = [](int atomic_number, real_type amu_mass) -> real_type {
+        ElementDef el;
+        el.atomic_number      = atomic_number;
+        el.atomic_mass        = units::AmuMass{amu_mass};
+        el.coulomb_correction = detail::calc_coulomb_correction(atomic_number);
 
-    ElementDef el;
+        return 1 / detail::calc_mass_rad_coeff(el);
+    };
 
     // Hydrogen
-    el.atomic_number = 1;
-    el.atomic_mass   = AmuMass{1.008};
-    EXPECT_SOFT_NEAR(63.04, 1 / calc_mass_rad_coeff(el), 1e-3);
-    real_type hydrogen_density = 8.376e-05; // g/cc
-    EXPECT_SOFT_NEAR(
-        7.527e5, 1 / (hydrogen_density * calc_mass_rad_coeff(el)), 1e-3);
-
+    EXPECT_SOFT_NEAR(63.04, calc_inv_rad_coeff(1, 1.008), 1e-3);
     // Helium
-    el.atomic_number = 2;
-    el.atomic_mass   = AmuMass{4.002602};
-    EXPECT_SOFT_NEAR(94.32, 1 / calc_mass_rad_coeff(el), 1e-3);
-
+    EXPECT_SOFT_NEAR(94.32, calc_inv_rad_coeff(2, 4.002602), 1e-3);
     // Lithium
-    el.atomic_number = 3;
-    el.atomic_mass   = AmuMass{6.94};
-    EXPECT_SOFT_NEAR(82.77, 1 / calc_mass_rad_coeff(el), 1e-3);
-
+    EXPECT_SOFT_NEAR(82.77, calc_inv_rad_coeff(3, 6.94), 1e-3);
     // Beryllium
-    el.atomic_number = 4;
-    el.atomic_mass   = AmuMass{9.0121831};
-    EXPECT_SOFT_NEAR(65.19, 1 / calc_mass_rad_coeff(el), 1e-3);
-
+    EXPECT_SOFT_NEAR(65.19, calc_inv_rad_coeff(4, 9.0121831), 1e-3);
     // Aluminum
-    el.atomic_number = 13;
-    el.atomic_mass   = AmuMass{26.9815385};
-    EXPECT_SOFT_NEAR(24.01, 1 / calc_mass_rad_coeff(el), 1e-3);
-
+    EXPECT_SOFT_NEAR(24.01, calc_inv_rad_coeff(13, 26.9815385), 1e-3);
     // Uranium
-    el.atomic_number = 92;
-    el.atomic_mass   = AmuMass{238.02891};
-    EXPECT_SOFT_NEAR(6.00, 1 / calc_mass_rad_coeff(el), 1e-3);
-
+    EXPECT_SOFT_NEAR(6.00, calc_inv_rad_coeff(92, 238.02891), 1e-3);
     // Plutonium-244 [NOTE: accuracy decreases compared to tabulated values]
-    el.atomic_number = 94;
-    el.atomic_mass   = AmuMass{244.06420};
-    EXPECT_SOFT_NEAR(5.93, 1 / calc_mass_rad_coeff(el), 1e-2);
+    EXPECT_SOFT_NEAR(5.93, calc_inv_rad_coeff(94, 244.06420), 1e-2);
 }
 
 //---------------------------------------------------------------------------//
@@ -152,14 +145,13 @@ TEST_F(MaterialTest, material_view)
     auto host_ptrs = params->host_pointers();
     {
         // NaI
-        // TODO: update density and check against geant4 values
         MaterialView mat(host_ptrs, MaterialDefId{0});
         EXPECT_SOFT_EQ(2.948915064677e+22, mat.number_density());
         EXPECT_SOFT_EQ(293.0, mat.temperature());
         EXPECT_EQ(MatterState::solid, mat.matter_state());
         EXPECT_SOFT_EQ(3.6700020622594716, mat.density());
         EXPECT_SOFT_EQ(9.4365282069663997e+23, mat.electron_density());
-        EXPECT_SOFT_EQ(3.5393299034472663, mat.radiation_length());
+        EXPECT_SOFT_EQ(3.5393292693170424, mat.radiation_length());
 
         // Test element view
         auto els = mat.elements();
@@ -192,7 +184,7 @@ TEST_F(MaterialTest, material_view)
         EXPECT_EQ(MatterState::gas, mat.matter_state());
         EXPECT_SOFT_EQ(0.00017976, mat.density());
         EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.electron_density());
-        EXPECT_SOFT_EQ(350729.99844568834, mat.radiation_length());
+        EXPECT_SOFT_EQ(350729.99844063615, mat.radiation_length());
 
         // Test element view
         auto els = mat.elements();
@@ -211,7 +203,8 @@ TEST_F(MaterialTest, element_view)
         EXPECT_SOFT_EQ(std::pow(13.0, 1.0 / 3), el.cbrt_z());
         EXPECT_SOFT_EQ(std::pow(13.0 * 14.0, 1.0 / 3), el.cbrt_zzp());
         EXPECT_SOFT_EQ(std::log(13.0), el.log_z());
-        EXPECT_SOFT_EQ(0.041647232662906583, el.mass_radiation_coeff());
+        EXPECT_SOFT_EQ(0.010734632775699565, el.coulomb_correction());
+        EXPECT_SOFT_EQ(0.04164723292591279, el.mass_radiation_coeff());
     }
 }
 
@@ -243,7 +236,8 @@ TEST_F(MaterialDeviceTest, all)
     auto result = m_test(input);
 
     const double expected_temperatures[] = {293, 0, 100};
-    const double expected_rad_len[] = {3.53932990344727, inf, 350729.998445688};
+    const double expected_rad_len[]
+        = {3.5393292693170424, inf, 350729.99844063615};
     const double expected_tot_z[]
         = {9.4365282069664e+23, 0, 1.07394843590447e+20};
 

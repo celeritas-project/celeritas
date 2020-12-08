@@ -130,10 +130,12 @@ void MaterialParams::append_element_def(const ElementInput& inp)
     result.atomic_mass   = inp.atomic_mass;
 
     // Calculate various factors of the atomic number
-    const real_type z_real      = result.atomic_number;
-    result.cbrt_z               = std::cbrt(z_real);
-    result.cbrt_zzp             = std::cbrt(z_real * (z_real + 1));
-    result.log_z                = std::log(z_real);
+    const real_type z_real = result.atomic_number;
+    result.cbrt_z          = std::cbrt(z_real);
+    result.cbrt_zzp        = std::cbrt(z_real * (z_real + 1));
+    result.log_z           = std::log(z_real);
+    result.coulomb_correction
+        = detail::calc_coulomb_correction(result.atomic_number);
     result.mass_radiation_coeff = detail::calc_mass_rad_coeff(result);
 
     elnames_.push_back(inp.name);
