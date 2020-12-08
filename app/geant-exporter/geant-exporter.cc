@@ -17,9 +17,9 @@
 #include <G4VModularPhysicsList.hh>
 #include <G4GenericPhysicsList.hh>
 #include <G4ParticleTable.hh>
-#include <G4SystemOfUnits.hh>
 #include <G4Material.hh>
 #include <G4MaterialTable.hh>
+#include <G4SystemOfUnits.hh>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -164,9 +164,10 @@ void loop_volumes(GdmlGeometryMap&       geometry,
     vol_id       volume_id;
     mat_id       material_id;
 
-    volume.name = logical_volume.GetName();
-    volume_id   = logical_volume.GetInstanceID();
-    material_id = logical_volume.GetMaterialCutsCouple()->GetIndex();
+    volume.name       = logical_volume.GetName();
+    volume.solid_name = logical_volume.GetSolid()->GetName();
+    volume_id         = logical_volume.GetInstanceID();
+    material_id       = logical_volume.GetMaterialCutsCouple()->GetIndex();
 
     // Add volume to the global volume map
     geometry.add_volume(volume_id, volume);
@@ -222,7 +223,24 @@ void store_geometry(TFile*                       root_file,
     GdmlGeometryMap geometry;
     tree_materials.Branch("GdmlGeometryMap", &geometry);
 
-    // Loop over materials and elements
+    // Populate global element map
+    const auto g4element_table = *G4Element::GetElementTable();
+    for (const auto& g4element : g4element_table)
+    {
+        CHECK(g4element);
+        ImportElement element;
+        elem_id       elid            = g4element->GetIndex();
+        element.name                  = g4element->GetName();
+        element.atomic_number         = g4element->GetZ();
+        element.atomic_mass           = g4element->GetAtomicMassAmu();
+        element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
+        element.coulomb_factor        = g4element->GetfCoulomb();
+
+        // Add element to the global element map
+        geometry.add_element(elid, element);
+    }
+
+    // Populate global material map
     for (auto i : celeritas::range(g4production_cuts.GetTableSize()))
     {
         // Fetch material and element list
@@ -243,33 +261,26 @@ void store_geometry(TFile*                       root_file,
         material.density          = g4material->GetDensity() / (g / cm3);
         material.electron_density = g4material->GetTotNbOfElectPerVolume()
                                     / (1. / cm3);
-        material.atomic_density = g4material->GetTotNbOfAtomsPerVolume()
+        material.number_density = g4material->GetTotNbOfAtomsPerVolume()
                                   / (1. / cm3);
         material.radiation_length   = g4material->GetRadlen() / cm;
         material.nuclear_int_length = g4material->GetNuclearInterLength() / cm;
 
-        // Populate element information
+        // Populate element information for this material
         for (auto j : celeritas::range(g4elements->size()))
         {
             const auto& g4element = g4elements->at(j);
             CHECK(g4element);
+            elem_id   elid               = g4element->GetIndex();
+            real_type elem_mass_fraction = g4material->GetFractionVector()[j];
+            real_type elem_num_density
+                = g4material->GetVecNbOfAtomsPerVolume()[j] / (1. / cm3);
+            real_type elem_num_fraction = elem_num_density
+                                          / material.number_density;
 
-            ImportElement element;
-            element.name                  = g4element->GetName();
-            element.atomic_number         = g4element->GetZ();
-            element.atomic_mass           = g4element->GetAtomicMassAmu();
-            element.radiation_length_tsai = g4element->GetfRadTsai()
-                                            / (g / cm2);
-            element.coulomb_factor = g4element->GetfCoulomb();
-
-            elem_id   elid = g4element->GetIndex();
-            real_type frac = g4material->GetFractionVector()[j];
-
-            // Add element to the global element map
-            geometry.add_element(elid, element);
-
-            // Add global element to the map of elements of a given material
-            material.elements_fractions.insert({elid, frac});
+            // Add global element id and its mass/number fraction
+            material.elements_fractions.insert({elid, elem_mass_fraction});
+            material.elements_num_fractions.insert({elid, elem_num_fraction});
         }
         // Add material to the global material map
         geometry.add_material(g4material_cuts->GetIndex(), material);
@@ -360,7 +371,7 @@ int main(int argc, char* argv[])
 
     root_output.Close();
 
-    cout << root_output_filename << " done!" << endl;
+    cout << root_output_filename << " done!\n" << endl;
 
     return EXIT_SUCCESS;
 }

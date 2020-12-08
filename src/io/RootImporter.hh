@@ -17,6 +17,7 @@
 #include "GdmlGeometryMap.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleDef.hh"
+#include "physics/material/MaterialParams.hh"
 #include "base/Types.hh"
 #include "base/Macros.hh"
 
@@ -29,6 +30,11 @@ namespace celeritas
 /*!
  * RootImporter loads particle, physics table, material, and geometry
  * data from the ROOT file created by the app/geant-exporter external code.
+ *
+ * The geant-exporter app only pulls data from Geant4, and we will keep it
+ * that way for validation and comparison purposes. Conversely, MaterialParams
+ * is a Celeritas class. Thus, RootImporter acts as a bridge and is responsible
+ * for converting any quantity between Geant4 -> Celeritas.
  *
  * Usage:
  * \code
@@ -44,7 +50,7 @@ namespace celeritas
  *
  * Material and volume information are stored in a GdmlGeometryMap object.
  * The GdmlGeometryMap::mat_id value returned from a given vol_id represents
- * the position of said material in the ImportPhysicsTable:
+ * the position of said material in the ImportPhysicsTable vectors:
  * \c ImportPhysicsTable.physics_vectors.at(mat_id_value).
  */
 class RootImporter
@@ -54,8 +60,8 @@ class RootImporter
     {
         std::shared_ptr<ParticleParams>                  particle_params;
         std::shared_ptr<std::vector<ImportPhysicsTable>> physics_tables;
-        // Incomplete. It will store an object similar to ParticleParams
-        std::shared_ptr<GdmlGeometryMap> geometry;
+        std::shared_ptr<GdmlGeometryMap>                 geometry;
+        std::shared_ptr<MaterialParams>                  material_params;
     };
 
   public:
@@ -75,6 +81,10 @@ class RootImporter
     std::shared_ptr<std::vector<ImportPhysicsTable>> load_physics_table_data();
     // Load GdmlGeometryMap object
     std::shared_ptr<GdmlGeometryMap> load_geometry_data();
+    // Populate the shared_ptr<MaterialParams> with material information
+    std::shared_ptr<MaterialParams> load_material_data();
+    // Safely switch between state enums
+    MatterState to_matter_state(const ImportMaterialState state);
 
   public:
     std::unique_ptr<TFile> root_input_;

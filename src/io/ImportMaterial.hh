@@ -46,13 +46,14 @@ struct ImportMaterial
 {
     std::string                  name;
     ImportMaterialState          state;
-    real_type                    temperature;        // [K]
-    real_type                    density;            // [g/cm^3]
-    real_type                    electron_density;   // [1/cm^3]
-    real_type                    atomic_density;     // [1/cm^3]
-    real_type                    radiation_length;   // [cm]
-    real_type                    nuclear_int_length; // [cm]
-    std::map<elem_id, real_type> elements_fractions;
+    real_type                    temperature;            // [K]
+    real_type                    density;                // [g/cm^3]
+    real_type                    electron_density;       // [1/cm^3]
+    real_type                    number_density;         // [1/cm^3]
+    real_type                    radiation_length;       // [cm]
+    real_type                    nuclear_int_length;     // [cm]
+    std::map<elem_id, real_type> elements_fractions;     // Mass fractions
+    std::map<elem_id, real_type> elements_num_fractions; // Number fractions
 };
 
 //---------------------------------------------------------------------------//

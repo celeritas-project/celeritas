@@ -27,7 +27,7 @@ namespace celeritas
  * - The element id maps elements in the global element map.
  * - The volume id maps volumes in the global volume map.
  * - Volume id and material id are linked by a map, so that given a volume id
- *   one can retrieve full material/element information, including XS data.
+ *   one can retrieve full material and element information, including XS data.
  */
 class GdmlGeometryMap
 {
@@ -47,7 +47,15 @@ class GdmlGeometryMap
     // Find ImportElement given element id
     const ImportElement& get_element(elem_id element_id) const;
 
-    // Return a reference to the private member volid_to_matid_ map
+    // Return the size of the largest material element list
+    size_type max_num_elements() const;
+    // Return a reference to matid_to_material map
+    const std::map<mat_id, ImportMaterial>& matid_to_material_map();
+    // Return a reference to volid_to_volume_ map
+    const std::map<vol_id, ImportVolume>& volid_to_volume_map();
+    // Return a reference to elemid_to_element_ map
+    const std::map<elem_id, ImportElement>& elemid_to_element_map();
+    // Return a reference to volid_to_matid_ map
     const std::map<vol_id, mat_id>& volid_to_matid_map();
 
     /// WRITE (only used by geant-exporter app) ///

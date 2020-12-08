@@ -1,8 +1,10 @@
-# Options
+# Celeritas dependency options
 set(CELERITAS_USE_CUDA OFF CACHE BOOL "")
 set(CELERITAS_USE_ROOT ON CACHE BOOL "")
 set(CELERITAS_USE_Geant4 ON CACHE BOOL "")
 set(CELERITAS_USE_VecGeom OFF CACHE BOOL "")
+
+# VSCode export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "")
 
 # Add all the warnings, and enable color diagnostics when using Ninja

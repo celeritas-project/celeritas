@@ -29,7 +29,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
 
   if(CELERITAS_BUILD_TESTS)
     set(_geant_test_inp
-      "${CMAKE_CURRENT_SOURCE_DIR}/geant-exporter/data/two-boxes.gdml"
+      "${CMAKE_CURRENT_SOURCE_DIR}/geant-exporter/data/four-steel-slabs.gdml"
     )
     add_test(NAME "app/geant-exporter"
       COMMAND "$<TARGET_FILE:geant-exporter>"

@@ -14,6 +14,7 @@
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "base/SpanRemapper.hh"
+#include "comm/Logger.hh"
 
 namespace celeritas
 {
@@ -33,7 +34,7 @@ MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
                         inp.materials.end(),
                         size_type(0),
                         [](size_type count, const MaterialInput& mi) {
-                            return count + mi.elements.size();
+                            return count + mi.elements_fractions.size();
                         }));
     host_materials_.reserve(inp.materials.size());
     elnames_.reserve(inp.elements.size());
@@ -76,7 +77,6 @@ MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
     ENSURE(host_materials_.size() == inp.materials.size());
     ENSURE(elnames_.size() == inp.elements.size());
     ENSURE(matnames_.size() == inp.materials.size());
-    ENSURE(matname_to_id_.size() == inp.materials.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -86,8 +86,8 @@ MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
 MaterialParamsPointers MaterialParams::host_pointers() const
 {
     MaterialParamsPointers result;
-    result.elements  = make_span(host_elements_);
-    result.materials = make_span(host_materials_);
+    result.elements               = make_span(host_elements_);
+    result.materials              = make_span(host_materials_);
     result.max_element_components = this->max_element_components();
 
     ENSURE(result);
@@ -95,15 +95,14 @@ MaterialParamsPointers MaterialParams::host_pointers() const
 }
 
 //---------------------------------------------------------------------------//
-
 /*!
  * Access material properties on the device.
  */
 MaterialParamsPointers MaterialParams::device_pointers() const
 {
     MaterialParamsPointers result;
-    result.elements  = device_elements_.device_pointers();
-    result.materials = device_materials_.device_pointers();
+    result.elements               = device_elements_.device_pointers();
+    result.materials              = device_materials_.device_pointers();
     result.max_element_components = this->max_element_components();
 
     ENSURE(result);
@@ -153,32 +152,44 @@ void MaterialParams::append_element_def(const ElementInput& inp)
 span<MatElementComponent>
 MaterialParams::extend_elcomponents(const MaterialInput& inp)
 {
-    REQUIRE(host_elcomponents_.size() + inp.elements.size()
+    REQUIRE(host_elcomponents_.size() + inp.elements_fractions.size()
             <= host_elcomponents_.capacity());
 
     // Allocate material components
     auto start_size = host_elcomponents_.size();
-    host_elcomponents_.resize(start_size + inp.elements.size());
+    host_elcomponents_.resize(start_size + inp.elements_fractions.size());
     span<MatElementComponent> result{host_elcomponents_.data() + start_size,
-                                     inp.elements.size()};
+                                     inp.elements_fractions.size()};
 
-    // Copy values from input and check number fractions
+    // Store number fractions
     real_type norm = 0.0;
-    for (auto i : range(inp.elements.size()))
+    for (auto i : range(inp.elements_fractions.size()))
     {
-        REQUIRE(inp.elements[i].first < host_elements_.size());
-        REQUIRE(inp.elements[i].second >= 0);
-        result[i].element  = inp.elements[i].first;
-        result[i].fraction = inp.elements[i].second;
-        norm += inp.elements[i].second;
+        REQUIRE(inp.elements_fractions[i].first < host_elements_.size());
+        REQUIRE(inp.elements_fractions[i].second >= 0);
+        // Store number fraction
+        result[i].element  = inp.elements_fractions[i].first;
+        result[i].fraction = inp.elements_fractions[i].second;
+        // Add fractions to verify unity
+        norm += inp.elements_fractions[i].second;
     }
-    CHECK(SoftEqual<>()(norm, 1.0) || inp.elements.empty());
-    norm = 1 / norm;
 
-    // Normalize
-    for (MatElementComponent& comp : result)
+    // Renormalize component fractions that are not unity and log them
+    if (!inp.elements_fractions.empty() && !SoftEqual<>()(norm, 1.0))
     {
-        comp.fraction *= norm;
+        CELER_LOG(warning) << "Element component fractions for `" << inp.name
+                           << "` should sum to 1 but instead sum to " << norm
+                           << " (difference = " << norm - 1 << ")";
+
+        // Normalize
+        norm                      = 1.0 / norm;
+        real_type total_fractions = 0;
+        for (MatElementComponent& comp : result)
+        {
+            comp.fraction *= norm;
+            total_fractions += comp.fraction;
+        }
+        CHECK(SoftEqual<>()(total_fractions, 1.0));
     }
 
     // Sort elements by increasing element ID for improved access
@@ -199,37 +210,46 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp)
 void MaterialParams::append_material_def(const MaterialInput& inp)
 {
     REQUIRE(inp.number_density >= 0);
-    REQUIRE((inp.number_density == 0) == inp.elements.empty());
-    REQUIRE(inp.temperature > 0 || inp.number_density == 0);
+    REQUIRE((inp.number_density == 0) == inp.elements_fractions.empty());
 
-    auto insertion = matname_to_id_.insert(
+    auto iter_inserted = matname_to_id_.insert(
         {inp.name, MaterialDefId(host_materials_.size())});
-    CHECK(insertion.second);
+    if (!iter_inserted.second)
+    {
+        // Insertion failed, so material name is a duplicate
+        CELER_LOG(warning)
+            << "Material " << inp.name << " already exists with id "
+            << iter_inserted.second << ". This new id ("
+            << host_materials_.size() << ") will not be available.";
+    }
 
     MaterialDef result;
-
     // Copy basic properties
     result.number_density = inp.number_density;
     result.temperature    = inp.temperature;
     result.matter_state   = inp.matter_state;
+    result.elements       = this->extend_elcomponents(inp);
 
-    // Set elemental fractions
-    result.elements = this->extend_elcomponents(inp);
-
-    // Renormalize component fractions and calculate weighted properties
-    real_type avg_amu   = 0;
-    real_type avg_z     = 0;
-    real_type rad_coeff = 0;
+    /*!
+     * Calculate derived quantities: density, electron density, and rad length
+     *
+     * NOTE: Electron density calculation may need to be updated for solids.
+     */
+    real_type avg_amu_mass = 0;
+    real_type avg_z        = 0;
+    real_type rad_coeff    = 0;
     for (const MatElementComponent& comp : result.elements)
     {
         CHECK(comp.element < host_elements_.size());
         const ElementDef& el = host_elements_[comp.element.get()];
-        avg_amu += comp.fraction * el.atomic_mass.value();
+
+        avg_amu_mass += comp.fraction * el.atomic_mass.value();
         avg_z += comp.fraction * el.atomic_number;
         rad_coeff += comp.fraction * el.mass_radiation_coeff;
     }
-    result.density = avg_amu * constants::atomic_mass * result.number_density;
-    result.electron_density = avg_z * result.number_density;
+    result.density = result.number_density * avg_amu_mass
+                     * constants::atomic_mass;
+    result.electron_density = result.number_density * avg_z;
     result.rad_length       = 1 / (rad_coeff * result.density);
 
     // Add to host vector

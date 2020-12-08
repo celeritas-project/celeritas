@@ -20,7 +20,7 @@ const std::string& MaterialParams::id_to_label(ElementDefId el) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the label for an material.
+ * Get the label for a material.
  */
 const std::string& MaterialParams::id_to_label(MaterialDefId mat) const
 {
@@ -31,6 +31,9 @@ const std::string& MaterialParams::id_to_label(MaterialDefId mat) const
 //---------------------------------------------------------------------------//
 /*!
  * Find the material ID corresponding to a name.
+ *
+ * This function will have to be updated to allow for multiple MaterialDefIds
+ * with same material name.
  */
 MaterialDefId MaterialParams::find(const std::string& name) const
 {

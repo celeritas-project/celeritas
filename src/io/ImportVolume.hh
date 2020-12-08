@@ -21,12 +21,13 @@ namespace celeritas
  * Used by the GdmlGeometryMap class.
  *
  * The reason for this (currently absurdly simple) struct instead of just
- * keeping tab of volume names directly in the GdmlGeometryMap, is to
- * easily import further volume information in the future.
+ * keeping tab of volume and solid names directly in the GdmlGeometryMap, is
+ * to easily import more information in the future.
  */
 struct ImportVolume
 {
     std::string name;
+    std::string solid_name;
 };
 
 //---------------------------------------------------------------------------//

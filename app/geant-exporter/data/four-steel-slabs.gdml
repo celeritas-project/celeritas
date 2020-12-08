@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <isotope N="54" Z="26" name="Fe540x125553930">
+      <atom unit="g/mole" value="53.9396"/>
+    </isotope>
+    <isotope N="56" Z="26" name="Fe560x125553970">
+      <atom unit="g/mole" value="55.9349"/>
+    </isotope>
+    <isotope N="57" Z="26" name="Fe570x1255539b0">
+      <atom unit="g/mole" value="56.9354"/>
+    </isotope>
+    <isotope N="58" Z="26" name="Fe580x125553b10">
+      <atom unit="g/mole" value="57.9333"/>
+    </isotope>
+    <element name="Fe0x125553b50">
+      <fraction n="0.05845" ref="Fe540x125553930"/>
+      <fraction n="0.91754" ref="Fe560x125553970"/>
+      <fraction n="0.02119" ref="Fe570x1255539b0"/>
+      <fraction n="0.00282" ref="Fe580x125553b10"/>
+    </element>
+    <isotope N="50" Z="24" name="Cr500x125553d70">
+      <atom unit="g/mole" value="49.946"/>
+    </isotope>
+    <isotope N="52" Z="24" name="Cr520x125553df0">
+      <atom unit="g/mole" value="51.9405"/>
+    </isotope>
+    <isotope N="53" Z="24" name="Cr530x125553e30">
+      <atom unit="g/mole" value="52.9407"/>
+    </isotope>
+    <isotope N="54" Z="24" name="Cr540x125553e70">
+      <atom unit="g/mole" value="53.9389"/>
+    </isotope>
+    <element name="Cr0x125553eb0">
+      <fraction n="0.04345" ref="Cr500x125553d70"/>
+      <fraction n="0.83789" ref="Cr520x125553df0"/>
+      <fraction n="0.09501" ref="Cr530x125553e30"/>
+      <fraction n="0.02365" ref="Cr540x125553e70"/>
+    </element>
+    <isotope N="58" Z="28" name="Ni580x1255540d0">
+      <atom unit="g/mole" value="57.9353"/>
+    </isotope>
+    <isotope N="60" Z="28" name="Ni600x125553db0">
+      <atom unit="g/mole" value="59.9308"/>
+    </isotope>
+    <isotope N="61" Z="28" name="Ni610x125554190">
+      <atom unit="g/mole" value="60.9311"/>
+    </isotope>
+    <isotope N="62" Z="28" name="Ni620x1255541d0">
+      <atom unit="g/mole" value="61.9283"/>
+    </isotope>
+    <isotope N="64" Z="28" name="Ni640x125554210">
+      <atom unit="g/mole" value="63.928"/>
+    </isotope>
+    <element name="Ni0x125554290">
+      <fraction n="0.680769" ref="Ni580x1255540d0"/>
+      <fraction n="0.262231" ref="Ni600x125553db0"/>
+      <fraction n="0.011399" ref="Ni610x125554190"/>
+      <fraction n="0.036345" ref="Ni620x1255541d0"/>
+      <fraction n="0.009256" ref="Ni640x125554210"/>
+    </element>
+    <material name="G4_STAINLESS-STEEL0x125553a10" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="282.97693634122"/>
+      <D unit="g/cm3" value="8"/>
+      <fraction n="0.746212874621521" ref="Fe0x125553b50"/>
+      <fraction n="0.169001044311525" ref="Cr0x125553eb0"/>
+      <fraction n="0.0847860810669534" ref="Ni0x125554290"/>
+    </material>
+    <isotope N="1" Z="1" name="H10x125554850">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H20x125554890">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="H0x1255548d0">
+      <fraction n="0.999885" ref="H10x125554850"/>
+      <fraction n="0.000115" ref="H20x125554890"/>
+    </element>
+    <material name="G4_Galactic0x125554f50" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="H0x1255548d0"/>
+    </material>
+  </materials>
+
+  <solids>
+    <box lunit="mm" name="box0x125555b70" x="200" y="200" z="40"/>
+    <box lunit="mm" name="boxReplica0x125556c70" x="200" y="200" z="40"/>
+    <box lunit="mm" name="boxReplica20x1255570a0" x="200" y="200" z="40"/>
+    <box lunit="mm" name="boxReplica30x125557500" x="200" y="200" z="40"/>
+    <box lunit="mm" name="World0x125555ea0" x="10000" y="10000" z="10000"/>
+  </solids>
+
+  <structure>
+    <volume name="box0x125555be0">
+      <materialref ref="G4_STAINLESS-STEEL0x125553a10"/>
+      <solidref ref="box0x125555b70"/>
+    </volume>
+    <volume name="boxReplica0x125556d20">
+      <materialref ref="G4_STAINLESS-STEEL0x125553a10"/>
+      <solidref ref="boxReplica0x125556c70"/>
+    </volume>
+    <volume name="boxReplica0x125557160">
+      <materialref ref="G4_STAINLESS-STEEL0x125553a10"/>
+      <solidref ref="boxReplica20x1255570a0"/>
+    </volume>
+    <volume name="boxReplica0x1255575a0">
+      <materialref ref="G4_STAINLESS-STEEL0x125553a10"/>
+      <solidref ref="boxReplica30x125557500"/>
+    </volume>
+    <volume name="World0x125555f10">
+      <materialref ref="G4_Galactic0x125554f50"/>
+      <solidref ref="World0x125555ea0"/>
+      <physvol name="box0x125556930">
+        <volumeref ref="box0x125555be0"/>
+      </physvol>
+      <physvol name="box0x125556dc0">
+        <volumeref ref="boxReplica0x125556d20"/>
+        <position name="box0x125556dc0_pos" unit="mm" x="0" y="0" z="60"/>
+      </physvol>
+      <physvol name="box0x125557110">
+        <volumeref ref="boxReplica0x125557160"/>
+        <position name="box0x125557110_pos" unit="mm" x="0" y="0" z="120"/>
+      </physvol>
+      <physvol name="box0x125557640">
+        <volumeref ref="boxReplica0x1255575a0"/>
+        <position name="box0x125557640_pos" unit="mm" x="0" y="0" z="180"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <userinfo>
+    <auxiliary auxtype="Region" auxvalue="DefaultRegionForTheWorld0x125357890">
+      <auxiliary auxtype="volume" auxvalue="World0x125555f10"/>
+      <auxiliary auxtype="gamcut" auxunit="mm" auxvalue="0.7"/>
+      <auxiliary auxtype="ecut" auxunit="mm" auxvalue="0.7"/>
+      <auxiliary auxtype="poscut" auxunit="mm" auxvalue="0.7"/>
+      <auxiliary auxtype="pcut" auxunit="mm" auxvalue="0.7"/>
+    </auxiliary>
+  </userinfo>
+
+  <setup name="Default" version="1.0">
+    <world ref="World0x125555f10"/>
+  </setup>
+
+</gdml>
