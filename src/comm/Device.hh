@@ -3,19 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngStateInit.hh
+//! \file Device.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Span.hh"
-#include "RngStatePointers.hh"
+#include "Communicator.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// Initialize the RNG state on device
-void rng_state_init_device(const RngStatePointers&         device_ptrs,
-                           span<const RngSeed::value_type> device_seeds);
+// Whether device code should be used
+bool is_device_enabled();
+
+//---------------------------------------------------------------------------//
+// Initialize device in a round-robin fashion from a communicator
+void initialize_device(const Communicator& comm);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

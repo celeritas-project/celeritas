@@ -9,6 +9,7 @@
 
 #include <cuda_runtime_api.h>
 #include "Assert.hh"
+#include "comm/Device.hh"
 
 namespace celeritas
 {
@@ -19,6 +20,7 @@ namespace celeritas
 DeviceAllocation::DeviceAllocation(size_type bytes) : size_(bytes)
 {
     REQUIRE(bytes > 0);
+    REQUIRE(is_device_enabled());
     void* ptr = nullptr;
     CELER_CUDA_CALL(cudaMalloc(&ptr, bytes));
     data_.reset(static_cast<byte*>(ptr));

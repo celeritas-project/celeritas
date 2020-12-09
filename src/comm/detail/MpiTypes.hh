@@ -3,17 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.hh
+//! \file MpiTypes.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Communicator.hh"
+#include "celeritas_config.h"
 
-namespace celeritas
-{
-//---------------------------------------------------------------------------//
-// Initialize device in a round-robin fashion from a communicator
-void initialize_device(const Communicator& comm);
-
-//---------------------------------------------------------------------------//
-} // namespace celeritas
+#if CELERITAS_USE_MPI
+#    include "./MpiTypes.mpi.i.hh"
+#else
+#    include "./MpiTypes.nompi.i.hh"
+#endif

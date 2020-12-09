@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Communicator.nompi.cc
+//! \file RngStateInit.hh
 //---------------------------------------------------------------------------//
-#include "Communicator.hh"
+#pragma once
 
-#include "base/Assert.hh"
+#include "base/Span.hh"
+#include "random/cuda/RngStatePointers.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct with a native MPI communicator
- */
-Communicator::Communicator(MpiComm)
+namespace detail
 {
-    throw DebugError("Cannot build a communicator because MPI is disabled");
-}
+//---------------------------------------------------------------------------//
+// Initialize the RNG state on device
+void rng_state_init_device(const RngStatePointers&         device_ptrs,
+                           span<const RngSeed::value_type> device_seeds);
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

@@ -3,39 +3,26 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MpiTypes.hh
+//! \file Device.nocuda.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "celeritas_config.h"
-#if CELERITAS_USE_MPI
-#    include <mpi.h>
-#endif
+#include "Device.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// MPI TYPES
+/*!
+ * No device initialization takes place since CUDA is disabled.
+ */
+void initialize_device(const Communicator&) {}
+
 //---------------------------------------------------------------------------//
-#if CELERITAS_USE_MPI
-using MpiComm = MPI_Comm;
-#else
-
-struct MpiComm
+/*!
+ * CUDA is not enabled.
+ */
+bool is_device_enabled()
 {
-    int value_;
-};
-
-inline bool operator==(MpiComm a, MpiComm b)
-{
-    return a.value_ == b.value_;
+    return false;
 }
-
-inline bool operator!=(MpiComm a, MpiComm b)
-{
-    return !(a == b);
-}
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

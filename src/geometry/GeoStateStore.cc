@@ -13,6 +13,7 @@
 #include "base/Range.hh"
 #include "base/NumericLimits.hh"
 #include "base/Types.hh"
+#include "comm/Device.hh"
 #include "GeoParams.hh"
 #include "detail/VGCompatibility.hh"
 
@@ -25,6 +26,7 @@ namespace celeritas
 GeoStateStore::GeoStateStore(const GeoParams& geom, size_type size)
     : max_depth_(geom.max_depth())
 {
+    REQUIRE(celeritas::is_device_enabled());
     vgstate_   = detail::VGNavStateStore(size, max_depth_);
     vgnext_    = detail::VGNavStateStore(size, max_depth_);
     pos_       = DeviceVector<Real3>(size);

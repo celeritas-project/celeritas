@@ -24,7 +24,8 @@ enum class LogLevel
     info,       //!< Important informational messages
     warning,    //!< Warnings about unusual events
     error,      //!< Something went wrong, but execution continues
-    critical    //!< Something went terribly wrong; we're aborting now! Bye!
+    critical,   //!< Something went terribly wrong; we're aborting now! Bye!
+    size_       //!< Sentinel value for looping over log levels
 };
 
 //---------------------------------------------------------------------------//

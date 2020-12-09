@@ -14,7 +14,7 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/em/KleinNishinaInteractor.hh"
-#include "random/cuda/RngEngine.cuh"
+#include "random/cuda/RngEngine.hh"
 #include "random/distributions/ExponentialDistribution.hh"
 #include "PhysicsArrayCalculator.hh"
 #include "DetectorView.hh"

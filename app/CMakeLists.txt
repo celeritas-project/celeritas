@@ -87,8 +87,13 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
       COMMAND "${Python_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py"
     )
+    set(_env
+      "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
+      "CELER_DISABLE_PARALLEL=1"
+    )
     set_tests_properties("app/demo-interactor" PROPERTIES
-      ENVIRONMENT "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
+      ENVIRONMENT "${_env}"
+      RESOURCE_LOCK gpu
     )
   endif()
 
@@ -150,8 +155,13 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
       COMMAND "${Python_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/demo-rasterizer/simple-driver.py"
     )
+    set(_env
+      "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-rasterizer>"
+      "CELER_DISABLE_PARALLEL=1"
+    )
     set_tests_properties("app/demo-rasterizer" PROPERTIES
-      ENVIRONMENT "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-rasterizer>"
+      ENVIRONMENT "${_env}"
+      RESOURCE_LOCK gpu
     )
   endif()
 endif()

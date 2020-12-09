@@ -3,33 +3,43 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Communicator.mpi.cc
+//! \file MpiTypes.nompi.i.hh
 //---------------------------------------------------------------------------//
-#include "Communicator.hh"
-
-#include "base/Assert.hh"
-#include "ScopedMpiInit.hh"
+#pragma once
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct with a native MPI communicator.
- */
-Communicator::Communicator(MpiComm comm) : comm_(comm)
+namespace detail
 {
-    REQUIRE(comm != detail::MpiCommNull());
-    REQUIRE(ScopedMpiInit::status() == ScopedMpiInit::Status::initialized);
+//---------------------------------------------------------------------------//
+struct MpiComm
+{
+    int value_;
+};
 
-    // Save rank and size
-    int err;
-    err = MPI_Comm_rank(comm_, &rank_);
-    CHECK(err == MPI_SUCCESS);
-    err = MPI_Comm_size(comm_, &size_);
-    CHECK(err == MPI_SUCCESS);
+constexpr inline bool operator==(MpiComm a, MpiComm b)
+{
+    return a.value_ == b.value_;
+}
 
-    ENSURE(this->rank() >= 0 && this->rank() < this->size());
+constexpr inline bool operator!=(MpiComm a, MpiComm b)
+{
+    return !(a == b);
+}
+
+constexpr inline MpiComm MpiCommNull()
+{
+    return {0};
+}
+constexpr inline MpiComm MpiCommSelf()
+{
+    return {-1};
+}
+constexpr inline MpiComm MpiCommWorld()
+{
+    return {1};
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

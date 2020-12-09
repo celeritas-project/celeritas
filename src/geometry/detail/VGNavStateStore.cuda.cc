@@ -9,6 +9,7 @@
 
 #include <VecGeom/navigation/NavStatePool.h>
 #include "base/Assert.hh"
+#include "comm/Device.hh"
 
 namespace celeritas
 {
@@ -30,6 +31,7 @@ VGNavStateStore::VGNavStateStore(size_type size, int depth)
 void VGNavStateStore::copy_to_device()
 {
     REQUIRE(*this);
+    REQUIRE(celeritas::is_device_enabled());
     pool_->CopyToGpu();
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 }

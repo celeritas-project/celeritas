@@ -11,8 +11,9 @@
 #include "celeritas_config.h"
 #include "base/ColorUtils.hh"
 #include "comm/Communicator.hh"
+#include "comm/Device.hh"
+#include "comm/Operations.hh"
 #include "comm/ScopedMpiInit.hh"
-#include "comm/Utils.hh"
 #include "NonMasterResultPrinter.hh"
 #include "ParallelHandler.hh"
 #include "Utils.hh"
@@ -25,7 +26,10 @@ namespace detail
 int test_main(int argc, char** argv)
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
-    Communicator  comm = Communicator::comm_world();
+    Communicator  comm
+        = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
+               ? Communicator{}
+               : Communicator::comm_world());
 
     // Initialize device
     try
@@ -66,13 +70,8 @@ int test_main(int argc, char** argv)
     // Run everything
     int failed = RUN_ALL_TESTS();
 
-    // Accumulate the result so that all processors will have the same result
-    // XXX replace with celeritas comm wrappers
-    int global_failed = failed;
-#if CELERITAS_USE_MPI
-    MPI_Allreduce(
-        &failed, &global_failed, 1, MPI_INT, MPI_MAX, comm.mpi_comm());
-#endif
+    // Find out if any process failed
+    failed = allreduce(comm, Operation::max, failed);
 
     // If no tests were run, there's a problem.
     if (testing::UnitTest::GetInstance()->test_to_run_count() == 0)
@@ -83,19 +82,19 @@ int test_main(int argc, char** argv)
                       << " No tests are written/enabled!" << std::endl;
         }
 
-        global_failed = 1;
+        failed = 1;
     }
 
     // Print final results
     if (comm.rank() == 0)
     {
         std::cout << color_code('x') << (argc > 0 ? argv[0] : "UNKNOWN")
-                  << ": tests " << (global_failed ? "FAILED" : "PASSED")
+                  << ": tests " << (failed ? "FAILED" : "PASSED")
                   << color_code(' ') << std::endl;
     }
 
     // Return 1 if any failure, 0 if all success
-    return global_failed;
+    return failed;
 }
 
 //---------------------------------------------------------------------------//

@@ -49,10 +49,10 @@ Add a CUDA/C++ GoogleTest test::
       <filename>
       [TIMEOUT seconds]
       [NP n1 [n2 ...]]
-      [DEPLIBS lib1 [lib2 ...]]
+      [LINK_LIBRARIES lib1 [lib2 ...]]
       [DEPTEST deptest]
       [SUFFIX text]
-      [DEPENDS target1 [target2 ...]]
+      [ADD_DEPENDENCIES target1 [target2 ...]]
       [ARGS arg1 [arg2 ...]]
       [ENVIRONMENT VAR=value [VAR2=value2 ...]]
       [FILTER test1 [test2 ...]]
@@ -62,6 +62,7 @@ Add a CUDA/C++ GoogleTest test::
       [DISABLE]
       [DRIVER]
       [REUSE_EXE]
+      [GPU]
       )
 
     ``<filename>``
@@ -72,11 +73,11 @@ Add a CUDA/C++ GoogleTest test::
       is to use CELERITASTEST_NP (1, 2, and 4) for MPI builds and 1 for
       serial builds.
 
-    ``DEPLIBS``
+    ``LINK_LIBRARIES``
       Extra libraries to link to. By default, unit tests will link against the
       package's current library.
 
-    ``DEPENDS``
+    ``ADD_DEPENDENCIES``
       Extra dependencies for building the execuatable, e.g.  preprocessing data
       or copying files.
 
@@ -115,6 +116,9 @@ Add a CUDA/C++ GoogleTest test::
     ``REUSE_EXE``
       Assume the executable was already built from a previous celeritas_add_test
       command. This is useful for specifying combinations of NP/FILTER.
+
+    ``GPU``
+      Add a resource lock so that only one GPU test will be run at once.
 
 Variables
 ^^^^^^^^^
@@ -241,9 +245,9 @@ endfunction()
 
 function(celeritas_add_test SOURCE_FILE)
   cmake_parse_arguments(PARSE
-    "ISOLATE;DISABLE;DRIVER;REUSE_EXE"
+    "ISOLATE;DISABLE;DRIVER;REUSE_EXE;GPU"
     "TIMEOUT;DEPTEST;SUFFIX"
-    "DEPLIBS;DEPENDS;NP;ENVIRONMENT;ARGS;INPUTS;FILTER;SOURCES"
+    "LINK_LIBRARIES;ADD_DEPENDENCIES;NP;ENVIRONMENT;ARGS;INPUTS;FILTER;SOURCES"
     ${ARGN}
   )
 
@@ -308,12 +312,12 @@ function(celeritas_add_test SOURCE_FILE)
     add_executable(${_TARGET} "${SOURCE_FILE}" ${PARSE_SOURCES})
     target_link_libraries(${_TARGET}
       ${CELERITASTEST_LINK_LIBRARIES}
-      ${PARSE_DEPLIBS}
+      ${PARSE_LINK_LIBRARIES}
       Celeritas::Test)
 
-    if(PARSE_DEPENDS OR CELERITASTEST_ADD_DEPENDENCIES)
+    if(PARSE_ADD_DEPENDENCIES OR CELERITASTEST_ADD_DEPENDENCIES)
       # Add additional dependencies
-      add_dependencies(${_TARGET} ${PARSE_DEPENDS}
+      add_dependencies(${_TARGET} ${PARSE_ADD_DEPENDENCIES}
         ${CELERITASTEST_ADD_DEPENDENCIES})
     endif()
   endif()
@@ -321,6 +325,43 @@ function(celeritas_add_test SOURCE_FILE)
   # Add standard CELERITAS environment variables
   if(CELERITASTEST_PYTHONPATH)
     list(APPEND PARSE_ENVIRONMENT "PYTHONPATH=${CELERITASTEST_PYTHONPATH}")
+  endif()
+
+  if(CELERITAS_DEBUG)
+    list(APPEND PARSE_ENVIRONMENT
+      "CELER_LOG=debug"
+      "CELER_LOG_LOCAL=diagnostic"
+    )
+  endif()
+
+  set(_COMMON_PROPS)
+  if(CELERITAS_USE_CUDA)
+    if(NOT PARSE_GPU)
+      list(APPEND PARSE_ENVIRONMENT "CELER_DISABLE_DEVICE=1")
+    elseif(NOT CELERITAS_DEBUG)
+      # Add a "resource lock" when building without debug checking to get more
+      # accurate test times (since multiple GPU processes won't be competing for
+      # the same card).
+      # To speed up overall test time, *do not* apply the resource lock when
+      # we're debugging because timings don't matter.
+      list(APPEND _COMMON_PROPS RESOURCE_LOCK gpu)
+    endif()
+  endif()
+  if(PARSE_TIMEOUT)
+    list(APPEND _COMMON_PROPS TIMEOUT ${PARSE_TIMEOUT})
+  endif()
+  if(PARSE_DISABLE)
+    list(APPEND _COMMON_PROPS DISABLED True)
+  endif()
+  if(_CELERITASTEST_IS_GTEST OR _CELERITASTEST_IS_PYTHON)
+    list(APPEND _COMMON_PROPS
+      PASS_REGULAR_EXPRESSION "tests PASSED"
+      FAIL_REGULAR_EXPRESSION "tests FAILED"
+    )
+  endif()
+
+  if(CELERITAS_USE_MPI AND PARSE_NP STREQUAL "1")
+    list(APPEND PARSE_ENVIRONMENT "CELER_DISABLE_PARALLEL=1")
   endif()
 
   if(NOT PARSE_FILTER)
@@ -335,7 +376,7 @@ function(celeritas_add_test SOURCE_FILE)
         set(_suffix ":${_filter}")
       endif()
       _celeritasaddtest_test_name(_TEST_NAME
-      "${_PREFIX}${_BASENAME}${_SUFFIX}" "${_np}" "${_suffix}")
+        "${_PREFIX}${_BASENAME}${_SUFFIX}" "${_np}" "${_suffix}")
       if(NOT _TEST_NAME)
         continue()
       endif()
@@ -360,13 +401,14 @@ function(celeritas_add_test SOURCE_FILE)
       endif()
 
       add_test(NAME "${_TEST_NAME}" COMMAND ${_test_cmd} ${_test_args})
+      list(APPEND _ADDED_TESTS "${_TEST_NAME}")
 
       if(PARSE_DEPTEST)
         # Add dependency on another test
         _celeritasaddtest_test_name(_deptest_name
           "${PARSE_DEPTEST}" "${_np}" "${_suffix}")
         set_property(TEST "${_TEST_NAME}"
-          PROPERTY DEPENDS "${_deptest_name}")
+          PROPERTY ADD_DEPENDENCIES "${_deptest_name}")
       endif()
 
       if(PARSE_ISOLATE)
@@ -379,28 +421,20 @@ function(celeritas_add_test SOURCE_FILE)
         file(MAKE_DIRECTORY "${_test_dir}")
       endif()
 
-      if(PARSE_TIMEOUT)
-        set_property(TEST ${_TEST_NAME}
-          PROPERTY TIMEOUT ${PARSE_TIMEOUT})
-      endif()
-      if(PARSE_DISABLE)
-        set_property(TEST ${_TEST_NAME}
-          PROPERTY DISABLED True)
-      endif()
       set_property(TEST ${_TEST_NAME}
         PROPERTY ENVIRONMENT ${_test_env}
       )
-      set_property(TEST ${_TEST_NAME}
-        PROPERTY PROCESSORS ${_np}
-      )
-      if(_CELERITASTEST_IS_GTEST OR _CELERITASTEST_IS_PYTHON)
-        set_tests_properties(${_TEST_NAME} PROPERTIES
-          PASS_REGULAR_EXPRESSION "tests PASSED"
-          FAIL_REGULAR_EXPRESSION "tests FAILED"
+      if(_np GREATER 1)
+        set_property(TEST ${_TEST_NAME}
+          PROPERTY PROCESSORS ${_np}
         )
       endif()
     endforeach()
   endforeach()
+  if(_COMMON_PROPS AND _ADDED_TESTS)
+    # Set common properties
+    set_tests_properties(${_ADDED_TESTS} PROPERTIES ${_COMMON_PROPS})
+  endif()
 endfunction()
 
 #-----------------------------------------------------------------------------#

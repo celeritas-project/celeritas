@@ -1,34 +1,50 @@
 pipeline {
-    triggers {
-        issueCommentTrigger('.*do: test')
-    }
-    agent none
-
-    environment {
-        CTEST_ARGS = '--timeout 180 --no-compress-output -T Test --test-output-size-passed=65536 --test-output-size-failed=1048576'
-    }
-    stages {
-        stage('Build') {
-            parallel {
-                stage('cuda-11') {
-                    agent {
-                        docker {
-                            image 'celeritas/ci-cuda11:latest'
-                            label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
-                        }
-                    }
-                    steps {
-                        sh 'rm -rf build && mkdir -p build'
-                        sh 'SOURCE_DIR=. BUILD_DIR=build entrypoint-shell ./scripts/build/docker.sh'
-                    }
-                    post {
-                        always {
-                            xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-                        }
-                    }
-                }
+  triggers {
+    issueCommentTrigger('.*do: test')
+  }
+  agent none
+  environment {
+    CTEST_ARGS = '--timeout 180 --no-compress-output -T Test --test-output-size-passed=65536 --test-output-size-failed=1048576'
+  }
+  stages {
+    stage('Build') {
+      parallel {
+        stage('minimal') {
+          agent {
+            docker {
+              image 'celeritas/ci-cuda11:latest'
+              // Note: this image does not require CUDA
             }
+          }
+          steps {
+            sh 'rm -rf build && mkdir -p build'
+            sh 'SOURCE_DIR=. BUILD_DIR=build entrypoint-shell ./scripts/build/docker-minimal.sh'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
         }
+        stage('cuda-11') {
+          agent {
+            docker {
+              image 'celeritas/ci-cuda11:latest'
+              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
+            }
+          }
+          steps {
+            sh 'rm -rf build && mkdir -p build'
+            sh 'SOURCE_DIR=. BUILD_DIR=build entrypoint-shell ./scripts/build/docker.sh'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+      }
     }
+  }
 }
-
+// vim: set ft=groovy ts=2 sw=2 :

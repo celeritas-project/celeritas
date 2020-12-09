@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
+#if CELERITAS_USE_CUDA
 /*!
  * \def QUALIFIERS
  *
@@ -16,8 +18,12 @@
  * is a limited scope for the random module of celeritas.
  */
 #define QUALIFIERS static __forceinline__ __host__ __device__
-
 #include <curand_kernel.h>
+#else
+// CUDA is disabled
+#    include "curand.nocuda.hh"
+#endif
+
 #include "base/Span.hh"
 #include "base/Types.hh"
 

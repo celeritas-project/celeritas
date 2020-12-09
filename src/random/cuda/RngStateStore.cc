@@ -3,14 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngStateStore.cu
+//! \file RngStateStore.cc
 //---------------------------------------------------------------------------//
 #include "RngStateStore.hh"
 
 #include <random>
 #include <vector>
 #include "base/Assert.hh"
-#include "RngStateInit.hh"
+#include "comm/Device.hh"
+#include "detail/RngStateInit.hh"
 
 namespace celeritas
 {
@@ -23,6 +24,7 @@ namespace celeritas
 RngStateStore::RngStateStore(size_type size, unsigned long host_seed)
     : data_(size)
 {
+    REQUIRE(celeritas::is_device_enabled());
     REQUIRE(size > 0);
 
     // Host-side RNG for seeding device RNG
@@ -37,8 +39,8 @@ RngStateStore::RngStateStore(size_type size, unsigned long host_seed)
 
     DeviceVector<seed_type> device_seeds(size);
     device_seeds.copy_to_device(make_span(host_seeds));
-    rng_state_init_device(this->device_pointers(),
-                          device_seeds.device_pointers());
+    detail::rng_state_init_device(this->device_pointers(),
+                                  device_seeds.device_pointers());
 }
 
 //---------------------------------------------------------------------------//

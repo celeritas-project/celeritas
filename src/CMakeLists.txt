@@ -30,7 +30,6 @@ list(APPEND SOURCES
   base/ColorUtils.cc
   comm/Logger.cc
   comm/LoggerTypes.cc
-  comm/Utils.cc
   comm/detail/LoggerMessage.cc
   physics/base/ParticleParams.cc
   physics/base/ParticleStateStore.cc
@@ -38,6 +37,7 @@ list(APPEND SOURCES
   physics/material/MaterialParams.cc
   physics/material/MaterialStateStore.cc
   physics/material/detail/Utils.cc
+  random/cuda/RngStateStore.cc
 )
 
 if(CELERITAS_USE_CUDA)
@@ -45,14 +45,17 @@ if(CELERITAS_USE_CUDA)
     base/DeviceAllocation.cuda.cc
     base/KernelParamCalculator.cuda.cc
     base/Memory.cu
-    random/cuda/RngStateInit.cu
-    random/cuda/RngStateStore.cc
+    comm/Device.cuda.cc
+    random/cuda/detail/RngStateInit.cu
   )
   list(APPEND PRIVATE_DEPS CUDA::cudart)
 else()
   list(APPEND SOURCES
     base/DeviceAllocation.nocuda.cc
     base/Memory.nocuda.cc
+    comm/Device.nocuda.cc
+    random/cuda/curand.nocuda.cc
+    random/cuda/detail/RngStateInit.nocuda.cc
   )
 endif()
 
@@ -96,6 +99,7 @@ endif()
 
 add_library(celeritas ${SOURCES})
 add_library(Celeritas::Core ALIAS celeritas)
+
 target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}

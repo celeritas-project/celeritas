@@ -45,8 +45,8 @@ int main(int argc, char* argv[])
     }
     catch (const DebugError& e)
     {
-        cout << "Exception while read ROOT file'" << argv[1] << "':\n"
-             << e.what();
+        cout << "Exception while reading ROOT file'" << argv[1] << "':\n"
+             << e.what() << endl;
         return EXIT_FAILURE;
     }
 

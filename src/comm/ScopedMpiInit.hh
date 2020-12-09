@@ -16,6 +16,18 @@ namespace celeritas
 class ScopedMpiInit
 {
   public:
+    //! Status of initialization
+    enum class Status
+    {
+        disabled      = -1, //!< Not compiled *or* disabled via environment
+        uninitialized = 0,  //!< MPI_Init has not been called anywhere
+        initialized   = 1   //!< MPI_Init has been called somewhere
+    };
+
+    // Whether MPI has been initialized
+    static Status status();
+
+  public:
     // Construct with argc/argv references
     ScopedMpiInit(int* argc, char*** argv);
 
@@ -25,8 +37,8 @@ class ScopedMpiInit
     // Call MPI finalize on destruction
     ~ScopedMpiInit();
 
-    // Whether MPI has been initialized
-    static bool initialized();
+  private:
+    static Status status_;
 };
 
 //---------------------------------------------------------------------------//

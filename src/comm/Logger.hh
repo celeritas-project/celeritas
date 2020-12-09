@@ -62,7 +62,9 @@ class Logger
 {
   public:
     // Construct with communicator (only rank zero is active) and handler
-    Logger(const Communicator& comm, LogHandler handle);
+    Logger(const Communicator& comm,
+           LogHandler          handle,
+           const char*         level_env = NULL);
 
     // Create a logger that flushes its contents when it destructs
     inline detail::LoggerMessage operator()(Provenance prov, LogLevel lev);
