@@ -3,29 +3,34 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Primary.hh
+//! \file ParamPointers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Types.hh"
-#include "ParticleDef.hh"
-#include "sim/Types.hh"
+#include "geometry/GeoParamsPointers.hh"
+#include "physics/base/ParticleParamsPointers.hh"
+#include "physics/material/MaterialParamsPointers.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Starting "source" particle. One or more of these are emitted by an Event.
+ * View to the immutable problem data
  */
-struct Primary
+struct ParamPointers
 {
-    ParticleDefId    def_id;
-    units::MevEnergy energy;
-    Real3            position;
-    Real3            direction;
-    EventId          event_id;
-    TrackId          track_id;
+    GeoParamsPointers      geo;
+    MaterialParamsPointers material;
+    ParticleParamsPointers particle;
+
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return geo && material && particle;
+    }
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
+
+//---------------------------------------------------------------------------//

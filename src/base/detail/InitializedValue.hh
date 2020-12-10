@@ -43,7 +43,11 @@ class InitializedValue
     }
 
     //! Implicit assign from type
-    InitializedValue operator=(const T& value) { value_ = value; }
+    InitializedValue& operator=(const T& value)
+    {
+        value_ = value;
+        return *this;
+    }
 
     //! Implicit conversion to stored type
     operator T() const { return value_; }

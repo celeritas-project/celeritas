@@ -35,6 +35,10 @@ __global__ void nl_test_kernel(NLTestOutput<T>* data)
     {
         data->inf = limits_t::infinity();
     }
+    else if (local_thread_id == 3)
+    {
+        data->max = limits_t::max();
+    }
 }
 
 //---------------------------------------------------------------------------//

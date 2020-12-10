@@ -3,29 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Primary.hh
+//! \file SimTrackView.i.hh
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "base/Types.hh"
-#include "ParticleDef.hh"
-#include "sim/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Starting "source" particle. One or more of these are emitted by an Event.
+ * Construct from persistent and local data.
  */
-struct Primary
+CELER_FUNCTION
+SimTrackView::SimTrackView(const SimStatePointers& states, ThreadId id)
+    : state_(states.vars[id.get()])
 {
-    ParticleDefId    def_id;
-    units::MevEnergy energy;
-    Real3            position;
-    Real3            direction;
-    EventId          event_id;
-    TrackId          track_id;
-};
+    REQUIRE(id < states.vars.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \brief Initialize the particle.
+ */
+CELER_FUNCTION SimTrackView& SimTrackView::operator=(const Initializer_t& other)
+{
+    state_ = other;
+    return *this;
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

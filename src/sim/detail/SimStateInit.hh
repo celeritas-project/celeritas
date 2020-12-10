@@ -3,29 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Primary.hh
+//! \file SimStateInit.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
-#include "ParticleDef.hh"
-#include "sim/Types.hh"
+#include "base/Span.hh"
+#include "../SimStatePointers.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Starting "source" particle. One or more of these are emitted by an Event.
- */
-struct Primary
+namespace detail
 {
-    ParticleDefId    def_id;
-    units::MevEnergy energy;
-    Real3            position;
-    Real3            direction;
-    EventId          event_id;
-    TrackId          track_id;
-};
+//---------------------------------------------------------------------------//
+// Initialize the sim state on device
+void sim_state_init_device(const SimStatePointers& device_ptrs);
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

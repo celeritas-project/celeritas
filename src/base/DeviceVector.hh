@@ -34,6 +34,9 @@ class DeviceVector
     static_assert(std::is_trivially_copyable<T>::value,
                   "DeviceVector element is not trivially copyable");
 
+    static_assert(std::is_trivially_destructible<T>::value,
+                  "DeviceVector element is not trivially destructible");
+
   public:
     //@{
     //! Type aliases
@@ -52,10 +55,16 @@ class DeviceVector
     // Swap with another vector
     inline void swap(DeviceVector& other) noexcept;
 
+    // Change the size without changing capacity
+    inline void resize(size_type size);
+
     // >>> ACCESSORS
 
-    //! Get the number of elements allocated
+    //! Get the number of elements
     size_type size() const { return size_; }
+
+    //! Get the number of elements that can fit in the allocated storage
+    size_type capacity() const { return capacity_; }
 
     //! Whether any elements are stored
     bool empty() const { return size_ == 0; }
@@ -77,6 +86,7 @@ class DeviceVector
   private:
     DeviceAllocation allocation_;
     detail::InitializedValue<size_type> size_;
+    detail::InitializedValue<size_type> capacity_;
 };
 
 // Swap two vectors

@@ -38,6 +38,7 @@ list(APPEND SOURCES
   physics/material/MaterialStateStore.cc
   physics/material/detail/Utils.cc
   random/cuda/RngStateStore.cc
+  sim/SimStateStore.cc
 )
 
 if(CELERITAS_USE_CUDA)
@@ -47,6 +48,7 @@ if(CELERITAS_USE_CUDA)
     base/Memory.cu
     comm/Device.cuda.cc
     random/cuda/detail/RngStateInit.cu
+    sim/detail/SimStateInit.cu
   )
   list(APPEND PRIVATE_DEPS CUDA::cudart)
 else()
@@ -56,6 +58,7 @@ else()
     comm/Device.nocuda.cc
     random/cuda/curand.nocuda.cc
     random/cuda/detail/RngStateInit.nocuda.cc
+    sim/detail/SimStateInit.nocuda.cc
   )
 endif()
 
@@ -83,22 +86,34 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     geometry/GeoParams.cc
     geometry/GeoStateStore.cc
+    sim/ParamStore.cc
+    sim/StateStore.cc
+    sim/TrackInitializerStore.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
   if(CELERITAS_USE_CUDA)
     list(APPEND SOURCES
       geometry/detail/VGNavStateStore.cuda.cc
+      sim/detail/InitializeTracks.cu
     )
-    list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)
+    list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
   else()
     list(APPEND SOURCES
       geometry/detail/VGNavStateStore.nocuda.cc
+      sim/detail/InitializeTracks.nocuda.cc
     )
   endif()
 endif()
 
 add_library(celeritas ${SOURCES})
 add_library(Celeritas::Core ALIAS celeritas)
+
+if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
+  set_target_properties(celeritas PROPERTIES
+    LINKER_LANGUAGE CUDA
+    CUDA_SEPARABLE_COMPILATION ON
+  )
+endif()
 
 target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}

@@ -32,8 +32,8 @@ target_link_libraries(CeleritasTest PUBLIC celeritas GTest::GTest)
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
   target_link_libraries(CeleritasTest
     PRIVATE
-       VecGeom::vecgeomcuda
-       VecGeom::vecgeomcuda_static
+      VecGeom::vecgeomcuda
+      VecGeom::vecgeomcuda_static
   )
 endif()
 
@@ -200,6 +200,16 @@ celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(random/cuda/RngEngine.test.cu GPU)
+endif()
+
+#-----------------------------------------------------------------------------#
+# Sim
+
+celeritas_setup_tests(SERIAL PREFIX sim)
+if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
+  celeritas_add_test(sim/TrackInitializerStore.test.cc GPU
+    SOURCES sim/TrackInitializerStore.test.cu
+    LINK_LIBRARIES VecGeom::vecgeom)
 endif()
 
 #-----------------------------------------------------------------------------#

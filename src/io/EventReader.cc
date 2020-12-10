@@ -47,6 +47,8 @@ EventReader::result_type EventReader::operator()()
         }
         ++event_id;
 
+        int track_id = 0;
+
         // Convert the energy units to MeV and the length units to cm
         gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::CM);
 
@@ -63,8 +65,9 @@ EventReader::result_type EventReader::operator()()
             // Set the registered ID of the particle
             primary.def_id = def_id;
 
-            // Set the event number
+            // Set the event and track number
             primary.event_id = EventId(event_id);
+            primary.track_id = TrackId(track_id++);
 
             // Get the position of the primary
             auto pos         = gen_event.event_pos();
