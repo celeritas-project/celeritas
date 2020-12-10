@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngStateInit.cu
+//! \file SimStateInit.cu
 //---------------------------------------------------------------------------//
-#include "RngStateInit.hh"
+#include "SimStateInit.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
-#include "random/cuda/RngEngine.hh"
+#include "../SimTrackView.hh"
 
 namespace
 {
@@ -17,16 +17,15 @@ using namespace celeritas;
 // KERNELS
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the RNG states on device from seeds randomly generated on host.
+ * Initialize the sim states on device (setting 'alive' to false).
  */
-__global__ void
-init_impl(const RngStatePointers state, const RngSeed::value_type* const seeds)
+__global__ void init_impl(const SimStatePointers state)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < state.size())
     {
-        RngEngine rng(state, tid);
-        rng = RngEngine::Initializer_t{seeds[tid.get()]};
+        SimTrackView sim_view(state, tid);
+        sim_view = SimTrackView::Initializer_t{};
     }
 }
 //---------------------------------------------------------------------------//
@@ -40,18 +39,14 @@ namespace detail
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the RNG states on device from seeds randomly generated on host.
+ * Initialize the sim states on device.
  */
-void rng_state_init_device(const RngStatePointers&         device_ptrs,
-                           span<const RngSeed::value_type> device_seeds)
+void sim_state_init_device(const SimStatePointers& device_ptrs)
 {
-    REQUIRE(device_ptrs.size() == device_seeds.size());
-
-    // Launch kernel to build RNG states on device
+    // Launch kernel to build sim states on device
     celeritas::KernelParamCalculator calc_launch_params;
-    auto params = calc_launch_params(device_seeds.size());
-    init_impl<<<params.grid_size, params.block_size>>>(device_ptrs,
-                                                       device_seeds.data());
+    auto params = calc_launch_params(device_ptrs.size());
+    init_impl<<<params.grid_size, params.block_size>>>(device_ptrs);
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 }
 

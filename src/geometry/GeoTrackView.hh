@@ -28,7 +28,17 @@ namespace celeritas
  */
 class GeoTrackView
 {
+  public:
+    //@{
+    //! Type aliases
     using Initializer_t = GeoStateInitializer;
+    //@}
+
+    struct DetailedInitializer
+    {
+        GeoTrackView& other;
+        Real3         dir;
+    };
 
   public:
     // Construct from persistent and state data
@@ -38,6 +48,9 @@ class GeoTrackView
 
     // Initialize the state
     inline CELER_FUNCTION GeoTrackView& operator=(const Initializer_t& init);
+    // Initialize the state from a parent state and new direction
+    inline CELER_FUNCTION GeoTrackView&
+                          operator=(const DetailedInitializer& init);
     // Find the distance to the next boundary
     inline CELER_FUNCTION void find_next_step();
     // Move to the next boundary

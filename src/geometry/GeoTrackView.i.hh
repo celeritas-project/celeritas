@@ -61,6 +61,26 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct the state from a direction and a copy of the parent state.
+ */
+CELER_FUNCTION
+GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
+{
+    if (this != &init.other)
+    {
+        // Copy the navigation state and position from the parent state
+        init.other.vgstate_.CopyTo(&vgstate_);
+        pos_ = init.other.pos_;
+    }
+    // Set up the next state and initialize the direction
+    vgnext_.Clear();
+    next_step_ = celeritas::numeric_limits<real_type>::quiet_NaN();
+    dir_       = init.dir;
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
 //! Find the distance to the next geometric boundary.
 CELER_FUNCTION void GeoTrackView::find_next_step()
 {

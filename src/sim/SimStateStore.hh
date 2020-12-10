@@ -3,28 +3,36 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Primary.hh
+//! \file SimStateStore.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/DeviceVector.hh"
 #include "base/Types.hh"
-#include "ParticleDef.hh"
-#include "sim/Types.hh"
+#include "SimStatePointers.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Starting "source" particle. One or more of these are emitted by an Event.
+ * Manage on-device simulation states.
  */
-struct Primary
+class SimStateStore
 {
-    ParticleDefId    def_id;
-    units::MevEnergy energy;
-    Real3            position;
-    Real3            direction;
-    EventId          event_id;
-    TrackId          track_id;
+  public:
+    // Construct from number of track states
+    explicit SimStateStore(size_type size);
+
+    /// ACCESSORS ///
+
+    // Number of states
+    size_type size() const;
+
+    // View on-device states
+    SimStatePointers device_pointers();
+
+  private:
+    DeviceVector<SimTrackState> vars_;
 };
 
 //---------------------------------------------------------------------------//
