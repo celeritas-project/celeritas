@@ -35,7 +35,7 @@ void process_primaries(span<const Primary>, const TrackInitializerPointers&)
 
 void process_secondaries(const StatePointers&,
                          const ParamPointers&,
-                         const TrackInitializerPointers&)
+                         TrackInitializerPointers)
 {
     CHECK_UNREACHABLE;
 }
