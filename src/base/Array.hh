@@ -8,14 +8,10 @@
 #pragma once
 
 #include <cstddef>
-
 #include "Macros.hh"
 
 namespace celeritas
 {
-template<typename ElementType, std::size_t Extent>
-class span;
-
 //---------------------------------------------------------------------------//
 /*!
  * Fixed-size simple array for storage.
@@ -83,8 +79,8 @@ struct array
 
     //@{
     //! Capacity
-    CELER_FORCEINLINE_FUNCTION bool      empty() const { return N == 0; }
-    CELER_FORCEINLINE_FUNCTION size_type size() const { return N; }
+    CELER_CONSTEXPR_FUNCTION bool      empty() const { return N == 0; }
+    CELER_CONSTEXPR_FUNCTION size_type size() const { return N; }
     //@}
 
     //@{
@@ -98,32 +94,33 @@ struct array
 };
 
 //---------------------------------------------------------------------------//
-
-template<typename T, std::size_t N>
-inline CELER_FUNCTION bool
-operator==(const array<T, N>& lhs, const array<T, N>& rhs);
-
-template<typename T, std::size_t N>
-inline CELER_FUNCTION bool
-operator!=(const array<T, N>& lhs, const array<T, N>& rhs);
-
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-//! Get a mutable fixed-size view to an array
+/*!
+ * Test equality of two arrays.
+ */
 template<typename T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION span<T, N> make_span(array<T, N>& x)
+inline CELER_FUNCTION bool
+operator==(const array<T, N>& lhs, const array<T, N>& rhs)
 {
-    return {x.data(), N};
+    for (std::size_t i = 0; i != N; ++i)
+    {
+        if (lhs[i] != rhs[i])
+            return false;
+    }
+    return true;
 }
 
 //---------------------------------------------------------------------------//
-//! Get a constant fixed-size view to an array
+/*!
+ * Test inequality of two arrays.
+ */
 template<typename T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION span<const T, N> make_span(const array<T, N>& x)
+CELER_FORCEINLINE_FUNCTION bool
+operator!=(const array<T, N>& lhs, const array<T, N>& rhs)
 {
-    return {x.data(), N};
+    return !(lhs == rhs);
 }
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-#include "Array.i.hh"

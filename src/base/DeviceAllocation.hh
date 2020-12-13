@@ -22,9 +22,6 @@ namespace celeritas
  * device memory. It allows Storage classes to allocate and manage device
  * memory without using `thrust`, which requires NVCC and propagates that
  * requirement into all upstream code.
- *
- * Note that \c byte is defined in \c Span.hh as an enum class with type
- * unsigned char.
  */
 class DeviceAllocation
 {

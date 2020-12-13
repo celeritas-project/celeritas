@@ -24,11 +24,18 @@ using Real3        = array<real_type, 3>;
 using ThreadId = OpaqueId<struct Thread, unsigned int>;
 
 //---------------------------------------------------------------------------//
-
+// ENUMERATIONS
+//---------------------------------------------------------------------------//
+//! Whether an interpolation is linear or logarithmic (template parameter)
 enum class Interp
 {
     linear,
     log
+};
+
+//! Non-convertible type for raw data
+enum class byte : unsigned char
+{
 };
 
 //---------------------------------------------------------------------------//
