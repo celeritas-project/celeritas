@@ -1,5 +1,7 @@
-##---------------------------------------------------------------------------##
-## File  : cmake/CeleritasLoadSubmodule.cmake
+#----------------------------------*-CMake-*----------------------------------#
+# Copyright 2020 UT-Battelle, LLC and other Celeritas Developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #[=======================================================================[.rst:
 
 CeleritasLoadSubmodule
@@ -9,7 +11,7 @@ Utility commands for the submodule checkouts.
 
 .. command:: celeritas_load_submodule
 
-  Load a Git submodlue at the specified directory::
+  Load a Git submodule at the specified directory::
 
     celeritas_load_submodule(<subdir>)
 
@@ -27,6 +29,7 @@ will manually have to update the submodules if the upstream version changes.
 
 #]=======================================================================]
 
+include(CMakeDependentOption)
 
 if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
   set(IS_GIT_REPOSITORY TRUE)
@@ -35,25 +38,24 @@ else()
   set(IS_GIT_REPOSITORY FALSE)
 endif()
 
-##---------------------------------------------------------------------------##
-## OPTIONS
-##---------------------------------------------------------------------------##
+#-----------------------------------------------------------------------------#
+# OPTIONS
+#-----------------------------------------------------------------------------#
 
 # Clone submodules by default only if we're a git repository
 option(CELERITAS_GIT_SUBMODULE
   "Automatically download Git submodules during configuration"
   ${IS_GIT_REPOSITORY})
 
-if(CELERITAS_GIT_SUBMODULE)
-  # Default to keeping submodules in sync
-  option(CELERITAS_GIT_SUBMODULE_AGGRESSIVE
-    "Try to update Git submodules during *every* configuration"
-    ON)
-endif()
+# Default to keeping submodules in sync
+cmake_dependent_option(${PROJECT_NAME}_GIT_SUBMODULE_AGGRESSIVE "Try to update
+  Git submodules during *every* configuration" ON
+  "${PROJECT_NAME}_GIT_SUBMODULE" OFF
+)
 
-##---------------------------------------------------------------------------##
-## SETUP
-##---------------------------------------------------------------------------##
+#-----------------------------------------------------------------------------#
+# SETUP
+#-----------------------------------------------------------------------------#
 
 if(CELERITAS_GIT_SUBMODULE)
   # Find git
@@ -65,7 +67,7 @@ if(CELERITAS_GIT_SUBMODULE)
   endif()
 endif()
 
-##---------------------------------------------------------------------------##
+#-----------------------------------------------------------------------------#
 
 function(celeritas_load_submodule SUBDIR)
   if(NOT IS_ABSOLUTE "${SUBDIR}")
@@ -127,6 +129,4 @@ function(celeritas_load_submodule SUBDIR)
 endfunction()
 
 
-##---------------------------------------------------------------------------##
-## end of cmake/CeleritasLoadSubmodule.cmake
-##---------------------------------------------------------------------------##
+#-----------------------------------------------------------------------------#
