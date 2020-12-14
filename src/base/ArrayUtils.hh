@@ -15,23 +15,23 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // Perform y <- ax + y
 template<typename T, std::size_t N>
-inline CELER_FUNCTION void axpy(T a, const array<T, N>& x, array<T, N>* y);
+inline CELER_FUNCTION void axpy(T a, const Array<T, N>& x, Array<T, N>* y);
 
 //---------------------------------------------------------------------------//
 // Calculate product of two vectors
 template<typename T, std::size_t N>
-inline CELER_FUNCTION T dot_product(const array<T, N>& x, const array<T, N>& y);
+inline CELER_FUNCTION T dot_product(const Array<T, N>& x, const Array<T, N>& y);
 
 //---------------------------------------------------------------------------//
 // Calculate product of two vectors
 template<typename T>
-inline CELER_FUNCTION array<T, 3>
-                      cross_product(const array<T, 3>& x, const array<T, 3>& y);
+inline CELER_FUNCTION Array<T, 3>
+cross_product(const Array<T, 3>& x, const Array<T, 3>& y);
 
 //---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) norm of a vector
 template<typename T, std::size_t N>
-inline CELER_FUNCTION T norm(const array<T, N>& vec);
+inline CELER_FUNCTION T norm(const Array<T, N>& vec);
 
 //---------------------------------------------------------------------------//
 // Divide the given vector by its Euclidian norm
@@ -49,7 +49,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot);
 // Test for being approximately a unit vector
 template<typename T, std::size_t N, class SoftEq>
 inline CELER_FUNCTION bool
-is_soft_unit_vector(const array<T, N>& v, SoftEq cmp);
+is_soft_unit_vector(const Array<T, N>& v, SoftEq cmp);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

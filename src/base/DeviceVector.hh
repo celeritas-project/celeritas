@@ -41,8 +41,8 @@ class DeviceVector
     //@{
     //! Type aliases
     using value_type  = T;
-    using Span_t      = span<T>;
-    using constSpan_t = span<const T>;
+    using Span_t      = Span<T>;
+    using constSpan_t = Span<const T>;
     //@}
 
   public:

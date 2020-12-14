@@ -94,7 +94,7 @@ class MaterialParams
 
     // HELPER FUNCTIONS
     void                      append_element_def(const ElementInput& inp);
-    span<MatElementComponent> extend_elcomponents(const MaterialInput& inp);
+    Span<MatElementComponent> extend_elcomponents(const MaterialInput& inp);
     void                      append_material_def(const MaterialInput& inp);
 };
 

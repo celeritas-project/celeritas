@@ -10,7 +10,7 @@
 #include "celeritas_test.hh"
 #include "base/Span.hh"
 
-using celeritas::byte;
+using celeritas::Byte;
 using celeritas::DeviceAllocation;
 
 //---------------------------------------------------------------------------//
@@ -46,8 +46,8 @@ TEST_F(DeviceAllocationTest, all)
 
     {
         DeviceAllocation other(128);
-        byte*            orig_alloc = alloc.device_pointers().data();
-        byte*            orig_other = other.device_pointers().data();
+        Byte*            orig_alloc = alloc.device_pointers().data();
+        Byte*            orig_other = other.device_pointers().data();
         swap(alloc, other);
         EXPECT_EQ(1024, other.size());
         EXPECT_EQ(orig_other, alloc.device_pointers().data());
@@ -55,20 +55,20 @@ TEST_F(DeviceAllocationTest, all)
     }
     EXPECT_EQ(128, alloc.size());
 
-    std::vector<byte> data(alloc.size());
-    data.front() = byte(1);
-    data.back()  = byte(127);
+    std::vector<Byte> data(alloc.size());
+    data.front() = Byte(1);
+    data.back()  = Byte(127);
 
     alloc.copy_to_device(celeritas::make_span(data));
 
-    std::vector<byte> newdata(alloc.size());
+    std::vector<Byte> newdata(alloc.size());
     alloc.copy_to_host(celeritas::make_span(newdata));
-    EXPECT_EQ(byte(1), newdata.front());
-    EXPECT_EQ(byte(127), newdata.back());
+    EXPECT_EQ(Byte(1), newdata.front());
+    EXPECT_EQ(Byte(127), newdata.back());
 
     // Test move construction/assignment
     {
-        byte*            orig_ptr = alloc.device_pointers().data();
+        Byte*            orig_ptr = alloc.device_pointers().data();
         DeviceAllocation other(std::move(alloc));
         EXPECT_EQ(128, other.size());
         EXPECT_EQ(0, alloc.size());

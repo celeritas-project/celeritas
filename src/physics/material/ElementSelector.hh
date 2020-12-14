@@ -53,8 +53,8 @@ class ElementSelector
   public:
     //@{
     //! Type aliases
-    using SpanReal      = span<real_type>;
-    using SpanConstReal = span<const real_type>;
+    using SpanReal      = Span<real_type>;
+    using SpanConstReal = Span<const real_type>;
     //@}
 
   public:
@@ -75,7 +75,7 @@ class ElementSelector
     inline CELER_FUNCTION SpanConstReal elemental_micro_xs() const;
 
   private:
-    span<const MatElementComponent> elements_;
+    Span<const MatElementComponent> elements_;
     real_type                       material_xs_;
     real_type*                      elemental_xs_;
 };

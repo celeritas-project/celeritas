@@ -36,7 +36,7 @@ namespace celeritas
            return Interaction::from_failure();
        }
        Interaction result;
-       result.secondaries = span<Secondary>{allocated, 4};
+       result.secondaries = Span<Secondary>{allocated, 4};
        return result;
     };
  };
@@ -68,8 +68,8 @@ class StackAllocatorView
     using value_type      = T;
     using size_type       = ull_int;
     using result_type     = value_type*;
-    using const_span_type = span<const value_type>;
-    using span_type       = span<value_type>;
+    using const_span_type = Span<const value_type>;
+    using span_type       = Span<value_type>;
     using Pointers        = StackAllocatorPointers<T>;
     //@}
 

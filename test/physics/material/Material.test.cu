@@ -44,7 +44,7 @@ __global__ void m_test_kernel(unsigned int const           size,
     rad_len[tid.get()]      = mat.radiation_length();
 
     // Fill elements with finctional cross sections
-    celeritas::span<real_type> scratch = mat_track.element_scratch();
+    celeritas::Span<real_type> scratch = mat_track.element_scratch();
 
     for (auto ec : celeritas::range(mat.num_elements()))
     {

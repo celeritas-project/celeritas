@@ -60,7 +60,7 @@ CELER_FORCEINLINE_FUNCTION MaterialView MaterialTrackView::material_view() const
 /*!
  * Access scratch space with at least one real per element component.
  */
-CELER_FUNCTION span<real_type> MaterialTrackView::element_scratch()
+CELER_FUNCTION Span<real_type> MaterialTrackView::element_scratch()
 {
     auto offset = tid_.get() * params_.max_element_components;
     ENSURE(offset + params_.max_element_components

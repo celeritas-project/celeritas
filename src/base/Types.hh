@@ -17,18 +17,25 @@ namespace celeritas
 using size_type    = std::size_t;
 using ull_int      = unsigned long long int; //!< Compatible with CUDA atomics
 using real_type    = double;
-using RealPointer3 = array<real_type*, 3>;
-using Real3        = array<real_type, 3>;
+using RealPointer3 = Array<real_type*, 3>;
+using Real3        = Array<real_type, 3>;
 
 //! Index of the current CUDA thread, with type safety for containers.
 using ThreadId = OpaqueId<struct Thread, unsigned int>;
 
 //---------------------------------------------------------------------------//
-
+// ENUMERATIONS
+//---------------------------------------------------------------------------//
+//! Whether an interpolation is linear or logarithmic (template parameter)
 enum class Interp
 {
     linear,
     log
+};
+
+//! Non-convertible type for raw data modeled after std::byte (C++17)
+enum class Byte : unsigned char
+{
 };
 
 //---------------------------------------------------------------------------//

@@ -26,8 +26,8 @@ namespace celeritas
  */
 struct MaterialParamsPointers
 {
-    span<const ElementDef>  elements;
-    span<const MaterialDef> materials;
+    Span<const ElementDef>  elements;
+    Span<const MaterialDef> materials;
     size_type               max_element_components;
 
     //! Check whether the interface is assigned

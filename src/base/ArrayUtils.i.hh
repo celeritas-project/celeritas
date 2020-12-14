@@ -17,7 +17,7 @@ namespace celeritas
  * Increment a vector by another vector multiplied by a scalar.
  */
 template<typename T, std::size_t N>
-CELER_FUNCTION void axpy(T a, const array<T, N>& x, array<T, N>* y)
+CELER_FUNCTION void axpy(T a, const Array<T, N>& x, Array<T, N>* y)
 {
     for (std::size_t i = 0; i != N; ++i)
     {
@@ -30,7 +30,7 @@ CELER_FUNCTION void axpy(T a, const array<T, N>& x, array<T, N>* y)
  * Dot product x . y
  */
 template<typename T, std::size_t N>
-CELER_FUNCTION T dot_product(const array<T, N>& x, const array<T, N>& y)
+CELER_FUNCTION T dot_product(const Array<T, N>& x, const Array<T, N>& y)
 {
     T result{};
     for (std::size_t i = 0; i != N; ++i)
@@ -45,10 +45,10 @@ CELER_FUNCTION T dot_product(const array<T, N>& x, const array<T, N>& y)
  * Cross product A x B
  */
 template<typename T>
-CELER_FUNCTION array<T, 3>
-               cross_product(const array<T, 3>& A, const array<T, 3>& B)
+CELER_FUNCTION Array<T, 3>
+               cross_product(const Array<T, 3>& A, const Array<T, 3>& B)
 {
-    array<T, 3> result = {A[1] * B[2] - A[2] * B[1],
+    Array<T, 3> result = {A[1] * B[2] - A[2] * B[1],
                           A[2] * B[0] - A[0] * B[2],
                           A[0] * B[1] - A[1] * B[0]};
     return std::move(result);
@@ -57,14 +57,14 @@ CELER_FUNCTION array<T, 3>
 //---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) norm of a vector
 template<typename T, std::size_t N>
-CELER_FUNCTION T norm(const array<T, N>& v)
+CELER_FUNCTION T norm(const Array<T, N>& v)
 {
     return std::sqrt(dot_product(v, v));
 }
 
 //---------------------------------------------------------------------------//
 // Divide the given vector by its Euclidian norm
-CELER_FUNCTION void normalize_direction(array<real_type, 3>* direction)
+CELER_FUNCTION void normalize_direction(Array<real_type, 3>* direction)
 {
     real_type scale_factor = 1 / norm(*direction);
     (*direction)[0] *= scale_factor;
@@ -185,7 +185,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
   \endcode;
  */
 template<typename T, std::size_t N, class SoftEq>
-CELER_FUNCTION bool is_soft_unit_vector(const array<T, N>& v, SoftEq cmp)
+CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v, SoftEq cmp)
 {
     return cmp(T(1), dot_product(v, v));
 }

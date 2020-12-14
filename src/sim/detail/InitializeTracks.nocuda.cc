@@ -28,29 +28,29 @@ void locate_alive(const StatePointers&,
     CHECK_UNREACHABLE;
 }
 
-void process_primaries(span<const Primary>, const TrackInitializerPointers&)
+void process_primaries(Span<const Primary>, const TrackInitializerPointers&)
 {
     CHECK_UNREACHABLE;
 }
 
 void process_secondaries(const StatePointers&,
                          const ParamPointers&,
-                         const TrackInitializerPointers&)
+                         TrackInitializerPointers)
 {
     CHECK_UNREACHABLE;
 }
 
-size_type remove_if_alive(span<size_type>)
+size_type remove_if_alive(Span<size_type>)
 {
     CHECK_UNREACHABLE;
 }
 
-size_type reduce_counts(span<size_type>)
+size_type reduce_counts(Span<size_type>)
 {
     CHECK_UNREACHABLE;
 }
 
-void exclusive_scan_counts(span<size_type>)
+void exclusive_scan_counts(Span<size_type>)
 {
     CHECK_UNREACHABLE;
 }

@@ -23,7 +23,7 @@ DeviceAllocation::DeviceAllocation(size_type bytes) : size_(bytes)
     REQUIRE(is_device_enabled());
     void* ptr = nullptr;
     CELER_CUDA_CALL(cudaMalloc(&ptr, bytes));
-    data_.reset(static_cast<byte*>(ptr));
+    data_.reset(static_cast<Byte*>(ptr));
 }
 
 //---------------------------------------------------------------------------//
@@ -52,7 +52,7 @@ void DeviceAllocation::copy_to_host(SpanBytes bytes) const
 
 //---------------------------------------------------------------------------//
 //! Deleter frees cuda data
-void DeviceAllocation::CudaFreeDeleter::operator()(byte* ptr) const
+void DeviceAllocation::CudaFreeDeleter::operator()(Byte* ptr) const
 {
     CELER_CUDA_CALL(cudaFree(ptr));
 }

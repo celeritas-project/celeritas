@@ -155,7 +155,7 @@ void MaterialParams::append_element_def(const ElementInput& inp)
  * \todo It's the caller's responsibility to ensure that element IDs
  * aren't duplicated.
  */
-span<MatElementComponent>
+Span<MatElementComponent>
 MaterialParams::extend_elcomponents(const MaterialInput& inp)
 {
     REQUIRE(host_elcomponents_.size() + inp.elements_fractions.size()
@@ -164,7 +164,7 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp)
     // Allocate material components
     auto start_size = host_elcomponents_.size();
     host_elcomponents_.resize(start_size + inp.elements_fractions.size());
-    span<MatElementComponent> result{host_elcomponents_.data() + start_size,
+    Span<MatElementComponent> result{host_elcomponents_.data() + start_size,
                                      inp.elements_fractions.size()};
 
     // Store number fractions

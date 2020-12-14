@@ -27,7 +27,7 @@ class ImageStore
     //@{
     //! Type aliases
     using real_type = celeritas::real_type;
-    using UInt2     = celeritas::array<unsigned int, 2>;
+    using UInt2     = celeritas::Array<unsigned int, 2>;
     using Real3     = celeritas::Real3;
     using VecInt    = std::vector<int>;
     //@}

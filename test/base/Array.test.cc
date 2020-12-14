@@ -9,7 +9,7 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::array;
+using celeritas::Array;
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -18,14 +18,14 @@ using celeritas::array;
 TEST(ArrayTest, all)
 {
     // Note: C++14 required to write without double brackets
-    array<int, 3> x = {1, 3, 2};
+    Array<int, 3> x = {1, 3, 2};
 
     EXPECT_FALSE(x.empty());
     EXPECT_EQ(3, x.size());
     EXPECT_EQ(1, x.front());
     EXPECT_EQ(2, x.back());
 
-    array<int, 3> y{20, 30, 40};
+    Array<int, 3> y{20, 30, 40};
     EXPECT_EQ(x, x);
     EXPECT_NE(x, y);
 }

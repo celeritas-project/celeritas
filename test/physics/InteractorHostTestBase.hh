@@ -63,7 +63,7 @@ class InteractorHostTestBase : public celeritas::Test
     using Real3                  = celeritas::Real3;
     using Secondary              = celeritas::Secondary;
     using SecondaryAllocatorView = celeritas::StackAllocatorView<Secondary>;
-    using constSpanSecondaries   = celeritas::span<const Secondary>;
+    using constSpanSecondaries   = celeritas::Span<const Secondary>;
 
     using HostSecondaryStore = HostStackAllocatorStore<Secondary>;
     //@}

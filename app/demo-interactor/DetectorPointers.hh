@@ -36,7 +36,7 @@ struct DetectorPointers
 {
     StackAllocatorPointers<Hit> hit_buffer;
     UniformGrid::Params         tally_grid;
-    span<real_type>             tally_deposition;
+    Span<real_type>             tally_deposition;
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const { return bool(hit_buffer); }

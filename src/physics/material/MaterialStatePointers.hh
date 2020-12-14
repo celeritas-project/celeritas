@@ -40,8 +40,8 @@ struct MaterialTrackState
  */
 struct MaterialStatePointers
 {
-    span<MaterialTrackState> state;
-    span<real_type> element_scratch; // 2D array: [num states][max components]
+    Span<MaterialTrackState> state;
+    Span<real_type> element_scratch; // 2D array: [num states][max components]
 
     //! Check whether the view is assigned
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }

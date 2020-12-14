@@ -22,17 +22,14 @@ namespace celeritas
  * device memory. It allows Storage classes to allocate and manage device
  * memory without using `thrust`, which requires NVCC and propagates that
  * requirement into all upstream code.
- *
- * Note that \c byte is defined in \c Span.hh as an enum class with type
- * unsigned char.
  */
 class DeviceAllocation
 {
   public:
     //@{
     //! Type aliases
-    using SpanBytes      = span<byte>;
-    using constSpanBytes = span<const byte>;
+    using SpanBytes      = Span<Byte>;
+    using constSpanBytes = Span<const Byte>;
     //@}
 
   public:
@@ -70,9 +67,9 @@ class DeviceAllocation
   private:
     struct CudaFreeDeleter
     {
-        void operator()(byte*) const;
+        void operator()(Byte*) const;
     };
-    using DeviceUniquePtr = std::unique_ptr<byte[], CudaFreeDeleter>;
+    using DeviceUniquePtr = std::unique_ptr<Byte[], CudaFreeDeleter>;
 
     // >>> DATA
 

@@ -43,7 +43,7 @@ namespace detail
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
 void rng_state_init_device(const RngStatePointers&         device_ptrs,
-                           span<const RngSeed::value_type> device_seeds)
+                           Span<const RngSeed::value_type> device_seeds)
 {
     REQUIRE(device_ptrs.size() == device_seeds.size());
 

@@ -57,7 +57,7 @@ class MaterialTrackView
     inline CELER_FUNCTION MaterialView material_view() const;
 
     // Access scratch space with at least one real per element component
-    inline CELER_FUNCTION span<real_type> element_scratch();
+    inline CELER_FUNCTION Span<real_type> element_scratch();
 
   private:
     const MaterialParamsPointers& params_;

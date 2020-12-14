@@ -24,8 +24,8 @@ struct ImagePointers
     celeritas::Real3 right_ax; //!< Rightward axis (increasing i, track
                                //!< movement)
     celeritas::real_type              pixel_width; //!< Width of a pixel
-    celeritas::array<unsigned int, 2> dims;        //!< Image dimensions (j, i)
-    celeritas::span<int>              image;       //!< Stored image [j][i]
+    celeritas::Array<unsigned int, 2> dims;        //!< Image dimensions (j, i)
+    celeritas::Span<int>              image;       //!< Stored image [j][i]
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const { return !image.empty(); }

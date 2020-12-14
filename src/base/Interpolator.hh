@@ -61,7 +61,7 @@ class Interpolator
     //@{
     //! Public type aliases
     using real_type = T;
-    using Point     = array<T, 2>;
+    using Point     = Array<T, 2>;
     //@}
 
   public:
