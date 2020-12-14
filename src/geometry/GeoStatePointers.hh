@@ -41,6 +41,7 @@ struct GeoStatePointers
         return bool(size);
     }
 
+    // Whether the interface is valid
     inline CELER_FUNCTION bool valid() const;
 };
 
@@ -51,6 +52,26 @@ struct GeoStateInitializer
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+// MEMBER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Check whether the state is consistently assigned.
+ *
+ * This is called as part of the bool operator, which should be checked as part
+ * of an assertion immediately before launching a kernel and when returning a
+ * state.
+ */
+CELER_FUNCTION bool GeoStatePointers::valid() const
+{
+    // clang-format off
+    return    bool(size) == bool(vgmaxdepth)
+           && bool(size) == bool(vgstate)
+           && bool(size) == bool(vgnext)
+           && bool(size) == bool(pos)
+           && bool(size) == bool(dir)
+           && bool(size) == bool(next_step);
+    // clang-format on
+}
 
-#include "GeoStatePointers.i.hh"
+//---------------------------------------------------------------------------//
+} // namespace celeritas

@@ -119,7 +119,7 @@ TEST(RangeTest, vec_fill)
 
 TEST(RangeTest, empty)
 {
-    celeritas::FiniteRange<int> r;
+    celeritas::detail::FiniteRange<int> r;
     EXPECT_TRUE(r.empty());
     EXPECT_EQ(0, r.size());
 }
