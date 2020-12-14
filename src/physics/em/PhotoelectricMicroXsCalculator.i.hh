@@ -33,7 +33,8 @@ real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
     const LivermoreData& el = shared_.elements[el_id.get()];
 
     // If the incident gamma energy is below the lowest binding energy,
-    // set it to the binding energy
+    // set it to the binding energy so that the photoelectric cross section
+    // is constant rather than zero for low energy gammas.
     MevEnergy energy
         = max(inc_energy_, el.shells[el.shells.size() - 1].binding_energy);
     real_type inv_energy = 1. / energy.value();

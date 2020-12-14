@@ -15,8 +15,6 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "physics/material/ElementSelector.hh"
-#include "physics/material/MaterialTrackView.hh"
 #include "PhotoelectricInteractorPointers.hh"
 #include "PhotoelectricMicroXsCalculator.hh"
 
@@ -37,16 +35,16 @@ namespace celeritas
 class PhotoelectricInteractor
 {
   public:
-    //@{
+    //!@{
+    //! Type aliases
     using MevEnergy = units::MevEnergy;
-    //@}
+    //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
     PhotoelectricInteractor(const PhotoelectricInteractorPointers& shared,
                             const ParticleTrackView&               particle,
-                            const MaterialTrackView&               mat,
                             const Real3&            inc_direction,
                             SecondaryAllocatorView& allocate);
 
@@ -55,7 +53,7 @@ class PhotoelectricInteractor
     inline CELER_FUNCTION Interaction operator()(Engine&      rng,
                                                  ElementDefId el_id);
 
-    // >>> COMMON PROPERTIES
+    //// COMMON PROPERTIES ////
 
     //! Minimum incident energy for this model to be valid
     static CELER_CONSTEXPR_FUNCTION MevEnergy min_incident_energy()
@@ -72,8 +70,6 @@ class PhotoelectricInteractor
   private:
     // Shared constant physics properties
     const PhotoelectricInteractorPointers& shared_;
-    // Material reference
-    const MaterialTrackView& mat_;
     // Incident direction
     const Real3& inc_direction_;
     // Incident gamma energy
@@ -85,15 +81,11 @@ class PhotoelectricInteractor
     // Reciprocal of the energy
     real_type inv_energy_;
 
-    // HELPER FUNCTIONS
+    //// HELPER FUNCTIONS ////
 
     // Sample the direction of the emitted photoelectron
     template<class Engine>
     inline CELER_FUNCTION Real3 sample_direction(Engine& rng) const;
-
-    // Calculate the subshell cross section from the fit parameters
-    inline CELER_FUNCTION real_type
-    calc_subshell_xs(span<const real_type> param) const;
 };
 
 //---------------------------------------------------------------------------//

@@ -11,6 +11,7 @@
 #include "base/Types.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
+#include "physics/material/Types.hh"
 #include "PhotoelectricInteractorPointers.hh"
 
 namespace celeritas
@@ -22,9 +23,10 @@ namespace celeritas
 class PhotoelectricMicroXsCalculator
 {
   public:
-    //@{
+    //!@{
+    //! Type aliases
     using MevEnergy = units::MevEnergy;
-    //@}
+    //!@}
 
   public:
     // Construct with shared and state data

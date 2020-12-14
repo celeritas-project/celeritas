@@ -6,6 +6,7 @@
 //! \file PhotoelectricInteractor.i.hh
 //---------------------------------------------------------------------------//
 
+#include "base/ArrayUtils.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -17,11 +18,9 @@ namespace celeritas
 CELER_FUNCTION PhotoelectricInteractor::PhotoelectricInteractor(
     const PhotoelectricInteractorPointers& shared,
     const ParticleTrackView&               particle,
-    const MaterialTrackView&               mat,
     const Real3&                           inc_direction,
     SecondaryAllocatorView&                allocate)
     : shared_(shared)
-    , mat_(mat)
     , inc_direction_(inc_direction)
     , inc_energy_(particle.energy().value())
     , allocate_(allocate)
@@ -43,7 +42,6 @@ CELER_FUNCTION Interaction
 PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
 {
     // Select target atom
-    // PhotoelectricMicroXsCalculator calc_micro_xs(shared_, particle);
     // ElementSelector    select_element(mat_, calc_micro_xs_);
     // ElementComponentId component_id = select_element(rng);
     // ElementDefId el_id
@@ -70,32 +68,43 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
         const auto& shell = el.shells[shell_id++];
         if (inc_energy_ > shell.binding_energy)
         {
-            if (inc_energy_ >= el.thresh_high)
-            {
-                // Use parameterized cross sections in the higher energy
-                // interval
-                xs = this->calc_subshell_xs(shell.param_high);
-            }
-            else if (inc_energy_ >= el.thresh_low)
-            {
-                // Use parameterized cross sections in the lower energy
-                // interval
-                xs = this->calc_subshell_xs(shell.param_low);
-            }
-            else
+            if (inc_energy_ < el.thresh_low)
             {
                 // Use the tabulated subshell cross sections
                 // TODO: calculate subshell xs
                 // xs += inv_energy_ * shell.xs(inc_energy_);
+            }
+            else
+            {
+                // Use parameterized integrated subshell cross sections
+                const auto& param = inc_energy_ >= el.thresh_high
+                                        ? shell.param_high
+                                        : shell.param_low;
+
+                // Calculate the subshell cross section from the fit parameters
+                // and energy as \sigma(E) = a_1 / E + a_2 / E^2 + a_3 / E^3 +
+                // a_4 / E^4 + a_5 / E^5 + a_6 / E^6.
+                // clang-format off
+                xs = inv_energy_ * (param[0] + inv_energy_ * (param[1]
+                   + inv_energy_ * (param[2] + inv_energy_ * (param[3]
+                   + inv_energy_ * (param[4] + inv_energy_ * param[5])))));
+                // clang-format on
             }
         }
     } while (xs < cutoff && shell_id != el.shells.size() - 1);
 
     // Construct interaction for change to primary (incident) particle
     Interaction result = Interaction::from_absorption();
-    result.secondaries = {photoelectron, 1};
+
+    // If the binding energy of the sampled shell is greater than the incident
+    // photon energy, don't produce secondaries
+    if (el.shells[shell_id].binding_energy > inc_energy_)
+    {
+        return result;
+    }
 
     // Outgoing secondary is an electron
+    result.secondaries    = {photoelectron, 1};
     photoelectron->def_id = shared_.electron_id;
 
     // Electron kinetic energy is the difference between the incident photon
@@ -177,24 +186,6 @@ CELER_FUNCTION Real3 PhotoelectricInteractor::sample_direction(Engine& rng) cons
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
     return rotate(from_spherical(1. - one_minus_costheta, sample_phi(rng)),
                   inc_direction_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the subshell cross section from the fit parameters and energy as
- * \sigma(E) = a_1 / E + a_2 / E^2 + a_3 / E^3 + a_4 / E^4 + a_5 / E^5 + a_6 /
- * E^6.
- */
-CELER_FUNCTION real_type
-PhotoelectricInteractor::calc_subshell_xs(span<const real_type> param) const
-{
-    // clang-format off
-    real_type result
-        = inv_energy_ * (param[0] + inv_energy_ * (param[1]
-        + inv_energy_ * (param[2] + inv_energy_ * (param[3]
-        + inv_energy_ * (param[4] + inv_energy_ * param[5])))));
-    return result;
-    // clang-format on
 }
 
 //---------------------------------------------------------------------------//

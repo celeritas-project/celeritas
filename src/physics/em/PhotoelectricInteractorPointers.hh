@@ -55,7 +55,7 @@ struct LivermoreData
     span<const LivermoreSubshell> shells;
 
     // Energy threshold for using the parameterized subshell cross sections in
-    // the lower and upper nergy range
+    // the lower and upper energy range
     units::MevEnergy thresh_low;
     units::MevEnergy thresh_high;
 };
