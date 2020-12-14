@@ -27,11 +27,11 @@ namespace celeritas
 class RngEngine
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using result_type   = unsigned int;
     using Initializer_t = RngSeed;
-    //@}
+    //!@}
 
   public:
     // Construct from state
@@ -58,11 +58,11 @@ template<>
 class GenerateCanonical<RngEngine, float>
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using real_type   = float;
     using result_type = real_type;
-    //@}
+    //!@}
 
   public:
     // Sample a random number
@@ -77,11 +77,11 @@ template<>
 class GenerateCanonical<RngEngine, double>
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using real_type   = double;
     using result_type = real_type;
-    //@}
+    //!@}
 
   public:
     // Sample a random number

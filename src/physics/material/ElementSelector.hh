@@ -51,11 +51,11 @@ namespace celeritas
 class ElementSelector
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using SpanReal      = Span<real_type>;
     using SpanConstReal = Span<const real_type>;
-    //@}
+    //!@}
 
   public:
     // Construct with material, xs calculator, and storage.

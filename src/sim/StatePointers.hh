@@ -28,6 +28,7 @@ struct StatePointers
     RngStatePointers      rng;
     Span<Interaction>     interactions;
 
+    //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return particle && geo && sim && rng && !interactions.empty();

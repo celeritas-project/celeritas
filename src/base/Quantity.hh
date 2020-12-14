@@ -59,11 +59,11 @@ template<class UnitT, class ValueT = real_type>
 class Quantity
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using value_type = ValueT;
     using unit_type  = UnitT;
-    //@}
+    //!@}
 
   public:
     //! Construct with default (zero)
@@ -92,7 +92,7 @@ class Quantity
 template<class T>
 struct UnitlessQuantity
 {
-    T value_;
+    T value_; //!< Special nonnumeric value
 };
 
 //! Get a zero quantity (analogous to nullptr)
@@ -114,6 +114,7 @@ CELER_CONSTEXPR_FUNCTION UnitlessQuantity<real_type> neg_max_quantity()
 }
 
 //---------------------------------------------------------------------------//
+//! \cond
 #define CELER_DEFINE_QUANTITY_CMP(TOKEN)                                  \
     template<class U, class T>                                            \
     CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T> lhs,      \
@@ -140,7 +141,7 @@ CELER_CONSTEXPR_FUNCTION UnitlessQuantity<real_type> neg_max_quantity()
         return lhs.value_ TOKEN rhs.value_;                               \
     }
 
-//@{
+//!@{
 //! Comparisons for Quantity
 CELER_DEFINE_QUANTITY_CMP(==)
 CELER_DEFINE_QUANTITY_CMP(!=)
@@ -148,16 +149,18 @@ CELER_DEFINE_QUANTITY_CMP(<)
 CELER_DEFINE_QUANTITY_CMP(>)
 CELER_DEFINE_QUANTITY_CMP(<=)
 CELER_DEFINE_QUANTITY_CMP(>=)
-//@}
+//!@}
 
 #undef CELER_DEFINE_QUANTITY_CMP
 
+//! \endcond
 //---------------------------------------------------------------------------//
 /*!
  * Construct implicitly from a unitless quantity.
  */
-template<class U, class V>
-CELER_CONSTEXPR_FUNCTION Quantity<U, V>::Quantity(UnitlessQuantity<V> uq)
+template<class UnitT, class ValueT>
+CELER_CONSTEXPR_FUNCTION
+Quantity<UnitT, ValueT>::Quantity(UnitlessQuantity<ValueT> uq)
     : value_(uq.value_)
 {
 }
@@ -167,6 +170,7 @@ CELER_CONSTEXPR_FUNCTION Quantity<U, V>::Quantity(UnitlessQuantity<V> uq)
 template<class C1, class C2>
 struct UnitDivide
 {
+    //! Get the conversion factor of the resulting unit
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
         return C1::value() / C2::value();
@@ -177,6 +181,7 @@ struct UnitDivide
 template<class C1, class C2>
 struct UnitProduct
 {
+    //! Get the conversion factor of the resulting unit
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
         return C1::value() * C2::value();
@@ -185,7 +190,7 @@ struct UnitProduct
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert the given quantity into the native celeritas unit system.
+ * Convert the given quantity into the native Celeritas unit system.
  *
  * \code
  assert(unit_cast(Quantity<real_type, SpeedOfLight>{1})
@@ -194,7 +199,7 @@ struct UnitProduct
  */
 template<class UnitT, class ValueT>
 CELER_CONSTEXPR_FUNCTION auto unit_cast(Quantity<UnitT, ValueT> quant)
-    -> decltype(ValueT{} * UnitT::value())
+    -> decltype(ValueT() * UnitT::value())
 {
     return quant.value() * UnitT::value();
 }

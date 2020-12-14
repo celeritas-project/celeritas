@@ -40,6 +40,7 @@ struct TrackInitializerPointers
     Span<size_type>           secondary_counts;
     Span<TrackId::value_type> track_counter;
 
+    //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return !secondary_counts.empty();

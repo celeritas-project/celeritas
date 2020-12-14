@@ -23,11 +23,12 @@ namespace celeritas
 class StateStore
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using SPConstGeo = std::shared_ptr<const GeoParams>;
-    //@}
+    //!@}
 
+    //! Construction arguments
     struct Input
     {
         size_type     num_tracks;
@@ -39,7 +40,7 @@ class StateStore
     // Construct with the track state input
     explicit StateStore(const Input& inp);
 
-    // Get the total number of tracks
+    //! Get the total number of tracks
     size_type size() const { return particle_states_.size(); }
 
     // Get a view to the managed data

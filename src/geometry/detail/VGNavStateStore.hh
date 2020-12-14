@@ -42,10 +42,10 @@ namespace detail
 class VGNavStateStore
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using NavStatePool = vecgeom::cxx::NavStatePool;
-    //@}
+    //!@}
 
   public:
     // Construct without allocating

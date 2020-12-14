@@ -25,8 +25,8 @@ namespace celeritas
  * <em>depending on what compiler is active</em>. Since the \c GeoTrackView
  * implementation is designed to work with both CPU and GPU (depending on
  * \c __CUDA_ARCH__ and whether the code is on device, rather than the \c
- * __NVCC__ compiler) we can't simply declare this pointer to be `::cuda` or
- * `::cxx`.
+ * __NVCC__ compiler) we can't simply declare this pointer to be in the \c cuda
+ * or \c cxx explicit namespaces.
  */
 struct GeoParamsPointers
 {

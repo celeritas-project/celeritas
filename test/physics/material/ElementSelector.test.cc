@@ -22,10 +22,10 @@ using namespace celeritas;
 class ElementSelectorTest : public celeritas::Test
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using RandomEngine = std::mt19937;
-    //@}
+    //!@}
 
   protected:
     void SetUp() override

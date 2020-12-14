@@ -24,6 +24,7 @@ struct ParamPointers
     MaterialParamsPointers material;
     ParticleParamsPointers particle;
 
+    //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return geo && material && particle;

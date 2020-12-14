@@ -39,10 +39,10 @@ namespace {namespace}
 class {name}
 {{
   public:
-    //@{{
+    //!@{{
     //! Type aliases
     <++>
-    //@}}
+    //!@}}
 
   public:
     // Construct with defaults

@@ -34,10 +34,10 @@ namespace celeritas
 class MaterialTrackView
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using Initializer_t = MaterialTrackState;
-    //@}
+    //!@}
 
   public:
     // Construct from "static" parameters and "dynamic" state

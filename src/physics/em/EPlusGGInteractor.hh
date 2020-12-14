@@ -46,7 +46,7 @@ class EPlusGGInteractor
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
-    // >>> COMMON PROPERTIES
+    //// COMMON PROPERTIES ////
 
     //! Minimum incident energy for this model to be valid
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()

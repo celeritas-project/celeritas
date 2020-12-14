@@ -20,11 +20,11 @@ namespace celeritas
 template<class T>
 struct StackAllocatorPointers
 {
-    //@{
+    //!@{
     //! Type aliases
     using size_type  = ull_int;
     using value_type = T;
-    //@}
+    //!@}
 
     Span<T>    storage;        //!< Allocated capacity
     size_type* size = nullptr; //!< Stored size

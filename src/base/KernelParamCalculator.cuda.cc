@@ -41,7 +41,7 @@ KernelParamCalculator::KernelParamCalculator(dim_type size) : block_size_(size)
 /*!
  * Calculate launch params given the number of threads.
  */
-__host__ KernelParamCalculator::LaunchParams
+KernelParamCalculator::LaunchParams
 KernelParamCalculator::operator()(size_type min_num_threads) const
 {
     REQUIRE(min_num_threads > 0);

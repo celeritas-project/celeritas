@@ -21,12 +21,12 @@ namespace celeritas
 class ParamStore
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using SPConstGeo      = std::shared_ptr<const GeoParams>;
     using SPConstMaterial = std::shared_ptr<const MaterialParams>;
     using SPConstParticle = std::shared_ptr<const ParticleParams>;
-    //@}
+    //!@}
 
   public:
     // Construct with no data

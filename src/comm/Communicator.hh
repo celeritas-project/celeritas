@@ -17,15 +17,15 @@ namespace celeritas
  *
  * A "null" communicator (the default) does not use MPI calls and can be
  * constructed without calling \c MPI_Init or having MPI compiled. It will act
- * like MPI_Comm_Self but will not actually use MPI calls.
+ * like \c MPI_Comm_Self but will not actually use MPI calls.
  */
 class Communicator
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using MpiComm = detail::MpiComm;
-    //@}
+    //!@}
 
   public:
     // Construct a communicator with MPI_COMM_SELF
@@ -34,7 +34,7 @@ class Communicator
     // Construct a communicator with MPI_COMM_WORLD
     inline static Communicator comm_world();
 
-    /// CONSTRUCTORS ///
+    //// CONSTRUCTORS ////
 
     // Construct with a null communicator (MPI is disabled)
     Communicator() = default;
@@ -42,7 +42,7 @@ class Communicator
     // Construct with a native MPI communicator
     explicit Communicator(MpiComm comm);
 
-    /// ACCESSORS ///
+    //// ACCESSORS ////
 
     //! Get the MPI communicator for low-level MPI calls
     MpiComm mpi_comm() const { return comm_; }
@@ -50,7 +50,7 @@ class Communicator
     //! Get the local process ID
     int rank() const { return rank_; }
 
-    // Get the number of total processors
+    //! Get the number of total processors
     int size() const { return size_; }
 
     //! True if non-null communicator

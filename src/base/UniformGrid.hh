@@ -22,12 +22,13 @@ namespace celeritas
 class UniformGrid
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using size_type  = ::celeritas::size_type;
     using value_type = ::celeritas::real_type;
-    //@}
+    //!@}
 
+    //! Construction arguments
     struct Params
     {
         size_type  size;  //!< Number of grid edges/points

@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file Types.hh
+//! Type definitions for geometry
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,6 +15,7 @@ namespace celeritas
 {
 class Geometry;
 //---------------------------------------------------------------------------//
+//! Opaque numeric identifier for a geometry cell
 using VolumeId = OpaqueId<Geometry, unsigned int>;
 
 //---------------------------------------------------------------------------//

@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportModel.hh
-//! Enumerator for the available physics models.
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,6 +13,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Enumerator for the available physics models.
+ *
  * This enum was created to safely access the many imported physics tables.
  */
 enum class ImportModel

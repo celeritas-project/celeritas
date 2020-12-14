@@ -28,10 +28,10 @@ namespace detail
 class LoggerMessage
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using StreamManip = std::ostream& (*)(std::ostream&);
-    //@}
+    //!@}
 
   public:
     // Construct with reference to function object, etc.

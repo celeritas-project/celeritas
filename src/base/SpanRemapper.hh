@@ -47,11 +47,11 @@ template<typename T, typename U>
 class SpanRemapper
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using src_type = Span<T>;
     using dst_type = Span<U>;
-    //@}
+    //!@}
 
   public:
     // Construct with source and destination ranges

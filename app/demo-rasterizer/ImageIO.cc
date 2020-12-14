@@ -12,7 +12,7 @@
 namespace demo_rasterizer
 {
 //---------------------------------------------------------------------------//
-//@{
+//!@{
 //! I/O routines for JSON
 void to_json(nlohmann::json& j, const ImageRunArgs& v)
 {
@@ -40,6 +40,6 @@ void to_json(nlohmann::json& j, const ImageStore& v)
                        {"int_size", sizeof(int)}};
 }
 
-//@}
+//!@}
 //---------------------------------------------------------------------------//
 } // namespace demo_rasterizer

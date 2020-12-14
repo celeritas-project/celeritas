@@ -46,7 +46,7 @@ namespace celeritas_test
 class InteractorHostTestBase : public celeritas::Test
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using RandomEngine = std::mt19937;
 
@@ -66,28 +66,28 @@ class InteractorHostTestBase : public celeritas::Test
     using constSpanSecondaries   = celeritas::Span<const Secondary>;
 
     using HostSecondaryStore = HostStackAllocatorStore<Secondary>;
-    //@}
+    //!@}
 
   public:
-    //@{
+    //!@{
     //! Initialize and destroy
     InteractorHostTestBase();
     ~InteractorHostTestBase();
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Set and get material properties
     void                  set_material_params(MaterialParams::Input inp);
     const MaterialParams& material_params() const;
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Set and get particle params
     void set_particle_params(const ParticleParams::VecAnnotatedDefs& defs);
     const ParticleParams& particle_params() const;
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Material properties
     void               set_material(const std::string& name);
     MaterialTrackView& material_track()
@@ -95,9 +95,9 @@ class InteractorHostTestBase : public celeritas::Test
         REQUIRE(mt_view_);
         return *mt_view_;
     }
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Incident particle properties and access
     void                     set_inc_particle(PDGNumber n, MevEnergy energy);
     void                     set_inc_direction(const Real3& dir);
@@ -107,9 +107,9 @@ class InteractorHostTestBase : public celeritas::Test
         REQUIRE(pt_view_);
         return *pt_view_;
     }
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Secondary stack storage and access
     void                             resize_secondaries(int count);
     const HostSecondaryStore& secondaries() const { return secondaries_; }
@@ -118,12 +118,12 @@ class InteractorHostTestBase : public celeritas::Test
         REQUIRE(sa_view_);
         return *sa_view_;
     }
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Random number generator
     RandomEngine& rng() { return rng_; }
-    //@}
+    //!@}
 
     // Check for momentum and energy conservation
     void check_conservation(const Interaction& interaction) const;

@@ -32,13 +32,13 @@ class TrackInitializerStore
     // Get a view to the managed data
     TrackInitializerPointers device_pointers();
 
-    // Number of track initializers
+    //! Number of track initializers
     size_type size() const { return initializers_.size(); }
 
-    // Number of empty track slots on device
+    //! Number of empty track slots on device
     size_type num_vacancies() const { return vacancies_.size(); }
 
-    // Number of primary particles left to be initialized on device
+    //! Number of primary particles left to be initialized on device
     size_type num_primaries() const { return primaries_.size(); }
 
     // Create track initializers on device from primary particles

@@ -15,24 +15,24 @@ namespace celeritas
 /*!
  * Construct with defaults.
  */
-template<typename T>
-CELER_FUNCTION IsotropicDistribution<T>::IsotropicDistribution()
+template<typename RealType>
+CELER_FUNCTION IsotropicDistribution<RealType>::IsotropicDistribution()
     : sample_costheta_(-1, 1), sample_phi_(0, 2 * constants::pi)
 {
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample a random unit vector.
+ * Sample an isotropic unit vector.
  */
-template<class T>
+template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto IsotropicDistribution<T>::operator()(Generator& rng)
+CELER_FUNCTION auto IsotropicDistribution<RealType>::operator()(Generator& rng)
     -> result_type
 {
-    real_type costheta = sample_costheta_(rng);
-    real_type phi      = sample_phi_(rng);
-    real_type sintheta = std::sqrt(1 - costheta * costheta);
+    const real_type costheta = sample_costheta_(rng);
+    const real_type phi      = sample_phi_(rng);
+    const real_type sintheta = std::sqrt(1 - costheta * costheta);
     return {sintheta * std::cos(phi), sintheta * std::sin(phi), costheta};
 }
 

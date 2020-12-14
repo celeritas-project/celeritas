@@ -41,7 +41,7 @@ namespace celeritas
  * \f[
   y = f^{-1}_y \left( f_y(y_l) + \frac{ p_y(n_y(y_l), y_r) }{ p_x(n_x(x_l),
  x_r)} \times p_x(n_x(x_l), x) \right)
-  \]
+ \f]
 
  * where transformed addition is \f$p_y(y_1, y_2) \equiv f_y(y_1) + f_y(y_2)\f$
  ,
@@ -58,11 +58,11 @@ template<Interp XI = Interp::linear, Interp YI = Interp::linear, typename T = do
 class Interpolator
 {
   public:
-    //@{
+    //!@{
     //! Public type aliases
     using real_type = T;
     using Point     = Array<T, 2>;
-    //@}
+    //!@}
 
   public:
     // Construct with left and right values for x and y

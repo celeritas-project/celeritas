@@ -24,7 +24,7 @@ struct MockCurandState
 using curandState_t = MockCurandState;
 
 //---------------------------------------------------------------------------//
-//@{
+//!@{
 //! CUDA random functions.
 void         curand_init(unsigned long long seed,
                          unsigned long long sequence,
@@ -33,7 +33,7 @@ void         curand_init(unsigned long long seed,
 unsigned int curand(curandState_t* state);
 float        curand_uniform(curandState_t* state);
 double       curand_uniform_double(curandState_t* state);
-//@}
+//!@}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

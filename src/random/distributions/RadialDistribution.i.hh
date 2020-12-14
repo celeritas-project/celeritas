@@ -16,8 +16,9 @@ namespace celeritas
 /*!
  * Construct with defaults.
  */
-template<typename T>
-CELER_FUNCTION RadialDistribution<T>::RadialDistribution(real_type radius)
+template<class RealType>
+CELER_FUNCTION
+RadialDistribution<RealType>::RadialDistribution(real_type radius)
     : radius_(radius)
 {
     REQUIRE(radius_ > 0);
@@ -27,13 +28,13 @@ CELER_FUNCTION RadialDistribution<T>::RadialDistribution(real_type radius)
 /*!
  * Sample a random number according to the distribution.
  */
-template<class T>
+template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto RadialDistribution<T>::operator()(Generator& rng)
+CELER_FUNCTION auto RadialDistribution<RealType>::operator()(Generator& rng)
     -> result_type
 {
-    constexpr auto one_third = static_cast<T>(1.0 / 3.0);
-    return std::pow(generate_canonical<T>(rng), one_third) * radius_;
+    constexpr auto one_third = static_cast<RealType>(1.0 / 3.0);
+    return std::pow(generate_canonical<RealType>(rng), one_third) * radius_;
 }
 
 //---------------------------------------------------------------------------//

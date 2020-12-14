@@ -22,10 +22,10 @@ namespace celeritas
 class SimTrackView
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using Initializer_t = SimTrackState;
-    //@}
+    //!@}
 
   public:
     // Construct with view to state and persistent data
@@ -35,20 +35,20 @@ class SimTrackView
     // Initialize the sim state
     inline CELER_FUNCTION SimTrackView& operator=(const Initializer_t& other);
 
-    /// DYNAMIC PROPERTIES ///
+    //// DYNAMIC PROPERTIES ////
 
-    //@{
+    //!@{
     //! State accessors
     CELER_FUNCTION TrackId track_id() const { return state_.track_id; }
     CELER_FUNCTION TrackId parent_id() const { return state_.parent_id; }
     CELER_FUNCTION EventId event_id() const { return state_.event_id; }
     CELER_FUNCTION bool    alive() const { return state_.alive; }
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! State modifiers via non-const references
     CELER_FUNCTION bool& alive() { return state_.alive; }
-    //@}
+    //!@}
 
   private:
     SimTrackState& state_;

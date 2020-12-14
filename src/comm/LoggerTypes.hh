@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file LoggerTypes.hh
+//! Type definitions for logging utilities
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -36,8 +37,8 @@ const char* to_cstring(LogLevel);
 //! Stand-in for a more complex class for the "provenance" of data
 struct Provenance
 {
-    std::string file;
-    int         line = 0;
+    std::string file;     //!< Originating file
+    int         line = 0; //!< Line number
 };
 
 //! Type for handling a log message

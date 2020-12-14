@@ -30,11 +30,11 @@ template<class Instantiator, class T = unsigned int>
 class OpaqueId
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using instantiator_type = Instantiator;
     using value_type        = T;
-    //@}
+    //!@}
 
   public:
     //! Default to invalid state
@@ -68,7 +68,7 @@ class OpaqueId
   private:
     value_type value_;
 
-    /// IMPLEMENTATION FUNCTIONS ///
+    //// IMPLEMENTATION FUNCTIONS ////
 
     //! Value indicating the ID is not assigned
     static CELER_CONSTEXPR_FUNCTION value_type invalid_value()
@@ -124,7 +124,7 @@ inline CELER_FUNCTION T operator-(OpaqueId<I, T> self, OpaqueId<I, T> other)
 //---------------------------------------------------------------------------//
 // STD::HASH SPECIALIZATION FOR HOST CODE
 //---------------------------------------------------------------------------//
-
+//! \cond
 #ifndef __CUDA_ARCH__
 namespace std
 {
@@ -141,3 +141,4 @@ struct hash<celeritas::OpaqueId<I, T>>
 };
 } // namespace std
 #endif // __CUDA_ARCH__
+//! \endcond

@@ -20,13 +20,13 @@ namespace celeritas_test
 template<class T>
 class HostStackAllocatorStore
 {
-    //@{
+    //!@{
     //! Type aliases
     using value_type      = T;
     using Pointers        = celeritas::StackAllocatorPointers<T>;
     using size_type       = typename Pointers::size_type;
     using const_span_type = celeritas::Span<const value_type>;
-    //@}
+    //!@}
 
   public:
     HostStackAllocatorStore() { this->resize(0); }

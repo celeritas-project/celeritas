@@ -321,18 +321,18 @@ int main(int argc, char* argv[])
     std::string gdml_input_filename  = argv[1];
     std::string root_output_filename = argv[2];
 
-    /// Initialize Geant4 ///
+    //// Initialize Geant4 ////
 
     G4RunManager run_manager;
 
-    /// Initialize the geometry ///
+    //// Initialize the geometry ////
 
     auto detector = std::make_unique<DetectorConstruction>(gdml_input_filename);
     // Get world_volume for store_geometry() before releasing detector ptr
     auto world_phys_volume = detector->get_world_volume();
     run_manager.SetUserInitialization(detector.release());
 
-    /// Load the physics list ///
+    //// Load the physics list ////
 
     // User-defined physics list (see PhysicsList.hh)
     // auto physics_list = std::make_unique<PhysicsList>();
@@ -348,13 +348,13 @@ int main(int argc, char* argv[])
 
     run_manager.SetUserInitialization(physics_list.release());
 
-    /// Minimal run to generate the physics tables ///
+    //// Minimal run to generate the physics tables ////
     auto action_initialization = std::make_unique<ActionInitialization>();
     run_manager.SetUserInitialization(action_initialization.release());
     G4UImanager::GetUIpointer()->ApplyCommand("/run/initialize");
     run_manager.BeamOn(1);
 
-    /// Export data ///
+    //// Export data ////
 
     // Create the ROOT output file
     cout << "Creating " << root_output_filename << "..." << endl;

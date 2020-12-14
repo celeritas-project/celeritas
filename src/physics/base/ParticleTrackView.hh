@@ -29,10 +29,10 @@ namespace celeritas
 class ParticleTrackView
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using Initializer_t = ParticleTrackState;
-    //@}
+    //!@}
 
   public:
     // Construct from "dynamic" state and "static" particle definitions
@@ -48,7 +48,7 @@ class ParticleTrackView
     // Change the particle's energy [MeV]
     inline CELER_FUNCTION void energy(units::MevEnergy);
 
-    /// DYNAMIC PROPERTIES (pure accessors, free) ///
+    //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Unique particle type identifier
     inline CELER_FUNCTION ParticleDefId def_id() const;
@@ -56,7 +56,7 @@ class ParticleTrackView
     // Kinetic energy [MeV]
     inline CELER_FUNCTION units::MevEnergy energy() const;
 
-    /// STATIC PROPERTIES (requires an indirection) ///
+    //// STATIC PROPERTIES (requires an indirection) ////
 
     // Rest mass [MeV / c^2]
     inline CELER_FUNCTION units::MevMass mass() const;
@@ -67,7 +67,7 @@ class ParticleTrackView
     // Decay constant [1/s]
     inline CELER_FUNCTION real_type decay_constant() const;
 
-    /// DERIVED PROPERTIES (indirection plus calculation) ///
+    //// DERIVED PROPERTIES (indirection plus calculation) ////
 
     // Speed [1/c]
     inline CELER_FUNCTION units::LightSpeed speed() const;

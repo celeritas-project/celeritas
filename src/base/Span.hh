@@ -24,7 +24,7 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
  * \tparam T value type
  * \tparam Extent fixed size; defaults to dynamic.
  *
- * Like the \ref celeritas::array , this class isn't 100% compatible
+ * Like the \ref celeritas::Array , this class isn't 100% compatible
  * with the \c std::span class (partly of course because language features
  * are missing from C++14). The hope is that it will be complete and correct
  * for the use cases needed by Celeritas (and, as a bonus, it will be
@@ -37,7 +37,7 @@ template<class T, std::size_t Extent = dynamic_extent>
 class Span
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using element_type    = T;
     using value_type      = std::remove_cv_t<T>;
@@ -48,7 +48,7 @@ class Span
     using const_reference = const T&;
     using iterator        = pointer;
     using const_iterator  = const_pointer;
-    //@}
+    //!@}
 
     //! Size (may be dynamic)
     static constexpr std::size_t extent = Extent;
@@ -85,13 +85,13 @@ class Span
     //! Assignment (same template parameters)
     Span& operator=(const Span&) noexcept = default;
 
-    //@{
+    //!@{
     //! Iterators
     CELER_CONSTEXPR_FUNCTION iterator begin() const { return s_.data; }
     CELER_CONSTEXPR_FUNCTION iterator end() const { return s_.data + s_.size; }
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Element access
     CELER_CONSTEXPR_FUNCTION reference operator[](size_type i) const
     {
@@ -103,9 +103,9 @@ class Span
         return s_.data[s_.size - 1];
     }
     CELER_CONSTEXPR_FUNCTION pointer data() const { return s_.data; }
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Observers
     CELER_CONSTEXPR_FUNCTION bool      empty() const { return s_.size == 0; }
     CELER_CONSTEXPR_FUNCTION size_type size() const { return s_.size; }
@@ -113,9 +113,9 @@ class Span
     {
         return sizeof(T) * s_.size;
     }
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Subviews
     // TODO: first
     // TODO: last
@@ -133,7 +133,7 @@ class Span
         return {s_.data + offset,
                 detail::subspan_size(this->size(), offset, count)};
     }
-    //@}
+    //!@}
 
   private:
     //! Storage

@@ -13,15 +13,15 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//@{
-//! Delegating constructors
+//!@{
+//! Delegating constructor
 DebugError::DebugError(const char* msg) : std::logic_error(msg) {}
 DebugError::DebugError(const std::string& msg) : std::logic_error(msg) {}
 CudaCallError::CudaCallError(const char* msg) : std::runtime_error(msg) {}
 CudaCallError::CudaCallError(const std::string& msg) : std::runtime_error(msg)
 {
 }
-//@}
+//!@}
 
 //---------------------------------------------------------------------------//
 /*!

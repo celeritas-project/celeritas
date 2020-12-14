@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    // /// PRINT PARTICLE LIST /// //
+    //// PRINT PARTICLE LIST ////
 
     const auto& all_md = particles->md();
 
@@ -82,7 +82,7 @@ Name              | PDG Code    | Mass [MeV] | Charge [e] | Decay [1/s]
             "------"
          << endl;
 
-    // /// PRINT ELEMENT LIST /// //
+    //// PRINT ELEMENT LIST ////
 
     const auto& element_map = geometry->elemid_to_element_map();
 
@@ -107,7 +107,7 @@ Element ID | Name | Atomic number | Mass (AMU)
     }
     cout << "----------------------------------------------" << endl;
 
-    // /// PRINT MATERIAL LIST /// //
+    //// PRINT MATERIAL LIST ///
 
     const auto& material_map = geometry->matid_to_material_map();
 
@@ -137,7 +137,7 @@ Material ID | Name                            | Composition
             "---------------------------------"
          << endl;
 
-    // /// PRINT VOLUME AND MATERIAL LIST /// //
+    //// PRINT VOLUME AND MATERIAL LIST ////
 
     const auto& volume_material_map = geometry->volid_to_matid_map();
 

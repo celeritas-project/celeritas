@@ -63,7 +63,7 @@ template<class T>
 class StackAllocatorView
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using value_type      = T;
     using size_type       = ull_int;
@@ -71,7 +71,7 @@ class StackAllocatorView
     using const_span_type = Span<const value_type>;
     using span_type       = Span<value_type>;
     using Pointers        = StackAllocatorPointers<T>;
-    //@}
+    //!@}
 
   public:
     // Construct with shared data

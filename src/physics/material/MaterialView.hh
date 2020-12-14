@@ -37,7 +37,7 @@ class MaterialView
     inline CELER_FUNCTION
     MaterialView(const MaterialParamsPointers& params, MaterialDefId id);
 
-    // >>> MATERIAL DATA
+    //// MATERIAL DATA ////
 
     // Number density [1/cm^3]
     inline CELER_FUNCTION real_type number_density() const;
@@ -48,7 +48,7 @@ class MaterialView
     // Material state
     inline CELER_FUNCTION MatterState matter_state() const;
 
-    // >>> ELEMENT ACCESS
+    //// ELEMENT ACCESS ////
 
     // Number of elemental components
     inline CELER_FUNCTION ElementComponentId::value_type num_elements() const;
@@ -64,7 +64,7 @@ class MaterialView
     inline CELER_FUNCTION const Span<const MatElementComponent>&
                                 elements() const;
 
-    // >>> DERIVATIVE DATA
+    //// DERIVATIVE DATA ////
 
     // Material density [g/cm^3]
     inline CELER_FUNCTION real_type density() const;

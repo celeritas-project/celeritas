@@ -28,10 +28,7 @@ namespace celeritas
 class MaterialParams
 {
   public:
-    //@{
-    //! Type aliases
-    //@}
-
+    //! Define an element's input data
     struct ElementInput
     {
         int            atomic_number; //!< Z number
@@ -39,6 +36,7 @@ class MaterialParams
         std::string    name;          //!< Element name
     };
 
+    //! Define a material's input data
     struct MaterialInput
     {
         real_type   number_density; //!< Atomic number density [1/cm^3]
@@ -49,6 +47,7 @@ class MaterialParams
         std::string name;               //!< Material name
     };
 
+    //! Input data to construct this class
     struct Input
     {
         std::vector<ElementInput>  elements;

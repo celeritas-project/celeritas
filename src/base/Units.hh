@@ -41,16 +41,16 @@ namespace units
  * - steradians are used for measures of solid angle (unitless)
  */
 
-//@{
+//!@{
 //! Units with numerical value defined to be 1
 constexpr real_type centimeter = 1.; // Length
 constexpr real_type gram       = 1.; // Mass
 constexpr real_type second     = 1.; // Time
 constexpr real_type coulomb    = 1.; // Charge
 constexpr real_type kelvin     = 1.; // Temperature
-//@}
+//!@}
 
-//@{
+//!@{
 //! Exact unit transformations for SI units
 constexpr real_type meter    = 100 * centimeter;
 constexpr real_type kilogram = 1000 * gram;
@@ -60,12 +60,12 @@ constexpr real_type ampere   = coulomb / second;
 constexpr real_type volt     = joule / coulomb;
 constexpr real_type tesla    = kilogram / (coulomb * second);
 constexpr real_type farad    = coulomb / volt;
-//@}
+//!@}
 
-//@{
+//!@{
 //! Other units
 constexpr real_type millimeter = 0.1 * centimeter;
-//@}
+//!@}
 
 //---------------------------------------------------------------------------//
 } // namespace units

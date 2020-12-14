@@ -24,9 +24,9 @@ namespace celeritas
 class PhysicsArrayCalculator
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
-    //@}
+    //!@}
 
   public:
     // Construct from state-independent data

@@ -16,8 +16,8 @@ namespace celeritas
 /*!
  * Construct with left and right values for x and y.
  */
-template<Interp IX, Interp IY, typename T>
-CELER_FUNCTION Interpolator<IX, IY, T>::Interpolator(Point left, Point right)
+template<Interp XI, Interp YI, typename T>
+CELER_FUNCTION Interpolator<XI, YI, T>::Interpolator(Point left, Point right)
 {
     enum
     {
@@ -45,8 +45,8 @@ CELER_FUNCTION Interpolator<IX, IY, T>::Interpolator(Point left, Point right)
 /*!
  * Interpolate linearly on the transformed type.
  */
-template<Interp IX, Interp IY, typename T>
-CELER_FUNCTION auto Interpolator<IX, IY, T>::operator()(real_type x) const
+template<Interp XI, Interp YI, typename T>
+CELER_FUNCTION auto Interpolator<XI, YI, T>::operator()(real_type x) const
     -> real_type
 {
     REQUIRE(XTraits_t::valid_domain(x));

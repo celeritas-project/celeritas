@@ -12,6 +12,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Get the plain text equivalent of the LogLevel enum.
+ */
 const char* to_cstring(LogLevel lev)
 {
     static const char* const levels[] = {

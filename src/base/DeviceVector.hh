@@ -38,12 +38,12 @@ class DeviceVector
                   "DeviceVector element is not trivially destructible");
 
   public:
-    //@{
+    //!@{
     //! Type aliases
     using value_type  = T;
     using Span_t      = Span<T>;
     using constSpan_t = Span<const T>;
-    //@}
+    //!@}
 
   public:
     // Construct with no elements
@@ -58,7 +58,7 @@ class DeviceVector
     // Change the size without changing capacity
     inline void resize(size_type size);
 
-    // >>> ACCESSORS
+    //// ACCESSORS ////
 
     //! Get the number of elements
     size_type size() const { return size_; }
@@ -69,7 +69,7 @@ class DeviceVector
     //! Whether any elements are stored
     bool empty() const { return size_ == 0; }
 
-    // >>> DEVICE ACCESSORS
+    //// DEVICE ACCESSORS ////
 
     // Copy data to device
     inline void copy_to_device(constSpan_t host_data);

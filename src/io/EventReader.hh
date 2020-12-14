@@ -22,11 +22,11 @@ namespace celeritas
 class EventReader
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using constSPParticleParams = std::shared_ptr<const ParticleParams>;
     using result_type           = std::vector<Primary>;
-    //@}
+    //!@}
 
   public:
     // Construct from a filename
