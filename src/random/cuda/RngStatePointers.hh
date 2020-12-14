@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngStatePointers.cuh
+//! \file RngStatePointers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,8 +17,8 @@
  * device functions and re-definition of the macro with the host extension
  * is a limited scope for the random module of celeritas.
  */
-#define QUALIFIERS static __forceinline__ __host__ __device__
-#include <curand_kernel.h>
+#    define QUALIFIERS static __forceinline__ __host__ __device__
+#    include <curand_kernel.h>
 #else
 // CUDA is disabled
 #    include "curand.nocuda.hh"

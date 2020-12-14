@@ -16,6 +16,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // TYPES
 //---------------------------------------------------------------------------//
+//! MPI reduction operation to perform on the data
 enum class Operation
 {
     min,

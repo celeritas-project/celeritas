@@ -34,6 +34,11 @@ CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b)
 //---------------------------------------------------------------------------//
 /*!
  * Return an integer power of the input value.
+ *
+ * Example: \code
+  assert(9.0 == ipow<2>(3.0));
+  assert(256 == ipow<8>(2));
+ \endcode
  */
 template<unsigned int N, class T>
 CELER_CONSTEXPR_FUNCTION T ipow(T v)

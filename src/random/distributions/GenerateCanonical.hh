@@ -37,11 +37,11 @@ class GenerateCanonical
                   "RealType must be float or double");
 
   public:
-    //@{
+    //!@{
     //! Type aliases
     using real_type   = RealType;
     using result_type = real_type;
-    //@}
+    //!@}
 
   public:
     // Constructor

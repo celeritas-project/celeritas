@@ -59,7 +59,7 @@ struct numeric_limits<unsigned long long>
 
 #else // not __CUDA_ARCH__
 
-// Use standard library numeric limits
+//! Alias to standard library numeric limits
 template<class Numeric>
 using numeric_limits = std::numeric_limits<Numeric>;
 

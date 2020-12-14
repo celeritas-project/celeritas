@@ -16,7 +16,11 @@ namespace celeritas
 class MaterialParams;
 //---------------------------------------------------------------------------//
 /*!
- * Manage on-device VecGeom states.
+ * Manage on-device material states for tracks.
+ *
+ * Each track has:
+ * - The material ID of the volume in which it's located
+ * - Scratch space for storing cross sections (one per element) for sampling
  *
  * \note Construction on a build without a GPU (or CUDA) will raise an error.
  */
@@ -26,9 +30,9 @@ class MaterialStateStore
     // Construct from material params and number of track states
     MaterialStateStore(const MaterialParams& mats, size_type size);
 
-    /// ACCESSORS ///
+    //// ACCESSORS ////
 
-    // Number of states
+    //! Number of states
     size_type size() const { return states_.size(); }
 
     // View on-device states

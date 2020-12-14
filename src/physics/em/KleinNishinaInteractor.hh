@@ -46,7 +46,7 @@ class KleinNishinaInteractor
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
-    // >>> COMMON PROPERTIES
+    //// COMMON PROPERTIES ////
 
     //! Minimum incident energy for this model to be valid
     //! TODO: this isn't currently used.

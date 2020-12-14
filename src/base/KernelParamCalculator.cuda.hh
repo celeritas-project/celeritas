@@ -31,11 +31,12 @@ namespace celeritas
 class KernelParamCalculator
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using dim_type = unsigned int;
-    //@}
+    //!@}
 
+    //! Parameters needed for a CUDA lauch call
     struct LaunchParams
     {
         dim3 grid_size;  //!< Number of blocks for kernel grid

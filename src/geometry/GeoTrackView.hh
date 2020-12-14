@@ -29,15 +29,16 @@ namespace celeritas
 class GeoTrackView
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using Initializer_t = GeoStateInitializer;
-    //@}
+    //!@}
 
+    //! Helper struct for initializing from an existing geometry state
     struct DetailedInitializer
     {
-        GeoTrackView& other;
-        Real3         dir;
+        GeoTrackView& other; //!< Existing geometry
+        Real3         dir;   //!< New direction
     };
 
   public:
@@ -59,49 +60,47 @@ class GeoTrackView
     // Update current volume, called whenever move reaches boundary
     inline CELER_FUNCTION void move_next_volume();
 
-    //@{
+    //!@{
     //! State accessors
     CELER_FUNCTION const Real3& pos() const { return pos_; }
     CELER_FUNCTION const Real3& dir() const { return dir_; }
     CELER_FUNCTION real_type    next_step() const { return next_step_; }
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! State modifiers via non-const references
     CELER_FUNCTION Real3& pos() { return pos_; }
     CELER_FUNCTION Real3& dir() { return dir_; }
     CELER_FUNCTION real_type& next_step() { return next_step_; }
-    //@}
+    //!@}
 
     //! Get the volume ID in the current cell.
     inline CELER_FUNCTION VolumeId volume_id() const;
 
-    //! Return whether the track is inside or outside the valid geometry
-    //! region.
+    //! Whether the track is inside or outside the valid geometry region
     CELER_FUNCTION bool is_outside() const { return vgstate_.IsOutside(); }
 
-    // A tiny push to make sure tracks go over boundaries, to minimize chances
-    // of getting stuck at boundaries
-    CELER_CONSTEXPR_FUNCTION static real_type tolerance() { return 1e-12; }
+    //! A tiny push to make sure tracks do not get stuck at boundaries
+    static CELER_CONSTEXPR_FUNCTION real_type tolerance() { return 1e-12; }
 
   private:
-    //@{
+    //!@{
     //! Type aliases
     using Volume   = vecgeom::VPlacedVolume;
     using NavState = vecgeom::NavigationState;
-    //@}
+    //!@}
 
     //! Shared/persistent geometry data
     const GeoParamsPointers& shared_;
 
-    //@{
+    //!@{
     //! Referenced thread-local data
     NavState&  vgstate_;
     NavState&  vgnext_;
     Real3&     pos_;
     Real3&     dir_;
     real_type& next_step_;
-    //@}
+    //!@}
 
   private:
     //! Get a reference to the state from a NavStatePool's pointer

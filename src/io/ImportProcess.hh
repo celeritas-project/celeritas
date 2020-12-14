@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file ImportProcess.hh
-//! Enumerator for the available physics processes.
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,6 +13,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Enumerator for the available physics processes.
+ *
  * This enum was created to safely access the many physics tables imported.
  */
 enum class ImportProcess

@@ -30,10 +30,10 @@ namespace celeritas
 class BernoulliDistribution
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using result_type = bool;
-    //@}
+    //!@}
 
   public:
     // Construct with the probability of returning true
@@ -47,7 +47,7 @@ class BernoulliDistribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
-    // Probability of returning `true` from operator()
+    //! Probability of returning `true` from operator()
     real_type p() const { return p_true_; }
 
   private:

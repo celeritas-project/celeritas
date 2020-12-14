@@ -27,7 +27,7 @@ namespace demo_interactor
 class KNDemoRunner
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using size_type   = celeritas::size_type;
     using result_type = KNDemoResult;
@@ -35,7 +35,7 @@ class KNDemoRunner
         = std::shared_ptr<const celeritas::ParticleParams>;
     using constSPPhysicsArrayParams
         = std::shared_ptr<const celeritas::PhysicsArrayParams>;
-    //@}
+    //!@}
 
   public:
     // Construct with parameters

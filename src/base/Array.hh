@@ -22,7 +22,7 @@ namespace celeritas
 template<typename T, std::size_t N>
 struct Array
 {
-    //@{
+    //!@{
     //! Type aliases
     using value_type      = T;
     using size_type       = std::size_t;
@@ -32,15 +32,15 @@ struct Array
     using const_reference = const value_type&;
     using iterator        = pointer;
     using const_iterator  = const_pointer;
-    //@}
+    //!@}
 
-    /// DATA ///
+    //// DATA ////
 
-    T data_[N];
+    T data_[N]; //!< Storage
 
-    /// ACCESSORS ///
+    //// ACCESSORS ////
 
-    //@{
+    //!@{
     //! Element access
     CELER_FORCEINLINE_FUNCTION const_reference operator[](size_type i) const
     {
@@ -62,9 +62,9 @@ struct Array
     CELER_FORCEINLINE_FUNCTION reference     back() { return data_[N - 1]; }
     CELER_FORCEINLINE_FUNCTION const_pointer data() const { return data_; }
     CELER_FORCEINLINE_FUNCTION pointer       data() { return data_; }
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Iterators
     CELER_FORCEINLINE_FUNCTION iterator       begin() { return data_; }
     CELER_FORCEINLINE_FUNCTION iterator       end() { return data_ + N; }
@@ -75,22 +75,22 @@ struct Array
     {
         return data_ + N;
     }
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Capacity
     CELER_CONSTEXPR_FUNCTION bool      empty() const { return N == 0; }
     CELER_CONSTEXPR_FUNCTION size_type size() const { return N; }
-    //@}
+    //!@}
 
-    //@{
+    //!@{
     //! Operations
     CELER_FORCEINLINE_FUNCTION void fill(const_reference value) const
     {
         for (size_type i = 0; i != N; ++i)
             data_[i] = value;
     }
-    //@}
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

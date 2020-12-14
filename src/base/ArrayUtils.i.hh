@@ -27,7 +27,7 @@ CELER_FUNCTION void axpy(T a, const Array<T, N>& x, Array<T, N>* y)
 
 //---------------------------------------------------------------------------//
 /*!
- * Dot product x . y
+ * Dot product of two vectors.
  */
 template<typename T, std::size_t N>
 CELER_FUNCTION T dot_product(const Array<T, N>& x, const Array<T, N>& y)
@@ -42,20 +42,21 @@ CELER_FUNCTION T dot_product(const Array<T, N>& x, const Array<T, N>& y)
 
 //---------------------------------------------------------------------------//
 /*!
- * Cross product A x B
+ * Cross product of two space vectors.
  */
 template<typename T>
 CELER_FUNCTION Array<T, 3>
                cross_product(const Array<T, 3>& A, const Array<T, 3>& B)
 {
-    Array<T, 3> result = {A[1] * B[2] - A[2] * B[1],
-                          A[2] * B[0] - A[0] * B[2],
-                          A[0] * B[1] - A[1] * B[0]};
-    return std::move(result);
+    return {A[1] * B[2] - A[2] * B[1],
+            A[2] * B[0] - A[0] * B[2],
+            A[0] * B[1] - A[1] * B[0]};
 }
 
 //---------------------------------------------------------------------------//
-// Calculate the Euclidian (2) norm of a vector
+/*!
+ * Calculate the Euclidian (2) norm of a vector.
+ */
 template<typename T, std::size_t N>
 CELER_FUNCTION T norm(const Array<T, N>& v)
 {
@@ -63,10 +64,12 @@ CELER_FUNCTION T norm(const Array<T, N>& v)
 }
 
 //---------------------------------------------------------------------------//
-// Divide the given vector by its Euclidian norm
-CELER_FUNCTION void normalize_direction(Array<real_type, 3>* direction)
+/*!
+ * Divide the given vector by its Euclidian norm.
+ */
+CELER_FUNCTION void normalize_direction(Real3* direction)
 {
-    real_type scale_factor = 1 / norm(*direction);
+    const real_type scale_factor = 1 / norm(*direction);
     (*direction)[0] *= scale_factor;
     (*direction)[1] *= scale_factor;
     (*direction)[2] *= scale_factor;
@@ -182,7 +185,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
  * Example:
  * \code
   REQUIRE(is_soft_unit_vector(v, SoftEqual(1e-12)))
-  \endcode;
+  \endcode
  */
 template<typename T, std::size_t N, class SoftEq>
 CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v, SoftEq cmp)

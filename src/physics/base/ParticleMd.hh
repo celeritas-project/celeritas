@@ -12,6 +12,7 @@
 
 namespace celeritas
 {
+//! Opaque type used for PDG particle definition codes
 using PDGNumber = OpaqueId<struct ParticleMd, int>;
 
 //---------------------------------------------------------------------------//
@@ -43,7 +44,7 @@ struct ParticleMd
 namespace pdg
 {
 //---------------------------------------------------------------------------//
-//@{
+//!@{
 //! Particle Data Group Monte Carlo number codes.
 #define CELER_DEFINE_PDGNUMBER(NAME, VALUE) \
     inline constexpr PDGNumber NAME() { return PDGNumber{VALUE}; }
@@ -70,7 +71,7 @@ CELER_DEFINE_PDGNUMBER(proton, 2212)
 CELER_DEFINE_PDGNUMBER(triton, 1000010030)
 
 #undef CELER_DEFINE_PDGNUMBER
-//@}
+//!@}
 //---------------------------------------------------------------------------//
 } // namespace pdg
 } // namespace celeritas

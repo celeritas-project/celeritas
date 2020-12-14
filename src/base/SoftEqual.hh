@@ -29,14 +29,14 @@ template<typename T1 = real_type, typename T2 = T1>
 class SoftEqual
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using first_argument_type  = T1;
     using second_argument_type = T2;
     using value_type =
         typename detail::SoftPrecisionType<first_argument_type,
                                            second_argument_type>::type;
-    //@}
+    //!@}
 
   public:
     // Construct with default relative/absolute precision
@@ -48,13 +48,13 @@ class SoftEqual
     // Construct with both relative and absolute precision
     inline CELER_FUNCTION SoftEqual(value_type rel, value_type abs);
 
-    /// COMPARISON ///
+    //// COMPARISON ////
 
     // Compare two values (implicitly casting arguments)
     bool CELER_FUNCTION operator()(value_type expected,
                                    value_type actual) const;
 
-    /// ACCESSORS ///
+    //// ACCESSORS ////
 
     //! Relative allowable error
     CELER_FUNCTION value_type rel() const { return rel_; }
@@ -80,12 +80,12 @@ template<typename T>
 class SoftZero
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using argument_type = T;
     using value_type    = T;
     using traits_t      = detail::SoftEqualTraits<value_type>;
-    //@}
+    //!@}
 
   public:
     // Construct with default relative/absolute precision
@@ -94,12 +94,12 @@ class SoftZero
     // Construct with absolute precision
     inline explicit CELER_FUNCTION SoftZero(value_type abs);
 
-    /// COMPARISON ///
+    //// COMPARISON ////
 
     // Compare the given value to zero
     inline CELER_FUNCTION bool operator()(value_type actual) const;
 
-    /// ACCESSORS ///
+    //// ACCESSORS ////
 
     //! Absolute tolerance
     CELER_FUNCTION value_type abs() const { return abs_; }

@@ -11,9 +11,16 @@
  * \def CELER_FUNCTION
  *
  * Decorate a function that works on both host and device, with and without
- * NVCC. This is meant for small utility classes (trivially copyable!) that
- * will be used on host and device, not for complicated classes. The name of
- * these functions is based on the Kokkos naming scheme.
+ * NVCC. The name of this function and its siblings is based on the Kokkos
+ * naming scheme.
+ */
+/*!
+ * \def CELER_FORCEINLINE_FUNCTION
+ *
+ * Like CELER_FUNCTION but forces inlining. Compiler optimizers usually can
+ * tell what needs optimizing, but this function can provide speedups (and
+ * smaller sampling profiles) when inlining optimizations are not enabled. It
+ * should be used sparingly.
  */
 #if defined(__NVCC__)
 #    define CELER_FUNCTION __host__ __device__
@@ -65,7 +72,7 @@
  * \code
    for (CELER_MAYBE_UNUSED int x : range(100))
    {
-      do_noop();
+       do_noop();
    }
    \endcode
  */

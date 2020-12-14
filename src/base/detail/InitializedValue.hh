@@ -22,11 +22,11 @@ class InitializedValue
     //! Construct with default value
     InitializedValue(T value = {}) : value_(value) {}
 
-    //@{
+    //!@{
     //! Default copy assign and construct
     InitializedValue(const InitializedValue&) noexcept = default;
     InitializedValue& operator=(const InitializedValue&) noexcept = default;
-    //@}
+    //!@}
 
     //! Clear other value on move construct
     InitializedValue(InitializedValue&& other) noexcept : value_(other.value_)

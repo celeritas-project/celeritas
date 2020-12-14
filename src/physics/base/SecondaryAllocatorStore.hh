@@ -13,10 +13,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//@{
+//!@{
 //! Type aliases for secondary allocation
 using SecondaryAllocatorStore = StackAllocatorStore<Secondary>;
-//@}
+//!@}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

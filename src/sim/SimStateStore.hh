@@ -23,7 +23,7 @@ class SimStateStore
     // Construct from number of track states
     explicit SimStateStore(size_type size);
 
-    /// ACCESSORS ///
+    //// ACCESSORS ////
 
     // Number of states
     size_type size() const;

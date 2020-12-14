@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file RootImporter.hh
-//! Import all the data exported by the app/geant-exporter.
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -56,6 +55,7 @@ namespace celeritas
 class RootImporter
 {
   public:
+    //! Return value from importing from the ROOT file
     struct result_type
     {
         std::shared_ptr<ParticleParams>                  particle_params;

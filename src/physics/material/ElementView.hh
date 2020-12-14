@@ -32,17 +32,17 @@ namespace celeritas
 class ElementView
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using AmuMass = units::AmuMass;
-    //@}
+    //!@}
 
   public:
     // Construct from shared material pointers and global element ID
     inline CELER_FUNCTION
     ElementView(const MaterialParamsPointers& params, ElementDefId el_id);
 
-    // >>> STATIC PROPERTIES
+    //// STATIC PROPERTIES ////
 
     //! Atomic number Z
     CELER_FUNCTION int atomic_number() const { return def_.atomic_number; }
@@ -50,7 +50,7 @@ class ElementView
     //! Abundance-weighted atomic mass M [amu]
     CELER_FUNCTION AmuMass atomic_mass() const { return def_.atomic_mass; }
 
-    // >>> COMPUTED PROPERTIES
+    //// COMPUTED PROPERTIES ////
 
     //! Cube root of atomic number: Z^(1/3)
     CELER_FUNCTION real_type cbrt_z() const { return def_.cbrt_z; }

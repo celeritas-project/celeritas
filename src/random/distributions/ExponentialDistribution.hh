@@ -28,11 +28,11 @@ template<class RealType = double>
 class ExponentialDistribution
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using real_type   = RealType;
     using result_type = RealType;
-    //@}
+    //!@}
 
   public:
     // Construct with defaults

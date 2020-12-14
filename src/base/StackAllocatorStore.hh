@@ -24,12 +24,12 @@ template<class T>
 class StackAllocatorStore
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using value_type = T;
     using size_type  = ull_int;
     using Pointers   = StackAllocatorPointers<T>;
-    //@}
+    //!@}
 
   public:
     // Construct with no storage
@@ -38,7 +38,7 @@ class StackAllocatorStore
     // Construct with the maximum number of values to store on device
     explicit StackAllocatorStore(size_type capacity);
 
-    /// HOST ACCESSORS ///
+    //// HOST ACCESSORS ////
 
     //! Size of the allocation
     size_type capacity() const { return allocation_.size(); }
@@ -49,7 +49,7 @@ class StackAllocatorStore
     // Clear allocated data (performs kernel launch!)
     void clear();
 
-    /// DEVICE ACCESSORS ///
+    //// DEVICE ACCESSORS ////
 
     // Get a view to the managed data
     Pointers device_pointers();

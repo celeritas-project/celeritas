@@ -21,12 +21,12 @@ namespace demo_rasterizer
 class ImageTrackView
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using ThreadId  = celeritas::ThreadId;
     using Real3     = celeritas::Real3;
     using real_type = celeritas::real_type;
-    //@}
+    //!@}
 
   public:
     // Construct with image data and thread ID

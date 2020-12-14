@@ -19,11 +19,11 @@ template<class RealType = double>
 class RadialDistribution
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using real_type   = RealType;
     using result_type = real_type;
-    //@}
+    //!@}
 
   public:
     // Constructor
@@ -33,7 +33,7 @@ class RadialDistribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
-    /// ACCESSORS ///
+    //// ACCESSORS ////
 
     //! Get the sampling radius
     inline CELER_FUNCTION real_type radius() const { return radius_; }

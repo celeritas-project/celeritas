@@ -19,6 +19,7 @@ namespace units
 //! Unit for quantity such that the numeric value of 1 MeV is unity
 struct Mev
 {
+    //! Conversion factor from the unit to CGS
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
         return 1e6 * constants::e_electron * units::volt;
@@ -28,6 +29,7 @@ struct Mev
 //! Unit for relativistic speeds
 struct CLight
 {
+    //! Conversion factor from the unit to CGS
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
         return constants::c_light;
@@ -37,6 +39,7 @@ struct CLight
 //! Unit for precise representation of particle charges
 struct EElectron
 {
+    //! Conversion factor from the unit to CGS
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
         return constants::e_electron; // *Positive* sign
@@ -46,6 +49,7 @@ struct EElectron
 //! Unit for atomic masses
 struct Amu
 {
+    //! Conversion factor from the unit to CGS
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
         return constants::atomic_mass;
@@ -56,7 +60,7 @@ struct Amu
 using CLightSq = UnitProduct<CLight, CLight>;
 
 //---------------------------------------------------------------------------//
-//@{
+//!@{
 //! Units for particle quantities
 using ElementaryCharge = Quantity<EElectron>;
 using MevEnergy        = Quantity<Mev>;
@@ -65,7 +69,7 @@ using MevMomentum      = Quantity<UnitDivide<Mev, CLight>>;
 using MevMomentumSq    = Quantity<UnitDivide<UnitProduct<Mev, Mev>, CLightSq>>;
 using LightSpeed       = Quantity<CLight>;
 using AmuMass          = Quantity<Amu>;
-//@}
+//!@}
 
 //---------------------------------------------------------------------------//
 } // namespace units

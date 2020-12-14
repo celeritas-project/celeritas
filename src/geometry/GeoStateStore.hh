@@ -27,18 +27,18 @@ class GeoParams;
 class GeoStateStore
 {
   public:
-    //@{
+    //!@{
     //! Public types.
     using SpanConstReal3 = Span<const Real3>;
-    //@}
+    //!@}
 
   public:
     // Construct from device geometry and number of track states
     GeoStateStore(const GeoParams& geo, size_type size);
 
-    /// ACCESSORS ///
+    //// ACCESSORS ////
 
-    // Number of states
+    //! Number of states
     size_type size() const { return pos_.size(); }
 
     // View on-device states

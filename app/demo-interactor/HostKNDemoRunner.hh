@@ -25,7 +25,7 @@ namespace demo_interactor
 class HostKNDemoRunner
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using size_type   = celeritas::size_type;
     using result_type = demo_interactor::KNDemoResult;
@@ -33,7 +33,7 @@ class HostKNDemoRunner
         = std::shared_ptr<const celeritas::ParticleParams>;
     using constSPPhysicsArrayParams
         = std::shared_ptr<const celeritas::PhysicsArrayParams>;
-    //@}
+    //!@}
 
   private:
     // CPU Version of the particle StatePointers

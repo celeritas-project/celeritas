@@ -45,6 +45,7 @@ struct GeoStatePointers
     inline CELER_FUNCTION bool valid() const;
 };
 
+//! Data required to initialize a geometry state
 struct GeoStateInitializer
 {
     Real3 pos;

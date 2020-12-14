@@ -21,13 +21,13 @@ template<class T>
 class HostStackAllocatorStore
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using value_type      = T;
     using Pointers        = StackAllocatorPointers<T>;
     using size_type       = typename Pointers::size_type;
     using const_span_type = celeritas::Span<const value_type>;
-    //@}
+    //!@}
 
   public:
     // Construct with defaults
@@ -47,7 +47,7 @@ class HostStackAllocatorStore
     //! Clear allocated data (as for StackAllocator, just sets size to 0)
     void clear() { size_ = 0; }
 
-    /// HOST ACCESSORS ///
+    //// HOST ACCESSORS ////
 
     // Get a view to the stack pointers
     Pointers host_pointers() { return pointers_; }

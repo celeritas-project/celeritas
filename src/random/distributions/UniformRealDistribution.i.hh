@@ -15,9 +15,10 @@ namespace celeritas
 /*!
  * Construct with defaults.
  */
-template<typename T>
+template<class RealType>
 CELER_FUNCTION
-UniformRealDistribution<T>::UniformRealDistribution(real_type a, real_type b)
+UniformRealDistribution<RealType>::UniformRealDistribution(real_type a,
+                                                           real_type b)
     : a_(a), delta_(b - a)
 {
     REQUIRE(a < b);
@@ -27,12 +28,12 @@ UniformRealDistribution<T>::UniformRealDistribution(real_type a, real_type b)
 /*!
  * Sample a random number according to the distribution.
  */
-template<class T>
+template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto UniformRealDistribution<T>::operator()(Generator& rng)
-    -> result_type
+CELER_FUNCTION auto
+UniformRealDistribution<RealType>::operator()(Generator& rng) -> result_type
 {
-    return delta_ * generate_canonical<T>(rng) + a_;
+    return delta_ * generate_canonical<RealType>(rng) + a_;
 }
 
 //---------------------------------------------------------------------------//

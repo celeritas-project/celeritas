@@ -382,8 +382,8 @@ size_type reduce_counts(Span<size_type> counts)
  * Do an exclusive scan of the number of surviving secondaries from each track.
  *
  * For an input array x, this calculates the exclusive prefix sum y of the
- * array elements, i.e., y_i = \sum_{j=0}^{i-1} x_j, where y_0 = 0, and stores
- * the result in the input array.
+ * array elements, i.e., \f$ y_i = \sum_{j=0}^{i-1} x_j \f$,
+ * where \f$ y_0 = 0 \f$, and stores the result in the input array.
  */
 void exclusive_scan_counts(Span<size_type> counts)
 {

@@ -12,7 +12,7 @@
 namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
-//@{
+//!@{
 //! I/O routines for JSON
 void to_json(nlohmann::json& j, const CudaGridParams& v)
 {
@@ -59,7 +59,7 @@ void from_json(const nlohmann::json& j, KNDemoResult& v)
     j.at("edep").get_to(v.edep);
     j.at("total_time").get_to(v.total_time);
 }
-//@}
+//!@}
 
 //---------------------------------------------------------------------------//
 } // namespace demo_interactor

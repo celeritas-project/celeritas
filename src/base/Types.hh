@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file Types.hh
+//! Type definitions for common Celeritas functionality
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,11 +15,17 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-using size_type    = std::size_t;
-using ull_int      = unsigned long long int; //!< Compatible with CUDA atomics
-using real_type    = double;
-using RealPointer3 = Array<real_type*, 3>;
-using Real3        = Array<real_type, 3>;
+//! Standard type for container sizes.
+using size_type = std::size_t;
+
+//! Equivalent to container size but compatible with CUDA atomics
+using ull_int = unsigned long long int;
+
+//! Numerical type for real numbers
+using real_type = double;
+
+//! Fixed-size array for R3 calculations
+using Real3 = Array<real_type, 3>;
 
 //! Index of the current CUDA thread, with type safety for containers.
 using ThreadId = OpaqueId<struct Thread, unsigned int>;

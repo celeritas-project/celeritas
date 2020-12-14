@@ -20,11 +20,11 @@ namespace demo_rasterizer
 class RDemoRunner
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
     using Args       = ImageRunArgs;
-    //@}
+    //!@}
 
   public:
     // Construct with geometry

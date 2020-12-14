@@ -24,19 +24,19 @@ namespace demo_rasterizer
 class ImageStore
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using real_type = celeritas::real_type;
     using UInt2     = celeritas::Array<unsigned int, 2>;
     using Real3     = celeritas::Real3;
     using VecInt    = std::vector<int>;
-    //@}
+    //!@}
 
   public:
     // Construct with defaults
     explicit ImageStore(ImageRunArgs);
 
-    /// DEVICE ACCESSORS ///
+    //// DEVICE ACCESSORS ////
 
     //! Access image on host for initializing
     ImagePointers host_interface();
@@ -44,7 +44,7 @@ class ImageStore
     //! Access image on device for writing
     ImagePointers device_interface();
 
-    /// HOST ACCESSORS ///
+    //// HOST ACCESSORS ////
 
     //! Upper left corner of the image
     const Real3& origin() const { return origin_; }

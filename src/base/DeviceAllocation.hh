@@ -26,11 +26,11 @@ namespace celeritas
 class DeviceAllocation
 {
   public:
-    //@{
+    //!@{
     //! Type aliases
     using SpanBytes      = Span<Byte>;
     using constSpanBytes = Span<const Byte>;
-    //@}
+    //!@}
 
   public:
     // Construct in unallocated state
@@ -42,7 +42,7 @@ class DeviceAllocation
     // Swap with another allocation
     inline void swap(DeviceAllocation& other) noexcept;
 
-    // >>> ACCESSORS
+    //// ACCESSORS ////
 
     //! Get the number of bytes allocated
     size_type size() const { return size_; }
@@ -50,7 +50,7 @@ class DeviceAllocation
     //! Whether memory is allocated
     bool empty() const { return size_ == 0; }
 
-    // >>> DEVICE ACCESSORS
+    //// DEVICE ACCESSORS ////
 
     // Get the device pointer
     inline SpanBytes device_pointers();
@@ -71,7 +71,7 @@ class DeviceAllocation
     };
     using DeviceUniquePtr = std::unique_ptr<Byte[], CudaFreeDeleter>;
 
-    // >>> DATA
+    //// DATA ////
 
     detail::InitializedValue<size_type> size_;
     DeviceUniquePtr data_;

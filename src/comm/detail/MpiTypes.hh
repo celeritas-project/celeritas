@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file MpiTypes.hh
+//! Type definitions for MPI parallel operations
 //---------------------------------------------------------------------------//
 #pragma once
 

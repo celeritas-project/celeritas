@@ -33,6 +33,14 @@
  * Postcondition debug assertion macro. Use to "ensure" that return values or
  * side effects are as expected when leaving a function.
  */
+/*!
+ * \def CHECK_UNREACHABLE
+ *
+ * Assert if the code point is reached. When debug assertions are turned off,
+ * this changes to a compiler hint that improves optimization.
+ */
+
+//! \cond
 #define CELER_CUDA_ASSERT_(COND) \
     do                           \
     {                            \
@@ -49,6 +57,7 @@
     {                           \
         if (false && (COND)) {} \
     } while (0)
+//! \endcond
 
 #if CELERITAS_DEBUG && defined(__CUDA_ARCH__)
 #    define REQUIRE(x) CELER_CUDA_ASSERT_(x)
@@ -128,8 +137,11 @@ throw_debug_error(const char* condition, const char* file, int line);
 class DebugError : public std::logic_error
 {
   public:
+    //!@{
+    //! Delegating constructor
     explicit DebugError(const char* msg);
     explicit DebugError(const std::string& msg);
+    //!@}
 };
 
 //---------------------------------------------------------------------------//
@@ -139,8 +151,11 @@ class DebugError : public std::logic_error
 class CudaCallError : public std::runtime_error
 {
   public:
+    //!@{
+    //! Delegating constructor
     explicit CudaCallError(const char* msg);
     explicit CudaCallError(const std::string& msg);
+    //!@}
 };
 
 #endif //__CUDA_ARCH__

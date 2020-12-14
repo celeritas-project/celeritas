@@ -13,7 +13,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with the shared problem data..
+ * Construct with the shared problem data.
  */
 ParamStore::ParamStore(SPConstGeo      geo,
                        SPConstMaterial mat,
