@@ -26,7 +26,7 @@ struct StackAllocatorPointers
     using value_type = T;
     //@}
 
-    span<T>    storage;        //!< Allocated capacity
+    Span<T>    storage;        //!< Allocated capacity
     size_type* size = nullptr; //!< Stored size
 
     // Whether the interface is initialized

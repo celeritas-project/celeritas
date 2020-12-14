@@ -21,7 +21,7 @@ DeviceAllocation::DeviceAllocation(size_type)
 
 //---------------------------------------------------------------------------//
 //! Deleter should never be called on CPU
-void DeviceAllocation::CudaFreeDeleter::operator()(byte*) const
+void DeviceAllocation::CudaFreeDeleter::operator()(Byte*) const
 {
     CHECK_UNREACHABLE;
 }

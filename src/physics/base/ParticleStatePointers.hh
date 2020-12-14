@@ -45,7 +45,7 @@ struct ParticleTrackState
  */
 struct ParticleStatePointers
 {
-    span<ParticleTrackState> vars;
+    Span<ParticleTrackState> vars;
 
     //! Check whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const { return !vars.empty(); }

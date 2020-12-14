@@ -49,8 +49,8 @@ class SpanRemapper
   public:
     //@{
     //! Type aliases
-    using src_type = span<T>;
-    using dst_type = span<U>;
+    using src_type = Span<T>;
+    using dst_type = Span<U>;
     //@}
 
   public:
@@ -59,7 +59,7 @@ class SpanRemapper
 
     // Convert a subspan of the "source" to a corresponding subspan in "dst"
     template<typename V>
-    inline auto operator()(span<V> src_subspan) const -> dst_type;
+    inline auto operator()(Span<V> src_subspan) const -> dst_type;
 
   private:
     src_type src_;
@@ -69,7 +69,7 @@ class SpanRemapper
 //---------------------------------------------------------------------------//
 //! Helper function for creating a span mapper.
 template<typename T, typename U>
-inline SpanRemapper<T, U> make_span_remapper(span<T> src, span<U> dst)
+inline SpanRemapper<T, U> make_span_remapper(Span<T> src, Span<U> dst)
 {
     return SpanRemapper<T, U>{src, dst};
 }

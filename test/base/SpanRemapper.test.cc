@@ -12,7 +12,7 @@
 
 using celeritas::make_span;
 using celeritas::make_span_remapper;
-using celeritas::span;
+using celeritas::Span;
 using celeritas::SpanRemapper;
 
 //---------------------------------------------------------------------------//
@@ -44,13 +44,13 @@ TEST(SpanRemapperTest, host_host)
 
     {
         // Remap empty span
-        auto dst = remap_span(span<int>{});
+        auto dst = remap_span(Span<int>{});
         EXPECT_EQ(0, dst.size());
     }
 
     {
         // Remap subspan
-        span<int> src(&src_data[3], &src_data[10]);
+        Span<int> src(&src_data[3], &src_data[10]);
         auto      dst = remap_span(src);
         EXPECT_EQ(3, dst.data() - dst_data.data());
         EXPECT_EQ(10 - 3, dst.size());
@@ -67,21 +67,21 @@ TEST(SpanRemapperTest, host_host_const)
         auto remap_span
             = make_span_remapper(make_span(src_data), make_span(dst_data));
 
-        span<const int> src(&src_data[3], &src_data[10]);
+        Span<const int> src(&src_data[3], &src_data[10]);
         auto            dst = remap_span(src);
         EXPECT_EQ(3, dst.data() - dst_data.data());
         EXPECT_EQ(10 - 3, dst.size());
-        EXPECT_TRUE((std::is_same<decltype(dst), span<int>>::value));
+        EXPECT_TRUE((std::is_same<decltype(dst), Span<int>>::value));
     }
 
     // (int, const int)(int) -> const int
     {
         auto remap_span = make_span_remapper(
             make_span(src_data),
-            span<const int>(dst_data.data(), dst_data.size()));
+            Span<const int>(dst_data.data(), dst_data.size()));
 
-        span<int> src(&src_data[3], &src_data[10]);
+        Span<int> src(&src_data[3], &src_data[10]);
         auto      dst = remap_span(src);
-        EXPECT_TRUE((std::is_same<decltype(dst), span<const int>>::value));
+        EXPECT_TRUE((std::is_same<decltype(dst), Span<const int>>::value));
     }
 }

@@ -11,8 +11,8 @@
 #include "base/Constants.hh"
 #include "base/ArrayIO.hh"
 
-using celeritas::array;
-using Real3 = array<double, 3>;
+using celeritas::Array;
+using Real3 = Array<double, 3>;
 
 enum
 {
@@ -27,14 +27,14 @@ enum
 
 TEST(ArrayUtilsTest, io)
 {
-    array<int, 3> x{1, 3, 2};
+    Array<int, 3> x{1, 3, 2};
     EXPECT_EQ("{1,3,2}", to_string(x));
 }
 
 TEST(ArrayUtilsTest, axpy)
 {
-    array<int, 3> x{1, 3, 2};
-    array<int, 3> y{20, 30, 40};
+    Array<int, 3> x{1, 3, 2};
+    Array<int, 3> y{20, 30, 40};
 
     celeritas::axpy(4, x, &y);
     EXPECT_EQ(4 * 1 + 20, y[X]);
@@ -44,8 +44,8 @@ TEST(ArrayUtilsTest, axpy)
 
 TEST(ArrayUtilsTest, dot_product)
 {
-    array<int, 2> x{1, 3};
-    array<int, 2> y{2, 4};
+    Array<int, 2> x{1, 3};
+    Array<int, 2> y{2, 4};
 
     EXPECT_EQ(1 * 2 + 3 * 4, celeritas::dot_product(x, y));
 }
@@ -53,7 +53,7 @@ TEST(ArrayUtilsTest, dot_product)
 TEST(ArrayUtilsTest, norm)
 {
     EXPECT_SOFT_EQ(std::sqrt(4.0 + 9.0 + 16.0),
-                   celeritas::norm(array<double, 3>{2, 3, 4}));
+                   celeritas::norm(Array<double, 3>{2, 3, 4}));
 }
 
 TEST(ArrayUtilsTest, normalize_direction)

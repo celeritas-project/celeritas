@@ -51,10 +51,10 @@ struct StatePointers
 {
     celeritas::ParticleStatePointers      particle;
     celeritas::RngStatePointers           rng;
-    celeritas::span<celeritas::Real3>     position;
-    celeritas::span<celeritas::Real3>     direction;
-    celeritas::span<celeritas::real_type> time;
-    celeritas::span<bool>                 alive;
+    celeritas::Span<celeritas::Real3>     position;
+    celeritas::Span<celeritas::Real3>     direction;
+    celeritas::Span<celeritas::real_type> time;
+    celeritas::Span<bool>                 alive;
 
     explicit CELER_FUNCTION operator bool() const
     {
@@ -86,7 +86,7 @@ void iterate(const CudaGridParams&                        grid,
 
 //---------------------------------------------------------------------------//
 // Sum the total number of living particles
-celeritas::size_type reduce_alive(celeritas::span<bool> alive);
+celeritas::size_type reduce_alive(celeritas::Span<bool> alive);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_interactor

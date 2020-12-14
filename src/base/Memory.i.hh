@@ -15,7 +15,7 @@ namespace celeritas
  * Call memset on device data.
  */
 template<class T>
-void device_memset_zero(span<T> device_pointers)
+void device_memset_zero(Span<T> device_pointers)
 {
     static_assert(std::is_trivially_copyable<T>::value,
                   "Only trivially copyable types may be memset");

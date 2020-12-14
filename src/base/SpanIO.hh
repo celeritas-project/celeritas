@@ -18,7 +18,7 @@ namespace celeritas
  * Write the elements of span \a s to stream \a os.
  */
 template<class T, std::size_t E>
-std::ostream& operator<<(std::ostream& os, const span<T, E>& s)
+std::ostream& operator<<(std::ostream& os, const Span<T, E>& s)
 {
     std::streamsize size      = s.size();
     std::streamsize width     = os.width();

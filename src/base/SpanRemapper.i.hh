@@ -27,7 +27,7 @@ SpanRemapper<T, U>::SpanRemapper(src_type src_span, dst_type dst_span)
  */
 template<typename T, typename U>
 template<typename V>
-auto SpanRemapper<T, U>::operator()(span<V> src_subspan) const -> dst_type
+auto SpanRemapper<T, U>::operator()(Span<V> src_subspan) const -> dst_type
 {
     REQUIRE(src_subspan.empty()
             || (src_subspan.begin() >= src_.begin()

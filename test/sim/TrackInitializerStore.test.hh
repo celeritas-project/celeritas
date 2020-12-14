@@ -70,8 +70,8 @@ struct Interactor
 //! Input data
 struct ITTestInputPointers
 {
-    span<const size_type> alloc_size;
-    span<const char>      alive;
+    Span<const size_type> alloc_size;
+    Span<const char>      alive;
 };
 
 struct ITTestInput

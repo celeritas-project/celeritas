@@ -37,8 +37,8 @@ void barrier(const Communicator& comm)
 template<class T, std::size_t N>
 void allreduce(const Communicator& comm,
                Operation           op,
-               span<const T, N>    src,
-               span<T, N>          dst)
+               Span<const T, N>    src,
+               Span<T, N>          dst)
 {
     REQUIRE(src.size() == dst.size());
 
@@ -49,7 +49,7 @@ void allreduce(const Communicator& comm,
     }
 
 #if CELERITAS_USE_MPI
-    return detail::allreduce(comm, op, span<const T>(src), span<T>(dst));
+    return detail::allreduce(comm, op, Span<const T>(src), Span<T>(dst));
 #else
     (void)sizeof(op);
 #endif
@@ -60,13 +60,13 @@ void allreduce(const Communicator& comm,
  * All-to-all reduction on the data, in place.
  */
 template<class T, std::size_t N>
-void allreduce(const Communicator& comm, Operation op, span<T, N> data)
+void allreduce(const Communicator& comm, Operation op, Span<T, N> data)
 {
     if (!comm)
         return;
 
 #if CELERITAS_USE_MPI
-    return detail::allreduce(comm, op, span<T>(data));
+    return detail::allreduce(comm, op, Span<T>(data));
 #else
     (void)sizeof(data);
     (void)sizeof(op);
@@ -81,7 +81,7 @@ template<class T, std::enable_if_t<std::is_fundamental<T>::value, T*>>
 T allreduce(const Communicator& comm, Operation op, const T src)
 {
     T dst{};
-    allreduce(comm, op, span<const T, 1>{&src, 1}, span<T, 1>{&dst, 1});
+    allreduce(comm, op, Span<const T, 1>{&src, 1}, Span<T, 1>{&dst, 1});
     return dst;
 }
 

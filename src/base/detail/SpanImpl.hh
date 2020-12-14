@@ -39,7 +39,7 @@ subspan_size(std::size_t size, std::size_t offset, std::size_t count)
 
 //---------------------------------------------------------------------------//
 /*!
- * Storage for a span.
+ * Storage for a Span.
  */
 template<class T, std::size_t Extent>
 struct SpanImpl

@@ -183,7 +183,7 @@ void iterate(const CudaGridParams&              grid,
 /*!
  * Sum the total number of living particles.
  */
-size_type reduce_alive(span<bool> alive)
+size_type reduce_alive(Span<bool> alive)
 {
     size_type result = thrust::reduce(
         thrust::device_pointer_cast(alive.data()),

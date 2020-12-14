@@ -20,7 +20,7 @@ namespace celeritas
  * Write the elements of array \a a to stream \a os.
  */
 template<class T, std::size_t N>
-std::ostream& operator<<(std::ostream& os, const array<T, N>& a)
+std::ostream& operator<<(std::ostream& os, const Array<T, N>& a)
 {
     os << make_span(a);
     return os;
@@ -31,7 +31,7 @@ std::ostream& operator<<(std::ostream& os, const array<T, N>& a)
  * Convert an array to a string representation for debugging.
  */
 template<class T, std::size_t N>
-std::string to_string(const array<T, N>& a)
+std::string to_string(const Array<T, N>& a)
 {
     std::ostringstream os;
     os << a;

@@ -40,7 +40,7 @@ void locate_alive(const StatePointers&            states,
 
 //---------------------------------------------------------------------------//
 // Create track initializers on device from primary particles
-void process_primaries(span<const Primary>             primaries,
+void process_primaries(Span<const Primary>             primaries,
                        const TrackInitializerPointers& inits);
 
 //---------------------------------------------------------------------------//
@@ -51,15 +51,15 @@ void process_secondaries(const StatePointers&     states,
 
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive
-size_type remove_if_alive(span<size_type> vacancies);
+size_type remove_if_alive(Span<size_type> vacancies);
 
 //---------------------------------------------------------------------------//
 // Sum the total number of surviving secondaries.
-size_type reduce_counts(span<size_type> counts);
+size_type reduce_counts(Span<size_type> counts);
 
 //---------------------------------------------------------------------------//
 // Calculate the exclusive prefix sum of the number of surviving secondaries
-void exclusive_scan_counts(span<size_type> counts);
+void exclusive_scan_counts(Span<size_type> counts);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

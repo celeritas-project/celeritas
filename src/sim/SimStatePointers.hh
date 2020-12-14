@@ -32,7 +32,7 @@ struct SimTrackState
  */
 struct SimStatePointers
 {
-    span<SimTrackState> vars;
+    Span<SimTrackState> vars;
 
     //! Check whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const { return !vars.empty(); }

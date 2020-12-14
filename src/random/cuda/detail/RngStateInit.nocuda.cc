@@ -18,7 +18,7 @@ namespace detail
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
 void rng_state_init_device(const RngStatePointers&,
-                           span<const RngSeed::value_type>)
+                           Span<const RngSeed::value_type>)
 {
     CHECK_UNREACHABLE;
 }

@@ -35,13 +35,13 @@ inline void barrier(const Communicator& comm);
 template<class T, std::size_t N>
 inline void allreduce(const Communicator& comm,
                       Operation           op,
-                      span<const T, N>    src,
-                      span<T, N>          dst);
+                      Span<const T, N>    src,
+                      Span<T, N>          dst);
 
 //---------------------------------------------------------------------------//
 // All-to-all reduction on the data, in place
 template<class T, std::size_t N>
-inline void allreduce(const Communicator& comm, Operation op, span<T, N> data);
+inline void allreduce(const Communicator& comm, Operation op, Span<T, N> data);
 
 //---------------------------------------------------------------------------//
 // Perform reduction on a fundamental scalar and return the result

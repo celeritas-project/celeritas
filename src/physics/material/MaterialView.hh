@@ -61,7 +61,7 @@ class MaterialView
     get_element_density(ElementComponentId id) const;
 
     // Advanced access to the elemental components (id/fraction)
-    inline CELER_FUNCTION const span<const MatElementComponent>&
+    inline CELER_FUNCTION const Span<const MatElementComponent>&
                                 elements() const;
 
     // >>> DERIVATIVE DATA

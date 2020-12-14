@@ -29,7 +29,7 @@ class GeoStateStore
   public:
     //@{
     //! Public types.
-    using SpanConstReal3 = span<const Real3>;
+    using SpanConstReal3 = Span<const Real3>;
     //@}
 
   public:

@@ -20,7 +20,7 @@ namespace celeritas
  * N=0 for example.
  */
 template<typename T, std::size_t N>
-struct array
+struct Array
 {
     //@{
     //! Type aliases
@@ -101,7 +101,7 @@ struct array
  */
 template<typename T, std::size_t N>
 inline CELER_FUNCTION bool
-operator==(const array<T, N>& lhs, const array<T, N>& rhs)
+operator==(const Array<T, N>& lhs, const Array<T, N>& rhs)
 {
     for (std::size_t i = 0; i != N; ++i)
     {
@@ -117,7 +117,7 @@ operator==(const array<T, N>& lhs, const array<T, N>& rhs)
  */
 template<typename T, std::size_t N>
 CELER_FORCEINLINE_FUNCTION bool
-operator!=(const array<T, N>& lhs, const array<T, N>& rhs)
+operator!=(const Array<T, N>& lhs, const Array<T, N>& rhs)
 {
     return !(lhs == rhs);
 }

@@ -34,7 +34,7 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
  * constexpr. This is to allow debug assertions.
  */
 template<class T, std::size_t Extent = dynamic_extent>
-class span
+class Span
 {
   public:
     //@{
@@ -55,35 +55,35 @@ class span
 
   public:
     //! Construct with default null pointer and size zero
-    constexpr span() = default;
+    constexpr Span() = default;
 
     //! Construct from data and size
-    CELER_FUNCTION span(pointer d, size_type s) : s_(d, s) {}
+    CELER_FUNCTION Span(pointer d, size_type s) : s_(d, s) {}
 
     //! Construct from two iterators
     template<class Iter>
-    CELER_FUNCTION span(Iter first, Iter last) : s_(&(*first), last - first)
+    CELER_FUNCTION Span(Iter first, Iter last) : s_(&(*first), last - first)
     {
     }
 
     //! Construct from a C array
     template<std::size_t N>
-    CELER_CONSTEXPR_FUNCTION span(T (&arr)[N]) : s_(arr, N)
+    CELER_CONSTEXPR_FUNCTION Span(T (&arr)[N]) : s_(arr, N)
     {
     }
 
     //! Construct from another span
     template<class U, std::size_t N>
-    CELER_CONSTEXPR_FUNCTION span(const span<U, N>& other)
+    CELER_CONSTEXPR_FUNCTION Span(const Span<U, N>& other)
         : s_(other.data(), other.size())
     {
     }
 
     //! Copy constructor (same template parameters)
-    span(const span&) noexcept = default;
+    Span(const Span&) noexcept = default;
 
     //! Assignment (same template parameters)
-    span& operator=(const span&) noexcept = default;
+    Span& operator=(const Span&) noexcept = default;
 
     //@{
     //! Iterators
@@ -120,14 +120,14 @@ class span
     // TODO: first
     // TODO: last
     template<std::size_t Offset, std::size_t Count = dynamic_extent>
-    CELER_FUNCTION span<T, detail::subspan_extent(Extent, Offset, Count)>
+    CELER_FUNCTION Span<T, detail::subspan_extent(Extent, Offset, Count)>
                    subspan() const
     {
         return {s_.data + Offset,
                 detail::subspan_size(this->size(), Offset, Count)};
     }
     CELER_FUNCTION
-    span<T, dynamic_extent>
+    Span<T, dynamic_extent>
     subspan(std::size_t offset, std::size_t count = dynamic_extent) const
     {
         return {s_.data + offset,
@@ -145,7 +145,7 @@ class span
 //---------------------------------------------------------------------------//
 //! Get a mutable fixed-size view to an array
 template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION span<T, N> make_span(array<T, N>& x)
+CELER_CONSTEXPR_FUNCTION Span<T, N> make_span(Array<T, N>& x)
 {
     return {x.data(), N};
 }
@@ -153,7 +153,7 @@ CELER_CONSTEXPR_FUNCTION span<T, N> make_span(array<T, N>& x)
 //---------------------------------------------------------------------------//
 //! Get a constant fixed-size view to an array
 template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION span<const T, N> make_span(const array<T, N>& x)
+CELER_CONSTEXPR_FUNCTION Span<const T, N> make_span(const Array<T, N>& x)
 {
     return {x.data(), N};
 }
@@ -161,7 +161,7 @@ CELER_CONSTEXPR_FUNCTION span<const T, N> make_span(const array<T, N>& x)
 //---------------------------------------------------------------------------//
 //! Get a mutable fixed-size view to a C array
 template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION span<T, N> make_span(T (&arr)[N])
+CELER_CONSTEXPR_FUNCTION Span<T, N> make_span(T (&arr)[N])
 {
     return {arr};
 }
@@ -169,7 +169,7 @@ CELER_CONSTEXPR_FUNCTION span<T, N> make_span(T (&arr)[N])
 //---------------------------------------------------------------------------//
 //! Get a mutable view to a generic container
 template<class T>
-CELER_FUNCTION span<typename T::value_type> make_span(T& cont)
+CELER_FUNCTION Span<typename T::value_type> make_span(T& cont)
 {
     return {cont.data(), cont.size()};
 }
@@ -177,7 +177,7 @@ CELER_FUNCTION span<typename T::value_type> make_span(T& cont)
 //---------------------------------------------------------------------------//
 //! Get a const view to a generic container
 template<class T>
-CELER_FUNCTION span<const typename T::value_type> make_span(const T& cont)
+CELER_FUNCTION Span<const typename T::value_type> make_span(const T& cont)
 {
     return {cont.data(), cont.size()};
 }

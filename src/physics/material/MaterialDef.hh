@@ -41,7 +41,7 @@ struct MaterialDef
     real_type   number_density; //!< Atomic number density [1/cm^3]
     real_type   temperature;    //!< Temperature [K]
     MatterState matter_state;   //!< Solid, liquid, gas
-    span<const MatElementComponent> elements; // Access by ElementComponentId
+    Span<const MatElementComponent> elements; // Access by ElementComponentId
 
     // COMPUTED PROPERTIES
 

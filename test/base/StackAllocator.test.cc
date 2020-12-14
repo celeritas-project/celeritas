@@ -45,7 +45,7 @@ TEST_F(StackAllocatorHostTest, allocation)
     MockSecondary* ptr = alloc(8);
     EXPECT_EQ(8, alloc.get().size());
     ASSERT_NE(nullptr, ptr);
-    for (MockSecondary& p : celeritas::span<MockSecondary>(ptr, 8))
+    for (MockSecondary& p : celeritas::Span<MockSecondary>(ptr, 8))
     {
         // Check that secondary was initialized properly
         EXPECT_EQ(-1, p.def_id);

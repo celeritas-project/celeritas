@@ -25,7 +25,7 @@ namespace celeritas
  */
 struct ParticleParamsPointers
 {
-    span<const ParticleDef> defs;
+    Span<const ParticleDef> defs;
 
     //! Check whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const { return !defs.empty(); }

@@ -49,7 +49,7 @@ inline void barrier(const Communicator& comm)
  */
 template<class T>
 inline void
-allreduce(const Communicator& comm, Operation op, span<const T> src, span<T> dst)
+allreduce(const Communicator& comm, Operation op, Span<const T> src, Span<T> dst)
 {
     REQUIRE(comm);
     REQUIRE(src.size() == dst.size());
@@ -68,7 +68,7 @@ allreduce(const Communicator& comm, Operation op, span<const T> src, span<T> dst
  * All-to-all reduction on the data, in place.
  */
 template<class T>
-inline void allreduce(const Communicator& comm, Operation op, span<T> data)
+inline void allreduce(const Communicator& comm, Operation op, Span<T> data)
 {
     REQUIRE(comm);
 

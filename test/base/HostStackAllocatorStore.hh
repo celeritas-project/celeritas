@@ -25,7 +25,7 @@ class HostStackAllocatorStore
     using value_type      = T;
     using Pointers        = celeritas::StackAllocatorPointers<T>;
     using size_type       = typename Pointers::size_type;
-    using const_span_type = celeritas::span<const value_type>;
+    using const_span_type = celeritas::Span<const value_type>;
     //@}
 
   public:

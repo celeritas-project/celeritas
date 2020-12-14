@@ -10,7 +10,7 @@
 #include <type_traits>
 #include "celeritas_test.hh"
 
-using celeritas::span;
+using celeritas::Span;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -28,7 +28,7 @@ class SpanTest : public celeritas::Test
 
 TEST_F(SpanTest, fixed_size_zero)
 {
-    span<int, 0> empty_span;
+    Span<int, 0> empty_span;
     EXPECT_EQ(nullptr, empty_span.data());
     EXPECT_EQ(0, empty_span.size());
     EXPECT_TRUE(empty_span.empty());
@@ -39,33 +39,33 @@ TEST_F(SpanTest, fixed_size_zero)
         (std::is_same<decltype(empty_span), decltype(templ_subspan)>::value));
 
     // Test copy constructor
-    span<int, 0> other_span{empty_span};
+    Span<int, 0> other_span{empty_span};
     EXPECT_EQ(nullptr, other_span.data());
     EXPECT_EQ(0, other_span.size());
     empty_span = other_span;
 
     // Test dynamic conversion
-    span<int> dynamic{empty_span};
+    Span<int> dynamic{empty_span};
     EXPECT_EQ(nullptr, dynamic.data());
     EXPECT_EQ(0, dynamic.size());
 
     // Test type conversion
-    span<const int, 0> const_span{empty_span};
+    Span<const int, 0> const_span{empty_span};
     EXPECT_EQ(0, const_span.size());
 
     // Test type conversion
-    span<const int> const_dynamic{empty_span};
+    Span<const int> const_dynamic{empty_span};
     EXPECT_EQ(0, const_dynamic.size());
 
     // Test pointer constructor
-    span<int, 0> ptr_span(empty_span.begin(), empty_span.end());
+    Span<int, 0> ptr_span(empty_span.begin(), empty_span.end());
     EXPECT_EQ(0, ptr_span.size());
 }
 
 TEST_F(SpanTest, fixed_size)
 {
     int          local_data[] = {123, 456};
-    span<int, 2> local_span(local_data);
+    Span<int, 2> local_span(local_data);
     EXPECT_EQ(sizeof(int*), sizeof(local_span));
 
     EXPECT_EQ(local_data, local_span.begin());
@@ -79,7 +79,7 @@ TEST_F(SpanTest, fixed_size)
     EXPECT_EQ(456, local_span.back());
 
     auto templ_subspan = local_span.subspan<1>();
-    EXPECT_TRUE((std::is_same<span<int, 1>, decltype(templ_subspan)>::value));
+    EXPECT_TRUE((std::is_same<Span<int, 1>, decltype(templ_subspan)>::value));
     EXPECT_EQ(local_data + 1, templ_subspan.data());
 
     auto func_subspan = local_span.subspan(1, 1);
@@ -87,35 +87,35 @@ TEST_F(SpanTest, fixed_size)
     EXPECT_EQ(local_data + 1, func_subspan.data());
 
     // Test copy constructor
-    span<int, 2> other_span{local_span};
+    Span<int, 2> other_span{local_span};
     EXPECT_EQ(local_data, other_span.data());
     EXPECT_EQ(2, other_span.size());
     local_span = other_span;
 
     // Test dynamic conversion
-    span<int> dynamic{local_span};
+    Span<int> dynamic{local_span};
     EXPECT_EQ(local_data, dynamic.data());
     EXPECT_EQ(2, dynamic.size());
 
     // Test type conversion
-    span<const int, 2> const_span{local_span};
+    Span<const int, 2> const_span{local_span};
     EXPECT_EQ(local_data, const_span.data());
     EXPECT_EQ(2, const_span.size());
 
     // Test type conversion
-    span<const int> const_dynamic{local_span};
+    Span<const int> const_dynamic{local_span};
     EXPECT_EQ(local_data, const_dynamic.data());
     EXPECT_EQ(2, const_dynamic.size());
 
     // Test pointer constructor
-    span<int, 2> ptr_span(local_data, local_data + 2);
+    Span<int, 2> ptr_span(local_data, local_data + 2);
     EXPECT_EQ(local_data, ptr_span.data());
 }
 
 TEST_F(SpanTest, dynamic_size)
 {
     int       local_data[] = {123, 456, 789};
-    span<int> local_span(local_data);
+    Span<int> local_span(local_data);
     EXPECT_EQ(sizeof(int*) + sizeof(std::size_t), sizeof(local_span));
 
     EXPECT_EQ(local_data, local_span.begin());
@@ -130,14 +130,14 @@ TEST_F(SpanTest, dynamic_size)
 
     {
         auto templ_subspan = local_span.subspan<1>();
-        EXPECT_TRUE((std::is_same<span<int>, decltype(templ_subspan)>::value));
+        EXPECT_TRUE((std::is_same<Span<int>, decltype(templ_subspan)>::value));
         EXPECT_EQ(local_data + 1, templ_subspan.data());
         EXPECT_EQ(2, templ_subspan.size());
     }
     {
         auto templ_subspan = local_span.subspan<1, 2>();
         EXPECT_TRUE(
-            (std::is_same<span<int, 2>, decltype(templ_subspan)>::value));
+            (std::is_same<Span<int, 2>, decltype(templ_subspan)>::value));
         EXPECT_EQ(local_data + 1, templ_subspan.data());
         EXPECT_EQ(2, templ_subspan.size());
     }
@@ -147,27 +147,27 @@ TEST_F(SpanTest, dynamic_size)
     EXPECT_EQ(2, func_subspan.size());
 
     // Test copy constructor
-    span<int> other_span{local_span};
+    Span<int> other_span{local_span};
     EXPECT_EQ(local_data, other_span.data());
     EXPECT_EQ(3, other_span.size());
     local_span = other_span;
 
     // Test dynamic conversion
-    span<int> dynamic{local_span};
+    Span<int> dynamic{local_span};
     EXPECT_EQ(local_data, dynamic.data());
     EXPECT_EQ(3, dynamic.size());
 
     // Test type conversion
-    span<const int> const_dynamic{local_span};
+    Span<const int> const_dynamic{local_span};
     EXPECT_EQ(local_data, const_dynamic.data());
     EXPECT_EQ(3, const_dynamic.size());
 
     // Test type and size conversion
-    span<const int, 3> const_span{local_span};
+    Span<const int, 3> const_span{local_span};
     EXPECT_EQ(local_data, const_span.data());
     EXPECT_EQ(3, const_span.size());
 
     // Test pointer constructor
-    span<int> ptr_span(local_data, local_data + 3);
+    Span<int> ptr_span(local_data, local_data + 3);
     EXPECT_EQ(local_data, ptr_span.data());
 }

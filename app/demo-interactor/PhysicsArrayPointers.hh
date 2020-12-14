@@ -20,7 +20,7 @@ struct PhysicsArrayPointers
 {
     UniformGrid::Params   log_energy;
     real_type             prime_energy;
-    span<const real_type> xs;
+    Span<const real_type> xs;
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const

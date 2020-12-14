@@ -99,7 +99,7 @@ class ParticleTrackViewTestHost : public ParticleTrackViewTest
         state_view.vars = celeritas::make_span(state_storage);
     }
 
-    celeritas::array<celeritas::ParticleTrackState, 1> state_storage;
+    celeritas::Array<celeritas::ParticleTrackState, 1> state_storage;
 
     ParticleParamsPointers params_view;
     ParticleStatePointers  state_view;

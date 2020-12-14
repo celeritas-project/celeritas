@@ -15,7 +15,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // Fill all the pointed-to device data with zeroes.
 template<class T>
-inline void device_memset_zero(span<T> data);
+inline void device_memset_zero(Span<T> data);
 
 //---------------------------------------------------------------------------//
 // Equivalent of `std::memset` for a device pointer

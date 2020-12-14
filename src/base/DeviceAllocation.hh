@@ -28,8 +28,8 @@ class DeviceAllocation
   public:
     //@{
     //! Type aliases
-    using SpanBytes      = span<byte>;
-    using constSpanBytes = span<const byte>;
+    using SpanBytes      = Span<Byte>;
+    using constSpanBytes = Span<const Byte>;
     //@}
 
   public:
@@ -67,9 +67,9 @@ class DeviceAllocation
   private:
     struct CudaFreeDeleter
     {
-        void operator()(byte*) const;
+        void operator()(Byte*) const;
     };
-    using DeviceUniquePtr = std::unique_ptr<byte[], CudaFreeDeleter>;
+    using DeviceUniquePtr = std::unique_ptr<Byte[], CudaFreeDeleter>;
 
     // >>> DATA
 

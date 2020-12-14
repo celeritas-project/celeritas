@@ -26,7 +26,7 @@ struct StatePointers
     GeoStatePointers      geo;
     SimStatePointers      sim;
     RngStatePointers      rng;
-    span<Interaction>     interactions;
+    Span<Interaction>     interactions;
 
     explicit CELER_FUNCTION operator bool() const
     {

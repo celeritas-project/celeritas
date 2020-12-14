@@ -24,7 +24,7 @@ class IsotropicDistribution
     //@{
     //! Type aliases
     using real_type   = RealType;
-    using result_type = array<real_type, 3>;
+    using result_type = Array<real_type, 3>;
     //@}
 
   public:
