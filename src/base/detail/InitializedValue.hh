@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <utility>
+
 namespace celeritas
 {
 namespace detail
@@ -19,8 +21,10 @@ template<class T>
 class InitializedValue
 {
   public:
-    //! Construct with default value
-    InitializedValue(T value = {}) : value_(value) {}
+    //! Construct implicitly with default value
+    InitializedValue() = default;
+    //! Implicit construct from value type
+    InitializedValue(T value) : value_(std::move(value)) {}
 
     //!@{
     //! Default copy assign and construct
@@ -29,16 +33,15 @@ class InitializedValue
     //!@}
 
     //! Clear other value on move construct
-    InitializedValue(InitializedValue&& other) noexcept : value_(other.value_)
+    InitializedValue(InitializedValue&& other) noexcept
+        : value_(std::exchange(other.value_, {}))
     {
-        other.value_ = {};
     }
 
     //! Clear other value on move assign
     InitializedValue& operator=(InitializedValue&& other) noexcept
     {
-        value_       = other.value_;
-        other.value_ = {};
+        value_ = std::exchange(other.value_, {});
         return *this;
     }
 
@@ -53,7 +56,7 @@ class InitializedValue
     operator T() const { return value_; }
 
   private:
-    T value_;
+    T value_{};
 };
 
 //---------------------------------------------------------------------------//
