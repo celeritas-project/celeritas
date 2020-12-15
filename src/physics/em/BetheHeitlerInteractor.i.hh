@@ -134,30 +134,31 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                     = celeritas::max(this->screening_phi2_aux(delta), 0.0)
                       / celeritas::max(this->screening_phi2_aux(delta_min),
                                        0.0);
-                CHECK(reject_threshold >= 0.0 && reject_threshold <= 1.0);
+                CHECK(reject_threshold > 0.0 && reject_threshold <= 1.0);
             }
         } while (BernoulliDistribution(1.0 - reject_threshold)(rng));
     }
 
     // Select charges randomly
-    secondaries[0].energy
-        = units::MevEnergy{(1.0 - epsilon) * inc_energy_.value()
-                           - 1.0 / shared_.inv_electron_mass};
-    secondaries[1].energy = units::MevEnergy{
-        epsilon * inc_energy_.value() - 1.0 / shared_.inv_electron_mass};
+    real_type total_energy = inc_energy_.value()
+                             + 2.0 / shared_.inv_electron_mass;
+    secondaries[0].energy = units::MevEnergy{(1.0 - epsilon) * total_energy
+                                             - 1 / shared_.inv_electron_mass};
+    secondaries[1].energy = units::MevEnergy{epsilon * total_energy
+                                             - 1 / shared_.inv_electron_mass};
     if (BernoulliDistribution(0.5)(rng))
     {
         swap2<units::MevEnergy>(secondaries[0].energy, secondaries[1].energy);
     }
 
     // Sample pair directions
+    UniformRealDistribution<real_type> sample_phi(0.0, 2.0 * constants::pi);
     for (int i = 0; i < 2; ++i)
     {
-        real_type phi = 2 * constants::pi * generate_canonical(rng);
         real_type umax
             = 2
               * (1.0
-                 + secondaries[i].energy.value() / shared_.inv_electron_mass);
+                 + secondaries[i].energy.value() * shared_.inv_electron_mass);
         real_type u;
         do
         {
@@ -167,9 +168,10 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                                                  : uu * (1.0 / 1.875);
         } while (u > umax);
 
-        real_type cost = (i == 0 ? -1 : 1) * (1.0 - 2.0 * ipow<2>(u / umax));
+        real_type cost = (i == 0 ? -1.0 : 1.0)
+                         * (1.0 - 2.0 * ipow<2>(u / umax));
         secondaries[i].direction
-            = rotate(from_spherical(cost, phi), inc_direction_);
+            = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
         normalize_direction(&secondaries[i].direction);
     }
     return result;
