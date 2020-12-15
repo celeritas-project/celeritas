@@ -50,6 +50,18 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Interchange (swap) the values of two inputs.
+ */
+template<typename T>
+CELER_CONSTEXPR_FUNCTION void swap2(T& v1, T& v2)
+{
+    T tmp = v1;
+    v1    = v2;
+    v2    = tmp;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return the cube of the input value.
  */
 template<class T>
