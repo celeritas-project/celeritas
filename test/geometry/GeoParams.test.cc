@@ -8,6 +8,7 @@
 #include "geometry/GeoParamsTest.hh"
 
 #include "celeritas_config.h"
+#include "comm/Device.hh"
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #endif
@@ -32,21 +33,6 @@ class GeoParamsHostTest : public GeoParamsTest
     GeoParamsPointers host_view;
 };
 
-#ifdef CELERITAS_USE_CUDA
-class GeoParamsDeviceTest : public GeoParamsTest
-{
-  public:
-    void SetUp() override
-    {
-        device_view = this->params()->device_pointers();
-        CHECK(device_view.world_volume);
-    }
-
-    // Views
-    GeoParamsPointers device_view;
-};
-#endif
-
 //---------------------------------------------------------------------------//
 
 TEST_F(GeoParamsHostTest, accessors)
@@ -60,16 +46,19 @@ TEST_F(GeoParamsHostTest, accessors)
 
 //---------------------------------------------------------------------------//
 
-#if CELERITAS_USE_CUDA
-TEST_F(GeoParamsDeviceTest, accessors)
+TEST_F(GeoParamsHostTest, print_geometry)
 {
-    const auto& geom = *(this->params());
-    EXPECT_EQ(2, geom.num_volumes());
-    EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ("Detector", geom.id_to_label(VolumeId{0}));
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{1}));
+    if (!celeritas::is_device_enabled())
+    {
+        SKIP("CUDA is disabled");
+    }
 
+    // Geometry functionality
+    auto device_view = this->params()->device_pointers();
+    EXPECT_NE(nullptr, device_view.world_volume);
+
+#if CELERITAS_USE_CUDA
     // print geometry information from device
     vecgeom::cxx::CudaManager::Instance().PrintGeometry();
-}
 #endif
+}

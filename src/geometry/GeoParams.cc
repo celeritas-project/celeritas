@@ -148,10 +148,11 @@ GeoParamsPointers GeoParams::host_pointers() const
  */
 GeoParamsPointers GeoParams::device_pointers() const
 {
-    REQUIRE(device_world_volume_);
+    REQUIRE(celeritas::is_device_enabled());
     GeoParamsPointers result;
     result.world_volume
         = static_cast<const vecgeom::VPlacedVolume*>(device_world_volume_);
+    ENSURE(result);
     return result;
 }
 
