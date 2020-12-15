@@ -39,7 +39,8 @@ BetheHeitlerInteractor::BetheHeitlerInteractor(
             && inc_energy_ <= this->max_incident_energy());
 
     epsilon0_ = 1.0 / (shared_.inv_electron_mass * inc_energy_.value());
-    CHECK(epsilon0_ < 1.0);
+    // Gamma energy must be at least 2x electron rest mass
+    CHECK(epsilon0_ < 0.5);
     static_assert(sizeof(real_type) == sizeof(double),
                   "Embedded constants are hardcoded to double precision.");
 }
@@ -92,7 +93,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // corrected Bethe-Heitler cross section; c.f. Eq. 6.6 of Geant4
         // Physics Reference 10.6)
         BernoulliDistribution choose_f1g1(
-            (ipow<2>(epsilon_min) - epsilon_min
+            (ipow<2>(0.5 - epsilon_min) - epsilon_min
              + 0.25 * this->screening_phi1_aux(delta_min))
             / (1.5 * this->screening_phi2_aux(delta_min)));
 
@@ -139,24 +140,15 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     }
 
     // Select charges randomly
-    real_type totalE_ele;
-    real_type totalE_pos;
+    secondaries[0].energy
+        = units::MevEnergy{(1.0 - epsilon) * inc_energy_.value()
+                           - 1.0 / shared_.inv_electron_mass};
+    secondaries[1].energy = units::MevEnergy{
+        epsilon * inc_energy_.value() - 1.0 / shared_.inv_electron_mass};
     if (BernoulliDistribution(0.5)(rng))
     {
-        totalE_ele = (1.0 - epsilon) * inc_energy_.value();
-        totalE_pos = epsilon * inc_energy_.value();
+        swap2<units::MevEnergy>(secondaries[0].energy, secondaries[1].energy);
     }
-    else
-    {
-        totalE_ele = epsilon * inc_energy_.value();
-        totalE_pos = (1.0 - epsilon) * inc_energy_.value();
-    }
-
-    // Sample pair kinematics
-    secondaries[0].energy = units::MevEnergy{
-        celeritas::max(0.0, totalE_ele - 1.0 / shared_.inv_electron_mass)};
-    secondaries[1].energy = units::MevEnergy{
-        celeritas::max(0.0, totalE_pos - 1.0 / shared_.inv_electron_mass)};
 
     // Sample pair directions
     for (int i = 0; i < 2; ++i)
@@ -175,8 +167,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                                                  : uu * (1.0 / 1.875);
         } while (u > umax);
 
-        real_type cost = std::pow(-1, i)
-                         * (1.0 - 2.0 * ipow<2>(u) / ipow<2>(umax));
+        real_type cost = (i == 0 ? -1 : 1) * (1.0 - 2.0 * ipow<2>(u / umax));
         secondaries[i].direction
             = rotate(from_spherical(cost, phi), inc_direction_);
         normalize_direction(&secondaries[i].direction);
@@ -193,21 +184,15 @@ BetheHeitlerInteractor::impact_parameter(real_type eps) const
 CELER_FUNCTION real_type
 BetheHeitlerInteractor::screening_phi1(real_type delta) const
 {
-    return delta <= 1 ? 20.867 - 3.242 * delta + 0.625 * delta * delta
-                      : screening_phi12(delta);
+    return delta <= 1.4 ? 20.867 - 3.242 * delta + 0.625 * ipow<2>(delta)
+                        : 21.12 - 4.184 * std::log(delta + 0.952);
 }
 
 CELER_FUNCTION real_type
 BetheHeitlerInteractor::screening_phi2(real_type delta) const
 {
-    return delta <= 1 ? 20.209 - 1.930 * delta - 0.086 * delta * delta
-                      : screening_phi12(delta);
-}
-
-CELER_FUNCTION real_type
-BetheHeitlerInteractor::screening_phi12(real_type delta) const
-{
-    return 21.12 - 4.184 * std::log(delta + 0.952);
+    return delta <= 1.4 ? 20.209 - 1.930 * delta - 0.086 * ipow<2>(delta)
+                        : 21.12 - 4.184 * std::log(delta + 0.952);
 }
 
 CELER_FUNCTION real_type

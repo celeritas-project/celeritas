@@ -81,11 +81,6 @@ class BetheHeitlerInteractor
     inline CELER_FUNCTION real_type
     screening_phi2(real_type impact_parameter) const;
 
-    // Screening function for the case that the impact parameter (screening
-    // variable) \delta > 1; in this case, \Phi_1(\delta) = \Phi_2(\delta) =
-    // \Phi_{12}(delta).
-    inline CELER_FUNCTION real_type screening_phi12(real_type delta) const;
-
     // Auxiliary screening function, Phi_1, for the "composition+rejection"
     // technique for sampling.
     inline CELER_FUNCTION real_type screening_phi1_aux(real_type delta) const;
@@ -93,10 +88,6 @@ class BetheHeitlerInteractor
     // Auxiliary screening function, Phi_2, for the "composition+rejection"
     // technique for sampling.
     inline CELER_FUNCTION real_type screening_phi2_aux(real_type delta) const;
-
-    // Density function for sampling the polar angle of the electron/positron.
-    // The angle is defiend with respect to the direction of the parent photon.
-    // inline CELER_FUNCTION real_type polar_angle_density() const;
 
     // Gamma energy divided by electron mass * csquared
     const BetheHeitlerInteractorPointers& shared_;

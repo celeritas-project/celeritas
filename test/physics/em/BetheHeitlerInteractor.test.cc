@@ -103,7 +103,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_EQ(celeritas::Action::absorbed, interaction.action);
 
         // Check conservation between primary and secondaries
-        // this->check_conservation(interaction);
+        this->check_conservation(interaction);
     }
 
   protected:
@@ -158,15 +158,13 @@ TEST_F(BetheHeitlerInteractorTest, basic)
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy1[] = {
-        96.0911204964844, 95.3942330784108, 62.3241098354404, 4.25214322348543};
-
-    const double expected_energy2[] = {
         2.88688161131559, 3.58376902938916, 36.6538922723595, 94.7258588843146};
-
-    const double expected_angle[] = {0.192649186914966,
-                                     -0.061517754418674,
-                                     0.147196599660255,
-                                     0.531210123621985};
+    const double expected_energy2[] = {
+        96.0911204964844, 95.3942330784108, 62.3241098354404, 4.25214322348543};
+    const double expected_angle[] = {-0.880818871456347,
+                                     -0.994908687533772,
+                                     -0.999157816732278,
+                                     -0.965314415642915};
 
     EXPECT_VEC_SOFT_EQ(expected_energy1, energy1);
     EXPECT_VEC_SOFT_EQ(expected_energy2, energy2);
@@ -186,6 +184,7 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
 
     const unsigned int num_samples = 8;
 
+    // Loop over a set of incident gamma energies
     for (double inc_e : {1.5, 10.0, 100.0})
     {
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
