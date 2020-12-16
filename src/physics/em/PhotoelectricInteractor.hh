@@ -44,6 +44,7 @@ class PhotoelectricInteractor
     // Construct with shared and state data
     inline CELER_FUNCTION
     PhotoelectricInteractor(const PhotoelectricInteractorPointers& shared,
+                            const LivermoreParamsPointers&         data,
                             const ParticleTrackView&               particle,
                             const Real3&            inc_direction,
                             SecondaryAllocatorView& allocate);
@@ -70,6 +71,8 @@ class PhotoelectricInteractor
   private:
     // Shared constant physics properties
     const PhotoelectricInteractorPointers& shared_;
+    // Livermore EPICS2014 photoelectric cross section data
+    const LivermoreParamsPointers& data_;
     // Incident direction
     const Real3& inc_direction_;
     // Incident gamma energy

@@ -17,14 +17,16 @@ namespace celeritas
  */
 CELER_FUNCTION PhotoelectricInteractor::PhotoelectricInteractor(
     const PhotoelectricInteractorPointers& shared,
+    const LivermoreParamsPointers&         data,
     const ParticleTrackView&               particle,
     const Real3&                           inc_direction,
     SecondaryAllocatorView&                allocate)
     : shared_(shared)
+    , data_(data)
     , inc_direction_(inc_direction)
     , inc_energy_(particle.energy().value())
     , allocate_(allocate)
-    , calc_micro_xs_(shared, particle)
+    , calc_micro_xs_(shared, data, particle)
 {
     REQUIRE(inc_energy_ > this->min_incident_energy()
             && inc_energy_ <= this->max_incident_energy());
@@ -56,7 +58,7 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
     }
 
     // Get the cross section data for the sampled element
-    const LivermoreData& el = shared_.elements[el_id.get()];
+    const LivermoreElement& el = data_.elements[el_id.get()];
 
     // Sample the shell from which the photoelectron is emitted
     // TODO: don't use energy = max(energy, min binding energy) here?

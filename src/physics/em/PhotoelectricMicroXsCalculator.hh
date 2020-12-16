@@ -12,6 +12,7 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
+#include "LivermoreParamsPointers.hh"
 #include "PhotoelectricInteractorPointers.hh"
 
 namespace celeritas
@@ -32,6 +33,7 @@ class PhotoelectricMicroXsCalculator
     // Construct with shared and state data
     inline CELER_FUNCTION
     PhotoelectricMicroXsCalculator(const PhotoelectricInteractorPointers& shared,
+                                   const LivermoreParamsPointers&         data,
                                    const ParticleTrackView& particle);
 
     // Compute cross section
@@ -40,6 +42,8 @@ class PhotoelectricMicroXsCalculator
   private:
     // Shared constant physics properties
     const PhotoelectricInteractorPointers& shared_;
+    // Livermore EPICS2014 photoelectric cross section data
+    const LivermoreParamsPointers& data_;
     // Incident gamma energy
     const MevEnergy inc_energy_;
 };

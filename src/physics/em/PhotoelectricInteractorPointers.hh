@@ -14,54 +14,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Electron subshell data
- */
-struct LivermoreSubshell
-{
-    // Binding energy of the electron
-    units::MevEnergy binding_energy;
-
-    // Tabulated subshell photoionization cross section (used below 5 keV)
-    // TODO: value grid
-    span<const real_type> xs;
-    span<const real_type> energy;
-
-    // Fit parameters for the integrated subshell photoionization cross
-    // sections in the two different energy ranges (used above 5 keV)
-    span<const real_type> param_low;
-    span<const real_type> param_high;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Elemental photoelectric cross sections for the Livermore model.
- */
-struct LivermoreData
-{
-    // TOTAL CROSS SECTIONS
-
-    // Total cross section below the K-shell energy. Uses linear interpolation.
-    span<const real_type> energy_low;
-    span<const real_type> xs_low;
-
-    // Total cross section above the K-shell energy but below the energy
-    // threshold for the parameterized cross sections. Uses spline
-    // interpolation.
-    span<const real_type> energy_high;
-    span<const real_type> xs_high;
-
-    // SUBSHELL CROSS SECTIONS
-
-    span<const LivermoreSubshell> shells;
-
-    // Energy threshold for using the parameterized subshell cross sections in
-    // the lower and upper energy range
-    units::MevEnergy thresh_low;
-    units::MevEnergy thresh_high;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Device data for creating a PhotoelectricInteractor.
  */
 struct PhotoelectricInteractorPointers
@@ -72,13 +24,11 @@ struct PhotoelectricInteractorPointers
     ParticleDefId electron_id;
     //! ID of a gamma
     ParticleDefId gamma_id;
-    //! Photoelectric cross section data. Size is the number of elements.
-    span<const LivermoreData> elements;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return electron_id && gamma_id && !elements.empty();
+        return electron_id && gamma_id;
     }
 };
 

@@ -16,8 +16,9 @@ namespace celeritas
  */
 CELER_FUNCTION PhotoelectricMicroXsCalculator::PhotoelectricMicroXsCalculator(
     const PhotoelectricInteractorPointers& shared,
+    const LivermoreParamsPointers&         data,
     const ParticleTrackView&               particle)
-    : shared_(shared), inc_energy_(particle.energy().value())
+    : shared_(shared), data_(data), inc_energy_(particle.energy().value())
 {
     REQUIRE(particle.def_id() == shared_.gamma_id);
 }
@@ -30,11 +31,11 @@ CELER_FUNCTION
 real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
 {
     REQUIRE(el_id);
-    const LivermoreData& el = shared_.elements[el_id.get()];
+    const LivermoreElement& el = data_.elements[el_id.get()];
 
-    // If the incident gamma energy is below the lowest binding energy,
-    // set it to the binding energy so that the photoelectric cross section
-    // is constant rather than zero for low energy gammas.
+    // In Geant4, if the incident gamma energy is below the lowest binding
+    // energy, it is set to the binding energy so that the photoelectric cross
+    // section is constant rather than zero for low energy gammas.
     MevEnergy energy
         = max(inc_energy_, el.shells[el.shells.size() - 1].binding_energy);
     real_type inv_energy = 1. / energy.value();
@@ -42,8 +43,8 @@ real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
     real_type result = 0.;
     if (energy >= el.thresh_low)
     {
-        // Fit parameters from the final shell are used to calculate subshell
-        // cross sections integrated over all shells
+        // Fit parameters from the final shell are used to calculate the cross
+        // section integrated over all subshells
         const auto& shell = el.shells[el.shells.size() - 1];
         const auto& param = energy >= el.thresh_high ? shell.param_high
                                                      : shell.param_low;
