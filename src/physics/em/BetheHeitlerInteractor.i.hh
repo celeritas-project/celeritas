@@ -62,14 +62,6 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Construct interaction for change to primary (incident) particle
-    Interaction result = Interaction::from_absorption();
-    result.secondaries = {secondaries, 2};
-
-    // Outgoing secondaries are electron and positron
-    secondaries[0].def_id = shared_.electron_id;
-    secondaries[1].def_id = shared_.positron_id;
-
     // If E_gamma < 2 MeV, rejection not needed -- just sample uniformly
     real_type epsilon;
     if (inc_energy_.value() < 2.0)
@@ -86,6 +78,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
             = std::exp((42.24 - element_.coulomb_correction()) / 8.368) - 0.952;
         CHECK(delta_min <= delta_max);
 
+        // Limits on epsilon
         real_type epsilon1 = 0.5 - 0.5 * std::sqrt(1.0 - delta_min / delta_max);
         real_type epsilon_min = celeritas::max(epsilon0_, epsilon1);
 
@@ -139,42 +132,55 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         } while (BernoulliDistribution(1.0 - reject_threshold)(rng));
     }
 
-    // Select charges randomly
-    real_type total_energy = inc_energy_.value()
-                             + 2.0 / shared_.inv_electron_mass;
-    secondaries[0].energy = units::MevEnergy{(1.0 - epsilon) * total_energy
-                                             - 1 / shared_.inv_electron_mass};
-    secondaries[1].energy = units::MevEnergy{epsilon * total_energy
-                                             - 1 / shared_.inv_electron_mass};
+    // Construct interaction for change to primary (incident) particle (gamma)
+    Interaction result = Interaction::from_absorption();
+    result.secondaries = {secondaries, 2};
+
+    // Outgoing secondaries are electron and positron
+    secondaries[0].def_id = shared_.electron_id;
+    secondaries[1].def_id = shared_.positron_id;
+    secondaries[0].energy
+        = units::MevEnergy{(1.0 - epsilon) * inc_energy_.value()};
+    secondaries[1].energy = units::MevEnergy{epsilon * inc_energy_.value()};
+    // Select charges for child particles (e-, e+) randomly
     if (BernoulliDistribution(0.5)(rng))
     {
         swap2<units::MevEnergy>(secondaries[0].energy, secondaries[1].energy);
     }
 
-    // Sample pair directions
-    UniformRealDistribution<real_type> sample_phi(0.0, 2.0 * constants::pi);
-    for (int i = 0; i < 2; ++i)
-    {
-        real_type umax
-            = 2
-              * (1.0
-                 + secondaries[i].energy.value() * shared_.inv_electron_mass);
-        real_type u;
-        do
-        {
-            real_type uu
-                = -std::log(generate_canonical(rng) * generate_canonical(rng));
-            u = BernoulliDistribution(0.25)(rng) ? uu * 1.6
-                                                 : uu * (1.0 / 1.875);
-        } while (u > umax);
+    // Sample secondary directions.
+    // Note that momentum is not exactly conserved.
+    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
+    real_type                          phi  = sample_phi(rng);
+    real_type                          sinp = std::sin(phi);
+    real_type                          cosp = std::cos(phi);
+    // Electron
+    real_type cost = sample_cos_theta(secondaries[0].energy.value(), rng);
+    secondaries[0].direction
+        = rotate(from_spherical(cost, phi), inc_direction_);
+    // Positron
+    cost           = sample_cos_theta(secondaries[1].energy.value(), rng);
+    real_type sint = std::sqrt(1 - ipow<2>(cost));
+    secondaries[1].direction
+        = rotate({-sint * cosp, -sint * sinp, cost}, inc_direction_);
 
-        real_type cost = (i == 0 ? -1.0 : 1.0)
-                         * (1.0 - 2.0 * ipow<2>(u / umax));
-        secondaries[i].direction
-            = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
-        normalize_direction(&secondaries[i].direction);
-    }
     return result;
+}
+
+template<class Engine>
+CELER_FUNCTION real_type
+BetheHeitlerInteractor::sample_cos_theta(real_type kinetic_energy, Engine& rng)
+{
+    real_type umax = 2.0 * (1.0 + kinetic_energy * shared_.inv_electron_mass);
+    real_type u;
+    do
+    {
+        real_type uu
+            = -std::log(generate_canonical(rng) * generate_canonical(rng));
+        u = BernoulliDistribution(0.25)(rng) ? uu * 1.6 : uu * (1.6 / 3.0);
+    } while (u > umax);
+
+    return 1.0 - 2.0 * ipow<2>(u / umax);
 }
 
 CELER_FUNCTION real_type
