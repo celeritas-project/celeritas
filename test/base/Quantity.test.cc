@@ -22,6 +22,11 @@ struct RevolutionUnit
 };
 using Revolution = Quantity<RevolutionUnit, double>;
 
+struct DozenUnit
+{
+    static int value() { return 12; }
+};
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -92,4 +97,25 @@ TEST(QuantityTest, infinities)
     EXPECT_TRUE(neg_max_quantity() < zero_quantity());
     EXPECT_TRUE(zero_quantity() < max_quantity());
     EXPECT_TRUE(max_quantity() > Revolution{1e300});
+}
+
+TEST(QuantityTest, swappiness)
+{
+    using Dozen = Quantity<DozenUnit, int>;
+    Dozen dozen{1}, gross{12};
+    {
+        // ADL should prefer celeritas::swap
+        using std::swap;
+        swap(dozen, gross);
+        EXPECT_EQ(1, gross.value());
+        EXPECT_EQ(12, dozen.value());
+    }
+    {
+        // Should still work without std
+        swap(dozen, gross);
+        EXPECT_EQ(12, gross.value());
+        EXPECT_EQ(1, dozen.value());
+    }
+    EXPECT_EQ(12, unit_cast(dozen));
+    EXPECT_EQ(144, unit_cast(gross));
 }

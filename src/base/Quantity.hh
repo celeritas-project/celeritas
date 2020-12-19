@@ -13,8 +13,16 @@
 
 namespace celeritas
 {
+namespace detail
+{
+//! Implementation class for creating a nonnumeric value comparable to
+//! Quantity.
 template<class T>
-struct UnitlessQuantity;
+struct UnitlessQuantity
+{
+    T value_; //!< Special nonnumeric value
+};
+} // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -63,11 +71,12 @@ class Quantity
     //! Type aliases
     using value_type = ValueT;
     using unit_type  = UnitT;
+    using Unitless   = detail::UnitlessQuantity<ValueT>;
     //!@}
 
   public:
     //! Construct with default (zero)
-    CELER_CONSTEXPR_FUNCTION Quantity() : value_(0) {}
+    constexpr Quantity() = default;
 
     //! Construct with value in celeritas native units
     explicit CELER_CONSTEXPR_FUNCTION Quantity(value_type value)
@@ -75,70 +84,45 @@ class Quantity
     {
     }
 
-    // Construct implicitly from a unitless quantity
-    CELER_CONSTEXPR_FUNCTION Quantity(UnitlessQuantity<ValueT>);
+    //! Construct implicitly from a unitless quantity
+    CELER_CONSTEXPR_FUNCTION Quantity(Unitless uq) : value_(uq.value_) {}
 
     //! Get numeric value, discarding units.
     CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
 
   private:
-    value_type value_;
+    value_type value_{};
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Implementation class for creating a nonnumeric value comparable to Quantity.
- */
-template<class T>
-struct UnitlessQuantity
-{
-    T value_; //!< Special nonnumeric value
-};
-
-//! Get a zero quantity (analogous to nullptr)
-CELER_CONSTEXPR_FUNCTION UnitlessQuantity<real_type> zero_quantity()
-{
-    return {0};
-}
-
-//! Get an quantitity greater than any other numeric quantity
-CELER_CONSTEXPR_FUNCTION UnitlessQuantity<real_type> max_quantity()
-{
-    return {numeric_limits<real_type>::infinity()};
-}
-
-//! Get an quantitity less than any other numeric quantity
-CELER_CONSTEXPR_FUNCTION UnitlessQuantity<real_type> neg_max_quantity()
-{
-    return {-numeric_limits<real_type>::infinity()};
-}
 
 //---------------------------------------------------------------------------//
 //! \cond
-#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                                  \
-    template<class U, class T>                                            \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T> lhs,      \
-                                                 Quantity<U, T> rhs)      \
-    {                                                                     \
-        return lhs.value() TOKEN rhs.value();                             \
-    }                                                                     \
-    template<class U, class T>                                            \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T>      lhs, \
-                                                 UnitlessQuantity<T> rhs) \
-    {                                                                     \
-        return lhs.value() TOKEN rhs.value_;                              \
-    }                                                                     \
-    template<class U, class T>                                            \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(UnitlessQuantity<T> lhs, \
-                                                 Quantity<U, T>      rhs) \
-    {                                                                     \
-        return lhs.value_ TOKEN rhs.value();                              \
-    }                                                                     \
-    template<class T>                                                     \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(UnitlessQuantity<T> lhs, \
-                                                 UnitlessQuantity<T> rhs) \
-    {                                                                     \
-        return lhs.value_ TOKEN rhs.value_;                               \
+#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                             \
+    template<class U, class T>                                       \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T> lhs, \
+                                                 Quantity<U, T> rhs) \
+    {                                                                \
+        return lhs.value() TOKEN rhs.value();                        \
+    }                                                                \
+    template<class U, class T>                                       \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                    \
+        Quantity<U, T> lhs, detail::UnitlessQuantity<T> rhs)         \
+    {                                                                \
+        return lhs.value() TOKEN rhs.value_;                         \
+    }                                                                \
+    template<class U, class T>                                       \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                    \
+        detail::UnitlessQuantity<T> lhs, Quantity<U, T> rhs)         \
+    {                                                                \
+        return lhs.value_ TOKEN rhs.value();                         \
+    }                                                                \
+    namespace detail                                                 \
+    {                                                                \
+    template<class T>                                                \
+    CELER_CONSTEXPR_FUNCTION bool                                    \
+    operator TOKEN(UnitlessQuantity<T> lhs, UnitlessQuantity<T> rhs) \
+    {                                                                \
+        return lhs.value_ TOKEN rhs.value_;                          \
+    }                                                                \
     }
 
 //!@{
@@ -154,17 +138,6 @@ CELER_DEFINE_QUANTITY_CMP(>=)
 #undef CELER_DEFINE_QUANTITY_CMP
 
 //! \endcond
-//---------------------------------------------------------------------------//
-/*!
- * Construct implicitly from a unitless quantity.
- */
-template<class UnitT, class ValueT>
-CELER_CONSTEXPR_FUNCTION
-Quantity<UnitT, ValueT>::Quantity(UnitlessQuantity<ValueT> uq)
-    : value_(uq.value_)
-{
-}
-
 //---------------------------------------------------------------------------//
 //! Value is C1::value() / C2::value()
 template<class C1, class C2>
@@ -187,6 +160,48 @@ struct UnitProduct
         return C1::value() * C2::value();
     }
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get a zero quantity (analogous to nullptr).
+ */
+CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> zero_quantity()
+{
+    return {0};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a quantitity greater than any other numeric quantity.
+ */
+CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> max_quantity()
+{
+    return {numeric_limits<real_type>::infinity()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a quantitity less than any other numeric quantity.
+ */
+CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> neg_max_quantity()
+{
+    return {-numeric_limits<real_type>::infinity()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Swap two Quantities.
+ */
+template<class U, class V>
+CELER_CONSTEXPR_FUNCTION void
+swap(Quantity<U, V>& a, Quantity<U, V>& b) noexcept
+{
+    Quantity<U, V> tmp{a};
+    a = b;
+    b = tmp;
+}
 
 //---------------------------------------------------------------------------//
 /*!
