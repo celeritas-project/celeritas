@@ -191,11 +191,13 @@ TEST_F(EPlusGGInteractorTest, stress_test)
     RandomEngine& rng_engine = this->rng();
 
     const int num_samples = 8192;
+    std::vector<double> avg_engine_samples;
 
     for (double inc_e : {0.0, 0.01, 1.0, 10.0, 1000.0})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::positron(), MevEnergy{inc_e});
+        RandomEngine::size_type num_particles_sampled = 0;
 
         // Loop over several incident directions
         for (const Real3& inc_dir :
@@ -220,6 +222,16 @@ TEST_F(EPlusGGInteractorTest, stress_test)
             }
             EXPECT_EQ(2 * num_samples,
                       this->secondary_allocator().get().size());
+            num_particles_sampled += num_samples;
         }
+        avg_engine_samples.push_back(double(rng_engine.count())
+                                     / double(num_particles_sampled));
+        rng_engine.reset_count();
     }
+
+    // PRINT_EXPECTED(avg_engine_samples);
+    // Gold values for average number of calls to RNG
+    const double expected_avg_engine_samples[]
+        = {4, 10.08703613281, 19.54248046875, 22.75891113281, 35.08276367188};
+    EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

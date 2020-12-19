@@ -8,8 +8,10 @@
 #include "random/distributions/IsotropicDistribution.hh"
 
 #include <random>
+#include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "celeritas_test.hh"
+#include "../DiagnosticRngEngine.hh"
 
 using celeritas::IsotropicDistribution;
 
@@ -22,7 +24,7 @@ class IsotropicDistributionTest : public celeritas::Test
   protected:
     void SetUp() override {}
 
-    std::mt19937 rng;
+    celeritas_test::DiagnosticRngEngine<std::mt19937> rng;
 };
 
 //---------------------------------------------------------------------------//
@@ -41,8 +43,8 @@ TEST_F(IsotropicDistributionTest, bin)
         auto u = sample_isotropic(rng);
 
         // Make sure sampled point is on the surface of the unit sphere
-        double r = std::sqrt(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
-        ASSERT_DOUBLE_EQ(r, 1.0);
+        ASSERT_TRUE(
+            celeritas::is_soft_unit_vector(u, celeritas::SoftEqual<>{}));
 
         // Tally octant
         int tally_bin = 1 * (u[0] >= 0) + 2 * (u[1] >= 0) + 4 * (u[2] >= 0);
@@ -56,4 +58,6 @@ TEST_F(IsotropicDistributionTest, bin)
         double octant = static_cast<double>(count) / num_samples;
         EXPECT_SOFT_NEAR(octant, 1. / 8, 0.1);
     }
+    // 2 32-bit samples per double, 2 doubles per sample
+    EXPECT_EQ(num_samples * 4, rng.count());
 }

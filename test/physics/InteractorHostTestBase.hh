@@ -10,7 +10,6 @@
 #include <memory>
 #include <random>
 #include <vector>
-#include "gtest/Test.hh"
 #include "base/Array.hh"
 #include "base/ArrayIO.hh"
 #include "base/Span.hh"
@@ -22,7 +21,11 @@
 #include "physics/base/Units.hh"
 #include "physics/material/MaterialParams.hh"
 #include "physics/material/MaterialStatePointers.hh"
+
+// Test helpers
 #include "base/HostStackAllocatorStore.hh"
+#include "gtest/Test.hh"
+#include "random/DiagnosticRngEngine.hh"
 
 namespace celeritas
 {
@@ -48,7 +51,7 @@ class InteractorHostTestBase : public celeritas::Test
   public:
     //!@{
     //! Type aliases
-    using RandomEngine = std::mt19937;
+    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
 
     using real_type              = celeritas::real_type;
     using PDGNumber              = celeritas::PDGNumber;

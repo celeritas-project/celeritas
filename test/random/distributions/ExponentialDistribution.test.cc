@@ -10,6 +10,7 @@
 #include <random>
 #include "base/Range.hh"
 #include "celeritas_test.hh"
+#include "../DiagnosticRngEngine.hh"
 
 using celeritas::ExponentialDistribution;
 
@@ -22,7 +23,7 @@ class ExponentialDistributionTest : public celeritas::Test
   protected:
     void SetUp() override {}
 
-    std::mt19937 rng;
+    celeritas_test::DiagnosticRngEngine<std::mt19937> rng;
 };
 
 //---------------------------------------------------------------------------//
@@ -55,4 +56,5 @@ TEST_F(ExponentialDistributionTest, all)
     // PRINT_EXPECTED(counters);
     const int expected_counters[] = {2180, 1717, 2411, 2265, 1427};
     EXPECT_VEC_EQ(expected_counters, counters);
+    EXPECT_EQ(2 * num_samples, rng.count());
 }

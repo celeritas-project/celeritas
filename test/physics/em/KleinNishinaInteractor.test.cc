@@ -148,11 +148,13 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
     RandomEngine& rng_engine = this->rng();
 
     const int num_samples = 8192;
+    std::vector<double> avg_engine_samples;
 
     for (double inc_e : {0.01, 1.0, 10.0, 1000.0})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
+        RandomEngine::size_type num_particles_sampled = 0;
 
         // Loop over several incident directions (shouldn't affect anything
         // substantial, but scattering near Z axis loses precision)
@@ -177,8 +179,18 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
                 this->sanity_check(result);
             }
             EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
+            num_particles_sampled += num_samples;
         }
+        avg_engine_samples.push_back(double(rng_engine.count())
+                                     / double(num_particles_sampled));
+        rng_engine.reset_count();
     }
+
+    // PRINT_EXPECTED(avg_engine_samples);
+    // Gold values for average number of calls to RNG
+    const double expected_avg_engine_samples[]
+        = {10.99816894531, 9.483154296875, 8.295532226562, 8.00439453125};
+    EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
 
 TEST_F(KleinNishinaInteractorTest, distributions)
