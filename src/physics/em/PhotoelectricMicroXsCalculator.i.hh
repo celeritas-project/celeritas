@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include "base/Algorithms.hh"
+#include "MockXsCalculator.hh"
 
 namespace celeritas
 {
@@ -60,14 +61,14 @@ real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
     else if (energy >= el.shells[0].binding_energy)
     {
         // Use tabulated cross sections above K-shell energy
-        // TODO: calculate PE total xs
-        // result = ipow<3>(inv_energy) * el.xs_high(energy);
+        XsCalculator calc_xs(el.xs_high);
+        result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     else
     {
         // Use tabulated cross sections below K-shell energy
-        // TODO: calculate PE total xs
-        // result = ipow<3>(inv_energy) * el.xs_low(energy);
+        XsCalculator calc_xs(el.xs_low);
+        result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     return result;
 }

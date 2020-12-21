@@ -8,6 +8,7 @@
 
 #include "base/ArrayUtils.hh"
 #include "random/distributions/UniformRealDistribution.hh"
+#include "MockXsCalculator.hh"
 
 namespace celeritas
 {
@@ -73,8 +74,8 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
             if (inc_energy_ < el.thresh_low)
             {
                 // Use the tabulated subshell cross sections
-                // TODO: calculate subshell xs
-                // xs += inv_energy_ * shell.xs(inc_energy_);
+                XsCalculator calc_xs(shell.xs);
+                xs += inv_energy_ * calc_xs(inc_energy_.value());
             }
             else
             {

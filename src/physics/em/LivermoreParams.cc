@@ -73,8 +73,8 @@ LivermoreParams::LivermoreParams(Input inp)
         std::vector<LivermoreSubshell> temp_device_shells = host_shells_;
         for (LivermoreSubshell& shell : temp_device_shells)
         {
-            shell.energy     = remap_data(shell.energy);
-            shell.xs         = remap_data(shell.xs);
+            shell.xs.energy  = remap_data(shell.xs.energy);
+            shell.xs.xs      = remap_data(shell.xs.xs);
             shell.param_low  = remap_data(shell.param_low);
             shell.param_high = remap_data(shell.param_high);
         }
@@ -85,11 +85,11 @@ LivermoreParams::LivermoreParams(Input inp)
         std::vector<LivermoreElement> temp_device_elements = host_elements_;
         for (LivermoreElement& el : temp_device_elements)
         {
-            el.energy_low  = remap_data(el.energy_low);
-            el.xs_low      = remap_data(el.xs_low);
-            el.energy_high = remap_data(el.energy_high);
-            el.xs_high     = remap_data(el.xs_high);
-            el.shells      = remap_shells(el.shells);
+            el.xs_low.energy  = remap_data(el.xs_low.energy);
+            el.xs_low.xs      = remap_data(el.xs_low.xs);
+            el.xs_high.energy = remap_data(el.xs_high.energy);
+            el.xs_high.xs     = remap_data(el.xs_high.xs);
+            el.shells         = remap_shells(el.shells);
         }
 
         // Copy vectors to device
@@ -140,13 +140,15 @@ void LivermoreParams::append_livermore_element(const ElementInput& inp)
     LivermoreElement result;
 
     // Copy basic properties
-    result.energy_low  = this->extend_data(inp.xs_low.energy);
-    result.xs_low      = this->extend_data(inp.xs_low.xs_eloss);
-    result.energy_high = this->extend_data(inp.xs_high.energy);
-    result.xs_high     = this->extend_data(inp.xs_high.xs_eloss);
-    result.shells      = this->extend_shells(inp);
-    result.thresh_low  = inp.thresh_low;
-    result.thresh_high = inp.thresh_high;
+    result.xs_low.energy  = this->extend_data(inp.xs_low.energy);
+    result.xs_low.xs      = this->extend_data(inp.xs_low.xs_eloss);
+    result.xs_low.interp  = Interp::linear;
+    result.xs_high.energy = this->extend_data(inp.xs_high.energy);
+    result.xs_high.xs     = this->extend_data(inp.xs_high.xs_eloss);
+    result.xs_low.interp  = Interp::linear; // TODO: spline
+    result.shells         = this->extend_shells(inp);
+    result.thresh_low     = inp.thresh_low;
+    result.thresh_high    = inp.thresh_high;
 
     // Add to host vector
     host_elements_.push_back(result);
@@ -170,8 +172,9 @@ span<LivermoreSubshell> LivermoreParams::extend_shells(const ElementInput& inp)
     for (auto i : range(inp.shells.size()))
     {
         result[i].binding_energy = inp.shells[i].binding_energy;
-        result[i].xs             = this->extend_data(inp.shells[i].xs);
-        result[i].energy         = this->extend_data(inp.shells[i].energy);
+        result[i].xs.energy      = this->extend_data(inp.shells[i].energy);
+        result[i].xs.xs          = this->extend_data(inp.shells[i].xs);
+        result[i].xs.interp      = Interp::linear;
         result[i].param_low      = this->extend_data(inp.shells[i].param_low);
         result[i].param_high     = this->extend_data(inp.shells[i].param_high);
     }

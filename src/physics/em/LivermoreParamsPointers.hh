@@ -11,12 +11,13 @@
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
+#include "MockXsCalculator.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Electron subshell data
+ * Electron subshell data.
  */
 struct LivermoreSubshell
 {
@@ -25,8 +26,7 @@ struct LivermoreSubshell
 
     // Tabulated subshell photoionization cross section (used below 5 keV)
     // TODO: value grid
-    span<const real_type> energy;
-    span<const real_type> xs;
+    ValueGrid xs;
 
     // Fit parameters for the integrated subshell photoionization cross
     // sections in the two different energy ranges (used above 5 keV)
@@ -43,14 +43,14 @@ struct LivermoreElement
     // TOTAL CROSS SECTIONS
 
     // Total cross section below the K-shell energy. Uses linear interpolation.
-    span<const real_type> energy_low;
-    span<const real_type> xs_low;
+    // TODO: value grid
+    ValueGrid xs_low;
 
     // Total cross section above the K-shell energy but below the energy
     // threshold for the parameterized cross sections. Uses spline
     // interpolation.
-    span<const real_type> energy_high;
-    span<const real_type> xs_high;
+    // TODO: value grid
+    ValueGrid xs_high;
 
     // SUBSHELL CROSS SECTIONS
 

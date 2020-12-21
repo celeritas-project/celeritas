@@ -96,12 +96,12 @@ class PhotoelectricInteractorTest
             if (!infile.fail())
             {
                 infile >> size;
-                result.xs_high.energy.resize(size);
-                result.xs_high.xs_eloss.resize(size);
+                result.xs_low.energy.resize(size);
+                result.xs_low.xs_eloss.resize(size);
                 for (auto i : celeritas::range(size))
                 {
-                    infile >> result.xs_high.energy[i]
-                        >> result.xs_high.xs_eloss[i];
+                    infile >> result.xs_low.energy[i]
+                        >> result.xs_low.xs_eloss[i];
                 }
             }
             infile.close();
@@ -324,27 +324,56 @@ TEST_F(PhotoelectricInteractorTest, basic)
     EXPECT_EQ(4, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    /*
-    const double expected_energy[]
-        = {0.4581502636229, 1.325852509857, 9.837250571445, 0.5250297816972};
-    const double expected_costheta[] = {
-        -0.0642523962721, 0.6656882878883, 0.9991545931877, 0.07782377978055};
     const double expected_energy_electron[]
-        = {9.541849736377, 8.674147490143, 0.1627494285554, 9.474970218303};
+        = {9.99962884, 9.99962884, 9.99962884, 9.99962884};
     const double expected_costheta_electron[]
-        = {0.998962567429, 0.9941635460938, 0.3895748042313, 0.9986216572142};
-    EXPECT_VEC_SOFT_EQ(expected_energy, energy);
-    EXPECT_VEC_SOFT_EQ(expected_costheta, costheta);
+        = {0.9989507514765, 0.9309974252831, 0.9901365221334, 0.9971118554745};
     EXPECT_VEC_SOFT_EQ(expected_energy_electron, energy_electron);
     EXPECT_VEC_SOFT_EQ(expected_costheta_electron, costheta_electron);
-    */
-    PRINT_EXPECTED(energy_electron);
-    PRINT_EXPECTED(costheta_electron);
 
     // Next sample should fail because we're out of secondary buffer space
     {
         Interaction result = interact(rng_engine, el_id);
         EXPECT_EQ(0, result.secondaries.size());
         EXPECT_EQ(celeritas::Action::failed, result.action);
+    }
+}
+
+TEST_F(PhotoelectricInteractorTest, stress_test)
+{
+    RandomEngine& rng_engine = this->rng();
+    ElementDefId  el_id{0};
+    const int     num_samples = 8192;
+
+    for (double inc_e : {1.e-6, 1.e-4, 0.01, 1.0, 10.0, 1000.0})
+    {
+        SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
+        this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
+
+        // Loop over several incident directions (shouldn't affect anything
+        // substantial, but scattering near Z axis loses precision)
+        for (const Real3& inc_dir :
+             {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
+        {
+            SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
+            this->set_inc_direction(inc_dir);
+            this->resize_secondaries(num_samples);
+
+            // Create interactor
+            PhotoelectricInteractor interact(pointers_,
+                                             data_,
+                                             this->particle_track(),
+                                             this->direction(),
+                                             this->secondary_allocator());
+
+            // Loop over many particles
+            for (int i = 0; i < num_samples; ++i)
+            {
+                Interaction result = interact(rng_engine, el_id);
+                // SCOPED_TRACE(result);
+                this->sanity_check(result);
+            }
+            EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
+        }
     }
 }
