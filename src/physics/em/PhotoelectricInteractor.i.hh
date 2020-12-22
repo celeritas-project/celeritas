@@ -44,12 +44,6 @@ template<class Engine>
 CELER_FUNCTION Interaction
 PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
 {
-    // Select target atom
-    // ElementSelector    select_element(mat_, calc_micro_xs_);
-    // ElementComponentId component_id = select_element(rng);
-    // ElementDefId el_id
-    //    = mat_.material_view().elements()[component_id.get()].element;
-
     // Allocate space for the single electron to be emitted
     Secondary* photoelectron = this->allocate_(1);
     if (photoelectron == nullptr)
@@ -62,7 +56,6 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
     const LivermoreElement& el = data_.elements[el_id.get()];
 
     // Sample the shell from which the photoelectron is emitted
-    // TODO: don't use energy = max(energy, min binding energy) here?
     real_type cutoff   = generate_canonical(rng) * calc_micro_xs_(el_id);
     real_type xs       = 0.;
     size_type shell_id = 0;
@@ -100,7 +93,8 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
     Interaction result = Interaction::from_absorption();
 
     // If the binding energy of the sampled shell is greater than the incident
-    // photon energy, don't produce secondaries
+    // photon energy, no secondaries are produced and the energy is deposited
+    // locally.
     if (el.shells[shell_id].binding_energy > inc_energy_)
     {
         return result;

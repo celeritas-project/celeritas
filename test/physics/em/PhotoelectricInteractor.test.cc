@@ -42,8 +42,8 @@ class PhotoelectricInteractorTest
         result.el_id = el_id;
 
         // TODO: check units
-        // Read photoelectric effect total cross section above K shell energy
-        // but below parameterized values
+        // Read photoelectric effect total cross section above K-shell energy
+        // but below energy limit for parameterization
         {
             std::ostringstream os;
             os << "pe-cs-" << atomic_number << ".dat";
@@ -75,7 +75,7 @@ class PhotoelectricInteractorTest
             infile.close();
         }
 
-        // Read photoelectric effect total cross section below K shell energy
+        // Read photoelectric effect total cross section below K-shell energy
         {
             std::ostringstream os;
             os << "pe-le-cs-" << atomic_number << ".dat";
@@ -274,6 +274,10 @@ class PhotoelectricInteractorTest
         }
 
         // Check conservation between primary and secondaries
+        // TODO: atomic relaxation has not been implemented. If the binding
+        // energy of the sampled shell is larger than the incident photon
+        // energy, or there is an energy balance following atomic deexcitation,
+        // the energy will be deposited locally.
         // this->check_conservation(interaction);
     }
 
@@ -342,13 +346,17 @@ TEST_F(PhotoelectricInteractorTest, basic)
 TEST_F(PhotoelectricInteractorTest, stress_test)
 {
     RandomEngine& rng_engine = this->rng();
-    ElementDefId  el_id{0};
-    const int     num_samples = 8192;
 
-    for (double inc_e : {1.e-6, 1.e-4, 0.01, 1.0, 10.0, 1000.0})
+    const int           num_samples = 8192;
+    std::vector<double> avg_engine_samples;
+
+    ElementDefId el_id{0};
+
+    for (double inc_e : {0.0001, 0.01, 1.0, 10.0, 1000.0})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
+        RandomEngine::size_type num_particles_sampled = 0;
 
         // Loop over several incident directions (shouldn't affect anything
         // substantial, but scattering near Z axis loses precision)
@@ -374,6 +382,15 @@ TEST_F(PhotoelectricInteractorTest, stress_test)
                 this->sanity_check(result);
             }
             EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
+            num_particles_sampled += num_samples;
         }
+        avg_engine_samples.push_back(double(rng_engine.count())
+                                     / double(num_particles_sampled));
+        rng_engine.reset_count();
     }
+    // PRINT_EXPECTED(avg_engine_samples);
+    // Gold values for average number of calls to RNG
+    const double expected_avg_engine_samples[]
+        = {15.99755859375, 16.09204101562, 13.79919433594, 8.590209960938, 2};
+    EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

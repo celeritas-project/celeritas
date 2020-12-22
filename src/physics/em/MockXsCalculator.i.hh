@@ -39,10 +39,11 @@ CELER_FUNCTION real_type XsCalculator::operator()(const real_type energy) const
     }
     else
     {
-        // Get the energy bin
-        // TODO: binary search
+        // Get the energy bin.
+        // TODO: Should do a binary search, but this class is just a
+        // placeholder anyway.
         auto bin = data_.energy.size();
-        while (data_.energy[--bin] > energy) {}
+        while (data_.energy[--bin] >= energy) {}
         CHECK(bin + 1 < data_.xs.size());
 
         // Interpolate *linearly* on energy using the bin data.

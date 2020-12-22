@@ -60,7 +60,8 @@ real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
     }
     else if (energy >= el.shells[0].binding_energy)
     {
-        // Use tabulated cross sections above K-shell energy
+        // Use tabulated cross sections above K-shell energy but below energy
+        // limit for parameterization
         XsCalculator calc_xs(el.xs_high);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }

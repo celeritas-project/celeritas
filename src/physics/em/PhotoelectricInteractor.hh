@@ -24,13 +24,18 @@ namespace celeritas
 /*!
  * Livermore model for the photoelectric effect.
  *
+ * A parameterization of the photoelectric cross sections in two different
+ * energy intervals, formulated as \sigma(E) = a_1 / E + a_2 / E^2 + a_3 / E^3
+ * + a_4 / E^4 + a_5 / E^5 + a_6 / E^6, is used. The coefficients for this
+ * model are calculated by fitting the tabulated EPICS2014 subshell cross
+ * sections. The parameterized model applies above approximately 5 keV; below
+ * this limit (which depends on the atomic number) the tabulated cross sections
+ * are used. The angle of the emitted photoelectron is sampled from the
+ * Sauter-Gavrila distribution.
+ *
  * \note This performs the same sampling routine as in Geant4's
  * G4LivermorePhotoElectricModel class, as documented in section 6.3.5 of the
- * Geant4 Physics Reference (release 10.6). Below 5 keV, tabulated subshell
- * cross sections are used. Above 5 keV, EPICS2014 subshell cross sections are
- * parameterized in two different energy intervals (which depend on atomic
- * number and K-shell binding energy). The angle of the emitted photoelectron
- * is sampled from the Sauter-Gavrila distribution.
+ * Geant4 Physics Reference (release 10.6).
  */
 class PhotoelectricInteractor
 {
