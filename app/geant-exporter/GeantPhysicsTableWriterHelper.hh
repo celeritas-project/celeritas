@@ -15,11 +15,6 @@
 #include <G4ProcessType.hh>
 #include <G4Material.hh>
 
-#include "io/ImportTableType.hh"
-#include "io/ImportProcessType.hh"
-#include "io/ImportProcess.hh"
-#include "io/ImportPhysicsVectorType.hh"
-#include "io/ImportModel.hh"
 #include "io/ImportMaterial.hh"
 #include "base/Assert.hh"
 #include "base/Types.hh"
@@ -39,7 +34,7 @@ namespace geant_exporter
  */
 ImportTableType to_geant_table_type(const std::string& g4_table_type_name)
 {
-    const static std::unordered_map<std::string, ImportTableType> table_map = {
+    static const std::unordered_map<std::string, ImportTableType> table_map = {
         // clang-format off
         {"not_defined",  ImportTableType::not_defined},
         {"DEDX",         ImportTableType::dedx},
