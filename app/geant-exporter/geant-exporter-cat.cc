@@ -9,6 +9,9 @@
 #include <iomanip>
 #include <iostream>
 
+#include "comm/Communicator.hh"
+#include "comm/Logger.hh"
+#include "comm/ScopedMpiInit.hh"
 #include "physics/base/ParticleDef.hh"
 #include "io/RootImporter.hh"
 #include "io/GdmlGeometryMap.hh"
@@ -21,44 +24,17 @@ using std::setw;
 
 //---------------------------------------------------------------------------//
 /*!
- * Dump the contents of a ROOT file writen by geant-exporter.
+ * Print particle properties.
  */
-int main(int argc, char* argv[])
+void print_particles(const ParticleParams& particles)
 {
-    if (argc != 2)
-    {
-        // If number of arguments is incorrect, print help
-        cout << "Usage: " << argv[0] << " output.root" << endl;
-        return 1;
-    }
+    const auto& all_md = particles.md();
 
-    std::shared_ptr<const ParticleParams> particles;
-    std::shared_ptr<GdmlGeometryMap>      geometry;
-
-    try
-    {
-        RootImporter import(argv[1]);
-
-        auto data = import();
-        particles = data.particle_params;
-        geometry  = data.geometry;
-    }
-    catch (const DebugError& e)
-    {
-        cout << "Exception while reading ROOT file'" << argv[1] << "':\n"
-             << e.what() << endl;
-        return EXIT_FAILURE;
-    }
-
-    //// PRINT PARTICLE LIST ////
-
-    const auto& all_md = particles->md();
-
-    cout << endl;
-    cout << ">>> Loaded " << all_md.size() << " particles from `" << argv[1]
-         << "`.\n";
+    CELER_LOG(info) << "Loaded " << all_md.size() << " particles";
 
     cout << R"gfm(
+# Particles
+
 -----------------------------------------------------------------------
 Name              | PDG Code    | Mass [MeV] | Charge [e] | Decay [1/s]
 ----------------- | ----------- | ---------- | ---------- | -----------
@@ -67,7 +43,7 @@ Name              | PDG Code    | Mass [MeV] | Charge [e] | Decay [1/s]
     ParticleDefId::value_type def_id = 0;
     for (const auto& md : all_md)
     {
-        const ParticleDef& def = particles->get(ParticleDefId{def_id++});
+        const ParticleDef& def = particles.get(ParticleDefId{def_id++});
 
         // clang-format off
         cout << setw(17) << std::left << md.name << " | "
@@ -79,17 +55,45 @@ Name              | PDG Code    | Mass [MeV] | Charge [e] | Decay [1/s]
         // clang-format on
     }
     cout << "-----------------------------------------------------------------"
-            "------"
+            "------\n"
          << endl;
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Print physics properties.
+ */
+void print_physics_table(const ImportPhysicsTable& table)
+{
+    if (table.process_type != ImportProcessType::electromagnetic)
+    {
+        CELER_LOG(warning) << "Skipping non-EM table type "
+                           << int(table.process_type) << " for "
+                           << table.particle.get() << int(table.process)
+                           << int(table.model);
+    }
+    cout << "## " << table.particle.get() << int(table.process)
+         << int(table.model) << int(table.table_type) << "\n\n";
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print GDML properties.
+ *
+ * TODO: add a print_materials to use material params directly.
+ */
+void print_geometry(const GdmlGeometryMap& geometry)
+{
     //// PRINT ELEMENT LIST ////
 
-    const auto& element_map = geometry->elemid_to_element_map();
+    const auto& element_map = geometry.elemid_to_element_map();
 
-    cout << endl;
-    cout << ">>> Loaded " << element_map.size() << " elements from `"
-         << argv[1] << "`." << std::endl;
+    CELER_LOG(info) << "Loaded " << element_map.size() << " elements";
     cout << R"gfm(
+# GDML properties
+
+## Elements
+
 ----------------------------------------------
 Element ID | Name | Atomic number | Mass (AMU)
 ---------- | ---- | ------------- | ----------
@@ -97,7 +101,7 @@ Element ID | Name | Atomic number | Mass (AMU)
 
     for (const auto& el_key : element_map)
     {
-        const auto& element = geometry->get_element(el_key.first);
+        const auto& element = geometry.get_element(el_key.first);
         // clang-format off
         cout << setw(10) << std::left << el_key.first << " | "
              << setw(4) << element.name << " | "
@@ -109,12 +113,12 @@ Element ID | Name | Atomic number | Mass (AMU)
 
     //// PRINT MATERIAL LIST ///
 
-    const auto& material_map = geometry->matid_to_material_map();
+    const auto& material_map = geometry.matid_to_material_map();
 
-    cout << endl;
-    cout << ">>> Loaded " << material_map.size() << " materials from `"
-         << argv[1] << "`." << std::endl;
+    CELER_LOG(info) << "Loaded " << material_map.size() << " materials";
     cout << R"gfm(
+## Materials
+
 --------------------------------------------------------------------------------------------------
 Material ID | Name                            | Composition
 ----------- | ------------------------------- | --------------------------------------------------
@@ -122,16 +126,16 @@ Material ID | Name                            | Composition
 
     for (const auto& mat_key : material_map)
     {
-        const auto& material = geometry->get_material(mat_key.first);
+        const auto& material = geometry.get_material(mat_key.first);
         // clang-format off
         cout << setw(11) << std::left << mat_key.first << " | "
              << setw(31) << material.name << " | ";
         // clang-format on
         for (const auto& key : material.elements_fractions)
         {
-            cout << geometry->get_element(key.first).name << " ";
+            cout << geometry.get_element(key.first).name << " ";
         }
-        cout << endl;
+        cout << '\n';
     }
     cout << "-----------------------------------------------------------------"
             "---------------------------------"
@@ -139,12 +143,12 @@ Material ID | Name                            | Composition
 
     //// PRINT VOLUME AND MATERIAL LIST ////
 
-    const auto& volume_material_map = geometry->volid_to_matid_map();
+    const auto& volume_material_map = geometry.volid_to_matid_map();
 
-    cout << endl;
-    cout << ">>> Loaded " << volume_material_map.size() << " volumes from `"
-         << argv[1] << "`." << std::endl;
+    CELER_LOG(info) << "Loaded " << volume_material_map.size() << " volumes";
     cout << R"gfm(
+## Volumes
+
 --------------------------------------------------------------------------------------------
 Volume ID | Material ID | Solid Name                           | Material Name
 --------- | ----------- | ------------------------------------ | ---------------------------
@@ -154,8 +158,8 @@ Volume ID | Material ID | Solid Name                           | Material Name
     {
         auto volid    = key_value.first;
         auto matid    = key_value.second;
-        auto volume   = geometry->get_volume(volid);
-        auto material = geometry->get_material(matid);
+        auto volume   = geometry.get_volume(volid);
+        auto material = geometry.get_material(matid);
 
         // clang-format off
         cout << setw(9) << std::left << volid << " | "
@@ -167,7 +171,54 @@ Volume ID | Material ID | Solid Name                           | Material Name
     cout << "-----------------------------------------------------------------"
             "---------------------------"
          << endl;
-    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Dump the contents of a ROOT file writen by geant-exporter.
+ */
+int main(int argc, char* argv[])
+{
+    ScopedMpiInit scoped_mpi(&argc, &argv);
+    if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
+        && Communicator::comm_world().size() > 1)
+    {
+        CELER_LOG(critical) << "This app cannot run in parallel";
+        return EXIT_FAILURE;
+    }
+
+    if (argc != 2)
+    {
+        // If number of arguments is incorrect, print help
+        cout << "Usage: " << argv[0] << " output.root" << endl;
+        return 2;
+    }
+
+    RootImporter::result_type data;
+    try
+    {
+        RootImporter import(argv[1]);
+        data = import();
+    }
+    catch (const DebugError& e)
+    {
+        CELER_LOG(critical) << "Exception while reading ROOT file'" << argv[1]
+                            << "': " << e.what();
+        return EXIT_FAILURE;
+    }
+
+    CELER_LOG(info) << "Successfully loaded ROOT file'" << argv[1] << "'";
+
+    print_particles(*data.particle_params);
+
+    CELER_LOG(info) << "Loaded " << data.physics_tables->size()
+                    << " physics tables";
+    cout << "# Physics tables\n\n";
+    for (const ImportPhysicsTable& table : *data.physics_tables)
+    {
+        print_physics_table(table);
+    }
+    print_geometry(*data.geometry);
 
     return EXIT_SUCCESS;
 }
