@@ -50,4 +50,11 @@ struct ImportPhysicsVector
 };
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+const char* to_cstring(ImportPhysicsVectorType value);
+const char* to_cstring(ImportPhysicsVector::DataType value);
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

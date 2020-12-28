@@ -32,8 +32,7 @@ void print_particles(const ParticleParams& particles)
 
     CELER_LOG(info) << "Loaded " << all_md.size() << " particles";
 
-    cout << R"gfm(
-# Particles
+    cout << R"gfm(# Particles
 
 -----------------------------------------------------------------------
 Name              | PDG Code    | Mass [MeV] | Charge [e] | Decay [1/s]
@@ -67,13 +66,39 @@ void print_physics_table(const ImportPhysicsTable& table)
 {
     if (table.process_type != ImportProcessType::electromagnetic)
     {
-        CELER_LOG(warning) << "Skipping non-EM table type "
-                           << int(table.process_type) << " for "
-                           << table.particle.get() << int(table.process)
-                           << int(table.model);
+        CELER_LOG(warning)
+            << "Skipping non-EM table for particle  " << table.particle.get()
+            << ": " << to_cstring(table.process_type) << '.'
+            << to_cstring(table.process) << '.' << to_cstring(table.model)
+            << ": " << to_cstring(table.table_type);
     }
-    cout << "## " << table.particle.get() << int(table.process)
-         << int(table.model) << int(table.table_type) << "\n\n";
+    cout << "## Particle " << table.particle.get() << ": `"
+         << to_cstring(table.process_type) << '.' << to_cstring(table.process)
+         << '.' << to_cstring(table.model)
+         << "`: " << to_cstring(table.table_type) << "\n\n";
+
+    cout << "Has " << table.physics_vectors.size() << " vectors:\n"
+         << R"gfm(
+-------------------------------------------------------------------------------------------
+Type          | Data  | Size  | Emin         | Emax         | Vmin         | Vmax
+-------------------------------------------------------------------------------------------
+)gfm";
+
+    for (const auto& physvec : table.physics_vectors)
+    {
+        // clang-format off
+        cout << setw(13) << std::left << to_cstring(physvec.vector_type) << " | "
+             << setw(5) << to_cstring(physvec.data_type) << " | "
+             << setw(5) << physvec.energy.size() << " | "
+             << setw(12) << setprecision(3) << physvec.energy.front() << " | "
+             << setw(12) << setprecision(3) << physvec.energy.back() << " | "
+             << setw(12) << setprecision(3) << physvec.xs_eloss.front() << " | "
+             << setw(12) << setprecision(3) << physvec.xs_eloss.back()
+             << '\n';
+        // clang-format on
+    }
+    cout << "-----------------------------------------------------------------"
+            "--------------------------\n\n";
 }
 
 //---------------------------------------------------------------------------//
@@ -89,8 +114,7 @@ void print_geometry(const GdmlGeometryMap& geometry)
     const auto& element_map = geometry.elemid_to_element_map();
 
     CELER_LOG(info) << "Loaded " << element_map.size() << " elements";
-    cout << R"gfm(
-# GDML properties
+    cout << R"gfm(# GDML properties
 
 ## Elements
 
@@ -129,11 +153,11 @@ Material ID | Name                            | Composition
         const auto& material = geometry.get_material(mat_key.first);
         // clang-format off
         cout << setw(11) << std::left << mat_key.first << " | "
-             << setw(31) << material.name << " | ";
+             << setw(31) << material.name << " |";
         // clang-format on
         for (const auto& key : material.elements_fractions)
         {
-            cout << geometry.get_element(key.first).name << " ";
+            cout << " " << geometry.get_element(key.first).name;
         }
         cout << '\n';
     }

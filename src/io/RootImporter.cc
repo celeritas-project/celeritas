@@ -18,6 +18,7 @@
 
 #include "base/Assert.hh"
 #include "base/Range.hh"
+#include "comm/Logger.hh"
 #include "physics/base/Units.hh"
 
 namespace celeritas
@@ -28,6 +29,7 @@ namespace celeritas
  */
 RootImporter::RootImporter(const char* filename)
 {
+    CELER_LOG(status) << "Opening ROOT file";
     root_input_.reset(TFile::Open(filename, "read"));
     ENSURE(root_input_);
 }
@@ -62,6 +64,7 @@ RootImporter::result_type RootImporter::operator()()
  */
 std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
 {
+    CELER_LOG(status) << "Loading particle data";
     // Open the 'particles' branch and reserve size for the converted data
     std::unique_ptr<TTree> tree_particles(
         root_input_->Get<TTree>("particles"));
@@ -119,6 +122,7 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
 std::shared_ptr<std::vector<ImportPhysicsTable>>
 RootImporter::load_physics_table_data()
 {
+    CELER_LOG(status) << "Loading physics data";
     // Open tables branch
     std::unique_ptr<TTree> tree_tables(root_input_->Get<TTree>("tables"));
     CHECK(tree_tables);
@@ -151,6 +155,7 @@ RootImporter::load_physics_table_data()
  */
 std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
 {
+    CELER_LOG(status) << "Loading geometry data";
     // Open geometry branch
     std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
     CHECK(tree_geometry);
@@ -172,6 +177,7 @@ std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
  */
 std::shared_ptr<MaterialParams> RootImporter::load_material_data()
 {
+    CELER_LOG(status) << "Loading material data";
     // Open geometry branch
     std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
     CHECK(tree_geometry);

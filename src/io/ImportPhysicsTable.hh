@@ -15,27 +15,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Property being described by the physics table.
- *
- * In Geant4 this is a string value.
- */
-enum class ImportTableType
-{
-    not_defined,
-    dedx,
-    ionisation,
-    range,
-    range_sec,
-    inverse_range,
-    lambda,
-    lambda_prim,
-    lambda_mod_1,
-    lambda_mod_2,
-    lambda_mod_3,
-    lambda_mod_4
-};
-//---------------------------------------------------------------------------//
-/*!
  * Category of physics process.
  *
  * See Geant4's G4ProcessType.hh for the equivalent enum.
@@ -118,6 +97,28 @@ enum class ImportModel
 
 //---------------------------------------------------------------------------//
 /*!
+ * Property being described by the physics table.
+ *
+ * In Geant4 this is a string value.
+ */
+enum class ImportTableType
+{
+    not_defined,
+    dedx,
+    ionisation,
+    range,
+    range_sec,
+    inverse_range,
+    lambda,
+    lambda_prim,
+    lambda_mod_1,
+    lambda_mod_2,
+    lambda_mod_3,
+    lambda_mod_4
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store physics tables.
  *
  * The geant-exporter app stores Geant4 physics tables into a ROOT file, while
@@ -132,6 +133,15 @@ struct ImportPhysicsTable
     PDGNumber                        particle;
     std::vector<ImportPhysicsVector> physics_vectors;
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+const char* to_cstring(ImportProcessType value);
+const char* to_cstring(ImportProcess value);
+const char* to_cstring(ImportModel value);
+const char* to_cstring(ImportTableType value);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
