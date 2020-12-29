@@ -29,15 +29,4 @@ const char* to_cstring(ImportPhysicsVectorType value)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Get the string value for a vector data type.
- */
-const char* to_cstring(ImportPhysicsVector::DataType value)
-{
-    static const char* const strings[] = {"xs", "eloss"};
-    REQUIRE(static_cast<int>(value) * sizeof(const char*) < sizeof(strings));
-    return strings[static_cast<int>(value)];
-}
-
-//---------------------------------------------------------------------------//
 } // namespace celeritas

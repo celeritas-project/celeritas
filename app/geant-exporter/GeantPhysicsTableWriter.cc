@@ -8,6 +8,8 @@
 #include "GeantPhysicsTableWriter.hh"
 
 #include <fstream>
+#include <string>
+#include <unordered_map>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -18,12 +20,16 @@
 #include <G4VEnergyLossProcess.hh>
 #include <G4VMultipleScattering.hh>
 #include <G4SystemOfUnits.hh>
+#include <G4PhysicsVectorType.hh>
+#include <G4ProcessType.hh>
+#include <G4Material.hh>
 
-#include "GeantPhysicsTableWriterHelper.hh"
 #include "io/ImportPhysicsTable.hh"
 #include "io/ImportPhysicsVector.hh"
+#include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
+#include "comm/Logger.hh"
 
 using celeritas::ImportModel;
 using celeritas::ImportPhysicsVector;
@@ -31,21 +37,167 @@ using celeritas::ImportPhysicsVectorType;
 using celeritas::ImportProcess;
 using celeritas::ImportProcessType;
 using celeritas::ImportTableType;
+using celeritas::ImportUnits;
 using celeritas::PDGNumber;
 using celeritas::real_type;
-using geant_exporter::to_geant_model;
-using geant_exporter::to_geant_physics_vector_type;
-using geant_exporter::to_geant_process;
-using geant_exporter::to_geant_process_type;
-using geant_exporter::to_geant_table_type;
 
 namespace geant_exporter
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+// ANONYMOUS HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Safely switch from G4PhysicsVectorType to ImportPhysicsVectorType.
+ * [See G4PhysicsVectorType.hh]
+ */
+ImportProcessType to_import_process_type(G4ProcessType g4_process_type)
+{
+    switch (g4_process_type)
+    {
+        case G4ProcessType::fNotDefined:
+            return ImportProcessType::not_defined;
+        case G4ProcessType::fTransportation:
+            return ImportProcessType::transportation;
+        case G4ProcessType::fElectromagnetic:
+            return ImportProcessType::electromagnetic;
+        case G4ProcessType::fOptical:
+            return ImportProcessType::optical;
+        case G4ProcessType::fHadronic:
+            return ImportProcessType::hadronic;
+        case G4ProcessType::fPhotolepton_hadron:
+            return ImportProcessType::photolepton_hadron;
+        case G4ProcessType::fDecay:
+            return ImportProcessType::decay;
+        case G4ProcessType::fGeneral:
+            return ImportProcessType::general;
+        case G4ProcessType::fParameterisation:
+            return ImportProcessType::parameterisation;
+        case G4ProcessType::fUserDefined:
+            return ImportProcessType::user_defined;
+        case G4ProcessType::fParallel:
+            return ImportProcessType::parallel;
+        case G4ProcessType::fPhonon:
+            return ImportProcessType::phonon;
+        case G4ProcessType::fUCN:
+            return ImportProcessType::ucn;
+    }
+    CHECK_UNREACHABLE;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Safely retrieve the correct process enum from a given string.
+ */
+ImportProcess to_import_process(const std::string& g4_process_name)
+{
+    static const std::unordered_map<std::string, ImportProcess> process_map = {
+        // clang-format off
+        {"ionIoni",        ImportProcess::ion_ioni},
+        {"msc",            ImportProcess::msc},
+        {"hIoni",          ImportProcess::h_ioni},
+        {"hBrems",         ImportProcess::h_brems},
+        {"hPairProd",      ImportProcess::h_pair_prod},
+        {"CoulombScat",    ImportProcess::coulomb_scat},
+        {"eIoni",          ImportProcess::e_ioni},
+        {"eBrem",          ImportProcess::e_brem},
+        {"phot",           ImportProcess::photoelectric},
+        {"compt",          ImportProcess::compton},
+        {"conv",           ImportProcess::conversion},
+        {"Rayl",           ImportProcess::rayleigh},
+        {"annihil",        ImportProcess::annihilation},
+        {"muIoni",         ImportProcess::mu_ioni},
+        {"muBrems",        ImportProcess::mu_brems},
+        {"muPairProd",     ImportProcess::mu_pair_prod},
+        // clang-format on
+    };
+    auto iter = process_map.find(g4_process_name);
+    if (iter == process_map.end())
+    {
+        CELER_LOG(warning) << "Encountered unknown process '"
+                           << g4_process_name << "'";
+        return ImportProcess::unknown;
+    }
+    return iter->second;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Safely retrieve the correct model enum from a given string.
+ */
+ImportModel to_import_model(const std::string& g4_model_name)
+{
+    static const std::unordered_map<std::string, ImportModel> model_map = {
+        // clang-format off
+        {"BraggIon",            ImportModel::bragg_ion},
+        {"BetheBloch",          ImportModel::bethe_bloch},
+        {"UrbanMsc",            ImportModel::urban_msc},
+        {"ICRU73QO",            ImportModel::icru_73_qo},
+        {"WentzelVIUni",        ImportModel::wentzel_VI_uni},
+        {"hBrem",               ImportModel::h_brem},
+        {"hPairProd",           ImportModel::h_pair_prod},
+        {"eCoulombScattering",  ImportModel::e_coulomb_scattering},
+        {"Bragg",               ImportModel::bragg},
+        {"MollerBhabha",        ImportModel::moller_bhabha},
+        {"eBremSB",             ImportModel::e_brem_sb},
+        {"eBremLPM",            ImportModel::e_brem_lpm},
+        {"eplus2gg",            ImportModel::e_plus_to_gg},
+        {"LivermorePhElectric", ImportModel::livermore_photoelectric},
+        {"Klein-Nishina",       ImportModel::klein_nishina},
+        {"BetheHeitlerLPM",     ImportModel::bethe_heitler_lpm},
+        {"LivermoreRayleigh",   ImportModel::livermore_rayleigh},
+        {"MuBetheBloch",        ImportModel::mu_bethe_bloch},
+        {"MuBrem",              ImportModel::mu_brem},
+        {"muPairProd",          ImportModel::mu_pair_prod},
+        // clang-format on
+    };
+    auto iter = model_map.find(g4_model_name);
+    if (iter == model_map.end())
+    {
+        CELER_LOG(warning) << "Encountered unknown model '" << g4_model_name
+                           << "'";
+        return ImportModel::unknown;
+    }
+    return iter->second;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Safely switch from G4PhysicsVectorType to ImportPhysicsVectorType.
+ * [See G4PhysicsVectorType.hh]
+ */
+ImportPhysicsVectorType
+to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
+{
+    switch (g4_vector_type)
+    {
+        case G4PhysicsVectorType::T_G4PhysicsVector:
+            return ImportPhysicsVectorType::base;
+        case G4PhysicsVectorType::T_G4PhysicsLinearVector:
+            return ImportPhysicsVectorType::linear;
+        case G4PhysicsVectorType::T_G4PhysicsLogVector:
+            return ImportPhysicsVectorType::log;
+        case G4PhysicsVectorType::T_G4PhysicsLnVector:
+            return ImportPhysicsVectorType::ln;
+        case G4PhysicsVectorType::T_G4PhysicsFreeVector:
+            return ImportPhysicsVectorType::free;
+        case G4PhysicsVectorType::T_G4PhysicsOrderedFreeVector:
+            return ImportPhysicsVectorType::ordered_free;
+        case G4PhysicsVectorType::T_G4LPhysicsFreeVector:
+            return ImportPhysicsVectorType::low_energy_free;
+    }
+    CHECK_UNREACHABLE;
+}
+
+} // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with existing TFile reference
  */
 GeantPhysicsTableWriter::GeantPhysicsTableWriter(TFile* root_file)
+    : root_file_(root_file)
 {
     REQUIRE(root_file);
     this->tree_tables_ = std::make_unique<TTree>("tables", "tables");
@@ -54,17 +206,32 @@ GeantPhysicsTableWriter::GeantPhysicsTableWriter(TFile* root_file)
 
 //---------------------------------------------------------------------------//
 /*!
- * Add physics tables to the ROOT file from given process and particle
+ * Write the tables on destruction.
  */
-void GeantPhysicsTableWriter::add_physics_tables(
-    const G4VProcess& process, const G4ParticleDefinition& particle)
+GeantPhysicsTableWriter::~GeantPhysicsTableWriter()
 {
-    // Process name
+    try
+    {
+        root_file_->Write();
+    }
+    catch (const std::exception& e)
+    {
+        CELER_LOG(error) << "Failed to write physics tables: " << e.what();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add physics tables to the ROOT file from given process and particle.
+ */
+void GeantPhysicsTableWriter::operator()(const G4ParticleDefinition& particle,
+                                         const G4VProcess&           process)
+{
     const std::string& process_name = process.GetProcessName();
 
-    // Write this->table_
-    table_.process_type = to_geant_process_type(process.GetProcessType());
-    table_.process      = to_geant_process(process_name);
+    // Save process and particle info
+    table_.process_type = to_import_process_type(process.GetProcessType());
+    table_.process      = to_import_process(process_name);
     table_.particle     = PDGNumber(particle.GetPDGEncoding());
 
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
@@ -86,257 +253,167 @@ void GeantPhysicsTableWriter::add_physics_tables(
     }
     else
     {
-        std::cout << "  No available code for " << process_name << std::endl;
+        CELER_LOG(warning) << "Cannot export process '" << process_name << "'";
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Write EM process tables to the TTree
+ * Write EM process tables to the TTree.
  */
-void GeantPhysicsTableWriter::fill_em_tables(const G4VEmProcess& em_process)
+void GeantPhysicsTableWriter::fill_em_tables(const G4VEmProcess& process)
 {
-    const std::string process_name = em_process.GetProcessName();
-
-    for (auto i : celeritas::range(em_process.GetNumberOfModels()))
+    for (auto i : celeritas::range(process.GetNumberOfModels()))
     {
-        // Model
-        const std::string& model_name
-            = em_process.GetModelByIndex(i)->GetName();
+        table_.model = to_import_model(process.GetModelByIndex(i)->GetName());
 
-        // Write table_
-        table_.model = to_geant_model(model_name);
-
-        std::string table_name = process_name + "_" + model_name;
-
-        // The same model can have both Lambda and LambdaPrim tables
-        if (const G4PhysicsTable* table = em_process.LambdaTable())
-        {
-            this->fill_tables_tree(
-                *table, "Lambda", table_name, ImportPhysicsVector::DataType::xs);
-        }
-
-        if (const G4PhysicsTable* table = em_process.LambdaTablePrim())
-        {
-            this->fill_tables_tree(*table,
-                                   "LambdaPrim",
-                                   table_name,
-                                   ImportPhysicsVector::DataType::xs);
-        }
+        // Save potential tables
+        this->add_table(process.LambdaTable(),
+                        ImportTableType::lambda,
+                        ImportUnits::cm_inv);
+        this->add_table(process.LambdaTablePrim(),
+                        ImportTableType::lambda_prim,
+                        ImportUnits::cm_mev_inv);
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Write energy loss tables to the TTree
+ * Write energy loss tables to the TTree.
  */
 void GeantPhysicsTableWriter::fill_energy_loss_tables(
-    const G4VEnergyLossProcess& eloss_process)
+    const G4VEnergyLossProcess& process)
 {
-    const std::string& process_name = eloss_process.GetProcessName();
-
-    for (auto i : celeritas::range(eloss_process.NumberOfModels()))
+    for (auto i : celeritas::range(process.NumberOfModels()))
     {
-        // Model
-        const std::string& model_name
-            = eloss_process.GetModelByIndex(i)->GetName();
+        table_.model = to_import_model(process.GetModelByIndex(i)->GetName());
 
-        // Write table_
-        table_.model = to_geant_model(model_name);
+        this->add_table(
+            process.DEDXTable(), ImportTableType::dedx, ImportUnits::mev);
+        this->add_table(process.DEDXTableForSubsec(),
+                        ImportTableType::dedx_subsec,
+                        ImportUnits::mev);
+        this->add_table(process.DEDXunRestrictedTable(),
+                        ImportTableType::dedx_unrestricted,
+                        ImportUnits::mev);
 
-        std::string table_name = process_name + "_" + model_name;
+        this->add_table(process.IonisationTable(),
+                        ImportTableType::ionisation,
+                        ImportUnits::mev);
+        this->add_table(process.IonisationTableForSubsec(),
+                        ImportTableType::ionisation_subsec,
+                        ImportUnits::mev);
 
-        if (const G4PhysicsTable* table = eloss_process.DEDXTable())
-        {
-            this->fill_tables_tree(*table,
-                                   "DEDX",
-                                   table_name,
-                                   ImportPhysicsVector::DataType::energy_loss);
-        }
+        this->add_table(process.CSDARangeTable(),
+                        ImportTableType::csda_range,
+                        ImportUnits::cm);
+        this->add_table(process.SecondaryRangeTable(),
+                        ImportTableType::secondary_range,
+                        ImportUnits::cm);
+        this->add_table(process.RangeTableForLoss(),
+                        ImportTableType::range,
+                        ImportUnits::cm);
+        this->add_table(process.InverseRangeTable(),
+                        ImportTableType::inverse_range,
+                        ImportUnits::cm_inv);
 
-        if (const G4PhysicsTable* table = eloss_process.DEDXTableForSubsec())
-        {
-            this->fill_tables_tree(*table,
-                                   "SubDEDX",
-                                   table_name,
-                                   ImportPhysicsVector::DataType::energy_loss);
-        }
-
-        if (const G4PhysicsTable* table = eloss_process.DEDXunRestrictedTable())
-        {
-            this->fill_tables_tree(*table,
-                                   "DEDXnr",
-                                   table_name,
-                                   ImportPhysicsVector::DataType::energy_loss);
-        }
-
-        if (const G4PhysicsTable* table = eloss_process.IonisationTable())
-        {
-            this->fill_tables_tree(*table,
-                                   "Ionisation",
-                                   table_name,
-                                   ImportPhysicsVector::DataType::energy_loss);
-        }
-
-        if (const G4PhysicsTable* table
-            = eloss_process.IonisationTableForSubsec())
-        {
-            this->fill_tables_tree(*table,
-                                   "SubIonisation",
-                                   table_name,
-                                   ImportPhysicsVector::DataType::energy_loss);
-        }
-
-        if (const G4PhysicsTable* table = eloss_process.CSDARangeTable())
-        {
-            this->fill_tables_tree(*table,
-                                   "CSDARange",
-                                   table_name,
-                                   ImportPhysicsVector::DataType::energy_loss);
-        }
-
-        if (const G4PhysicsTable* table = eloss_process.SecondaryRangeTable())
-        {
-            this->fill_tables_tree(*table,
-                                   "RangeSec",
-                                   table_name,
-                                   ImportPhysicsVector::DataType::energy_loss);
-        }
-
-        if (G4PhysicsTable* table = eloss_process.RangeTableForLoss())
-        {
-            this->fill_tables_tree(*table,
-                                   "Range",
-                                   table_name,
-                                   ImportPhysicsVector::DataType::energy_loss);
-        }
-
-        if (const G4PhysicsTable* table = eloss_process.InverseRangeTable())
-        {
-            this->fill_tables_tree(*table,
-                                   "InverseRange",
-                                   table_name,
-                                   ImportPhysicsVector::DataType::energy_loss);
-        }
-
-        if (const G4PhysicsTable* table = eloss_process.LambdaTable())
-        {
-            this->fill_tables_tree(
-                *table, "Lambda", table_name, ImportPhysicsVector::DataType::xs);
-        }
-
-        if (const G4PhysicsTable* table = eloss_process.SubLambdaTable())
-        {
-            this->fill_tables_tree(*table,
-                                   "SubLambda",
-                                   table_name,
-                                   ImportPhysicsVector::DataType::xs);
-        }
+        this->add_table(process.LambdaTable(),
+                        ImportTableType::lambda,
+                        ImportUnits::cm_inv);
+        this->add_table(process.SubLambdaTable(),
+                        ImportTableType::sublambda,
+                        ImportUnits::cm_inv);
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Write multiple scattering tables to the TTree
+ * Write multiple scattering tables to the TTree.
  */
 void GeantPhysicsTableWriter::fill_multiple_scattering_tables(
-    const G4VMultipleScattering& msc_process)
+    const G4VMultipleScattering& process)
 {
-    const std::string& process_name = msc_process.GetProcessName();
-
     // TODO: Figure out a method to get the number of models. Max is 4.
     // Other classes have a NumberOfModels(), but not G4VMultipleScattering
     for (auto i : celeritas::range(4))
     {
-        if (G4VEmModel* model = msc_process.GetModelByIndex(i))
+        if (G4VEmModel* model = process.GetModelByIndex(i))
         {
-            if (const G4PhysicsTable* table = model->GetCrossSectionTable())
-            {
-                // Table type
-                const std::string& model_name = model->GetName();
-
-                // Write table_
-                table_.model = to_geant_model(model_name);
-
-                std::string table_name      = process_name + "_" + model_name;
-                std::string table_type_name = "LambdaMod"
-                                              + std::to_string(i + 1);
-                this->fill_tables_tree(
-                    *table,
-                    table_type_name,
-                    table_name,
-                    ImportPhysicsVector::DataType::energy_loss);
-            }
+            table_.model = to_import_model(model->GetName());
+            this->add_table(model->GetCrossSectionTable(),
+                            ImportTableType::lambda,
+                            ImportUnits::cm_inv);
         }
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Write a given G4PhysicsTable as a ImportPhysicsVector in this->table_
- */
-void GeantPhysicsTableWriter::fill_physics_vectors(
-    const G4PhysicsTable& table, ImportPhysicsVector::DataType xs_or_eloss)
-{
-    // Clean up so previous vector data is not carried forward
-    table_.physics_vectors.clear();
-
-    // Loop over G4PhysicsTable
-    for (const auto* phys_vector : table)
-    {
-        ImportPhysicsVector geant_physics_vector;
-
-        // Populate ImportPhysicsVector and push it back to this->table_
-        geant_physics_vector.vector_type
-            = to_geant_physics_vector_type(phys_vector->GetType());
-
-        geant_physics_vector.data_type = xs_or_eloss;
-
-        for (auto j : celeritas::range(phys_vector->GetVectorLength()))
-        {
-            // Code interface for changing G4PhysicsVector data units
-            real_type energy   = phys_vector->Energy(j) / MeV;
-            real_type xs_eloss = (*phys_vector)[j];
-
-            if (geant_physics_vector.data_type
-                == ImportPhysicsVector::DataType::energy_loss)
-            {
-                xs_eloss /= MeV;
-            }
-            else
-            {
-                xs_eloss /= (1 / cm);
-            }
-
-            geant_physics_vector.energy.push_back(energy);     // [MeV]
-            geant_physics_vector.xs_eloss.push_back(xs_eloss); // [1/cm or MeV]
-        }
-        table_.physics_vectors.push_back(geant_physics_vector);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * To be called after a G4PhysicsTable has been assigned.
+ * Write data from a geant4 physics table if available.
+ *
  * It finishes writing the remaining elements of this->table_ and fills the
  * "tables" TTree.
  */
-void GeantPhysicsTableWriter::fill_tables_tree(
-    const G4PhysicsTable&         table,
-    std::string                   table_type_name,
-    std::string                   table_name,
-    ImportPhysicsVector::DataType xs_or_eloss)
+void GeantPhysicsTableWriter::add_table(const G4PhysicsTable* g4table,
+                                        ImportTableType       table_type,
+                                        ImportUnits           units)
 {
-    // Convert table type
-    table_.table_type = to_geant_table_type(table_type_name);
+    if (!g4table)
+    {
+        // Table isn't present
+        return;
+    }
 
-    // Populate this->table_.physics_vectors and fill the TTree
-    fill_physics_vectors(table, xs_or_eloss);
+    table_.table_type = table_type;
+    table_.units      = units;
+
+    CELER_LOG(debug) << "Writing " << table_.particle.get() << ": "
+                     << to_cstring(table_.process_type) << '.'
+                     << to_cstring(table_.process) << '.'
+                     << to_cstring(table_.model) << ": "
+                     << to_cstring(table_.table_type);
+
+    // Convert units
+    constexpr real_type energy_scaling = 1.0 / MeV;
+    real_type           scaling;
+    switch (table_.units)
+    {
+        case ImportUnits::none:
+            scaling = 1;
+            break;
+        case ImportUnits::cm_inv:
+            scaling = cm;
+            break;
+        case ImportUnits::cm_mev_inv:
+            scaling = cm * MeV;
+            break;
+        case ImportUnits::mev:
+            scaling = 1 / MeV;
+            break;
+        case ImportUnits::cm:
+            scaling = 1 / cm;
+            break;
+    }
+
+    // Save physics vectors
+    table_.physics_vectors.clear();
+    for (const auto* g4vector : *g4table)
+    {
+        ImportPhysicsVector import_vec;
+
+        // Populate ImportPhysicsVector and push it back to this->table_
+        import_vec.vector_type
+            = to_import_physics_vector_type(g4vector->GetType());
+
+        for (auto j : celeritas::range(g4vector->GetVectorLength()))
+        {
+            import_vec.energy.push_back(g4vector->Energy(j) * energy_scaling);
+            import_vec.value.push_back((*g4vector)[j] * scaling);
+        }
+        table_.physics_vectors.push_back(std::move(import_vec));
+    }
+
     tree_tables_->Fill();
-
-    // Print message
-    table_name = table_type_name + "_" + table_name;
-    std::cout << "  Added " << table_name << std::endl;
 }
 
 //---------------------------------------------------------------------------//

@@ -20,6 +20,7 @@
 #include <G4Material.hh>
 #include <G4MaterialTable.hh>
 #include <G4SystemOfUnits.hh>
+#include <G4Transportation.hh>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -73,6 +74,7 @@ void store_particles(TFile* root_file, G4ParticleTable* particle_table)
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
     particle_iterator.reset();
 
+    int num_particles = 0;
     while (particle_iterator())
     {
         G4ParticleDefinition* g4_particle_def = particle_iterator.value();
@@ -96,11 +98,11 @@ void store_particles(TFile* root_file, G4ParticleTable* particle_table)
         }
 
         tree_particles.Fill();
-
-        cout << "  Added " << g4_particle_def->GetParticleName() << endl;
+        ++num_particles;
+        CELER_LOG(debug) << "Added " << g4_particle_def->GetParticleName();
     }
-    cout << endl;
 
+    CELER_LOG(info) << "Added " << num_particles << " particles";
     root_file->Write();
 }
 
@@ -115,10 +117,10 @@ void store_physics_tables(TFile* root_file, G4ParticleTable* particle_table)
     REQUIRE(root_file);
     REQUIRE(particle_table);
 
-    // Start table writer
-    GeantPhysicsTableWriter table_writer(root_file);
-
     CELER_LOG(status) << "Exporting physics tables";
+
+    // Start table writer
+    GeantPhysicsTableWriter add_physics_table(root_file);
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -133,22 +135,21 @@ void store_physics_tables(TFile* root_file, G4ParticleTable* particle_table)
         if (g4_particle_def.GetPDGEncoding() == 0)
             continue;
 
-        std::cout << "=============" << std::endl;
-        std::cout << g4_particle_def.GetParticleName() << std::endl;
-        std::cout << "=============" << std::endl;
-
         const G4ProcessVector& process_list
-            = *(g4_particle_def.GetProcessManager()->GetProcessList());
+            = *g4_particle_def.GetProcessManager()->GetProcessList();
 
         for (auto j : celeritas::range(process_list.size()))
         {
-            const G4VProcess& process = *(process_list)[j];
-            table_writer.add_physics_tables(process, g4_particle_def);
-        }
-    }
-    cout << endl;
+            // Skip transportation process
+            if (dynamic_cast<const G4Transportation*>(process_list[j]))
+                continue;
 
-    root_file->Write();
+            add_physics_table(g4_particle_def, *process_list[j]);
+        }
+
+        CELER_LOG(info) << "Added " << process_list.size() << " processes for "
+                        << g4_particle_def.GetParticleName();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -285,6 +286,8 @@ void store_geometry(TFile*                       root_file,
         // Add material to the global material map
         geometry.add_material(g4material_cuts->GetIndex(), material);
     }
+    CELER_LOG(info) << "Added " << g4production_cuts.GetTableSize()
+                    << " materials";
 
     // Recursive loop over all logical volumes, starting from the world_volume
     // Populate volume information and map volumes with materials
@@ -323,6 +326,8 @@ int main(int argc, char* argv[])
 
     //// Initialize Geant4 ////
 
+    CELER_LOG(status) << "Initializing Geant4";
+
     G4RunManager run_manager;
 
     //// Initialize the geometry ////
@@ -356,9 +361,9 @@ int main(int argc, char* argv[])
 
     //// Export data ////
 
-    // Create the ROOT output file
-    cout << "Creating " << root_output_filename << "..." << endl;
     TFile root_output(root_output_filename.c_str(), "recreate");
+    CELER_LOG(info) << "Created ROOT output file '" << root_output_filename
+                    << "'";
 
     // Store particle information
     store_particles(&root_output, G4ParticleTable::GetParticleTable());
@@ -371,9 +376,8 @@ int main(int argc, char* argv[])
                    *G4ProductionCutsTable::GetProductionCutsTable(),
                    *world_phys_volume);
 
+    CELER_LOG(status) << "Closing output file";
     root_output.Close();
-
-    cout << root_output_filename << " done!\n" << endl;
 
     return EXIT_SUCCESS;
 }

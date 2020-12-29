@@ -184,7 +184,6 @@ TEST_F(RootImporterTest, import_material_params)
     EXPECT_SOFT_EQ(2.2444324067595884e+24,
                    material.electron_density); // [1/cm^3]
     EXPECT_SOFT_EQ(8.6993504137968536e+22, material.number_density); // [1/cm^3]
-    EXPECT_SOFT_EQ(1.7402560896576189, material.rad_length);         // [cm]
     EXPECT_EQ(3, material.elements.size());
 
     // Elements of a material

@@ -23,9 +23,6 @@ class G4VMultipleScattering;
 class G4ParticleDefinition;
 class G4PhysicsTable;
 
-using celeritas::ImportPhysicsTable;
-using celeritas::ImportPhysicsVector;
-
 namespace geant_exporter
 {
 //---------------------------------------------------------------------------//
@@ -41,13 +38,14 @@ class GeantPhysicsTableWriter
   public:
     // Constructor adds a new "tables" TTree to the existing ROOT TFile
     GeantPhysicsTableWriter(TFile* root_file);
-    // Default destructor
-    ~GeantPhysicsTableWriter() = default;
+
+    // Write the tables on destruction
+    ~GeantPhysicsTableWriter();
 
     // Write the physics tables from a given particle and physics process
     // Expected to be called within a G4ParticleTable iterator loop
-    void add_physics_tables(const G4VProcess&           process,
-                            const G4ParticleDefinition& particle);
+    void operator()(const G4ParticleDefinition& particle,
+                    const G4VProcess&           process);
 
   private:
     // Loop over EM processes and write tables to the ROOT file
@@ -58,21 +56,17 @@ class GeantPhysicsTableWriter
     // file
     void
     fill_multiple_scattering_tables(const G4VMultipleScattering& msc_process);
-    // Write the physics vectors from a given G4PhysicsTable to this->table_
-    void fill_physics_vectors(const G4PhysicsTable&         table,
-                              ImportPhysicsVector::DataType xs_or_eloss);
     // Write the remaining elements of this->table_ and fill the tables TTree
-    void fill_tables_tree(const G4PhysicsTable&         table,
-                          std::string                   table_type_name,
-                          std::string                   table_name,
-                          ImportPhysicsVector::DataType xs_or_eloss);
+    void add_table(const G4PhysicsTable*      table,
+                   celeritas::ImportTableType table_type,
+                   celeritas::ImportUnits     units);
 
   private:
+    TFile* root_file_;
     // TTree created by the constructor
     std::unique_ptr<TTree> tree_tables_;
-    // Object written in the TTree. Each ImportPhysicsTable is a new TTree
-    // entry
-    ImportPhysicsTable table_;
+    // Temporary table for writing to the tree
+    celeritas::ImportPhysicsTable table_;
 };
 
 //---------------------------------------------------------------------------//
