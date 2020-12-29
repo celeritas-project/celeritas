@@ -22,11 +22,6 @@
 #include "GeantPhysicsTableWriterHelper.hh"
 #include "io/ImportPhysicsTable.hh"
 #include "io/ImportPhysicsVector.hh"
-#include "io/ImportTableType.hh"
-#include "io/ImportProcessType.hh"
-#include "io/ImportProcess.hh"
-#include "io/ImportPhysicsVectorType.hh"
-#include "io/ImportModel.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
 

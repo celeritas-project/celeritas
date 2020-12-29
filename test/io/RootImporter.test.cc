@@ -7,41 +7,14 @@
 //---------------------------------------------------------------------------//
 
 #include "io/RootImporter.hh"
-#include "io/ImportTableType.hh"
-#include "io/ImportProcessType.hh"
-#include "io/ImportProcess.hh"
-#include "io/ImportModel.hh"
+#include "io/ImportPhysicsTable.hh"
 #include "physics/base/ParticleMd.hh"
 #include "base/Types.hh"
 #include "base/Range.hh"
 
 #include "celeritas_test.hh"
 
-using celeritas::elem_id;
-using celeritas::ElementDefId;
-using celeritas::GdmlGeometryMap;
-using celeritas::ImportMaterial;
-using celeritas::ImportMaterialState;
-using celeritas::ImportModel;
-using celeritas::ImportParticle;
-using celeritas::ImportPhysicsTable;
-using celeritas::ImportPhysicsVectorType;
-using celeritas::ImportProcess;
-using celeritas::ImportProcessType;
-using celeritas::ImportTableType;
-using celeritas::ImportVolume;
-using celeritas::mat_id;
-using celeritas::MaterialDefId;
-using celeritas::MaterialParams;
-using celeritas::MaterialParamsPointers;
-using celeritas::MatterState;
-using celeritas::ParticleDef;
-using celeritas::ParticleDefId;
-using celeritas::ParticleParams;
-using celeritas::PDGNumber;
-using celeritas::real_type;
-using celeritas::RootImporter;
-using celeritas::vol_id;
+using namespace celeritas;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS

@@ -8,12 +8,26 @@
 #pragma once
 
 #include <vector>
-
-#include "ImportPhysicsVectorType.hh"
 #include "base/Types.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Geant4 equivalent enum for Physics vector types.
+ * [See Geant4's G4PhysicsVectorType.hh]
+ */
+enum class ImportPhysicsVectorType
+{
+    base,
+    linear,
+    log,
+    ln,
+    free,
+    ordered_free,
+    low_energy_free
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Store imported physics vector data [see Geant4's G4PhysicsVector.hh].
@@ -34,6 +48,13 @@ struct ImportPhysicsVector
     std::vector<real_type>  energy;   // [MeV] (Geant4's binVector)
     std::vector<real_type>  xs_eloss; // [1/cm or MeV] (Geant4's dataVector)
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+const char* to_cstring(ImportPhysicsVectorType value);
+const char* to_cstring(ImportPhysicsVector::DataType value);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
