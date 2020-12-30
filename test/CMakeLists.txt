@@ -142,7 +142,7 @@ celeritas_setup_tests(SERIAL PREFIX io)
 
 if(CELERITAS_USE_ROOT)
   celeritas_add_test(io/RootImporter.test.cc
-    LINK_LIBRARIES Celeritas::IO DISABLE)
+    LINK_LIBRARIES Celeritas::IO)
 endif()
 if(CELERITAS_USE_HepMC3)
   celeritas_add_test(io/EventReader.test.cc

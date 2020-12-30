@@ -37,16 +37,9 @@ enum class ImportPhysicsVectorType
  */
 struct ImportPhysicsVector
 {
-    enum class DataType
-    {
-        xs,
-        energy_loss
-    };
-
     ImportPhysicsVectorType vector_type;
-    DataType                data_type;
     std::vector<real_type>  energy;   // [MeV] (Geant4's binVector)
-    std::vector<real_type>  xs_eloss; // [1/cm or MeV] (Geant4's dataVector)
+    std::vector<real_type>  value;    // [1/cm or MeV] (Geant4's dataVector)
 };
 
 //---------------------------------------------------------------------------//
@@ -54,7 +47,6 @@ struct ImportPhysicsVector
 //---------------------------------------------------------------------------//
 
 const char* to_cstring(ImportPhysicsVectorType value);
-const char* to_cstring(ImportPhysicsVector::DataType value);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

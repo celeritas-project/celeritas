@@ -75,30 +75,30 @@ void print_physics_table(const ImportPhysicsTable& table)
     cout << "## Particle " << table.particle.get() << ": `"
          << to_cstring(table.process_type) << '.' << to_cstring(table.process)
          << '.' << to_cstring(table.model)
-         << "`: " << to_cstring(table.table_type) << "\n\n";
+         << "`: " << to_cstring(table.table_type) << " ("
+         << to_cstring(table.units) << ")\n\n";
 
     cout << "Has " << table.physics_vectors.size() << " vectors:\n"
          << R"gfm(
--------------------------------------------------------------------------------------------
-Type          | Data  | Size  | Emin         | Emax         | Vmin         | Vmax
--------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+Type          | Size  | Emin         | Emax         | Vmin         | Vmax
+-----------------------------------------------------------------------------------
 )gfm";
 
     for (const auto& physvec : table.physics_vectors)
     {
         // clang-format off
         cout << setw(13) << std::left << to_cstring(physvec.vector_type) << " | "
-             << setw(5) << to_cstring(physvec.data_type) << " | "
              << setw(5) << physvec.energy.size() << " | "
              << setw(12) << setprecision(3) << physvec.energy.front() << " | "
              << setw(12) << setprecision(3) << physvec.energy.back() << " | "
-             << setw(12) << setprecision(3) << physvec.xs_eloss.front() << " | "
-             << setw(12) << setprecision(3) << physvec.xs_eloss.back()
+             << setw(12) << setprecision(3) << physvec.value.front() << " | "
+             << setw(12) << setprecision(3) << physvec.value.back()
              << '\n';
         // clang-format on
     }
     cout << "-----------------------------------------------------------------"
-            "--------------------------\n\n";
+            "------------------\n\n";
 }
 
 //---------------------------------------------------------------------------//

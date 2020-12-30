@@ -33,7 +33,7 @@ enum class ImportProcessType
     user_defined,
     parallel,
     phonon,
-    ucn
+    ucn,
 };
 
 //---------------------------------------------------------------------------//
@@ -44,7 +44,7 @@ enum class ImportProcessType
  */
 enum class ImportProcess
 {
-    not_defined,
+    unknown,
     ion_ioni,
     msc,
     h_ioni,
@@ -61,7 +61,6 @@ enum class ImportProcess
     mu_ioni,
     mu_brems,
     mu_pair_prod,
-    transportation //!< Not a physics process
 };
 
 //---------------------------------------------------------------------------//
@@ -72,7 +71,7 @@ enum class ImportProcess
  */
 enum class ImportModel
 {
-    not_defined,
+    unknown,
     bragg_ion,
     bethe_bloch,
     urban_msc,
@@ -92,45 +91,59 @@ enum class ImportModel
     livermore_rayleigh,
     mu_bethe_bloch,
     mu_brem,
-    mu_pair_prod
+    mu_pair_prod,
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Property being described by the physics table.
  *
- * In Geant4 this is a string value.
+ * These are named based on accessors in
  */
 enum class ImportTableType
 {
-    not_defined,
     dedx,
+    dedx_subsec,
+    dedx_unrestricted,
     ionisation,
+    ionisation_subsec,
+    csda_range, //!< Continuous slowing down approximation
     range,
-    range_sec,
+    secondary_range,
     inverse_range,
-    lambda,
-    lambda_prim,
-    lambda_mod_1,
-    lambda_mod_2,
-    lambda_mod_3,
-    lambda_mod_4
+    lambda,      //!< Macroscopic cross section
+    sublambda,   //!< For subcutoff regions
+    lambda_prim, //!< Cross section scaled by energy
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Store physics tables.
+ * Units of a physics table.
+ */
+enum class ImportUnits
+{
+    none,       //!< Unitless
+    cm_inv,     //!< Macroscopic xs (1/cm)
+    cm_mev_inv, //!< Macroscopic xs divided by energy (1/cm-MeV)
+    mev,        //!< Energy loss (MeV)
+    cm,         //!< Range (cm)
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Imported physics table.
  *
  * The geant-exporter app stores Geant4 physics tables into a ROOT file, while
  * the RootImporter class is responsible for loading said data into memory.
  */
 struct ImportPhysicsTable
 {
+    PDGNumber                        particle;
     ImportProcessType                process_type;
-    ImportTableType                  table_type;
     ImportProcess                    process;
     ImportModel                      model;
-    PDGNumber                        particle;
+    ImportTableType                  table_type;
+    ImportUnits                      units;
     std::vector<ImportPhysicsVector> physics_vectors;
 };
 
@@ -142,6 +155,7 @@ const char* to_cstring(ImportProcessType value);
 const char* to_cstring(ImportProcess value);
 const char* to_cstring(ImportModel value);
 const char* to_cstring(ImportTableType value);
+const char* to_cstring(ImportUnits value);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

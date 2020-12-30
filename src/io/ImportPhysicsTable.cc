@@ -42,7 +42,7 @@ const char* to_cstring(ImportProcessType value)
  */
 const char* to_cstring(ImportProcess value)
 {
-    static const char* const strings[] = {"not_defined",
+    static const char* const strings[] = {"unknown",
                                           "ion_ioni",
                                           "msc",
                                           "h_ioni",
@@ -73,7 +73,7 @@ const char* to_cstring(ImportProcess value)
 const char* to_cstring(ImportModel value)
 {
     static const char* const strings[]
-        = {"not_defined",    "bragg_ion",         "bethe_bloch",
+        = {"unknown",        "bragg_ion",         "bethe_bloch",
            "urban_msc",      "icru_73_qo",        "wentzel_VI_uni",
            "h_brem",         "h_pair_prod",       "e_coulomb_scattering",
            "bragg",          "moller_bhabha",     "e_brem_sb",
@@ -91,18 +91,35 @@ const char* to_cstring(ImportModel value)
 const char* to_cstring(ImportTableType value)
 {
     static const char* const strings[] = {
-        "not_defined",
         "dedx",
+        "dedx_subsec",
+        "dedx_unrestricted",
         "ionisation",
+        "ionisation_subsec",
+        "csda_range",
         "range",
-        "range_sec",
+        "secondary_range",
         "inverse_range",
         "lambda",
+        "sublambda",
         "lambda_prim",
-        "lambda_mod_1",
-        "lambda_mod_2",
-        "lambda_mod_3",
-        "lambda_mod_4",
+    };
+    REQUIRE(static_cast<int>(value) * sizeof(const char*) < sizeof(strings));
+    return strings[static_cast<int>(value)];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the string value for units.
+ */
+const char* to_cstring(ImportUnits value)
+{
+    static const char* const strings[] = {
+        "unitless",
+        "1/cm",
+        "1/cm-MeV",
+        "MeV",
+        "cm",
     };
     REQUIRE(static_cast<int>(value) * sizeof(const char*) < sizeof(strings));
     return strings[static_cast<int>(value)];
