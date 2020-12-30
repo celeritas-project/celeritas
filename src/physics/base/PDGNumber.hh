@@ -3,32 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleMd.hh
+//! \file PDGNumber.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
 #include "base/OpaqueId.hh"
 
 namespace celeritas
 {
-//! Opaque type used for PDG particle definition codes
-using PDGNumber = OpaqueId<struct ParticleMd, int>;
-
 //---------------------------------------------------------------------------//
-/*!
- * Host-only metadata for a particle type.
- *
- * The PDG Monte Carlo number is a unique "standard model" identifier for a
- * particle. See "Monte Carlo Particle Numbering Scheme" in the "Review of
- * Particle Physics":
- * https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf
- */
-struct ParticleMd
-{
-    std::string name;     // Particle name
-    PDGNumber   pdg_code; // See "Review of Particle Physics"
-};
+
+//! Opaque type used for PDG particle definition codes (can be negative!)
+using PDGNumber = OpaqueId<struct PDG, int>;
 
 //---------------------------------------------------------------------------//
 /*!

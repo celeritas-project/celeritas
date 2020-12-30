@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "base/Range.hh"
 #include "comm/Communicator.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
@@ -28,9 +29,7 @@ using std::setw;
  */
 void print_particles(const ParticleParams& particles)
 {
-    const auto& all_md = particles.md();
-
-    CELER_LOG(info) << "Loaded " << all_md.size() << " particles";
+    CELER_LOG(info) << "Loaded " << particles.size() << " particles";
 
     cout << R"gfm(# Particles
 
@@ -39,14 +38,14 @@ Name              | PDG Code    | Mass [MeV] | Charge [e] | Decay [1/s]
 ----------------- | ----------- | ---------- | ---------- | -----------
 )gfm";
 
-    ParticleDefId::value_type def_id = 0;
-    for (const auto& md : all_md)
+    for (auto idx : range<ParticleDefId::value_type>(particles.size()))
     {
-        const ParticleDef& def = particles.get(ParticleDefId{def_id++});
+        ParticleDefId      def_id{idx};
+        const ParticleDef& def = particles.get(def_id);
 
         // clang-format off
-        cout << setw(17) << std::left << md.name << " | "
-             << setw(11) << md.pdg_code.get() << " | "
+        cout << setw(17) << std::left << particles.id_to_label(def_id) << " | "
+             << setw(11) << particles.id_to_pdg(def_id).get() << " | "
              << setw(10) << setprecision(6) << def.mass.value() << " | "
              << setw(10) << setprecision(3) << def.charge.value() << " | "
              << setw(11) << setprecision(3) << def.decay_constant

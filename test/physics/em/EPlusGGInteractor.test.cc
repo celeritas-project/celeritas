@@ -34,11 +34,17 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
         constexpr auto stable = ParticleDef::stable_decay_constant();
 
         Base::set_particle_params(
-            {{{"electron", pdg::electron()},
-              {MevMass{0.5109989461}, ElementaryCharge{-1}, stable}},
-             {{"positron", pdg::positron()},
-              {MevMass{0.5109989461}, ElementaryCharge{1}, stable}},
-             {{"gamma", pdg::gamma()}, {zero, zero, stable}}});
+            {{"electron",
+              pdg::electron(),
+              MevMass{0.5109989461},
+              ElementaryCharge{-1},
+              stable},
+             {"positron",
+              pdg::positron(),
+              MevMass{0.5109989461},
+              ElementaryCharge{1},
+              stable},
+             {"gamma", pdg::gamma(), zero, zero, stable}});
 
         const auto& params      = this->particle_params();
         pointers_.positron_id   = params.find(pdg::positron());

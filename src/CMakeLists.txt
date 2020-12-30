@@ -158,7 +158,7 @@ if(CELERITAS_USE_ROOT)
     io/ImportPhysicsTable.hh
     io/ImportPhysicsVector.hh
     io/ImportVolume.hh
-    physics/base/ParticleMd.hh
+    physics/base/PDGNumber.hh
     LINKDEF io/RootInterfaceLinkDef.h
   )
 

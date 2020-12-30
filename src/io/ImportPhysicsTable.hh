@@ -8,7 +8,7 @@
 #pragma once
 
 #include <vector>
-#include "physics/base/ParticleMd.hh"
+#include "physics/base/PDGNumber.hh"
 #include "ImportPhysicsVector.hh"
 
 namespace celeritas

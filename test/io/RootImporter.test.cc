@@ -8,7 +8,7 @@
 
 #include "io/RootImporter.hh"
 #include "io/ImportPhysicsTable.hh"
-#include "physics/base/ParticleMd.hh"
+#include "physics/base/PDGNumber.hh"
 #include "base/Types.hh"
 #include "base/Range.hh"
 
@@ -39,25 +39,29 @@ class RootImporterTest : public celeritas::Test
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, import_particles)
 {
-    RootImporter import(root_filename_.c_str());
-    auto         data = import();
+    RootImporter import_from_root(root_filename_.c_str());
+    auto         data = import_from_root();
 
-    EXPECT_EQ(19, data.particle_params->size());
+    const auto& particles = *data.particle_params;
 
-    EXPECT_GE(data.particle_params->find(PDGNumber(11)).get(), 0);
+    EXPECT_EQ(19, particles.size());
+
+    // Check electron data
     ParticleDefId electron_id = data.particle_params->find(PDGNumber(11));
-    ParticleDef   electron    = data.particle_params->get(electron_id);
-
+    ASSERT_GE(electron_id.get(), 0);
+    ParticleDef electron = data.particle_params->get(electron_id);
     EXPECT_SOFT_EQ(0.510998910, electron.mass.value());
     EXPECT_EQ(-1, electron.charge.value());
     EXPECT_EQ(0, electron.decay_constant);
 
+    // Check all names/PDG codes
     std::vector<std::string> loaded_names;
     std::vector<int>         loaded_pdgs;
-    for (const auto& md : data.particle_params->md())
+    for (auto idx : range<ParticleDefId::value_type>(particles.size()))
     {
-        loaded_names.push_back(md.name);
-        loaded_pdgs.push_back(md.pdg_code.get());
+        ParticleDefId def_id{idx};
+        loaded_names.push_back(particles.id_to_label(def_id));
+        loaded_pdgs.push_back(particles.id_to_pdg(def_id).get());
     }
 
     // clang-format off

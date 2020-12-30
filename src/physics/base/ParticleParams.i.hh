@@ -12,6 +12,26 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Get particle name.
+ */
+const std::string& ParticleParams::id_to_label(ParticleDefId id) const
+{
+    REQUIRE(id < this->size());
+    return md_[id.get()].first;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get PDG code for a particle ID.
+ */
+PDGNumber ParticleParams::id_to_pdg(ParticleDefId id) const
+{
+    REQUIRE(id < this->size());
+    return md_[id.get()].second;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Find the ID from a name.
  */
 ParticleDefId ParticleParams::find(const std::string& name) const

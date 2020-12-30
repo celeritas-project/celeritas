@@ -70,7 +70,7 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
         root_input_->Get<TTree>("particles"));
     CHECK(tree_particles);
 
-    ParticleParams::VecAnnotatedDefs defs(tree_particles->GetEntries());
+    ParticleParams::Input defs(tree_particles->GetEntries());
     CHECK(!defs.empty());
 
     // Load the particle data
@@ -85,20 +85,16 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
         CHECK(!particle.name.empty());
 
         // Convert metadata
-        ParticleMd particle_md;
-        particle_md.name     = particle.name;
-        particle_md.pdg_code = PDGNumber{particle.pdg};
-        CHECK(particle_md.pdg_code);
-        defs[i].first = std::move(particle_md);
+        defs[i].name     = particle.name;
+        defs[i].pdg_code = PDGNumber{particle.pdg};
+        CHECK(defs[i].pdg_code);
 
         // Convert data
-        ParticleDef particle_def;
-        particle_def.mass   = units::MevMass{particle.mass};
-        particle_def.charge = units::ElementaryCharge{particle.charge};
-        particle_def.decay_constant
-            = (particle.is_stable ? ParticleDef::stable_decay_constant()
-                                  : 1. / particle.lifetime);
-        defs[i].second = std::move(particle_def);
+        defs[i].mass           = units::MevMass{particle.mass};
+        defs[i].charge         = units::ElementaryCharge{particle.charge};
+        defs[i].decay_constant = (particle.is_stable
+                                      ? ParticleDef::stable_decay_constant()
+                                      : 1. / particle.lifetime);
     }
 
     // Sort by increasing mass, then by PDG code. Placing lighter particles
@@ -107,8 +103,8 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
     // easier to human-read the particles while debugging, and having them
     // at adjacent memory locations could improve cacheing.
     std::sort(defs.begin(), defs.end(), [](const auto& lhs, const auto& rhs) {
-        return std::make_tuple(lhs.second.mass, lhs.first.pdg_code)
-               < std::make_tuple(rhs.second.mass, rhs.first.pdg_code);
+        return std::make_tuple(lhs.mass, lhs.pdg_code)
+               < std::make_tuple(rhs.mass, rhs.pdg_code);
     });
 
     // Construct ParticleParams from the definitions

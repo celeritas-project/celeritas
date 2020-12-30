@@ -65,17 +65,15 @@ class TrackInitTest : public celeritas::Test
                             MatterState::gas,
                             {{ElementDefId{0}, 1.0}},
                             "H2"}}};
-        std::shared_ptr<MaterialParams> material_params
+        auto material_params
             = std::make_shared<MaterialParams>(std::move(mats));
 
-        // Set up shared standard model particle data
-        ParticleParams::VecAnnotatedDefs defs
-            = {{{"gamma", pdg::gamma()},
-                {zero_quantity(),
-                 zero_quantity(),
-                 ParticleDef::stable_decay_constant()}}};
-        std::shared_ptr<ParticleParams> particle_params
-            = std::make_shared<ParticleParams>(std::move(defs));
+        auto particle_params = std::make_shared<ParticleParams>(
+            ParticleParams::Input{{"gamma",
+                                   pdg::gamma(),
+                                   zero_quantity(),
+                                   zero_quantity(),
+                                   ParticleDef::stable_decay_constant()}});
 
         // Set the shared problem data
         params = ParamStore(geo_params, material_params, particle_params);

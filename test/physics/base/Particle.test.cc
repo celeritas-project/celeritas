@@ -49,12 +49,18 @@ class ParticleTrackViewTest : public celeritas::Test
         constexpr auto stable = ParticleDef::stable_decay_constant();
 
         // Create particle defs, initialize on device
-        ParticleParams::VecAnnotatedDefs defs;
-        defs.push_back({{"electron", pdg::electron()},
-                        {MevMass{0.5109989461}, ElementaryCharge{-1}, stable}});
-        defs.push_back({{"gamma", pdg::gamma()}, {zero, zero, stable}});
-        defs.push_back({{"neutron", PDGNumber{2112}},
-                        {MevMass{939.565413}, zero, 1.0 / (879.4 * second)}});
+        ParticleParams::Input defs;
+        defs.push_back({"electron",
+                        pdg::electron(),
+                        MevMass{0.5109989461},
+                        ElementaryCharge{-1},
+                        stable});
+        defs.push_back({"gamma", pdg::gamma(), zero, zero, stable});
+        defs.push_back({"neutron",
+                        PDGNumber{2112},
+                        MevMass{939.565413},
+                        zero,
+                        1.0 / (879.4 * second)});
 
         particle_params = std::make_shared<ParticleParams>(std::move(defs));
     }
@@ -75,9 +81,8 @@ TEST_F(ParticleTrackViewTest, params_accessors)
     EXPECT_EQ(ParticleDefId(1), defs.find("gamma"));
     EXPECT_EQ(ParticleDefId(2), defs.find("neutron"));
 
-    ASSERT_EQ(3, defs.md().size());
-    EXPECT_EQ("electron", defs.md()[0].name);
-    EXPECT_EQ(PDGNumber(11), defs.md()[0].pdg_code);
+    EXPECT_EQ("electron", defs.id_to_label(ParticleDefId(0)));
+    EXPECT_EQ(PDGNumber(11), defs.id_to_pdg(ParticleDefId(0)));
 }
 
 //---------------------------------------------------------------------------//

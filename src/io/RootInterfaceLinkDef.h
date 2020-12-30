@@ -16,7 +16,6 @@
 #pragma link C++ class celeritas::ImportMaterial+;
 #pragma link C++ class celeritas::ImportElement+;
 #pragma link C++ class celeritas::ImportVolume+;
-#pragma link C++ class celeritas::ParticleMd+;
 #pragma link C++ class celeritas::PDGNumber+;
 
 // clang-format on
