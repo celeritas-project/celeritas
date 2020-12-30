@@ -26,10 +26,6 @@
 #include <TTree.h>
 #include <TBranch.h>
 
-#include "ActionInitialization.hh"
-#include "DetectorConstruction.hh"
-#include "PhysicsList.hh"
-#include "GeantPhysicsTableWriter.hh"
 #include "comm/Communicator.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
@@ -37,6 +33,13 @@
 #include "io/ImportPhysicsTable.hh"
 #include "io/GdmlGeometryMap.hh"
 #include "base/Range.hh"
+
+#include "ActionInitialization.hh"
+#include "DetectorConstruction.hh"
+#include "PhysicsList.hh"
+#include "GeantPhysicsTableWriter.hh"
+#include "GeantLoggerAdapter.hh"
+#include "GeantExceptionHandler.hh"
 
 using namespace geant_exporter;
 using celeritas::elem_id;
@@ -328,7 +331,12 @@ int main(int argc, char* argv[])
 
     CELER_LOG(status) << "Initializing Geant4";
 
+    // Constructing the run manager resets the global log/exception handlers,
+    // so it must be done first. The stupid version banner cannot be
+    // suppressed.
     G4RunManager run_manager;
+    GeantLoggerAdapter    scoped_logger;
+    GeantExceptionHandler scoped_exception_handler;
 
     //// Initialize the geometry ////
 
