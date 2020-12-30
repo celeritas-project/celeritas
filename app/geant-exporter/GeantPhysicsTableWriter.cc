@@ -374,8 +374,8 @@ void GeantPhysicsTableWriter::add_table(const G4PhysicsTable* g4table,
                      << to_cstring(table_.table_type);
 
     // Convert units
-    constexpr real_type energy_scaling = 1.0 / MeV;
-    real_type           scaling;
+    constexpr real_type energy_scaling = 1 / MeV;
+    real_type           scaling        = 0;
     switch (table_.units)
     {
         case ImportUnits::none:
