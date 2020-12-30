@@ -65,13 +65,13 @@ TEST_F(RootImporterTest, import_particles)
     }
 
     // clang-format off
-    const std::string expected_loaded_names[] = {"gamma", "e+", "e-", "mu+",
-        "mu-", "pi-", "pi+", "kaon-", "kaon+", "anti_proton", "proton",
-        "anti_deuteron", "deuteron", "anti_He3", "He3", "anti_triton",
-        "triton", "anti_alpha", "alpha"};
-    const int expected_loaded_pdgs[] = {22, -11, 11, -13, 13, -211, 211, -321,
-        321, -2212, 2212, -1000010020, 1000010020, -1000020030, 1000020030,
-        -1000010030, 1000010030, -1000020040, 1000020040};
+    const std::string expected_loaded_names[] = {"gamma", "e-", "e+", "mu-",
+        "mu+", "pi+", "pi-", "kaon+", "kaon-", "proton", "anti_proton",
+        "deuteron", "anti_deuteron", "He3", "anti_He3", "triton",
+        "anti_triton", "alpha", "anti_alpha"};
+    const int expected_loaded_pdgs[] = {22, 11, -11, 13, -13, 211, -211, 321,
+        -321, 2212, -2212, 1000010020, -1000010020, 1000020030, -1000020030,
+        1000010030, -1000010030, 1000020040, -1000020040};
     // clang-format on
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
@@ -79,36 +79,83 @@ TEST_F(RootImporterTest, import_particles)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(RootImporterTest, import_tables)
+TEST_F(RootImporterTest, import_processes)
 {
-    RootImporter import(root_filename_.c_str());
-    auto         data = import();
+    RootImporter import_from_root(root_filename_.c_str());
+    auto         processes = import_from_root().processes;
 
-    EXPECT_GE(data.physics_tables->size(), 0);
+    auto iter = std::find_if(
+        processes.begin(), processes.end(), [](const ImportProcess& proc) {
+            return PDGNumber{proc.particle_pdg} == celeritas::pdg::electron()
+                   && proc.process_class == ImportProcessClass::e_ioni;
+        });
+    ASSERT_NE(processes.end(), iter);
 
-    // Test table search
-    bool lambda_kn_gamma_table = false;
-    for (auto table : *data.physics_tables)
+    EXPECT_EQ(ImportProcessType::electromagnetic, iter->process_type);
+    ASSERT_EQ(1, iter->models.size());
+    EXPECT_EQ(ImportModelClass::moller_bhabha, iter->models.front());
+
+    const auto& tables = iter->tables;
+    ASSERT_EQ(3, tables.size());
     {
-        EXPECT_GE(table.physics_vectors.size(), 0);
+        // Test energy loss table
+        const ImportPhysicsTable& dedx = tables[0];
+        ASSERT_EQ(ImportTableType::dedx, dedx.table_type);
+        EXPECT_EQ(ImportUnits::mev, dedx.x_units);
+        EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
+        ASSERT_EQ(2, dedx.physics_vectors.size());
 
-        if (table.particle == PDGNumber{celeritas::pdg::gamma()}
-            && table.table_type == ImportTableType::lambda
-            && table.process == ImportProcess::compton
-            && table.model == ImportModel::klein_nishina)
-        {
-            lambda_kn_gamma_table = true;
-            break;
-        }
+        const ImportPhysicsVector& steel = dedx.physics_vectors.back();
+        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
+        ASSERT_EQ(steel.x.size(), steel.y.size());
+        ASSERT_EQ(85, steel.x.size());
+        EXPECT_SOFT_EQ(1e-4, steel.x.front());
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_EQ(839.66834289225289, steel.y.front());
+        EXPECT_SOFT_EQ(11.207441942857839, steel.y.back());
     }
-    EXPECT_TRUE(lambda_kn_gamma_table);
+    {
+        // Test range table
+        const ImportPhysicsTable& range = tables[1];
+        ASSERT_EQ(ImportTableType::range, range.table_type);
+        EXPECT_EQ(ImportUnits::mev, range.x_units);
+        EXPECT_EQ(ImportUnits::cm, range.y_units);
+        ASSERT_EQ(2, range.physics_vectors.size());
+
+        const ImportPhysicsVector& steel = range.physics_vectors.back();
+        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
+        ASSERT_EQ(steel.x.size(), steel.y.size());
+        ASSERT_EQ(85, steel.x.size());
+        EXPECT_SOFT_EQ(1e-4, steel.x.front());
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_EQ(2.3818928234342666e-07, steel.y.front());
+        EXPECT_SOFT_EQ(8922642.803467935, steel.y.back());
+    }
+    {
+        // Test cross section table
+        const ImportPhysicsTable& xs = tables[2];
+        ASSERT_EQ(ImportTableType::lambda, xs.table_type);
+        EXPECT_EQ(ImportUnits::mev, xs.x_units);
+        EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
+        ASSERT_EQ(2, xs.physics_vectors.size());
+
+        const ImportPhysicsVector& steel = xs.physics_vectors.back();
+        EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
+        ASSERT_EQ(steel.x.size(), steel.y.size());
+        ASSERT_EQ(55, steel.x.size());
+        EXPECT_SOFT_EQ(1.9413894232088691, steel.x.front());
+        EXPECT_SOFT_EQ(1e8, steel.x.back());
+        EXPECT_SOFT_EQ(0, steel.y.front());
+        EXPECT_SOFT_EQ(0.24960554022818102, steel.y[1]);
+        EXPECT_SOFT_EQ(0.58950470972977953, steel.y.back());
+    }
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, import_geometry)
 {
-    RootImporter import(root_filename_.c_str());
-    auto         data = import();
+    RootImporter import_from_root(root_filename_.c_str());
+    auto         data = import_from_root();
 
     auto map = data.geometry->volid_to_matid_map();
     EXPECT_EQ(map.size(), 5);
@@ -161,8 +208,8 @@ TEST_F(RootImporterTest, import_geometry)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, import_material_params)
 {
-    RootImporter import(root_filename_.c_str());
-    auto         data = import();
+    RootImporter import_from_root(root_filename_.c_str());
+    auto         data = import_from_root();
 
     // Material labels
     std::string material_label;

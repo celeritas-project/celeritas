@@ -24,29 +24,32 @@
 #include <G4ProcessType.hh>
 #include <G4Material.hh>
 
+#include "io/ImportProcess.hh"
 #include "io/ImportPhysicsTable.hh"
 #include "io/ImportPhysicsVector.hh"
 #include "base/Assert.hh"
 #include "base/Range.hh"
+#include "base/TypeDemangler.hh"
 #include "base/Types.hh"
 #include "comm/Logger.hh"
 
-using celeritas::ImportModel;
+using celeritas::ImportModelClass;
+using celeritas::ImportPhysicsTable;
 using celeritas::ImportPhysicsVector;
 using celeritas::ImportPhysicsVectorType;
-using celeritas::ImportProcess;
+using celeritas::ImportProcessClass;
 using celeritas::ImportProcessType;
 using celeritas::ImportTableType;
 using celeritas::ImportUnits;
 using celeritas::PDGNumber;
 using celeritas::real_type;
 
+using ProcessTypeDemangler = celeritas::TypeDemangler<G4VProcess>;
+
 namespace geant_exporter
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-// ANONYMOUS HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
  * Safely switch from G4PhysicsVectorType to ImportPhysicsVectorType.
@@ -90,34 +93,35 @@ ImportProcessType to_import_process_type(G4ProcessType g4_process_type)
 /*!
  * Safely retrieve the correct process enum from a given string.
  */
-ImportProcess to_import_process(const std::string& g4_process_name)
+ImportProcessClass to_import_process_class(const G4VProcess& process)
 {
-    static const std::unordered_map<std::string, ImportProcess> process_map = {
-        // clang-format off
-        {"ionIoni",        ImportProcess::ion_ioni},
-        {"msc",            ImportProcess::msc},
-        {"hIoni",          ImportProcess::h_ioni},
-        {"hBrems",         ImportProcess::h_brems},
-        {"hPairProd",      ImportProcess::h_pair_prod},
-        {"CoulombScat",    ImportProcess::coulomb_scat},
-        {"eIoni",          ImportProcess::e_ioni},
-        {"eBrem",          ImportProcess::e_brem},
-        {"phot",           ImportProcess::photoelectric},
-        {"compt",          ImportProcess::compton},
-        {"conv",           ImportProcess::conversion},
-        {"Rayl",           ImportProcess::rayleigh},
-        {"annihil",        ImportProcess::annihilation},
-        {"muIoni",         ImportProcess::mu_ioni},
-        {"muBrems",        ImportProcess::mu_brems},
-        {"muPairProd",     ImportProcess::mu_pair_prod},
-        // clang-format on
-    };
-    auto iter = process_map.find(g4_process_name);
+    static const std::unordered_map<std::string, ImportProcessClass> process_map
+        = {
+            // clang-format off
+        {"ionIoni",        ImportProcessClass::ion_ioni},
+        {"msc",            ImportProcessClass::msc},
+        {"hIoni",          ImportProcessClass::h_ioni},
+        {"hBrems",         ImportProcessClass::h_brems},
+        {"hPairProd",      ImportProcessClass::h_pair_prod},
+        {"CoulombScat",    ImportProcessClass::coulomb_scat},
+        {"eIoni",          ImportProcessClass::e_ioni},
+        {"eBrem",          ImportProcessClass::e_brem},
+        {"phot",           ImportProcessClass::photoelectric},
+        {"compt",          ImportProcessClass::compton},
+        {"conv",           ImportProcessClass::conversion},
+        {"Rayl",           ImportProcessClass::rayleigh},
+        {"annihil",        ImportProcessClass::annihilation},
+        {"muIoni",         ImportProcessClass::mu_ioni},
+        {"muBrems",        ImportProcessClass::mu_brems},
+        {"muPairProd",     ImportProcessClass::mu_pair_prod},
+            // clang-format on
+        };
+    auto iter = process_map.find(process.GetProcessName());
     if (iter == process_map.end())
     {
         CELER_LOG(warning) << "Encountered unknown process '"
-                           << g4_process_name << "'";
-        return ImportProcess::unknown;
+                           << process.GetProcessName() << "'";
+        return ImportProcessClass::unknown;
     }
     return iter->second;
 }
@@ -126,30 +130,30 @@ ImportProcess to_import_process(const std::string& g4_process_name)
 /*!
  * Safely retrieve the correct model enum from a given string.
  */
-ImportModel to_import_model(const std::string& g4_model_name)
+ImportModelClass to_import_model(const std::string& g4_model_name)
 {
-    static const std::unordered_map<std::string, ImportModel> model_map = {
+    static const std::unordered_map<std::string, ImportModelClass> model_map = {
         // clang-format off
-        {"BraggIon",            ImportModel::bragg_ion},
-        {"BetheBloch",          ImportModel::bethe_bloch},
-        {"UrbanMsc",            ImportModel::urban_msc},
-        {"ICRU73QO",            ImportModel::icru_73_qo},
-        {"WentzelVIUni",        ImportModel::wentzel_VI_uni},
-        {"hBrem",               ImportModel::h_brem},
-        {"hPairProd",           ImportModel::h_pair_prod},
-        {"eCoulombScattering",  ImportModel::e_coulomb_scattering},
-        {"Bragg",               ImportModel::bragg},
-        {"MollerBhabha",        ImportModel::moller_bhabha},
-        {"eBremSB",             ImportModel::e_brem_sb},
-        {"eBremLPM",            ImportModel::e_brem_lpm},
-        {"eplus2gg",            ImportModel::e_plus_to_gg},
-        {"LivermorePhElectric", ImportModel::livermore_photoelectric},
-        {"Klein-Nishina",       ImportModel::klein_nishina},
-        {"BetheHeitlerLPM",     ImportModel::bethe_heitler_lpm},
-        {"LivermoreRayleigh",   ImportModel::livermore_rayleigh},
-        {"MuBetheBloch",        ImportModel::mu_bethe_bloch},
-        {"MuBrem",              ImportModel::mu_brem},
-        {"muPairProd",          ImportModel::mu_pair_prod},
+        {"BraggIon",            ImportModelClass::bragg_ion},
+        {"BetheBloch",          ImportModelClass::bethe_bloch},
+        {"UrbanMsc",            ImportModelClass::urban_msc},
+        {"ICRU73QO",            ImportModelClass::icru_73_qo},
+        {"WentzelVIUni",        ImportModelClass::wentzel_VI_uni},
+        {"hBrem",               ImportModelClass::h_brem},
+        {"hPairProd",           ImportModelClass::h_pair_prod},
+        {"eCoulombScattering",  ImportModelClass::e_coulomb_scattering},
+        {"Bragg",               ImportModelClass::bragg},
+        {"MollerBhabha",        ImportModelClass::moller_bhabha},
+        {"eBremSB",             ImportModelClass::e_brem_sb},
+        {"eBremLPM",            ImportModelClass::e_brem_lpm},
+        {"eplus2gg",            ImportModelClass::e_plus_to_gg},
+        {"LivermorePhElectric", ImportModelClass::livermore_photoelectric},
+        {"Klein-Nishina",       ImportModelClass::klein_nishina},
+        {"BetheHeitlerLPM",     ImportModelClass::bethe_heitler_lpm},
+        {"LivermoreRayleigh",   ImportModelClass::livermore_rayleigh},
+        {"MuBetheBloch",        ImportModelClass::mu_bethe_bloch},
+        {"MuBrem",              ImportModelClass::mu_brem},
+        {"muPairProd",          ImportModelClass::mu_pair_prod},
         // clang-format on
     };
     auto iter = model_map.find(g4_model_name);
@@ -157,7 +161,7 @@ ImportModel to_import_model(const std::string& g4_model_name)
     {
         CELER_LOG(warning) << "Encountered unknown model '" << g4_model_name
                            << "'";
-        return ImportModel::unknown;
+        return ImportModelClass::unknown;
     }
     return iter->second;
 }
@@ -172,20 +176,41 @@ to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
 {
     switch (g4_vector_type)
     {
-        case G4PhysicsVectorType::T_G4PhysicsVector:
-            return ImportPhysicsVectorType::base;
-        case G4PhysicsVectorType::T_G4PhysicsLinearVector:
+        case T_G4PhysicsVector:
+            return ImportPhysicsVectorType::unknown;
+        case T_G4PhysicsLinearVector:
             return ImportPhysicsVectorType::linear;
-        case G4PhysicsVectorType::T_G4PhysicsLogVector:
+        case T_G4PhysicsLogVector:
+        case T_G4PhysicsLnVector:
             return ImportPhysicsVectorType::log;
-        case G4PhysicsVectorType::T_G4PhysicsLnVector:
-            return ImportPhysicsVectorType::ln;
-        case G4PhysicsVectorType::T_G4PhysicsFreeVector:
+        case T_G4PhysicsFreeVector:
+        case T_G4PhysicsOrderedFreeVector:
+        case T_G4LPhysicsFreeVector:
             return ImportPhysicsVectorType::free;
-        case G4PhysicsVectorType::T_G4PhysicsOrderedFreeVector:
-            return ImportPhysicsVectorType::ordered_free;
-        case G4PhysicsVectorType::T_G4LPhysicsFreeVector:
-            return ImportPhysicsVectorType::low_energy_free;
+    }
+    CHECK_UNREACHABLE;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a multiplicative geant-natural-units constant to convert the units.
+ */
+real_type units_to_scaling(ImportUnits units)
+{
+    switch (units)
+    {
+        case ImportUnits::none:
+            return 1;
+        case ImportUnits::cm_inv:
+            return cm;
+        case ImportUnits::cm_mev_inv:
+            return cm * MeV;
+        case ImportUnits::mev:
+            return 1 / MeV;
+        case ImportUnits::mev_per_cm:
+            return cm / MeV;
+        case ImportUnits::cm:
+            return 1 / cm;
     }
     CHECK_UNREACHABLE;
 }
@@ -196,12 +221,13 @@ to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
 /*!
  * Construct with existing TFile reference
  */
-GeantPhysicsTableWriter::GeantPhysicsTableWriter(TFile* root_file)
-    : root_file_(root_file)
+GeantPhysicsTableWriter::GeantPhysicsTableWriter(TFile*         root_file,
+                                                 TableSelection which_tables)
+    : root_file_(root_file), which_tables_(which_tables)
 {
     REQUIRE(root_file);
-    this->tree_tables_ = std::make_unique<TTree>("tables", "tables");
-    tree_tables_->Branch("ImportPhysicsTable", &(table_));
+    this->tree_process_ = std::make_unique<TTree>("processes", "processes");
+    tree_process_->Branch("ImportProcess", &process_);
 }
 
 //---------------------------------------------------------------------------//
@@ -227,12 +253,28 @@ GeantPhysicsTableWriter::~GeantPhysicsTableWriter()
 void GeantPhysicsTableWriter::operator()(const G4ParticleDefinition& particle,
                                          const G4VProcess&           process)
 {
-    const std::string& process_name = process.GetProcessName();
+    // Check for duplicate processes
+    auto iter_ok = written_processes_.insert({&process, {&particle}});
+    if (!iter_ok.second)
+    {
+        const PrevProcess& prev = iter_ok.first->second;
+        CELER_LOG(warning) << "Skipping process '" << process.GetProcessName()
+                           << "' (" << ProcessTypeDemangler()(process)
+                           << ") for particle " << particle.GetParticleName()
+                           << ": duplicate of particle "
+                           << prev.particle->GetParticleName();
+        return;
+    }
+    CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
+                     << "' for particle " << particle.GetParticleName() << " ("
+                     << particle.GetPDGEncoding() << ')';
 
     // Save process and particle info
-    table_.process_type = to_import_process_type(process.GetProcessType());
-    table_.process      = to_import_process(process_name);
-    table_.particle     = PDGNumber(particle.GetPDGEncoding());
+    process_.process_type  = to_import_process_type(process.GetProcessType());
+    process_.process_class = to_import_process_class(process);
+    process_.particle_pdg  = particle.GetPDGEncoding();
+    process_.models.clear();
+    process_.tables.clear();
 
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
     {
@@ -253,8 +295,12 @@ void GeantPhysicsTableWriter::operator()(const G4ParticleDefinition& particle,
     }
     else
     {
-        CELER_LOG(warning) << "Cannot export process '" << process_name << "'";
+        CELER_LOG(error) << "Cannot export unknown process '"
+                         << process.GetProcessName() << "' ("
+                         << ProcessTypeDemangler()(process) << ")";
     }
+
+    tree_process_->Fill();
 }
 
 //---------------------------------------------------------------------------//
@@ -265,16 +311,13 @@ void GeantPhysicsTableWriter::fill_em_tables(const G4VEmProcess& process)
 {
     for (auto i : celeritas::range(process.GetNumberOfModels()))
     {
-        table_.model = to_import_model(process.GetModelByIndex(i)->GetName());
-
-        // Save potential tables
-        this->add_table(process.LambdaTable(),
-                        ImportTableType::lambda,
-                        ImportUnits::cm_inv);
-        this->add_table(process.LambdaTablePrim(),
-                        ImportTableType::lambda_prim,
-                        ImportUnits::cm_mev_inv);
+        process_.models.push_back(
+            to_import_model(process.GetModelByIndex(i)->GetName()));
     }
+
+    // Save potential tables
+    this->add_table(process.LambdaTable(), ImportTableType::lambda);
+    this->add_table(process.LambdaTablePrim(), ImportTableType::lambda_prim);
 }
 
 //---------------------------------------------------------------------------//
@@ -286,49 +329,41 @@ void GeantPhysicsTableWriter::fill_energy_loss_tables(
 {
     for (auto i : celeritas::range(process.NumberOfModels()))
     {
-        table_.model = to_import_model(process.GetModelByIndex(i)->GetName());
+        process_.models.push_back(
+            to_import_model(process.GetModelByIndex(i)->GetName()));
+    }
 
-        this->add_table(
-            process.DEDXTable(), ImportTableType::dedx, ImportUnits::mev);
-        this->add_table(process.DEDXTableForSubsec(),
-                        ImportTableType::dedx_subsec,
-                        ImportUnits::mev);
-        this->add_table(process.DEDXunRestrictedTable(),
-                        ImportTableType::dedx_unrestricted,
-                        ImportUnits::mev);
+    this->add_table(process.DEDXTable(), ImportTableType::dedx);
+    this->add_table(process.RangeTableForLoss(), ImportTableType::range);
+    this->add_table(process.LambdaTable(), ImportTableType::lambda);
 
-        this->add_table(process.IonisationTable(),
-                        ImportTableType::ionisation,
-                        ImportUnits::mev);
-        this->add_table(process.IonisationTableForSubsec(),
-                        ImportTableType::ionisation_subsec,
-                        ImportUnits::mev);
-
-        this->add_table(process.CSDARangeTable(),
-                        ImportTableType::csda_range,
-                        ImportUnits::cm);
-        this->add_table(process.SecondaryRangeTable(),
-                        ImportTableType::secondary_range,
-                        ImportUnits::cm);
-        this->add_table(process.RangeTableForLoss(),
-                        ImportTableType::range,
-                        ImportUnits::cm);
+    if (which_tables_ > TableSelection::minimal)
+    {
+        // Inverse range is redundant with range
         this->add_table(process.InverseRangeTable(),
-                        ImportTableType::inverse_range,
-                        ImportUnits::cm_inv);
+                        ImportTableType::inverse_range);
 
-        this->add_table(process.LambdaTable(),
-                        ImportTableType::lambda,
-                        ImportUnits::cm_inv);
-        this->add_table(process.SubLambdaTable(),
-                        ImportTableType::sublambda,
-                        ImportUnits::cm_inv);
+        // None of these tables appear to be used in geant4.
+        this->add_table(process.DEDXTableForSubsec(),
+                        ImportTableType::dedx_subsec);
+        this->add_table(process.DEDXunRestrictedTable(),
+                        ImportTableType::dedx_unrestricted);
+        this->add_table(process.IonisationTable(), ImportTableType::ionisation);
+        this->add_table(process.IonisationTableForSubsec(),
+                        ImportTableType::ionisation_subsec);
+        this->add_table(process.CSDARangeTable(), ImportTableType::csda_range);
+        this->add_table(process.SecondaryRangeTable(),
+                        ImportTableType::secondary_range);
+        this->add_table(process.SubLambdaTable(), ImportTableType::sublambda);
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Write multiple scattering tables to the TTree.
+ *
+ * Whereas other EM processes combine the model tables into a single process
+ * table, MSC keeps them independent.
  */
 void GeantPhysicsTableWriter::fill_multiple_scattering_tables(
     const G4VMultipleScattering& process)
@@ -339,10 +374,9 @@ void GeantPhysicsTableWriter::fill_multiple_scattering_tables(
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
-            table_.model = to_import_model(model->GetName());
+            process_.models.push_back(to_import_model(model->GetName()));
             this->add_table(model->GetCrossSectionTable(),
-                            ImportTableType::lambda,
-                            ImportUnits::cm_inv);
+                            ImportTableType::lambda);
         }
     }
 }
@@ -351,12 +385,11 @@ void GeantPhysicsTableWriter::fill_multiple_scattering_tables(
 /*!
  * Write data from a geant4 physics table if available.
  *
- * It finishes writing the remaining elements of this->table_ and fills the
+ * It finishes writing the remaining elements of this->process_ and fills the
  * "tables" TTree.
  */
 void GeantPhysicsTableWriter::add_table(const G4PhysicsTable* g4table,
-                                        ImportTableType       table_type,
-                                        ImportUnits           units)
+                                        ImportTableType       table_type)
 {
     if (!g4table)
     {
@@ -364,56 +397,81 @@ void GeantPhysicsTableWriter::add_table(const G4PhysicsTable* g4table,
         return;
     }
 
-    table_.table_type = table_type;
-    table_.units      = units;
-
-    CELER_LOG(debug) << "Writing " << table_.particle.get() << ": "
-                     << to_cstring(table_.process_type) << '.'
-                     << to_cstring(table_.process) << '.'
-                     << to_cstring(table_.model) << ": "
-                     << to_cstring(table_.table_type);
-
-    // Convert units
-    constexpr real_type energy_scaling = 1 / MeV;
-    real_type           scaling        = 0;
-    switch (table_.units)
+    // Check for duplicate tables
+    auto iter_ok = written_tables_.insert(
+        {g4table, {process_.particle_pdg, process_.process_class, table_type}});
+    if (!iter_ok.second)
     {
-        case ImportUnits::none:
-            scaling = 1;
-            break;
-        case ImportUnits::cm_inv:
-            scaling = cm;
-            break;
-        case ImportUnits::cm_mev_inv:
-            scaling = cm * MeV;
-            break;
-        case ImportUnits::mev:
-            scaling = 1 / MeV;
-            break;
-        case ImportUnits::cm:
-            scaling = 1 / cm;
-            break;
+        const PrevTable& prev = iter_ok.first->second;
+        CELER_LOG(warning) << "Skipping table " << process_.particle_pdg << '.'
+                           << to_cstring(process_.process_class) << '.'
+                           << to_cstring(table_type) << ": duplicate of "
+                           << prev.particle_pdg << '.'
+                           << to_cstring(prev.process_class) << '.'
+                           << to_cstring(prev.table_type);
+        return;
     }
 
+    CELER_LOG(debug) << "Saving table " << process_.particle_pdg << '.'
+                     << to_cstring(process_.process_type) << '.'
+                     << to_cstring(process_.process_class) << '.'
+                     << to_cstring(table_type);
+
+    ImportPhysicsTable table;
+    table.table_type = table_type;
+    switch (table_type)
+    {
+        case ImportTableType::dedx:
+        case ImportTableType::dedx_subsec:
+        case ImportTableType::dedx_unrestricted:
+        case ImportTableType::ionisation:
+        case ImportTableType::ionisation_subsec:
+            table.x_units = ImportUnits::mev;
+            table.y_units = ImportUnits::mev_per_cm;
+            break;
+        case ImportTableType::csda_range:
+        case ImportTableType::range:
+        case ImportTableType::secondary_range:
+            table.x_units = ImportUnits::mev;
+            table.y_units = ImportUnits::cm;
+            break;
+        case ImportTableType::inverse_range:
+            table.x_units = ImportUnits::cm;
+            table.y_units = ImportUnits::mev;
+            break;
+        case ImportTableType::lambda:
+        case ImportTableType::sublambda:
+            table.x_units = ImportUnits::mev;
+            table.y_units = ImportUnits::cm_inv;
+            break;
+        case ImportTableType::lambda_prim:
+            table.x_units = ImportUnits::mev;
+            table.y_units = ImportUnits::cm_mev_inv;
+            break;
+    };
+
+    // Convert units
+    real_type x_scaling = units_to_scaling(table.x_units);
+    real_type y_scaling = units_to_scaling(table.y_units);
+
     // Save physics vectors
-    table_.physics_vectors.clear();
     for (const auto* g4vector : *g4table)
     {
         ImportPhysicsVector import_vec;
 
-        // Populate ImportPhysicsVector and push it back to this->table_
+        // Populate ImportPhysicsVectors
         import_vec.vector_type
             = to_import_physics_vector_type(g4vector->GetType());
 
         for (auto j : celeritas::range(g4vector->GetVectorLength()))
         {
-            import_vec.energy.push_back(g4vector->Energy(j) * energy_scaling);
-            import_vec.value.push_back((*g4vector)[j] * scaling);
+            import_vec.x.push_back(g4vector->Energy(j) * x_scaling);
+            import_vec.y.push_back((*g4vector)[j] * y_scaling);
         }
-        table_.physics_vectors.push_back(std::move(import_vec));
+        table.physics_vectors.push_back(std::move(import_vec));
     }
 
-    tree_tables_->Fill();
+    process_.tables.push_back(std::move(table));
 }
 
 //---------------------------------------------------------------------------//

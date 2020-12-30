@@ -26,13 +26,14 @@
 #include <TTree.h>
 #include <TBranch.h>
 
+#include "base/Range.hh"
 #include "comm/Communicator.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "io/ImportParticle.hh"
 #include "io/ImportPhysicsTable.hh"
 #include "io/GdmlGeometryMap.hh"
-#include "base/Range.hh"
+#include "physics/base/PDGNumber.hh"
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
@@ -42,6 +43,7 @@
 #include "GeantExceptionHandler.hh"
 
 using namespace geant_exporter;
+namespace celer_pdg = celeritas::pdg;
 using celeritas::elem_id;
 using celeritas::GdmlGeometryMap;
 using celeritas::ImportElement;
@@ -123,7 +125,8 @@ void store_physics_tables(TFile* root_file, G4ParticleTable* particle_table)
     CELER_LOG(status) << "Exporting physics tables";
 
     // Start table writer
-    GeantPhysicsTableWriter add_physics_table(root_file);
+    GeantPhysicsTableWriter add_physics_table(root_file,
+                                              TableSelection::minimal);
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -134,18 +137,31 @@ void store_physics_tables(TFile* root_file, G4ParticleTable* particle_table)
         const G4ParticleDefinition& g4_particle_def
             = *(particle_iterator.value());
 
-        // Skip "dummy" particles: generic ion and geantino
-        if (g4_particle_def.GetPDGEncoding() == 0)
+        celeritas::PDGNumber pdg(g4_particle_def.GetPDGEncoding());
+        if (pdg.get() == 0)
+        {
+            // Skip "dummy" particles: generic ion and geantino
             continue;
+        }
+        // XXX To reduce ROOT file data size in repo, only export processes for
+        // electron/positron/gamma for now. Extend this later.
+        if (!(pdg == celer_pdg::electron() || pdg == celer_pdg::positron()
+              || pdg == celer_pdg::gamma()))
+        {
+            // Not e-, e+, or gamma
+            continue;
+        }
 
         const G4ProcessVector& process_list
             = *g4_particle_def.GetProcessManager()->GetProcessList();
 
         for (auto j : celeritas::range(process_list.size()))
         {
-            // Skip transportation process
             if (dynamic_cast<const G4Transportation*>(process_list[j]))
+            {
+                // Skip transportation process
                 continue;
+            }
 
             add_physics_table(g4_particle_def, *process_list[j]);
         }

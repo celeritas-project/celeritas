@@ -8,10 +8,11 @@
 #pragma once
 
 #include <iostream>
+#include <unordered_map>
 #include <vector>
 #include <memory>
 
-#include "io/ImportPhysicsTable.hh"
+#include "io/ImportProcess.hh"
 
 class TFile;
 class TTree;
@@ -25,6 +26,12 @@ class G4PhysicsTable;
 
 namespace geant_exporter
 {
+enum class TableSelection
+{
+    minimal,
+    all
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Use an existing TFile address as input to create a new "tables" TTree used
@@ -37,7 +44,7 @@ class GeantPhysicsTableWriter
 {
   public:
     // Constructor adds a new "tables" TTree to the existing ROOT TFile
-    GeantPhysicsTableWriter(TFile* root_file);
+    GeantPhysicsTableWriter(TFile* root_file, TableSelection which_tables);
 
     // Write the tables on destruction
     ~GeantPhysicsTableWriter();
@@ -58,15 +65,31 @@ class GeantPhysicsTableWriter
     fill_multiple_scattering_tables(const G4VMultipleScattering& msc_process);
     // Write the remaining elements of this->table_ and fill the tables TTree
     void add_table(const G4PhysicsTable*      table,
-                   celeritas::ImportTableType table_type,
-                   celeritas::ImportUnits     units);
+                   celeritas::ImportTableType table_type);
 
   private:
     TFile* root_file_;
+    // Whether to write tables that aren't used by physics
+    TableSelection which_tables_;
+
     // TTree created by the constructor
-    std::unique_ptr<TTree> tree_tables_;
-    // Temporary table for writing to the tree
-    celeritas::ImportPhysicsTable table_;
+    std::unique_ptr<TTree> tree_process_;
+    // Temporary processs data for writing to the tree
+    celeritas::ImportProcess process_;
+
+    // Keep track of processes and tables already written
+    struct PrevProcess
+    {
+        const G4ParticleDefinition* particle;
+    };
+    struct PrevTable
+    {
+        int                           particle_pdg;
+        celeritas::ImportProcessClass process_class;
+        celeritas::ImportTableType    table_type;
+    };
+    std::unordered_map<const G4VProcess*, PrevProcess>   written_processes_;
+    std::unordered_map<const G4PhysicsTable*, PrevTable> written_tables_;
 };
 
 //---------------------------------------------------------------------------//
