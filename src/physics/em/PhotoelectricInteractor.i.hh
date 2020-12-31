@@ -68,7 +68,7 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
             {
                 // Use the tabulated subshell cross sections
                 XsCalculator calc_xs(shell.xs);
-                xs += inv_energy_ * calc_xs(inc_energy_.value());
+                xs += ipow<3>(inv_energy_) * calc_xs(inc_energy_.value());
             }
             else
             {
@@ -87,7 +87,8 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
                 // clang-format on
             }
         }
-    } while (xs < cutoff && shell_id != el.shells.size() - 1);
+    } while (xs < cutoff && shell_id != el.shells.size());
+    --shell_id;
 
     // Construct interaction for change to primary (incident) particle
     Interaction result = Interaction::from_absorption();
@@ -135,15 +136,15 @@ CELER_FUNCTION Real3 PhotoelectricInteractor::sample_direction(Engine& rng) cons
     constexpr MevEnergy max_energy{100.};
     real_type           energy_per_mecsq;
 
-    // If the incident gamma energy is above 100 MeV, use the incident gamma
-    // direction for the direction of the emitted photoelectron.
     if (inc_energy_ > max_energy)
     {
+        // If the incident gamma energy is above 100 MeV, use the incident
+        // gamma direction for the direction of the emitted photoelectron.
         return inc_direction_;
     }
-    // If the incident energy is below 1 keV, set it to 1 keV.
     else if (inc_energy_ < min_energy)
     {
+        // If the incident energy is below 1 keV, set it to 1 keV.
         energy_per_mecsq = min_energy.value() * shared_.inv_electron_mass;
     }
     else

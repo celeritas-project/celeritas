@@ -72,8 +72,8 @@ class LivermoreParams
 
     // HELPER FUNCTIONS
     void                    append_livermore_element(const ElementInput& inp);
-    span<LivermoreSubshell> extend_shells(const ElementInput& inp);
-    span<real_type>         extend_data(const std::vector<real_type>& data);
+    Span<LivermoreSubshell> extend_shells(const ElementInput& inp);
+    Span<real_type>         extend_data(const std::vector<real_type>& data);
 };
 
 //---------------------------------------------------------------------------//

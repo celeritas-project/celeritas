@@ -36,12 +36,14 @@ class PhotoelectricInteractorTest
     {
         using celeritas::ImportPhysicsVector;
         using celeritas::ImportPhysicsVectorType;
+        using namespace celeritas::units;
         REQUIRE(atomic_number > 0 && atomic_number < 101);
+
+        constexpr double barn = 1.e-24 * centimeter * centimeter;
 
         LivermoreParams::ElementInput result;
         result.el_id = el_id;
 
-        // TODO: check units
         // Read photoelectric effect total cross section above K-shell energy
         // but below energy limit for parameterization
         {
@@ -55,7 +57,6 @@ class PhotoelectricInteractorTest
             // Set the physics vector type and the data type
             result.xs_high.vector_type
                 = ImportPhysicsVectorType::low_energy_free;
-            result.xs_high.data_type = ImportPhysicsVector::DataType::xs;
 
             // Read tabulated energies and cross sections
             double       energy_min, energy_max;
@@ -65,11 +66,12 @@ class PhotoelectricInteractorTest
             {
                 infile >> size;
                 result.xs_high.energy.resize(size);
-                result.xs_high.xs_eloss.resize(size);
+                result.xs_high.value.resize(size);
                 for (auto i : celeritas::range(size))
                 {
                     infile >> result.xs_high.energy[i]
-                        >> result.xs_high.xs_eloss[i];
+                        >> result.xs_high.value[i];
+                    result.xs_high.value[i] *= barn;
                 }
             }
             infile.close();
@@ -87,7 +89,6 @@ class PhotoelectricInteractorTest
             // Set the physics vector type and the data type
             result.xs_low.vector_type
                 = ImportPhysicsVectorType::low_energy_free;
-            result.xs_low.data_type = ImportPhysicsVector::DataType::xs;
 
             // Read tabulated energies and cross sections
             double       energy_min, energy_max;
@@ -97,11 +98,11 @@ class PhotoelectricInteractorTest
             {
                 infile >> size;
                 result.xs_low.energy.resize(size);
-                result.xs_low.xs_eloss.resize(size);
+                result.xs_low.value.resize(size);
                 for (auto i : celeritas::range(size))
                 {
-                    infile >> result.xs_low.energy[i]
-                        >> result.xs_low.xs_eloss[i];
+                    infile >> result.xs_low.energy[i] >> result.xs_low.value[i];
+                    result.xs_low.value[i] *= barn;
                 }
             }
             infile.close();
@@ -189,6 +190,7 @@ class PhotoelectricInteractorTest
                 for (auto i : celeritas::range(size))
                 {
                     infile >> shell.energy[i] >> shell.xs[i];
+                    shell.xs[i] *= barn;
                 }
             }
             infile.close();
@@ -329,7 +331,7 @@ TEST_F(PhotoelectricInteractorTest, basic)
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy_electron[]
-        = {9.99962884, 9.99962884, 9.99962884, 9.99962884};
+        = {9.9964167, 9.9964167, 9.9964167, 9.9964167};
     const double expected_costheta_electron[]
         = {0.9989507514765, 0.9309974252831, 0.9901365221334, 0.9971118554745};
     EXPECT_VEC_SOFT_EQ(expected_energy_electron, energy_electron);

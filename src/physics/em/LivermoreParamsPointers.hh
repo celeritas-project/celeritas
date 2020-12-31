@@ -30,8 +30,8 @@ struct LivermoreSubshell
 
     // Fit parameters for the integrated subshell photoionization cross
     // sections in the two different energy ranges (used above 5 keV)
-    span<const real_type> param_low;
-    span<const real_type> param_high;
+    Span<const real_type> param_low;
+    Span<const real_type> param_high;
 };
 
 //---------------------------------------------------------------------------//
@@ -54,7 +54,7 @@ struct LivermoreElement
 
     // SUBSHELL CROSS SECTIONS
 
-    span<const LivermoreSubshell> shells;
+    Span<const LivermoreSubshell> shells;
 
     // Energy threshold for using the parameterized subshell cross sections in
     // the lower and upper energy range
@@ -68,7 +68,7 @@ struct LivermoreElement
  */
 struct LivermoreParamsPointers
 {
-    span<const LivermoreElement> elements;
+    Span<const LivermoreElement> elements;
 
     //! Check whether the interface is assigned
     explicit inline CELER_FUNCTION operator bool() const

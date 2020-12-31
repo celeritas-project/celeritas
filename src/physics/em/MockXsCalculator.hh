@@ -21,8 +21,8 @@ namespace celeritas
  */
 struct ValueGrid
 {
-    span<const real_type> energy;
-    span<const real_type> xs;
+    Span<const real_type> energy;
+    Span<const real_type> xs;
     Interp                interp;
 };
 

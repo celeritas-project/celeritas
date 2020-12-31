@@ -40,8 +40,8 @@ LivermoreParams::LivermoreParams(Input inp)
     for (const auto& el : inp.elements)
     {
         subshell_size += el.shells.size();
-        data_size += el.xs_low.energy.size() + el.xs_low.xs_eloss.size()
-                     + el.xs_high.energy.size() + el.xs_high.xs_eloss.size();
+        data_size += el.xs_low.energy.size() + el.xs_low.value.size()
+                     + el.xs_high.energy.size() + el.xs_high.value.size();
 
         for (const auto& shell : el.shells)
         {
@@ -141,10 +141,10 @@ void LivermoreParams::append_livermore_element(const ElementInput& inp)
 
     // Copy basic properties
     result.xs_low.energy  = this->extend_data(inp.xs_low.energy);
-    result.xs_low.xs      = this->extend_data(inp.xs_low.xs_eloss);
+    result.xs_low.xs      = this->extend_data(inp.xs_low.value);
     result.xs_low.interp  = Interp::linear;
     result.xs_high.energy = this->extend_data(inp.xs_high.energy);
-    result.xs_high.xs     = this->extend_data(inp.xs_high.xs_eloss);
+    result.xs_high.xs     = this->extend_data(inp.xs_high.value);
     result.xs_low.interp  = Interp::linear; // TODO: spline
     result.shells         = this->extend_shells(inp);
     result.thresh_low     = inp.thresh_low;
@@ -158,14 +158,14 @@ void LivermoreParams::append_livermore_element(const ElementInput& inp)
 /*!
  * Process and store electron subshells to the internal list.
  */
-span<LivermoreSubshell> LivermoreParams::extend_shells(const ElementInput& inp)
+Span<LivermoreSubshell> LivermoreParams::extend_shells(const ElementInput& inp)
 {
     REQUIRE(host_shells_.size() + inp.shells.size() <= host_shells_.capacity());
 
     // Allocate subshells
     auto start_size = host_shells_.size();
     host_shells_.resize(start_size + inp.shells.size());
-    span<LivermoreSubshell> result{host_shells_.data() + start_size,
+    Span<LivermoreSubshell> result{host_shells_.data() + start_size,
                                    inp.shells.size()};
 
     // Store binding energy, fit parameters, and tabulated cross sections
@@ -186,13 +186,13 @@ span<LivermoreSubshell> LivermoreParams::extend_shells(const ElementInput& inp)
 /*!
  * Process and store tabulated cross sections, energies, and fit parameters.
  */
-span<real_type> LivermoreParams::extend_data(const std::vector<real_type>& data)
+Span<real_type> LivermoreParams::extend_data(const std::vector<real_type>& data)
 {
     REQUIRE(host_data_.size() + data.size() <= host_data_.capacity());
 
     // Allocate data
     host_data_.insert(host_data_.end(), data.begin(), data.end());
-    return span<real_type>{host_data_.data() + host_data_.size() - data.size(),
+    return Span<real_type>{host_data_.data() + host_data_.size() - data.size(),
                            data.size()};
 }
 
