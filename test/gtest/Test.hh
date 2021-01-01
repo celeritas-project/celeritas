@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 #include <cmath>
+#include <string>
 
 namespace celeritas
 {
@@ -23,11 +24,17 @@ class Test : public ::testing::Test
   public:
     Test() = default;
 
+    // Generate test-unique filename
+    std::string make_unique_filename(const char* ext = "");
+
     // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
     static std::string test_data_path(const char* subdir, const char* filename);
 
     // Define "inf" value for subclass testing
     static constexpr double inf = HUGE_VAL;
+
+  private:
+    int filename_counter_ = 0;
 };
 
 //---------------------------------------------------------------------------//
