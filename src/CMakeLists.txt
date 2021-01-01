@@ -28,6 +28,7 @@ set(PUBLIC_DEPS)
 list(APPEND SOURCES
   base/Assert.cc
   base/ColorUtils.cc
+  base/TypeDemangler.cc
   comm/Logger.cc
   comm/LoggerTypes.cc
   comm/detail/LoggerMessage.cc
