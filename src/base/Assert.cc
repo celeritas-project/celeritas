@@ -17,10 +17,8 @@ namespace celeritas
 //! Delegating constructor
 DebugError::DebugError(const char* msg) : std::logic_error(msg) {}
 DebugError::DebugError(const std::string& msg) : std::logic_error(msg) {}
-CudaCallError::CudaCallError(const char* msg) : std::runtime_error(msg) {}
-CudaCallError::CudaCallError(const std::string& msg) : std::runtime_error(msg)
-{
-}
+RuntimeError::RuntimeError(const char* msg) : std::runtime_error(msg) {}
+RuntimeError::RuntimeError(const std::string& msg) : std::runtime_error(msg) {}
 //!@}
 
 //---------------------------------------------------------------------------//
@@ -59,7 +57,7 @@ throw_debug_error(const char* condition, const char* file, int line)
         << color_code('x') << code
         << color_code(' ');
     // clang-format on
-    throw DebugError(msg.str());
+    throw RuntimeError(msg.str());
 }
 
 //---------------------------------------------------------------------------//

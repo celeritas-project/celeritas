@@ -121,7 +121,7 @@ namespace celeritas
 [[noreturn]] void
 throw_debug_error(const char* condition, const char* file, int line);
 
-// Construct and throw a CudaCallError.
+// Construct and throw a RuntimeError for failed CUDA calls.
 [[noreturn]] void throw_cuda_call_error(const char* error_string,
                                         const char* code,
                                         const char* file,
@@ -132,7 +132,7 @@ throw_debug_error(const char* condition, const char* file, int line);
 // TYPES
 //---------------------------------------------------------------------------//
 /*!
- * Error thrown by celeritas assertions.
+ * Error thrown by Celeritas assertions.
  */
 class DebugError : public std::logic_error
 {
@@ -146,15 +146,15 @@ class DebugError : public std::logic_error
 
 //---------------------------------------------------------------------------//
 /*!
- * Error thrown by CELER_CUDA assertion macros.
+ * Error thrown by working code from unexpected runtime conditions.
  */
-class CudaCallError : public std::runtime_error
+class RuntimeError : public std::runtime_error
 {
   public:
     //!@{
     //! Delegating constructor
-    explicit CudaCallError(const char* msg);
-    explicit CudaCallError(const std::string& msg);
+    explicit RuntimeError(const char* msg);
+    explicit RuntimeError(const std::string& msg);
     //!@}
 };
 
