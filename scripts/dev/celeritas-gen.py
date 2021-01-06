@@ -25,8 +25,7 @@ CLIKE_TOP = '''\
 HEADER_FILE = '''\
 #pragma once
 
-namespace {namespace}
-{{
+{namespace_begin}
 //---------------------------------------------------------------------------//
 /*!
  * Brief class description.
@@ -50,15 +49,14 @@ class {name}
 }};
 
 //---------------------------------------------------------------------------//
-}} // namespace {namespace}
+{namespace_end}
 
 #include "{name}.i.{hext}"
 '''
 
 INLINE_FILE = '''\
 
-namespace {namespace}
-{{
+{namespace_begin}
 //---------------------------------------------------------------------------//
 /*!
  * Construct with defaults.
@@ -68,18 +66,17 @@ namespace {namespace}
 }}
 
 //---------------------------------------------------------------------------//
-}}  // namespace {namespace}
+{namespace_end}
 '''
 
 CODE_FILE = '''\
 #include "{name}.{hext}"
 
-namespace {namespace}
-{{
+{namespace_begin}
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-}} // namespace {namespace}
+{namespace_end}
 '''
 
 TEST_HARNESS_FILE = '''\
@@ -311,6 +308,11 @@ def generate(root, filename, namespace):
         sys.exit(1)
 
     top = TOPS[lang]
+    nsbeg = []
+    nsend = []
+    for subns in namespace.split('::'):
+        nsbeg.append(f'namespace {subns}\n{{')
+        nsend.append(f'}} // namespace {subns}')
 
     relpath = re.sub(r'^[./]+', '', relpath)
     capabbr = re.sub(r'[^A-Z]+', '', name)
@@ -322,6 +324,8 @@ def generate(root, filename, namespace):
         'modeline': "-*-{}-*-".format(lang),
         'name': name,
         'namespace': namespace,
+        'namespace_begin': "\n".join(nsbeg),
+        'namespace_end': "\n".join(reversed(nsend)),
         'filename': filename,
         'basename': basename,
         'dirfromtest': dirfromtest,

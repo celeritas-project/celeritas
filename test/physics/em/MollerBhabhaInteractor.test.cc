@@ -35,9 +35,12 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
 
         // XXX Update these based on particles needed by interactor
         Base::set_particle_params(
-            {{{"electron", pdg::electron()},
-              {MevMass{0.5109989461}, ElementaryCharge{-1}, stable}},
-             {{"gamma", pdg::gamma()}, {zero, zero, stable}}});
+            {{"electron",
+              pdg::electron(),
+              MevMass{0.5109989461},
+              ElementaryCharge{-1},
+              stable},
+             {"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& params    = this->particle_params();
         pointers_.electron_id = params.find(pdg::electron());
         pointers_.gamma_id    = params.find(pdg::gamma());

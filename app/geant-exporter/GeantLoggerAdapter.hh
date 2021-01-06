@@ -3,38 +3,38 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Test.hh
+//! \file GeantLoggerAdapter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <gtest/gtest.h>
-#include <cmath>
-#include <string>
+#include <G4coutDestination.hh>
+#include "comm/LoggerTypes.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Googletest test harness for Celeritas codes.
- *
- * The test harness is constructed and destroyed once per subtest.
+ * Handle log messages from Geant4 while in scope.
  */
-class Test : public ::testing::Test
+class GeantLoggerAdapter : public G4coutDestination
 {
   public:
-    Test() = default;
+    // Assign to Geant handlers on construction
+    GeantLoggerAdapter();
+    ~GeantLoggerAdapter();
 
-    // Generate test-unique filename
-    std::string make_unique_filename(const char* ext = "");
-
-    // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
-    static std::string test_data_path(const char* subdir, const char* filename);
-
-    // Define "inf" value for subclass testing
-    static constexpr double inf = HUGE_VAL;
+    // Handle error messages
+    G4int ReceiveG4cout(const G4String& str) final;
+    G4int ReceiveG4cerr(const G4String& str) final;
 
   private:
-    int filename_counter_ = 0;
+    //// DATA ////
+
+    G4coutDestination* saved_cout_;
+    G4coutDestination* saved_cerr_;
+
+    //// IMPLEMENTATION ////
+    G4int log_impl(const G4String& str, LogLevel level);
 };
 
 //---------------------------------------------------------------------------//

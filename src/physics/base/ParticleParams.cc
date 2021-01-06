@@ -17,31 +17,36 @@ namespace celeritas
 /*!
  * Construct with a vector of particle definitions.
  */
-ParticleParams::ParticleParams(const VecAnnotatedDefs& defs)
+ParticleParams::ParticleParams(const Input& defs)
 {
     md_.reserve(defs.size());
     host_defs_.reserve(defs.size());
-    for (const auto& md_def : defs)
+    for (const auto& particle : defs)
     {
-        REQUIRE(!md_def.first.name.empty());
-        REQUIRE(md_def.first.pdg_code);
-        REQUIRE(md_def.second.mass >= zero_quantity());
-        REQUIRE(md_def.second.decay_constant >= 0);
+        REQUIRE(!particle.name.empty());
+        REQUIRE(particle.pdg_code);
+        REQUIRE(particle.mass >= zero_quantity());
+        REQUIRE(particle.decay_constant >= 0);
 
         // Add host metadata
         ParticleDefId id(name_to_id_.size());
         bool          inserted;
         std::tie(std::ignore, inserted)
-            = name_to_id_.insert({md_def.first.name, id});
+            = name_to_id_.insert({particle.name, id});
         CHECK(inserted);
         std::tie(std::ignore, inserted)
-            = pdg_to_id_.insert({md_def.first.pdg_code, id});
+            = pdg_to_id_.insert({particle.pdg_code, id});
         CHECK(inserted);
 
         // Save the metadata on the host
-        md_.push_back(md_def.first);
-        // Save a copy of the definitions on the host
-        host_defs_.push_back(md_def.second);
+        md_.push_back({particle.name, particle.pdg_code});
+
+        // Save the definitions on the host
+        ParticleDef host_def;
+        host_def.mass           = particle.mass;
+        host_def.charge         = particle.charge;
+        host_def.decay_constant = particle.decay_constant;
+        host_defs_.push_back(std::move(host_def));
     }
 
     if (celeritas::is_device_enabled())
@@ -51,6 +56,7 @@ ParticleParams::ParticleParams(const VecAnnotatedDefs& defs)
         ENSURE(device_defs_.size() == defs.size());
     }
 
+    ENSURE(md_.size() == defs.size());
     ENSURE(name_to_id_.size() == defs.size());
     ENSURE(pdg_to_id_.size() == defs.size());
     ENSURE(host_defs_.size() == defs.size());

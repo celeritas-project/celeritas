@@ -77,11 +77,10 @@ const MaterialParams& InteractorHostTestBase::material_params() const
 /*!
  * Set particle parameters.
  */
-void InteractorHostTestBase::set_particle_params(
-    const ParticleParams::VecAnnotatedDefs& defs)
+void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
 {
-    REQUIRE(!defs.empty());
-    particle_params_ = std::make_shared<ParticleParams>(defs);
+    REQUIRE(!inp.empty());
+    particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
     pp_pointers_     = particle_params_->host_pointers();
 }
 

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "RootImporter.hh"
 
+#include <cstdlib>
 #include <iomanip>
 #include <iostream>
 #include <tuple>
@@ -46,15 +47,28 @@ RootImporter::result_type RootImporter::operator()()
 {
     result_type geant_data;
     geant_data.particle_params = this->load_particle_data();
-    geant_data.physics_tables  = this->load_physics_table_data();
+    geant_data.processes       = this->load_processes();
     geant_data.geometry        = this->load_geometry_data();
     geant_data.material_params = this->load_material_data();
 
+    // Sort processes based on particle def IDs, process types, etc.
+    {
+        const ParticleParams& particles = *geant_data.particle_params;
+        auto to_process_key = [&particles](const ImportProcess& ip) {
+            return std::make_tuple(particles.find(PDGNumber{ip.particle_pdg}),
+                                   ip.process_class);
+        };
+        std::sort(geant_data.processes.begin(),
+                  geant_data.processes.end(),
+                  [&to_process_key](const ImportProcess& left,
+                                    const ImportProcess& right) {
+                      return to_process_key(left) < to_process_key(right);
+                  });
+    }
+
     ENSURE(geant_data.particle_params);
-    ENSURE(geant_data.physics_tables);
     ENSURE(geant_data.geometry);
     ENSURE(geant_data.material_params);
-
     return geant_data;
 }
 
@@ -70,7 +84,7 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
         root_input_->Get<TTree>("particles"));
     CHECK(tree_particles);
 
-    ParticleParams::VecAnnotatedDefs defs(tree_particles->GetEntries());
+    ParticleParams::Input defs(tree_particles->GetEntries());
     CHECK(!defs.empty());
 
     // Load the particle data
@@ -85,31 +99,33 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
         CHECK(!particle.name.empty());
 
         // Convert metadata
-        ParticleMd particle_md;
-        particle_md.name     = particle.name;
-        particle_md.pdg_code = PDGNumber{particle.pdg};
-        CHECK(particle_md.pdg_code);
-        defs[i].first = std::move(particle_md);
+        defs[i].name     = particle.name;
+        defs[i].pdg_code = PDGNumber{particle.pdg};
+        CHECK(defs[i].pdg_code);
 
         // Convert data
-        ParticleDef particle_def;
-        particle_def.mass   = units::MevMass{particle.mass};
-        particle_def.charge = units::ElementaryCharge{particle.charge};
-        particle_def.decay_constant
-            = (particle.is_stable ? ParticleDef::stable_decay_constant()
-                                  : 1. / particle.lifetime);
-        defs[i].second = std::move(particle_def);
+        defs[i].mass           = units::MevMass{particle.mass};
+        defs[i].charge         = units::ElementaryCharge{particle.charge};
+        defs[i].decay_constant = (particle.is_stable
+                                      ? ParticleDef::stable_decay_constant()
+                                      : 1. / particle.lifetime);
     }
 
-    // Sort by increasing mass, then by PDG code. Placing lighter particles
+    // Sort by increasing mass, then by PDG code (positive before negative of
+    // the same absolute value). Placing lighter particles
     // (more likely to be created by various processes, so more "light
     // particle" tracks) together at the beginning of the list will make it
     // easier to human-read the particles while debugging, and having them
     // at adjacent memory locations could improve cacheing.
-    std::sort(defs.begin(), defs.end(), [](const auto& lhs, const auto& rhs) {
-        return std::make_tuple(lhs.second.mass, lhs.first.pdg_code)
-               < std::make_tuple(rhs.second.mass, rhs.first.pdg_code);
-    });
+    auto to_particle_key = [](const auto& inp) {
+        int pdg = inp.pdg_code.get();
+        return std::make_tuple(inp.mass, std::abs(pdg), pdg < 0);
+    };
+    std::sort(defs.begin(),
+              defs.end(),
+              [to_particle_key](const auto& lhs, const auto& rhs) {
+                  return to_particle_key(lhs) < to_particle_key(rhs);
+              });
 
     // Construct ParticleParams from the definitions
     return std::make_shared<ParticleParams>(std::move(defs));
@@ -117,32 +133,31 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
 
 //---------------------------------------------------------------------------//
 /*!
- * Load all ImportPhysicsTable objects from the ROOT file as a vector
+ * Load all ImportProcess objects from the ROOT file as a vector
  */
-std::shared_ptr<std::vector<ImportPhysicsTable>>
-RootImporter::load_physics_table_data()
+std::vector<ImportProcess> RootImporter::load_processes()
 {
-    CELER_LOG(status) << "Loading physics data";
-    // Open tables branch
-    std::unique_ptr<TTree> tree_tables(root_input_->Get<TTree>("tables"));
-    CHECK(tree_tables);
-    CHECK(tree_tables->GetEntries());
+    CELER_LOG(status) << "Loading physics processes";
+    std::unique_ptr<TTree> tree_processes(
+        root_input_->Get<TTree>("processes"));
+    CHECK(tree_processes);
+    CHECK(tree_processes->GetEntries());
 
     // Load branch
-    ImportPhysicsTable  a_table;
-    ImportPhysicsTable* temp_table_ptr = &a_table;
-    tree_tables->SetBranchAddress("ImportPhysicsTable", &temp_table_ptr);
+    ImportProcess  process;
+    ImportProcess* process_ptr = &process;
+    tree_processes->SetBranchAddress("ImportProcess", &process_ptr);
 
-    std::vector<ImportPhysicsTable> tables;
+    std::vector<ImportProcess> processes;
 
-    // Populate physics table vector
-    for (size_type i : range(tree_tables->GetEntries()))
+    // Populate physics process vector
+    for (size_type i : range(tree_processes->GetEntries()))
     {
-        tree_tables->GetEntry(i);
-        tables.push_back(a_table);
+        tree_processes->GetEntry(i);
+        processes.push_back(process);
     }
 
-    return std::make_shared<std::vector<ImportPhysicsTable>>(std::move(tables));
+    return processes;
 }
 //---------------------------------------------------------------------------//
 /*!

@@ -28,6 +28,7 @@ set(PUBLIC_DEPS)
 list(APPEND SOURCES
   base/Assert.cc
   base/ColorUtils.cc
+  base/TypeDemangler.cc
   comm/Logger.cc
   comm/LoggerTypes.cc
   comm/detail/LoggerMessage.cc
@@ -149,15 +150,14 @@ if(CELERITAS_USE_ROOT)
   include(${ROOT_USE_FILE})
 
   root_generate_dictionary(CeleritasRootInterface
-    base/OpaqueId.hh
     io/GdmlGeometryMap.hh
     io/ImportElement.hh
     io/ImportMaterial.hh
     io/ImportParticle.hh
     io/ImportPhysicsTable.hh
     io/ImportPhysicsVector.hh
+    io/ImportProcess.hh
     io/ImportVolume.hh
-    physics/base/ParticleMd.hh
     LINKDEF io/RootInterfaceLinkDef.h
   )
 
@@ -165,6 +165,7 @@ if(CELERITAS_USE_ROOT)
   # Tests that use ROOT to load the data will have to link against this library.
   add_library(CeleritasIO SHARED
     io/GdmlGeometryMap.cc
+    io/ImportProcess.cc
     io/ImportPhysicsTable.cc
     io/ImportPhysicsVector.cc
     io/RootImporter.cc

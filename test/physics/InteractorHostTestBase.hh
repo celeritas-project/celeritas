@@ -86,7 +86,7 @@ class InteractorHostTestBase : public celeritas::Test
 
     //!@{
     //! Set and get particle params
-    void set_particle_params(const ParticleParams::VecAnnotatedDefs& defs);
+    void                  set_particle_params(ParticleParams::Input inp);
     const ParticleParams& particle_params() const;
     //!@}
 

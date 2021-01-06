@@ -28,31 +28,35 @@ class EventReaderTest : public celeritas::Test,
   protected:
     void SetUp() override
     {
-        using celeritas::ParticleDef;
         using celeritas::PDGNumber;
         using celeritas::units::ElementaryCharge;
         using celeritas::units::MevMass;
         auto zero = celeritas::zero_quantity();
+        constexpr auto stable = celeritas::ParticleDef::stable_decay_constant();
 
         // Create shared standard model particle data
-        ParticleParams::VecAnnotatedDefs defs
-            = {{{"proton", pdg::proton()},
-                {MevMass{938.27208816},
-                 ElementaryCharge{1},
-                 ParticleDef::stable_decay_constant()}},
-               {{"d_quark", PDGNumber(1)},
-                {MevMass{4.7},
-                 ElementaryCharge{-1.0 / 3},
-                 ParticleDef::stable_decay_constant()}},
-               {{"anti_u_quark", PDGNumber(-2)},
-                {MevMass{2.2},
-                 ElementaryCharge{-2.0 / 3},
-                 ParticleDef::stable_decay_constant()}},
-               {{"w_minus", PDGNumber(-24)},
-                {MevMass{8.0379e4}, zero, 1.0 / (3.157e-25 * second)}},
-               {{"gamma", pdg::gamma()},
-                {zero, zero, ParticleDef::stable_decay_constant()}}};
-        particle_params_ = std::make_shared<ParticleParams>(std::move(defs));
+        particle_params_ = std::make_shared<ParticleParams>(
+            ParticleParams::Input{{"proton",
+                                   pdg::proton(),
+                                   MevMass{938.27208816},
+                                   ElementaryCharge{1},
+                                   stable},
+                                  {"d_quark",
+                                   PDGNumber(1),
+                                   MevMass{4.7},
+                                   ElementaryCharge{-1.0 / 3},
+                                   stable},
+                                  {"anti_u_quark",
+                                   PDGNumber(-2),
+                                   MevMass{2.2},
+                                   ElementaryCharge{-2.0 / 3},
+                                   stable},
+                                  {"w_minus",
+                                   PDGNumber(-24),
+                                   MevMass{8.0379e4},
+                                   zero,
+                                   1.0 / (3.157e-25 * second)},
+                                  {"gamma", pdg::gamma(), zero, zero, stable}});
     }
 
     std::string                     filename_;

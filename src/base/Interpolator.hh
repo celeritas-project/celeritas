@@ -54,7 +54,9 @@ namespace celeritas
  * At each evaluation of the instantiated Interpolator, only the
  * inverse-transform and add-transformed operation need be applied.
  */
-template<Interp XI = Interp::linear, Interp YI = Interp::linear, typename T = double>
+template<Interp XI  = Interp::linear,
+         Interp YI  = Interp::linear,
+         typename T = ::celeritas::real_type>
 class Interpolator
 {
   public:

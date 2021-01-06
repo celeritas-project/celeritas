@@ -34,9 +34,12 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
         constexpr auto stable = ParticleDef::stable_decay_constant();
 
         Base::set_particle_params(
-            {{{"electron", pdg::electron()},
-              {MevMass{0.5109989461}, ElementaryCharge{-1}, stable}},
-             {{"gamma", pdg::gamma()}, {zero, zero, stable}}});
+            {{"electron",
+              pdg::electron(),
+              MevMass{0.5109989461},
+              ElementaryCharge{-1},
+              stable},
+             {"gamma", pdg::gamma(), zero, zero, stable}});
 
         // TODO: this should be part of the process's data storage/management
         const auto& params    = this->particle_params();

@@ -11,14 +11,14 @@
 #include <string>
 #include <vector>
 
-#include "ImportParticle.hh"
-#include "ImportPhysicsTable.hh"
-#include "GdmlGeometryMap.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleDef.hh"
-#include "physics/material/MaterialParams.hh"
-#include "base/Types.hh"
 #include "base/Macros.hh"
+#include "base/Types.hh"
+#include "physics/base/ParticleDef.hh"
+#include "physics/base/ParticleParams.hh"
+#include "physics/material/MaterialParams.hh"
+#include "ImportParticle.hh"
+#include "ImportProcess.hh"
+#include "GdmlGeometryMap.hh"
 
 // ROOT
 class TFile;
@@ -43,7 +43,7 @@ namespace celeritas
  *
  * Physics tables currently are a vector<ImportPhysicsTable>, since many
  * parameters are at play when selecting a given table:
- * ImportParticle, ImportTableType, ImportProcess, and ImportModel.
+ * ImportParticle, ImportTableType, ImportProcessClass, and ImportModelClass.
  * See RootImporter.test.cc for an example on how to fetch a given table.
  * This method will probably have to be improved.
  *
@@ -58,10 +58,10 @@ class RootImporter
     //! Return value from importing from the ROOT file
     struct result_type
     {
-        std::shared_ptr<ParticleParams>                  particle_params;
-        std::shared_ptr<std::vector<ImportPhysicsTable>> physics_tables;
-        std::shared_ptr<GdmlGeometryMap>                 geometry;
-        std::shared_ptr<MaterialParams>                  material_params;
+        std::shared_ptr<ParticleParams>  particle_params;
+        std::vector<ImportProcess>       processes;
+        std::shared_ptr<GdmlGeometryMap> geometry;
+        std::shared_ptr<MaterialParams>  material_params;
     };
 
   public:
@@ -78,7 +78,7 @@ class RootImporter
     // Populate the shared_ptr<ParticleParams> with particle information
     std::shared_ptr<ParticleParams> load_particle_data();
     // Populate a vector of ImportPhysicsTable objects
-    std::shared_ptr<std::vector<ImportPhysicsTable>> load_physics_table_data();
+    std::vector<ImportProcess> load_processes();
     // Load GdmlGeometryMap object
     std::shared_ptr<GdmlGeometryMap> load_geometry_data();
     // Populate the shared_ptr<MaterialParams> with material information

@@ -3,32 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleMd.hh
+//! \file PDGNumber.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
 #include "base/OpaqueId.hh"
 
 namespace celeritas
 {
-//! Opaque type used for PDG particle definition codes
-using PDGNumber = OpaqueId<struct ParticleMd, int>;
-
 //---------------------------------------------------------------------------//
-/*!
- * Host-only metadata for a particle type.
- *
- * The PDG Monte Carlo number is a unique "standard model" identifier for a
- * particle. See "Monte Carlo Particle Numbering Scheme" in the "Review of
- * Particle Physics":
- * https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf
- */
-struct ParticleMd
-{
-    std::string name;     // Particle name
-    PDGNumber   pdg_code; // See "Review of Particle Physics"
-};
+
+//! Opaque type used for PDG particle definition codes (can be negative!)
+using PDGNumber = OpaqueId<struct PDG, int>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -49,26 +35,26 @@ namespace pdg
 #define CELER_DEFINE_PDGNUMBER(NAME, VALUE) \
     inline constexpr PDGNumber NAME() { return PDGNumber{VALUE}; }
 
-CELER_DEFINE_PDGNUMBER(generic_ion, 0)
-CELER_DEFINE_PDGNUMBER(he3, 1000020030)
-CELER_DEFINE_PDGNUMBER(alpha, 1000020040)
-CELER_DEFINE_PDGNUMBER(anti_he3, -1000020030)
-CELER_DEFINE_PDGNUMBER(anti_alpha, -1000020040)
-CELER_DEFINE_PDGNUMBER(anti_deuteron, -1000010020)
-CELER_DEFINE_PDGNUMBER(anti_proton, -2212)
-CELER_DEFINE_PDGNUMBER(anti_triton, -1000010030)
-CELER_DEFINE_PDGNUMBER(deuteron, 1000010020)
-CELER_DEFINE_PDGNUMBER(positron, -11)
+// Sorted by (abs(val), val < 0)
 CELER_DEFINE_PDGNUMBER(electron, 11)
-CELER_DEFINE_PDGNUMBER(gamma, 22)
-CELER_DEFINE_PDGNUMBER(kaon_plus, 321)
-CELER_DEFINE_PDGNUMBER(kaon_minus, -321)
-CELER_DEFINE_PDGNUMBER(mu_plus, -13)
+CELER_DEFINE_PDGNUMBER(positron, -11)
 CELER_DEFINE_PDGNUMBER(mu_minus, 13)
+CELER_DEFINE_PDGNUMBER(mu_plus, -13)
+CELER_DEFINE_PDGNUMBER(gamma, 22)
 CELER_DEFINE_PDGNUMBER(pi_plus, 211)
 CELER_DEFINE_PDGNUMBER(pi_minus, -211)
+CELER_DEFINE_PDGNUMBER(kaon_plus, 321)
+CELER_DEFINE_PDGNUMBER(kaon_minus, -321)
 CELER_DEFINE_PDGNUMBER(proton, 2212)
+CELER_DEFINE_PDGNUMBER(anti_proton, -2212)
+CELER_DEFINE_PDGNUMBER(he3, 1000020030)
+CELER_DEFINE_PDGNUMBER(anti_he3, -1000020030)
+CELER_DEFINE_PDGNUMBER(alpha, 1000020040)
+CELER_DEFINE_PDGNUMBER(anti_alpha, -1000020040)
+CELER_DEFINE_PDGNUMBER(deuteron, 1000010020)
+CELER_DEFINE_PDGNUMBER(anti_deuteron, -1000010020)
 CELER_DEFINE_PDGNUMBER(triton, 1000010030)
+CELER_DEFINE_PDGNUMBER(anti_triton, -1000010030)
 
 #undef CELER_DEFINE_PDGNUMBER
 //!@}

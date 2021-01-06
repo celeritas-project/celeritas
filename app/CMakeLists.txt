@@ -11,14 +11,19 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
     geant-exporter/DetectorConstruction.cc
     geant-exporter/PhysicsList.cc
     geant-exporter/PrimaryGeneratorAction.cc
-    geant-exporter/GeantPhysicsTableWriter.cc)
+    geant-exporter/GeantPhysicsTableWriter.cc
+    # TODO: Move these to main celeritas::geant library for use in acceleritas?
+    geant-exporter/GeantExceptionHandler.cc
+    geant-exporter/GeantLoggerAdapter.cc
+  )
   target_link_libraries(geant-exporter
     Celeritas::Core
     Celeritas::IO
     ROOT::Core
     ROOT::Tree
     XercesC::XercesC
-    ${Geant4_LIBRARIES})
+    ${Geant4_LIBRARIES}
+  )
 
   # Reader
   add_executable(geant-exporter-cat geant-exporter/geant-exporter-cat.cc)

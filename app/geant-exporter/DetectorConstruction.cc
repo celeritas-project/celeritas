@@ -10,6 +10,7 @@
 #include <G4GDMLParser.hh>
 
 #include "base/Assert.hh"
+#include "comm/Logger.hh"
 
 namespace geant_exporter
 {
@@ -19,6 +20,7 @@ namespace geant_exporter
  */
 DetectorConstruction::DetectorConstruction(G4String gdmlInput)
 {
+    CELER_LOG(info) << "Loading geometry from " << gdmlInput;
     G4GDMLParser   gdml_parser;
     constexpr bool validate_gdml_schema = false;
     gdml_parser.Read(gdmlInput, validate_gdml_schema);

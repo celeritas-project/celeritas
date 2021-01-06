@@ -15,31 +15,30 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Geant4 equivalent enum for Physics vector types.
+ *
  * [See Geant4's G4PhysicsVectorType.hh]
  */
 enum class ImportPhysicsVectorType
 {
-    base,
-    linear,
-    log,
-    ln,
-    free,
-    ordered_free,
-    low_energy_free
+    unknown,
+    linear, //!< Uniform and linear in x
+    log,    //!< Uniform and logarithmic in x
+    free,   //!< Nonuniform in x
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Store imported physics vector data [see Geant4's G4PhysicsVector.hh].
  *
- * MeV and cm units are defined in
- * \c GeantPhysicsTableWriter::fill_physics_vectors(...)
+ * Each vector's x axis is structured according to the vector_type. X is
+ * usually energy, but (as in the case of "inverse range") can be distance or
+ * any other arbitrary value.
  */
 struct ImportPhysicsVector
 {
     ImportPhysicsVectorType vector_type;
-    std::vector<real_type>  energy;   // [MeV] (Geant4's binVector)
-    std::vector<real_type>  value;    // [1/cm or MeV] (Geant4's dataVector)
+    std::vector<real_type>  x; // (Geant4's binVector)
+    std::vector<real_type>  y; // (Geant4's dataVector)
 };
 
 //---------------------------------------------------------------------------//

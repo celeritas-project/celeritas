@@ -9,6 +9,8 @@
 #include <iomanip>
 #include <iostream>
 
+#include "base/Join.hh"
+#include "base/Range.hh"
 #include "comm/Communicator.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
@@ -28,77 +30,124 @@ using std::setw;
  */
 void print_particles(const ParticleParams& particles)
 {
-    const auto& all_md = particles.md();
-
-    CELER_LOG(info) << "Loaded " << all_md.size() << " particles";
+    CELER_LOG(info) << "Loaded " << particles.size() << " particles";
 
     cout << R"gfm(# Particles
 
------------------------------------------------------------------------
-Name              | PDG Code    | Mass [MeV] | Charge [e] | Decay [1/s]
------------------ | ----------- | ---------- | ---------- | -----------
+| Name              | PDG Code    | Mass [MeV] | Charge [e] | Decay [1/s] |
+| ----------------- | ----------- | ---------- | ---------- | ----------- |
 )gfm";
 
-    ParticleDefId::value_type def_id = 0;
-    for (const auto& md : all_md)
+    for (auto idx : range<ParticleDefId::value_type>(particles.size()))
     {
-        const ParticleDef& def = particles.get(ParticleDefId{def_id++});
+        ParticleDefId      def_id{idx};
+        const ParticleDef& def = particles.get(def_id);
 
         // clang-format off
-        cout << setw(17) << std::left << md.name << " | "
-             << setw(11) << md.pdg_code.get() << " | "
+        cout << "| "
+             << setw(17) << std::left << particles.id_to_label(def_id) << " | "
+             << setw(11) << particles.id_to_pdg(def_id).get() << " | "
              << setw(10) << setprecision(6) << def.mass.value() << " | "
              << setw(10) << setprecision(3) << def.charge.value() << " | "
              << setw(11) << setprecision(3) << def.decay_constant
-             << '\n';
+             << " |\n";
         // clang-format on
     }
-    cout << "-----------------------------------------------------------------"
-            "------\n"
-         << endl;
+    cout << endl;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Print physics properties.
  */
-void print_physics_table(const ImportPhysicsTable& table)
+void print_process(const ImportProcess& proc, const ParticleParams& particles)
 {
-    if (table.process_type != ImportProcessType::electromagnetic)
+    if (proc.process_type != ImportProcessType::electromagnetic)
     {
-        CELER_LOG(warning)
-            << "Skipping non-EM table for particle  " << table.particle.get()
-            << ": " << to_cstring(table.process_type) << '.'
-            << to_cstring(table.process) << '.' << to_cstring(table.model)
-            << ": " << to_cstring(table.table_type);
+        CELER_LOG(warning) << "Skipping non-EM process "
+                           << to_cstring(proc.process_class)
+                           << " for particle  " << proc.particle_pdg;
     }
-    cout << "## Particle " << table.particle.get() << ": `"
-         << to_cstring(table.process_type) << '.' << to_cstring(table.process)
-         << '.' << to_cstring(table.model)
-         << "`: " << to_cstring(table.table_type) << " ("
-         << to_cstring(table.units) << ")\n\n";
 
-    cout << "Has " << table.physics_vectors.size() << " vectors:\n"
+    cout << "## "
+         << particles.id_to_label(particles.find(PDGNumber{proc.particle_pdg}))
+         << " " << to_cstring(proc.process_class) << "\n\n";
+
+    cout << "Models: "
+         << join(proc.models.begin(),
+                 proc.models.end(),
+                 ", ",
+                 [](ImportModelClass im) { return to_cstring(im); })
+         << "\n";
+
+    for (const auto& table : proc.tables)
+    {
+        cout << "\n------\n\n" << to_cstring(table.table_type) << ":\n\n";
+
+        cout << "| Type          | Size  | Endpoints ("
+             << to_cstring(table.x_units) << ", " << to_cstring(table.y_units)
+             << ") |\n"
+             << "| ------------- | ----- | "
+                "------------------------------------------------------------ "
+                "|\n";
+
+        for (const auto& physvec : table.physics_vectors)
+        {
+            cout << "| " << setw(13) << std::left
+                 << to_cstring(physvec.vector_type) << " | " << setw(5)
+                 << physvec.x.size() << " | (" << setprecision(3) << setw(12)
+                 << physvec.x.front() << ", " << setprecision(3) << setw(12)
+                 << physvec.y.front() << ") -> (" << setprecision(3)
+                 << setw(12) << physvec.x.back() << ", " << setprecision(3)
+                 << setw(12) << physvec.y.back() << ") |\n";
+        }
+    }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print physics properties.
+ */
+void print_processes(const std::vector<ImportProcess>& processes,
+                     const ParticleParams&             particles)
+{
+    CELER_LOG(info) << "Loaded " << processes.size() << " processes";
+
+    // Print summary
+    cout << "# Processes\n"
          << R"gfm(
------------------------------------------------------------------------------------
-Type          | Size  | Emin         | Emax         | Vmin         | Vmax
------------------------------------------------------------------------------------
+| Process        | Particle      | Models                   | Tables                   |
+| -------------- | ------------- | ------------------------ | ------------------------ |
 )gfm";
-
-    for (const auto& physvec : table.physics_vectors)
+    for (const ImportProcess& proc : processes)
     {
-        // clang-format off
-        cout << setw(13) << std::left << to_cstring(physvec.vector_type) << " | "
-             << setw(5) << physvec.energy.size() << " | "
-             << setw(12) << setprecision(3) << physvec.energy.front() << " | "
-             << setw(12) << setprecision(3) << physvec.energy.back() << " | "
-             << setw(12) << setprecision(3) << physvec.value.front() << " | "
-             << setw(12) << setprecision(3) << physvec.value.back()
-             << '\n';
-        // clang-format on
+        auto pdef_id = particles.find(PDGNumber{proc.particle_pdg});
+        CHECK(pdef_id);
+
+        cout << "| " << setw(14) << to_cstring(proc.process_class) << " | "
+             << setw(13) << particles.id_to_label(pdef_id) << " | " << setw(24)
+             << to_string(
+                    join(proc.models.begin(),
+                         proc.models.end(),
+                         ", ",
+                         [](ImportModelClass im) { return to_cstring(im); }))
+             << " | " << setw(24)
+             << to_string(join(proc.tables.begin(),
+                               proc.tables.end(),
+                               ", ",
+                               [](const ImportPhysicsTable& tab) {
+                                   return to_cstring(tab.table_type);
+                               }))
+             << " |\n";
     }
-    cout << "-----------------------------------------------------------------"
-            "------------------\n\n";
+    cout << "|\n\n";
+
+    // Print details
+    for (const ImportProcess& proc : processes)
+    {
+        print_process(proc, particles);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -118,22 +167,21 @@ void print_geometry(const GdmlGeometryMap& geometry)
 
 ## Elements
 
-----------------------------------------------
-Element ID | Name | Atomic number | Mass (AMU)
----------- | ---- | ------------- | ----------
+| Element ID | Name | Atomic number | Mass (AMU) |
+| ---------- | ---- | ------------- | ---------- |
 )gfm";
 
     for (const auto& el_key : element_map)
     {
         const auto& element = geometry.get_element(el_key.first);
         // clang-format off
-        cout << setw(10) << std::left << el_key.first << " | "
+        cout << "| "
+             << setw(10) << std::left << el_key.first << " | "
              << setw(4) << element.name << " | "
              << setw(13) << element.atomic_number << " | "
-             << element.atomic_mass << '\n';
+             << setw(10) << element.atomic_mass << " |\n";
         // clang-format on
     }
-    cout << "----------------------------------------------" << endl;
 
     //// PRINT MATERIAL LIST ///
 
@@ -143,27 +191,24 @@ Element ID | Name | Atomic number | Mass (AMU)
     cout << R"gfm(
 ## Materials
 
---------------------------------------------------------------------------------------------------
-Material ID | Name                            | Composition
------------ | ------------------------------- | --------------------------------------------------
+| Material ID | Name                            | Composition                     |
+| ----------- | ------------------------------- | ------------------------------- |
 )gfm";
 
     for (const auto& mat_key : material_map)
     {
         const auto& material = geometry.get_material(mat_key.first);
-        // clang-format off
-        cout << setw(11) << std::left << mat_key.first << " | "
-             << setw(31) << material.name << " |";
-        // clang-format on
-        for (const auto& key : material.elements_fractions)
-        {
-            cout << " " << geometry.get_element(key.first).name;
-        }
-        cout << '\n';
+        cout << "| " << setw(11) << mat_key.first << " | " << setw(31)
+             << material.name << " | " << setw(31)
+             << to_string(join(material.elements_fractions.begin(),
+                               material.elements_fractions.end(),
+                               ", ",
+                               [&geometry](const auto& key) {
+                                   return geometry.get_element(key.first).name;
+                               }))
+             << " |\n";
     }
-    cout << "-----------------------------------------------------------------"
-            "---------------------------------"
-         << endl;
+    cout << endl;
 
     //// PRINT VOLUME AND MATERIAL LIST ////
 
@@ -173,9 +218,8 @@ Material ID | Name                            | Composition
     cout << R"gfm(
 ## Volumes
 
---------------------------------------------------------------------------------------------
-Volume ID | Material ID | Solid Name                           | Material Name
---------- | ----------- | ------------------------------------ | ---------------------------
+| Volume ID | Material ID | Solid Name                           | Material Name               |
+| --------- | ----------- | ------------------------------------ | --------------------------- |
 )gfm";
 
     for (const auto& key_value : volume_material_map)
@@ -186,15 +230,14 @@ Volume ID | Material ID | Solid Name                           | Material Name
         auto material = geometry.get_material(matid);
 
         // clang-format off
-        cout << setw(9) << std::left << volid << " | "
+        cout << "| "
+             << setw(9) << std::left << volid << " | "
              << setw(11) << matid << " | "
              << setw(36) << volume.solid_name << " | "
-             << material.name << '\n';
+             << setw(27) << material.name << " |\n";
         // clang-format on
     }
-    cout << "-----------------------------------------------------------------"
-            "---------------------------"
-         << endl;
+    cout << endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -226,22 +269,15 @@ int main(int argc, char* argv[])
     }
     catch (const DebugError& e)
     {
-        CELER_LOG(critical) << "Exception while reading ROOT file'" << argv[1]
+        CELER_LOG(critical) << "Exception while reading ROOT file '" << argv[1]
                             << "': " << e.what();
         return EXIT_FAILURE;
     }
 
-    CELER_LOG(info) << "Successfully loaded ROOT file'" << argv[1] << "'";
+    CELER_LOG(info) << "Successfully loaded ROOT file '" << argv[1] << "'";
 
     print_particles(*data.particle_params);
-
-    CELER_LOG(info) << "Loaded " << data.physics_tables->size()
-                    << " physics tables";
-    cout << "# Physics tables\n\n";
-    for (const ImportPhysicsTable& table : *data.physics_tables)
-    {
-        print_physics_table(table);
-    }
+    print_processes(data.processes, *data.particle_params);
     print_geometry(*data.geometry);
 
     return EXIT_SUCCESS;
