@@ -161,29 +161,28 @@ CELER_FUNCTION Real3 PhotoelectricInteractor::sample_direction(Engine& rng) cons
     real_type b = 0.5 * beta * gamma * energy_per_mecsq * (gamma - 2.);
 
     // Maximum of the rejection function g(1 - cos \theta) given in Eq. 2.8,
-    // which is attained when 1 - cos \theta) = 0
+    // which is attained when 1 - cos \theta = 0
     real_type g_max = 2. * (1. / a + b);
 
     // Rejection loop: sample 1 - cos \theta
     real_type g;
-    real_type one_minus_costheta;
+    real_type nu;
     do
     {
         // Sample 1 - cos \theta from the distribution given in Eq. 2.9 using
         // the inverse function (Eq. 2.11)
-        real_type u        = generate_canonical(rng);
-        one_minus_costheta = 2. * a * (2. * u + (a + 2.) * std::sqrt(u))
-                             / ((a + 2.) * (a + 2.) - 4. * u);
+        real_type u = generate_canonical(rng);
+        nu          = 2. * a * (2. * u + (a + 2.) * std::sqrt(u))
+             / ((a + 2.) * (a + 2.) - 4. * u);
 
         // Calculate the rejection function (Eq 2.8) at the sampled value
-        g = (2. - one_minus_costheta) * (1. / (a + one_minus_costheta) + b);
+        g = (2. - nu) * (1. / (a + nu) + b);
     } while (g < g_max * generate_canonical(rng));
 
     // Sample the azimuthal angle and calculate the direction of the
     // photoelectron
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    return rotate(from_spherical(1. - one_minus_costheta, sample_phi(rng)),
-                  inc_direction_);
+    return rotate(from_spherical(1. - nu, sample_phi(rng)), inc_direction_);
 }
 
 //---------------------------------------------------------------------------//
