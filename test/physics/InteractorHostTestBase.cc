@@ -180,10 +180,12 @@ void InteractorHostTestBase::check_conservation(const Interaction& interaction) 
 
         Real3 delta_momentum = exit_momentum;
         axpy(-parent_track.momentum().value(), inc_direction_, &delta_momentum);
-        EXPECT_SOFT_EQ(0.0, dot_product(delta_momentum, delta_momentum))
+        EXPECT_SOFT_NEAR(0.0,
+                         dot_product(delta_momentum, delta_momentum),
+                         parent_track.momentum().value() * 1e-12)
             << "Incident: " << inc_direction_
             << " with p = " << parent_track.momentum().value()
-            << "* MeV^2/c^2; exiting p = " << exit_momentum;
+            << "* MeV/c; exiting p = " << exit_momentum;
     }
 }
 
