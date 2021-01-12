@@ -11,6 +11,7 @@
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
+#include "io/LivermoreParamsReader.hh"
 #include "physics/base/Units.hh"
 #include "physics/em/LivermoreParams.hh"
 #include "../InteractorHostTestBase.hh"
@@ -18,6 +19,7 @@
 
 using celeritas::ElementDefId;
 using celeritas::LivermoreParams;
+using celeritas::LivermoreParamsReader;
 using celeritas::PhotoelectricInteractor;
 namespace pdg = celeritas::pdg;
 
@@ -31,174 +33,6 @@ class PhotoelectricInteractorTest
     using Base = celeritas_test::InteractorHostTestBase;
 
   protected:
-    LivermoreParams::ElementInput
-    read_livermore_element(int atomic_number, ElementDefId el_id)
-    {
-        using celeritas::ImportPhysicsVector;
-        using celeritas::ImportPhysicsVectorType;
-        using namespace celeritas::units;
-        REQUIRE(atomic_number > 0 && atomic_number < 101);
-
-        constexpr double barn = 1.e-24 * centimeter * centimeter;
-
-        LivermoreParams::ElementInput result;
-        result.el_id = el_id;
-
-        // Read photoelectric effect total cross section above K-shell energy
-        // but below energy limit for parameterization
-        {
-            std::ostringstream os;
-            os << "pe-cs-" << atomic_number << ".dat";
-            std::string filename
-                = this->test_data_path("physics/em", os.str().c_str());
-            std::ifstream infile(filename.c_str());
-            CHECK(infile.is_open());
-
-            // Set the physics vector type and the data type
-            result.xs_high.vector_type
-                = ImportPhysicsVectorType::low_energy_free;
-
-            // Read tabulated energies and cross sections
-            double       energy_min, energy_max;
-            unsigned int size;
-            infile >> energy_min >> energy_max >> size;
-            if (!infile.fail())
-            {
-                infile >> size;
-                result.xs_high.energy.resize(size);
-                result.xs_high.value.resize(size);
-                for (auto i : celeritas::range(size))
-                {
-                    infile >> result.xs_high.energy[i]
-                        >> result.xs_high.value[i];
-                    result.xs_high.value[i] *= barn;
-                }
-            }
-            infile.close();
-        }
-
-        // Read photoelectric effect total cross section below K-shell energy
-        {
-            std::ostringstream os;
-            os << "pe-le-cs-" << atomic_number << ".dat";
-            std::string filename
-                = this->test_data_path("physics/em", os.str().c_str());
-            std::ifstream infile(filename.c_str());
-            CHECK(infile.is_open());
-
-            // Set the physics vector type and the data type
-            result.xs_low.vector_type
-                = ImportPhysicsVectorType::low_energy_free;
-
-            // Read tabulated energies and cross sections
-            double       energy_min, energy_max;
-            unsigned int size;
-            infile >> energy_min >> energy_max >> size;
-            if (!infile.fail())
-            {
-                infile >> size;
-                result.xs_low.energy.resize(size);
-                result.xs_low.value.resize(size);
-                for (auto i : celeritas::range(size))
-                {
-                    infile >> result.xs_low.energy[i] >> result.xs_low.value[i];
-                    result.xs_low.value[i] *= barn;
-                }
-            }
-            infile.close();
-        }
-
-        // Read subshell cross sections fit parameters in low energy interval
-        {
-            std::ostringstream os;
-            os << "pe-low-" << atomic_number << ".dat";
-            std::string filename
-                = this->test_data_path("physics/em", os.str().c_str());
-            std::ifstream infile(filename.c_str());
-            CHECK(infile.is_open());
-
-            // Read the number of subshells and energy threshold
-            unsigned int num_shells;
-            double       threshold;
-            infile >> num_shells >> num_shells >> threshold;
-            result.thresh_low = MevEnergy{threshold};
-            result.shells.resize(num_shells);
-
-            // Read the binding energies and fit parameters
-            for (auto& shell : result.shells)
-            {
-                double binding_energy;
-                infile >> binding_energy;
-                shell.binding_energy = MevEnergy{binding_energy};
-                shell.param_low.resize(6);
-                for (auto i : celeritas::range(6))
-                {
-                    infile >> shell.param_low[i];
-                }
-            }
-            infile.close();
-        }
-
-        // Read subshell cross sections fit parameters in high energy interval
-        {
-            std::ostringstream os;
-            os << "pe-high-" << atomic_number << ".dat";
-            std::string filename
-                = this->test_data_path("physics/em", os.str().c_str());
-            std::ifstream infile(filename.c_str());
-            CHECK(infile.is_open());
-
-            // Read the number of subshells and energy threshold
-            unsigned int num_shells;
-            double       threshold;
-            infile >> num_shells >> num_shells >> threshold;
-            result.thresh_high = MevEnergy{threshold};
-            CHECK(num_shells == result.shells.size());
-
-            // Read the binding energies and fit parameters
-            for (auto& shell : result.shells)
-            {
-                double binding_energy;
-                infile >> binding_energy;
-                CHECK(binding_energy == shell.binding_energy.value());
-                shell.param_high.resize(6);
-                for (auto i : celeritas::range(6))
-                {
-                    infile >> shell.param_high[i];
-                }
-            }
-            infile.close();
-        }
-
-        // Read tabulated subshell cross sections
-        {
-            std::ostringstream os;
-            os << "pe-ss-cs-" << atomic_number << ".dat";
-            std::string filename
-                = this->test_data_path("physics/em", os.str().c_str());
-            std::ifstream infile(filename.c_str());
-            CHECK(infile.is_open());
-
-            // Read tabulated subshell cross sections
-            for (auto& shell : result.shells)
-            {
-                double       min_energy, max_energy;
-                unsigned int size, shell_id;
-                infile >> min_energy >> max_energy >> size >> shell_id;
-                shell.energy.resize(size);
-                shell.xs.resize(size);
-                for (auto i : celeritas::range(size))
-                {
-                    infile >> shell.energy[i] >> shell.xs[i];
-                    shell.xs[i] *= barn;
-                }
-            }
-            infile.close();
-        }
-
-        return result;
-    }
-
     void set_livermore_params(LivermoreParams::Input inp)
     {
         REQUIRE(!inp.elements.empty());
@@ -224,6 +58,7 @@ class PhotoelectricInteractorTest
               ElementaryCharge{-1},
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
+
         const auto& params    = this->particle_params();
         pointers_.electron_id = params.find(pdg::electron());
         pointers_.gamma_id    = params.find(pdg::gamma());
@@ -232,7 +67,9 @@ class PhotoelectricInteractorTest
 
         // Set Livermore photoelectric data
         LivermoreParams::Input li;
-        li.elements.push_back(read_livermore_element(19, ElementDefId{0}));
+        std::string data_path = this->test_data_path("physics/em", "");
+        LivermoreParamsReader read_element_data(data_path.c_str());
+        li.elements.push_back(read_element_data(ElementDefId{0}, 19));
         set_livermore_params(li);
 
         // Set default particle to incident 10 MeV photon
@@ -298,16 +135,17 @@ TEST_F(PhotoelectricInteractorTest, basic)
     // Reserve 4 secondaries
     this->resize_secondaries(4);
 
+    // Sampled element
+    ElementDefId el_id{0};
+
     // Create the interactor
     PhotoelectricInteractor interact(pointers_,
                                      data_,
+                                     el_id,
                                      this->particle_track(),
                                      this->direction(),
                                      this->secondary_allocator());
     RandomEngine&           rng_engine = this->rng();
-
-    // Sampled element
-    ElementDefId el_id{0};
 
     std::vector<double> energy_electron;
     std::vector<double> costheta_electron;
@@ -315,7 +153,7 @@ TEST_F(PhotoelectricInteractorTest, basic)
     // Produce four samples from the original incident energy/dir
     for (int i : celeritas::range(4))
     {
-        Interaction result = interact(rng_engine, el_id);
+        Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
         this->sanity_check(result);
         EXPECT_EQ(result.secondaries.data(),
@@ -339,7 +177,7 @@ TEST_F(PhotoelectricInteractorTest, basic)
 
     // Next sample should fail because we're out of secondary buffer space
     {
-        Interaction result = interact(rng_engine, el_id);
+        Interaction result = interact(rng_engine);
         EXPECT_EQ(0, result.secondaries.size());
         EXPECT_EQ(celeritas::Action::failed, result.action);
     }
@@ -372,6 +210,7 @@ TEST_F(PhotoelectricInteractorTest, stress_test)
             // Create interactor
             PhotoelectricInteractor interact(pointers_,
                                              data_,
+                                             el_id,
                                              this->particle_track(),
                                              this->direction(),
                                              this->secondary_allocator());
@@ -379,7 +218,7 @@ TEST_F(PhotoelectricInteractorTest, stress_test)
             // Loop over many particles
             for (int i = 0; i < num_samples; ++i)
             {
-                Interaction result = interact(rng_engine, el_id);
+                Interaction result = interact(rng_engine);
                 // SCOPED_TRACE(result);
                 this->sanity_check(result);
             }

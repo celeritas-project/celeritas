@@ -19,11 +19,13 @@ namespace celeritas
 CELER_FUNCTION PhotoelectricInteractor::PhotoelectricInteractor(
     const PhotoelectricInteractorPointers& shared,
     const LivermoreParamsPointers&         data,
+    ElementDefId                           el_id,
     const ParticleTrackView&               particle,
     const Real3&                           inc_direction,
     SecondaryAllocatorView&                allocate)
     : shared_(shared)
-    , data_(data)
+    , el_(data.elements[el_id.get()])
+    , el_id_(el_id)
     , inc_direction_(inc_direction)
     , inc_energy_(particle.energy().value())
     , allocate_(allocate)
@@ -41,8 +43,7 @@ CELER_FUNCTION PhotoelectricInteractor::PhotoelectricInteractor(
  * Sample using the Livermore model for the photoelectric effect.
  */
 template<class Engine>
-CELER_FUNCTION Interaction
-PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
+CELER_FUNCTION Interaction PhotoelectricInteractor::operator()(Engine& rng)
 {
     // Allocate space for the single electron to be emitted
     Secondary* photoelectron = this->allocate_(1);
@@ -52,19 +53,16 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
         return Interaction::from_failure();
     }
 
-    // Get the cross section data for the sampled element
-    const LivermoreElement& el = data_.elements[el_id.get()];
-
     // Sample the shell from which the photoelectron is emitted
-    real_type cutoff   = generate_canonical(rng) * calc_micro_xs_(el_id);
-    real_type xs       = 0.;
-    size_type shell_id = 0;
-    do
+    real_type    cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
+    real_type    xs     = 0.;
+    unsigned int shell_id;
+    for (shell_id = 0; shell_id < el_.shells.size() - 1; ++shell_id)
     {
-        const auto& shell = el.shells[shell_id++];
+        const auto& shell = el_.shells[shell_id];
         if (inc_energy_ > shell.binding_energy)
         {
-            if (inc_energy_ < el.thresh_low)
+            if (inc_energy_ < el_.thresh_low)
             {
                 // Use the tabulated subshell cross sections
                 XsCalculator calc_xs(shell.xs);
@@ -73,7 +71,7 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
             else
             {
                 // Use parameterized integrated subshell cross sections
-                const auto& param = inc_energy_ >= el.thresh_high
+                const auto& param = inc_energy_ >= el_.thresh_high
                                         ? shell.param_high
                                         : shell.param_low;
 
@@ -86,9 +84,13 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
                    + inv_energy_ * (param[4] + inv_energy_ * param[5])))));
                 // clang-format on
             }
+
+            if (xs >= cutoff)
+            {
+                break;
+            }
         }
-    } while (xs < cutoff && shell_id != el.shells.size());
-    --shell_id;
+    }
 
     // Construct interaction for change to primary (incident) particle
     Interaction result = Interaction::from_absorption();
@@ -96,7 +98,7 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
     // If the binding energy of the sampled shell is greater than the incident
     // photon energy, no secondaries are produced and the energy is deposited
     // locally.
-    if (el.shells[shell_id].binding_energy > inc_energy_)
+    if (el_.shells[shell_id].binding_energy > inc_energy_)
     {
         return result;
     }
@@ -108,7 +110,7 @@ PhotoelectricInteractor::operator()(Engine& rng, ElementDefId el_id)
     // Electron kinetic energy is the difference between the incident photon
     // energy and the binding energy of the shell
     photoelectron->energy = MevEnergy{
-        inc_energy_.value() - el.shells[shell_id].binding_energy.value()};
+        inc_energy_.value() - el_.shells[shell_id].binding_energy.value()};
 
     // Direction of the emitted photoelectron is sampled from the
     // Sauter-Gavrila distribution

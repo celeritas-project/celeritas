@@ -40,8 +40,8 @@ LivermoreParams::LivermoreParams(Input inp)
     for (const auto& el : inp.elements)
     {
         subshell_size += el.shells.size();
-        data_size += el.xs_low.energy.size() + el.xs_low.value.size()
-                     + el.xs_high.energy.size() + el.xs_high.value.size();
+        data_size += el.xs_low.x.size() + el.xs_low.y.size()
+                     + el.xs_high.x.size() + el.xs_high.y.size();
 
         for (const auto& shell : el.shells)
         {
@@ -140,11 +140,11 @@ void LivermoreParams::append_livermore_element(const ElementInput& inp)
     LivermoreElement result;
 
     // Copy basic properties
-    result.xs_low.energy  = this->extend_data(inp.xs_low.energy);
-    result.xs_low.xs      = this->extend_data(inp.xs_low.value);
+    result.xs_low.energy  = this->extend_data(inp.xs_low.x);
+    result.xs_low.xs      = this->extend_data(inp.xs_low.y);
     result.xs_low.interp  = Interp::linear;
-    result.xs_high.energy = this->extend_data(inp.xs_high.energy);
-    result.xs_high.xs     = this->extend_data(inp.xs_high.value);
+    result.xs_high.energy = this->extend_data(inp.xs_high.x);
+    result.xs_high.xs     = this->extend_data(inp.xs_high.y);
     result.xs_low.interp  = Interp::linear; // TODO: spline
     result.shells         = this->extend_shells(inp);
     result.thresh_low     = inp.thresh_low;

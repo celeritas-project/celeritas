@@ -32,6 +32,7 @@ list(APPEND SOURCES
   comm/Logger.cc
   comm/LoggerTypes.cc
   comm/detail/LoggerMessage.cc
+  io/LivermoreParamsReader.cc
   physics/base/ParticleParams.cc
   physics/base/ParticleStateStore.cc
   physics/base/SecondaryAllocatorStore.cc

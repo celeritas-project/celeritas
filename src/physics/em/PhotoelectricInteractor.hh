@@ -50,14 +50,14 @@ class PhotoelectricInteractor
     inline CELER_FUNCTION
     PhotoelectricInteractor(const PhotoelectricInteractorPointers& shared,
                             const LivermoreParamsPointers&         data,
+                            ElementDefId                           el_id,
                             const ParticleTrackView&               particle,
                             const Real3&            inc_direction,
                             SecondaryAllocatorView& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
-    inline CELER_FUNCTION Interaction operator()(Engine&      rng,
-                                                 ElementDefId el_id);
+    inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
     //// COMMON PROPERTIES ////
 
@@ -77,7 +77,9 @@ class PhotoelectricInteractor
     // Shared constant physics properties
     const PhotoelectricInteractorPointers& shared_;
     // Livermore EPICS2014 photoelectric cross section data
-    const LivermoreParamsPointers& data_;
+    const LivermoreElement& el_;
+    // Index in MaterialParams/LivermoreParams elements
+    ElementDefId el_id_;
     // Incident direction
     const Real3& inc_direction_;
     // Incident gamma energy

@@ -41,7 +41,7 @@ class XsCalculator
 
   public:
     // Construct from state-independent data
-    explicit CELER_FUNCTION XsCalculator(const ValueGrid& data);
+    explicit inline CELER_FUNCTION XsCalculator(const ValueGrid& data);
 
     // Find and interpolate basesd on the particle track's current energy
     inline CELER_FUNCTION real_type operator()(const real_type energy) const;

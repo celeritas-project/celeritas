@@ -37,8 +37,7 @@ real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
     // In Geant4, if the incident gamma energy is below the lowest binding
     // energy, it is set to the binding energy so that the photoelectric cross
     // section is constant rather than zero for low energy gammas.
-    MevEnergy energy
-        = max(inc_energy_, el.shells[el.shells.size() - 1].binding_energy);
+    MevEnergy energy     = max(inc_energy_, el.shells.back().binding_energy);
     real_type inv_energy = 1. / energy.value();
 
     real_type result = 0.;
@@ -46,7 +45,7 @@ real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
     {
         // Fit parameters from the final shell are used to calculate the cross
         // section integrated over all subshells
-        const auto& shell = el.shells[el.shells.size() - 1];
+        const auto& shell = el.shells.back();
         const auto& param = energy >= el.thresh_high ? shell.param_high
                                                      : shell.param_low;
 
@@ -58,7 +57,7 @@ real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
             + inv_energy * (param[4] + inv_energy * param[5])))));
         // clang-format on
     }
-    else if (energy >= el.shells[0].binding_energy)
+    else if (energy >= el.shells.front().binding_energy)
     {
         // Use tabulated cross sections above K-shell energy but below energy
         // limit for parameterization
