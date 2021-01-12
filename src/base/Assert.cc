@@ -26,6 +26,23 @@ bool determine_verbose_message()
     return std::getenv("CELER_LOG") != nullptr;
 #endif
 }
+
+//---------------------------------------------------------------------------//
+const char* to_cstring(DebugErrorType which)
+{
+    switch (which)
+    {
+        case DebugErrorType::precondition:
+            return "precondition failed";
+        case DebugErrorType::internal:
+            return "internal assertion failed";
+        case DebugErrorType::unreachable:
+            return "unreachable code point";
+        case DebugErrorType::postcondition:
+            return "postcondition failed";
+    }
+    return "";
+}
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -41,17 +58,22 @@ RuntimeError::RuntimeError(const std::string& msg) : std::runtime_error(msg) {}
 /*!
  * Construct a debug assertion message and throw.
  */
-[[noreturn]] void
-throw_debug_error(const char* condition, const char* file, int line)
+[[noreturn]] void throw_debug_error(DebugErrorType which,
+                                    const char*    condition,
+                                    const char*    file,
+                                    int            line)
 {
     std::ostringstream msg;
     // clang-format off
     msg << color_code('W') << file << ':' << line << ':'
         << color_code(' ') << "\nceleritas: "
-        << color_code('R') << "assertion: "
-        << color_code('x') << condition
-        << color_code(' ');
+        << color_code('R') << to_cstring(which);
     // clang-format on
+    if (which != DebugErrorType::unreachable)
+    {
+        msg << ": " << color_code('x') << condition;
+    }
+    msg << color_code(' ');
     throw DebugError(msg.str());
 }
 
