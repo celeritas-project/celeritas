@@ -22,9 +22,13 @@
  * regular \c CELER_LOG call is for code paths that happen uniformly in
  * parallel.
  *
+ * The logger will only format and print messages. It is not responsible
+ * for cleaning up the state or exiting an app.
+ *
  * \code
  CELER_LOG(debug) << "Don't print this in general";
- CELER_LOG(warning) << "Oh shiiiiit";
+ CELER_LOG(warning) << "You may want to reconsider your life choices";
+ CELER_LOG(critical) << "Caught a fatal exception: " << e.what();
  * \endcode
  */
 #define CELER_LOG(LEVEL)                              \

@@ -24,8 +24,8 @@ enum class LogLevel
     status,     //!< Program execution status (what stage is beginning)
     info,       //!< Important informational messages
     warning,    //!< Warnings about unusual events
-    error,      //!< Something went wrong, but execution continues
-    critical,   //!< Something went terribly wrong; we're aborting now! Bye!
+    error,      //!< Something went wrong, but execution can continue
+    critical,   //!< Something went terribly wrong, should probably abort
     size_       //!< Sentinel value for looping over log levels
 };
 
