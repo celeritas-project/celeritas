@@ -15,9 +15,10 @@ using celeritas::SoftEqual;
 using celeritas::SoftZero;
 
 //---------------------------------------------------------------------------//
+
 TEST(SoftEqual, default_precisions)
 {
-    using Comp_t = SoftEqual<double, double>;
+    using Comp_t = SoftEqual<>;
 
     EXPECT_DOUBLE_EQ(1e-12, Comp_t().rel());
     EXPECT_DOUBLE_EQ(1e-14, Comp_t().abs());
@@ -46,11 +47,12 @@ TYPED_TEST_SUITE(FloatingTest, FloatTypes, );
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
 TYPED_TEST(FloatingTest, soft_equal)
 {
     using value_type = typename TestFixture::value_type;
     using Limits_t   = typename TestFixture::Limits_t;
-    using Comp_t     = SoftEqual<value_type, value_type>;
+    using Comp_t     = SoftEqual<value_type>;
 
     Comp_t comp;
 
@@ -94,7 +96,6 @@ TYPED_TEST(FloatingTest, soft_equal)
     EXPECT_FALSE(comp(inf, maxval));
 }
 
-//---------------------------------------------------------------------------//
 TYPED_TEST(FloatingTest, soft_zero)
 {
     using value_type = typename TestFixture::value_type;
@@ -125,35 +126,4 @@ TYPED_TEST(FloatingTest, soft_zero)
     const value_type inf = Limits_t::infinity();
     EXPECT_FALSE(comp(inf));
     EXPECT_FALSE(comp(-inf));
-}
-
-//---------------------------------------------------------------------------//
-// Test fixture
-//---------------------------------------------------------------------------//
-template<typename PairT>
-class MixedTest : public celeritas::Test
-{
-  protected:
-    using Comp_t
-        = SoftEqual<typename PairT::first_type, typename PairT::second_type>;
-    using value_type = typename Comp_t::value_type;
-    using Limits_t   = std::numeric_limits<value_type>;
-};
-
-using MixedTypes
-    = ::testing::Types<std::pair<float, double>, std::pair<double, float>>;
-TYPED_TEST_SUITE(MixedTest, MixedTypes, );
-
-//---------------------------------------------------------------------------//
-TYPED_TEST(MixedTest, comparison)
-{
-    using value_type = typename TestFixture::value_type;
-    using Comp_t     = typename TestFixture::Comp_t;
-
-    Comp_t comp;
-
-    // Check types
-    EXPECT_STREQ(typeid(float).name(), typeid(value_type).name());
-    EXPECT_FLOAT_EQ(1.e-6, comp.rel());
-    EXPECT_FLOAT_EQ(1.e-8, comp.abs());
 }
