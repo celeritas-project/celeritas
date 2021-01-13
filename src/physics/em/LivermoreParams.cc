@@ -7,14 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "LivermoreParams.hh"
 
-#include <algorithm>
 #include <cmath>
 #include <numeric>
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "base/SpanRemapper.hh"
 #include "comm/Device.hh"
-#include "comm/Logger.hh"
 
 namespace celeritas
 {
@@ -22,16 +20,9 @@ namespace celeritas
 /*!
  * Construct from a vector of element identifiers.
  */
-LivermoreParams::LivermoreParams(Input inp)
+LivermoreParams::LivermoreParams(const Input& inp)
 {
     REQUIRE(!inp.elements.empty());
-
-    // Sort elements by increasing element ID
-    std::sort(inp.elements.begin(),
-              inp.elements.end(),
-              [](const ElementInput& lhs, const ElementInput& rhs) {
-                  return lhs.el_id < rhs.el_id;
-              });
 
     // Reserve host space (MUST reserve subshells and cross section data to
     // avoid invalidating spans).

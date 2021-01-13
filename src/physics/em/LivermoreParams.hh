@@ -29,7 +29,7 @@ class LivermoreParams
 
     struct SubshellInput
     {
-        units::MevEnergy       binding_energy; //!< Ionization energy
+        MevEnergy              binding_energy; //!< Ionization energy
         std::vector<real_type> param_low;  //!< Low energy xs fit parameters
         std::vector<real_type> param_high; //!< High energy xs fit parameters
         std::vector<real_type> xs;         //!< Tabulated cross sections
@@ -38,11 +38,13 @@ class LivermoreParams
 
     struct ElementInput
     {
-        ElementDefId        el_id;      //!< Index in MaterialParams elements
-        ImportPhysicsVector xs_low;     //!< Low energy range tabulated xs
-        ImportPhysicsVector xs_high;    //!< High energy range tabulated xs
-        units::MevEnergy    thresh_low; //!< Threshold for using low energy fit
-        units::MevEnergy thresh_high; //!< Threshold for using high energy fit
+        using EnergyUnits = units::Mev;
+        using XsUnits     = units::Barn;
+
+        ImportPhysicsVector xs_low;      //!< Low energy range tabulated xs
+        ImportPhysicsVector xs_high;     //!< High energy range tabulated xs
+        MevEnergy           thresh_low;  //!< Threshold for low energy fit
+        MevEnergy           thresh_high; //!< Threshold for high energy fit
         std::vector<SubshellInput> shells;
     };
 
@@ -53,7 +55,7 @@ class LivermoreParams
 
   public:
     // Construct with a vector of element identifiers
-    explicit LivermoreParams(Input inp);
+    explicit LivermoreParams(const Input& inp);
 
     // Access Livermore data on the host
     LivermoreParamsPointers host_pointers() const;

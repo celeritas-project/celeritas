@@ -69,7 +69,7 @@ class PhotoelectricInteractorTest
         LivermoreParams::Input li;
         std::string data_path = this->test_data_path("physics/em", "");
         LivermoreParamsReader read_element_data(data_path.c_str());
-        li.elements.push_back(read_element_data(ElementDefId{0}, 19));
+        li.elements.push_back(read_element_data(19));
         set_livermore_params(li);
 
         // Set default particle to incident 10 MeV photon

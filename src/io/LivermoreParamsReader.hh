@@ -25,20 +25,18 @@ class LivermoreParamsReader
     //!@}
 
   public:
-    // Construct the reader
-    explicit LivermoreParamsReader(const char* path = nullptr);
+    // Construct the reader and locate the data using the environment variable
+    LivermoreParamsReader();
+
+    // Construct the reader from the path to the data directory
+    explicit LivermoreParamsReader(const char* path);
 
     // Read the data for the given element
-    result_type operator()(ElementDefId el_id, int atomic_number);
+    result_type operator()(int atomic_number);
 
   private:
     // Directory containing the Livermore photoelectric data
     std::string path_;
-
-    // HELPER FUNCTIONS
-
-    // Whether the file exists
-    bool file_exists(const std::string& filename);
 };
 
 //---------------------------------------------------------------------------//
