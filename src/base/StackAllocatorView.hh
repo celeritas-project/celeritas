@@ -68,8 +68,6 @@ class StackAllocatorView
     using value_type      = T;
     using size_type       = ull_int;
     using result_type     = value_type*;
-    using const_span_type = Span<const value_type>;
-    using span_type       = Span<value_type>;
     using Pointers        = StackAllocatorPointers<T>;
     //!@}
 
@@ -84,8 +82,8 @@ class StackAllocatorView
     inline CELER_FUNCTION size_type capacity() const;
 
     // View all allocated data
-    inline CELER_FUNCTION span_type       get();
-    inline CELER_FUNCTION const_span_type get() const;
+    inline CELER_FUNCTION Span<value_type> get();
+    inline CELER_FUNCTION Span<const value_type> get() const;
 
   private:
     const Pointers& shared_;

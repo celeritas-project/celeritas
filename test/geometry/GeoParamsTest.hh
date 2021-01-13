@@ -11,36 +11,33 @@
 
 #include "geometry/GeoParams.hh"
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
 namespace celeritas_test
 {
-using namespace celeritas;
+//---------------------------------------------------------------------------//
 
 class GeoParamsTest : public celeritas::Test
 {
   protected:
-    using SptrConstParams = std::shared_ptr<const GeoParams>;
+    using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
 
     static void SetUpTestCase()
     {
         std::string test_file
             = celeritas::Test::test_data_path("geometry", "twoBoxes.gdml");
-        geom_ = std::make_shared<GeoParams>(test_file.c_str());
+        geom_ = std::make_shared<celeritas::GeoParams>(test_file.c_str());
     }
 
     static void TearDownTestCase() { geom_.reset(); }
 
-    const SptrConstParams& params()
+    const SPConstGeo& params()
     {
         ENSURE(geom_);
         return geom_;
     }
 
   private:
-    static SptrConstParams geom_;
+    static SPConstGeo geom_;
 };
 
+//---------------------------------------------------------------------------//
 } // namespace celeritas_test

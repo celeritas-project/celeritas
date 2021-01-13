@@ -8,5 +8,11 @@
 
 #include "GeoParamsTest.hh"
 
-celeritas_test::GeoParamsTest::SptrConstParams celeritas_test::GeoParamsTest::geom_
-    = nullptr;
+namespace celeritas_test
+{
+//---------------------------------------------------------------------------//
+
+GeoParamsTest::SPConstGeo GeoParamsTest::geom_ = nullptr;
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas_test

@@ -24,20 +24,20 @@ class EventReader
   public:
     //!@{
     //! Type aliases
-    using constSPParticleParams = std::shared_ptr<const ParticleParams>;
+    using SPConstParticles      = std::shared_ptr<const ParticleParams>;
     using result_type           = std::vector<Primary>;
     //!@}
 
   public:
     // Construct from a filename
-    explicit EventReader(const char* filename, constSPParticleParams params);
+    explicit EventReader(const char* filename, SPConstParticles params);
 
     // Generate primary particles from the event record
     result_type operator()();
 
   private:
     // Shared standard model particle data
-    constSPParticleParams params_;
+    SPConstParticles params_;
 
     // HepMC3 event record reader
     std::shared_ptr<HepMC3::Reader> input_file_;

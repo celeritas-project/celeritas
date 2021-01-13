@@ -91,7 +91,7 @@ CELER_FUNCTION auto StackAllocatorView<T>::capacity() const -> size_type
  * This cannot be called while any running kernel could be modifiying the size.
  */
 template<class T>
-CELER_FUNCTION auto StackAllocatorView<T>::get() -> span_type
+CELER_FUNCTION auto StackAllocatorView<T>::get() -> Span<value_type>
 {
     REQUIRE(*shared_.size <= this->capacity());
     return {shared_.storage.data(), *shared_.size};
@@ -104,7 +104,8 @@ CELER_FUNCTION auto StackAllocatorView<T>::get() -> span_type
  * This cannot be called while any running kernel could be modifiying the size.
  */
 template<class T>
-CELER_FUNCTION auto StackAllocatorView<T>::get() const -> const_span_type
+CELER_FUNCTION auto StackAllocatorView<T>::get() const
+    -> Span<const value_type>
 {
     REQUIRE(*shared_.size <= this->capacity());
     return {shared_.storage.data(), *shared_.size};

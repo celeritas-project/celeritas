@@ -25,7 +25,6 @@ class HostStackAllocatorStore
     using value_type      = T;
     using Pointers        = celeritas::StackAllocatorPointers<T>;
     using size_type       = typename Pointers::size_type;
-    using const_span_type = celeritas::Span<const value_type>;
     //!@}
 
   public:
@@ -41,7 +40,10 @@ class HostStackAllocatorStore
     }
 
     //! Access allocated data
-    const_span_type get() const { return {storage_.data(), size_}; }
+    celeritas::Span<const value_type> get() const
+    {
+        return {storage_.data(), size_};
+    }
 
     //! Access host pointers
     const Pointers& host_pointers() const { return pointers_; }

@@ -13,7 +13,7 @@
 #    include <VecGeom/management/CudaManager.h>
 #endif
 
-// using namespace celeritas;
+using celeritas::VolumeId;
 using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
@@ -30,7 +30,7 @@ class GeoParamsHostTest : public GeoParamsTest
     }
 
     // Views
-    GeoParamsPointers host_view;
+    celeritas::GeoParamsPointers host_view;
 };
 
 //---------------------------------------------------------------------------//
