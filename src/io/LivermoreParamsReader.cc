@@ -20,12 +20,9 @@ namespace celeritas
 LivermoreParamsReader::LivermoreParamsReader()
 {
     const char* env_var = std::getenv("G4LEDATA");
-    if (!env_var)
-    {
-        INSIST(env_var, "Environment variable G4LEDATA is not defined.");
-    }
+    INSIST(env_var, "Environment variable G4LEDATA is not defined.");
     std::ostringstream os;
-    os << env_var << "/livermore/phot_epics2014/";
+    os << env_var << "/livermore/phot_epics2014";
     path_ = os.str();
 }
 
@@ -33,11 +30,13 @@ LivermoreParamsReader::LivermoreParamsReader()
 /*!
  * Construct the reader with the path to the directory containing the data.
  */
-LivermoreParamsReader::LivermoreParamsReader(const char* path)
+LivermoreParamsReader::LivermoreParamsReader(const char* path) : path_(path)
 {
-    std::ostringstream os;
-    os << path << "/";
-    path_ = os.str();
+    REQUIRE(!path_.empty());
+    if (path_.back() == '/')
+    {
+        path_.pop_back();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -45,7 +44,7 @@ LivermoreParamsReader::LivermoreParamsReader(const char* path)
  * Read the data for the given elements.
  */
 LivermoreParamsReader::result_type
-LivermoreParamsReader::operator()(int atomic_number)
+LivermoreParamsReader::operator()(int atomic_number) const
 {
     REQUIRE(atomic_number > 0 && atomic_number < 101);
 
@@ -55,7 +54,7 @@ LivermoreParamsReader::operator()(int atomic_number)
     // Read photoelectric effect total cross section above K-shell energy but
     // below energy limit for parameterization
     {
-        std::string   filename = path_ + "pe-cs-" + Z + ".dat";
+        std::string   filename = path_ + "/pe-cs-" + Z + ".dat";
         std::ifstream infile(filename);
         INSIST(infile, "Couldn't open '" << filename << "'");
 
@@ -78,7 +77,7 @@ LivermoreParamsReader::operator()(int atomic_number)
 
     // Read photoelectric effect total cross section below K-shell energy
     {
-        std::string   filename = path_ + "pe-le-cs-" + Z + ".dat";
+        std::string   filename = path_ + "/pe-le-cs-" + Z + ".dat";
         std::ifstream infile(filename);
         INSIST(infile, "Couldn't open '" << filename << "'");
 
@@ -105,7 +104,7 @@ LivermoreParamsReader::operator()(int atomic_number)
 
     // Read subshell cross section fit parameters in low energy interval
     {
-        std::string   filename = path_ + "pe-low-" + Z + ".dat";
+        std::string   filename = path_ + "/pe-low-" + Z + ".dat";
         std::ifstream infile(filename);
         INSIST(infile, "Couldn't open '" << filename << "'");
 
@@ -134,7 +133,7 @@ LivermoreParamsReader::operator()(int atomic_number)
 
     // Read subshell cross section fit parameters in high energy interval
     {
-        std::string   filename = path_ + "pe-high-" + Z + ".dat";
+        std::string   filename = path_ + "/pe-high-" + Z + ".dat";
         std::ifstream infile(filename);
         INSIST(infile, "Couldn't open '" << filename << "'");
 
@@ -163,7 +162,7 @@ LivermoreParamsReader::operator()(int atomic_number)
 
     // Read tabulated subshell cross sections
     {
-        std::string   filename = path_ + "pe-ss-cs-" + Z + ".dat";
+        std::string   filename = path_ + "/pe-ss-cs-" + Z + ".dat";
         std::ifstream infile(filename);
         INSIST(infile, "Couldn't open '" << filename << "'");
 

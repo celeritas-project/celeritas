@@ -72,8 +72,8 @@ class PhotoelectricInteractorTest
         li.elements.push_back(read_element_data(19));
         set_livermore_params(li);
 
-        // Set default particle to incident 10 MeV photon
-        this->set_inc_particle(pdg::gamma(), MevEnergy{10});
+        // Set default particle to incident 1 keV photon
+        this->set_inc_particle(pdg::gamma(), MevEnergy{0.001});
         this->set_inc_direction({0, 0, 1});
 
         // Set up shared material data
@@ -169,9 +169,9 @@ TEST_F(PhotoelectricInteractorTest, basic)
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy_electron[]
-        = {9.9964167, 9.9964167, 9.9964167, 9.9964167};
-    const double expected_costheta_electron[]
-        = {0.9989507514765, 0.9309974252831, 0.9901365221334, 0.9971118554745};
+        = {0.00062884, 0.00062884, 0.00070136, 0.00069835};
+    const double expected_costheta_electron[] = {
+        0.1217302869581, 0.8769397871407, -0.1414717733267, -0.2414106440617};
     EXPECT_VEC_SOFT_EQ(expected_energy_electron, energy_electron);
     EXPECT_VEC_SOFT_EQ(expected_costheta_electron, costheta_electron);
 

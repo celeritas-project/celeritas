@@ -32,7 +32,7 @@ class LivermoreParamsReader
     explicit LivermoreParamsReader(const char* path);
 
     // Read the data for the given element
-    result_type operator()(int atomic_number);
+    result_type operator()(int atomic_number) const;
 
   private:
     // Directory containing the Livermore photoelectric data
