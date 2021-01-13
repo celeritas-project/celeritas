@@ -36,7 +36,7 @@ namespace celeritas
     {
         temp_device_obj[i].subspan = remap_span(host_obj[i].subspan);
     }
-    device_obj.copy_to_device(make_range(temp_device_obj));
+    device_obj.copy_to_device(make_span(temp_device_obj));
    \endcode
  *
  * The extra templating (rather than using T == U == V) simplifies conversions

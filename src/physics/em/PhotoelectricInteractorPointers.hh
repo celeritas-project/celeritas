@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermoreInteractorPointers.hh
+//! \file PhotoelectricInteractorPointers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,20 +14,21 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating an interactor.
+ * Device data for creating a PhotoelectricInteractor.
  */
-struct LivermoreInteractorPointers
+struct PhotoelectricInteractorPointers
 {
+    //! 1 / electron mass [1 / MevMass]
+    real_type inv_electron_mass;
     //! ID of an electron
     ParticleDefId electron_id;
     //! ID of a gamma
     ParticleDefId gamma_id;
-    // XXX additional data
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return electron_id && gamma_id; // XXX
+        return electron_id && gamma_id;
     }
 };
 

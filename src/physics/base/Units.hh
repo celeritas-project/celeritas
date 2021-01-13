@@ -56,6 +56,16 @@ struct Amu
     }
 };
 
+//! Unit for cross sections
+struct Barn
+{
+    //! Conversion factor from the unit to CGS
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return 1e-24 * units::centimeter * units::centimeter;
+    }
+};
+
 //! Unit for converting mass to an energy-valued quantity
 using CLightSq = UnitProduct<CLight, CLight>;
 
