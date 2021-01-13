@@ -50,8 +50,12 @@ class MaterialTrackView
     inline CELER_FUNCTION MaterialTrackView&
                           operator=(const Initializer_t& other);
 
+    //// DYNAMIC PROPERTIES (pure accessors, free) ////
+
     // Current material identifier
     inline CELER_FUNCTION MaterialDefId def_id() const;
+
+    //// STATIC PROPERTIES ////
 
     // Get a view to material properties
     inline CELER_FUNCTION MaterialView material_view() const;
@@ -62,7 +66,7 @@ class MaterialTrackView
   private:
     const MaterialParamsPointers& params_;
     const MaterialStatePointers&  states_;
-    ThreadId                      tid_;
+    const ThreadId                tid_;
 
     inline CELER_FUNCTION MaterialTrackState& state() const;
 };

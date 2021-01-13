@@ -3,7 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Assert.hh
+/*! \file Assert.hh
+ *  \brief Macros, exceptions, and helpers for assertions and error handling.
+ */
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -190,11 +192,9 @@ enum class DebugErrorType
 class DebugError : public std::logic_error
 {
   public:
-    //!@{
-    //! Delegating constructor
+    // Delegating constructors
     explicit DebugError(const char* msg);
     explicit DebugError(const std::string& msg);
-    //!@}
 };
 
 //---------------------------------------------------------------------------//
@@ -204,11 +204,9 @@ class DebugError : public std::logic_error
 class RuntimeError : public std::runtime_error
 {
   public:
-    //!@{
-    //! Delegating constructor
+    // Delegating constructor
     explicit RuntimeError(const char* msg);
     explicit RuntimeError(const std::string& msg);
-    //!@}
 };
 
 #endif //__CUDA_ARCH__

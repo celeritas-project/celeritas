@@ -34,15 +34,12 @@ struct GeoStatePointers
     Real3*     dir       = nullptr;
     real_type* next_step = nullptr;
 
-    //! Check whether the interface is initialized
+    //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        REQUIRE(this->valid());
-        return bool(size);
+        return bool(size) && bool(vgmaxdepth) && bool(vgstate) && bool(vgnext)
+               && bool(pos) && bool(dir) && bool(next_step);
     }
-
-    // Whether the interface is valid
-    inline CELER_FUNCTION bool valid() const;
 };
 
 //! Data required to initialize a geometry state
@@ -51,28 +48,6 @@ struct GeoStateInitializer
     Real3 pos;
     Real3 dir;
 };
-
-//---------------------------------------------------------------------------//
-// MEMBER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Check whether the state is consistently assigned.
- *
- * This is called as part of the bool operator, which should be checked as part
- * of an assertion immediately before launching a kernel and when returning a
- * state.
- */
-CELER_FUNCTION bool GeoStatePointers::valid() const
-{
-    // clang-format off
-    return    bool(size) == bool(vgmaxdepth)
-           && bool(size) == bool(vgstate)
-           && bool(size) == bool(vgnext)
-           && bool(size) == bool(pos)
-           && bool(size) == bool(dir)
-           && bool(size) == bool(next_step);
-    // clang-format on
-}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
