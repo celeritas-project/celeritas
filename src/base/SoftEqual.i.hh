@@ -14,8 +14,8 @@ namespace celeritas
 /*!
  * Construct with default relative/absolute precision.
  */
-template<class T>
-CELER_FUNCTION SoftEqual<T>::SoftEqual()
+template<class RealType>
+CELER_FUNCTION SoftEqual<RealType>::SoftEqual()
     : SoftEqual(traits_t::rel_prec(), traits_t::abs_thresh())
 {
 }
@@ -24,8 +24,8 @@ CELER_FUNCTION SoftEqual<T>::SoftEqual()
 /*!
  * Construct with scaled absolute precision.
  */
-template<class T>
-CELER_FUNCTION SoftEqual<T>::SoftEqual(value_type rel)
+template<class RealType>
+CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel)
     : SoftEqual(rel, rel * (traits_t::abs_thresh() / traits_t::rel_prec()))
 {
     REQUIRE(rel > 0);
@@ -35,8 +35,8 @@ CELER_FUNCTION SoftEqual<T>::SoftEqual(value_type rel)
 /*!
  * Construct with both relative and absolute precision.
  */
-template<class T>
-CELER_FUNCTION SoftEqual<T>::SoftEqual(value_type rel, value_type abs)
+template<class RealType>
+CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel, value_type abs)
     : rel_(rel), abs_(abs)
 {
     REQUIRE(rel > 0);
@@ -53,9 +53,9 @@ CELER_FUNCTION SoftEqual<T>::SoftEqual(value_type rel, value_type abs)
  * \param expected scalar floating point reference to which value is compared
  * \param actual   scalar floating point value
  */
-template<class T>
+template<class RealType>
 CELER_FUNCTION bool
-SoftEqual<T>::operator()(value_type expected, value_type actual) const
+SoftEqual<RealType>::operator()(value_type expected, value_type actual) const
 {
     const value_type abs_e = std::fabs(expected);
 
@@ -92,8 +92,9 @@ SoftEqual<T>::operator()(value_type expected, value_type actual) const
 /*!
  * Construct with default relative/absolute precision.
  */
-template<class T>
-CELER_FUNCTION SoftZero<T>::SoftZero() : SoftZero(traits_t::abs_thresh())
+template<class RealType>
+CELER_FUNCTION SoftZero<RealType>::SoftZero()
+    : SoftZero(traits_t::abs_thresh())
 {
 }
 
@@ -101,8 +102,8 @@ CELER_FUNCTION SoftZero<T>::SoftZero() : SoftZero(traits_t::abs_thresh())
 /*!
  * Construct with default absolute precision.
  */
-template<class T>
-CELER_FUNCTION SoftZero<T>::SoftZero(value_type abs) : abs_(abs)
+template<class RealType>
+CELER_FUNCTION SoftZero<RealType>::SoftZero(value_type abs) : abs_(abs)
 {
     REQUIRE(abs > 0);
 }
@@ -113,8 +114,8 @@ CELER_FUNCTION SoftZero<T>::SoftZero(value_type abs) : abs_(abs)
  *
  * \param actual scalar floating point value
  */
-template<class T>
-CELER_FUNCTION bool SoftZero<T>::operator()(value_type actual) const
+template<class RealType>
+CELER_FUNCTION bool SoftZero<RealType>::operator()(value_type actual) const
 {
     return std::fabs(actual) < abs_;
 }
