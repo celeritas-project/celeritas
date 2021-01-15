@@ -147,6 +147,7 @@ TEST_F(PhotoelectricInteractorTest, basic)
 
     std::vector<double> energy_electron;
     std::vector<double> costheta_electron;
+    std::vector<double> energy_deposition;
 
     // Produce four samples from the original incident energy/dir
     for (int i : celeritas::range(4))
@@ -161,6 +162,7 @@ TEST_F(PhotoelectricInteractorTest, basic)
         energy_electron.push_back(result.secondaries.front().energy.value());
         costheta_electron.push_back(celeritas::dot_product(
             result.secondaries.front().direction, this->direction()));
+        energy_deposition.push_back(result.energy_deposition.value());
     }
 
     EXPECT_EQ(4, this->secondary_allocator().get().size());
@@ -170,8 +172,11 @@ TEST_F(PhotoelectricInteractorTest, basic)
         = {0.00062884, 0.00062884, 0.00070136, 0.00069835};
     const double expected_costheta_electron[] = {
         0.1217302869581, 0.8769397871407, -0.1414717733267, -0.2414106440617};
+    const double expected_energy_deposition[]
+        = {0.00037116, 0.00037116, 0.00029864, 0.00030165};
     EXPECT_VEC_SOFT_EQ(expected_energy_electron, energy_electron);
     EXPECT_VEC_SOFT_EQ(expected_costheta_electron, costheta_electron);
+    EXPECT_VEC_SOFT_EQ(expected_energy_deposition, energy_deposition);
 
     // Next sample should fail because we're out of secondary buffer space
     {
