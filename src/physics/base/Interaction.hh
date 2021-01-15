@@ -17,10 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Change in state to a particle during an interaction.
- *
- * TODO: we might also need local energy deposition for some inelastic
- * processes/models. (?)
+ * Change in state due to an interaction.
  */
 struct Interaction
 {
@@ -28,6 +25,7 @@ struct Interaction
     units::MevEnergy energy;      //!< Post-interaction energy
     Real3            direction;   //!< Post-interaction direction
     Span<Secondary>  secondaries; //!< Emitted secondaries
+    units::MevEnergy energy_deposition; //!< Energy loss locally to material
 
     // Return an interaction representing a recoverable error
     static inline CELER_FUNCTION Interaction from_failure();

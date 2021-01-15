@@ -113,10 +113,8 @@ class PhotoelectricInteractorTest
         }
 
         // Check conservation between primary and secondaries
-        // TODO: atomic relaxation has not been implemented. If the binding
-        // energy of the sampled shell is larger than the incident photon
-        // energy, or there is an energy balance following atomic deexcitation,
-        // the energy will be deposited locally.
+        // Since momentum is transferred to the atom, we don't expect it to be
+        // conserved between the incoming and outgoing particles
         // this->check_conservation(interaction);
     }
 
