@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "Test.hh"
 
+#include <algorithm>
 #include <cctype>
 #include <fstream>
 #include "base/Assert.hh"
