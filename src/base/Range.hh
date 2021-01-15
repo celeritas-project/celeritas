@@ -41,7 +41,7 @@ namespace celeritas
 /*!
  * Return a range over fixed beginning and end values.
  */
-template<typename T>
+template<class T>
 CELER_FUNCTION detail::FiniteRange<T> range(T begin, T end)
 {
     return {begin, end};
@@ -51,7 +51,7 @@ CELER_FUNCTION detail::FiniteRange<T> range(T begin, T end)
 /*!
  * Return a range with the default start value (0 for numeric types)
  */
-template<typename T>
+template<class T>
 CELER_FUNCTION detail::FiniteRange<T> range(T end)
 {
     return {T(), end};
@@ -61,7 +61,7 @@ CELER_FUNCTION detail::FiniteRange<T> range(T end)
 /*!
  * Count upward from zero.
  */
-template<typename T>
+template<class T>
 CELER_FUNCTION detail::InfiniteRange<T> count()
 {
     return {T()};
@@ -71,7 +71,7 @@ CELER_FUNCTION detail::InfiniteRange<T> count()
 /*!
  * Count upward from a value.
  */
-template<typename T>
+template<class T>
 CELER_FUNCTION detail::InfiniteRange<T> count(T begin)
 {
     return {begin};

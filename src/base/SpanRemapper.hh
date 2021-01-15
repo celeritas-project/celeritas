@@ -43,7 +43,7 @@ namespace celeritas
  * between const and non-const types, as well as (potentially) device pointers
  * and non-device.
  */
-template<typename T, typename U>
+template<class T, class U>
 class SpanRemapper
 {
   public:
@@ -58,7 +58,7 @@ class SpanRemapper
     inline SpanRemapper(src_type src_span, dst_type dst_span);
 
     // Convert a subspan of the "source" to a corresponding subspan in "dst"
-    template<typename V>
+    template<class V>
     inline auto operator()(Span<V> src_subspan) const -> dst_type;
 
   private:
@@ -68,7 +68,7 @@ class SpanRemapper
 
 //---------------------------------------------------------------------------//
 //! Helper function for creating a span mapper.
-template<typename T, typename U>
+template<class T, class U>
 inline SpanRemapper<T, U> make_span_remapper(Span<T> src, Span<U> dst)
 {
     return SpanRemapper<T, U>{src, dst};

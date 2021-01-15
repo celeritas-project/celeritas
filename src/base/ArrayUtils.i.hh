@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Increment a vector by another vector multiplied by a scalar.
  */
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 CELER_FUNCTION void axpy(T a, const Array<T, N>& x, Array<T, N>* y)
 {
     for (std::size_t i = 0; i != N; ++i)
@@ -29,7 +29,7 @@ CELER_FUNCTION void axpy(T a, const Array<T, N>& x, Array<T, N>* y)
 /*!
  * Dot product of two vectors.
  */
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 CELER_FUNCTION T dot_product(const Array<T, N>& x, const Array<T, N>& y)
 {
     T result{};
@@ -44,7 +44,7 @@ CELER_FUNCTION T dot_product(const Array<T, N>& x, const Array<T, N>& y)
 /*!
  * Cross product of two space vectors.
  */
-template<typename T>
+template<class T>
 CELER_FUNCTION Array<T, 3>
                cross_product(const Array<T, 3>& A, const Array<T, 3>& B)
 {
@@ -57,7 +57,7 @@ CELER_FUNCTION Array<T, 3>
 /*!
  * Calculate the Euclidian (2) norm of a vector.
  */
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 CELER_FUNCTION T norm(const Array<T, N>& v)
 {
     return std::sqrt(dot_product(v, v));
@@ -187,7 +187,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
   REQUIRE(is_soft_unit_vector(v, SoftEqual(1e-12)))
   \endcode
  */
-template<typename T, std::size_t N, class SoftEq>
+template<class T, std::size_t N, class SoftEq>
 CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v, SoftEq cmp)
 {
     return cmp(T(1), dot_product(v, v));

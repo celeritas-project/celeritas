@@ -17,14 +17,14 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<typename T, typename Enable = void>
+template<class T, class Enable = void>
 struct range_type_traits
 {
     using value_type   = T;
     using counter_type = T;
 };
 
-template<typename T>
+template<class T>
 struct range_type_traits<T, typename std::enable_if<std::is_enum<T>::value>::type>
 {
     using value_type   = T;
@@ -32,7 +32,7 @@ struct range_type_traits<T, typename std::enable_if<std::is_enum<T>::value>::typ
 };
 
 //---------------------------------------------------------------------------//
-template<typename T>
+template<class T>
 class range_iter : public std::iterator<std::input_iterator_tag, T>
 {
   public:
@@ -93,7 +93,7 @@ class range_iter : public std::iterator<std::input_iterator_tag, T>
 };
 
 //---------------------------------------------------------------------------//
-template<typename T>
+template<class T>
 class inf_range_iter : public range_iter<T>
 {
     using Base = range_iter<T>;
@@ -113,7 +113,7 @@ class inf_range_iter : public range_iter<T>
 };
 
 //---------------------------------------------------------------------------//
-template<typename T>
+template<class T>
 class step_range_iter : public range_iter<T>
 {
     using Base = range_iter<T>;
@@ -136,14 +136,14 @@ class step_range_iter : public range_iter<T>
         return copy;
     }
 
-    template<typename U = T>
+    template<class U = T>
     CELER_FUNCTION typename std::enable_if_t<std::is_signed<U>::value, bool>
     operator==(step_range_iter const& other) const
     {
         return step_ >= 0 ? value_ >= other.value_ : value_ < other.value_;
     }
 
-    template<typename U = T>
+    template<class U = T>
     CELER_FUNCTION typename std::enable_if_t<std::is_unsigned<U>::value, bool>
     operator==(step_range_iter const& other) const
     {
@@ -161,7 +161,7 @@ class step_range_iter : public range_iter<T>
 };
 
 //---------------------------------------------------------------------------//
-template<typename T>
+template<class T>
 class inf_step_range_iter : public step_range_iter<T>
 {
     using Base = step_range_iter<T>;
@@ -187,7 +187,7 @@ class inf_step_range_iter : public step_range_iter<T>
 /*!
  * Proxy container for iterating over a finite range with a non-unit step
  */
-template<typename T>
+template<class T>
 class StepRange
 {
   public:
@@ -211,7 +211,7 @@ class StepRange
 /*!
  * Proxy container for iterating over an infinite range with a non-unit step
  */
-template<typename T>
+template<class T>
 class InfStepRange
 {
   public:
@@ -232,7 +232,7 @@ class InfStepRange
 /*!
  * Proxy container for iterating over a range of integral values.
  */
-template<typename T>
+template<class T>
 class FiniteRange
 {
   public:
@@ -246,7 +246,7 @@ class FiniteRange
     CELER_FUNCTION FiniteRange(T begin, T end) : begin_(begin), end_(end) {}
 
     //! Return a stepped range using a different integer type
-    template<typename U, std::enable_if_t<std::is_signed<U>::value, U> = 0>
+    template<class U, std::enable_if_t<std::is_signed<U>::value, U> = 0>
     CELER_FUNCTION StepRange<typename std::common_type<T, U>::type> step(U step)
     {
         if (step < 0)
@@ -260,7 +260,7 @@ class FiniteRange
     }
 
     //! Return a stepped range using a different integer type
-    template<typename U, std::enable_if_t<std::is_unsigned<U>::value, U> = 0>
+    template<class U, std::enable_if_t<std::is_unsigned<U>::value, U> = 0>
     CELER_FUNCTION StepRange<typename std::common_type<T, U>::type> step(U step)
     {
         return {*begin_, *end_, step};
@@ -280,7 +280,7 @@ class FiniteRange
 /*!
  * Proxy container for iterating over a range of integral values.
  */
-template<typename T>
+template<class T>
 class InfiniteRange
 {
   public:

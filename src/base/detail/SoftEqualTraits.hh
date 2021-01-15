@@ -19,7 +19,7 @@ namespace detail
  *
  * This also gives compile-time checking for bad values.
  */
-template<typename T>
+template<class T>
 struct SoftEqualTraits
 {
     using value_type = T;

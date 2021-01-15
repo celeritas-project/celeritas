@@ -33,7 +33,7 @@ TEST(SoftEqual, default_precisions)
 //---------------------------------------------------------------------------//
 // Test fixture
 //---------------------------------------------------------------------------//
-template<typename T>
+template<class T>
 class FloatingTest : public celeritas::Test
 {
   protected:

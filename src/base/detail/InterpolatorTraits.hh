@@ -18,10 +18,10 @@ namespace detail
 /*!
  * Traits class for interpolating with linear/logarithmic scaling.
  */
-template<Interp I, typename T>
+template<Interp I, class T>
 struct InterpolatorTraits;
 
-template<typename T>
+template<class T>
 struct InterpolatorTraits<Interp::linear, T>
 {
     static CELER_CONSTEXPR_FUNCTION T transform(T value) { return value; }
@@ -37,7 +37,7 @@ struct InterpolatorTraits<Interp::linear, T>
     static CELER_CONSTEXPR_FUNCTION bool valid_domain(T) { return true; }
 };
 
-template<typename T>
+template<class T>
 struct InterpolatorTraits<Interp::log, T>
 {
     static CELER_CONSTEXPR_FUNCTION T transform(T value)

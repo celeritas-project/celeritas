@@ -20,7 +20,7 @@ namespace detail
 // SOFT EQUIVALENCE
 //---------------------------------------------------------------------------//
 //! Whether soft equivalence can be performed on the given types.
-template<typename T1, typename T2>
+template<class T1, class T2>
 constexpr bool can_soft_equiv()
 {
     return (std::is_floating_point<T1>::value
@@ -33,7 +33,7 @@ constexpr bool can_soft_equiv()
  * \struct SoftPrecisionType
  * Get a "least common denominator" for soft comparisons.
  */
-template<typename T1, typename T2>
+template<class T1, class T2>
 struct SoftPrecisionType
 {
     // Equivalent to std::common_type<T1,T2>::type
@@ -141,7 +141,7 @@ template<class Value_E, class Value_A>
 // CONTAINER EQUIVALENCE
 //---------------------------------------------------------------------------//
 //! A single index/expected/actual value
-template<typename T1, typename T2>
+template<class T1, class T2>
 struct FailedValue
 {
     using size_type   = std::size_t;
@@ -170,7 +170,7 @@ struct TCT
 };
 
 // Failed value iterator traits
-template<typename Iter1, typename Iter2>
+template<class Iter1, class Iter2>
 struct FVIT
 {
     using first_type = typename std::remove_const<
@@ -184,7 +184,7 @@ struct FVIT
 
 //---------------------------------------------------------------------------//
 //! Compare a range of values
-template<typename Iter1, typename Iter2, class BinaryOp>
+template<class Iter1, class Iter2, class BinaryOp>
 ::testing::AssertionResult
 IsRangeEqImpl(Iter1                               e_iter,
               Iter1                               e_end,

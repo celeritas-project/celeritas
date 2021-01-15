@@ -18,7 +18,7 @@
 namespace celeritas
 {
 #ifdef __CUDA_ARCH__
-template<typename Numeric>
+template<class Numeric>
 struct numeric_limits;
 
 template<>

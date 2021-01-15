@@ -14,7 +14,7 @@ namespace celeritas
 /*!
  * Construct with source and destination ranges.
  */
-template<typename T, typename U>
+template<class T, class U>
 SpanRemapper<T, U>::SpanRemapper(src_type src_span, dst_type dst_span)
     : src_(src_span), dst_(dst_span)
 {
@@ -25,8 +25,8 @@ SpanRemapper<T, U>::SpanRemapper(src_type src_span, dst_type dst_span)
 /*!
  * Convert a subspan of the "source" to a corresponding subspan in "dst".
  */
-template<typename T, typename U>
-template<typename V>
+template<class T, class U>
+template<class V>
 auto SpanRemapper<T, U>::operator()(Span<V> src_subspan) const -> dst_type
 {
     REQUIRE(src_subspan.empty()
