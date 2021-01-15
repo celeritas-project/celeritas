@@ -11,7 +11,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with from shared and staic data.
+ * Construct from shared and static data.
  */
 PhysicsTrackView::PhysicsTrackView(const PhysicsParamsPointers& params,
                                    const PhysicsStatePointers&  states,
@@ -25,7 +25,22 @@ PhysicsTrackView::PhysicsTrackView(const PhysicsParamsPointers& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with from shared and staic data.
+ * Select a model ID for the current track.
+ *
+ * An "unassigned" model ID is valid, as it might represent a special case or a
+ * particle that is not undergoing an interaction.
+ */
+void PhysicsTrackView::model_id(ModelId id)
+{
+    states_.state[tid_.get()].model_id = id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the model ID that has been selected for the current track.
+ *
+ * If no model applies (e.g. if the particle has exited the geometry) the
+ * result will be the \c ModelId() which evaluates to false.
  */
 ModelId PhysicsTrackView::model_id() const
 {

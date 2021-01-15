@@ -21,9 +21,9 @@ using SpanConstReal = ValueGridXsBuilder::SpanConstReal;
 //---------------------------------------------------------------------------//
 bool is_contiguous_increasing(SpanConstReal first, SpanConstReal second)
 {
-    return first.size() >= 2 && second.size() >= 2 && second.size() >= 2
-           && first.front() > 0 && first.back() > first.front()
-           && second.front() == first.back() && second.back() > second.back();
+    return first.size() >= 2 && second.size() >= 2 && first.front() > 0
+           && first.back() > first.front() && second.front() == first.back()
+           && second.back() > second.front();
 }
 
 bool has_same_log_spacing(SpanConstReal first, SpanConstReal second)
@@ -37,7 +37,7 @@ bool has_same_log_spacing(SpanConstReal first, SpanConstReal second)
 bool is_nonnegative(SpanConstReal vec)
 {
     return std::all_of(
-        vec.begin(), vec.end(), [](real_type v) { return v > 0; });
+        vec.begin(), vec.end(), [](real_type v) { return v >= 0; });
 }
 
 bool is_on_grid_point(real_type value, real_type lo, real_type hi, size_type size)

@@ -21,6 +21,9 @@ namespace celeritas
  *
  * The physics track view provides an interface for data and operations
  * common to most processes and models.
+ *
+ * \todo This will be fleshed out with additional accessors for selecting
+ * models, processes, and cross sections.
  */
 class PhysicsTrackView
 {
@@ -37,7 +40,7 @@ class PhysicsTrackView
                                            MaterialDefId material,
                                            ThreadId      id);
 
-    // Select an interaction model (or {} for no interaction)
+    // Select a model for the current interaction (or {} for no interaction)
     inline CELER_FUNCTION void model_id(ModelId);
 
     //// DYNAMIC PROPERTIES (pure accessors, free) ////

@@ -25,10 +25,6 @@ struct PhysicsParamsPointers
 //---------------------------------------------------------------------------//
 /*!
  * Physics state data for a single track.
- *
- * - Remaining number of mean free paths to the next discrete interaction
- * - Maximum step length (limited by range, energy loss, and interaction)
- * - Selected model ID if undergoing an interaction
  */
 struct PhysicsTrackState
 {
