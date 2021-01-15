@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EPlusGGInteractor.test.cc
+//! \file EPlusGG.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/EPlusGGInteractor.hh"
+#include "physics/em/detail/EPlusGGInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
@@ -14,7 +14,7 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::EPlusGGInteractor;
+using celeritas::detail::EPlusGGInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -89,7 +89,7 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::EPlusGGInteractorPointers pointers_;
+    celeritas::detail::EPlusGGPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//
@@ -196,7 +196,7 @@ TEST_F(EPlusGGInteractorTest, stress_test)
 {
     RandomEngine& rng_engine = this->rng();
 
-    const int num_samples = 8192;
+    const int           num_samples = 8192;
     std::vector<double> avg_engine_samples;
 
     for (double inc_e : {0.0, 0.01, 1.0, 10.0, 1000.0})

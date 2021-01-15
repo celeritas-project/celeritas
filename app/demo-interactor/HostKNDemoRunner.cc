@@ -17,13 +17,14 @@
 #include "physics/base/Units.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
-#include "physics/em/KleinNishinaInteractor.hh"
+#include "physics/em/detail/KleinNishinaInteractor.hh"
 #include "PhysicsArrayCalculator.hh"
 #include "DetectorView.hh"
 #include "HostStackAllocatorStore.hh"
 #include "HostDetectorStore.hh"
 
 using namespace celeritas;
+using celeritas::detail::KleinNishinaInteractor;
 
 namespace demo_interactor
 {
@@ -140,8 +141,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             h.time   = state.time;
 
             // Check for below energy cutoff
-            if (particle.energy()
-                < KleinNishinaInteractor::min_incident_energy())
+            if (particle.energy() < units::MevEnergy{0.01})
             {
                 // Particle is below interaction energy
                 h.dir              = state.direction;

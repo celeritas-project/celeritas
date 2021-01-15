@@ -37,6 +37,7 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams     particles,
 
     // Set up KN interactor data;
     namespace pdg            = celeritas::pdg;
+    kn_pointers_.model_id    = ModelId{0}; // Unused but needed for error check
     kn_pointers_.electron_id = pparams_->find(pdg::electron());
     kn_pointers_.gamma_id    = pparams_->find(pdg::gamma());
     kn_pointers_.inv_electron_mass
