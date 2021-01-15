@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Construct from a filename.
  */
-EventReader::EventReader(const char* filename, constSPParticleParams params)
+EventReader::EventReader(const char* filename, SPConstParticles params)
     : params_(std::move(params))
 {
     // Determine the input file format and construct the appropriate reader

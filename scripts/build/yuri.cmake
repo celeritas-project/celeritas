@@ -2,6 +2,8 @@ macro(set_cache_var var type val)
   set(${var} "${val}" CACHE "${type}" "yuri.sh")
 endmacro()
 
+set_cache_var(CELERITAS_BUILD_DOCS BOOL ON)
+
 # Dependency options
 set_cache_var(CELERITAS_USE_CUDA BOOL OFF)
 set_cache_var(CELERITAS_USE_Geant4 BOOL OFF)

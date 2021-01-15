@@ -16,6 +16,15 @@ namespace celeritas
  * Calculate the cross section.
  *
  * Assumes that the energy grid has the same units as particle.energy.
+ *
+ * XXX also this breaks if prime_energy != 1, since the
+ * value of "xs" is actually xs*E above E' but the stored value at the lower
+ * grid point is just xs.
+ *
+ * To fix that, we can change 'prime_energy' to 'prime_energy_index' since it
+ * should always be on a grid point. If `bin == prime_energy_index`, then scale
+ * the lower xs value by E. If bin >= prime_energy_index, scale the result by
+ * 1/E.
  */
 CELER_FUNCTION real_type
 PhysicsArrayCalculator::operator()(const ParticleTrackView& particle) const

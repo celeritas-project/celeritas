@@ -19,7 +19,7 @@ namespace detail
  *
  * This also gives compile-time checking for bad values.
  */
-template<typename T>
+template<class T>
 struct SoftEqualTraits
 {
     using value_type = T;
@@ -53,31 +53,6 @@ struct SoftEqualTraits<float>
     using value_type = float;
     static CELER_CONSTEXPR_FUNCTION value_type rel_prec() { return 1.0e-6f; }
     static CELER_CONSTEXPR_FUNCTION value_type abs_thresh() { return 1.0e-8f; }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * \struct SoftPrecisionType
- * Get a "least common denominator" for soft comparisons.
- */
-template<typename T1, typename T2>
-struct SoftPrecisionType
-{
-    // Equivalent to std::common_type<T1,T2>::type
-    using type = decltype(true ? T1() : T2());
-};
-
-// When comparing doubles to floats, use the floating point epsilon for
-// comparison
-template<>
-struct SoftPrecisionType<double, float>
-{
-    using type = float;
-};
-template<>
-struct SoftPrecisionType<float, double>
-{
-    using type = float;
 };
 
 //---------------------------------------------------------------------------//

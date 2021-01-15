@@ -19,7 +19,7 @@ namespace celeritas
  * This isn't fully standards-compliant with std::array: there's no support for
  * N=0 for example.
  */
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 struct Array
 {
     //!@{
@@ -99,7 +99,7 @@ struct Array
 /*!
  * Test equality of two arrays.
  */
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 inline CELER_FUNCTION bool
 operator==(const Array<T, N>& lhs, const Array<T, N>& rhs)
 {
@@ -115,7 +115,7 @@ operator==(const Array<T, N>& lhs, const Array<T, N>& rhs)
 /*!
  * Test inequality of two arrays.
  */
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 CELER_FORCEINLINE_FUNCTION bool
 operator!=(const Array<T, N>& lhs, const Array<T, N>& rhs)
 {

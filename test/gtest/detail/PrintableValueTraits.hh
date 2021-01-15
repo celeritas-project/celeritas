@@ -69,7 +69,7 @@ struct ContTraits
         typename std::decay<typename Container::value_type>::type;
 };
 
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 struct ContTraits<T[N]>
 {
     using size_type  = std::size_t;
@@ -235,7 +235,7 @@ struct PrintableValueTraits<const char*>
 };
 
 //! Specialization for printing std::pairs
-template<typename T1, typename T2>
+template<class T1, class T2>
 struct PrintableValueTraits<std::pair<T1, T2>>
 {
     using PVT1 = PrintableValueTraits<T1>;

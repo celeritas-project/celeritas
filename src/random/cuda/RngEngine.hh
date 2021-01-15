@@ -35,13 +35,14 @@ class RngEngine
 
   public:
     // Construct from state
-    CELER_FUNCTION RngEngine(const RngStatePointers& view, const ThreadId& id);
+    inline CELER_FUNCTION
+    RngEngine(const RngStatePointers& view, const ThreadId& id);
 
     // Initialize state from seed
-    CELER_FUNCTION RngEngine& operator=(Initializer_t s);
+    inline CELER_FUNCTION RngEngine& operator=(Initializer_t s);
 
     // Sample a random number
-    CELER_FUNCTION result_type operator()();
+    inline CELER_FUNCTION result_type operator()();
 
   private:
     RngState& state_;
@@ -66,7 +67,7 @@ class GenerateCanonical<RngEngine, float>
 
   public:
     // Sample a random number
-    CELER_FUNCTION result_type operator()(RngEngine& rng);
+    inline CELER_FUNCTION result_type operator()(RngEngine& rng);
 };
 
 //---------------------------------------------------------------------------//
@@ -85,7 +86,7 @@ class GenerateCanonical<RngEngine, double>
 
   public:
     // Sample a random number
-    CELER_FUNCTION result_type operator()(RngEngine& rng);
+    inline CELER_FUNCTION result_type operator()(RngEngine& rng);
 };
 
 //---------------------------------------------------------------------------//

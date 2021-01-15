@@ -20,13 +20,39 @@ namespace detail
 // SOFT EQUIVALENCE
 //---------------------------------------------------------------------------//
 //! Whether soft equivalence can be performed on the given types.
-template<typename T1, typename T2>
+template<class T1, class T2>
 constexpr bool can_soft_equiv()
 {
     return (std::is_floating_point<T1>::value
             || std::is_floating_point<T2>::value)
            && std::is_convertible<T1, T2>::value;
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * \struct SoftPrecisionType
+ * Get a "least common denominator" for soft comparisons.
+ */
+template<class T1, class T2>
+struct SoftPrecisionType
+{
+    // Equivalent to std::common_type<T1,T2>::type
+    using type = decltype(true ? T1() : T2());
+};
+
+// When comparing doubles to floats, use the floating point epsilon for
+// comparison
+template<>
+struct SoftPrecisionType<double, float>
+{
+    using type = float;
+};
+
+template<>
+struct SoftPrecisionType<float, double>
+{
+    using type = float;
+};
 
 //---------------------------------------------------------------------------//
 //! Compare a range of values.
@@ -48,16 +74,9 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
     // Failed: print nice error message
     ::testing::AssertionResult result = ::testing::AssertionFailure();
 
-    result << "Value of: " << actual_expr
-           << "\n"
-              "  Actual: "
-           << actual
-           << "\n"
-              "Expected: "
-           << expected_expr
-           << "\n"
-              "Which is: "
-           << expected << '\n';
+    result << "Value of: " << actual_expr << "\n  Actual: " << actual
+           << "\nExpected: " << expected_expr << "\nWhich is: " << expected
+           << '\n';
 
     SoftZero<value_type> is_soft_zero(comp.abs());
     if (is_soft_zero(expected))
@@ -88,7 +107,8 @@ template<class Value_E, class Value_A>
                   "Invalid types for soft equivalence");
 
     // Construct with automatic or specified tolerances
-    using BinaryOp = celeritas::SoftEqual<Value_E, Value_A>;
+    using ValueT   = typename SoftPrecisionType<Value_E, Value_A>::type;
+    using BinaryOp = celeritas::SoftEqual<ValueT>;
 
     return IsSoftEquivImpl(
         expected, expected_expr, actual, actual_expr, BinaryOp());
@@ -110,7 +130,8 @@ template<class Value_E, class Value_A>
                   "Invalid types for soft equivalence");
 
     // Construct with automatic or specified tolerances
-    using BinaryOp = celeritas::SoftEqual<Value_E, Value_A>;
+    using ValueT   = typename SoftPrecisionType<Value_E, Value_A>::type;
+    using BinaryOp = celeritas::SoftEqual<ValueT>;
 
     return IsSoftEquivImpl(
         expected, expected_expr, actual, actual_expr, BinaryOp(rel));
@@ -120,7 +141,7 @@ template<class Value_E, class Value_A>
 // CONTAINER EQUIVALENCE
 //---------------------------------------------------------------------------//
 //! A single index/expected/actual value
-template<typename T1, typename T2>
+template<class T1, class T2>
 struct FailedValue
 {
     using size_type   = std::size_t;
@@ -149,7 +170,7 @@ struct TCT
 };
 
 // Failed value iterator traits
-template<typename Iter1, typename Iter2>
+template<class Iter1, class Iter2>
 struct FVIT
 {
     using first_type = typename std::remove_const<
@@ -163,7 +184,7 @@ struct FVIT
 
 //---------------------------------------------------------------------------//
 //! Compare a range of values
-template<typename Iter1, typename Iter2, class BinaryOp>
+template<class Iter1, class Iter2, class BinaryOp>
 ::testing::AssertionResult
 IsRangeEqImpl(Iter1                               e_iter,
               Iter1                               e_end,
@@ -183,16 +204,9 @@ IsRangeEqImpl(Iter1                               e_iter,
     {
         ::testing::AssertionResult failure = ::testing::AssertionFailure();
 
-        failure << " Size of: " << actual_expr
-                << "\n"
-                   "  Actual: "
-                << actual_size
-                << "\n"
-                   "Expected: "
-                << expected_expr
-                << ".size()\n"
-                   "Which is: "
-                << expected_size << '\n';
+        failure << " Size of: " << actual_expr << "\n  Actual: " << actual_size
+                << "\nExpected: " << expected_expr
+                << ".size()\nWhich is: " << expected_size << '\n';
         return failure;
     }
 
@@ -214,12 +228,8 @@ IsRangeEqImpl(Iter1                               e_iter,
     }
 
     ::testing::AssertionResult result = ::testing::AssertionFailure();
-    result << "Values in: " << actual_expr
-           << "\n"
-              " Expected: "
-           << expected_expr
-           << "\n"
-              ""
+    result << "Values in: " << actual_expr << "\n Expected: " << expected_expr
+           << '\n'
            << failures.size() << " of " << expected_size << " elements differ";
     if (failures.size() > 40)
     {
@@ -244,8 +254,9 @@ template<class ContainerE, class ContainerA, class BinaryOp>
                                               const char*       actual_expr,
                                               BinaryOp          comp)
 {
-    using Failed_t = FailedValue<typename BinaryOp::first_argument_type,
-                                 typename BinaryOp::second_argument_type>;
+    using Traits_t = TCT<ContainerE, ContainerA>;
+    using Failed_t = FailedValue<typename Traits_t::first_type,
+                                 typename Traits_t::second_type>;
     std::vector<Failed_t>      failures;
     ::testing::AssertionResult result = IsRangeEqImpl(std::begin(expected),
                                                       std::end(expected),
@@ -444,7 +455,8 @@ template<class ContainerE, class ContainerA>
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");
 
-    using BinaryOp = celeritas::SoftEqual<value_type_E, value_type_A>;
+    using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
+    using BinaryOp = celeritas::SoftEqual<ValueT>;
 
     // Construct with automatic or specified tolerances
     return IsVecSoftEquivImpl(
@@ -473,7 +485,8 @@ template<class ContainerE, class ContainerA>
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");
 
-    using BinaryOp = celeritas::SoftEqual<value_type_E, value_type_A>;
+    using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
+    using BinaryOp = celeritas::SoftEqual<ValueT>;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
@@ -503,7 +516,8 @@ template<class ContainerE, class ContainerA>
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");
 
-    using BinaryOp = celeritas::SoftEqual<value_type_E, value_type_A>;
+    using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
+    using BinaryOp = celeritas::SoftEqual<ValueT>;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(

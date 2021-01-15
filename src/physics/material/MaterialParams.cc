@@ -181,7 +181,7 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp)
     }
 
     // Renormalize component fractions that are not unity and log them
-    if (!inp.elements_fractions.empty() && !SoftEqual<>()(norm, 1.0))
+    if (!inp.elements_fractions.empty() && !soft_equal(norm, 1.0))
     {
         CELER_LOG(warning) << "Element component fractions for `" << inp.name
                            << "` should sum to 1 but instead sum to " << norm
@@ -195,7 +195,7 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp)
             comp.fraction *= norm;
             total_fractions += comp.fraction;
         }
-        CHECK(SoftEqual<>()(total_fractions, 1.0));
+        CHECK(soft_equal(total_fractions, 1.0));
     }
 
     // Sort elements by increasing element ID for improved access

@@ -25,17 +25,13 @@ namespace celeritas
  * \param abs threshold for absolute error when comparing to zero
  *           (default 1.0e-14 for doubles)
  */
-template<typename T1 = real_type, typename T2 = T1>
+template<class RealType = ::celeritas::real_type>
 class SoftEqual
 {
   public:
     //!@{
     //! Type aliases
-    using first_argument_type  = T1;
-    using second_argument_type = T2;
-    using value_type =
-        typename detail::SoftPrecisionType<first_argument_type,
-                                           second_argument_type>::type;
+    using value_type = RealType;
     //!@}
 
   public:
@@ -76,15 +72,14 @@ class SoftEqual
  * \param abs threshold for absolute error when comparing to zero
  *           (default 1.0e-14 for doubles)
  */
-template<typename T>
+template<class RealType = ::celeritas::real_type>
 class SoftZero
 {
   public:
     //!@{
     //! Type aliases
-    using argument_type = T;
-    using value_type    = T;
-    using traits_t      = detail::SoftEqualTraits<value_type>;
+    using argument_type = RealType;
+    using value_type    = RealType;
     //!@}
 
   public:
@@ -106,9 +101,26 @@ class SoftZero
 
   private:
     value_type abs_;
+
+    using traits_t = detail::SoftEqualTraits<value_type>;
 };
 
 //---------------------------------------------------------------------------//
+//! Soft equivalence with default tolerance
+template<class RealType>
+inline CELER_FUNCTION bool soft_equal(RealType expected, RealType actual)
+{
+    return SoftEqual<RealType>()(expected, actual);
+}
+
+//---------------------------------------------------------------------------//
+//! Soft equivalence to zero, with default tolerance
+template<class RealType>
+inline CELER_FUNCTION bool soft_zero(RealType actual)
+{
+    return SoftZero<RealType>()(actual);
+}
+
 } // namespace celeritas
 
 #include "SoftEqual.i.hh"

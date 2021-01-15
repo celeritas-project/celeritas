@@ -36,7 +36,7 @@ void to_json(nlohmann::json& j, const ImageStore& value);
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 void from_json(const nlohmann::json& j, Array<T, N>& value)
 {
     REQUIRE(j.size() == N);
@@ -47,7 +47,7 @@ void from_json(const nlohmann::json& j, Array<T, N>& value)
 }
 
 //---------------------------------------------------------------------------//
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 void to_json(nlohmann::json& j, const Array<T, N>& value)
 {
     j = nlohmann::json::array();
