@@ -1,0 +1,83 @@
+#----------------------------------*-CMake-*----------------------------------#
+# Copyright 2020 UT-Battelle, LLC and other Celeritas Developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#[=======================================================================[.rst:
+
+ScaleSwigPythonModule
+---------------------
+
+Generate and build Python wrappers using SWIG.
+
+.. command:: scale_swig_python_module
+
+  ::
+
+    scale_swig_python_module(<target> <module> [<source> ...])
+
+  ``module``
+    Name of the module to generate.
+
+  ``source``
+    Additional source files to build into the library.
+
+  Currently this is mostly hard-coded:
+   - SWIG interface files are installed to ``<prefix>/include``
+   - SWIG-generated modules are installed to ``<prefix>/python``
+
+#]=======================================================================]
+
+include(UseSWIG)
+set(CMAKE_SWIG_CXX_FLAGS "" CACHE STRING
+  "C++ flags to pass to SWIG-generated code")
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_swig_python_module target module_source)
+  # We're using C++
+  set_property(SOURCE "${module_source}" PROPERTY CPLUSPLUS ON)
+  # Propagate target include directories to the SWIG generate command
+  set_property(SOURCE "${module_source}"
+    PROPERTY USE_TARGET_INCLUDE_DIRECTORIES ON)
+
+  if(PYTHON_VERSION_STRING VERSION_GREATER_EQUAL 3)
+    # Build with Python 3
+    set_property(SOURCE "${module_source}" APPEND_STRING
+      PROPERTY COMPILE_OPTIONS "-py3")
+  endif()
+
+  # Create the library
+  swig_add_library(${target}
+    LANGUAGE Python
+    TYPE MODULE
+    SOURCES "${module_source}" ${ARGN}
+  )
+
+  # Add SWIG headers
+  target_include_directories(${target}
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
+  target_link_libraries(${target} PRIVATE Python::Module)
+  if(CMAKE_SWIG_CXX_FLAGS)
+    target_compile_options(${target} PRIVATE "${CMAKE_SWIG_CXX_FLAGS}")
+  endif()
+
+  # Install SWIG interface file
+  install(FILES
+    "${module_source}"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  )
+
+  # Install built module and wrapper files
+  install(TARGETS ${target} DESTINATION python)
+  get_property(_WRAPPERS TARGET ${target} PROPERTY SWIG_SUPPORT_FILES)
+  install(FILES "${_WRAPPERS}" DESTINATION python)
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+celeritas_swig_python_module(CeleritasPython celeritas.i)
+add_library(Celeritas::Python ALIAS CeleritasPython)
+target_link_libraries(CeleritasPython PRIVATE Celeritas::Core Celeritas::ROOT)
