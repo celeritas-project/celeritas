@@ -1,29 +1,30 @@
 spack:
   specs: 
-    - cmake
-    - cuda
-    - geant4
-    - git
-    - git-lfs
-    - googletest
-    - hdf5 +hl +mpi
-    - hepmc3
-    - ninja
-    - nlohmann-json
-    - openmpi
-    - python
-    - py-h5py
-    - root
-    - valgrind ~ubsan
-    - veccore
-    - vecgeom +gdml
+  - cmake
+  - cuda
+  - geant4
+  - git
+  - git-lfs
+  - googletest
+  - hdf5 +hl +mpi
+  - hepmc3
+  - ninja
+  - nlohmann-json
+  - openmpi
+  - python
+  - py-h5py
+  - root
+  - swig
+  - valgrind ~ubsan
+  - veccore
+  - vecgeom +gdml
   view: true
   concretization: together
   packages:
     valgrind:
       variants: ~boost
     root:
-      variants: ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=14
+      variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=14
     all:
       variants: +cuda cxxstd=14 cuda_arch=35
       providers:
