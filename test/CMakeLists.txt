@@ -147,8 +147,7 @@ if(CELERITAS_USE_ROOT)
     LINK_LIBRARIES Celeritas::IO)
 endif()
 if(CELERITAS_USE_HepMC3)
-  celeritas_add_test(io/EventReader.test.cc
-    LINK_LIBRARIES ${HEPMC3_LIB})
+  celeritas_add_test(io/EventReader.test.cc)
 endif()
 
 #-----------------------------------------------------------------------------#
