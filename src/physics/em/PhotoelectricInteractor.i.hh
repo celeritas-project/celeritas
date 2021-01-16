@@ -98,8 +98,10 @@ CELER_FUNCTION Interaction PhotoelectricInteractor::operator()(Engine& rng)
     // If the binding energy of the sampled shell is greater than the incident
     // photon energy, no secondaries are produced and the energy is deposited
     // locally.
-    if (el_.shells[shell_id].binding_energy > inc_energy_)
+    MevEnergy binding_energy = el_.shells[shell_id].binding_energy;
+    if (binding_energy > inc_energy_)
     {
+        result.energy_deposition = inc_energy_;
         return result;
     }
 
@@ -109,14 +111,15 @@ CELER_FUNCTION Interaction PhotoelectricInteractor::operator()(Engine& rng)
 
     // Electron kinetic energy is the difference between the incident photon
     // energy and the binding energy of the shell
-    photoelectron->energy = MevEnergy{
-        inc_energy_.value() - el_.shells[shell_id].binding_energy.value()};
+    photoelectron->energy
+        = MevEnergy{inc_energy_.value() - binding_energy.value()};
 
     // Direction of the emitted photoelectron is sampled from the
     // Sauter-Gavrila distribution
     photoelectron->direction = this->sample_direction(rng);
 
-    // TODO: Atomic relaxation
+    // TODO: Atomic relaxation. For now assume the energy is deposited locally
+    result.energy_deposition = binding_energy;
 
     return result;
 }

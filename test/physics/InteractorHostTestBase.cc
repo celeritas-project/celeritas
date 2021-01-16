@@ -146,7 +146,7 @@ void InteractorHostTestBase::check_conservation(const Interaction& interaction) 
     local_state_ptrs.vars = {&local_state, 1};
 
     // Sum of exiting kinetic energy and momentum
-    real_type exit_energy   = 0;
+    real_type exit_energy   = interaction.energy_deposition.value();
     Real3     exit_momentum = {0, 0, 0};
 
     // Subtract contribution from exiting particle state
