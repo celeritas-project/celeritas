@@ -32,6 +32,10 @@ list(APPEND SOURCES
   comm/Logger.cc
   comm/LoggerTypes.cc
   comm/detail/LoggerMessage.cc
+  io/GdmlGeometryMap.cc
+  io/ImportProcess.cc
+  io/ImportPhysicsTable.cc
+  io/ImportPhysicsVector.cc
   io/LivermoreParamsReader.cc
   physics/base/Model.cc
   physics/base/ParticleParams.cc
@@ -78,6 +82,10 @@ if(CELERITAS_USE_HepMC3)
     io/EventReader.cc
   )
   list(APPEND PRIVATE_DEPS ${HEPMC3_LIB})
+else()
+  list(APPEND SOURCES
+    io/EventReader.nohepmc.cc
+  )
 endif()
 
 if(CELERITAS_USE_MPI)
@@ -171,20 +179,25 @@ if(CELERITAS_USE_ROOT)
     LINKDEF io/RootInterfaceLinkDef.h
   )
 
-  # Note that ROOT requires *shared* libraries due to runtime initialization.
-  # Tests that use ROOT to load the data will have to link against this library.
-  add_library(CeleritasIO SHARED
-    io/GdmlGeometryMap.cc
-    io/ImportProcess.cc
-    io/ImportPhysicsTable.cc
-    io/ImportPhysicsVector.cc
+  # Note that ROOT requires *shared* libraries due to runtime initialization,
+  # *and* it must be forcibly linked into any ROOT-using application by ensuring
+  # `-Wl,--no-as-needed` for executables (on Ubuntu, which defaults to linking
+  # only as needed).
+  add_library(celeritas_root SHARED
+    ${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx
     io/RootImporter.cc
-    CeleritasRootInterface.cxx
   )
-  add_library(Celeritas::IO ALIAS CeleritasIO)
-  target_link_libraries(CeleritasIO
+  target_link_libraries(celeritas_root
     PRIVATE celeritas ROOT::Core ROOT::Tree
   )
+else()
+  # ROOT is disabled: add an importer that
+  add_library(celeritas_root
+    io/RootImporter.noroot.cc
+  )
+  target_link_libraries(celeritas_root PRIVATE celeritas)
 endif()
+
+add_library(Celeritas::ROOT ALIAS celeritas_root)
 
 #---------------------------------------------------------------------------##

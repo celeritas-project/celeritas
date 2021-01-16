@@ -24,9 +24,35 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Constructor
+ * Safely switch between MatterState [MaterialParams.hh] and
+ * ImportMaterialState [ImportMaterial.hh].
+ */
+MatterState to_matter_state(const ImportMaterialState state)
+{
+    switch (state)
+    {
+        case ImportMaterialState::not_defined:
+            return MatterState::unspecified;
+        case ImportMaterialState::solid:
+            return MatterState::solid;
+        case ImportMaterialState::liquid:
+            return MatterState::liquid;
+        case ImportMaterialState::gas:
+            return MatterState::gas;
+    }
+    CHECK_UNREACHABLE;
+}
+} // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from path to ROOT file.
  */
 RootImporter::RootImporter(const char* filename)
 {
@@ -41,7 +67,7 @@ RootImporter::~RootImporter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Load all data from the input file
+ * Load all data from the input file.
  */
 RootImporter::result_type RootImporter::operator()()
 {
@@ -188,7 +214,6 @@ std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
 //---------------------------------------------------------------------------//
 /*!
  * Load GdmlGeometryMap from the ROOT file and populate MaterialParams
- *
  */
 std::shared_ptr<MaterialParams> RootImporter::load_material_data()
 {
@@ -226,8 +251,7 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
         material_params.name           = mat_key.second.name;
         material_params.temperature    = mat_key.second.temperature;
         material_params.number_density = mat_key.second.number_density;
-        material_params.matter_state
-            = this->to_matter_state(mat_key.second.state);
+        material_params.matter_state   = to_matter_state(mat_key.second.state);
 
         for (const auto& elem_key : mat_key.second.elements_num_fractions)
         {
@@ -243,27 +267,6 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
     // Construct MaterialParams and return it as a shared_ptr
     MaterialParams materials(input);
     return std::make_shared<MaterialParams>(std::move(materials));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Safely switch between MatterState [MaterialParams.hh] and
- * ImportMaterialState [ImportMaterial.hh].
- */
-MatterState RootImporter::to_matter_state(const ImportMaterialState state)
-{
-    switch (state)
-    {
-        case ImportMaterialState::not_defined:
-            return MatterState::unspecified;
-        case ImportMaterialState::solid:
-            return MatterState::solid;
-        case ImportMaterialState::liquid:
-            return MatterState::liquid;
-        case ImportMaterialState::gas:
-            return MatterState::gas;
-    }
-    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//

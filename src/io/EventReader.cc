@@ -21,6 +21,7 @@ namespace celeritas
 EventReader::EventReader(const char* filename, SPConstParticles params)
     : params_(std::move(params))
 {
+    REQUIRE(params_);
     // Determine the input file format and construct the appropriate reader
     input_file_ = HepMC3::deduce_reader(filename);
     ENSURE(input_file_);

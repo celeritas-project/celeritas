@@ -18,7 +18,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
   )
   target_link_libraries(geant-exporter
     Celeritas::Core
-    Celeritas::IO
+    Celeritas::ROOT
     ROOT::Core
     ROOT::Tree
     XercesC::XercesC
@@ -29,7 +29,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
   add_executable(geant-exporter-cat geant-exporter/geant-exporter-cat.cc)
   target_link_libraries(geant-exporter-cat
     Celeritas::Core
-    Celeritas::IO
+    Celeritas::ROOT
   )
 
   if(CELERITAS_BUILD_TESTS)

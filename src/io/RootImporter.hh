@@ -83,8 +83,6 @@ class RootImporter
     std::shared_ptr<GdmlGeometryMap> load_geometry_data();
     // Populate the shared_ptr<MaterialParams> with material information
     std::shared_ptr<MaterialParams> load_material_data();
-    // Safely switch between state enums
-    MatterState to_matter_state(const ImportMaterialState state);
 
   public:
     std::unique_ptr<TFile> root_input_;

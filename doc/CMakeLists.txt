@@ -12,8 +12,10 @@
 set(DOXYGEN_EXCLUDE_PATTERNS
   "*.nocuda.hh"
   "*.nocuda.cc"
+  "*.nohepmc.cc"
   "*.nompi.cc"
   "*.nompi.i.hh"
+  "*.noroot.cc"
   "*/detail/*"
 )
 set(DOXYGEN_FILE_PATTERNS
