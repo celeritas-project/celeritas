@@ -15,8 +15,14 @@
 using namespace celeritas;
 using namespace demo_rasterizer;
 
+namespace demo_rasterizer
+{
 namespace
 {
+//---------------------------------------------------------------------------//
+// KERNELS
+//---------------------------------------------------------------------------//
+
 __device__ int geo_id(const GeoTrackView& geo)
 {
     if (geo.is_outside())
@@ -82,8 +88,8 @@ __global__ void trace_impl(const GeoParamsPointers geo_params,
 }
 } // namespace
 
-namespace demo_rasterizer
-{
+//---------------------------------------------------------------------------//
+// KERNEL INTERFACE
 //---------------------------------------------------------------------------//
 void trace(const GeoParamsPointers& geo_params,
            const GeoStatePointers&  geo_state,

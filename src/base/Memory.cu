@@ -32,6 +32,7 @@ void device_memset(void* data, int fill_value, size_type count)
         thrust::device_pointer_cast<unsigned char>(data_char),
         count,
         static_cast<unsigned char>(fill_value));
+    CELER_CUDA_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//

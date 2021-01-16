@@ -19,10 +19,12 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "sim/SimTrackView.hh"
 
+namespace celeritas
+{
+namespace detail
+{
 namespace
 {
-using namespace celeritas;
-using celeritas::detail::flag_id;
 //---------------------------------------------------------------------------//
 // HELPER CLASSES
 //---------------------------------------------------------------------------//
@@ -253,12 +255,6 @@ __global__ void process_secondaries_kernel(const StatePointers states,
 } // end namespace
 
 //---------------------------------------------------------------------------//
-
-namespace celeritas
-{
-namespace detail
-{
-//---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
 /*!
@@ -278,7 +274,7 @@ void init_tracks(const StatePointers&            states,
     init_tracks_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits, num_vacancies);
 
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_CUDA_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//
@@ -295,7 +291,7 @@ void locate_alive(const StatePointers&            states,
     locate_alive_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits);
 
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_CUDA_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//
@@ -317,7 +313,7 @@ void process_primaries(Span<const Primary>             primaries,
     process_primaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
         primaries, initializers);
 
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_CUDA_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//
@@ -339,7 +335,7 @@ void process_secondaries(const StatePointers&     states,
     process_secondaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits);
 
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_CUDA_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//
@@ -354,7 +350,7 @@ size_type remove_if_alive(Span<size_type> vacancies)
         thrust::device_pointer_cast(vacancies.data() + vacancies.size()),
         IsEqual{flag_id()});
 
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_CUDA_CHECK_ERROR();
 
     // New size of the vacancy vector
     size_type result = thrust::raw_pointer_cast(end) - vacancies.data();
@@ -373,7 +369,7 @@ size_type reduce_counts(Span<size_type> counts)
         size_type(0),
         thrust::plus<size_type>());
 
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_CUDA_CHECK_ERROR();
     return result;
 }
 
@@ -393,7 +389,7 @@ void exclusive_scan_counts(Span<size_type> counts)
         counts.data(),
         size_type(0));
 
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_CUDA_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//
