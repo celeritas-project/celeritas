@@ -17,7 +17,7 @@ namespace celeritas
  */
 Communicator::Communicator(MpiComm)
 {
-    throw DebugError("Cannot build a communicator because MPI is disabled");
+    CELER_NOT_CONFIGURED("MPI");
 }
 
 //---------------------------------------------------------------------------//
