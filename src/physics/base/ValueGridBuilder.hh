@@ -15,14 +15,14 @@ namespace celeritas
 {
 class ValueGridStore;
 //---------------------------------------------------------------------------//
-//! Parametization of the energy grid values for a physics array
+//! Parameterization of the energy grid values for a physics array
 enum class EnergyLookup
 {
     uniform_log, //!< Uniform in log(E), interpolate in log(E)
 };
 
 //---------------------------------------------------------------------------//
-//! Parametization of the value calculation
+//! Parameterization of the value calculation
 enum class ValueCalculation
 {
     linear,        //!< Linear interpolation in value
