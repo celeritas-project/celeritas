@@ -16,7 +16,6 @@
 #include "physics/base/ParticleDef.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "ImportParticle.hh"
 #include "ImportProcess.hh"
 #include "GdmlGeometryMap.hh"
 
@@ -75,6 +74,11 @@ class RootImporter
     result_type operator()();
 
   private:
+    //// DATA ////
+    std::unique_ptr<TFile> root_input_;
+
+    //// HELPER FUNCTIONS ////
+
     // Populate the shared_ptr<ParticleParams> with particle information
     std::shared_ptr<ParticleParams> load_particle_data();
     // Populate a vector of ImportPhysicsTable objects
@@ -84,8 +88,6 @@ class RootImporter
     // Populate the shared_ptr<MaterialParams> with material information
     std::shared_ptr<MaterialParams> load_material_data();
 
-  public:
-    std::unique_ptr<TFile> root_input_;
 };
 
 //---------------------------------------------------------------------------//

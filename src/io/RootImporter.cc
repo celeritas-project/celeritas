@@ -21,6 +21,7 @@
 #include "base/Range.hh"
 #include "comm/Logger.hh"
 #include "physics/base/Units.hh"
+#include "ImportParticle.hh"
 
 namespace celeritas
 {
