@@ -74,17 +74,10 @@ ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
                        lambda_prim.front() * lambda_prim_energy.front()));
     REQUIRE(is_nonnegative(lambda) && is_nonnegative(lambda_prim));
 
-    // Concatenate the two XS vectors
-    std::vector<real_type> xs(lambda.size() + lambda_prim.size() - 1);
-    auto dst = std::copy(lambda.begin(), lambda.end(), xs.begin());
-    dst      = std::copy(lambda_prim.begin(), lambda_prim.end(), dst);
-    CHECK(dst == xs.end());
+    CHECK_UNREACHABLE;
 
     // Construct the grid
-    return {lambda_energy.front(),
-            lambda_prim_energy.front(),
-            lambda_prim_energy.back(),
-            std::move(xs)};
+    return {0, 0, 0, {}};
 }
 
 //---------------------------------------------------------------------------//

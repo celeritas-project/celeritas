@@ -36,12 +36,12 @@ __global__ void klein_nishina_interact_kernel(const KleinNishinaPointers  kn,
 
     SecondaryAllocatorView allocate_secondaries(ptrs.secondaries);
     ParticleTrackView particle(ptrs.params.particle, ptrs.states.particle, tid);
-    PhysicsTrackView  physics(ptrs.params.physics,
+
+    PhysicsTrackView physics(ptrs.params.physics,
                              ptrs.states.physics,
                              particle.def_id(),
                              MaterialDefId{},
                              tid);
-    RngEngine         rng(ptrs.states.rng, tid);
 
     // This interaction only applies if the KN model was selected
     if (physics.model_id() != kn.model_id)
@@ -50,6 +50,7 @@ __global__ void klein_nishina_interact_kernel(const KleinNishinaPointers  kn,
     KleinNishinaInteractor interact(
         kn, particle, ptrs.states.direction[tid.get()], allocate_secondaries);
 
+    RngEngine rng(ptrs.states.rng, tid);
     ptrs.result[tid.get()] = interact(rng);
     ENSURE(ptrs.result[tid.get()]);
 }
