@@ -4,26 +4,20 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #[=======================================================================[.rst:
 
-ScaleSwigPythonModule
----------------------
-
-Generate and build Python wrappers using SWIG.
-
-.. command:: scale_swig_python_module
+.. command:: celeritas_swig_python_module
 
   ::
 
-    scale_swig_python_module(<target> <module> [<source> ...])
+    celeritas_swig_python_module(<target> <module> [<source> ...])
+
+  ``target``
+    Name of the library module target to create.
 
   ``module``
-    Name of the module to generate.
+    Path to the module interface file.
 
   ``source``
     Additional source files to build into the library.
-
-  Currently this is mostly hard-coded:
-   - SWIG interface files are installed to ``<prefix>/include``
-   - SWIG-generated modules are installed to ``<prefix>/python``
 
 #]=======================================================================]
 
