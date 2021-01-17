@@ -88,27 +88,29 @@ class MaterialParams;
 #include "io/RootImporter.hh"
 %}
 
-// TODO: all the `to_cstrings` overload on enum type, but all enums look the
-// same in Python.
-%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) to_cstring;
+namespace celeritas
+{
+class GdmlGeometryMap;
+%rename(table_type_to_string) to_cstring(ImportTableType);
+%rename(units_to_string) to_cstring(ImportUnits);
+%rename(vector_type_to_string) to_cstring(ImportPhysicsVectorType);
+%rename(process_type_to_string) to_cstring(ImportProcessType);
+%rename(proces_class_to_string) to_cstring(ImportProcessClass);
+%rename(model_to_string) to_cstring(ImportModelClass);
+
+%rename(xs_lo) ImportTableType::lambda;
+%rename(xs_hi) ImportTableType::lambda_prim;
+}
 
 %include "io/ImportPhysicsVector.hh"
 %template(VecImportPhysicsVector) std::vector<celeritas::ImportPhysicsVector>;
 
-%rename(xs_lo) celeritas::ImportTableType::lambda;
-%rename(xs_hi) celeritas::ImportTableType::lambda_prim;
 %include "io/ImportPhysicsTable.hh"
 
 %template(VecImportPhysicsTable) std::vector<celeritas::ImportPhysicsTable>;
 %include "io/ImportProcess.hh"
 
-// %include "io/GdmlGeometryMapTypes.hh"
-// %include "io/GdmlGeometryMap.hh"
-namespace celeritas
-{
-class GdmlGeometryMap;
-}
-
+%template(VecImportProcesss) std::vector<celeritas::ImportProcess>;
 %rename(RootImportResult) celeritas::RootImporter::result_type;
 %include "io/RootImporter.hh"
 
