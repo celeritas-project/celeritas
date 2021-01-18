@@ -5,12 +5,11 @@
 //---------------------------------------------------------------------------//
 //! \file BetheHeitlerInteractor.i.hh
 //---------------------------------------------------------------------------//
-#include <iostream>
+
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
 #include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/GenerateCanonical.hh"
-#include "random/distributions/IsotropicDistribution.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -145,7 +144,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     // Select charges for child particles (e-, e+) randomly
     if (BernoulliDistribution(0.5)(rng))
     {
-        swap2<units::MevEnergy>(secondaries[0].energy, secondaries[1].energy);
+        swap(secondaries[0].energy, secondaries[1].energy);
     }
 
     // Sample secondary directions.
