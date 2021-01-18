@@ -13,13 +13,14 @@
 #include "base/Assert.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
-#include "physics/em/KleinNishinaInteractor.hh"
+#include "physics/em/detail/KleinNishinaInteractor.hh"
 #include "random/cuda/RngEngine.hh"
 #include "random/distributions/ExponentialDistribution.hh"
 #include "PhysicsArrayCalculator.hh"
 #include "DetectorView.hh"
 
 using namespace celeritas;
+using celeritas::detail::KleinNishinaInteractor;
 
 namespace demo_interactor
 {
@@ -107,7 +108,7 @@ __global__ void iterate_kn(ParamPointers const              params,
         h.thread = ThreadId(tid);
         h.time   = states.time[tid];
 
-        if (particle.energy() < KleinNishinaInteractor::min_incident_energy())
+        if (particle.energy() < units::MevEnergy{0.01})
         {
             // Particle is below interaction energy
             h.dir              = states.direction[tid];

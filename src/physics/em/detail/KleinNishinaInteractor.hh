@@ -14,9 +14,11 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "KleinNishinaInteractorPointers.hh"
+#include "KleinNishina.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -37,27 +39,18 @@ class KleinNishinaInteractor
   public:
     // Construct from shared and state data
     inline CELER_FUNCTION
-    KleinNishinaInteractor(const KleinNishinaInteractorPointers& shared,
-                           const ParticleTrackView&              particle,
-                           const Real3&                          inc_direction,
-                           SecondaryAllocatorView&               allocate);
+    KleinNishinaInteractor(const KleinNishinaPointers& shared,
+                           const ParticleTrackView&    particle,
+                           const Real3&                inc_direction,
+                           SecondaryAllocatorView&     allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
-    //// COMMON PROPERTIES ////
-
-    //! Minimum incident energy for this model to be valid
-    //! TODO: this isn't currently used.
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
-    {
-        return units::MevEnergy{0.01}; // 10 keV
-    }
-
   private:
     // Constant data
-    const KleinNishinaInteractorPointers& shared_;
+    const KleinNishinaPointers& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
     // Incident direction
@@ -67,6 +60,7 @@ class KleinNishinaInteractor
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
 
 #include "KleinNishinaInteractor.i.hh"

@@ -12,7 +12,7 @@
 #include "physics/base/ParticleParamsPointers.hh"
 #include "physics/base/ParticleStatePointers.hh"
 #include "physics/base/SecondaryAllocatorPointers.hh"
-#include "physics/em/KleinNishinaInteractorPointers.hh"
+#include "physics/em/detail/KleinNishina.hh"
 #include "random/cuda/RngStatePointers.hh"
 #include "PhysicsArrayPointers.hh"
 #include "DetectorPointers.hh"
@@ -30,9 +30,9 @@ struct CudaGridParams
 //! Pointers to immutable problem data
 struct ParamPointers
 {
-    celeritas::ParticleParamsPointers         particle;
-    celeritas::PhysicsArrayPointers           xs;
-    celeritas::KleinNishinaInteractorPointers kn_interactor;
+    celeritas::ParticleParamsPointers       particle;
+    celeritas::PhysicsArrayPointers         xs;
+    celeritas::detail::KleinNishinaPointers kn_interactor;
 
     explicit CELER_FUNCTION operator bool() const
     {

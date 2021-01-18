@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/OpaqueId.hh"
-#include "base/Types.hh"
+#include "Types.hh"
 #include "Units.hh"
 
 namespace celeritas
@@ -36,9 +35,6 @@ struct ParticleDef
         return 0;
     }
 };
-
-//! Opaque index to ParticleDef in a vector: represents a particle type
-using ParticleDefId = OpaqueId<ParticleDef>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

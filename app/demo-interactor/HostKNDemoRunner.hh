@@ -9,7 +9,7 @@
 
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleStatePointers.hh"
-#include "physics/em/KleinNishinaInteractorPointers.hh"
+#include "physics/em/detail/KleinNishina.hh"
 #include "KNDemoIO.hh"
 #include "PhysicsArrayParams.hh"
 
@@ -57,7 +57,7 @@ class HostKNDemoRunner
   private:
     constSPParticleParams                     pparams_;
     constSPPhysicsArrayParams                 xsparams_;
-    celeritas::KleinNishinaInteractorPointers kn_pointers_;
+    celeritas::detail::KleinNishinaPointers   kn_pointers_;
 };
 
 //---------------------------------------------------------------------------//

@@ -5,7 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file KleinNishinaInteractor.i.hh
 //---------------------------------------------------------------------------//
-
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
 #include "random/distributions/BernoulliDistribution.hh"
@@ -13,6 +12,8 @@
 #include "random/distributions/UniformRealDistribution.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -22,16 +23,15 @@ namespace celeritas
  * handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
-    const KleinNishinaInteractorPointers& shared,
-    const ParticleTrackView&              particle,
-    const Real3&                          inc_direction,
-    SecondaryAllocatorView&               allocate)
+    const KleinNishinaPointers& shared,
+    const ParticleTrackView&    particle,
+    const Real3&                inc_direction,
+    SecondaryAllocatorView&     allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)
     , allocate_(allocate)
 {
-    REQUIRE(inc_energy_ >= this->min_incident_energy());
     REQUIRE(particle.def_id() == shared_.gamma_id);
 }
 
@@ -129,4 +129,5 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

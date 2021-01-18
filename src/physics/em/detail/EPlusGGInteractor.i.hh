@@ -15,15 +15,17 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-EPlusGGInteractor::EPlusGGInteractor(const EPlusGGInteractorPointers& shared,
-                                     const ParticleTrackView&         particle,
-                                     const Real3&            inc_direction,
-                                     SecondaryAllocatorView& allocate)
+EPlusGGInteractor::EPlusGGInteractor(const EPlusGGPointers&   shared,
+                                     const ParticleTrackView& particle,
+                                     const Real3&             inc_direction,
+                                     SecondaryAllocatorView&  allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)
@@ -120,4 +122,5 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

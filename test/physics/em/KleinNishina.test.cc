@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KleinNishinaInteractor.test.cc
+//! \file KleinNishina.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/KleinNishinaInteractor.hh"
+#include "physics/em/detail/KleinNishinaInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
@@ -14,7 +14,7 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::KleinNishinaInteractor;
+using celeritas::detail::KleinNishinaInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -79,7 +79,7 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::KleinNishinaInteractorPointers pointers_;
+    celeritas::detail::KleinNishinaPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//
@@ -150,7 +150,7 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
 {
     RandomEngine& rng_engine = this->rng();
 
-    const int num_samples = 8192;
+    const int           num_samples = 8192;
     std::vector<double> avg_engine_samples;
 
     for (double inc_e : {0.01, 1.0, 10.0, 1000.0})
