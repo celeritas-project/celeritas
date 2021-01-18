@@ -154,7 +154,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     real_type                          sinp = std::sin(phi);
     real_type                          cosp = std::cos(phi);
     // Electron
-    real_type cost = sample_cos_theta(secondaries[0].energy.value(), rng);
+    real_type cost = this->sample_cos_theta(secondaries[0].energy.value(), rng);
     secondaries[0].direction
         = rotate(from_spherical(cost, phi), inc_direction_);
     // Positron
