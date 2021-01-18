@@ -24,8 +24,8 @@ EPlusGGModel::EPlusGGModel(ModelId id, const ParticleParams& particles)
     interface_.gamma_id    = particles.find(pdg::gamma());
 
     INSIST(interface_.positron_id && interface_.gamma_id,
-           "Electron and gamma particles must be enabled to use the "
-           "Klein-Nishina Model.");
+           "Positron and gamma particles must be enabled to use the "
+           "EPlusGG Model.");
     interface_.electron_mass
         = particles.get(interface_.positron_id).mass.value();
     ENSURE(interface_);
