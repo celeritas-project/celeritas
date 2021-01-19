@@ -78,16 +78,16 @@ GeoParams::GeoParams(const char* gdml_filename)
         CELER_LOG(status) << "Transferring geometry to GPU";
         get_time              = {};
         auto world_top_devptr = cuda_manager.Synchronize();
-        CHECK(world_top_devptr != nullptr);
+        CELER_ASSERT(world_top_devptr != nullptr);
         device_world_volume_ = world_top_devptr.GetPtr();
         CELER_CUDA_CHECK_ERROR();
         print_time(get_time());
 
-        ENSURE(device_world_volume_);
+        CELER_ENSURE(device_world_volume_);
     }
 #endif
-    ENSURE(num_volumes_ > 0);
-    ENSURE(max_depth_ > 0);
+    CELER_ENSURE(num_volumes_ > 0);
+    CELER_ENSURE(max_depth_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -111,10 +111,10 @@ GeoParams::~GeoParams()
  */
 const std::string& GeoParams::id_to_label(VolumeId vol_id) const
 {
-    REQUIRE(vol_id.get() < num_volumes_);
+    CELER_EXPECT(vol_id.get() < num_volumes_);
     const auto* vol
         = vecgeom::GeoManager::Instance().FindPlacedVolume(vol_id.get());
-    CHECK(vol);
+    CELER_ASSERT(vol);
     return vol->GetLabel();
 }
 
@@ -126,8 +126,8 @@ auto GeoParams::label_to_id(const std::string& label) const -> VolumeId
 {
     const auto* vol
         = vecgeom::GeoManager::Instance().FindPlacedVolume(label.c_str());
-    CHECK(vol);
-    CHECK(vol->id() < num_volumes_);
+    CELER_ASSERT(vol);
+    CELER_ASSERT(vol->id() < num_volumes_);
     return VolumeId{vol->id()};
 }
 
@@ -148,11 +148,11 @@ GeoParamsPointers GeoParams::host_pointers() const
  */
 GeoParamsPointers GeoParams::device_pointers() const
 {
-    REQUIRE(celeritas::is_device_enabled());
+    CELER_EXPECT(celeritas::is_device_enabled());
     GeoParamsPointers result;
     result.world_volume
         = static_cast<const vecgeom::VPlacedVolume*>(device_world_volume_);
-    ENSURE(result);
+    CELER_ENSURE(result);
     return result;
 }
 
@@ -165,8 +165,8 @@ GeoParamsPointers GeoParams::device_pointers() const
  */
 void GeoParams::set_cuda_stack_size(int limit)
 {
-    REQUIRE(limit > 0);
-    REQUIRE(celeritas::is_device_enabled());
+    CELER_EXPECT(limit > 0);
+    CELER_EXPECT(celeritas::is_device_enabled());
 #if CELERITAS_USE_CUDA
     CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
 #endif

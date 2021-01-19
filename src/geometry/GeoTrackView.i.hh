@@ -86,10 +86,10 @@ CELER_FUNCTION void GeoTrackView::find_next_step()
 {
     const vecgeom::LogicalVolume* logical_vol
         = this->volume().GetLogicalVolume();
-    CHECK(logical_vol);
+    CELER_ASSERT(logical_vol);
     const vecgeom::VNavigator* navigator
         = this->volume().GetLogicalVolume()->GetNavigator();
-    CHECK(navigator);
+    CELER_ASSERT(navigator);
 
     next_step_
         = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
@@ -120,7 +120,7 @@ CELER_FUNCTION void GeoTrackView::move_next_volume()
 //! Get the volume ID in the current cell.
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {
-    REQUIRE(!this->is_outside());
+    CELER_EXPECT(!this->is_outside());
     return VolumeId{this->volume().id()};
 }
 
@@ -138,15 +138,15 @@ GeoTrackView::get_nav_state(void*                  state,
                             CELER_MAYBE_UNUSED int vgmaxdepth,
                             ThreadId               thread) -> NavState&
 {
-    REQUIRE(state);
+    CELER_EXPECT(state);
     char* ptr = reinterpret_cast<char*>(state);
 #ifdef __NVCC__
     ptr += vecgeom::cuda::NavigationState::SizeOfInstanceAlignAware(vgmaxdepth)
            * thread.get();
 #else
-    REQUIRE(thread.get() == 0);
+    CELER_EXPECT(thread.get() == 0);
 #endif
-    ENSURE(ptr);
+    CELER_ENSURE(ptr);
     return *reinterpret_cast<NavState*>(ptr);
 }
 
@@ -155,7 +155,7 @@ GeoTrackView::get_nav_state(void*                  state,
 CELER_FUNCTION const vecgeom::VPlacedVolume& GeoTrackView::volume() const
 {
     const vecgeom::VPlacedVolume* vol_ptr = vgstate_.Top();
-    ENSURE(vol_ptr);
+    CELER_ENSURE(vol_ptr);
     return *vol_ptr;
 }
 

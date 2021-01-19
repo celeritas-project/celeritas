@@ -94,8 +94,8 @@
  * or https://msdn.microsoft.com/en-us/library/1b3fsfxw.aspx=
  *
  * \note This macro is usually unused; instead, the macro \c
- * CHECK_UNREACHABLE defined in DBC.hh should be used instead (to provide
- * a more detailed error message in case the point *is* reached).
+ * CELER_ASSERT_UNREACHABLE() defined in DBC.hh should be used instead (to
+ * provide a more detailed error message in case the point *is* reached).
  */
 #if defined(__clang__) || defined(__GNUC__)
 #    define CELER_UNREACHABLE __builtin_unreachable()

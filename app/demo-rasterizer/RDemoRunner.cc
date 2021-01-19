@@ -27,7 +27,7 @@ namespace demo_rasterizer
 RDemoRunner::RDemoRunner(SPConstGeo geometry)
     : geo_params_(std::move(geometry))
 {
-    REQUIRE(geo_params_);
+    CELER_EXPECT(geo_params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -36,7 +36,7 @@ RDemoRunner::RDemoRunner(SPConstGeo geometry)
  */
 void RDemoRunner::operator()(ImageStore* image) const
 {
-    REQUIRE(image);
+    CELER_EXPECT(image);
 
     GeoStateStore geo_state(*geo_params_, image->dims()[0]);
 

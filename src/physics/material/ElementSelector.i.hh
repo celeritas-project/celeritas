@@ -24,18 +24,18 @@ CELER_FUNCTION ElementSelector::ElementSelector(const MaterialView& material,
     , material_xs_(0)
     , elemental_xs_(storage.data())
 {
-    REQUIRE(!elements_.empty());
-    REQUIRE(storage.size() >= material.num_elements());
+    CELER_EXPECT(!elements_.empty());
+    CELER_EXPECT(storage.size() >= material.num_elements());
     for (auto i : range<unsigned int>(elements_.size()))
     {
         const real_type micro_xs = calc_micro_xs(elements_[i].element);
-        CHECK(micro_xs >= 0);
+        CELER_ASSERT(micro_xs >= 0);
         const real_type frac = elements_[i].fraction;
 
         elemental_xs_[i] = micro_xs;
         material_xs_ += micro_xs * frac;
     }
-    ENSURE(material_xs_ >= 0);
+    CELER_ENSURE(material_xs_ >= 0);
 }
 
 //---------------------------------------------------------------------------//

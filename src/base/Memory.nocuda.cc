@@ -18,7 +18,7 @@ namespace celeritas
  */
 void device_memset(void*, int, size_type)
 {
-    CHECK_UNREACHABLE;
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

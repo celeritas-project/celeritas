@@ -40,7 +40,7 @@ void allreduce(const Communicator& comm,
                Span<const T, N>    src,
                Span<T, N>          dst)
 {
-    REQUIRE(src.size() == dst.size());
+    CELER_EXPECT(src.size() == dst.size());
 
     if (!comm)
     {

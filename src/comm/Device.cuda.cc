@@ -70,7 +70,7 @@ void initialize_device(const Communicator& comm)
     // Get number of devices
     int num_devices = -1;
     CELER_CUDA_CALL(cudaGetDeviceCount(&num_devices));
-    CHECK(num_devices > 0);
+    CELER_ASSERT(num_devices > 0);
 
     // Set device based on communicator, and call cudaFree to wake up the
     // device

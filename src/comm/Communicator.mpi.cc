@@ -18,17 +18,17 @@ namespace celeritas
  */
 Communicator::Communicator(MpiComm comm) : comm_(comm)
 {
-    REQUIRE(comm != detail::MpiCommNull());
-    REQUIRE(ScopedMpiInit::status() == ScopedMpiInit::Status::initialized);
+    CELER_EXPECT(comm != detail::MpiCommNull());
+    CELER_EXPECT(ScopedMpiInit::status() == ScopedMpiInit::Status::initialized);
 
     // Save rank and size
     int err;
     err = MPI_Comm_rank(comm_, &rank_);
-    CHECK(err == MPI_SUCCESS);
+    CELER_ASSERT(err == MPI_SUCCESS);
     err = MPI_Comm_size(comm_, &size_);
-    CHECK(err == MPI_SUCCESS);
+    CELER_ASSERT(err == MPI_SUCCESS);
 
-    ENSURE(this->rank() >= 0 && this->rank() < this->size());
+    CELER_ENSURE(this->rank() >= 0 && this->rank() < this->size());
 }
 
 //---------------------------------------------------------------------------//

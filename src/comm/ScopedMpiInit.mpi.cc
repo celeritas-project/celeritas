@@ -27,7 +27,7 @@ ScopedMpiInit::Status ScopedMpiInit::status_
  */
 ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
 {
-    REQUIRE((argc == nullptr) == (argv == nullptr));
+    CELER_EXPECT((argc == nullptr) == (argv == nullptr));
 
     switch (ScopedMpiInit::status())
     {
@@ -40,7 +40,7 @@ ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
         case Status::uninitialized: {
             Stopwatch get_time;
             int       err = MPI_Init(argc, argv);
-            CHECK(err == MPI_SUCCESS);
+            CELER_ASSERT(err == MPI_SUCCESS);
             status_ = Status::initialized;
             CELER_LOG(debug) << "MPI initialization took " << get_time() << "s";
             break;
@@ -51,9 +51,9 @@ ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
             break;
         }
         default:
-            CHECK_UNREACHABLE;
+            CELER_ASSERT_UNREACHABLE();
     }
-    ENSURE(status_ != Status::uninitialized);
+    CELER_ENSURE(status_ != Status::uninitialized);
 }
 
 //---------------------------------------------------------------------------//
@@ -66,7 +66,7 @@ ScopedMpiInit::~ScopedMpiInit()
     {
         status_ = Status::uninitialized;
         int err = MPI_Finalize();
-        ENSURE(err == MPI_SUCCESS);
+        CELER_ENSURE(err == MPI_SUCCESS);
     }
 }
 
@@ -90,7 +90,7 @@ auto ScopedMpiInit::status() -> Status
             // initialized MPI.
             int result = -1;
             int err    = MPI_Initialized(&result);
-            CHECK(err == MPI_SUCCESS);
+            CELER_ASSERT(err == MPI_SUCCESS);
             status_ = result ? Status::initialized : Status::uninitialized;
         }
     }

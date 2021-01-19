@@ -33,7 +33,7 @@ namespace detail
  */
 real_type calc_coulomb_correction(int atomic_number)
 {
-    REQUIRE(atomic_number > 0);
+    CELER_EXPECT(atomic_number > 0);
     using constants::alpha_fine_structure;
 
     const real_type alphazsq = ipow<2>(alpha_fine_structure * atomic_number);
@@ -62,7 +62,7 @@ real_type calc_coulomb_correction(int atomic_number)
         azpow *= -alphazsq;
     }
 
-    ENSURE(fz > 0);
+    CELER_ENSURE(fz > 0);
     return alphazsq * fz;
 }
 
@@ -75,9 +75,9 @@ real_type calc_coulomb_correction(int atomic_number)
  */
 real_type calc_mass_rad_coeff(const ElementDef& el)
 {
-    REQUIRE(el.atomic_number > 0);
-    REQUIRE(el.atomic_mass > zero_quantity());
-    REQUIRE(el.coulomb_correction > 0);
+    CELER_EXPECT(el.atomic_number > 0);
+    CELER_EXPECT(el.atomic_mass > zero_quantity());
+    CELER_EXPECT(el.coulomb_correction > 0);
     using constants::alpha_fine_structure;
     using constants::re_electron;
 

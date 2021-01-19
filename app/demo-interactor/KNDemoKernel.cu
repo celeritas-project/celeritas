@@ -132,8 +132,8 @@ __global__ void iterate_kernel(ParamPointers const              params,
 
         // Perform interaction: should emit a single particle (an electron)
         Interaction interaction = interact(rng);
-        CHECK(interaction);
-        CHECK(interaction.secondaries.size() == 1);
+        CELER_ASSERT(interaction);
+        CELER_ASSERT(interaction.secondaries.size() == 1);
 
         // Deposit energy from the secondary (effectively, an infinite energy
         // cutoff)
@@ -162,8 +162,8 @@ void initialize(const CudaGridParams&  grid,
                 const StatePointers&   states,
                 const InitialPointers& initial)
 {
-    REQUIRE(states.alive.size() == states.size());
-    REQUIRE(states.rng.size() == states.size());
+    CELER_EXPECT(states.alive.size() == states.size());
+    CELER_EXPECT(states.rng.size() == states.size());
     initialize_kernel<<<grid.grid_size, grid.block_size>>>(
         params, states, initial);
 }

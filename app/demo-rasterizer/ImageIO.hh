@@ -39,7 +39,7 @@ namespace celeritas
 template<class T, std::size_t N>
 void from_json(const nlohmann::json& j, Array<T, N>& value)
 {
-    REQUIRE(j.size() == N);
+    CELER_EXPECT(j.size() == N);
     for (std::size_t i = 0; i != N; ++i)
     {
         value[i] = j[i].get<T>();

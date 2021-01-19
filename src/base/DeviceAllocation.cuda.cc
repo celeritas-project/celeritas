@@ -19,8 +19,8 @@ namespace celeritas
  */
 DeviceAllocation::DeviceAllocation(size_type bytes) : size_(bytes)
 {
-    REQUIRE(bytes > 0);
-    REQUIRE(is_device_enabled());
+    CELER_EXPECT(bytes > 0);
+    CELER_EXPECT(is_device_enabled());
     void* ptr = nullptr;
     CELER_CUDA_CALL(cudaMalloc(&ptr, bytes));
     data_.reset(static_cast<Byte*>(ptr));
@@ -32,8 +32,8 @@ DeviceAllocation::DeviceAllocation(size_type bytes) : size_(bytes)
  */
 void DeviceAllocation::copy_to_device(constSpanBytes bytes)
 {
-    REQUIRE(!this->empty());
-    REQUIRE(bytes.size() == this->size());
+    CELER_EXPECT(!this->empty());
+    CELER_EXPECT(bytes.size() == this->size());
     CELER_CUDA_CALL(cudaMemcpy(
         data_.get(), bytes.data(), bytes.size(), cudaMemcpyHostToDevice));
 }
@@ -44,8 +44,8 @@ void DeviceAllocation::copy_to_device(constSpanBytes bytes)
  */
 void DeviceAllocation::copy_to_host(SpanBytes bytes) const
 {
-    REQUIRE(!this->empty());
-    REQUIRE(bytes.size() == this->size());
+    CELER_EXPECT(!this->empty());
+    CELER_EXPECT(bytes.size() == this->size());
     CELER_CUDA_CALL(cudaMemcpy(
         bytes.data(), data_.get(), this->size(), cudaMemcpyDeviceToHost));
 }

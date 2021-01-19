@@ -36,7 +36,7 @@ StatePointers StateStore::device_pointers()
     result.sim          = sim_states_.device_pointers();
     result.rng          = rng_states_.device_pointers();
     result.interactions = interactions_.device_pointers();
-    ENSURE(result);
+    CELER_ENSURE(result);
     return result;
 }
 

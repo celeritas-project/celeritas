@@ -31,7 +31,7 @@ class GeoParamsTest : public celeritas::Test
 
     const SPConstGeo& params()
     {
-        ENSURE(geom_);
+        CELER_ENSURE(geom_);
         return geom_;
     }
 

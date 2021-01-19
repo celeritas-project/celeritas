@@ -85,7 +85,7 @@ CELER_FUNCTION void normalize_direction(Real3* direction)
  */
 inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi)
 {
-    REQUIRE(costheta >= -1 && costheta <= 1);
+    CELER_EXPECT(costheta >= -1 && costheta <= 1);
 
     const real_type sintheta = std::sqrt(1 - costheta * costheta);
     return {sintheta * std::cos(phi), sintheta * std::sin(phi), costheta};
@@ -132,8 +132,8 @@ inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi)
 inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
 {
     constexpr real_type sqrt_eps = 1e-6;
-    REQUIRE(is_soft_unit_vector(dir, SoftEqual<real_type>(sqrt_eps)));
-    REQUIRE(is_soft_unit_vector(rot, SoftEqual<real_type>(sqrt_eps)));
+    CELER_EXPECT(is_soft_unit_vector(dir, SoftEqual<real_type>(sqrt_eps)));
+    CELER_EXPECT(is_soft_unit_vector(rot, SoftEqual<real_type>(sqrt_eps)));
 
     // Direction enumeration
     enum
@@ -174,7 +174,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
            (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
            -sintheta * dir[X] + rot[Z] * dir[Z]};
 
-    ENSURE(is_soft_unit_vector(result, SoftEqual<real_type>(sqrt_eps)));
+    CELER_ENSURE(is_soft_unit_vector(result, SoftEqual<real_type>(sqrt_eps)));
     return result;
 }
 
@@ -184,7 +184,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
  *
  * Example:
  * \code
-  REQUIRE(is_soft_unit_vector(v, SoftEqual(1e-12)))
+  CELER_EXPECT(is_soft_unit_vector(v, SoftEqual(1e-12)))
   \endcode
  */
 template<class T, std::size_t N, class SoftEq>

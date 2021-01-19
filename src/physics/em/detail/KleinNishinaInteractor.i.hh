@@ -32,7 +32,7 @@ CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
     , inc_direction_(inc_direction)
     , allocate_(allocate)
 {
-    REQUIRE(particle.def_id() == shared_.gamma_id);
+    CELER_EXPECT(particle.def_id() == shared_.gamma_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -87,11 +87,11 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
             epsilon_sq = sample_f2_sq(rng);
             epsilon    = std::sqrt(epsilon_sq);
         }
-        CHECK(epsilon >= epsilon_0 && epsilon <= 1);
+        CELER_ASSERT(epsilon >= epsilon_0 && epsilon <= 1);
 
         // Calculate angles: need sin^2 \theta for rejection
         one_minus_costheta = (1 - epsilon) / (epsilon * inc_energy_per_mecsq);
-        CHECK(one_minus_costheta >= 0 && one_minus_costheta <= 2);
+        CELER_ASSERT(one_minus_costheta >= 0 && one_minus_costheta <= 2);
         real_type sintheta_sq = one_minus_costheta * (2 - one_minus_costheta);
         acceptance_prob       = epsilon * sintheta_sq / (1 + epsilon_sq);
     } while (BernoulliDistribution(acceptance_prob)(rng));

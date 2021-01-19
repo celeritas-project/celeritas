@@ -45,7 +45,7 @@ void default_global_handler(Provenance prov, LogLevel lev, std::string msg)
         case LogLevel::warning:    c = 'y'; break;
         case LogLevel::error:      c = 'r'; break;
         case LogLevel::critical:   c = 'R'; break;
-        default: CHECK_UNREACHABLE;
+        default: CELER_ASSERT_UNREACHABLE();
     };
     // clang-format on
     std::cerr << color_code(c) << to_cstring(lev) << ": " << color_code(' ')

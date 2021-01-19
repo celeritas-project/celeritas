@@ -17,8 +17,8 @@ namespace celeritas
  */
 CELER_FUNCTION XsCalculator::XsCalculator(const ValueGrid& data) : data_(data)
 {
-    REQUIRE(data_.energy.size() > 0);
-    REQUIRE(data_.xs.size() > 0);
+    CELER_EXPECT(data_.energy.size() > 0);
+    CELER_EXPECT(data_.xs.size() > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -44,7 +44,7 @@ CELER_FUNCTION real_type XsCalculator::operator()(const real_type energy) const
         // placeholder anyway.
         auto bin = data_.energy.size();
         while (data_.energy[--bin] >= energy) {}
-        CHECK(bin + 1 < data_.xs.size());
+        CELER_ASSERT(bin + 1 < data_.xs.size());
 
         // Interpolate *linearly* on energy using the bin data.
         LinearInterpolator<real_type> interpolate_xs(

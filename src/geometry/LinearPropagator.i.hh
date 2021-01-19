@@ -48,8 +48,8 @@ void LinearPropagator::operator()()
 CELER_FUNCTION
 void LinearPropagator::operator()(real_type dist)
 {
-    REQUIRE(dist > 0.);
-    REQUIRE(dist <= track_.next_step());
+    CELER_EXPECT(dist > 0.);
+    CELER_EXPECT(dist <= track_.next_step());
     this->apply_linear_step(dist);
 
     if (std::fabs(track_.next_step()) < track_.tolerance())

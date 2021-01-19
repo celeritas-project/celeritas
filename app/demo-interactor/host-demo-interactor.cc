@@ -62,9 +62,9 @@ void run(std::istream& is)
 
     // For now, only do a single run
     auto run_args = inp.at("run").get<demo_interactor::KNDemoRunArgs>();
-    REQUIRE(run_args.energy > 0);
-    REQUIRE(run_args.num_tracks > 0);
-    REQUIRE(run_args.max_steps > 0);
+    CELER_EXPECT(run_args.energy > 0);
+    CELER_EXPECT(run_args.num_tracks > 0);
+    CELER_EXPECT(run_args.max_steps > 0);
     auto result = run(run_args);
 
     nlohmann::json outp = {

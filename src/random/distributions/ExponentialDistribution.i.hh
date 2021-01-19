@@ -20,7 +20,7 @@ CELER_FUNCTION
 ExponentialDistribution<RT>::ExponentialDistribution(real_type lambda)
     : neg_inv_lambda_(real_type{-1} / lambda)
 {
-    REQUIRE(lambda > real_type{0});
+    CELER_EXPECT(lambda > real_type{0});
 }
 
 //---------------------------------------------------------------------------//

@@ -18,8 +18,8 @@ namespace celeritas
  */
 ParticleStateStore::ParticleStateStore(size_type size) : vars_(size)
 {
-    REQUIRE(size > 0);
-    ENSURE(!vars_.empty());
+    CELER_EXPECT(size > 0);
+    CELER_ENSURE(!vars_.empty());
 }
 
 //---------------------------------------------------------------------------//
@@ -40,7 +40,7 @@ ParticleStatePointers ParticleStateStore::device_pointers()
     ParticleStatePointers result;
     result.vars = vars_.device_pointers();
 
-    ENSURE(result);
+    CELER_ENSURE(result);
     return result;
 }
 

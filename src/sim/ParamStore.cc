@@ -22,9 +22,9 @@ ParamStore::ParamStore(SPConstGeo      geo,
     , material_params_(std::move(mat))
     , particle_params_(std::move(particle))
 {
-    REQUIRE(geo_params_);
-    REQUIRE(material_params_);
-    REQUIRE(particle_params_);
+    CELER_EXPECT(geo_params_);
+    CELER_EXPECT(material_params_);
+    CELER_EXPECT(particle_params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -37,7 +37,7 @@ ParamPointers ParamStore::device_pointers()
     result.geo      = geo_params_->device_pointers();
     result.material = material_params_->device_pointers();
     result.particle = particle_params_->device_pointers();
-    ENSURE(result);
+    CELER_ENSURE(result);
     return result;
 }
 

@@ -25,7 +25,7 @@ DetectorConstruction::DetectorConstruction(G4String gdmlInput)
     constexpr bool validate_gdml_schema = false;
     gdml_parser.Read(gdmlInput, validate_gdml_schema);
     phys_vol_world_.reset(gdml_parser.GetWorldVolume());
-    ENSURE(phys_vol_world_);
+    CELER_ENSURE(phys_vol_world_);
 }
 
 //---------------------------------------------------------------------------//
@@ -40,7 +40,7 @@ DetectorConstruction::~DetectorConstruction() = default;
  */
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
-    REQUIRE(phys_vol_world_);
+    CELER_EXPECT(phys_vol_world_);
     return phys_vol_world_.release();
 }
 
@@ -53,7 +53,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
  */
 const G4VPhysicalVolume* DetectorConstruction::get_world_volume() const
 {
-    REQUIRE(phys_vol_world_);
+    CELER_EXPECT(phys_vol_world_);
     return phys_vol_world_.get();
 }
 

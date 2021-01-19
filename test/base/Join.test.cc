@@ -25,7 +25,7 @@ struct Moveable
 
     Moveable(std::string m, int* c) : msg(std::move(m)), counter(c)
     {
-        REQUIRE(counter);
+        CELER_EXPECT(counter);
     }
 
     Moveable(Moveable&& rhs) : msg(std::move(rhs.msg)), counter(rhs.counter)

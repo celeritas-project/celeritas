@@ -21,7 +21,7 @@ CELER_FUNCTION PhotoelectricMicroXsCalculator::PhotoelectricMicroXsCalculator(
     const ParticleTrackView&               particle)
     : shared_(shared), data_(data), inc_energy_(particle.energy().value())
 {
-    REQUIRE(particle.def_id() == shared_.gamma_id);
+    CELER_EXPECT(particle.def_id() == shared_.gamma_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -31,7 +31,7 @@ CELER_FUNCTION PhotoelectricMicroXsCalculator::PhotoelectricMicroXsCalculator(
 CELER_FUNCTION
 real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
 {
-    REQUIRE(el_id);
+    CELER_EXPECT(el_id);
     const LivermoreElement& el = data_.elements[el_id.get()];
 
     // In Geant4, if the incident gamma energy is below the lowest binding

@@ -31,7 +31,7 @@ EPlusGGInteractor::EPlusGGInteractor(const EPlusGGPointers&   shared,
     , inc_direction_(inc_direction)
     , allocate_(allocate)
 {
-    REQUIRE(particle.def_id() == shared_.positron_id);
+    CELER_EXPECT(particle.def_id() == shared_.positron_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -95,7 +95,7 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         // Scattered Gamma angles
         const real_type cost = (epsil * tau2 - 1)
                                / (epsil * std::sqrt(tau * tau2));
-        CHECK(std::fabs(cost) <= 1);
+        CELER_ASSERT(std::fabs(cost) <= 1);
 
         // Kinematic of the gamma pair
         const real_type total_energy = inc_energy_ + 2 * shared_.electron_mass;

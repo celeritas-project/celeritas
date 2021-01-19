@@ -28,7 +28,7 @@ inline MPI_Op to_mpi(Operation op)
         case Operation::prod: return MPI_PROD;
             // clang-format on
     }
-    CHECK_UNREACHABLE;
+    CELER_ASSERT_UNREACHABLE();
 }
 } // namespace
 
@@ -38,9 +38,9 @@ inline MPI_Op to_mpi(Operation op)
  */
 inline void barrier(const Communicator& comm)
 {
-    REQUIRE(comm);
+    CELER_EXPECT(comm);
     int err = MPI_Barrier(comm.mpi_comm());
-    ENSURE(err == MPI_SUCCESS);
+    CELER_ENSURE(err == MPI_SUCCESS);
 }
 
 //---------------------------------------------------------------------------//
@@ -51,8 +51,8 @@ template<class T>
 inline void
 allreduce(const Communicator& comm, Operation op, Span<const T> src, Span<T> dst)
 {
-    REQUIRE(comm);
-    REQUIRE(src.size() == dst.size());
+    CELER_EXPECT(comm);
+    CELER_EXPECT(src.size() == dst.size());
 
     int err = MPI_Allreduce(src.data(),
                             dst.data(),
@@ -60,7 +60,7 @@ allreduce(const Communicator& comm, Operation op, Span<const T> src, Span<T> dst
                             detail::MpiType<T>::get(),
                             to_mpi(op),
                             comm.mpi_comm());
-    ENSURE(err == MPI_SUCCESS);
+    CELER_ENSURE(err == MPI_SUCCESS);
 }
 
 //---------------------------------------------------------------------------//
@@ -70,7 +70,7 @@ allreduce(const Communicator& comm, Operation op, Span<const T> src, Span<T> dst
 template<class T>
 inline void allreduce(const Communicator& comm, Operation op, Span<T> data)
 {
-    REQUIRE(comm);
+    CELER_EXPECT(comm);
 
     int err = MPI_Allreduce(MPI_IN_PLACE,
                             data.data(),
@@ -78,7 +78,7 @@ inline void allreduce(const Communicator& comm, Operation op, Span<T> data)
                             detail::MpiType<T>::get(),
                             to_mpi(op),
                             comm.mpi_comm());
-    ENSURE(err == MPI_SUCCESS);
+    CELER_ENSURE(err == MPI_SUCCESS);
 }
 
 //---------------------------------------------------------------------------//

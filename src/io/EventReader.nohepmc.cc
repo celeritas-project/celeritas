@@ -19,7 +19,7 @@ EventReader::~EventReader() = default;
 
 EventReader::result_type EventReader::operator()()
 {
-    CHECK_UNREACHABLE;
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

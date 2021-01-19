@@ -52,7 +52,7 @@ __global__ void klein_nishina_interact_kernel(const KleinNishinaPointers  kn,
 
     RngEngine rng(ptrs.states.rng, tid);
     ptrs.result[tid.get()] = interact(rng);
-    ENSURE(ptrs.result[tid.get()]);
+    CELER_ENSURE(ptrs.result[tid.get()]);
 }
 
 } // namespace
@@ -66,8 +66,8 @@ __global__ void klein_nishina_interact_kernel(const KleinNishinaPointers  kn,
 void klein_nishina_interact(const KleinNishinaPointers&  kn,
                             const ModelInteractPointers& model)
 {
-    REQUIRE(kn);
-    REQUIRE(model);
+    CELER_EXPECT(kn);
+    CELER_EXPECT(model);
 
     KernelParamCalculator calc_kernel_params;
     auto                  params = calc_kernel_params(model.states.size());

@@ -16,7 +16,7 @@ CELER_FUNCTION
 SimTrackView::SimTrackView(const SimStatePointers& states, ThreadId id)
     : state_(states.vars[id.get()])
 {
-    REQUIRE(id < states.vars.size());
+    CELER_EXPECT(id < states.vars.size());
 }
 
 //---------------------------------------------------------------------------//

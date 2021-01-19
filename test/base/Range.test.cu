@@ -28,7 +28,7 @@ rangedev_test_kernel(int a, int* x, int* y, int* z, unsigned int n)
 
 RangeTestOutput rangedev_test(RangeTestInput input)
 {
-    REQUIRE(input.x.size() == input.y.size());
+    CELER_EXPECT(input.x.size() == input.y.size());
 
     // Local device vectors for working data
     thrust::device_vector<int> x_dev(input.x.begin(), input.x.end());

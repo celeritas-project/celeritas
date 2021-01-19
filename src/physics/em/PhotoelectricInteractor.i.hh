@@ -31,9 +31,9 @@ CELER_FUNCTION PhotoelectricInteractor::PhotoelectricInteractor(
     , allocate_(allocate)
     , calc_micro_xs_(shared, data, particle)
 {
-    REQUIRE(inc_energy_ > this->min_incident_energy()
-            && inc_energy_ <= this->max_incident_energy());
-    REQUIRE(particle.def_id() == shared_.gamma_id);
+    CELER_EXPECT(inc_energy_ > this->min_incident_energy()
+                 && inc_energy_ <= this->max_incident_energy());
+    CELER_EXPECT(particle.def_id() == shared_.gamma_id);
 
     inv_energy_ = 1. / inc_energy_.value();
 }

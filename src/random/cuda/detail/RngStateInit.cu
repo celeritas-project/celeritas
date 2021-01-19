@@ -45,7 +45,7 @@ __global__ void rng_init_kernel(const RngStatePointers           state,
 void rng_state_init_device(const RngStatePointers&         device_ptrs,
                            Span<const RngSeed::value_type> device_seeds)
 {
-    REQUIRE(device_ptrs.size() == device_seeds.size());
+    CELER_EXPECT(device_ptrs.size() == device_seeds.size());
 
     // Launch kernel to build RNG states on device
     celeritas::KernelParamCalculator calc_launch_params;

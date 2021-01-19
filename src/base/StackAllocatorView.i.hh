@@ -19,7 +19,7 @@ template<class T>
 CELER_FUNCTION StackAllocatorView<T>::StackAllocatorView(const Pointers& shared)
     : shared_(shared)
 {
-    REQUIRE(shared);
+    CELER_EXPECT(shared);
 }
 
 //---------------------------------------------------------------------------//
@@ -93,7 +93,7 @@ CELER_FUNCTION auto StackAllocatorView<T>::capacity() const -> size_type
 template<class T>
 CELER_FUNCTION auto StackAllocatorView<T>::get() -> Span<value_type>
 {
-    REQUIRE(*shared_.size <= this->capacity());
+    CELER_EXPECT(*shared_.size <= this->capacity());
     return {shared_.storage.data(), *shared_.size};
 }
 
@@ -107,7 +107,7 @@ template<class T>
 CELER_FUNCTION auto StackAllocatorView<T>::get() const
     -> Span<const value_type>
 {
-    REQUIRE(*shared_.size <= this->capacity());
+    CELER_EXPECT(*shared_.size <= this->capacity());
     return {shared_.storage.data(), *shared_.size};
 }
 //---------------------------------------------------------------------------//

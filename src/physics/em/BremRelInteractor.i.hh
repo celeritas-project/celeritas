@@ -22,9 +22,9 @@ BremRelInteractor::BremRelInteractor(const BremRelInteractorPointers& shared,
     , inc_direction_(inc_direction)
     , allocate_(allocate)
 {
-    REQUIRE(inc_energy_ >= this->min_incident_energy()
-            && inc_energy_ <= this->max_incident_energy());
-    REQUIRE(particle.def_id() == shared_.gamma_id); // XXX
+    CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
+                 && inc_energy_ <= this->max_incident_energy());
+    CELER_EXPECT(particle.def_id() == shared_.gamma_id); // XXX
 }
 
 //---------------------------------------------------------------------------//

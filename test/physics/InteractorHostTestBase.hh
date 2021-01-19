@@ -95,7 +95,7 @@ class InteractorHostTestBase : public celeritas::Test
     void               set_material(const std::string& name);
     MaterialTrackView& material_track()
     {
-        REQUIRE(mt_view_);
+        CELER_EXPECT(mt_view_);
         return *mt_view_;
     }
     //!@}
@@ -107,7 +107,7 @@ class InteractorHostTestBase : public celeritas::Test
     const Real3&             direction() const { return inc_direction_; }
     const ParticleTrackView& particle_track() const
     {
-        REQUIRE(pt_view_);
+        CELER_EXPECT(pt_view_);
         return *pt_view_;
     }
     //!@}
@@ -118,7 +118,7 @@ class InteractorHostTestBase : public celeritas::Test
     const HostSecondaryStore& secondaries() const { return secondaries_; }
     SecondaryAllocatorView& secondary_allocator()
     {
-        REQUIRE(sa_view_);
+        CELER_EXPECT(sa_view_);
         return *sa_view_;
     }
     //!@}

@@ -39,7 +39,7 @@ void DeviceVector<T>::swap(DeviceVector& other) noexcept
 template<class T>
 void DeviceVector<T>::resize(size_type size)
 {
-    REQUIRE(size <= this->capacity());
+    CELER_EXPECT(size <= this->capacity());
     size_ = size;
 }
 
@@ -50,7 +50,7 @@ void DeviceVector<T>::resize(size_type size)
 template<class T>
 void DeviceVector<T>::copy_to_device(constSpan_t data)
 {
-    REQUIRE(data.size() == this->size());
+    CELER_EXPECT(data.size() == this->size());
     allocation_.copy_to_device(
         {reinterpret_cast<const Byte*>(data.data()), data.size() * sizeof(T)});
 }
@@ -62,7 +62,7 @@ void DeviceVector<T>::copy_to_device(constSpan_t data)
 template<class T>
 void DeviceVector<T>::copy_to_host(Span_t data) const
 {
-    REQUIRE(data.size() == this->size());
+    CELER_EXPECT(data.size() == this->size());
     allocation_.copy_to_host(
         {reinterpret_cast<Byte*>(data.data()), data.size() * sizeof(T)});
 }

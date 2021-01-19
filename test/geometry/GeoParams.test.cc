@@ -26,7 +26,7 @@ class GeoParamsHostTest : public GeoParamsTest
     void SetUp() override
     {
         host_view = this->params()->host_pointers();
-        CHECK(host_view.world_volume);
+        CELER_ASSERT(host_view.world_volume);
     }
 
     // Views

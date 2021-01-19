@@ -14,7 +14,7 @@ namespace celeritas
  */
 const std::string& MaterialParams::id_to_label(ElementDefId el) const
 {
-    REQUIRE(el < elnames_.size());
+    CELER_EXPECT(el < elnames_.size());
     return elnames_[el.get()];
 }
 
@@ -24,7 +24,7 @@ const std::string& MaterialParams::id_to_label(ElementDefId el) const
  */
 const std::string& MaterialParams::id_to_label(MaterialDefId mat) const
 {
-    REQUIRE(mat < matnames_.size());
+    CELER_EXPECT(mat < matnames_.size());
     return matnames_[mat.get()];
 }
 

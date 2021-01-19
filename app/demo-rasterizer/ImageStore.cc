@@ -20,10 +20,10 @@ namespace demo_rasterizer
  */
 ImageStore::ImageStore(ImageRunArgs params)
 {
-    REQUIRE(celeritas::is_soft_unit_vector(params.rightward_ax,
-                                           celeritas::SoftEqual<real_type>{}));
-    REQUIRE(params.lower_left != params.upper_right);
-    REQUIRE(params.vertical_pixels > 0);
+    CELER_EXPECT(celeritas::is_soft_unit_vector(
+        params.rightward_ax, celeritas::SoftEqual<real_type>{}));
+    CELER_EXPECT(params.lower_left != params.upper_right);
+    CELER_EXPECT(params.vertical_pixels > 0);
 
     // Normalize rightward axis
     right_ax_ = params.rightward_ax;
@@ -49,7 +49,7 @@ ImageStore::ImageStore(ImageRunArgs params)
     real_type width_x = celeritas::dot_product(diagonal, right_ax_);
     real_type width_y = -celeritas::dot_product(diagonal, down_ax_);
 
-    CHECK(width_x > 0 && width_y > 0);
+    CELER_ASSERT(width_x > 0 && width_y > 0);
 
     // Set number of pixels in each direction.
     auto num_y   = params.vertical_pixels;
@@ -65,7 +65,7 @@ ImageStore::ImageStore(ImageRunArgs params)
     // Allocate storage
     dims_  = {num_y, num_x};
     image_ = celeritas::DeviceVector<int>(num_y * num_x);
-    ENSURE(!image_.empty());
+    CELER_ENSURE(!image_.empty());
 }
 
 //---------------------------------------------------------------------------//

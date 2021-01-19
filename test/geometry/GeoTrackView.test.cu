@@ -55,10 +55,10 @@ __global__ void vgg_test_kernel(const GeoParamsPointers shared,
 //! Run on device and return results
 VGGTestOutput vgg_test(VGGTestInput input)
 {
-    REQUIRE(input.shared);
-    REQUIRE(input.state);
-    REQUIRE(input.init.size() == input.state.size);
-    REQUIRE(input.max_segments > 0);
+    CELER_EXPECT(input.shared);
+    CELER_EXPECT(input.state);
+    CELER_EXPECT(input.init.size() == input.state.size);
+    CELER_EXPECT(input.max_segments > 0);
 
     // Temporary device data for kernel
     thrust::device_vector<VGGTestInit> init(input.init.begin(),

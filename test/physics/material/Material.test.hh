@@ -25,7 +25,7 @@ struct MTestInput
 
     size_type size() const
     {
-        REQUIRE(states.size() == init.size());
+        CELER_EXPECT(states.size() == init.size());
         return states.size();
     }
 };

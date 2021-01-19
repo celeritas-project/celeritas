@@ -55,7 +55,7 @@ class OpaqueId
     //! Get the ID's value
     CELER_FORCEINLINE_FUNCTION value_type get() const
     {
-        REQUIRE(*this);
+        CELER_EXPECT(*this);
         return value_;
     }
 
@@ -113,8 +113,8 @@ CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<I, T> lhs, U rhs)
 template<class I, class T>
 inline CELER_FUNCTION T operator-(OpaqueId<I, T> self, OpaqueId<I, T> other)
 {
-    REQUIRE(self);
-    REQUIRE(other);
+    CELER_EXPECT(self);
+    CELER_EXPECT(other);
     return self.unchecked_get() - other.unchecked_get();
 }
 

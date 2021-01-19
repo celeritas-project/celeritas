@@ -61,7 +61,7 @@ struct ModelInteractState
     //! Number of particle tracks
     CELER_FUNCTION size_type size() const
     {
-        REQUIRE(*this);
+        CELER_EXPECT(*this);
         return particle.size();
     }
 };

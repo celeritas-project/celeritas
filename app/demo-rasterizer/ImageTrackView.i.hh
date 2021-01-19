@@ -17,7 +17,7 @@ CELER_FUNCTION
 ImageTrackView::ImageTrackView(const ImagePointers& shared, ThreadId tid)
     : shared_(shared), j_index_(tid.get())
 {
-    REQUIRE(j_index_ < shared_.dims[0]);
+    CELER_EXPECT(j_index_ < shared_.dims[0]);
 }
 
 //---------------------------------------------------------------------------//
@@ -41,10 +41,10 @@ CELER_FUNCTION auto ImageTrackView::start_pos() const -> Real3
  */
 CELER_FUNCTION void ImageTrackView::set_pixel(unsigned int i, int value)
 {
-    REQUIRE(i < shared_.dims[1]);
+    CELER_EXPECT(i < shared_.dims[1]);
     unsigned int idx = j_index_ * shared_.dims[1] + i;
 
-    CHECK(idx < shared_.image.size());
+    CELER_ASSERT(idx < shared_.image.size());
     shared_.image[idx] = value;
 }
 

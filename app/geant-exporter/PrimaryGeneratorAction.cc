@@ -27,7 +27,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
     // Selecting the particle
     G4ParticleDefinition* particle;
     particle = G4ParticleTable::GetParticleTable()->FindParticle("e-");
-    CHECK(particle);
+    CELER_ASSERT(particle);
 
     // Setting up the particle gun
     G4ThreeVector pos(0, 0, 0);

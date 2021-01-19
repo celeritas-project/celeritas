@@ -23,8 +23,8 @@ namespace celeritas
  */
 void device_memset(void* data, int fill_value, size_type count)
 {
-    REQUIRE(fill_value >= 0
-            && fill_value <= std::numeric_limits<unsigned char>::max());
+    CELER_EXPECT(fill_value >= 0
+                 && fill_value <= std::numeric_limits<unsigned char>::max());
     auto* data_char = static_cast<unsigned char*>(data);
 
     thrust::uninitialized_fill_n(

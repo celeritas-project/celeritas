@@ -41,7 +41,7 @@ class LinearPropagatorHostTest : public GeoParamsTest
         state_view.vgnext     = this->next_state.get();
 
         params_view = this->params()->host_pointers();
-        CHECK(params_view.world_volume);
+        CELER_ASSERT(params_view.world_volume);
     }
 
   protected:
@@ -195,7 +195,7 @@ class LinearPropagatorDeviceTest : public GeoParamsTest
 
 TEST_F(LinearPropagatorDeviceTest, track_lines)
 {
-    CHECK(this->params());
+    CELER_ASSERT(this->params());
 
     // Set up test input
     LinPropTestInput input;

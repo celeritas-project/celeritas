@@ -21,7 +21,7 @@ MaterialStateStore::MaterialStateStore(const MaterialParams& mats,
     , states_(size)
     , element_scratch_(size * max_el_)
 {
-    REQUIRE(size > 0);
+    CELER_EXPECT(size > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -34,7 +34,7 @@ MaterialStatePointers MaterialStateStore::device_pointers()
     result.state           = states_.device_pointers();
     result.element_scratch = element_scratch_.device_pointers();
 
-    ENSURE(result);
+    CELER_ENSURE(result);
     return result;
 }
 

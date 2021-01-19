@@ -25,7 +25,7 @@ namespace celeritas
  */
 MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
 {
-    REQUIRE(!inp.materials.empty());
+    CELER_EXPECT(!inp.materials.empty());
 
     // Reserve host space (MUST reserve elcomponents to avoid invalidating
     // spans).
@@ -76,11 +76,11 @@ MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
         device_materials_.copy_to_device(make_span(temp_device_mats));
     }
 
-    ENSURE(host_elements_.size() == inp.elements.size());
-    ENSURE(host_elcomponents_.size() <= host_elcomponents_.capacity());
-    ENSURE(host_materials_.size() == inp.materials.size());
-    ENSURE(elnames_.size() == inp.elements.size());
-    ENSURE(matnames_.size() == inp.materials.size());
+    CELER_ENSURE(host_elements_.size() == inp.elements.size());
+    CELER_ENSURE(host_elcomponents_.size() <= host_elcomponents_.capacity());
+    CELER_ENSURE(host_materials_.size() == inp.materials.size());
+    CELER_ENSURE(elnames_.size() == inp.elements.size());
+    CELER_ENSURE(matnames_.size() == inp.materials.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -94,7 +94,7 @@ MaterialParamsPointers MaterialParams::host_pointers() const
     result.materials              = make_span(host_materials_);
     result.max_element_components = this->max_element_components();
 
-    ENSURE(result);
+    CELER_ENSURE(result);
     return result;
 }
 
@@ -109,7 +109,7 @@ MaterialParamsPointers MaterialParams::device_pointers() const
     result.materials              = device_materials_.device_pointers();
     result.max_element_components = this->max_element_components();
 
-    ENSURE(result);
+    CELER_ENSURE(result);
     return result;
 }
 
@@ -124,8 +124,8 @@ MaterialParamsPointers MaterialParams::device_pointers() const
  */
 void MaterialParams::append_element_def(const ElementInput& inp)
 {
-    REQUIRE(inp.atomic_number > 0);
-    REQUIRE(inp.atomic_mass > zero_quantity());
+    CELER_EXPECT(inp.atomic_number > 0);
+    CELER_EXPECT(inp.atomic_mass > zero_quantity());
 
     ElementDef result;
 
@@ -158,8 +158,8 @@ void MaterialParams::append_element_def(const ElementInput& inp)
 Span<MatElementComponent>
 MaterialParams::extend_elcomponents(const MaterialInput& inp)
 {
-    REQUIRE(host_elcomponents_.size() + inp.elements_fractions.size()
-            <= host_elcomponents_.capacity());
+    CELER_EXPECT(host_elcomponents_.size() + inp.elements_fractions.size()
+                 <= host_elcomponents_.capacity());
 
     // Allocate material components
     auto start_size = host_elcomponents_.size();
@@ -171,8 +171,8 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp)
     real_type norm = 0.0;
     for (auto i : range(inp.elements_fractions.size()))
     {
-        REQUIRE(inp.elements_fractions[i].first < host_elements_.size());
-        REQUIRE(inp.elements_fractions[i].second >= 0);
+        CELER_EXPECT(inp.elements_fractions[i].first < host_elements_.size());
+        CELER_EXPECT(inp.elements_fractions[i].second >= 0);
         // Store number fraction
         result[i].element  = inp.elements_fractions[i].first;
         result[i].fraction = inp.elements_fractions[i].second;
@@ -195,7 +195,7 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp)
             comp.fraction *= norm;
             total_fractions += comp.fraction;
         }
-        CHECK(soft_equal(total_fractions, 1.0));
+        CELER_ASSERT(soft_equal(total_fractions, 1.0));
     }
 
     // Sort elements by increasing element ID for improved access
@@ -215,8 +215,8 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp)
  */
 void MaterialParams::append_material_def(const MaterialInput& inp)
 {
-    REQUIRE(inp.number_density >= 0);
-    REQUIRE((inp.number_density == 0) == inp.elements_fractions.empty());
+    CELER_EXPECT(inp.number_density >= 0);
+    CELER_EXPECT((inp.number_density == 0) == inp.elements_fractions.empty());
 
     auto iter_inserted = matname_to_id_.insert(
         {inp.name, MaterialDefId(host_materials_.size())});
@@ -246,7 +246,7 @@ void MaterialParams::append_material_def(const MaterialInput& inp)
     real_type rad_coeff    = 0;
     for (const MatElementComponent& comp : result.elements)
     {
-        CHECK(comp.element < host_elements_.size());
+        CELER_ASSERT(comp.element < host_elements_.size());
         const ElementDef& el = host_elements_[comp.element.get()];
 
         avg_amu_mass += comp.fraction * el.atomic_mass.value();
@@ -265,11 +265,11 @@ void MaterialParams::append_material_def(const MaterialInput& inp)
     // Update maximum number of materials
     max_el_ = std::max(max_el_, result.elements.size());
 
-    ENSURE(result.number_density >= 0);
-    ENSURE(result.temperature >= 0);
-    ENSURE((result.density > 0) == (inp.number_density > 0));
-    ENSURE((result.electron_density > 0) == (inp.number_density > 0));
-    ENSURE(result.rad_length > 0);
+    CELER_ENSURE(result.number_density >= 0);
+    CELER_ENSURE(result.temperature >= 0);
+    CELER_ENSURE((result.density > 0) == (inp.number_density > 0));
+    CELER_ENSURE((result.electron_density > 0) == (inp.number_density > 0));
+    CELER_ENSURE(result.rad_length > 0);
 }
 
 //---------------------------------------------------------------------------//

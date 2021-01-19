@@ -20,7 +20,7 @@ PhysicsTrackView::PhysicsTrackView(const PhysicsParamsPointers& params,
                                    ThreadId tid)
     : params_(params), states_(states), tid_(tid)
 {
-    REQUIRE(tid_);
+    CELER_EXPECT(tid_);
 }
 
 //---------------------------------------------------------------------------//

@@ -22,7 +22,7 @@ namespace celeritas
  */
 LivermoreParams::LivermoreParams(const Input& inp)
 {
-    REQUIRE(!inp.elements.empty());
+    CELER_EXPECT(!inp.elements.empty());
 
     // Reserve host space (MUST reserve subshells and cross section data to
     // avoid invalidating spans).
@@ -89,9 +89,9 @@ LivermoreParams::LivermoreParams(const Input& inp)
         device_data_.copy_to_device(make_span(host_data_));
     }
 
-    ENSURE(host_elements_.size() == inp.elements.size());
-    ENSURE(host_shells_.size() <= host_shells_.capacity());
-    ENSURE(host_data_.size() <= host_data_.capacity());
+    CELER_ENSURE(host_elements_.size() == inp.elements.size());
+    CELER_ENSURE(host_shells_.size() <= host_shells_.capacity());
+    CELER_ENSURE(host_data_.size() <= host_data_.capacity());
 }
 
 //---------------------------------------------------------------------------//
@@ -103,7 +103,7 @@ LivermoreParamsPointers LivermoreParams::host_pointers() const
     LivermoreParamsPointers result;
     result.elements = make_span(host_elements_);
 
-    ENSURE(result);
+    CELER_ENSURE(result);
     return result;
 }
 
@@ -116,7 +116,7 @@ LivermoreParamsPointers LivermoreParams::device_pointers() const
     LivermoreParamsPointers result;
     result.elements = device_elements_.device_pointers();
 
-    ENSURE(result);
+    CELER_ENSURE(result);
     return result;
 }
 
@@ -151,7 +151,8 @@ void LivermoreParams::append_livermore_element(const ElementInput& inp)
  */
 Span<LivermoreSubshell> LivermoreParams::extend_shells(const ElementInput& inp)
 {
-    REQUIRE(host_shells_.size() + inp.shells.size() <= host_shells_.capacity());
+    CELER_EXPECT(host_shells_.size() + inp.shells.size()
+                 <= host_shells_.capacity());
 
     // Allocate subshells
     auto start_size = host_shells_.size();
@@ -179,7 +180,7 @@ Span<LivermoreSubshell> LivermoreParams::extend_shells(const ElementInput& inp)
  */
 Span<real_type> LivermoreParams::extend_data(const std::vector<real_type>& data)
 {
-    REQUIRE(host_data_.size() + data.size() <= host_data_.capacity());
+    CELER_EXPECT(host_data_.size() + data.size() <= host_data_.capacity());
 
     // Allocate data
     host_data_.insert(host_data_.end(), data.begin(), data.end());

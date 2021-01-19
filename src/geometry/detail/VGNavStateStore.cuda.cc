@@ -30,8 +30,8 @@ VGNavStateStore::VGNavStateStore(size_type size, int depth)
  */
 void VGNavStateStore::copy_to_device()
 {
-    REQUIRE(*this);
-    REQUIRE(celeritas::is_device_enabled());
+    CELER_EXPECT(*this);
+    CELER_EXPECT(celeritas::is_device_enabled());
     pool_->CopyToGpu();
     CELER_CUDA_CHECK_ERROR();
 }
@@ -45,9 +45,9 @@ void VGNavStateStore::copy_to_device()
  */
 void* VGNavStateStore::device_pointers() const
 {
-    REQUIRE(*this);
+    CELER_EXPECT(*this);
     void* ptr = pool_->GetGPUPointer();
-    ENSURE(ptr);
+    CELER_ENSURE(ptr);
     return ptr;
 }
 

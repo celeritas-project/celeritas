@@ -95,7 +95,7 @@ void trace(const GeoParamsPointers& geo_params,
            const GeoStatePointers&  geo_state,
            const ImagePointers&     image)
 {
-    REQUIRE(image);
+    CELER_EXPECT(image);
 
     KernelParamCalculator calc_kernel_params;
     auto                  params = calc_kernel_params(image.dims[0]);

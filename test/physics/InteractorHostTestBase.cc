@@ -42,7 +42,7 @@ InteractorHostTestBase::~InteractorHostTestBase() = default;
  */
 void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
 {
-    REQUIRE(!inp.materials.empty());
+    CELER_EXPECT(!inp.materials.empty());
 
     material_params_ = std::make_shared<MaterialParams>(std::move(inp));
     mp_pointers_     = material_params_->host_pointers();
@@ -56,7 +56,7 @@ void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
  */
 void InteractorHostTestBase::set_material(const std::string& name)
 {
-    REQUIRE(material_params_);
+    CELER_EXPECT(material_params_);
 
     mat_state_.def_id = material_params_->find(name);
     mt_view_          = std::make_shared<MaterialTrackView>(
@@ -69,7 +69,7 @@ void InteractorHostTestBase::set_material(const std::string& name)
  */
 const MaterialParams& InteractorHostTestBase::material_params() const
 {
-    REQUIRE(material_params_);
+    CELER_EXPECT(material_params_);
     return *material_params_;
 }
 
@@ -79,7 +79,7 @@ const MaterialParams& InteractorHostTestBase::material_params() const
  */
 void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
 {
-    REQUIRE(!inp.empty());
+    CELER_EXPECT(!inp.empty());
     particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
     pp_pointers_     = particle_params_->host_pointers();
 }
@@ -90,7 +90,7 @@ void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
  */
 const ParticleParams& InteractorHostTestBase::particle_params() const
 {
-    REQUIRE(particle_params_);
+    CELER_EXPECT(particle_params_);
     return *particle_params_;
 }
 
@@ -100,9 +100,9 @@ const ParticleParams& InteractorHostTestBase::particle_params() const
  */
 void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
 {
-    REQUIRE(particle_params_);
-    REQUIRE(pdg);
-    REQUIRE(energy >= zero_quantity());
+    CELER_EXPECT(particle_params_);
+    CELER_EXPECT(pdg);
+    CELER_EXPECT(energy >= zero_quantity());
 
     particle_state_.def_id = particle_params_->find(pdg);
     particle_state_.energy = energy;
@@ -117,7 +117,7 @@ void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
  */
 void InteractorHostTestBase::set_inc_direction(const Real3& dir)
 {
-    REQUIRE(celeritas::norm(dir) > 0);
+    CELER_EXPECT(celeritas::norm(dir) > 0);
 
     inc_direction_ = dir;
     normalize_direction(&inc_direction_);
@@ -129,7 +129,7 @@ void InteractorHostTestBase::set_inc_direction(const Real3& dir)
  */
 void InteractorHostTestBase::resize_secondaries(int count)
 {
-    REQUIRE(count > 0);
+    CELER_EXPECT(count > 0);
     secondaries_.resize(count);
     sa_view_ = std::make_shared<SecondaryAllocatorView>(
         secondaries_.host_pointers());

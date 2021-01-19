@@ -26,13 +26,13 @@ CELER_FUNCTION DetectorView::DetectorView(const DetectorPointers& pointers)
  */
 CELER_FUNCTION void DetectorView::operator()(const Hit& hit)
 {
-    REQUIRE(hit.thread);
-    REQUIRE(hit.time > 0);
-    REQUIRE(hit.energy_deposited > zero_quantity());
+    CELER_EXPECT(hit.thread);
+    CELER_EXPECT(hit.time > 0);
+    CELER_EXPECT(hit.energy_deposited > zero_quantity());
 
     // Allocate and assign the given hit
     Hit* allocated = this->allocate_(1);
-    CHECK(allocated);
+    CELER_ASSERT(allocated);
     *allocated = hit;
 }
 

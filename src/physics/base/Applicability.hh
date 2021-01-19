@@ -42,7 +42,7 @@ struct Applicability
     //! Range for a particle at rest
     static inline Applicability at_rest(ParticleDefId id)
     {
-        REQUIRE(id);
+        CELER_EXPECT(id);
         Applicability result;
         result.particle = id;
         result.lower    = neg_max_quantity();

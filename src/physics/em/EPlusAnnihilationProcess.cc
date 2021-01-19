@@ -20,7 +20,7 @@ EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles)
     : particles_(std::move(particles))
     , positron_id_(particles_->find(pdg::positron()))
 {
-    REQUIRE(particles_);
+    CELER_EXPECT(particles_);
 }
 
 //---------------------------------------------------------------------------//
@@ -40,10 +40,10 @@ auto EPlusAnnihilationProcess::build_models(ModelIdGenerator next_id) const
 auto EPlusAnnihilationProcess::step_limits(Applicability range) const
     -> StepLimitBuilders
 {
-    REQUIRE(range.particle == positron_id_);
+    CELER_EXPECT(range.particle == positron_id_);
 
     // Not implemented
-    CHECK_UNREACHABLE;
+    CELER_ASSERT_UNREACHABLE();
 
     return {};
 }

@@ -45,7 +45,7 @@ struct StackAllocatorPointers
 template<class T>
 CELER_FUNCTION StackAllocatorPointers<T>::operator bool() const
 {
-    REQUIRE(storage.empty() || size);
+    CELER_EXPECT(storage.empty() || size);
     return !storage.empty();
 }
 

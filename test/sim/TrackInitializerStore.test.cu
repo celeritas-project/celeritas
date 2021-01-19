@@ -92,8 +92,8 @@ void interact(StatePointers              states,
               SecondaryAllocatorPointers secondaries,
               ITTestInputPointers        input)
 {
-    REQUIRE(states.size() > 0);
-    REQUIRE(states.size() == input.alloc_size.size());
+    CELER_EXPECT(states.size() > 0);
+    CELER_EXPECT(states.size() == input.alloc_size.size());
 
     KernelParamCalculator calc_launch_params;
     auto                  lparams = calc_launch_params(states.size());
