@@ -45,10 +45,12 @@
  * message. This should not be used on device.
  */
 /*!
- * \def CELER_ASSERT_UNREACHABLE()
+ * \def CELER_ASSERT_UNREACHABLE
  *
- * Assert if the code point is reached. When debug assertions are turned off,
- * this changes to a compiler hint that improves optimization.
+ * Throw an assertion if the code point is reached. When debug assertions are
+ * turned off, this changes to a compiler hint that improves optimization (and
+ * may force the coded to exit uncermoniously if the point is encountered,
+ * rather than continuing on with undefined behavior).
  */
 /*!
  * \def CELER_NOT_CONFIGURED
@@ -125,7 +127,7 @@
 #    define CELER_VALIDATE(COND, MSG)                                          \
         ::celeritas::throw_debug_error(::celeritas::DebugErrorType::assertion, \
                                        "Insist cannot be called from device "  \
-                                       "code",                                 \
+                                       "from device code",                     \
                                        __FILE__,                               \
                                        __LINE__)
 #    define CELER_NOT_CONFIGURED(WHAT) CELER_ASSERT(0)

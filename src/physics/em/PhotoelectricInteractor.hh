@@ -25,8 +25,13 @@ namespace celeritas
  * Livermore model for the photoelectric effect.
  *
  * A parameterization of the photoelectric cross sections in two different
- * energy intervals, formulated as \sigma(E) = a_1 / E + a_2 / E^2 + a_3 / E^3
- * + a_4 / E^4 + a_5 / E^5 + a_6 / E^6, is used. The coefficients for this
+ * energy intervals, formulated as
+ * \f[
+ * \sigma(E)
+     = a_1 / E + a_2 / E^2 + a_3 / E^3 + a_4 / E^4 + a_5 / E^5 + a_6 / E^6
+     \: ,
+ * \f]
+ * is used. The coefficients for this
  * model are calculated by fitting the tabulated EPICS2014 subshell cross
  * sections. The parameterized model applies above approximately 5 keV; below
  * this limit (which depends on the atomic number) the tabulated cross sections
