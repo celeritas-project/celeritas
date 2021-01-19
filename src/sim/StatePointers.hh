@@ -35,10 +35,7 @@ struct StatePointers
     }
 
     //! Number of tracks
-    CELER_FUNCTION celeritas::size_type size() const
-    {
-        return particle.size();
-    }
+    CELER_FUNCTION size_type size() const { return particle.size(); }
 };
 
 //---------------------------------------------------------------------------//

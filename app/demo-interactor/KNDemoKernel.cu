@@ -24,6 +24,10 @@ using celeritas::detail::KleinNishinaInteractor;
 
 namespace demo_interactor
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+// KERNELS
 //---------------------------------------------------------------------------//
 /*!
  * Kernel to initialize particle data.
@@ -34,9 +38,9 @@ namespace demo_interactor
  * operate on two 32-thread chunks of data.
  *  https://developer.nvidia.com/blog/cuda-pro-tip-write-flexible-kernels-grid-stride-loops/
  */
-__global__ void initialize_kn(ParamPointers const   params,
-                              StatePointers const   states,
-                              InitialPointers const init)
+__global__ void initialize_kernel(ParamPointers const   params,
+                                  StatePointers const   states,
+                                  InitialPointers const init)
 {
     // Grid-stride loop, see
     for (int tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -66,10 +70,10 @@ __global__ void initialize_kn(ParamPointers const   params,
  * - Kills the secondary, depositing its local energy
  * - Applies the interaction (updating track direction and energy)
  */
-__global__ void iterate_kn(ParamPointers const              params,
-                           StatePointers const              states,
-                           SecondaryAllocatorPointers const secondaries,
-                           DetectorPointers const           detector)
+__global__ void iterate_kernel(ParamPointers const              params,
+                               StatePointers const              states,
+                               SecondaryAllocatorPointers const secondaries,
+                               DetectorPointers const           detector)
 {
     SecondaryAllocatorView allocate_secondaries(secondaries);
     DetectorView           detector_hit(detector);
@@ -145,9 +149,10 @@ __global__ void iterate_kn(ParamPointers const              params,
         particle.energy(interaction.energy);
     }
 }
+} // namespace
 
 //---------------------------------------------------------------------------//
-// HOST INTERFACES
+// KERNEL INTERFACES
 //---------------------------------------------------------------------------//
 /*!
  * Initialize particle states.
@@ -159,7 +164,8 @@ void initialize(const CudaGridParams&  grid,
 {
     REQUIRE(states.alive.size() == states.size());
     REQUIRE(states.rng.size() == states.size());
-    initialize_kn<<<grid.grid_size, grid.block_size>>>(params, states, initial);
+    initialize_kernel<<<grid.grid_size, grid.block_size>>>(
+        params, states, initial);
 }
 
 //---------------------------------------------------------------------------//
@@ -172,7 +178,7 @@ void iterate(const CudaGridParams&              grid,
              const SecondaryAllocatorPointers&  secondaries,
              const celeritas::DetectorPointers& detector)
 {
-    iterate_kn<<<grid.grid_size, grid.block_size>>>(
+    iterate_kernel<<<grid.grid_size, grid.block_size>>>(
         params, state, secondaries, detector);
 
     // Note: the device synchronize is useful for debugging and necessary for

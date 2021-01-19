@@ -7,20 +7,24 @@
 //---------------------------------------------------------------------------//
 #include "RngStateInit.hh"
 
+#include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 #include "random/cuda/RngEngine.hh"
 
+namespace celeritas
+{
+namespace detail
+{
 namespace
 {
-using namespace celeritas;
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
-__global__ void
-init_impl(const RngStatePointers state, const RngSeed::value_type* const seeds)
+__global__ void rng_init_kernel(const RngStatePointers           state,
+                                const RngSeed::value_type* const seeds)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < state.size())
@@ -32,10 +36,6 @@ init_impl(const RngStatePointers state, const RngSeed::value_type* const seeds)
 //---------------------------------------------------------------------------//
 } // namespace
 
-namespace celeritas
-{
-namespace detail
-{
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
@@ -50,9 +50,9 @@ void rng_state_init_device(const RngStatePointers&         device_ptrs,
     // Launch kernel to build RNG states on device
     celeritas::KernelParamCalculator calc_launch_params;
     auto params = calc_launch_params(device_seeds.size());
-    init_impl<<<params.grid_size, params.block_size>>>(device_ptrs,
-                                                       device_seeds.data());
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    rng_init_kernel<<<params.grid_size, params.block_size>>>(
+        device_ptrs, device_seeds.data());
+    CELER_CUDA_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//

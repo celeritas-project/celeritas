@@ -11,11 +11,15 @@
 #include "base/KernelParamCalculator.cuda.hh"
 #include "base/StackAllocatorView.hh"
 
+namespace celeritas
+{
+namespace detail
+{
 namespace
 {
 //---------------------------------------------------------------------------//
-using namespace celeritas;
-
+// KERNELS
+//---------------------------------------------------------------------------//
 __global__ void bin_buffer_kernel(DetectorPointers const detector)
 {
     auto        hits = StackAllocatorView<Hit>(detector.hit_buffer).get();
@@ -56,10 +60,8 @@ normalize_kernel(DetectorPointers const detector, real_type norm)
 //---------------------------------------------------------------------------//
 } // namespace
 
-namespace celeritas
-{
-namespace detail
-{
+//---------------------------------------------------------------------------//
+// KERNEL INTERFACES
 //---------------------------------------------------------------------------//
 /*!
  * Bin the buffer into the tally grid.

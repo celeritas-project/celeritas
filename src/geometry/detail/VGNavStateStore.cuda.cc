@@ -33,7 +33,7 @@ void VGNavStateStore::copy_to_device()
     REQUIRE(*this);
     REQUIRE(celeritas::is_device_enabled());
     pool_->CopyToGpu();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_CUDA_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//
