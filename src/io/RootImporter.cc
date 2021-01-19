@@ -117,7 +117,11 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
     // Load the particle data
     ImportParticle  particle;
     ImportParticle* temp_particle_ptr = &particle;
-    tree_particles->SetBranchAddress("ImportParticle", &temp_particle_ptr);
+
+    int err_code = tree_particles->SetBranchAddress("ImportParticle",
+                                                    &temp_particle_ptr);
+    CHECK(err_code >= 0);
+
     for (auto i : range(defs.size()))
     {
         // Load a single entry into particle
@@ -173,7 +177,10 @@ std::vector<ImportProcess> RootImporter::load_processes()
     // Load branch
     ImportProcess  process;
     ImportProcess* process_ptr = &process;
-    tree_processes->SetBranchAddress("ImportProcess", &process_ptr);
+
+    int err_code
+        = tree_processes->SetBranchAddress("ImportProcess", &process_ptr);
+    CHECK(err_code >= 0);
 
     std::vector<ImportProcess> processes;
 
@@ -206,7 +213,10 @@ std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
     // Load branch and fetch data
     GdmlGeometryMap  geometry;
     GdmlGeometryMap* geometry_ptr = &geometry;
-    tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+
+    int err_code
+        = tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+    CHECK(err_code >= 0);
     tree_geometry->GetEntry(0);
 
     return std::make_shared<GdmlGeometryMap>(std::move(geometry));
@@ -227,7 +237,10 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
     // Load branch and fetch data
     GdmlGeometryMap  geometry;
     GdmlGeometryMap* geometry_ptr = &geometry;
-    tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+
+    int err_code
+        = tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+    CHECK(err_code >= 0);
     tree_geometry->GetEntry(0);
 
     // Create MaterialParams input for its constructor

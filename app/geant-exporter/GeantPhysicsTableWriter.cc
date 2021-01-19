@@ -227,7 +227,8 @@ GeantPhysicsTableWriter::GeantPhysicsTableWriter(TFile*         root_file,
 {
     REQUIRE(root_file);
     this->tree_process_ = std::make_unique<TTree>("processes", "processes");
-    tree_process_->Branch("ImportProcess", &process_);
+    auto* tbranch       = tree_process_->Branch("ImportProcess", &process_);
+    ENSURE(tbranch);
 }
 
 //---------------------------------------------------------------------------//

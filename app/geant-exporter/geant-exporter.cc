@@ -73,7 +73,8 @@ void store_particles(TFile* root_file, G4ParticleTable* particle_table)
 
     // Create temporary particle
     ImportParticle particle;
-    tree_particles.Branch("ImportParticle", &particle);
+    TBranch*       branch = tree_particles.Branch("ImportParticle", &particle);
+    CHECK(branch);
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -241,7 +242,8 @@ void store_geometry(TFile*                       root_file,
 
     // Create geometry map and ROOT branch
     GdmlGeometryMap geometry;
-    tree_materials.Branch("GdmlGeometryMap", &geometry);
+    TBranch* branch = tree_materials.Branch("GdmlGeometryMap", &geometry);
+    CHECK(branch);
 
     // Populate global element map
     const auto g4element_table = *G4Element::GetElementTable();
