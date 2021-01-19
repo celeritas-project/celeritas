@@ -3,21 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Communicator.nompi.cc
+//! \file EventReader.nohepmc.cc
 //---------------------------------------------------------------------------//
-#include "Communicator.hh"
-
-#include "base/Assert.hh"
+#include "EventReader.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Construct with a native MPI communicator
- */
-Communicator::Communicator(MpiComm)
+EventReader::EventReader(const char*, SPConstParticles)
 {
-    CELER_NOT_CONFIGURED("MPI");
+    CELER_NOT_CONFIGURED("HepMC3");
+}
+
+EventReader::~EventReader() = default;
+
+EventReader::result_type EventReader::operator()()
+{
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//

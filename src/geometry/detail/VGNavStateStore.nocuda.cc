@@ -19,7 +19,7 @@ namespace detail
  */
 VGNavStateStore::VGNavStateStore(size_type, int)
 {
-    throw DebugError("Cannot allocate device memory because CUDA is disabled");
+    CELER_NOT_CONFIGURED("CUDA");
 }
 
 //---------------------------------------------------------------------------//

@@ -7,9 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "HepMC3/ReaderFactory.h"
+#include <memory>
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/Primary.hh"
+
+namespace HepMC3
+{
+class Reader;
+}
 
 namespace celeritas
 {
@@ -31,6 +36,9 @@ class EventReader
   public:
     // Construct from a filename
     explicit EventReader(const char* filename, SPConstParticles params);
+
+    // Default destructor in .cc
+    ~EventReader();
 
     // Generate primary particles from the event record
     result_type operator()();

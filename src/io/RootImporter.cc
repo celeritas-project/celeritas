@@ -21,18 +21,45 @@
 #include "base/Range.hh"
 #include "comm/Logger.hh"
 #include "physics/base/Units.hh"
+#include "ImportParticle.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Constructor
+ * Safely switch between MatterState [MaterialParams.hh] and
+ * ImportMaterialState [ImportMaterial.hh].
+ */
+MatterState to_matter_state(const ImportMaterialState state)
+{
+    switch (state)
+    {
+        case ImportMaterialState::not_defined:
+            return MatterState::unspecified;
+        case ImportMaterialState::solid:
+            return MatterState::solid;
+        case ImportMaterialState::liquid:
+            return MatterState::liquid;
+        case ImportMaterialState::gas:
+            return MatterState::gas;
+    }
+    CHECK_UNREACHABLE;
+}
+} // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from path to ROOT file.
  */
 RootImporter::RootImporter(const char* filename)
 {
     CELER_LOG(status) << "Opening ROOT file";
     root_input_.reset(TFile::Open(filename, "read"));
-    ENSURE(root_input_);
+    ENSURE(root_input_ && !root_input_->IsZombie());
 }
 
 //---------------------------------------------------------------------------//
@@ -41,7 +68,7 @@ RootImporter::~RootImporter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Load all data from the input file
+ * Load all data from the input file.
  */
 RootImporter::result_type RootImporter::operator()()
 {
@@ -90,7 +117,11 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
     // Load the particle data
     ImportParticle  particle;
     ImportParticle* temp_particle_ptr = &particle;
-    tree_particles->SetBranchAddress("ImportParticle", &temp_particle_ptr);
+
+    int err_code = tree_particles->SetBranchAddress("ImportParticle",
+                                                    &temp_particle_ptr);
+    CHECK(err_code >= 0);
+
     for (auto i : range(defs.size()))
     {
         // Load a single entry into particle
@@ -146,7 +177,10 @@ std::vector<ImportProcess> RootImporter::load_processes()
     // Load branch
     ImportProcess  process;
     ImportProcess* process_ptr = &process;
-    tree_processes->SetBranchAddress("ImportProcess", &process_ptr);
+
+    int err_code
+        = tree_processes->SetBranchAddress("ImportProcess", &process_ptr);
+    CHECK(err_code >= 0);
 
     std::vector<ImportProcess> processes;
 
@@ -179,7 +213,10 @@ std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
     // Load branch and fetch data
     GdmlGeometryMap  geometry;
     GdmlGeometryMap* geometry_ptr = &geometry;
-    tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+
+    int err_code
+        = tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+    CHECK(err_code >= 0);
     tree_geometry->GetEntry(0);
 
     return std::make_shared<GdmlGeometryMap>(std::move(geometry));
@@ -188,7 +225,6 @@ std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
 //---------------------------------------------------------------------------//
 /*!
  * Load GdmlGeometryMap from the ROOT file and populate MaterialParams
- *
  */
 std::shared_ptr<MaterialParams> RootImporter::load_material_data()
 {
@@ -201,7 +237,10 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
     // Load branch and fetch data
     GdmlGeometryMap  geometry;
     GdmlGeometryMap* geometry_ptr = &geometry;
-    tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+
+    int err_code
+        = tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+    CHECK(err_code >= 0);
     tree_geometry->GetEntry(0);
 
     // Create MaterialParams input for its constructor
@@ -226,8 +265,7 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
         material_params.name           = mat_key.second.name;
         material_params.temperature    = mat_key.second.temperature;
         material_params.number_density = mat_key.second.number_density;
-        material_params.matter_state
-            = this->to_matter_state(mat_key.second.state);
+        material_params.matter_state   = to_matter_state(mat_key.second.state);
 
         for (const auto& elem_key : mat_key.second.elements_num_fractions)
         {
@@ -243,27 +281,6 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
     // Construct MaterialParams and return it as a shared_ptr
     MaterialParams materials(input);
     return std::make_shared<MaterialParams>(std::move(materials));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Safely switch between MatterState [MaterialParams.hh] and
- * ImportMaterialState [ImportMaterial.hh].
- */
-MatterState RootImporter::to_matter_state(const ImportMaterialState state)
-{
-    switch (state)
-    {
-        case ImportMaterialState::not_defined:
-            return MatterState::unspecified;
-        case ImportMaterialState::solid:
-            return MatterState::solid;
-        case ImportMaterialState::liquid:
-            return MatterState::liquid;
-        case ImportMaterialState::gas:
-            return MatterState::gas;
-    }
-    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//

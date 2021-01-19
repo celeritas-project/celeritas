@@ -73,7 +73,8 @@ void store_particles(TFile* root_file, G4ParticleTable* particle_table)
 
     // Create temporary particle
     ImportParticle particle;
-    tree_particles.Branch("ImportParticle", &particle);
+    TBranch*       branch = tree_particles.Branch("ImportParticle", &particle);
+    CHECK(branch);
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -108,7 +109,8 @@ void store_particles(TFile* root_file, G4ParticleTable* particle_table)
     }
 
     CELER_LOG(info) << "Added " << num_particles << " particles";
-    root_file->Write();
+    int err_code = root_file->Write();
+    ENSURE(err_code >= 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -241,7 +243,8 @@ void store_geometry(TFile*                       root_file,
 
     // Create geometry map and ROOT branch
     GdmlGeometryMap geometry;
-    tree_materials.Branch("GdmlGeometryMap", &geometry);
+    TBranch* branch = tree_materials.Branch("GdmlGeometryMap", &geometry);
+    CHECK(branch);
 
     // Populate global element map
     const auto g4element_table = *G4Element::GetElementTable();
@@ -313,7 +316,8 @@ void store_geometry(TFile*                       root_file,
     loop_volumes(geometry, *world_volume.GetLogicalVolume());
 
     tree_materials.Fill();
-    root_file->Write();
+    int err_code = root_file->Write();
+    ENSURE(err_code >= 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -385,23 +389,27 @@ int main(int argc, char* argv[])
 
     //// Export data ////
 
-    TFile root_output(root_output_filename.c_str(), "recreate");
+    CELER_LOG(status) << "Creating ROOT file";
+    std::unique_ptr<TFile> root_output(
+        TFile::Open(root_output_filename.c_str(), "recreate"));
+    CHECK(root_output && !root_output->IsZombie());
     CELER_LOG(info) << "Created ROOT output file '" << root_output_filename
                     << "'";
 
     // Store particle information
-    store_particles(&root_output, G4ParticleTable::GetParticleTable());
+    store_particles(root_output.get(), G4ParticleTable::GetParticleTable());
 
     // Store physics tables
-    store_physics_tables(&root_output, G4ParticleTable::GetParticleTable());
+    store_physics_tables(root_output.get(),
+                         G4ParticleTable::GetParticleTable());
 
     // Store material and volume information
-    store_geometry(&root_output,
+    store_geometry(root_output.get(),
                    *G4ProductionCutsTable::GetProductionCutsTable(),
                    *world_phys_volume);
 
     CELER_LOG(status) << "Closing output file";
-    root_output.Close();
+    root_output->Close();
 
     return EXIT_SUCCESS;
 }

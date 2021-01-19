@@ -3,21 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Communicator.nompi.cc
+//! \file RootImporter.noroot.cc
 //---------------------------------------------------------------------------//
-#include "Communicator.hh"
+#include "RootImporter.hh"
 
 #include "base/Assert.hh"
+
+// We're not linking against ROOT: declare a TFile so that its null-op
+// destructor can be called by the unique_ptr destructor.
+class TFile
+{
+};
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Construct with a native MPI communicator
- */
-Communicator::Communicator(MpiComm)
+RootImporter::RootImporter(const char*)
 {
-    CELER_NOT_CONFIGURED("MPI");
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+RootImporter::~RootImporter() = default;
+
+auto RootImporter::operator()() -> result_type
+{
+    CHECK_UNREACHABLE;
 }
 
 //---------------------------------------------------------------------------//

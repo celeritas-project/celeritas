@@ -38,6 +38,8 @@ const char* to_cstring(DebugErrorType which)
             return "internal assertion failed";
         case DebugErrorType::unreachable:
             return "unreachable code point";
+        case DebugErrorType::unconfigured:
+            return "required dependency is disabled in this build";
         case DebugErrorType::postcondition:
             return "postcondition failed";
     }

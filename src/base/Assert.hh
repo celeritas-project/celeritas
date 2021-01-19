@@ -50,6 +50,19 @@
  * Assert if the code point is reached. When debug assertions are turned off,
  * this changes to a compiler hint that improves optimization.
  */
+/*!
+ * \def CELER_NOT_CONFIGURED
+ *
+ * Assert if the code point is reached because an optional feature is disabled.
+ * This generally should be used for the constructors of dummy class
+ * definitions in, e.g., \c Foo.nocuda.cc:
+ * \code
+    Foo::Foo()
+    {
+        CELER_NOT_CONFIGURED("CUDA");
+    }
+ \endcode
+ */
 
 //! \cond
 #define CELER_CUDA_ASSERT_(COND) \
@@ -63,6 +76,12 @@
         if (CELER_UNLIKELY(!(COND)))                                            \
             ::celeritas::throw_debug_error(                                     \
                 ::celeritas::DebugErrorType::WHICH, #COND, __FILE__, __LINE__); \
+    } while (0)
+#define CELER_DEBUG_FAIL_(MSG, WHICH)                                     \
+    do                                                                    \
+    {                                                                     \
+        ::celeritas::throw_debug_error(                                   \
+            ::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__); \
     } while (0)
 #define CELER_RUNTIME_ASSERT_(COND, MSG)                              \
     do                                                                \
@@ -91,7 +110,7 @@
 #    define REQUIRE(COND) CELER_DEBUG_ASSERT_(COND, precondition)
 #    define CHECK(COND) CELER_DEBUG_ASSERT_(COND, internal)
 #    define ENSURE(COND) CELER_DEBUG_ASSERT_(COND, postcondition)
-#    define CHECK_UNREACHABLE CELER_DEBUG_ASSERT_(false, unreachable)
+#    define CHECK_UNREACHABLE CELER_DEBUG_FAIL_("", unreachable)
 #else
 #    define REQUIRE(COND) CELER_NOASSERT_(COND)
 #    define CHECK(COND) CELER_NOASSERT_(COND)
@@ -101,6 +120,7 @@
 
 #ifndef __CUDA_ARCH__
 #    define INSIST(COND, MSG) CELER_RUNTIME_ASSERT_(COND, MSG)
+#    define CELER_NOT_CONFIGURED(WHAT) CELER_DEBUG_FAIL_(WHAT, unconfigured)
 #else
 #    define INSIST(COND, MSG)                                                  \
         ::celeritas::throw_debug_error(::celeritas::DebugErrorType::assertion, \
@@ -108,6 +128,7 @@
                                        "code",                                 \
                                        __FILE__,                               \
                                        __LINE__)
+#    define CELER_NOT_CONFIGURED(WHAT) CHECK(0)
 #endif
 
 /*!
@@ -156,6 +177,7 @@ enum class DebugErrorType
     precondition,  //!< Precondition contract violation
     internal,      //!< Internal assertion check failure
     unreachable,   //!< Internal assertion: unreachable code path
+    unconfigured,  //!< Internal assertion: required feature not enabled
     postcondition, //!< Postcondition contract violation
 };
 

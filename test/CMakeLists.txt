@@ -142,14 +142,16 @@ endif()
 
 celeritas_setup_tests(SERIAL PREFIX io)
 
-if(CELERITAS_USE_ROOT)
-  celeritas_add_test(io/RootImporter.test.cc
-    LINK_LIBRARIES Celeritas::IO)
+if(NOT CELERITAS_USE_HepMC3)
+  set(_needs_hepmc DISABLE)
 endif()
-if(CELERITAS_USE_HepMC3)
-  celeritas_add_test(io/EventReader.test.cc
-    LINK_LIBRARIES ${HEPMC3_LIB})
+if(NOT CELERITAS_USE_ROOT)
+  set(_needs_root DISABLE)
 endif()
+
+celeritas_add_test(io/RootImporter.test.cc ${_needs_root}
+  LINK_LIBRARIES Celeritas::ROOT)
+celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc})
 
 #-----------------------------------------------------------------------------#
 # Physics
