@@ -1,6 +1,6 @@
 #!/bin/bash -e
 ###############################################################################
-# File  :  ci/admin/install-spack.sh
+# File  :  scripts/dev/install-spack.sh
 ###############################################################################
 
 function cecho()
@@ -29,7 +29,7 @@ info "This script is running from ${SCRIPT_DIR}"
 # Clone Spack and repositories
 ###############################################################################
 
-if [ -n "${SPACK_ROOT}" ]; then
+if [ ! -n "${SPACK_ROOT}" ]; then
   if [ -n "${CODE}" ]; then
     : # do nothing
   elif [ -d "/rnsdhpc" ]; then
@@ -173,7 +173,7 @@ function update_rc() {
   local ENV=$1
   local ENVVIEW=$2
   local SENTINEL="# >>> $1 environment >>>"
-  
+
   local BASHRC="${HOME}/.bashrc"
   local DO_UPDATE=false
   if [ ! -e "${HOME}/.bashrc" ]; then
