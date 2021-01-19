@@ -5,10 +5,13 @@
 //---------------------------------------------------------------------------//
 //! \file BetheHeitlerInteractor.test.cc
 //---------------------------------------------------------------------------//
+#include "physics/em/detail/BetheHeitlerInteractor.hh"
+
 #include "physics/material/ElementView.hh"
 #include "physics/material/Types.hh"
 #include "physics/base/Units.hh"
-#include "physics/em/BetheHeitlerInteractor.hh"
+#include "physics/em/BetheHeitlerModel.hh"
+#include "physics/em/GammaAnnihilationProcess.hh"
 #include "physics/material/MaterialTrackView.hh"
 
 #include "celeritas_test.hh"
@@ -19,7 +22,8 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::BetheHeitlerInteractor;
+using celeritas::GammaAnnihilationProcess;
+using celeritas::detail::BetheHeitlerInteractor;
 using celeritas::units::AmuMass;
 namespace constants = celeritas::constants;
 namespace pdg       = celeritas::pdg;
@@ -107,11 +111,11 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_SOFT_EQ(1.0, celeritas::norm(positron.direction));
 
         // Check conservation between primary and secondaries
-        // this->check_conservation(interaction);
+        this->check_energy_conservation(interaction);
     }
 
   protected:
-    celeritas::BetheHeitlerInteractorPointers pointers_;
+    celeritas::detail::BetheHeitlerPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//
@@ -186,12 +190,15 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
 {
     RandomEngine& rng_engine = this->rng();
 
-    const unsigned int num_samples = 8;
+    const unsigned int  num_samples = 8;
+    std::vector<double> avg_engine_samples;
 
     // Loop over a set of incident gamma energies
-    for (double inc_e : {1.5, 10.0, 100.0})
+    for (double inc_e : {1.5, 5.0, 10.0, 50.0, 100.0})
     {
+        SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
+        RandomEngine::size_type num_particles_sampled = 0;
 
         // Loop over several incident directions
         for (const Real3& inc_dir :
@@ -222,6 +229,38 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
             }
             EXPECT_EQ(2 * num_samples,
                       this->secondary_allocator().get().size());
+            num_particles_sampled += num_samples;
         }
+        avg_engine_samples.push_back(double(rng_engine.count())
+                                     / double(num_particles_sampled));
+        rng_engine.reset_count();
     }
+    // Gold values for average number of calls to RNG
+    const double expected_avg_engine_samples[]
+        = {18.375, 23.3125, 23.5, 22.9375, 22.75};
+    EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+}
+
+// TODO: Test all models for a given process?
+TEST_F(BetheHeitlerInteractorTest, model)
+{
+    GammaAnnihilationProcess process(this->get_particle_params());
+    ModelIdGenerator         next_id;
+
+    // Construct the models associated with gamma annihilation
+    auto models = process.build_models(next_id);
+    EXPECT_EQ(1, models.size());
+
+    auto bh = models.front();
+    EXPECT_EQ(ModelId{0}, bh->model_id());
+
+    // Get the particle types and energy ranges this model applies to
+    auto set_applic = bh->applicability();
+    EXPECT_EQ(1, set_applic.size());
+
+    auto applic = *set_applic.begin();
+    EXPECT_EQ(MaterialDefId{}, applic.material);
+    EXPECT_EQ(ParticleDefId{2}, applic.particle);
+    EXPECT_EQ(celeritas::units::MevEnergy{1.5}, applic.lower);
+    EXPECT_EQ(celeritas::units::MevEnergy{1e5}, applic.upper);
 }

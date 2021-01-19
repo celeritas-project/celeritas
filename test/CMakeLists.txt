@@ -179,7 +179,7 @@ celeritas_setup_tests(SERIAL PREFIX physics/em)
 set(_not_impl DISABLE)
 # NOTE: Remove '${_not_impl}' below at the start of developing each class.
 celeritas_add_test(physics/em/BetheBlochInteractor.test.cc ${_not_impl})
-celeritas_add_test(physics/em/BetheHeitlerInteractor.test.cc)
+celeritas_add_test(physics/em/BetheHeitler.test.cc)
 celeritas_add_test(physics/em/BremRelInteractor.test.cc ${_not_impl})
 celeritas_add_test(physics/em/EPlusGG.test.cc)
 celeritas_add_test(physics/em/KleinNishina.test.cc)

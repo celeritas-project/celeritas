@@ -14,6 +14,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
@@ -22,11 +24,11 @@ namespace celeritas
  * handled in code *before* the interactor is constructed.
  */
 BetheHeitlerInteractor::BetheHeitlerInteractor(
-    const BetheHeitlerInteractorPointers& shared,
-    const ParticleTrackView&              particle,
-    const Real3&                          inc_direction,
-    SecondaryAllocatorView&               allocate,
-    const ElementView&                    element)
+    const BetheHeitlerPointers& shared,
+    const ParticleTrackView&    particle,
+    const Real3&                inc_direction,
+    SecondaryAllocatorView&     allocate,
+    const ElementView&          element)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)
@@ -34,8 +36,6 @@ BetheHeitlerInteractor::BetheHeitlerInteractor(
     , element_(element)
 {
     CELER_EXPECT(particle.def_id() == shared_.gamma_id);
-    CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
-                 && inc_energy_ <= this->max_incident_energy());
 
     epsilon0_ = 1.0 / (shared_.inv_electron_mass * inc_energy_.value());
     // Gamma energy must be at least 2x electron rest mass
@@ -216,4 +216,5 @@ BetheHeitlerInteractor::screening_phi2_aux(real_type delta) const
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

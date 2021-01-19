@@ -54,9 +54,9 @@ class InteractorHostTestBase : public celeritas::Test
     //! Type aliases
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
 
-    using real_type              = celeritas::real_type;
-    using PDGNumber              = celeritas::PDGNumber;
-    using MevEnergy              = celeritas::units::MevEnergy;
+    using real_type = celeritas::real_type;
+    using PDGNumber = celeritas::PDGNumber;
+    using MevEnergy = celeritas::units::MevEnergy;
 
     using MaterialDefId     = celeritas::MaterialDefId;
     using MaterialParams    = celeritas::MaterialParams;
@@ -124,9 +124,9 @@ class InteractorHostTestBase : public celeritas::Test
 
     //!@{
     //! Secondary stack storage and access
-    void                             resize_secondaries(int count);
+    void                      resize_secondaries(int count);
     const HostSecondaryStore& secondaries() const { return secondaries_; }
-    SecondaryAllocatorView& secondary_allocator()
+    SecondaryAllocatorView&   secondary_allocator()
     {
         CELER_EXPECT(sa_view_);
         return *sa_view_;
@@ -138,8 +138,14 @@ class InteractorHostTestBase : public celeritas::Test
     RandomEngine& rng() { return rng_; }
     //!@}
 
-    // Check for momentum and energy conservation
+    // Check for energy and momentum conservation
     void check_conservation(const Interaction& interaction) const;
+
+    // Check for energy conservation
+    void check_energy_conservation(const Interaction& interaction) const;
+
+    // Check for momentum conservation
+    void check_momentum_conservation(const Interaction& interaction) const;
 
   private:
     std::shared_ptr<MaterialParams> material_params_;
