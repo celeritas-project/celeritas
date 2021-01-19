@@ -6,9 +6,11 @@
 """Generate class file stubs for Celeritas.
 """
 from __future__ import (division, absolute_import, print_function)
+import os
 import os.path
 import re
 import subprocess
+import stat
 import sys
 ###############################################################################
 
@@ -335,6 +337,12 @@ def generate(root, filename, namespace):
         }
     with open(filename, 'w') as f:
         f.write((top + template).format(**variables))
+        if top.startswith('#!'):
+            # Set executable bits
+            mode = os.fstat(f.fileno()).st_mode
+            mode |= 0o111
+            os.fchmod(f.fileno(), stat.S_IMODE(mode))
+
 
 def main():
     import argparse
