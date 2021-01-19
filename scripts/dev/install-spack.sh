@@ -29,7 +29,7 @@ info "This script is running from ${SCRIPT_DIR}"
 # Clone Spack and repositories
 ###############################################################################
 
-if [ ! -n "${SPACK_ROOT}" ]; then
+if [ -z "${SPACK_ROOT}" ]; then
   if [ -n "${CODE}" ]; then
     : # do nothing
   elif [ -d "/rnsdhpc" ]; then
