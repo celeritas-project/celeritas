@@ -35,6 +35,7 @@ cmake -G Ninja \
   -DCELERITAS_DEBUG:BOOL=ON \
   -DCMAKE_BUILD_TYPE:STRING="RelWithDebInfo" \
   -DCMAKE_CUDA_ARCHITECTURES:STRING="70" \
+  -DCMAKE_EXE_LINKER_FLAGS:STRING="-Wl,--no-as-needed" \
   -DCMAKE_SHARED_LINKER_FLAGS:STRING="-Wl,--no-as-needed" \
   -DMPIEXEC_PREFLAGS:STRING="--allow-run-as-root" \
   -DMPI_CXX_LINK_FLAGS:STRING="-pthread" \
