@@ -126,7 +126,7 @@
 #else
 #    define CELER_VALIDATE(COND, MSG)                                          \
         ::celeritas::throw_debug_error(::celeritas::DebugErrorType::assertion, \
-                                       "Insist cannot be called from device "  \
+                                       "CELER_VALIDATE cannot be called "      \
                                        "from device code",                     \
                                        __FILE__,                               \
                                        __LINE__)
