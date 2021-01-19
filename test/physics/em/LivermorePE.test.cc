@@ -11,14 +11,18 @@
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
+#include "io/AtomicRelaxationReader.hh"
 #include "io/LivermorePEParamsReader.hh"
 #include "physics/base/Units.hh"
+#include "physics/em/AtomicRelaxationParams.hh"
 #include "physics/em/LivermorePEModel.hh"
 #include "physics/em/LivermorePEParams.hh"
 #include "physics/em/PhotoelectricProcess.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
+using celeritas::AtomicRelaxationParams;
+using celeritas::AtomicRelaxationReader;
 using celeritas::ElementId;
 using celeritas::LivermorePEParams;
 using celeritas::LivermorePEParamsReader;
@@ -41,6 +45,13 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
         livermore_params_ = std::make_shared<LivermorePEParams>(std::move(inp));
     }
 
+    void set_relaxation_params(AtomicRelaxationParams::Input inp)
+    {
+        CELER_EXPECT(!inp.elements.empty());
+        relax_params_
+            = std::make_shared<AtomicRelaxationParams>(std::move(inp));
+    }
+
     void SetUp() override
     {
         using celeritas::MatterState;
@@ -59,14 +70,27 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
 
+        const auto& params    = this->particle_params();
+        std::string data_path = this->test_data_path("physics/em", "");
+
         // Set Livermore photoelectric data
         LivermorePEParams::Input li;
-        std::string data_path = this->test_data_path("physics/em", "");
         LivermorePEParamsReader read_element_data(data_path.c_str());
         li.elements.push_back(read_element_data(19));
         set_livermore_params(li);
 
-        const auto& params    = this->particle_params();
+        // Set atomic relaxation data
+        AtomicRelaxationParams::Input ri;
+        AtomicRelaxationReader        read_transition_data(data_path.c_str(),
+                                                    data_path.c_str());
+        ri.elements.push_back(read_transition_data(19));
+        ri.is_auger_enabled = true;
+        ri.electron_id      = params.find(pdg::electron());
+        ri.gamma_id         = params.find(pdg::gamma());
+        set_relaxation_params(ri);
+        atomic_relax_ = relax_params_->host_pointers();
+
+        // Set Livermore PE model interface
         pointers_.electron_id = params.find(pdg::electron());
         pointers_.gamma_id    = params.find(pdg::gamma());
         pointers_.inv_electron_mass
@@ -113,15 +137,17 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
             EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
         }
 
-        // Check conservation between primary and secondaries
-        // Since momentum is transferred to the atom, we don't expect it to be
-        // conserved between the incoming and outgoing particles
-        // this->check_conservation(interaction);
+        // Check conservation between primary and secondaries. Since momentum
+        // is transferred to the atom, we don't expect it to be conserved
+        // between the incoming and outgoing particles
+        this->check_energy_conservation(interaction);
     }
 
   protected:
-    std::shared_ptr<LivermorePEParams>     livermore_params_;
-    celeritas::detail::LivermorePEPointers pointers_;
+    std::shared_ptr<AtomicRelaxationParams> relax_params_;
+    std::shared_ptr<LivermorePEParams>      livermore_params_;
+    celeritas::detail::LivermorePEPointers  pointers_;
+    celeritas::AtomicRelaxParamsPointers    atomic_relax_;
 };
 
 //---------------------------------------------------------------------------//

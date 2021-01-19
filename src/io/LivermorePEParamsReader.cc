@@ -42,7 +42,7 @@ LivermorePEParamsReader::LivermorePEParamsReader(const char* path)
 
 //---------------------------------------------------------------------------//
 /*!
- * Read the data for the given elements.
+ * Read the data for the given element.
  */
 LivermorePEParamsReader::result_type
 LivermorePEParamsReader::operator()(int atomic_number) const

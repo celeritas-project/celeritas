@@ -114,6 +114,15 @@ inline CELER_FUNCTION bool soft_equal(RealType expected, RealType actual)
 }
 
 //---------------------------------------------------------------------------//
+//! Soft equivalence with relative error
+template<class RealType>
+inline CELER_FUNCTION bool
+soft_near(RealType expected, RealType actual, RealType rel_error)
+{
+    return SoftEqual<RealType>(rel_error)(expected, actual);
+}
+
+//---------------------------------------------------------------------------//
 //! Soft equivalence to zero, with default tolerance
 template<class RealType>
 inline CELER_FUNCTION bool soft_zero(RealType actual)

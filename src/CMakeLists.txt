@@ -36,6 +36,7 @@ list(APPEND SOURCES
   io/ImportProcess.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
+  io/AtomicRelaxationReader.cc
   io/LivermorePEParamsReader.cc
   physics/base/Model.cc
   physics/base/ParticleParams.cc
@@ -43,6 +44,7 @@ list(APPEND SOURCES
   physics/base/PhysicsParams.cc
   physics/base/Process.cc
   physics/base/SecondaryAllocatorStore.cc
+  physics/em/AtomicRelaxationParams.cc
   physics/em/BetheHeitlerModel.cc
   physics/em/ComptonProcess.cc
   physics/em/PhotoelectricProcess.cc
