@@ -239,7 +239,8 @@ GeantPhysicsTableWriter::~GeantPhysicsTableWriter()
 {
     try
     {
-        root_file_->Write();
+        int err_code = root_file_->Write();
+        ENSURE(err_code >= 0);
     }
     catch (const std::exception& e)
     {

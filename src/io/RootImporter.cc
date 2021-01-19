@@ -59,7 +59,7 @@ RootImporter::RootImporter(const char* filename)
 {
     CELER_LOG(status) << "Opening ROOT file";
     root_input_.reset(TFile::Open(filename, "read"));
-    ENSURE(root_input_);
+    ENSURE(root_input_ && !root_input_->IsZombie());
 }
 
 //---------------------------------------------------------------------------//
