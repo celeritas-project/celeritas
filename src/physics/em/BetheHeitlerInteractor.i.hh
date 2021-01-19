@@ -84,10 +84,10 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // Decide to choose f1, g1 or f2, g2 based on N1, N2 (factors from
         // corrected Bethe-Heitler cross section; c.f. Eq. 6.6 of Geant4
         // Physics Reference 10.6)
-        BernoulliDistribution choose_f1g1(
-            (ipow<2>(0.5 - epsilon_min) - epsilon_min
-             + 0.25 * this->screening_phi1_aux(delta_min))
-            / (1.5 * this->screening_phi2_aux(delta_min)));
+        real_type             f10 = this->screening_phi1_aux(delta_min);
+        real_type             f20 = this->screening_phi2_aux(delta_min);
+        BernoulliDistribution choose_f1g1(ipow<2>(0.5 - epsilon_min) * f10,
+                                          1.5 * f20);
 
         // Temporary sample values used in rejection
         real_type reject_threshold;
@@ -107,8 +107,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 // Calculate g1 "rejection" function
                 reject_threshold
                     = celeritas::max(this->screening_phi1_aux(delta), 0.0)
-                      / celeritas::max(this->screening_phi1_aux(delta_min),
-                                       0.0);
+                      / celeritas::max(f10, 0.0);
                 CHECK(reject_threshold > 0.0 && reject_threshold <= 1.0);
             }
             else
@@ -124,8 +123,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 // Calculate g2 "rejection" function
                 reject_threshold
                     = celeritas::max(this->screening_phi2_aux(delta), 0.0)
-                      / celeritas::max(this->screening_phi2_aux(delta_min),
-                                       0.0);
+                      / celeritas::max(f20, 0.0);
                 CHECK(reject_threshold > 0.0 && reject_threshold <= 1.0);
             }
         } while (BernoulliDistribution(1.0 - reject_threshold)(rng));
