@@ -72,9 +72,9 @@ std::string char_to_hex_string(unsigned char value)
 const char*
 trunc_string(unsigned int digits, const char* str, const char* trunc)
 {
-    REQUIRE(str && trunc);
-    REQUIRE(digits > 0);
-    REQUIRE(std::strlen(trunc) <= digits);
+    CELER_EXPECT(str && trunc);
+    CELER_EXPECT(digits > 0);
+    CELER_EXPECT(std::strlen(trunc) <= digits);
 
     if (std::strlen(str) > digits)
     {

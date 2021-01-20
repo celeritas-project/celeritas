@@ -27,7 +27,7 @@ RootImporter::~RootImporter() = default;
 
 auto RootImporter::operator()() -> result_type
 {
-    CHECK_UNREACHABLE;
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

@@ -21,7 +21,7 @@ CELER_FUNCTION
 RadialDistribution<RealType>::RadialDistribution(real_type radius)
     : radius_(radius)
 {
-    REQUIRE(radius_ > 0);
+    CELER_EXPECT(radius_ > 0);
 }
 
 //---------------------------------------------------------------------------//

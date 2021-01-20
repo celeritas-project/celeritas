@@ -79,7 +79,7 @@ class ElementSelectorTest : public celeritas::Test
 // Return cross section proportional to the element ID offset by 1.
 real_type mock_micro_xs(ElementDefId el_id)
 {
-    REQUIRE(el_id < 4);
+    CELER_EXPECT(el_id < 4);
     return static_cast<real_type>(el_id.get() + 1);
 }
 
@@ -95,7 +95,7 @@ struct CalcFancyMicroXs
 
     real_type operator()(ElementDefId el_id) const
     {
-        REQUIRE(el_id);
+        CELER_EXPECT(el_id);
         ElementView el(mats_, el_id);
         return el.cbrt_z() * inv_energy_;
     }

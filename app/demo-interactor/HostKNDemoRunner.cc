@@ -36,8 +36,8 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams     particles,
                                    constSPPhysicsArrayParams xs)
     : pparams_(std::move(particles)), xsparams_(std::move(xs))
 {
-    REQUIRE(pparams_);
-    REQUIRE(xsparams_);
+    CELER_EXPECT(pparams_);
+    CELER_EXPECT(xsparams_);
 
     // Set up KN interactor data;
     namespace pdg            = celeritas::pdg;
@@ -45,7 +45,7 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams     particles,
     kn_pointers_.gamma_id    = pparams_->find(pdg::gamma());
     kn_pointers_.inv_electron_mass
         = 1 / pparams_->get(kn_pointers_.electron_id).mass.value();
-    ENSURE(kn_pointers_);
+    CELER_ENSURE(kn_pointers_);
 }
 
 //---------------------------------------------------------------------------//
@@ -55,8 +55,8 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams     particles,
 auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     -> result_type
 {
-    REQUIRE(args.energy > 0);
-    REQUIRE(args.num_tracks > 0);
+    CELER_EXPECT(args.energy > 0);
+    CELER_EXPECT(args.num_tracks > 0);
 
     // Initialize results
     result_type result;
@@ -106,8 +106,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
         // Secondary pointers
         SecondaryAllocatorView allocate_secondaries(secondary_host_ptrs);
-        CHECK(secondaries.capacity() == args.max_steps);
-        CHECK(allocate_secondaries.get().size() == 0);
+        CELER_ASSERT(secondaries.capacity() == args.max_steps);
+        CELER_ASSERT(allocate_secondaries.get().size() == 0);
 
         // Detector hits
         DetectorView detector_hit(detector_host_ptrs);
@@ -159,8 +159,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
             // Perform interactions - emits a single particle
             auto interaction = interact(rng);
-            CHECK(interaction);
-            CHECK(interaction.secondaries.size() == 1);
+            CELER_ASSERT(interaction);
+            CELER_ASSERT(interaction.secondaries.size() == 1);
 
             // Deposit energy from the secondary (all local)
             {
@@ -175,22 +175,24 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             state.direction = interaction.direction;
             particle.energy(interaction.energy);
         }
-        CHECK(num_steps <= args.max_steps);
-        CHECK(num_steps < args.max_steps
-                  ? secondaries.get_size() == num_steps - 1
-                  : secondaries.get_size() == num_steps);
-        CHECK(secondaries.get_size() == allocate_secondaries.get().size());
-        CHECK(StackAllocatorView<Hit>(detector.host_pointers().hit_buffer)
-                  .get()
-                  .size()
-              == num_steps);
+        CELER_ASSERT(num_steps <= args.max_steps);
+        CELER_ASSERT(num_steps < args.max_steps
+                         ? secondaries.get_size() == num_steps - 1
+                         : secondaries.get_size() == num_steps);
+        CELER_ASSERT(secondaries.get_size()
+                     == allocate_secondaries.get().size());
+        CELER_ASSERT(
+            StackAllocatorView<Hit>(detector.host_pointers().hit_buffer)
+                .get()
+                .size()
+            == num_steps);
 
         // Store transport time
         transport_time += elapsed_time();
 
         // Clear secondaries
         secondaries.clear();
-        CHECK(secondaries.get_size() == 0);
+        CELER_ASSERT(secondaries.get_size() == 0);
 
         // Bin the tally results from the buffer onto the grid
         detector.bin_buffer();

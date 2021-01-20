@@ -20,7 +20,7 @@ namespace detail
 void rng_state_init_device(const RngStatePointers&,
                            Span<const RngSeed::value_type>)
 {
-    CHECK_UNREACHABLE;
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

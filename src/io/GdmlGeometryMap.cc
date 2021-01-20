@@ -27,7 +27,7 @@ GdmlGeometryMap::~GdmlGeometryMap() = default;
 mat_id GdmlGeometryMap::get_matid(vol_id volume_id) const
 {
     auto iter = volid_to_matid_.find(volume_id);
-    REQUIRE(iter != volid_to_matid_.end());
+    CELER_EXPECT(iter != volid_to_matid_.end());
     return iter->second;
 }
 
@@ -38,7 +38,7 @@ mat_id GdmlGeometryMap::get_matid(vol_id volume_id) const
 const ImportVolume& GdmlGeometryMap::get_volume(vol_id volume_id) const
 {
     auto iter = volid_to_volume_.find(volume_id);
-    REQUIRE(iter != volid_to_volume_.end());
+    CELER_EXPECT(iter != volid_to_volume_.end());
     return iter->second;
 }
 
@@ -49,7 +49,7 @@ const ImportVolume& GdmlGeometryMap::get_volume(vol_id volume_id) const
 const ImportMaterial& GdmlGeometryMap::get_material(mat_id material_id) const
 {
     auto iter = matid_to_material_.find(material_id);
-    REQUIRE(iter != matid_to_material_.end());
+    CELER_EXPECT(iter != matid_to_material_.end());
     return iter->second;
 }
 //---------------------------------------------------------------------------//
@@ -59,7 +59,7 @@ const ImportMaterial& GdmlGeometryMap::get_material(mat_id material_id) const
 const ImportElement& GdmlGeometryMap::get_element(elem_id element_id) const
 {
     auto iter = elemid_to_element_.find(element_id);
-    REQUIRE(iter != elemid_to_element_.end());
+    CELER_EXPECT(iter != elemid_to_element_.end());
     return iter->second;
 }
 
@@ -127,7 +127,7 @@ const std::map<vol_id, mat_id>& GdmlGeometryMap::volid_to_matid_map() const
 void GdmlGeometryMap::add_material(mat_id id, const ImportMaterial& material)
 {
     auto result = matid_to_material_.insert({id, material});
-    CHECK(result.second);
+    CELER_ASSERT(result.second);
 }
 
 //---------------------------------------------------------------------------//

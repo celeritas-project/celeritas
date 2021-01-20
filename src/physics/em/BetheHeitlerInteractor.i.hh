@@ -33,13 +33,13 @@ BetheHeitlerInteractor::BetheHeitlerInteractor(
     , allocate_(allocate)
     , element_(element)
 {
-    REQUIRE(particle.def_id() == shared_.gamma_id);
-    REQUIRE(inc_energy_ >= this->min_incident_energy()
-            && inc_energy_ <= this->max_incident_energy());
+    CELER_EXPECT(particle.def_id() == shared_.gamma_id);
+    CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
+                 && inc_energy_ <= this->max_incident_energy());
 
     epsilon0_ = 1.0 / (shared_.inv_electron_mass * inc_energy_.value());
     // Gamma energy must be at least 2x electron rest mass
-    CHECK(epsilon0_ < 0.5);
+    CELER_ASSERT(epsilon0_ < 0.5);
     static_assert(sizeof(real_type) == sizeof(double),
                   "Embedded constants are hardcoded to double precision.");
 }
@@ -75,7 +75,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         real_type delta_min = 136.0 / element_.cbrt_z() * 4.0 * epsilon0_;
         real_type delta_max
             = std::exp((42.24 - element_.coulomb_correction()) / 8.368) - 0.952;
-        CHECK(delta_min <= delta_max);
+        CELER_ASSERT(delta_min <= delta_max);
 
         // Limits on epsilon
         real_type epsilon1 = 0.5 - 0.5 * std::sqrt(1.0 - delta_min / delta_max);
@@ -99,32 +99,32 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 epsilon = 0.5
                           - (0.5 - epsilon_min)
                                 * std::cbrt(generate_canonical(rng));
-                CHECK(epsilon >= epsilon_min && epsilon <= 0.5);
+                CELER_ASSERT(epsilon >= epsilon_min && epsilon <= 0.5);
                 // Calculate delta from element atomic number and sampled
                 // epsilon
                 real_type delta = this->impact_parameter(epsilon);
-                CHECK(delta <= delta_max && delta >= delta_min);
+                CELER_ASSERT(delta <= delta_max && delta >= delta_min);
                 // Calculate g1 "rejection" function
                 reject_threshold
                     = celeritas::max(this->screening_phi1_aux(delta), 0.0)
                       / celeritas::max(f10, 0.0);
-                CHECK(reject_threshold > 0.0 && reject_threshold <= 1.0);
+                CELER_ASSERT(reject_threshold > 0.0 && reject_threshold <= 1.0);
             }
             else
             {
                 // Used to sample from f2
                 epsilon = epsilon_min
                           + (0.5 - epsilon_min) * generate_canonical(rng);
-                CHECK(epsilon >= epsilon_min && epsilon <= 0.5);
+                CELER_ASSERT(epsilon >= epsilon_min && epsilon <= 0.5);
                 // Calculate delta given the element atomic number and sampled
                 // epsilon
                 real_type delta = this->impact_parameter(epsilon);
-                CHECK(delta <= delta_max && delta >= delta_min);
+                CELER_ASSERT(delta <= delta_max && delta >= delta_min);
                 // Calculate g2 "rejection" function
                 reject_threshold
                     = celeritas::max(this->screening_phi2_aux(delta), 0.0)
                       / celeritas::max(f20, 0.0);
-                CHECK(reject_threshold > 0.0 && reject_threshold <= 1.0);
+                CELER_ASSERT(reject_threshold > 0.0 && reject_threshold <= 1.0);
             }
         } while (BernoulliDistribution(1.0 - reject_threshold)(rng));
     }

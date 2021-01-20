@@ -22,8 +22,8 @@ G4bool GeantExceptionHandler::Notify(const char*         origin_of_exception,
                                      G4ExceptionSeverity severity,
                                      const char*         description)
 {
-    REQUIRE(origin_of_exception);
-    REQUIRE(exception_code);
+    CELER_EXPECT(origin_of_exception);
+    CELER_EXPECT(exception_code);
 
     // Construct message
     std::ostringstream os;
@@ -44,7 +44,7 @@ G4bool GeantExceptionHandler::Notify(const char*         origin_of_exception,
             CELER_LOG(warning) << msg;
             break;
         default:
-            CHECK_UNREACHABLE;
+            CELER_ASSERT_UNREACHABLE();
     }
 
     // Return "true" to cause Geant4 to crash the program, or "false" to let it

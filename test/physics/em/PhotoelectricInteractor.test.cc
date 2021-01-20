@@ -35,7 +35,7 @@ class PhotoelectricInteractorTest
   protected:
     void set_livermore_params(LivermoreParams::Input inp)
     {
-        REQUIRE(!inp.elements.empty());
+        CELER_EXPECT(!inp.elements.empty());
 
         livermore_params_ = std::make_shared<LivermoreParams>(std::move(inp));
         data_             = livermore_params_->host_pointers();

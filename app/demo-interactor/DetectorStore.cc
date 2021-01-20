@@ -52,7 +52,7 @@ void DetectorStore::bin_buffer()
  */
 std::vector<real_type> DetectorStore::finalize(real_type norm)
 {
-    REQUIRE(norm > 0);
+    CELER_EXPECT(norm > 0);
     detail::normalize(this->device_pointers(), norm);
     std::vector<real_type> result(tally_deposition_.size());
     tally_deposition_.copy_to_host(make_span(result));

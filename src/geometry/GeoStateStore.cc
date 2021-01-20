@@ -26,7 +26,7 @@ namespace celeritas
 GeoStateStore::GeoStateStore(const GeoParams& geom, size_type size)
     : max_depth_(geom.max_depth())
 {
-    REQUIRE(celeritas::is_device_enabled());
+    CELER_EXPECT(celeritas::is_device_enabled());
     vgstate_   = detail::VGNavStateStore(size, max_depth_);
     vgnext_    = detail::VGNavStateStore(size, max_depth_);
     pos_       = DeviceVector<Real3>(size);
@@ -49,7 +49,7 @@ GeoStatePointers GeoStateStore::device_pointers()
     result.dir        = dir_.device_pointers().data();
     result.next_step  = next_step_.device_pointers().data();
 
-    ENSURE(result);
+    CELER_ENSURE(result);
     return result;
 }
 

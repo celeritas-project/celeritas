@@ -30,10 +30,10 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams     particles,
     , xsparams_(std::move(xs))
     , launch_params_(std::move(solver))
 {
-    REQUIRE(pparams_);
-    REQUIRE(xsparams_);
-    REQUIRE(launch_params_.block_size > 0);
-    REQUIRE(launch_params_.grid_size > 0);
+    CELER_EXPECT(pparams_);
+    CELER_EXPECT(xsparams_);
+    CELER_EXPECT(launch_params_.block_size > 0);
+    CELER_EXPECT(launch_params_.grid_size > 0);
 
     // Set up KN interactor data;
     namespace pdg            = celeritas::pdg;
@@ -42,7 +42,7 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams     particles,
     kn_pointers_.gamma_id    = pparams_->find(pdg::gamma());
     kn_pointers_.inv_electron_mass
         = 1 / pparams_->get(kn_pointers_.electron_id).mass.value();
-    ENSURE(kn_pointers_);
+    CELER_ENSURE(kn_pointers_);
 }
 
 //---------------------------------------------------------------------------//
@@ -51,8 +51,8 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams     particles,
  */
 auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
 {
-    REQUIRE(args.energy > 0);
-    REQUIRE(args.num_tracks > 0);
+    CELER_EXPECT(args.energy > 0);
+    CELER_EXPECT(args.num_tracks > 0);
 
     // Initialize results
     result_type result;

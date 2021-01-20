@@ -60,7 +60,7 @@ class VGNavStateStore
     // Access the host pool (TODO: delete once cuda::GlobalLocator works)
     NavStatePool& get()
     {
-        REQUIRE(*this);
+        CELER_EXPECT(*this);
         return *pool_;
     }
 

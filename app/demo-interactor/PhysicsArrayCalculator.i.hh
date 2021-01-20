@@ -47,7 +47,7 @@ PhysicsArrayCalculator::operator()(const ParticleTrackView& particle) const
     {
         // Get the energy bin
         auto bin = loge_grid.find(loge);
-        CHECK(bin + 1 < data_.xs.size());
+        CELER_ASSERT(bin + 1 < data_.xs.size());
 
         // Interpolate *linearly* on energy using the bin data.
         LinearInterpolator<real_type> interpolate_xs(

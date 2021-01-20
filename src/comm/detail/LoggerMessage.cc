@@ -21,13 +21,13 @@ namespace detail
 LoggerMessage::LoggerMessage(LogHandler* handle, Provenance prov, LogLevel lev)
     : handle_(handle), prov_(prov), lev_(lev)
 {
-    REQUIRE(!handle_ || *handle_);
+    CELER_EXPECT(!handle_ || *handle_);
     if (handle_)
     {
         // std::function is defined, so create the output stream
         os_ = std::make_unique<std::ostringstream>();
     }
-    ENSURE(bool(handle_) == bool(os_));
+    CELER_ENSURE(bool(handle_) == bool(os_));
 }
 
 //---------------------------------------------------------------------------//

@@ -142,7 +142,7 @@ __global__ void locate_alive_kernel(const StatePointers            states,
             // Calculate the track ID of the secondary
             // TODO: This is nondeterministic; we need to calculate the track
             // ID in a reproducible way.
-            CHECK(sim.event_id() < inits.track_counter.size());
+            CELER_ASSERT(sim.event_id() < inits.track_counter.size());
             TrackId::value_type track_id
                 = atomic_add(&inits.track_counter[sim.event_id().get()], 1u);
 
@@ -223,17 +223,17 @@ __global__ void process_secondaries_kernel(const StatePointers states,
             if (secondary)
             {
                 // The secondary survived cutoffs: convert to a track
-                CHECK(offset_id < inits.initializers.size());
+                CELER_ASSERT(offset_id < inits.initializers.size());
                 TrackInitializer& init = inits.initializers[offset_id];
 
                 // Store the thread ID of the secondary's parent
-                CHECK(offset_id < inits.parent.size());
+                CELER_ASSERT(offset_id < inits.parent.size());
                 inits.parent[offset_id++] = thread_id.get();
 
                 // Calculate the track ID of the secondary
                 // TODO: This is nondeterministic; we need to calculate the
                 // track ID in a reproducible way.
-                CHECK(sim.event_id() < inits.track_counter.size());
+                CELER_ASSERT(sim.event_id() < inits.track_counter.size());
                 TrackId::value_type track_id = atomic_add(
                     &inits.track_counter[sim.event_id().get()], 1u);
 
@@ -301,12 +301,12 @@ void locate_alive(const StatePointers&            states,
 void process_primaries(Span<const Primary>             primaries,
                        const TrackInitializerPointers& inits)
 {
-    REQUIRE(primaries.size() <= inits.initializers.size());
+    CELER_EXPECT(primaries.size() <= inits.initializers.size());
 
     // Get a view to the last primaries.size() initializers
     auto initializers = inits.initializers.subspan(inits.initializers.size()
                                                    - primaries.size());
-    CHECK(initializers.size() == primaries.size());
+    CELER_ASSERT(initializers.size() == primaries.size());
 
     KernelParamCalculator calc_launch_params;
     auto                  lparams = calc_launch_params(primaries.size());
@@ -324,8 +324,8 @@ void process_secondaries(const StatePointers&     states,
                          const ParamPointers&     params,
                          TrackInitializerPointers inits)
 {
-    REQUIRE(states.size() <= inits.secondary_counts.size());
-    REQUIRE(states.size() <= states.interactions.size());
+    CELER_EXPECT(states.size() <= inits.secondary_counts.size());
+    CELER_EXPECT(states.size() <= states.interactions.size());
 
     // Get a view to the last num_secondaries initializers
     inits.initializers = inits.initializers.subspan(inits.initializers.size()

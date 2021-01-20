@@ -17,8 +17,8 @@ namespace celeritas
 CELER_FUNCTION
 UniformGrid::UniformGrid(const Params& data) : data_(data)
 {
-    REQUIRE(data_.size >= 2);
-    REQUIRE(data_.delta > 0);
+    CELER_EXPECT(data_.size >= 2);
+    CELER_EXPECT(data_.delta > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -45,7 +45,7 @@ CELER_FUNCTION auto UniformGrid::back() const -> value_type
  */
 CELER_FUNCTION auto UniformGrid::operator[](size_type i) const -> value_type
 {
-    REQUIRE(i < data_.size);
+    CELER_EXPECT(i < data_.size);
     return data_.front + data_.delta * i;
 }
 
@@ -60,9 +60,9 @@ CELER_FUNCTION auto UniformGrid::operator[](size_type i) const -> value_type
  */
 CELER_FUNCTION size_type UniformGrid::find(value_type value) const
 {
-    REQUIRE(value >= this->front() && value < this->back());
+    CELER_EXPECT(value >= this->front() && value < this->back());
     auto bin = static_cast<size_type>((value - data_.front) / data_.delta);
-    ENSURE(bin + 1 < this->size());
+    CELER_ENSURE(bin + 1 < this->size());
     return bin;
 }
 

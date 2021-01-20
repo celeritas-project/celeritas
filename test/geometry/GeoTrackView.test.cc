@@ -43,7 +43,7 @@ class GeoTrackViewHostTest : public GeoParamsTest
         state_view.vgnext     = this->next_state.get();
 
         params_view = this->params()->host_pointers();
-        CHECK(params_view.world_volume);
+        CELER_ASSERT(params_view.world_volume);
     }
 
   protected:
@@ -134,7 +134,7 @@ class GeoTrackViewDeviceTest : public GeoParamsTest
 
 TEST_F(GeoTrackViewDeviceTest, track_lines)
 {
-    CHECK(this->params());
+    CELER_ASSERT(this->params());
 
     // Set up test input
     VGGTestInput input;

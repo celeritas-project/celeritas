@@ -16,7 +16,7 @@ namespace celeritas
  */
 const std::string& ParticleParams::id_to_label(ParticleDefId id) const
 {
-    REQUIRE(id < this->size());
+    CELER_EXPECT(id < this->size());
     return md_[id.get()].first;
 }
 
@@ -26,7 +26,7 @@ const std::string& ParticleParams::id_to_label(ParticleDefId id) const
  */
 PDGNumber ParticleParams::id_to_pdg(ParticleDefId id) const
 {
-    REQUIRE(id < this->size());
+    CELER_EXPECT(id < this->size());
     return md_[id.get()].second;
 }
 
@@ -64,7 +64,7 @@ ParticleDefId ParticleParams::find(PDGNumber pdg_code) const
  */
 const ParticleDef& ParticleParams::get(ParticleDefId defid) const
 {
-    REQUIRE(defid < host_defs_.size());
+    CELER_EXPECT(defid < host_defs_.size());
     return host_defs_[defid.get()];
 }
 

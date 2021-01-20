@@ -20,7 +20,7 @@ namespace celeritas
 LivermoreParamsReader::LivermoreParamsReader()
 {
     const char* env_var = std::getenv("G4LEDATA");
-    INSIST(env_var, "Environment variable G4LEDATA is not defined.");
+    CELER_VALIDATE(env_var, "Environment variable G4LEDATA is not defined.");
     std::ostringstream os;
     os << env_var << "/livermore/phot_epics2014";
     path_ = os.str();
@@ -32,7 +32,7 @@ LivermoreParamsReader::LivermoreParamsReader()
  */
 LivermoreParamsReader::LivermoreParamsReader(const char* path) : path_(path)
 {
-    REQUIRE(!path_.empty());
+    CELER_EXPECT(!path_.empty());
     if (path_.back() == '/')
     {
         path_.pop_back();
@@ -46,7 +46,7 @@ LivermoreParamsReader::LivermoreParamsReader(const char* path) : path_(path)
 LivermoreParamsReader::result_type
 LivermoreParamsReader::operator()(int atomic_number) const
 {
-    REQUIRE(atomic_number > 0 && atomic_number < 101);
+    CELER_EXPECT(atomic_number > 0 && atomic_number < 101);
 
     result_type result;
     std::string Z = std::to_string(atomic_number);
@@ -56,7 +56,7 @@ LivermoreParamsReader::operator()(int atomic_number) const
     {
         std::string   filename = path_ + "/pe-cs-" + Z + ".dat";
         std::ifstream infile(filename);
-        INSIST(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
         // Set the physics vector type and the data type
         result.xs_high.vector_type = ImportPhysicsVectorType::free;
@@ -70,7 +70,7 @@ LivermoreParamsReader::operator()(int atomic_number) const
         result.xs_high.y.resize(size);
         for (size_type i = 0; i < size; ++i)
         {
-            CHECK(infile);
+            CELER_ASSERT(infile);
             infile >> result.xs_high.x[i] >> result.xs_high.y[i];
         }
     }
@@ -79,7 +79,7 @@ LivermoreParamsReader::operator()(int atomic_number) const
     {
         std::string   filename = path_ + "/pe-le-cs-" + Z + ".dat";
         std::ifstream infile(filename);
-        INSIST(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
         // Set the physics vector type and the data type
         result.xs_low.vector_type = ImportPhysicsVectorType::free;
@@ -96,7 +96,7 @@ LivermoreParamsReader::operator()(int atomic_number) const
             result.xs_low.y.resize(size);
             for (size_type i = 0; i < size; ++i)
             {
-                CHECK(infile);
+                CELER_ASSERT(infile);
                 infile >> result.xs_low.x[i] >> result.xs_low.y[i];
             }
         }
@@ -106,7 +106,7 @@ LivermoreParamsReader::operator()(int atomic_number) const
     {
         std::string   filename = path_ + "/pe-low-" + Z + ".dat";
         std::ifstream infile(filename);
-        INSIST(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
         // Read the number of subshells and energy threshold
         constexpr size_type num_param  = 6;
@@ -119,7 +119,7 @@ LivermoreParamsReader::operator()(int atomic_number) const
         // Read the binding energies and fit parameters
         for (auto& shell : result.shells)
         {
-            CHECK(infile);
+            CELER_ASSERT(infile);
             real_type binding_energy;
             infile >> binding_energy;
             shell.binding_energy = units::MevEnergy{binding_energy};
@@ -135,7 +135,7 @@ LivermoreParamsReader::operator()(int atomic_number) const
     {
         std::string   filename = path_ + "/pe-high-" + Z + ".dat";
         std::ifstream infile(filename);
-        INSIST(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
         // Read the number of subshells and energy threshold
         constexpr size_type num_param  = 6;
@@ -143,15 +143,15 @@ LivermoreParamsReader::operator()(int atomic_number) const
         real_type           threshold  = 0.;
         infile >> num_shells >> num_shells >> threshold;
         result.thresh_high = units::MevEnergy{threshold};
-        CHECK(num_shells == result.shells.size());
+        CELER_ASSERT(num_shells == result.shells.size());
 
         // Read the binding energies and fit parameters
         for (auto& shell : result.shells)
         {
-            CHECK(infile);
+            CELER_ASSERT(infile);
             real_type binding_energy;
             infile >> binding_energy;
-            CHECK(binding_energy == shell.binding_energy.value());
+            CELER_ASSERT(binding_energy == shell.binding_energy.value());
             shell.param_high.resize(num_param);
             for (size_type i = 0; i < num_param; ++i)
             {
@@ -164,7 +164,7 @@ LivermoreParamsReader::operator()(int atomic_number) const
     {
         std::string   filename = path_ + "/pe-ss-cs-" + Z + ".dat";
         std::ifstream infile(filename);
-        INSIST(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
         for (auto& shell : result.shells)
         {
@@ -177,7 +177,7 @@ LivermoreParamsReader::operator()(int atomic_number) const
             shell.xs.resize(size);
             for (size_type i = 0; i < size; ++i)
             {
-                CHECK(infile);
+                CELER_ASSERT(infile);
                 infile >> shell.energy[i] >> shell.xs[i];
             }
         }

@@ -18,7 +18,7 @@ namespace celeritas
 CELER_FUNCTION BernoulliDistribution::BernoulliDistribution(real_type p_true)
     : p_true_(p_true)
 {
-    REQUIRE(p_true >= 0.0 && p_true <= 1.0);
+    CELER_EXPECT(p_true >= 0.0 && p_true <= 1.0);
 }
 
 //---------------------------------------------------------------------------//
@@ -30,8 +30,8 @@ BernoulliDistribution::BernoulliDistribution(real_type scaled_true,
                                              real_type scaled_false)
     : p_true_(scaled_true / (scaled_true + scaled_false))
 {
-    REQUIRE(scaled_true > 0 || scaled_false > 0);
-    REQUIRE(scaled_true >= 0.0 && scaled_false >= 0.0);
+    CELER_EXPECT(scaled_true > 0 || scaled_false > 0);
+    CELER_EXPECT(scaled_true >= 0.0 && scaled_false >= 0.0);
 }
 
 //---------------------------------------------------------------------------//

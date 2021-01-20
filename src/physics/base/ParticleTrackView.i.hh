@@ -23,7 +23,7 @@ ParticleTrackView::ParticleTrackView(const ParticleParamsPointers& params,
                                      ThreadId                      id)
     : params_(params), state_(states.vars[id.get()])
 {
-    REQUIRE(id < states.vars.size());
+    CELER_EXPECT(id < states.vars.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -33,8 +33,8 @@ ParticleTrackView::ParticleTrackView(const ParticleParamsPointers& params,
 CELER_FUNCTION ParticleTrackView&
 ParticleTrackView::operator=(const Initializer_t& other)
 {
-    REQUIRE(other.def_id < params_.defs.size());
-    REQUIRE(other.energy >= zero_quantity());
+    CELER_EXPECT(other.def_id < params_.defs.size());
+    CELER_EXPECT(other.energy >= zero_quantity());
     state_ = other;
     return *this;
 }
@@ -49,8 +49,8 @@ ParticleTrackView::operator=(const Initializer_t& other)
 CELER_FUNCTION
 void ParticleTrackView::energy(units::MevEnergy quantity)
 {
-    REQUIRE(this->def_id());
-    REQUIRE(quantity >= zero_quantity());
+    CELER_EXPECT(this->def_id());
+    CELER_EXPECT(quantity >= zero_quantity());
     state_.energy = quantity;
 }
 
@@ -170,7 +170,7 @@ CELER_FUNCTION units::LightSpeed ParticleTrackView::speed() const
  */
 CELER_FUNCTION real_type ParticleTrackView::lorentz_factor() const
 {
-    REQUIRE(this->mass() > zero_quantity());
+    CELER_EXPECT(this->mass() > zero_quantity());
 
     real_type k_over_mc2 = this->energy().value() / this->mass().value();
     return 1 + k_over_mc2;
@@ -201,7 +201,7 @@ CELER_FUNCTION units::MevMomentumSq ParticleTrackView::momentum_sq() const
 {
     const real_type energy = this->energy().value();
     real_type result = energy * energy + 2 * this->mass().value() * energy;
-    ENSURE(result > 0);
+    CELER_ENSURE(result > 0);
     return units::MevMomentumSq{result};
 }
 
@@ -224,7 +224,7 @@ CELER_FUNCTION units::MevMomentum ParticleTrackView::momentum() const
  */
 CELER_FUNCTION const ParticleDef& ParticleTrackView::particle_def() const
 {
-    REQUIRE(state_.def_id < params_.defs.size());
+    CELER_EXPECT(state_.def_id < params_.defs.size());
     return params_.defs[state_.def_id.get()];
 }
 

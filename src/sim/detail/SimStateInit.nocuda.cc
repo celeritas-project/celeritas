@@ -19,7 +19,7 @@ namespace detail
  */
 void sim_state_init_device(const SimStatePointers&)
 {
-    CHECK_UNREACHABLE;
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

@@ -17,22 +17,22 @@ void curand_init(unsigned long long,
                  unsigned long long,
                  curandState_t*)
 {
-    CHECK_UNREACHABLE;
+    CELER_ASSERT_UNREACHABLE();
 }
 
 unsigned int curand(curandState_t*)
 {
-    CHECK_UNREACHABLE;
+    CELER_ASSERT_UNREACHABLE();
 }
 
 float curand_uniform(curandState_t*)
 {
-    CHECK_UNREACHABLE;
+    CELER_ASSERT_UNREACHABLE();
 }
 
 double curand_uniform_double(curandState_t*)
 {
-    CHECK_UNREACHABLE;
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

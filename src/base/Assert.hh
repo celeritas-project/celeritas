@@ -21,34 +21,36 @@
 // MACROS
 //---------------------------------------------------------------------------//
 /*!
- * \def REQUIRE
+ * \def CELER_EXPECT
  *
  * Precondition debug assertion macro. It is to "require" that the input values
  * or initial state satisfy a precondition.
  */
 /*!
- * \def CHECK
+ * \def CELER_ASSERT
  *
  * Internal debug assertion macro. This replaces standard \c assert usage.
  */
 /*!
- * \def ENSURE
+ * \def CELER_ENSURE
  *
  * Postcondition debug assertion macro. Use to "ensure" that return values or
  * side effects are as expected when leaving a function.
  */
 /*!
- * \def INSIST
+ * \def CELER_VALIDATE
  *
  * Always-on runtime assertion macro. This can check user input and input data
  * consistency, and will raise RuntimeError on failure with a descriptive error
  * message. This should not be used on device.
  */
 /*!
- * \def CHECK_UNREACHABLE
+ * \def CELER_ASSERT_UNREACHABLE
  *
- * Assert if the code point is reached. When debug assertions are turned off,
- * this changes to a compiler hint that improves optimization.
+ * Throw an assertion if the code point is reached. When debug assertions are
+ * turned off, this changes to a compiler hint that improves optimization (and
+ * may force the coded to exit uncermoniously if the point is encountered,
+ * rather than continuing on with undefined behavior).
  */
 /*!
  * \def CELER_NOT_CONFIGURED
@@ -102,33 +104,33 @@
 //! \endcond
 
 #if CELERITAS_DEBUG && defined(__CUDA_ARCH__)
-#    define REQUIRE(COND) CELER_CUDA_ASSERT_(COND)
-#    define CHECK(COND) CELER_CUDA_ASSERT_(COND)
-#    define ENSURE(COND) CELER_CUDA_ASSERT_(COND)
-#    define CHECK_UNREACHABLE CELER_CUDA_ASSERT_(false)
+#    define CELER_EXPECT(COND) CELER_CUDA_ASSERT_(COND)
+#    define CELER_ASSERT(COND) CELER_CUDA_ASSERT_(COND)
+#    define CELER_ENSURE(COND) CELER_CUDA_ASSERT_(COND)
+#    define CELER_ASSERT_UNREACHABLE() CELER_CUDA_ASSERT_(false)
 #elif CELERITAS_DEBUG && !defined(__CUDA_ARCH__)
-#    define REQUIRE(COND) CELER_DEBUG_ASSERT_(COND, precondition)
-#    define CHECK(COND) CELER_DEBUG_ASSERT_(COND, internal)
-#    define ENSURE(COND) CELER_DEBUG_ASSERT_(COND, postcondition)
-#    define CHECK_UNREACHABLE CELER_DEBUG_FAIL_("", unreachable)
+#    define CELER_EXPECT(COND) CELER_DEBUG_ASSERT_(COND, precondition)
+#    define CELER_ASSERT(COND) CELER_DEBUG_ASSERT_(COND, internal)
+#    define CELER_ENSURE(COND) CELER_DEBUG_ASSERT_(COND, postcondition)
+#    define CELER_ASSERT_UNREACHABLE() CELER_DEBUG_FAIL_("", unreachable)
 #else
-#    define REQUIRE(COND) CELER_NOASSERT_(COND)
-#    define CHECK(COND) CELER_NOASSERT_(COND)
-#    define ENSURE(COND) CELER_NOASSERT_(COND)
-#    define CHECK_UNREACHABLE CELER_UNREACHABLE
+#    define CELER_EXPECT(COND) CELER_NOASSERT_(COND)
+#    define CELER_ASSERT(COND) CELER_NOASSERT_(COND)
+#    define CELER_ENSURE(COND) CELER_NOASSERT_(COND)
+#    define CELER_ASSERT_UNREACHABLE() CELER_UNREACHABLE
 #endif
 
 #ifndef __CUDA_ARCH__
-#    define INSIST(COND, MSG) CELER_RUNTIME_ASSERT_(COND, MSG)
+#    define CELER_VALIDATE(COND, MSG) CELER_RUNTIME_ASSERT_(COND, MSG)
 #    define CELER_NOT_CONFIGURED(WHAT) CELER_DEBUG_FAIL_(WHAT, unconfigured)
 #else
-#    define INSIST(COND, MSG)                                                  \
+#    define CELER_VALIDATE(COND, MSG)                                          \
         ::celeritas::throw_debug_error(::celeritas::DebugErrorType::assertion, \
-                                       "Insist cannot be called from device "  \
-                                       "code",                                 \
+                                       "CELER_VALIDATE cannot be called "      \
+                                       "from device code",                     \
                                        __FILE__,                               \
                                        __LINE__)
-#    define CELER_NOT_CONFIGURED(WHAT) CHECK(0)
+#    define CELER_NOT_CONFIGURED(WHAT) CELER_ASSERT(0)
 #endif
 
 /*!

@@ -27,7 +27,7 @@ std::string Test::test_data_path(const char* subdir, const char* filename)
     os << detail::source_dir << "/test/" << subdir << "/data/" << filename;
 
     std::string result = os.str();
-    ENSURE(std::ifstream(result).good());
+    CELER_ENSURE(std::ifstream(result).good());
     return result;
 }
 
@@ -37,12 +37,12 @@ std::string Test::test_data_path(const char* subdir, const char* filename)
  */
 std::string Test::make_unique_filename(const char* ext)
 {
-    REQUIRE(ext);
+    CELER_EXPECT(ext);
 
     // Get filename based on unit test name
     const ::testing::TestInfo* const test_info
         = ::testing::UnitTest::GetInstance()->current_test_info();
-    CHECK(test_info);
+    CELER_ASSERT(test_info);
 
     // Convert test case to lowercase
     std::string case_name = test_info->test_case_name();

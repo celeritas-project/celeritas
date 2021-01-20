@@ -52,7 +52,7 @@ inline CELER_FUNCTION bool action_completed(Action a)
  */
 inline CELER_FUNCTION bool action_killed(Action a)
 {
-    REQUIRE(int(a) < int(Action::end_killed_));
+    CELER_EXPECT(int(a) < int(Action::end_killed_));
     return int(a) >= int(Action::begin_killed_);
 }
 

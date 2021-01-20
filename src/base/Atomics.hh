@@ -24,7 +24,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
 #ifdef __CUDA_ARCH__
     return atomicAdd(address, value);
 #else
-    REQUIRE(address);
+    CELER_EXPECT(address);
     T initial = *address;
     *address += value;
     return initial;
@@ -67,7 +67,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_min(T* address, T value)
 #ifdef __CUDA_ARCH__
     return atomicMin(address, value);
 #else
-    REQUIRE(address);
+    CELER_EXPECT(address);
     T initial = *address;
     *address  = celeritas::min(initial, value);
     return initial;
@@ -84,7 +84,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_max(T* address, T value)
 #ifdef __CUDA_ARCH__
     return atomicMax(address, value);
 #else
-    REQUIRE(address);
+    CELER_EXPECT(address);
     T initial = *address;
     *address  = celeritas::max(initial, value);
     return initial;

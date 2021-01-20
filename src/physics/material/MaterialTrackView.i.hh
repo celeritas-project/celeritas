@@ -23,7 +23,7 @@ MaterialTrackView::MaterialTrackView(const MaterialParamsPointers& params,
                                      ThreadId                      id)
     : params_(params), states_(states), tid_(id)
 {
-    REQUIRE(id < states.state.size());
+    CELER_EXPECT(id < states.state.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -33,7 +33,7 @@ MaterialTrackView::MaterialTrackView(const MaterialParamsPointers& params,
 CELER_FUNCTION MaterialTrackView&
 MaterialTrackView::operator=(const Initializer_t& other)
 {
-    REQUIRE(other.def_id < params_.materials.size());
+    CELER_EXPECT(other.def_id < params_.materials.size());
     this->state() = other;
     return *this;
 }
@@ -63,8 +63,8 @@ CELER_FORCEINLINE_FUNCTION MaterialView MaterialTrackView::material_view() const
 CELER_FUNCTION Span<real_type> MaterialTrackView::element_scratch()
 {
     auto offset = tid_.get() * params_.max_element_components;
-    ENSURE(offset + params_.max_element_components
-           <= states_.element_scratch.size());
+    CELER_ENSURE(offset + params_.max_element_components
+                 <= states_.element_scratch.size());
     return {states_.element_scratch.data() + offset,
             params_.max_element_components};
 }

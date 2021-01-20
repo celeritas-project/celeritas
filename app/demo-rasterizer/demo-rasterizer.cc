@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        CHECK(instream_ptr);
+        CELER_ASSERT(instream_ptr);
         demo_rasterizer::run(*instream_ptr);
     }
     catch (const std::exception& e)

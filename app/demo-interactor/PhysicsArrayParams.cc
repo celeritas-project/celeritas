@@ -24,14 +24,15 @@ PhysicsArrayParams::PhysicsArrayParams(const Input& input)
     , prime_energy_(input.prime_energy)
     , host_xs_(input.xs)
 {
-    REQUIRE(input.energy.size() >= 2);
-    REQUIRE(input.energy.front() > 0);
-    REQUIRE(std::is_sorted(input.energy.begin(), input.energy.end()));
-    REQUIRE(input.xs.size() == input.energy.size());
-    REQUIRE(std::all_of(
+    CELER_EXPECT(input.energy.size() >= 2);
+    CELER_EXPECT(input.energy.front() > 0);
+    CELER_EXPECT(std::is_sorted(input.energy.begin(), input.energy.end()));
+    CELER_EXPECT(input.xs.size() == input.energy.size());
+    CELER_EXPECT(std::all_of(
         input.xs.begin(), input.xs.end(), [](real_type v) { return v >= 0; }));
-    REQUIRE(std::find(input.energy.begin(), input.energy.end(), prime_energy_)
-            != input.energy.end());
+    CELER_EXPECT(
+        std::find(input.energy.begin(), input.energy.end(), prime_energy_)
+        != input.energy.end());
 
     // Calculate uniform-in-logspace energy grid
     log_energy_.size  = input.energy.size();
@@ -46,7 +47,7 @@ PhysicsArrayParams::PhysicsArrayParams(const Input& input)
         celeritas::UniformGrid log_energy(log_energy_);
         for (auto i : range(input.energy.size()))
         {
-            REQUIRE(soft_eq(std::log(input.energy[i]), log_energy[i]));
+            CELER_EXPECT(soft_eq(std::log(input.energy[i]), log_energy[i]));
         }
     }
 #endif

@@ -17,7 +17,7 @@ ElementView::ElementView(const MaterialParamsPointers& params,
                          ElementDefId                  el_id)
     : def_(params.elements[el_id.get()])
 {
-    REQUIRE(el_id < params.elements.size());
+    CELER_EXPECT(el_id < params.elements.size());
 }
 
 //---------------------------------------------------------------------------//

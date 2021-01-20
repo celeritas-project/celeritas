@@ -27,7 +27,7 @@ const char* to_cstring(LogLevel lev)
         "critical",
     };
     int idx = static_cast<int>(lev);
-    ENSURE(idx * sizeof(const char*) < sizeof(levels));
+    CELER_ENSURE(idx * sizeof(const char*) < sizeof(levels));
     return levels[idx];
 }
 

@@ -97,7 +97,7 @@ class ParticleTrackViewTestHost : public ParticleTrackViewTest
     void SetUp() override
     {
         Base::SetUp();
-        CHECK(particle_params);
+        CELER_ASSERT(particle_params);
 
         // Construct views
         params_view     = particle_params->host_pointers();

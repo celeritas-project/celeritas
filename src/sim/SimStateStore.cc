@@ -20,7 +20,7 @@ namespace celeritas
  */
 SimStateStore::SimStateStore(size_type size) : vars_(size)
 {
-    REQUIRE(size > 0);
+    CELER_EXPECT(size > 0);
 
     detail::sim_state_init_device(this->device_pointers());
 }
@@ -43,7 +43,7 @@ SimStatePointers SimStateStore::device_pointers()
     SimStatePointers result;
     result.vars = vars_.device_pointers();
 
-    ENSURE(result);
+    CELER_ENSURE(result);
     return result;
 }
 

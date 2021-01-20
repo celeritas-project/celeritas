@@ -30,7 +30,7 @@ ITTestInput::ITTestInput(std::vector<size_type>& host_alloc_size,
                          std::vector<char>&      host_alive)
     : alloc_size(host_alloc_size.size()), alive(host_alive.size())
 {
-    REQUIRE(host_alloc_size.size() == host_alive.size());
+    CELER_EXPECT(host_alloc_size.size() == host_alive.size());
     alloc_size.copy_to_device(make_span(host_alloc_size));
     alive.copy_to_device(make_span(host_alive));
 }

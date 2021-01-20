@@ -21,10 +21,10 @@ namespace celeritas
 EventReader::EventReader(const char* filename, SPConstParticles params)
     : params_(std::move(params))
 {
-    REQUIRE(params_);
+    CELER_EXPECT(params_);
     // Determine the input file format and construct the appropriate reader
     input_file_ = HepMC3::deduce_reader(filename);
-    ENSURE(input_file_);
+    CELER_ENSURE(input_file_);
 }
 
 //---------------------------------------------------------------------------//
@@ -64,7 +64,7 @@ EventReader::result_type EventReader::operator()()
             // the current physics
             PDGNumber     pdg{gen_particle->pid()};
             ParticleDefId def_id{params_->find(pdg)};
-            CHECK(def_id);
+            CELER_ASSERT(def_id);
 
             Primary primary;
 

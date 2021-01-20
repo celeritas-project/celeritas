@@ -123,7 +123,7 @@ void print_processes(const std::vector<ImportProcess>& processes,
     for (const ImportProcess& proc : processes)
     {
         auto pdef_id = particles.find(PDGNumber{proc.particle_pdg});
-        CHECK(pdef_id);
+        CELER_ASSERT(pdef_id);
 
         cout << "| " << setw(14) << to_cstring(proc.process_class) << " | "
              << setw(13) << particles.id_to_label(pdef_id) << " | " << setw(24)

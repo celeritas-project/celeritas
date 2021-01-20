@@ -17,7 +17,7 @@ MaterialView::MaterialView(const MaterialParamsPointers& params,
                            MaterialDefId                 id)
     : params_(params), id_(id)
 {
-    REQUIRE(id < params.materials.size());
+    CELER_EXPECT(id < params.materials.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -62,7 +62,7 @@ CELER_FUNCTION ElementComponentId::value_type MaterialView::num_elements() const
  */
 CELER_FUNCTION ElementView MaterialView::element_view(ElementComponentId id) const
 {
-    REQUIRE(id < this->material_def().elements.size());
+    CELER_EXPECT(id < this->material_def().elements.size());
     const MatElementComponent& c = this->elements()[id.get()];
     return ElementView(params_, c.element);
 }
@@ -74,7 +74,7 @@ CELER_FUNCTION ElementView MaterialView::element_view(ElementComponentId id) con
 CELER_FUNCTION real_type
 MaterialView::get_element_density(ElementComponentId id) const
 {
-    REQUIRE(id < this->material_def().elements.size());
+    CELER_EXPECT(id < this->material_def().elements.size());
     return this->number_density() * this->elements()[id.get()].fraction;
 }
 

@@ -18,7 +18,7 @@ template<class T, class U>
 SpanRemapper<T, U>::SpanRemapper(src_type src_span, dst_type dst_span)
     : src_(src_span), dst_(dst_span)
 {
-    REQUIRE(src_span.size() == dst_span.size());
+    CELER_EXPECT(src_span.size() == dst_span.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -29,9 +29,9 @@ template<class T, class U>
 template<class V>
 auto SpanRemapper<T, U>::operator()(Span<V> src_subspan) const -> dst_type
 {
-    REQUIRE(src_subspan.empty()
-            || (src_subspan.begin() >= src_.begin()
-                && src_subspan.end() <= src_.end()));
+    CELER_EXPECT(src_subspan.empty()
+                 || (src_subspan.begin() >= src_.begin()
+                     && src_subspan.end() <= src_.end()));
 
     if (src_subspan.empty())
         return {};

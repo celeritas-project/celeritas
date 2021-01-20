@@ -44,7 +44,7 @@ void HostDetectorStore::bin_buffer()
 {
     UniformGrid grid(tally_grid_);
     auto hits = StackAllocatorView<Hit>(hit_buffer_.host_pointers()).get();
-    CHECK(hits.size() > 0);
+    CELER_ASSERT(hits.size() > 0);
 
     // Iterate through hits and add them to grid
     for (const auto& hit : hits)
@@ -63,7 +63,7 @@ void HostDetectorStore::bin_buffer()
         {
             bin = grid.find(z_pos);
         }
-        CHECK(bin < tally_deposition_.size());
+        CELER_ASSERT(bin < tally_deposition_.size());
 
         tally_deposition_[bin] += hit.energy_deposited.value();
     }
@@ -78,7 +78,7 @@ void HostDetectorStore::bin_buffer()
  */
 std::vector<real_type> HostDetectorStore::finalize(real_type norm)
 {
-    REQUIRE(norm > 0.0);
+    CELER_EXPECT(norm > 0.0);
     for (auto& v : tally_deposition_)
     {
         v *= norm;

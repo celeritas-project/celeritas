@@ -58,14 +58,14 @@ struct SpanImpl
     CELER_FORCEINLINE_FUNCTION
     SpanImpl(const SpanImpl<T, dynamic_extent>& other) : data(other.data)
     {
-        REQUIRE(other.size == Extent);
+        CELER_EXPECT(other.size == Extent);
     }
 
     //! Construct from data and size
     CELER_FORCEINLINE_FUNCTION SpanImpl(T* d, std::size_t s) : data(d)
     {
-        REQUIRE(d != nullptr);
-        REQUIRE(s == Extent);
+        CELER_EXPECT(d != nullptr);
+        CELER_EXPECT(s == Extent);
     }
 };
 
@@ -89,7 +89,7 @@ struct SpanImpl<T, 0>
     //! Construct from data (any) and size (must be zero)
     CELER_FORCEINLINE_FUNCTION SpanImpl(T* d, std::size_t s) : data(d)
     {
-        REQUIRE(s == 0);
+        CELER_EXPECT(s == 0);
     }
 };
 
@@ -113,7 +113,7 @@ struct SpanImpl<T, dynamic_extent>
     //! Construct from data and size
     CELER_FORCEINLINE_FUNCTION SpanImpl(T* d, std::size_t s) : data(d), size(s)
     {
-        REQUIRE(d != nullptr || size == 0);
+        CELER_EXPECT(d != nullptr || size == 0);
     }
 };
 

@@ -18,7 +18,8 @@ namespace celeritas
 const char* to_cstring(ImportPhysicsVectorType value)
 {
     static const char* const strings[] = {"unknown", "linear", "log", "free"};
-    REQUIRE(static_cast<int>(value) * sizeof(const char*) < sizeof(strings));
+    CELER_EXPECT(static_cast<int>(value) * sizeof(const char*)
+                 < sizeof(strings));
     return strings[static_cast<int>(value)];
 }
 

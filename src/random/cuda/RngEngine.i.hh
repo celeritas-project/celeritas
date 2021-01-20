@@ -18,7 +18,7 @@ CELER_FUNCTION
 RngEngine::RngEngine(const RngStatePointers& view, const ThreadId& id)
     : state_(view.rng[id.get()])
 {
-    REQUIRE(id < view.rng.size());
+    CELER_EXPECT(id < view.rng.size());
 }
 
 //---------------------------------------------------------------------------//

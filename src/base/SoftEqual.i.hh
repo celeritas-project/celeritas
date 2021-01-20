@@ -28,7 +28,7 @@ template<class RealType>
 CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel)
     : SoftEqual(rel, rel * (traits_t::abs_thresh() / traits_t::rel_prec()))
 {
-    REQUIRE(rel > 0);
+    CELER_EXPECT(rel > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -39,8 +39,8 @@ template<class RealType>
 CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel, value_type abs)
     : rel_(rel), abs_(abs)
 {
-    REQUIRE(rel > 0);
-    REQUIRE(abs > 0);
+    CELER_EXPECT(rel > 0);
+    CELER_EXPECT(abs > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -105,7 +105,7 @@ CELER_FUNCTION SoftZero<RealType>::SoftZero()
 template<class RealType>
 CELER_FUNCTION SoftZero<RealType>::SoftZero(value_type abs) : abs_(abs)
 {
-    REQUIRE(abs > 0);
+    CELER_EXPECT(abs > 0);
 }
 
 //---------------------------------------------------------------------------//

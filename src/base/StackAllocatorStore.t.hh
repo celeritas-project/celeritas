@@ -20,9 +20,9 @@ template<class T>
 StackAllocatorStore<T>::StackAllocatorStore(size_type capacity)
     : allocation_(capacity), size_allocation_(1)
 {
-    REQUIRE(capacity > 0);
+    CELER_EXPECT(capacity > 0);
     this->clear();
-    ENSURE(this->get_size() == 0);
+    CELER_ENSURE(this->get_size() == 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -32,7 +32,7 @@ StackAllocatorStore<T>::StackAllocatorStore(size_type capacity)
 template<class T>
 auto StackAllocatorStore<T>::device_pointers() -> Pointers
 {
-    REQUIRE(!allocation_.empty());
+    CELER_EXPECT(!allocation_.empty());
     Pointers ptrs;
     ptrs.storage = allocation_.device_pointers();
     ptrs.size    = size_allocation_.device_pointers().data();
@@ -49,7 +49,7 @@ auto StackAllocatorStore<T>::device_pointers() -> Pointers
 template<class T>
 void StackAllocatorStore<T>::clear()
 {
-    REQUIRE(!size_allocation_.empty());
+    CELER_EXPECT(!size_allocation_.empty());
     device_memset_zero(size_allocation_.device_pointers());
 }
 
@@ -64,7 +64,7 @@ void StackAllocatorStore<T>::clear()
 template<class T>
 auto StackAllocatorStore<T>::get_size() -> size_type
 {
-    REQUIRE(!size_allocation_.empty());
+    CELER_EXPECT(!size_allocation_.empty());
     size_type result;
     size_allocation_.copy_to_host({&result, 1});
     return result;
