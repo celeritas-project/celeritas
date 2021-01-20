@@ -3,34 +3,55 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MollerBhabhaInteractorPointers.hh
+//! \file MollerBhabha.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
+#include "physics/base/Units.hh"
 
 namespace celeritas
+{
+struct ModelInteractPointers;
+
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Device data for creating an interactor.
  */
-struct MollerBhabhaInteractorPointers
+struct MollerBhabhaPointers
 {
+    //! Model ID
+    ModelId model_id;
+
     //! ID of an electron
     ParticleDefId electron_id;
     //! ID of a positron
     ParticleDefId positron_id;
     // Electron mass
-    const units::MevMass electron_mass_;
+    real_type electron_mass_c_sq;
+    // Mininum energy limit
+    units::MevEnergy min_valid_energy_;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return electron_id && positron_id;
+        return electron_id && positron_id && electron_mass_c_sq > 0
+               && min_valid_energy_.value() > 0;
     }
 };
 
 //---------------------------------------------------------------------------//
+// KERNEL LAUNCHERS
+//---------------------------------------------------------------------------//
+
+// Launch Moller-Bhabha interaction
+void moller_bhabha_interact(const MollerBhabhaPointers&  device_pointers,
+                            const ModelInteractPointers& interaction);
+
+//---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
