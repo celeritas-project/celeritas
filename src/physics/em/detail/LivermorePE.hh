@@ -3,34 +3,55 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePEInteractorPointers.hh
+//! \file LivermorePE.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
+#include "physics/em/LivermorePEParamsPointers.hh"
 
 namespace celeritas
+{
+struct ModelInteractPointers;
+
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Device data for creating a LivermorePEInteractor.
  */
-struct LivermorePEInteractorPointers
+struct LivermorePEPointers
 {
+    //! Model ID
+    ModelId model_id;
+
     //! 1 / electron mass [1 / MevMass]
     real_type inv_electron_mass;
     //! ID of an electron
     ParticleDefId electron_id;
     //! ID of a gamma
     ParticleDefId gamma_id;
+    //! Livermore EPICS2014 photoelectric data
+    LivermorePEParamsPointers data;
 
     //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
-        return electron_id && gamma_id;
+        return model_id && inv_electron_mass > 0 && electron_id && gamma_id
+               && data;
     }
 };
 
 //---------------------------------------------------------------------------//
+// KERNEL LAUNCHERS
+//---------------------------------------------------------------------------//
+
+// Launch the Livermore photoelectric interaction
+void livermore_pe_interact(const LivermorePEPointers&   device_pointers,
+                           const ModelInteractPointers& interaction);
+
+//---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

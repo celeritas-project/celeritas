@@ -44,10 +44,12 @@ list(APPEND SOURCES
   physics/base/SecondaryAllocatorStore.cc
   physics/base/ValueGridBuilder.cc
   physics/em/ComptonProcess.cc
+  physics/em/PhotoelectricProcess.cc
   physics/em/LivermorePEParams.cc
   physics/em/EPlusAnnihilationProcess.cc
   physics/em/EPlusGGModel.cc
   physics/em/KleinNishinaModel.cc
+  physics/em/LivermorePEModel.cc
   physics/material/MaterialParams.cc
   physics/material/MaterialStateStore.cc
   physics/material/detail/Utils.cc
@@ -62,6 +64,7 @@ if(CELERITAS_USE_CUDA)
     base/Memory.cu
     comm/Device.cuda.cc
     physics/em/detail/KleinNishina.cu
+    physics/em/detail/LivermorePE.cu
     random/cuda/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
   )

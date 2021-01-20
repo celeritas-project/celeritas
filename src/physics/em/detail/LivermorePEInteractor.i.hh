@@ -7,33 +7,35 @@
 //---------------------------------------------------------------------------//
 
 #include "base/ArrayUtils.hh"
+#include "physics/em/MockXsCalculator.hh"
 #include "random/distributions/UniformRealDistribution.hh"
-#include "MockXsCalculator.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
+ *
+ * The incident particle must be above the energy threshold: this should be
+ * handled in code *before* the interactor is constructed.
  */
-CELER_FUNCTION LivermorePEInteractor::LivermorePEInteractor(
-    const LivermorePEInteractorPointers& shared,
-    const LivermorePEParamsPointers&     data,
-    ElementDefId                         el_id,
-    const ParticleTrackView&             particle,
-    const Real3&                         inc_direction,
-    SecondaryAllocatorView&              allocate)
+CELER_FUNCTION
+LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
+                                             ElementDefId               el_id,
+                                             const ParticleTrackView& particle,
+                                             const Real3& inc_direction,
+                                             SecondaryAllocatorView& allocate)
     : shared_(shared)
-    , el_(data.elements[el_id.get()])
     , el_id_(el_id)
     , inc_direction_(inc_direction)
     , inc_energy_(particle.energy().value())
     , allocate_(allocate)
-    , calc_micro_xs_(shared, data, particle)
+    , calc_micro_xs_(shared, particle)
 {
-    CELER_EXPECT(inc_energy_ > this->min_incident_energy()
-                 && inc_energy_ <= this->max_incident_energy());
     CELER_EXPECT(particle.def_id() == shared_.gamma_id);
+    CELER_EXPECT(inc_energy_.value() > 0);
 
     inv_energy_ = 1. / inc_energy_.value();
 }
@@ -54,15 +56,16 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     }
 
     // Sample the shell from which the photoelectron is emitted
-    real_type    cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
-    real_type    xs     = 0.;
-    unsigned int shell_id;
-    for (shell_id = 0; shell_id < el_.shells.size() - 1; ++shell_id)
+    real_type cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
+    real_type xs     = 0.;
+    const LivermoreElement& el = shared_.data.elements[el_id_.get()];
+    unsigned int            shell_id;
+    for (shell_id = 0; shell_id < el.shells.size() - 1; ++shell_id)
     {
-        const auto& shell = el_.shells[shell_id];
+        const auto& shell = el.shells[shell_id];
         if (inc_energy_ > shell.binding_energy)
         {
-            if (inc_energy_ < el_.thresh_low)
+            if (inc_energy_ < el.thresh_low)
             {
                 // Use the tabulated subshell cross sections
                 XsCalculator calc_xs(shell.xs);
@@ -71,7 +74,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
             else
             {
                 // Use parameterized integrated subshell cross sections
-                const auto& param = inc_energy_ >= el_.thresh_high
+                const auto& param = inc_energy_ >= el.thresh_high
                                         ? shell.param_high
                                         : shell.param_low;
 
@@ -98,7 +101,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     // If the binding energy of the sampled shell is greater than the incident
     // photon energy, no secondaries are produced and the energy is deposited
     // locally.
-    MevEnergy binding_energy = el_.shells[shell_id].binding_energy;
+    MevEnergy binding_energy = el.shells[shell_id].binding_energy;
     if (binding_energy > inc_energy_)
     {
         result.energy_deposition = inc_energy_;
@@ -191,4 +194,5 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

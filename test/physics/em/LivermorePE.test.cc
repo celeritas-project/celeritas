@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePEInteractor.test.cc
+//! \file LivermorePE.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/LivermorePEInteractor.hh"
+#include "physics/em/detail/LivermorePEInteractor.hh"
 
 #include <fstream>
 #include "celeritas_test.hh"
@@ -18,9 +18,9 @@
 #include "../InteractionIO.hh"
 
 using celeritas::ElementDefId;
-using celeritas::LivermorePEInteractor;
 using celeritas::LivermorePEParams;
 using celeritas::LivermorePEParamsReader;
+using celeritas::detail::LivermorePEInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -35,9 +35,7 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
     void set_livermore_params(LivermorePEParams::Input inp)
     {
         CELER_EXPECT(!inp.elements.empty());
-
         livermore_params_ = std::make_shared<LivermorePEParams>(std::move(inp));
-        data_             = livermore_params_->host_pointers();
     }
 
     void SetUp() override
@@ -58,18 +56,19 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
 
-        const auto& params    = this->particle_params();
-        pointers_.electron_id = params.find(pdg::electron());
-        pointers_.gamma_id    = params.find(pdg::gamma());
-        pointers_.inv_electron_mass
-            = 1 / (params.get(pointers_.electron_id).mass.value());
-
         // Set Livermore photoelectric data
         LivermorePEParams::Input li;
         std::string data_path = this->test_data_path("physics/em", "");
         LivermorePEParamsReader read_element_data(data_path.c_str());
         li.elements.push_back(read_element_data(19));
         set_livermore_params(li);
+
+        const auto& params    = this->particle_params();
+        pointers_.electron_id = params.find(pdg::electron());
+        pointers_.gamma_id    = params.find(pdg::gamma());
+        pointers_.inv_electron_mass
+            = 1 / (params.get(pointers_.electron_id).mass.value());
+        pointers_.data = livermore_params_->host_pointers();
 
         // Set default particle to incident 1 keV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{0.001});
@@ -118,9 +117,8 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<LivermorePEParams>       livermore_params_;
-    celeritas::LivermorePEInteractorPointers pointers_;
-    celeritas::LivermorePEParamsPointers     data_;
+    std::shared_ptr<LivermorePEParams>     livermore_params_;
+    celeritas::detail::LivermorePEPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//
@@ -137,7 +135,6 @@ TEST_F(LivermorePEInteractorTest, basic)
 
     // Create the interactor
     LivermorePEInteractor interact(pointers_,
-                                   data_,
                                    el_id,
                                    this->particle_track(),
                                    this->direction(),
@@ -211,7 +208,6 @@ TEST_F(LivermorePEInteractorTest, stress_test)
 
             // Create interactor
             LivermorePEInteractor interact(pointers_,
-                                           data_,
                                            el_id,
                                            this->particle_track(),
                                            this->direction(),

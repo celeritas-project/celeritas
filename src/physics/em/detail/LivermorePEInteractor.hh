@@ -15,10 +15,12 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "LivermorePEInteractorPointers.hh"
+#include "LivermorePE.hh"
 #include "LivermorePEMicroXsCalculator.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -52,36 +54,19 @@ class LivermorePEInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEInteractor(const LivermorePEInteractorPointers& shared,
-                          const LivermorePEParamsPointers&     data,
-                          ElementDefId                         el_id,
-                          const ParticleTrackView&             particle,
-                          const Real3&                         inc_direction,
-                          SecondaryAllocatorView&              allocate);
+    LivermorePEInteractor(const LivermorePEPointers& shared,
+                          ElementDefId               el_id,
+                          const ParticleTrackView&   particle,
+                          const Real3&               inc_direction,
+                          SecondaryAllocatorView&    allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
-    //// COMMON PROPERTIES ////
-
-    //! Minimum incident energy for this model to be valid
-    static CELER_CONSTEXPR_FUNCTION MevEnergy min_incident_energy()
-    {
-        return MevEnergy{0};
-    }
-
-    //! Maximum incident energy for this model to be valid
-    static CELER_CONSTEXPR_FUNCTION MevEnergy max_incident_energy()
-    {
-        return MevEnergy{celeritas::numeric_limits<real_type>::infinity()};
-    }
-
   private:
     // Shared constant physics properties
-    const LivermorePEInteractorPointers& shared_;
-    // Livermore EPICS2014 photoelectric cross section data
-    const LivermoreElement& el_;
+    const LivermorePEPointers& shared_;
     // Index in MaterialParams/LivermorePEParams elements
     ElementDefId el_id_;
     // Incident direction
@@ -103,6 +88,7 @@ class LivermorePEInteractor
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
 
 #include "LivermorePEInteractor.i.hh"
