@@ -3,41 +3,40 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhotoelectricInteractor.test.cc
+//! \file LivermorePEInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/PhotoelectricInteractor.hh"
+#include "physics/em/LivermorePEInteractor.hh"
 
 #include <fstream>
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
-#include "io/LivermoreParamsReader.hh"
+#include "io/LivermorePEParamsReader.hh"
 #include "physics/base/Units.hh"
-#include "physics/em/LivermoreParams.hh"
+#include "physics/em/LivermorePEParams.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
 using celeritas::ElementDefId;
-using celeritas::LivermoreParams;
-using celeritas::LivermoreParamsReader;
-using celeritas::PhotoelectricInteractor;
+using celeritas::LivermorePEInteractor;
+using celeritas::LivermorePEParams;
+using celeritas::LivermorePEParamsReader;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class PhotoelectricInteractorTest
-    : public celeritas_test::InteractorHostTestBase
+class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
 {
     using Base = celeritas_test::InteractorHostTestBase;
 
   protected:
-    void set_livermore_params(LivermoreParams::Input inp)
+    void set_livermore_params(LivermorePEParams::Input inp)
     {
         CELER_EXPECT(!inp.elements.empty());
 
-        livermore_params_ = std::make_shared<LivermoreParams>(std::move(inp));
+        livermore_params_ = std::make_shared<LivermorePEParams>(std::move(inp));
         data_             = livermore_params_->host_pointers();
     }
 
@@ -66,9 +65,9 @@ class PhotoelectricInteractorTest
             = 1 / (params.get(pointers_.electron_id).mass.value());
 
         // Set Livermore photoelectric data
-        LivermoreParams::Input li;
+        LivermorePEParams::Input li;
         std::string data_path = this->test_data_path("physics/em", "");
-        LivermoreParamsReader read_element_data(data_path.c_str());
+        LivermorePEParamsReader read_element_data(data_path.c_str());
         li.elements.push_back(read_element_data(19));
         set_livermore_params(li);
 
@@ -119,16 +118,16 @@ class PhotoelectricInteractorTest
     }
 
   protected:
-    std::shared_ptr<LivermoreParams>           livermore_params_;
-    celeritas::PhotoelectricInteractorPointers pointers_;
-    celeritas::LivermoreParamsPointers         data_;
+    std::shared_ptr<LivermorePEParams>       livermore_params_;
+    celeritas::LivermorePEInteractorPointers pointers_;
+    celeritas::LivermorePEParamsPointers     data_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(PhotoelectricInteractorTest, basic)
+TEST_F(LivermorePEInteractorTest, basic)
 {
     // Reserve 4 secondaries
     this->resize_secondaries(4);
@@ -137,13 +136,13 @@ TEST_F(PhotoelectricInteractorTest, basic)
     ElementDefId el_id{0};
 
     // Create the interactor
-    PhotoelectricInteractor interact(pointers_,
-                                     data_,
-                                     el_id,
-                                     this->particle_track(),
-                                     this->direction(),
-                                     this->secondary_allocator());
-    RandomEngine&           rng_engine = this->rng();
+    LivermorePEInteractor interact(pointers_,
+                                   data_,
+                                   el_id,
+                                   this->particle_track(),
+                                   this->direction(),
+                                   this->secondary_allocator());
+    RandomEngine&         rng_engine = this->rng();
 
     std::vector<double> energy_electron;
     std::vector<double> costheta_electron;
@@ -186,7 +185,7 @@ TEST_F(PhotoelectricInteractorTest, basic)
     }
 }
 
-TEST_F(PhotoelectricInteractorTest, stress_test)
+TEST_F(LivermorePEInteractorTest, stress_test)
 {
     RandomEngine& rng_engine = this->rng();
 
@@ -211,12 +210,12 @@ TEST_F(PhotoelectricInteractorTest, stress_test)
             this->resize_secondaries(num_samples);
 
             // Create interactor
-            PhotoelectricInteractor interact(pointers_,
-                                             data_,
-                                             el_id,
-                                             this->particle_track(),
-                                             this->direction(),
-                                             this->secondary_allocator());
+            LivermorePEInteractor interact(pointers_,
+                                           data_,
+                                           el_id,
+                                           this->particle_track(),
+                                           this->direction(),
+                                           this->secondary_allocator());
 
             // Loop over many particles
             for (int i = 0; i < num_samples; ++i)

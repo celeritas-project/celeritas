@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermoreParams.hh
+//! \file LivermorePEParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/DeviceVector.hh"
 #include "io/ImportPhysicsVector.hh"
 #include "physics/material/Types.hh"
-#include "LivermoreParamsPointers.hh"
+#include "LivermorePEParamsPointers.hh"
 
 namespace celeritas
 {
@@ -19,7 +19,7 @@ namespace celeritas
  * Data management for the Livermore EPICS2014 Electron Photon Interaction
  * Cross Section library.
  */
-class LivermoreParams
+class LivermorePEParams
 {
   public:
     //@{
@@ -55,13 +55,13 @@ class LivermoreParams
 
   public:
     // Construct with a vector of element identifiers
-    explicit LivermoreParams(const Input& inp);
+    explicit LivermorePEParams(const Input& inp);
 
     // Access Livermore data on the host
-    LivermoreParamsPointers host_pointers() const;
+    LivermorePEParamsPointers host_pointers() const;
 
     // Access Livermore data on the device
-    LivermoreParamsPointers device_pointers() const;
+    LivermorePEParamsPointers device_pointers() const;
 
   private:
     std::vector<LivermoreElement>  host_elements_;

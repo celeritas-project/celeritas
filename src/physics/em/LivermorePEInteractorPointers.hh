@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhotoelectricInteractorPointers.hh
+//! \file LivermorePEInteractorPointers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,9 +14,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating a PhotoelectricInteractor.
+ * Device data for creating a LivermorePEInteractor.
  */
-struct PhotoelectricInteractorPointers
+struct LivermorePEInteractorPointers
 {
     //! 1 / electron mass [1 / MevMass]
     real_type inv_electron_mass;

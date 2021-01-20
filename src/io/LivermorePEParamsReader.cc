@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermoreParamsReader.cc
+//! \file LivermorePEParamsReader.cc
 //---------------------------------------------------------------------------//
-#include "LivermoreParamsReader.hh"
+#include "LivermorePEParamsReader.hh"
 
 #include <fstream>
 #include <sstream>
@@ -17,7 +17,7 @@ namespace celeritas
  * Construct the reader using the G4LEDATA environment variable to get the path
  * to the data.
  */
-LivermoreParamsReader::LivermoreParamsReader()
+LivermorePEParamsReader::LivermorePEParamsReader()
 {
     const char* env_var = std::getenv("G4LEDATA");
     CELER_VALIDATE(env_var, "Environment variable G4LEDATA is not defined.");
@@ -30,7 +30,8 @@ LivermoreParamsReader::LivermoreParamsReader()
 /*!
  * Construct the reader with the path to the directory containing the data.
  */
-LivermoreParamsReader::LivermoreParamsReader(const char* path) : path_(path)
+LivermorePEParamsReader::LivermorePEParamsReader(const char* path)
+    : path_(path)
 {
     CELER_EXPECT(!path_.empty());
     if (path_.back() == '/')
@@ -43,8 +44,8 @@ LivermoreParamsReader::LivermoreParamsReader(const char* path) : path_(path)
 /*!
  * Read the data for the given elements.
  */
-LivermoreParamsReader::result_type
-LivermoreParamsReader::operator()(int atomic_number) const
+LivermorePEParamsReader::result_type
+LivermorePEParamsReader::operator()(int atomic_number) const
 {
     CELER_EXPECT(atomic_number > 0 && atomic_number < 101);
 

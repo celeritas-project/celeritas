@@ -36,7 +36,7 @@ list(APPEND SOURCES
   io/ImportProcess.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
-  io/LivermoreParamsReader.cc
+  io/LivermorePEParamsReader.cc
   physics/base/Model.cc
   physics/base/ParticleParams.cc
   physics/base/ParticleStateStore.cc
@@ -44,7 +44,7 @@ list(APPEND SOURCES
   physics/base/SecondaryAllocatorStore.cc
   physics/base/ValueGridBuilder.cc
   physics/em/ComptonProcess.cc
-  physics/em/LivermoreParams.cc
+  physics/em/LivermorePEParams.cc
   physics/em/EPlusAnnihilationProcess.cc
   physics/em/EPlusGGModel.cc
   physics/em/KleinNishinaModel.cc

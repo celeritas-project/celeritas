@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhotoelectricMicroXsCalculator.i.hh
+//! \file LivermorePEMicroXsCalculator.i.hh
 //---------------------------------------------------------------------------//
 
 #include "base/Algorithms.hh"
@@ -15,10 +15,10 @@ namespace celeritas
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION PhotoelectricMicroXsCalculator::PhotoelectricMicroXsCalculator(
-    const PhotoelectricInteractorPointers& shared,
-    const LivermoreParamsPointers&         data,
-    const ParticleTrackView&               particle)
+CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
+    const LivermorePEInteractorPointers& shared,
+    const LivermorePEParamsPointers&     data,
+    const ParticleTrackView&             particle)
     : shared_(shared), data_(data), inc_energy_(particle.energy().value())
 {
     CELER_EXPECT(particle.def_id() == shared_.gamma_id);
@@ -29,7 +29,7 @@ CELER_FUNCTION PhotoelectricMicroXsCalculator::PhotoelectricMicroXsCalculator(
  * Compute cross section
  */
 CELER_FUNCTION
-real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
+real_type LivermorePEMicroXsCalculator::operator()(ElementDefId el_id) const
 {
     CELER_EXPECT(el_id);
     const LivermoreElement& el = data_.elements[el_id.get()];

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhotoelectricInteractor.i.hh
+//! \file LivermorePEInteractor.i.hh
 //---------------------------------------------------------------------------//
 
 #include "base/ArrayUtils.hh"
@@ -16,13 +16,13 @@ namespace celeritas
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION PhotoelectricInteractor::PhotoelectricInteractor(
-    const PhotoelectricInteractorPointers& shared,
-    const LivermoreParamsPointers&         data,
-    ElementDefId                           el_id,
-    const ParticleTrackView&               particle,
-    const Real3&                           inc_direction,
-    SecondaryAllocatorView&                allocate)
+CELER_FUNCTION LivermorePEInteractor::LivermorePEInteractor(
+    const LivermorePEInteractorPointers& shared,
+    const LivermorePEParamsPointers&     data,
+    ElementDefId                         el_id,
+    const ParticleTrackView&             particle,
+    const Real3&                         inc_direction,
+    SecondaryAllocatorView&              allocate)
     : shared_(shared)
     , el_(data.elements[el_id.get()])
     , el_id_(el_id)
@@ -43,7 +43,7 @@ CELER_FUNCTION PhotoelectricInteractor::PhotoelectricInteractor(
  * Sample using the Livermore model for the photoelectric effect.
  */
 template<class Engine>
-CELER_FUNCTION Interaction PhotoelectricInteractor::operator()(Engine& rng)
+CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 {
     // Allocate space for the single electron to be emitted
     Secondary* photoelectron = this->allocate_(1);
@@ -135,7 +135,7 @@ CELER_FUNCTION Interaction PhotoelectricInteractor::operator()(Engine& rng)
  * 2.1.1.1 of the Penelope 2014 manual.
  */
 template<class Engine>
-CELER_FUNCTION Real3 PhotoelectricInteractor::sample_direction(Engine& rng) const
+CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
 {
     constexpr MevEnergy min_energy{1.e-6};
     constexpr MevEnergy max_energy{100.};
