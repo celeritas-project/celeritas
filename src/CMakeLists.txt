@@ -81,7 +81,7 @@ if(CELERITAS_USE_HepMC3)
   list(APPEND SOURCES
     io/EventReader.cc
   )
-  list(APPEND PRIVATE_DEPS ${HEPMC3_LIB})
+  list(APPEND PRIVATE_DEPS HepMC3::HepMC3)
 else()
   list(APPEND SOURCES
     io/EventReader.nohepmc.cc
