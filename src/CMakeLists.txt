@@ -61,8 +61,8 @@ if(CELERITAS_USE_CUDA)
     base/KernelParamCalculator.cuda.cc
     base/Memory.cu
     comm/Device.cuda.cc
-    physics/em/detail/KleinNishina.cu
     physics/em/detail/EPlusGG.cu
+    physics/em/detail/KleinNishina.cu
     random/cuda/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
   )
