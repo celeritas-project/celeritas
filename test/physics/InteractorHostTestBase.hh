@@ -15,6 +15,7 @@
 #include "base/Span.hh"
 #include "base/StackAllocatorPointers.hh"
 #include "base/Types.hh"
+#include "physics/base/ModelIdGenerator.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleStatePointers.hh"
 #include "physics/base/Secondary.hh"
@@ -57,10 +58,14 @@ class InteractorHostTestBase : public celeritas::Test
     using PDGNumber              = celeritas::PDGNumber;
     using MevEnergy              = celeritas::units::MevEnergy;
 
+    using MaterialDefId     = celeritas::MaterialDefId;
     using MaterialParams    = celeritas::MaterialParams;
     using MaterialTrackView = celeritas::MaterialTrackView;
 
     using Interaction            = celeritas::Interaction;
+    using ModelIdGenerator       = celeritas::ModelIdGenerator;
+    using ModelId                = celeritas::ModelId;
+    using ParticleDefId          = celeritas::ParticleDefId;
     using ParticleParams         = celeritas::ParticleParams;
     using ParticleTrackView      = celeritas::ParticleTrackView;
     using Real3                  = celeritas::Real3;
@@ -88,6 +93,11 @@ class InteractorHostTestBase : public celeritas::Test
     //! Set and get particle params
     void                  set_particle_params(ParticleParams::Input inp);
     const ParticleParams& particle_params() const;
+    std::shared_ptr<const ParticleParams> get_particle_params() const
+    {
+        CELER_EXPECT(particle_params_);
+        return particle_params_;
+    }
     //!@}
 
     //!@{

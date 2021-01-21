@@ -36,7 +36,7 @@ list(APPEND SOURCES
   io/ImportProcess.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
-  io/LivermoreParamsReader.cc
+  io/LivermorePEParamsReader.cc
   physics/base/Model.cc
   physics/base/ParticleParams.cc
   physics/base/ParticleStateStore.cc
@@ -44,10 +44,12 @@ list(APPEND SOURCES
   physics/base/SecondaryAllocatorStore.cc
   physics/base/ValueGridBuilder.cc
   physics/em/ComptonProcess.cc
-  physics/em/LivermoreParams.cc
+  physics/em/PhotoelectricProcess.cc
+  physics/em/LivermorePEParams.cc
   physics/em/EPlusAnnihilationProcess.cc
   physics/em/EPlusGGModel.cc
   physics/em/KleinNishinaModel.cc
+  physics/em/LivermorePEModel.cc
   physics/material/MaterialParams.cc
   physics/material/MaterialStateStore.cc
   physics/material/detail/Utils.cc
@@ -63,6 +65,7 @@ if(CELERITAS_USE_CUDA)
     comm/Device.cuda.cc
     physics/em/detail/EPlusGG.cu
     physics/em/detail/KleinNishina.cu
+    physics/em/detail/LivermorePE.cu
     random/cuda/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
   )

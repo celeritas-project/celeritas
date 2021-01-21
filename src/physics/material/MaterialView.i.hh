@@ -63,8 +63,17 @@ CELER_FUNCTION ElementComponentId::value_type MaterialView::num_elements() const
 CELER_FUNCTION ElementView MaterialView::element_view(ElementComponentId id) const
 {
     CELER_EXPECT(id < this->material_def().elements.size());
-    const MatElementComponent& c = this->elements()[id.get()];
-    return ElementView(params_, c.element);
+    return ElementView(params_, this->element_id(id));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * ID of a component element in this material.
+ */
+CELER_FUNCTION ElementDefId MaterialView::element_id(ElementComponentId id) const
+{
+    CELER_EXPECT(id < this->material_def().elements.size());
+    return this->elements()[id.get()].element;
 }
 
 //---------------------------------------------------------------------------//

@@ -3,23 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhotoelectricMicroXsCalculator.i.hh
+//! \file LivermorePEMicroXsCalculator.i.hh
 //---------------------------------------------------------------------------//
 
 #include "base/Algorithms.hh"
-#include "MockXsCalculator.hh"
+#include "physics/em/MockXsCalculator.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION PhotoelectricMicroXsCalculator::PhotoelectricMicroXsCalculator(
-    const PhotoelectricInteractorPointers& shared,
-    const LivermoreParamsPointers&         data,
-    const ParticleTrackView&               particle)
-    : shared_(shared), data_(data), inc_energy_(particle.energy().value())
+CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
+    const LivermorePEPointers& shared, const ParticleTrackView& particle)
+    : shared_(shared), inc_energy_(particle.energy().value())
 {
     CELER_EXPECT(particle.def_id() == shared_.gamma_id);
 }
@@ -29,10 +29,10 @@ CELER_FUNCTION PhotoelectricMicroXsCalculator::PhotoelectricMicroXsCalculator(
  * Compute cross section
  */
 CELER_FUNCTION
-real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
+real_type LivermorePEMicroXsCalculator::operator()(ElementDefId el_id) const
 {
     CELER_EXPECT(el_id);
-    const LivermoreElement& el = data_.elements[el_id.get()];
+    const LivermoreElement& el = shared_.data.elements[el_id.get()];
 
     // In Geant4, if the incident gamma energy is below the lowest binding
     // energy, it is set to the binding energy so that the photoelectric cross
@@ -74,4 +74,5 @@ real_type PhotoelectricMicroXsCalculator::operator()(ElementDefId el_id) const
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

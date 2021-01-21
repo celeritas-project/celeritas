@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermoreParams.cc
+//! \file LivermorePEParams.cc
 //---------------------------------------------------------------------------//
-#include "LivermoreParams.hh"
+#include "LivermorePEParams.hh"
 
 #include <cmath>
 #include <numeric>
@@ -20,7 +20,7 @@ namespace celeritas
 /*!
  * Construct from a vector of element identifiers.
  */
-LivermoreParams::LivermoreParams(const Input& inp)
+LivermorePEParams::LivermorePEParams(const Input& inp)
 {
     CELER_EXPECT(!inp.elements.empty());
 
@@ -98,9 +98,9 @@ LivermoreParams::LivermoreParams(const Input& inp)
 /*!
  * Access Livermore data on the host.
  */
-LivermoreParamsPointers LivermoreParams::host_pointers() const
+LivermorePEParamsPointers LivermorePEParams::host_pointers() const
 {
-    LivermoreParamsPointers result;
+    LivermorePEParamsPointers result;
     result.elements = make_span(host_elements_);
 
     CELER_ENSURE(result);
@@ -111,9 +111,10 @@ LivermoreParamsPointers LivermoreParams::host_pointers() const
 /*!
  * Access Livermore data on the device.
  */
-LivermoreParamsPointers LivermoreParams::device_pointers() const
+LivermorePEParamsPointers LivermorePEParams::device_pointers() const
 {
-    LivermoreParamsPointers result;
+    CELER_EXPECT(celeritas::is_device_enabled());
+    LivermorePEParamsPointers result;
     result.elements = device_elements_.device_pointers();
 
     CELER_ENSURE(result);
@@ -126,7 +127,7 @@ LivermoreParamsPointers LivermoreParams::device_pointers() const
 /*!
  * Convert an element input to a LivermoreElement and store.
  */
-void LivermoreParams::append_livermore_element(const ElementInput& inp)
+void LivermorePEParams::append_livermore_element(const ElementInput& inp)
 {
     LivermoreElement result;
 
@@ -149,7 +150,8 @@ void LivermoreParams::append_livermore_element(const ElementInput& inp)
 /*!
  * Process and store electron subshells to the internal list.
  */
-Span<LivermoreSubshell> LivermoreParams::extend_shells(const ElementInput& inp)
+Span<LivermoreSubshell>
+LivermorePEParams::extend_shells(const ElementInput& inp)
 {
     CELER_EXPECT(host_shells_.size() + inp.shells.size()
                  <= host_shells_.capacity());
@@ -178,7 +180,8 @@ Span<LivermoreSubshell> LivermoreParams::extend_shells(const ElementInput& inp)
 /*!
  * Process and store tabulated cross sections, energies, and fit parameters.
  */
-Span<real_type> LivermoreParams::extend_data(const std::vector<real_type>& data)
+Span<real_type>
+LivermorePEParams::extend_data(const std::vector<real_type>& data)
 {
     CELER_EXPECT(host_data_.size() + data.size() <= host_data_.capacity());
 

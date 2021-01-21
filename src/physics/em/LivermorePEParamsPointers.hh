@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermoreParamsPointers.hh
+//! \file LivermorePEParamsPointers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -66,7 +66,7 @@ struct LivermoreElement
 /*!
  * Access Livermore data on device.
  */
-struct LivermoreParamsPointers
+struct LivermorePEParamsPointers
 {
     Span<const LivermoreElement> elements;
 

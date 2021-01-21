@@ -56,6 +56,9 @@ class MaterialView
     // Element properties for a material-specific index
     inline CELER_FUNCTION ElementView element_view(ElementComponentId id) const;
 
+    // ID of a component element in this material
+    inline CELER_FUNCTION ElementDefId element_id(ElementComponentId id) const;
+
     // Total number density of an element in this material [1/cm^3]
     inline CELER_FUNCTION real_type
     get_element_density(ElementComponentId id) const;
