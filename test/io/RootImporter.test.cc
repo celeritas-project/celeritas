@@ -5,9 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file RootImporter.test.cc
 //---------------------------------------------------------------------------//
+#include "io/RootImporter.hh"
 
 #include <algorithm>
-#include "io/RootImporter.hh"
 #include "io/ImportPhysicsTable.hh"
 #include "physics/base/PDGNumber.hh"
 #include "base/Types.hh"
