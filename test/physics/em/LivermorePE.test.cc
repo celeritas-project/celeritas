@@ -13,13 +13,16 @@
 #include "base/Range.hh"
 #include "io/LivermorePEParamsReader.hh"
 #include "physics/base/Units.hh"
+#include "physics/em/LivermorePEModel.hh"
 #include "physics/em/LivermorePEParams.hh"
+#include "physics/em/PhotoelectricProcess.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
 using celeritas::ElementDefId;
 using celeritas::LivermorePEParams;
 using celeritas::LivermorePEParamsReader;
+using celeritas::PhotoelectricProcess;
 using celeritas::detail::LivermorePEInteractor;
 namespace pdg = celeritas::pdg;
 
@@ -232,4 +235,27 @@ TEST_F(LivermorePEInteractorTest, stress_test)
     const double expected_avg_engine_samples[]
         = {15.99755859375, 16.09204101562, 13.79919433594, 8.590209960938, 2};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+}
+
+TEST_F(LivermorePEInteractorTest, model)
+{
+    PhotoelectricProcess process(particle_params_, livermore_params_);
+    ModelIdGenerator     next_id;
+
+    // Construct the models associated with the photoelectric effect
+    auto models = process.build_models(next_id);
+    EXPECT_EQ(1, models.size());
+
+    auto livermore_pe = models.front();
+    EXPECT_EQ(ModelId{0}, livermore_pe->model_id());
+
+    // Get the particle types and energy ranges this model applies to
+    auto set_applic = livermore_pe->applicability();
+    EXPECT_EQ(1, set_applic.size());
+
+    auto applic = *set_applic.begin();
+    EXPECT_EQ(MaterialDefId{}, applic.material);
+    EXPECT_EQ(ParticleDefId{1}, applic.particle);
+    EXPECT_EQ(celeritas::zero_quantity(), applic.lower);
+    EXPECT_EQ(celeritas::max_quantity(), applic.upper);
 }

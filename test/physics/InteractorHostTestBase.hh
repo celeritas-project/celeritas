@@ -15,6 +15,7 @@
 #include "base/Span.hh"
 #include "base/StackAllocatorPointers.hh"
 #include "base/Types.hh"
+#include "physics/base/ModelIdGenerator.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleStatePointers.hh"
 #include "physics/base/Secondary.hh"
@@ -57,10 +58,14 @@ class InteractorHostTestBase : public celeritas::Test
     using PDGNumber              = celeritas::PDGNumber;
     using MevEnergy              = celeritas::units::MevEnergy;
 
+    using MaterialDefId     = celeritas::MaterialDefId;
     using MaterialParams    = celeritas::MaterialParams;
     using MaterialTrackView = celeritas::MaterialTrackView;
 
     using Interaction            = celeritas::Interaction;
+    using ModelIdGenerator       = celeritas::ModelIdGenerator;
+    using ModelId                = celeritas::ModelId;
+    using ParticleDefId          = celeritas::ParticleDefId;
     using ParticleParams         = celeritas::ParticleParams;
     using ParticleTrackView      = celeritas::ParticleTrackView;
     using Real3                  = celeritas::Real3;
@@ -131,9 +136,11 @@ class InteractorHostTestBase : public celeritas::Test
     // Check for momentum and energy conservation
     void check_conservation(const Interaction& interaction) const;
 
+  protected:
+    std::shared_ptr<ParticleParams> particle_params_;
+
   private:
     std::shared_ptr<MaterialParams> material_params_;
-    std::shared_ptr<ParticleParams> particle_params_;
     RandomEngine                    rng_;
 
     celeritas::MaterialTrackState     mat_state_;
