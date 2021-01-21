@@ -26,10 +26,14 @@ struct UniformGridPointers
 
     size_type  size{};  //!< Number of grid edges/points
     value_type front{}; //!< Value of first grid point
+    value_type back{};  //!< Value of last grid point
     value_type delta{}; //!< Grid cell width
 
     //! True if assigned and valid
-    CELER_FUNCTION operator bool() const { return size >= 2 && delta > 0; }
+    CELER_FUNCTION operator bool() const
+    {
+        return size >= 2 && delta > 0 && front != back;
+    }
 
     //// HELPER FUNCTIONS ////
 
@@ -51,6 +55,7 @@ UniformGridPointers UniformGridPointers::from_bounds(value_type front,
     UniformGridPointers result;
     result.size  = size;
     result.front = front;
+    result.back  = back;
     result.delta = (back - front) / (size - 1);
     CELER_ENSURE(result);
     return result;

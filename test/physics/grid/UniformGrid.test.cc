@@ -25,6 +25,7 @@ class UniformGridTest : public celeritas::Test
         input.size  = 3; //!< Number of grid points (2 bins!)
         input.front = 1.0;
         input.delta = 1.5;
+        input.back  = input.front + input.delta * (input.size - 1);
     }
 
     UniformGridPointers input;

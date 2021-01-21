@@ -35,7 +35,7 @@ CELER_FUNCTION size_type UniformGrid::size() const
  */
 CELER_FUNCTION auto UniformGrid::back() const -> value_type
 {
-    return data_.front + data_.delta * (data_.size - 1);
+    return data_.back;
 }
 
 //---------------------------------------------------------------------------//

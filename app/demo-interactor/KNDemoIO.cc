@@ -77,5 +77,6 @@ void from_json(const nlohmann::json& j, UniformGridPointers& v)
     j.at("size").get_to(v.size);
     j.at("front").get_to(v.front);
     j.at("delta").get_to(v.delta);
+    v.back = v.front + v.delta * (v.size - 1);
 }
 } // namespace celeritas
