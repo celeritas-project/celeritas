@@ -93,6 +93,11 @@ class InteractorHostTestBase : public celeritas::Test
     //! Set and get particle params
     void                  set_particle_params(ParticleParams::Input inp);
     const ParticleParams& particle_params() const;
+    std::shared_ptr<const ParticleParams> get_particle_params() const
+    {
+        CELER_EXPECT(particle_params_);
+        return particle_params_;
+    }
     //!@}
 
     //!@{
@@ -136,11 +141,9 @@ class InteractorHostTestBase : public celeritas::Test
     // Check for momentum and energy conservation
     void check_conservation(const Interaction& interaction) const;
 
-  protected:
-    std::shared_ptr<ParticleParams> particle_params_;
-
   private:
     std::shared_ptr<MaterialParams> material_params_;
+    std::shared_ptr<ParticleParams> particle_params_;
     RandomEngine                    rng_;
 
     celeritas::MaterialTrackState     mat_state_;

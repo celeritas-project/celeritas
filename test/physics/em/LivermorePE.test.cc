@@ -239,7 +239,8 @@ TEST_F(LivermorePEInteractorTest, stress_test)
 
 TEST_F(LivermorePEInteractorTest, model)
 {
-    PhotoelectricProcess process(particle_params_, livermore_params_);
+    PhotoelectricProcess process(this->get_particle_params(),
+                                 livermore_params_);
     ModelIdGenerator     next_id;
 
     // Construct the models associated with the photoelectric effect

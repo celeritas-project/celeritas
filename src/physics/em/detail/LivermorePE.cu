@@ -41,10 +41,10 @@ __global__ void livermore_pe_interact_kernel(const LivermorePEPointers   pe,
     ParticleTrackView particle(ptrs.params.particle, ptrs.states.particle, tid);
     MaterialTrackView material(ptrs.params.material, ptrs.states.material, tid);
     PhysicsTrackView  physics(ptrs.params.physics,
-                             ptrs.states.physics,
-                             particle.def_id(),
-                             material.def_id(),
-                             tid);
+                              ptrs.states.physics,
+                              particle.def_id(),
+                              material.def_id(),
+                              tid);
 
     // This interaction only applies if the Livermore PE model was selected
     if (physics.model_id() != pe.model_id)
@@ -54,10 +54,10 @@ __global__ void livermore_pe_interact_kernel(const LivermorePEPointers   pe,
 
     // Sample an element
     ElementSelector    select_el(material.material_view(),
-                              LivermorePEMicroXsCalculator{pe, particle},
-                              material.element_scratch());
-    ElementComponentId id = select_el(rng);
-    ElementDefId el_id = material.material_view().elements()[id.get()].element;
+                                 LivermorePEMicroXsCalculator{pe, particle},
+                                 material.element_scratch());
+    ElementComponentId comp_id = select_el(rng);
+    ElementDefId       el_id   = material.material_view().element_id(comp_id);
 
     LivermorePEInteractor interact(pe,
                                    el_id,
