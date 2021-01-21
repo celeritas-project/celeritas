@@ -113,6 +113,7 @@ LivermorePEParamsPointers LivermorePEParams::host_pointers() const
  */
 LivermorePEParamsPointers LivermorePEParams::device_pointers() const
 {
+    CELER_EXPECT(celeritas::is_device_enabled());
     LivermorePEParamsPointers result;
     result.elements = device_elements_.device_pointers();
 
