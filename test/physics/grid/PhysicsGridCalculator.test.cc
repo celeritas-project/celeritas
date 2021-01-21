@@ -23,7 +23,7 @@ using celeritas::XsGridPointers;
 class PhysicsGridCalculatorTest : public celeritas::Test
 {
   protected:
-    using Energy    = celeritas::real_type;
+    using Energy    = PhysicsGridCalculator::Energy;
     using real_type = celeritas::real_type;
 
     void build(real_type emin, real_type emax, int count)

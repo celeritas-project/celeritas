@@ -9,6 +9,7 @@
 
 #include "base/Span.hh"
 #include "base/Types.hh"
+#include "physics/base/Units.hh"
 #include "UniformGrid.hh"
 
 namespace celeritas
@@ -24,6 +25,9 @@ namespace celeritas
  */
 struct XsGridPointers
 {
+    using EnergyUnits = units::Mev;
+    using XsUnits     = units::NativeUnit; // 1/cm
+
     UniformGridPointers   log_energy;
     size_type             prime_index{size_type(-1)};
     Span<const real_type> value;

@@ -16,6 +16,13 @@ namespace celeritas
 namespace units
 {
 //---------------------------------------------------------------------------//
+//! Special case for annotating that values are in the native unit system
+struct NativeUnit
+{
+    //! The conversion factor of the resulting unit is always unity
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return 1; }
+};
+
 //! Unit for quantity such that the numeric value of 1 MeV is unity
 struct Mev
 {

@@ -30,6 +30,12 @@ class ParticleTrackView;
 class PhysicsGridCalculator
 {
   public:
+    //!@{
+    //! Type aliases
+    using Energy = Quantity<XsGridPointers::EnergyUnits>;
+    //!@}
+
+  public:
     // Construct from state-independent data
     explicit CELER_FUNCTION PhysicsGridCalculator(const XsGridPointers& data)
         : data_(data)
@@ -41,7 +47,7 @@ class PhysicsGridCalculator
     operator()(const ParticleTrackView& particle) const;
 
     // Find and interpolate from the energy
-    inline CELER_FUNCTION real_type operator()(real_type energy) const;
+    inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
   private:
     const XsGridPointers& data_;

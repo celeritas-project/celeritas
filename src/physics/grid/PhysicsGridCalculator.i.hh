@@ -22,7 +22,7 @@ namespace celeritas
 CELER_FUNCTION real_type
 PhysicsGridCalculator::operator()(const ParticleTrackView& particle) const
 {
-    return (*this)(particle.energy().value());
+    return (*this)(particle.energy());
 }
 
 //---------------------------------------------------------------------------//
@@ -40,10 +40,10 @@ PhysicsGridCalculator::operator()(const ParticleTrackView& particle) const
  * the lower xs value by E. If bin >= prime_energy_index, scale the result by
  * 1/E.
  */
-CELER_FUNCTION real_type PhysicsGridCalculator::operator()(real_type energy) const
+CELER_FUNCTION real_type PhysicsGridCalculator::operator()(Energy energy) const
 {
     UniformGrid loge_grid(data_.log_energy);
-    real_type   loge = std::log(energy);
+    real_type   loge = std::log(energy.value());
 
     // Snap out-of-bounds values to closest grid points
     size_type bin;
@@ -68,12 +68,12 @@ CELER_FUNCTION real_type PhysicsGridCalculator::operator()(real_type energy) con
         LinearInterpolator<real_type> interpolate_xs(
             {std::exp(loge_grid[bin]), data_.value[bin]},
             {std::exp(loge_grid[bin + 1]), data_.value[bin + 1]});
-        result = interpolate_xs(energy);
+        result = interpolate_xs(energy.value());
     }
 
     if (bin > data_.prime_index)
     {
-        result /= energy;
+        result /= energy.value();
     }
     return result;
 }
