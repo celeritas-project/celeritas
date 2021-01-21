@@ -41,5 +41,13 @@ struct EPlusGGPointers
 };
 
 //---------------------------------------------------------------------------//
+// KERNEL LAUNCHERS
+//---------------------------------------------------------------------------//
+
+// Launch the EPlusGG interaction
+void eplusgg_interact(const EPlusGGPointers&       eplusgg,
+                      const ModelInteractPointers& model);
+
+//---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas
