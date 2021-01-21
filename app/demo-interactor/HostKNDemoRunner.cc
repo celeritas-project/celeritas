@@ -18,7 +18,7 @@
 #include "physics/base/Secondary.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
-#include "PhysicsArrayCalculator.hh"
+#include "physics/grid/PhysicsGridCalculator.hh"
 #include "DetectorView.hh"
 #include "HostStackAllocatorStore.hh"
 #include "HostDetectorStore.hh"
@@ -32,8 +32,8 @@ namespace demo_interactor
 /*!
  * Construct with parameters.
  */
-HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams     particles,
-                                   constSPPhysicsArrayParams xs)
+HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams particles,
+                                   constSPXsGridParams   xs)
     : pparams_(std::move(particles)), xsparams_(std::move(xs))
 {
     CELER_EXPECT(pparams_);
@@ -76,7 +76,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Physics calculator
     auto                   xs_host_ptrs = xsparams_->host_pointers();
-    PhysicsArrayCalculator calc_xs(xs_host_ptrs);
+    PhysicsGridCalculator  calc_xs(xs_host_ptrs);
 
     // Make secondary store
     HostStackAllocatorStore<Secondary> secondaries(args.max_steps);

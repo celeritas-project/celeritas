@@ -42,12 +42,12 @@ list(APPEND SOURCES
   physics/base/ParticleStateStore.cc
   physics/base/Process.cc
   physics/base/SecondaryAllocatorStore.cc
-  physics/base/ValueGridBuilder.cc
   physics/em/ComptonProcess.cc
   physics/em/LivermoreParams.cc
   physics/em/EPlusAnnihilationProcess.cc
   physics/em/EPlusGGModel.cc
   physics/em/KleinNishinaModel.cc
+  physics/grid/ValueGridBuilder.cc
   physics/material/MaterialParams.cc
   physics/material/MaterialStateStore.cc
   physics/material/detail/Utils.cc

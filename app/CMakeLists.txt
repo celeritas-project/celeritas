@@ -79,7 +79,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
     demo-interactor/KNDemoIO.cc
     demo-interactor/KNDemoRunner.cc
     demo-interactor/KNDemoKernel.cu
-    demo-interactor/PhysicsArrayParams.cc
+    demo-interactor/XsGridParams.cc
     demo-interactor/detail/DetectorUtils.cu
   )
   target_link_libraries(demo-interactor celeritas
@@ -106,7 +106,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
   add_executable(host-demo-interactor
     demo-interactor/LoadXs.cc
     demo-interactor/KNDemoIO.cc
-    demo-interactor/PhysicsArrayParams.cc
+    demo-interactor/XsGridParams.cc
     demo-interactor/host-demo-interactor.cc
     demo-interactor/HostDetectorStore.cc
     demo-interactor/HostKNDemoRunner.cc

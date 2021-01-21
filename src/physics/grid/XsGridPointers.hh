@@ -3,29 +3,35 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsArrayPointers.hh
+//! \file XsGridPointers.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Span.hh"
-#include "base/UniformGrid.hh"
+#include "base/Types.hh"
+#include "UniformGrid.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Interface for passing physics array data to device.
+ * Parameterization of a discrete scalar field on a given 1D grid.
+ *
+ * \todo Later we will support multiple parameterizations of the x grid, and
+ * possibly different interpolations on x and y. Currently interpolation is
+ * linear-linear after transforming to log-E space and before scaling the value
+ * by E (if the grid point is above prime_index).
  */
-struct PhysicsArrayPointers
+struct XsGridPointers
 {
-    UniformGrid::Params   log_energy;
-    real_type             prime_energy;
-    Span<const real_type> xs;
+    UniformGridPointers   log_energy;
+    size_type             prime_index{size_type(-1)};
+    Span<const real_type> value;
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return log_energy && !xs.empty();
+        return log_energy && !value.empty();
     }
 };
 

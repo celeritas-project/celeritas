@@ -82,7 +82,6 @@ celeritas_add_test(base/Span.test.cc)
 celeritas_add_test(base/SpanRemapper.test.cc)
 celeritas_add_test(base/Stopwatch.test.cc)
 celeritas_add_test(base/TypeDemangler.test.cc)
-celeritas_add_test(base/UniformGrid.test.cc)
 
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(base/NumericLimits.test.cc
@@ -166,6 +165,10 @@ set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
 
 celeritas_setup_tests(SERIAL PREFIX physics/base)
 celeritas_cudaoptional_test(physics/base/Particle)
+
+celeritas_setup_tests(SERIAL PREFIX physics/grid)
+celeritas_add_test(physics/grid/PhysicsGridCalculator.test.cc)
+celeritas_add_test(physics/grid/UniformGrid.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX physics/material)
 celeritas_add_test(physics/material/ElementSelector.test.cc)

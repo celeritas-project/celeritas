@@ -9,7 +9,7 @@
 
 #include <vector>
 #include "KNDemoKernel.hh"
-#include "base/UniformGrid.hh"
+#include "physics/grid/UniformGrid.hh"
 #include "base/Types.hh"
 #include <nlohmann/json.hpp>
 
@@ -22,7 +22,7 @@ namespace demo_interactor
 struct KNDemoRunArgs
 {
     using size_type  = celeritas::size_type;
-    using GridParams = celeritas::UniformGrid::Params;
+    using GridParams = celeritas::UniformGridPointers;
 
     double        energy;
     unsigned long seed;
@@ -60,6 +60,6 @@ void from_json(const nlohmann::json& j, KNDemoResult& value);
 
 namespace celeritas
 {
-void to_json(nlohmann::json& j, const UniformGrid::Params& value);
-void from_json(const nlohmann::json& j, UniformGrid::Params& value);
+void to_json(nlohmann::json& j, const UniformGridPointers& value);
+void from_json(const nlohmann::json& j, UniformGridPointers& value);
 } // namespace celeritas

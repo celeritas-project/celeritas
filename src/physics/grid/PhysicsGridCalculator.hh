@@ -3,48 +3,51 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsArrayCalculator.hh
+//! \file PhysicsGridCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/ParticleTrackView.hh"
-#include "PhysicsArrayPointers.hh"
+#include "physics/base/Units.hh"
+#include "base/Quantity.hh"
+#include "XsGridPointers.hh"
 
 namespace celeritas
 {
+class ParticleTrackView;
+
 //---------------------------------------------------------------------------//
 /*!
- * Find and interpolate cross sections or other physics data on device.
+ * Find and interpolate physics data based on a track's energy.
+ *
+ * \todo Currently this is hard-coded to use "cross section grid pointers"
+ * which have energy coordinates uniform in log space. The
  *
  * \code
-    PhysicsArrayCalculator calc_xs(xs_params);
+    PhysicsGridCalculator calc_xs(xs_params);
     real_type xs = calc_xs(particle);
    \endcode
  */
-class PhysicsArrayCalculator
+class PhysicsGridCalculator
 {
   public:
-    //!@{
-    //! Type aliases
-    //!@}
-
-  public:
     // Construct from state-independent data
-    explicit CELER_FUNCTION
-    PhysicsArrayCalculator(const PhysicsArrayPointers& data)
+    explicit CELER_FUNCTION PhysicsGridCalculator(const XsGridPointers& data)
         : data_(data)
     {
     }
 
-    // Find and interpolate basesd on the particle track's current energy
+    // Find and interpolate based on the track state
     inline CELER_FUNCTION real_type
     operator()(const ParticleTrackView& particle) const;
 
+    // Find and interpolate from the energy
+    inline CELER_FUNCTION real_type operator()(real_type energy) const;
+
   private:
-    const PhysicsArrayPointers& data_;
+    const XsGridPointers& data_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "PhysicsArrayCalculator.i.hh"
+#include "PhysicsGridCalculator.i.hh"

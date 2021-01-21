@@ -9,7 +9,7 @@
 
 #include <set>
 #include "base/Span.hh"
-#include "base/UniformGrid.hh"
+#include "physics/grid/UniformGrid.hh"
 #include "Applicability.hh"
 #include "Types.hh"
 

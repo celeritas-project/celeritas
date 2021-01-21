@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsArrayParams.hh
+//! \file XsGridParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 #include "base/DeviceVector.hh"
-#include "PhysicsArrayPointers.hh"
+#include "physics/grid/XsGridPointers.hh"
 
-namespace celeritas
+namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -25,34 +25,37 @@ namespace celeritas
  * TODO: for the purposes of the demo app, this only holds a single array which
  * must be uniformly log-spaced.
  */
-class PhysicsArrayParams
+class XsGridParams
 {
   public:
+    using real_type      = celeritas::real_type;
+    using XsGridPointers = celeritas::XsGridPointers;
+
     struct Input
     {
-        std::vector<real_type> energy;
-        std::vector<real_type> xs;
+        std::vector<real_type> energy;       // MeV
+        std::vector<real_type> xs;           // 1/cm
         real_type              prime_energy; // See class documentation
     };
 
   public:
     // Construct with input data
-    explicit PhysicsArrayParams(const Input& input);
+    explicit XsGridParams(const Input& input);
 
     // Access on-device data
-    PhysicsArrayPointers device_pointers() const;
+    XsGridPointers device_pointers() const;
 
     // Get host-side data
-    PhysicsArrayPointers host_pointers() const;
+    XsGridPointers host_pointers() const;
 
   private:
-    UniformGrid::Params     log_energy_;
-    DeviceVector<real_type> xs_;
-    real_type               prime_energy_;
+    celeritas::UniformGridPointers     log_energy_;
+    celeritas::DeviceVector<real_type> xs_;
+    celeritas::size_type               prime_index_;
 
     // Host side xs data
     std::vector<real_type> host_xs_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_interactor

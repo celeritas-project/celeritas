@@ -3,14 +3,28 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsArrayCalculator.i.hh
+//! \file PhysicsGridCalculator.i.hh
 //---------------------------------------------------------------------------//
 #include <cmath>
 #include "base/Interpolator.hh"
-#include "base/UniformGrid.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/grid/UniformGrid.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the cross section from the particle state.
+ *
+ * This signature is here to allow for potential acceleration by precalculating
+ * log(E)
+ */
+CELER_FUNCTION real_type
+PhysicsGridCalculator::operator()(const ParticleTrackView& particle) const
+{
+    return (*this)(particle.energy().value());
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the cross section.
@@ -26,37 +40,38 @@ namespace celeritas
  * the lower xs value by E. If bin >= prime_energy_index, scale the result by
  * 1/E.
  */
-CELER_FUNCTION real_type
-PhysicsArrayCalculator::operator()(const ParticleTrackView& particle) const
+CELER_FUNCTION real_type PhysicsGridCalculator::operator()(real_type energy) const
 {
-    UniformGrid     loge_grid(data_.log_energy);
-    const real_type energy = particle.energy().value();
-    real_type       loge   = std::log(energy);
+    UniformGrid loge_grid(data_.log_energy);
+    real_type   loge = std::log(energy);
 
     // Snap out-of-bounds values to closest grid points
+    size_type bin;
     real_type result;
     if (loge <= loge_grid.front())
     {
-        result = data_.xs.front();
+        bin    = 0;
+        result = data_.value.front();
     }
     else if (loge >= loge_grid.back())
     {
-        result = data_.xs.back();
+        bin    = data_.value.size();
+        result = data_.value.back();
     }
     else
     {
         // Get the energy bin
-        auto bin = loge_grid.find(loge);
-        CELER_ASSERT(bin + 1 < data_.xs.size());
+        bin = loge_grid.find(loge);
+        CELER_ASSERT(bin + 1 < data_.value.size());
 
         // Interpolate *linearly* on energy using the bin data.
         LinearInterpolator<real_type> interpolate_xs(
-            {std::exp(loge_grid[bin]), data_.xs[bin]},
-            {std::exp(loge_grid[bin + 1]), data_.xs[bin + 1]});
+            {std::exp(loge_grid[bin]), data_.value[bin]},
+            {std::exp(loge_grid[bin + 1]), data_.value[bin + 1]});
         result = interpolate_xs(energy);
     }
 
-    if (energy > data_.prime_energy)
+    if (bin > data_.prime_index)
     {
         result /= energy;
     }
