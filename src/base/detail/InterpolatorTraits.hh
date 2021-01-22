@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
 #include "../Types.hh"
 #include "../Macros.hh"
 
