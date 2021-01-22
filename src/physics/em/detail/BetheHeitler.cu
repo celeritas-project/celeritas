@@ -48,7 +48,7 @@ __global__ void bethe_heitler_interact_kernel(const BetheHeitlerPointers  bh,
     PhysicsTrackView physics(ptrs.params.physics,
                              ptrs.states.physics,
                              particle.def_id(),
-                             MaterialDefId{},
+                             material.def_id(),
                              tid);
 
     // This interaction only applies if the Bethe-Heitler model was selected
