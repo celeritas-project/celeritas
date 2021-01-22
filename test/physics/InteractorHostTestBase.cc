@@ -27,7 +27,7 @@ InteractorHostTestBase::InteractorHostTestBase()
 {
     this->resize_secondaries(128);
     ms_pointers_.state = {&mat_state_, 1};
-    ps_pointers_.vars = {&particle_state_, 1};
+    ps_pointers_.vars  = {&particle_state_, 1};
 }
 
 //---------------------------------------------------------------------------//
@@ -137,17 +137,27 @@ void InteractorHostTestBase::resize_secondaries(int count)
 
 //---------------------------------------------------------------------------//
 /*!
- * Check whether momentum is conserved in the interaction.
+ * Check for energy and momentum conservation in the interaction.
  */
 void InteractorHostTestBase::check_conservation(const Interaction& interaction) const
+{
+    this->check_momentum_conservation(interaction);
+    this->check_energy_conservation(interaction);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check for energy conservation in the interaction.
+ */
+void InteractorHostTestBase::check_energy_conservation(
+    const Interaction& interaction) const
 {
     ParticleTrackState    local_state = particle_state_;
     ParticleStatePointers local_state_ptrs;
     local_state_ptrs.vars = {&local_state, 1};
 
-    // Sum of exiting kinetic energy and momentum
-    real_type exit_energy   = interaction.energy_deposition.value();
-    Real3     exit_momentum = {0, 0, 0};
+    // Sum of exiting kinetic energy
+    real_type exit_energy = interaction.energy_deposition.value();
 
     // Subtract contribution from exiting particle state
     if (interaction && !action_killed(interaction.action))
@@ -157,6 +167,46 @@ void InteractorHostTestBase::check_conservation(const Interaction& interaction) 
         ParticleTrackView exiting_track(
             pp_pointers_, local_state_ptrs, ThreadId{0});
         exit_energy += exiting_track.energy().value();
+    }
+
+    // Subtract contributions from exiting secondaries
+    for (const Secondary& s : interaction.secondaries)
+    {
+        local_state.def_id = s.def_id;
+        local_state.energy = s.energy;
+        ParticleTrackView secondary_track(
+            pp_pointers_, local_state_ptrs, ThreadId{0});
+        exit_energy += secondary_track.energy().value();
+    }
+
+    // Compare against incident particle
+    {
+        ParticleTrackView parent_track(pp_pointers_, ps_pointers_, ThreadId{0});
+        EXPECT_SOFT_EQ(parent_track.energy().value(), exit_energy);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check for momentum conservation in the interaction.
+ */
+void InteractorHostTestBase::check_momentum_conservation(
+    const Interaction& interaction) const
+{
+    ParticleTrackState    local_state = particle_state_;
+    ParticleStatePointers local_state_ptrs;
+    local_state_ptrs.vars = {&local_state, 1};
+
+    // Sum of exiting momentum
+    Real3 exit_momentum = {0, 0, 0};
+
+    // Subtract contribution from exiting particle state
+    if (interaction && !action_killed(interaction.action))
+    {
+        local_state.def_id = particle_state_.def_id;
+        local_state.energy = interaction.energy;
+        ParticleTrackView exiting_track(
+            pp_pointers_, local_state_ptrs, ThreadId{0});
         axpy(exiting_track.momentum().value(),
              interaction.direction,
              &exit_momentum);
@@ -169,16 +219,13 @@ void InteractorHostTestBase::check_conservation(const Interaction& interaction) 
         local_state.energy = s.energy;
         ParticleTrackView secondary_track(
             pp_pointers_, local_state_ptrs, ThreadId{0});
-        exit_energy += secondary_track.energy().value();
         axpy(secondary_track.momentum().value(), s.direction, &exit_momentum);
     }
 
     // Compare against incident particle
     {
         ParticleTrackView parent_track(pp_pointers_, ps_pointers_, ThreadId{0});
-        EXPECT_SOFT_EQ(parent_track.energy().value(), exit_energy);
-
-        Real3 delta_momentum = exit_momentum;
+        Real3             delta_momentum = exit_momentum;
         axpy(-parent_track.momentum().value(), inc_direction_, &delta_momentum);
         EXPECT_SOFT_NEAR(0.0,
                          dot_product(delta_momentum, delta_momentum),

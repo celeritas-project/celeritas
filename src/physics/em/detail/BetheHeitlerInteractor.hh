@@ -15,9 +15,11 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
-#include "BetheHeitlerInteractorPointers.hh"
+#include "BetheHeitler.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -37,38 +39,20 @@ class BetheHeitlerInteractor
   public:
     //! Construct sampler from shared and state data
     inline CELER_FUNCTION
-    BetheHeitlerInteractor(const BetheHeitlerInteractorPointers& shared,
-                           const ParticleTrackView&              particle,
-                           const Real3&                          inc_direction,
-                           SecondaryAllocatorView&               allocate,
-                           const ElementView&                    element);
+    BetheHeitlerInteractor(const BetheHeitlerPointers& shared,
+                           const ParticleTrackView&    particle,
+                           const Real3&                inc_direction,
+                           SecondaryAllocatorView&     allocate,
+                           const ElementView&          element);
 
     // Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
-    // >>> COMMON PROPERTIES
-
-    // Minimum incident gamma energy for this model
-    // (used for the parameterization in the
-    // cross-section calculation).
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
-    {
-        return units::MevEnergy{1.5}; // 1.5 MeV
-    }
-
-    // Maximum incident gamma energy for this mode (used for the
-    // parameterization in the cross-section calculation). Above this energy,
-    // the cross section is constant.
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_incident_energy()
-    {
-        return units::MevEnergy{100000.0}; // 100 GeV
-    }
-
   private:
-    // Calculates the screening variable, \deta, which is a function of
-    // \epsilon. This is a measure of the "impact parameter" of the incident
-    // photon.
+    // Calculates the screening variable, \$f \delta \eta \$f, which is a
+    // function of \$f \epsilon \$f. This is a measure of the "impact
+    // parameter" of the incident photon.
     inline CELER_FUNCTION real_type impact_parameter(real_type eps) const;
 
     // Screening function, Phi_1, for the corrected Bethe-Heitler
@@ -90,7 +74,7 @@ class BetheHeitlerInteractor
     inline CELER_FUNCTION real_type screening_phi2_aux(real_type delta) const;
 
     // Gamma energy divided by electron mass * csquared
-    const BetheHeitlerInteractorPointers& shared_;
+    const BetheHeitlerPointers& shared_;
 
     // Sample outgoing particles directions.
     // Based on the G4ModifiedTsai sampler, a simplified sampler that does not
@@ -116,6 +100,7 @@ class BetheHeitlerInteractor
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
 
 #include "BetheHeitlerInteractor.i.hh"
