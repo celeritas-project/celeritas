@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "physics/grid/PhysicsGridCalculator.hh"
 
+#include <algorithm>
 #include <cmath>
 #include "base/Interpolator.hh"
 #include "base/Range.hh"
@@ -78,7 +79,59 @@ TEST_F(PhysicsGridCalculatorTest, simple)
     EXPECT_SOFT_EQ(1e5, calc(Energy{1e7}));
 }
 
-TEST_F(PhysicsGridCalculatorTest, scaled)
+TEST_F(PhysicsGridCalculatorTest, scaled_lowest)
 {
-    // TODO: test me and fix as needed
+    // Energy from .1 to 1e4 MeV with 5 grid points; XS should be constant
+    // since the constructor fills it with E
+    this->build(0.1, 1e4, 6);
+    data.prime_index = 0;
+
+    PhysicsGridCalculator calc(this->data);
+
+    // Test on grid points
+    EXPECT_SOFT_EQ(1, calc(Energy{0.1}));
+    EXPECT_SOFT_EQ(1, calc(Energy{1e2}));
+    EXPECT_SOFT_EQ(1, calc(Energy{1e4 - 1e-6}));
+    EXPECT_SOFT_EQ(1, calc(Energy{1e4}));
+
+    // Test between grid points
+    EXPECT_SOFT_EQ(1, calc(Energy{0.2}));
+    EXPECT_SOFT_EQ(1, calc(Energy{5}));
+
+    // Test out-of-bounds: cross section still scales according to 1/E (TODO:
+    // this might not be the best behavior for the lower energy value)
+    EXPECT_SOFT_EQ(1000, calc(Energy{0.0001}));
+    EXPECT_SOFT_EQ(0.1, calc(Energy{1e5}));
+}
+
+TEST_F(PhysicsGridCalculatorTest, scaled_middle)
+{
+    // Energy from .1 to 1e4 MeV with 5 grid points; XS should be constant
+    // since the constructor fills it with E
+    this->build(0.1, 1e4, 6);
+    data.prime_index = 3;
+    std::fill(this->stored_xs.begin(), this->stored_xs.begin() + 3, 1.0);
+
+    // Change constant to 3 just to shake things up
+    for (real_type& xs : this->stored_xs)
+    {
+        xs *= 3;
+    }
+
+    PhysicsGridCalculator calc(this->data);
+
+    // Test on grid points
+    EXPECT_SOFT_EQ(3, calc(Energy{0.1}));
+    EXPECT_SOFT_EQ(3, calc(Energy{1e2}));
+    EXPECT_SOFT_EQ(3, calc(Energy{1e4 - 1e-6}));
+    EXPECT_SOFT_EQ(3, calc(Energy{1e4}));
+
+    // Test between grid points
+    EXPECT_SOFT_EQ(3, calc(Energy{0.2}));
+    EXPECT_SOFT_EQ(3, calc(Energy{5}));
+
+    // Test out-of-bounds: cross section still scales according to 1/E (TODO:
+    // this might not be the right behavior for
+    EXPECT_SOFT_EQ(3, calc(Energy{0.0001}));
+    EXPECT_SOFT_EQ(0.3, calc(Energy{1e5}));
 }

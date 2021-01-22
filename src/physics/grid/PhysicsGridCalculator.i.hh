@@ -17,7 +17,7 @@ namespace celeritas
  * Calculate the cross section from the particle state.
  *
  * This signature is here to allow for potential acceleration by precalculating
- * log(E)
+ * log(E) as and operating on that instead of
  */
 CELER_FUNCTION real_type
 PhysicsGridCalculator::operator()(const ParticleTrackView& particle) const
@@ -28,17 +28,6 @@ PhysicsGridCalculator::operator()(const ParticleTrackView& particle) const
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the cross section.
- *
- * Assumes that the energy grid has the same units as particle.energy.
- *
- * XXX also this breaks if prime_energy != 1, since the
- * value of "xs" is actually xs*E above E' but the stored value at the lower
- * grid point is just xs.
- *
- * To fix that, we can change 'prime_energy' to 'prime_energy_index' since it
- * should always be on a grid point. If `bin == prime_energy_index`, then scale
- * the lower xs value by E. If bin >= prime_energy_index, scale the result by
- * 1/E.
  */
 CELER_FUNCTION real_type PhysicsGridCalculator::operator()(Energy energy) const
 {
@@ -46,32 +35,41 @@ CELER_FUNCTION real_type PhysicsGridCalculator::operator()(Energy energy) const
     real_type   loge = std::log(energy.value());
 
     // Snap out-of-bounds values to closest grid points
-    size_type bin;
+    size_type lower_idx;
     real_type result;
     if (loge <= loge_grid.front())
     {
-        bin    = 0;
+        lower_idx = 0;
         result = data_.value.front();
     }
     else if (loge >= loge_grid.back())
     {
-        bin    = data_.value.size();
+        lower_idx = data_.value.size();
         result = data_.value.back();
     }
     else
     {
-        // Get the energy bin
-        bin = loge_grid.find(loge);
-        CELER_ASSERT(bin + 1 < data_.value.size());
+        // Locate the energy bin
+        lower_idx = loge_grid.find(loge);
+        CELER_ASSERT(lower_idx + 1 < data_.value.size());
 
-        // Interpolate *linearly* on energy using the bin data.
+        real_type upper_xs     = data_.value[lower_idx + 1];
+        real_type upper_energy = std::exp(loge_grid[lower_idx + 1]);
+        if (lower_idx + 1 == data_.prime_index)
+        {
+            // Cross section data for the upper point has *already* been scaled
+            // by E -- undo the scaling.
+            upper_xs /= upper_energy;
+        }
+
+        // Interpolate *linearly* on energy using the lower_idx data.
         LinearInterpolator<real_type> interpolate_xs(
-            {std::exp(loge_grid[bin]), data_.value[bin]},
-            {std::exp(loge_grid[bin + 1]), data_.value[bin + 1]});
+            {std::exp(loge_grid[lower_idx]), data_.value[lower_idx]},
+            {upper_energy, upper_xs});
         result = interpolate_xs(energy.value());
     }
 
-    if (bin > data_.prime_index)
+    if (lower_idx >= data_.prime_index)
     {
         result /= energy.value();
     }
