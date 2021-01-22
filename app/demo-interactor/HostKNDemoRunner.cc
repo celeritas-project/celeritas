@@ -124,7 +124,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
             // Move to collision
             {
-                real_type                          sigma = calc_xs(particle);
+                real_type sigma = calc_xs(particle.energy());
                 ExponentialDistribution<real_type> sample_distance(sigma);
                 real_type distance = sample_distance(rng);
                 celeritas::axpy(distance, state.direction, &state.position);

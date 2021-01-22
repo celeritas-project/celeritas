@@ -7,27 +7,16 @@
 //---------------------------------------------------------------------------//
 #include <cmath>
 #include "base/Interpolator.hh"
-#include "physics/base/ParticleTrackView.hh"
 #include "physics/grid/UniformGrid.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the cross section from the particle state.
- *
- * This signature is here to allow for potential acceleration by precalculating
- * log(E) as and operating on that instead of
- */
-CELER_FUNCTION real_type
-PhysicsGridCalculator::operator()(const ParticleTrackView& particle) const
-{
-    return (*this)(particle.energy());
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Calculate the cross section.
+ *
+ * If needed, we can add a "log(energy/MeV)" accessor if we constantly reuse
+ * that value and don't want to repeat the `std::log` operation.
  */
 CELER_FUNCTION real_type PhysicsGridCalculator::operator()(Energy energy) const
 {

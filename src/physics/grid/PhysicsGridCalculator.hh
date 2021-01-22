@@ -7,13 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Units.hh"
 #include "base/Quantity.hh"
 #include "XsGridPointers.hh"
 
 namespace celeritas
 {
-class ParticleTrackView;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -47,10 +45,6 @@ class PhysicsGridCalculator
         : data_(data)
     {
     }
-
-    // Find and interpolate based on the track state
-    inline CELER_FUNCTION real_type
-    operator()(const ParticleTrackView& particle) const;
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
