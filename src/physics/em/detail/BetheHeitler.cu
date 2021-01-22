@@ -43,7 +43,6 @@ __global__ void bethe_heitler_interact_kernel(const BetheHeitlerPointers  bh,
     // Cache the associated MaterialView as function calls to MaterialTrackView
     // are expensive
     MaterialView material_view = material.material_view();
-    CELER_ASSERT(material_view.num_elements() == 1);
 
     PhysicsTrackView physics(ptrs.params.physics,
                              ptrs.states.physics,
@@ -55,6 +54,8 @@ __global__ void bethe_heitler_interact_kernel(const BetheHeitlerPointers  bh,
     if (physics.model_id() != bh.model_id)
         return;
 
+    // Assume only a single element in the material, for now
+    CELER_ASSERT(material_view.num_elements() == 1);
     BetheHeitlerInteractor interact(
         bh,
         particle,
