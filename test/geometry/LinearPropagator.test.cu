@@ -34,17 +34,6 @@ __global__ void linProp_test_kernel(const GeoParamsPointers shared,
 
     GeoTrackView geo(shared, state, tid);
     geo = start[tid.get()];
-    printf(
-        " ThreadId= %i - geo: %p, pos=(%8.3f, %8.3f, %8.3f), dir=(%8.3f, "
-        "%8.3f, %8.3f)\n",
-        tid.get(),
-        &geo,
-        geo.pos()[0],
-        geo.pos()[1],
-        geo.pos()[2],
-        geo.dir()[0],
-        geo.dir()[1],
-        geo.dir()[2]);
 
     LinearPropagator propagate(&geo);
     for (int seg = 0; seg < max_segments; ++seg)

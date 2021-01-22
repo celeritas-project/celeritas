@@ -10,6 +10,7 @@
 #include <VecGeom/navigation/NavigationState.h>
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoStateStore.hh"
+#include "comm/Device.hh"
 
 #include "GeoParamsTest.hh"
 #ifdef CELERITAS_USE_CUDA
@@ -122,8 +123,6 @@ TEST_F(GeoTrackViewHostTest, track_line)
         EXPECT_SOFT_EQ(1.0, geo.next_step());
         geo.move_next_step();
         EXPECT_EQ(false, geo.is_outside());
-        // debugging
-        std::cerr << "\n === final position: " << geo.pos() << "\n";
     }
 }
 
@@ -138,15 +137,20 @@ class GeoTrackViewDeviceTest : public GeoParamsTest
 
 TEST_F(GeoTrackViewDeviceTest, track_lines)
 {
+    if (!celeritas::is_device_enabled())
+    {
+        SKIP("CUDA is disabled");
+    }
+
     CELER_ASSERT(this->params());
 
     // Set up test input
     VGGTestInput input;
     input.init = {
-        {{-6, 0, 0}, {1, 0, 0}},
-        {{0, 0, 0}, {1, 0, 0}},
-        {{50, 0, 0}, {-1, 0, 0}},
-        {{50 - 1e-6, 0, 0}, {-1, 0, 0}},
+        {{10, 10, 10}, {-1, 0, 0}},
+        {{10, -10, -10}, {0, 1, 0}},
+        {{-10, 10, -10}, {0, 0, 1}},
+        {{0, 0, 0}, {1, 1, 1}},
     };
     input.max_segments = 3;
     input.shared       = this->params()->device_pointers();
@@ -157,9 +161,9 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
     // Run kernel
     auto output = vgg_test(input);
 
-    static const int expected_ids[] = {1, 0, 1, 0, 1, -1, -1, -1, -1, 1, 0, 1};
+    static const int expected_ids[] = {0, 1, 2, 0, 1, 8, 0, 1, 7, 10, 2, 1};
     static const double expected_distances[]
-        = {1, 10, 45, 5, 45, -1, -1, -1, -1, 45 - 1e-6, 10, 45};
+        = {5, 1, 1, 5, 1, 2, 5, 1, 3, 3, 1, 2.47582530373998 };
 
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);

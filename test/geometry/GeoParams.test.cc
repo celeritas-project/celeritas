@@ -40,20 +40,14 @@ TEST_F(GeoParamsHostTest, accessors)
     const auto& geom = *(this->params());
     EXPECT_EQ(11, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
-    EXPECT_EQ("Envelope",
-              geom.id_to_label(VolumeId{
-                  static_cast<unsigned int>(geom.num_volumes()) - 2}));
-    EXPECT_EQ("World",
-              geom.id_to_label(VolumeId{
-                  static_cast<unsigned int>(geom.num_volumes()) - 1}));
 
-    // print geometry information from CPU
+    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}) );
+    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}) );
+    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}) );
+
     unsigned int nvols = geom.num_volumes();
-    for (unsigned int i = 0; i < nvols; ++i)
-    {
-        std::cout << "id " << i << ":  " << geom.id_to_label(VolumeId{i})
-                  << std::endl;
-    }
+    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{nvols - 2}));
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{nvols - 1}));
 }
 
 //---------------------------------------------------------------------------//
@@ -69,18 +63,8 @@ TEST_F(GeoParamsHostTest, print_geometry)
     auto device_view = this->params()->device_pointers();
     EXPECT_NE(nullptr, device_view.world_volume);
 
-    const auto& geom = *(this->params());
-    EXPECT_EQ(11, geom.num_volumes());
-    EXPECT_EQ(4, geom.max_depth());
-    EXPECT_EQ("Envelope",
-              geom.id_to_label(VolumeId{
-                  static_cast<unsigned int>(geom.num_volumes()) - 2}));
-    EXPECT_EQ("World",
-              geom.id_to_label(VolumeId{
-                  static_cast<unsigned int>(geom.num_volumes()) - 1}));
-
 #if CELERITAS_USE_CUDA
-    // print geometry information from device
-    vecgeom::cxx::CudaManager::Instance().PrintGeometry();
+    // debug: print geometry information from device
+    //vecgeom::cxx::CudaManager::Instance().PrintGeometry();
 #endif
 }
