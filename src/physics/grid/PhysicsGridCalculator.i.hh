@@ -43,7 +43,7 @@ CELER_FUNCTION real_type PhysicsGridCalculator::operator()(Energy energy) const
     }
     else if (loge >= loge_grid.back())
     {
-        lower_idx = data_.value.size();
+        lower_idx = data_.value.size() - 1;
         result = data_.value.back();
     }
     else

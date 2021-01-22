@@ -35,10 +35,13 @@ struct XsGridPointers
     size_type             prime_index{size_type(-1)};
     Span<const real_type> value;
 
-    //! Whether the interface is initialized
+    //! Whether the interface is initialized and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return log_energy && !value.empty();
+        return log_energy && !value.empty()
+               && (prime_index < log_energy.size
+                   || prime_index == size_type(-1))
+               && log_energy.size == value.size();
     }
 };
 

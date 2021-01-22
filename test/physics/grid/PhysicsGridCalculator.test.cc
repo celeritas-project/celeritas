@@ -153,17 +153,11 @@ TEST_F(PhysicsGridCalculatorTest, scaled_highest)
     EXPECT_SOFT_EQ(.1, calc(Energy{1000}));
 }
 
-TEST_F(PhysicsGridCalculatorTest, scaled_off_the_end)
+TEST_F(PhysicsGridCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
 {
     // values of 1, 10, 100 --> actual xs = {1, 10, 100}
     this->build(1, 100, 3);
-    data.prime_index = 3; // shouldn't happen, but maybe used to indicate "no prime point"?
+    data.prime_index = 3; // disallowed
 
-    PhysicsGridCalculator calc(this->data);
-    EXPECT_SOFT_EQ(1, calc(Energy{1}));
-    EXPECT_SOFT_EQ(10, calc(Energy{10}));
-    EXPECT_SOFT_EQ(100, calc(Energy{100}));
-
-    // Final point and higher are scaled by 1/E
-    EXPECT_SOFT_EQ(100, calc(Energy{1000}));
+    EXPECT_THROW(PhysicsGridCalculator(this->data), celeritas::DebugError);
 }
