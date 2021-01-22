@@ -41,10 +41,7 @@ class PhysicsGridCalculator
 
   public:
     // Construct from state-independent data
-    explicit CELER_FUNCTION PhysicsGridCalculator(const XsGridPointers& data)
-        : data_(data)
-    {
-    }
+    inline explicit CELER_FUNCTION PhysicsGridCalculator(const XsGridPointers& data);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;

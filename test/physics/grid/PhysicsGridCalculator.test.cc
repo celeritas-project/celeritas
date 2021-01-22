@@ -135,3 +135,35 @@ TEST_F(PhysicsGridCalculatorTest, scaled_middle)
     EXPECT_SOFT_EQ(3, calc(Energy{0.0001}));
     EXPECT_SOFT_EQ(0.3, calc(Energy{1e5}));
 }
+
+TEST_F(PhysicsGridCalculatorTest, scaled_highest)
+{
+    // values of 1, 10, 100 --> actual xs = {1, 10, 1}
+    this->build(1, 100, 3);
+    data.prime_index = 2;
+
+    PhysicsGridCalculator calc(this->data);
+    EXPECT_SOFT_EQ(1, calc(Energy{0.0001}));
+    EXPECT_SOFT_EQ(1, calc(Energy{1}));
+    EXPECT_SOFT_EQ(10, calc(Energy{10}));
+    EXPECT_SOFT_EQ(2.0, calc(Energy{90}));
+
+    // Final point and higher are scaled by 1/E
+    EXPECT_SOFT_EQ(1, calc(Energy{100}));
+    EXPECT_SOFT_EQ(.1, calc(Energy{1000}));
+}
+
+TEST_F(PhysicsGridCalculatorTest, scaled_off_the_end)
+{
+    // values of 1, 10, 100 --> actual xs = {1, 10, 100}
+    this->build(1, 100, 3);
+    data.prime_index = 3; // shouldn't happen, but maybe used to indicate "no prime point"?
+
+    PhysicsGridCalculator calc(this->data);
+    EXPECT_SOFT_EQ(1, calc(Energy{1}));
+    EXPECT_SOFT_EQ(10, calc(Energy{10}));
+    EXPECT_SOFT_EQ(100, calc(Energy{100}));
+
+    // Final point and higher are scaled by 1/E
+    EXPECT_SOFT_EQ(100, calc(Energy{1000}));
+}

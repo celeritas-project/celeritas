@@ -13,6 +13,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct from cross section data.
+ */
+CELER_FUNCTION PhysicsGridCalculator::PhysicsGridCalculator(const XsGridPointers& data)
+    : data_(data)
+{
+    CELER_EXPECT(data);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the cross section.
  *
  * If needed, we can add a "log(energy/MeV)" accessor if we constantly reuse
