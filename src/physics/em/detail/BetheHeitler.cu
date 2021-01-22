@@ -43,7 +43,7 @@ __global__ void bethe_heitler_interact_kernel(const BetheHeitlerPointers  bh,
     // Cache the associated MaterialView as function calls to MaterialTrackView
     // are expensive
     MaterialView material_view = material.material_view();
-    CELER_ENSURE(material_view.num_elements() == 1);
+    CELER_ASSERT(material_view.num_elements() == 1);
 
     PhysicsTrackView physics(ptrs.params.physics,
                              ptrs.states.physics,
