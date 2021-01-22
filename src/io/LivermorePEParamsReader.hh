@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermoreParamsReader.hh
+//! \file LivermorePEParamsReader.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
-#include "physics/em/LivermoreParams.hh"
+#include "physics/em/LivermorePEParams.hh"
 
 namespace celeritas
 {
@@ -16,20 +16,20 @@ namespace celeritas
 /*!
  * Load the Livermore EPICS2014 photoelectric data.
  */
-class LivermoreParamsReader
+class LivermorePEParamsReader
 {
   public:
     //!@{
     //! Type aliases
-    using result_type = LivermoreParams::ElementInput;
+    using result_type = LivermorePEParams::ElementInput;
     //!@}
 
   public:
     // Construct the reader and locate the data using the environment variable
-    LivermoreParamsReader();
+    LivermorePEParamsReader();
 
     // Construct the reader from the path to the data directory
-    explicit LivermoreParamsReader(const char* path);
+    explicit LivermorePEParamsReader(const char* path);
 
     // Read the data for the given element
     result_type operator()(int atomic_number) const;

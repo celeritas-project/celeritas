@@ -36,16 +36,20 @@ list(APPEND SOURCES
   io/ImportProcess.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
-  io/LivermoreParamsReader.cc
+  io/LivermorePEParamsReader.cc
   physics/base/Model.cc
   physics/base/ParticleParams.cc
   physics/base/ParticleStateStore.cc
   physics/base/Process.cc
   physics/base/SecondaryAllocatorStore.cc
+  physics/em/BetheHeitlerModel.cc
   physics/em/ComptonProcess.cc
-  physics/em/LivermoreParams.cc
+  physics/em/PhotoelectricProcess.cc
+  physics/em/LivermorePEModel.cc
+  physics/em/LivermorePEParams.cc
   physics/em/EPlusAnnihilationProcess.cc
   physics/em/EPlusGGModel.cc
+  physics/em/GammaAnnihilationProcess.cc
   physics/em/KleinNishinaModel.cc
   physics/grid/ValueGridBuilder.cc
   physics/material/MaterialParams.cc
@@ -61,8 +65,10 @@ if(CELERITAS_USE_CUDA)
     base/KernelParamCalculator.cuda.cc
     base/Memory.cu
     comm/Device.cuda.cc
+    physics/em/detail/BetheHeitler.cu
     physics/em/detail/EPlusGG.cu
     physics/em/detail/KleinNishina.cu
+    physics/em/detail/LivermorePE.cu
     random/cuda/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
   )
@@ -177,6 +183,8 @@ if(CELERITAS_USE_ROOT)
     io/ImportPhysicsVector.hh
     io/ImportProcess.hh
     io/ImportVolume.hh
+    io/RootImporter.hh
+    MODULE celeritas_root
     LINKDEF io/RootInterfaceLinkDef.h
   )
 

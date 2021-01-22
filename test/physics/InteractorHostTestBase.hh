@@ -15,6 +15,7 @@
 #include "base/Span.hh"
 #include "base/StackAllocatorPointers.hh"
 #include "base/Types.hh"
+#include "physics/base/ModelIdGenerator.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleStatePointers.hh"
 #include "physics/base/Secondary.hh"
@@ -53,14 +54,18 @@ class InteractorHostTestBase : public celeritas::Test
     //! Type aliases
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
 
-    using real_type              = celeritas::real_type;
-    using PDGNumber              = celeritas::PDGNumber;
-    using MevEnergy              = celeritas::units::MevEnergy;
+    using real_type = celeritas::real_type;
+    using PDGNumber = celeritas::PDGNumber;
+    using MevEnergy = celeritas::units::MevEnergy;
 
+    using MaterialDefId     = celeritas::MaterialDefId;
     using MaterialParams    = celeritas::MaterialParams;
     using MaterialTrackView = celeritas::MaterialTrackView;
 
     using Interaction            = celeritas::Interaction;
+    using ModelIdGenerator       = celeritas::ModelIdGenerator;
+    using ModelId                = celeritas::ModelId;
+    using ParticleDefId          = celeritas::ParticleDefId;
     using ParticleParams         = celeritas::ParticleParams;
     using ParticleTrackView      = celeritas::ParticleTrackView;
     using Real3                  = celeritas::Real3;
@@ -88,6 +93,11 @@ class InteractorHostTestBase : public celeritas::Test
     //! Set and get particle params
     void                  set_particle_params(ParticleParams::Input inp);
     const ParticleParams& particle_params() const;
+    std::shared_ptr<const ParticleParams> get_particle_params() const
+    {
+        CELER_EXPECT(particle_params_);
+        return particle_params_;
+    }
     //!@}
 
     //!@{
@@ -114,9 +124,9 @@ class InteractorHostTestBase : public celeritas::Test
 
     //!@{
     //! Secondary stack storage and access
-    void                             resize_secondaries(int count);
+    void                      resize_secondaries(int count);
     const HostSecondaryStore& secondaries() const { return secondaries_; }
-    SecondaryAllocatorView& secondary_allocator()
+    SecondaryAllocatorView&   secondary_allocator()
     {
         CELER_EXPECT(sa_view_);
         return *sa_view_;
@@ -128,8 +138,14 @@ class InteractorHostTestBase : public celeritas::Test
     RandomEngine& rng() { return rng_; }
     //!@}
 
-    // Check for momentum and energy conservation
+    // Check for energy and momentum conservation
     void check_conservation(const Interaction& interaction) const;
+
+    // Check for energy conservation
+    void check_energy_conservation(const Interaction& interaction) const;
+
+    // Check for momentum conservation
+    void check_momentum_conservation(const Interaction& interaction) const;
 
   private:
     std::shared_ptr<MaterialParams> material_params_;
