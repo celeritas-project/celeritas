@@ -9,12 +9,13 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "UniformGridPointers.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Interact with a uniform grid of values.
+ * Interact with a uniform grid of increasing values.
  *
  * This simple class is used by physics vectors and classes that need to do
  * lookups on a uniform grid.
@@ -28,20 +29,9 @@ class UniformGrid
     using value_type = ::celeritas::real_type;
     //!@}
 
-    //! Construction arguments
-    struct Params
-    {
-        size_type  size;  //!< Number of grid edges/points
-        value_type front; //!< Value of first grid point
-        value_type delta; //!< Grid cell width
-
-        //! Whether the struct is in an assigned state
-        CELER_FUNCTION operator bool() const { return size > 1; }
-    };
-
   public:
     // Construct with data
-    explicit inline CELER_FUNCTION UniformGrid(const Params& data);
+    explicit inline CELER_FUNCTION UniformGrid(const UniformGridPointers& data);
 
     // Number of grid points
     inline CELER_FUNCTION size_type size() const;
@@ -58,11 +48,11 @@ class UniformGrid
     // Find the index of the given value (*must* be in bounds)
     inline CELER_FUNCTION size_type find(value_type value) const;
 
-    //! Get the params used to construct this class
-    CELER_FUNCTION const Params& params() const { return data_; }
+    //! Get the data used to construct this class
+    CELER_FUNCTION const UniformGridPointers& data() const { return data_; }
 
   private:
-    Params data_;
+    const UniformGridPointers data_;
 };
 
 //---------------------------------------------------------------------------//

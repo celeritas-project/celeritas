@@ -11,7 +11,7 @@
 #include "base/Types.hh"
 #include "base/StackAllocatorStore.hh"
 #include "base/DeviceVector.hh"
-#include "base/UniformGrid.hh"
+#include "physics/grid/UniformGrid.hh"
 #include "DetectorPointers.hh"
 
 namespace celeritas
@@ -25,7 +25,7 @@ class DetectorStore
   public:
     // Construct with the given capacity for hits
     explicit DetectorStore(size_type                  buffer_capacity,
-                           const UniformGrid::Params& grid);
+                           const UniformGridPointers& grid);
 
     // Get reference to on-device data
     DetectorPointers device_pointers();
@@ -40,7 +40,7 @@ class DetectorStore
     // In-kernel hit buffer
     StackAllocatorStore<Hit> hit_buffer_;
     // Uniform tally grid
-    UniformGrid::Params tally_grid_;
+    UniformGridPointers tally_grid_;
     // Tallied data
     DeviceVector<real_type> tally_deposition_;
 };

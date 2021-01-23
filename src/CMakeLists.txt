@@ -42,16 +42,16 @@ list(APPEND SOURCES
   physics/base/ParticleStateStore.cc
   physics/base/Process.cc
   physics/base/SecondaryAllocatorStore.cc
-  physics/base/ValueGridBuilder.cc
   physics/em/BetheHeitlerModel.cc
   physics/em/ComptonProcess.cc
   physics/em/PhotoelectricProcess.cc
+  physics/em/LivermorePEModel.cc
   physics/em/LivermorePEParams.cc
   physics/em/EPlusAnnihilationProcess.cc
   physics/em/EPlusGGModel.cc
   physics/em/GammaAnnihilationProcess.cc
   physics/em/KleinNishinaModel.cc
-  physics/em/LivermorePEModel.cc
+  physics/grid/ValueGridBuilder.cc
   physics/material/MaterialParams.cc
   physics/material/MaterialStateStore.cc
   physics/material/detail/Utils.cc

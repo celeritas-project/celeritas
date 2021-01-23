@@ -13,8 +13,8 @@
 #include "physics/base/ParticleStatePointers.hh"
 #include "physics/base/SecondaryAllocatorPointers.hh"
 #include "physics/em/detail/KleinNishina.hh"
+#include "physics/grid/XsGridPointers.hh"
 #include "random/cuda/RngStatePointers.hh"
-#include "PhysicsArrayPointers.hh"
 #include "DetectorPointers.hh"
 
 namespace demo_interactor
@@ -31,7 +31,7 @@ struct CudaGridParams
 struct ParamPointers
 {
     celeritas::ParticleParamsPointers       particle;
-    celeritas::PhysicsArrayPointers         xs;
+    celeritas::XsGridPointers               xs;
     celeritas::detail::KleinNishinaPointers kn_interactor;
 
     explicit CELER_FUNCTION operator bool() const

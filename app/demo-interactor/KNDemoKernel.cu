@@ -16,7 +16,7 @@
 #include "physics/em/detail/KleinNishinaInteractor.hh"
 #include "random/cuda/RngEngine.hh"
 #include "random/distributions/ExponentialDistribution.hh"
-#include "PhysicsArrayCalculator.hh"
+#include "physics/grid/PhysicsGridCalculator.hh"
 #include "DetectorView.hh"
 
 using namespace celeritas;
@@ -77,7 +77,7 @@ __global__ void iterate_kernel(ParamPointers const              params,
 {
     SecondaryAllocatorView allocate_secondaries(secondaries);
     DetectorView           detector_hit(detector);
-    PhysicsArrayCalculator calc_xs(params.xs);
+    PhysicsGridCalculator  calc_xs(params.xs);
 
     for (int tid = blockIdx.x * blockDim.x + threadIdx.x;
          tid < static_cast<int>(states.size());
@@ -97,7 +97,7 @@ __global__ void iterate_kernel(ParamPointers const              params,
         // Move to collision
         {
             // Calculate cross section at the particle's energy
-            real_type                          sigma = calc_xs(particle);
+            real_type sigma = calc_xs(particle.energy());
             ExponentialDistribution<real_type> sample_distance(sigma);
             // Sample distance-to-collision
             real_type distance = sample_distance(rng);

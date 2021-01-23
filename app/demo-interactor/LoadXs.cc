@@ -9,17 +9,15 @@
 #include "base/Units.hh"
 #include "base/Range.hh"
 
-using celeritas::PhysicsArrayParams;
-
 namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct particle parameters and send to GPU.
  */
-std::shared_ptr<PhysicsArrayParams> load_xs()
+std::shared_ptr<XsGridParams> load_xs()
 {
-    PhysicsArrayParams::Input input;
+    XsGridParams::Input input;
     // Energy is the concatenation of lambda (up to 1 MeV) and lambdaprim
     // (first point is the same as lambda's last point)
     input.energy
@@ -75,9 +73,9 @@ std::shared_ptr<PhysicsArrayParams> load_xs()
         input.xs[i] = lambda[i] * (1 / celeritas::units::millimeter);
     }
 
-    input.prime_energy = 1.0;
+    input.prime_energy = 1.0; // XS are scaled by a factor of E above 1 MeV
 
-    return std::make_shared<PhysicsArrayParams>(std::move(input));
+    return std::make_shared<XsGridParams>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//

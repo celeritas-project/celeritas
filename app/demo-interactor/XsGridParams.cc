@@ -3,25 +3,28 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsArrayParams.cc
+//! \file XsGridParams.cc
 //---------------------------------------------------------------------------//
-#include "PhysicsArrayParams.hh"
+#include "XsGridParams.hh"
 
 #include <algorithm>
 #include <cmath>
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
-#include "base/UniformGrid.hh"
+#include "physics/grid/UniformGrid.hh"
 
-namespace celeritas
+namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with input data.
  */
-PhysicsArrayParams::PhysicsArrayParams(const Input& input)
+XsGridParams::XsGridParams(const Input& input)
     : xs_(input.xs.size())
-    , prime_energy_(input.prime_energy)
+    , prime_index_(std::find(input.energy.begin(),
+                             input.energy.end(),
+                             input.prime_energy)
+                   - input.energy.begin())
     , host_xs_(input.xs)
 {
     CELER_EXPECT(input.energy.size() >= 2);
@@ -30,22 +33,22 @@ PhysicsArrayParams::PhysicsArrayParams(const Input& input)
     CELER_EXPECT(input.xs.size() == input.energy.size());
     CELER_EXPECT(std::all_of(
         input.xs.begin(), input.xs.end(), [](real_type v) { return v >= 0; }));
-    CELER_EXPECT(
-        std::find(input.energy.begin(), input.energy.end(), prime_energy_)
-        != input.energy.end());
+    CELER_EXPECT(prime_index_ != input.energy.size());
 
     // Calculate uniform-in-logspace energy grid
-    log_energy_.size  = input.energy.size();
-    log_energy_.front = std::log(input.energy.front());
-    log_energy_.delta = (std::log(input.energy.back()) - log_energy_.front)
-                        / (log_energy_.size - 1);
+    log_energy_ = celeritas::UniformGridPointers::from_bounds(
+        std::log(input.energy.front()),
+        std::log(input.energy.back()),
+        input.energy.size());
+
 #if CELERITAS_DEBUG
     {
         // Test soft equivalence between log energy grid and input energy to
         // make sure all the points are uniformly spaced
         celeritas::SoftEqual<> soft_eq(1e-8);
         celeritas::UniformGrid log_energy(log_energy_);
-        for (auto i : range(input.energy.size()))
+        CELER_ASSERT(log_energy.size() == input.energy.size());
+        for (auto i : celeritas::range(input.energy.size()))
         {
             CELER_EXPECT(soft_eq(std::log(input.energy[i]), log_energy[i]));
         }
@@ -53,19 +56,19 @@ PhysicsArrayParams::PhysicsArrayParams(const Input& input)
 #endif
 
     // Copy xs values to device
-    xs_.copy_to_device(make_span(input.xs));
+    xs_.copy_to_device(celeritas::make_span(input.xs));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Access on-device data.
  */
-PhysicsArrayPointers PhysicsArrayParams::device_pointers() const
+auto XsGridParams::device_pointers() const -> XsGridPointers
 {
-    PhysicsArrayPointers result;
-    result.log_energy   = log_energy_;
-    result.xs           = xs_.device_pointers();
-    result.prime_energy = prime_energy_;
+    XsGridPointers result;
+    result.log_energy  = log_energy_;
+    result.prime_index = prime_index_;
+    result.value       = xs_.device_pointers();
     return result;
 }
 
@@ -73,15 +76,15 @@ PhysicsArrayPointers PhysicsArrayParams::device_pointers() const
 /*!
  * Access on-host data.
  */
-PhysicsArrayPointers PhysicsArrayParams::host_pointers() const
+auto XsGridParams::host_pointers() const -> XsGridPointers
 {
-    PhysicsArrayPointers result;
-    result.log_energy   = log_energy_;
-    result.prime_energy = prime_energy_;
-    result.xs           = make_span(host_xs_);
+    XsGridPointers result;
+    result.log_energy  = log_energy_;
+    result.prime_index = prime_index_;
+    result.value       = celeritas::make_span(host_xs_);
 
     return result;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_interactor

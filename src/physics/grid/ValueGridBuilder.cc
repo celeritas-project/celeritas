@@ -9,7 +9,7 @@
 
 #include <cmath>
 #include "base/SoftEqual.hh"
-#include "base/UniformGrid.hh"
+#include "physics/grid/UniformGrid.hh"
 
 namespace celeritas
 {
@@ -74,10 +74,18 @@ ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
                             lambda_prim.front() * lambda_prim_energy.front()));
     CELER_EXPECT(is_nonnegative(lambda) && is_nonnegative(lambda_prim));
 
-    CELER_ASSERT_UNREACHABLE();
+    // Concatenate the two XS vectors: store the scaled (lambda_prim) value at
+    // the coincident point.
+    std::vector<real_type> xs(lambda.size() + lambda_prim.size() - 1);
+    auto dst = std::copy(lambda.begin(), lambda.end() - 1, xs.begin());
+    dst      = std::copy(lambda_prim.begin(), lambda_prim.end(), dst);
+    CELER_ASSERT(dst == xs.end());
 
     // Construct the grid
-    return {0, 0, 0, {}};
+    return {lambda_energy.front(),
+            lambda_prim_energy.front(),
+            lambda_prim_energy.back(),
+            std::move(xs)};
 }
 
 //---------------------------------------------------------------------------//
@@ -125,6 +133,13 @@ auto ValueGridXsBuilder::value_storage() const -> ValueStorage
  */
 void ValueGridXsBuilder::build(ValueGridStore*) const
 {
+    // Set up log grid
+    auto log_energy
+        = UniformGridPointers::from_bounds(log_emin_, log_emax_, xs_.size());
+    UniformGrid grid(log_energy);
+    size_type   prime_index = grid.find(log_eprime_);
+    CELER_ASSERT(soft_equal(grid[prime_index], log_eprime_));
+
     // TODO: finish implementation
     CELER_ASSERT_UNREACHABLE();
 }

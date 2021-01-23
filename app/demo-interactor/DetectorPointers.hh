@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/StackAllocatorPointers.hh"
-#include "base/UniformGrid.hh"
+#include "physics/grid/UniformGrid.hh"
 #include "physics/base/Units.hh"
 
 namespace celeritas
@@ -35,7 +35,7 @@ struct Hit
 struct DetectorPointers
 {
     StackAllocatorPointers<Hit> hit_buffer;
-    UniformGrid::Params         tally_grid;
+    UniformGridPointers         tally_grid;
     Span<real_type>             tally_deposition;
 
     //! Whether the interface is initialized

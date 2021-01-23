@@ -101,5 +101,18 @@ class ValueGridXsBuilder final : public ValueGridBuilder
     std::vector<real_type> xs_;
 };
 
+// TODO: implement ValueGridLogBuilder
+#if 0
+//---------------------------------------------------------------------------//
+/*!
+ * Build a physics vector for energy loss and other quantities.
+ *
+ * This vector has a uniform grid in log(E).
+ */
+class ValueGridLogBuilder final : public ValueGridBuilder
+{
+};
+#endif
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas
