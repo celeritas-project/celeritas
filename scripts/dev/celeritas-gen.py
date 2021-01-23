@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-###############################################################################
-# File: scripts/dev/celeritas-gen.py
-###############################################################################
-"""Generate class file stubs for Celeritas.
+# Copyright 2021 UT-Battelle, LLC and other Celeritas Developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+"""\
+Generate file stubs for Celeritas.
 """
-from __future__ import (division, absolute_import, print_function)
+
+from datetime import datetime
 import os
 import os.path
 import re
 import subprocess
 import stat
 import sys
+
 ###############################################################################
 
 CLIKE_TOP = '''\
@@ -242,7 +245,7 @@ PYTHON_FILE = '''\
 
 '''
 
-YEAR = "2020"
+YEAR = datetime.today().year
 
 TEMPLATES = {
     'hh': HEADER_FILE,
@@ -362,10 +365,5 @@ def main():
     for fn in args.filename:
         generate(basedir, fn, args.namespace)
 
-#-----------------------------------------------------------------------------#
 if __name__ == '__main__':
     main()
-
-###############################################################################
-# end of scripts/dev/celeritas-gen.py
-###############################################################################
