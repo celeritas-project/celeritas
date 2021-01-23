@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Copyright 2020 UT-Battelle, LLC and other Celeritas Developers.
+# Copyright 2021 UT-Battelle, LLC and other Celeritas Developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""
+"""\
 Recursively modify files.
 """
 
@@ -12,31 +12,37 @@ import os
 import os.path
 import re
 
-MACROS = {
+REPLACE = {
+    'Copyright 2020': 'Copyright 2021',
     'REQUIRE': 'CELER_EXPECT',
     'CHECK': 'CELER_ASSERT',
     'ENSURE': 'CELER_ENSURE',
     'CHECK_UNREACHABLE': 'CELER_ASSERT_UNREACHABLE()',
     'INSIST': 'CELER_VALIDATE',
 }
-RE_MACRO_NAMES = re.compile(r'\b(' + '|'.join(MACROS.keys()) + r')\b')
+RE_REPLACE = re.compile(r'\b(' + '|'.join(REPLACE.keys()) + r')\b')
+
+
 def replace_macro_names(matchobj):
-    return MACROS[matchobj.group(1)]
+    return REPLACE[matchobj.group(1)]
+
 
 def update_macros(filename):
     with ReWriter(filename) as rewriter:
         (old, new) = rewriter.files
         for line in old:
             orig_line = line
-            line = RE_MACRO_NAMES.sub(replace_macro_names, line)
+            line = RE_REPLACE.sub(replace_macro_names, line)
             if line != orig_line:
                 rewriter.dirty = True
             new.write(line)
+
 
 class HasExtension(object):
     """Helper class that says "yes the extension is valid" for any non-empty
     extension.
     """
+
     def __init__(self):
         pass
 
@@ -82,19 +88,20 @@ class ReWriter(object):
     This takes care of error conditions as well as being graceful about not
     touching files that don't get changed.
     """
+
     def __init__(self, filename, preserve=False):
         (base, ext) = os.path.splitext(filename)
 
-        self.filename     = filename
+        self.filename = filename
         self.tempfilename = base + ".temp" + ext
         self.origfilename = base + ".orig" + ext
 
         # New and original files
-        self.infile  = open(filename, "r")
+        self.infile = open(filename, "r")
         self.outfile = open(self.tempfilename, "w")
 
         # Whether we've changed the file
-        self.dirty    = False
+        self.dirty = False
         # Whether to preserve the original
         self.preserve = preserve
 
@@ -140,19 +147,22 @@ class ReWriter(object):
         return (self.infile, self.outfile)
 
 
-def run(argv=None):
+def main(argv=None):
     from argparse import ArgumentParser
     parser = ArgumentParser(
-            description="Update macros"
-            )
-    parser.add_argument('-r', dest="recursive",
-            help="Recursive",
-            action='store_true')
-    parser.add_argument('-x', '--extensions',
-            help="Comma-separated extensions to use when searching recursively",
-            default=".hh,.cc,.cu")
-    parser.add_argument('path', nargs='+',
-            help="Files/dirs to process")
+        description="Update assertion macros"
+    )
+    parser.add_argument(
+        '-r', dest="recursive",
+        help="Recursive",
+        action='store_true')
+    parser.add_argument(
+        '-x', '--extensions',
+        help="Comma-separated extensions to use when searching recursively",
+        default=".hh,.cc,.cu")
+    parser.add_argument(
+        'path', nargs='+',
+        help="Files/dirs to process")
 
     args = parser.parse_args(argv)
 
@@ -177,5 +187,6 @@ def run(argv=None):
 
     log.info("Done.")
 
+
 if __name__ == '__main__':
-    run()
+    main()

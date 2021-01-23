@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-###############################################################################
-# File: scripts/dev/celeritas-gen.py
-###############################################################################
-"""Generate class file stubs for Celeritas.
+# Copyright 2021 UT-Battelle, LLC and other Celeritas Developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+"""\
+Generate file stubs for Celeritas.
 """
-from __future__ import (division, absolute_import, print_function)
+
+from datetime import datetime
 import os
 import os.path
 import re
 import subprocess
 import stat
 import sys
+
 ###############################################################################
 
 CLIKE_TOP = '''\
@@ -33,9 +36,9 @@ HEADER_FILE = '''\
  * Brief class description.
  *
  * Optional detailed class description, and possibly example usage:
- * \code
+ * \\code
     {name} ...;
-   \endcode
+   \\endcode
  */
 class {name}
 {{
@@ -242,7 +245,7 @@ PYTHON_FILE = '''\
 
 '''
 
-YEAR = "2020"
+YEAR = datetime.today().year
 
 TEMPLATES = {
     'hh': HEADER_FILE,
@@ -283,6 +286,7 @@ HEXT = {
     'C++': "hh",
     'CUDA': "cuh",
 }
+
 
 def generate(root, filename, namespace):
     if os.path.exists(filename):
@@ -334,7 +338,7 @@ def generate(root, filename, namespace):
         'capabbr': capabbr,
         'lowabbr': capabbr.lower(),
         'year': YEAR,
-        }
+    }
     with open(filename, 'w') as f:
         f.write((top + template).format(**variables))
         if top.startswith('#!'):
@@ -347,25 +351,24 @@ def generate(root, filename, namespace):
 def main():
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('filename', nargs='+',
-                        help='file names to generate')
-    parser.add_argument('--basedir',
-                        help='root source directory for file naming')
-    parser.add_argument('--namespace', '-n',
-                        default='celeritas',
-                        help='root source directory for file naming')
+    parser.add_argument(
+        'filename', nargs='+',
+        help='file names to generate')
+    parser.add_argument(
+        '--basedir',
+        help='root source directory for file naming')
+    parser.add_argument(
+        '--namespace', '-n',
+        default='celeritas',
+        help='root source directory for file naming')
     args = parser.parse_args()
     basedir = args.basedir or os.path.join(
-            subprocess.check_output(['git', 'rev-parse', '--show-toplevel'])
-                .decode().strip(),
-            'src')
+        subprocess.check_output(['git', 'rev-parse', '--show-toplevel'])
+        .decode().strip(),
+        'src')
     for fn in args.filename:
         generate(basedir, fn, args.namespace)
 
-#-----------------------------------------------------------------------------#
+
 if __name__ == '__main__':
     main()
-
-###############################################################################
-# end of scripts/dev/celeritas-gen.py
-###############################################################################
