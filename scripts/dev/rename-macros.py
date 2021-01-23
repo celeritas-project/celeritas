@@ -21,8 +21,11 @@ REPLACE = {
     'INSIST': 'CELER_VALIDATE',
 }
 RE_REPLACE = re.compile(r'\b(' + '|'.join(REPLACE.keys()) + r')\b')
+
+
 def replace_macro_names(matchobj):
     return REPLACE[matchobj.group(1)]
+
 
 def update_macros(filename):
     with ReWriter(filename) as rewriter:
@@ -34,10 +37,12 @@ def update_macros(filename):
                 rewriter.dirty = True
             new.write(line)
 
+
 class HasExtension(object):
     """Helper class that says "yes the extension is valid" for any non-empty
     extension.
     """
+
     def __init__(self):
         pass
 
@@ -83,19 +88,20 @@ class ReWriter(object):
     This takes care of error conditions as well as being graceful about not
     touching files that don't get changed.
     """
+
     def __init__(self, filename, preserve=False):
         (base, ext) = os.path.splitext(filename)
 
-        self.filename     = filename
+        self.filename = filename
         self.tempfilename = base + ".temp" + ext
         self.origfilename = base + ".orig" + ext
 
         # New and original files
-        self.infile  = open(filename, "r")
+        self.infile = open(filename, "r")
         self.outfile = open(self.tempfilename, "w")
 
         # Whether we've changed the file
-        self.dirty    = False
+        self.dirty = False
         # Whether to preserve the original
         self.preserve = preserve
 
@@ -144,16 +150,19 @@ class ReWriter(object):
 def main(argv=None):
     from argparse import ArgumentParser
     parser = ArgumentParser(
-            description="Update assertion macros"
-            )
-    parser.add_argument('-r', dest="recursive",
-            help="Recursive",
-            action='store_true')
-    parser.add_argument('-x', '--extensions',
-            help="Comma-separated extensions to use when searching recursively",
-            default=".hh,.cc,.cu")
-    parser.add_argument('path', nargs='+',
-            help="Files/dirs to process")
+        description="Update assertion macros"
+    )
+    parser.add_argument(
+        '-r', dest="recursive",
+        help="Recursive",
+        action='store_true')
+    parser.add_argument(
+        '-x', '--extensions',
+        help="Comma-separated extensions to use when searching recursively",
+        default=".hh,.cc,.cu")
+    parser.add_argument(
+        'path', nargs='+',
+        help="Files/dirs to process")
 
     args = parser.parse_args(argv)
 
@@ -177,6 +186,7 @@ def main(argv=None):
             log.exception(e)
 
     log.info("Done.")
+
 
 if __name__ == '__main__':
     main()

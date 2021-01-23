@@ -36,9 +36,9 @@ HEADER_FILE = '''\
  * Brief class description.
  *
  * Optional detailed class description, and possibly example usage:
- * \code
+ * \\code
     {name} ...;
-   \endcode
+   \\endcode
  */
 class {name}
 {{
@@ -287,6 +287,7 @@ HEXT = {
     'CUDA': "cuh",
 }
 
+
 def generate(root, filename, namespace):
     if os.path.exists(filename):
         print("Skipping existing file " + filename)
@@ -337,7 +338,7 @@ def generate(root, filename, namespace):
         'capabbr': capabbr,
         'lowabbr': capabbr.lower(),
         'year': YEAR,
-        }
+    }
     with open(filename, 'w') as f:
         f.write((top + template).format(**variables))
         if top.startswith('#!'):
@@ -350,20 +351,24 @@ def generate(root, filename, namespace):
 def main():
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('filename', nargs='+',
-                        help='file names to generate')
-    parser.add_argument('--basedir',
-                        help='root source directory for file naming')
-    parser.add_argument('--namespace', '-n',
-                        default='celeritas',
-                        help='root source directory for file naming')
+    parser.add_argument(
+        'filename', nargs='+',
+        help='file names to generate')
+    parser.add_argument(
+        '--basedir',
+        help='root source directory for file naming')
+    parser.add_argument(
+        '--namespace', '-n',
+        default='celeritas',
+        help='root source directory for file naming')
     args = parser.parse_args()
     basedir = args.basedir or os.path.join(
-            subprocess.check_output(['git', 'rev-parse', '--show-toplevel'])
-                .decode().strip(),
-            'src')
+        subprocess.check_output(['git', 'rev-parse', '--show-toplevel'])
+        .decode().strip(),
+        'src')
     for fn in args.filename:
         generate(basedir, fn, args.namespace)
+
 
 if __name__ == '__main__':
     main()
