@@ -7,7 +7,7 @@ cd $SOURCE_DIR
 mkdir build 2>/dev/null || true
 cd build
 
-module load doxygen
+module load doxygen swig
 
 CELERITAS_ENV=${SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view
 export PATH=$CELERITAS_ENV/bin:${PATH}

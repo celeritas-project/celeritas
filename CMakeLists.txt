@@ -32,6 +32,7 @@ option(CELERITAS_USE_Geant4 "Enable Geant4 adapter tools" OFF)
 option(CELERITAS_USE_HepMC3 "Enable HepMC3 event record reader" OFF)
 option(CELERITAS_USE_MPI "Enable distributed memory parallelism" ON)
 option(CELERITAS_USE_ROOT "Enable ROOT I/O" OFF)
+option(CELERITAS_USE_SWIG_Python "Enable SWIG Python bindings" OFF)
 option(CELERITAS_USE_VecGeom "Enable VecGeom geometry" ON)
 
 if(CELERITAS_USE_MPI AND CELERITAS_USE_CUDA AND CMAKE_VERSION VERSION_LESS 3.13)
@@ -109,6 +110,15 @@ if(CELERITAS_USE_ROOT)
   find_package(ROOT REQUIRED)
 endif()
 
+if(CELERITAS_USE_SWIG_Python)
+  if(CMAKE_VERSION VERSION_LESS 3.15)
+    message(FATAL_ERROR "Celeritas requires CMake 3.15 or higher "
+      "when building with SWIG Python.")
+  endif()
+  find_package(SWIG 4.0 REQUIRED)
+  find_package(Python REQUIRED COMPONENTS Interpreter Development)
+endif()
+
 if(CELERITAS_USE_VecGeom)
   find_package(VecGeom REQUIRED) # Minimum 1.1.7
 
@@ -125,7 +135,9 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 if(CELERITAS_BUILD_TESTS AND CELERITAS_BUILD_DEMOS)
-  find_package(Python 3.6 COMPONENTS Interpreter REQUIRED)
+  if(NOT PYTHON_FOUND)
+    find_package(Python 3.6 COMPONENTS Interpreter REQUIRED)
+  endif()
 endif()
 
 if(CELERITAS_BUILD_DOCS)
@@ -158,6 +170,14 @@ add_subdirectory(external)
 #----------------------------------------------------------------------------#
 
 add_subdirectory(src)
+
+#----------------------------------------------------------------------------#
+# SWIG INTERFACE
+#----------------------------------------------------------------------------#
+
+if(CELERITAS_USE_SWIG_Python)
+  add_subdirectory(interface)
+endif()
 
 #----------------------------------------------------------------------------#
 # TESTS

@@ -185,6 +185,15 @@ __global__ void {lowabbr}_test_kernel(unsigned int size)
 '''
 
 
+SWIG_FILE = '''\
+%{{
+#include "{name}.{hext}"
+%}}
+
+%include "{name}.{hext}"
+'''
+
+
 CMAKE_TOP = '''\
 #{modeline:-^77s}#
 # Copyright {year} UT-Battelle, LLC and other Celeritas Developers.
@@ -259,6 +268,7 @@ TEMPLATES = {
     'k.cuh': INLINE_FILE,
     'i.cuh': INLINE_FILE,
     't.cuh': INLINE_FILE,
+    'i': SWIG_FILE,
     'cmake': CMAKE_FILE,
     'CMakeLists.txt': CMAKELISTS_FILE,
     'py': PYTHON_FILE,
@@ -271,6 +281,7 @@ LANG = {
     'cu': "CUDA",
     'cuh': "CUDA",
     'cmake': "CMake",
+    'i': "SWIG",
     'CMakeLists.txt': "CMake",
     'py': "Python",
 }
@@ -278,6 +289,7 @@ LANG = {
 TOPS = {
     'C++': CLIKE_TOP,
     'CUDA': CLIKE_TOP,
+    'SWIG': CLIKE_TOP,
     'CMake': CMAKE_TOP,
     'Python': PYTHON_TOP,
 }
@@ -285,6 +297,7 @@ TOPS = {
 HEXT = {
     'C++': "hh",
     'CUDA': "cuh",
+    'SWIG': "hh",
 }
 
 
