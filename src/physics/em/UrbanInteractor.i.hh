@@ -25,6 +25,7 @@ UrbanInteractor::UrbanInteractor(const UrbanInteractorPointers& shared,
     CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
                  && inc_energy_ <= this->max_incident_energy());
     CELER_EXPECT(particle.def_id() == shared_.gamma_id); // XXX
+    CELER_NOT_IMPLEMENTED("Urban multiple scattering");
 }
 
 //---------------------------------------------------------------------------//
