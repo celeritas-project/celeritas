@@ -123,6 +123,7 @@
 #ifndef __CUDA_ARCH__
 #    define CELER_VALIDATE(COND, MSG) CELER_RUNTIME_ASSERT_(COND, MSG)
 #    define CELER_NOT_CONFIGURED(WHAT) CELER_DEBUG_FAIL_(WHAT, unconfigured)
+#    define CELER_NOT_IMPLEMENTED(WHAT) CELER_DEBUG_FAIL_(WHAT, unimplemented)
 #else
 #    define CELER_VALIDATE(COND, MSG)                                          \
         ::celeritas::throw_debug_error(::celeritas::DebugErrorType::assertion, \
@@ -131,6 +132,7 @@
                                        __FILE__,                               \
                                        __LINE__)
 #    define CELER_NOT_CONFIGURED(WHAT) CELER_ASSERT(0)
+#    define CELER_NOT_IMPLEMENTED(WHAT) CELER_ASSERT(0)
 #endif
 
 /*!
@@ -180,6 +182,7 @@ enum class DebugErrorType
     internal,      //!< Internal assertion check failure
     unreachable,   //!< Internal assertion: unreachable code path
     unconfigured,  //!< Internal assertion: required feature not enabled
+    unimplemented, //!< Internal assertion: not yet implemented
     postcondition, //!< Postcondition contract violation
 };
 

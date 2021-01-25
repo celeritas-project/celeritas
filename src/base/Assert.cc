@@ -40,6 +40,8 @@ const char* to_cstring(DebugErrorType which)
             return "unreachable code point";
         case DebugErrorType::unconfigured:
             return "required dependency is disabled in this build";
+        case DebugErrorType::unimplemented:
+            return "feature is not yet implemented";
         case DebugErrorType::postcondition:
             return "postcondition failed";
     }

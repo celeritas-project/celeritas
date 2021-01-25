@@ -141,7 +141,7 @@ void ValueGridXsBuilder::build(ValueGridStore*) const
     CELER_ASSERT(soft_equal(grid[prime_index], log_eprime_));
 
     // TODO: finish implementation
-    CELER_ASSERT_UNREACHABLE();
+    CELER_NOT_IMPLEMENTED("value grid construction");
 }
 
 //---------------------------------------------------------------------------//
