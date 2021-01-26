@@ -35,6 +35,7 @@ set_cache_var(CMAKE_CXX_FLAGS STRING
 # MPI flags
 set_cache_var(MPI_CXX_SKIP_MPICXX BOOL TRUE)
 if(CELERITAS_USE_MPI)
-  # In CMake 3.18, these break the CUDA link line...
-  set_cache_var(MPI_CXX_LINK_FLAGS STRING "")
+  # In CMake 3.18, MPI flags get incorrectly passed to the CUDA build command,
+  # and empty CXX flags get overwritten
+  set_cache_var(MPI_CXX_LINK_FLAGS STRING "-pthread")
 endif()
