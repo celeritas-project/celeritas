@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "KleinNishina.hh"
 
+#include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "random/cuda/RngEngine.hh"
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "random/cuda/RngEngine.hh"
+#include "physics/base/SecondaryAllocatorView.hh"
 #include "KleinNishinaInteractor.hh"
 
 namespace celeritas

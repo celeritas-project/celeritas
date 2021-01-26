@@ -7,13 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "BetheHeitler.hh"
 
+#include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "random/cuda/RngEngine.hh"
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
+#include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "random/cuda/RngEngine.hh"
 #include "BetheHeitlerInteractor.hh"
 
 namespace celeritas
