@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "sim/TrackInitializerStore.hh"
 
+#include <algorithm>
 #include <numeric>
 #include "celeritas_test.hh"
 #include "geometry/GeoParams.hh"
