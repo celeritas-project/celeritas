@@ -9,13 +9,12 @@
 
 #include "base/Span.hh"
 #include "base/Types.hh"
-#include "physics/base/ParticleParamsPointers.hh"
-#include "physics/base/ParticleStatePointers.hh"
-#include "physics/base/SecondaryAllocatorPointers.hh"
+#include "physics/base/ParticleInterface.hh"
+#include "physics/base/SecondaryAllocatorInterface.hh"
 #include "physics/em/detail/KleinNishina.hh"
-#include "physics/grid/XsGridPointers.hh"
-#include "random/cuda/RngStatePointers.hh"
-#include "DetectorPointers.hh"
+#include "physics/grid/XsGridInterface.hh"
+#include "random/cuda/RngInterface.hh"
+#include "DetectorInterface.hh"
 
 namespace demo_interactor
 {

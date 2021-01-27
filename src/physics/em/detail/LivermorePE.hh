@@ -10,7 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Types.hh"
-#include "physics/em/LivermorePEParamsPointers.hh"
+#include "physics/em/LivermorePEInterface.hh"
 
 namespace celeritas
 {

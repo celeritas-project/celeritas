@@ -12,7 +12,7 @@
 #include "base/Array.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleStateStore.hh"
-#include "physics/base/ParticleStatePointers.hh"
+#include "physics/base/ParticleInterface.hh"
 #include "physics/base/Units.hh"
 #include "Particle.test.hh"
 

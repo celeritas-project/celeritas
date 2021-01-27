@@ -12,9 +12,9 @@
 #include <unordered_map>
 #include <vector>
 #include "base/DeviceVector.hh"
-#include "ParticleParamsPointers.hh"
+#include "ParticleInterface.hh"
 #include "PDGNumber.hh"
-#include "ParticleDef.hh"
+#include "ParticleInterface.hh"
 
 namespace celeritas
 {

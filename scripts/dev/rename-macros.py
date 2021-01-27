@@ -12,19 +12,18 @@ import os
 import os.path
 import re
 
-REPLACE = {
-    'ParticleDefId': 'ParticleId',
-    'MaterialDefId': 'MaterialId',
-    'ElementDefId': 'ElementId',
-}
+# REPLACE = {
+#     'ParamPointers.hh': 'MaterialInterface',
+# }
+#
+# def replace_macro_names(matchobj):
+#     return REPLACE[matchobj.group(1)]
+#
+#
+# RE_REPLACE = re.compile(r'(' + '|'.join(REPLACE.keys()) + r')\b')
 
-
-def replace_macro_names(matchobj):
-    return REPLACE[matchobj.group(1)]
-
-
-RE_REPLACE = re.compile(r'\b(' + '|'.join(REPLACE.keys()) + r')\b')
-
+replace_macro_names = "InteractorPointers.hh"
+RE_REPLACE = re.compile(r"InteractorInterface\.hh")
 
 def update_macros(filename):
     with ReWriter(filename) as rewriter:

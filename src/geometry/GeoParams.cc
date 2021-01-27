@@ -22,7 +22,7 @@
 #include "base/ColorUtils.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
-#include "GeoParamsPointers.hh"
+#include "GeoInterface.hh"
 
 namespace
 {

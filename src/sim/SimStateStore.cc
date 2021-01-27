@@ -9,7 +9,7 @@
 
 #include <vector>
 #include "base/Array.hh"
-#include "SimStatePointers.hh"
+#include "SimInterface.hh"
 #include "detail/SimStateInit.hh"
 
 namespace celeritas

@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "base/DeviceVector.hh"
 #include "physics/base/Interaction.hh"
-#include "physics/base/SecondaryAllocatorPointers.hh"
+#include "physics/base/SecondaryAllocatorInterface.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "sim/SimTrackView.hh"
-#include "sim/StatePointers.hh"
-#include "sim/TrackInitializerPointers.hh"
+#include "sim/TrackInterface.hh"
+#include "sim/TrackInitializerInterface.hh"
 #include <vector>
 
 namespace celeritas_test

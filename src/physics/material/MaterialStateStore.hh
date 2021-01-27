@@ -9,7 +9,7 @@
 
 #include "base/DeviceVector.hh"
 #include "base/Types.hh"
-#include "MaterialStatePointers.hh"
+#include "MaterialInterface.hh"
 
 namespace celeritas
 {

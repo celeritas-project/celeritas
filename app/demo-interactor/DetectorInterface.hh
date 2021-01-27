@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DetectorPointers.hh
+//! \file DetectorInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/StackAllocatorPointers.hh"
+#include "base/StackAllocatorInterface.hh"
 #include "physics/grid/UniformGrid.hh"
 #include "physics/base/Units.hh"
 

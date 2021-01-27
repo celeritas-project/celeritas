@@ -14,10 +14,9 @@
 #include "base/DeviceVector.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
-#include "ElementDef.hh"
-#include "MaterialDef.hh"
+#include "MaterialInterface.hh"
 #include "Types.hh"
-#include "MaterialParamsPointers.hh"
+#include "MaterialInterface.hh"
 
 namespace celeritas
 {

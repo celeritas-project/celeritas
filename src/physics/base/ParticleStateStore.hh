@@ -9,7 +9,7 @@
 
 #include "base/DeviceVector.hh"
 #include "base/Types.hh"
-#include "ParticleStatePointers.hh"
+#include "ParticleInterface.hh"
 
 namespace celeritas
 {

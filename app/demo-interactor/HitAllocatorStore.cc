@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file HitAllocatorStore.cc
 //---------------------------------------------------------------------------//
-#include "DetectorPointers.hh"
+#include "DetectorInterface.hh"
 #include "base/StackAllocatorStore.t.hh"
 
 namespace celeritas

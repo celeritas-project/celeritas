@@ -9,8 +9,8 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "MaterialStatePointers.hh"
-#include "MaterialParamsPointers.hh"
+#include "MaterialInterface.hh"
+#include "MaterialInterface.hh"
 #include "MaterialView.hh"
 #include "Types.hh"
 

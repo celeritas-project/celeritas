@@ -13,7 +13,7 @@
 #include "physics/base/SecondaryAllocatorStore.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "sim/ParamPointers.hh"
+#include "sim/TrackInterface.hh"
 #include "sim/StateStore.hh"
 #include "sim/TrackInitializerStore.hh"
 #include "TrackInitializerStore.test.hh"

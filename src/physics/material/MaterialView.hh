@@ -10,7 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "ElementView.hh"
-#include "MaterialParamsPointers.hh"
+#include "MaterialInterface.hh"
 #include "Types.hh"
 
 namespace celeritas

@@ -12,7 +12,7 @@
 #include "base/StackAllocatorStore.hh"
 #include "base/DeviceVector.hh"
 #include "physics/grid/UniformGrid.hh"
-#include "DetectorPointers.hh"
+#include "DetectorInterface.hh"
 
 namespace celeritas
 {

@@ -10,7 +10,7 @@
 #include "geometry/GeoParams.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "ParamPointers.hh"
+#include "TrackInterface.hh"
 
 namespace celeritas
 {

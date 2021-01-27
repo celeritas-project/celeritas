@@ -10,7 +10,7 @@
 #include "base/DeviceVector.hh"
 #include "io/ImportPhysicsVector.hh"
 #include "physics/material/Types.hh"
-#include "LivermorePEParamsPointers.hh"
+#include "LivermorePEInterface.hh"
 
 namespace celeritas
 {

@@ -9,7 +9,7 @@
 #include "physics/material/MaterialView.hh"
 #include "physics/material/MaterialParams.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "physics/material/MaterialStatePointers.hh"
+#include "physics/material/MaterialInterface.hh"
 #include "physics/material/MaterialStateStore.hh"
 #include "physics/material/detail/Utils.hh"
 
@@ -18,7 +18,6 @@
 #include "celeritas_test.hh"
 #include "base/DeviceVector.hh"
 #include "physics/base/Units.hh"
-#include "physics/material/ElementDef.hh"
 #include "Material.test.hh"
 
 using namespace celeritas;

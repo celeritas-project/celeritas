@@ -12,7 +12,7 @@
 #include "physics/base/SecondaryAllocatorStore.hh"
 #include "ParamStore.hh"
 #include "StateStore.hh"
-#include "TrackInitializerPointers.hh"
+#include "TrackInitializerInterface.hh"
 
 namespace celeritas
 {

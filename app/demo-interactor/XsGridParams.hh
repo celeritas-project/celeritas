@@ -9,7 +9,7 @@
 
 #include <vector>
 #include "base/DeviceVector.hh"
-#include "physics/grid/XsGridPointers.hh"
+#include "physics/grid/XsGridInterface.hh"
 
 namespace demo_interactor
 {

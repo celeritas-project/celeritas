@@ -3,17 +3,63 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleStatePointers.hh
+//! \file ParticleInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Macros.hh"
 #include "base/Span.hh"
-#include "base/Types.hh"
-#include "ParticleDef.hh"
+#include "Types.hh"
 #include "Units.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// PARAMS
+//---------------------------------------------------------------------------//
+/*!
+ * Fundamental (static) properties of a particle type.
+ *
+ * These should only be fundamental physical properties. Setting particles is
+ * done through the ParticleParams. Physical state of a particle
+ * (kinetic energy, ...) is part of a ParticleState.
+ *
+ * Particle definitions are accessed via the ParticleParams: using PDGs
+ * to look up particle IDs, etc.
+ */
+struct ParticleDef
+{
+    units::MevMass          mass;           //!< Rest mass [MeV / c^2]
+    units::ElementaryCharge charge;         //!< Charge in units of [e]
+    real_type               decay_constant; //!< Decay constant [1/s]
+
+    //! Value of decay_constant for a stable particle
+    static CELER_CONSTEXPR_FUNCTION real_type stable_decay_constant()
+    {
+        return 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access particle definitions on the device.
+ *
+ * This view is created from \c ParticleParams. The size of the \c defs data
+ * member is the number of particle types (accessed by \c ParticleId).
+ *
+ * \sa ParticleParams (owns the pointed-to data)
+ * \sa ParticleTrackView (uses the pointed-to data in a kernel)
+ */
+struct ParticleParamsPointers
+{
+    Span<const ParticleDef> defs;
+
+    //! Check whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const { return !defs.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+// STATE
 //---------------------------------------------------------------------------//
 /*!
  * Physical (dynamic) state of a particle track.
@@ -30,7 +76,7 @@ namespace celeritas
 struct ParticleTrackState
 {
     ParticleId       particle_id; //!< Type of particle (electron, gamma, ...)
-    units::MevEnergy energy; //!< Kinetic energy [MeV]
+    units::MevEnergy energy;      //!< Kinetic energy [MeV]
 };
 
 //---------------------------------------------------------------------------//

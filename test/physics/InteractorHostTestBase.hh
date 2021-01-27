@@ -13,15 +13,15 @@
 #include "base/Array.hh"
 #include "base/ArrayIO.hh"
 #include "base/Span.hh"
-#include "base/StackAllocatorPointers.hh"
+#include "base/StackAllocatorInterface.hh"
 #include "base/Types.hh"
 #include "physics/base/ModelIdGenerator.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleStatePointers.hh"
+#include "physics/base/ParticleInterface.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/MaterialParams.hh"
-#include "physics/material/MaterialStatePointers.hh"
+#include "physics/material/MaterialInterface.hh"
 
 // Test helpers
 #include "base/HostStackAllocatorStore.hh"

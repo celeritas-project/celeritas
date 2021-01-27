@@ -9,8 +9,8 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "ParticleStatePointers.hh"
-#include "ParticleParamsPointers.hh"
+#include "ParticleInterface.hh"
+#include "ParticleInterface.hh"
 #include "Units.hh"
 
 namespace celeritas

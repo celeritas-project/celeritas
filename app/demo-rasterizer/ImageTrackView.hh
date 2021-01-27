@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "ImagePointers.hh"
+#include "ImageInterface.hh"
 
 namespace demo_rasterizer
 {

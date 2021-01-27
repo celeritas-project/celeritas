@@ -10,7 +10,7 @@
 #include <vector>
 #include "base/Types.hh"
 #include "physics/grid/UniformGrid.hh"
-#include "DetectorPointers.hh"
+#include "DetectorInterface.hh"
 #include "HostStackAllocatorStore.hh"
 
 namespace celeritas
