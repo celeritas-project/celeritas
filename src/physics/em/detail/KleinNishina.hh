@@ -29,9 +29,9 @@ struct KleinNishinaPointers
     //! 1 / electron mass [1 / MevMass]
     real_type inv_electron_mass;
     //! ID of an electron
-    ParticleDefId electron_id;
+    ParticleId electron_id;
     //! ID of a gamma
-    ParticleDefId gamma_id;
+    ParticleId gamma_id;
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const

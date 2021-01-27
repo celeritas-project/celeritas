@@ -55,7 +55,7 @@ class LivermorePEInteractor
     // Construct with shared and state data
     inline CELER_FUNCTION
     LivermorePEInteractor(const LivermorePEPointers& shared,
-                          ElementDefId               el_id,
+                          ElementId                  el_id,
                           const ParticleTrackView&   particle,
                           const Real3&               inc_direction,
                           SecondaryAllocatorView&    allocate);
@@ -68,7 +68,7 @@ class LivermorePEInteractor
     // Shared constant physics properties
     const LivermorePEPointers& shared_;
     // Index in MaterialParams/LivermorePEParams elements
-    ElementDefId el_id_;
+    ElementId el_id_;
     // Incident direction
     const Real3& inc_direction_;
     // Incident gamma energy

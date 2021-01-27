@@ -219,7 +219,7 @@ void MaterialParams::append_material_def(const MaterialInput& inp)
     CELER_EXPECT((inp.number_density == 0) == inp.elements_fractions.empty());
 
     auto iter_inserted = matname_to_id_.insert(
-        {inp.name, MaterialDefId(host_materials_.size())});
+        {inp.name, MaterialId(host_materials_.size())});
     if (!iter_inserted.second)
     {
         // Insertion failed, so material name is a duplicate

@@ -51,7 +51,7 @@ class ParticleTrackView
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Unique particle type identifier
-    CELER_FORCEINLINE_FUNCTION ParticleDefId def_id() const;
+    CELER_FORCEINLINE_FUNCTION ParticleId def_id() const;
 
     // Kinetic energy [MeV]
     CELER_FORCEINLINE_FUNCTION units::MevEnergy energy() const;

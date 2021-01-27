@@ -37,7 +37,7 @@ class LivermorePEMicroXsCalculator
                                  const ParticleTrackView&   particle);
 
     // Compute cross section
-    inline CELER_FUNCTION real_type operator()(ElementDefId el_id) const;
+    inline CELER_FUNCTION real_type operator()(ElementId el_id) const;
 
   private:
     // Shared constant physics properties

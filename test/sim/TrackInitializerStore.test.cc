@@ -63,7 +63,7 @@ class TrackInitTest : public celeritas::Test
         mats.materials = {{{1e-5 * constants::na_avogadro,
                             100.0,
                             MatterState::gas,
-                            {{ElementDefId{0}, 1.0}},
+                            {{ElementId{0}, 1.0}},
                             "H2"}}};
         auto material_params
             = std::make_shared<MaterialParams>(std::move(mats));
@@ -85,7 +85,7 @@ class TrackInitTest : public celeritas::Test
         std::vector<Primary> result;
         for (unsigned int i = 0; i < num_primaries; ++i)
         {
-            result.push_back({ParticleDefId{0},
+            result.push_back({ParticleId{0},
                               units::MevEnergy{1. + i},
                               {0., 0., 0.},
                               {0., 0., 1.},

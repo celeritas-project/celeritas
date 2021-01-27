@@ -38,9 +38,9 @@ void print_particles(const ParticleParams& particles)
 | ----------------- | ----------- | ---------- | ---------- | ----------- |
 )gfm";
 
-    for (auto idx : range<ParticleDefId::value_type>(particles.size()))
+    for (auto idx : range<ParticleId::value_type>(particles.size()))
     {
-        ParticleDefId      def_id{idx};
+        ParticleId         def_id{idx};
         const ParticleDef& def = particles.get(def_id);
 
         // clang-format off

@@ -29,9 +29,9 @@ struct EPlusGGPointers
     //! electron mass [MevMass]
     real_type electron_mass;
     //! ID of an positron
-    ParticleDefId positron_id;
+    ParticleId positron_id;
     //! ID of a gamma
-    ParticleDefId gamma_id;
+    ParticleId gamma_id;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const

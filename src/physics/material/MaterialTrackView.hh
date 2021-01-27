@@ -53,7 +53,7 @@ class MaterialTrackView
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Current material identifier
-    inline CELER_FUNCTION MaterialDefId def_id() const;
+    inline CELER_FUNCTION MaterialId def_id() const;
 
     //// STATIC PROPERTIES ////
 

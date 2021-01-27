@@ -17,7 +17,7 @@
 #include "Particle.test.hh"
 
 using celeritas::ParticleDef;
-using celeritas::ParticleDefId;
+using celeritas::ParticleId;
 using celeritas::ParticleParams;
 using celeritas::ParticleParamsPointers;
 using celeritas::ParticleStatePointers;
@@ -73,16 +73,16 @@ TEST_F(ParticleTrackViewTest, params_accessors)
     using celeritas::PDGNumber;
     const ParticleParams& defs = *this->particle_params;
 
-    EXPECT_EQ(ParticleDefId(0), defs.find(PDGNumber(11)));
-    EXPECT_EQ(ParticleDefId(1), defs.find(PDGNumber(22)));
-    EXPECT_EQ(ParticleDefId(2), defs.find(PDGNumber(2112)));
+    EXPECT_EQ(ParticleId(0), defs.find(PDGNumber(11)));
+    EXPECT_EQ(ParticleId(1), defs.find(PDGNumber(22)));
+    EXPECT_EQ(ParticleId(2), defs.find(PDGNumber(2112)));
 
-    EXPECT_EQ(ParticleDefId(0), defs.find("electron"));
-    EXPECT_EQ(ParticleDefId(1), defs.find("gamma"));
-    EXPECT_EQ(ParticleDefId(2), defs.find("neutron"));
+    EXPECT_EQ(ParticleId(0), defs.find("electron"));
+    EXPECT_EQ(ParticleId(1), defs.find("gamma"));
+    EXPECT_EQ(ParticleId(2), defs.find("neutron"));
 
-    EXPECT_EQ("electron", defs.id_to_label(ParticleDefId(0)));
-    EXPECT_EQ(PDGNumber(11), defs.id_to_pdg(ParticleDefId(0)));
+    EXPECT_EQ("electron", defs.id_to_label(ParticleId(0)));
+    EXPECT_EQ(PDGNumber(11), defs.id_to_pdg(ParticleId(0)));
 }
 
 //---------------------------------------------------------------------------//
@@ -113,7 +113,7 @@ class ParticleTrackViewTestHost : public ParticleTrackViewTest
 TEST_F(ParticleTrackViewTestHost, electron)
 {
     ParticleTrackView particle(params_view, state_view, ThreadId(0));
-    particle = Initializer_t{ParticleDefId{0}, MevEnergy{0.5}};
+    particle = Initializer_t{ParticleId{0}, MevEnergy{0.5}};
 
     EXPECT_DOUBLE_EQ(0.5, particle.energy().value());
     EXPECT_DOUBLE_EQ(0.5109989461, particle.mass().value());
@@ -134,7 +134,7 @@ TEST_F(ParticleTrackViewTestHost, electron)
 TEST_F(ParticleTrackViewTestHost, gamma)
 {
     ParticleTrackView particle(params_view, state_view, ThreadId(0));
-    particle = Initializer_t{ParticleDefId{1}, MevEnergy{10}};
+    particle = Initializer_t{ParticleId{1}, MevEnergy{10}};
 
     EXPECT_DOUBLE_EQ(0, particle.mass().value());
     EXPECT_DOUBLE_EQ(10, particle.energy().value());
@@ -145,7 +145,7 @@ TEST_F(ParticleTrackViewTestHost, gamma)
 TEST_F(ParticleTrackViewTestHost, neutron)
 {
     ParticleTrackView particle(params_view, state_view, ThreadId(0));
-    particle = Initializer_t{ParticleDefId{2}, MevEnergy{20}};
+    particle = Initializer_t{ParticleId{2}, MevEnergy{20}};
 
     EXPECT_DOUBLE_EQ(20, particle.energy().value());
     EXPECT_DOUBLE_EQ(1.0 / 879.4, particle.decay_constant());
@@ -164,9 +164,9 @@ class ParticleTrackViewTestDevice : public ParticleTrackViewTest
 TEST_F(ParticleTrackViewTestDevice, calc_props)
 {
     PTVTestInput input;
-    input.init = {{ParticleDefId{0}, MevEnergy{0.5}},
-                  {ParticleDefId{1}, MevEnergy{10}},
-                  {ParticleDefId{2}, MevEnergy{20}}};
+    input.init = {{ParticleId{0}, MevEnergy{0.5}},
+                  {ParticleId{1}, MevEnergy{10}},
+                  {ParticleId{2}, MevEnergy{20}}};
 
     ParticleStateStore pstates(input.init.size());
     input.params = particle_params->device_pointers();

@@ -100,7 +100,7 @@ class MaterialTest : public celeritas::Test
             {2.948915064677e+22,
              293.0,
              MatterState::solid,
-             {{ElementDefId{2}, 0.5}, {ElementDefId{3}, 0.5}},
+             {{ElementId{2}, 0.5}, {ElementId{3}, 0.5}},
              "NaI"},
             // Void
             {0, 0, MatterState::unspecified, {}, "hard vacuum"},
@@ -108,7 +108,7 @@ class MaterialTest : public celeritas::Test
             {1.0739484359044669e+20,
              100.0,
              MatterState::gas,
-             {{ElementDefId{0}, 1.0}},
+             {{ElementId{0}, 1.0}},
              "H2"},
         };
         params = std::make_shared<MaterialParams>(std::move(inp));
@@ -123,19 +123,19 @@ TEST_F(MaterialTest, params)
 {
     ASSERT_TRUE(params);
 
-    EXPECT_EQ(MaterialDefId{0}, params->find("NaI"));
-    EXPECT_EQ(MaterialDefId{1}, params->find("hard vacuum"));
-    EXPECT_EQ(MaterialDefId{2}, params->find("H2"));
-    EXPECT_EQ(MaterialDefId{}, params->find("nonexistent material"));
+    EXPECT_EQ(MaterialId{0}, params->find("NaI"));
+    EXPECT_EQ(MaterialId{1}, params->find("hard vacuum"));
+    EXPECT_EQ(MaterialId{2}, params->find("H2"));
+    EXPECT_EQ(MaterialId{}, params->find("nonexistent material"));
 
-    EXPECT_EQ("H", params->id_to_label(ElementDefId{0}));
-    EXPECT_EQ("Al", params->id_to_label(ElementDefId{1}));
-    EXPECT_EQ("Na", params->id_to_label(ElementDefId{2}));
-    EXPECT_EQ("I", params->id_to_label(ElementDefId{3}));
+    EXPECT_EQ("H", params->id_to_label(ElementId{0}));
+    EXPECT_EQ("Al", params->id_to_label(ElementId{1}));
+    EXPECT_EQ("Na", params->id_to_label(ElementId{2}));
+    EXPECT_EQ("I", params->id_to_label(ElementId{3}));
 
-    EXPECT_EQ("NaI", params->id_to_label(MaterialDefId{0}));
-    EXPECT_EQ("hard vacuum", params->id_to_label(MaterialDefId{1}));
-    EXPECT_EQ("H2", params->id_to_label(MaterialDefId{2}));
+    EXPECT_EQ("NaI", params->id_to_label(MaterialId{0}));
+    EXPECT_EQ("hard vacuum", params->id_to_label(MaterialId{1}));
+    EXPECT_EQ("H2", params->id_to_label(MaterialId{2}));
 
     EXPECT_EQ(2, params->max_element_components());
 }
@@ -145,7 +145,7 @@ TEST_F(MaterialTest, material_view)
     auto host_ptrs = params->host_pointers();
     {
         // NaI
-        MaterialView mat(host_ptrs, MaterialDefId{0});
+        MaterialView mat(host_ptrs, MaterialId{0});
         EXPECT_SOFT_EQ(2.948915064677e+22, mat.number_density());
         EXPECT_SOFT_EQ(293.0, mat.temperature());
         EXPECT_EQ(MatterState::solid, mat.matter_state());
@@ -156,14 +156,14 @@ TEST_F(MaterialTest, material_view)
         // Test element view
         auto els = mat.elements();
         ASSERT_EQ(2, els.size());
-        EXPECT_EQ(ElementDefId{2}, els[0].element);
+        EXPECT_EQ(ElementId{2}, els[0].element);
         EXPECT_SOFT_EQ(0.5, els[0].fraction);
-        EXPECT_EQ(ElementDefId{3}, els[1].element);
+        EXPECT_EQ(ElementId{3}, els[1].element);
         EXPECT_SOFT_EQ(0.5, els[1].fraction);
     }
     {
         // vacuum
-        MaterialView mat(host_ptrs, MaterialDefId{1});
+        MaterialView mat(host_ptrs, MaterialId{1});
         EXPECT_SOFT_EQ(0, mat.number_density());
         EXPECT_SOFT_EQ(0, mat.temperature());
         EXPECT_EQ(MatterState::unspecified, mat.matter_state());
@@ -178,7 +178,7 @@ TEST_F(MaterialTest, material_view)
     }
     {
         // H2
-        MaterialView mat(host_ptrs, MaterialDefId{2});
+        MaterialView mat(host_ptrs, MaterialId{2});
         EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.number_density());
         EXPECT_SOFT_EQ(100, mat.temperature());
         EXPECT_EQ(MatterState::gas, mat.matter_state());
@@ -197,7 +197,7 @@ TEST_F(MaterialTest, element_view)
     auto host_ptrs = params->host_pointers();
     {
         // Test aluminum
-        ElementView el(host_ptrs, ElementDefId{1});
+        ElementView el(host_ptrs, ElementId{1});
         EXPECT_EQ(13, el.atomic_number());
         EXPECT_SOFT_EQ(26.9815385, el.atomic_mass().value());
         EXPECT_SOFT_EQ(std::pow(13.0, 1.0 / 3), el.cbrt_z());
@@ -220,7 +220,7 @@ class MaterialDeviceTest : public MaterialTest
 TEST_F(MaterialDeviceTest, all)
 {
     MTestInput input;
-    input.init = {{MaterialDefId{0}}, {MaterialDefId{1}}, {MaterialDefId{2}}};
+    input.init = {{MaterialId{0}}, {MaterialId{1}}, {MaterialId{2}}};
 
     MaterialStateStore states(*params, input.init.size());
     input.params = params->device_pointers();

@@ -58,14 +58,14 @@ class InteractorHostTestBase : public celeritas::Test
     using PDGNumber = celeritas::PDGNumber;
     using MevEnergy = celeritas::units::MevEnergy;
 
-    using MaterialDefId     = celeritas::MaterialDefId;
+    using MaterialId        = celeritas::MaterialId;
     using MaterialParams    = celeritas::MaterialParams;
     using MaterialTrackView = celeritas::MaterialTrackView;
 
     using Interaction            = celeritas::Interaction;
     using ModelIdGenerator       = celeritas::ModelIdGenerator;
     using ModelId                = celeritas::ModelId;
-    using ParticleDefId          = celeritas::ParticleDefId;
+    using ParticleId             = celeritas::ParticleId;
     using ParticleParams         = celeritas::ParticleParams;
     using ParticleTrackView      = celeritas::ParticleTrackView;
     using Real3                  = celeritas::Real3;

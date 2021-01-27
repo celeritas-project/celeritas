@@ -40,7 +40,7 @@ class ElementView
   public:
     // Construct from shared material pointers and global element ID
     inline CELER_FUNCTION
-    ElementView(const MaterialParamsPointers& params, ElementDefId el_id);
+    ElementView(const MaterialParamsPointers& params, ElementId el_id);
 
     //// STATIC PROPERTIES ////
 

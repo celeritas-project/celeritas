@@ -42,7 +42,7 @@ MaterialTrackView::operator=(const Initializer_t& other)
 /*!
  * Current material identifier.
  */
-CELER_FORCEINLINE_FUNCTION MaterialDefId MaterialTrackView::def_id() const
+CELER_FORCEINLINE_FUNCTION MaterialId MaterialTrackView::def_id() const
 {
     return this->state().def_id;
 }

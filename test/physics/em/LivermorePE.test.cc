@@ -19,7 +19,7 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::ElementDefId;
+using celeritas::ElementId;
 using celeritas::LivermorePEParams;
 using celeritas::LivermorePEParamsReader;
 using celeritas::PhotoelectricProcess;
@@ -83,7 +83,7 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
         mi.materials = {{1e-5 * na_avogadro,
                          293.,
                          MatterState::solid,
-                         {{ElementDefId{0}, 1.0}},
+                         {{ElementId{0}, 1.0}},
                          "K"}};
 
         // Set default material to potassium
@@ -134,7 +134,7 @@ TEST_F(LivermorePEInteractorTest, basic)
     this->resize_secondaries(4);
 
     // Sampled element
-    ElementDefId el_id{0};
+    ElementId el_id{0};
 
     // Create the interactor
     LivermorePEInteractor interact(pointers_,
@@ -192,7 +192,7 @@ TEST_F(LivermorePEInteractorTest, stress_test)
     const int           num_samples = 8192;
     std::vector<double> avg_engine_samples;
 
-    ElementDefId el_id{0};
+    ElementId el_id{0};
 
     for (double inc_e : {0.0001, 0.01, 1.0, 10.0, 1000.0})
     {
@@ -255,8 +255,8 @@ TEST_F(LivermorePEInteractorTest, model)
     EXPECT_EQ(1, set_applic.size());
 
     auto applic = *set_applic.begin();
-    EXPECT_EQ(MaterialDefId{}, applic.material);
-    EXPECT_EQ(ParticleDefId{1}, applic.particle);
+    EXPECT_EQ(MaterialId{}, applic.material);
+    EXPECT_EQ(ParticleId{1}, applic.particle);
     EXPECT_EQ(celeritas::zero_quantity(), applic.lower);
     EXPECT_EQ(celeritas::max_quantity(), applic.upper);
 }

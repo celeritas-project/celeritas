@@ -20,7 +20,7 @@ namespace celeritas
  */
 struct MaterialTrackState
 {
-    MaterialDefId def_id; //!< Current material being tracked
+    MaterialId def_id; //!< Current material being tracked
 };
 
 //---------------------------------------------------------------------------//

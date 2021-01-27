@@ -23,7 +23,7 @@ namespace celeritas
  */
 struct MatElementComponent
 {
-    ElementDefId element;  //!< Index in MaterialParams elements
+    ElementId    element;  //!< Index in MaterialParams elements
     real_type    fraction; //!< Fraction of number density
 };
 

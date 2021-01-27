@@ -269,7 +269,7 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
 
         for (const auto& elem_key : mat_key.second.elements_num_fractions)
         {
-            ElementDefId elem_def_id{elem_key.first};
+            ElementId elem_def_id{elem_key.first};
 
             // Populate MaterialParams number fractions
             material_params.elements_fractions.push_back(

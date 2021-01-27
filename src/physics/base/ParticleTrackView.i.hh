@@ -60,7 +60,7 @@ void ParticleTrackView::energy(units::MevEnergy quantity)
 /*!
  * Unique particle type identifier.
  */
-CELER_FUNCTION ParticleDefId ParticleTrackView::def_id() const
+CELER_FUNCTION ParticleId ParticleTrackView::def_id() const
 {
     return state_.def_id;
 }

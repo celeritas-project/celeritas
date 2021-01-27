@@ -23,7 +23,7 @@ namespace detail
  */
 CELER_FUNCTION
 LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
-                                             ElementDefId               el_id,
+                                             ElementId                  el_id,
                                              const ParticleTrackView& particle,
                                              const Real3& inc_direction,
                                              SecondaryAllocatorView& allocate)

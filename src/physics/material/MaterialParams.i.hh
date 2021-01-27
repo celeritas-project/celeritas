@@ -12,7 +12,7 @@ namespace celeritas
 /*!
  * Get the label for an element.
  */
-const std::string& MaterialParams::id_to_label(ElementDefId el) const
+const std::string& MaterialParams::id_to_label(ElementId el) const
 {
     CELER_EXPECT(el < elnames_.size());
     return elnames_[el.get()];
@@ -22,7 +22,7 @@ const std::string& MaterialParams::id_to_label(ElementDefId el) const
 /*!
  * Get the label for a material.
  */
-const std::string& MaterialParams::id_to_label(MaterialDefId mat) const
+const std::string& MaterialParams::id_to_label(MaterialId mat) const
 {
     CELER_EXPECT(mat < matnames_.size());
     return matnames_[mat.get()];
@@ -35,7 +35,7 @@ const std::string& MaterialParams::id_to_label(MaterialDefId mat) const
  * This function will have to be updated to allow for multiple MaterialDefIds
  * with same material name.
  */
-MaterialDefId MaterialParams::find(const std::string& name) const
+MaterialId MaterialParams::find(const std::string& name) const
 {
     auto iter = matname_to_id_.find(name);
     if (iter == matname_to_id_.end())

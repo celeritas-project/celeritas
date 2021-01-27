@@ -18,7 +18,7 @@ namespace celeritas
  * Access particle definitions on the device.
  *
  * This view is created from \c ParticleParams. The size of the \c defs data
- * member is the number of particle types (accessed by \c ParticleDefId).
+ * member is the number of particle types (accessed by \c ParticleId).
  *
  * \sa ParticleParams (owns the pointed-to data)
  * \sa ParticleTrackView (uses the pointed-to data in a kernel)

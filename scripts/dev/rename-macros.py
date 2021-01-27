@@ -13,18 +13,17 @@ import os.path
 import re
 
 REPLACE = {
-    'Copyright 2020': 'Copyright 2021',
-    'REQUIRE': 'CELER_EXPECT',
-    'CHECK': 'CELER_ASSERT',
-    'ENSURE': 'CELER_ENSURE',
-    'CHECK_UNREACHABLE': 'CELER_ASSERT_UNREACHABLE()',
-    'INSIST': 'CELER_VALIDATE',
+    'ParticleDefId': 'ParticleId',
+    'MaterialDefId': 'MaterialId',
+    'ElementDefId': 'ElementId',
 }
-RE_REPLACE = re.compile(r'\b(' + '|'.join(REPLACE.keys()) + r')\b')
 
 
 def replace_macro_names(matchobj):
     return REPLACE[matchobj.group(1)]
+
+
+RE_REPLACE = re.compile(r'\b(' + '|'.join(REPLACE.keys()) + r')\b')
 
 
 def update_macros(filename):

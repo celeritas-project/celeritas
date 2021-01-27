@@ -29,7 +29,7 @@ CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
  * Compute cross section
  */
 CELER_FUNCTION
-real_type LivermorePEMicroXsCalculator::operator()(ElementDefId el_id) const
+real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
 {
     CELER_EXPECT(el_id);
     const LivermoreElement& el = shared_.data.elements[el_id.get()];

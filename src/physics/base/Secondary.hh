@@ -21,7 +21,7 @@ namespace celeritas
  */
 struct Secondary
 {
-    ParticleDefId    def_id{};                //!< New particle type
+    ParticleId       def_id{};                //!< New particle type
     units::MevEnergy energy{zero_quantity()}; //!< New kinetic energy
     Real3            direction;               //!< New direction
 
