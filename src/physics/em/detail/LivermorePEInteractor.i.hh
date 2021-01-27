@@ -34,7 +34,7 @@ LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
     , allocate_(allocate)
     , calc_micro_xs_(shared, particle)
 {
-    CELER_EXPECT(particle.def_id() == shared_.gamma_id);
+    CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
     CELER_EXPECT(inc_energy_.value() > 0);
 
     inv_energy_ = 1. / inc_energy_.value();
@@ -110,7 +110,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 
     // Outgoing secondary is an electron
     result.secondaries    = {photoelectron, 1};
-    photoelectron->def_id = shared_.electron_id;
+    photoelectron->particle_id = shared_.electron_id;
 
     // Electron kinetic energy is the difference between the incident photon
     // energy and the binding energy of the shell

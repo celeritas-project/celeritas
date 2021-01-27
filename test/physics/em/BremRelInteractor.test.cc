@@ -103,5 +103,5 @@ TEST_F(BremRelInteractorTest, basic)
     // Temporary test of harness material track view
     MaterialTrackView& mat_track = this->material_track();
     EXPECT_EQ(2, mat_track.element_scratch().size());
-    EXPECT_EQ(MaterialId{1}, mat_track.def_id());
+    EXPECT_EQ(MaterialId{1}, mat_track.material_id());
 }

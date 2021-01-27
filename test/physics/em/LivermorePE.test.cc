@@ -106,7 +106,7 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
         {
             const auto& electron = interaction.secondaries.front();
             EXPECT_TRUE(electron);
-            EXPECT_EQ(pointers_.electron_id, electron.def_id);
+            EXPECT_EQ(pointers_.electron_id, electron.particle_id);
             EXPECT_GT(this->particle_track().energy().value(),
                       electron.energy.value());
             EXPECT_LT(0, electron.energy.value());

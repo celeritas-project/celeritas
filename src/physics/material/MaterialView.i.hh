@@ -14,7 +14,7 @@ namespace celeritas
  */
 CELER_FUNCTION
 MaterialView::MaterialView(const MaterialParamsPointers& params, MaterialId id)
-    : params_(params), id_(id)
+    : params_(params), material_(id)
 {
     CELER_EXPECT(id < params.materials.size());
 }
@@ -131,7 +131,7 @@ CELER_FUNCTION real_type MaterialView::radiation_length() const
  */
 CELER_FUNCTION const MaterialDef& MaterialView::material_def() const
 {
-    return params_.materials[id_.get()];
+    return params_.materials[material_.get()];
 }
 
 //---------------------------------------------------------------------------//

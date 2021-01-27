@@ -60,9 +60,9 @@ TEST_F(RootImporterTest, import_particles)
     std::vector<int>         loaded_pdgs;
     for (auto idx : range<ParticleId::value_type>(particles.size()))
     {
-        ParticleId def_id{idx};
-        loaded_names.push_back(particles.id_to_label(def_id));
-        loaded_pdgs.push_back(particles.id_to_pdg(def_id).get());
+        ParticleId particle_id{idx};
+        loaded_names.push_back(particles.id_to_label(particle_id));
+        loaded_pdgs.push_back(particles.id_to_pdg(particle_id).get());
     }
 
     // clang-format off

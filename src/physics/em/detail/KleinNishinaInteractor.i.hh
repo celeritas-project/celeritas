@@ -32,7 +32,7 @@ CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
     , inc_direction_(inc_direction)
     , allocate_(allocate)
 {
-    CELER_EXPECT(particle.def_id() == shared_.gamma_id);
+    CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -110,7 +110,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
                  result.direction);
 
     // Outgoing secondary is an electron
-    electron_secondary->def_id = shared_.electron_id;
+    electron_secondary->particle_id = shared_.electron_id;
     // Construct secondary energy by neglecting electron binding energy
     electron_secondary->energy
         = units::MevEnergy{inc_energy_.value() - result.energy.value()};

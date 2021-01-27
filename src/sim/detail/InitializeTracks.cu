@@ -153,7 +153,7 @@ __global__ void locate_alive_kernel(const StatePointers            states,
             Secondary&        secondary = result.secondaries[secondary_id];
             ParticleTrackView particle(
                 params.particle, states.particle, thread_id);
-            particle = {secondary.def_id, secondary.energy};
+            particle = {secondary.particle_id, secondary.energy};
 
             // Keep the parent's geometry state
             GeoTrackView geo(params.geo, states.geo, thread_id);
@@ -194,7 +194,7 @@ process_primaries_kernel(const Span<const Primary>    primaries,
         init.sim.alive       = true;
         init.geo.pos         = primary.position;
         init.geo.dir         = primary.direction;
-        init.particle.def_id = primary.def_id;
+        init.particle.particle_id = primary.particle_id;
         init.particle.energy = primary.energy;
     }
 }
@@ -244,7 +244,7 @@ __global__ void process_secondaries_kernel(const StatePointers states,
                 init.sim.alive       = true;
                 init.geo.pos         = geo.pos();
                 init.geo.dir         = secondary.direction;
-                init.particle.def_id = secondary.def_id;
+                init.particle.particle_id = secondary.particle_id;
                 init.particle.energy = secondary.energy;
             }
         }

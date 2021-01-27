@@ -21,7 +21,7 @@ CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
     const LivermorePEPointers& shared, const ParticleTrackView& particle)
     : shared_(shared), inc_energy_(particle.energy().value())
 {
-    CELER_EXPECT(particle.def_id() == shared_.gamma_id);
+    CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
 }
 
 //---------------------------------------------------------------------------//

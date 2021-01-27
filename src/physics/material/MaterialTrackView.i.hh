@@ -20,10 +20,10 @@ namespace celeritas
 CELER_FUNCTION
 MaterialTrackView::MaterialTrackView(const MaterialParamsPointers& params,
                                      const MaterialStatePointers&  states,
-                                     ThreadId                      id)
-    : params_(params), states_(states), tid_(id)
+                                     ThreadId                      tid)
+    : params_(params), states_(states), thread_(tid)
 {
-    CELER_EXPECT(id < states.state.size());
+    CELER_EXPECT(tid < states.state.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -33,7 +33,7 @@ MaterialTrackView::MaterialTrackView(const MaterialParamsPointers& params,
 CELER_FUNCTION MaterialTrackView&
 MaterialTrackView::operator=(const Initializer_t& other)
 {
-    CELER_EXPECT(other.def_id < params_.materials.size());
+    CELER_EXPECT(other.material_id < params_.materials.size());
     this->state() = other;
     return *this;
 }
@@ -42,9 +42,9 @@ MaterialTrackView::operator=(const Initializer_t& other)
 /*!
  * Current material identifier.
  */
-CELER_FORCEINLINE_FUNCTION MaterialId MaterialTrackView::def_id() const
+CELER_FORCEINLINE_FUNCTION MaterialId MaterialTrackView::material_id() const
 {
-    return this->state().def_id;
+    return this->state().material_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ CELER_FORCEINLINE_FUNCTION MaterialId MaterialTrackView::def_id() const
  */
 CELER_FORCEINLINE_FUNCTION MaterialView MaterialTrackView::material_view() const
 {
-    return MaterialView(params_, this->def_id());
+    return MaterialView(params_, this->material_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -62,7 +62,7 @@ CELER_FORCEINLINE_FUNCTION MaterialView MaterialTrackView::material_view() const
  */
 CELER_FUNCTION Span<real_type> MaterialTrackView::element_scratch()
 {
-    auto offset = tid_.get() * params_.max_element_components;
+    auto offset = thread_.get() * params_.max_element_components;
     CELER_ENSURE(offset + params_.max_element_components
                  <= states_.element_scratch.size());
     return {states_.element_scratch.data() + offset,
@@ -75,7 +75,7 @@ CELER_FUNCTION Span<real_type> MaterialTrackView::element_scratch()
  */
 CELER_FORCEINLINE_FUNCTION MaterialTrackState& MaterialTrackView::state() const
 {
-    return states_.state[tid_.get()];
+    return states_.state[thread_.get()];
 }
 
 //---------------------------------------------------------------------------//

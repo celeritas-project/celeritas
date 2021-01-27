@@ -40,7 +40,7 @@ __global__ void klein_nishina_interact_kernel(const KleinNishinaPointers  kn,
 
     PhysicsTrackView physics(ptrs.params.physics,
                              ptrs.states.physics,
-                             particle.def_id(),
+                             particle.particle_id(),
                              MaterialId{},
                              tid);
 

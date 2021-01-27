@@ -99,7 +99,7 @@ TEST_P(EventReaderTest, read_all_formats)
         const auto& primary = primaries[i];
 
         // Check that the particle types were read correctly
-        EXPECT_EQ(expected_def_id[i], primary.def_id.get());
+        EXPECT_EQ(expected_def_id[i], primary.particle_id.get());
 
         // Check that the event IDs match
         EXPECT_EQ(0, primary.event_id.get());

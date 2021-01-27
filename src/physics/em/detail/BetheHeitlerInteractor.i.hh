@@ -35,7 +35,7 @@ BetheHeitlerInteractor::BetheHeitlerInteractor(
     , allocate_(allocate)
     , element_(element)
 {
-    CELER_EXPECT(particle.def_id() == shared_.gamma_id);
+    CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
 
     epsilon0_ = 1.0 / (shared_.inv_electron_mass * inc_energy_.value());
     // Gamma energy must be at least 2x electron rest mass
@@ -134,8 +134,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     result.secondaries = {secondaries, 2};
 
     // Outgoing secondaries are electron and positron
-    secondaries[0].def_id = shared_.electron_id;
-    secondaries[1].def_id = shared_.positron_id;
+    secondaries[0].particle_id = shared_.electron_id;
+    secondaries[1].particle_id = shared_.positron_id;
     secondaries[0].energy
         = units::MevEnergy{(1.0 - epsilon) * inc_energy_.value()};
     secondaries[1].energy = units::MevEnergy{epsilon * inc_energy_.value()};

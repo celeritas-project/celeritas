@@ -80,7 +80,7 @@ class MaterialView
 
   private:
     const MaterialParamsPointers& params_;
-    MaterialId                    id_;
+    MaterialId                    material_;
 
     // HELPER FUNCTIONS
 

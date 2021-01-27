@@ -19,7 +19,7 @@ namespace celeritas
  */
 struct Primary
 {
-    ParticleId       def_id;
+    ParticleId       particle_id;
     units::MevEnergy energy;
     Real3            position;
     Real3            direction;

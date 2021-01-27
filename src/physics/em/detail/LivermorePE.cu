@@ -41,10 +41,10 @@ __global__ void livermore_pe_interact_kernel(const LivermorePEPointers   pe,
     ParticleTrackView particle(ptrs.params.particle, ptrs.states.particle, tid);
     MaterialTrackView material(ptrs.params.material, ptrs.states.material, tid);
     PhysicsTrackView  physics(ptrs.params.physics,
-                              ptrs.states.physics,
-                              particle.def_id(),
-                              material.def_id(),
-                              tid);
+                             ptrs.states.physics,
+                             particle.particle_id(),
+                             material.material_id(),
+                             tid);
 
     // This interaction only applies if the Livermore PE model was selected
     if (physics.model_id() != pe.model_id)

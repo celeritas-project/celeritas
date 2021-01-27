@@ -96,7 +96,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         // Electron
         const auto& electron = interaction.secondaries.front();
         EXPECT_TRUE(electron);
-        EXPECT_EQ(pointers_.electron_id, electron.def_id);
+        EXPECT_EQ(pointers_.electron_id, electron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   electron.energy.value());
         EXPECT_LT(0, electron.energy.value());
@@ -104,7 +104,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         // Positron
         const auto& positron = interaction.secondaries.back();
         EXPECT_TRUE(positron);
-        EXPECT_EQ(pointers_.positron_id, positron.def_id);
+        EXPECT_EQ(pointers_.positron_id, positron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   positron.energy.value());
         EXPECT_LT(0, positron.energy.value());

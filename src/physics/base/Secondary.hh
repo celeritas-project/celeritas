@@ -21,14 +21,14 @@ namespace celeritas
  */
 struct Secondary
 {
-    ParticleId       def_id{};                //!< New particle type
+    ParticleId       particle_id{};           //!< New particle type
     units::MevEnergy energy{zero_quantity()}; //!< New kinetic energy
     Real3            direction;               //!< New direction
 
     //! Whether the secondary survived cutoffs
     explicit CELER_FUNCTION operator bool() const
     {
-        return static_cast<bool>(this->def_id);
+        return static_cast<bool>(this->particle_id);
     }
 };
 
