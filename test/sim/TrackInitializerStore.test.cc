@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "sim/TrackInitializerStore.hh"
 
+#include <algorithm>
 #include <numeric>
 #include "celeritas_test.hh"
 #include "geometry/GeoParams.hh"
@@ -158,7 +159,10 @@ TEST_F(TrackInitTest, run)
     EXPECT_VEC_EQ(expected.vacancy, output.vacancy);
 
     // Check the track IDs of the track initializers created from secondaries
+    // Output is sorted as TrackInitializerStore does not calculate IDs
+    // deterministically
     output.initializer_id   = initializers_test(track_init.device_pointers());
+    std::sort(std::begin(output.initializer_id), std::end(output.initializer_id));
     expected.initializer_id = {0, 1, 15, 16, 17};
     EXPECT_VEC_EQ(expected.initializer_id, output.initializer_id);
 
@@ -166,8 +170,11 @@ TEST_F(TrackInitTest, run)
     track_init.initialize_tracks(states, params);
 
     // Check the track IDs of the initialized tracks
+    // Output is sorted as TrackInitializerStore does not calculate IDs
+    // deterministically
     output.track_id   = tracks_test(states.device_pointers());
-    expected.track_id = {12, 3, 16, 5, 13, 7, 17, 9, 14, 11};
+    std::sort(std::begin(output.track_id), std::end(output.track_id));
+    expected.track_id = {3, 5, 7, 9, 11, 12, 13, 14, 16, 17};
     EXPECT_VEC_EQ(expected.track_id, output.track_id);
 }
 
