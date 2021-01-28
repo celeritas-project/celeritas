@@ -34,7 +34,8 @@ PhysicsTrackView::PhysicsTrackView(const PhysicsParamsPointers& params,
  *
  * \todo Add total interaction cross section to state.
  */
-PhysicsTrackView& PhysicsTrackView::operator=(const Initializer_t&)
+CELER_FUNCTION PhysicsTrackView&
+PhysicsTrackView::operator=(const Initializer_t&)
 {
     this->state().interaction_mfp = -1;
     this->state().step_length     = -1;

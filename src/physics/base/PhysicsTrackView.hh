@@ -41,7 +41,7 @@ class PhysicsTrackView
                                            ThreadId   id);
 
     // Initialize the track view
-    PhysicsTrackView& operator=(const Initializer_t&);
+    inline CELER_FUNCTION PhysicsTrackView& operator=(const Initializer_t&);
 
     // Set the remaining MFP to interaction
     inline CELER_FUNCTION void interaction_mfp(real_type);
