@@ -49,6 +49,12 @@ struct Applicability
         result.upper    = zero_quantity();
         return result;
     }
+
+    //! Whether applicability is in a valid state
+    inline explicit operator bool() const
+    {
+        return static_cast<bool>(particle);
+    }
 };
 
 //!@{

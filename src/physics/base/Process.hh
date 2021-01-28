@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include "Applicability.hh"
 #include "ModelIdGenerator.hh"
 #include "Types.hh"
