@@ -35,9 +35,14 @@ option(CELERITAS_USE_ROOT "Enable ROOT I/O" OFF)
 option(CELERITAS_USE_SWIG_Python "Enable SWIG Python bindings" OFF)
 option(CELERITAS_USE_VecGeom "Enable VecGeom geometry" ON)
 
-if(CELERITAS_USE_MPI AND CELERITAS_USE_CUDA AND CMAKE_VERSION VERSION_LESS 3.13)
+if(CMAKE_VERSION VERSION_LESS 3.13 AND CELERITAS_USE_CUDA AND CELERITAS_USE_MPI)
   message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
     "when building with CUDA + MPI.")
+endif()
+if(CMAKE_VERSION VERSION_LESS 3.17 AND CELERITAS_USE_CUDA
+    AND CELERITAS_USE_VecGeom)
+  message(FATAL_ERROR "VecGeom+CUDA has mysterious runtime errors under CMake "
+    "3.15. Use a newer version of CMake.")
 endif()
 if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
   message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
