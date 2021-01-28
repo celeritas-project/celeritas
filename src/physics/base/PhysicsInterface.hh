@@ -157,7 +157,8 @@ struct PhysicsTrackState
 {
     real_type          interaction_mfp; //!< Remaining MFP to interaction
     real_type          step_length;     //!< Maximum step length
-    ModelId            model_id;        //!< Selected model if interacting
+    real_type          macro_xs;
+    ModelId            model_id;   //!< Selected model if interacting
     ElementComponentId element_id; //!< Selected element during interaction
 };
 

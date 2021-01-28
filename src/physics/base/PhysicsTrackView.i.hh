@@ -39,6 +39,7 @@ PhysicsTrackView::operator=(const Initializer_t&)
 {
     this->state().interaction_mfp = -1;
     this->state().step_length     = -1;
+    this->state().macro_xs        = -1;
     this->state().model_id        = ModelId{};
     return *this;
 }
@@ -63,6 +64,16 @@ CELER_FUNCTION void PhysicsTrackView::step_length(real_type distance)
 {
     CELER_EXPECT(distance > 0);
     this->state().step_length = distance;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the process-integrated total macroscopic cross section.
+ */
+CELER_FUNCTION void PhysicsTrackView::macro_xs(real_type inv_distance)
+{
+    CELER_EXPECT(inv_distance > 0);
+    this->state().macro_xs = inv_distance;
 }
 
 //---------------------------------------------------------------------------//
@@ -106,6 +117,20 @@ CELER_FUNCTION real_type PhysicsTrackView::step_length() const
     real_type length = this->state().step_length;
     CELER_ENSURE(length >= 0);
     return length;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculated process-integrated macroscopic XS.
+ *
+ * This value should be calculated in the pre-step kernel, and will be used to
+ * decrement `interaction_mfp` and for sampling a process.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::macro_xs() const
+{
+    real_type xs = this->state().macro_xs;
+    CELER_ENSURE(xs >= 0);
+    return xs;
 }
 
 //---------------------------------------------------------------------------//

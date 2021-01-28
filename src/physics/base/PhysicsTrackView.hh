@@ -49,6 +49,9 @@ class PhysicsTrackView
     // Set the physics step length
     inline CELER_FUNCTION void step_length(real_type);
 
+    // Set the total (process-integrated) macroscopic xs
+    inline CELER_FUNCTION void macro_xs(real_type);
+
     // Select a model for the current interaction (or {} for no interaction)
     inline CELER_FUNCTION void model_id(ModelId);
 
@@ -57,11 +60,14 @@ class PhysicsTrackView
     // Whether the remaining MFP has been calculated
     CELER_FORCEINLINE_FUNCTION bool has_interaction_mfp() const;
 
-    // Remaining MFP to interaction
+    // Remaining MFP to interaction [1]
     CELER_FORCEINLINE_FUNCTION real_type interaction_mfp() const;
 
-    // Maximum step length
+    // Maximum step length [cm]
     CELER_FORCEINLINE_FUNCTION real_type step_length() const;
+
+    // Total (process-integrated) macroscopic xs [cm^-1]
+    CELER_FORCEINLINE_FUNCTION real_type macro_xs() const;
 
     // Selected model if interacting
     CELER_FORCEINLINE_FUNCTION ModelId model_id() const;
