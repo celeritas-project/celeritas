@@ -9,7 +9,7 @@
 
 #include <vector>
 #include "base/Span.hh"
-#include "base/StackAllocatorPointers.hh"
+#include "base/StackAllocatorInterface.hh"
 
 namespace celeritas
 {

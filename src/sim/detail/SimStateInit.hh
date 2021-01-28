@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Span.hh"
-#include "../SimStatePointers.hh"
+#include "../SimInterface.hh"
 
 namespace celeritas
 {

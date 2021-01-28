@@ -10,9 +10,8 @@
 #include "base/NumericLimits.hh"
 #include "base/Span.hh"
 #include "physics/base/Primary.hh"
-#include "sim/ParamPointers.hh"
-#include "sim/StatePointers.hh"
-#include "sim/TrackInitializerPointers.hh"
+#include "sim/TrackInterface.hh"
+#include "sim/TrackInitializerInterface.hh"
 
 namespace celeritas
 {

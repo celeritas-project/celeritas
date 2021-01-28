@@ -12,7 +12,7 @@
 #include "base/DeviceVector.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
-#include "GeoStatePointers.hh"
+#include "GeoInterface.hh"
 #include "detail/VGNavStateStore.hh"
 
 namespace celeritas

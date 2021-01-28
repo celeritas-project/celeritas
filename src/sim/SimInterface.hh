@@ -3,32 +3,42 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleParamsPointers.hh
+//! \file SimInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Macros.hh"
 #include "base/Span.hh"
-#include "ParticleDef.hh"
+#include "base/Types.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access particle definitions on the device.
- *
- * This view is created from \c ParticleParams. The size of the \c defs data
- * member is the number of particle types (accessed by \c ParticleDefId).
- *
- * \sa ParticleParams (owns the pointed-to data)
- * \sa ParticleTrackView (uses the pointed-to data in a kernel)
+ * Simulation state of a track.
  */
-struct ParticleParamsPointers
+struct SimTrackState
 {
-    Span<const ParticleDef> defs;
+    TrackId track_id;      //!< Unique ID for this track
+    TrackId parent_id;     //!< ID of parent that created it
+    EventId event_id;      //!< ID of originating event
+    bool    alive = false; //!< Whether this track is alive
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * View to the simulation states of multiple tracks.
+ */
+struct SimStatePointers
+{
+    Span<SimTrackState> vars;
 
     //! Check whether the interface is initialized
-    explicit CELER_FUNCTION operator bool() const { return !defs.empty(); }
+    explicit CELER_FUNCTION operator bool() const { return !vars.empty(); }
+
+    //! State size
+    CELER_FUNCTION size_type size() const { return vars.size(); }
 };
 
 //---------------------------------------------------------------------------//

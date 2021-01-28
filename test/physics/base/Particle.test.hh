@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include <vector>
-#include "physics/base/ParticleParamsPointers.hh"
-#include "physics/base/ParticleStatePointers.hh"
+#include "physics/base/ParticleInterface.hh"
 
 namespace celeritas_test
 {

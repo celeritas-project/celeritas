@@ -36,9 +36,9 @@ class PhysicsTrackView
     // Construct from "dynamic" state and "static" particle definitions
     inline CELER_FUNCTION PhysicsTrackView(const PhysicsParamsPointers& params,
                                            const PhysicsStatePointers&  states,
-                                           ParticleDefId particle,
-                                           MaterialDefId material,
-                                           ThreadId      id);
+                                           ParticleId particle,
+                                           MaterialId material,
+                                           ThreadId   id);
 
     // Select a model for the current interaction (or {} for no interaction)
     inline CELER_FUNCTION void model_id(ModelId);

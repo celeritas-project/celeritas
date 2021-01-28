@@ -44,23 +44,23 @@ class ElementSelectorTest : public celeritas::Test
             {0.1 * constants::na_avogadro,
              293.0,
              MatterState::gas,
-             {{ElementDefId{2}, 1.0}},
+             {{ElementId{2}, 1.0}},
              "Al"},
             {0.05 * constants::na_avogadro,
              293.0,
              MatterState::solid,
-             {{ElementDefId{0}, 0.25},
-              {ElementDefId{1}, 0.25},
-              {ElementDefId{2}, 0.25},
-              {ElementDefId{3}, 0.25}},
+             {{ElementId{0}, 0.25},
+              {ElementId{1}, 0.25},
+              {ElementId{2}, 0.25},
+              {ElementId{3}, 0.25}},
              "everything_even"},
             {1 * constants::na_avogadro,
              293.0,
              MatterState::solid,
-             {{ElementDefId{0}, 0.48},
-              {ElementDefId{1}, 0.24},
-              {ElementDefId{2}, 0.16},
-              {ElementDefId{3}, 0.12}},
+             {{ElementId{0}, 0.48},
+              {ElementId{1}, 0.24},
+              {ElementId{2}, 0.16},
+              {ElementId{3}, 0.12}},
              "everything_weighted"},
         };
         mats      = std::make_shared<MaterialParams>(std::move(inp));
@@ -77,7 +77,7 @@ class ElementSelectorTest : public celeritas::Test
 };
 
 // Return cross section proportional to the element ID offset by 1.
-real_type mock_micro_xs(ElementDefId el_id)
+real_type mock_micro_xs(ElementId el_id)
 {
     CELER_EXPECT(el_id < 4);
     return static_cast<real_type>(el_id.get() + 1);
@@ -93,7 +93,7 @@ struct CalcFancyMicroXs
     {
     }
 
-    real_type operator()(ElementDefId el_id) const
+    real_type operator()(ElementId el_id) const
     {
         CELER_EXPECT(el_id);
         ElementView el(mats_, el_id);

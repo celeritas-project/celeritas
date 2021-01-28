@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "base/DeviceVector.hh"
 #include "physics/base/Interaction.hh"
-#include "physics/base/SecondaryAllocatorPointers.hh"
+#include "physics/base/SecondaryAllocatorInterface.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "sim/SimTrackView.hh"
-#include "sim/StatePointers.hh"
-#include "sim/TrackInitializerPointers.hh"
+#include "sim/TrackInterface.hh"
+#include "sim/TrackInitializerInterface.hh"
 #include <vector>
 
 namespace celeritas_test
@@ -54,7 +54,7 @@ struct Interactor
         result.secondaries = {allocated, alloc_size};
         for (auto& secondary : result.secondaries)
         {
-            secondary.def_id    = ParticleDefId(0);
+            secondary.particle_id = ParticleId(0);
             secondary.energy    = units::MevEnergy(5.);
             secondary.direction = {1., 0., 0.};
         }

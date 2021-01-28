@@ -42,8 +42,8 @@ __global__ void eplusgg_interact_kernel(const EPlusGGPointers       epgg,
         model.params.particle, model.states.particle, tid);
     PhysicsTrackView physics(model.params.physics,
                              model.states.physics,
-                             particle.def_id(),
-                             MaterialDefId{},
+                             particle.particle_id(),
+                             MaterialId{},
                              tid);
 
     // This interaction only applies if the EPlusGG model was selected

@@ -75,7 +75,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
             {1.0 * constants::na_avogadro,
              293.0,
              celeritas::MatterState::solid,
-             {{celeritas::ElementDefId{0}, 1.0}},
+             {{celeritas::ElementId{0}, 1.0}},
              "Cu"},
         };
         this->set_material_params(inp);
@@ -96,7 +96,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         // Electron
         const auto& electron = interaction.secondaries.front();
         EXPECT_TRUE(electron);
-        EXPECT_EQ(pointers_.electron_id, electron.def_id);
+        EXPECT_EQ(pointers_.electron_id, electron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   electron.energy.value());
         EXPECT_LT(0, electron.energy.value());
@@ -104,7 +104,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         // Positron
         const auto& positron = interaction.secondaries.back();
         EXPECT_TRUE(positron);
-        EXPECT_EQ(pointers_.positron_id, positron.def_id);
+        EXPECT_EQ(pointers_.positron_id, positron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   positron.energy.value());
         EXPECT_LT(0, positron.energy.value());
@@ -259,8 +259,8 @@ TEST_F(BetheHeitlerInteractorTest, model)
     EXPECT_EQ(1, set_applic.size());
 
     auto applic = *set_applic.begin();
-    EXPECT_EQ(MaterialDefId{}, applic.material);
-    EXPECT_EQ(ParticleDefId{2}, applic.particle);
+    EXPECT_EQ(MaterialId{}, applic.material);
+    EXPECT_EQ(ParticleId{2}, applic.particle);
     EXPECT_EQ(celeritas::units::MevEnergy{1.5}, applic.lower);
     EXPECT_EQ(celeritas::units::MevEnergy{1e5}, applic.upper);
 }

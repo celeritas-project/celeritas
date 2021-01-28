@@ -25,7 +25,7 @@ namespace celeritas
  *
  * On construction, the element chooser uses the provided arguments to
  * precalculate all the microscopic cross sections in the given storage space.
- * The given function `calc_micro_xs` must accept a `ElementDefId` and return a
+ * The given function `calc_micro_xs` must accept a `ElementId` and return a
  * `real_type`, a non-negative microscopic cross section.
  *
  * The element chooser does \em not calculate macroscopic cross sections

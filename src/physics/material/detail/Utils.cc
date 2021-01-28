@@ -13,7 +13,7 @@
 #include "base/Constants.hh"
 #include "base/Range.hh"
 #include "base/Quantity.hh"
-#include "physics/material/ElementDef.hh"
+#include "physics/material/MaterialInterface.hh"
 
 namespace celeritas
 {

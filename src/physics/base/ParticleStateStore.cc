@@ -8,7 +8,7 @@
 #include "ParticleStateStore.hh"
 
 #include "base/Array.hh"
-#include "ParticleStatePointers.hh"
+#include "ParticleInterface.hh"
 
 namespace celeritas
 {

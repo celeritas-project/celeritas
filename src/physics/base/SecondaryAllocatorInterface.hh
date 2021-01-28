@@ -3,35 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParamPointers.hh
+//! \file SecondaryAllocatorInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
-#include "geometry/GeoParamsPointers.hh"
-#include "physics/base/ParticleParamsPointers.hh"
-#include "physics/material/MaterialParamsPointers.hh"
+#include "Secondary.hh"
+#include "base/StackAllocatorInterface.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * View to the immutable problem data
- */
-struct ParamPointers
-{
-    GeoParamsPointers      geo;
-    MaterialParamsPointers material;
-    ParticleParamsPointers particle;
-
-    //! Whether the data are assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return geo && material && particle;
-    }
-};
+//!@{
+//! Type aliases for secondary allocation
+using SecondaryAllocatorPointers = StackAllocatorPointers<Secondary>;
+//!@}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//

@@ -9,8 +9,8 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "ParticleStatePointers.hh"
-#include "ParticleParamsPointers.hh"
+#include "ParticleInterface.hh"
+#include "ParticleInterface.hh"
 #include "Units.hh"
 
 namespace celeritas
@@ -51,7 +51,7 @@ class ParticleTrackView
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Unique particle type identifier
-    CELER_FORCEINLINE_FUNCTION ParticleDefId def_id() const;
+    CELER_FORCEINLINE_FUNCTION ParticleId particle_id() const;
 
     // Kinetic energy [MeV]
     CELER_FORCEINLINE_FUNCTION units::MevEnergy energy() const;

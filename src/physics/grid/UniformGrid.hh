@@ -9,7 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "UniformGridPointers.hh"
+#include "UniformGridInterface.hh"
 
 namespace celeritas
 {

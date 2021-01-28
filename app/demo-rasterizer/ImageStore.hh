@@ -12,7 +12,7 @@
 #include "base/DeviceVector.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
-#include "ImagePointers.hh"
+#include "ImageInterface.hh"
 #include "ImageIO.hh"
 
 namespace demo_rasterizer

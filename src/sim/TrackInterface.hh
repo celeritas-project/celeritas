@@ -3,22 +3,44 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StatePointers.hh
+//! \file TrackInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
-#include "geometry/GeoStatePointers.hh"
+#include "base/Macros.hh"
+#include "geometry/GeoInterface.hh"
 #include "physics/base/Interaction.hh"
-#include "physics/base/ParticleStatePointers.hh"
-#include "random/cuda/RngStatePointers.hh"
-#include "SimStatePointers.hh"
+#include "physics/base/ParticleInterface.hh"
+#include "physics/material/MaterialInterface.hh"
+#include "random/cuda/RngInterface.hh"
+#include "SimInterface.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// PARAMS
+//---------------------------------------------------------------------------//
 /*!
- * View to the track state data
+ * Immutable problem data.
+ */
+struct ParamPointers
+{
+    GeoParamsPointers      geo;
+    MaterialParamsPointers material;
+    ParticleParamsPointers particle;
+
+    //! Whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return geo && material && particle;
+    }
+};
+
+//---------------------------------------------------------------------------//
+// STATE
+//---------------------------------------------------------------------------//
+/*!
+ * Thread-local state data.
  */
 struct StatePointers
 {

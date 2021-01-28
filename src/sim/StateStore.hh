@@ -12,7 +12,7 @@
 #include "physics/base/ParticleStateStore.hh"
 #include "random/cuda/RngStateStore.hh"
 #include "SimStateStore.hh"
-#include "StatePointers.hh"
+#include "TrackInterface.hh"
 
 namespace celeritas
 {

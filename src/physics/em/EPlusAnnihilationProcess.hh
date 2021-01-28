@@ -40,7 +40,7 @@ class EPlusAnnihilationProcess : public Process
 
   private:
     SPConstParticles particles_;
-    ParticleDefId    positron_id_;
+    ParticleId       positron_id_;
 };
 
 //---------------------------------------------------------------------------//

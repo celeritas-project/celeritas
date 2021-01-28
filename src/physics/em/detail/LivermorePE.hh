@@ -10,7 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Types.hh"
-#include "physics/em/LivermorePEParamsPointers.hh"
+#include "physics/em/LivermorePEInterface.hh"
 
 namespace celeritas
 {
@@ -30,9 +30,9 @@ struct LivermorePEPointers
     //! 1 / electron mass [1 / MevMass]
     real_type inv_electron_mass;
     //! ID of an electron
-    ParticleDefId electron_id;
+    ParticleId electron_id;
     //! ID of a gamma
-    ParticleDefId gamma_id;
+    ParticleId gamma_id;
     //! Livermore EPICS2014 photoelectric data
     LivermorePEParamsPointers data;
 

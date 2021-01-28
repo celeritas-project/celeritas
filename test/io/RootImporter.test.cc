@@ -48,7 +48,7 @@ TEST_F(RootImporterTest, import_particles)
     EXPECT_EQ(19, particles.size());
 
     // Check electron data
-    ParticleDefId electron_id = data.particle_params->find(PDGNumber(11));
+    ParticleId electron_id = data.particle_params->find(PDGNumber(11));
     ASSERT_GE(electron_id.get(), 0);
     ParticleDef electron = data.particle_params->get(electron_id);
     EXPECT_SOFT_EQ(0.510998910, electron.mass.value());
@@ -58,11 +58,11 @@ TEST_F(RootImporterTest, import_particles)
     // Check all names/PDG codes
     std::vector<std::string> loaded_names;
     std::vector<int>         loaded_pdgs;
-    for (auto idx : range<ParticleDefId::value_type>(particles.size()))
+    for (auto idx : range<ParticleId::value_type>(particles.size()))
     {
-        ParticleDefId def_id{idx};
-        loaded_names.push_back(particles.id_to_label(def_id));
-        loaded_pdgs.push_back(particles.id_to_pdg(def_id).get());
+        ParticleId particle_id{idx};
+        loaded_names.push_back(particles.id_to_label(particle_id));
+        loaded_pdgs.push_back(particles.id_to_pdg(particle_id).get());
     }
 
     // clang-format off
@@ -214,9 +214,9 @@ TEST_F(RootImporterTest, import_material_params)
 
     // Material labels
     std::string material_label;
-    material_label = data.material_params->id_to_label(MaterialDefId{0});
+    material_label = data.material_params->id_to_label(MaterialId{0});
     EXPECT_EQ(material_label, "G4_Galactic");
-    material_label = data.material_params->id_to_label(MaterialDefId{1});
+    material_label = data.material_params->id_to_label(MaterialId{1});
     EXPECT_EQ(material_label, "G4_STAINLESS-STEEL");
 
     auto mat_host_ptr = data.material_params->host_pointers();
@@ -242,8 +242,8 @@ TEST_F(RootImporterTest, import_material_params)
     // Fractions are normalized and thus may differ from the imported ones
     const int array_size = 3;
     // Fe, Cr, Ni
-    ElementDefId element_def_id[array_size]
-        = {ElementDefId{0}, ElementDefId{1}, ElementDefId{2}};
+    ElementId element_def_id[array_size]
+        = {ElementId{0}, ElementId{1}, ElementId{2}};
     real_type fraction[array_size] = {0.74, 0.18, 0.08};
 
     for (auto i : celeritas::range(material.elements.size()))

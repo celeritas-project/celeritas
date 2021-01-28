@@ -29,11 +29,11 @@ struct BetheHeitlerPointers
     //! Inverse of electron mass [1 / MevMass]
     real_type inv_electron_mass;
     //! ID of an electron
-    ParticleDefId electron_id;
+    ParticleId electron_id;
     //! ID of an positron
-    ParticleDefId positron_id;
+    ParticleId positron_id;
     //! ID of a gamma
-    ParticleDefId gamma_id;
+    ParticleId gamma_id;
 
     //! Check whether the view is assigned
     explicit inline CELER_FUNCTION operator bool() const

@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Span.hh"
-#include "random/cuda/RngStatePointers.hh"
+#include "random/cuda/RngInterface.hh"
 
 namespace celeritas
 {

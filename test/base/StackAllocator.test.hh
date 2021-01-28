@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocator.test.hh
 //---------------------------------------------------------------------------//
-#include "base/StackAllocatorPointers.hh"
+#include "base/StackAllocatorInterface.hh"
 #include "base/Macros.hh"
 
 namespace celeritas_test
@@ -15,7 +15,7 @@ namespace celeritas_test
 //---------------------------------------------------------------------------//
 struct MockSecondary
 {
-    int def_id = -1; //!< Default to garbage value
+    int mock_id = -1; //!< Default to garbage value
 };
 
 using StackAllocatorPointersMock

@@ -15,8 +15,8 @@ namespace celeritas
  */
 PhysicsTrackView::PhysicsTrackView(const PhysicsParamsPointers& params,
                                    const PhysicsStatePointers&  states,
-                                   ParticleDefId,
-                                   MaterialDefId,
+                                   ParticleId,
+                                   MaterialId,
                                    ThreadId tid)
     : params_(params), states_(states), tid_(tid)
 {

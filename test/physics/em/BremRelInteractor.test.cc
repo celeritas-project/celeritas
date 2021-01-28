@@ -61,12 +61,12 @@ class BremRelInteractorTest : public celeritas_test::InteractorHostTestBase
                 {1e-5 * constants::na_avogadro,
                  100.0,
                  MatterState::gas,
-                 {{ElementDefId{0}, 1.0}},
+                 {{ElementId{0}, 1.0}},
                  "H2"},
                 {0.05 * constants::na_avogadro,
                  293.0,
                  MatterState::solid,
-                 {{ElementDefId{1}, 0.5}, {ElementDefId{2}, 0.5}},
+                 {{ElementId{1}, 0.5}, {ElementId{2}, 0.5}},
                  "NaI"},
             },
         });
@@ -103,5 +103,5 @@ TEST_F(BremRelInteractorTest, basic)
     // Temporary test of harness material track view
     MaterialTrackView& mat_track = this->material_track();
     EXPECT_EQ(2, mat_track.element_scratch().size());
-    EXPECT_EQ(MaterialDefId{1}, mat_track.def_id());
+    EXPECT_EQ(MaterialId{1}, mat_track.material_id());
 }

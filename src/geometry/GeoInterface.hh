@@ -3,15 +3,58 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoStatePointers.hh
+//! \file GeoInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <VecGeom/volumes/PlacedVolume.h>
 #include "base/Array.hh"
+#include "base/Macros.hh"
 #include "base/Types.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// PARAMS
+//---------------------------------------------------------------------------//
+/*!
+ * Pointers to persistent data used by VecGeom implementation.
+ *
+ * If the GeoParamsPointers is constructed by \c VGHost::host_pointers, it
+ * points to a \c vecgeom::cxx::VPlacedVolume . If built by \c
+ * VGDevice::device_pointers, it points to a \c vecgeom::cuda::VPlacedVolume .
+ *
+ * Note that because of VecGeom default namespaces triggered by the presence of
+ * the \c __NVCC__ macro, this data structure actually has different types
+ * <em>depending on what compiler is active</em>. Since the \c GeoTrackView
+ * implementation is designed to work with both CPU and GPU (depending on
+ * \c __CUDA_ARCH__ and whether the code is on device, rather than the \c
+ * __NVCC__ compiler) we can't simply declare this pointer to be in the \c cuda
+ * or \c cxx explicit namespaces.
+ */
+struct GeoParamsPointers
+{
+    const vecgeom::VPlacedVolume* world_volume = nullptr;
+
+    //! Check whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return bool(world_volume);
+    }
+};
+
+//---------------------------------------------------------------------------//
+// STATE
+//---------------------------------------------------------------------------//
+/*!
+ * Data required to initialize a geometry state.
+ */
+struct GeoStateInitializer
+{
+    Real3 pos;
+    Real3 dir;
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * View to a vector of VecGeom state information.
@@ -40,13 +83,6 @@ struct GeoStatePointers
         return bool(size) && bool(vgmaxdepth) && bool(vgstate) && bool(vgnext)
                && bool(pos) && bool(dir) && bool(next_step);
     }
-};
-
-//! Data required to initialize a geometry state
-struct GeoStateInitializer
-{
-    Real3 pos;
-    Real3 dir;
 };
 
 //---------------------------------------------------------------------------//

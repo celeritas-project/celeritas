@@ -40,8 +40,8 @@ __global__ void klein_nishina_interact_kernel(const KleinNishinaPointers  kn,
 
     PhysicsTrackView physics(ptrs.params.physics,
                              ptrs.states.physics,
-                             particle.def_id(),
-                             MaterialDefId{},
+                             particle.particle_id(),
+                             MaterialId{},
                              tid);
 
     // This interaction only applies if the KN model was selected

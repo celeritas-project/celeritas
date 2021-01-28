@@ -19,9 +19,9 @@ namespace celeritas
 struct WentzelInteractorPointers
 {
     //! ID of an electron
-    ParticleDefId electron_id;
+    ParticleId electron_id;
     //! ID of a gamma
-    ParticleDefId gamma_id;
+    ParticleId gamma_id;
     // XXX additional data
 
     //! Check whether the data is assigned

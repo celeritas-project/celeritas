@@ -40,14 +40,14 @@ __global__ void sa_test_kernel(SATestInput input, SATestOutput* output)
         celeritas::atomic_add(&output->num_allocations, input.alloc_size);
         for (int j = 0; j < input.alloc_size; ++j)
         {
-            if (secondaries[j].def_id != -1)
+            if (secondaries[j].mock_id != -1)
             {
                 // Initialization failed (in-place new not called)
                 celeritas::atomic_add(&output->num_errors, 1);
             }
 
             // Initialize the secondary
-            secondaries[j].def_id = thread_idx;
+            secondaries[j].mock_id = thread_idx;
         }
         static_assert(sizeof(void*) == sizeof(celeritas::ull_int),
                       "Wrong pointer size");

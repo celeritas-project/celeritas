@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Quantity.hh"
-#include "XsGridPointers.hh"
+#include "XsGridInterface.hh"
 
 namespace celeritas
 {

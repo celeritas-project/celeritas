@@ -9,12 +9,10 @@
 
 #include "base/Span.hh"
 #include "base/Types.hh"
-#include "random/cuda/RngStatePointers.hh"
-#include "physics/material/MaterialParamsPointers.hh"
-#include "physics/material/MaterialStatePointers.hh"
-#include "SecondaryAllocatorPointers.hh"
-#include "ParticleParamsPointers.hh"
-#include "ParticleStatePointers.hh"
+#include "random/cuda/RngInterface.hh"
+#include "physics/material/MaterialInterface.hh"
+#include "SecondaryAllocatorInterface.hh"
+#include "ParticleInterface.hh"
 #include "Interaction.hh"
 #include "PhysicsInterface.hh"
 

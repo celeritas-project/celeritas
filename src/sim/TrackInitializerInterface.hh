@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitializerPointers.hh
+//! \file TrackInitializerInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Types.hh"
-#include "geometry/GeoStatePointers.hh"
-#include "physics/base/ParticleStatePointers.hh"
+#include "geometry/GeoInterface.hh"
+#include "physics/base/ParticleInterface.hh"
 #include "physics/base/Primary.hh"
-#include "SimStatePointers.hh"
+#include "SimInterface.hh"
 #include "Types.hh"
 
 namespace celeritas

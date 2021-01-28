@@ -29,7 +29,7 @@ ParticleParams::ParticleParams(const Input& defs)
         CELER_EXPECT(particle.decay_constant >= 0);
 
         // Add host metadata
-        ParticleDefId id(name_to_id_.size());
+        ParticleId    id(name_to_id_.size());
         bool          inserted;
         std::tie(std::ignore, inserted)
             = name_to_id_.insert({particle.name, id});

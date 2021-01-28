@@ -10,7 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "ElementView.hh"
-#include "MaterialParamsPointers.hh"
+#include "MaterialInterface.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -35,7 +35,7 @@ class MaterialView
   public:
     // Construct from params and material ID
     inline CELER_FUNCTION
-    MaterialView(const MaterialParamsPointers& params, MaterialDefId id);
+    MaterialView(const MaterialParamsPointers& params, MaterialId id);
 
     //// MATERIAL DATA ////
 
@@ -57,7 +57,7 @@ class MaterialView
     inline CELER_FUNCTION ElementView element_view(ElementComponentId id) const;
 
     // ID of a component element in this material
-    inline CELER_FUNCTION ElementDefId element_id(ElementComponentId id) const;
+    inline CELER_FUNCTION ElementId element_id(ElementComponentId id) const;
 
     // Total number density of an element in this material [1/cm^3]
     inline CELER_FUNCTION real_type
@@ -80,7 +80,7 @@ class MaterialView
 
   private:
     const MaterialParamsPointers& params_;
-    MaterialDefId                 id_;
+    MaterialId                    material_;
 
     // HELPER FUNCTIONS
 

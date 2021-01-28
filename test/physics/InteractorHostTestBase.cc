@@ -58,7 +58,7 @@ void InteractorHostTestBase::set_material(const std::string& name)
 {
     CELER_EXPECT(material_params_);
 
-    mat_state_.def_id = material_params_->find(name);
+    mat_state_.material_id = material_params_->find(name);
     mt_view_          = std::make_shared<MaterialTrackView>(
         mp_pointers_, ms_pointers_, ThreadId{0});
 }
@@ -104,7 +104,7 @@ void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
     CELER_EXPECT(pdg);
     CELER_EXPECT(energy >= zero_quantity());
 
-    particle_state_.def_id = particle_params_->find(pdg);
+    particle_state_.particle_id = particle_params_->find(pdg);
     particle_state_.energy = energy;
 
     pt_view_ = std::make_shared<ParticleTrackView>(
@@ -162,7 +162,7 @@ void InteractorHostTestBase::check_energy_conservation(
     // Subtract contribution from exiting particle state
     if (interaction && !action_killed(interaction.action))
     {
-        local_state.def_id = particle_state_.def_id;
+        local_state.particle_id = particle_state_.particle_id;
         local_state.energy = interaction.energy;
         ParticleTrackView exiting_track(
             pp_pointers_, local_state_ptrs, ThreadId{0});
@@ -172,7 +172,7 @@ void InteractorHostTestBase::check_energy_conservation(
     // Subtract contributions from exiting secondaries
     for (const Secondary& s : interaction.secondaries)
     {
-        local_state.def_id = s.def_id;
+        local_state.particle_id = s.particle_id;
         local_state.energy = s.energy;
         ParticleTrackView secondary_track(
             pp_pointers_, local_state_ptrs, ThreadId{0});
@@ -203,7 +203,7 @@ void InteractorHostTestBase::check_momentum_conservation(
     // Subtract contribution from exiting particle state
     if (interaction && !action_killed(interaction.action))
     {
-        local_state.def_id = particle_state_.def_id;
+        local_state.particle_id = particle_state_.particle_id;
         local_state.energy = interaction.energy;
         ParticleTrackView exiting_track(
             pp_pointers_, local_state_ptrs, ThreadId{0});
@@ -215,7 +215,7 @@ void InteractorHostTestBase::check_momentum_conservation(
     // Subtract contributions from exiting secondaries
     for (const Secondary& s : interaction.secondaries)
     {
-        local_state.def_id = s.def_id;
+        local_state.particle_id = s.particle_id;
         local_state.energy = s.energy;
         ParticleTrackView secondary_track(
             pp_pointers_, local_state_ptrs, ThreadId{0});

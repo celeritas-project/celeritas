@@ -12,20 +12,18 @@ import os
 import os.path
 import re
 
-REPLACE = {
-    'Copyright 2020': 'Copyright 2021',
-    'REQUIRE': 'CELER_EXPECT',
-    'CHECK': 'CELER_ASSERT',
-    'ENSURE': 'CELER_ENSURE',
-    'CHECK_UNREACHABLE': 'CELER_ASSERT_UNREACHABLE()',
-    'INSIST': 'CELER_VALIDATE',
-}
-RE_REPLACE = re.compile(r'\b(' + '|'.join(REPLACE.keys()) + r')\b')
+# REPLACE = {
+#     'ParamPointers.hh': 'MaterialInterface',
+# }
+#
+# def replace_macro_names(matchobj):
+#     return REPLACE[matchobj.group(1)]
+#
+#
+# RE_REPLACE = re.compile(r'(' + '|'.join(REPLACE.keys()) + r')\b')
 
-
-def replace_macro_names(matchobj):
-    return REPLACE[matchobj.group(1)]
-
+replace_macro_names = "InteractorPointers.hh"
+RE_REPLACE = re.compile(r"InteractorInterface\.hh")
 
 def update_macros(filename):
     with ReWriter(filename) as rewriter:

@@ -13,15 +13,15 @@
 #include "base/Array.hh"
 #include "base/ArrayIO.hh"
 #include "base/Span.hh"
-#include "base/StackAllocatorPointers.hh"
+#include "base/StackAllocatorInterface.hh"
 #include "base/Types.hh"
 #include "physics/base/ModelIdGenerator.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleStatePointers.hh"
+#include "physics/base/ParticleInterface.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/MaterialParams.hh"
-#include "physics/material/MaterialStatePointers.hh"
+#include "physics/material/MaterialInterface.hh"
 
 // Test helpers
 #include "base/HostStackAllocatorStore.hh"
@@ -58,14 +58,14 @@ class InteractorHostTestBase : public celeritas::Test
     using PDGNumber = celeritas::PDGNumber;
     using MevEnergy = celeritas::units::MevEnergy;
 
-    using MaterialDefId     = celeritas::MaterialDefId;
+    using MaterialId        = celeritas::MaterialId;
     using MaterialParams    = celeritas::MaterialParams;
     using MaterialTrackView = celeritas::MaterialTrackView;
 
     using Interaction            = celeritas::Interaction;
     using ModelIdGenerator       = celeritas::ModelIdGenerator;
     using ModelId                = celeritas::ModelId;
-    using ParticleDefId          = celeritas::ParticleDefId;
+    using ParticleId             = celeritas::ParticleId;
     using ParticleParams         = celeritas::ParticleParams;
     using ParticleTrackView      = celeritas::ParticleTrackView;
     using Real3                  = celeritas::Real3;
