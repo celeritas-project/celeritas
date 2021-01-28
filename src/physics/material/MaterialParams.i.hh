@@ -44,4 +44,13 @@ MaterialId MaterialParams::find(const std::string& name) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Access material properties on the host.
+ */
+const MaterialParamsPointers& MaterialParams::host_pointers() const
+{
+    return host_pointers_;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

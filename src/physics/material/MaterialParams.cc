@@ -76,26 +76,16 @@ MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
         device_materials_.copy_to_device(make_span(temp_device_mats));
     }
 
+    host_pointers_.elements               = make_span(host_elements_);
+    host_pointers_.materials              = make_span(host_materials_);
+    host_pointers_.max_element_components = this->max_element_components();
+
     CELER_ENSURE(host_elements_.size() == inp.elements.size());
     CELER_ENSURE(host_elcomponents_.size() <= host_elcomponents_.capacity());
     CELER_ENSURE(host_materials_.size() == inp.materials.size());
     CELER_ENSURE(elnames_.size() == inp.elements.size());
     CELER_ENSURE(matnames_.size() == inp.materials.size());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access material properties on the host.
- */
-MaterialParamsPointers MaterialParams::host_pointers() const
-{
-    MaterialParamsPointers result;
-    result.elements               = make_span(host_elements_);
-    result.materials              = make_span(host_materials_);
-    result.max_element_components = this->max_element_components();
-
-    CELER_ENSURE(result);
-    return result;
+    CELER_ENSURE(host_pointers_);
 }
 
 //---------------------------------------------------------------------------//

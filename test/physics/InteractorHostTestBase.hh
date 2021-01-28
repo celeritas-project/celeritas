@@ -154,7 +154,6 @@ class InteractorHostTestBase : public celeritas::Test
 
     celeritas::MaterialTrackState     mat_state_;
     std::vector<real_type>            mat_element_scratch_;
-    celeritas::MaterialParamsPointers mp_pointers_;
     celeritas::MaterialStatePointers  ms_pointers_;
 
     celeritas::ParticleTrackState     particle_state_;
