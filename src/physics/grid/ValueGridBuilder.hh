@@ -101,18 +101,33 @@ class ValueGridXsBuilder final : public ValueGridBuilder
     std::vector<real_type> xs_;
 };
 
-// TODO: implement ValueGridLogBuilder
-#if 0
 //---------------------------------------------------------------------------//
 /*!
  * Build a physics vector for energy loss and other quantities.
  *
- * This vector has a uniform grid in log(E).
+ * This vector is still uniform in log(E).
  */
 class ValueGridLogBuilder final : public ValueGridBuilder
 {
+  public:
+    // Construct
+    ValueGridLogBuilder(real_type              emin,
+                        real_type              emax,
+                        std::vector<real_type> value);
+
+    // Get the storage type and requirements for the energy grid.
+    EnergyStorage energy_storage() const final;
+
+    // Get the storage type and requirements for the value grid.
+    ValueStorage value_storage() const final;
+
+    void build(ValueGridStore*) const final;
+
+  private:
+    real_type              log_emin_;
+    real_type              log_emax_;
+    std::vector<real_type> xs_;
 };
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

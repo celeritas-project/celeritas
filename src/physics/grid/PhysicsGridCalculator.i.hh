@@ -5,6 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file PhysicsGridCalculator.i.hh
 //---------------------------------------------------------------------------//
+
 #include <cmath>
 #include "base/Interpolator.hh"
 #include "physics/grid/UniformGrid.hh"

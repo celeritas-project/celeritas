@@ -16,7 +16,6 @@
 #include "physics/base/Units.hh"
 #include "Particle.test.hh"
 
-using celeritas::ParticleDef;
 using celeritas::ParticleId;
 using celeritas::ParticleParams;
 using celeritas::ParticleParamsPointers;
@@ -42,11 +41,10 @@ class ParticleTrackViewTest : public celeritas::Test
     void SetUp() override
     {
         namespace pdg = celeritas::pdg;
-        using celeritas::ParticleDef;
         using namespace celeritas::units;
 
         constexpr auto zero   = celeritas::zero_quantity();
-        constexpr auto stable = ParticleDef::stable_decay_constant();
+        constexpr auto stable = celeritas::ParticleDef::stable_decay_constant();
 
         // Create particle defs, initialize on device
         ParticleParams::Input defs;

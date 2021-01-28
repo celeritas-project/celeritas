@@ -56,6 +56,8 @@ function(celeritas_cudaoptional_test base)
   celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
 endfunction()
 
+set(_not_impl DISABLE)
+
 #-----------------------------------------------------------------------------#
 # Gtest additions
 celeritas_setup_tests(SERIAL PREFIX gtest/detail)
@@ -159,12 +161,15 @@ add_library(CeleritasPhysicsTest
   physics/InteractionIO.cc
   physics/InteractorHostTestBase.cc
   physics/SecondaryIO.cc
+  physics/base/MockModel.cc
+  physics/base/MockProcess.cc
 )
 target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
 set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
 
 celeritas_setup_tests(SERIAL PREFIX physics/base)
 celeritas_cudaoptional_test(physics/base/Particle)
+celeritas_add_test(physics/base/Physics.test.cc ${_not_impl})
 
 celeritas_setup_tests(SERIAL PREFIX physics/grid)
 celeritas_add_test(physics/grid/PhysicsGridCalculator.test.cc)
@@ -179,7 +184,6 @@ celeritas_cudaoptional_test(physics/material/Material)
 
 celeritas_setup_tests(SERIAL PREFIX physics/em)
 
-set(_not_impl DISABLE)
 # NOTE: Remove '${_not_impl}' below at the start of developing each class.
 celeritas_add_test(physics/em/BetheBlochInteractor.test.cc ${_not_impl})
 celeritas_add_test(physics/em/BetheHeitler.test.cc)

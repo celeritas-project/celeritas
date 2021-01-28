@@ -145,4 +145,51 @@ void ValueGridXsBuilder::build(ValueGridStore*) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct from raw data.
+ */
+ValueGridLogBuilder::ValueGridLogBuilder(real_type              emin,
+                                         real_type              emax,
+                                         std::vector<real_type> xs)
+    : log_emin_(std::log(emin)), log_emax_(std::log(emax)), xs_(std::move(xs))
+{
+    CELER_EXPECT(emin > 0);
+    CELER_EXPECT(emax > emin);
+    CELER_EXPECT(xs_.size() >= 2);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the storage type and requirements for the energy grid.
+ */
+auto ValueGridLogBuilder::energy_storage() const -> EnergyStorage
+{
+    return {EnergyLookup::uniform_log, 0};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the storage type and requirements for the value grid.
+ */
+auto ValueGridLogBuilder::value_storage() const -> ValueStorage
+{
+    return {ValueCalculation::linear, xs_.size()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct on device.
+ */
+void ValueGridLogBuilder::build(ValueGridStore*) const
+{
+    // Set up log grid
+    auto log_energy
+        = UniformGridPointers::from_bounds(log_emin_, log_emax_, xs_.size());
+    UniformGrid grid(log_energy);
+
+    // TODO: finish implementation
+    CELER_NOT_IMPLEMENTED("value grid construction");
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

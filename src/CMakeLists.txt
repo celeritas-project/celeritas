@@ -40,6 +40,7 @@ list(APPEND SOURCES
   physics/base/Model.cc
   physics/base/ParticleParams.cc
   physics/base/ParticleStateStore.cc
+  physics/base/PhysicsParams.cc
   physics/base/Process.cc
   physics/base/SecondaryAllocatorStore.cc
   physics/em/BetheHeitlerModel.cc

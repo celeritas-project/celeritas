@@ -49,16 +49,4 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Return the cube of the input value.
- */
-template<class T>
-[[deprecated(
-    "Replace with celeritas::ipow<3>(value)")]] CELER_CONSTEXPR_FUNCTION T
-cube(const T& a)
-{
-    return a * a * a;
-}
-
-//---------------------------------------------------------------------------//
 } // namespace celeritas

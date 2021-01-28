@@ -45,7 +45,6 @@ void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
     CELER_EXPECT(!inp.materials.empty());
 
     material_params_ = std::make_shared<MaterialParams>(std::move(inp));
-    mp_pointers_     = material_params_->host_pointers();
     mat_element_scratch_.resize(material_params_->max_element_components());
     ms_pointers_.element_scratch = make_span(mat_element_scratch_);
 }
@@ -60,7 +59,7 @@ void InteractorHostTestBase::set_material(const std::string& name)
 
     mat_state_.material_id = material_params_->find(name);
     mt_view_          = std::make_shared<MaterialTrackView>(
-        mp_pointers_, ms_pointers_, ThreadId{0});
+        material_params_->host_pointers(), ms_pointers_, ThreadId{0});
 }
 
 //---------------------------------------------------------------------------//

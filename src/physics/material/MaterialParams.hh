@@ -68,7 +68,7 @@ class MaterialParams
     inline MaterialId find(const std::string& name) const;
 
     // Access material properties on the host
-    MaterialParamsPointers host_pointers() const;
+    inline const MaterialParamsPointers& host_pointers() const;
 
     // Access material properties on the device
     MaterialParamsPointers device_pointers() const;
@@ -84,6 +84,8 @@ class MaterialParams
     DeviceVector<ElementDef>          device_elements_;
     DeviceVector<MatElementComponent> device_elcomponents_;
     DeviceVector<MaterialDef>         device_materials_;
+
+    MaterialParamsPointers host_pointers_;
 
     std::vector<std::string>                       elnames_;
     std::vector<std::string>                       matnames_;
