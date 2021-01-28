@@ -39,6 +39,10 @@ if(CELERITAS_USE_MPI AND CELERITAS_USE_CUDA AND CMAKE_VERSION VERSION_LESS 3.13)
   message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
     "when building with CUDA + MPI.")
 endif()
+if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
+  message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
+    "with this version of CMake. Set CMAKE_CUDA_FLAGS.")
+endif()
 
 # Library
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
