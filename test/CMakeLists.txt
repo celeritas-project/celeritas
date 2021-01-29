@@ -84,6 +84,7 @@ celeritas_add_test(base/Span.test.cc)
 celeritas_add_test(base/SpanRemapper.test.cc)
 celeritas_add_test(base/Stopwatch.test.cc)
 celeritas_add_test(base/TypeDemangler.test.cc)
+celeritas_add_test(base/VectorUtils.test.cc)
 
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(base/NumericLimits.test.cc

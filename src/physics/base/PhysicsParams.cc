@@ -8,8 +8,8 @@
 #include "PhysicsParams.hh"
 
 #include <algorithm>
-#include <iterator>
 #include "base/Range.hh"
+#include "base/VectorUtils.hh"
 #include "ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
 
@@ -50,9 +50,7 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
         // tables
 
         // Move models to the end of the vector
-        models_.insert(models_.end(),
-                       std::make_move_iterator(new_models.begin()),
-                       std::make_move_iterator(new_models.end()));
+        celeritas::move_extend(std::move(new_models), &models_);
     }
 
     CELER_NOT_IMPLEMENTED("constructing physics params");
