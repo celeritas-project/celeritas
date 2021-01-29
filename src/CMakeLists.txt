@@ -53,6 +53,7 @@ list(APPEND SOURCES
   physics/em/GammaAnnihilationProcess.cc
   physics/em/KleinNishinaModel.cc
   physics/grid/ValueGridBuilder.cc
+  physics/grid/ValueGridStore.cc
   physics/material/MaterialParams.cc
   physics/material/MaterialStateStore.cc
   physics/material/detail/Utils.cc

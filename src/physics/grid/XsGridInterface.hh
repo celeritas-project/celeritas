@@ -38,7 +38,7 @@ struct XsGridPointers
     //! Whether the interface is initialized and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return log_energy && !value.empty()
+        return log_energy && (value.size() >= 2)
                && (prime_index < log_energy.size
                    || prime_index == size_type(-1))
                && log_energy.size == value.size();
