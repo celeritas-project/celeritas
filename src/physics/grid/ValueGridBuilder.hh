@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <vector>
 #include "base/Span.hh"
 #include "base/Types.hh"
@@ -16,17 +17,10 @@ namespace celeritas
 class ValueGridStore;
 //---------------------------------------------------------------------------//
 //! Parameterization of the energy grid values for a physics array
-enum class EnergyLookup
+enum class ValueGridType
 {
-    uniform_log, //!< Uniform in log(E), interpolate in log(E)
-};
-
-//---------------------------------------------------------------------------//
-//! Parameterization of the value calculation
-enum class ValueCalculation
-{
-    linear,        //!< Linear interpolation in value
-    linear_scaled, //!< Linear interpolation, then divide by energy above E'
+    xs,
+    generic
 };
 
 //---------------------------------------------------------------------------//
@@ -46,15 +40,13 @@ class ValueGridBuilder
   public:
     //!@{
     //! Type aliases
-    using EnergyStorage = std::pair<EnergyLookup, size_type>;
-    using ValueStorage  = std::pair<ValueCalculation, size_type>;
+    using Storage = std::pair<ValueGridType, size_type>;
     //!@}
 
   public:
     virtual ~ValueGridBuilder() = 0;
 
-    virtual EnergyStorage energy_storage() const       = 0;
-    virtual ValueStorage  value_storage() const        = 0;
+    virtual Storage       storage() const              = 0;
     virtual void          build(ValueGridStore*) const = 0;
 };
 
@@ -62,8 +54,8 @@ class ValueGridBuilder
 /*!
  * Build a physics array for EM process cross sections.
  *
- * This array has a uniform grid in log(E) and a special value above which the
- * input cross sections are scaled by E.
+ * This array has a uniform grid in log(E) and a special value at or above
+ * which the input cross sections are scaled by E.
  */
 class ValueGridXsBuilder final : public ValueGridBuilder
 {
@@ -71,6 +63,7 @@ class ValueGridXsBuilder final : public ValueGridBuilder
     //!@{
     //! Type aliases
     using SpanConstReal = Span<const real_type>;
+    using VecReal       = std::vector<real_type>;
     //!@}
 
   public:
@@ -81,24 +74,21 @@ class ValueGridXsBuilder final : public ValueGridBuilder
                                          SpanConstReal lambda_prim);
 
     // Construct
-    ValueGridXsBuilder(real_type              emin,
-                       real_type              eprime,
-                       real_type              emax,
-                       std::vector<real_type> xs);
+    ValueGridXsBuilder(real_type emin,
+                       real_type eprime,
+                       real_type emax,
+                       VecReal   xs);
 
-    // Get the storage type and requirements for the energy grid.
-    EnergyStorage energy_storage() const final;
-
-    // Get the storage type and requirements for the value grid.
-    ValueStorage value_storage() const final;
+    // Get the storage type and requirements
+    Storage storage() const final;
 
     void build(ValueGridStore*) const final;
 
   private:
-    real_type              log_emin_;
-    real_type              log_eprime_;
-    real_type              log_emax_;
-    std::vector<real_type> xs_;
+    real_type log_emin_;
+    real_type log_eprime_;
+    real_type log_emax_;
+    VecReal   xs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -110,23 +100,24 @@ class ValueGridXsBuilder final : public ValueGridBuilder
 class ValueGridLogBuilder final : public ValueGridBuilder
 {
   public:
+    //!@{
+    //! Type aliases
+    using VecReal = std::vector<real_type>;
+    //!@}
+
+  public:
     // Construct
-    ValueGridLogBuilder(real_type              emin,
-                        real_type              emax,
-                        std::vector<real_type> value);
+    ValueGridLogBuilder(real_type emin, real_type emax, VecReal value);
 
     // Get the storage type and requirements for the energy grid.
-    EnergyStorage energy_storage() const final;
-
-    // Get the storage type and requirements for the value grid.
-    ValueStorage value_storage() const final;
+    Storage storage() const final;
 
     void build(ValueGridStore*) const final;
 
   private:
     real_type              log_emin_;
     real_type              log_emax_;
-    std::vector<real_type> xs_;
+    VecReal                xs_;
 };
 
 //---------------------------------------------------------------------------//

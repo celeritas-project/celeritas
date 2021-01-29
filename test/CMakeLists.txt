@@ -175,6 +175,7 @@ celeritas_add_test(physics/base/Physics.test.cc ${_not_impl})
 celeritas_setup_tests(SERIAL PREFIX physics/grid)
 celeritas_add_test(physics/grid/PhysicsGridCalculator.test.cc)
 celeritas_add_test(physics/grid/UniformGrid.test.cc)
+celeritas_add_test(physics/grid/ValueGridBuilder.test.cc)
 celeritas_add_test(physics/grid/ValueGridStore.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX physics/material)
