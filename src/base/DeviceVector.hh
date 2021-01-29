@@ -17,9 +17,14 @@ namespace celeritas
 /*!
  * Host-compiler-friendly vector for uninitialized device-storage data.
  *
- * This class does *not* perform initialization on the data. The host code
- * must define and copy over suitable data. For more complex data usage
- * (dynamic resizing and assignment without memory reallocation) uses \c
+ * The device vector's allocation is fixed on construction, but can be resized
+ * to a logically smaller space, or assigned (replaced) by a new DeviceVector.
+ * As a consequence, no \c resize operation will invalidate \c Span references
+ * to device data.
+ *
+ * This class does *not* perform initialization on the data. The host code must
+ * define and copy over suitable data. For more complex data usage (dynamic
+ * size increases and assignment without memory reallocation), use \c
  * thrust::device_vector.
  *
  * \code

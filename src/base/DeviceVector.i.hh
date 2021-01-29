@@ -33,8 +33,10 @@ void DeviceVector<T>::swap(DeviceVector& other) noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Change the size without changing capacity. There is no reallocation of
- * storage: the vector can only shrink or grow up to the container capacity.
+ * Change the size without changing capacity.
+ *
+ * There is no reallocation of storage: the vector can only shrink or grow up
+ * to the container capacity.
  */
 template<class T>
 void DeviceVector<T>::resize(size_type size)
