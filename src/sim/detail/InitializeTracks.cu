@@ -273,7 +273,6 @@ void init_tracks(const StatePointers&            states,
     auto                  lparams = calc_launch_params(num_vacancies);
     init_tracks_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits, num_vacancies);
-
     CELER_CUDA_CHECK_ERROR();
 }
 
@@ -290,7 +289,6 @@ void locate_alive(const StatePointers&            states,
     auto                  lparams = calc_launch_params(states.size());
     locate_alive_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits);
-
     CELER_CUDA_CHECK_ERROR();
 }
 
@@ -312,7 +310,6 @@ void process_primaries(Span<const Primary>             primaries,
     auto                  lparams = calc_launch_params(primaries.size());
     process_primaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
         primaries, initializers);
-
     CELER_CUDA_CHECK_ERROR();
 }
 
@@ -334,7 +331,6 @@ void process_secondaries(const StatePointers&     states,
     auto                  lparams = calc_launch_params(states.size());
     process_secondaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits);
-
     CELER_CUDA_CHECK_ERROR();
 }
 

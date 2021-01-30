@@ -83,6 +83,7 @@ MTestOutput m_test(const MTestInput& input)
         raw_pointer_cast(temperatures.data()),
         raw_pointer_cast(rad_len.data()),
         raw_pointer_cast(tot_z.data()));
+    CELER_CUDA_CHECK_ERROR();
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     MTestOutput result;
