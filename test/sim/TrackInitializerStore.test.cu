@@ -99,7 +99,6 @@ void interact(StatePointers              states,
     auto                  lparams = calc_launch_params(states.size());
     interact_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, secondaries, input);
-
     CELER_CUDA_CHECK_ERROR();
 }
 
@@ -118,7 +117,6 @@ std::vector<unsigned int> tracks_test(StatePointers states)
     auto                  lparams = calc_launch_params(states.size());
     tracks_test_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, thrust::raw_pointer_cast(output.data()));
-
     CELER_CUDA_CHECK_ERROR();
 
     // Copy data back to host
@@ -142,7 +140,6 @@ std::vector<unsigned int> initializers_test(TrackInitializerPointers inits)
     auto lparams = calc_launch_params(inits.initializers.size());
     initializers_test_kernel<<<lparams.grid_size, lparams.block_size>>>(
         inits, thrust::raw_pointer_cast(output.data()));
-
     CELER_CUDA_CHECK_ERROR();
 
     // Copy data back to host
@@ -166,7 +163,6 @@ std::vector<size_type> vacancies_test(TrackInitializerPointers inits)
     auto                  lparams = calc_launch_params(inits.vacancies.size());
     vacancies_test_kernel<<<lparams.grid_size, lparams.block_size>>>(
         inits, thrust::raw_pointer_cast(output.data()));
-
     CELER_CUDA_CHECK_ERROR();
 
     // Copy data back to host

@@ -87,7 +87,6 @@ void bethe_heitler_interact(const BetheHeitlerPointers&  bh,
     auto                  params = calc_kernel_params(model.states.size());
     bethe_heitler_interact_kernel<<<params.grid_size, params.block_size>>>(
         bh, model);
-
     CELER_CUDA_CHECK_ERROR();
 }
 

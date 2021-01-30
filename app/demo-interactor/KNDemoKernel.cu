@@ -166,6 +166,7 @@ void initialize(const CudaGridParams&  grid,
     CELER_EXPECT(states.rng.size() == states.size());
     initialize_kernel<<<grid.grid_size, grid.block_size>>>(
         params, states, initial);
+    CELER_CUDA_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//
@@ -180,6 +181,7 @@ void iterate(const CudaGridParams&              grid,
 {
     iterate_kernel<<<grid.grid_size, grid.block_size>>>(
         params, state, secondaries, detector);
+    CELER_CUDA_CHECK_ERROR();
 
     // Note: the device synchronize is useful for debugging and necessary for
     // timing diagnostics.

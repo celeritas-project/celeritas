@@ -74,7 +74,6 @@ void klein_nishina_interact(const KleinNishinaPointers&  kn,
     auto                  params = calc_kernel_params(model.states.size());
     klein_nishina_interact_kernel<<<params.grid_size, params.block_size>>>(
         kn, model);
-
     CELER_CUDA_CHECK_ERROR();
 }
 

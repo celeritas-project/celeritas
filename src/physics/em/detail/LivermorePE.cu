@@ -87,7 +87,6 @@ void livermore_pe_interact(const LivermorePEPointers&   pe,
     auto                  params = calc_kernel_params(model.states.size());
     livermore_pe_interact_kernel<<<params.grid_size, params.block_size>>>(
         pe, model);
-
     CELER_CUDA_CHECK_ERROR();
 }
 

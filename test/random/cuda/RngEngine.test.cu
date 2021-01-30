@@ -72,6 +72,7 @@ TEST(RngEngineIntTest, regression)
         num_samples,
         container.device_pointers(),
         thrust::raw_pointer_cast(samples.data()));
+    CELER_CUDA_CHECK_ERROR();
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Copy data back to host
@@ -139,6 +140,7 @@ TYPED_TEST(RngEngineFloatTest, generate_canonical)
         num_samples,
         container.device_pointers(),
         thrust::raw_pointer_cast(samples.data()));
+    CELER_CUDA_CHECK_ERROR();
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Copy data back to host

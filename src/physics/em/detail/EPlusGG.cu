@@ -79,7 +79,6 @@ void eplusgg_interact(const EPlusGGPointers&       eplusgg,
     // Launch the kernel
     eplusgg_interact_kernel<<<params.grid_size, params.block_size>>>(eplusgg,
                                                                      model);
-
     CELER_CUDA_CHECK_ERROR();
 }
 
