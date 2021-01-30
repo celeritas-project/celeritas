@@ -21,10 +21,10 @@ namespace celeritas
  * keep track of its actual size).
  */
 ValueGridStore::ValueGridStore(size_type num_grids, size_type num_values)
+    : capacity_(num_grids)
 {
     CELER_EXPECT(num_grids > 0);
     CELER_EXPECT(num_values > 0);
-    host_grids_.reserve(num_grids);
     host_values_.reserve(num_values);
 }
 
@@ -39,8 +39,17 @@ void ValueGridStore::push_back(const XsGridPointers& inp)
     CELER_EXPECT(host_values_.size() + inp.value.size()
                  <= host_values_.capacity());
 
-    host_grids_.push_back(inp);
-    host_grids_.back().value = celeritas::extend(inp.value, &host_values_);
+    host_xsgrids_.push_back(inp);
+    host_xsgrids_.back().value = celeritas::extend(inp.value, &host_values_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid of host pointer data.
+ */
+void ValueGridStore::push_back(const GenericGridPointers&)
+{
+    CELER_NOT_IMPLEMENTED("generic grids");
 }
 
 //---------------------------------------------------------------------------//
@@ -49,13 +58,13 @@ void ValueGridStore::push_back(const XsGridPointers& inp)
  */
 void ValueGridStore::copy_to_device()
 {
-    CELER_EXPECT(!host_grids_.empty());
+    CELER_EXPECT(!host_xsgrids_.empty());
     CELER_EXPECT(celeritas::is_device_enabled());
 
-    device_grids_  = DeviceVector<XsGridPointers>(host_grids_.size());
+    device_grids_  = DeviceVector<XsGridPointers>(host_xsgrids_.size());
     device_values_ = DeviceVector<real_type>(host_values_.size());
 
-    device_grids_.copy_to_device(make_span(host_grids_));
+    device_grids_.copy_to_device(make_span(host_xsgrids_));
     device_values_.copy_to_device(make_span(host_values_));
 }
 
@@ -65,7 +74,7 @@ void ValueGridStore::copy_to_device()
  */
 auto ValueGridStore::host_pointers()  const -> ValueGridPointers
 {
-    return make_span(host_grids_);
+    return make_span(host_xsgrids_);
 }
 
 //---------------------------------------------------------------------------//

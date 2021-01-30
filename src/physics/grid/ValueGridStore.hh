@@ -46,8 +46,11 @@ class ValueGridStore
     // Construct with storage space requirements
     ValueGridStore(size_type num_grids, size_type num_values);
 
-    // Add a grid of host pointer data, copying data to device.
+    // Add a grid of host pointer data
     void push_back(const XsGridPointers& host_pointers);
+
+    // Add a grid of generic data
+    void push_back(const GenericGridPointers& host_pointers);
 
     // Copy the data to device
     void copy_to_device();
@@ -55,10 +58,10 @@ class ValueGridStore
     //// HOST ACCESSORS ////
 
     //! Number of constructed grids
-    size_type size() { return host_grids_.size(); }
+    size_type size() { return host_xsgrids_.size() + host_grids_.size(); }
 
     //! Number of allocated grids
-    size_type capacity() { return host_grids_.capacity(); }
+    size_type capacity() { return capacity_; }
 
     //! Get host data
     ValueGridPointers host_pointers() const;
@@ -68,7 +71,9 @@ class ValueGridStore
     ValueGridPointers device_pointers() const;
 
   private:
-    std::vector<XsGridPointers> host_grids_;
+    size_type                        capacity_{};
+    std::vector<XsGridPointers>      host_xsgrids_;
+    std::vector<GenericGridPointers> host_grids_;
     std::vector<real_type>      host_values_;
 
     DeviceVector<XsGridPointers> device_grids_;

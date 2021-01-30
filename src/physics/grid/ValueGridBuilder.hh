@@ -82,6 +82,7 @@ class ValueGridXsBuilder final : public ValueGridBuilder
     // Get the storage type and requirements
     Storage storage() const final;
 
+    // Construct in the given store
     void build(ValueGridStore*) const final;
 
   private:
@@ -109,15 +110,51 @@ class ValueGridLogBuilder final : public ValueGridBuilder
     // Construct
     ValueGridLogBuilder(real_type emin, real_type emax, VecReal value);
 
-    // Get the storage type and requirements for the energy grid.
+    // Get the storage type and requirements
     Storage storage() const final;
 
+    // Construct in the given store
     void build(ValueGridStore*) const final;
 
   private:
     real_type              log_emin_;
     real_type              log_emax_;
     VecReal                xs_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build a physics vector for quantities that are nonuniform in energy.
+ */
+class ValueGridGenericBuilder final : public ValueGridBuilder
+{
+  public:
+    //!@{
+    //! Type aliases
+    using VecReal = std::vector<real_type>;
+    //!@}
+
+  public:
+    // Construct
+    ValueGridGenericBuilder(VecReal grid,
+                            VecReal value,
+                            Interp  grid_interp,
+                            Interp  value_interp);
+
+    // Construct with linear interpolation
+    ValueGridGenericBuilder(VecReal grid, VecReal value);
+
+    // Get the storage type and requirements
+    Storage storage() const final;
+
+    // Construct in the given store
+    void build(ValueGridStore*) const final;
+
+  private:
+    VecReal grid_;
+    VecReal value_;
+    Interp  grid_interp_;
+    Interp  value_interp_;
 };
 
 //---------------------------------------------------------------------------//

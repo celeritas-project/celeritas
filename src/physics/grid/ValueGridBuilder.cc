@@ -52,13 +52,31 @@ bool is_on_grid_point(real_type value, real_type lo, real_type hi, size_type siz
     return soft_zero(std::fmod(value - lo, delta));
 }
 
+bool is_monotonic_increasing(SpanConstReal grid)
+{
+    CELER_EXPECT(!grid.empty());
+    auto iter = grid.begin();
+    auto prev = *iter++;
+    while (iter != grid.end())
+    {
+        if (*iter <= prev)
+            return false;
+        prev = *iter++;
+    }
+    return true;
+}
+
 //---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
+// BASE CLASS
+//---------------------------------------------------------------------------//
 //! Default destructor
 ValueGridBuilder::~ValueGridBuilder() = default;
 
+//---------------------------------------------------------------------------//
+// XS BUILDER
 //---------------------------------------------------------------------------//
 /*!
  * Construct XS arrays from imported data from Geant4.
@@ -110,6 +128,7 @@ ValueGridXsBuilder::ValueGridXsBuilder(real_type emin,
     CELER_EXPECT(xs_.size() >= 2);
     CELER_EXPECT(
         is_on_grid_point(log_eprime_, log_emin_, log_emax_, xs_.size() - 1));
+    CELER_EXPECT(is_nonnegative(make_span(xs)));
 }
 
 //---------------------------------------------------------------------------//
@@ -145,6 +164,8 @@ void ValueGridXsBuilder::build(ValueGridStore* store) const
     store->push_back(ptrs);
 }
 
+//---------------------------------------------------------------------------//
+// LOG BUILDER
 //---------------------------------------------------------------------------//
 /*!
  * Construct from raw data.
@@ -182,6 +203,63 @@ void ValueGridLogBuilder::build(ValueGridStore* store) const
 
     // Provide reference to values
     ptrs.value = make_span(xs_);
+
+    // Copy data to store
+    store->push_back(ptrs);
+}
+
+//---------------------------------------------------------------------------//
+// GENERIC BUILDER
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from raw data.
+ */
+ValueGridGenericBuilder::ValueGridGenericBuilder(VecReal grid,
+                                                 VecReal value,
+                                                 Interp  grid_interp,
+                                                 Interp  value_interp)
+    : grid_(std::move(grid))
+    , value_(std::move(value))
+    , grid_interp_(grid_interp)
+    , value_interp_(value_interp)
+{
+    CELER_EXPECT(grid_.size() >= 2
+                 && is_monotonic_increasing(make_span(grid_)));
+    CELER_EXPECT(value_.size() == grid_.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from raw data with linear interpolation.
+ */
+ValueGridGenericBuilder::ValueGridGenericBuilder(VecReal grid, VecReal value)
+    : ValueGridGenericBuilder(
+        std::move(grid), std::move(value), Interp::linear, Interp::linear)
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the storage type and requirements for the energy grid.
+ */
+auto ValueGridGenericBuilder::storage() const -> Storage
+{
+    return {ValueGridType::generic, 2 * grid_.size()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct on device.
+ */
+void ValueGridGenericBuilder::build(ValueGridStore* store) const
+{
+    GenericGridPointers ptrs;
+
+    // Provide reference to values
+    ptrs.grid         = make_span(grid_);
+    ptrs.value        = make_span(value_);
+    ptrs.grid_interp  = grid_interp_;
+    ptrs.value_interp = value_interp_;
 
     // Copy data to store
     store->push_back(ptrs);

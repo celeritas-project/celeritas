@@ -25,6 +25,7 @@ class ValueGridBuilderTest : public celeritas::Test
   public:
     using SPConstBuilder = std::shared_ptr<const ValueGridBuilder>;
     using VecBuilder     = std::vector<SPConstBuilder>;
+    using VecReal        = std::vector<real_type>;
     using Energy         = PhysicsGridCalculator ::Energy;
 
   protected:
@@ -61,10 +62,8 @@ class ValueGridBuilderTest : public celeritas::Test
 TEST_F(ValueGridBuilderTest, xs_grid)
 {
     using Builder_t = ValueGridXsBuilder;
-    using VecReal   = std::vector<real_type>;
 
     VecBuilder entries;
-
     {
         entries.push_back(make_shared<Builder_t>(
             1e1, 1e2, 1e3, VecReal{.1, .2 * 1e2, .3 * 1e3}));
@@ -104,10 +103,8 @@ TEST_F(ValueGridBuilderTest, xs_grid)
 TEST_F(ValueGridBuilderTest, log_grid)
 {
     using Builder_t = ValueGridLogBuilder;
-    using VecReal   = std::vector<real_type>;
 
     VecBuilder entries;
-
     {
         entries.push_back(
             make_shared<Builder_t>(1e1, 1e3, VecReal{.1, .2, .3}));
@@ -119,6 +116,34 @@ TEST_F(ValueGridBuilderTest, log_grid)
 
     // Test results using the physics calculator
     ASSERT_EQ(1, ptrs.size());
+    {
+        PhysicsGridCalculator calc_xs(ptrs[0]);
+        EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));
+        EXPECT_SOFT_EQ(0.2, calc_xs(Energy{1e2}));
+        EXPECT_SOFT_EQ(0.3, calc_xs(Energy{1e3}));
+    }
+}
+
+TEST_F(ValueGridBuilderTest, DISABLED_generic_grid)
+{
+    using Builder_t = ValueGridGenericBuilder;
+
+    VecBuilder entries;
+    {
+        entries.push_back(
+            make_shared<Builder_t>(VecReal{.1, .2, .3}, VecReal{1, 2, 3}));
+        entries.push_back(make_shared<Builder_t>(VecReal{1e-2, 1e-1, 1},
+                                                 VecReal{1, 2, 3},
+                                                 Interp::log,
+                                                 Interp::linear));
+    }
+
+    // Build
+    ValueGridStore store = this->build(entries);
+    auto           ptrs  = store.host_pointers();
+
+    // Test results using the physics calculator
+    ASSERT_EQ(2, ptrs.size());
     {
         PhysicsGridCalculator calc_xs(ptrs[0]);
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));

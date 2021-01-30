@@ -44,4 +44,22 @@ struct XsGridPointers
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * A generic grid of 1D data with arbitrary interpolation.
+ */
+struct GenericGridPointers
+{
+    Span<const real_type> grid;         //!< X coordinate
+    Span<const real_type> value;        //!< Y coordinate
+    Interp                grid_interp;  //!< Interpolation along X axis
+    Interp                value_interp; //!< Interpolation along Y axis
+
+    //! Whether the interface is initialized and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return (value.size() >= 2) && grid.size() == value.size();
+    }
+};
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
