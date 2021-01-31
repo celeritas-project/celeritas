@@ -12,7 +12,6 @@
 
 namespace celeritas
 {
-
 //---------------------------------------------------------------------------//
 /*!
  * Find and interpolate physics data based on a track's energy.
@@ -41,7 +40,8 @@ class PhysicsGridCalculator
 
   public:
     // Construct from state-independent data
-    inline explicit CELER_FUNCTION PhysicsGridCalculator(const XsGridPointers& data);
+    inline explicit CELER_FUNCTION
+    PhysicsGridCalculator(const XsGridPointers& data);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;

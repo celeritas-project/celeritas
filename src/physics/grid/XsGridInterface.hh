@@ -21,10 +21,8 @@ namespace celeritas
  * For all  \code i >= prime_index \endcode, the \code value[i] \endcode is
  * expected to be pre-scaled by a factor of \code energy[i] \endcode.
  *
- * \todo Later we will support multiple parameterizations of the x grid, and
- * possibly different interpolations on x and y. Currently interpolation is
- * linear-linear after transforming to log-E space and before scaling the value
- * by E (if the grid point is above prime_index).
+ * Interpolation is linear-linear after transforming to log-E space and before
+ * scaling the value by E (if the grid point is above prime_index).
  */
 struct XsGridPointers
 {
@@ -38,10 +36,28 @@ struct XsGridPointers
     //! Whether the interface is initialized and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return log_energy && !value.empty()
+        return log_energy && (value.size() >= 2)
                && (prime_index < log_energy.size
                    || prime_index == size_type(-1))
                && log_energy.size == value.size();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A generic grid of 1D data with arbitrary interpolation.
+ */
+struct GenericGridPointers
+{
+    Span<const real_type> grid;         //!< X coordinate
+    Span<const real_type> value;        //!< Y coordinate
+    Interp                grid_interp;  //!< Interpolation along X axis
+    Interp                value_interp; //!< Interpolation along Y axis
+
+    //! Whether the interface is initialized and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return (value.size() >= 2) && grid.size() == value.size();
     }
 };
 

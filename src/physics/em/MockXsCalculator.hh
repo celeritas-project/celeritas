@@ -17,7 +17,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Storage for energy and cross sections.
- * TODO: temporary
+ * TODO: replace with GenericGridPointers
  */
 struct ValueGrid
 {

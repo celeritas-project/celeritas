@@ -12,6 +12,7 @@
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "base/SpanRemapper.hh"
+#include "base/VectorUtils.hh"
 #include "comm/Device.hh"
 
 namespace celeritas
@@ -183,12 +184,7 @@ LivermorePEParams::extend_shells(const ElementInput& inp)
 Span<real_type>
 LivermorePEParams::extend_data(const std::vector<real_type>& data)
 {
-    CELER_EXPECT(host_data_.size() + data.size() <= host_data_.capacity());
-
-    // Allocate data
-    host_data_.insert(host_data_.end(), data.begin(), data.end());
-    return Span<real_type>{host_data_.data() + host_data_.size() - data.size(),
-                           data.size()};
+    return celeritas::extend(data, &host_data_);
 }
 
 //---------------------------------------------------------------------------//
