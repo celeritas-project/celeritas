@@ -98,8 +98,8 @@ ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
     // Concatenate the two XS vectors: store the scaled (lambda_prim) value at
     // the coincident point.
     VecReal xs(lambda.size() + lambda_prim.size() - 1);
-    auto dst = std::copy(lambda.begin(), lambda.end() - 1, xs.begin());
-    dst      = std::copy(lambda_prim.begin(), lambda_prim.end(), dst);
+    auto    dst = std::copy(lambda.begin(), lambda.end() - 1, xs.begin());
+    dst         = std::copy(lambda_prim.begin(), lambda_prim.end(), dst);
     CELER_ASSERT(dst == xs.end());
 
     // Construct the grid

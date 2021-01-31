@@ -83,7 +83,7 @@ void ValueGridStore::copy_to_device()
 /*!
  * Get host data.
  */
-auto ValueGridStore::host_pointers()  const -> ValueGridPointers
+auto ValueGridStore::host_pointers() const -> ValueGridPointers
 {
     return make_span(host_xsgrids_);
 }

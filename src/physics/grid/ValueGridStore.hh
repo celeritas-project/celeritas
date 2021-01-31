@@ -74,7 +74,7 @@ class ValueGridStore
     size_type                        capacity_{};
     std::vector<XsGridPointers>      host_xsgrids_;
     std::vector<GenericGridPointers> host_grids_;
-    std::vector<real_type>      host_values_;
+    std::vector<real_type>           host_values_;
 
     DeviceVector<XsGridPointers> device_grids_;
     DeviceVector<real_type>      device_values_;

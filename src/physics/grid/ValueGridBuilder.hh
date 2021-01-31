@@ -46,8 +46,8 @@ class ValueGridBuilder
   public:
     virtual ~ValueGridBuilder() = 0;
 
-    virtual Storage       storage() const              = 0;
-    virtual void          build(ValueGridStore*) const = 0;
+    virtual Storage storage() const              = 0;
+    virtual void    build(ValueGridStore*) const = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -117,9 +117,9 @@ class ValueGridLogBuilder final : public ValueGridBuilder
     void build(ValueGridStore*) const final;
 
   private:
-    real_type              log_emin_;
-    real_type              log_emax_;
-    VecReal                xs_;
+    real_type log_emin_;
+    real_type log_emax_;
+    VecReal   xs_;
 };
 
 //---------------------------------------------------------------------------//

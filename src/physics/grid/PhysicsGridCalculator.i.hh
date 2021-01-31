@@ -16,7 +16,8 @@ namespace celeritas
 /*!
  * Construct from cross section data.
  */
-CELER_FUNCTION PhysicsGridCalculator::PhysicsGridCalculator(const XsGridPointers& data)
+CELER_FUNCTION
+PhysicsGridCalculator::PhysicsGridCalculator(const XsGridPointers& data)
     : data_(data)
 {
     CELER_EXPECT(data);
@@ -40,12 +41,12 @@ CELER_FUNCTION real_type PhysicsGridCalculator::operator()(Energy energy) const
     if (loge <= loge_grid.front())
     {
         lower_idx = 0;
-        result = data_.value.front();
+        result    = data_.value.front();
     }
     else if (loge >= loge_grid.back())
     {
         lower_idx = data_.value.size() - 1;
-        result = data_.value.back();
+        result    = data_.value.back();
     }
     else
     {
