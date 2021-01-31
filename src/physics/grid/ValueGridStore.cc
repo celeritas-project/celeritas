@@ -64,7 +64,18 @@ void ValueGridStore::copy_to_device()
     device_grids_  = DeviceVector<XsGridPointers>(host_xsgrids_.size());
     device_values_ = DeviceVector<real_type>(host_values_.size());
 
-    device_grids_.copy_to_device(make_span(host_xsgrids_));
+    // Remap grid->value pointers
+    // (TODO: to skip the extra host allocation, we could do this in a device
+    // kernel; or we could map, copy, and then remap)
+    std::vector<XsGridPointers> device_xsgrids(host_xsgrids_);
+    auto remap_span = make_span_remapper(make_span(host_values_),
+                                         device_values_.device_pointers());
+    for (auto& grid : device_xsgrids)
+    {
+        grid.value = remap_span(grid.value);
+    }
+
+    device_grids_.copy_to_device(make_span(device_xsgrids));
     device_values_.copy_to_device(make_span(host_values_));
 }
 
