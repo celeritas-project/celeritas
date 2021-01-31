@@ -17,8 +17,8 @@ namespace celeritas
 /*!
  * Construct with storage space requirements.
  *
- * This allocates device data and resizes it to empty (so that the vector can
- * keep track of its actual size).
+ * This allocates the required amount of data on the host so that the vector
+ * can keep track of its actual size.
  */
 ValueGridStore::ValueGridStore(size_type num_grids, size_type num_values)
     : capacity_(num_grids)
