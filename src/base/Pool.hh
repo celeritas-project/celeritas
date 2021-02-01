@@ -24,8 +24,9 @@ namespace celeritas
 //! Data ownership flag
 enum class Ownership
 {
-    value,    //!< Denotes ownership (possibly shared) of the data
-    reference //!< Denotes a reference to the data
+    value,           //!< Denotes ownership (possibly shared) of the data
+    const_reference, //!< Denotes a reference to the data
+    reference        //!< Denotes a reference to the data
 };
 
 //! Size/offset type for pool
@@ -35,6 +36,23 @@ CELER_CONSTEXPR_FUNCTION size_type max_pool_size()
 {
     return static_cast<size_type>(numeric_limits<pool_size_type>::max());
 }
+
+namespace detail
+{
+template<typename T, Ownership W>
+struct ownership_traits
+{
+    using SpanT          = Span<T>;
+    using reference_type = T&;
+};
+
+template<typename T>
+struct ownership_traits<T, Ownership::const_reference>
+{
+    using SpanT          = Span<const T>;
+    using reference_type = const T&;
+};
+} // namespace detail
 
 //---------------------------------------------------------------------------//
 template<class T>
@@ -75,28 +93,42 @@ template<class T, Ownership W, MemSpace M>
 class Pool
 {
   public:
+    using SpanT = typename detail::ownership_traits<T, W>::SpanT;
+    using reference_type =
+        typename detail::ownership_traits<T, W>::reference_type;
+
     Pool& operator=(const Pool& other) = default;
 
     //! Assign from another pool in the same memory space
-    template<class U, Ownership W2>
-    Pool& operator=(const Pool<U, W2, M>& other)
+    template<Ownership W2>
+    Pool& operator=(const Pool<T, W2, M>& other)
     {
         data_ = other.get();
         return *this;
     }
 
     //! Access all data from this pool
-    Span<T> get() const { return data_; }
+    SpanT get() const { return data_; }
 
     //! Access a subspan
-    Span<T> operator[](const PoolSpan<T>& ps) const
+    SpanT operator[](const PoolSpan<T>& ps) const
     {
         CELER_EXPECT(ps.stop() <= data_.size());
-        return {data_.data() + ps.start(), data_.data() + ps.size()};
+        return {data_.data() + ps.start(), data_.data() + ps.stop()};
     }
 
+    //! Access a single element
+    reference_type operator[](size_type idx) const
+    {
+        CELER_EXPECT(idx < data_.size());
+        return data_[idx];
+    }
+
+    //! Number of elements
+    size_type size() const { return data_.size(); }
+
   private:
-    Span<T> data_{};
+    SpanT data_{};
 };
 
 #if POOL_HOST_HEADER
@@ -125,6 +157,9 @@ class Pool<T, Ownership::value, MemSpace::host>
         data_.reserve(count);
     }
 
+    //! Number of elements
+    size_type size() const { return data_.size(); }
+
     //! Allocate a new number of items
     PoolSpanT allocate(size_type count)
     {
@@ -132,7 +167,7 @@ class Pool<T, Ownership::value, MemSpace::host>
         pool_size_type start_ = data_.size();
         pool_size_type stop_  = start_ + static_cast<pool_size_type>(count);
         data_.resize(stop_);
-        return PoolSpanT(data_, start_, stop_);
+        return PoolSpanT(start_, stop_);
     }
 
   private:
@@ -151,7 +186,7 @@ class Pool<T, Ownership::value, MemSpace::device>
         Span<const T> host_data = host_pool.get();
         if (!host_data.empty())
         {
-            data_.resize(host_data.size());
+            data_ = DeviceVector<T>(host_data.size());
             data_.copy_to_device(host_data);
         }
         return *this;

@@ -50,6 +50,57 @@ struct MockParamsPools
     }
 };
 
+template<Ownership W, MemSpace M>
+struct MockStatePools
+{
+    template<class T>
+    using Pool = celeritas::Pool<T, W, M>;
+
+    celeritas::Pool<int, W, M> matid;
+
+    celeritas::size_type size() const { return matid.size(); }
+
+    //! Assign from another set of pools
+    template<Ownership W2, MemSpace M2>
+    MockStatePools& operator=(MockStatePools<W2, M2>& other)
+    {
+        matid = other.matid;
+        return *this;
+    }
+};
+
+class MockTrackView
+{
+  public:
+    using ParamsPointers
+        = MockParamsPools<Ownership::const_reference, MemSpace::native>;
+    using StatePointers
+        = MockStatePools<Ownership::reference, MemSpace::native>;
+    using ThreadId = celeritas::ThreadId;
+
+    CELER_FUNCTION MockTrackView(const ParamsPointers& params,
+                                 const StatePointers&  state,
+                                 ThreadId              tid)
+        : params_(params), states_(state), thread_(tid)
+    {
+        CELER_EXPECT(thread_ < states_.size());
+    }
+
+    int matid() const { return states_.matid[thread_.get()]; }
+
+    double number_density() const
+    {
+        int                 id = this->matid();
+        const MockMaterial& m  = params_.materials[id];
+        return m.number_density;
+    }
+
+  private:
+    const ParamsPointers& params_;
+    const StatePointers&  states_;
+    ThreadId              thread_;
+};
+
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
