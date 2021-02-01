@@ -44,10 +44,14 @@ class ValueGridBuilder
     //!@}
 
   public:
+    //! Virtual destructor for polymorphic deletion
     virtual ~ValueGridBuilder() = 0;
 
-    virtual Storage storage() const              = 0;
-    virtual void    build(ValueGridStore*) const = 0;
+    //! Get the storage requirements of a grid to be bulit
+    virtual Storage storage() const = 0;
+
+    //! Construct the grid given a mutable reference to a store
+    virtual void build(ValueGridStore*) const = 0;
 };
 
 //---------------------------------------------------------------------------//

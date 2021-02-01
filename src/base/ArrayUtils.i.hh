@@ -19,6 +19,7 @@ namespace celeritas
 template<class T, std::size_t N>
 CELER_FUNCTION void axpy(T a, const Array<T, N>& x, Array<T, N>* y)
 {
+    CELER_EXPECT(y);
     for (std::size_t i = 0; i != N; ++i)
     {
         (*y)[i] = a * x[i] + (*y)[i];
@@ -69,6 +70,7 @@ CELER_FUNCTION T norm(const Array<T, N>& v)
  */
 CELER_FUNCTION void normalize_direction(Real3* direction)
 {
+    CELER_EXPECT(direction);
     const real_type scale_factor = 1 / norm(*direction);
     (*direction)[0] *= scale_factor;
     (*direction)[1] *= scale_factor;

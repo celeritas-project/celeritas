@@ -17,6 +17,9 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Construct with reference to function object, etc.
+ *
+ * The handle *may be* null, indicating that the output of this message will
+ * not be displayed.
  */
 LoggerMessage::LoggerMessage(LogHandler* handle, Provenance prov, LogLevel lev)
     : handle_(handle), prov_(prov), lev_(lev)
