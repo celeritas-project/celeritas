@@ -49,10 +49,10 @@ struct XsGridPointers
  */
 struct GenericGridPointers
 {
-    Span<const real_type> grid;         //!< X coordinate
-    Span<const real_type> value;        //!< Y coordinate
-    Interp                grid_interp;  //!< Interpolation along X axis
-    Interp                value_interp; //!< Interpolation along Y axis
+    Span<const real_type> grid;         //!< x grid
+    Span<const real_type> value;        //!< f(x) value
+    Interp                grid_interp;  //!< Interpolation along x
+    Interp                value_interp; //!< Interpolation along f(x)
 
     //! Whether the interface is initialized and valid
     explicit CELER_FUNCTION operator bool() const

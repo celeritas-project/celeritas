@@ -146,6 +146,7 @@ auto ValueGridXsBuilder::storage() const -> Storage
  */
 void ValueGridXsBuilder::build(ValueGridStore* store) const
 {
+    CELER_EXPECT(store);
     XsGridPointers ptrs;
     // Construct log(energy) grid
     ptrs.log_energy
@@ -249,10 +250,11 @@ auto ValueGridGenericBuilder::storage() const -> Storage
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct on device.
+ * Construct grid data in the given mutable store.
  */
 void ValueGridGenericBuilder::build(ValueGridStore* store) const
 {
+    CELER_EXPECT(store);
     GenericGridPointers ptrs;
 
     // Provide reference to values
