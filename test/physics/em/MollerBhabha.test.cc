@@ -55,8 +55,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         pointers_.electron_mass_c_sq = 0.5109989461;
         pointers_.min_valid_energy_  = MevEnergy{1e-3};
 
-        // Set default particle to incident 10 MeV electron
-        this->set_inc_particle(pdg::electron(), MevEnergy{100});
+        // Set default incident direction. Particle is defined in the tests
         this->set_inc_direction({0, 0, 1});
 
         // Setup MaterialView
@@ -106,9 +105,12 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(MollerBhabhaInteractorTest, single_interaction_10_MeV)
+TEST_F(MollerBhabhaInteractorTest, moller_scattering_10_MeV)
 {
     this->resize_secondaries(1);
+
+    // Set 10 MeV electron for testing Moller scattering
+    this->set_inc_particle(pdg::electron(), MevEnergy{10});
 
     // Get the ElementView
     const celeritas::ElementView element(
@@ -123,7 +125,31 @@ TEST_F(MollerBhabhaInteractorTest, single_interaction_10_MeV)
                                          element);
 
     RandomEngine& rng_engine = this->rng();
+    Interaction   result     = mb_interactor(rng_engine);
+    this->sanity_check(result);
+}
 
-    Interaction result = mb_interactor(rng_engine);
-    // this->sanity_check(result);
+//---------------------------------------------------------------------------//
+TEST_F(MollerBhabhaInteractorTest, bhabha_scattering_10_MeV)
+{
+    this->resize_secondaries(1);
+
+    // Set 10 MeV positron for testing Bhabha scattering
+    this->set_inc_particle(pdg::positron(), MevEnergy{10});
+
+    // Get the ElementView
+    const celeritas::ElementView element(
+        this->material_track().material_view().element_view(
+            celeritas::ElementComponentId{0}));
+
+    // Create interactor
+    MollerBhabhaInteractor mb_interactor(pointers_,
+                                         this->particle_track(),
+                                         this->direction(),
+                                         this->secondary_allocator(),
+                                         element);
+
+    RandomEngine& rng_engine = this->rng();
+    Interaction   result     = mb_interactor(rng_engine);
+    this->sanity_check(result);
 }

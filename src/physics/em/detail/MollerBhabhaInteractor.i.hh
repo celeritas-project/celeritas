@@ -53,28 +53,28 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 {
-    // Incident particle scatters an electron
+    // Try to allocate memory for the produced electron
     Secondary* electron_secondary = this->allocate_(1);
     if (electron_secondary == nullptr)
     {
-        // Failed to allocate space for a secondary
+        // Fail to allocate space for a secondary
         return Interaction::from_failure();
     }
 
     // ??
     (void)sizeof(rng);
 
-    // Total XS formulas are valid below this threshold
+    // Maximum transferable energy to the free electron
     real_type max_kinetic_energy;
 
     if (inc_particle_is_electron_)
     {
-        // Moller scattering (e-e-) valid range limit
+        // Moller scattering (e-e-)
         max_kinetic_energy = 0.5 * inc_energy_.value();
     }
     else
     {
-        // Bhabha scattering (e+e-) valid range limit
+        // Bhabha scattering (e+e-)
         max_kinetic_energy = inc_energy_.value();
     }
 
@@ -88,16 +88,15 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     real_type x, z, rejection_function_g;
     real_type random[2];
 
-    // Moller scattering (e-e-)
+    //// Moller scattering (e-e-) ////
     if (inc_particle_is_electron_)
     {
-        std::cout << "MOLLER" << std::endl;
-
-        real_type gg         = (2.0 * gamma - 1.0) / gamma_sq;
-        real_type y          = 1.0 - x_max;
-        rejection_function_g = 1.0 - gg * x_max
+        real_type two_gamma_term = (2.0 * gamma - 1.0) / gamma_sq;
+        real_type y              = 1.0 - x_max;
+        rejection_function_g     = 1.0 - two_gamma_term * x_max
                                + x_max * x_max
-                                     * (1.0 - gg + (1.0 - gg * y) / (y * y));
+                                     * (1.0 - two_gamma_term
+                                        + (1.0 - two_gamma_term * y) / (y * y));
 
         do
         {
@@ -106,16 +105,16 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 
             x = x_min * x_max / (x_min * (1.0 - random[0]) + x_max * random[0]);
             y = 1.0 - x;
-            z = 1.0 - gg * x + x * x * (1.0 - gg + (1.0 - gg * y) / (y * y));
-
+            z = 1.0 - two_gamma_term * x
+                + x * x
+                      * (1.0 - two_gamma_term
+                         + (1.0 - two_gamma_term * y) / (y * y));
         } while (rejection_function_g * random[1] > z);
     }
 
-    // Bhabha scattering (e+e-)
+    //// Bhabha scattering (e+e-) ////
     else
     {
-        std::cout << "BHABHA" << std::endl;
-
         real_type y    = 1.0 / (1.0 + gamma);
         real_type y2   = y * y;
         real_type y12  = 1.0 - 2.0 * y;
@@ -143,62 +142,71 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         } while (rejection_function_g * random[1] > z);
     }
 
-    // Change in the primary kinetic energy
-    real_type delta_kinetic_energy = x * inc_energy_.value();
-    real_type final_primary_energy = inc_energy_.value() - delta_kinetic_energy;
+    // Calculate primary and secondary kinetic energies
+    real_type secondary_energy = x * inc_energy_.value();
+    real_type inc_final_energy = inc_energy_.value() - secondary_energy;
 
-    // Change in the primary direction
-    Real3 delta_direction;
+    // Calculate secondary momentum
+    // p^2 = \frac{K^2}{c^2} + 2 * m * K
+    real_type secondary_momentum
+        = sqrt(secondary_energy
+               * (secondary_energy + 2.0 * shared_.electron_mass_c_sq));
 
-    real_type delta_momentum
-        = sqrt(delta_kinetic_energy
-               * (delta_kinetic_energy + 2.0 * shared_.electron_mass_c_sq));
+    // Theta comes from energy-momentum conservation
+    real_type secondary_cos_theta
+        = secondary_energy * (total_energy + shared_.electron_mass_c_sq)
+          / (secondary_momentum * inc_momentum_.value());
 
-    // Theta comes from energy-momentum conservation, phi is isotropic
-    real_type cos_theta = delta_kinetic_energy
-                          * (total_energy + shared_.electron_mass_c_sq)
-                          / (delta_momentum * inc_momentum_.value());
+    // Geant says if (secondary_cos_theta > 1) { secondary_cos_theta = 1; }
+    secondary_cos_theta = std::min(secondary_cos_theta, 1.0);
+    CELER_ASSERT(secondary_cos_theta >= -1.0 && secondary_cos_theta <= 1.0);
 
-    std::cout << "delta_K = " << delta_kinetic_energy << std::endl;
-    std::cout << "total_energy = " << total_energy << std::endl;
-    std::cout << "shared_.electron_mass_c_sq = " << shared_.electron_mass_c_sq
-              << std::endl;
-    std::cout << "delta_momentum = " << delta_momentum << std::endl;
-    std::cout << "inc_momentum_ = " << inc_momentum_.value() << std::endl;
-
-    // Geant says if (cos_theta > 1) { cos_theta = 1; }
-    cos_theta = std::min(cos_theta, 1.0);
-    std::cout << "cos_theta = " << cos_theta << std::endl;
-    CELER_ASSERT(cos_theta >= -1.0 && cos_theta <= 1.0);
+    real_type secondary_sin_theta
+        = sqrt((1.0 - secondary_cos_theta) * (1.0 + secondary_cos_theta));
 
     // Sample phi isotropically
-    real_type sin_theta = sqrt((1.0 - cos_theta) * (1.0 + cos_theta));
     UniformRealDistribution<real_type> random_phi(0, 2 * constants::pi);
-    real_type                          phi = random_phi(rng);
+    real_type                          secondary_phi = random_phi(rng);
+
+    // Create cartesian directions from the sampled theta and phi
+    Real3 secondary_direction = {secondary_sin_theta * std::cos(secondary_phi),
+                                 secondary_sin_theta * std::sin(secondary_phi),
+                                 secondary_cos_theta};
+
+    // Calculate incident particle's final vector momentum
+    Real3 inc_vec_momentum, secondary_vec_momentum, inc_final_vec_momentum;
+    for (int i : range(3))
+    {
+        inc_vec_momentum[i]       = inc_momentum_.value() * inc_direction_[i];
+        secondary_vec_momentum[i] = secondary_momentum * secondary_direction[i];
+        inc_final_vec_momentum[i] = inc_vec_momentum[i]
+                                    - secondary_vec_momentum[i];
+    }
+
+    real_type primary_final_momentum
+        = std::sqrt(std::pow(inc_final_vec_momentum[0], 2)
+                    + std::pow(inc_final_vec_momentum[1], 2)
+                    + std::pow(inc_final_vec_momentum[2], 2));
+
+    // Calculate incident particle's final direction
+    Real3 inc_final_direction;
+    for (int i : range(3))
+    {
+        inc_final_direction[i] = inc_final_vec_momentum[i]
+                                 / primary_final_momentum;
+    }
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
     result.action      = Action::scattered;
-    result.energy      = units::MevEnergy{final_primary_energy};
+    result.energy      = units::MevEnergy{inc_final_energy};
     result.secondaries = {electron_secondary, 1};
-    result.direction   = inc_direction_;
-    // Rotate outgoing direction
-    result.direction = rotate(from_spherical(cos_theta, phi), result.direction);
+    result.direction   = inc_final_direction;
 
-    delta_direction
-        = {sin_theta * std::cos(phi), sin_theta * std::sin(phi), cos_theta};
-
-    // Save outgoing secondary data
-    electron_secondary[0].def_id = shared_.electron_id;
-    electron_secondary[0].energy = units::MevEnergy{delta_kinetic_energy};
-
-    for (auto i : range(3))
-    {
-        electron_secondary->direction[i]
-            = inc_direction_[i] * inc_energy_.value()
-              - result.direction[i] * result.energy.value();
-    }
-    normalize_direction(&electron_secondary->direction);
+    // Assign final values to the secondary particle
+    electron_secondary[0].def_id    = shared_.electron_id;
+    electron_secondary[0].energy    = units::MevEnergy{secondary_energy};
+    electron_secondary[0].direction = secondary_direction;
 
     return result;
 }

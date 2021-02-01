@@ -27,6 +27,7 @@ MollerBhabhaModel::MollerBhabhaModel(ModelId               id,
     CELER_VALIDATE(interface_.electron_id && interface_.positron_id,
                    "Electron and positron particles must be enabled to use "
                    "the Moller-Bhabha Model.");
+
     interface_.electron_mass_c_sq
         = particles.get(interface_.electron_id).mass.value()
           * units::CLightSq().value();
@@ -44,7 +45,7 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
 {
     Applicability electron_applic;
     electron_applic.particle = interface_.electron_id;
-    electron_applic.lower    = units::MevEnergy{1e-3};  // TODO: double-check
+    electron_applic.lower    = interface_.min_valid_energy_;
     electron_applic.upper    = units::MevEnergy{100e6}; // TODO: double-check
 
     return {electron_applic};
