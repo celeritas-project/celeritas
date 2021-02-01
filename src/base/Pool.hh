@@ -24,9 +24,9 @@ namespace celeritas
 //! Data ownership flag
 enum class Ownership
 {
-    value,           //!< Denotes ownership (possibly shared) of the data
-    const_reference, //!< Denotes a reference to the data
-    reference        //!< Denotes a reference to the data
+    value,           //!< Ownership of the data, only on host
+    reference,       //!< Mutable reference to the data
+    const_reference, //!< Immutable reference to the data
 };
 
 //! Size/offset type for pool
@@ -56,10 +56,10 @@ struct ownership_traits<T, Ownership::const_reference>
 
 //---------------------------------------------------------------------------//
 template<class T>
-class PoolSpan
+class PoolRange
 {
   public:
-    PoolSpan(pool_size_type start, pool_size_type stop)
+    PoolRange(pool_size_type start, pool_size_type stop)
         : start_(start), stop_(stop)
     {
         CELER_EXPECT(start_ <= stop_);
@@ -87,7 +87,7 @@ class PoolSpan
  * Storage and access to subspans of a contiguous array.
  *
  * Pools are constructed incrementally on the host, then copied (along with
- * their associated PoolSpans) to device.
+ * their associated PoolRanges) to device.
  */
 template<class T, Ownership W, MemSpace M>
 class Pool
@@ -111,7 +111,7 @@ class Pool
     SpanT get() const { return data_; }
 
     //! Access a subspan
-    SpanT operator[](const PoolSpan<T>& ps) const
+    SpanT operator[](const PoolRange<T>& ps) const
     {
         CELER_EXPECT(ps.stop() <= data_.size());
         return {data_.data() + ps.start(), data_.data() + ps.stop()};
@@ -132,11 +132,13 @@ class Pool
 };
 
 #if POOL_HOST_HEADER
+//! The value/host specialization is used to construct and modify.
 template<class T>
 class Pool<T, Ownership::value, MemSpace::host>
 {
   public:
-    using PoolSpanT = PoolSpan<T>;
+    using SpanT      = Span<T>;
+    using PoolRangeT = PoolRange<T>;
 
     Pool() = default;
 
@@ -161,19 +163,27 @@ class Pool<T, Ownership::value, MemSpace::host>
     size_type size() const { return data_.size(); }
 
     //! Allocate a new number of items
-    PoolSpanT allocate(size_type count)
+    PoolRangeT allocate(size_type count)
     {
         CELER_EXPECT(count + data_.size() <= max_pool_size());
         pool_size_type start_ = data_.size();
         pool_size_type stop_  = start_ + static_cast<pool_size_type>(count);
         data_.resize(stop_);
-        return PoolSpanT(start_, stop_);
+        return PoolRangeT(start_, stop_);
+    }
+
+    //! Access a subspan
+    SpanT operator[](const PoolRange<T>& ps) const
+    {
+        CELER_EXPECT(ps.stop() <= data_.size());
+        return {data_.data() + ps.start(), data_.data() + ps.stop()};
     }
 
   private:
     std::vector<T> data_;
 };
 
+//! The value/device specialization doesn't need detailed access.
 template<class T>
 class Pool<T, Ownership::value, MemSpace::device>
 {

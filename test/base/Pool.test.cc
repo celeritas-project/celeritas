@@ -13,7 +13,6 @@
 using celeritas::MemSpace;
 using celeritas::Ownership;
 using celeritas::Pool;
-using celeritas::PoolSpan;
 
 using namespace celeritas_test;
 
