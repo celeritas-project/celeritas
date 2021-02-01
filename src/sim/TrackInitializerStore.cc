@@ -156,16 +156,17 @@ void TrackInitializerStore::extend_from_primaries()
 
    \endverbatim
  */
-void TrackInitializerStore::extend_from_secondaries(StateStore& states,
-                                                    ParamStore& params)
+void TrackInitializerStore::extend_from_secondaries(StateStore* states,
+                                                    ParamStore* params)
 {
+    CELER_EXPECT(states && params);
     // Resize the vector of vacancies to be equal to the number of tracks
-    vacancies_.resize(states.size());
+    vacancies_.resize(states->size());
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
-    detail::locate_alive(states.device_pointers(),
-                         params.device_pointers(),
+    detail::locate_alive(states->device_pointers(),
+                         params->device_pointers(),
                          this->device_pointers());
 
     // Remove all elements in the vacancy vector that were flagged as active
@@ -195,8 +196,8 @@ void TrackInitializerStore::extend_from_secondaries(StateStore& states,
     // Launch a kernel to create track initializers from secondaries
     parent_.resize(num_secondaries);
     initializers_.resize(initializers_.size() + num_secondaries);
-    detail::process_secondaries(states.device_pointers(),
-                                params.device_pointers(),
+    detail::process_secondaries(states->device_pointers(),
+                                params->device_pointers(),
                                 this->device_pointers());
 }
 
@@ -209,17 +210,18 @@ void TrackInitializerStore::extend_from_secondaries(StateStore& states,
  * If there are more empty slots than new secondaries, they will be filled by
  * any track initializers remaining from previous steps using the position.
  */
-void TrackInitializerStore::initialize_tracks(StateStore& states,
-                                              ParamStore& params)
+void TrackInitializerStore::initialize_tracks(StateStore* states,
+                                              ParamStore* params)
 {
+    CELER_EXPECT(states && params);
     // The number of new tracks to initialize is the smaller of the number of
     // empty slots in the track vector and the number of track initializers
     size_type num_tracks = std::min(vacancies_.size(), initializers_.size());
     if (num_tracks > 0)
     {
         // Launch a kernel to initialize tracks on device
-        detail::init_tracks(states.device_pointers(),
-                            params.device_pointers(),
+        detail::init_tracks(states->device_pointers(),
+                            params->device_pointers(),
                             this->device_pointers());
         initializers_.resize(initializers_.size() - num_tracks);
         vacancies_.resize(vacancies_.size() - num_tracks);

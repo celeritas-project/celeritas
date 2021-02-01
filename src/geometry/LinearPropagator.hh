@@ -22,7 +22,7 @@ class LinearPropagator
 
   public:
     // Construct from persistent and state data
-    inline CELER_FUNCTION LinearPropagator(GeoTrackView& track);
+    inline CELER_FUNCTION LinearPropagator(GeoTrackView* track);
 
     // Move track by next_step(), which takes it to next volume boundary.
     inline CELER_FUNCTION void operator()();
