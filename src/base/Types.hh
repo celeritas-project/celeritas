@@ -28,7 +28,7 @@ using real_type = double;
 using Real3 = Array<real_type, 3>;
 
 //! Index of the current CUDA thread, with type safety for containers.
-using ThreadId = OpaqueId<struct Thread, unsigned int>;
+using ThreadId = OpaqueId<struct Thread>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
@@ -38,6 +38,18 @@ enum class Interp
 {
     linear,
     log
+};
+
+//! Memory location of data, or a pointer
+enum class MemSpace
+{
+    host,
+    device,
+#ifdef __CUDA_ARCH__
+    native = device,
+#else
+    native = host,
+#endif
 };
 
 //! Non-convertible type for raw data modeled after std::byte (C++17)

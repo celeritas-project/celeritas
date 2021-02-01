@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cstddef>
 #ifndef __CUDA_ARCH__
+#include <cstddef>
 #    include <functional>
 #endif
 #include "Assert.hh"
