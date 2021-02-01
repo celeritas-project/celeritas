@@ -15,6 +15,7 @@
 #include "../InteractionIO.hh"
 #include "physics/material/MaterialTrackView.hh"
 
+using celeritas::Action;
 using celeritas::detail::MollerBhabhaInteractor;
 using celeritas::units::AmuMass;
 namespace constants = celeritas::constants;
@@ -127,6 +128,25 @@ TEST_F(MollerBhabhaInteractorTest, moller_scattering_10_MeV)
     RandomEngine& rng_engine = this->rng();
     Interaction   result     = mb_interactor(rng_engine);
     this->sanity_check(result);
+
+    // Incident particle
+    Real3 expected_inc_exiting_direction
+        = {0.00110567321905880, -0.00288939665156339, 0.99999521442541039};
+
+    EXPECT_EQ(Action::scattered, result.action);
+    EXPECT_VEC_SOFT_EQ(expected_inc_exiting_direction, result.direction);
+    EXPECT_SOFT_EQ(9.99896787404501630, result.energy.value());
+    EXPECT_EQ(0.0, result.energy_deposition.value());
+    EXPECT_EQ(1, result.secondaries.size());
+
+    // Secondary
+    Real3 expected_secondary_direction
+        = {-0.35719359718530397, 0.93343491175959759, 0.03334665857586167};
+    auto secondary = result.secondaries[0];
+
+    EXPECT_GE(0, secondary.def_id.get());
+    EXPECT_VEC_SOFT_EQ(expected_secondary_direction, secondary.direction);
+    EXPECT_SOFT_EQ(0.00103212595498286, secondary.energy.value());
 }
 
 //---------------------------------------------------------------------------//
@@ -152,4 +172,23 @@ TEST_F(MollerBhabhaInteractorTest, bhabha_scattering_10_MeV)
     RandomEngine& rng_engine = this->rng();
     Interaction   result     = mb_interactor(rng_engine);
     this->sanity_check(result);
+
+    // Incident particle
+    Real3 expected_inc_exiting_direction
+        = {0.00110567499562512, -0.00288940129416909, 0.99999521441003170};
+
+    EXPECT_EQ(Action::scattered, result.action);
+    EXPECT_VEC_SOFT_EQ(expected_inc_exiting_direction, result.direction);
+    EXPECT_SOFT_EQ(9.99896787072854032, result.energy.value());
+    EXPECT_EQ(0.0, result.energy_deposition.value());
+    EXPECT_EQ(1, result.secondaries.size());
+
+    // Secondary
+    Real3 expected_secondary_direction
+        = {-0.35719359654708832, 0.93343491009178281, 0.03334671209731647};
+    auto secondary = result.secondaries[0];
+
+    EXPECT_GE(0, secondary.def_id.get());
+    EXPECT_VEC_SOFT_EQ(expected_secondary_direction, secondary.direction);
+    EXPECT_SOFT_EQ(0.00103212927146000, secondary.energy.value());
 }

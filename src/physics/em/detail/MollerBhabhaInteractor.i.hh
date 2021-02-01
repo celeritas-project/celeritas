@@ -53,15 +53,16 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 {
-    // Try to allocate memory for the produced electron
+    // Allocate memory for the produced electron
     Secondary* electron_secondary = this->allocate_(1);
+
     if (electron_secondary == nullptr)
     {
         // Fail to allocate space for a secondary
         return Interaction::from_failure();
     }
 
-    // ??
+    // Temporary
     (void)sizeof(rng);
 
     // Maximum transferable energy to the free electron
@@ -85,7 +86,9 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     real_type gamma = total_energy / shared_.electron_mass_c_sq;
     real_type gamma_sq = gamma * gamma;
     real_type beta_sq  = 1.0 - (1.0 / gamma_sq);
-    real_type x, z, rejection_function_g;
+    real_type x;
+    real_type z;
+    real_type rejection_function_g;
     real_type random[2];
 
     //// Moller scattering (e-e-) ////
@@ -142,22 +145,21 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         } while (rejection_function_g * random[1] > z);
     }
 
-    // Calculate primary and secondary kinetic energies
+    // Calculate secondary kinetic energy
     real_type secondary_energy = x * inc_energy_.value();
-    real_type inc_final_energy = inc_energy_.value() - secondary_energy;
 
     // Calculate secondary momentum
-    // p^2 = \frac{K^2}{c^2} + 2 * m * K
+    // Same equation as in ParticleTrackView::momentum_sq()
     real_type secondary_momentum
         = sqrt(secondary_energy
                * (secondary_energy + 2.0 * shared_.electron_mass_c_sq));
 
-    // Theta comes from energy-momentum conservation
+    // Calculate theta from energy-momentum conservation
     real_type secondary_cos_theta
         = secondary_energy * (total_energy + shared_.electron_mass_c_sq)
           / (secondary_momentum * inc_momentum_.value());
 
-    // Geant says if (secondary_cos_theta > 1) { secondary_cos_theta = 1; }
+    // Geant says: if (secondary_cos_theta > 1) { secondary_cos_theta = 1; }
     secondary_cos_theta = std::min(secondary_cos_theta, 1.0);
     CELER_ASSERT(secondary_cos_theta >= -1.0 && secondary_cos_theta <= 1.0);
 
@@ -168,42 +170,45 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     UniformRealDistribution<real_type> random_phi(0, 2 * constants::pi);
     real_type                          secondary_phi = random_phi(rng);
 
-    // Create cartesian directions from the sampled theta and phi
+    // Create cartesian direction from the sampled theta and phi
     Real3 secondary_direction = {secondary_sin_theta * std::cos(secondary_phi),
                                  secondary_sin_theta * std::sin(secondary_phi),
                                  secondary_cos_theta};
 
-    // Calculate incident particle's final vector momentum
-    Real3 inc_vec_momentum, secondary_vec_momentum, inc_final_vec_momentum;
+    // Calculate incident particle final vector momentum
+    Real3 inc_vec_momentum;
+    Real3 secondary_vec_momentum;
+    Real3 inc_exiting_vec_momentum;
     for (int i : range(3))
     {
         inc_vec_momentum[i]       = inc_momentum_.value() * inc_direction_[i];
         secondary_vec_momentum[i] = secondary_momentum * secondary_direction[i];
-        inc_final_vec_momentum[i] = inc_vec_momentum[i]
-                                    - secondary_vec_momentum[i];
+        inc_exiting_vec_momentum[i] = inc_vec_momentum[i]
+                                      - secondary_vec_momentum[i];
     }
 
-    real_type primary_final_momentum
-        = std::sqrt(std::pow(inc_final_vec_momentum[0], 2)
-                    + std::pow(inc_final_vec_momentum[1], 2)
-                    + std::pow(inc_final_vec_momentum[2], 2));
+    real_type inc_exiting_momentum
+        = std::sqrt(std::pow(inc_exiting_vec_momentum[0], 2)
+                    + std::pow(inc_exiting_vec_momentum[1], 2)
+                    + std::pow(inc_exiting_vec_momentum[2], 2));
 
-    // Calculate incident particle's final direction
-    Real3 inc_final_direction;
+    // Calculate incident particle final direction
+    Real3 inc_exiting_direction;
     for (int i : range(3))
     {
-        inc_final_direction[i] = inc_final_vec_momentum[i]
-                                 / primary_final_momentum;
+        inc_exiting_direction[i] = inc_exiting_vec_momentum[i]
+                                   / inc_exiting_momentum;
     }
 
     // Construct interaction for change to primary (incident) particle
+    real_type   inc_exiting_energy = inc_energy_.value() - secondary_energy;
     Interaction result;
     result.action      = Action::scattered;
-    result.energy      = units::MevEnergy{inc_final_energy};
+    result.energy      = units::MevEnergy{inc_exiting_energy};
     result.secondaries = {electron_secondary, 1};
-    result.direction   = inc_final_direction;
+    result.direction   = inc_exiting_direction;
 
-    // Assign final values to the secondary particle
+    // Assign values to the secondary particle
     electron_secondary[0].def_id    = shared_.electron_id;
     electron_secondary[0].energy    = units::MevEnergy{secondary_energy};
     electron_secondary[0].direction = secondary_direction;
