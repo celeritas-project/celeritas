@@ -10,8 +10,8 @@
 
 namespace celeritas_test
 {
-using celeritas::Ownership;
 using celeritas::MemSpace;
+using celeritas::Ownership;
 
 //---------------------------------------------------------------------------//
 // MOCK POOLS
@@ -19,29 +19,35 @@ using celeritas::MemSpace;
 
 struct MockElement
 {
-    int            atomic_number = 0;
+    int    atomic_number = 0;
     double atomic_mass;
 };
 
-template<Ownership W, MemSpace M>
 struct MockMaterial
 {
-    template<class T> using PItem = celeritas::PoolItem<T, W, M>;
-
-    double     number_density;
-    PItem<int> element_ids;
+    double                           number_density;
+    celeritas::PoolSpan<MockElement> elements;
 };
-
 
 template<Ownership W, MemSpace M>
 struct MockParamsPools
 {
-    template<class T> using Pool = celeritas::Pool<T, W, M>;
+    template<class T>
+    using Pool = celeritas::Pool<T, W, M>;
 
-    Pool<MockElement>  elements;
-    Pool<int>          element_ids;
-    Pool<MockMaterial<W, M>> materials;
-    int                max_element_components;
+    celeritas::Pool<MockElement, W, M>  elements;
+    celeritas::Pool<MockMaterial, W, M> materials;
+    int                                 max_element_components;
+
+    //! Assign from another set of pools
+    template<Ownership W2, MemSpace M2>
+    MockParamsPools& operator=(const MockParamsPools<W2, M2>& other)
+    {
+        elements               = other.elements;
+        materials              = other.materials;
+        max_element_components = other.max_element_components;
+        return *this;
+    }
 };
 
 //---------------------------------------------------------------------------//

@@ -9,14 +9,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Construct vector on allocation.
- */
-template<class T>
-Pool<T, Ownership::value, MemSpace::host>::Pool()
-{
-    data_ = std::make_shared<std::vector<T>>();
-}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
