@@ -34,7 +34,6 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
     {
         using celeritas::ParticleDef;
         using namespace celeritas::units;
-        constexpr auto zero   = celeritas::zero_quantity();
         constexpr auto stable = ParticleDef::stable_decay_constant();
 
         // Particles needed by interactor
