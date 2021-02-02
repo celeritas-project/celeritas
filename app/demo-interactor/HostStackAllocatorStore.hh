@@ -23,9 +23,9 @@ class HostStackAllocatorStore
   public:
     //!@{
     //! Type aliases
-    using value_type      = T;
-    using Pointers        = StackAllocatorPointers<T>;
-    using size_type       = typename Pointers::size_type;
+    using value_type = T;
+    using Pointers   = StackAllocatorPointers<T>;
+    using size_type  = typename Pointers::size_type;
     //!@}
 
   public:

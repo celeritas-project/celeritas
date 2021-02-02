@@ -22,9 +22,9 @@ class HostStackAllocatorStore
 {
     //!@{
     //! Type aliases
-    using value_type      = T;
-    using Pointers        = celeritas::StackAllocatorPointers<T>;
-    using size_type       = typename Pointers::size_type;
+    using value_type = T;
+    using Pointers   = celeritas::StackAllocatorPointers<T>;
+    using size_type  = typename Pointers::size_type;
     //!@}
 
   public:

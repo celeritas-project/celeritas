@@ -29,8 +29,8 @@ class EventReader
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles      = std::shared_ptr<const ParticleParams>;
-    using result_type           = std::vector<Primary>;
+    using SPConstParticles = std::shared_ptr<const ParticleParams>;
+    using result_type      = std::vector<Primary>;
     //!@}
 
   public:

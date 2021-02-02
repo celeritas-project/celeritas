@@ -54,8 +54,8 @@ __global__ void livermore_pe_interact_kernel(const LivermorePEPointers   pe,
 
     // Sample an element
     ElementSelector    select_el(material.material_view(),
-                                 LivermorePEMicroXsCalculator{pe, particle},
-                                 material.element_scratch());
+                              LivermorePEMicroXsCalculator{pe, particle},
+                              material.element_scratch());
     ElementComponentId comp_id = select_el(rng);
     ElementId          el_id   = material.material_view().element_id(comp_id);
 

@@ -75,8 +75,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     auto pp_host_ptrs = pparams_->host_pointers();
 
     // Physics calculator
-    auto                   xs_host_ptrs = xsparams_->host_pointers();
-    PhysicsGridCalculator  calc_xs(xs_host_ptrs);
+    auto                  xs_host_ptrs = xsparams_->host_pointers();
+    PhysicsGridCalculator calc_xs(xs_host_ptrs);
 
     // Make secondary store
     HostStackAllocatorStore<Secondary> secondaries(args.max_steps);

@@ -87,7 +87,6 @@ class RootImporter
     std::shared_ptr<GdmlGeometryMap> load_geometry_data();
     // Populate the shared_ptr<MaterialParams> with material information
     std::shared_ptr<MaterialParams> load_material_data();
-
 };
 
 //---------------------------------------------------------------------------//

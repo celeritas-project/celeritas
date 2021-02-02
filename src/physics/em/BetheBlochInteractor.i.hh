@@ -55,8 +55,8 @@ CELER_FUNCTION Interaction BetheBlochInteractor::operator()(Engine& rng)
 
     // Save outgoing secondary data
     secondaries[0].particle_id = shared_.electron_id; // XXX
-    secondaries[0].energy    = units::MevEnergy{0}; // XXX
-    secondaries[0].direction = {0, 0, 0};           // XXX
+    secondaries[0].energy      = units::MevEnergy{0}; // XXX
+    secondaries[0].direction   = {0, 0, 0};           // XXX
 
     return result;
 }

@@ -104,7 +104,7 @@ class GeoTrackView
   private:
     //! Get a reference to the state from a NavStatePool's pointer
     static inline CELER_FUNCTION NavState&
-                                 get_nav_state(void* state, int vgmaxdepth, ThreadId thread);
+    get_nav_state(void* state, int vgmaxdepth, ThreadId thread);
 
     //! Get a reference to the current volume
     inline CELER_FUNCTION const Volume& volume() const;

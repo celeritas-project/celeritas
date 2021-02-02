@@ -46,10 +46,10 @@ class KNDemoRunner
     result_type operator()(KNDemoRunArgs args);
 
   private:
-    constSPParticleParams                     pparams_;
-    constSPXsGridParams                       xsparams_;
-    CudaGridParams                            launch_params_;
-    celeritas::detail::KleinNishinaPointers   kn_pointers_;
+    constSPParticleParams                   pparams_;
+    constSPXsGridParams                     xsparams_;
+    CudaGridParams                          launch_params_;
+    celeritas::detail::KleinNishinaPointers kn_pointers_;
 };
 
 //---------------------------------------------------------------------------//
