@@ -11,8 +11,11 @@
 #include "Types.hh"
 
 // Proxy for defining specializations in a separate header that device-only
-// code can omit
-#define POOL_HOST_HEADER 1
+// code can omit: this will be removed before merge
+#ifndef POOL_HOST_HEADER
+#    define POOL_HOST_HEADER 1
+#endif
+
 #if POOL_HOST_HEADER
 #    include <vector>
 #    include "DeviceVector.hh"
@@ -40,16 +43,18 @@ CELER_CONSTEXPR_FUNCTION size_type max_pool_size()
 namespace detail
 {
 template<typename T, Ownership W>
-struct ownership_traits
+struct PoolTraits
 {
     using SpanT          = Span<T>;
+    using pointer        = T*;
     using reference_type = T&;
 };
 
 template<typename T>
-struct ownership_traits<T, Ownership::const_reference>
+struct PoolTraits<T, Ownership::const_reference>
 {
     using SpanT          = Span<const T>;
+    using pointer        = const T*;
     using reference_type = const T&;
 };
 } // namespace detail
@@ -59,6 +64,10 @@ template<class T>
 class PoolRange
 {
   public:
+    //! Default to an empty range
+    PoolRange() = default;
+
+    //! Construct with a particular range
     PoolRange(pool_size_type start, pool_size_type stop)
         : start_(start), stop_(stop)
     {
@@ -82,21 +91,38 @@ class PoolRange
     pool_size_type stop_{};
 };
 
+template<class T, Ownership W, MemSpace M>
+class PoolBase
+{
+  protected:
+    ~PoolBase();
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Storage and access to subspans of a contiguous array.
  *
  * Pools are constructed incrementally on the host, then copied (along with
  * their associated PoolRanges) to device.
+ *
+ * \todo To what extent do we forward the methods from Span? Can we eliminate
+ * some of the duplication between the generic (non-owning) pool and the
+ * others?
  */
 template<class T, Ownership W, MemSpace M>
 class Pool
 {
-  public:
-    using SpanT = typename detail::ownership_traits<T, W>::SpanT;
-    using reference_type =
-        typename detail::ownership_traits<T, W>::reference_type;
+    using PoolTraitsT = detail::PoolTraits<T, W>;
 
+  public:
+    //!@{
+    //! Type aliases
+    using SpanT          = typename PoolTraitsT::SpanT;
+    using pointer        = typename PoolTraitsT::reference_type;
+    using reference_type = typename PoolTraitsT::reference_type;
+    //!@}
+
+  public:
     Pool& operator=(const Pool& other) = default;
 
     //! Assign from another pool in the same memory space
@@ -106,26 +132,37 @@ class Pool
         data_ = other.get();
         return *this;
     }
+    //! Assign (mutable!) from another pool in the same memory space
+    template<Ownership W2>
+    Pool& operator=(Pool<T, W2, M>& other)
+    {
+        data_ = other.get();
+        return *this;
+    }
 
     //! Access all data from this pool
-    SpanT get() const { return data_; }
+    CELER_FUNCTION SpanT get() const { return data_; }
 
     //! Access a subspan
-    SpanT operator[](const PoolRange<T>& ps) const
+    CELER_FUNCTION SpanT operator[](const PoolRange<T>& ps) const
     {
         CELER_EXPECT(ps.stop() <= data_.size());
         return {data_.data() + ps.start(), data_.data() + ps.stop()};
     }
 
     //! Access a single element
-    reference_type operator[](size_type idx) const
+    CELER_FUNCTION reference_type operator[](size_type idx) const
     {
         CELER_EXPECT(idx < data_.size());
         return data_[idx];
     }
 
-    //! Number of elements
-    size_type size() const { return data_.size(); }
+    //!@{
+    //! Forward to Span
+    CELER_FUNCTION size_type size() const { return data_.size(); }
+    CELER_FUNCTION bool      empty() const { return data_.empty(); }
+    CELER_FUNCTION pointer   data() const { return data_.data(); }
+    //!@}
 
   private:
     SpanT data_{};
@@ -137,14 +174,15 @@ template<class T>
 class Pool<T, Ownership::value, MemSpace::host>
 {
   public:
+    using const_pointer = const T*;
+    using pointer       = T*;
     using SpanT      = Span<T>;
     using PoolRangeT = PoolRange<T>;
 
     Pool() = default;
 
-    // Disallow copy construction and assignment
-    Pool(const Pool&) = delete;
-    Pool& operator=(const Pool&) = delete;
+    //! Construct with a specific number of elements
+    explicit Pool(size_type size) : data_(size) {}
 
     //@{
     //! Access all elements from this pool
@@ -159,9 +197,6 @@ class Pool<T, Ownership::value, MemSpace::host>
         data_.reserve(count);
     }
 
-    //! Number of elements
-    size_type size() const { return data_.size(); }
-
     //! Allocate a new number of items
     PoolRangeT allocate(size_type count)
     {
@@ -173,11 +208,26 @@ class Pool<T, Ownership::value, MemSpace::host>
     }
 
     //! Access a subspan
-    SpanT operator[](const PoolRange<T>& ps) const
+    SpanT operator[](const PoolRange<T>& ps)
     {
         CELER_EXPECT(ps.stop() <= data_.size());
         return {data_.data() + ps.start(), data_.data() + ps.stop()};
     }
+
+    //! Access a subspan
+    Span<const T> operator[](const PoolRange<T>& ps) const
+    {
+        CELER_EXPECT(ps.stop() <= data_.size());
+        return {data_.data() + ps.start(), data_.data() + ps.stop()};
+    }
+
+    //!@{
+    //! Forward to storage
+    CELER_FUNCTION size_type     size() const { return data_.size(); }
+    CELER_FUNCTION bool          empty() const { return data_.empty(); }
+    CELER_FUNCTION const_pointer data() const { return data_.data(); }
+    CELER_FUNCTION pointer       data() { return data_.data(); }
+    //!@}
 
   private:
     std::vector<T> data_;
@@ -189,6 +239,9 @@ class Pool<T, Ownership::value, MemSpace::device>
 {
   public:
     Pool() = default;
+
+    //! Construct with a specific number of elements
+    explicit Pool(size_type size) : data_(size) {}
 
     //! Construct from host values, copying data directly
     Pool& operator=(const Pool<T, Ownership::value, MemSpace::host>& host_pool)
@@ -202,11 +255,31 @@ class Pool<T, Ownership::value, MemSpace::device>
         return *this;
     }
 
+    //! Resize (TODO: rethink this: whether to add resizing to DeviceVector?)
+    void resize(size_type size)
+    {
+        CELER_EXPECT(data_.empty() || size <= data_.capacity());
+        if (data_.empty())
+        {
+            data_ = DeviceVector<T>(size);
+        }
+        else
+        {
+            data_.resize(size);
+        }
+    }
+
     //@{
-    //! Access all elements from this pool
+    //! Access all elements from this pool with native pointers
     Span<T>       get() { return data_.device_pointers(); }
     Span<const T> get() const { return data_.device_pointers(); }
     //@}
+
+    //!@{
+    //! Forward to storage
+    CELER_FUNCTION size_type size() const { return data_.size(); }
+    CELER_FUNCTION bool      empty() const { return data_.empty(); }
+    //!@}
 
   private:
     DeviceVector<T> data_;
@@ -215,5 +288,48 @@ class Pool<T, Ownership::value, MemSpace::device>
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
+
+//---------------------------------------------------------------------------//
+/*!
+ * \def CELER_POOL_TYPE(CLSNAME, OWNERSHIP, MEMSPACE)
+ *
+ * Define type alias for a template class (usually a collection of pools) with
+ * the given ownership and memory space.
+ */
+#define CELER_POOL_TYPE(CLSNAME, OWNERSHIP, MEMSPACE) \
+    CLSNAME<::celeritas::Ownership::OWNERSHIP, ::celeritas::MemSpace::MEMSPACE>
+
+//---------------------------------------------------------------------------//
+/*!
+ * \def CELER_POOL_STRUCT
+ *
+ * Define an anonymous struct that holds sets of value/reference for
+ * host/device.
+ *
+ * Example:
+ * \code
+ * class FooParams
+ * {
+ *  public:
+ *   using PoolDeviceRef = CELER_POOL_TYPE(FooPools, const_reference, device);
+ *
+ *   const PoolDeviceRef& device_pointers() const {
+ *    return pools_.device_ref;
+ *   }
+ *  private:
+ *   CELER_POOL_STRUCT(FooPools, const_reference) pools_;
+ * };
+ * \endcode
+ */
+#define CELER_POOL_STRUCT(CLSNAME, REFTYPE)                   \
+    struct                                                    \
+    {                                                         \
+        CELER_POOL_TYPE(CLSNAME, value, host) host;           \
+        CELER_POOL_TYPE(CLSNAME, value, device) device;       \
+        CELER_POOL_TYPE(CLSNAME, REFTYPE, host) host_ref;     \
+        CELER_POOL_TYPE(CLSNAME, REFTYPE, device) device_ref; \
+    }
+
+//---------------------------------------------------------------------------//
 
 #include "Pool.i.hh"
