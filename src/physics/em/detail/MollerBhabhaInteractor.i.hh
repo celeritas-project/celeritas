@@ -28,14 +28,12 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     const MollerBhabhaPointers& shared,
     const ParticleTrackView&    particle,
     const Real3&                inc_direction,
-    SecondaryAllocatorView&     allocate,
-    const ElementView&          element)
+    SecondaryAllocatorView&     allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_momentum_(particle.momentum().value())
     , inc_direction_(inc_direction)
     , allocate_(allocate)
-    , element_(element)
     , inc_particle_is_electron_(
           (particle.particle_id() == shared_.electron_id) ? true : false)
 {

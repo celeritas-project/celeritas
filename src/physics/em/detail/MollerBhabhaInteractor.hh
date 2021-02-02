@@ -43,8 +43,7 @@ class MollerBhabhaInteractor
     MollerBhabhaInteractor(const MollerBhabhaPointers& shared,
                            const ParticleTrackView&    particle,
                            const Real3&                inc_direction,
-                           SecondaryAllocatorView&     allocate,
-                           const ElementView&          element);
+                           SecondaryAllocatorView&     allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -59,13 +58,10 @@ class MollerBhabhaInteractor
     const units::MevMomentum inc_momentum_;
     // Incident direction
     const Real3& inc_direction_;
-    // Incident particle flag for selecting Moller or Bhabha scattering
-    bool inc_particle_is_electron_;
     // Allocate space for one or more secondary particles
     SecondaryAllocatorView& allocate_;
-    // Store element
-    const ElementView& element_;
-
+    // Incident particle flag for selecting Moller or Bhabha scattering
+    bool inc_particle_is_electron_;
 }; // namespace MollerBhabhaInteractor
 
 //---------------------------------------------------------------------------//
