@@ -8,6 +8,7 @@
 #include "base/Range.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
+#include "base/Algorithms.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 
@@ -158,7 +159,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
           / (secondary_momentum * inc_momentum_.value());
 
     // Geant says: if (secondary_cos_theta > 1) { secondary_cos_theta = 1; }
-    secondary_cos_theta = std::min(secondary_cos_theta, 1.0);
+    secondary_cos_theta = min(secondary_cos_theta, 1.0);
     CELER_ASSERT(secondary_cos_theta >= -1.0 && secondary_cos_theta <= 1.0);
 
     real_type secondary_sin_theta

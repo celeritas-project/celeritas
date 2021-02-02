@@ -59,7 +59,7 @@ void MollerBhabhaModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractPointers& pointers) const
 {
 #if CELERITAS_USE_CUDA
-    detail::klein_nishina_interact(interface_, pointers);
+    detail::moller_bhabha_interact(interface_, pointers);
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
