@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "RngStatePointers.hh"
+#include "RngInterface.hh"
 #include "random/distributions/GenerateCanonical.hh"
 
 namespace celeritas

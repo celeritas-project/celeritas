@@ -66,7 +66,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
             {1.0 * constants::na_avogadro,
              293.0,
              celeritas::MatterState::solid,
-             {{celeritas::ElementDefId{0}, 1.0}},
+             {{celeritas::ElementId{0}, 1.0}},
              "Cu"},
         };
         this->set_material_params(inp);
@@ -88,7 +88,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         ASSERT_EQ(1, interaction.secondaries.size());
         const auto& electron = interaction.secondaries.front();
         EXPECT_TRUE(electron);
-        EXPECT_EQ(pointers_.electron_id, electron.def_id);
+        EXPECT_EQ(pointers_.electron_id, electron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   electron.energy.value());
         EXPECT_LT(0, electron.energy.value());
@@ -144,7 +144,7 @@ TEST_F(MollerBhabhaInteractorTest, moller_scattering_10_MeV)
         = {-0.35719359718530397, 0.93343491175959759, 0.03334665857586167};
     auto secondary = result.secondaries[0];
 
-    EXPECT_GE(0, secondary.def_id.get());
+    EXPECT_GE(0, secondary.particle_id.get());
     EXPECT_VEC_SOFT_EQ(expected_secondary_direction, secondary.direction);
     EXPECT_SOFT_EQ(0.00103212595498286, secondary.energy.value());
 }
@@ -188,7 +188,7 @@ TEST_F(MollerBhabhaInteractorTest, bhabha_scattering_10_MeV)
         = {-0.35719359654708832, 0.93343491009178281, 0.03334671209731647};
     auto secondary = result.secondaries[0];
 
-    EXPECT_GE(0, secondary.def_id.get());
+    EXPECT_GE(0, secondary.particle_id.get());
     EXPECT_VEC_SOFT_EQ(expected_secondary_direction, secondary.direction);
     EXPECT_SOFT_EQ(0.00103212927146000, secondary.energy.value());
 }

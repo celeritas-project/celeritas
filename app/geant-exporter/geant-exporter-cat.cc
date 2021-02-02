@@ -14,7 +14,7 @@
 #include "comm/Communicator.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
-#include "physics/base/ParticleDef.hh"
+#include "physics/base/ParticleInterface.hh"
 #include "io/RootImporter.hh"
 #include "io/GdmlGeometryMap.hh"
 
@@ -38,15 +38,15 @@ void print_particles(const ParticleParams& particles)
 | ----------------- | ----------- | ---------- | ---------- | ----------- |
 )gfm";
 
-    for (auto idx : range<ParticleDefId::value_type>(particles.size()))
+    for (auto idx : range<ParticleId::value_type>(particles.size()))
     {
-        ParticleDefId      def_id{idx};
-        const ParticleDef& def = particles.get(def_id);
+        ParticleId         particle_id{idx};
+        const ParticleDef& def = particles.get(particle_id);
 
         // clang-format off
         cout << "| "
-             << setw(17) << std::left << particles.id_to_label(def_id) << " | "
-             << setw(11) << particles.id_to_pdg(def_id).get() << " | "
+             << setw(17) << std::left << particles.id_to_label(particle_id) << " | "
+             << setw(11) << particles.id_to_pdg(particle_id).get() << " | "
              << setw(10) << setprecision(6) << def.mass.value() << " | "
              << setw(10) << setprecision(3) << def.charge.value() << " | "
              << setw(11) << setprecision(3) << def.decay_constant

@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "StackAllocatorPointers.hh"
+#include "StackAllocatorInterface.hh"
 #include "Types.hh"
 
 namespace celeritas

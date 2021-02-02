@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Types.hh"
-#include "ParticleDef.hh"
+#include "ParticleInterface.hh"
 
 namespace celeritas
 {
@@ -21,28 +21,16 @@ namespace celeritas
  */
 struct Secondary
 {
-    ParticleDefId    def_id;    //!< New particle type
-    units::MevEnergy energy;    //!< New kinetic energy
-    Real3            direction; //!< New direction
+    ParticleId       particle_id{};           //!< New particle type
+    units::MevEnergy energy{zero_quantity()}; //!< New kinetic energy
+    Real3            direction;               //!< New direction
 
-    // Default to invalid state
-    CELER_FUNCTION
-    Secondary() : def_id(ParticleDefId{}), energy(zero_quantity()) {}
-
-    // Whether the secondary survived cutoffs
-    explicit inline CELER_FUNCTION operator bool() const;
+    //! Whether the secondary survived cutoffs
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return static_cast<bool>(this->particle_id);
+    }
 };
-
-//---------------------------------------------------------------------------//
-// INLINE FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Whether the Secondary succeeded.
- */
-CELER_FUNCTION Secondary::operator bool() const
-{
-    return static_cast<bool>(this->def_id);
-}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

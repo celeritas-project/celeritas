@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../DetectorPointers.hh"
+#include "../DetectorInterface.hh"
 
 namespace celeritas
 {

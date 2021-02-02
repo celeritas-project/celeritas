@@ -8,13 +8,13 @@
 #pragma once
 
 #include <memory>
-#include "PhysicsArrayParams.hh"
+#include "XsGridParams.hh"
 
 namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
 
-std::shared_ptr<celeritas::PhysicsArrayParams> load_xs();
+std::shared_ptr<XsGridParams> load_xs();
 
 //---------------------------------------------------------------------------//
 } // namespace demo_interactor

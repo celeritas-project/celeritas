@@ -12,9 +12,9 @@
 #include <unordered_map>
 #include <vector>
 #include "base/DeviceVector.hh"
-#include "ParticleParamsPointers.hh"
+#include "ParticleInterface.hh"
 #include "PDGNumber.hh"
-#include "ParticleDef.hh"
+#include "ParticleInterface.hh"
 
 namespace celeritas
 {
@@ -28,7 +28,7 @@ namespace celeritas
  * The ParticleParams is constructed on the host with a vector that
  * combines metadata (used for debugging output and interfacing with physics
  * setup) and data (used for on-device transport). Each entry in the
- * construction is assigned a unique \c ParticleDefId used for runtime access.
+ * construction is assigned a unique \c ParticleId used for runtime access.
  *
  * The PDG Monte Carlo number is a unique "standard model" identifier for a
  * particle. See "Monte Carlo Particle Numbering Scheme" in the "Review of
@@ -62,19 +62,19 @@ class ParticleParams
     size_type size() const { return md_.size(); }
 
     // Get particle name
-    inline const std::string& id_to_label(ParticleDefId id) const;
+    inline const std::string& id_to_label(ParticleId id) const;
 
     // Get PDG code
-    inline PDGNumber id_to_pdg(ParticleDefId id) const;
+    inline PDGNumber id_to_pdg(ParticleId id) const;
 
     // Find the ID from a name
-    inline ParticleDefId find(const std::string& name) const;
+    inline ParticleId find(const std::string& name) const;
 
     // Find the ID from a PDG code
-    inline ParticleDefId find(PDGNumber pdg_code) const;
+    inline ParticleId find(PDGNumber pdg_code) const;
 
     // Access definition on host for construction
-    inline const ParticleDef& get(ParticleDefId id) const;
+    inline const ParticleDef& get(ParticleId id) const;
 
     // TESTING ONLY: Get a view to the managed data
     ParticleParamsPointers host_pointers() const;
@@ -89,10 +89,10 @@ class ParticleParams
     std::vector<std::pair<std::string, PDGNumber>> md_;
 
     // Map particle names to registered IDs
-    std::unordered_map<std::string, ParticleDefId> name_to_id_;
+    std::unordered_map<std::string, ParticleId> name_to_id_;
 
     // Map particle codes to registered IDs
-    std::unordered_map<PDGNumber, ParticleDefId> pdg_to_id_;
+    std::unordered_map<PDGNumber, ParticleId> pdg_to_id_;
 
     // Host copy of definitions for host construction of other classes
     std::vector<ParticleDef> host_defs_;

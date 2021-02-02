@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Types.hh"
-#include "ParticleDef.hh"
+#include "ParticleInterface.hh"
 #include "sim/Types.hh"
 
 namespace celeritas
@@ -19,7 +19,7 @@ namespace celeritas
  */
 struct Primary
 {
-    ParticleDefId    def_id;
+    ParticleId       particle_id;
     units::MevEnergy energy;
     Real3            position;
     Real3            direction;

@@ -37,7 +37,7 @@ __global__ void ptv_test_kernel(unsigned int              size,
     result += local_thread_id.get() * PTVTestOutput::props_per_thread();
 
     // Calculate/write values from the track view
-    CELER_ASSERT(p.def_id() == init[local_thread_id.get()].def_id);
+    CELER_ASSERT(p.particle_id() == init[local_thread_id.get()].particle_id);
     *result++ = p.energy().value();
     *result++ = p.mass().value();
     *result++ = p.charge().value();
@@ -66,6 +66,7 @@ PTVTestOutput ptv_test(PTVTestInput input)
         input.states,
         raw_pointer_cast(init.data()),
         raw_pointer_cast(result.data()));
+    CELER_CUDA_CHECK_ERROR();
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     PTVTestOutput output;

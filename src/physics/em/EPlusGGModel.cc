@@ -57,8 +57,11 @@ auto EPlusGGModel::applicability() const -> SetApplicability
 void EPlusGGModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractPointers& pointers) const
 {
-    // TODO: implement me
+#if CELERITAS_USE_CUDA
+    detail::eplusgg_interact(interface_, pointers);
+#else
     CELER_ASSERT_UNREACHABLE();
+#endif
 }
 
 //---------------------------------------------------------------------------//

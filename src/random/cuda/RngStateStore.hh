@@ -9,7 +9,7 @@
 
 #include "base/DeviceVector.hh"
 #include "base/Types.hh"
-#include "RngStatePointers.hh"
+#include "RngInterface.hh"
 
 namespace celeritas
 {

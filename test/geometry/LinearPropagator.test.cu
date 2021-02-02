@@ -46,7 +46,7 @@ __global__ void linProp_test_kernel(const GeoParamsPointers shared,
         geo.dir()[1],
         geo.dir()[2]);
 
-    LinearPropagator propagate(geo);
+    LinearPropagator propagate(&geo);
     for (int seg = 0; seg < max_segments; ++seg)
     {
         if (geo.is_outside())
@@ -90,6 +90,7 @@ LinPropTestOutput linProp_test(LinPropTestInput input)
         input.max_segments,
         raw_pointer_cast(ids.data()),
         raw_pointer_cast(distances.data()));
+    CELER_CUDA_CHECK_ERROR();
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Copy result back to CPU

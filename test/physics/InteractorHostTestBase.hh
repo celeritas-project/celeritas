@@ -13,14 +13,15 @@
 #include "base/Array.hh"
 #include "base/ArrayIO.hh"
 #include "base/Span.hh"
-#include "base/StackAllocatorPointers.hh"
+#include "base/StackAllocatorInterface.hh"
 #include "base/Types.hh"
+#include "physics/base/ModelIdGenerator.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleStatePointers.hh"
+#include "physics/base/ParticleInterface.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/MaterialParams.hh"
-#include "physics/material/MaterialStatePointers.hh"
+#include "physics/material/MaterialInterface.hh"
 
 // Test helpers
 #include "base/HostStackAllocatorStore.hh"
@@ -57,10 +58,14 @@ class InteractorHostTestBase : public celeritas::Test
     using PDGNumber = celeritas::PDGNumber;
     using MevEnergy = celeritas::units::MevEnergy;
 
+    using MaterialId        = celeritas::MaterialId;
     using MaterialParams    = celeritas::MaterialParams;
     using MaterialTrackView = celeritas::MaterialTrackView;
 
     using Interaction            = celeritas::Interaction;
+    using ModelIdGenerator       = celeritas::ModelIdGenerator;
+    using ModelId                = celeritas::ModelId;
+    using ParticleId             = celeritas::ParticleId;
     using ParticleParams         = celeritas::ParticleParams;
     using ParticleTrackView      = celeritas::ParticleTrackView;
     using Real3                  = celeritas::Real3;
@@ -88,6 +93,11 @@ class InteractorHostTestBase : public celeritas::Test
     //! Set and get particle params
     void                  set_particle_params(ParticleParams::Input inp);
     const ParticleParams& particle_params() const;
+    std::shared_ptr<const ParticleParams> get_particle_params() const
+    {
+        CELER_EXPECT(particle_params_);
+        return particle_params_;
+    }
     //!@}
 
     //!@{
@@ -128,8 +138,14 @@ class InteractorHostTestBase : public celeritas::Test
     RandomEngine& rng() { return rng_; }
     //!@}
 
-    // Check for momentum and energy conservation
+    // Check for energy and momentum conservation
     void check_conservation(const Interaction& interaction) const;
+
+    // Check for energy conservation
+    void check_energy_conservation(const Interaction& interaction) const;
+
+    // Check for momentum conservation
+    void check_momentum_conservation(const Interaction& interaction) const;
 
   private:
     std::shared_ptr<MaterialParams> material_params_;
@@ -138,7 +154,6 @@ class InteractorHostTestBase : public celeritas::Test
 
     celeritas::MaterialTrackState     mat_state_;
     std::vector<real_type>            mat_element_scratch_;
-    celeritas::MaterialParamsPointers mp_pointers_;
     celeritas::MaterialStatePointers  ms_pointers_;
 
     celeritas::ParticleTrackState     particle_state_;

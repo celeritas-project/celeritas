@@ -8,8 +8,7 @@
 #pragma once
 
 #include <vector>
-#include "geometry/GeoStatePointers.hh"
-#include "geometry/GeoParamsPointers.hh"
+#include "geometry/GeoInterface.hh"
 #include "geometry/GeoTrackView.hh"
 
 namespace celeritas_test

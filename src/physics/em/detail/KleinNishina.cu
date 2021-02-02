@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "KleinNishina.hh"
 
+#include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "random/cuda/RngEngine.hh"
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "random/cuda/RngEngine.hh"
+#include "physics/base/SecondaryAllocatorView.hh"
 #include "KleinNishinaInteractor.hh"
 
 namespace celeritas
@@ -39,8 +40,8 @@ __global__ void klein_nishina_interact_kernel(const KleinNishinaPointers  kn,
 
     PhysicsTrackView physics(ptrs.params.physics,
                              ptrs.states.physics,
-                             particle.def_id(),
-                             MaterialDefId{},
+                             particle.particle_id(),
+                             MaterialId{},
                              tid);
 
     // This interaction only applies if the KN model was selected
@@ -73,7 +74,6 @@ void klein_nishina_interact(const KleinNishinaPointers&  kn,
     auto                  params = calc_kernel_params(model.states.size());
     klein_nishina_interact_kernel<<<params.grid_size, params.block_size>>>(
         kn, model);
-
     CELER_CUDA_CHECK_ERROR();
 }
 

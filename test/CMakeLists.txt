@@ -56,6 +56,8 @@ function(celeritas_cudaoptional_test base)
   celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
 endfunction()
 
+set(_not_impl DISABLE)
+
 #-----------------------------------------------------------------------------#
 # Gtest additions
 celeritas_setup_tests(SERIAL PREFIX gtest/detail)
@@ -82,7 +84,7 @@ celeritas_add_test(base/Span.test.cc)
 celeritas_add_test(base/SpanRemapper.test.cc)
 celeritas_add_test(base/Stopwatch.test.cc)
 celeritas_add_test(base/TypeDemangler.test.cc)
-celeritas_add_test(base/UniformGrid.test.cc)
+celeritas_add_test(base/VectorUtils.test.cc)
 
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(base/NumericLimits.test.cc
@@ -160,12 +162,21 @@ add_library(CeleritasPhysicsTest
   physics/InteractionIO.cc
   physics/InteractorHostTestBase.cc
   physics/SecondaryIO.cc
+  physics/base/MockModel.cc
+  physics/base/MockProcess.cc
 )
 target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
 set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
 
 celeritas_setup_tests(SERIAL PREFIX physics/base)
 celeritas_cudaoptional_test(physics/base/Particle)
+celeritas_add_test(physics/base/Physics.test.cc ${_not_impl})
+
+celeritas_setup_tests(SERIAL PREFIX physics/grid)
+celeritas_add_test(physics/grid/PhysicsGridCalculator.test.cc)
+celeritas_add_test(physics/grid/UniformGrid.test.cc)
+celeritas_add_test(physics/grid/ValueGridBuilder.test.cc)
+celeritas_add_test(physics/grid/ValueGridStore.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX physics/material)
 celeritas_add_test(physics/material/ElementSelector.test.cc)
@@ -176,14 +187,13 @@ celeritas_cudaoptional_test(physics/material/Material)
 
 celeritas_setup_tests(SERIAL PREFIX physics/em)
 
-set(_not_impl DISABLE)
 # NOTE: Remove '${_not_impl}' below at the start of developing each class.
 celeritas_add_test(physics/em/BetheBlochInteractor.test.cc ${_not_impl})
-celeritas_add_test(physics/em/BetheHeitlerInteractor.test.cc)
+celeritas_add_test(physics/em/BetheHeitler.test.cc)
 celeritas_add_test(physics/em/BremRelInteractor.test.cc ${_not_impl})
 celeritas_add_test(physics/em/EPlusGG.test.cc)
 celeritas_add_test(physics/em/KleinNishina.test.cc)
-celeritas_add_test(physics/em/PhotoelectricInteractor.test.cc)
+celeritas_add_test(physics/em/LivermorePE.test.cc)
 celeritas_add_test(physics/em/MollerBhabha.test.cc)
 celeritas_add_test(physics/em/RayleighInteractor.test.cc ${_not_impl})
 celeritas_add_test(physics/em/UrbanInteractor.test.cc ${_not_impl})

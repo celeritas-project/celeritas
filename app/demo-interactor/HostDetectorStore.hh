@@ -9,8 +9,8 @@
 
 #include <vector>
 #include "base/Types.hh"
-#include "base/UniformGrid.hh"
-#include "DetectorPointers.hh"
+#include "physics/grid/UniformGrid.hh"
+#include "DetectorInterface.hh"
 #include "HostStackAllocatorStore.hh"
 
 namespace celeritas
@@ -24,7 +24,7 @@ class HostDetectorStore
   public:
     // Construct with defaults
     HostDetectorStore(size_type                  buffer_capacity,
-                      const UniformGrid::Params& grid);
+                      const UniformGridPointers& grid);
 
     // Get detector data
     DetectorPointers host_pointers();
@@ -39,7 +39,7 @@ class HostDetectorStore
     // Host-side hit buffer
     HostStackAllocatorStore<Hit> hit_buffer_;
     // Uniform tally grid
-    UniformGrid::Params tally_grid_;
+    UniformGridPointers tally_grid_;
     // Tallied data
     std::vector<real_type> tally_deposition_;
 };

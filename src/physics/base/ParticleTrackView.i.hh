@@ -33,7 +33,7 @@ ParticleTrackView::ParticleTrackView(const ParticleParamsPointers& params,
 CELER_FUNCTION ParticleTrackView&
 ParticleTrackView::operator=(const Initializer_t& other)
 {
-    CELER_EXPECT(other.def_id < params_.defs.size());
+    CELER_EXPECT(other.particle_id < params_.defs.size());
     CELER_EXPECT(other.energy >= zero_quantity());
     state_ = other;
     return *this;
@@ -49,7 +49,7 @@ ParticleTrackView::operator=(const Initializer_t& other)
 CELER_FUNCTION
 void ParticleTrackView::energy(units::MevEnergy quantity)
 {
-    CELER_EXPECT(this->def_id());
+    CELER_EXPECT(this->particle_id());
     CELER_EXPECT(quantity >= zero_quantity());
     state_.energy = quantity;
 }
@@ -60,9 +60,9 @@ void ParticleTrackView::energy(units::MevEnergy quantity)
 /*!
  * Unique particle type identifier.
  */
-CELER_FUNCTION ParticleDefId ParticleTrackView::def_id() const
+CELER_FUNCTION ParticleId ParticleTrackView::particle_id() const
 {
-    return state_.def_id;
+    return state_.particle_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -224,8 +224,8 @@ CELER_FUNCTION units::MevMomentum ParticleTrackView::momentum() const
  */
 CELER_FUNCTION const ParticleDef& ParticleTrackView::particle_def() const
 {
-    CELER_EXPECT(state_.def_id < params_.defs.size());
-    return params_.defs[state_.def_id.get()];
+    CELER_EXPECT(state_.particle_id < params_.defs.size());
+    return params_.defs[state_.particle_id.get()];
 }
 
 //---------------------------------------------------------------------------//

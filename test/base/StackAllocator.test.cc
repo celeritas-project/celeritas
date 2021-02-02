@@ -48,9 +48,9 @@ TEST_F(StackAllocatorHostTest, allocation)
     for (MockSecondary& p : celeritas::Span<MockSecondary>(ptr, 8))
     {
         // Check that secondary was initialized properly
-        EXPECT_EQ(-1, p.def_id);
+        EXPECT_EQ(-1, p.mock_id);
 
-        p.def_id = 1;
+        p.mock_id = 1;
     }
 
     // Ask for one more than we have room

@@ -14,10 +14,9 @@
 #include "base/DeviceVector.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
-#include "ElementDef.hh"
-#include "MaterialDef.hh"
+#include "MaterialInterface.hh"
 #include "Types.hh"
-#include "MaterialParamsPointers.hh"
+#include "MaterialInterface.hh"
 
 namespace celeritas
 {
@@ -42,7 +41,7 @@ class MaterialParams
         real_type   number_density; //!< Atomic number density [1/cm^3]
         real_type   temperature;    //!< Temperature [K]
         MatterState matter_state;   //!< Solid, liquid, gas
-        std::vector<std::pair<ElementDefId, real_type>>
+        std::vector<std::pair<ElementId, real_type>>
                     elements_fractions; //!< Fraction of number density
         std::string name;               //!< Material name
     };
@@ -59,17 +58,17 @@ class MaterialParams
     explicit MaterialParams(const Input& inp);
 
     // Get element name
-    inline const std::string& id_to_label(ElementDefId id) const;
+    inline const std::string& id_to_label(ElementId id) const;
 
     // Get material name
-    inline const std::string& id_to_label(MaterialDefId id) const;
+    inline const std::string& id_to_label(MaterialId id) const;
 
     // Find a material from a name
     // TODO: Map different MaterialDefIds with same material name
-    inline MaterialDefId find(const std::string& name) const;
+    inline MaterialId find(const std::string& name) const;
 
     // Access material properties on the host
-    MaterialParamsPointers host_pointers() const;
+    inline const MaterialParamsPointers& host_pointers() const;
 
     // Access material properties on the device
     MaterialParamsPointers device_pointers() const;
@@ -86,9 +85,11 @@ class MaterialParams
     DeviceVector<MatElementComponent> device_elcomponents_;
     DeviceVector<MaterialDef>         device_materials_;
 
+    MaterialParamsPointers host_pointers_;
+
     std::vector<std::string>                       elnames_;
     std::vector<std::string>                       matnames_;
-    std::unordered_map<std::string, MaterialDefId> matname_to_id_;
+    std::unordered_map<std::string, MaterialId>    matname_to_id_;
     size_type                                      max_el_;
 
     // HELPER FUNCTIONS

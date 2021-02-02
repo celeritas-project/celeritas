@@ -11,7 +11,7 @@
 #include "physics/em/detail/KleinNishina.hh"
 #include "KNDemoKernel.hh"
 #include "KNDemoIO.hh"
-#include "PhysicsArrayParams.hh"
+#include "XsGridParams.hh"
 
 namespace demo_interactor
 {
@@ -33,22 +33,21 @@ class KNDemoRunner
     using result_type = KNDemoResult;
     using constSPParticleParams
         = std::shared_ptr<const celeritas::ParticleParams>;
-    using constSPPhysicsArrayParams
-        = std::shared_ptr<const celeritas::PhysicsArrayParams>;
+    using constSPXsGridParams = std::shared_ptr<const XsGridParams>;
     //!@}
 
   public:
     // Construct with parameters
-    KNDemoRunner(constSPParticleParams     particles,
-                 constSPPhysicsArrayParams xs,
-                 CudaGridParams            solver);
+    KNDemoRunner(constSPParticleParams particles,
+                 constSPXsGridParams   xs,
+                 CudaGridParams        solver);
 
     // Run with a given particle vector size and max iterations
     result_type operator()(KNDemoRunArgs args);
 
   private:
     constSPParticleParams                     pparams_;
-    constSPPhysicsArrayParams                 xsparams_;
+    constSPXsGridParams                       xsparams_;
     CudaGridParams                            launch_params_;
     celeritas::detail::KleinNishinaPointers   kn_pointers_;
 };

@@ -42,6 +42,7 @@ RangeTestOutput rangedev_test(RangeTestInput input)
         thrust::raw_pointer_cast(y_dev.data()),
         thrust::raw_pointer_cast(z_dev.data()),
         z_dev.size());
+    CELER_CUDA_CHECK_ERROR();
 
     // Copy result back to CPU
     RangeTestOutput result;

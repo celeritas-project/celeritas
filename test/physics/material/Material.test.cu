@@ -36,7 +36,7 @@ __global__ void m_test_kernel(unsigned int const           size,
 
     // Initialize state
     mat_track = init[tid.get()];
-    CELER_ASSERT(mat_track.def_id() == init[tid.get()].def_id);
+    CELER_ASSERT(mat_track.material_id() == init[tid.get()].material_id);
 
     // Get material properties
     const auto& mat         = mat_track.material_view();
@@ -83,6 +83,7 @@ MTestOutput m_test(const MTestInput& input)
         raw_pointer_cast(temperatures.data()),
         raw_pointer_cast(rad_len.data()),
         raw_pointer_cast(tot_z.data()));
+    CELER_CUDA_CHECK_ERROR();
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     MTestOutput result;

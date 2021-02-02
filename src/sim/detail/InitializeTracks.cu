@@ -153,7 +153,7 @@ __global__ void locate_alive_kernel(const StatePointers            states,
             Secondary&        secondary = result.secondaries[secondary_id];
             ParticleTrackView particle(
                 params.particle, states.particle, thread_id);
-            particle = {secondary.def_id, secondary.energy};
+            particle = {secondary.particle_id, secondary.energy};
 
             // Keep the parent's geometry state
             GeoTrackView geo(params.geo, states.geo, thread_id);
@@ -194,7 +194,7 @@ process_primaries_kernel(const Span<const Primary>    primaries,
         init.sim.alive       = true;
         init.geo.pos         = primary.position;
         init.geo.dir         = primary.direction;
-        init.particle.def_id = primary.def_id;
+        init.particle.particle_id = primary.particle_id;
         init.particle.energy = primary.energy;
     }
 }
@@ -244,7 +244,7 @@ __global__ void process_secondaries_kernel(const StatePointers states,
                 init.sim.alive       = true;
                 init.geo.pos         = geo.pos();
                 init.geo.dir         = secondary.direction;
-                init.particle.def_id = secondary.def_id;
+                init.particle.particle_id = secondary.particle_id;
                 init.particle.energy = secondary.energy;
             }
         }
@@ -273,7 +273,6 @@ void init_tracks(const StatePointers&            states,
     auto                  lparams = calc_launch_params(num_vacancies);
     init_tracks_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits, num_vacancies);
-
     CELER_CUDA_CHECK_ERROR();
 }
 
@@ -290,7 +289,6 @@ void locate_alive(const StatePointers&            states,
     auto                  lparams = calc_launch_params(states.size());
     locate_alive_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits);
-
     CELER_CUDA_CHECK_ERROR();
 }
 
@@ -312,7 +310,6 @@ void process_primaries(Span<const Primary>             primaries,
     auto                  lparams = calc_launch_params(primaries.size());
     process_primaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
         primaries, initializers);
-
     CELER_CUDA_CHECK_ERROR();
 }
 
@@ -334,7 +331,6 @@ void process_secondaries(const StatePointers&     states,
     auto                  lparams = calc_launch_params(states.size());
     process_secondaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits);
-
     CELER_CUDA_CHECK_ERROR();
 }
 

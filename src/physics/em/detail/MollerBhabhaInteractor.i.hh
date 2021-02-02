@@ -37,10 +37,10 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     , allocate_(allocate)
     , element_(element)
     , inc_particle_is_electron_(
-          (particle.def_id() == shared_.electron_id) ? true : false)
+          (particle.particle_id() == shared_.electron_id) ? true : false)
 {
-    CELER_EXPECT(particle.def_id() == shared_.electron_id
-                 || particle.def_id() == shared_.positron_id);
+    CELER_EXPECT(particle.particle_id() == shared_.electron_id
+                 || particle.particle_id() == shared_.positron_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -209,9 +209,9 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     result.direction   = inc_exiting_direction;
 
     // Assign values to the secondary particle
-    electron_secondary[0].def_id    = shared_.electron_id;
-    electron_secondary[0].energy    = units::MevEnergy{secondary_energy};
-    electron_secondary[0].direction = secondary_direction;
+    electron_secondary[0].particle_id = shared_.electron_id;
+    electron_secondary[0].energy      = units::MevEnergy{secondary_energy};
+    electron_secondary[0].direction   = secondary_direction;
 
     return result;
 }

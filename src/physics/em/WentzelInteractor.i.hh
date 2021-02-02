@@ -24,7 +24,8 @@ WentzelInteractor::WentzelInteractor(const WentzelInteractorPointers& shared,
 {
     CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
                  && inc_energy_ <= this->max_incident_energy());
-    CELER_EXPECT(particle.def_id() == shared_.gamma_id); // XXX
+    CELER_EXPECT(particle.particle_id() == shared_.gamma_id); // XXX
+    CELER_NOT_IMPLEMENTED("Wentzel multiple scattering");
 }
 
 //---------------------------------------------------------------------------//
@@ -53,7 +54,7 @@ CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
     result.secondaries = {secondaries, 1}; // XXX
 
     // Save outgoing secondary data
-    secondaries[0].def_id    = shared_.electron_id; // XXX
+    secondaries[0].particle_id = shared_.electron_id; // XXX
     secondaries[0].energy    = units::MevEnergy{0}; // XXX
     secondaries[0].direction = {0, 0, 0};           // XXX
 

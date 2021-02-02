@@ -23,9 +23,9 @@ namespace demo_interactor
 /*!
  * Construct with parameters.
  */
-KNDemoRunner::KNDemoRunner(constSPParticleParams     particles,
-                           constSPPhysicsArrayParams xs,
-                           CudaGridParams            solver)
+KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
+                           constSPXsGridParams   xs,
+                           CudaGridParams        solver)
     : pparams_(std::move(particles))
     , xsparams_(std::move(xs))
     , launch_params_(std::move(solver))

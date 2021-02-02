@@ -9,8 +9,8 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "MaterialStatePointers.hh"
-#include "MaterialParamsPointers.hh"
+#include "MaterialInterface.hh"
+#include "MaterialInterface.hh"
 #include "MaterialView.hh"
 #include "Types.hh"
 
@@ -44,7 +44,7 @@ class MaterialTrackView
     inline CELER_FUNCTION
     MaterialTrackView(const MaterialParamsPointers& params,
                       const MaterialStatePointers&  states,
-                      ThreadId                      id);
+                      ThreadId                      tid);
 
     // Initialize the particle
     inline CELER_FUNCTION MaterialTrackView&
@@ -53,7 +53,7 @@ class MaterialTrackView
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Current material identifier
-    inline CELER_FUNCTION MaterialDefId def_id() const;
+    inline CELER_FUNCTION MaterialId material_id() const;
 
     //// STATIC PROPERTIES ////
 
@@ -66,7 +66,7 @@ class MaterialTrackView
   private:
     const MaterialParamsPointers& params_;
     const MaterialStatePointers&  states_;
-    const ThreadId                tid_;
+    const ThreadId                thread_;
 
     inline CELER_FUNCTION MaterialTrackState& state() const;
 };

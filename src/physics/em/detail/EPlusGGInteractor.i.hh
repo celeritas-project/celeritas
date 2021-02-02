@@ -31,7 +31,7 @@ EPlusGGInteractor::EPlusGGInteractor(const EPlusGGPointers&   shared,
     , inc_direction_(inc_direction)
     , allocate_(allocate)
 {
-    CELER_EXPECT(particle.def_id() == shared_.positron_id);
+    CELER_EXPECT(particle.particle_id() == shared_.positron_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -56,7 +56,7 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
     result.secondaries = {secondaries, 2};
 
     // Sample two gammas
-    secondaries[0].def_id = secondaries[1].def_id = shared_.gamma_id;
+    secondaries[0].particle_id = secondaries[1].particle_id = shared_.gamma_id;
 
     if (inc_energy_ == 0)
     {

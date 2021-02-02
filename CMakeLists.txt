@@ -32,11 +32,21 @@ option(CELERITAS_USE_Geant4 "Enable Geant4 adapter tools" OFF)
 option(CELERITAS_USE_HepMC3 "Enable HepMC3 event record reader" OFF)
 option(CELERITAS_USE_MPI "Enable distributed memory parallelism" ON)
 option(CELERITAS_USE_ROOT "Enable ROOT I/O" OFF)
+option(CELERITAS_USE_SWIG_Python "Enable SWIG Python bindings" OFF)
 option(CELERITAS_USE_VecGeom "Enable VecGeom geometry" ON)
 
-if(CELERITAS_USE_MPI AND CELERITAS_USE_CUDA AND CMAKE_VERSION VERSION_LESS 3.13)
+if(CMAKE_VERSION VERSION_LESS 3.13 AND CELERITAS_USE_CUDA AND CELERITAS_USE_MPI)
   message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
     "when building with CUDA + MPI.")
+endif()
+if(CMAKE_VERSION VERSION_LESS 3.17 AND CELERITAS_USE_CUDA
+    AND CELERITAS_USE_VecGeom)
+  message(FATAL_ERROR "VecGeom+CUDA has mysterious runtime errors under CMake "
+    "3.15. Use a newer version of CMake.")
+endif()
+if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
+  message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
+    "with this version of CMake. Set CMAKE_CUDA_FLAGS.")
 endif()
 
 # Library
@@ -89,6 +99,16 @@ endif()
 
 if(CELERITAS_USE_HepMC3)
   find_package(HepMC3 REQUIRED)
+  # HepMC3's cmake config file does not provide an imported target yet
+  # Anticipate that it will, and create if not present. HepMC3 is
+  # a private dep of Celeritas, so no need to re-export this.
+  if(NOT TARGET HepMC3::HepMC3)
+    add_library(HepMC3::HepMC3 UNKNOWN IMPORTED)
+    set_target_properties(HepMC3::HepMC3 PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${HEPMC3_INCLUDE_DIR}"
+      IMPORTED_LOCATION "${HEPMC3_LIB}"
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_MPI)
@@ -97,6 +117,15 @@ endif()
 
 if(CELERITAS_USE_ROOT)
   find_package(ROOT REQUIRED)
+endif()
+
+if(CELERITAS_USE_SWIG_Python)
+  if(CMAKE_VERSION VERSION_LESS 3.15)
+    message(FATAL_ERROR "Celeritas requires CMake 3.15 or higher "
+      "when building with SWIG Python.")
+  endif()
+  find_package(SWIG 4.0 REQUIRED)
+  find_package(Python REQUIRED COMPONENTS Interpreter Development)
 endif()
 
 if(CELERITAS_USE_VecGeom)
@@ -115,7 +144,9 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 if(CELERITAS_BUILD_TESTS AND CELERITAS_BUILD_DEMOS)
-  find_package(Python 3.6 COMPONENTS Interpreter REQUIRED)
+  if(NOT PYTHON_FOUND)
+    find_package(Python 3.6 COMPONENTS Interpreter REQUIRED)
+  endif()
 endif()
 
 if(CELERITAS_BUILD_DOCS)
@@ -148,6 +179,14 @@ add_subdirectory(external)
 #----------------------------------------------------------------------------#
 
 add_subdirectory(src)
+
+#----------------------------------------------------------------------------#
+# SWIG INTERFACE
+#----------------------------------------------------------------------------#
+
+if(CELERITAS_USE_SWIG_Python)
+  add_subdirectory(interface)
+endif()
 
 #----------------------------------------------------------------------------#
 # TESTS

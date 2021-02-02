@@ -14,7 +14,7 @@ namespace celeritas
 /*!
  * Get particle name.
  */
-const std::string& ParticleParams::id_to_label(ParticleDefId id) const
+const std::string& ParticleParams::id_to_label(ParticleId id) const
 {
     CELER_EXPECT(id < this->size());
     return md_[id.get()].first;
@@ -24,7 +24,7 @@ const std::string& ParticleParams::id_to_label(ParticleDefId id) const
 /*!
  * Get PDG code for a particle ID.
  */
-PDGNumber ParticleParams::id_to_pdg(ParticleDefId id) const
+PDGNumber ParticleParams::id_to_pdg(ParticleId id) const
 {
     CELER_EXPECT(id < this->size());
     return md_[id.get()].second;
@@ -34,12 +34,12 @@ PDGNumber ParticleParams::id_to_pdg(ParticleDefId id) const
 /*!
  * Find the ID from a name.
  */
-ParticleDefId ParticleParams::find(const std::string& name) const
+ParticleId ParticleParams::find(const std::string& name) const
 {
     auto iter = name_to_id_.find(name);
     if (iter == name_to_id_.end())
     {
-        return ParticleDefId{};
+        return ParticleId{};
     }
     return iter->second;
 }
@@ -48,12 +48,12 @@ ParticleDefId ParticleParams::find(const std::string& name) const
 /*!
  * Find the ID from a PDG code.
  */
-ParticleDefId ParticleParams::find(PDGNumber pdg_code) const
+ParticleId ParticleParams::find(PDGNumber pdg_code) const
 {
     auto iter = pdg_to_id_.find(pdg_code);
     if (iter == pdg_to_id_.end())
     {
-        return ParticleDefId{};
+        return ParticleId{};
     }
     return iter->second;
 }
@@ -62,7 +62,7 @@ ParticleDefId ParticleParams::find(PDGNumber pdg_code) const
 /*!
  * Get particle definitions based on an ID number.
  */
-const ParticleDef& ParticleParams::get(ParticleDefId defid) const
+const ParticleDef& ParticleParams::get(ParticleId defid) const
 {
     CELER_EXPECT(defid < host_defs_.size());
     return host_defs_[defid.get()];

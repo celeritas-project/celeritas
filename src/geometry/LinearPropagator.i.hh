@@ -18,9 +18,10 @@ namespace celeritas
 /*!
  * Construct from persistent and state data.
  */
-CELER_FUNCTION LinearPropagator::LinearPropagator(GeoTrackView& track)
-    : track_(track)
+CELER_FUNCTION LinearPropagator::LinearPropagator(GeoTrackView* track)
+    : track_(*track)
 {
+    CELER_EXPECT(track);
 }
 
 //---------------------------------------------------------------------------//

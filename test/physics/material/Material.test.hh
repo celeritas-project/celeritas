@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include <vector>
-#include "physics/material/MaterialParamsPointers.hh"
-#include "physics/material/MaterialStatePointers.hh"
+#include "physics/material/MaterialInterface.hh"
 
 namespace celeritas_test
 {

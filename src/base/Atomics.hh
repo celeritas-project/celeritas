@@ -40,6 +40,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
  */
 inline __device__ double atomic_add(double* address, double val)
 {
+    CELER_EXPECT(address);
     ull_int* address_as_ull = reinterpret_cast<ull_int*>(address);
     ull_int  old            = *address_as_ull;
     ull_int  assumed;
@@ -102,6 +103,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_max(T* address, T value)
  */
 inline __device__ ull_int atomic_max(ull_int* address, ull_int val)
 {
+    CELER_EXPECT(address);
     ull_int old = *address;
     ull_int assumed;
     do

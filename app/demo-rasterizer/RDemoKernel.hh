@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geometry/GeoParamsPointers.hh"
-#include "geometry/GeoStatePointers.hh"
-#include "ImagePointers.hh"
+#include "geometry/GeoInterface.hh"
+#include "ImageInterface.hh"
 
 namespace demo_rasterizer
 {

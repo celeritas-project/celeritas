@@ -10,7 +10,7 @@
 #include <string>
 #include "Types.hh"
 #include "base/Types.hh"
-#include "GeoParamsPointers.hh"
+#include "GeoInterface.hh"
 
 namespace celeritas
 {

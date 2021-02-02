@@ -12,7 +12,7 @@
 #include "physics/base/SecondaryAllocatorStore.hh"
 #include "ParamStore.hh"
 #include "StateStore.hh"
-#include "TrackInitializerPointers.hh"
+#include "TrackInitializerInterface.hh"
 
 namespace celeritas
 {
@@ -45,10 +45,10 @@ class TrackInitializerStore
     void extend_from_primaries();
 
     // Create track initializers on device from secondary particles.
-    void extend_from_secondaries(StateStore& states, ParamStore& params);
+    void extend_from_secondaries(StateStore* states, ParamStore* params);
 
     // Initialize track states on device.
-    void initialize_tracks(StateStore& states, ParamStore& params);
+    void initialize_tracks(StateStore* states, ParamStore* params);
 
   private:
     // Track initializers created from primaries or secondaries

@@ -29,9 +29,9 @@ struct EPlusGGPointers
     //! electron mass [MevMass]
     real_type electron_mass;
     //! ID of an positron
-    ParticleDefId positron_id;
+    ParticleId positron_id;
     //! ID of a gamma
-    ParticleDefId gamma_id;
+    ParticleId gamma_id;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
@@ -39,6 +39,14 @@ struct EPlusGGPointers
         return model_id && electron_mass > 0 && positron_id && gamma_id;
     }
 };
+
+//---------------------------------------------------------------------------//
+// KERNEL LAUNCHERS
+//---------------------------------------------------------------------------//
+
+// Launch the EPlusGG interaction
+void eplusgg_interact(const EPlusGGPointers&       eplusgg,
+                      const ModelInteractPointers& model);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

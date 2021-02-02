@@ -28,9 +28,9 @@ struct MollerBhabhaPointers
     ModelId model_id;
 
     //! ID of an electron
-    ParticleDefId electron_id;
+    ParticleId electron_id;
     //! ID of a positron
-    ParticleDefId positron_id;
+    ParticleId positron_id;
     // Electron mass * c^2
     real_type electron_mass_c_sq;
     // Mininum energy limit
