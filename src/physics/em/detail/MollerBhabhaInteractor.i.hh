@@ -71,62 +71,42 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         epsilon = this->sample_bhabha(rng);
     }
 
-    // Calculate secondary kinetic energy
-    real_type secondary_energy = epsilon * inc_energy_.value();
+    // Sampled secondary kinetic energy
+    const real_type secondary_energy = epsilon * inc_energy_.value();
 
-    // Calculate secondary momentum
     // Same equation as in ParticleTrackView::momentum_sq()
     real_type secondary_momentum
         = sqrt(secondary_energy
                * (secondary_energy + 2.0 * shared_.electron_mass_c_sq));
 
-    // Calculate theta from energy-momentum conservation
     const real_type total_energy = inc_energy_.value()
                                    + shared_.electron_mass_c_sq;
+
+    // Calculate theta from energy-momentum conservation
     real_type secondary_cos_theta
         = secondary_energy * (total_energy + shared_.electron_mass_c_sq)
           / (secondary_momentum * inc_momentum_.value());
 
-    // Geant says: if (secondary_cos_theta > 1) { secondary_cos_theta = 1; }
     secondary_cos_theta = min(secondary_cos_theta, 1.0);
     CELER_ASSERT(secondary_cos_theta >= -1.0 && secondary_cos_theta <= 1.0);
 
-    real_type secondary_sin_theta
-        = sqrt((1.0 - secondary_cos_theta) * (1.0 + secondary_cos_theta));
-
     // Sample phi isotropically
-    UniformRealDistribution<real_type> random_phi(0, 2 * constants::pi);
-    real_type                          secondary_phi = random_phi(rng);
+    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
 
     // Create cartesian direction from the sampled theta and phi
-    Real3 secondary_direction = {secondary_sin_theta * std::cos(secondary_phi),
-                                 secondary_sin_theta * std::sin(secondary_phi),
-                                 secondary_cos_theta};
-
-    // Calculate incident particle final vector momentum
-    Real3 inc_vec_momentum;
-    Real3 secondary_vec_momentum;
-    Real3 inc_exiting_vec_momentum;
-    for (int i : range(3))
-    {
-        inc_vec_momentum[i]       = inc_momentum_.value() * inc_direction_[i];
-        secondary_vec_momentum[i] = secondary_momentum * secondary_direction[i];
-        inc_exiting_vec_momentum[i] = inc_vec_momentum[i]
-                                      - secondary_vec_momentum[i];
-    }
-
-    real_type inc_exiting_momentum
-        = std::sqrt(std::pow(inc_exiting_vec_momentum[0], 2)
-                    + std::pow(inc_exiting_vec_momentum[1], 2)
-                    + std::pow(inc_exiting_vec_momentum[2], 2));
+    Real3 secondary_direction
+        = from_spherical(secondary_cos_theta, sample_phi(rng));
 
     // Calculate incident particle final direction
     Real3 inc_exiting_direction;
     for (int i : range(3))
     {
-        inc_exiting_direction[i] = inc_exiting_vec_momentum[i]
-                                   / inc_exiting_momentum;
+        real_type inc_momentum_ijk = inc_momentum_.value() * inc_direction_[i];
+        real_type secondary_momentum_ijk = secondary_momentum
+                                           * secondary_direction[i];
+        inc_exiting_direction[i] = inc_momentum_ijk - secondary_momentum_ijk;
     }
+    normalize_direction(&inc_exiting_direction);
 
     // Construct interaction for change to primary (incident) particle
     real_type   inc_exiting_energy = inc_energy_.value() - secondary_energy;

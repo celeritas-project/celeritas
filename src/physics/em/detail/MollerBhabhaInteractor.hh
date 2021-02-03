@@ -69,7 +69,6 @@ class MollerBhabhaInteractor
 
     template<class Engine>
     CELER_FUNCTION real_type sample_bhabha(Engine& rng);
-
 }; // namespace MollerBhabhaInteractor
 
 //---------------------------------------------------------------------------//
