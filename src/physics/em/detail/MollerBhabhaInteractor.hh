@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -53,22 +53,15 @@ class MollerBhabhaInteractor
     // Shared constant physics properties
     const MollerBhabhaPointers& shared_;
     // Incident energy
-    const units::MevEnergy inc_energy_;
+    const real_type inc_energy_;
     // Incident momentum
-    const units::MevMomentum inc_momentum_;
+    const real_type inc_momentum_;
     // Incident direction
     const Real3& inc_direction_;
     // Allocate space for one or more secondary particles
     SecondaryAllocatorView& allocate_;
     // Incident particle flag for selecting Moller or Bhabha scattering
     bool inc_particle_is_electron_;
-
-  private:
-    template<class Engine>
-    inline CELER_FUNCTION real_type sample_moller(Engine& rng);
-
-    template<class Engine>
-    inline CELER_FUNCTION real_type sample_bhabha(Engine& rng);
 }; // namespace MollerBhabhaInteractor
 
 //---------------------------------------------------------------------------//

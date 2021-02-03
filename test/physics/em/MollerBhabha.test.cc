@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         pointers_.electron_id        = params.find(pdg::electron());
         pointers_.positron_id        = params.find(pdg::positron());
         pointers_.electron_mass_c_sq = 0.5109989461;
-        pointers_.min_valid_energy_  = MevEnergy{1e-3};
+        pointers_.min_valid_energy   = 1e-3; // [MeV]
 
         // Set default incident direction. Particle is defined in the tests
         this->set_inc_direction({0, 0, 1});

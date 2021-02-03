@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -30,8 +30,7 @@ MollerBhabhaModel::MollerBhabhaModel(ModelId               id,
 
     interface_.electron_mass_c_sq
         = particles.get(interface_.electron_id).mass.value(); // [MeV]
-
-    interface_.min_valid_energy_ = units::MevEnergy{1e-3};
+    interface_.min_valid_energy = 1e-3;                       // [MeV]
 
     CELER_ENSURE(interface_);
 }
@@ -43,13 +42,13 @@ MollerBhabhaModel::MollerBhabhaModel(ModelId               id,
 auto MollerBhabhaModel::applicability() const -> SetApplicability
 {
     Applicability electron_applic, positron_applic;
-    
+
     electron_applic.particle = interface_.electron_id;
-    electron_applic.lower    = interface_.min_valid_energy_;
+    electron_applic.lower    = units::MevEnergy{interface_.min_valid_energy};
     electron_applic.upper    = units::MevEnergy{100e6}; // TODO: double-check
 
     positron_applic.particle = interface_.positron_id;
-    positron_applic.lower    = interface_.min_valid_energy_;
+    positron_applic.lower    = electron_applic.lower;
     positron_applic.upper    = electron_applic.upper;
 
     return {electron_applic, positron_applic};

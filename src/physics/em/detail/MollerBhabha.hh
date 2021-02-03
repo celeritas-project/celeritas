@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,16 +31,16 @@ struct MollerBhabhaPointers
     ParticleId electron_id;
     //! ID of a positron
     ParticleId positron_id;
-    // Electron mass * c^2 [MeV] 
+    // Electron mass * c^2 [MeV]
     real_type electron_mass_c_sq;
-    // Mininum energy limit
-    units::MevEnergy min_valid_energy_;
+    // Mininum energy limit [MeV]
+    real_type min_valid_energy;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
         return electron_id && positron_id && electron_mass_c_sq > 0
-               && min_valid_energy_.value() > 0;
+               && min_valid_energy > 0;
     }
 };
 
