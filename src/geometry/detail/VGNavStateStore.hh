@@ -71,7 +71,6 @@ class VGNavStateStore
     void* device_pointers() const;
 
   private:
-
     struct NavStatePoolDeleter
     {
         void operator()(NavStatePool*) const;

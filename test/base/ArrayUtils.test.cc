@@ -58,8 +58,8 @@ TEST(ArrayUtilsTest, norm)
 
 TEST(ArrayUtilsTest, normalize_direction)
 {
-    Real3            direction{1, 2, 3};
-    double           norm = 1 / std::sqrt(1 + 4 + 9);
+    Real3  direction{1, 2, 3};
+    double norm = 1 / std::sqrt(1 + 4 + 9);
     celeritas::normalize_direction(&direction);
 
     static const double expected[] = {1 * norm, 2 * norm, 3 * norm};
@@ -76,8 +76,8 @@ TEST(ArrayUtilsTest, rotate)
     double sintheta = std::sqrt(1.0 - costheta * costheta);
     double phi      = 2 * celeritas::constants::pi / 3.0;
 
-    double           a = 1.0 / sqrt(1.0 - vec[Z] * vec[Z]);
-    Real3            expected
+    double a = 1.0 / sqrt(1.0 - vec[Z] * vec[Z]);
+    Real3  expected
         = {vec[X] * costheta + vec[Z] * vec[X] * sintheta * cos(phi) * a
                - vec[Y] * sintheta * sin(phi) * a,
            vec[Y] * costheta + vec[Z] * vec[Y] * sintheta * cos(phi) * a

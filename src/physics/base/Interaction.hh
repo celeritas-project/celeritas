@@ -21,10 +21,10 @@ namespace celeritas
  */
 struct Interaction
 {
-    Action           action;      //!< Failure, scatter, absorption, ...
-    units::MevEnergy energy;      //!< Post-interaction energy
-    Real3            direction;   //!< Post-interaction direction
-    Span<Secondary>  secondaries; //!< Emitted secondaries
+    Action           action;            //!< Failure, scatter, absorption, ...
+    units::MevEnergy energy;            //!< Post-interaction energy
+    Real3            direction;         //!< Post-interaction direction
+    Span<Secondary>  secondaries;       //!< Emitted secondaries
     units::MevEnergy energy_deposition; //!< Energy loss locally to material
 
     // Return an interaction representing a recoverable error

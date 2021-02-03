@@ -109,7 +109,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     }
 
     // Outgoing secondary is an electron
-    result.secondaries    = {photoelectron, 1};
+    result.secondaries         = {photoelectron, 1};
     photoelectron->particle_id = shared_.electron_id;
 
     // Electron kinetic energy is the difference between the incident photon

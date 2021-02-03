@@ -87,10 +87,10 @@ class MaterialParams
 
     MaterialParamsPointers host_pointers_;
 
-    std::vector<std::string>                       elnames_;
-    std::vector<std::string>                       matnames_;
-    std::unordered_map<std::string, MaterialId>    matname_to_id_;
-    size_type                                      max_el_;
+    std::vector<std::string>                    elnames_;
+    std::vector<std::string>                    matnames_;
+    std::unordered_map<std::string, MaterialId> matname_to_id_;
+    size_type                                   max_el_;
 
     // HELPER FUNCTIONS
     void                      append_element_def(const ElementInput& inp);
