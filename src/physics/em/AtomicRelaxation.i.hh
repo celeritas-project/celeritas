@@ -78,6 +78,13 @@ CELER_FUNCTION size_type AtomicRelaxation::operator()(size_type shell_id,
             }
         }
 
+        // No transition was sampled: don't produce any secondaries and
+        // continue to the next vacancy
+        if (prob > 0.)
+        {
+            continue;
+        }
+
         // Get the Auger electron shell ID: it will be unassigned if simulation
         // of non-radiative transitions is disabled or if a radiative
         // transition was sampled

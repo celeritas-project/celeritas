@@ -94,7 +94,7 @@ AtomicRelaxationReader::operator()(int atomic_number) const
             // End of shell data
             if (des == -1)
             {
-                infile >> des >> tr_prob >> tr_energy;
+                infile >> des >> des >> des;
                 CELER_ASSERT(infile);
 
                 // End of file
@@ -142,7 +142,7 @@ AtomicRelaxationReader::operator()(int atomic_number) const
             // End of shell data
             if (des == -1)
             {
-                infile >> des >> auger_des >> tr_prob >> tr_energy;
+                infile >> des >> des >> des >> des;
                 CELER_ASSERT(infile);
 
                 // End of file
