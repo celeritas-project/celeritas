@@ -88,10 +88,13 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
         std::vector<AtomicRelaxSubshell> temp_device_shells = host_shells_;
         for (AtomicRelaxSubshell& ss : temp_device_shells)
         {
-            ss.initial_shell     = remap_id(ss.initial_shell);
-            ss.auger_shell       = remap_id(ss.auger_shell);
             ss.transition_energy = remap_tr(ss.transition_energy);
             ss.transition_prob   = remap_tr(ss.transition_prob);
+            ss.initial_shell     = remap_id(ss.initial_shell);
+            if (is_auger_enabled_)
+            {
+                ss.auger_shell = remap_id(ss.auger_shell);
+            }
         }
 
         // Remap element->shell spans
@@ -158,18 +161,19 @@ void AtomicRelaxationParams::append_element(const ElementInput& inp)
     AtomicRelaxElement result;
 
     // TODO: For an element Z with n shells of transition data, you can bound
-    // this worst case as n - 1 for radiative transitions and 2^{n - 1} - 1 for
+    // this worst case as n for radiative transitions and 2^n - 1 for
     // non-radiative transitions if for a given vacancy the transitions always
     // originate from the next subshell up. Physically this won't happen, so
-    // can we bound this tighter? Can we impose an energy cut below which we
+    // can we bound this tighter (maybe O(100) for non-radiative transitions,
+    // but that's still a lot)? Can we impose an energy cut below which we
     // won't create secondaries in the relaxation cascade to reduce it further?
     if (is_auger_enabled_)
     {
-        result.max_secondaries = std::pow(2, inp.auger.size() - 1) - 1;
+        result.max_secondary = std::pow(2, inp.auger.size()) - 1;
     }
     else
     {
-        result.max_secondaries = inp.fluor.size() - 1;
+        result.max_secondary = inp.fluor.size();
     }
 
     // Copy subshell transition data
@@ -238,11 +242,11 @@ AtomicRelaxationParams::extend_shells(const ElementInput& inp)
 
         // Convert the initial shell designators to indices and store
         std::vector<size_type> shell_id;
-        map_to_index(des_to_id, inp.fluor[i].initial_shell, &shell_id);
+        map_des_to_id(des_to_id, inp.fluor[i].initial_shell, &shell_id);
         result[i].initial_shell = extend(shell_id, &host_id_data_);
         if (is_auger_enabled_)
         {
-            map_to_index(des_to_id, inp.auger[i].initial_shell, &shell_id);
+            map_des_to_id(des_to_id, inp.auger[i].initial_shell, &shell_id);
             auto ext = extend(shell_id, &host_id_data_);
             result[i].initial_shell
                 = {result[i].initial_shell.begin(), ext.end()};
@@ -253,7 +257,7 @@ AtomicRelaxationParams::extend_shells(const ElementInput& inp)
             std::fill(shell_id.begin(), shell_id.end(), unassigned());
             result[i].auger_shell = extend(shell_id, &host_id_data_);
 
-            map_to_index(des_to_id, inp.auger[i].auger_shell, &shell_id);
+            map_des_to_id(des_to_id, inp.auger[i].auger_shell, &shell_id);
             ext                   = extend(shell_id, &host_id_data_);
             result[i].auger_shell = {result[i].auger_shell.begin(), ext.end()};
         }
@@ -266,7 +270,7 @@ AtomicRelaxationParams::extend_shells(const ElementInput& inp)
 /*!
  * Map subshell designators to indices in the shells array
  */
-void AtomicRelaxationParams::map_to_index(
+void AtomicRelaxationParams::map_des_to_id(
     const std::unordered_map<size_type, size_type>& des_to_id,
     const std::vector<size_type>&                   des,
     std::vector<size_type>*                         id)

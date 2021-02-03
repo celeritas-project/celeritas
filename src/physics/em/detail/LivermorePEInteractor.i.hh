@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include "base/ArrayUtils.hh"
+#include "physics/em/AtomicRelaxation.hh"
 #include "physics/em/MockXsCalculator.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 
@@ -47,11 +48,19 @@ LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
 template<class Engine>
 CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 {
-    // Allocate space for the single electron to be emitted
-    Secondary* photoelectron = this->allocate_(1);
-    if (photoelectron == nullptr)
+    // If atomic relaxation is enabled, allocate enough space to hold all
+    // possible secondaries created; otherwise, only allocate space for the
+    // single photoelectron emitted
+    size_type count = 1;
+    if (shared_.atomic_relaxation)
     {
-        // Failed to allocate space for a secondary
+        count += shared_.atomic_relaxation.elements[el_id_.get()].max_secondary;
+    }
+
+    Secondary* secondaries = this->allocate_(count);
+    if (secondaries == nullptr)
+    {
+        // Failed to allocate space for secondaries
         return Interaction::from_failure();
     }
 
@@ -109,20 +118,42 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     }
 
     // Outgoing secondary is an electron
-    result.secondaries         = {photoelectron, 1};
-    photoelectron->particle_id = shared_.electron_id;
+    secondaries[0].particle_id = shared_.electron_id;
 
     // Electron kinetic energy is the difference between the incident photon
     // energy and the binding energy of the shell
-    photoelectron->energy
+    secondaries[0].energy
         = MevEnergy{inc_energy_.value() - binding_energy.value()};
 
     // Direction of the emitted photoelectron is sampled from the
     // Sauter-Gavrila distribution
-    photoelectron->direction = this->sample_direction(rng);
+    secondaries[0].direction = this->sample_direction(rng);
 
-    // TODO: Atomic relaxation. For now assume the energy is deposited locally
-    result.energy_deposition = binding_energy;
+    if (shared_.atomic_relaxation)
+    {
+        // Simulate atomic relaxation and get the actual number of secondaries
+        // created
+        AtomicRelaxation relax(
+            shared_.atomic_relaxation, el_id_, {secondaries + 1, count - 1});
+        count = relax(shell_id, rng) + 1;
+
+        // The local energy deposition is the difference between the binding
+        // energy of the subshell with the initial vacancy and the sum of the
+        // energies of the secondaries created
+        real_type energy_out = 0.;
+        for (size_type i = 1; i < count; ++i)
+        {
+            energy_out += secondaries[i].energy.value();
+        }
+        result.energy_deposition
+            = MevEnergy{binding_energy.value() - energy_out};
+    }
+    else
+    {
+        // Deposit energy locally
+        result.energy_deposition = binding_energy;
+    }
+    result.secondaries = {secondaries, count};
 
     return result;
 }

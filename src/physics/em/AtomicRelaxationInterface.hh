@@ -19,12 +19,11 @@ namespace celeritas
 /*!
  * Atomic relaxation transition data.
  *
- * The size of the arrays is the number of possible transitions that can occur
- * in which an electron from an upper shell drops down into this shell. The
- * transition probabilities describe both radiative and non-radiative
- * transitions. If no Auger electron shell is provided for a particular
- * transition, it is a radiative transition; otherwise it is a non-radiative
- * transition.
+ * The size of the arrays is the number of transitions that can occur in which
+ * the vacancy in this subshell is filled by an electron from an upper shell.
+ * The transition probabilities describe both radiative and non-radiative
+ * transitions. Auger electron shells are only assigned for non-radiative
+ * transitions.
  */
 struct AtomicRelaxSubshell
 {
@@ -42,7 +41,7 @@ struct AtomicRelaxElement
 {
     Span<const AtomicRelaxSubshell> shells;
 
-    size_type max_secondaries; //!< Maximum number of secondaries possible
+    size_type max_secondary; //!< Maximum number of secondaries possible
 
     //! Check whether the element is assigned (false for Z < 6).
     explicit inline CELER_FUNCTION operator bool() const

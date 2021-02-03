@@ -98,9 +98,10 @@ class AtomicRelaxationParams
     // HELPER FUNCTIONS
     void                      append_element(const ElementInput& inp);
     Span<AtomicRelaxSubshell> extend_shells(const ElementInput& inp);
-    void map_to_index(const std::unordered_map<size_type, size_type>& des_to_id,
-                      const std::vector<size_type>&                   des,
-                      std::vector<size_type>*                         id);
+    void
+    map_des_to_id(const std::unordered_map<size_type, size_type>& des_to_id,
+                  const std::vector<size_type>&                   des,
+                  std::vector<size_type>*                         id);
 };
 
 //---------------------------------------------------------------------------//

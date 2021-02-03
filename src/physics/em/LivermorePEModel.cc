@@ -38,6 +38,22 @@ LivermorePEModel::LivermorePEModel(ModelId                  id,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct with transition data for atomic relaxation.
+ */
+LivermorePEModel::LivermorePEModel(
+    ModelId                       id,
+    const ParticleParams&         particles,
+    const LivermorePEParams&      data,
+    const AtomicRelaxationParams& atomic_relaxation)
+    : LivermorePEModel(id, particles, data)
+{
+    interface_.atomic_relaxation = celeritas::is_device_enabled()
+                                       ? atomic_relaxation.device_pointers()
+                                       : atomic_relaxation.host_pointers();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Particle types and energy ranges that this model applies to.
  */
 auto LivermorePEModel::applicability() const -> SetApplicability

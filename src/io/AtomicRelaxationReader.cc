@@ -68,18 +68,18 @@ AtomicRelaxationReader::operator()(int atomic_number) const
 
     std::string Z = std::to_string(atomic_number);
 
-    // Read fluorescence transition probabilities and subshell designators
+    // Read fluorescence transition probabilities and subshell designators. All
+    // lines in the data file are 3 columns. The first line of each section is
+    // the subshell designator of the initial vacancy. Each of the following
+    // rows contains data for a different transition, where the columns are:
+    // designator of the shell of the electron that fills the vacancy,
+    // transition probability, and transition energy. A row of -1 marks the end
+    // of the shell data, and -2 marks the end of the file.
     {
         std::string   filename = fluor_path_ + "/fl-tr-pr-" + Z + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
-        // All lines are 3 columns. The first line of each section is the
-        // subshell designator of the initial vacancy. Each of the following
-        // rows contains data for a different transition, where the columns
-        // are: designator of the shell of the electron that fills the vacancy,
-        // transition probability, and transition energy. A row of -1 marks the
-        // end of the shell data, and -2 marks the end of the file.
         int       des       = 0;
         real_type tr_energy = 0.;
         real_type tr_prob   = 0.;
@@ -115,19 +115,18 @@ AtomicRelaxationReader::operator()(int atomic_number) const
         }
     }
 
-    // Read Auger transition probabilities
+    // Read Auger transition probabilities. All lines in the data file are 4
+    // columns. The first line of each section is the subshell designator of
+    // the initial vacancy. Each of the following rows contains data for a
+    // different transition, where the columns are: designator of the shell of
+    // the electron that fills the vacancy, designator of the Auger electron
+    // shell, transition probability, and transition energy. A row of -1 marks
+    // the end of the shell data, and -2 marks the end of the file.
     {
         std::string   filename = auger_path_ + "/au-tr-pr-" + Z + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
-        // All lines are 4 columns. The first line of each section is the
-        // subshell designator of the initial vacancy. Each of the following
-        // rows contains data for a different transition, where the columns
-        // are: designator of the shell of the electron that fills the vacancy,
-        // designator of the Auger electron shell, transition probability, and
-        // transition energy. A row of -1 marks the end of the shell data, and
-        // -2 marks the end of the file.
         int       des       = 0;
         int       auger_des = 0;
         real_type tr_energy = 0.;

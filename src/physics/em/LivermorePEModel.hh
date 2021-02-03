@@ -9,6 +9,7 @@
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/em/AtomicRelaxationParams.hh"
 #include "physics/em/LivermorePEParams.hh"
 #include "detail/LivermorePE.hh"
 
@@ -25,6 +26,12 @@ class LivermorePEModel final : public Model
     LivermorePEModel(ModelId                  id,
                      const ParticleParams&    particles,
                      const LivermorePEParams& data);
+
+    // Construct with transition data for atomic relaxation
+    LivermorePEModel(ModelId                       id,
+                     const ParticleParams&         particles,
+                     const LivermorePEParams&      data,
+                     const AtomicRelaxationParams& atomic_relaxation);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

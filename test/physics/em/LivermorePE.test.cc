@@ -211,6 +211,86 @@ TEST_F(LivermorePEInteractorTest, basic)
     }
 }
 
+TEST_F(LivermorePEInteractorTest, atomic_relaxation)
+{
+    // Reserve secondaries
+    this->resize_secondaries(64);
+
+    // Sampled element
+    ElementId el_id{0};
+
+    // Add atomic relaxation data
+    pointers_.atomic_relaxation = atomic_relax_;
+
+    // Create the interactor
+    LivermorePEInteractor interact(pointers_,
+                                   el_id,
+                                   this->particle_track(),
+                                   this->direction(),
+                                   this->secondary_allocator());
+    RandomEngine&         rng_engine = this->rng();
+
+    std::vector<double> energy_secondary;
+    std::vector<double> costheta_secondary;
+    std::vector<double> energy_deposition;
+
+    // Produce four samples from the original incident energy/dir
+    for (int i = 0; i < 4; ++i)
+    {
+        Interaction result = interact(rng_engine);
+        SCOPED_TRACE(result);
+        ASSERT_TRUE(result);
+        this->check_energy_conservation(result);
+
+        // Add actual results to vector
+        for (const auto& secondary : result.secondaries)
+        {
+            energy_secondary.push_back(secondary.energy.value());
+            costheta_secondary.push_back(celeritas::dot_product(
+                secondary.direction, this->direction()));
+        }
+        energy_deposition.push_back(result.energy_deposition.value());
+    }
+
+    EXPECT_EQ(64, this->secondary_allocator().get().size());
+
+    // Note: these are "gold" values based on the host RNG.
+    const double expected_energy_secondary[]   = {0.00062884,
+                                                4.576e-05,
+                                                0.00025443,
+                                                0.00062884,
+                                                4.905e-05,
+                                                0.00025142,
+                                                0.00069835,
+                                                0.00025443,
+                                                0.00062884,
+                                                2.901e-05,
+                                                0.00025443};
+    const double expected_costheta_secondary[] = {0.1217302869581,
+                                                  0.9857626038356,
+                                                  0.4516779264238,
+                                                  0.8769397871407,
+                                                  0.007325355410339,
+                                                  -0.5761513352165,
+                                                  -0.2414106440617,
+                                                  -0.366899110362,
+                                                  0.3465453244146,
+                                                  -0.1825376780765,
+                                                  0.5879499430984};
+    const double expected_energy_deposition[]
+        = {7.097e-05, 7.069e-05, 4.722e-05, 8.772e-05};
+    EXPECT_VEC_SOFT_EQ(expected_energy_secondary, energy_secondary);
+    EXPECT_VEC_SOFT_EQ(expected_costheta_secondary, costheta_secondary);
+    EXPECT_VEC_SOFT_EQ(expected_energy_deposition, energy_deposition);
+
+    // Next sample should fail because we're out of secondary buffer space
+    {
+        Interaction result = interact(rng_engine);
+        EXPECT_EQ(0, result.secondaries.size());
+        EXPECT_EQ(celeritas::Action::failed, result.action);
+    }
+}
+
 TEST_F(LivermorePEInteractorTest, stress_test)
 {
     RandomEngine& rng_engine = this->rng();
@@ -265,8 +345,8 @@ TEST_F(LivermorePEInteractorTest, stress_test)
 
 TEST_F(LivermorePEInteractorTest, model)
 {
-    PhotoelectricProcess process(this->get_particle_params(),
-                                 livermore_params_);
+    PhotoelectricProcess process(
+        this->get_particle_params(), livermore_params_, relax_params_);
     ModelIdGenerator     next_id;
 
     // Construct the models associated with the photoelectric effect
