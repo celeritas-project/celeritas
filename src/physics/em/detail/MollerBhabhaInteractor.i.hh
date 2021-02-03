@@ -11,6 +11,7 @@
 #include "base/Algorithms.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "random/distributions/UniformRealDistribution.hh"
+#include "random/distributions/BernoulliDistribution.hh"
 
 #include <iostream>
 
@@ -76,8 +77,8 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 
     // Same equation as in ParticleTrackView::momentum_sq()
     real_type secondary_momentum
-        = sqrt(secondary_energy
-               * (secondary_energy + 2.0 * shared_.electron_mass_c_sq));
+        = std::sqrt(secondary_energy
+                    * (secondary_energy + 2.0 * shared_.electron_mass_c_sq));
 
     const real_type total_energy = inc_energy_.value()
                                    + shared_.electron_mass_c_sq;
@@ -144,7 +145,7 @@ CELER_FUNCTION real_type MollerBhabhaInteractor::sample_moller(Engine& rng)
     real_type       epsilon;
     real_type       z;
     real_type       rejection_function_g;
-    real_type       random[2];
+    real_type       random;
 
     real_type two_gamma_term = (2.0 * gamma - 1.0) / gamma_sq;
     real_type y              = 1.0 - max_energy_fraction;
@@ -155,18 +156,17 @@ CELER_FUNCTION real_type MollerBhabhaInteractor::sample_moller(Engine& rng)
 
     do
     {
-        random[0] = generate_canonical(rng);
-        random[1] = generate_canonical(rng);
+        random = generate_canonical(rng);
 
         epsilon = min_energy_fraction * max_energy_fraction
-                  / (min_energy_fraction * (1.0 - random[0])
-                     + max_energy_fraction * random[0]);
+                  / (min_energy_fraction * (1.0 - random)
+                     + max_energy_fraction * random);
         y = 1.0 - epsilon;
         z = 1.0 - two_gamma_term * epsilon
             + epsilon * epsilon
                   * (1.0 - two_gamma_term
                      + (1.0 - two_gamma_term * y) / (y * y));
-    } while (rejection_function_g * random[1] > z);
+    } while (BernoulliDistribution(z / rejection_function_g)(rng));
 
     return epsilon;
 }
@@ -192,7 +192,7 @@ CELER_FUNCTION real_type MollerBhabhaInteractor::sample_bhabha(Engine& rng)
     real_type       epsilon;
     real_type       z;
     real_type       rejection_function_g;
-    real_type       random[2];
+    real_type       random;
 
     real_type y    = 1.0 / (1.0 + gamma);
     real_type y2   = y * y;
@@ -213,17 +213,16 @@ CELER_FUNCTION real_type MollerBhabhaInteractor::sample_bhabha(Engine& rng)
                                  * beta_sq;
     do
     {
-        random[0] = generate_canonical(rng);
-        random[1] = generate_canonical(rng);
+        random = generate_canonical(rng);
 
         epsilon = min_energy_fraction * max_energy_fraction
-                  / (min_energy_fraction * (1.0 - random[0])
-                     + max_energy_fraction * random[0]);
+                  / (min_energy_fraction * (1.0 - random)
+                     + max_energy_fraction * random);
         y = epsilon * epsilon;
         z = 1.0
             + (y * y * b4 - epsilon * y * b3 + y * b2 - epsilon * b1) * beta_sq;
 
-    } while (rejection_function_g * random[1] > z);
+    } while (BernoulliDistribution(z / rejection_function_g)(rng));
 
     return epsilon;
 }
