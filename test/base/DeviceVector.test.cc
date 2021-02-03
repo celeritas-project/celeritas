@@ -81,3 +81,21 @@ TEST_F(DeviceVectorTest, all)
         EXPECT_EQ(orig_vec, other.device_pointers().data());
     }
 }
+
+/*!
+ * The following test code is intentionally commented out. Define
+ * CELERITAS_SHOULD_NOT_COMPILE to check that the enclosed code results in
+ * the expected build errors.
+ */
+#ifdef CELERITAS_SHOULD_NOT_COMPILE
+TEST_F(DeviceVectorTest, should_not_compile)
+{
+    DeviceVector<int> dv(123);
+    celeritas::Span<int> s = make_span(dv);
+    EXPECT_EQ(123, s.size());
+
+    const auto& dv_cref = dv;
+    celeritas::Span<const int> s2 = make_span(dv_cref);
+    EXPECT_EQ(123, s2.size());
+}
+#endif

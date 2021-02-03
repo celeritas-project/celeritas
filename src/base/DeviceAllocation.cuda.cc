@@ -30,7 +30,7 @@ DeviceAllocation::DeviceAllocation(size_type bytes) : size_(bytes)
 /*!
  * Copy data to device.
  */
-void DeviceAllocation::copy_to_device(constSpanBytes bytes)
+void DeviceAllocation::copy_to_device(SpanConstBytes bytes)
 {
     CELER_EXPECT(!this->empty());
     CELER_EXPECT(bytes.size() == this->size());

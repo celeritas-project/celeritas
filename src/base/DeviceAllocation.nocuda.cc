@@ -30,7 +30,7 @@ void DeviceAllocation::CudaFreeDeleter::operator()(Byte*) const
 /*!
  * Copy data to device (not implemented when cuda is disabled).
  */
-void DeviceAllocation::copy_to_device(constSpanBytes)
+void DeviceAllocation::copy_to_device(SpanConstBytes)
 {
     CELER_ASSERT_UNREACHABLE();
 }

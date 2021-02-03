@@ -29,7 +29,7 @@ class DeviceAllocation
     //!@{
     //! Type aliases
     using SpanBytes      = Span<Byte>;
-    using constSpanBytes = Span<const Byte>;
+    using SpanConstBytes = Span<const Byte>;
     //!@}
 
   public:
@@ -56,10 +56,10 @@ class DeviceAllocation
     inline SpanBytes device_pointers();
 
     // Get the device pointer
-    inline constSpanBytes device_pointers() const;
+    inline SpanConstBytes device_pointers() const;
 
     // Copy data to device
-    void copy_to_device(constSpanBytes bytes);
+    void copy_to_device(SpanConstBytes bytes);
 
     // Copy data to host
     void copy_to_host(SpanBytes bytes) const;

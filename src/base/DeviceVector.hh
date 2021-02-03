@@ -9,6 +9,7 @@
 
 #include <type_traits>
 #include "DeviceAllocation.hh"
+#include "Span.hh"
 #include "detail/InitializedValue.hh"
 
 namespace celeritas
@@ -45,9 +46,9 @@ class DeviceVector
   public:
     //!@{
     //! Type aliases
-    using value_type  = T;
-    using Span_t      = Span<T>;
-    using constSpan_t = Span<const T>;
+    using value_type = T;
+    using SpanT      = Span<T>;
+    using SpanConstT = Span<const T>;
     //!@}
 
   public:
@@ -77,16 +78,22 @@ class DeviceVector
     //// DEVICE ACCESSORS ////
 
     // Copy data to device
-    inline void copy_to_device(constSpan_t host_data);
+    inline void copy_to_device(SpanConstT host_data);
 
     // Copy data to host
-    inline void copy_to_host(Span_t host_data) const;
+    inline void copy_to_host(SpanT host_data) const;
 
     // Get a mutable view to device data
-    inline Span_t device_pointers();
+    SpanT device_pointers() { return {this->data(), this->size()}; }
 
     // Get a const view to device data
-    inline constSpan_t device_pointers() const;
+    SpanConstT device_pointers() const { return {this->data(), this->size()}; }
+
+    // Raw pointer to device data (dangerous!)
+    inline T* data();
+
+    // Raw pointer to device data (dangerous!)
+    inline const T* data() const;
 
   private:
     DeviceAllocation allocation_;
@@ -97,6 +104,28 @@ class DeviceVector
 // Swap two vectors
 template<class T>
 inline void swap(DeviceVector<T>&, DeviceVector<T>&) noexcept;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Prevent accidental construction of Span from a device vector.
+ *
+ * Use \c dv.device_pointers() to get a span.
+ */
+template<class T>
+CELER_FUNCTION Span<const T> make_span(const DeviceVector<T>& dv)
+{
+    static_assert(sizeof(T) == 0, "Cannot 'make_span' from a device vector");
+    return {dv.data(), dv.size()};
+}
+
+//---------------------------------------------------------------------------//
+//! Prevent accidental construction of Span from a device vector.
+template<class T>
+CELER_FUNCTION Span<T> make_span(DeviceVector<T>& dv)
+{
+    static_assert(sizeof(T) == 0, "Cannot 'make_span' from a device vector");
+    return {dv.data(), dv.size()};
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

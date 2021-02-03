@@ -50,7 +50,7 @@ void DeviceVector<T>::resize(size_type size)
  * Copy data to device.
  */
 template<class T>
-void DeviceVector<T>::copy_to_device(constSpan_t data)
+void DeviceVector<T>::copy_to_device(SpanConstT data)
 {
     CELER_EXPECT(data.size() == this->size());
     allocation_.copy_to_device(
@@ -62,7 +62,7 @@ void DeviceVector<T>::copy_to_device(constSpan_t data)
  * Copy data to host.
  */
 template<class T>
-void DeviceVector<T>::copy_to_host(Span_t data) const
+void DeviceVector<T>::copy_to_host(SpanT data) const
 {
     CELER_EXPECT(data.size() == this->size());
     allocation_.copy_to_host(
@@ -71,24 +71,22 @@ void DeviceVector<T>::copy_to_host(Span_t data) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get an on-device view to the data.
+ * Get a device data pointer.
  */
 template<class T>
-auto DeviceVector<T>::device_pointers() -> Span_t
+T* DeviceVector<T>::data()
 {
-    return {reinterpret_cast<T*>(allocation_.device_pointers().data()),
-            this->size()};
+    return reinterpret_cast<T*>(allocation_.device_pointers().data());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get an on-device view to the data.
+ * Get a device data pointer.
  */
 template<class T>
-auto DeviceVector<T>::device_pointers() const -> constSpan_t
+const T* DeviceVector<T>::data() const
 {
-    return {reinterpret_cast<const T*>(allocation_.device_pointers().data()),
-            this->size()};
+    return reinterpret_cast<const T*>(allocation_.device_pointers().data());
 }
 
 //---------------------------------------------------------------------------//
