@@ -34,7 +34,7 @@ auto DeviceAllocation::device_pointers() -> SpanBytes
 /*!
  * Get a view to the owned device memory.
  */
-auto DeviceAllocation::device_pointers() const -> constSpanBytes
+auto DeviceAllocation::device_pointers() const -> SpanConstBytes
 {
     return {data_.get(), size_};
 }
