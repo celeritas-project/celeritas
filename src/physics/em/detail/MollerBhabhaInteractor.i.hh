@@ -76,7 +76,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     const real_type secondary_energy = epsilon * inc_energy_.value();
 
     // Same equation as in ParticleTrackView::momentum_sq()
-    real_type secondary_momentum
+    const real_type secondary_momentum
         = std::sqrt(secondary_energy
                     * (secondary_energy + 2.0 * shared_.electron_mass_c_sq));
 
@@ -110,8 +110,8 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     normalize_direction(&inc_exiting_direction);
 
     // Construct interaction for change to primary (incident) particle
-    real_type   inc_exiting_energy = inc_energy_.value() - secondary_energy;
-    Interaction result;
+    const real_type inc_exiting_energy = inc_energy_.value() - secondary_energy;
+    Interaction     result;
     result.action      = Action::scattered;
     result.energy      = units::MevEnergy{inc_exiting_energy};
     result.secondaries = {electron_secondary, 1};
@@ -140,33 +140,34 @@ CELER_FUNCTION real_type MollerBhabhaInteractor::sample_moller(Engine& rng)
     // Set up sampling parameters
     const real_type total_energy = inc_energy_.value()
                                    + shared_.electron_mass_c_sq;
-    const real_type gamma    = total_energy / shared_.electron_mass_c_sq;
-    const real_type gamma_sq = ipow<2>(gamma);
-    real_type       epsilon;
-    real_type       z;
-    real_type       rejection_function_g;
-    real_type       random;
+    const real_type gamma          = total_energy / shared_.electron_mass_c_sq;
+    const real_type gamma_sq       = ipow<2>(gamma);
+    const real_type two_gamma_term = (2.0 * gamma - 1.0) / gamma_sq;
 
-    real_type two_gamma_term = (2.0 * gamma - 1.0) / gamma_sq;
-    real_type y              = 1.0 - max_energy_fraction;
-    rejection_function_g     = 1.0 - two_gamma_term * max_energy_fraction
-                           + max_energy_fraction * max_energy_fraction
-                                 * (1.0 - two_gamma_term
-                                    + (1.0 - two_gamma_term * y) / (y * y));
+    // Lambda for f(epsilon) and g(epsilon), which are equivalent
+    auto calc_f_g = [two_gamma_term](real_type epsilon) {
+        const real_type complement_frac = 1.0 - epsilon;
+        return 1.0 - two_gamma_term * epsilon
+               + ipow<2>(epsilon)
+                     * (1.0 - two_gamma_term
+                        + (1.0 - two_gamma_term * complement_frac)
+                              / ipow<2>(complement_frac));
+    };
 
+    const real_type rejection_g = calc_f_g(max_energy_fraction);
+
+    UniformRealDistribution<> sample_inverse_epsilon(1 / max_energy_fraction,
+                                                     1 / min_energy_fraction);
+
+    // Sample epsilon
+    real_type prob_f;
+    real_type epsilon;
     do
     {
-        random = generate_canonical(rng);
+        epsilon = 1 / sample_inverse_epsilon(rng);
+        prob_f  = calc_f_g(epsilon);
 
-        epsilon = min_energy_fraction * max_energy_fraction
-                  / (min_energy_fraction * (1.0 - random)
-                     + max_energy_fraction * random);
-        y = 1.0 - epsilon;
-        z = 1.0 - two_gamma_term * epsilon
-            + epsilon * epsilon
-                  * (1.0 - two_gamma_term
-                     + (1.0 - two_gamma_term * y) / (y * y));
-    } while (BernoulliDistribution(z / rejection_function_g)(rng));
+    } while (BernoulliDistribution(prob_f / rejection_g)(rng));
 
     return epsilon;
 }
@@ -186,43 +187,41 @@ CELER_FUNCTION real_type MollerBhabhaInteractor::sample_bhabha(Engine& rng)
     // Set up sampling parameters
     const real_type total_energy = inc_energy_.value()
                                    + shared_.electron_mass_c_sq;
-    const real_type gamma    = total_energy / shared_.electron_mass_c_sq;
-    const real_type gamma_sq = ipow<2>(gamma);
-    const real_type beta_sq  = 1.0 - (1.0 / gamma_sq);
-    real_type       epsilon;
-    real_type       z;
-    real_type       rejection_function_g;
-    real_type       random;
+    const real_type gamma        = total_energy / shared_.electron_mass_c_sq;
+    const real_type gamma_sq     = ipow<2>(gamma);
+    const real_type beta_sq      = 1.0 - (1.0 / gamma_sq);
+    const real_type y            = 1.0 / (1.0 + gamma);
+    const real_type y_sq         = ipow<2>(y);
+    const real_type one_minus_2y = 1.0 - 2.0 * y;
+    const real_type b1           = 2.0 - y_sq;
+    const real_type b2           = one_minus_2y * (3.0 + y_sq);
+    const real_type b4           = ipow<3>(one_minus_2y);
+    const real_type b3           = ipow<2>(one_minus_2y) + b4;
 
-    real_type y    = 1.0 / (1.0 + gamma);
-    real_type y2   = y * y;
-    real_type y12  = 1.0 - 2.0 * y;
-    real_type b1   = 2.0 - y2;
-    real_type b2   = y12 * (3.0 + y2);
-    real_type y122 = y12 * y12;
-    real_type b4   = y122 * y12;
-    real_type b3   = b4 + y122;
+    // Lambda for f(epsilon) and g(epsilon)
+    auto calc_f_g = [=](real_type epsilon_min, real_type epsilon_max) {
+        return 1.0
+               + (ipow<4>(epsilon_max) * b4 - ipow<3>(epsilon_min) * b3
+                  + ipow<2>(epsilon_max) * b2 - epsilon_min * b1)
+                     * beta_sq;
+    };
 
-    y = max_energy_fraction * max_energy_fraction;
+    const real_type rejection_g
+        = calc_f_g(min_energy_fraction, max_energy_fraction);
 
-    rejection_function_g = 1.0
-                           + (y * y * b4
-                              - min_energy_fraction * min_energy_fraction
-                                    * min_energy_fraction * b3
-                              + y * b2 - min_energy_fraction * b1)
-                                 * beta_sq;
+    UniformRealDistribution<> sample_inverse_epsilon(1 / max_energy_fraction,
+                                                     1 / min_energy_fraction);
+
+    // Sample epsilon
+    real_type prob_f;
+    real_type epsilon;
     do
     {
-        random = generate_canonical(rng);
+        // real_type random = generate_canonical(rng);
+        epsilon = 1 / sample_inverse_epsilon(rng);
+        prob_f  = calc_f_g(epsilon, epsilon);
 
-        epsilon = min_energy_fraction * max_energy_fraction
-                  / (min_energy_fraction * (1.0 - random)
-                     + max_energy_fraction * random);
-        y = epsilon * epsilon;
-        z = 1.0
-            + (y * y * b4 - epsilon * y * b3 + y * b2 - epsilon * b1) * beta_sq;
-
-    } while (BernoulliDistribution(z / rejection_function_g)(rng));
+    } while (BernoulliDistribution(prob_f / rejection_g)(rng));
 
     return epsilon;
 }

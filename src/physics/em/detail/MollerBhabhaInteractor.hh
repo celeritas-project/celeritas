@@ -65,10 +65,10 @@ class MollerBhabhaInteractor
 
   private:
     template<class Engine>
-    CELER_FUNCTION real_type sample_moller(Engine& rng);
+    inline CELER_FUNCTION real_type sample_moller(Engine& rng);
 
     template<class Engine>
-    CELER_FUNCTION real_type sample_bhabha(Engine& rng);
+    inline CELER_FUNCTION real_type sample_bhabha(Engine& rng);
 }; // namespace MollerBhabhaInteractor
 
 //---------------------------------------------------------------------------//
