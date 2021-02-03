@@ -9,6 +9,7 @@
 
 #include "celeritas_test.hh"
 #include "Pool.test.hh"
+#include "base/DeviceVector.hh"
 #include "comm/Device.hh"
 
 using celeritas::MemSpace;
@@ -104,21 +105,21 @@ TEST_F(PoolTest, device)
     MockStatePools<Ownership::value, MemSpace::device> device_states;
     device_states.matid.resize(1024);
 
-    DeviceVector<double> device_result(device_states.size());
+    celeritas::DeviceVector<double> device_result(device_states.size());
 
     PTestInput kernel_input;
     kernel_input.params = mock_params.device_ref;
     kernel_input.states = device_states;
     kernel_input.result = device_result.device_pointers();
 
-    PTestOutput output;
 #if CELERITAS_USE_CUDA
-    output = p_test(kernel_input);
+    p_test(kernel_input);
 #endif
-    std::vector<double> result(output.result.size());
+    std::vector<double> result(device_result.size());
     device_result.copy_to_host(celeritas::make_span(result));
 
-    // For brevity, only check the first 32 values
-    result.resize(32);
-    PRINT_EXPECTED(result);
+    // For brevity, only check the first 6 values (they repeat after that)
+    result.resize(6);
+    const double expected_result[] = {2.2, 41, 0, 3.333333333333, 41, 0};
+    EXPECT_VEC_SOFT_EQ(expected_result, result);
 }

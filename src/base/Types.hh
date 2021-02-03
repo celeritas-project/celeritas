@@ -45,8 +45,8 @@ enum class MemSpace
 {
     host,
     device,
-#ifdef __CUDA_ARCH__
-    native = device,
+#ifdef __CUDACC__
+    native = device, // Included by a CUDA file
 #else
     native = host,
 #endif

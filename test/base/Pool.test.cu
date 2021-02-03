@@ -42,7 +42,7 @@ __global__ void p_test_kernel(
     auto   elements = mock.elements();
     if (!elements.empty())
     {
-        const MockElement& el = elements[tid.get() % elements.size()];
+        const MockElement& el = elements[(tid.get() / 2) % elements.size()];
         result                = matid + nd * el.atomic_mass / el.atomic_number;
     }
 
