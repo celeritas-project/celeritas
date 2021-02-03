@@ -40,18 +40,6 @@ enum class Interp
     log
 };
 
-//! Memory location of data, or a pointer
-enum class MemSpace
-{
-    host,
-    device,
-#ifdef __CUDACC__
-    native = device, // Included by a CUDA file
-#else
-    native = host,
-#endif
-};
-
 //! Non-convertible type for raw data modeled after std::byte (C++17)
 enum class Byte : unsigned char
 {

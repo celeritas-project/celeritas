@@ -9,58 +9,17 @@
 
 #include "NumericLimits.hh"
 #include "Span.hh"
-#include "Types.hh"
-
-// Proxy for defining specializations in a separate header that device-only
-// code can omit: this will be removed before merge
-#ifndef POOL_HOST_HEADER
-#    define POOL_HOST_HEADER 1
-#endif
-
-#if POOL_HOST_HEADER
-#    include <vector>
-#    include "DeviceVector.hh"
-#endif
+#include "PoolTypes.hh"
+#include "detail/PoolImpl.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Data ownership flag
-enum class Ownership
-{
-    value,           //!< Ownership of the data, only on host
-    reference,       //!< Mutable reference to the data
-    const_reference, //!< Immutable reference to the data
-};
-
-//! Size/offset type for pool
-using pool_size_type = unsigned int;
 
 CELER_CONSTEXPR_FUNCTION size_type max_pool_size()
 {
     return static_cast<size_type>(numeric_limits<pool_size_type>::max());
 }
-
-namespace detail
-{
-template<typename T, Ownership W>
-struct PoolTraits
-{
-    using SpanT          = Span<T>;
-    using pointer        = T*;
-    using reference_type = T&;
-    using value_type     = T;
-};
-
-template<typename T>
-struct PoolTraits<T, Ownership::const_reference>
-{
-    using SpanT          = Span<const T>;
-    using pointer        = const T*;
-    using reference_type = const T&;
-    using value_type     = T;
-};
-} // namespace detail
 
 //---------------------------------------------------------------------------//
 template<class T>
@@ -94,23 +53,12 @@ class PoolRange
     pool_size_type stop_{};
 };
 
-template<class T, Ownership W, MemSpace M>
-class PoolBase
-{
-  protected:
-    ~PoolBase();
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Storage and access to subspans of a contiguous array.
  *
  * Pools are constructed incrementally on the host, then copied (along with
  * their associated PoolRanges) to device.
- *
- * \todo To what extent do we forward the methods from Span? Can we eliminate
- * some of the duplication between the generic (non-owning) pool and the
- * others?
  */
 template<class T, Ownership W, MemSpace M>
 class Pool
@@ -120,20 +68,41 @@ class Pool
   public:
     //!@{
     //! Type aliases
-    using SpanT          = typename PoolTraitsT::SpanT;
-    using value_type     = typename PoolTraitsT::value_type;
-    using pointer        = typename PoolTraitsT::pointer;
-    using reference_type = typename PoolTraitsT::reference_type;
+    using SpanT                = typename PoolTraitsT::SpanT;
+    using SpanConstT           = typename PoolTraitsT::SpanConstT;
+    using value_type           = typename PoolTraitsT::value_type;
+    using pointer              = typename PoolTraitsT::pointer;
+    using const_pointer        = typename PoolTraitsT::const_pointer;
+    using reference_type       = typename PoolTraitsT::reference_type;
+    using const_reference_type = typename PoolTraitsT::const_reference_type;
     //!@}
 
   public:
+    //! Default constructor
+    Pool() = default;
+
+    //! Construct from another pool
+    template<Ownership W2, MemSpace M2>
+    Pool(const Pool<T, W2, M2>& other)
+        : d_(detail::PoolAssigner<W, M>()(other.d_))
+    {
+    }
+
+    //! Construct from another pool (mutable)
+    template<Ownership W2, MemSpace M2>
+    Pool(Pool<T, W2, M2>& other) : d_(detail::PoolAssigner<W, M>()(other.d_))
+    {
+    }
+
+    // Default assignment
     Pool& operator=(const Pool& other) = default;
+    Pool& operator=(Pool&& other) = default;
 
     //! Assign from another pool in the same memory space
     template<Ownership W2>
     Pool& operator=(const Pool<T, W2, M>& other)
     {
-        data_ = make_span(other);
+        d_ = detail::PoolAssigner<W, M>()(other.d_);
         return *this;
     }
 
@@ -141,52 +110,64 @@ class Pool
     template<Ownership W2>
     Pool& operator=(Pool<T, W2, M>& other)
     {
-        data_ = make_span(other);
+        d_ = detail::PoolAssigner<W, M>()(other.d_);
         return *this;
     }
 
     //! Access a subspan
-    CELER_FUNCTION SpanT operator[](const PoolRange<T>& ps) const
+    CELER_FUNCTION SpanT operator[](const PoolRange<T>& ps)
     {
-        CELER_EXPECT(ps.stop() <= data_.size());
-        return {data_.data() + ps.start(), data_.data() + ps.stop()};
+        CELER_EXPECT(ps.stop() <= this->size());
+        return {this->data() + ps.start(), this->data() + ps.stop()};
     }
 
     //! Access a single element
-    CELER_FUNCTION reference_type operator[](size_type idx) const
+    CELER_FUNCTION reference_type operator[](size_type idx)
     {
-        CELER_EXPECT(idx < data_.size());
-        return data_[idx];
+        CELER_EXPECT(idx < this->size());
+        return d_.data[idx];
+    }
+
+    //! Access a subspan
+    CELER_FUNCTION SpanConstT operator[](const PoolRange<T>& ps) const
+    {
+        CELER_EXPECT(ps.stop() <= this->size());
+        return {this->data() + ps.start(), this->data() + ps.stop()};
+    }
+
+    //! Access a single element
+    CELER_FUNCTION const_reference_type operator[](size_type idx) const
+    {
+        CELER_EXPECT(idx < this->size());
+        return d_.data[idx];
     }
 
     //!@{
-    //! Forward to Span
-    CELER_FUNCTION size_type size() const { return data_.size(); }
-    CELER_FUNCTION bool      empty() const { return data_.empty(); }
-    CELER_FUNCTION pointer   data() const { return data_.data(); }
+    //! Forward to local data class
+    CELER_FORCEINLINE_FUNCTION size_type size() const
+    {
+        return d_.data.size();
+    }
+    CELER_FORCEINLINE_FUNCTION bool empty() const { return d_.data.empty(); }
+    CELER_FORCEINLINE_FUNCTION const_pointer data() const
+    {
+        return d_.data.data();
+    }
+    CELER_FORCEINLINE_FUNCTION pointer data() { return d_.data.data(); }
     //!@}
 
   private:
-    SpanT data_{};
+    detail::PoolStorage<T, W, M> d_{};
+
+    template<class T2, Ownership W2, MemSpace M2>
+    friend class Pool;
 };
 
-#if POOL_HOST_HEADER
-//! The value/host specialization is used to construct and modify.
+#if 0
 template<class T>
-class Pool<T, Ownership::value, MemSpace::host>
+class PoolBuilder
 {
-  public:
-    using const_pointer = const T*;
-    using pointer       = T*;
-    using value_type    = T;
-    using SpanT         = Span<T>;
-    using PoolRangeT    = PoolRange<T>;
-
-    Pool() = default;
-
-    //! Construct with a specific number of elements
-    explicit Pool(size_type size) : data_(size) {}
-
+};
     //! Reserve space for a number of items
     void reserve(size_type count)
     {

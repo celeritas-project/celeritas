@@ -31,6 +31,7 @@ class PoolTest : public celeritas::Test
         MockParamsPools<Ownership::value, MemSpace::host>& host_pools
             = mock_params.host;
         host_pools.max_element_components = 3;
+#if 0
         host_pools.elements.reserve(5);
         host_pools.materials.reserve(2);
 
@@ -60,6 +61,7 @@ class PoolTest : public celeritas::Test
         {
             mats[2].number_density = 0.0;
         }
+#endif
 
         mock_params.host_ref = mock_params.host;
         if (celeritas::is_device_enabled())
@@ -82,11 +84,11 @@ TEST_F(PoolTest, host)
     MockStatePools<Ownership::value, MemSpace::host>     host_state;
     MockStatePools<Ownership::reference, MemSpace::host> host_state_ref;
 
-    host_state.matid.allocate(1);
+    // host_state.matid.allocate(1);
     host_state_ref = host_state;
 
     // Assign
-    host_state_ref.matid[0] = 1;
+    // host_state_ref.matid[0] = 1;
 
     // Create view
     MockTrackView mock(
@@ -103,7 +105,7 @@ TEST_F(PoolTest, device)
 
     // Construct with 1024 states
     MockStatePools<Ownership::value, MemSpace::device> device_states;
-    device_states.matid.resize(1024);
+    // device_states.matid.resize(1024);
 
     celeritas::DeviceVector<double> device_result(device_states.size());
 
