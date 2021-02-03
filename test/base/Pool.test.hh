@@ -49,7 +49,7 @@ struct MockParamsPools
     //! Whether the object is in a valid state
     explicit operator bool() const
     {
-        return !materials.get().empty() && max_element_components >= 0;
+        return !materials.empty() && max_element_components >= 0;
     }
 
     //! Assign from another set of pools

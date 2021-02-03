@@ -49,6 +49,7 @@ struct PoolTraits
     using SpanT          = Span<T>;
     using pointer        = T*;
     using reference_type = T&;
+    using value_type     = T;
 };
 
 template<typename T>
@@ -57,6 +58,7 @@ struct PoolTraits<T, Ownership::const_reference>
     using SpanT          = Span<const T>;
     using pointer        = const T*;
     using reference_type = const T&;
+    using value_type     = T;
 };
 } // namespace detail
 
@@ -119,7 +121,8 @@ class Pool
     //!@{
     //! Type aliases
     using SpanT          = typename PoolTraitsT::SpanT;
-    using pointer        = typename PoolTraitsT::reference_type;
+    using value_type     = typename PoolTraitsT::value_type;
+    using pointer        = typename PoolTraitsT::pointer;
     using reference_type = typename PoolTraitsT::reference_type;
     //!@}
 
@@ -130,19 +133,17 @@ class Pool
     template<Ownership W2>
     Pool& operator=(const Pool<T, W2, M>& other)
     {
-        data_ = other.get();
+        data_ = make_span(other);
         return *this;
     }
+
     //! Assign (mutable!) from another pool in the same memory space
     template<Ownership W2>
     Pool& operator=(Pool<T, W2, M>& other)
     {
-        data_ = other.get();
+        data_ = make_span(other);
         return *this;
     }
-
-    //! Access all data from this pool
-    CELER_FUNCTION SpanT get() const { return data_; }
 
     //! Access a subspan
     CELER_FUNCTION SpanT operator[](const PoolRange<T>& ps) const
@@ -177,19 +178,14 @@ class Pool<T, Ownership::value, MemSpace::host>
   public:
     using const_pointer = const T*;
     using pointer       = T*;
-    using SpanT      = Span<T>;
-    using PoolRangeT = PoolRange<T>;
+    using value_type    = T;
+    using SpanT         = Span<T>;
+    using PoolRangeT    = PoolRange<T>;
 
     Pool() = default;
 
     //! Construct with a specific number of elements
     explicit Pool(size_type size) : data_(size) {}
-
-    //@{
-    //! Access all elements from this pool
-    Span<T>       get() { return make_span(data_); }
-    Span<const T> get() const { return make_span(data_); }
-    //@}
 
     //! Reserve space for a number of items
     void reserve(size_type count)
@@ -239,6 +235,10 @@ template<class T>
 class Pool<T, Ownership::value, MemSpace::device>
 {
   public:
+    using const_pointer = const T*;
+    using pointer       = T*;
+    using value_type    = T;
+
     Pool() = default;
 
     //! Construct with a specific number of elements
@@ -247,7 +247,7 @@ class Pool<T, Ownership::value, MemSpace::device>
     //! Construct from host values, copying data directly
     Pool& operator=(const Pool<T, Ownership::value, MemSpace::host>& host_pool)
     {
-        Span<const T> host_data = host_pool.get();
+        Span<const T> host_data = make_span(host_pool);
         if (!host_data.empty())
         {
             data_ = DeviceVector<T>(host_data.size());
@@ -270,16 +270,15 @@ class Pool<T, Ownership::value, MemSpace::device>
         }
     }
 
-    //@{
-    //! Access all elements from this pool with native pointers
-    Span<T>       get() { return data_.device_pointers(); }
-    Span<const T> get() const { return data_.device_pointers(); }
-    //@}
-
     //!@{
     //! Forward to storage
     CELER_FUNCTION size_type size() const { return data_.size(); }
     CELER_FUNCTION bool      empty() const { return data_.empty(); }
+    CELER_FUNCTION const_pointer data() const
+    {
+        return data_.device_pointers().data();
+    }
+    CELER_FUNCTION pointer data() { return data_.device_pointers().data(); }
     //!@}
 
   private:
