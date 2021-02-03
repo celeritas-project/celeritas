@@ -35,8 +35,7 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     , inc_momentum_(particle.momentum().value())
     , inc_direction_(inc_direction)
     , allocate_(allocate)
-    , inc_particle_is_electron_(
-          (particle.particle_id() == shared_.electron_id) ? true : false)
+    , inc_particle_is_electron_(particle.particle_id() == shared_.electron_id)
 {
     CELER_EXPECT(particle.particle_id() == shared_.electron_id
                  || particle.particle_id() == shared_.positron_id);
@@ -61,91 +60,19 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Temporary
-    (void)sizeof(rng);
-
-    // Maximum transferable energy to the free electron
-    real_type max_kinetic_energy;
+    real_type epsilon;
 
     if (inc_particle_is_electron_)
     {
-        // Moller scattering (e-e-)
-        max_kinetic_energy = 0.5 * inc_energy_.value();
+        epsilon = this->sample_moller(rng);
     }
     else
     {
-        // Bhabha scattering (e+e-)
-        max_kinetic_energy = inc_energy_.value();
-    }
-
-    // Set up sampling parameters
-    real_type total_energy = inc_energy_.value() + shared_.electron_mass_c_sq;
-    real_type x_min = shared_.min_valid_energy_.value() / inc_energy_.value();
-    real_type x_max = max_kinetic_energy / inc_energy_.value();
-    real_type gamma = total_energy / shared_.electron_mass_c_sq;
-    real_type gamma_sq = gamma * gamma;
-    real_type beta_sq  = 1.0 - (1.0 / gamma_sq);
-    real_type x;
-    real_type z;
-    real_type rejection_function_g;
-    real_type random[2];
-
-    //// Moller scattering (e-e-) ////
-    if (inc_particle_is_electron_)
-    {
-        real_type two_gamma_term = (2.0 * gamma - 1.0) / gamma_sq;
-        real_type y              = 1.0 - x_max;
-        rejection_function_g     = 1.0 - two_gamma_term * x_max
-                               + x_max * x_max
-                                     * (1.0 - two_gamma_term
-                                        + (1.0 - two_gamma_term * y) / (y * y));
-
-        do
-        {
-            random[0] = generate_canonical(rng);
-            random[1] = generate_canonical(rng);
-
-            x = x_min * x_max / (x_min * (1.0 - random[0]) + x_max * random[0]);
-            y = 1.0 - x;
-            z = 1.0 - two_gamma_term * x
-                + x * x
-                      * (1.0 - two_gamma_term
-                         + (1.0 - two_gamma_term * y) / (y * y));
-        } while (rejection_function_g * random[1] > z);
-    }
-
-    //// Bhabha scattering (e+e-) ////
-    else
-    {
-        real_type y    = 1.0 / (1.0 + gamma);
-        real_type y2   = y * y;
-        real_type y12  = 1.0 - 2.0 * y;
-        real_type b1   = 2.0 - y2;
-        real_type b2   = y12 * (3.0 + y2);
-        real_type y122 = y12 * y12;
-        real_type b4   = y122 * y12;
-        real_type b3   = b4 + y122;
-
-        y = x_max * x_max;
-
-        rejection_function_g
-            = 1.0
-              + (y * y * b4 - x_min * x_min * x_min * b3 + y * b2 - x_min * b1)
-                    * beta_sq;
-        do
-        {
-            random[0] = generate_canonical(rng);
-            random[1] = generate_canonical(rng);
-
-            x = x_min * x_max / (x_min * (1.0 - random[0]) + x_max * random[0]);
-            y = x * x;
-            z = 1.0 + (y * y * b4 - x * y * b3 + y * b2 - x * b1) * beta_sq;
-
-        } while (rejection_function_g * random[1] > z);
+        epsilon = this->sample_bhabha(rng);
     }
 
     // Calculate secondary kinetic energy
-    real_type secondary_energy = x * inc_energy_.value();
+    real_type secondary_energy = epsilon * inc_energy_.value();
 
     // Calculate secondary momentum
     // Same equation as in ParticleTrackView::momentum_sq()
@@ -154,6 +81,8 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
                * (secondary_energy + 2.0 * shared_.electron_mass_c_sq));
 
     // Calculate theta from energy-momentum conservation
+    const real_type total_energy = inc_energy_.value()
+                                   + shared_.electron_mass_c_sq;
     real_type secondary_cos_theta
         = secondary_energy * (total_energy + shared_.electron_mass_c_sq)
           / (secondary_momentum * inc_momentum_.value());
@@ -215,6 +144,109 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     return result;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Sample Moller (e-e-) scattering.
+ */
+template<class Engine>
+CELER_FUNCTION real_type MollerBhabhaInteractor::sample_moller(Engine& rng)
+{
+    // Max / min transferable energy fraction to the free electron
+    const real_type max_energy_fraction = 0.5;
+    const real_type min_energy_fraction = shared_.min_valid_energy_.value()
+                                          / inc_energy_.value();
+
+    // Set up sampling parameters
+    const real_type total_energy = inc_energy_.value()
+                                   + shared_.electron_mass_c_sq;
+    const real_type gamma    = total_energy / shared_.electron_mass_c_sq;
+    const real_type gamma_sq = ipow<2>(gamma);
+    real_type       epsilon;
+    real_type       z;
+    real_type       rejection_function_g;
+    real_type       random[2];
+
+    real_type two_gamma_term = (2.0 * gamma - 1.0) / gamma_sq;
+    real_type y              = 1.0 - max_energy_fraction;
+    rejection_function_g     = 1.0 - two_gamma_term * max_energy_fraction
+                           + max_energy_fraction * max_energy_fraction
+                                 * (1.0 - two_gamma_term
+                                    + (1.0 - two_gamma_term * y) / (y * y));
+
+    do
+    {
+        random[0] = generate_canonical(rng);
+        random[1] = generate_canonical(rng);
+
+        epsilon = min_energy_fraction * max_energy_fraction
+                  / (min_energy_fraction * (1.0 - random[0])
+                     + max_energy_fraction * random[0]);
+        y = 1.0 - epsilon;
+        z = 1.0 - two_gamma_term * epsilon
+            + epsilon * epsilon
+                  * (1.0 - two_gamma_term
+                     + (1.0 - two_gamma_term * y) / (y * y));
+    } while (rejection_function_g * random[1] > z);
+
+    return epsilon;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample Bhabha (e+e-) scattering.
+ */
+template<class Engine>
+CELER_FUNCTION real_type MollerBhabhaInteractor::sample_bhabha(Engine& rng)
+{
+    // Max / min transferable energy fraction to the free electron
+    const real_type max_energy_fraction = 1.0;
+    const real_type min_energy_fraction = shared_.min_valid_energy_.value()
+                                          / inc_energy_.value();
+
+    // Set up sampling parameters
+    const real_type total_energy = inc_energy_.value()
+                                   + shared_.electron_mass_c_sq;
+    const real_type gamma    = total_energy / shared_.electron_mass_c_sq;
+    const real_type gamma_sq = ipow<2>(gamma);
+    const real_type beta_sq  = 1.0 - (1.0 / gamma_sq);
+    real_type       epsilon;
+    real_type       z;
+    real_type       rejection_function_g;
+    real_type       random[2];
+
+    real_type y    = 1.0 / (1.0 + gamma);
+    real_type y2   = y * y;
+    real_type y12  = 1.0 - 2.0 * y;
+    real_type b1   = 2.0 - y2;
+    real_type b2   = y12 * (3.0 + y2);
+    real_type y122 = y12 * y12;
+    real_type b4   = y122 * y12;
+    real_type b3   = b4 + y122;
+
+    y = max_energy_fraction * max_energy_fraction;
+
+    rejection_function_g = 1.0
+                           + (y * y * b4
+                              - min_energy_fraction * min_energy_fraction
+                                    * min_energy_fraction * b3
+                              + y * b2 - min_energy_fraction * b1)
+                                 * beta_sq;
+    do
+    {
+        random[0] = generate_canonical(rng);
+        random[1] = generate_canonical(rng);
+
+        epsilon = min_energy_fraction * max_energy_fraction
+                  / (min_energy_fraction * (1.0 - random[0])
+                     + max_energy_fraction * random[0]);
+        y = epsilon * epsilon;
+        z = 1.0
+            + (y * y * b4 - epsilon * y * b3 + y * b2 - epsilon * b1) * beta_sq;
+
+    } while (rejection_function_g * random[1] > z);
+
+    return epsilon;
+}
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

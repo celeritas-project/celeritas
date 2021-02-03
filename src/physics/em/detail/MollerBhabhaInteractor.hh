@@ -62,6 +62,14 @@ class MollerBhabhaInteractor
     SecondaryAllocatorView& allocate_;
     // Incident particle flag for selecting Moller or Bhabha scattering
     bool inc_particle_is_electron_;
+
+  private:
+    template<class Engine>
+    CELER_FUNCTION real_type sample_moller(Engine& rng);
+
+    template<class Engine>
+    CELER_FUNCTION real_type sample_bhabha(Engine& rng);
+
 }; // namespace MollerBhabhaInteractor
 
 //---------------------------------------------------------------------------//
