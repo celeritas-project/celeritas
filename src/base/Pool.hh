@@ -8,6 +8,7 @@
 #pragma once
 
 #include "NumericLimits.hh"
+#include "Span.hh"
 #include "Types.hh"
 
 // Proxy for defining specializations in a separate header that device-only

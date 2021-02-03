@@ -104,16 +104,19 @@ TEST_F(PoolTest, device)
     MockStatePools<Ownership::value, MemSpace::device> device_states;
     device_states.matid.resize(1024);
 
+    DeviceVector<double> device_result(device_states.size());
+
     PTestInput kernel_input;
     kernel_input.params = mock_params.device_ref;
     kernel_input.states = device_states;
+    kernel_input.result = device_result.device_pointers();
 
     PTestOutput output;
 #if CELERITAS_USE_CUDA
     output = p_test(kernel_input);
 #endif
     std::vector<double> result(output.result.size());
-    output.result.copy_to_host(celeritas::make_span(result));
+    device_result.copy_to_host(celeritas::make_span(result));
 
     // For brevity, only check the first 32 values
     result.resize(32);

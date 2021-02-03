@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 
 #include "base/Pool.hh"
-#include "base/DeviceVector.hh"
 #include "base/Types.hh"
 
 namespace celeritas_test
@@ -154,18 +153,12 @@ struct PTestInput
 {
     MockParamsPools<Ownership::const_reference, MemSpace::device> params;
     MockStatePools<Ownership::reference, MemSpace::device>        states;
-};
-
-//---------------------------------------------------------------------------//
-//! Output results
-struct PTestOutput
-{
-    celeritas::DeviceVector<double> result;
+    celeritas::Span<double>                                       result;
 };
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-PTestOutput p_test(PTestInput);
+void p_test(PTestInput);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

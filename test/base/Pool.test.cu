@@ -10,8 +10,6 @@
 
 #include "base/KernelParamCalculator.cuda.hh"
 
-using thrust::raw_pointer_cast;
-
 namespace celeritas_test
 {
 namespace
@@ -25,7 +23,7 @@ __global__ void p_test_kernel(
     const celeritas::Span<double> results)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= size)
+    if (tid.get() >= states.size())
         return;
 
     // Initialize local matid states
@@ -44,8 +42,8 @@ __global__ void p_test_kernel(
     auto   elements = mock.elements();
     if (!elements.empty())
     {
-        const MockElement& el = elements[tid % elements.size()];
-        result                = matid + nd * el.atomic_mass / el.atomic_number
+        const MockElement& el = elements[tid.get() % elements.size()];
+        result                = matid + nd * el.atomic_mass / el.atomic_number;
     }
 
     results[tid.get()] = result;
@@ -56,17 +54,14 @@ __global__ void p_test_kernel(
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-PTestOutput p_test(PTestInput input)
+void p_test(PTestInput input)
 {
-    PTestOutput output;
-    output.result.resize(input.states.size());
-
     celeritas::KernelParamCalculator calc_launch_params;
     auto params = calc_launch_params(input.states.size());
     p_test_kernel<<<params.grid_size, params.block_size>>>(
-        input.params, input.states, output.result.device_pointers());
+        input.params, input.states, input.result);
 
-    return output;
+    CELER_CUDA_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//
