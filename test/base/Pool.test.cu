@@ -46,6 +46,15 @@ __global__ void p_test_kernel(
         result                = matid + nd * el.atomic_mass / el.atomic_number;
     }
 
+    // Do a stupid test of pool range
+    PoolRange<int> pr;
+    pr = PoolRange<int>(123, 456);
+    if (pr.size() != 333)
+    {
+        // Failure
+        result = -1;
+    }
+
     results[tid.get()] = result;
 }
 } // namespace

@@ -54,6 +54,8 @@ class Span
     static constexpr std::size_t extent = Extent;
 
   public:
+    //// CONSTRUCTION ////
+
     //! Construct with default null pointer and size zero
     constexpr Span() = default;
 
@@ -84,6 +86,8 @@ class Span
 
     //! Assignment (same template parameters)
     Span& operator=(const Span&) noexcept = default;
+
+    //// ACCESS ////
 
     //!@{
     //! Iterators

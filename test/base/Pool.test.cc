@@ -8,6 +8,7 @@
 #include "base/Pool.hh"
 #include "base/PoolBuilder.hh"
 
+#include <type_traits>
 #include "celeritas_test.hh"
 #include "Pool.test.hh"
 #include "base/DeviceVector.hh"
@@ -19,6 +20,34 @@ using celeritas::Pool;
 using celeritas::Span;
 
 using namespace celeritas_test;
+
+template<class T>
+constexpr bool is_trivial_v = std::is_trivially_copyable<T>::value;
+
+TEST(PoolTypesTest, types)
+{
+    EXPECT_TRUE((is_trivial_v<celeritas::PoolRange<int>>));
+    EXPECT_TRUE(
+        (is_trivial_v<
+            celeritas::Pool<int, Ownership::reference, MemSpace::device>>));
+    EXPECT_TRUE(
+        (is_trivial_v<
+            celeritas::Pool<int, Ownership::const_reference, MemSpace::device>>));
+}
+
+TEST(PoolRangeTest, all)
+{
+    using PoolRangeT = celeritas::PoolRange<int>;
+    PoolRangeT pr;
+    EXPECT_EQ(0, pr.size());
+    EXPECT_TRUE(pr.empty());
+
+    pr = PoolRangeT{10, 21};
+    EXPECT_FALSE(pr.empty());
+    EXPECT_EQ(11, pr.size());
+    EXPECT_EQ(10, pr.start());
+    EXPECT_EQ(21, pr.stop());
+}
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -133,3 +162,25 @@ TEST_F(PoolTest, device)
     const double expected_result[] = {2.2, 41, 0, 3.333333333333, 41, 0};
     EXPECT_VEC_SOFT_EQ(expected_result, result);
 }
+
+/*!
+ * The following test code is intentionally commented out. Define
+ * CELERITAS_SHOULD_NOT_COMPILE to check that the enclosed code results in
+ * the expected build errors.
+ */
+#ifdef CELERITAS_SHOULD_NOT_COMPILE
+TEST_F(PoolTest, should_not_compile)
+{
+    MockStatePools<Ownership::reference, MemSpace::host>       ref;
+    MockStatePools<Ownership::const_reference, MemSpace::host> cref;
+    ref = cref;
+    // Currently can't copy from device to host
+    mock_params.host = mock_params.device;
+    // Can't copy from one ref to another
+    mock_params.device_ref = mock_params.host_ref;
+    mock_params.host_ref   = mock_params.device_ref;
+    // Currently can't copy from incompatible references
+    mock_params.device_ref = mock_params.host;
+    mock_params.host_ref   = mock_params.device;
+}
+#endif

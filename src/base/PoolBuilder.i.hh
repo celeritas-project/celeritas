@@ -55,15 +55,12 @@ auto PoolBuilder<T, M>::insert_back(std::initializer_list<T> init)
  * Reserve space for the given number of elements.
  */
 template<class T, MemSpace M>
-auto PoolBuilder<T, M>::push_back(T el) -> PoolSize
+void PoolBuilder<T, M>::push_back(T el)
 {
     CELER_EXPECT(this->storage().size() + 1 <= this->max_pool_size());
     static_assert(M == MemSpace::host,
                   "Insertion currently works only for host memory");
-
-    auto start = this->size();
     this->storage().push_back(el);
-    return start;
 }
 
 //---------------------------------------------------------------------------//

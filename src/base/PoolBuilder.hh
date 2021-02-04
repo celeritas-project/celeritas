@@ -18,14 +18,21 @@ namespace celeritas
  * Helper class for constructing Pools.
  *
  * This is intended for use with host data but can also be used to resize
- * device pools.
+ * device pools. It's constructed with a reference to the host pool, and it
+ * provides vector-like methods for extending it. The size *cannot* be
+ * decreased because that would invalidate previously created \c PoolRange
+ * items.
  *
  * \code
     auto pb = make_pool_builder(myintpool.host);
     pb.reserve(100);
     PoolRange<int> insertion = pb.extend(local_ints.begin(), local_ints.end());
-    pb.push_back(
+    pb.push_back(123);
    \endcode
+
+ * The PoolBuilder can also be used to resize device-value pools without having
+ * to allocate a host version and copy to device. (This is useful for state
+ * allocations.)
  */
 template<class T, MemSpace M>
 class PoolBuilder
@@ -49,15 +56,15 @@ class PoolBuilder
     // Reserve space
     inline void reserve(size_type count);
 
-    // Append a series of elements, returning the range inserted
+    // Extend with a series of elements, returning the range inserted
     template<class InputIterator>
     inline PoolRangeT insert_back(InputIterator first, InputIterator last);
 
-    // Append a series of elements from an initializer list
+    // Extend with a series of elements from an initializer list
     inline PoolRangeT insert_back(std::initializer_list<T> init);
 
     // Append a single element
-    inline PoolSize push_back(value_type element);
+    inline void push_back(value_type element);
 
     //! Number of elements in the pool
     PoolSize size() const { return pool_.size(); }
