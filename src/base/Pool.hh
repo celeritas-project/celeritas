@@ -15,7 +15,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Reference a range of items inside a Pool.
+ * Reference a contiguous subset of items inside a Pool.
+ *
  * \tparam T The value type of items to represent.
  *
  * The template parameter here isn't used directly -- it's more of a marker in
@@ -59,10 +60,10 @@ class PoolSlice
     //!@}
 
   public:
-    //! Default to an empty range
+    //! Default to an empty slice
     PoolSlice() = default;
 
-    // Construct with a particular range
+    // Construct with a particular range of element indices
     inline CELER_FUNCTION PoolSlice(size_type start, size_type stop);
 
     //!@{
@@ -71,7 +72,7 @@ class PoolSlice
     CELER_CONSTEXPR_FUNCTION size_type stop() const { return stop_; }
     //!@}
 
-    //! Whether the range is empty
+    //! Whether the slice is empty
     CELER_CONSTEXPR_FUNCTION bool empty() const { return stop_ == start_; }
 
     //! Number of elements
@@ -84,13 +85,29 @@ class PoolSlice
 
 //---------------------------------------------------------------------------//
 /*!
- * Storage and access to subspans of a contiguous array.
+ * Manage generic array-like data ownership and transfer from host to device.
  *
  * Pools are constructed incrementally on the host, then copied (along with
- * their associated PoolRanges) to device. A Pool can act as a std::vector<T>,
+ * their associated PoolSlice ) to device. A Pool can act as a std::vector<T>,
  * DeviceVector<T>, Span<T>, or Span<const T>. The Spans can point to host or
  * device memory, but the MemSpace template argument protects against
  * accidental accesses from the wrong memory space.
+ *
+ * Each Pool object is usually accessed with a Slice, which references a
+ * contiguous set of elements in the Pool. For example, setup code on the host
+ * would extend the Pool with a series of vectors, the addition of which
+ * returns a PoolSlice that returns the equivalent data on host or device. This
+ * methodology allows complex nested data structures to be built up quickly at
+ * setup time without knowing the size requirements beforehand.
+ *
+ * Host-device functions and classes should use \c Pool with a reference or
+ * const_reference Ownership, and the \c MemSpace::native type, which expects
+ * device memory when compiled inside a CUDA file and host memory when used
+ * inside a C++ source or test. (This design choice prevents a single CUDA file
+ * from compiling separate host-compatible and device-compatible compute
+ * kernels, but in the case of Celeritas this situation won't arise, because
+ * we always want to build host code in C++ files for development ease and to
+ * allow testing when CUDA is disabled.)
  */
 template<class T, Ownership W, MemSpace M>
 class Pool
@@ -143,27 +160,22 @@ class Pool
 
     //// ACCESS ////
 
-    // Access a subspan
+    // Access a subset of the data with a slice
     inline CELER_FUNCTION SpanT operator[](const PoolSlice<T>& ps) const;
 
     // Access a single element
     inline CELER_FUNCTION reference_type operator[](size_type i) const;
 
-    //!@{
-    //! Direct accesors to underlying data
-    CELER_CONSTEXPR_FUNCTION size_type size() const { return s_.data.size(); }
-    CELER_CONSTEXPR_FUNCTION bool empty() const { return s_.data.empty(); }
-    CELER_CONSTEXPR_FUNCTION const_pointer data() const
-    {
-        return s_.data.data();
-    }
-    CELER_CONSTEXPR_FUNCTION pointer data() { return s_.data.data(); }
-    //!@}
+    // Direct accesors to underlying data
+    CELER_CONSTEXPR_FUNCTION size_type     size() const;
+    CELER_CONSTEXPR_FUNCTION bool          empty() const;
+    CELER_CONSTEXPR_FUNCTION const_pointer data() const;
+    CELER_CONSTEXPR_FUNCTION pointer       data();
 
   private:
     //// DATA ////
 
-    detail::PoolStorage<T, W, M> s_{};
+    detail::PoolStorage<T, W, M> storage_{};
 
     //// FRIENDS ////
 
@@ -176,8 +188,8 @@ class Pool
     //!@{
     // Private accessors for pool construction
     using StorageT = typename detail::PoolStorage<T, W, M>::type;
-    const StorageT& storage() const { return s_.data; }
-    StorageT&       storage() { return s_.data; }
+    const StorageT& storage() const { return storage_.data; }
+    StorageT&       storage() { return storage_.data; }
     //@}
 };
 
@@ -198,8 +210,8 @@ class Pool
 /*!
  * \def CELER_POOL_STRUCT
  *
- * Define an anonymous struct that holds sets of value/reference for
- * host/device. This is meant for collections of Pools in a struct
+ * Define an anonymous struct that holds sets of values and references on
+ * host and device. This is meant for collections of Pools in a struct
  * that's templated only on the ownership and memory space.
  *
  * Example:

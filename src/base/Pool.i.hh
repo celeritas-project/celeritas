@@ -28,7 +28,7 @@ CELER_FUNCTION PoolSlice<T>::PoolSlice(size_type start, size_type stop)
 template<class T, Ownership W, MemSpace M>
 template<Ownership W2, MemSpace M2>
 Pool<T, W, M>::Pool(const Pool<T, W2, M2>& other)
-    : s_(detail::PoolAssigner<W, M>()(other.s_))
+    : storage_(detail::PoolAssigner<W, M>()(other.storage_))
 {
 }
 
@@ -39,7 +39,7 @@ Pool<T, W, M>::Pool(const Pool<T, W2, M2>& other)
 template<class T, Ownership W, MemSpace M>
 template<Ownership W2, MemSpace M2>
 Pool<T, W, M>::Pool(Pool<T, W2, M2>& other)
-    : s_(detail::PoolAssigner<W, M>()(other.s_))
+    : storage_(detail::PoolAssigner<W, M>()(other.storage_))
 {
 }
 
@@ -51,7 +51,7 @@ template<class T, Ownership W, MemSpace M>
 template<Ownership W2>
 Pool<T, W, M>& Pool<T, W, M>::operator=(const Pool<T, W2, M>& other)
 {
-    s_ = detail::PoolAssigner<W, M>()(other.s_);
+    storage_ = detail::PoolAssigner<W, M>()(other.storage_);
     return *this;
 }
 
@@ -63,7 +63,7 @@ template<class T, Ownership W, MemSpace M>
 template<Ownership W2>
 Pool<T, W, M>& Pool<T, W, M>::operator=(Pool<T, W2, M>& other)
 {
-    s_ = detail::PoolAssigner<W, M>()(other.s_);
+    storage_ = detail::PoolAssigner<W, M>()(other.storage_);
     return *this;
 }
 
@@ -88,8 +88,35 @@ CELER_FUNCTION auto Pool<T, W, M>::operator[](size_type i) const
     -> reference_type
 {
     CELER_EXPECT(i < this->size());
-    return s_.data[i];
+    return this->storage()[i];
 }
 
+//---------------------------------------------------------------------------//
+//!@{
+//! Direct accesors to underlying data
+template<class T, Ownership W, MemSpace M>
+CELER_CONSTEXPR_FUNCTION auto Pool<T, W, M>::size() const -> size_type
+{
+    return this->storage().size();
+}
+
+template<class T, Ownership W, MemSpace M>
+CELER_CONSTEXPR_FUNCTION bool Pool<T, W, M>::empty() const
+{
+    return this->storage().empty();
+}
+
+template<class T, Ownership W, MemSpace M>
+CELER_CONSTEXPR_FUNCTION auto Pool<T, W, M>::data() const -> const_pointer
+{
+    return this->storage().data();
+}
+
+template<class T, Ownership W, MemSpace M>
+CELER_CONSTEXPR_FUNCTION auto Pool<T, W, M>::data() -> pointer
+{
+    return this->storage().data();
+}
+//!@}
 //---------------------------------------------------------------------------//
 } // namespace celeritas
