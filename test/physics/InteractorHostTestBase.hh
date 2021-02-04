@@ -152,9 +152,9 @@ class InteractorHostTestBase : public celeritas::Test
     std::shared_ptr<ParticleParams> particle_params_;
     RandomEngine                    rng_;
 
-    celeritas::MaterialTrackState     mat_state_;
-    std::vector<real_type>            mat_element_scratch_;
-    celeritas::MaterialStatePointers  ms_pointers_;
+    celeritas::MaterialTrackState    mat_state_;
+    std::vector<real_type>           mat_element_scratch_;
+    celeritas::MaterialStatePointers ms_pointers_;
 
     celeritas::ParticleTrackState     particle_state_;
     celeritas::ParticleParamsPointers pp_pointers_;

@@ -257,6 +257,17 @@ PYTHON_FILE = '''\
 
 '''
 
+SHELL_TOP = '''\
+#!/bin/sh -ex
+# Copyright {year} UT-Battelle, LLC and other Celeritas Developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+'''
+
+SHELL_FILE = '''\
+
+'''
+
 YEAR = datetime.today().year
 
 TEMPLATES = {
@@ -275,6 +286,7 @@ TEMPLATES = {
     'cmake': CMAKE_FILE,
     'CMakeLists.txt': CMAKELISTS_FILE,
     'py': PYTHON_FILE,
+    'sh': SHELL_FILE,
 }
 
 LANG = {
@@ -287,6 +299,7 @@ LANG = {
     'i': "SWIG",
     'CMakeLists.txt': "CMake",
     'py': "Python",
+    'sh': "Shell",
 }
 
 TOPS = {
@@ -295,6 +308,7 @@ TOPS = {
     'SWIG': CLIKE_TOP,
     'CMake': CMAKE_TOP,
     'Python': PYTHON_TOP,
+    'Shell': SHELL_TOP,
 }
 
 HEXT = {

@@ -354,7 +354,7 @@ int main(int argc, char* argv[])
     // Constructing the run manager resets the global log/exception handlers,
     // so it must be done first. The stupid version banner cannot be
     // suppressed.
-    G4RunManager run_manager;
+    G4RunManager          run_manager;
     GeantLoggerAdapter    scoped_logger;
     GeantExceptionHandler scoped_exception_handler;
 

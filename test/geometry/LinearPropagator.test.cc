@@ -75,7 +75,7 @@ TEST_F(LinearPropagatorHostTest, accessors)
 TEST_F(LinearPropagatorHostTest, track_line)
 {
     GeoTrackView     geo(params_view, state_view, ThreadId(0));
-    LinearPropagator propagate(geo); // one propagator per track
+    LinearPropagator propagate(&geo); // one propagator per track
 
     {
         // Track from outside detector, moving right
@@ -140,7 +140,7 @@ TEST_F(LinearPropagatorHostTest, track_line)
 TEST_F(LinearPropagatorHostTest, track_intraVolume)
 {
     GeoTrackView     geo(params_view, state_view, ThreadId(0));
-    LinearPropagator propagate(geo); // one propagator per track
+    LinearPropagator propagate(&geo); // one propagator per track
 
     {
         // Track from outside detector, moving right

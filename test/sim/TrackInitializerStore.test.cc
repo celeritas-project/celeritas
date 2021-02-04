@@ -132,7 +132,7 @@ TEST_F(TrackInitTest, run)
     EXPECT_VEC_EQ(expected.initializer_id, output.initializer_id);
 
     // Initialize the primary tracks on device
-    track_init.initialize_tracks(states, params);
+    track_init.initialize_tracks(&states, &params);
 
     // Check the IDs of the initialized tracks
     output.track_id   = tracks_test(states.device_pointers());
@@ -151,7 +151,7 @@ TEST_F(TrackInitTest, run)
              input.device_pointers());
 
     // Launch a kernel to create track initializers from secondaries
-    track_init.extend_from_secondaries(states, params);
+    track_init.extend_from_secondaries(&states, &params);
 
     // Check the vacancies
     output.vacancy   = vacancies_test(track_init.device_pointers());
@@ -161,18 +161,19 @@ TEST_F(TrackInitTest, run)
     // Check the track IDs of the track initializers created from secondaries
     // Output is sorted as TrackInitializerStore does not calculate IDs
     // deterministically
-    output.initializer_id   = initializers_test(track_init.device_pointers());
-    std::sort(std::begin(output.initializer_id), std::end(output.initializer_id));
+    output.initializer_id = initializers_test(track_init.device_pointers());
+    std::sort(std::begin(output.initializer_id),
+              std::end(output.initializer_id));
     expected.initializer_id = {0, 1, 15, 16, 17};
     EXPECT_VEC_EQ(expected.initializer_id, output.initializer_id);
 
     // Initialize secondaries on device
-    track_init.initialize_tracks(states, params);
+    track_init.initialize_tracks(&states, &params);
 
     // Check the track IDs of the initialized tracks
     // Output is sorted as TrackInitializerStore does not calculate IDs
     // deterministically
-    output.track_id   = tracks_test(states.device_pointers());
+    output.track_id = tracks_test(states.device_pointers());
     std::sort(std::begin(output.track_id), std::end(output.track_id));
     expected.track_id = {3, 5, 7, 9, 11, 12, 13, 14, 16, 17};
     EXPECT_VEC_EQ(expected.track_id, output.track_id);
@@ -209,7 +210,7 @@ TEST_F(TrackInitTest, primaries)
             EXPECT_EQ(track_init.size(), j);
 
             // Initialize tracks on device
-            track_init.initialize_tracks(states, params);
+            track_init.initialize_tracks(&states, &params);
 
             // Launch kernel that will kill all trackss
             interact(states.device_pointers(),
@@ -217,7 +218,7 @@ TEST_F(TrackInitTest, primaries)
                      input.device_pointers());
 
             // Launch a kernel to create track initializers from secondaries
-            track_init.extend_from_secondaries(states, params);
+            track_init.extend_from_secondaries(&states, &params);
         }
     }
 
@@ -266,7 +267,7 @@ TEST_F(TrackInitTest, secondaries)
     while (track_init.size())
     {
         // Initialize the primary tracks on device
-        track_init.initialize_tracks(states, params);
+        track_init.initialize_tracks(&states, &params);
 
         // Launch kernel to process interactions
         interact(states.device_pointers(),
@@ -274,7 +275,7 @@ TEST_F(TrackInitTest, secondaries)
                  input.device_pointers());
 
         // Launch a kernel to create track initializers from secondaries
-        track_init.extend_from_secondaries(states, params);
+        track_init.extend_from_secondaries(&states, &params);
     }
 }
 
