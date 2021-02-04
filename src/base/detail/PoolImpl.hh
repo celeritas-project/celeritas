@@ -10,13 +10,7 @@
 #include "../PoolTypes.hh"
 #include "base/Span.hh"
 
-// Proxy for defining specializations in a separate header that device-only
-// code can omit: this will be removed before merge
-#ifndef POOL_HOST_HEADER
-#    define POOL_HOST_HEADER 1
-#endif
-
-#if POOL_HOST_HEADER
+#ifndef __CUDA_ARCH__
 #    include <vector>
 #    include "base/DeviceVector.hh"
 #endif
@@ -56,26 +50,14 @@ struct PoolTraits<T, Ownership::const_reference>
 template<class T, Ownership W, MemSpace M>
 struct PoolStorage
 {
-    typename PoolTraits<T, W>::SpanT data;
+    using type = typename PoolTraits<T, W>::SpanT;
+    type data;
 };
 
 template<class T>
 struct PoolStorage<T, Ownership::value, MemSpace::host>;
 template<class T>
 struct PoolStorage<T, Ownership::value, MemSpace::device>;
-
-#if POOL_HOST_HEADER
-template<class T>
-struct PoolStorage<T, Ownership::value, MemSpace::host>
-{
-    std::vector<T> data;
-};
-template<class T>
-struct PoolStorage<T, Ownership::value, MemSpace::device>
-{
-    DeviceVector<T> data;
-};
-#endif
 
 //---------------------------------------------------------------------------//
 //! Assignment semantics for a pool
@@ -102,7 +84,24 @@ struct PoolAssigner
 template<>
 struct PoolAssigner<Ownership::value, MemSpace::device>;
 
-#if POOL_HOST_HEADER
+#ifndef __CUDA_ARCH__
+//---------------------------------------------------------------------------//
+//! Storage implementation for managed host data
+template<class T>
+struct PoolStorage<T, Ownership::value, MemSpace::host>
+{
+    using type = std::vector<T>;
+    type data;
+};
+
+//! Storage implementation for managed device data
+template<class T>
+struct PoolStorage<T, Ownership::value, MemSpace::device>
+{
+    using type = DeviceVector<T>;
+    type data;
+};
+
 //---------------------------------------------------------------------------//
 //! Assignment semantics for copying to device memory
 template<>

@@ -7,50 +7,44 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "NumericLimits.hh"
-#include "Span.hh"
 #include "PoolTypes.hh"
+#include "Span.hh"
+#include "Types.hh"
 #include "detail/PoolImpl.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-
-CELER_CONSTEXPR_FUNCTION size_type max_pool_size()
-{
-    return static_cast<size_type>(numeric_limits<pool_size_type>::max());
-}
-
-//---------------------------------------------------------------------------//
 template<class T>
 class PoolRange
 {
+  public:
+    //!@{
+    using size_type = unsigned int;
+    //!@}
+
   public:
     //! Default to an empty range
     PoolRange() = default;
 
     //! Construct with a particular range
-    PoolRange(pool_size_type start, pool_size_type stop)
-        : start_(start), stop_(stop)
+    PoolRange(size_type start, size_type stop) : start_(start), stop_(stop)
     {
         CELER_EXPECT(start_ <= stop_);
     }
 
     //!@{
     //! Range of indices in the corresponding pool
-    CELER_CONSTEXPR_FUNCTION pool_size_type start() const { return start_; }
-    CELER_CONSTEXPR_FUNCTION pool_size_type stop() const { return stop_; }
+    CELER_CONSTEXPR_FUNCTION size_type start() const { return start_; }
+    CELER_CONSTEXPR_FUNCTION size_type stop() const { return stop_; }
     //!@}
 
     //! Number of elements
-    CELER_CONSTEXPR_FUNCTION pool_size_type size() const
-    {
-        return start_ - stop_;
-    }
+    CELER_CONSTEXPR_FUNCTION size_type size() const { return stop_ - start_; }
 
   private:
-    pool_size_type start_{};
-    pool_size_type stop_{};
+    size_type start_{};
+    size_type stop_{};
 };
 
 //---------------------------------------------------------------------------//
@@ -80,6 +74,8 @@ class Pool
   public:
     //! Default constructor
     Pool() = default;
+    Pool(const Pool&) = default;
+    Pool(Pool&&)      = default;
 
     //! Construct from another pool
     template<Ownership W2, MemSpace M2>
@@ -115,33 +111,19 @@ class Pool
     }
 
     //! Access a subspan
-    CELER_FUNCTION SpanT operator[](const PoolRange<T>& ps)
+    CELER_FUNCTION SpanT operator[](const PoolRange<T>& ps) const
     {
         CELER_EXPECT(ps.stop() <= this->size());
         return {this->data() + ps.start(), this->data() + ps.stop()};
     }
 
     //! Access a single element
-    CELER_FUNCTION reference_type operator[](size_type idx)
+    CELER_FUNCTION reference_type operator[](size_type idx) const
     {
-        CELER_EXPECT(idx < this->size());
         return d_.data[idx];
     }
 
     //! Access a subspan
-    CELER_FUNCTION SpanConstT operator[](const PoolRange<T>& ps) const
-    {
-        CELER_EXPECT(ps.stop() <= this->size());
-        return {this->data() + ps.start(), this->data() + ps.stop()};
-    }
-
-    //! Access a single element
-    CELER_FUNCTION const_reference_type operator[](size_type idx) const
-    {
-        CELER_EXPECT(idx < this->size());
-        return d_.data[idx];
-    }
-
     //!@{
     //! Forward to local data class
     CELER_FORCEINLINE_FUNCTION size_type size() const
@@ -161,111 +143,17 @@ class Pool
 
     template<class T2, Ownership W2, MemSpace M2>
     friend class Pool;
-};
-
-#if 0
-template<class T>
-class PoolBuilder
-{
-};
-    //! Reserve space for a number of items
-    void reserve(size_type count)
-    {
-        CELER_EXPECT(count <= max_pool_size());
-        data_.reserve(count);
-    }
-
-    //! Allocate a new number of items
-    PoolRangeT allocate(size_type count)
-    {
-        CELER_EXPECT(count + data_.size() <= max_pool_size());
-        pool_size_type start_ = data_.size();
-        pool_size_type stop_  = start_ + static_cast<pool_size_type>(count);
-        data_.resize(stop_);
-        return PoolRangeT(start_, stop_);
-    }
-
-    //! Access a subspan
-    SpanT operator[](const PoolRange<T>& ps)
-    {
-        CELER_EXPECT(ps.stop() <= data_.size());
-        return {data_.data() + ps.start(), data_.data() + ps.stop()};
-    }
-
-    //! Access a subspan
-    Span<const T> operator[](const PoolRange<T>& ps) const
-    {
-        CELER_EXPECT(ps.stop() <= data_.size());
-        return {data_.data() + ps.start(), data_.data() + ps.stop()};
-    }
 
     //!@{
-    //! Forward to storage
-    CELER_FUNCTION size_type     size() const { return data_.size(); }
-    CELER_FUNCTION bool          empty() const { return data_.empty(); }
-    CELER_FUNCTION const_pointer data() const { return data_.data(); }
-    CELER_FUNCTION pointer       data() { return data_.data(); }
-    //!@}
+    // Private accessors for pool construction
+    using StorageT = typename detail::PoolStorage<T, W, M>::type;
+    const StorageT& storage() const { return d_.data; }
+    StorageT&       storage() { return d_.data; }
+    //@}
 
-  private:
-    std::vector<T> data_;
+    template<class T2, MemSpace M2>
+    friend class PoolBuilder;
 };
-
-//! The value/device specialization doesn't need detailed access.
-template<class T>
-class Pool<T, Ownership::value, MemSpace::device>
-{
-  public:
-    using const_pointer = const T*;
-    using pointer       = T*;
-    using value_type    = T;
-
-    Pool() = default;
-
-    //! Construct with a specific number of elements
-    explicit Pool(size_type size) : data_(size) {}
-
-    //! Construct from host values, copying data directly
-    Pool& operator=(const Pool<T, Ownership::value, MemSpace::host>& host_pool)
-    {
-        Span<const T> host_data = make_span(host_pool);
-        if (!host_data.empty())
-        {
-            data_ = DeviceVector<T>(host_data.size());
-            data_.copy_to_device(host_data);
-        }
-        return *this;
-    }
-
-    //! Resize (TODO: rethink this: whether to add resizing to DeviceVector?)
-    void resize(size_type size)
-    {
-        CELER_EXPECT(data_.empty() || size <= data_.capacity());
-        if (data_.empty())
-        {
-            data_ = DeviceVector<T>(size);
-        }
-        else
-        {
-            data_.resize(size);
-        }
-    }
-
-    //!@{
-    //! Forward to storage
-    CELER_FUNCTION size_type size() const { return data_.size(); }
-    CELER_FUNCTION bool      empty() const { return data_.empty(); }
-    CELER_FUNCTION const_pointer data() const
-    {
-        return data_.device_pointers().data();
-    }
-    CELER_FUNCTION pointer data() { return data_.device_pointers().data(); }
-    //!@}
-
-  private:
-    DeviceVector<T> data_;
-};
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -6,6 +6,7 @@
 //! \file Pool.test.cc
 //---------------------------------------------------------------------------//
 #include "base/Pool.hh"
+#include "base/PoolBuilder.hh"
 
 #include "celeritas_test.hh"
 #include "Pool.test.hh"
@@ -31,42 +32,49 @@ class PoolTest : public celeritas::Test
         MockParamsPools<Ownership::value, MemSpace::host>& host_pools
             = mock_params.host;
         host_pools.max_element_components = 3;
-#if 0
-        host_pools.elements.reserve(5);
-        host_pools.materials.reserve(2);
 
-        // Assign materials
-        auto               mat_range = host_pools.materials.allocate(3);
-        Span<MockMaterial> mats      = host_pools.materials[mat_range];
-        ASSERT_EQ(3, mats.size());
+        auto el_builder  = make_pool_builder(host_pools.elements);
+        auto mat_builder = make_pool_builder(host_pools.materials);
+        el_builder.reserve(5);
+        mat_builder.reserve(2);
 
+        //// Construct materials and elements ////
         {
-            mats[0].number_density     = 2.0;
-            mats[0].elements           = host_pools.elements.allocate(3);
-            Span<MockElement> elements = host_pools.elements[mats[0].elements];
-            ASSERT_EQ(3, elements.size());
-            elements[0] = {1, 1.1};
-            elements[1] = {3, 5.0};
-            elements[2] = {6, 12.0};
+            MockMaterial m;
+            m.number_density             = 2.0;
+            const MockElement elements[] = {
+                {1, 1.1},
+                {3, 5.0},
+                {6, 12.0},
+            };
+            m.elements = el_builder.insert_back(std::begin(elements),
+                                                std::end(elements));
+            EXPECT_EQ(3, m.elements.size());
+            mat_builder.push_back(m);
         }
-
         {
-            mats[1].number_density     = 20.0;
-            mats[1].elements           = host_pools.elements.allocate(1);
-            Span<MockElement> elements = host_pools.elements[mats[1].elements];
-            ASSERT_EQ(1, elements.size());
-            elements[0] = {10, 20.0};
+            MockMaterial m;
+            m.number_density = 20.0;
+            m.elements       = el_builder.insert_back({{10, 20.0}});
+            mat_builder.push_back(m);
         }
-
         {
-            mats[2].number_density = 0.0;
+            MockMaterial m;
+            m.number_density = 0.0;
+            mat_builder.push_back(m);
         }
-#endif
+        EXPECT_EQ(3, mat_builder.size());
+        EXPECT_EQ(3, host_pools.materials.size());
+        EXPECT_EQ(4, host_pools.elements.size());
+
+        //// Create host reference ////
 
         mock_params.host_ref = mock_params.host;
+
+        //// Copy to device ////
+
         if (celeritas::is_device_enabled())
         {
-            // Copy to GPU
             mock_params.device     = mock_params.host;
             mock_params.device_ref = mock_params.device;
         }
@@ -84,11 +92,11 @@ TEST_F(PoolTest, host)
     MockStatePools<Ownership::value, MemSpace::host>     host_state;
     MockStatePools<Ownership::reference, MemSpace::host> host_state_ref;
 
-    // host_state.matid.allocate(1);
+    make_pool_builder(host_state.matid).resize(1);
     host_state_ref = host_state;
 
     // Assign
-    // host_state_ref.matid[0] = 1;
+    host_state_ref.matid[0] = 1;
 
     // Create view
     MockTrackView mock(
@@ -105,7 +113,7 @@ TEST_F(PoolTest, device)
 
     // Construct with 1024 states
     MockStatePools<Ownership::value, MemSpace::device> device_states;
-    // device_states.matid.resize(1024);
+    make_pool_builder(device_states.matid).resize(1024);
 
     celeritas::DeviceVector<double> device_result(device_states.size());
 
