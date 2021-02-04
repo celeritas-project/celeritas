@@ -63,7 +63,7 @@ class PoolRange
     PoolRange() = default;
 
     // Construct with a particular range
-    PoolRange(size_type start, size_type stop);
+    inline CELER_FUNCTION PoolRange(size_type start, size_type stop);
 
     //!@{
     //! Range of indices in the corresponding pool
@@ -121,11 +121,11 @@ class Pool
 
     // Construct from another pool
     template<Ownership W2, MemSpace M2>
-    Pool(const Pool<T, W2, M2>& other);
+    inline Pool(const Pool<T, W2, M2>& other);
 
     // Construct from another pool (mutable)
     template<Ownership W2, MemSpace M2>
-    Pool(Pool<T, W2, M2>& other);
+    inline Pool(Pool<T, W2, M2>& other);
 
     //!@{
     //! Default assignment
@@ -135,19 +135,19 @@ class Pool
 
     // Assign from another pool in the same memory space
     template<Ownership W2>
-    Pool& operator=(const Pool<T, W2, M>& other);
+    inline Pool& operator=(const Pool<T, W2, M>& other);
 
     // Assign (mutable!) from another pool in the same memory space
     template<Ownership W2>
-    Pool& operator=(Pool<T, W2, M>& other);
+    inline Pool& operator=(Pool<T, W2, M>& other);
 
     //// ACCESS ////
 
     // Access a subspan
-    CELER_FUNCTION SpanT operator[](const PoolRange<T>& ps) const;
+    inline CELER_FUNCTION SpanT operator[](const PoolRange<T>& ps) const;
 
     // Access a single element
-    CELER_FUNCTION reference_type operator[](size_type i) const;
+    inline CELER_FUNCTION reference_type operator[](size_type i) const;
 
     //!@{
     //! Direct accesors to underlying data

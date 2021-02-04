@@ -47,8 +47,8 @@ __global__ void p_test_kernel(
     }
 
     // Do a stupid test of pool range
-    PoolRange<int> pr;
-    pr = PoolRange<int>(123, 456);
+    celeritas::PoolRange<int> pr;
+    pr = celeritas::PoolRange<int>(123, 456);
     if (pr.size() != 333)
     {
         // Failure

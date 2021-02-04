@@ -15,7 +15,7 @@ namespace celeritas
  * Construct with a particular range.
  */
 template<class T>
-PoolRange<T>::PoolRange(size_type start, size_type stop)
+CELER_FUNCTION PoolRange<T>::PoolRange(size_type start, size_type stop)
     : start_(start), stop_(stop)
 {
     CELER_EXPECT(start_ <= stop_);
