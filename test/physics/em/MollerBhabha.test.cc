@@ -10,6 +10,7 @@
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
+#include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
@@ -105,77 +106,184 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(MollerBhabhaInteractorTest, moller_scattering_10_MeV)
+TEST_F(MollerBhabhaInteractorTest, moller_scattering)
 {
-    this->resize_secondaries(1);
-
-    // Set 10 MeV electron for testing Moller scattering
-    this->set_inc_particle(pdg::electron(), MevEnergy{10});
-
-    // Create interactor
-    MollerBhabhaInteractor mb_interactor(pointers_,
-                                         this->particle_track(),
-                                         this->direction(),
-                                         this->secondary_allocator());
-
+    this->resize_secondaries(4);
     RandomEngine& rng_engine = this->rng();
-    Interaction   result     = mb_interactor(rng_engine);
-    this->sanity_check(result);
 
-    // Incident particle
-    Real3 expected_inc_exiting_direction
-        = {-0.00811275030737341, 0.00160748650623649, 0.99996579904993865};
+    std::vector<Real3>  sampled_inc_exit_dir;
+    std::vector<double> sampled_inc_exit_energy;
+    std::vector<double> sampled_inc_energy_dep;
+    std::vector<Real3>  sampled_sec_dir;
+    std::vector<double> sampled_sec_energy;
 
-    EXPECT_EQ(Action::scattered, result.action);
-    EXPECT_VEC_SOFT_EQ(expected_inc_exiting_direction, result.direction);
-    EXPECT_SOFT_EQ(9.99262808203750907, result.energy.value());
-    EXPECT_EQ(0.0, result.energy_deposition.value());
-    EXPECT_EQ(1, result.secondaries.size());
+    // Selected energies for the incident particle's interactor test [MeV]
+    real_type inc_energies[4] = {1, 10, 1e3, 1e5};
 
-    // Secondary
-    Real3 expected_secondary_direction
-        = {0.97705022317132861, -0.19359588181036499, 0.08884534848220402};
-    auto secondary = result.secondaries[0];
+    for (int i : celeritas::range(4))
+    {
+        // Set electrons for testing Moller scattering
+        this->set_inc_particle(pdg::electron(), MevEnergy{inc_energies[i]});
 
-    EXPECT_GE(0, secondary.particle_id.get());
-    EXPECT_VEC_SOFT_EQ(expected_secondary_direction, secondary.direction);
-    EXPECT_SOFT_EQ(0.00737191796249020, secondary.energy.value());
+        MollerBhabhaInteractor mb_interactor(pointers_,
+                                             this->particle_track(),
+                                             this->direction(),
+                                             this->secondary_allocator());
+
+        Interaction result = mb_interactor(rng_engine);
+        this->sanity_check(result);
+
+        sampled_inc_exit_dir.push_back(result.direction);
+        sampled_inc_exit_energy.push_back(result.energy.value());
+        sampled_inc_energy_dep.push_back(result.energy_deposition.value());
+        auto secondary = result.secondaries[0];
+        sampled_sec_dir.push_back(secondary.direction);
+        sampled_sec_energy.push_back(secondary.energy.value());
+    }
+
+    //// PRIMARY
+    // Incident particle's exiting directions after each interactor call
+    Real3 expect_inc_exit_dir[4] = {{-5.96444286125940581e-02,
+                                     1.18181394144216134e-02,
+                                     9.98149725099525487e-01},
+                                    {-2.99334686070503678e-03,
+                                     6.16069739754576402e-04,
+                                     9.99995330155419859e-01},
+                                    {-2.89184561174865401e-05,
+                                     -2.38811464542290615e-05,
+                                     9.99999999296706688e-01},
+                                    {3.99574796587882427e-07,
+                                     9.19715146589402801e-09,
+                                     9.99999999999920175e-01}};
+
+    // Incident particle's final energy after each interactor call [MeV]
+    double expect_inc_exit_energy[4] = {9.92711691664473928e-01,
+                                        9.99899283170694986e+00,
+                                        9.99998622284976022e+02,
+                                        9.99999984369220620e+04};
+
+    // Incident particle's deposited energy after each interactor call [MeV]
+    double expect_inc_energy_dep[4] = {0, 0, 0, 0};
+
+    //// SECONDARY
+    // Secondary directions for each interactor call
+    Real3 expect_sec_dir[4] = {{9.73881762790434480e-01,
+                                -1.92968072853493350e-01,
+                                1.19656320198327393e-01},
+                               {9.78938880987589188e-01,
+                                -2.01478361750435653e-01,
+                                3.29414182622315352e-02},
+                               {7.70546919033302635e-01,
+                                6.36325250163066403e-01,
+                                3.67099655842354142e-02},
+                               {-9.98971559808914056e-01,
+                                -2.29936743361696394e-02,
+                                3.90783013124576667e-02}};
+
+    // Secondary energies for each interactor call [MeV]
+    real_type expect_sec_energy[4] = {7.28830833552605601e-03,
+                                      1.00716829305078732e-03,
+                                      1.37771502392675734e-03,
+                                      1.56307793755843471e-03};
+
+    for (int i : celeritas::range(4))
+    {
+        EXPECT_VEC_SOFT_EQ(expect_inc_exit_dir[i], sampled_inc_exit_dir[i]);
+        EXPECT_VEC_SOFT_EQ(expect_sec_dir[i], sampled_sec_dir[i]);
+    }
+    EXPECT_VEC_SOFT_EQ(expect_inc_exit_energy, sampled_inc_exit_energy);
+    EXPECT_VEC_SOFT_EQ(expect_inc_energy_dep, sampled_inc_energy_dep);
+    EXPECT_VEC_SOFT_EQ(expect_sec_energy, sampled_sec_energy);
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MollerBhabhaInteractorTest, bhabha_scattering_10_MeV)
+TEST_F(MollerBhabhaInteractorTest, bhabha_scattering)
 {
-    this->resize_secondaries(1);
-
-    // Set 10 MeV positron for testing Bhabha scattering
-    this->set_inc_particle(pdg::positron(), MevEnergy{10});
-
-    // Create interactor
-    MollerBhabhaInteractor mb_interactor(pointers_,
-                                         this->particle_track(),
-                                         this->direction(),
-                                         this->secondary_allocator());
-
+    this->resize_secondaries(4);
     RandomEngine& rng_engine = this->rng();
-    Interaction   result     = mb_interactor(rng_engine);
-    this->sanity_check(result);
 
-    // Incident particle
-    Real3 expected_inc_exiting_direction
-        = {-0.00811533848163703, 0.00160799933543090, 0.99996577722413371};
+    std::vector<Real3>  sampled_inc_exit_dir;
+    std::vector<double> sampled_inc_exit_energy;
+    std::vector<double> sampled_inc_energy_dep;
+    std::vector<Real3>  sampled_sec_dir;
+    std::vector<double> sampled_sec_energy;
 
-    EXPECT_EQ(Action::scattered, result.action);
-    EXPECT_VEC_SOFT_EQ(expected_inc_exiting_direction, result.direction);
-    EXPECT_SOFT_EQ(9.99262338077600454, result.energy.value());
-    EXPECT_EQ(0.0, result.energy_deposition.value());
-    EXPECT_EQ(1, result.secondaries.size());
+    // Selected energies for the incident particle's interactor test [MeV]
+    real_type inc_energies[4] = {1, 10, 1e3, 1e5};
 
-    // Secondary
-    Real3 expected_secondary_direction
-        = {0.97704776218592115, -0.19359539418278068, 0.08887347049990488};
-    auto secondary = result.secondaries[0];
+    for (int i : celeritas::range(4))
+    {
+        // Set 10 MeV electron for testing Bhabha scattering
+        this->set_inc_particle(pdg::positron(), MevEnergy{inc_energies[i]});
 
-    EXPECT_GE(0, secondary.particle_id.get());
-    EXPECT_VEC_SOFT_EQ(expected_secondary_direction, secondary.direction);
-    EXPECT_SOFT_EQ(0.00737661922399608, secondary.energy.value());
+        // Create interactor
+        MollerBhabhaInteractor mb_interactor(pointers_,
+                                             this->particle_track(),
+                                             this->direction(),
+                                             this->secondary_allocator());
+
+        Interaction result = mb_interactor(rng_engine);
+        this->sanity_check(result);
+
+        sampled_inc_exit_dir.push_back(result.direction);
+        sampled_inc_exit_energy.push_back(result.energy.value());
+        sampled_inc_energy_dep.push_back(result.energy_deposition.value());
+        auto secondary = result.secondaries[0];
+        sampled_sec_dir.push_back(secondary.direction);
+        sampled_sec_energy.push_back(secondary.energy.value());
+    }
+
+    //// PRIMARY
+    // Incident particle's exiting directions after each interactor call
+    Real3 expect_inc_exit_dir[4] = {{-5.98339146337106900e-02,
+                                     1.18556847856613259e-02,
+                                     9.98137939063468704e-01},
+                                    {6.19406177347736359e-03,
+                                     1.89364553704606886e-03,
+                                     9.99979023632659225e-01},
+                                    {-7.35997559188817274e-05,
+                                     1.63669752943484403e-06,
+                                     9.99999997290198617e-01},
+                                    {-3.22691294854657801e-07,
+                                     3.84815259626114375e-08,
+                                     9.99999999999947153e-01}};
+
+    // Incident particle's final energy after each interactor call [MeV]
+    double expect_inc_exit_energy[4] = {9.92665477497147508e-01,
+                                        9.99547740388010375e+00,
+                                        9.99994691659400587e+02,
+                                        9.99999989666164765e+04};
+
+    // Incident particle's deposited energy after each interactor call [MeV]
+    double expect_inc_energy_dep[4] = {0, 0, 0, 0};
+
+    //// SECONDARY
+    // Secondary directions for each interactor call
+    Real3 expect_sec_dir[4] = {{9.73837231712127771e-01,
+                                -1.92959249322042975e-01,
+                                1.20032388263890455e-01},
+                               {-9.53982991975042882e-01,
+                                -2.91651213894371375e-01,
+                                6.96851523373852172e-02},
+                               {9.97163856758067957e-01,
+                                -2.21747422993688603e-02,
+                                7.19202584765359088e-02},
+                               {9.92462814088369005e-01,
+                                -1.18353002253964334e-01,
+                                3.17825346577122123e-02}};
+
+    // Secondary energies for each interactor call [MeV]
+    real_type expect_sec_energy[4] = {7.33452250285249879e-03,
+                                      4.52259611989608724e-03,
+                                      5.30834059944587742e-03,
+                                      1.03338351935111108e-03};
+
+    for (int i : celeritas::range(4))
+    {
+        EXPECT_VEC_SOFT_EQ(expect_inc_exit_dir[i], sampled_inc_exit_dir[i]);
+        EXPECT_VEC_SOFT_EQ(expect_sec_dir[i], sampled_sec_dir[i]);
+    }
+    EXPECT_VEC_SOFT_EQ(expect_inc_exit_energy, sampled_inc_exit_energy);
+    EXPECT_VEC_SOFT_EQ(expect_inc_energy_dep, sampled_inc_energy_dep);
+    EXPECT_VEC_SOFT_EQ(expect_sec_energy, sampled_sec_energy);
 }
