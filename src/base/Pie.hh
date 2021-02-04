@@ -186,7 +186,7 @@ class Pie
     friend class PieBuilder;
 
     //!@{
-    // Private accessors for pool construction
+    // Private accessors for pie construction
     using StorageT = typename detail::PieStorage<T, W, M>::type;
     CELER_FORCEINLINE_FUNCTION const StorageT& storage() const
     {

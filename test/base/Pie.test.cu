@@ -5,7 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file Pie.test.cu
 //---------------------------------------------------------------------------//
-#define POOL_HOST_HEADER 0
 #include "Pie.test.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
@@ -46,7 +45,7 @@ __global__ void p_test_kernel(
         result                = matid + nd * el.atomic_mass / el.atomic_number;
     }
 
-    // Do a stupid test of pool range
+    // Do a stupid test of pie slice
     celeritas::PieSlice<int> pr;
     pr = celeritas::PieSlice<int>(123, 456);
     if (pr.size() != 333)

@@ -34,18 +34,18 @@ TEST(PieTypesTest, types)
             celeritas::Pie<int, Ownership::const_reference, MemSpace::device>>));
 }
 
-TEST(PieRangeTest, all)
+TEST(PieSliceTest, all)
 {
-    using PieRangeT = celeritas::PieSlice<int>;
-    PieRangeT pr;
-    EXPECT_EQ(0, pr.size());
-    EXPECT_TRUE(pr.empty());
+    using PieSliceT = celeritas::PieSlice<int>;
+    PieSliceT ps;
+    EXPECT_EQ(0, ps.size());
+    EXPECT_TRUE(ps.empty());
 
-    pr = PieRangeT{10, 21};
-    EXPECT_FALSE(pr.empty());
-    EXPECT_EQ(11, pr.size());
-    EXPECT_EQ(10, pr.start());
-    EXPECT_EQ(21, pr.stop());
+    ps = PieSliceT{10, 21};
+    EXPECT_FALSE(ps.empty());
+    EXPECT_EQ(11, ps.size());
+    EXPECT_EQ(10, ps.start());
+    EXPECT_EQ(21, ps.stop());
 }
 
 //---------------------------------------------------------------------------//
