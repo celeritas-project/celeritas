@@ -20,13 +20,13 @@ namespace celeritas
  * This is intended for use with host data but can also be used to resize
  * device pools. It's constructed with a reference to the host pool, and it
  * provides vector-like methods for extending it. The size *cannot* be
- * decreased because that would invalidate previously created \c PoolRange
+ * decreased because that would invalidate previously created \c PoolSlice
  * items.
  *
  * \code
     auto pb = make_pool_builder(myintpool.host);
     pb.reserve(100);
-    PoolRange<int> insertion = pb.extend(local_ints.begin(), local_ints.end());
+    PoolSlice<int> insertion = pb.extend(local_ints.begin(), local_ints.end());
     pb.push_back(123);
    \endcode
 
@@ -42,7 +42,7 @@ class PoolBuilder
     //! Type aliases
     using value_type = T;
     using PoolT      = Pool<T, Ownership::value, M>;
-    using PoolRangeT = PoolRange<T>;
+    using PoolRangeT = PoolSlice<T>;
     using PoolSize   = typename PoolRangeT::size_type;
     //!@}
 

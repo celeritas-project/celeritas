@@ -27,7 +27,7 @@ struct MockElement
 struct MockMaterial
 {
     double                           number_density;
-    celeritas::PoolRange<MockElement> elements;
+    celeritas::PoolSlice<MockElement> elements;
 };
 
 template<Ownership W, MemSpace M>

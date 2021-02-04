@@ -143,11 +143,11 @@ struct PoolAssigner<Ownership::value, MemSpace::device>
         // Always-on once-per-copy check that the number of elements in the
         // vector doesn't exceed the range. This is in case of a production run
         // with lots of cross sections, when the incremental PoolBuilder checks
-        // are disabled. See comment in PoolRange class documentation.
+        // are disabled. See comment in PoolSlice class documentation.
         constexpr std::size_t max_pool_size
             = std::numeric_limits<pool_size_type>::max();
         CELER_VALIDATE(source.data.size() <= max_pool_size,
-                       "Pool is too large for PoolRange: "
+                       "Pool is too large for PoolSlice: "
                            << source.data.size() << " > " << max_pool_size);
 
         PoolStorage<T, Ownership::value, MemSpace::device> result{

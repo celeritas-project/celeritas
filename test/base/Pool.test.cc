@@ -26,7 +26,7 @@ constexpr bool is_trivial_v = std::is_trivially_copyable<T>::value;
 
 TEST(PoolTypesTest, types)
 {
-    EXPECT_TRUE((is_trivial_v<celeritas::PoolRange<int>>));
+    EXPECT_TRUE((is_trivial_v<celeritas::PoolSlice<int>>));
     EXPECT_TRUE(
         (is_trivial_v<
             celeritas::Pool<int, Ownership::reference, MemSpace::device>>));
@@ -37,7 +37,7 @@ TEST(PoolTypesTest, types)
 
 TEST(PoolRangeTest, all)
 {
-    using PoolRangeT = celeritas::PoolRange<int>;
+    using PoolRangeT = celeritas::PoolSlice<int>;
     PoolRangeT pr;
     EXPECT_EQ(0, pr.size());
     EXPECT_TRUE(pr.empty());

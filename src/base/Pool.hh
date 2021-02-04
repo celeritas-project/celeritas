@@ -35,7 +35,7 @@ namespace celeritas
  * struct MyMaterial
  * {
  *     real_type number_density;
- *     PoolRange<ElementComponents> components;
+ *     PoolSlice<ElementComponents> components;
  * };
  *
  * template<Ownership W, MemSpace M>
@@ -51,7 +51,7 @@ namespace celeritas
  * instead of unsigned int.
  */
 template<class T>
-class PoolRange
+class PoolSlice
 {
   public:
     //!@{
@@ -60,10 +60,10 @@ class PoolRange
 
   public:
     //! Default to an empty range
-    PoolRange() = default;
+    PoolSlice() = default;
 
     // Construct with a particular range
-    inline CELER_FUNCTION PoolRange(size_type start, size_type stop);
+    inline CELER_FUNCTION PoolSlice(size_type start, size_type stop);
 
     //!@{
     //! Range of indices in the corresponding pool
@@ -144,7 +144,7 @@ class Pool
     //// ACCESS ////
 
     // Access a subspan
-    inline CELER_FUNCTION SpanT operator[](const PoolRange<T>& ps) const;
+    inline CELER_FUNCTION SpanT operator[](const PoolSlice<T>& ps) const;
 
     // Access a single element
     inline CELER_FUNCTION reference_type operator[](size_type i) const;

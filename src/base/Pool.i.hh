@@ -15,7 +15,7 @@ namespace celeritas
  * Construct with a particular range.
  */
 template<class T>
-CELER_FUNCTION PoolRange<T>::PoolRange(size_type start, size_type stop)
+CELER_FUNCTION PoolSlice<T>::PoolSlice(size_type start, size_type stop)
     : start_(start), stop_(stop)
 {
     CELER_EXPECT(start_ <= stop_);
@@ -72,7 +72,7 @@ Pool<T, W, M>& Pool<T, W, M>::operator=(Pool<T, W2, M>& other)
  * Access a subspan.
  */
 template<class T, Ownership W, MemSpace M>
-CELER_FUNCTION auto Pool<T, W, M>::operator[](const PoolRange<T>& ps) const
+CELER_FUNCTION auto Pool<T, W, M>::operator[](const PoolSlice<T>& ps) const
     -> SpanT
 {
     CELER_EXPECT(ps.stop() <= this->size());
