@@ -188,8 +188,11 @@ class Pool
     //!@{
     // Private accessors for pool construction
     using StorageT = typename detail::PoolStorage<T, W, M>::type;
-    const StorageT& storage() const { return storage_.data; }
-    StorageT&       storage() { return storage_.data; }
+    CELER_FORCEINLINE_FUNCTION const StorageT& storage() const
+    {
+        return storage_.data;
+    }
+    CELER_FORCEINLINE_FUNCTION StorageT& storage() { return storage_.data; }
     //@}
 };
 
