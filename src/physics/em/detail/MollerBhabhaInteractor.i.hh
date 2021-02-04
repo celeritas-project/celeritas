@@ -64,12 +64,14 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 
     if (inc_particle_is_electron_)
     {
-        MollerEnergyDistribution sample_moller(shared_, inc_energy_);
+        MollerEnergyDistribution sample_moller(
+            shared_.electron_mass_c_sq, shared_.min_valid_energy, inc_energy_);
         epsilon = sample_moller(rng);
     }
     else
     {
-        BhabhaEnergyDistribution sample_bhabha(shared_, inc_energy_);
+        BhabhaEnergyDistribution sample_bhabha(
+            shared_.electron_mass_c_sq, shared_.min_valid_energy, inc_energy_);
         epsilon = sample_bhabha(rng);
     }
 

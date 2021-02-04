@@ -26,31 +26,33 @@ class BhabhaEnergyDistribution
   public:
     // Construct with data from MollerBhabhaInteractor
     inline CELER_FUNCTION
-    BhabhaEnergyDistribution(const MollerBhabhaPointers& shared,
-                             const real_type             inc_energy);
+    BhabhaEnergyDistribution(const real_type electron_mass_c_sq,
+                             const real_type min_valid_energy,
+                             const real_type inc_energy);
 
     // Sample the exiting energy
     template<class Engine>
     inline CELER_FUNCTION real_type operator()(Engine& rng);
 
   private:
-    // Electron mass * c^2 [MeV]
-    real_type electron_mass_c_sq_;
     // Electron incident energy [MeV]
     real_type inc_energy_;
     // Total energy of the incident particle
     real_type total_energy_;
     // Maximum energy fraction transferred to free electron
-    real_type max_energy_fraction_;
+    static CELER_CONSTEXPR_FUNCTION real_type max_energy_fraction()
+    {
+        return 1;
+    }
     // Maximum energy fraction transferred to free electron
     real_type min_energy_fraction_;
     // Sampling parameter
     real_type gamma_;
 
   private:
-    // Calculate value for probability or rejection functions f and g
-    inline CELER_FUNCTION real_type calc_f_g(real_type epsilon_min,
-                                             real_type epsilon_max);
+    // Helper function for calculating rejection function g
+    inline CELER_FUNCTION real_type calc_g_fraction(real_type epsilon_min,
+                                                    real_type epsilon_max);
 }; // namespace BhabhaEnergyDistribution
 
 //---------------------------------------------------------------------------//

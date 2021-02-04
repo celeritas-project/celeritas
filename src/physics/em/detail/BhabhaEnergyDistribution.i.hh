@@ -21,15 +21,15 @@ namespace detail
  */
 CELER_FUNCTION
 BhabhaEnergyDistribution::BhabhaEnergyDistribution(
-    const MollerBhabhaPointers& shared, const real_type inc_energy)
-    : electron_mass_c_sq_(shared.electron_mass_c_sq)
-    , inc_energy_(inc_energy)
-    , total_energy_(inc_energy + shared.electron_mass_c_sq)
-    , max_energy_fraction_(1.0)
-    , min_energy_fraction_(shared.min_valid_energy / inc_energy)
-    , gamma_(total_energy_ / shared.electron_mass_c_sq)
+    const real_type electron_mass_c_sq,
+    const real_type min_valid_energy,
+    const real_type inc_energy)
+    : inc_energy_(inc_energy)
+    , total_energy_(inc_energy + electron_mass_c_sq)
+    , min_energy_fraction_(min_valid_energy / inc_energy)
+    , gamma_(total_energy_ / electron_mass_c_sq)
 {
-    CELER_EXPECT(electron_mass_c_sq_ > 0 && inc_energy_ > 0);
+    CELER_EXPECT(electron_mass_c_sq > 0 && inc_energy_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -39,30 +39,30 @@ BhabhaEnergyDistribution::BhabhaEnergyDistribution(
 template<class Engine>
 CELER_FUNCTION real_type BhabhaEnergyDistribution::operator()(Engine& rng)
 {
-    const real_type rejection_g
-        = this->calc_f_g(min_energy_fraction_, max_energy_fraction_);
+    const real_type g_denominator = this->calc_g_fraction(
+        min_energy_fraction_, this->max_energy_fraction());
 
-    UniformRealDistribution<> sample_inverse_epsilon(1 / max_energy_fraction_,
-                                                     1 / min_energy_fraction_);
+    UniformRealDistribution<> sample_inverse_epsilon(
+        1 / this->max_energy_fraction(), 1 / min_energy_fraction_);
 
     // Sample epsilon
-    real_type prob_f;
+    real_type g_numerator;
     real_type epsilon;
     do
     {
-        epsilon = 1 / sample_inverse_epsilon(rng);
-        prob_f  = this->calc_f_g(epsilon, epsilon);
+        epsilon     = 1 / sample_inverse_epsilon(rng);
+        g_numerator = this->calc_g_fraction(epsilon, epsilon);
 
-    } while (BernoulliDistribution(prob_f / rejection_g)(rng));
+    } while (BernoulliDistribution(g_numerator / g_denominator)(rng));
 
     return epsilon;
 }
 
 //---------------------------------------------------------------------------//
 /*
- * Calculate probability density function f or rejection function g.
+ * Helper function for calculating rejection function g.
  */
-CELER_FUNCTION real_type BhabhaEnergyDistribution::calc_f_g(
+CELER_FUNCTION real_type BhabhaEnergyDistribution::calc_g_fraction(
     real_type epsilon_min, real_type epsilon_max)
 {
     const real_type y            = 1.0 / (1.0 + gamma_);

@@ -52,9 +52,9 @@ class MollerBhabhaInteractor
   private:
     // Shared constant physics properties
     const MollerBhabhaPointers& shared_;
-    // Incident energy
+    // Incident energy [MeV]
     const real_type inc_energy_;
-    // Incident momentum
+    // Incident momentum [MeV]
     const real_type inc_momentum_;
     // Incident direction
     const Real3& inc_direction_;
