@@ -3,52 +3,52 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PoolBuilder.hh
+//! \file PieBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <initializer_list>
 #include <limits>
-#include "Pool.hh"
+#include "Pie.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for constructing Pools.
+ * Helper class for constructing Pies.
  *
  * This is intended for use with host data but can also be used to resize
- * device pools. It's constructed with a reference to the host pool, and it
+ * device pies. It's constructed with a reference to the host pie, and it
  * provides vector-like methods for extending it. The size *cannot* be
- * decreased because that would invalidate previously created \c PoolSlice
+ * decreased because that would invalidate previously created \c PieSlice
  * items.
  *
  * \code
-    auto pb = make_pool_builder(myintpool.host);
+    auto pb = make_pie_builder(myintpie.host);
     pb.reserve(100);
-    PoolSlice<int> insertion = pb.extend(local_ints.begin(), local_ints.end());
+    PieSlice<int> insertion = pb.extend(local_ints.begin(), local_ints.end());
     pb.push_back(123);
    \endcode
 
- * The PoolBuilder can also be used to resize device-value pools without having
+ * The PieBuilder can also be used to resize device-value pies without having
  * to allocate a host version and copy to device. (This is useful for state
  * allocations.)
  */
 template<class T, MemSpace M>
-class PoolBuilder
+class PieBuilder
 {
   public:
     //!@{
     //! Type aliases
     using value_type = T;
-    using PoolT      = Pool<T, Ownership::value, M>;
-    using PoolRangeT = PoolSlice<T>;
-    using PoolSize   = typename PoolRangeT::size_type;
+    using PieT       = Pie<T, Ownership::value, M>;
+    using PieRangeT  = PieSlice<T>;
+    using PieSize    = typename PieRangeT::size_type;
     //!@}
 
   public:
-    //! Construct from a pool
-    explicit PoolBuilder(PoolT& pool) : pool_(pool) {}
+    //! Construct from a pie
+    explicit PieBuilder(PieT& pie) : pie_(pie) {}
 
     // Increase size to this capacity
     inline void resize(size_type count);
@@ -58,44 +58,44 @@ class PoolBuilder
 
     // Extend with a series of elements, returning the range inserted
     template<class InputIterator>
-    inline PoolRangeT insert_back(InputIterator first, InputIterator last);
+    inline PieRangeT insert_back(InputIterator first, InputIterator last);
 
     // Extend with a series of elements from an initializer list
-    inline PoolRangeT insert_back(std::initializer_list<T> init);
+    inline PieRangeT insert_back(std::initializer_list<T> init);
 
     // Append a single element
     inline void push_back(value_type element);
 
-    //! Number of elements in the pool
-    PoolSize size() const { return pool_.size(); }
+    //! Number of elements in the pie
+    PieSize size() const { return pie_.size(); }
 
   private:
-    PoolT& pool_;
+    PieT& pie_;
 
-    using StorageT = typename PoolT::StorageT;
-    StorageT&       storage() { return pool_.storage(); }
-    const StorageT& storage() const { return pool_.storage(); }
+    using StorageT = typename PieT::StorageT;
+    StorageT&       storage() { return pie_.storage(); }
+    const StorageT& storage() const { return pie_.storage(); }
 
-    //! Maximum elements in a Pool, in native std::size_t
-    static constexpr size_type max_pool_size()
+    //! Maximum elements in a Pie, in native std::size_t
+    static constexpr size_type max_pie_size()
     {
-        return std::numeric_limits<PoolSize>::max();
+        return std::numeric_limits<PieSize>::max();
     }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for constructing pool builders.
+ * Helper class for constructing pie builders.
  *
  * (Will not be needed under C++20's new constructor lookups).
  */
 template<class T, MemSpace M>
-PoolBuilder<T, M> make_pool_builder(Pool<T, Ownership::value, M>& pool)
+PieBuilder<T, M> make_pie_builder(Pie<T, Ownership::value, M>& pie)
 {
-    return PoolBuilder<T, M>(pool);
+    return PieBuilder<T, M>(pie);
 }
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "PoolBuilder.i.hh"
+#include "PieBuilder.i.hh"

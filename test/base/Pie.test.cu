@@ -3,10 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Pool.test.cu
+//! \file Pie.test.cu
 //---------------------------------------------------------------------------//
 #define POOL_HOST_HEADER 0
-#include "Pool.test.hh"
+#include "Pie.test.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
 
@@ -18,9 +18,9 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 __global__ void p_test_kernel(
-    const MockParamsPools<Ownership::const_reference, MemSpace::device> params,
-    const MockStatePools<Ownership::reference, MemSpace::device>        states,
-    const celeritas::Span<double> results)
+    const MockParamsPies<Ownership::const_reference, MemSpace::device> params,
+    const MockStatePies<Ownership::reference, MemSpace::device>        states,
+    const celeritas::Span<double>                                      results)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= states.size())
@@ -47,8 +47,8 @@ __global__ void p_test_kernel(
     }
 
     // Do a stupid test of pool range
-    celeritas::PoolSlice<int> pr;
-    pr = celeritas::PoolSlice<int>(123, 456);
+    celeritas::PieSlice<int> pr;
+    pr = celeritas::PieSlice<int>(123, 456);
     if (pr.size() != 333)
     {
         // Failure

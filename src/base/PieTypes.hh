@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PoolTypes.hh
+//! \file PieTypes.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -30,8 +30,8 @@ enum class Ownership
     const_reference, //!< Immutable reference to the data
 };
 
-//! Size/offset type for pool
-using pool_size_type = unsigned int;
+//! Size/offset type for pie
+using pie_size_type = unsigned int;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

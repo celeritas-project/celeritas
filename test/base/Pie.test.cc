@@ -3,20 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Pool.test.cc
+//! \file Pie.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Pool.hh"
-#include "base/PoolBuilder.hh"
+#include "base/Pie.hh"
+#include "base/PieBuilder.hh"
 
 #include <type_traits>
 #include "celeritas_test.hh"
-#include "Pool.test.hh"
+#include "Pie.test.hh"
 #include "base/DeviceVector.hh"
 #include "comm/Device.hh"
 
 using celeritas::MemSpace;
 using celeritas::Ownership;
-using celeritas::Pool;
+using celeritas::Pie;
 using celeritas::Span;
 
 using namespace celeritas_test;
@@ -24,25 +24,24 @@ using namespace celeritas_test;
 template<class T>
 constexpr bool is_trivial_v = std::is_trivially_copyable<T>::value;
 
-TEST(PoolTypesTest, types)
+TEST(PieTypesTest, types)
 {
-    EXPECT_TRUE((is_trivial_v<celeritas::PoolSlice<int>>));
+    EXPECT_TRUE((is_trivial_v<celeritas::PieSlice<int>>));
+    EXPECT_TRUE((is_trivial_v<
+                 celeritas::Pie<int, Ownership::reference, MemSpace::device>>));
     EXPECT_TRUE(
         (is_trivial_v<
-            celeritas::Pool<int, Ownership::reference, MemSpace::device>>));
-    EXPECT_TRUE(
-        (is_trivial_v<
-            celeritas::Pool<int, Ownership::const_reference, MemSpace::device>>));
+            celeritas::Pie<int, Ownership::const_reference, MemSpace::device>>));
 }
 
-TEST(PoolRangeTest, all)
+TEST(PieRangeTest, all)
 {
-    using PoolRangeT = celeritas::PoolSlice<int>;
-    PoolRangeT pr;
+    using PieRangeT = celeritas::PieSlice<int>;
+    PieRangeT pr;
     EXPECT_EQ(0, pr.size());
     EXPECT_TRUE(pr.empty());
 
-    pr = PoolRangeT{10, 21};
+    pr = PieRangeT{10, 21};
     EXPECT_FALSE(pr.empty());
     EXPECT_EQ(11, pr.size());
     EXPECT_EQ(10, pr.start());
@@ -53,17 +52,17 @@ TEST(PoolRangeTest, all)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class PoolTest : public celeritas::Test
+class PieTest : public celeritas::Test
 {
   protected:
     void SetUp() override
     {
-        MockParamsPools<Ownership::value, MemSpace::host>& host_pools
+        MockParamsPies<Ownership::value, MemSpace::host>& host_pies
             = mock_params.host;
-        host_pools.max_element_components = 3;
+        host_pies.max_element_components = 3;
 
-        auto el_builder  = make_pool_builder(host_pools.elements);
-        auto mat_builder = make_pool_builder(host_pools.materials);
+        auto el_builder  = make_pie_builder(host_pies.elements);
+        auto mat_builder = make_pie_builder(host_pies.materials);
         el_builder.reserve(5);
         mat_builder.reserve(2);
 
@@ -93,8 +92,8 @@ class PoolTest : public celeritas::Test
             mat_builder.push_back(m);
         }
         EXPECT_EQ(3, mat_builder.size());
-        EXPECT_EQ(3, host_pools.materials.size());
-        EXPECT_EQ(4, host_pools.elements.size());
+        EXPECT_EQ(3, host_pies.materials.size());
+        EXPECT_EQ(4, host_pies.elements.size());
 
         //// Create host reference ////
 
@@ -109,19 +108,19 @@ class PoolTest : public celeritas::Test
         }
     }
 
-    CELER_POOL_STRUCT(MockParamsPools, const_reference) mock_params;
+    CELER_PIE_STRUCT(MockParamsPies, const_reference) mock_params;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(PoolTest, host)
+TEST_F(PieTest, host)
 {
-    MockStatePools<Ownership::value, MemSpace::host>     host_state;
-    MockStatePools<Ownership::reference, MemSpace::host> host_state_ref;
+    MockStatePies<Ownership::value, MemSpace::host>     host_state;
+    MockStatePies<Ownership::reference, MemSpace::host> host_state_ref;
 
-    make_pool_builder(host_state.matid).resize(1);
+    make_pie_builder(host_state.matid).resize(1);
     host_state_ref = host_state;
 
     // Assign
@@ -133,7 +132,7 @@ TEST_F(PoolTest, host)
     EXPECT_EQ(1, mock.matid());
 }
 
-TEST_F(PoolTest, device)
+TEST_F(PieTest, device)
 {
     if (!celeritas::is_device_enabled())
     {
@@ -141,8 +140,8 @@ TEST_F(PoolTest, device)
     }
 
     // Construct with 1024 states
-    MockStatePools<Ownership::value, MemSpace::device> device_states;
-    make_pool_builder(device_states.matid).resize(1024);
+    MockStatePies<Ownership::value, MemSpace::device> device_states;
+    make_pie_builder(device_states.matid).resize(1024);
 
     celeritas::DeviceVector<double> device_result(device_states.size());
 
@@ -169,10 +168,10 @@ TEST_F(PoolTest, device)
  * the expected build errors.
  */
 #ifdef CELERITAS_SHOULD_NOT_COMPILE
-TEST_F(PoolTest, should_not_compile)
+TEST_F(PieTest, should_not_compile)
 {
-    MockStatePools<Ownership::reference, MemSpace::host>       ref;
-    MockStatePools<Ownership::const_reference, MemSpace::host> cref;
+    MockStatePies<Ownership::reference, MemSpace::host>       ref;
+    MockStatePies<Ownership::const_reference, MemSpace::host> cref;
     ref = cref;
     // Currently can't copy from device to host
     mock_params.host = mock_params.device;

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PoolBuilder.i.hh
+//! \file PieBuilder.i.hh
 //---------------------------------------------------------------------------//
 
 #include <limits>
@@ -15,9 +15,9 @@ namespace celeritas
  * Reserve space for the given number of elements.
  */
 template<class T, MemSpace M>
-void PoolBuilder<T, M>::reserve(size_type count)
+void PieBuilder<T, M>::reserve(size_type count)
 {
-    CELER_EXPECT(count <= max_pool_size());
+    CELER_EXPECT(count <= max_pie_size());
     this->storage().reserve(count);
 }
 
@@ -27,11 +27,11 @@ void PoolBuilder<T, M>::reserve(size_type count)
  */
 template<class T, MemSpace M>
 template<class InputIterator>
-auto PoolBuilder<T, M>::insert_back(InputIterator first, InputIterator last)
-    -> PoolRangeT
+auto PieBuilder<T, M>::insert_back(InputIterator first, InputIterator last)
+    -> PieRangeT
 {
     CELER_EXPECT(std::distance(first, last) + this->storage().size()
-                 <= this->max_pool_size());
+                 <= this->max_pie_size());
     static_assert(M == MemSpace::host,
                   "Insertion currently works only for host memory");
     auto start = this->size();
@@ -44,8 +44,7 @@ auto PoolBuilder<T, M>::insert_back(InputIterator first, InputIterator last)
  * Insert the given list of elements at the end of the allocation.
  */
 template<class T, MemSpace M>
-auto PoolBuilder<T, M>::insert_back(std::initializer_list<T> init)
-    -> PoolRangeT
+auto PieBuilder<T, M>::insert_back(std::initializer_list<T> init) -> PieRangeT
 {
     return this->insert_back(init.begin(), init.end());
 }
@@ -55,16 +54,16 @@ auto PoolBuilder<T, M>::insert_back(std::initializer_list<T> init)
  * Reserve space for the given number of elements.
  */
 template<class T, MemSpace M>
-void PoolBuilder<T, M>::push_back(T el)
+void PieBuilder<T, M>::push_back(T el)
 {
-    CELER_EXPECT(this->storage().size() + 1 <= this->max_pool_size());
+    CELER_EXPECT(this->storage().size() + 1 <= this->max_pie_size());
     static_assert(M == MemSpace::host,
                   "Insertion currently works only for host memory");
     this->storage().push_back(el);
 }
 
 //---------------------------------------------------------------------------//
-// DEVICE POOL BUILDDER
+// DEVICE PIE BUILDDER
 //---------------------------------------------------------------------------//
 /*!
  * Increase the size to the given number of elements.
@@ -73,7 +72,7 @@ void PoolBuilder<T, M>::push_back(T el)
  * construction is super awkward.
  */
 template<class T, MemSpace M>
-void PoolBuilder<T, M>::resize(size_type size)
+void PieBuilder<T, M>::resize(size_type size)
 {
     CELER_EXPECT(size >= this->size());
     CELER_EXPECT(this->storage().empty() || size <= this->storage().capacity());
