@@ -95,6 +95,16 @@ class PieTest : public celeritas::Test
         EXPECT_EQ(3, host_pies.materials.size());
         EXPECT_EQ(4, host_pies.elements.size());
 
+        // Test host-accessible values and const correctness
+        {
+            const auto&         host_pies_const = host_pies;
+            const MockMaterial& m               = host_pies_const.materials[0];
+            EXPECT_EQ(3, m.elements.size());
+            Span<const MockElement> els = host_pies_const.elements[m.elements];
+            EXPECT_EQ(3, els.size());
+            EXPECT_EQ(6, els[2].atomic_number);
+        }
+
         //// Create host reference ////
 
         mock_params.host_ref = mock_params.host;
