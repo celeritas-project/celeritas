@@ -14,6 +14,7 @@
 #include "physics/material/MaterialParams.hh"
 
 using namespace celeritas;
+using MaterialParamsPointers = MaterialParams::HostRef;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -111,7 +112,7 @@ struct CalcFancyMicroXs
 //! You can't select an element in pure void. (No interactions anyway.)
 TEST_F(ElementSelectorTest, TEST_IF_CELERITAS_DEBUG(vacuum))
 {
-    MaterialView material(host_mats, mats->find("hard_vacuum"));
+    MaterialView material(mats->host_pointers(), mats->find("hard_vacuum"));
     EXPECT_THROW(ElementSelector(material, mock_micro_xs, make_span(storage)),
                  celeritas::DebugError);
 }

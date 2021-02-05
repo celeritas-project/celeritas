@@ -11,6 +11,7 @@
 #include <cmath>
 #include <numeric>
 #include "detail/Utils.hh"
+#include "base/PieBuilder.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "base/SpanRemapper.hh"
@@ -27,20 +28,6 @@ MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
 {
     CELER_EXPECT(!inp.materials.empty());
 
-    // Reserve host space (MUST reserve elcomponents to avoid invalidating
-    // spans).
-    host_elements_.reserve(inp.elements.size());
-    host_elcomponents_.reserve(
-        std::accumulate(inp.materials.begin(),
-                        inp.materials.end(),
-                        size_type(0),
-                        [](size_type count, const MaterialInput& mi) {
-                            return count + mi.elements_fractions.size();
-                        }));
-    host_materials_.reserve(inp.materials.size());
-    elnames_.reserve(inp.elements.size());
-    matnames_.reserve(inp.materials.size());
-
     // Build elements and materials on host.
     for (const auto& el : inp.elements)
     {
@@ -50,57 +37,23 @@ MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
     {
         this->append_material_def(mat);
     }
+    data_.host.max_element_components = this->max_element_components();
+
+    // Copy to device
+    data_.host_ref = data_.host;
 
     if (celeritas::is_device_enabled())
     {
-        // Allocate device vectors
-        device_elements_ = DeviceVector<ElementDef>{host_elements_.size()};
-        device_elcomponents_
-            = DeviceVector<MatElementComponent>{host_elcomponents_.size()};
-        device_materials_ = DeviceVector<MaterialDef>{host_materials_.size()};
-
-        // Remap material->elcomponent spans
-        auto remap_elements
-            = make_span_remapper(make_span(host_elcomponents_),
-                                 device_elcomponents_.device_pointers());
-
-        std::vector<MaterialDef> temp_device_mats = host_materials_;
-        for (MaterialDef& m : temp_device_mats)
-        {
-            m.elements = remap_elements(m.elements);
-        }
-
-        // Copy vectors to device
-        device_elements_.copy_to_device(make_span(host_elements_));
-        device_elcomponents_.copy_to_device(make_span(host_elcomponents_));
-        device_materials_.copy_to_device(make_span(temp_device_mats));
+        // Copy data to device and save reference
+        data_.device     = data_.host;
+        data_.device_ref = data_.device;
     }
 
-    host_pointers_.elements               = make_span(host_elements_);
-    host_pointers_.materials              = make_span(host_materials_);
-    host_pointers_.max_element_components = this->max_element_components();
-
-    CELER_ENSURE(host_elements_.size() == inp.elements.size());
-    CELER_ENSURE(host_elcomponents_.size() <= host_elcomponents_.capacity());
-    CELER_ENSURE(host_materials_.size() == inp.materials.size());
+    CELER_ENSURE(data_.host.elements.size() == inp.elements.size());
+    CELER_ENSURE(data_.host.materials.size() == inp.materials.size());
     CELER_ENSURE(elnames_.size() == inp.elements.size());
     CELER_ENSURE(matnames_.size() == inp.materials.size());
-    CELER_ENSURE(host_pointers_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access material properties on the device.
- */
-MaterialParamsPointers MaterialParams::device_pointers() const
-{
-    MaterialParamsPointers result;
-    result.elements               = device_elements_.device_pointers();
-    result.materials              = device_materials_.device_pointers();
-    result.max_element_components = this->max_element_components();
-
-    CELER_ENSURE(result);
-    return result;
+    CELER_ENSURE(data_.host_ref);
 }
 
 //---------------------------------------------------------------------------//
@@ -135,7 +88,7 @@ void MaterialParams::append_element_def(const ElementInput& inp)
     elnames_.push_back(inp.name);
 
     // Add to host vector
-    host_elements_.push_back(result);
+    make_pie_builder(data_.host.elements).push_back(result);
 }
 
 //---------------------------------------------------------------------------//
@@ -145,27 +98,22 @@ void MaterialParams::append_element_def(const ElementInput& inp)
  * \todo It's the caller's responsibility to ensure that element IDs
  * aren't duplicated.
  */
-Span<MatElementComponent>
+PieSlice<MatElementComponent>
 MaterialParams::extend_elcomponents(const MaterialInput& inp)
 {
-    CELER_EXPECT(host_elcomponents_.size() + inp.elements_fractions.size()
-                 <= host_elcomponents_.capacity());
-
     // Allocate material components
-    auto start_size = host_elcomponents_.size();
-    host_elcomponents_.resize(start_size + inp.elements_fractions.size());
-    Span<MatElementComponent> result{host_elcomponents_.data() + start_size,
-                                     inp.elements_fractions.size()};
+    std::vector<MatElementComponent> components(inp.elements_fractions.size());
 
     // Store number fractions
     real_type norm = 0.0;
     for (auto i : range(inp.elements_fractions.size()))
     {
-        CELER_EXPECT(inp.elements_fractions[i].first < host_elements_.size());
+        CELER_EXPECT(inp.elements_fractions[i].first
+                     < data_.host.elements.size());
         CELER_EXPECT(inp.elements_fractions[i].second >= 0);
         // Store number fraction
-        result[i].element  = inp.elements_fractions[i].first;
-        result[i].fraction = inp.elements_fractions[i].second;
+        components[i].element  = inp.elements_fractions[i].first;
+        components[i].fraction = inp.elements_fractions[i].second;
         // Add fractions to verify unity
         norm += inp.elements_fractions[i].second;
     }
@@ -180,7 +128,7 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp)
         // Normalize
         norm                      = 1.0 / norm;
         real_type total_fractions = 0;
-        for (MatElementComponent& comp : result)
+        for (MatElementComponent& comp : components)
         {
             comp.fraction *= norm;
             total_fractions += comp.fraction;
@@ -190,13 +138,14 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp)
 
     // Sort elements by increasing element ID for improved access
     std::sort(
-        result.begin(),
-        result.end(),
+        components.begin(),
+        components.end(),
         [](const MatElementComponent& lhs, const MatElementComponent& rhs) {
             return lhs.element < rhs.element;
         });
 
-    return result;
+    return make_pie_builder(data_.host.elcomponents)
+        .insert_back(components.begin(), components.end());
 }
 
 //---------------------------------------------------------------------------//
@@ -209,14 +158,14 @@ void MaterialParams::append_material_def(const MaterialInput& inp)
     CELER_EXPECT((inp.number_density == 0) == inp.elements_fractions.empty());
 
     auto iter_inserted = matname_to_id_.insert(
-        {inp.name, MaterialId(host_materials_.size())});
+        {inp.name, MaterialId(data_.host.materials.size())});
     if (!iter_inserted.second)
     {
         // Insertion failed, so material name is a duplicate
         CELER_LOG(warning)
             << "Material " << inp.name << " already exists with id "
             << iter_inserted.second << ". This new id ("
-            << host_materials_.size() << ") will not be available.";
+            << data_.host.materials.size() << ") will not be available.";
     }
 
     MaterialDef result;
@@ -234,10 +183,11 @@ void MaterialParams::append_material_def(const MaterialInput& inp)
     real_type avg_amu_mass = 0;
     real_type avg_z        = 0;
     real_type rad_coeff    = 0;
-    for (const MatElementComponent& comp : result.elements)
+    for (const MatElementComponent& comp :
+         data_.host.elcomponents[result.elements])
     {
-        CELER_ASSERT(comp.element < host_elements_.size());
-        const ElementDef& el = host_elements_[comp.element.get()];
+        CELER_ASSERT(comp.element < data_.host.elements.size());
+        const ElementDef& el = data_.host.elements[comp.element.get()];
 
         avg_amu_mass += comp.fraction * el.atomic_mass.value();
         avg_z += comp.fraction * el.atomic_number;
@@ -249,7 +199,7 @@ void MaterialParams::append_material_def(const MaterialInput& inp)
     result.rad_length       = 1 / (rad_coeff * result.density);
 
     // Add to host vector
-    host_materials_.push_back(result);
+    make_pie_builder(data_.host.materials).push_back(result);
     matnames_.push_back(inp.name);
 
     // Update maximum number of materials

@@ -7,11 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Span.hh"
+#include "base/Pie.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "MaterialInterface.hh"
 #include "Types.hh"
+
+#ifndef __CUDA_ARCH__
+#    include "base/PieBuilder.hh"
+#endif
 
 namespace celeritas
 {
@@ -70,7 +74,7 @@ struct MaterialDef
     real_type   number_density; //!< Atomic number density [1/cm^3]
     real_type   temperature;    //!< Temperature [K]
     MatterState matter_state;   //!< Solid, liquid, gas
-    Span<const MatElementComponent> elements; //!< Access by ElementComponentId
+    PieSlice<MatElementComponent> elements; //!< Access by ElementComponentId
 
     // COMPUTED PROPERTIES
 
@@ -89,16 +93,35 @@ struct MaterialDef
  * \sa ElementView (uses the pointed-to element data in a kernel)
  * \sa MaterialView (uses the pointed-to material data in a kernel)
  */
-struct MaterialParamsPointers
+template<Ownership W, MemSpace M>
+struct MaterialParamsData
 {
-    Span<const ElementDef>  elements;
-    Span<const MaterialDef> materials;
-    size_type               max_element_components;
+    template<class T>
+    using Data = celeritas::Pie<T, W, M>;
 
-    //! Check whether the interface is assigned
+    Data<ElementDef>          elements;
+    Data<MatElementComponent> elcomponents;
+    Data<MaterialDef>         materials;
+    size_type                 max_element_components{};
+
+    //// MEMBER FUNCTIONS ////
+
+    //! Whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
         return !materials.empty();
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    MaterialParamsData& operator=(const MaterialParamsData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        elements               = other.elements;
+        elcomponents           = other.elcomponents;
+        materials              = other.materials;
+        max_element_components = other.max_element_components;
+        return *this;
     }
 };
 
@@ -115,7 +138,7 @@ struct MaterialTrackState
 
 //---------------------------------------------------------------------------//
 /*!
- * View to the dynamic states of multiple physical particles.
+ * Store dynamic states of multiple physical particles.
  *
  * The size of the view will be the size of the vector of tracks. Each particle
  * track state corresponds to the thread ID (\c ThreadId).
@@ -128,17 +151,47 @@ struct MaterialTrackState
  * \sa MaterialStateStore (owns the pointed-to data)
  * \sa MaterialTrackView (uses the pointed-to data in a kernel)
  */
-struct MaterialStatePointers
+template<Ownership W, MemSpace M>
+struct MaterialStateData
 {
-    Span<MaterialTrackState> state;
-    Span<real_type> element_scratch; // 2D array: [num states][max components]
+    template<class T>
+    using Data = celeritas::Pie<T, W, M>;
 
-    //! Check whether the view is assigned
+    Data<MaterialTrackState> state;
+    Data<real_type> element_scratch; // 2D array: [num states][max components]
+
+    //! Whether the interface is assigned
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
 
     //! State size
     CELER_FUNCTION size_type size() const { return state.size(); }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    MaterialStateData& operator=(MaterialStateData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        state           = other.state;
+        element_scratch = other.element_scratch;
+        return *this;
+    }
 };
+
+#ifndef __CUDA_ARCH__
+//---------------------------------------------------------------------------//
+/*!
+ * Resize a material state in host code.
+ */
+template<MemSpace M>
+inline void resize(MaterialStateData<Ownership::value, M>* data,
+                   size_type                               size,
+                   size_type                               max_el_components)
+{
+    CELER_EXPECT(size > 0);
+    make_pie_builder(data->state).resize(size);
+    make_pie_builder(data->element_scratch).resize(size * max_el_components);
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

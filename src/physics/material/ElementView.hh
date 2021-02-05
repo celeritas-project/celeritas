@@ -34,6 +34,8 @@ class ElementView
   public:
     //!@{
     //! Type aliases
+    using MaterialParamsPointers
+        = MaterialParamsData<Ownership::const_reference, MemSpace::native>;
     using AmuMass = units::AmuMass;
     //!@}
 

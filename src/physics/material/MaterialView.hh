@@ -33,6 +33,13 @@ namespace celeritas
 class MaterialView
 {
   public:
+    //!@{
+    //! Type aliases
+    using MaterialParamsPointers
+        = MaterialParamsData<Ownership::const_reference, MemSpace::native>;
+    //!@}
+
+  public:
     // Construct from params and material ID
     inline CELER_FUNCTION
     MaterialView(const MaterialParamsPointers& params, MaterialId id);
@@ -64,8 +71,7 @@ class MaterialView
     get_element_density(ElementComponentId id) const;
 
     // Advanced access to the elemental components (id/fraction)
-    inline CELER_FUNCTION const Span<const MatElementComponent>&
-                                elements() const;
+    inline CELER_FUNCTION Span<const MatElementComponent> elements() const;
 
     //// DERIVATIVE DATA ////
 

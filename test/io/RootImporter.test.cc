@@ -10,6 +10,7 @@
 #include <algorithm>
 #include "io/ImportPhysicsTable.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/material/MaterialView.hh"
 #include "base/Types.hh"
 #include "base/Range.hh"
 
@@ -219,8 +220,6 @@ TEST_F(RootImporterTest, import_material_params)
     material_label = data.material_params->id_to_label(MaterialId{1});
     EXPECT_EQ(material_label, "G4_STAINLESS-STEEL");
 
-    auto mat_host_ptr = data.material_params->host_pointers();
-
     /*!
      * Material
      *
@@ -228,27 +227,29 @@ TEST_F(RootImporterTest, import_material_params)
      * Celeritas constants results in the slightly different numerical values
      * calculated by Celeritas.
      */
-    auto material = mat_host_ptr.materials[1];
+    celeritas::MaterialView mat(data.material_params->host_pointers(),
+                                MaterialId{1});
 
-    EXPECT_EQ(MatterState::solid, material.matter_state);
-    EXPECT_SOFT_EQ(293.15, material.temperature);         // [K]
-    EXPECT_SOFT_EQ(8.0000013655195588, material.density); // [g/cm^3]
+    EXPECT_EQ(MatterState::solid, mat.matter_state());
+    EXPECT_SOFT_EQ(293.15, mat.temperature());         // [K]
+    EXPECT_SOFT_EQ(8.0000013655195588, mat.density()); // [g/cm^3]
     EXPECT_SOFT_EQ(2.2444324067595884e+24,
-                   material.electron_density); // [1/cm^3]
-    EXPECT_SOFT_EQ(8.6993504137968536e+22, material.number_density); // [1/cm^3]
-    EXPECT_EQ(3, material.elements.size());
+                   mat.electron_density());                       // [1/cm^3]
+    EXPECT_SOFT_EQ(8.6993504137968536e+22, mat.number_density()); // [1/cm^3]
 
-    // Elements of a material
-    // Fractions are normalized and thus may differ from the imported ones
-    const int array_size = 3;
-    // Fe, Cr, Ni
-    ElementId element_def_id[array_size]
-        = {ElementId{0}, ElementId{1}, ElementId{2}};
-    real_type fraction[array_size] = {0.74, 0.18, 0.08};
-
-    for (auto i : celeritas::range(material.elements.size()))
+    // Test elements by unpacking them
+    std::vector<unsigned int> els;
+    std::vector<real_type>    fracs;
+    for (const auto& component : mat.elements())
     {
-        EXPECT_EQ(material.elements[i].element, element_def_id[i]);
-        EXPECT_SOFT_EQ(material.elements[i].fraction, fraction[i]);
+        els.push_back(component.element.unchecked_get());
+        fracs.push_back(component.fraction);
     }
+
+    // Fractions are normalized and thus may differ from the imported ones
+    // Fe, Cr, Ni
+    static unsigned int const expected_els[]   = {0, 1, 2};
+    static real_type          expected_fracs[] = {0.74, 0.18, 0.08};
+    EXPECT_VEC_EQ(expected_els, els);
+    EXPECT_VEC_SOFT_EQ(expected_fracs, fracs);
 }
