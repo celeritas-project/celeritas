@@ -97,8 +97,8 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
 
     // Create cartesian direction from the sampled theta and phi
-    Real3 secondary_direction
-        = from_spherical(secondary_cos_theta, sample_phi(rng));
+    Real3 secondary_direction = rotate(
+        from_spherical(secondary_cos_theta, sample_phi(rng)), inc_direction_);
 
     // Calculate incident particle final direction
     Real3 inc_exiting_direction;
