@@ -28,7 +28,7 @@ using real_type = double;
 using Real3 = Array<real_type, 3>;
 
 //! Index of the current CUDA thread, with type safety for containers.
-using ThreadId = OpaqueId<struct Thread, unsigned int>;
+using ThreadId = OpaqueId<struct Thread>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS

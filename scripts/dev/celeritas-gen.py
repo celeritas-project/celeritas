@@ -154,15 +154,18 @@ using thrust::raw_pointer_cast;
 
 namespace celeritas_test
 {{
+namespace
+{{
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
 
 __global__ void {lowabbr}_test_kernel(unsigned int size)
 {{
-    auto local_thread_id = celeritas::KernelParamCalculator::thread_id();
-    if (local_thread_id.get() >= size)
+    auto tid = celeritas::KernelParamCalculator::thread_id();
+    if (tid.get() >= size)
         return;
+}}
 }}
 
 //---------------------------------------------------------------------------//

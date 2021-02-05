@@ -92,6 +92,7 @@ if(CELERITAS_USE_CUDA)
     GPU)
 endif()
 
+celeritas_cudaoptional_test(base/Pie)
 celeritas_cudaoptional_test(base/Range)
 celeritas_cudaoptional_test(base/StackAllocator)
 
