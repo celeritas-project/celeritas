@@ -28,15 +28,15 @@ class AtomicRelaxationParams
 
     struct TransitionInput
     {
-        size_type initial_shell; //!< Originating shell designator
-        size_type auger_shell;   //!< Auger shell designator
-        real_type probability;
-        real_type energy;
+        SubshellId initial_shell; //!< Originating shell designator
+        SubshellId auger_shell;   //!< Auger shell designator
+        real_type  probability;
+        real_type  energy;
     };
 
     struct SubshellInput
     {
-        size_type                    designator;
+        SubshellId                   designator;
         std::vector<TransitionInput> fluor;
         std::vector<TransitionInput> auger;
     };
@@ -66,19 +66,13 @@ class AtomicRelaxationParams
     // Access EADL data on the device
     AtomicRelaxParamsPointers device_pointers() const;
 
-    //! Flag a subshell index as unassigned
-    static CELER_CONSTEXPR_FUNCTION size_type unassigned()
-    {
-        return size_type(-1);
-    }
-
   private:
     //// HOST DATA ////
 
-    bool                                     is_auger_enabled_;
-    ParticleId                               electron_id_;
-    ParticleId                               gamma_id_;
-    std::unordered_map<size_type, size_type> des_to_id_;
+    bool                                       is_auger_enabled_;
+    ParticleId                                 electron_id_;
+    ParticleId                                 gamma_id_;
+    std::unordered_map<SubshellId, SubshellId> des_to_id_;
 
     std::vector<AtomicRelaxElement>    host_elements_;
     std::vector<AtomicRelaxSubshell>   host_shells_;

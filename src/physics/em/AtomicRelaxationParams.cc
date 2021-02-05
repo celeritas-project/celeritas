@@ -107,7 +107,6 @@ AtomicRelaxParamsPointers AtomicRelaxationParams::host_pointers() const
     result.elements    = make_span(host_elements_);
     result.electron_id = electron_id_;
     result.gamma_id    = gamma_id_;
-    result.unassigned  = unassigned();
 
     CELER_ENSURE(result);
     return result;
@@ -125,7 +124,6 @@ AtomicRelaxParamsPointers AtomicRelaxationParams::device_pointers() const
     result.elements    = device_elements_.device_pointers();
     result.electron_id = electron_id_;
     result.gamma_id    = gamma_id_;
-    result.unassigned  = unassigned();
 
     CELER_ENSURE(result);
     return result;
@@ -181,9 +179,9 @@ AtomicRelaxationParams::extend_shells(const ElementInput& inp)
                                      inp.shells.size()};
 
     // Create a mapping of subshell designator to index in the shells array
-    for (auto i : range(inp.shells.size()))
+    for (SubshellId::value_type i : range(inp.shells.size()))
     {
-        des_to_id_[inp.shells[i].designator] = i;
+        des_to_id_[inp.shells[i].designator] = SubshellId{i};
     }
     CELER_ASSERT(des_to_id_.size() == inp.shells.size());
 
@@ -232,20 +230,14 @@ Span<AtomicRelaxTransition> AtomicRelaxationParams::extend_transitions(
     auto start = host_transitions_.size();
     host_transitions_.resize(start + transitions.size());
 
-    // Find the index in the shells array given the shell designator
-    auto find_id = [this](size_type des) {
-        auto it = des_to_id_.find(des);
-        if (it == des_to_id_.end())
-            return unassigned();
-        else
-            return it->second;
-    };
-
     for (auto i : range(transitions.size()))
     {
-        auto& tr         = host_transitions_[start + i];
-        tr.initial_shell = find_id(transitions[i].initial_shell);
-        tr.auger_shell   = find_id(transitions[i].auger_shell);
+        auto& tr = host_transitions_[start + i];
+
+        // Find the index in the shells array given the shell designator. If
+        // the designator is not found, map it to an invalid value.
+        tr.initial_shell = des_to_id_[transitions[i].initial_shell];
+        tr.auger_shell   = des_to_id_[transitions[i].auger_shell];
         tr.probability   = transitions[i].probability;
         tr.energy        = transitions[i].energy;
     }

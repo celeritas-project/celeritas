@@ -22,10 +22,10 @@ namespace celeritas
  */
 struct AtomicRelaxTransition
 {
-    size_type initial_shell; //!< Index of the originating shell
-    size_type auger_shell;   //!< Index of the Auger electron shell
-    real_type probability;
-    real_type energy;
+    SubshellId initial_shell; //!< Index of the originating shell
+    SubshellId auger_shell;   //!< Index of the Auger electron shell
+    real_type  probability;
+    real_type  energy;
 };
 
 //---------------------------------------------------------------------------//
@@ -63,7 +63,6 @@ struct AtomicRelaxParamsPointers
     Span<const AtomicRelaxElement> elements;
     ParticleId                     electron_id;
     ParticleId                     gamma_id;
-    size_type unassigned; //!< Flag for unassigned shell id
 
     //! Check whether the interface is assigned.
     explicit inline CELER_FUNCTION operator bool() const

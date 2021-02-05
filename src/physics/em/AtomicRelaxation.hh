@@ -40,7 +40,8 @@ class AtomicRelaxation
 
     // Simulate atomic relaxation with an initial vacancy in the given shell ID
     template<class Engine>
-    inline CELER_FUNCTION size_type operator()(size_type shell_id, Engine& rng);
+    inline CELER_FUNCTION size_type operator()(SubshellId shell_id,
+                                               Engine&    rng);
 
   private:
     // Shared EADL atomic relaxation data
@@ -60,7 +61,7 @@ class AtomicRelaxation
     // transition data for a given element (19 for Z = 100). But in practice
     // that won't happen, and we could probably bound it closer to 5 for even
     // the highest Z.
-    Array<size_type, 10> vacancies_;
+    Array<SubshellId, 10> vacancies_;
     // Angular distribution of secondaries
     IsotropicDistribution<real_type> sample_direction_;
 };

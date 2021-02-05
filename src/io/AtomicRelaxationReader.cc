@@ -80,35 +80,35 @@ AtomicRelaxationReader::operator()(int atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
-        int       des    = 0;
-        real_type energy = 0.;
-        real_type prob   = 0.;
+        SubshellId::value_type des    = 0;
+        real_type              energy = 0.;
+        real_type              prob   = 0.;
 
         // Get the designator for the first section of shell data
         infile >> des >> des >> des;
         CELER_ASSERT(infile);
         result.shells.emplace_back();
-        result.shells.back().designator = des;
+        result.shells.back().designator = SubshellId{des};
         while (infile >> des >> prob >> energy)
         {
             // End of shell data
-            if (des == -1)
+            if (des == SubshellId::value_type(-1))
             {
                 // Get the designator for the next section of shell data
                 infile >> des >> des >> des;
                 CELER_ASSERT(infile);
 
                 // End of file
-                if (des == -2)
+                if (des == SubshellId::value_type(-2))
                     break;
 
                 result.shells.emplace_back();
-                result.shells.back().designator = des;
+                result.shells.back().designator = SubshellId{des};
             }
             else
             {
                 result.shells.back().fluor.push_back(
-                    {size_type(des), size_type(-1), prob, energy});
+                    {SubshellId{des}, SubshellId{}, prob, energy});
             }
         }
     }
@@ -125,38 +125,38 @@ AtomicRelaxationReader::operator()(int atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
-        int       des       = 0;
-        int       auger_des = 0;
-        real_type energy    = 0.;
-        real_type prob      = 0.;
+        SubshellId::value_type des       = 0;
+        SubshellId::value_type auger_des = 0;
+        real_type              energy    = 0.;
+        real_type              prob      = 0.;
 
         // Get the designator for the first section of shell data
         infile >> des >> des >> des >> des;
         CELER_ASSERT(infile);
         auto shell = result.shells.begin();
-        CELER_ASSERT(size_type(des) == shell->designator);
+        CELER_ASSERT(des == shell->designator.get());
         while (infile >> des >> auger_des >> prob >> energy)
         {
             // End of shell data
-            if (des == -1)
+            if (des == SubshellId::value_type(-1))
             {
                 // Get the designator for the next section of shell data
                 infile >> des >> des >> des >> des;
                 CELER_ASSERT(infile);
 
                 // End of file
-                if (des == -2)
+                if (des == SubshellId::value_type(-2))
                     break;
 
                 // Designator for next shell data
                 ++shell;
                 CELER_ASSERT(shell != result.shells.end());
-                CELER_ASSERT(size_type(des) == shell->designator);
+                CELER_ASSERT(des == shell->designator.get());
             }
             else
             {
                 shell->auger.push_back(
-                    {size_type(des), size_type(auger_des), prob, energy});
+                    {SubshellId{des}, SubshellId{auger_des}, prob, energy});
             }
         }
     }

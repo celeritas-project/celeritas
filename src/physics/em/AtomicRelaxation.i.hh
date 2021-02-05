@@ -35,14 +35,14 @@ AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
  * return the total number of secondaries created.
  */
 template<class Engine>
-CELER_FUNCTION size_type AtomicRelaxation::operator()(size_type shell_id,
-                                                      Engine&   rng)
+CELER_FUNCTION size_type AtomicRelaxation::operator()(SubshellId shell_id,
+                                                      Engine&    rng)
 {
     // The EADL only provides transition probabilities for 6 <= Z <= 100, so
     // atomic relaxation is not applicable for Z < 6. Also, transitions are
     // only provided for K, L, M, N, and some O shells.
     const AtomicRelaxElement& el = shared_.elements[el_id_.get()];
-    if (!el || shell_id >= el.shells.size())
+    if (!el || shell_id.get() >= el.shells.size())
     {
         return 0;
     }
@@ -58,10 +58,10 @@ CELER_FUNCTION size_type AtomicRelaxation::operator()(size_type shell_id,
     while (num_vacancies_)
     {
         // Pop the vacancy off the stack
-        size_type vacancy_id = vacancies_[--num_vacancies_];
+        SubshellId vacancy_id = vacancies_[--num_vacancies_];
 
         // If there are no transitions, process the next vacancy
-        if (vacancy_id == shared_.unassigned)
+        if (!vacancy_id)
         {
             continue;
         }
@@ -69,7 +69,7 @@ CELER_FUNCTION size_type AtomicRelaxation::operator()(size_type shell_id,
         // Sample the transition
         size_type                  i;
         real_type                  prob  = generate_canonical(rng);
-        const AtomicRelaxSubshell& shell = el.shells[vacancy_id];
+        const AtomicRelaxSubshell& shell = el.shells[vacancy_id.get()];
         for (i = 0; i < shell.transitions.size(); ++i)
         {
             if ((prob -= shell.transitions[i].probability) <= 0)
@@ -86,7 +86,7 @@ CELER_FUNCTION size_type AtomicRelaxation::operator()(size_type shell_id,
         }
         const AtomicRelaxTransition& transition = shell.transitions[i];
 
-        if (transition.auger_shell == shared_.unassigned)
+        if (transition.auger_shell)
         {
             // If no Auger subshell is provided, this is a radiative
             // transition: create a fluorescence photon
