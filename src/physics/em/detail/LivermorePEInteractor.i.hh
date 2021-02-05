@@ -133,20 +133,19 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     {
         // Simulate atomic relaxation and get the actual number of secondaries
         // created
-        AtomicRelaxation relax(
-            shared_.atomic_relaxation, el_id_, {secondaries + 1, count - 1});
-        count = relax(SubshellId{shell_id}, rng) + 1;
+        AtomicRelaxation relax(shared_.atomic_relaxation,
+                               el_id_,
+                               SubshellId{shell_id},
+                               {secondaries + 1, count - 1});
+        auto             out = relax(rng);
+        count                = out.count + 1;
 
         // The local energy deposition is the difference between the binding
         // energy of the subshell with the initial vacancy and the sum of the
         // energies of the secondaries created
-        real_type energy_out = 0.;
-        for (size_type i = 1; i < count; ++i)
-        {
-            energy_out += secondaries[i].energy.value();
-        }
         result.energy_deposition
-            = MevEnergy{binding_energy.value() - energy_out};
+            = MevEnergy{binding_energy.value() - out.energy};
+        CELER_ASSERT(result.energy_deposition.value() >= 0);
     }
     else
     {

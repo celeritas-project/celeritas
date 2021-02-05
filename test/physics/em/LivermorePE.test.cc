@@ -11,6 +11,7 @@
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
+#include "comm/Device.hh"
 #include "io/AtomicRelaxationReader.hh"
 #include "io/LivermorePEParamsReader.hh"
 #include "physics/base/Units.hh"
@@ -345,6 +346,12 @@ TEST_F(LivermorePEInteractorTest, stress_test)
 
 TEST_F(LivermorePEInteractorTest, model)
 {
+    // Model is constructed with device pointers
+    if (!celeritas::is_device_enabled())
+    {
+        SKIP("CUDA is disabled");
+    }
+
     PhotoelectricProcess process(
         this->get_particle_params(), livermore_params_, relax_params_);
     ModelIdGenerator     next_id;

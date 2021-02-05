@@ -6,6 +6,10 @@
 //! \file AtomicRelaxation.i.hh
 //---------------------------------------------------------------------------//
 
+#include "base/MiniStack.hh"
+
+#include <iostream>
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -18,55 +22,64 @@ namespace celeritas
 CELER_FUNCTION
 AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
                                    ElementId                        el_id,
+                                   SubshellId                       shell_id,
                                    Span<Secondary> secondaries)
     : shared_(shared)
     , el_id_(el_id)
+    , shell_id_(shell_id)
     , secondaries_(secondaries)
-    , num_vacancies_(0)
 {
     CELER_EXPECT(el_id_ < shared_.elements.size());
+    CELER_EXPECT(shell_id);
     CELER_EXPECT(secondaries_.size()
                  >= shared_.elements[el_id_.get()].max_secondary);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Simulate atomic relaxation with an initial vacancy in the given shell ID and
- * return the total number of secondaries created.
+ * Simulate atomic relaxation with an initial vacancy in the given shell ID
  */
 template<class Engine>
-CELER_FUNCTION size_type AtomicRelaxation::operator()(SubshellId shell_id,
-                                                      Engine&    rng)
+CELER_FUNCTION AtomicRelaxation::result_type
+AtomicRelaxation::operator()(Engine& rng)
 {
+    // Total number of particles produced and energy deposited locally
+    result_type result{};
+
     // The EADL only provides transition probabilities for 6 <= Z <= 100, so
     // atomic relaxation is not applicable for Z < 6. Also, transitions are
     // only provided for K, L, M, N, and some O shells.
     const AtomicRelaxElement& el = shared_.elements[el_id_.get()];
-    if (!el || shell_id.get() >= el.shells.size())
+    if (!el || shell_id_.get() >= el.shells.size())
     {
-        return 0;
+        return result;
     }
 
-    // Push the vacancy created by the primary process onto the stack
-    vacancies_[num_vacancies_++] = shell_id;
-
-    // Total number of particles produced
-    size_type count = 0;
+    // Push the vacancy created by the primary process onto a stack
+    // TODO: How should we allocate storage for these vacancies? Possibly use
+    // StackAllocator? If we are only simulating radiative transitions, there
+    // is only ever 1 vacancy waiting to be processed. For non-radiative
+    // transitions, the upper bound on the maximum number of vacancies in the
+    // stack at one time is n, where n is the number of shells containing
+    // transition data for a given element (19 for Z = 100). But in practice
+    // that won't happen, and we could probably bound it closer to 5 for even
+    // the highest Z.
+    Array<SubshellId, 10> vacancy_storage;
+    MiniStack<SubshellId> vacancies(make_span(vacancy_storage));
+    vacancies.push(shell_id_);
 
     // Generate the shower of photons and electrons produced by radiative and
     // non-radiative transitions
-    while (num_vacancies_)
+    while (!vacancies.empty())
     {
-        // Pop the vacancy off the stack
-        SubshellId vacancy_id = vacancies_[--num_vacancies_];
-
-        // If there are no transitions, process the next vacancy
+        // Pop the vacancy off the stack and check if it has transition data
+        SubshellId vacancy_id = vacancies.pop();
         if (!vacancy_id)
         {
             continue;
         }
 
-        // Sample the transition
+        // Sample a transition
         size_type                  i;
         real_type                  prob  = generate_canonical(rng);
         const AtomicRelaxSubshell& shell = el.shells[vacancy_id.get()];
@@ -78,44 +91,35 @@ CELER_FUNCTION size_type AtomicRelaxation::operator()(SubshellId shell_id,
             }
         }
 
-        // If no transition was sampled, continue to the next vacancy;
-        // otherwise get the sampled transition
+        // If no transition was sampled, continue to the next vacancy
         if (prob > 0.)
         {
             continue;
         }
+
         const AtomicRelaxTransition& transition = shell.transitions[i];
-
-        if (transition.auger_shell)
+        CELER_ASSERT(result.count < secondaries_.size());
+        Secondary& secondary = secondaries_[result.count++];
+        secondary.direction  = sample_direction_(rng);
+        secondary.energy     = MevEnergy{transition.energy};
+        vacancies.push(transition.initial_shell);
+        if (!transition.auger_shell)
         {
-            // If no Auger subshell is provided, this is a radiative
-            // transition: create a fluorescence photon
-            CELER_ASSERT(count < secondaries_.size());
-            secondaries_[count].particle_id = shared_.gamma_id;
-            secondaries_[count].direction   = sample_direction_(rng);
-            secondaries_[count++].energy    = MevEnergy{transition.energy};
-
-            // Push the new vacancy onto the stack
-            CELER_ASSERT(num_vacancies_ < vacancies_.size());
-            vacancies_[num_vacancies_++] = transition.initial_shell;
+            // Sampled a radiative transition: create a fluorescence photon
+            secondary.particle_id = shared_.gamma_id;
         }
         else
         {
-            // If there is an Auger subshell, this is a non-radiative
-            // transition: create an Auger electron
-            CELER_ASSERT(count < secondaries_.size());
-            secondaries_[count].particle_id = shared_.electron_id;
-            secondaries_[count].direction   = sample_direction_(rng);
-            secondaries_[count++].energy    = MevEnergy{transition.energy};
-
-            // Push the new vacancies onto the stack
-            CELER_ASSERT(num_vacancies_ + 1 < vacancies_.size());
-            vacancies_[num_vacancies_++] = transition.initial_shell;
-            vacancies_[num_vacancies_++] = transition.auger_shell;
+            // Sampled a non-radiative transition: create an Auger electron
+            secondary.particle_id = shared_.electron_id;
+            vacancies.push(transition.auger_shell);
         }
+
+        // Accumulate the energy carried away by secondaries
+        result.energy += transition.energy;
     }
 
-    return count;
+    return result;
 }
 
 //---------------------------------------------------------------------------//

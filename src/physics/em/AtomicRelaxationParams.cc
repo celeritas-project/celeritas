@@ -179,6 +179,7 @@ AtomicRelaxationParams::extend_shells(const ElementInput& inp)
                                      inp.shells.size()};
 
     // Create a mapping of subshell designator to index in the shells array
+    des_to_id_.clear();
     for (SubshellId::value_type i : range(inp.shells.size()))
     {
         des_to_id_[inp.shells[i].designator] = SubshellId{i};
