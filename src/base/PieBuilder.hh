@@ -42,8 +42,8 @@ class PieBuilder
     //! Type aliases
     using value_type = T;
     using PieT       = Pie<T, Ownership::value, M>;
-    using PieRangeT  = PieSlice<T>;
-    using PieSize    = typename PieRangeT::size_type;
+    using PieSliceT  = PieSlice<T>;
+    using PieSize    = typename PieSliceT::size_type;
     //!@}
 
   public:
@@ -58,10 +58,10 @@ class PieBuilder
 
     // Extend with a series of elements, returning the range inserted
     template<class InputIterator>
-    inline PieRangeT insert_back(InputIterator first, InputIterator last);
+    inline PieSliceT insert_back(InputIterator first, InputIterator last);
 
     // Extend with a series of elements from an initializer list
-    inline PieRangeT insert_back(std::initializer_list<T> init);
+    inline PieSliceT insert_back(std::initializer_list<T> init);
 
     // Append a single element
     inline void push_back(value_type element);

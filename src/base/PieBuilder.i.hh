@@ -28,7 +28,7 @@ void PieBuilder<T, M>::reserve(size_type count)
 template<class T, MemSpace M>
 template<class InputIterator>
 auto PieBuilder<T, M>::insert_back(InputIterator first, InputIterator last)
-    -> PieRangeT
+    -> PieSliceT
 {
     CELER_EXPECT(std::distance(first, last) + this->storage().size()
                  <= this->max_pie_size());
@@ -44,7 +44,7 @@ auto PieBuilder<T, M>::insert_back(InputIterator first, InputIterator last)
  * Insert the given list of elements at the end of the allocation.
  */
 template<class T, MemSpace M>
-auto PieBuilder<T, M>::insert_back(std::initializer_list<T> init) -> PieRangeT
+auto PieBuilder<T, M>::insert_back(std::initializer_list<T> init) -> PieSliceT
 {
     return this->insert_back(init.begin(), init.end());
 }
