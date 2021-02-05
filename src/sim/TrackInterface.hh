@@ -26,7 +26,7 @@ namespace celeritas
 struct ParamPointers
 {
     GeoParamsPointers      geo;
-    MaterialParamsPointers material;
+    MaterialParamsData<Ownership::const_reference, MemSpace::device> material;
     ParticleParamsPointers particle;
 
     //! Whether the data are assigned

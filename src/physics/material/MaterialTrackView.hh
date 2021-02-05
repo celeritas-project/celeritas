@@ -37,6 +37,10 @@ class MaterialTrackView
     //!@{
     //! Type aliases
     using Initializer_t = MaterialTrackState;
+    using MaterialParamsPointers
+        = MaterialParamsData<Ownership::const_reference, MemSpace::native>;
+    using MaterialStatePointers
+        = MaterialStateData<Ownership::reference, MemSpace::native>;
     //!@}
 
   public:

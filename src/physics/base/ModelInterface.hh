@@ -25,7 +25,7 @@ namespace celeritas
 struct ModelInteractParams
 {
     ParticleParamsPointers particle;
-    MaterialParamsPointers material;
+    MaterialParamsData<Ownership::const_reference, MemSpace::device> material;
     PhysicsParamsPointers  physics;
 
     //! True if valid
@@ -45,7 +45,7 @@ struct ModelInteractParams
 struct ModelInteractState
 {
     ParticleStatePointers particle;
-    MaterialStatePointers material;
+    MaterialStateData<Ownership::reference, MemSpace::device> material;
     PhysicsStatePointers  physics;
     Span<const Real3>     direction;
     RngStatePointers      rng;

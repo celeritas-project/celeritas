@@ -26,7 +26,6 @@ namespace celeritas_test
 InteractorHostTestBase::InteractorHostTestBase()
 {
     this->resize_secondaries(128);
-    ms_pointers_.state = {&mat_state_, 1};
     ps_pointers_.vars  = {&particle_state_, 1};
 }
 
@@ -45,8 +44,8 @@ void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
     CELER_EXPECT(!inp.materials.empty());
 
     material_params_ = std::make_shared<MaterialParams>(std::move(inp));
-    mat_element_scratch_.resize(material_params_->max_element_components());
-    ms_pointers_.element_scratch = make_span(mat_element_scratch_);
+    resize(&ms_data_, 1, material_params_->max_element_components());
+    ms_ref_ = ms_data_;
 }
 
 //---------------------------------------------------------------------------//
@@ -57,9 +56,9 @@ void InteractorHostTestBase::set_material(const std::string& name)
 {
     CELER_EXPECT(material_params_);
 
-    mat_state_.material_id = material_params_->find(name);
-    mt_view_               = std::make_shared<MaterialTrackView>(
-        material_params_->host_pointers(), ms_pointers_, ThreadId{0});
+    ms_data_.state[0].material_id = material_params_->find(name);
+    mt_view_                      = std::make_shared<MaterialTrackView>(
+        material_params_->host_pointers(), ms_ref_, ThreadId{0});
 }
 
 //---------------------------------------------------------------------------//

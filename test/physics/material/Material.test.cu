@@ -16,17 +16,19 @@ using thrust::raw_pointer_cast;
 
 namespace celeritas_test
 {
+namespace
+{
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void m_test_kernel(unsigned int const           size,
-                              MaterialParamsPointers const params,
-                              MaterialStatePointers const  states,
-                              const MaterialTrackState*    init,
-                              real_type*                   temperatures,
-                              real_type*                   rad_len,
-                              real_type*                   tot_z)
+__global__ void m_test_kernel(unsigned int const                       size,
+                              MTestInput::MaterialParamsPointers const params,
+                              MTestInput::MaterialStatePointers const  states,
+                              const MaterialTrackState* const          init,
+                              real_type* temperatures,
+                              real_type* rad_len,
+                              real_type* tot_z)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= size)
@@ -61,6 +63,7 @@ __global__ void m_test_kernel(unsigned int const           size,
     }
     tot_z[tid.get()] = tz;
 }
+} // namespace
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE

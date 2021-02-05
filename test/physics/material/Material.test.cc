@@ -10,7 +10,6 @@
 #include "physics/material/MaterialParams.hh"
 #include "physics/material/MaterialTrackView.hh"
 #include "physics/material/MaterialInterface.hh"
-#include "physics/material/MaterialStateStore.hh"
 #include "physics/material/detail/Utils.hh"
 
 #include <cstring>
@@ -221,9 +220,10 @@ TEST_F(MaterialDeviceTest, all)
     MTestInput input;
     input.init = {{MaterialId{0}}, {MaterialId{1}}, {MaterialId{2}}};
 
-    MaterialStateStore states(*params, input.init.size());
+    MaterialStateData<Ownership::value, MemSpace::device> state_data;
+    resize(&state_data, input.init.size(), params->max_element_components());
     input.params = params->device_pointers();
-    input.states = states.device_pointers();
+    input.states = state_data;
 
     EXPECT_EQ(params->max_element_components(),
               input.params.max_element_components);

@@ -90,10 +90,9 @@ MaterialView::get_element_density(ElementComponentId id) const
 /*!
  * View the elemental components (id/fraction) of this material.
  */
-CELER_FUNCTION const Span<const MatElementComponent>&
-                     MaterialView::elements() const
+CELER_FUNCTION Span<const MatElementComponent> MaterialView::elements() const
 {
-    return this->material_def().elements;
+    return params_.elcomponents[this->material_def().elements];
 }
 
 //---------------------------------------------------------------------------//

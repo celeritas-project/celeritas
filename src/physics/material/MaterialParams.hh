@@ -27,6 +27,15 @@ namespace celeritas
 class MaterialParams
 {
   public:
+    //!@{
+    //! References to constsructed data
+    using HostRef
+        = MaterialParamsData<Ownership::const_reference, MemSpace::host>;
+    using DeviceRef
+        = MaterialParamsData<Ownership::const_reference, MemSpace::device>;
+    using size_type = pie_size_type;
+    //!@}
+
     //! Define an element's input data
     struct ElementInput
     {
@@ -68,33 +77,26 @@ class MaterialParams
     inline MaterialId find(const std::string& name) const;
 
     // Access material properties on the host
-    inline const MaterialParamsPointers& host_pointers() const;
+    inline const HostRef& host_pointers() const;
 
     // Access material properties on the device
-    MaterialParamsPointers device_pointers() const;
+    inline const DeviceRef& device_pointers() const;
 
     //! Maximum number of elements in any one material
     size_type max_element_components() const { return max_el_; }
 
   private:
-    std::vector<ElementDef>          host_elements_;
-    std::vector<MatElementComponent> host_elcomponents_;
-    std::vector<MaterialDef>         host_materials_;
-
-    DeviceVector<ElementDef>          device_elements_;
-    DeviceVector<MatElementComponent> device_elcomponents_;
-    DeviceVector<MaterialDef>         device_materials_;
-
-    MaterialParamsPointers host_pointers_;
-
     std::vector<std::string>                    elnames_;
     std::vector<std::string>                    matnames_;
     std::unordered_map<std::string, MaterialId> matname_to_id_;
     size_type                                   max_el_;
 
+    // Host/device sstorage and reference
+    CELER_PIE_STRUCT(MaterialParamsData, const_reference) data_;
+
     // HELPER FUNCTIONS
     void                      append_element_def(const ElementInput& inp);
-    Span<MatElementComponent> extend_elcomponents(const MaterialInput& inp);
+    PieSlice<MatElementComponent> extend_elcomponents(const MaterialInput& inp);
     void                      append_material_def(const MaterialInput& inp);
 };
 

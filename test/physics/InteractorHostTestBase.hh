@@ -148,13 +148,15 @@ class InteractorHostTestBase : public celeritas::Test
     void check_momentum_conservation(const Interaction& interaction) const;
 
   private:
+    template<celeritas::Ownership W>
+    using MatState = celeritas::MaterialStateData<W, celeritas::MemSpace::host>;
+
     std::shared_ptr<MaterialParams> material_params_;
     std::shared_ptr<ParticleParams> particle_params_;
     RandomEngine                    rng_;
 
-    celeritas::MaterialTrackState    mat_state_;
-    std::vector<real_type>           mat_element_scratch_;
-    celeritas::MaterialStatePointers ms_pointers_;
+    MatState<celeritas::Ownership::value>     ms_data_;
+    MatState<celeritas::Ownership::reference> ms_ref_;
 
     celeritas::ParticleTrackState     particle_state_;
     celeritas::ParticleParamsPointers pp_pointers_;
