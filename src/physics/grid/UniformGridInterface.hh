@@ -20,7 +20,7 @@ namespace celeritas
  * from the front, delta, and size. In practice, though, that can introduce an
  * inconsistency into the "find" function.
  */
-struct UniformGridPointers
+struct UniformGridData
 {
     using value_type = ::celeritas::real_type;
 
@@ -38,7 +38,7 @@ struct UniformGridPointers
     //// HELPER FUNCTIONS ////
 
     // Construct on host from front/back
-    inline static UniformGridPointers
+    inline static UniformGridData
     from_bounds(value_type front, value_type back, size_type size);
 };
 
@@ -46,13 +46,12 @@ struct UniformGridPointers
 /*!
  * Construct from min/max and number of grid points.
  */
-UniformGridPointers UniformGridPointers::from_bounds(value_type front,
-                                                     value_type back,
-                                                     size_type  size)
+UniformGridData
+UniformGridData::from_bounds(value_type front, value_type back, size_type size)
 {
     CELER_EXPECT(size >= 2);
     CELER_EXPECT(back != front);
-    UniformGridPointers result;
+    UniformGridData result;
     result.size  = size;
     result.front = front;
     result.back  = back;

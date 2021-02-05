@@ -66,13 +66,13 @@ void from_json(const nlohmann::json& j, KNDemoResult& v)
 
 namespace celeritas
 {
-void to_json(nlohmann::json& j, const UniformGridPointers& v)
+void to_json(nlohmann::json& j, const UniformGridData& v)
 {
     j = nlohmann::json{
         {"size", v.size}, {"front", v.front}, {"delta", v.delta}};
 }
 
-void from_json(const nlohmann::json& j, UniformGridPointers& v)
+void from_json(const nlohmann::json& j, UniformGridData& v)
 {
     j.at("size").get_to(v.size);
     j.at("front").get_to(v.front);

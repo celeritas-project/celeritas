@@ -35,7 +35,7 @@ XsGridParams::XsGridParams(const Input& input)
     CELER_EXPECT(prime_index_ != input.energy.size());
 
     // Calculate uniform-in-logspace energy grid
-    log_energy_ = celeritas::UniformGridPointers::from_bounds(
+    log_energy_ = celeritas::UniformGridData::from_bounds(
         std::log(input.energy.front()),
         std::log(input.energy.back()),
         input.energy.size());

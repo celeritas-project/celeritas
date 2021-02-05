@@ -15,8 +15,8 @@ namespace celeritas
 /*!
  * Constructor.
  */
-HostDetectorStore::HostDetectorStore(size_type buffer_capacity,
-                                     const UniformGridPointers& grid)
+HostDetectorStore::HostDetectorStore(size_type              buffer_capacity,
+                                     const UniformGridData& grid)
     : hit_buffer_(buffer_capacity)
     , tally_grid_(grid)
     , tally_deposition_(UniformGrid(grid).size())

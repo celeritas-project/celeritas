@@ -150,7 +150,7 @@ void ValueGridXsBuilder::build(ValueGridStore* store) const
     XsGridPointers ptrs;
     // Construct log(energy) grid
     ptrs.log_energy
-        = UniformGridPointers::from_bounds(log_emin_, log_emax_, xs_.size());
+        = UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size());
     {
         // Find and check prime energy index
         UniformGrid grid{ptrs.log_energy};
@@ -200,7 +200,7 @@ void ValueGridLogBuilder::build(ValueGridStore* store) const
 
     // Construct log(energy) grid
     ptrs.log_energy
-        = UniformGridPointers::from_bounds(log_emin_, log_emax_, xs_.size());
+        = UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size());
 
     // Provide reference to values
     ptrs.value = make_span(xs_);

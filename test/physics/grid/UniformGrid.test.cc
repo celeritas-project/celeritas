@@ -11,7 +11,7 @@
 #include "celeritas_test.hh"
 
 using celeritas::UniformGrid;
-using celeritas::UniformGridPointers;
+using celeritas::UniformGridData;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -28,7 +28,7 @@ class UniformGridTest : public celeritas::Test
         input.back  = input.front + input.delta * (input.size - 1);
     }
 
-    UniformGridPointers input;
+    UniformGridData input;
 };
 
 //---------------------------------------------------------------------------//
@@ -67,7 +67,7 @@ TEST_F(UniformGridTest, find)
 
 TEST_F(UniformGridTest, from_bounds)
 {
-    input = UniformGridPointers::from_bounds(-1, 5, 7);
+    input = UniformGridData::from_bounds(-1, 5, 7);
     ASSERT_TRUE(input);
 
     UniformGrid grid(input);
@@ -81,7 +81,7 @@ TEST_F(UniformGridTest, from_logbounds)
 {
     const double log_emin = std::log(1.0);
     const double log_emax = std::log(1e5);
-    input = UniformGridPointers::from_bounds(log_emin, log_emax, 6);
+    input = UniformGridData::from_bounds(log_emin, log_emax, 6);
 
     UniformGrid grid(input);
     EXPECT_EQ(6, grid.size());

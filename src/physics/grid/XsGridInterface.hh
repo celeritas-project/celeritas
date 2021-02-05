@@ -29,7 +29,7 @@ struct XsGridPointers
     using EnergyUnits = units::Mev;
     using XsUnits     = units::NativeUnit; // 1/cm
 
-    UniformGridPointers   log_energy;
+    UniformGridData       log_energy;
     size_type             prime_index{size_type(-1)};
     Span<const real_type> value;
 

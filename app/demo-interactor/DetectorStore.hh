@@ -24,8 +24,8 @@ class DetectorStore
 {
   public:
     // Construct with the given capacity for hits
-    explicit DetectorStore(size_type                  buffer_capacity,
-                           const UniformGridPointers& grid);
+    explicit DetectorStore(size_type              buffer_capacity,
+                           const UniformGridData& grid);
 
     // Get reference to on-device data
     DetectorPointers device_pointers();
@@ -40,7 +40,7 @@ class DetectorStore
     // In-kernel hit buffer
     StackAllocatorStore<Hit> hit_buffer_;
     // Uniform tally grid
-    UniformGridPointers tally_grid_;
+    UniformGridData tally_grid_;
     // Tallied data
     DeviceVector<real_type> tally_deposition_;
 };

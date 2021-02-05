@@ -49,7 +49,7 @@ class XsGridParams
     XsGridPointers host_pointers() const;
 
   private:
-    celeritas::UniformGridPointers     log_energy_;
+    celeritas::UniformGridData         log_energy_;
     celeritas::DeviceVector<real_type> xs_;
     celeritas::size_type               prime_index_;
 

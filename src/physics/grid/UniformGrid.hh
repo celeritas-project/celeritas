@@ -31,7 +31,7 @@ class UniformGrid
 
   public:
     // Construct with data
-    explicit inline CELER_FUNCTION UniformGrid(const UniformGridPointers& data);
+    explicit inline CELER_FUNCTION UniformGrid(const UniformGridData& data);
 
     // Number of grid points
     inline CELER_FUNCTION size_type size() const;
@@ -49,10 +49,10 @@ class UniformGrid
     inline CELER_FUNCTION size_type find(value_type value) const;
 
     //! Get the data used to construct this class
-    CELER_FUNCTION const UniformGridPointers& data() const { return data_; }
+    CELER_FUNCTION const UniformGridData& data() const { return data_; }
 
   private:
-    const UniformGridPointers data_;
+    const UniformGridData data_;
 };
 
 //---------------------------------------------------------------------------//

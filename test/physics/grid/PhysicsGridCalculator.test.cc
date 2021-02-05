@@ -14,7 +14,7 @@
 #include "celeritas_test.hh"
 
 using celeritas::PhysicsGridCalculator;
-using celeritas::UniformGridPointers;
+using celeritas::UniformGridData;
 using celeritas::XsGridPointers;
 
 //---------------------------------------------------------------------------//
@@ -30,7 +30,7 @@ class PhysicsGridCalculatorTest : public celeritas::Test
     void build(real_type emin, real_type emax, int count)
     {
         CELER_EXPECT(count >= 2);
-        data.log_energy = UniformGridPointers::from_bounds(
+        data.log_energy = UniformGridData::from_bounds(
             std::log(emin), std::log(emax), count);
 
         stored_xs.resize(count);

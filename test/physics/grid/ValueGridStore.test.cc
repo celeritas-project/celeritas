@@ -13,7 +13,7 @@
 
 using celeritas::real_type;
 using celeritas::size_type;
-using celeritas::UniformGridPointers;
+using celeritas::UniformGridData;
 using celeritas::ValueGridStore;
 using celeritas::XsGridPointers;
 
@@ -28,7 +28,7 @@ class ValueGridStoreTest : public celeritas::Test
     {
         CELER_EXPECT(count > 0);
         XsGridPointers result;
-        result.log_energy  = UniformGridPointers::from_bounds(0.0, 1.0, count);
+        result.log_energy  = UniformGridData::from_bounds(0.0, 1.0, count);
         result.prime_index = count / 2;
         temp_real.resize(count);
         for (auto i : celeritas::range(temp_real.size()))

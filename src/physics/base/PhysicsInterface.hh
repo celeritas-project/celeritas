@@ -120,7 +120,7 @@ struct HardwiredModels
  * (ParticleId{1}) in material 2 (MaterialId{2}) will have the following
  * ID and cross section grid: \code
    ProcessId proc_id = params.particle[1].processes[0];
-   const UniformGridPointers& grid
+   const UniformGridData& grid
        =
  params.particle[1].table[int(PhysicsTableType::macro_xs)][0].material[2].log_energy;
  * \endcode
