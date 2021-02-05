@@ -25,10 +25,9 @@ class MollerEnergyDistribution
 {
   public:
     // Construct with data from MollerBhabhaInteractor
-    inline CELER_FUNCTION
-    MollerEnergyDistribution(const real_type electron_mass_c_sq,
-                             const real_type min_valid_energy,
-                             const real_type inc_energy);
+    inline CELER_FUNCTION MollerEnergyDistribution(real_type electron_mass_c_sq,
+                                                   real_type min_valid_energy,
+                                                   real_type inc_energy);
 
     // Sample the exiting energy
     template<class Engine>
@@ -39,12 +38,7 @@ class MollerEnergyDistribution
     real_type inc_energy_;
     // Total energy of the incident particle [MeV]
     real_type total_energy_;
-    // Maximum energy fraction transferred to free electron
-    static CELER_CONSTEXPR_FUNCTION real_type max_energy_fraction()
-    {
-        return 0.5;
-    }
-    // Maximum energy fraction transferred to free electron
+    // Minimum energy fraction transferred to free electron
     real_type min_energy_fraction_;
     // Sampling parameter
     real_type gamma_;
@@ -52,6 +46,11 @@ class MollerEnergyDistribution
   private:
     // Helper function for calculating rejection function g
     inline CELER_FUNCTION real_type calc_g_fraction(real_type epsilon);
+    // Maximum energy fraction transferred to free electron
+    static CELER_CONSTEXPR_FUNCTION real_type max_energy_fraction()
+    {
+        return 0.5;
+    }
 }; // namespace MollerEnergyDistribution
 
 //---------------------------------------------------------------------------//

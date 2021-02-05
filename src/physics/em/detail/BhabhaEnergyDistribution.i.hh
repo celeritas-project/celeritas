@@ -20,10 +20,9 @@ namespace detail
  * Construct with data from MollerBhabhaInteractor.
  */
 CELER_FUNCTION
-BhabhaEnergyDistribution::BhabhaEnergyDistribution(
-    const real_type electron_mass_c_sq,
-    const real_type min_valid_energy,
-    const real_type inc_energy)
+BhabhaEnergyDistribution::BhabhaEnergyDistribution(real_type electron_mass_c_sq,
+                                                   real_type min_valid_energy,
+                                                   real_type inc_energy)
     : inc_energy_(inc_energy)
     , total_energy_(inc_energy + electron_mass_c_sq)
     , min_energy_fraction_(min_valid_energy / inc_energy)

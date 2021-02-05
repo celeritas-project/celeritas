@@ -19,16 +19,15 @@ namespace detail
 /*!
  * Helper class for \c MollerBhabhaInteractor .
  *
- * Sample the exiting energy for Moller scattering.
+ * Sample the exiting energy for Bhabha scattering.
  */
 class BhabhaEnergyDistribution
 {
   public:
     // Construct with data from MollerBhabhaInteractor
-    inline CELER_FUNCTION
-    BhabhaEnergyDistribution(const real_type electron_mass_c_sq,
-                             const real_type min_valid_energy,
-                             const real_type inc_energy);
+    inline CELER_FUNCTION BhabhaEnergyDistribution(real_type electron_mass_c_sq,
+                                                   real_type min_valid_energy,
+                                                   real_type inc_energy);
 
     // Sample the exiting energy
     template<class Engine>
@@ -39,12 +38,7 @@ class BhabhaEnergyDistribution
     real_type inc_energy_;
     // Total energy of the incident particle
     real_type total_energy_;
-    // Maximum energy fraction transferred to free electron
-    static CELER_CONSTEXPR_FUNCTION real_type max_energy_fraction()
-    {
-        return 1;
-    }
-    // Maximum energy fraction transferred to free electron
+    // Minimum energy fraction transferred to free electron
     real_type min_energy_fraction_;
     // Sampling parameter
     real_type gamma_;
@@ -53,6 +47,11 @@ class BhabhaEnergyDistribution
     // Helper function for calculating rejection function g
     inline CELER_FUNCTION real_type calc_g_fraction(real_type epsilon_min,
                                                     real_type epsilon_max);
+    // Maximum energy fraction transferred to free electron
+    static CELER_CONSTEXPR_FUNCTION real_type max_energy_fraction()
+    {
+        return 1;
+    }
 }; // namespace BhabhaEnergyDistribution
 
 //---------------------------------------------------------------------------//
