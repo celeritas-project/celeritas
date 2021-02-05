@@ -40,6 +40,19 @@ struct PieTraits
 
 //---------------------------------------------------------------------------//
 template<class T>
+struct PieTraits<T, Ownership::reference>
+{
+    using SpanT                = Span<T>;
+    using SpanConstT           = Span<T>;
+    using pointer              = T*;
+    using const_pointer        = T*;
+    using reference_type       = T&;
+    using const_reference_type = T&;
+    using value_type           = T;
+};
+
+//---------------------------------------------------------------------------//
+template<class T>
 struct PieTraits<T, Ownership::const_reference>
 {
     using SpanT                = Span<const T>;
