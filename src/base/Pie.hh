@@ -207,16 +207,11 @@ class Pie
 } // namespace celeritas
 
 //---------------------------------------------------------------------------//
-/*!
- * \def CELER_PIE_TYPE(CLSNAME, OWNERSHIP, MEMSPACE)
- *
- * Define type alias for a template class (usually a collection of pies) with
- * the given ownership and memory space.
- */
-#define CELER_PIE_TYPE(CLSNAME, OWNERSHIP, MEMSPACE) \
+//! \cond
+#define CELER_PIE_TYPE_(CLSNAME, OWNERSHIP, MEMSPACE) \
     CLSNAME<::celeritas::Ownership::OWNERSHIP, ::celeritas::MemSpace::MEMSPACE>
+//!\endcond
 
-//---------------------------------------------------------------------------//
 /*!
  * \def CELER_PIE_STRUCT
  *
@@ -229,7 +224,8 @@ class Pie
  * class FooParams
  * {
  *  public:
- *   using PieDeviceRef = CELER_PIE_TYPE(FooPies, const_reference, device);
+ *   using PieDeviceRef = FooPies<Ownership::const_reference,
+ *                                MemSpace::device>;
  *
  *   const PieDeviceRef& device_pointers() const {
  *    return pies_.device_ref;
@@ -239,13 +235,13 @@ class Pie
  * };
  * \endcode
  */
-#define CELER_PIE_STRUCT(CLSNAME, REFTYPE)                   \
-    struct                                                   \
-    {                                                        \
-        CELER_PIE_TYPE(CLSNAME, value, host) host;           \
-        CELER_PIE_TYPE(CLSNAME, value, device) device;       \
-        CELER_PIE_TYPE(CLSNAME, REFTYPE, host) host_ref;     \
-        CELER_PIE_TYPE(CLSNAME, REFTYPE, device) device_ref; \
+#define CELER_PIE_STRUCT(CLSNAME, REFTYPE)                    \
+    struct                                                    \
+    {                                                         \
+        CELER_PIE_TYPE_(CLSNAME, value, host) host;           \
+        CELER_PIE_TYPE_(CLSNAME, value, device) device;       \
+        CELER_PIE_TYPE_(CLSNAME, REFTYPE, host) host_ref;     \
+        CELER_PIE_TYPE_(CLSNAME, REFTYPE, device) device_ref; \
     }
 
 //---------------------------------------------------------------------------//
