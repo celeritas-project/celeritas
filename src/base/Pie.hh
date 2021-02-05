@@ -13,6 +13,18 @@
 
 namespace celeritas
 {
+/*!
+ * Element indexing type for Pie access.
+ *
+ * The size type is plain "unsigned int" (32-bit in CUDA) rather than
+ * \c celeritas::size_type (64-bit) because CUDA currently uses native 32-bit
+ * pointer arithmetic. In general this should be the same type as the default
+ * OpaqueId::value_type. It's possible that in large problems 4 billion
+ * elements won't be enough (for e.g. cross sections), but in that case the
+ * PieBuilder will throw an assertion during construction.
+ */
+using pie_size_type = detail::pie_size_type;
+
 //---------------------------------------------------------------------------//
 /*!
  * Reference a contiguous subset of items inside a Pie.
@@ -24,13 +36,6 @@ namespace celeritas
  * corresponding \c Pie type, and more importantly it's only assigned to one
  * particular pie. It doesn't have any persistent connection to its associated
  * pie and thus must be used carefully.
- *
- * The size type is plain "unsigned int" (32-bit in CUDA) rather than
- * \c celeritas::size_type (64-bit) because CUDA currently uses native 32-bit
- * pointer arithmetic. In general this should be the same type as the default
- * OpaqueId::value_type. It's possible that in large problems 4 billion
- * elements won't be enough (for e.g. cross sections), but in that case the
- * PieBuilder will throw an assertion during construction.
  *
  * \code
  * struct MyMaterial
@@ -56,7 +61,7 @@ class PieSlice
 {
   public:
     //!@{
-    using size_type = detail::pie_size_type;
+    using size_type = pie_size_type;
     //!@}
 
   public:
@@ -161,10 +166,12 @@ class Pie
     //// ACCESS ////
 
     // Access a subset of the data with a slice
-    inline CELER_FUNCTION SpanT operator[](const PieSlice<T>& ps) const;
+    inline CELER_FUNCTION SpanT      operator[](const PieSlice<T>& ps);
+    inline CELER_FUNCTION SpanConstT operator[](const PieSlice<T>& ps) const;
 
     // Access a single element
-    inline CELER_FUNCTION reference_type operator[](size_type i) const;
+    inline CELER_FUNCTION reference_type       operator[](size_type i);
+    inline CELER_FUNCTION const_reference_type operator[](size_type i) const;
 
     // Direct accesors to underlying data
     CELER_CONSTEXPR_FUNCTION size_type     size() const;

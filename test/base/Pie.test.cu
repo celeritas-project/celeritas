@@ -18,7 +18,7 @@ namespace
 //---------------------------------------------------------------------------//
 __global__ void p_test_kernel(
     const MockParamsPies<Ownership::const_reference, MemSpace::device> params,
-    const MockStatePies<Ownership::reference, MemSpace::device>        states,
+    MockStatePies<Ownership::reference, MemSpace::device>              states,
     const celeritas::Span<double>                                      results)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();

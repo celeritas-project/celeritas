@@ -85,9 +85,9 @@ class PieBuilder
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for constructing pie builders.
+ * Helper function for constructing pie builders.
  *
- * (Will not be needed under C++20's new constructor lookups).
+ * (Will not be needed under C++17's template argument deduction).
  */
 template<class T, MemSpace M>
 PieBuilder<T, M> make_pie_builder(Pie<T, Ownership::value, M>& pie)
