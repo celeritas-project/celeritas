@@ -55,7 +55,6 @@ list(APPEND SOURCES
   physics/grid/ValueGridBuilder.cc
   physics/grid/ValueGridStore.cc
   physics/material/MaterialParams.cc
-  physics/material/MaterialStateStore.cc
   physics/material/detail/Utils.cc
   random/cuda/RngStateStore.cc
   sim/SimStateStore.cc
