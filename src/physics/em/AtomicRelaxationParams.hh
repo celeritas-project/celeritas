@@ -24,41 +24,36 @@ class AtomicRelaxationParams
     //@{
     //! Type aliases
     using MevEnergy = units::MevEnergy;
-
     //@}
 
-    //! Radiative transition input
-    struct FluorSubshellInput
+    struct TransitionInput
     {
-        std::vector<size_type> initial_shell; //!< Originating shell designator
-        std::vector<real_type> transition_energy;
-        std::vector<real_type> transition_prob;
+        size_type initial_shell; //!< Originating shell designator
+        size_type auger_shell;   //!< Auger shell designator
+        real_type probability;
+        real_type energy;
     };
 
-    //! Non-radiative transition input
-    struct AugerSubshellInput
+    struct SubshellInput
     {
-        std::vector<size_type> initial_shell; //!< Originating shell designator
-        std::vector<size_type> auger_shell;   //!< Auger shell designator
-        std::vector<real_type> transition_energy;
-        std::vector<real_type> transition_prob;
+        size_type                    designator;
+        std::vector<TransitionInput> fluor;
+        std::vector<TransitionInput> auger;
     };
 
     struct ElementInput
     {
-        using EnergyUnits = units::Mev;
-
-        std::vector<size_type> designators;    //!< EADL subshell designator
-        std::vector<FluorSubshellInput> fluor; //!< Radiative transitions
-        std::vector<AugerSubshellInput> auger; //!< Non-radiative transistions
+        std::vector<SubshellInput> shells;
     };
 
     struct Input
     {
+        using EnergyUnits = units::Mev;
+
         std::vector<ElementInput> elements;
+        ParticleId                electron_id{};
+        ParticleId                gamma_id{};
         bool is_auger_enabled{false}; //!< Whether to produce Auger electrons
-        ParticleId electron_id{};
-        ParticleId gamma_id{};
     };
 
   public:
@@ -80,28 +75,26 @@ class AtomicRelaxationParams
   private:
     //// HOST DATA ////
 
-    bool                             is_auger_enabled_;
-    ParticleId                       electron_id_;
-    ParticleId                       gamma_id_;
-    std::vector<AtomicRelaxElement>  host_elements_;
-    std::vector<AtomicRelaxSubshell> host_shells_;
-    std::vector<size_type>           host_id_data_;
-    std::vector<real_type>           host_tr_data_;
+    bool                                     is_auger_enabled_;
+    ParticleId                               electron_id_;
+    ParticleId                               gamma_id_;
+    std::unordered_map<size_type, size_type> des_to_id_;
+
+    std::vector<AtomicRelaxElement>    host_elements_;
+    std::vector<AtomicRelaxSubshell>   host_shells_;
+    std::vector<AtomicRelaxTransition> host_transitions_;
 
     //// DEVICE DATA ////
 
-    DeviceVector<AtomicRelaxElement>  device_elements_;
-    DeviceVector<AtomicRelaxSubshell> device_shells_;
-    DeviceVector<size_type>           device_id_data_;
-    DeviceVector<real_type>           device_tr_data_;
+    DeviceVector<AtomicRelaxElement>    device_elements_;
+    DeviceVector<AtomicRelaxSubshell>   device_shells_;
+    DeviceVector<AtomicRelaxTransition> device_transitions_;
 
     // HELPER FUNCTIONS
     void                      append_element(const ElementInput& inp);
     Span<AtomicRelaxSubshell> extend_shells(const ElementInput& inp);
-    void
-    map_des_to_id(const std::unordered_map<size_type, size_type>& des_to_id,
-                  const std::vector<size_type>&                   des,
-                  std::vector<size_type>*                         id);
+    Span<AtomicRelaxTransition>
+    extend_transitions(const std::vector<TransitionInput>& transitions);
 };
 
 //---------------------------------------------------------------------------//

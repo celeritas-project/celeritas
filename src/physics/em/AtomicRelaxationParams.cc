@@ -34,36 +34,25 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     CELER_EXPECT(electron_id_);
     CELER_EXPECT(gamma_id_);
 
-    // Reserve host space (MUST reserve subshells and transition data to avoid
+    // Reserve host space (MUST reserve subshells and transitions to avoid
     // invalidating spans).
     size_type ss_size = 0;
-    size_type id_size = 0;
     size_type tr_size = 0;
     for (const auto& el : inp.elements)
     {
-        ss_size += el.fluor.size();
-        for (size_type i = 0; i < el.fluor.size(); ++i)
+        ss_size += el.shells.size();
+        for (const auto& shell : el.shells)
         {
-            id_size += el.fluor[i].initial_shell.size();
-            tr_size += el.fluor[i].transition_energy.size()
-                       + el.fluor[i].transition_prob.size();
+            tr_size += shell.fluor.size();
             if (is_auger_enabled_)
             {
-                // If Auger is enabled we allocate space for Auger shells in
-                // the radiative transitions too; they will just be flagged as
-                // unassigned
-                id_size += el.auger[i].initial_shell.size()
-                           + el.auger[i].auger_shell.size()
-                           + el.fluor[i].initial_shell.size();
-                tr_size += el.auger[i].transition_energy.size()
-                           + el.auger[i].transition_prob.size();
+                tr_size += shell.auger.size();
             }
         }
     }
     host_elements_.reserve(inp.elements.size());
     host_shells_.reserve(ss_size);
-    host_id_data_.reserve(id_size);
-    host_tr_data_.reserve(tr_size);
+    host_transitions_.reserve(tr_size);
 
     // Build elements
     for (const auto& el : inp.elements)
@@ -77,24 +66,17 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
         device_elements_
             = DeviceVector<AtomicRelaxElement>{host_elements_.size()};
         device_shells_ = DeviceVector<AtomicRelaxSubshell>{host_shells_.size()};
-        device_id_data_ = DeviceVector<size_type>{host_id_data_.size()};
-        device_tr_data_ = DeviceVector<real_type>{host_tr_data_.size()};
+        device_transitions_
+            = DeviceVector<AtomicRelaxTransition>{host_transitions_.size()};
 
-        // Remap shell->data spans
-        auto remap_id = make_span_remapper(make_span(host_id_data_),
-                                           device_id_data_.device_pointers());
-        auto remap_tr = make_span_remapper(make_span(host_tr_data_),
-                                           device_tr_data_.device_pointers());
+        // Remap shell->transition spans
+        auto remap_transitions
+            = make_span_remapper(make_span(host_transitions_),
+                                 device_transitions_.device_pointers());
         std::vector<AtomicRelaxSubshell> temp_device_shells = host_shells_;
         for (AtomicRelaxSubshell& ss : temp_device_shells)
         {
-            ss.transition_energy = remap_tr(ss.transition_energy);
-            ss.transition_prob   = remap_tr(ss.transition_prob);
-            ss.initial_shell     = remap_id(ss.initial_shell);
-            if (is_auger_enabled_)
-            {
-                ss.auger_shell = remap_id(ss.auger_shell);
-            }
+            ss.transitions = remap_transitions(ss.transitions);
         }
 
         // Remap element->shell spans
@@ -109,8 +91,7 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
         // Copy vectors to device
         device_elements_.copy_to_device(make_span(temp_device_elements));
         device_shells_.copy_to_device(make_span(temp_device_shells));
-        device_id_data_.copy_to_device(make_span(host_id_data_));
-        device_tr_data_.copy_to_device(make_span(host_tr_data_));
+        device_transitions_.copy_to_device(make_span(host_transitions_));
     }
 
     CELER_ENSURE(host_elements_.size() == inp.elements.size());
@@ -169,11 +150,11 @@ void AtomicRelaxationParams::append_element(const ElementInput& inp)
     // won't create secondaries in the relaxation cascade to reduce it further?
     if (is_auger_enabled_)
     {
-        result.max_secondary = std::pow(2, inp.auger.size()) - 1;
+        result.max_secondary = std::pow(2, inp.shells.size()) - 1;
     }
     else
     {
-        result.max_secondary = inp.fluor.size();
+        result.max_secondary = inp.shells.size();
     }
 
     // Copy subshell transition data
@@ -190,77 +171,49 @@ void AtomicRelaxationParams::append_element(const ElementInput& inp)
 Span<AtomicRelaxSubshell>
 AtomicRelaxationParams::extend_shells(const ElementInput& inp)
 {
-    CELER_EXPECT(inp.designators.size() == inp.fluor.size());
-    CELER_EXPECT(host_shells_.size() + inp.fluor.size()
+    CELER_EXPECT(host_shells_.size() + inp.shells.size()
                  <= host_shells_.capacity());
 
     // Allocate subshells
     auto start = host_shells_.size();
-    host_shells_.resize(start + inp.fluor.size());
+    host_shells_.resize(start + inp.shells.size());
     Span<AtomicRelaxSubshell> result{host_shells_.data() + start,
-                                     inp.fluor.size()};
+                                     inp.shells.size()};
 
-    for (auto i : range(inp.fluor.size()))
+    // Create a mapping of subshell designator to index in the shells array
+    for (auto i : range(inp.shells.size()))
     {
-        // Store the radiative transition energies and append the non-radiative
-        // energies if Auger effect is enabled
-        result[i].transition_energy
-            = extend(inp.fluor[i].transition_energy, &host_tr_data_);
+        des_to_id_[inp.shells[i].designator] = i;
+    }
+    CELER_ASSERT(des_to_id_.size() == inp.shells.size());
+
+    for (auto i : range(inp.shells.size()))
+    {
+        // Store the radiative transitions
+        auto fluor = this->extend_transitions(inp.shells[i].fluor);
+
+        // Append the non-radiative transitions if Auger effect is enabled
         if (is_auger_enabled_)
         {
-            auto ext = extend(inp.auger[i].transition_energy, &host_tr_data_);
-            result[i].transition_energy
-                = {result[i].transition_energy.begin(), ext.end()};
+            auto auger = this->extend_transitions(inp.shells[i].auger);
+            result[i].transitions = {fluor.begin(), auger.end()};
         }
-
-        // Store the radiative transition probabilities and append the
-        // non-radiative probabilities if Auger effect is enabled
-        result[i].transition_prob
-            = extend(inp.fluor[i].transition_prob, &host_tr_data_);
-        if (is_auger_enabled_)
+        else
         {
-            auto ext = extend(inp.auger[i].transition_prob, &host_tr_data_);
-            result[i].transition_prob
-                = {result[i].transition_prob.begin(), ext.end()};
-
-            // For a given subshell vacancy, EADL transition probabilities are
-            // normalized so that the sum over all radiative and non-radiative
-            // transitions is 1
-            real_type norm = std::accumulate(result[i].transition_prob.begin(),
-                                             result[i].transition_prob.end(),
-                                             real_type(0));
-            CELER_ASSERT(soft_near(1., norm, 1.e-5));
+            result[i].transitions = fluor;
         }
 
-        // Map the shell designators to the indices in the shells array
-        std::unordered_map<size_type, size_type> des_to_id;
-        for (auto i : range(inp.designators.size()))
-        {
-            des_to_id[inp.designators[i]] = i;
-        }
-        CELER_ASSERT(des_to_id.size() == inp.designators.size());
-
-        // Convert the initial shell designators to indices and store
-        std::vector<size_type> shell_id;
-        map_des_to_id(des_to_id, inp.fluor[i].initial_shell, &shell_id);
-        result[i].initial_shell = extend(shell_id, &host_id_data_);
-        if (is_auger_enabled_)
-        {
-            map_des_to_id(des_to_id, inp.auger[i].initial_shell, &shell_id);
-            auto ext = extend(shell_id, &host_id_data_);
-            result[i].initial_shell
-                = {result[i].initial_shell.begin(), ext.end()};
-
-            // Convert the Auger shell designators to indices and store. For
-            // radiative transitions, mark the Auger shells as unassigned
-            shell_id.resize(inp.fluor[i].initial_shell.size());
-            std::fill(shell_id.begin(), shell_id.end(), unassigned());
-            result[i].auger_shell = extend(shell_id, &host_id_data_);
-
-            map_des_to_id(des_to_id, inp.auger[i].auger_shell, &shell_id);
-            ext                   = extend(shell_id, &host_id_data_);
-            result[i].auger_shell = {result[i].auger_shell.begin(), ext.end()};
-        }
+        // For a given subshell vacancy, EADL transition probabilities are
+        // normalized so that the sum over all radiative and non-radiative
+        // transitions is 1
+        real_type norm = std::accumulate(
+            result[i].transitions.begin(),
+            result[i].transitions.end(),
+            real_type(0),
+            [](real_type sum, const AtomicRelaxTransition& tr) {
+                return sum + tr.probability;
+            });
+        CELER_ASSERT(soft_near(1., norm, 1.e-5));
     }
 
     return result;
@@ -268,28 +221,36 @@ AtomicRelaxationParams::extend_shells(const ElementInput& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Map subshell designators to indices in the shells array
+ * Process and store transition data to the internal list.
  */
-void AtomicRelaxationParams::map_des_to_id(
-    const std::unordered_map<size_type, size_type>& des_to_id,
-    const std::vector<size_type>&                   des,
-    std::vector<size_type>*                         id)
+Span<AtomicRelaxTransition> AtomicRelaxationParams::extend_transitions(
+    const std::vector<TransitionInput>& transitions)
 {
-    id->clear();
-    for (auto d : des)
-    {
-        auto it = des_to_id.find(d);
-        if (it == des_to_id.end())
-        {
-            // There is no transition data for this shell
-            id->push_back(unassigned());
-        }
+    CELER_EXPECT(host_transitions_.size() + transitions.size()
+                 <= host_transitions_.capacity());
+
+    auto start = host_transitions_.size();
+    host_transitions_.resize(start + transitions.size());
+
+    // Find the index in the shells array given the shell designator
+    auto find_id = [this](size_type des) {
+        auto it = des_to_id_.find(des);
+        if (it == des_to_id_.end())
+            return unassigned();
         else
-        {
-            id->push_back(it->second);
-        }
+            return it->second;
+    };
+
+    for (auto i : range(transitions.size()))
+    {
+        auto& tr         = host_transitions_[start + i];
+        tr.initial_shell = find_id(transitions[i].initial_shell);
+        tr.auger_shell   = find_id(transitions[i].auger_shell);
+        tr.probability   = transitions[i].probability;
+        tr.energy        = transitions[i].energy;
     }
-    CELER_ENSURE(id->size() == des.size());
+
+    return {host_transitions_.data() + start, transitions.size()};
 }
 
 //---------------------------------------------------------------------------//

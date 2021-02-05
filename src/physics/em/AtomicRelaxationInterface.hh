@@ -17,20 +17,24 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Atomic relaxation transition data.
- *
- * The size of the arrays is the number of transitions that can occur in which
- * the vacancy in this subshell is filled by an electron from an upper shell.
- * The transition probabilities describe both radiative and non-radiative
- * transitions. Auger electron shells are only assigned for non-radiative
- * transitions.
+ * Atomic relaxation transition data. The transition probabilities describe
+ * both radiative and non-radiative transitions.
+ */
+struct AtomicRelaxTransition
+{
+    size_type initial_shell; //!< Index of the originating shell
+    size_type auger_shell;   //!< Index of the Auger electron shell
+    real_type probability;
+    real_type energy;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Electron subshell data.
  */
 struct AtomicRelaxSubshell
 {
-    Span<size_type> initial_shell; //!< Index of the originating shell
-    Span<size_type> auger_shell;   //!< Index of the Auger electron shell
-    Span<real_type> transition_energy;
-    Span<real_type> transition_prob;
+    Span<const AtomicRelaxTransition> transitions;
 };
 
 //---------------------------------------------------------------------------//
@@ -59,7 +63,7 @@ struct AtomicRelaxParamsPointers
     Span<const AtomicRelaxElement> elements;
     ParticleId                     electron_id;
     ParticleId                     gamma_id;
-    size_type                      unassigned; //!< Flag for nassigned shell id
+    size_type unassigned; //!< Flag for unassigned shell id
 
     //! Check whether the interface is assigned.
     explicit inline CELER_FUNCTION operator bool() const

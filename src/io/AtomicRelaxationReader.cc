@@ -80,20 +80,21 @@ AtomicRelaxationReader::operator()(int atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
-        int       des       = 0;
-        real_type tr_energy = 0.;
-        real_type tr_prob   = 0.;
+        int       des    = 0;
+        real_type energy = 0.;
+        real_type prob   = 0.;
+
+        // Get the designator for the first section of shell data
         infile >> des >> des >> des;
         CELER_ASSERT(infile);
-        result.designators.push_back(des);
-        result.fluor.emplace_back();
-        while (infile >> des >> tr_prob >> tr_energy)
+        result.shells.emplace_back();
+        result.shells.back().designator = des;
+        while (infile >> des >> prob >> energy)
         {
-            CELER_ASSERT(infile);
-
             // End of shell data
             if (des == -1)
             {
+                // Get the designator for the next section of shell data
                 infile >> des >> des >> des;
                 CELER_ASSERT(infile);
 
@@ -101,16 +102,13 @@ AtomicRelaxationReader::operator()(int atomic_number) const
                 if (des == -2)
                     break;
 
-                // Designator for next shell data
-                result.designators.push_back(des);
-                result.fluor.emplace_back();
+                result.shells.emplace_back();
+                result.shells.back().designator = des;
             }
             else
             {
-                auto& shell = result.fluor.back();
-                shell.initial_shell.push_back(des);
-                shell.transition_prob.push_back(tr_prob);
-                shell.transition_energy.push_back(tr_energy);
+                result.shells.back().fluor.push_back(
+                    {size_type(des), size_type(-1), prob, energy});
             }
         }
     }
@@ -129,19 +127,20 @@ AtomicRelaxationReader::operator()(int atomic_number) const
 
         int       des       = 0;
         int       auger_des = 0;
-        real_type tr_energy = 0.;
-        real_type tr_prob   = 0.;
+        real_type energy    = 0.;
+        real_type prob      = 0.;
+
+        // Get the designator for the first section of shell data
         infile >> des >> des >> des >> des;
         CELER_ASSERT(infile);
-        CELER_ASSERT(size_type(des) == result.designators.front());
-        result.auger.emplace_back();
-        while (infile >> des >> auger_des >> tr_prob >> tr_energy)
+        auto shell = result.shells.begin();
+        CELER_ASSERT(size_type(des) == shell->designator);
+        while (infile >> des >> auger_des >> prob >> energy)
         {
-            CELER_ASSERT(infile);
-
             // End of shell data
             if (des == -1)
             {
+                // Get the designator for the next section of shell data
                 infile >> des >> des >> des >> des;
                 CELER_ASSERT(infile);
 
@@ -150,17 +149,14 @@ AtomicRelaxationReader::operator()(int atomic_number) const
                     break;
 
                 // Designator for next shell data
-                CELER_ASSERT(size_type(des)
-                             == result.designators[result.auger.size()]);
-                result.auger.emplace_back();
+                ++shell;
+                CELER_ASSERT(shell != result.shells.end());
+                CELER_ASSERT(size_type(des) == shell->designator);
             }
             else
             {
-                auto& shell = result.auger.back();
-                shell.initial_shell.push_back(des);
-                shell.auger_shell.push_back(auger_des);
-                shell.transition_prob.push_back(tr_prob);
-                shell.transition_energy.push_back(tr_energy);
+                shell->auger.push_back(
+                    {size_type(des), size_type(auger_des), prob, energy});
             }
         }
     }

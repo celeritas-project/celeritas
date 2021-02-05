@@ -67,44 +67,37 @@ CELER_FUNCTION size_type AtomicRelaxation::operator()(size_type shell_id,
         }
 
         // Sample the transition
+        size_type                  i;
+        real_type                  prob  = generate_canonical(rng);
         const AtomicRelaxSubshell& shell = el.shells[vacancy_id];
-        size_type                  tr_id;
-        real_type                  prob = generate_canonical(rng);
-        for (tr_id = 0; tr_id < shell.transition_prob.size(); ++tr_id)
+        for (i = 0; i < shell.transitions.size(); ++i)
         {
-            if ((prob -= shell.transition_prob[tr_id]) <= 0)
+            if ((prob -= shell.transitions[i].probability) <= 0)
             {
                 break;
             }
         }
 
-        // No transition was sampled: don't produce any secondaries and
-        // continue to the next vacancy
+        // If no transition was sampled, continue to the next vacancy;
+        // otherwise get the sampled transition
         if (prob > 0.)
         {
             continue;
         }
+        const AtomicRelaxTransition& transition = shell.transitions[i];
 
-        // Get the Auger electron shell ID: it will be unassigned if simulation
-        // of non-radiative transitions is disabled or if a radiative
-        // transition was sampled
-        size_type auger_id = shell.auger_shell.empty()
-                                 ? shared_.unassigned
-                                 : shell.auger_shell[tr_id];
-
-        if (auger_id == shared_.unassigned)
+        if (transition.auger_shell == shared_.unassigned)
         {
             // If no Auger subshell is provided, this is a radiative
             // transition: create a fluorescence photon
             CELER_ASSERT(count < secondaries_.size());
             secondaries_[count].particle_id = shared_.gamma_id;
             secondaries_[count].direction   = sample_direction_(rng);
-            secondaries_[count++].energy
-                = MevEnergy{shell.transition_energy[tr_id]};
+            secondaries_[count++].energy    = MevEnergy{transition.energy};
 
             // Push the new vacancy onto the stack
             CELER_ASSERT(num_vacancies_ < vacancies_.size());
-            vacancies_[num_vacancies_++] = shell.initial_shell[tr_id];
+            vacancies_[num_vacancies_++] = transition.initial_shell;
         }
         else
         {
@@ -113,13 +106,12 @@ CELER_FUNCTION size_type AtomicRelaxation::operator()(size_type shell_id,
             CELER_ASSERT(count < secondaries_.size());
             secondaries_[count].particle_id = shared_.electron_id;
             secondaries_[count].direction   = sample_direction_(rng);
-            secondaries_[count++].energy
-                = MevEnergy{shell.transition_energy[tr_id]};
+            secondaries_[count++].energy    = MevEnergy{transition.energy};
 
             // Push the new vacancies onto the stack
             CELER_ASSERT(num_vacancies_ + 1 < vacancies_.size());
-            vacancies_[num_vacancies_++] = shell.initial_shell[tr_id];
-            vacancies_[num_vacancies_++] = auger_id;
+            vacancies_[num_vacancies_++] = transition.initial_shell;
+            vacancies_[num_vacancies_++] = transition.auger_shell;
         }
     }
 
