@@ -61,8 +61,8 @@ class PieTest : public celeritas::Test
             = mock_params.host;
         host_pies.max_element_components = 3;
 
-        auto el_builder  = make_pie_builder(host_pies.elements);
-        auto mat_builder = make_pie_builder(host_pies.materials);
+        auto el_builder  = make_pie_builder(&host_pies.elements);
+        auto mat_builder = make_pie_builder(&host_pies.materials);
         el_builder.reserve(5);
         mat_builder.reserve(2);
 
@@ -130,7 +130,7 @@ TEST_F(PieTest, host)
     MockStatePies<Ownership::value, MemSpace::host>     host_state;
     MockStatePies<Ownership::reference, MemSpace::host> host_state_ref;
 
-    make_pie_builder(host_state.matid).resize(1);
+    make_pie_builder(&host_state.matid).resize(1);
     host_state_ref = host_state;
 
     // Assign
@@ -151,7 +151,7 @@ TEST_F(PieTest, device)
 
     // Construct with 1024 states
     MockStatePies<Ownership::value, MemSpace::device> device_states;
-    make_pie_builder(device_states.matid).resize(1024);
+    make_pie_builder(&device_states.matid).resize(1024);
 
     celeritas::DeviceVector<double> device_result(device_states.size());
 

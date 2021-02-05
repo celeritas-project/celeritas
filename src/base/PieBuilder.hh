@@ -24,7 +24,7 @@ namespace celeritas
  * items.
  *
  * \code
-    auto pb = make_pie_builder(myintpie.host);
+    auto pb = make_pie_builder(&myintpie.host);
     pb.reserve(100);
     PieSlice<int> insertion = pb.extend(local_ints.begin(), local_ints.end());
     pb.push_back(123);
@@ -48,7 +48,7 @@ class PieBuilder
 
   public:
     //! Construct from a pie
-    explicit PieBuilder(PieT& pie) : pie_(pie) {}
+    explicit PieBuilder(PieT* pie) : pie_(*pie) {}
 
     // Increase size to this capacity
     inline void resize(size_type count);
@@ -90,8 +90,9 @@ class PieBuilder
  * (Will not be needed under C++17's template argument deduction).
  */
 template<class T, MemSpace M>
-PieBuilder<T, M> make_pie_builder(Pie<T, Ownership::value, M>& pie)
+PieBuilder<T, M> make_pie_builder(Pie<T, Ownership::value, M>* pie)
 {
+    CELER_EXPECT(pie);
     return PieBuilder<T, M>(pie);
 }
 

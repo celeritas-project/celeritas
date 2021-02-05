@@ -88,7 +88,7 @@ void MaterialParams::append_element_def(const ElementInput& inp)
     elnames_.push_back(inp.name);
 
     // Add to host vector
-    make_pie_builder(data_.host.elements).push_back(result);
+    make_pie_builder(&data_.host.elements).push_back(result);
 }
 
 //---------------------------------------------------------------------------//
@@ -144,7 +144,7 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp)
             return lhs.element < rhs.element;
         });
 
-    return make_pie_builder(data_.host.elcomponents)
+    return make_pie_builder(&data_.host.elcomponents)
         .insert_back(components.begin(), components.end());
 }
 
@@ -199,7 +199,7 @@ void MaterialParams::append_material_def(const MaterialInput& inp)
     result.rad_length       = 1 / (rad_coeff * result.density);
 
     // Add to host vector
-    make_pie_builder(data_.host.materials).push_back(result);
+    make_pie_builder(&data_.host.materials).push_back(result);
     matnames_.push_back(inp.name);
 
     // Update maximum number of materials

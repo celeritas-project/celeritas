@@ -188,8 +188,8 @@ inline void resize(MaterialStateData<Ownership::value, M>* data,
                    size_type                               max_el_components)
 {
     CELER_EXPECT(size > 0);
-    make_pie_builder(data->state).resize(size);
-    make_pie_builder(data->element_scratch).resize(size * max_el_components);
+    make_pie_builder(&data->state).resize(size);
+    make_pie_builder(&data->element_scratch).resize(size * max_el_components);
 }
 #endif
 
