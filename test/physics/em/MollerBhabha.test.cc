@@ -265,7 +265,7 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
 {
     RandomEngine& rng = this->rng();
 
-    const int           num_samples = 1e5; // Must be an even number
+    const int           num_samples = 1e4;
     std::vector<double> avg_engine_samples;
 
     // Moller's max energy fraction is 0.5, which leads to E_K > 2e-3
@@ -273,56 +273,56 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
     // Since this loop encompasses both Moller and Bhabha, the minimum chosen
     // energy is > 2e-3.
     // NOTE: As E_K -> 2e-3, engine_samples -> infinity
-    for (double inc_e : {5e-3, 1.0, 10.0, 100.0, 1000.0})
+    for (auto particle : {pdg::electron(), pdg::positron()})
     {
-        RandomEngine::size_type num_particles_sampled = 0;
-
-        // Loop over several incident directions (shouldn't affect anything
-        // substantial, but scattering near Z axis loses precision)
-        for (const Real3& inc_dir :
-             {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
+        for (double inc_e : {5e-3, 1.0, 10.0, 100.0, 1000.0})
         {
-            this->set_inc_direction(inc_dir);
-            this->resize_secondaries(num_samples);
+            RandomEngine::size_type num_particles_sampled = 0;
 
-            // Create Moller interactor
-            this->set_inc_particle(pdg::electron(), MevEnergy{inc_e});
-            MollerBhabhaInteractor m_interact(pointers_,
-                                              this->particle_track(),
-                                              this->direction(),
-                                              this->secondary_allocator());
-
-            // Loop over half the sample size
-            for (int i = 0; i < num_samples / 2; ++i)
+            // Loop over several incident directions (shouldn't affect anything
+            // substantial, but scattering near Z axis loses precision)
+            for (const Real3& inc_dir : {Real3{0, 0, 1},
+                                         Real3{1, 0, 0},
+                                         Real3{1e-9, 0, 1},
+                                         Real3{1, 1, 1}})
             {
-                Interaction result = m_interact(rng);
-                this->sanity_check(result);
+                this->set_inc_direction(inc_dir);
+                this->resize_secondaries(num_samples);
+
+                // Create interactor
+                this->set_inc_particle(particle, MevEnergy{inc_e});
+                MollerBhabhaInteractor mb_interact(pointers_,
+                                                   this->particle_track(),
+                                                   this->direction(),
+                                                   this->secondary_allocator());
+
+                // Loop over half the sample size
+                for (int i = 0; i < num_samples; ++i)
+                {
+                    Interaction result = mb_interact(rng);
+                    this->sanity_check(result);
+                }
+
+                EXPECT_EQ(num_samples,
+                          this->secondary_allocator().get().size());
+                num_particles_sampled += num_samples;
             }
-
-            // Create Bhabha interactor
-            this->set_inc_particle(pdg::positron(), MevEnergy{inc_e});
-            MollerBhabhaInteractor b_interact(pointers_,
-                                              this->particle_track(),
-                                              this->direction(),
-                                              this->secondary_allocator());
-
-            // Loop over half the sample size
-            for (int i = 0; i < num_samples / 2; ++i)
-            {
-                Interaction result = b_interact(rng);
-                this->sanity_check(result);
-            }
-
-            EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
-            num_particles_sampled += num_samples;
+            avg_engine_samples.push_back(double(rng.count())
+                                         / double(num_particles_sampled));
+            rng.reset_count();
         }
-        avg_engine_samples.push_back(double(rng.count())
-                                     / double(num_particles_sampled));
-        rng.reset_count();
     }
     // PRINT_EXPECTED(avg_engine_samples);
     // Gold values for average number of calls to rng
-    const double expected_avg_engine_samples[]
-        = {292.29072, 10.9784, 8.35317, 8.11999, 8.1031};
+    const double expected_avg_engine_samples[] = {20.8046,
+                                                  13.2538,
+                                                  9.5695,
+                                                  9.2121,
+                                                  9.1693,
+                                                  564.0656,
+                                                  8.7123,
+                                                  7.1706,
+                                                  7.0299,
+                                                  7.0079};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
