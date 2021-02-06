@@ -34,16 +34,17 @@ namespace celeritas
  * to allocate a host version and copy to device. (This is useful for state
  * allocations.)
  */
-template<class T, MemSpace M>
+template<class T, MemSpace M, class I>
 class PieBuilder
 {
   public:
     //!@{
     //! Type aliases
+    using PieT       = Pie<T, Ownership::value, M, I>;
+    using PieIndexT  = I;
     using value_type = T;
-    using PieT       = Pie<T, Ownership::value, M>;
-    using PieSliceT  = PieSlice<T>;
-    using PieSize    = typename PieSliceT::size_type;
+    using size_type  = typename PieT::size_type;
+    using PieSliceT  = PieSlice<value_type, size_type>;
     //!@}
 
   public:
@@ -64,10 +65,10 @@ class PieBuilder
     inline PieSliceT insert_back(std::initializer_list<T> init);
 
     // Append a single element
-    inline void push_back(value_type element);
+    inline PieIndexT push_back(value_type element);
 
     //! Number of elements in the pie
-    PieSize size() const { return pie_.size(); }
+    size_type size() const { return pie_.size(); }
 
   private:
     PieT& pie_;
@@ -79,7 +80,7 @@ class PieBuilder
     //! Maximum elements in a Pie, in native std::size_t
     static constexpr size_type max_pie_size()
     {
-        return std::numeric_limits<PieSize>::max();
+        return std::numeric_limits<size_type>::max();
     }
 };
 
@@ -89,11 +90,11 @@ class PieBuilder
  *
  * (Will not be needed under C++17's template argument deduction).
  */
-template<class T, MemSpace M>
-PieBuilder<T, M> make_pie_builder(Pie<T, Ownership::value, M>* pie)
+template<class T, MemSpace M, class I>
+PieBuilder<T, M, I> make_pie_builder(Pie<T, Ownership::value, M, I>* pie)
 {
     CELER_EXPECT(pie);
-    return PieBuilder<T, M>(pie);
+    return PieBuilder<T, M, I>(pie);
 }
 
 //---------------------------------------------------------------------------//

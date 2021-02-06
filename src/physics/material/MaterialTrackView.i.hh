@@ -75,7 +75,7 @@ CELER_FUNCTION Span<real_type> MaterialTrackView::element_scratch()
  */
 CELER_FORCEINLINE_FUNCTION MaterialTrackState& MaterialTrackView::state() const
 {
-    return states_.state[thread_.get()];
+    return states_.state[thread_];
 }
 
 //---------------------------------------------------------------------------//

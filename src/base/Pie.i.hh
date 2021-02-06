@@ -14,8 +14,8 @@ namespace celeritas
 /*!
  * Construct with a particular range.
  */
-template<class T>
-CELER_FUNCTION PieSlice<T>::PieSlice(size_type start, size_type stop)
+template<class T, class S>
+CELER_FUNCTION PieSlice<T, S>::PieSlice(size_type start, size_type stop)
     : start_(start), stop_(stop)
 {
     CELER_EXPECT(start_ <= stop_);
@@ -25,33 +25,36 @@ CELER_FUNCTION PieSlice<T>::PieSlice(size_type start, size_type stop)
 /*!
  * Construct from another pie.
  */
-template<class T, Ownership W, MemSpace M>
+template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-Pie<T, W, M>::Pie(const Pie<T, W2, M2>& other)
+Pie<T, W, M, I>::Pie(const Pie<T, W2, M2, I>& other)
     : storage_(detail::PieAssigner<W, M>()(other.storage_))
 {
+    detail::PieStorageValidator<W2>()(this->size(), other.storage().size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from another pie (mutable).
  */
-template<class T, Ownership W, MemSpace M>
+template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-Pie<T, W, M>::Pie(Pie<T, W2, M2>& other)
+Pie<T, W, M, I>::Pie(Pie<T, W2, M2, I>& other)
     : storage_(detail::PieAssigner<W, M>()(other.storage_))
 {
+    detail::PieStorageValidator<W2>()(this->size(), other.storage().size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Assign from another pie in the same memory space.
  */
-template<class T, Ownership W, MemSpace M>
+template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2>
-Pie<T, W, M>& Pie<T, W, M>::operator=(const Pie<T, W2, M>& other)
+Pie<T, W, M, I>& Pie<T, W, M, I>::operator=(const Pie<T, W2, M, I>& other)
 {
     storage_ = detail::PieAssigner<W, M>()(other.storage_);
+    detail::PieStorageValidator<W2>()(this->size(), other.storage().size());
     return *this;
 }
 
@@ -59,11 +62,12 @@ Pie<T, W, M>& Pie<T, W, M>::operator=(const Pie<T, W2, M>& other)
 /*!
  * Assign (mutable!) from another pie in the same memory space.
  */
-template<class T, Ownership W, MemSpace M>
+template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2>
-Pie<T, W, M>& Pie<T, W, M>::operator=(Pie<T, W2, M>& other)
+Pie<T, W, M, I>& Pie<T, W, M, I>::operator=(Pie<T, W2, M, I>& other)
 {
     storage_ = detail::PieAssigner<W, M>()(other.storage_);
+    detail::PieStorageValidator<W2>()(this->size(), other.storage().size());
     return *this;
 }
 
@@ -71,8 +75,8 @@ Pie<T, W, M>& Pie<T, W, M>::operator=(Pie<T, W2, M>& other)
 /*!
  * Access a subspan.
  */
-template<class T, Ownership W, MemSpace M>
-CELER_FUNCTION auto Pie<T, W, M>::operator[](const PieSlice<T>& ps) -> SpanT
+template<class T, Ownership W, MemSpace M, class I>
+CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) -> SpanT
 {
     CELER_EXPECT(ps.stop() <= this->size());
     return {this->data() + ps.start(), this->data() + ps.stop()};
@@ -82,8 +86,8 @@ CELER_FUNCTION auto Pie<T, W, M>::operator[](const PieSlice<T>& ps) -> SpanT
 /*!
  * Access a subspan (const).
  */
-template<class T, Ownership W, MemSpace M>
-CELER_FUNCTION auto Pie<T, W, M>::operator[](const PieSlice<T>& ps) const
+template<class T, Ownership W, MemSpace M, class I>
+CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) const
     -> SpanConstT
 {
     CELER_EXPECT(ps.stop() <= this->size());
@@ -94,51 +98,52 @@ CELER_FUNCTION auto Pie<T, W, M>::operator[](const PieSlice<T>& ps) const
 /*!
  * Access a single element.
  */
-template<class T, Ownership W, MemSpace M>
-CELER_FUNCTION auto Pie<T, W, M>::operator[](size_type i) -> reference_type
+template<class T, Ownership W, MemSpace M, class I>
+CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieIndexT i) -> reference_type
 {
     CELER_EXPECT(i < this->size());
-    return this->storage()[i];
+    return this->storage()[i.get()];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Access a single element (const).
  */
-template<class T, Ownership W, MemSpace M>
-CELER_FUNCTION auto Pie<T, W, M>::operator[](size_type i) const
+template<class T, Ownership W, MemSpace M, class I>
+CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieIndexT i) const
     -> const_reference_type
 {
     CELER_EXPECT(i < this->size());
-    return this->storage()[i];
+    return this->storage()[i.get()];
 }
 
 //---------------------------------------------------------------------------//
 //!@{
 //! Direct accesors to underlying data
-template<class T, Ownership W, MemSpace M>
-CELER_CONSTEXPR_FUNCTION auto Pie<T, W, M>::size() const -> size_type
+template<class T, Ownership W, MemSpace M, class I>
+CELER_CONSTEXPR_FUNCTION auto Pie<T, W, M, I>::size() const -> size_type
 {
     return this->storage().size();
 }
 
-template<class T, Ownership W, MemSpace M>
-CELER_CONSTEXPR_FUNCTION bool Pie<T, W, M>::empty() const
+template<class T, Ownership W, MemSpace M, class I>
+CELER_CONSTEXPR_FUNCTION bool Pie<T, W, M, I>::empty() const
 {
     return this->storage().empty();
 }
 
-template<class T, Ownership W, MemSpace M>
-CELER_CONSTEXPR_FUNCTION auto Pie<T, W, M>::data() const -> const_pointer
+template<class T, Ownership W, MemSpace M, class I>
+CELER_CONSTEXPR_FUNCTION auto Pie<T, W, M, I>::data() const -> const_pointer
 {
     return this->storage().data();
 }
 
-template<class T, Ownership W, MemSpace M>
-CELER_CONSTEXPR_FUNCTION auto Pie<T, W, M>::data() -> pointer
+template<class T, Ownership W, MemSpace M, class I>
+CELER_CONSTEXPR_FUNCTION auto Pie<T, W, M, I>::data() -> pointer
 {
     return this->storage().data();
 }
 //!@}
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas

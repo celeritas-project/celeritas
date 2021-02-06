@@ -8,6 +8,7 @@
 #include "base/Pie.hh"
 #include "base/PieBuilder.hh"
 
+#include <cstdint>
 #include <type_traits>
 #include "celeritas_test.hh"
 #include "Pie.test.hh"
@@ -18,13 +19,14 @@ using celeritas::MemSpace;
 using celeritas::Ownership;
 using celeritas::Pie;
 using celeritas::Span;
+using celeritas::ThreadId;
 
 using namespace celeritas_test;
 
 template<class T>
 constexpr bool is_trivial_v = std::is_trivially_copyable<T>::value;
 
-TEST(PieTypesTest, types)
+TEST(SimplePie, slice_types)
 {
     EXPECT_TRUE((is_trivial_v<celeritas::PieSlice<int>>));
     EXPECT_TRUE((is_trivial_v<
@@ -34,7 +36,7 @@ TEST(PieTypesTest, types)
             celeritas::Pie<int, Ownership::const_reference, MemSpace::device>>));
 }
 
-TEST(PieSliceTest, all)
+TEST(SimplePie, slice)
 {
     using PieSliceT = celeritas::PieSlice<int>;
     PieSliceT ps;
@@ -46,6 +48,28 @@ TEST(PieSliceTest, all)
     EXPECT_EQ(11, ps.size());
     EXPECT_EQ(10, ps.start());
     EXPECT_EQ(21, ps.stop());
+}
+
+TEST(SimplePie, size_limits)
+{
+    using IdType = celeritas::OpaqueId<struct Tiny, std::uint8_t>;
+    Pie<double, Ownership::value, MemSpace::host, IdType> host_val;
+    auto                build = make_pie_builder(&host_val);
+    std::vector<double> dummy(255);
+    auto                slc = build.insert_back(dummy.begin(), dummy.end());
+    EXPECT_EQ(0, slc.start());
+    EXPECT_EQ(255, slc.stop());
+
+#if CELERITAS_DEBUG
+    // In debug mode, the item that exceeds the limit will throw.
+    EXPECT_THROW(build.push_back(1234.5), celeritas::DebugError);
+#else
+    // With bounds checking disabled, a one-off check when getting a reference
+    // should catch the size failure.
+    build.push_back(12345.6);
+    Pie<double, Ownership::const_reference, MemSpace::host, IdType> host_ref;
+    EXPECT_THROW(host_ref = host_val, celeritas::RuntimeError);
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -78,7 +102,8 @@ class PieTest : public celeritas::Test
             m.elements = el_builder.insert_back(std::begin(elements),
                                                 std::end(elements));
             EXPECT_EQ(3, m.elements.size());
-            mat_builder.push_back(m);
+            auto id = mat_builder.push_back(m);
+            EXPECT_EQ(MockMaterialId{0}, id);
         }
         {
             MockMaterial m;
@@ -98,7 +123,9 @@ class PieTest : public celeritas::Test
         // Test host-accessible values and const correctness
         {
             const auto&         host_pies_const = host_pies;
-            const MockMaterial& m               = host_pies_const.materials[0];
+
+            const MockMaterial& m
+                = host_pies_const.materials[MockMaterialId{0}];
             EXPECT_EQ(3, m.elements.size());
             Span<const MockElement> els = host_pies_const.elements[m.elements];
             EXPECT_EQ(3, els.size());
@@ -134,12 +161,12 @@ TEST_F(PieTest, host)
     host_state_ref = host_state;
 
     // Assign
-    host_state_ref.matid[0] = 1;
+    host_state_ref.matid[ThreadId{0}] = MockMaterialId{1};
 
     // Create view
     MockTrackView mock(
         mock_params.host_ref, host_state_ref, celeritas::ThreadId{0});
-    EXPECT_EQ(1, mock.matid());
+    EXPECT_EQ(1, mock.matid().unchecked_get());
 }
 
 TEST_F(PieTest, device)

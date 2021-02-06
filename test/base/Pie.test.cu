@@ -26,14 +26,14 @@ __global__ void p_test_kernel(
         return;
 
     // Initialize local matid states
-    states.matid[tid.get()] = tid.get() % params.materials.size();
+    states.matid[tid] = MockMaterialId(tid.get() % params.materials.size());
 
     // Construct track view
     MockTrackView mock(params, states, tid);
 
     // Access some values
-    int matid = mock.matid();
-    CELER_ASSERT(matid >= 0);
+    MockMaterialId matid = mock.matid();
+    CELER_ASSERT(matid);
     double nd = mock.number_density();
     CELER_ASSERT(nd >= 0);
 
@@ -42,7 +42,7 @@ __global__ void p_test_kernel(
     if (!elements.empty())
     {
         const MockElement& el = elements[(tid.get() / 2) % elements.size()];
-        result                = matid + nd * el.atomic_mass / el.atomic_number;
+        result = matid.get() + nd * el.atomic_mass / el.atomic_number;
     }
 
     // Do a stupid test of pie slice

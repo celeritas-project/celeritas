@@ -39,7 +39,7 @@ MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
     }
     data_.host.max_element_components = this->max_element_components();
 
-    // Copy to device
+    // Save reference for easier on-host accesss
     data_.host_ref = data_.host;
 
     if (celeritas::is_device_enabled())
@@ -187,7 +187,7 @@ void MaterialParams::append_material_def(const MaterialInput& inp)
          data_.host.elcomponents[result.elements])
     {
         CELER_ASSERT(comp.element < data_.host.elements.size());
-        const ElementDef& el = data_.host.elements[comp.element.get()];
+        const ElementDef& el = data_.host.elements[comp.element];
 
         avg_amu_mass += comp.fraction * el.atomic_mass.value();
         avg_z += comp.fraction * el.atomic_number;

@@ -7,23 +7,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "OpaqueId.hh"
 #include "PieTypes.hh"
 #include "Types.hh"
 #include "detail/PieImpl.hh"
 
 namespace celeritas
 {
-/*!
- * Element indexing type for Pie access.
- *
- * The size type is plain "unsigned int" (32-bit in CUDA) rather than
- * \c celeritas::size_type (64-bit) because CUDA currently uses native 32-bit
- * pointer arithmetic. In general this should be the same type as the default
- * OpaqueId::value_type. It's possible that in large problems 4 billion
- * elements won't be enough (for e.g. cross sections), but in that case the
- * PieBuilder will throw an assertion during construction.
- */
-using pie_size_type = detail::pie_size_type;
+//! Opaque ID representing a single element of a pie.
+template<class T>
+using PieId = OpaqueId<T, pie_size_type>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -51,17 +44,13 @@ using pie_size_type = detail::pie_size_type;
  *     Pie<MyMaterial, W, M> materials;
  * };
  * \endcode
- *
- * \todo Not sure if we ever have to directly iterate over the values, but if
- * we wanted to we could have this guy use \c detail::range_iter<unsigned int>
- * instead of unsigned int.
  */
-template<class T>
+template<class T, class Size = pie_size_type>
 class PieSlice
 {
   public:
     //!@{
-    using size_type = pie_size_type;
+    using size_type = Size;
     //!@}
 
   public:
@@ -114,7 +103,7 @@ class PieSlice
  * we always want to build host code in C++ files for development ease and to
  * allow testing when CUDA is disabled.)
  */
-template<class T, Ownership W, MemSpace M>
+template<class T, Ownership W, MemSpace M, class I = PieId<T>>
 class Pie
 {
     using PieTraitsT = detail::PieTraits<T, W>;
@@ -124,11 +113,13 @@ class Pie
     //! Type aliases
     using SpanT                = typename PieTraitsT::SpanT;
     using SpanConstT           = typename PieTraitsT::SpanConstT;
-    using value_type           = typename PieTraitsT::value_type;
     using pointer              = typename PieTraitsT::pointer;
     using const_pointer        = typename PieTraitsT::const_pointer;
     using reference_type       = typename PieTraitsT::reference_type;
     using const_reference_type = typename PieTraitsT::const_reference_type;
+    using size_type            = typename I::value_type;
+    using PieIndexT            = I;
+    using PieSliceT            = PieSlice<T, size_type>;
     //!@}
 
   public:
@@ -143,11 +134,11 @@ class Pie
 
     // Construct from another pie
     template<Ownership W2, MemSpace M2>
-    inline Pie(const Pie<T, W2, M2>& other);
+    inline Pie(const Pie<T, W2, M2, I>& other);
 
     // Construct from another pie (mutable)
     template<Ownership W2, MemSpace M2>
-    inline Pie(Pie<T, W2, M2>& other);
+    inline Pie(Pie<T, W2, M2, I>& other);
 
     //!@{
     //! Default assignment
@@ -157,21 +148,21 @@ class Pie
 
     // Assign from another pie in the same memory space
     template<Ownership W2>
-    inline Pie& operator=(const Pie<T, W2, M>& other);
+    inline Pie& operator=(const Pie<T, W2, M, I>& other);
 
     // Assign (mutable!) from another pie in the same memory space
     template<Ownership W2>
-    inline Pie& operator=(Pie<T, W2, M>& other);
+    inline Pie& operator=(Pie<T, W2, M, I>& other);
 
     //// ACCESS ////
 
     // Access a subset of the data with a slice
-    inline CELER_FUNCTION SpanT      operator[](const PieSlice<T>& ps);
-    inline CELER_FUNCTION SpanConstT operator[](const PieSlice<T>& ps) const;
+    inline CELER_FUNCTION SpanT      operator[](PieSliceT ps);
+    inline CELER_FUNCTION SpanConstT operator[](PieSliceT ps) const;
 
     // Access a single element
-    inline CELER_FUNCTION reference_type       operator[](size_type i);
-    inline CELER_FUNCTION const_reference_type operator[](size_type i) const;
+    inline CELER_FUNCTION reference_type       operator[](PieIndexT i);
+    inline CELER_FUNCTION const_reference_type operator[](PieIndexT i) const;
 
     // Direct accesors to underlying data
     CELER_CONSTEXPR_FUNCTION size_type     size() const;
@@ -186,14 +177,15 @@ class Pie
 
     //// FRIENDS ////
 
-    template<class T2, Ownership W2, MemSpace M2>
+    template<class T2, Ownership W2, MemSpace M2, class Id2>
     friend class Pie;
 
-    template<class T2, MemSpace M2>
+    template<class T2, MemSpace M2, class Id2>
     friend class PieBuilder;
 
+  protected:
     //!@{
-    // Private accessors for pie construction
+    // Private accessors for pie construction/access
     using StorageT = typename detail::PieStorage<T, W, M>::type;
     CELER_FORCEINLINE_FUNCTION const StorageT& storage() const
     {
@@ -202,6 +194,10 @@ class Pie
     CELER_FORCEINLINE_FUNCTION StorageT& storage() { return storage_.data; }
     //@}
 };
+
+//! Pie for data of type T but indexed by ThreadId
+template<class T, Ownership W, MemSpace M>
+using StatePie = Pie<T, W, M, ThreadId>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

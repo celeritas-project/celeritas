@@ -24,11 +24,17 @@ struct MockElement
     double atomic_mass;
 };
 
+using MockElementId
+    = celeritas::OpaqueId<MockElement, celeritas::pie_size_type>;
+
 struct MockMaterial
 {
     double                           number_density;
     celeritas::PieSlice<MockElement> elements;
 };
+
+using MockMaterialId
+    = celeritas::OpaqueId<MockMaterial, celeritas::pie_size_type>;
 
 template<Ownership W, MemSpace M>
 struct MockParamsPies
@@ -78,7 +84,7 @@ struct MockStatePies
 
     //// DATA ////
 
-    celeritas::Pie<int, W, M> matid;
+    celeritas::StatePie<MockMaterialId, W, M> matid;
 
     //// MEMBER FUNCTIONS ////
 
@@ -112,14 +118,17 @@ class MockTrackView
     using ThreadId      = celeritas::ThreadId;
 
     CELER_FUNCTION MockTrackView(const ParamsPointers& params,
-                                 const StatePointers&  state,
+                                 const StatePointers&  states,
                                  ThreadId              tid)
-        : params_(params), states_(state), thread_(tid)
+        : params_(params), states_(states), thread_(tid)
     {
         CELER_EXPECT(thread_ < states_.size());
     }
 
-    CELER_FUNCTION int matid() const { return states_.matid[thread_.get()]; }
+    CELER_FUNCTION MockMaterialId matid() const
+    {
+        return states_.matid[thread_];
+    }
 
     CELER_FUNCTION double number_density() const
     {
@@ -138,8 +147,8 @@ class MockTrackView
 
     CELER_FUNCTION const MockMaterial& mat() const
     {
-        int id = this->matid();
-        CELER_ASSERT(id < int(params_.materials.size()));
+        MockMaterialId id = this->matid();
+        CELER_ASSERT(id < params_.materials.size());
         return params_.materials[id];
     }
 };
