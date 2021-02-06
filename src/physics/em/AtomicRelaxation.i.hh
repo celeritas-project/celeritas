@@ -43,7 +43,7 @@ template<class Engine>
 CELER_FUNCTION AtomicRelaxation::result_type
 AtomicRelaxation::operator()(Engine& rng)
 {
-    // Total number of particles produced and energy deposited locally
+    // Total number of particles produced and energy removed by secondaries
     result_type result{};
 
     // The EADL only provides transition probabilities for 6 <= Z <= 100, so

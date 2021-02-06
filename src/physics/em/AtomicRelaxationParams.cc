@@ -148,7 +148,7 @@ void AtomicRelaxationParams::append_element(const ElementInput& inp)
     // won't create secondaries in the relaxation cascade to reduce it further?
     if (is_auger_enabled_)
     {
-        result.max_secondary = std::pow(2, inp.shells.size()) - 1;
+        result.max_secondary = std::exp2(inp.shells.size()) - 1;
     }
     else
     {
@@ -188,6 +188,16 @@ AtomicRelaxationParams::extend_shells(const ElementInput& inp)
 
     for (auto i : range(inp.shells.size()))
     {
+        // Check that for a given subshell vacancy EADL transition
+        // probabilities are normalized so that the sum over all radiative and
+        // non-radiative transitions is 1
+        real_type norm = 0.;
+        for (const auto& transition : inp.shells[i].fluor)
+            norm += transition.probability;
+        for (const auto& transition : inp.shells[i].auger)
+            norm += transition.probability;
+        CELER_ASSERT(soft_equal(1., norm));
+
         // Store the radiative transitions
         auto fluor = this->extend_transitions(inp.shells[i].fluor);
 
@@ -201,18 +211,6 @@ AtomicRelaxationParams::extend_shells(const ElementInput& inp)
         {
             result[i].transitions = fluor;
         }
-
-        // For a given subshell vacancy, EADL transition probabilities are
-        // normalized so that the sum over all radiative and non-radiative
-        // transitions is 1
-        real_type norm = std::accumulate(
-            result[i].transitions.begin(),
-            result[i].transitions.end(),
-            real_type(0),
-            [](real_type sum, const AtomicRelaxTransition& tr) {
-                return sum + tr.probability;
-            });
-        CELER_ASSERT(soft_near(1., norm, 1.e-5));
     }
 
     return result;

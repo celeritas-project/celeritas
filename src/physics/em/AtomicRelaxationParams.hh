@@ -28,15 +28,15 @@ class AtomicRelaxationParams
 
     struct TransitionInput
     {
-        SubshellId initial_shell; //!< Originating shell designator
-        SubshellId auger_shell;   //!< Auger shell designator
-        real_type  probability;
-        real_type  energy;
+        int       initial_shell; //!< Originating shell designator
+        int       auger_shell;   //!< Auger shell designator
+        real_type probability;
+        real_type energy;
     };
 
     struct SubshellInput
     {
-        SubshellId                   designator;
+        int                          designator;
         std::vector<TransitionInput> fluor;
         std::vector<TransitionInput> auger;
     };
@@ -69,10 +69,10 @@ class AtomicRelaxationParams
   private:
     //// HOST DATA ////
 
-    bool                                       is_auger_enabled_;
-    ParticleId                                 electron_id_;
-    ParticleId                                 gamma_id_;
-    std::unordered_map<SubshellId, SubshellId> des_to_id_;
+    bool                                is_auger_enabled_;
+    ParticleId                          electron_id_;
+    ParticleId                          gamma_id_;
+    std::unordered_map<int, SubshellId> des_to_id_;
 
     std::vector<AtomicRelaxElement>    host_elements_;
     std::vector<AtomicRelaxSubshell>   host_shells_;

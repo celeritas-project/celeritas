@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <sstream>
+#include "base/SoftEqual.hh"
 
 namespace celeritas
 {
@@ -80,35 +81,34 @@ AtomicRelaxationReader::operator()(int atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
-        SubshellId::value_type des    = 0;
-        real_type              energy = 0.;
-        real_type              prob   = 0.;
+        int       des    = 0;
+        real_type energy = 0.;
+        real_type prob   = 0.;
 
         // Get the designator for the first section of shell data
         infile >> des >> des >> des;
         CELER_ASSERT(infile);
         result.shells.emplace_back();
-        result.shells.back().designator = SubshellId{des};
+        result.shells.back().designator = des;
         while (infile >> des >> prob >> energy)
         {
             // End of shell data
-            if (des == SubshellId::value_type(-1))
+            if (des == -1)
             {
                 // Get the designator for the next section of shell data
                 infile >> des >> des >> des;
                 CELER_ASSERT(infile);
 
                 // End of file
-                if (des == SubshellId::value_type(-2))
+                if (des == -2)
                     break;
 
                 result.shells.emplace_back();
-                result.shells.back().designator = SubshellId{des};
+                result.shells.back().designator = des;
             }
             else
             {
-                result.shells.back().fluor.push_back(
-                    {SubshellId{des}, SubshellId{}, prob, energy});
+                result.shells.back().fluor.push_back({des, 0, prob, energy});
             }
         }
     }
@@ -125,40 +125,56 @@ AtomicRelaxationReader::operator()(int atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
-        SubshellId::value_type des       = 0;
-        SubshellId::value_type auger_des = 0;
-        real_type              energy    = 0.;
-        real_type              prob      = 0.;
+        int       des       = 0;
+        int       auger_des = 0;
+        real_type energy    = 0.;
+        real_type prob      = 0.;
 
         // Get the designator for the first section of shell data
         infile >> des >> des >> des >> des;
         CELER_ASSERT(infile);
         auto shell = result.shells.begin();
-        CELER_ASSERT(des == shell->designator.get());
+        CELER_ASSERT(des == shell->designator);
         while (infile >> des >> auger_des >> prob >> energy)
         {
             // End of shell data
-            if (des == SubshellId::value_type(-1))
+            if (des == -1)
             {
                 // Get the designator for the next section of shell data
                 infile >> des >> des >> des >> des;
                 CELER_ASSERT(infile);
 
                 // End of file
-                if (des == SubshellId::value_type(-2))
+                if (des == -2)
                     break;
 
-                // Designator for next shell data
                 ++shell;
                 CELER_ASSERT(shell != result.shells.end());
-                CELER_ASSERT(des == shell->designator.get());
+                CELER_ASSERT(des == shell->designator);
             }
             else
             {
-                shell->auger.push_back(
-                    {SubshellId{des}, SubshellId{auger_des}, prob, energy});
+                shell->auger.push_back({des, auger_des, prob, energy});
             }
         }
+    }
+
+    // Renormalize the transition probabilities so that the sum over all
+    // radiative and non-radiative transitions for a given subshell is 1
+    for (auto& shell : result.shells)
+    {
+        real_type norm = 0.;
+        for (const auto& transition : shell.fluor)
+            norm += transition.probability;
+        for (const auto& transition : shell.auger)
+            norm += transition.probability;
+        CELER_ASSERT(soft_near(1., norm, 1.e-5));
+
+        norm = 1. / norm;
+        for (auto& transition : shell.fluor)
+            transition.probability *= norm;
+        for (auto& transition : shell.auger)
+            transition.probability *= norm;
     }
 
     return result;
