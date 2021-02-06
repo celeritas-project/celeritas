@@ -202,44 +202,4 @@ using StatePie = Pie<T, W, M, ThreadId>;
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-//---------------------------------------------------------------------------//
-//! \cond
-#define CELER_PIE_TYPE_(CLSNAME, OWNERSHIP, MEMSPACE) \
-    CLSNAME<::celeritas::Ownership::OWNERSHIP, ::celeritas::MemSpace::MEMSPACE>
-//!\endcond
-
-/*!
- * \def CELER_PIE_STRUCT
- *
- * Define an anonymous struct that holds sets of values and references on
- * host and device. This is meant for collections of Pies in a struct
- * that's templated only on the ownership and memory space.
- *
- * Example:
- * \code
- * class FooParams
- * {
- *  public:
- *   using PieDeviceRef = FooPies<Ownership::const_reference,
- *                                MemSpace::device>;
- *
- *   const PieDeviceRef& device_pointers() const {
- *    return pies_.device_ref;
- *   }
- *  private:
- *   CELER_PIE_STRUCT(FooPies, const_reference) pies_;
- * };
- * \endcode
- */
-#define CELER_PIE_STRUCT(CLSNAME, REFTYPE)                    \
-    struct                                                    \
-    {                                                         \
-        CELER_PIE_TYPE_(CLSNAME, value, host) host;           \
-        CELER_PIE_TYPE_(CLSNAME, value, device) device;       \
-        CELER_PIE_TYPE_(CLSNAME, REFTYPE, host) host_ref;     \
-        CELER_PIE_TYPE_(CLSNAME, REFTYPE, device) device_ref; \
-    }
-
-//---------------------------------------------------------------------------//
-
 #include "Pie.i.hh"

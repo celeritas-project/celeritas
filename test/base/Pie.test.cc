@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Pie.hh"
 #include "base/PieBuilder.hh"
+#include "base/PieMirror.hh"
 
 #include <cstdint>
 #include <type_traits>
@@ -79,10 +80,11 @@ TEST(SimplePie, size_limits)
 class PieTest : public celeritas::Test
 {
   protected:
+    using MockParamsMirror = celeritas::PieMirror<MockParamsPies>;
+
     void SetUp() override
     {
-        MockParamsPies<Ownership::value, MemSpace::host>& host_pies
-            = mock_params.host;
+        MockParamsPies<Ownership::value, MemSpace::host> host_pies;
         host_pies.max_element_components = 3;
 
         auto el_builder  = make_pie_builder(&host_pies.elements);
@@ -122,7 +124,7 @@ class PieTest : public celeritas::Test
 
         // Test host-accessible values and const correctness
         {
-            const auto&         host_pies_const = host_pies;
+            const auto& host_pies_const = host_pies;
 
             const MockMaterial& m
                 = host_pies_const.materials[MockMaterialId{0}];
@@ -132,20 +134,11 @@ class PieTest : public celeritas::Test
             EXPECT_EQ(6, els[2].atomic_number);
         }
 
-        //// Create host reference ////
-
-        mock_params.host_ref = mock_params.host;
-
-        //// Copy to device ////
-
-        if (celeritas::is_device_enabled())
-        {
-            mock_params.device     = mock_params.host;
-            mock_params.device_ref = mock_params.device;
-        }
+        // Create references and copy to device if enabled
+        mock_params = MockParamsMirror{std::move(host_pies)};
     }
 
-    CELER_PIE_STRUCT(MockParamsPies, const_reference) mock_params;
+    MockParamsMirror mock_params;
 };
 
 //---------------------------------------------------------------------------//
@@ -165,7 +158,7 @@ TEST_F(PieTest, host)
 
     // Create view
     MockTrackView mock(
-        mock_params.host_ref, host_state_ref, celeritas::ThreadId{0});
+        mock_params.host(), host_state_ref, celeritas::ThreadId{0});
     EXPECT_EQ(1, mock.matid().unchecked_get());
 }
 
@@ -183,7 +176,7 @@ TEST_F(PieTest, device)
     celeritas::DeviceVector<double> device_result(device_states.size());
 
     PTestInput kernel_input;
-    kernel_input.params = mock_params.device_ref;
+    kernel_input.params = this->mock_params.device();
     kernel_input.states = device_states;
     kernel_input.result = device_result.device_pointers();
 
@@ -198,25 +191,3 @@ TEST_F(PieTest, device)
     const double expected_result[] = {2.2, 41, 0, 3.333333333333, 41, 0};
     EXPECT_VEC_SOFT_EQ(expected_result, result);
 }
-
-/*!
- * The following test code is intentionally commented out. Define
- * CELERITAS_SHOULD_NOT_COMPILE to check that the enclosed code results in
- * the expected build errors.
- */
-#ifdef CELERITAS_SHOULD_NOT_COMPILE
-TEST_F(PieTest, should_not_compile)
-{
-    MockStatePies<Ownership::reference, MemSpace::host>       ref;
-    MockStatePies<Ownership::const_reference, MemSpace::host> cref;
-    ref = cref;
-    // Currently can't copy from device to host
-    mock_params.host = mock_params.device;
-    // Can't copy from one ref to another
-    mock_params.device_ref = mock_params.host_ref;
-    mock_params.host_ref   = mock_params.device_ref;
-    // Currently can't copy from incompatible references
-    mock_params.device_ref = mock_params.host;
-    mock_params.host_ref   = mock_params.device;
-}
-#endif

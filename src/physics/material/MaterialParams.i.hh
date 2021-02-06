@@ -44,24 +44,4 @@ MaterialId MaterialParams::find(const std::string& name) const
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Access material properties on the host.
- */
-auto MaterialParams::host_pointers() const -> const HostRef&
-{
-    CELER_ENSURE(data_.host_ref);
-    return data_.host_ref;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access material properties on the device.
- */
-auto MaterialParams::device_pointers() const -> const DeviceRef&
-{
-    CELER_ENSURE(data_.device_ref);
-    return data_.device_ref;
-}
-
-//---------------------------------------------------------------------------//
 } // namespace celeritas
