@@ -265,12 +265,16 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
 {
     RandomEngine& rng = this->rng();
 
-    const int           num_samples = 1e5;
+    const int           num_samples = 1e5; // Must be an even number
     std::vector<double> avg_engine_samples;
 
-    for (double inc_e : {1.0, 10.0, 100.0, 1000.0})
+    // Moller's max energy fraction is 0.5, which leads to E_K > 2e-3
+    // Bhabha's max energy fraction is 1.0, which leads to E_K > 1e-3
+    // Since this loop encompasses both Moller and Bhabha, the minimum chosen
+    // energy is > 2e-3.
+    // NOTE: As E_K -> 2e-3, engine_samples -> infinity
+    for (double inc_e : {5e-3, 1.0, 10.0, 100.0, 1000.0})
     {
-        this->set_inc_particle(pdg::electron(), MevEnergy{inc_e});
         RandomEngine::size_type num_particles_sampled = 0;
 
         // Loop over several incident directions (shouldn't affect anything
@@ -281,16 +285,31 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
             this->set_inc_direction(inc_dir);
             this->resize_secondaries(num_samples);
 
-            // Create interactor
-            MollerBhabhaInteractor interact(pointers_,
-                                            this->particle_track(),
-                                            this->direction(),
-                                            this->secondary_allocator());
+            // Create Moller interactor
+            this->set_inc_particle(pdg::electron(), MevEnergy{inc_e});
+            MollerBhabhaInteractor m_interact(pointers_,
+                                              this->particle_track(),
+                                              this->direction(),
+                                              this->secondary_allocator());
 
-            // Loop over many particles
-            for (int i = 0; i < num_samples; ++i)
+            // Loop over half the sample size
+            for (int i = 0; i < num_samples / 2; ++i)
             {
-                Interaction result = interact(rng);
+                Interaction result = m_interact(rng);
+                this->sanity_check(result);
+            }
+
+            // Create Bhabha interactor
+            this->set_inc_particle(pdg::positron(), MevEnergy{inc_e});
+            MollerBhabhaInteractor b_interact(pointers_,
+                                              this->particle_track(),
+                                              this->direction(),
+                                              this->secondary_allocator());
+
+            // Loop over half the sample size
+            for (int i = 0; i < num_samples / 2; ++i)
+            {
+                Interaction result = b_interact(rng);
                 this->sanity_check(result);
             }
 
@@ -301,8 +320,9 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
                                      / double(num_particles_sampled));
         rng.reset_count();
     }
+    // PRINT_EXPECTED(avg_engine_samples);
     // Gold values for average number of calls to rng
     const double expected_avg_engine_samples[]
-        = {13.25011, 9.55248, 9.22188, 9.20018};
+        = {292.29072, 10.9784, 8.35317, 8.11999, 8.1031};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

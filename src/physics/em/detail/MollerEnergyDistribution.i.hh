@@ -40,8 +40,14 @@ CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
 {
     const real_type g_denominator
         = this->calc_g_fraction(this->max_energy_fraction());
-    UniformRealDistribution<> sample_inverse_epsilon(
-        1 / this->max_energy_fraction(), 1 / min_energy_fraction_);
+
+    real_type inv_energy_min
+        = min(1 / this->max_energy_fraction(), 1 / min_energy_fraction_);
+    real_type inv_energy_max
+        = max(1 / this->max_energy_fraction(), 1 / min_energy_fraction_);
+
+    UniformRealDistribution<> sample_inverse_epsilon(inv_energy_min,
+                                                     inv_energy_max);
 
     // Sample epsilon
     real_type g_numerator;
