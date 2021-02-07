@@ -33,7 +33,7 @@ class AtomicRelaxation
 
     struct result_type
     {
-        size_type count;  //! Number of secondaries created
+        Span<Secondary> secondaries;
         real_type energy; //! Sum of the energies of the secondaries
     };
 
@@ -43,7 +43,8 @@ class AtomicRelaxation
     AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
                      ElementId                        el_id,
                      SubshellId                       shell_id,
-                     Span<Secondary>                  secondaries);
+                     Span<Secondary>                  secondaries,
+                     size_type                        base_size = 0);
 
     // Simulate atomic relaxation with an initial vacancy in the given shell ID
     template<class Engine>
@@ -58,6 +59,8 @@ class AtomicRelaxation
     SubshellId shell_id_;
     // Fluorescence photons and Auger electrons
     Span<Secondary> secondaries_;
+    // The number of secondaries already created by the primary process
+    size_type base_size_;
     // Angular distribution of secondaries
     IsotropicDistribution<real_type> sample_direction_;
 };

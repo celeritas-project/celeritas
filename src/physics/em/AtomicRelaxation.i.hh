@@ -8,8 +8,6 @@
 
 #include "base/MiniStack.hh"
 
-#include <iostream>
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -23,16 +21,16 @@ CELER_FUNCTION
 AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
                                    ElementId                        el_id,
                                    SubshellId                       shell_id,
-                                   Span<Secondary> secondaries)
+                                   Span<Secondary> secondaries,
+                                   size_type       base_size)
     : shared_(shared)
     , el_id_(el_id)
     , shell_id_(shell_id)
     , secondaries_(secondaries)
+    , base_size_(base_size)
 {
-    CELER_EXPECT(el_id_ < shared_.elements.size());
+    CELER_EXPECT(!shared_ || el_id_ < shared_.elements.size());
     CELER_EXPECT(shell_id);
-    CELER_EXPECT(secondaries_.size()
-                 >= shared_.elements[el_id_.get()].max_secondary);
 }
 
 //---------------------------------------------------------------------------//
@@ -43,14 +41,13 @@ template<class Engine>
 CELER_FUNCTION AtomicRelaxation::result_type
 AtomicRelaxation::operator()(Engine& rng)
 {
-    // Total number of particles produced and energy removed by secondaries
-    result_type result{};
+    // Particles produced and energy removed by secondaries
+    result_type result{{secondaries_.data(), base_size_}, 0.};
 
-    // The EADL only provides transition probabilities for 6 <= Z <= 100, so
-    // atomic relaxation is not applicable for Z < 6. Also, transitions are
-    // only provided for K, L, M, N, and some O shells.
-    const AtomicRelaxElement& el = shared_.elements[el_id_.get()];
-    if (!el || shell_id_.get() >= el.shells.size())
+    // Atomic relaxation is off *or* there is no transition data for this
+    // element (true for Z < 6) *or* there is no transition data for this shell
+    if (!shared_ || !shared_.elements[el_id_.get()]
+        || shell_id_.get() >= shared_.elements[el_id_.get()].shells.size())
     {
         return result;
     }
@@ -68,6 +65,9 @@ AtomicRelaxation::operator()(Engine& rng)
     MiniStack<SubshellId> vacancies(make_span(vacancy_storage));
     vacancies.push(shell_id_);
 
+    // Total number of secondaries
+    size_type count = base_size_;
+
     // Generate the shower of photons and electrons produced by radiative and
     // non-radiative transitions
     while (!vacancies.empty())
@@ -81,8 +81,9 @@ AtomicRelaxation::operator()(Engine& rng)
 
         // Sample a transition
         size_type                  i;
-        real_type                  prob  = generate_canonical(rng);
-        const AtomicRelaxSubshell& shell = el.shells[vacancy_id.get()];
+        real_type                  prob = generate_canonical(rng);
+        const AtomicRelaxSubshell& shell
+            = shared_.elements[el_id_.get()].shells[vacancy_id.get()];
         for (i = 0; i < shell.transitions.size(); ++i)
         {
             if ((prob -= shell.transitions[i].probability) <= 0)
@@ -96,10 +97,10 @@ AtomicRelaxation::operator()(Engine& rng)
         {
             continue;
         }
-
         const AtomicRelaxTransition& transition = shell.transitions[i];
-        CELER_ASSERT(result.count < secondaries_.size());
-        Secondary& secondary = secondaries_[result.count++];
+
+        CELER_ASSERT(count < secondaries_.size());
+        Secondary& secondary = secondaries_[count++];
         secondary.direction  = sample_direction_(rng);
         secondary.energy     = MevEnergy{transition.energy};
         vacancies.push(transition.initial_shell);
@@ -119,6 +120,7 @@ AtomicRelaxation::operator()(Engine& rng)
         result.energy += transition.energy;
     }
 
+    result.secondaries = {secondaries_.data(), count};
     return result;
 }
 

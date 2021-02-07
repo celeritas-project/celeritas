@@ -11,8 +11,6 @@
 #include "random/distributions/GenerateCanonical.hh"
 #include "random/distributions/IsotropicDistribution.hh"
 
-#include <iostream>
-
 namespace celeritas
 {
 namespace detail
