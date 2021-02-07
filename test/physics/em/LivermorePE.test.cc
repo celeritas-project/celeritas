@@ -8,6 +8,7 @@
 #include "physics/em/detail/LivermorePEInteractor.hh"
 
 #include <fstream>
+#include <map>
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
@@ -81,15 +82,11 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
         set_livermore_params(li);
 
         // Set atomic relaxation data
-        AtomicRelaxationParams::Input ri;
-        AtomicRelaxationReader        read_transition_data(data_path.c_str(),
+        AtomicRelaxationReader read_transition_data(data_path.c_str(),
                                                     data_path.c_str());
-        ri.elements.push_back(read_transition_data(19));
-        ri.is_auger_enabled = true;
-        ri.electron_id      = params.find(pdg::electron());
-        ri.gamma_id         = params.find(pdg::gamma());
-        set_relaxation_params(ri);
-        atomic_relax_ = relax_params_->host_pointers();
+        relax_inp_.elements.push_back(read_transition_data(19));
+        relax_inp_.electron_id = params.find(pdg::electron());
+        relax_inp_.gamma_id    = params.find(pdg::gamma());
 
         // Set Livermore PE model interface
         pointers_.electron_id = params.find(pdg::electron());
@@ -145,10 +142,10 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
+    AtomicRelaxationParams::Input           relax_inp_;
     std::shared_ptr<AtomicRelaxationParams> relax_params_;
     std::shared_ptr<LivermorePEParams>      livermore_params_;
     celeritas::detail::LivermorePEPointers  pointers_;
-    celeritas::AtomicRelaxParamsPointers    atomic_relax_;
 };
 
 //---------------------------------------------------------------------------//
@@ -157,6 +154,8 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
 
 TEST_F(LivermorePEInteractorTest, basic)
 {
+    RandomEngine& rng_engine = this->rng();
+
     // Reserve 4 secondaries
     this->resize_secondaries(4);
 
@@ -169,7 +168,6 @@ TEST_F(LivermorePEInteractorTest, basic)
                                    this->particle_track(),
                                    this->direction(),
                                    this->secondary_allocator());
-    RandomEngine&         rng_engine = this->rng();
 
     std::vector<double> energy_electron;
     std::vector<double> costheta_electron;
@@ -202,86 +200,6 @@ TEST_F(LivermorePEInteractorTest, basic)
         = {0.00037116, 0.00037116, 0.00029864, 0.00030165};
     EXPECT_VEC_SOFT_EQ(expected_energy_electron, energy_electron);
     EXPECT_VEC_SOFT_EQ(expected_costheta_electron, costheta_electron);
-    EXPECT_VEC_SOFT_EQ(expected_energy_deposition, energy_deposition);
-
-    // Next sample should fail because we're out of secondary buffer space
-    {
-        Interaction result = interact(rng_engine);
-        EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
-    }
-}
-
-TEST_F(LivermorePEInteractorTest, atomic_relaxation)
-{
-    // Reserve secondaries
-    this->resize_secondaries(64);
-
-    // Sampled element
-    ElementId el_id{0};
-
-    // Add atomic relaxation data
-    pointers_.atomic_relaxation = atomic_relax_;
-
-    // Create the interactor
-    LivermorePEInteractor interact(pointers_,
-                                   el_id,
-                                   this->particle_track(),
-                                   this->direction(),
-                                   this->secondary_allocator());
-    RandomEngine&         rng_engine = this->rng();
-
-    std::vector<double> energy_secondary;
-    std::vector<double> costheta_secondary;
-    std::vector<double> energy_deposition;
-
-    // Produce four samples from the original incident energy/dir
-    for (int i = 0; i < 4; ++i)
-    {
-        Interaction result = interact(rng_engine);
-        SCOPED_TRACE(result);
-        ASSERT_TRUE(result);
-        this->check_energy_conservation(result);
-
-        // Add actual results to vector
-        for (const auto& secondary : result.secondaries)
-        {
-            energy_secondary.push_back(secondary.energy.value());
-            costheta_secondary.push_back(celeritas::dot_product(
-                secondary.direction, this->direction()));
-        }
-        energy_deposition.push_back(result.energy_deposition.value());
-    }
-
-    EXPECT_EQ(64, this->secondary_allocator().get().size());
-
-    // Note: these are "gold" values based on the host RNG.
-    const double expected_energy_secondary[]   = {0.00062884,
-                                                4.576e-05,
-                                                0.00025443,
-                                                0.00062884,
-                                                4.905e-05,
-                                                0.00025142,
-                                                0.00069835,
-                                                0.00025443,
-                                                0.00062884,
-                                                2.901e-05,
-                                                0.00025443};
-    const double expected_costheta_secondary[] = {0.1217302869581,
-                                                  0.9857626038356,
-                                                  0.4516779264238,
-                                                  0.8769397871407,
-                                                  0.007325355410339,
-                                                  -0.5761513352165,
-                                                  -0.2414106440617,
-                                                  -0.366899110362,
-                                                  0.3465453244146,
-                                                  -0.1825376780765,
-                                                  0.5879499430984};
-    const double expected_energy_deposition[]
-        = {7.097e-05, 7.069e-05, 4.722e-05, 8.772e-05};
-    EXPECT_VEC_SOFT_EQ(expected_energy_secondary, energy_secondary);
-    EXPECT_VEC_SOFT_EQ(expected_costheta_secondary, costheta_secondary);
     EXPECT_VEC_SOFT_EQ(expected_energy_deposition, energy_deposition);
 
     // Next sample should fail because we're out of secondary buffer space
@@ -342,6 +260,157 @@ TEST_F(LivermorePEInteractorTest, stress_test)
     const double expected_avg_engine_samples[]
         = {15.99755859375, 16.09204101562, 13.79919433594, 8.590209960938, 2};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+}
+
+TEST_F(LivermorePEInteractorTest, distributions_all)
+{
+    RandomEngine& rng_engine = this->rng();
+
+    const int num_samples   = 1000;
+    Real3     inc_direction = {0, 0, 1};
+    this->set_inc_direction(inc_direction);
+    this->resize_secondaries(16 * num_samples);
+
+    // Sampled element
+    ElementId el_id{0};
+
+    // Add atomic relaxation data
+    relax_inp_.is_auger_enabled = true;
+    set_relaxation_params(relax_inp_);
+    pointers_.atomic_relaxation = relax_params_->host_pointers();
+
+    // Create the interactor
+    LivermorePEInteractor interact(pointers_,
+                                   el_id,
+                                   this->particle_track(),
+                                   this->direction(),
+                                   this->secondary_allocator());
+
+    int                   nbins           = 10;
+    int                   num_secondaries = 0;
+    std::map<double, int> energy_to_count;
+    std::vector<double>   energy;
+    std::vector<int>      count;
+    std::vector<double>   costheta_dist(nbins);
+
+    // Loop over many particles
+    for (int i = 0; i < num_samples; ++i)
+    {
+        Interaction out = interact(rng_engine);
+        SCOPED_TRACE(out);
+        ASSERT_TRUE(out);
+        this->check_energy_conservation(out);
+        num_secondaries += out.secondaries.size();
+
+        // Bin directional change of the photoelectron
+        double costheta = celeritas::dot_product(
+            inc_direction, out.secondaries.front().direction);
+        int ct_bin = (1 + costheta) / 2 * nbins; // Remap from [-1,1] to [0,1]
+        if (ct_bin >= 0 && ct_bin < nbins)
+        {
+            ++costheta_dist[ct_bin];
+        }
+
+        for (const auto& secondary : out.secondaries)
+        {
+            // Increment the count of the discrete sampled energy
+            energy_to_count[secondary.energy.value()]++;
+        }
+    }
+    EXPECT_EQ(16 * num_samples, this->secondary_allocator().get().size());
+    EXPECT_EQ(2180, num_secondaries);
+
+    for (const auto it : energy_to_count)
+    {
+        energy.push_back(it.first);
+        count.push_back(it.second);
+    }
+    const double expected_costheta_dist[]
+        = {23, 61, 83, 129, 135, 150, 173, 134, 85, 27};
+    const double expected_energy[] = {
+        2.901e-05,  3.202e-05,  4.576e-05,  4.604e-05,  4.877e-05,  4.905e-05,
+        6.529e-05,  6.83e-05,   0.00021764, 0.00022065, 0.00023439, 0.00023467,
+        0.0002374,  0.00023768, 0.00025114, 0.00025142, 0.0002517,  0.00025392,
+        0.00025415, 0.00025443, 0.00025471, 0.00027095, 0.00027368, 0.00029016,
+        0.00030691, 0.00030719, 0.00034347, 0.00062884, 0.00069835, 0.00070136,
+        0.0009595,  0.00097625, 0.00097653,
+    };
+    const int expected_count[] = {
+        42, 80, 26,  24, 27, 54, 2, 5, 5,  5, 4,   141, 61,  3,  2,  169, 260,
+        1,  39, 195, 2,  8,  5,  3, 2, 14, 1, 280, 216, 424, 32, 16, 32};
+    EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+    EXPECT_VEC_SOFT_EQ(expected_energy, energy);
+    EXPECT_VEC_EQ(expected_count, count);
+}
+
+TEST_F(LivermorePEInteractorTest, distributions_radiative)
+{
+    RandomEngine& rng_engine = this->rng();
+
+    const int num_samples = 10000;
+    this->resize_secondaries(5 * num_samples);
+
+    // Sampled element
+    ElementId el_id{0};
+
+    // Add atomic relaxation data
+    relax_inp_.is_auger_enabled = false;
+    set_relaxation_params(relax_inp_);
+    pointers_.atomic_relaxation = relax_params_->host_pointers();
+
+    // Create the interactor
+    LivermorePEInteractor interact(pointers_,
+                                   el_id,
+                                   this->particle_track(),
+                                   this->direction(),
+                                   this->secondary_allocator());
+
+    int                   num_secondaries = 0;
+    std::map<double, int> energy_to_count;
+    std::vector<double>   energy;
+    std::vector<int>      count;
+
+    // Loop over many particles
+    for (int i = 0; i < num_samples; ++i)
+    {
+        Interaction out = interact(rng_engine);
+        SCOPED_TRACE(out);
+        ASSERT_TRUE(out);
+        this->check_energy_conservation(out);
+        num_secondaries += out.secondaries.size();
+
+        for (const auto& secondary : out.secondaries)
+        {
+            // Increment the count of the discrete sampled energy
+            energy_to_count[secondary.energy.value()]++;
+        }
+    }
+    EXPECT_EQ(5 * num_samples, this->secondary_allocator().get().size());
+    EXPECT_EQ(10007, num_secondaries);
+
+    for (const auto it : energy_to_count)
+    {
+        energy.push_back(it.first);
+        count.push_back(it.second);
+    }
+    const double expected_energy[] = {
+        6.951e-05,
+        0.00025814,
+        0.00026115,
+        0.00034741,
+        0.00034769,
+        0.00062884,
+        0.00069835,
+        0.00070136,
+        0.0009595,
+        0.00097625,
+        0.00097653,
+        0.00099578,
+    };
+    const int expected_count[]
+        = {2, 1, 1, 1, 2, 2525, 2228, 4358, 337, 181, 361, 10};
+    EXPECT_VEC_SOFT_EQ(expected_energy, energy);
+    EXPECT_VEC_EQ(expected_count, count);
 }
 
 TEST_F(LivermorePEInteractorTest, model)
