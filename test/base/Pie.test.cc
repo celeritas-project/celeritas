@@ -40,6 +40,7 @@ TEST(SimplePie, slice_types)
 TEST(SimplePie, slice)
 {
     using PieSliceT = celeritas::PieSlice<int>;
+    using PieIdT    = celeritas::PieId<int>;
     PieSliceT ps;
     EXPECT_EQ(0, ps.size());
     EXPECT_TRUE(ps.empty());
@@ -49,6 +50,9 @@ TEST(SimplePie, slice)
     EXPECT_EQ(11, ps.size());
     EXPECT_EQ(10, ps.start());
     EXPECT_EQ(21, ps.stop());
+
+    EXPECT_EQ(PieIdT{10}, ps[0]);
+    EXPECT_EQ(PieIdT{12}, ps[2]);
 }
 
 TEST(SimplePie, size_limits)

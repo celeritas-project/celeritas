@@ -21,14 +21,23 @@ using PieId = OpaqueId<T, pie_size_type>;
 //---------------------------------------------------------------------------//
 /*!
  * Reference a contiguous subset of items inside a Pie.
- *
  * \tparam T The value type of items to represent.
  *
- * The template parameter here isn't used directly -- it's more of a marker in
- * a class that contains it. The template parameter must match the
- * corresponding \c Pie type, and more importantly it's only assigned to one
- * particular pie. It doesn't have any persistent connection to its associated
- * pie and thus must be used carefully.
+ * A PieSlice is a range of \c OpaqueId<T> that reference a range of values of
+ * type \c T in a \c Pie . The PieSlice acts like a \c slice object in Python
+ * when used on a Pie, returning a Span<T> of the underlying data.
+ *
+ * A PieSlice is only meaningful in connection with a particular Pie of type T.
+ * It doesn't have any persistent connection to its associated pie and thus
+ * must be used carefully.
+ *
+ * \todo It might be useful to extend \c range so that it works with OpaqueId
+ * objects; then this would just become a `FiniteRange<OpaqueId<T, size>>`.
+ *
+ * \todo It might also be good to have a `PieMap` -- mapping one OpaqueId to
+ * another OpaqueId type (with just an offset value). This would be used for
+ * example in physics, where \c PieSlice objects themselves are supposed to be
+ * indexed into with a particular ID type.
  *
  * \code
  * struct MyMaterial
@@ -51,6 +60,7 @@ class PieSlice
   public:
     //!@{
     using size_type = Size;
+    using value_type = OpaqueId<T, Size>;
     //!@}
 
   public:
@@ -65,6 +75,9 @@ class PieSlice
     CELER_CONSTEXPR_FUNCTION size_type start() const { return start_; }
     CELER_CONSTEXPR_FUNCTION size_type stop() const { return stop_; }
     //!@}
+
+    // Get an index corresponding to the given index
+    inline CELER_FUNCTION value_type operator[](size_type i) const;
 
     //! Whether the slice is empty
     CELER_CONSTEXPR_FUNCTION bool empty() const { return stop_ == start_; }
@@ -102,6 +115,12 @@ class PieSlice
  * kernels, but in the case of Celeritas this situation won't arise, because
  * we always want to build host code in C++ files for development ease and to
  * allow testing when CUDA is disabled.)
+ *
+ * \todo It would be easy to specialize the traits for the const_reference
+ * ownership so that for device primitive data types (int, double) we access
+ * via __ldg -- speeding up everywhere in the code without any invasive
+ * changes. This is another good argument for using Pie instead of Span for
+ * device-compatible helper classes (e.g. grid calculator).
  */
 template<class T, Ownership W, MemSpace M, class I = PieId<T>>
 class Pie

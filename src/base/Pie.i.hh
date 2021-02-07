@@ -22,6 +22,17 @@ CELER_FUNCTION PieSlice<T, S>::PieSlice(size_type start, size_type stop)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct with a particular range.
+ */
+template<class T, class S>
+CELER_FUNCTION auto PieSlice<T, S>::operator[](size_type i) const -> value_type
+{
+    CELER_EXPECT(i < stop_);
+    return value_type(start_ + i);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from another pie.
  */
 template<class T, Ownership W, MemSpace M, class I>
