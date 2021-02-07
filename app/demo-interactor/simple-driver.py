@@ -38,7 +38,9 @@ result = subprocess.run([exe, '-'],
                         input=json.dumps(inp).encode(),
                         stdout=subprocess.PIPE)
 if result.returncode:
-    print("Run failed with error", result.returncode)
+    with open(f'{exe}.inp.json', 'w') as f:
+        json.dump(inp, f, indent=1)
+    print("fatal: run failed with error", result.returncode)
     exit(result.returncode)
 
 print("Received {} bytes of data".format(len(result.stdout)))
@@ -51,7 +53,7 @@ except json.decoder.JSONDecodeError as e:
     print("fatal:", str(e))
     exit(1)
 
-with open('demo-interactor.json', 'w') as f:
+with open(f'{exe}.out.json', 'w') as f:
     json.dump(out, f, indent=1)
 
 result = out['result']

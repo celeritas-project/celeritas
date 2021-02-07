@@ -66,56 +66,74 @@ endif()
 #-----------------------------------------------------------------------------#
 # DEMO: physics interactions
 #-----------------------------------------------------------------------------#
-# The CPU version still requires CUDA because some of the data parameters will do
-# a copy to device (even though this isn't used by the CPU app) and that copy will
-# fail in the DeviceAllocator if CUDA is disabled
 
-if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA)
-  add_executable(demo-interactor
-    demo-interactor/demo-interactor.cc
-    demo-interactor/DetectorStore.cc
+if(CELERITAS_BUILD_DEMOS)
+  add_library(celeritas_demo_interactor
     demo-interactor/HitAllocatorStore.cc
     demo-interactor/LoadXs.cc
     demo-interactor/KNDemoIO.cc
-    demo-interactor/KNDemoRunner.cc
-    demo-interactor/KNDemoKernel.cu
     demo-interactor/XsGridParams.cc
-    demo-interactor/detail/DetectorUtils.cu
   )
-  target_link_libraries(demo-interactor celeritas
-    CUDA::cudart
+  target_link_libraries(celeritas_demo_interactor PUBLIC
+    celeritas
     nlohmann_json::nlohmann_json
   )
+  if(CELERITAS_USE_CUDA)
+    # Celeritas RNG uses CUDA but doesn't propagate RT library
+    target_link_libraries(celeritas_demo_interactor PUBLIC CUDA::cudart)
+  endif()
 
-  if(CELERITAS_BUILD_TESTS)
-    add_test(NAME "app/demo-interactor"
-      COMMAND "${Python_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py"
+  if(CELERITAS_USE_CUDA)
+    add_executable(demo-interactor
+      demo-interactor/demo-interactor.cc
+      demo-interactor/DetectorStore.cc
+      demo-interactor/KNDemoRunner.cc
+      demo-interactor/KNDemoKernel.cu
+      demo-interactor/detail/DetectorUtils.cu
     )
-    set(_env
-      "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
-      "CELER_DISABLE_PARALLEL=1"
-    )
-    set_tests_properties("app/demo-interactor" PROPERTIES
-      ENVIRONMENT "${_env}"
-      RESOURCE_LOCK gpu
-    )
+    target_link_libraries(demo-interactor celeritas_demo_interactor CUDA::cudart)
+
+    if(CELERITAS_BUILD_TESTS)
+      add_test(NAME "app/demo-interactor"
+        COMMAND "${Python_EXECUTABLE}"
+          "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py"
+      )
+      set(_env
+        "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
+        "CELER_DISABLE_PARALLEL=1"
+      )
+      set_tests_properties("app/demo-interactor" PROPERTIES
+        ENVIRONMENT "${_env}"
+        RESOURCE_LOCK gpu
+      )
+    endif()
   endif()
 
   # Build CPU version
   add_executable(host-demo-interactor
-    demo-interactor/LoadXs.cc
-    demo-interactor/KNDemoIO.cc
-    demo-interactor/XsGridParams.cc
     demo-interactor/host-demo-interactor.cc
     demo-interactor/HostDetectorStore.cc
     demo-interactor/HostKNDemoRunner.cc
   )
-  target_link_libraries(host-demo-interactor celeritas
-    CUDA::cudart
-    nlohmann_json::nlohmann_json
+  target_link_libraries(host-demo-interactor
+    celeritas
+    celeritas_demo_interactor
   )
 
+  if(CELERITAS_BUILD_TESTS)
+    add_test(NAME "app/host-demo-interactor"
+      COMMAND "${Python_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py"
+    )
+    set(_env
+      "CELERITAS_DEMO_EXE=$<TARGET_FILE:host-demo-interactor>"
+      "CELER_DISABLE_DEVICE=1"
+      "CELER_DISABLE_PARALLEL=1"
+    )
+    set_tests_properties("app/host-demo-interactor" PROPERTIES
+      ENVIRONMENT "${_env}"
+    )
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
