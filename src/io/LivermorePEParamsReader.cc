@@ -42,7 +42,7 @@ LivermorePEParamsReader::LivermorePEParamsReader(const char* path)
 
 //---------------------------------------------------------------------------//
 /*!
- * Read the data for the given elements.
+ * Read the data for the given element.
  */
 LivermorePEParamsReader::result_type
 LivermorePEParamsReader::operator()(int atomic_number) const
@@ -127,6 +127,7 @@ LivermorePEParamsReader::operator()(int atomic_number) const
             shell.param_low.resize(num_param);
             for (size_type i = 0; i < num_param; ++i)
             {
+                CELER_ASSERT(infile);
                 infile >> shell.param_low[i];
             }
         }
@@ -156,6 +157,7 @@ LivermorePEParamsReader::operator()(int atomic_number) const
             shell.param_high.resize(num_param);
             for (size_type i = 0; i < num_param; ++i)
             {
+                CELER_ASSERT(infile);
                 infile >> shell.param_high[i];
             }
         }

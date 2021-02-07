@@ -25,5 +25,8 @@ using ProcessId = OpaqueId<class Process>;
 //! Opaque index of a process applicable to a single particle type
 using ParticleProcessId = OpaqueId<struct ProcessGroup>;
 
+//! Opaque index of electron subshell
+using SubshellId = OpaqueId<struct Subshell>;
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -10,6 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Types.hh"
+#include "physics/em/AtomicRelaxationInterface.hh"
 #include "physics/em/LivermorePEInterface.hh"
 
 namespace celeritas
@@ -35,6 +36,8 @@ struct LivermorePEPointers
     ParticleId gamma_id;
     //! Livermore EPICS2014 photoelectric data
     LivermorePEParamsPointers data;
+    //! EADL transition data used for atomic relaxation
+    AtomicRelaxParamsPointers atomic_relaxation;
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const

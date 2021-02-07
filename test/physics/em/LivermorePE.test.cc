@@ -8,17 +8,23 @@
 #include "physics/em/detail/LivermorePEInteractor.hh"
 
 #include <fstream>
+#include <map>
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
+#include "comm/Device.hh"
+#include "io/AtomicRelaxationReader.hh"
 #include "io/LivermorePEParamsReader.hh"
 #include "physics/base/Units.hh"
+#include "physics/em/AtomicRelaxationParams.hh"
 #include "physics/em/LivermorePEModel.hh"
 #include "physics/em/LivermorePEParams.hh"
 #include "physics/em/PhotoelectricProcess.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
+using celeritas::AtomicRelaxationParams;
+using celeritas::AtomicRelaxationReader;
 using celeritas::ElementId;
 using celeritas::LivermorePEParams;
 using celeritas::LivermorePEParamsReader;
@@ -41,6 +47,13 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
         livermore_params_ = std::make_shared<LivermorePEParams>(std::move(inp));
     }
 
+    void set_relaxation_params(AtomicRelaxationParams::Input inp)
+    {
+        CELER_EXPECT(!inp.elements.empty());
+        relax_params_
+            = std::make_shared<AtomicRelaxationParams>(std::move(inp));
+    }
+
     void SetUp() override
     {
         using celeritas::MatterState;
@@ -59,14 +72,23 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
 
+        const auto& params    = this->particle_params();
+        std::string data_path = this->test_data_path("physics/em", "");
+
         // Set Livermore photoelectric data
         LivermorePEParams::Input li;
-        std::string data_path = this->test_data_path("physics/em", "");
         LivermorePEParamsReader read_element_data(data_path.c_str());
         li.elements.push_back(read_element_data(19));
         set_livermore_params(li);
 
-        const auto& params    = this->particle_params();
+        // Set atomic relaxation data
+        AtomicRelaxationReader read_transition_data(data_path.c_str(),
+                                                    data_path.c_str());
+        relax_inp_.elements.push_back(read_transition_data(19));
+        relax_inp_.electron_id = params.find(pdg::electron());
+        relax_inp_.gamma_id    = params.find(pdg::gamma());
+
+        // Set Livermore PE model interface
         pointers_.electron_id = params.find(pdg::electron());
         pointers_.gamma_id    = params.find(pdg::gamma());
         pointers_.inv_electron_mass
@@ -113,15 +135,17 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
             EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
         }
 
-        // Check conservation between primary and secondaries
-        // Since momentum is transferred to the atom, we don't expect it to be
-        // conserved between the incoming and outgoing particles
-        // this->check_conservation(interaction);
+        // Check conservation between primary and secondaries. Since momentum
+        // is transferred to the atom, we don't expect it to be conserved
+        // between the incoming and outgoing particles
+        this->check_energy_conservation(interaction);
     }
 
   protected:
-    std::shared_ptr<LivermorePEParams>     livermore_params_;
-    celeritas::detail::LivermorePEPointers pointers_;
+    AtomicRelaxationParams::Input           relax_inp_;
+    std::shared_ptr<AtomicRelaxationParams> relax_params_;
+    std::shared_ptr<LivermorePEParams>      livermore_params_;
+    celeritas::detail::LivermorePEPointers  pointers_;
 };
 
 //---------------------------------------------------------------------------//
@@ -130,6 +154,8 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
 
 TEST_F(LivermorePEInteractorTest, basic)
 {
+    RandomEngine& rng_engine = this->rng();
+
     // Reserve 4 secondaries
     this->resize_secondaries(4);
 
@@ -142,7 +168,6 @@ TEST_F(LivermorePEInteractorTest, basic)
                                    this->particle_track(),
                                    this->direction(),
                                    this->secondary_allocator());
-    RandomEngine&         rng_engine = this->rng();
 
     std::vector<double> energy_electron;
     std::vector<double> costheta_electron;
@@ -237,10 +262,167 @@ TEST_F(LivermorePEInteractorTest, stress_test)
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
 
+TEST_F(LivermorePEInteractorTest, distributions_all)
+{
+    RandomEngine& rng_engine = this->rng();
+
+    const int num_samples   = 1000;
+    Real3     inc_direction = {0, 0, 1};
+    this->set_inc_direction(inc_direction);
+    this->resize_secondaries(16 * num_samples);
+
+    // Sampled element
+    ElementId el_id{0};
+
+    // Add atomic relaxation data
+    relax_inp_.is_auger_enabled = true;
+    set_relaxation_params(relax_inp_);
+    pointers_.atomic_relaxation = relax_params_->host_pointers();
+
+    // Create the interactor
+    LivermorePEInteractor interact(pointers_,
+                                   el_id,
+                                   this->particle_track(),
+                                   this->direction(),
+                                   this->secondary_allocator());
+
+    int                   nbins           = 10;
+    int                   num_secondaries = 0;
+    std::map<double, int> energy_to_count;
+    std::vector<double>   energy;
+    std::vector<int>      count;
+    std::vector<double>   costheta_dist(nbins);
+
+    // Loop over many particles
+    for (int i = 0; i < num_samples; ++i)
+    {
+        Interaction out = interact(rng_engine);
+        SCOPED_TRACE(out);
+        ASSERT_TRUE(out);
+        this->check_energy_conservation(out);
+        num_secondaries += out.secondaries.size();
+
+        // Bin directional change of the photoelectron
+        double costheta = celeritas::dot_product(
+            inc_direction, out.secondaries.front().direction);
+        int ct_bin = (1 + costheta) / 2 * nbins; // Remap from [-1,1] to [0,1]
+        if (ct_bin >= 0 && ct_bin < nbins)
+        {
+            ++costheta_dist[ct_bin];
+        }
+
+        for (const auto& secondary : out.secondaries)
+        {
+            // Increment the count of the discrete sampled energy
+            energy_to_count[secondary.energy.value()]++;
+        }
+    }
+    EXPECT_EQ(16 * num_samples, this->secondary_allocator().get().size());
+    EXPECT_EQ(2180, num_secondaries);
+
+    for (const auto it : energy_to_count)
+    {
+        energy.push_back(it.first);
+        count.push_back(it.second);
+    }
+    const double expected_costheta_dist[]
+        = {23, 61, 83, 129, 135, 150, 173, 134, 85, 27};
+    const double expected_energy[] = {
+        2.901e-05,  3.202e-05,  4.576e-05,  4.604e-05,  4.877e-05,  4.905e-05,
+        6.529e-05,  6.83e-05,   0.00021764, 0.00022065, 0.00023439, 0.00023467,
+        0.0002374,  0.00023768, 0.00025114, 0.00025142, 0.0002517,  0.00025392,
+        0.00025415, 0.00025443, 0.00025471, 0.00027095, 0.00027368, 0.00029016,
+        0.00030691, 0.00030719, 0.00034347, 0.00062884, 0.00069835, 0.00070136,
+        0.0009595,  0.00097625, 0.00097653,
+    };
+    const int expected_count[] = {
+        42, 80, 26,  24, 27, 54, 2, 5, 5,  5, 4,   141, 61,  3,  2,  169, 260,
+        1,  39, 195, 2,  8,  5,  3, 2, 14, 1, 280, 216, 424, 32, 16, 32};
+    EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+    EXPECT_VEC_SOFT_EQ(expected_energy, energy);
+    EXPECT_VEC_EQ(expected_count, count);
+}
+
+TEST_F(LivermorePEInteractorTest, distributions_radiative)
+{
+    RandomEngine& rng_engine = this->rng();
+
+    const int num_samples = 10000;
+    this->resize_secondaries(5 * num_samples);
+
+    // Sampled element
+    ElementId el_id{0};
+
+    // Add atomic relaxation data
+    relax_inp_.is_auger_enabled = false;
+    set_relaxation_params(relax_inp_);
+    pointers_.atomic_relaxation = relax_params_->host_pointers();
+
+    // Create the interactor
+    LivermorePEInteractor interact(pointers_,
+                                   el_id,
+                                   this->particle_track(),
+                                   this->direction(),
+                                   this->secondary_allocator());
+
+    int                   num_secondaries = 0;
+    std::map<double, int> energy_to_count;
+    std::vector<double>   energy;
+    std::vector<int>      count;
+
+    // Loop over many particles
+    for (int i = 0; i < num_samples; ++i)
+    {
+        Interaction out = interact(rng_engine);
+        SCOPED_TRACE(out);
+        ASSERT_TRUE(out);
+        this->check_energy_conservation(out);
+        num_secondaries += out.secondaries.size();
+
+        for (const auto& secondary : out.secondaries)
+        {
+            // Increment the count of the discrete sampled energy
+            energy_to_count[secondary.energy.value()]++;
+        }
+    }
+    EXPECT_EQ(5 * num_samples, this->secondary_allocator().get().size());
+    EXPECT_EQ(10007, num_secondaries);
+
+    for (const auto it : energy_to_count)
+    {
+        energy.push_back(it.first);
+        count.push_back(it.second);
+    }
+    const double expected_energy[] = {
+        6.951e-05,
+        0.00025814,
+        0.00026115,
+        0.00034741,
+        0.00034769,
+        0.00062884,
+        0.00069835,
+        0.00070136,
+        0.0009595,
+        0.00097625,
+        0.00097653,
+        0.00099578,
+    };
+    const int expected_count[]
+        = {2, 1, 1, 1, 2, 2525, 2228, 4358, 337, 181, 361, 10};
+    EXPECT_VEC_SOFT_EQ(expected_energy, energy);
+    EXPECT_VEC_EQ(expected_count, count);
+}
+
 TEST_F(LivermorePEInteractorTest, model)
 {
-    PhotoelectricProcess process(this->get_particle_params(),
-                                 livermore_params_);
+    // Model is constructed with device pointers
+    if (!celeritas::is_device_enabled())
+    {
+        SKIP("CUDA is disabled");
+    }
+
+    PhotoelectricProcess process(
+        this->get_particle_params(), livermore_params_, relax_params_);
     ModelIdGenerator     next_id;
 
     // Construct the models associated with the photoelectric effect

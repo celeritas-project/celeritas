@@ -26,12 +26,36 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct with atomic relaxation data.
+ */
+PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
+                                           SPConstData        data,
+                                           SPConstAtomicRelax atomic_relaxation)
+    : PhotoelectricProcess(std::move(particles), std::move(data))
+{
+    atomic_relaxation_ = std::move(atomic_relaxation);
+    CELER_ENSURE(atomic_relaxation_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct the models associated with this process.
  */
 auto PhotoelectricProcess::build_models(ModelIdGenerator next_id) const
     -> VecModel
 {
-    return {std::make_shared<LivermorePEModel>(next_id(), *particles_, *data_)};
+    if (atomic_relaxation_)
+    {
+        // Construct model with atomic relaxation enabled
+        return {std::make_shared<LivermorePEModel>(
+            next_id(), *particles_, *data_, *atomic_relaxation_)};
+    }
+    else
+    {
+        // Construct model without atomic relaxation
+        return {std::make_shared<LivermorePEModel>(
+            next_id(), *particles_, *data_)};
+    }
 }
 
 //---------------------------------------------------------------------------//

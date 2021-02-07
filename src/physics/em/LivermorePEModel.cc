@@ -25,8 +25,7 @@ LivermorePEModel::LivermorePEModel(ModelId                  id,
     interface_.model_id    = id;
     interface_.electron_id = particles.find(pdg::electron());
     interface_.gamma_id    = particles.find(pdg::gamma());
-    interface_.data = celeritas::is_device_enabled() ? data.device_pointers()
-                                                     : data.host_pointers();
+    interface_.data        = data.device_pointers();
 
     CELER_VALIDATE(interface_.electron_id && interface_.gamma_id,
                    "Electron and gamma particles must be enabled to use the "
@@ -34,6 +33,22 @@ LivermorePEModel::LivermorePEModel(ModelId                  id,
     interface_.inv_electron_mass
         = 1 / particles.get(interface_.electron_id).mass.value();
     CELER_ENSURE(interface_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with transition data for atomic relaxation.
+ */
+LivermorePEModel::LivermorePEModel(
+    ModelId                       id,
+    const ParticleParams&         particles,
+    const LivermorePEParams&      data,
+    const AtomicRelaxationParams& atomic_relaxation)
+    : LivermorePEModel(id, particles, data)
+{
+    interface_.atomic_relaxation = celeritas::is_device_enabled()
+                                       ? atomic_relaxation.device_pointers()
+                                       : atomic_relaxation.host_pointers();
 }
 
 //---------------------------------------------------------------------------//
