@@ -115,18 +115,18 @@ TEST_F(MollerBhabhaInteractorTest, basic)
     RandomEngine& rng_engine = this->rng();
 
     // Sampled Moller results
-    std::vector<double> m_sampled_inc_exit_cost;
-    std::vector<double> m_sampled_inc_exit_e;
-    std::vector<double> m_sampled_inc_edep;
-    std::vector<double> m_sampled_sec_cost;
-    std::vector<double> m_sampled_sec_e;
+    std::vector<double> m_inc_exit_cost;
+    std::vector<double> m_inc_exit_e;
+    std::vector<double> m_inc_edep;
+    std::vector<double> m_sec_cost;
+    std::vector<double> m_sec_e;
 
     // Sampled Bhabha results
-    std::vector<double> b_sampled_inc_exit_cost;
-    std::vector<double> b_sampled_inc_exit_e;
-    std::vector<double> b_sampled_inc_edep;
-    std::vector<double> b_sampled_sec_cost;
-    std::vector<double> b_sampled_sec_e;
+    std::vector<double> b_inc_exit_cost;
+    std::vector<double> b_inc_exit_e;
+    std::vector<double> b_inc_edep;
+    std::vector<double> b_sec_cost;
+    std::vector<double> b_sec_e;
 
     // Selected energies for the incident particle's interactor test [MeV]
     real_type inc_energies[4] = {1, 10, 1e3, 1e5};
@@ -158,14 +158,14 @@ TEST_F(MollerBhabhaInteractorTest, basic)
         Interaction m_result = m_interactor(rng_engine);
         this->sanity_check(m_result);
 
-        m_sampled_inc_exit_cost.push_back(
+        m_inc_exit_cost.push_back(
             dot_product(m_result.direction, this->direction()));
-        m_sampled_inc_exit_e.push_back(m_result.energy.value());
-        m_sampled_inc_edep.push_back(m_result.energy_deposition.value());
+        m_inc_exit_e.push_back(m_result.energy.value());
+        m_inc_edep.push_back(m_result.energy_deposition.value());
         EXPECT_EQ(1, m_result.secondaries.size());
-        m_sampled_sec_cost.push_back(
+        m_sec_cost.push_back(
             dot_product(m_result.secondaries[0].direction, this->direction()));
-        m_sampled_sec_e.push_back(m_result.secondaries[0].energy.value());
+        m_sec_e.push_back(m_result.secondaries[0].energy.value());
 
         //// Sample Bhabha
         this->set_inc_particle(pdg::positron(), MevEnergy{inc_energies[i]});
@@ -178,87 +178,55 @@ TEST_F(MollerBhabhaInteractorTest, basic)
         Interaction b_result = b_interactor(rng_engine);
         this->sanity_check(b_result);
 
-        b_sampled_inc_exit_cost.push_back(
+        b_inc_exit_cost.push_back(
             dot_product(b_result.direction, this->direction()));
-        b_sampled_inc_exit_e.push_back(b_result.energy.value());
-        b_sampled_inc_edep.push_back(b_result.energy_deposition.value());
+        b_inc_exit_e.push_back(b_result.energy.value());
+        b_inc_edep.push_back(b_result.energy_deposition.value());
         EXPECT_EQ(1, b_result.secondaries.size());
-        b_sampled_sec_cost.push_back(
+        b_sec_cost.push_back(
             dot_product(b_result.secondaries[0].direction, this->direction()));
-        b_sampled_sec_e.push_back(b_result.secondaries[0].energy.value());
+        b_sec_e.push_back(b_result.secondaries[0].energy.value());
     }
 
-    //// Moller test
+    //// Moller
     // Gold values based on the host rng. Energies are in MeV
-    // clang-format off
-    const double m_expect_inc_exit_cost[] = {
-        9.9814972509953e-01,
-        9.9999361233299e-01,
-        9.9999999546102e-01,
-        9.9999999999976e-01
-    };
-    const double m_expect_inc_exit_e[] = {
-        9.9271169166447e-01,
-        9.9986223880045e+00,
-        9.9999110844690e+02,
-        9.9999995281335e+04
-    };
-    const double m_expect_inc_edep[] = {0, 0, 0, 0};
-    const double m_expect_sec_cost[] = {
-        1.1965632019833e-01,
-        3.8519098201884e-02,
-        9.2919010737665e-02,
-        6.7793258423643e-02
-    };
-    const double m_expect_sec_e[] = {
-        7.2883083355261e-03,
-        1.3776119954606e-03,
-        8.8915531042938e-03,
-        4.7186649798110e-03
-    };
-    // clang-format on
-
-    EXPECT_VEC_SOFT_EQ(m_expect_inc_exit_cost, m_sampled_inc_exit_cost);
-    EXPECT_VEC_SOFT_EQ(m_expect_inc_exit_e, m_sampled_inc_exit_e);
-    EXPECT_VEC_SOFT_EQ(m_expect_inc_edep, m_sampled_inc_edep);
-    EXPECT_VEC_SOFT_EQ(m_expect_sec_cost, m_sampled_sec_cost);
-    EXPECT_VEC_SOFT_EQ(m_expect_sec_e, m_sampled_sec_e);
-
-    //// Bhabha test
+    const double expected_m_inc_exit_cost[]
+        = {0.9981497250995, 0.999993612333, 0.999999995461, 0.9999999999998};
+    const double expected_m_inc_exit_e[]
+        = {0.9927116916645, 9.998622388005, 999.9911084469, 99999.99528134};
+    const double expected_m_inc_edep[] = {0, 0, 0, 0};
+    const double expected_m_sec_cost[] = {
+        0.1196563201983, 0.03851909820188, 0.09291901073767, 0.06779325842364};
+    const double expected_m_sec_e[] = {0.007288308335526,
+                                       0.001377611995461,
+                                       0.008891553104294,
+                                       0.004718664979811};
+    //// Bhabha
     // Gold values based on the host rng. Energies are in MeV
-    // clang-format off
-    const double b_expect_inc_exit_cost[] = {
-        9.9974531079032e-01,
-        9.9999419049901e-01,
-        9.9999999898647e-01,
-        9.9999999999993e-01
-    };
-    const double b_expect_inc_exit_e[] = {
-        9.9899283748381e-01,
-        9.9987470650722e+00,
-        9.9999801454613e+02,
-        9.9999998649830e+04
-    };
-    const double b_expect_inc_edep[] = {0, 0, 0, 0};
-    const double b_expect_sec_cost[] = {
-        4.4617089494519e-02,
-        3.6736972883451e-02,
-        4.4056020441594e-02,
-        3.6323260625147e-02
-    };
-    const double b_expect_sec_e[] = {
-        1.0071625161866e-03,
-        1.2529349277679e-03,
-        1.9854538738138e-03,
-        1.3501704133594e-03
-    };
-    // clang-format on
+    const double expected_b_inc_exit_cost[]
+        = {0.9997453107903, 0.999994190499, 0.9999999989865, 0.9999999999999};
+    const double expected_b_inc_exit_e[]
+        = {0.9989928374838, 9.998747065072, 999.9980145461, 99999.99864983};
+    const double expected_b_inc_edep[] = {0, 0, 0, 0};
+    const double expected_b_sec_cost[] = {
+        0.04461708949452, 0.03673697288345, 0.04405602044159, 0.03632326062515};
+    const double expected_b_sec_e[] = {0.001007162516187,
+                                       0.001252934927768,
+                                       0.001985453873814,
+                                       0.001350170413359};
 
-    EXPECT_VEC_SOFT_EQ(b_expect_inc_exit_cost, b_sampled_inc_exit_cost);
-    EXPECT_VEC_SOFT_EQ(b_expect_inc_exit_e, b_sampled_inc_exit_e);
-    EXPECT_VEC_SOFT_EQ(b_expect_inc_edep, b_sampled_inc_edep);
-    EXPECT_VEC_SOFT_EQ(b_expect_sec_cost, b_sampled_sec_cost);
-    EXPECT_VEC_SOFT_EQ(b_expect_sec_e, b_sampled_sec_e);
+    //// Moller
+    EXPECT_VEC_SOFT_EQ(expected_m_inc_exit_cost, m_inc_exit_cost);
+    EXPECT_VEC_SOFT_EQ(expected_m_inc_exit_e, m_inc_exit_e);
+    EXPECT_VEC_SOFT_EQ(expected_m_inc_edep, m_inc_edep);
+    EXPECT_VEC_SOFT_EQ(expected_m_sec_cost, m_sec_cost);
+    EXPECT_VEC_SOFT_EQ(expected_m_sec_e, m_sec_e);
+    //// Bhabha
+    EXPECT_VEC_SOFT_EQ(expected_b_inc_exit_cost, b_inc_exit_cost);
+    EXPECT_VEC_SOFT_EQ(expected_b_inc_exit_e, b_inc_exit_e);
+    EXPECT_VEC_SOFT_EQ(expected_b_inc_edep, b_inc_edep);
+    EXPECT_VEC_SOFT_EQ(expected_b_sec_cost, b_sec_cost);
+    EXPECT_VEC_SOFT_EQ(expected_b_sec_e, b_sec_e);
 }
 
 TEST_F(MollerBhabhaInteractorTest, stress_test)
@@ -312,7 +280,6 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
             rng.reset_count();
         }
     }
-    // PRINT_EXPECTED(avg_engine_samples);
     // Gold values for average number of calls to rng
     const double expected_avg_engine_samples[] = {20.8046,
                                                   13.2538,
