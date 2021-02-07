@@ -17,10 +17,12 @@ namespace celeritas
  * Construct from cross section data.
  */
 CELER_FUNCTION
-PhysicsGridCalculator::PhysicsGridCalculator(const XsGridPointers& data)
-    : data_(data)
+PhysicsGridCalculator::PhysicsGridCalculator(const XsGridData& grid,
+                                             const Values&     values)
+    : data_(grid), values_(values[grid.value])
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(data_);
+    CELER_ASSERT(values_.size() == data_.log_energy.size);
 }
 
 //---------------------------------------------------------------------------//
@@ -41,20 +43,20 @@ CELER_FUNCTION real_type PhysicsGridCalculator::operator()(Energy energy) const
     if (loge <= loge_grid.front())
     {
         lower_idx = 0;
-        result    = data_.value.front();
+        result    = values_[lower_idx];
     }
     else if (loge >= loge_grid.back())
     {
-        lower_idx = data_.value.size() - 1;
-        result    = data_.value.back();
+        lower_idx = loge_grid.size() - 1;
+        result    = values_[lower_idx];
     }
     else
     {
         // Locate the energy bin
         lower_idx = loge_grid.find(loge);
-        CELER_ASSERT(lower_idx + 1 < data_.value.size());
+        CELER_ASSERT(lower_idx + 1 < loge_grid.size());
 
-        real_type upper_xs     = data_.value[lower_idx + 1];
+        real_type upper_xs     = values_[lower_idx + 1];
         real_type upper_energy = std::exp(loge_grid[lower_idx + 1]);
         if (lower_idx + 1 == data_.prime_index)
         {
@@ -65,7 +67,7 @@ CELER_FUNCTION real_type PhysicsGridCalculator::operator()(Energy energy) const
 
         // Interpolate *linearly* on energy using the lower_idx data.
         LinearInterpolator<real_type> interpolate_xs(
-            {std::exp(loge_grid[lower_idx]), data_.value[lower_idx]},
+            {std::exp(loge_grid[lower_idx]), values_[lower_idx]},
             {upper_energy, upper_xs});
         result = interpolate_xs(energy.value());
     }

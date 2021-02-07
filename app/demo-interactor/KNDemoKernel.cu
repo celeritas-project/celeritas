@@ -77,7 +77,7 @@ __global__ void iterate_kernel(ParamsDeviceRef const            params,
 {
     SecondaryAllocatorView allocate_secondaries(secondaries);
     DetectorView           detector_hit(detector);
-    PhysicsGridCalculator  calc_xs(params.xs);
+    PhysicsGridCalculator  calc_xs(params.tables.xs, params.tables.reals);
 
     for (int tid = blockIdx.x * blockDim.x + threadIdx.x;
          tid < static_cast<int>(states.size());

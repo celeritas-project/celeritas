@@ -31,17 +31,56 @@ struct CudaGridParams
     unsigned int grid_size  = 32;  //!< Blocks per grid
 };
 
+template<Ownership W, MemSpace M>
+struct TableData
+{
+    template<class T>
+    using Data = celeritas::Pie<T, W, M>;
+
+    Data<celeritas::real_type> reals;
+    celeritas::XsGridData      xs;
+
+    //// MEMBER FUNCTIONS ////
+
+    //! Whether the data is assigned
+    explicit inline CELER_FUNCTION operator bool() const
+    {
+        return !reals.empty() && xs;
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    TableData& operator=(const TableData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        reals = other.reals;
+        xs    = other.xs;
+        return *this;
+    }
+};
+
 //! Pointers to immutable problem data
 template<Ownership W, MemSpace M>
 struct ParamsData
 {
     celeritas::ParticleParamsData<W, M>     particle;
-    celeritas::XsGridPointers               xs;
+    TableData<W, M>                         tables;
     celeritas::detail::KleinNishinaPointers kn_interactor;
 
     explicit CELER_FUNCTION operator bool() const
     {
-        return particle && xs && kn_interactor;
+        return particle && tables && kn_interactor;
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    ParamsData& operator=(const ParamsData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        particle      = other.particle;
+        tables        = other.tables;
+        kn_interactor = other.kn_interactor;
+        return *this;
     }
 };
 

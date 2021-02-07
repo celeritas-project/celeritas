@@ -77,7 +77,7 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     // Construct pointers to device data
     ParamsDeviceRef params;
     params.particle      = pparams_->device_pointers();
-    params.xs            = xsparams_->device_pointers();
+    params.tables        = xsparams_->device_pointers();
     params.kn_interactor = kn_pointers_;
 
     InitialPointers initial;

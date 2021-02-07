@@ -10,12 +10,11 @@
 #include <algorithm>
 #include <cmath>
 #include "base/Interpolator.hh"
+#include "base/PieBuilder.hh"
 #include "base/Range.hh"
 #include "celeritas_test.hh"
 
-using celeritas::PhysicsGridCalculator;
-using celeritas::UniformGridData;
-using celeritas::XsGridPointers;
+using namespace celeritas;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -33,24 +32,26 @@ class PhysicsGridCalculatorTest : public celeritas::Test
         data.log_energy = UniformGridData::from_bounds(
             std::log(emin), std::log(emax), count);
 
-        stored_xs.resize(count);
+        std::vector<real_type> temp_xs(count);
 
         // Interpolate xs grid: linear in bin, log in energy
         using celeritas::Interp;
         celeritas::Interpolator<Interp::linear, Interp::log, real_type> calc_xs(
             {0.0, emin}, {count - 1.0, emax});
-        for (auto i : celeritas::range(stored_xs.size()))
+        for (auto i : celeritas::range(temp_xs.size()))
         {
-            stored_xs[i] = calc_xs(i);
+            temp_xs[i] = calc_xs(i);
         }
-        data.value = celeritas::make_span(stored_xs);
+
+        data.value = make_pie_builder(&stored_xs)
+                         .insert_back(temp_xs.begin(), temp_xs.end());
 
         CELER_ENSURE(data);
-        CELER_ENSURE(celeritas::soft_equal(emax, data.value.back()));
+        CELER_ENSURE(celeritas::soft_equal(emax, stored_xs[data.value].back()));
     }
 
-    std::vector<real_type> stored_xs;
-    XsGridPointers         data;
+    XsGridData                                       data;
+    Pie<real_type, Ownership::value, MemSpace::host> stored_xs;
 };
 
 //---------------------------------------------------------------------------//
@@ -63,7 +64,7 @@ TEST_F(PhysicsGridCalculatorTest, simple)
     // *No* magical 1/E scaling
     this->build(1.0, 1e5, 6);
 
-    PhysicsGridCalculator calc(this->data);
+    PhysicsGridCalculator calc(this->data, this->stored_xs);
 
     // Test on grid points
     EXPECT_SOFT_EQ(1.0, calc(Energy{1}));
@@ -86,7 +87,7 @@ TEST_F(PhysicsGridCalculatorTest, scaled_lowest)
     this->build(0.1, 1e4, 6);
     data.prime_index = 0;
 
-    PhysicsGridCalculator calc(this->data);
+    PhysicsGridCalculator calc(this->data, this->stored_xs);
 
     // Test on grid points
     EXPECT_SOFT_EQ(1, calc(Energy{0.1}));
@@ -110,15 +111,16 @@ TEST_F(PhysicsGridCalculatorTest, scaled_middle)
     // since the constructor fills it with E
     this->build(0.1, 1e4, 6);
     data.prime_index = 3;
-    std::fill(this->stored_xs.begin(), this->stored_xs.begin() + 3, 1.0);
+    auto xs          = this->stored_xs[data.value];
+    std::fill(xs.begin(), xs.begin() + 3, 1.0);
 
     // Change constant to 3 just to shake things up
-    for (real_type& xs : this->stored_xs)
+    for (real_type& xs : xs)
     {
         xs *= 3;
     }
 
-    PhysicsGridCalculator calc(this->data);
+    PhysicsGridCalculator calc(this->data, this->stored_xs);
 
     // Test on grid points
     EXPECT_SOFT_EQ(3, calc(Energy{0.1}));
@@ -142,7 +144,7 @@ TEST_F(PhysicsGridCalculatorTest, scaled_highest)
     this->build(1, 100, 3);
     data.prime_index = 2;
 
-    PhysicsGridCalculator calc(this->data);
+    PhysicsGridCalculator calc(this->data, this->stored_xs);
     EXPECT_SOFT_EQ(1, calc(Energy{0.0001}));
     EXPECT_SOFT_EQ(1, calc(Energy{1}));
     EXPECT_SOFT_EQ(10, calc(Energy{10}));
@@ -159,5 +161,6 @@ TEST_F(PhysicsGridCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
     this->build(1, 100, 3);
     data.prime_index = 3; // disallowed
 
-    EXPECT_THROW(PhysicsGridCalculator(this->data), celeritas::DebugError);
+    EXPECT_THROW(PhysicsGridCalculator(this->data, this->stored_xs),
+                 celeritas::DebugError);
 }

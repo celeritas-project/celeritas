@@ -10,7 +10,7 @@
 #include <memory>
 #include <vector>
 #include "physics/grid/PhysicsGridCalculator.hh"
-#include "physics/grid/ValueGridStore.hh"
+#include "physics/grid/ValueGridInserter.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas;
@@ -27,32 +27,23 @@ class ValueGridBuilderTest : public celeritas::Test
     using VecBuilder     = std::vector<SPConstBuilder>;
     using VecReal        = std::vector<real_type>;
     using Energy         = PhysicsGridCalculator ::Energy;
+    using XsIndex        = ValueGridInserter::XsIndex;
 
   protected:
-    ValueGridStore build(const VecBuilder& entries) const
+    void build(const VecBuilder& entries)
     {
         CELER_EXPECT(!entries.empty());
 
-        // Construct sizes
-        size_type num_values = 0;
+        // Insert
+        ValueGridInserter insert(&real_storage, &grid_storage);
         for (const SPConstBuilder& b : entries)
         {
-            CELER_EXPECT(b);
-            auto required_storage = b->storage();
-            EXPECT_GT(required_storage.second, 0);
-            num_values += required_storage.second;
+            b->build(insert);
         }
-
-        // Build store
-        ValueGridStore store(entries.size(), num_values);
-        for (const SPConstBuilder& b : entries)
-        {
-            b->build(&store);
-        }
-
-        CELER_ENSURE(store.size() == store.capacity());
-        return store;
     }
+
+    Pie<real_type, Ownership::value, MemSpace::host>  real_storage;
+    Pie<XsGridData, Ownership::value, MemSpace::host> grid_storage;
 };
 
 //---------------------------------------------------------------------------//
@@ -79,19 +70,18 @@ TEST_F(ValueGridBuilderTest, xs_grid)
     }
 
     // Build
-    ValueGridStore store = this->build(entries);
-    auto           ptrs  = store.host_pointers();
+    this->build(entries);
 
     // Test results using the physics calculator
-    ASSERT_EQ(2, ptrs.size());
+    ASSERT_EQ(2, grid_storage.size());
     {
-        PhysicsGridCalculator calc_xs(ptrs[0]);
+        PhysicsGridCalculator calc_xs(grid_storage[XsIndex{0}], real_storage);
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));
         EXPECT_SOFT_EQ(0.2, calc_xs(Energy{1e2}));
         EXPECT_SOFT_EQ(0.3, calc_xs(Energy{1e3}));
     }
     {
-        PhysicsGridCalculator calc_xs(ptrs[1]);
+        PhysicsGridCalculator calc_xs(grid_storage[XsIndex{1}], real_storage);
         EXPECT_SOFT_EQ(10., calc_xs(Energy{1e-3}));
         EXPECT_SOFT_EQ(1., calc_xs(Energy{1e-2}));
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e-1}));
@@ -111,13 +101,12 @@ TEST_F(ValueGridBuilderTest, log_grid)
     }
 
     // Build
-    ValueGridStore store = this->build(entries);
-    auto           ptrs  = store.host_pointers();
+    this->build(entries);
 
     // Test results using the physics calculator
-    ASSERT_EQ(1, ptrs.size());
+    ASSERT_EQ(1, grid_storage.size());
     {
-        PhysicsGridCalculator calc_xs(ptrs[0]);
+        PhysicsGridCalculator calc_xs(grid_storage[XsIndex{0}], real_storage);
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));
         EXPECT_SOFT_EQ(0.2, calc_xs(Energy{1e2}));
         EXPECT_SOFT_EQ(0.3, calc_xs(Energy{1e3}));
@@ -139,13 +128,12 @@ TEST_F(ValueGridBuilderTest, DISABLED_generic_grid)
     }
 
     // Build
-    ValueGridStore store = this->build(entries);
-    auto           ptrs  = store.host_pointers();
+    this->build(entries);
 
     // Test results using the physics calculator
-    ASSERT_EQ(2, ptrs.size());
+    ASSERT_EQ(2, grid_storage.size());
     {
-        PhysicsGridCalculator calc_xs(ptrs[0]);
+        PhysicsGridCalculator calc_xs(grid_storage[XsIndex{0}], real_storage);
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));
         EXPECT_SOFT_EQ(0.2, calc_xs(Energy{1e2}));
         EXPECT_SOFT_EQ(0.3, calc_xs(Energy{1e3}));

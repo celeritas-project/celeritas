@@ -8,8 +8,9 @@
 #pragma once
 
 #include <vector>
-#include "base/DeviceVector.hh"
+#include "base/PieMirror.hh"
 #include "physics/grid/XsGridInterface.hh"
+#include "KNDemoKernel.hh"
 
 namespace demo_interactor
 {
@@ -28,8 +29,11 @@ namespace demo_interactor
 class XsGridParams
 {
   public:
-    using real_type      = celeritas::real_type;
-    using XsGridPointers = celeritas::XsGridPointers;
+    using real_type = celeritas::real_type;
+    using HostRef   = TableData<celeritas::Ownership::const_reference,
+                              celeritas::MemSpace::host>;
+    using DeviceRef = TableData<celeritas::Ownership::const_reference,
+                                celeritas::MemSpace::device>;
 
     struct Input
     {
@@ -43,18 +47,13 @@ class XsGridParams
     explicit XsGridParams(const Input& input);
 
     // Access on-device data
-    XsGridPointers device_pointers() const;
+    const DeviceRef& device_pointers() const { return data_.device(); }
 
     // Get host-side data
-    XsGridPointers host_pointers() const;
+    const HostRef& host_pointers() const { return data_.host(); }
 
   private:
-    celeritas::UniformGridData         log_energy_;
-    celeritas::DeviceVector<real_type> xs_;
-    celeritas::size_type               prime_index_;
-
-    // Host side xs data
-    std::vector<real_type> host_xs_;
+    celeritas::PieMirror<TableData> data_;
 };
 
 //---------------------------------------------------------------------------//
