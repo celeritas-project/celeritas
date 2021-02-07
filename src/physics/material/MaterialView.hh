@@ -47,13 +47,13 @@ class MaterialView
     //// MATERIAL DATA ////
 
     // Number density [1/cm^3]
-    inline CELER_FUNCTION real_type number_density() const;
+    CELER_FORCEINLINE_FUNCTION real_type number_density() const;
 
     // Material temperature [K]
-    inline CELER_FUNCTION real_type temperature() const;
+    CELER_FORCEINLINE_FUNCTION real_type temperature() const;
 
     // Material state
-    inline CELER_FUNCTION MatterState matter_state() const;
+    CELER_FORCEINLINE_FUNCTION MatterState matter_state() const;
 
     //// ELEMENT ACCESS ////
 
@@ -90,7 +90,7 @@ class MaterialView
 
     // HELPER FUNCTIONS
 
-    inline CELER_FUNCTION const MaterialDef& material_def() const;
+    CELER_FORCEINLINE_FUNCTION const MaterialDef& material_def() const;
 };
 
 //---------------------------------------------------------------------------//

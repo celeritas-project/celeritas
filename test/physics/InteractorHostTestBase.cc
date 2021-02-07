@@ -44,7 +44,7 @@ void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
     CELER_EXPECT(!inp.materials.empty());
 
     material_params_ = std::make_shared<MaterialParams>(std::move(inp));
-    resize(&ms_data_, 1, material_params_->max_element_components());
+    resize(&ms_data_, material_params_->host_pointers(), 1);
     ms_ref_ = ms_data_;
 }
 

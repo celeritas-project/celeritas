@@ -99,10 +99,10 @@ struct MaterialParamsData
     template<class T>
     using Data = celeritas::Pie<T, W, M>;
 
-    Data<ElementDef>          elements;
-    Data<MatElementComponent> elcomponents;
-    Data<MaterialDef>         materials;
-    size_type                 max_element_components{};
+    Data<ElementDef>               elements;
+    Data<MatElementComponent>      elcomponents;
+    Data<MaterialDef>              materials;
+    ElementComponentId::value_type max_element_components{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -183,13 +183,15 @@ struct MaterialStateData
  * Resize a material state in host code.
  */
 template<MemSpace M>
-inline void resize(MaterialStateData<Ownership::value, M>* data,
-                   size_type                               size,
-                   size_type                               max_el_components)
+inline void resize(
+    MaterialStateData<Ownership::value, M>*                               data,
+    const MaterialParamsData<Ownership::const_reference, MemSpace::host>& params,
+    size_type                                                             size)
 {
     CELER_EXPECT(size > 0);
     make_pie_builder(&data->state).resize(size);
-    make_pie_builder(&data->element_scratch).resize(size * max_el_components);
+    make_pie_builder(&data->element_scratch)
+        .resize(size * params.max_element_components);
 }
 #endif
 
