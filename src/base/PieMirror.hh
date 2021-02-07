@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
 #include "PieTypes.hh"
 
 namespace celeritas

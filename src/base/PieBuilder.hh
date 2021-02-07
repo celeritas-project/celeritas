@@ -34,7 +34,7 @@ namespace celeritas
  * to allocate a host version and copy to device. (This is useful for state
  * allocations.)
  */
-template<class T, MemSpace M, class I>
+template<class T, MemSpace M, class I = PieId<T>>
 class PieBuilder
 {
   public:
