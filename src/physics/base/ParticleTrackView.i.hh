@@ -194,7 +194,7 @@ CELER_FUNCTION real_type ParticleTrackView::lorentz_factor() const
  * \f]
  * or
  * \f[
- * p = \frac{K^2}{c^2} + 2 * m * K
+ * p^2 = \frac{K^2}{c^2} + 2 * m * K
  * \f]
  */
 CELER_FUNCTION units::MevMomentumSq ParticleTrackView::momentum_sq() const

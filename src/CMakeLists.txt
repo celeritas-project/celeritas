@@ -54,6 +54,7 @@ list(APPEND SOURCES
   physics/em/EPlusGGModel.cc
   physics/em/GammaAnnihilationProcess.cc
   physics/em/KleinNishinaModel.cc
+  physics/em/MollerBhabhaModel.cc
   physics/grid/ValueGridBuilder.cc
   physics/grid/ValueGridStore.cc
   physics/material/MaterialParams.cc
@@ -71,6 +72,7 @@ if(CELERITAS_USE_CUDA)
     physics/em/detail/BetheHeitler.cu
     physics/em/detail/EPlusGG.cu
     physics/em/detail/KleinNishina.cu
+    physics/em/detail/MollerBhabha.cu
     physics/em/detail/LivermorePE.cu
     random/cuda/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
