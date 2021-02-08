@@ -89,7 +89,7 @@ class DeviceVector
     inline constSpan_t device_pointers() const;
 
   private:
-    DeviceAllocation allocation_;
+    DeviceAllocation                    allocation_;
     detail::InitializedValue<size_type> size_;
     detail::InitializedValue<size_type> capacity_;
 };

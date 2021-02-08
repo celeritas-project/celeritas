@@ -55,8 +55,8 @@ struct Interactor
         for (auto& secondary : result.secondaries)
         {
             secondary.particle_id = ParticleId(0);
-            secondary.energy    = units::MevEnergy(5.);
-            secondary.direction = {1., 0., 0.};
+            secondary.energy      = units::MevEnergy(5.);
+            secondary.direction   = {1., 0., 0.};
         }
 
         return result;

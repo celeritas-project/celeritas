@@ -161,7 +161,7 @@ TEST_F(TrackInitTest, run)
     // Check the track IDs of the track initializers created from secondaries
     // Output is sorted as TrackInitializerStore does not calculate IDs
     // deterministically
-    output.initializer_id   = initializers_test(track_init.device_pointers());
+    output.initializer_id = initializers_test(track_init.device_pointers());
     std::sort(std::begin(output.initializer_id),
               std::end(output.initializer_id));
     expected.initializer_id = {0, 1, 15, 16, 17};
@@ -173,7 +173,7 @@ TEST_F(TrackInitTest, run)
     // Check the track IDs of the initialized tracks
     // Output is sorted as TrackInitializerStore does not calculate IDs
     // deterministically
-    output.track_id   = tracks_test(states.device_pointers());
+    output.track_id = tracks_test(states.device_pointers());
     std::sort(std::begin(output.track_id), std::end(output.track_id));
     expected.track_id = {3, 5, 7, 9, 11, 12, 13, 14, 16, 17};
     EXPECT_VEC_EQ(expected.track_id, output.track_id);

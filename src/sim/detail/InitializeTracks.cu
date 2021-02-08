@@ -188,14 +188,14 @@ process_primaries_kernel(const Span<const Primary>    primaries,
         const Primary&    primary = primaries[thread_id.get()];
 
         // Construct a track initializer from a primary particle
-        init.sim.track_id    = primary.track_id;
-        init.sim.parent_id   = TrackId{};
-        init.sim.event_id    = primary.event_id;
-        init.sim.alive       = true;
-        init.geo.pos         = primary.position;
-        init.geo.dir         = primary.direction;
+        init.sim.track_id         = primary.track_id;
+        init.sim.parent_id        = TrackId{};
+        init.sim.event_id         = primary.event_id;
+        init.sim.alive            = true;
+        init.geo.pos              = primary.position;
+        init.geo.dir              = primary.direction;
         init.particle.particle_id = primary.particle_id;
-        init.particle.energy = primary.energy;
+        init.particle.energy      = primary.energy;
     }
 }
 
@@ -238,14 +238,14 @@ __global__ void process_secondaries_kernel(const StatePointers states,
                     &inits.track_counter[sim.event_id().get()], 1u);
 
                 // Construct a track initializer from a secondary
-                init.sim.track_id    = TrackId{track_id};
-                init.sim.parent_id   = sim.track_id();
-                init.sim.event_id    = sim.event_id();
-                init.sim.alive       = true;
-                init.geo.pos         = geo.pos();
-                init.geo.dir         = secondary.direction;
+                init.sim.track_id         = TrackId{track_id};
+                init.sim.parent_id        = sim.track_id();
+                init.sim.event_id         = sim.event_id();
+                init.sim.alive            = true;
+                init.geo.pos              = geo.pos();
+                init.geo.dir              = secondary.direction;
                 init.particle.particle_id = secondary.particle_id;
-                init.particle.energy = secondary.energy;
+                init.particle.energy      = secondary.energy;
             }
         }
         // Clear the secondaries from the interaction

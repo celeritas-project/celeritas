@@ -22,7 +22,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     explicit DetectorConstruction(G4String gdmlInput);
     ~DetectorConstruction();
 
-    G4VPhysicalVolume* Construct() override;
+    G4VPhysicalVolume*       Construct() override;
     const G4VPhysicalVolume* get_world_volume() const;
 
   private:

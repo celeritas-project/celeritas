@@ -62,8 +62,8 @@ EventReader::result_type EventReader::operator()()
         {
             // Get the PDG code and check if this particle type is defined for
             // the current physics
-            PDGNumber     pdg{gen_particle->pid()};
-            ParticleId    particle_id{params_->find(pdg)};
+            PDGNumber  pdg{gen_particle->pid()};
+            ParticleId particle_id{params_->find(pdg)};
             CELER_ASSERT(particle_id);
 
             Primary primary;
