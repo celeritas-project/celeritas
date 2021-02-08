@@ -53,6 +53,10 @@ TEST(SimplePie, slice)
 
     EXPECT_EQ(PieIdT{10}, ps[0]);
     EXPECT_EQ(PieIdT{12}, ps[2]);
+#if CELERITAS_DEBUG
+    // Out of range
+    EXPECT_THROW(ps[12], celeritas::DebugError);
+#endif
 }
 
 TEST(SimplePie, size_limits)

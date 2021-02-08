@@ -11,7 +11,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a particular range.
+ * Construct with the begin/past-the-end indices of the slice.
  */
 template<class T, class S>
 CELER_FUNCTION PieSlice<T, S>::PieSlice(size_type start, size_type stop)
@@ -22,12 +22,12 @@ CELER_FUNCTION PieSlice<T, S>::PieSlice(size_type start, size_type stop)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a particular range.
+ * Access the index/ID corresponding to an element of this slice.
  */
 template<class T, class S>
 CELER_FUNCTION auto PieSlice<T, S>::operator[](size_type i) const -> value_type
 {
-    CELER_EXPECT(i < stop_);
+    CELER_EXPECT(i < this->size());
     return value_type(start_ + i);
 }
 

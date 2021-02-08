@@ -29,15 +29,16 @@ namespace celeritas
  * \code
  * class FooParams
  * {
- *  public:
- *   using PieDeviceRef = FooPies<Ownership::const_reference,
- *                                MemSpace::device>;
+ *   public:
+ *     using PieDeviceRef = FooPies<Ownership::const_reference,
+ *                                  MemSpace::device>;
  *
- *   const PieDeviceRef& device_pointers() const {
- *    return pies_.device_ref();
- *   }
- *  private:
- *   PieMirror<FooPies> pies_;
+ *     const PieDeviceRef& device_pointers() const
+ *     {
+ *         return pies_.device();
+ *     }
+ *   private:
+ *     PieMirror<FooPies> pies_;
  * };
  * \endcode
  */

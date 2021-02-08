@@ -32,7 +32,9 @@ using PieId = OpaqueId<T, pie_size_type>;
  * must be used carefully.
  *
  * \todo It might be useful to extend \c range so that it works with OpaqueId
- * objects; then this would just become a `FiniteRange<OpaqueId<T, size>>`.
+ * objects and has an \c operator[]; then this would just become a
+ * `FiniteRange<OpaqueId<T, size>>`. \c start() would become \c *begin(), and
+ * \c stop() would be \c *end().
  *
  * \todo It might also be good to have a `PieMap` -- mapping one OpaqueId to
  * another OpaqueId type (with just an offset value). This would be used for
