@@ -216,7 +216,7 @@ class Pie
     //@}
 };
 
-//! Pie for data of type T but indexed by ThreadId
+//! Pie for data of type T but indexed by ThreadId for use in States
 template<class T, Ownership W, MemSpace M>
 using StatePie = Pie<T, W, M, ThreadId>;
 

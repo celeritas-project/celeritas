@@ -101,7 +101,7 @@ template<>
 struct PieAssigner<Ownership::value, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
-//! Check that sizes are acceptable when taking references
+//! Check that sizes are acceptable when creating references from values
 template<Ownership W>
 struct PieStorageValidator
 {
