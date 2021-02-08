@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GammaAnnihilationProcess.hh
+//! \file GammaConversionProcess.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Annihiliation process for photons.
  */
-class GammaAnnihilationProcess : public Process
+class GammaConversionProcess : public Process
 {
   public:
     //!@{
@@ -27,7 +27,7 @@ class GammaAnnihilationProcess : public Process
 
   public:
     // Construct from particle data
-    explicit GammaAnnihilationProcess(SPConstParticles particles);
+    explicit GammaConversionProcess(SPConstParticles particles);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;

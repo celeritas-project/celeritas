@@ -320,7 +320,7 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
     EXPECT_EQ(16 * num_samples, this->secondary_allocator().get().size());
     EXPECT_EQ(2180, num_secondaries);
 
-    for (const auto it : energy_to_count)
+    for (const auto& it : energy_to_count)
     {
         energy.push_back(it.first);
         count.push_back(it.second);
@@ -388,7 +388,7 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
     EXPECT_EQ(5 * num_samples, this->secondary_allocator().get().size());
     EXPECT_EQ(10007, num_secondaries);
 
-    for (const auto it : energy_to_count)
+    for (const auto& it : energy_to_count)
     {
         energy.push_back(it.first);
         count.push_back(it.second);
