@@ -51,10 +51,10 @@ TEST_F(RootImporterTest, import_particles)
     // Check electron data
     ParticleId electron_id = data.particle_params->find(PDGNumber(11));
     ASSERT_GE(electron_id.get(), 0);
-    ParticleDef electron = data.particle_params->get(electron_id);
-    EXPECT_SOFT_EQ(0.510998910, electron.mass.value());
-    EXPECT_EQ(-1, electron.charge.value());
-    EXPECT_EQ(0, electron.decay_constant);
+    const auto& electron = data.particle_params->get(electron_id);
+    EXPECT_SOFT_EQ(0.510998910, electron.mass().value());
+    EXPECT_EQ(-1, electron.charge().value());
+    EXPECT_EQ(0, electron.decay_constant());
 
     // Check all names/PDG codes
     std::vector<std::string> loaded_names;

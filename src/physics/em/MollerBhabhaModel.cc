@@ -29,7 +29,7 @@ MollerBhabhaModel::MollerBhabhaModel(ModelId               id,
                    "the Moller-Bhabha Model.");
 
     interface_.electron_mass_c_sq
-        = particles.get(interface_.electron_id).mass.value(); // [MeV]
+        = particles.get(interface_.electron_id).mass().value(); // [MeV]
     interface_.min_valid_energy = 1e-3;                       // [MeV]
 
     CELER_ENSURE(interface_);

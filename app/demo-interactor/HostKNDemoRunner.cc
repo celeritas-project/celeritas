@@ -44,7 +44,7 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams particles,
     kn_pointers_.electron_id = pparams_->find(pdg::electron());
     kn_pointers_.gamma_id    = pparams_->find(pdg::gamma());
     kn_pointers_.inv_electron_mass
-        = 1 / pparams_->get(kn_pointers_.electron_id).mass.value();
+        = 1 / pparams_->get(kn_pointers_.electron_id).mass().value();
     CELER_ENSURE(kn_pointers_);
 }
 
@@ -71,9 +71,6 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     // Random number generations
     std::mt19937 rng(args.seed);
 
-    // Particle param pointers
-    auto pp_host_ptrs = pparams_->host_pointers();
-
     // Physics calculator
     auto                  xs_host_ptrs = xsparams_->host_pointers();
     PhysicsGridCalculator calc_xs(xs_host_ptrs);
@@ -85,6 +82,10 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     // Make detector store
     HostDetectorStore detector(args.max_steps, args.tally_grid);
     auto              detector_host_ptrs = detector.host_pointers();
+
+    // Particle state store
+    celeritas::ParticleStateData<Ownership::value, MemSpace::host> particle_state;
+    resize(&particle_state, pparams_->host_pointers(), 1);
 
     // Loop over particle tracks and events per track
     for (CELER_MAYBE_UNUSED auto n : celeritas::range(args.num_tracks))
@@ -98,11 +99,16 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
         // Initialize particle state
         StatePointers state;
-        state.particle.vars = {&init_state, 1};
-        state.position      = {0, 0, 0};
-        state.direction     = {0, 0, 1};
-        state.time          = 0;
-        state.alive         = true;
+        state.particle  = particle_state;
+        state.position  = {0, 0, 0};
+        state.direction = {0, 0, 1};
+        state.time      = 0;
+        state.alive     = true;
+
+        // Create and initialize particle view
+        ParticleTrackView particle(
+            pparams_->host_pointers(), state.particle, ThreadId{0});
+        particle = init_state;
 
         // Secondary pointers
         SecondaryAllocatorView allocate_secondaries(secondary_host_ptrs);
@@ -118,10 +124,6 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
         Stopwatch elapsed_time;
         while (state.alive && --remaining_steps > 0)
         {
-            // Get a particle track view to a single particle
-            auto particle
-                = ParticleTrackView(pp_host_ptrs, state.particle, ThreadId(0));
-
             // Move to collision
             {
                 real_type sigma = calc_xs(particle.energy());

@@ -27,7 +27,7 @@ EPlusGGModel::EPlusGGModel(ModelId id, const ParticleParams& particles)
                    "Positron and gamma particles must be enabled to use the "
                    "EPlusGG Model.");
     interface_.electron_mass
-        = particles.get(interface_.positron_id).mass.value();
+        = particles.get(interface_.positron_id).mass().value();
     CELER_ENSURE(interface_);
 }
 

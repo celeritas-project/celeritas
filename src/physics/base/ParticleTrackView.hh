@@ -10,7 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "ParticleInterface.hh"
-#include "ParticleInterface.hh"
+#include "ParticleView.hh"
 #include "Units.hh"
 
 namespace celeritas
@@ -31,15 +31,18 @@ class ParticleTrackView
   public:
     //!@{
     //! Type aliases
+    using ParticleParamsRef
+        = ParticleParamsData<Ownership::const_reference, MemSpace::native>;
+    using ParticleStateRef
+        = ParticleStateData<Ownership::reference, MemSpace::native>;
     using Initializer_t = ParticleTrackState;
     //!@}
 
   public:
     // Construct from "dynamic" state and "static" particle definitions
-    inline CELER_FUNCTION
-    ParticleTrackView(const ParticleParamsPointers& params,
-                      const ParticleStatePointers&  states,
-                      ThreadId                      id);
+    inline CELER_FUNCTION ParticleTrackView(const ParticleParamsRef& params,
+                                            const ParticleStateRef&  states,
+                                            ThreadId                 id);
 
     // Initialize the particle
     inline CELER_FUNCTION ParticleTrackView&
@@ -61,14 +64,16 @@ class ParticleTrackView
 
     //// STATIC PROPERTIES (requires an indirection) ////
 
+    CELER_FORCEINLINE_FUNCTION ParticleView particle_view() const;
+
     // Rest mass [MeV / c^2]
-    inline CELER_FUNCTION units::MevMass mass() const;
+    CELER_FORCEINLINE_FUNCTION units::MevMass mass() const;
 
     // Charge [elemental charge e+]
-    inline CELER_FUNCTION units::ElementaryCharge charge() const;
+    CELER_FORCEINLINE_FUNCTION units::ElementaryCharge charge() const;
 
     // Decay constant [1/s]
-    inline CELER_FUNCTION real_type decay_constant() const;
+    CELER_FORCEINLINE_FUNCTION real_type decay_constant() const;
 
     //// DERIVED PROPERTIES (indirection plus calculation) ////
 
@@ -85,10 +90,9 @@ class ParticleTrackView
     inline CELER_FUNCTION units::MevMomentumSq momentum_sq() const;
 
   private:
-    const ParticleParamsPointers& params_;
-    ParticleTrackState&           state_;
-
-    inline CELER_FUNCTION const ParticleDef& particle_def() const;
+    const ParticleParamsRef& params_;
+    const ParticleStateRef&  states_;
+    const ThreadId           thread_;
 };
 
 //---------------------------------------------------------------------------//

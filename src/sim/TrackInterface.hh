@@ -27,7 +27,7 @@ struct ParamPointers
 {
     GeoParamsPointers      geo;
     MaterialParamsData<Ownership::const_reference, MemSpace::device> material;
-    ParticleParamsPointers particle;
+    ParticleParamsData<Ownership::const_reference, MemSpace::device> particle;
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
@@ -44,7 +44,7 @@ struct ParamPointers
  */
 struct StatePointers
 {
-    ParticleStatePointers particle;
+    ParticleStateData<Ownership::reference, MemSpace::device> particle;
     GeoStatePointers      geo;
     SimStatePointers      sim;
     RngStatePointers      rng;

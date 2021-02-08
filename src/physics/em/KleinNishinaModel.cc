@@ -28,7 +28,7 @@ KleinNishinaModel::KleinNishinaModel(ModelId               id,
                    "Electron and gamma particles must be enabled to use the "
                    "Klein-Nishina Model.");
     interface_.inv_electron_mass
-        = 1 / particles.get(interface_.electron_id).mass.value();
+        = 1 / particles.get(interface_.electron_id).mass().value();
     CELER_ENSURE(interface_);
 }
 

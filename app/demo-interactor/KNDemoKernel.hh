@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Pie.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "physics/base/ParticleInterface.hh"
@@ -19,6 +20,10 @@
 namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
+using celeritas::MemSpace;
+using celeritas::Ownership;
+
+//---------------------------------------------------------------------------//
 //! Kernel thread dimensions
 struct CudaGridParams
 {
@@ -27,9 +32,10 @@ struct CudaGridParams
 };
 
 //! Pointers to immutable problem data
-struct ParamPointers
+template<Ownership W, MemSpace M>
+struct ParamsData
 {
-    celeritas::ParticleParamsPointers       particle;
+    celeritas::ParticleParamsData<W, M>     particle;
     celeritas::XsGridPointers               xs;
     celeritas::detail::KleinNishinaPointers kn_interactor;
 
@@ -39,16 +45,21 @@ struct ParamPointers
     }
 };
 
-//! Pointers to initial conditoins
+using ParamsHostRef = ParamsData<Ownership::const_reference, MemSpace::host>;
+using ParamsDeviceRef
+    = ParamsData<Ownership::const_reference, MemSpace::device>;
+
+//! Pointers to initial conditions
 struct InitialPointers
 {
     celeritas::ParticleTrackState particle;
 };
 
 //! Pointers to thread-dependent state data
-struct StatePointers
+template<Ownership W, MemSpace M>
+struct StateData
 {
-    celeritas::ParticleStatePointers      particle;
+    celeritas::ParticleStateData<W, M>    particle;
     celeritas::RngStatePointers           rng;
     celeritas::Span<celeritas::Real3>     position;
     celeritas::Span<celeritas::Real3>     direction;
@@ -68,18 +79,21 @@ struct StatePointers
     }
 };
 
+using StateHostRef   = StateData<Ownership::reference, MemSpace::host>;
+using StateDeviceRef = StateData<Ownership::reference, MemSpace::device>;
+
 //---------------------------------------------------------------------------//
 // Initialize particle states
 void initialize(const CudaGridParams&  grid,
-                const ParamPointers&   params,
-                const StatePointers&   state,
+                const ParamsDeviceRef& params,
+                const StateDeviceRef&  state,
                 const InitialPointers& initial);
 
 //---------------------------------------------------------------------------//
 // Run an iteration
 void iterate(const CudaGridParams&                        grid,
-             const ParamPointers&                         params,
-             const StatePointers&                         state,
+             const ParamsDeviceRef&                       params,
+             const StateDeviceRef&                        state,
              const celeritas::SecondaryAllocatorPointers& secondaries,
              const celeritas::DetectorPointers&           detector);
 

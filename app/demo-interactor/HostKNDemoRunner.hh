@@ -38,7 +38,10 @@ class HostKNDemoRunner
     // CPU Version of the particle StatePointers
     struct StatePointers
     {
-        celeritas::ParticleStatePointers particle;
+        using ParticleStatePointers
+            = celeritas::ParticleStateData<Ownership::reference, MemSpace::host>;
+
+        ParticleStatePointers            particle;
         celeritas::Real3                 position;
         celeritas::Real3                 direction;
         celeritas::real_type             time;
