@@ -11,7 +11,8 @@
 #include <cuda_runtime_api.h>
 #include "base/Assert.hh"
 #include "base/Stopwatch.hh"
-#include "comm/Logger.hh"
+#include "Communicator.hh"
+#include "Logger.hh"
 
 namespace
 {

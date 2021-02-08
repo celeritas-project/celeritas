@@ -56,9 +56,10 @@ void InteractorHostTestBase::set_material(const std::string& name)
 {
     CELER_EXPECT(material_params_);
 
-    ms_data_.state[0].material_id = material_params_->find(name);
-    mt_view_                      = std::make_shared<MaterialTrackView>(
-        material_params_->host_pointers(), ms_ref_, ThreadId{0});
+    ThreadId tid{0};
+    ms_data_.state[tid].material_id = material_params_->find(name);
+    mt_view_                        = std::make_shared<MaterialTrackView>(
+        material_params_->host_pointers(), ms_ref_, tid);
 }
 
 //---------------------------------------------------------------------------//

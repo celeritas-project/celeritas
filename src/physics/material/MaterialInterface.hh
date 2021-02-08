@@ -74,7 +74,7 @@ struct MaterialDef
     real_type   number_density; //!< Atomic number density [1/cm^3]
     real_type   temperature;    //!< Temperature [K]
     MatterState matter_state;   //!< Solid, liquid, gas
-    PieSlice<MatElementComponent> elements; //!< Access by ElementComponentId
+    PieSlice<MatElementComponent> elements; //!< Element components
 
     // COMPUTED PROPERTIES
 
@@ -155,7 +155,7 @@ template<Ownership W, MemSpace M>
 struct MaterialStateData
 {
     template<class T>
-    using Data = celeritas::Pie<T, W, M>;
+    using Data = celeritas::StatePie<T, W, M>;
 
     Data<MaterialTrackState> state;
     Data<real_type> element_scratch; // 2D array: [num states][max components]
@@ -188,8 +188,8 @@ inline void resize(MaterialStateData<Ownership::value, M>* data,
                    size_type                               max_el_components)
 {
     CELER_EXPECT(size > 0);
-    make_pie_builder(data->state).resize(size);
-    make_pie_builder(data->element_scratch).resize(size * max_el_components);
+    make_pie_builder(&data->state).resize(size);
+    make_pie_builder(&data->element_scratch).resize(size * max_el_components);
 }
 #endif
 

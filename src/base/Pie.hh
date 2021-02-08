@@ -7,35 +7,39 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "OpaqueId.hh"
 #include "PieTypes.hh"
 #include "Types.hh"
 #include "detail/PieImpl.hh"
 
 namespace celeritas
 {
-/*!
- * Element indexing type for Pie access.
- *
- * The size type is plain "unsigned int" (32-bit in CUDA) rather than
- * \c celeritas::size_type (64-bit) because CUDA currently uses native 32-bit
- * pointer arithmetic. In general this should be the same type as the default
- * OpaqueId::value_type. It's possible that in large problems 4 billion
- * elements won't be enough (for e.g. cross sections), but in that case the
- * PieBuilder will throw an assertion during construction.
- */
-using pie_size_type = detail::pie_size_type;
+//! Opaque ID representing a single element of a pie.
+template<class T>
+using PieId = OpaqueId<T, pie_size_type>;
 
 //---------------------------------------------------------------------------//
 /*!
  * Reference a contiguous subset of items inside a Pie.
- *
  * \tparam T The value type of items to represent.
  *
- * The template parameter here isn't used directly -- it's more of a marker in
- * a class that contains it. The template parameter must match the
- * corresponding \c Pie type, and more importantly it's only assigned to one
- * particular pie. It doesn't have any persistent connection to its associated
- * pie and thus must be used carefully.
+ * A PieSlice is a range of \c OpaqueId<T> that reference a range of values of
+ * type \c T in a \c Pie . The PieSlice acts like a \c slice object in Python
+ * when used on a Pie, returning a Span<T> of the underlying data.
+ *
+ * A PieSlice is only meaningful in connection with a particular Pie of type T.
+ * It doesn't have any persistent connection to its associated pie and thus
+ * must be used carefully.
+ *
+ * \todo It might be useful to extend \c range so that it works with OpaqueId
+ * objects and has an \c operator[]; then this would just become a
+ * `FiniteRange<OpaqueId<T, size>>`. \c start() would become \c *begin(), and
+ * \c stop() would be \c *end().
+ *
+ * \todo It might also be good to have a `PieMap` -- mapping one OpaqueId to
+ * another OpaqueId type (with just an offset value). This would be used for
+ * example in physics, where \c PieSlice objects themselves are supposed to be
+ * indexed into with a particular ID type.
  *
  * \code
  * struct MyMaterial
@@ -51,17 +55,14 @@ using pie_size_type = detail::pie_size_type;
  *     Pie<MyMaterial, W, M> materials;
  * };
  * \endcode
- *
- * \todo Not sure if we ever have to directly iterate over the values, but if
- * we wanted to we could have this guy use \c detail::range_iter<unsigned int>
- * instead of unsigned int.
  */
-template<class T>
+template<class T, class Size = pie_size_type>
 class PieSlice
 {
   public:
     //!@{
-    using size_type = pie_size_type;
+    using size_type = Size;
+    using value_type = OpaqueId<T, Size>;
     //!@}
 
   public:
@@ -76,6 +77,9 @@ class PieSlice
     CELER_CONSTEXPR_FUNCTION size_type start() const { return start_; }
     CELER_CONSTEXPR_FUNCTION size_type stop() const { return stop_; }
     //!@}
+
+    // Get an index corresponding to the given index
+    inline CELER_FUNCTION value_type operator[](size_type i) const;
 
     //! Whether the slice is empty
     CELER_CONSTEXPR_FUNCTION bool empty() const { return stop_ == start_; }
@@ -113,8 +117,14 @@ class PieSlice
  * kernels, but in the case of Celeritas this situation won't arise, because
  * we always want to build host code in C++ files for development ease and to
  * allow testing when CUDA is disabled.)
+ *
+ * \todo It would be easy to specialize the traits for the const_reference
+ * ownership so that for device primitive data types (int, double) we access
+ * via __ldg -- speeding up everywhere in the code without any invasive
+ * changes. This is another good argument for using Pie instead of Span for
+ * device-compatible helper classes (e.g. grid calculator).
  */
-template<class T, Ownership W, MemSpace M>
+template<class T, Ownership W, MemSpace M, class I = PieId<T>>
 class Pie
 {
     using PieTraitsT = detail::PieTraits<T, W>;
@@ -124,11 +134,13 @@ class Pie
     //! Type aliases
     using SpanT                = typename PieTraitsT::SpanT;
     using SpanConstT           = typename PieTraitsT::SpanConstT;
-    using value_type           = typename PieTraitsT::value_type;
     using pointer              = typename PieTraitsT::pointer;
     using const_pointer        = typename PieTraitsT::const_pointer;
     using reference_type       = typename PieTraitsT::reference_type;
     using const_reference_type = typename PieTraitsT::const_reference_type;
+    using size_type            = typename I::value_type;
+    using PieIndexT            = I;
+    using PieSliceT            = PieSlice<T, size_type>;
     //!@}
 
   public:
@@ -143,11 +155,11 @@ class Pie
 
     // Construct from another pie
     template<Ownership W2, MemSpace M2>
-    inline Pie(const Pie<T, W2, M2>& other);
+    inline Pie(const Pie<T, W2, M2, I>& other);
 
     // Construct from another pie (mutable)
     template<Ownership W2, MemSpace M2>
-    inline Pie(Pie<T, W2, M2>& other);
+    inline Pie(Pie<T, W2, M2, I>& other);
 
     //!@{
     //! Default assignment
@@ -157,21 +169,21 @@ class Pie
 
     // Assign from another pie in the same memory space
     template<Ownership W2>
-    inline Pie& operator=(const Pie<T, W2, M>& other);
+    inline Pie& operator=(const Pie<T, W2, M, I>& other);
 
     // Assign (mutable!) from another pie in the same memory space
     template<Ownership W2>
-    inline Pie& operator=(Pie<T, W2, M>& other);
+    inline Pie& operator=(Pie<T, W2, M, I>& other);
 
     //// ACCESS ////
 
     // Access a subset of the data with a slice
-    inline CELER_FUNCTION SpanT      operator[](const PieSlice<T>& ps);
-    inline CELER_FUNCTION SpanConstT operator[](const PieSlice<T>& ps) const;
+    inline CELER_FUNCTION SpanT      operator[](PieSliceT ps);
+    inline CELER_FUNCTION SpanConstT operator[](PieSliceT ps) const;
 
     // Access a single element
-    inline CELER_FUNCTION reference_type       operator[](size_type i);
-    inline CELER_FUNCTION const_reference_type operator[](size_type i) const;
+    inline CELER_FUNCTION reference_type       operator[](PieIndexT i);
+    inline CELER_FUNCTION const_reference_type operator[](PieIndexT i) const;
 
     // Direct accesors to underlying data
     CELER_CONSTEXPR_FUNCTION size_type     size() const;
@@ -186,14 +198,15 @@ class Pie
 
     //// FRIENDS ////
 
-    template<class T2, Ownership W2, MemSpace M2>
+    template<class T2, Ownership W2, MemSpace M2, class Id2>
     friend class Pie;
 
-    template<class T2, MemSpace M2>
+    template<class T2, MemSpace M2, class Id2>
     friend class PieBuilder;
 
+  protected:
     //!@{
-    // Private accessors for pie construction
+    // Private accessors for pie construction/access
     using StorageT = typename detail::PieStorage<T, W, M>::type;
     CELER_FORCEINLINE_FUNCTION const StorageT& storage() const
     {
@@ -203,47 +216,11 @@ class Pie
     //@}
 };
 
+//! Pie for data of type T but indexed by ThreadId for use in States
+template<class T, Ownership W, MemSpace M>
+using StatePie = Pie<T, W, M, ThreadId>;
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-//---------------------------------------------------------------------------//
-//! \cond
-#define CELER_PIE_TYPE_(CLSNAME, OWNERSHIP, MEMSPACE) \
-    CLSNAME<::celeritas::Ownership::OWNERSHIP, ::celeritas::MemSpace::MEMSPACE>
-//!\endcond
-
-/*!
- * \def CELER_PIE_STRUCT
- *
- * Define an anonymous struct that holds sets of values and references on
- * host and device. This is meant for collections of Pies in a struct
- * that's templated only on the ownership and memory space.
- *
- * Example:
- * \code
- * class FooParams
- * {
- *  public:
- *   using PieDeviceRef = FooPies<Ownership::const_reference,
- *                                MemSpace::device>;
- *
- *   const PieDeviceRef& device_pointers() const {
- *    return pies_.device_ref;
- *   }
- *  private:
- *   CELER_PIE_STRUCT(FooPies, const_reference) pies_;
- * };
- * \endcode
- */
-#define CELER_PIE_STRUCT(CLSNAME, REFTYPE)                    \
-    struct                                                    \
-    {                                                         \
-        CELER_PIE_TYPE_(CLSNAME, value, host) host;           \
-        CELER_PIE_TYPE_(CLSNAME, value, device) device;       \
-        CELER_PIE_TYPE_(CLSNAME, REFTYPE, host) host_ref;     \
-        CELER_PIE_TYPE_(CLSNAME, REFTYPE, device) device_ref; \
-    }
-
-//---------------------------------------------------------------------------//
 
 #include "Pie.i.hh"

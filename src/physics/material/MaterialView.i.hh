@@ -130,7 +130,7 @@ CELER_FUNCTION real_type MaterialView::radiation_length() const
  */
 CELER_FUNCTION const MaterialDef& MaterialView::material_def() const
 {
-    return params_.materials[material_.get()];
+    return params_.materials[material_];
 }
 
 //---------------------------------------------------------------------------//

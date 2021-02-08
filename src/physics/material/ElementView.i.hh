@@ -14,7 +14,7 @@ namespace celeritas
  */
 CELER_FUNCTION
 ElementView::ElementView(const MaterialParamsPointers& params, ElementId el_id)
-    : def_(params.elements[el_id.get()])
+    : def_(params.elements[el_id])
 {
     CELER_EXPECT(el_id < params.elements.size());
 }

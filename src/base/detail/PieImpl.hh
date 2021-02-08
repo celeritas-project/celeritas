@@ -11,7 +11,6 @@
 #include "base/Span.hh"
 
 #ifndef __CUDA_ARCH__
-#    include <limits>
 #    include <vector>
 #    include "base/Assert.hh"
 #    include "base/DeviceVector.hh"
@@ -22,10 +21,6 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Indexing type for pies.
-using pie_size_type = unsigned int;
-
-//---------------------------------------------------------------------------//
 template<class T, Ownership W>
 struct PieTraits
 {
@@ -35,7 +30,6 @@ struct PieTraits
     using const_pointer        = const T*;
     using reference_type       = T&;
     using const_reference_type = const T&;
-    using value_type           = T;
 };
 
 //---------------------------------------------------------------------------//
@@ -48,7 +42,6 @@ struct PieTraits<T, Ownership::reference>
     using const_pointer        = T*;
     using reference_type       = T&;
     using const_reference_type = T&;
-    using value_type           = T;
 };
 
 //---------------------------------------------------------------------------//
@@ -61,11 +54,10 @@ struct PieTraits<T, Ownership::const_reference>
     using const_pointer        = const T*;
     using reference_type       = const T&;
     using const_reference_type = const T&;
-    using value_type           = T;
 };
 
 //---------------------------------------------------------------------------//
-//! Memspace-dependent type traits for a pie
+//! Memspace-dependent storage for a pie
 template<class T, Ownership W, MemSpace M>
 struct PieStorage
 {
@@ -107,6 +99,20 @@ template<>
 struct PieAssigner<Ownership::value, MemSpace::host>;
 template<>
 struct PieAssigner<Ownership::value, MemSpace::device>;
+
+//---------------------------------------------------------------------------//
+//! Check that sizes are acceptable when creating references from values
+template<Ownership W>
+struct PieStorageValidator
+{
+    template<class Size, class OtherSize>
+    void operator()(Size, OtherSize)
+    {
+    }
+};
+
+template<>
+struct PieStorageValidator<Ownership::value>;
 
 #ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
@@ -153,22 +159,28 @@ struct PieAssigner<Ownership::value, MemSpace::device>
         static_assert(M2 == MemSpace::host,
                       "Can only assign by value from host to device");
 
-        // Always-on once-per-copy check that the number of elements in the
-        // vector doesn't exceed the range. This is in case of a production run
-        // with lots of cross sections, when the incremental PieBuilder checks
-        // are disabled. See comment in PieSlice class documentation.
-        constexpr std::size_t max_pie_size
-            = std::numeric_limits<pie_size_type>::max();
-        CELER_VALIDATE(source.data.size() <= max_pie_size,
-                       "Pie is too large for PieSlice: "
-                           << source.data.size() << " > " << max_pie_size);
-
         PieStorage<T, Ownership::value, MemSpace::device> result{
             DeviceVector<T>(source.data.size())};
         result.data.copy_to_device({source.data.data(), source.data.size()});
         return result;
     }
 };
+
+//---------------------------------------------------------------------------//
+//! Check that sizes are acceptable when taking references
+template<>
+struct PieStorageValidator<Ownership::value>
+{
+    template<class Size, class OtherSize>
+    void operator()(Size dst, OtherSize src)
+    {
+        CELER_VALIDATE(dst == src,
+                       "Pie is too large: " << sizeof(Size)
+                                            << "-byte int cannot hold " << src
+                                            << " elements");
+    }
+};
+
 #endif
 
 //---------------------------------------------------------------------------//

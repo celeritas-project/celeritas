@@ -1,24 +1,31 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Device.hh
+//! \file PieMirror.i.hh
 //---------------------------------------------------------------------------//
-#pragma once
+#include <utility>
+#include "comm/Device.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class Communicator;
-
-//---------------------------------------------------------------------------//
-// Whether device code should be used
-bool is_device_enabled();
-
-//---------------------------------------------------------------------------//
-// Initialize device in a round-robin fashion from a communicator
-void initialize_device(const Communicator& comm);
+/*!
+ * Construct with defaults.
+ */
+template<template<Ownership, MemSpace> class P>
+PieMirror<P>::PieMirror(HostValue&& host) : host_(std::move(host))
+{
+    CELER_EXPECT(host_);
+    host_ref_ = host_;
+    if (celeritas::is_device_enabled())
+    {
+        // Copy data to device and save reference
+        device_     = host_;
+        device_ref_ = device_;
+    }
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

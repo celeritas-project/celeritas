@@ -12,8 +12,8 @@ namespace celeritas
 /*!
  * Reserve space for the given number of elements.
  */
-template<class T, MemSpace M>
-void PieBuilder<T, M>::reserve(size_type count)
+template<class T, MemSpace M, class I>
+void PieBuilder<T, M, I>::reserve(size_type count)
 {
     CELER_EXPECT(count <= max_pie_size());
     this->storage().reserve(count);
@@ -23,9 +23,9 @@ void PieBuilder<T, M>::reserve(size_type count)
 /*!
  * Insert the given elements at the end of the allocation.
  */
-template<class T, MemSpace M>
+template<class T, MemSpace M, class I>
 template<class InputIterator>
-auto PieBuilder<T, M>::insert_back(InputIterator first, InputIterator last)
+auto PieBuilder<T, M, I>::insert_back(InputIterator first, InputIterator last)
     -> PieSliceT
 {
     CELER_EXPECT(std::distance(first, last) + this->storage().size()
@@ -41,8 +41,9 @@ auto PieBuilder<T, M>::insert_back(InputIterator first, InputIterator last)
 /*!
  * Insert the given list of elements at the end of the allocation.
  */
-template<class T, MemSpace M>
-auto PieBuilder<T, M>::insert_back(std::initializer_list<T> init) -> PieSliceT
+template<class T, MemSpace M, class I>
+auto PieBuilder<T, M, I>::insert_back(std::initializer_list<T> init)
+    -> PieSliceT
 {
     return this->insert_back(init.begin(), init.end());
 }
@@ -51,13 +52,15 @@ auto PieBuilder<T, M>::insert_back(std::initializer_list<T> init) -> PieSliceT
 /*!
  * Reserve space for the given number of elements.
  */
-template<class T, MemSpace M>
-void PieBuilder<T, M>::push_back(T el)
+template<class T, MemSpace M, class I>
+auto PieBuilder<T, M, I>::push_back(T el) -> PieIndexT
 {
     CELER_EXPECT(this->storage().size() + 1 <= this->max_pie_size());
     static_assert(M == MemSpace::host,
                   "Insertion currently works only for host memory");
+    size_type idx = this->size();
     this->storage().push_back(el);
+    return PieIndexT{idx};
 }
 
 //---------------------------------------------------------------------------//
@@ -69,8 +72,8 @@ void PieBuilder<T, M>::push_back(T el)
  * \todo Rethink whether to add resizing to DeviceVector, since this
  * construction is super awkward.
  */
-template<class T, MemSpace M>
-void PieBuilder<T, M>::resize(size_type size)
+template<class T, MemSpace M, class I>
+void PieBuilder<T, M, I>::resize(size_type size)
 {
     CELER_EXPECT(size >= this->size());
     CELER_EXPECT(this->storage().empty() || size <= this->storage().capacity());

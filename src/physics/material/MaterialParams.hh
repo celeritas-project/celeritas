@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <vector>
 #include "base/DeviceVector.hh"
+#include "base/PieMirror.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "MaterialInterface.hh"
@@ -76,11 +77,11 @@ class MaterialParams
     // TODO: Map different MaterialDefIds with same material name
     inline MaterialId find(const std::string& name) const;
 
-    // Access material properties on the host
-    inline const HostRef& host_pointers() const;
+    //! Access material properties on the host
+    const HostRef& host_pointers() const { return data_.host(); }
 
-    // Access material properties on the device
-    inline const DeviceRef& device_pointers() const;
+    //! Access material properties on the device
+    const DeviceRef& device_pointers() const { return data_.device(); }
 
     //! Maximum number of elements in any one material
     size_type max_element_components() const { return max_el_; }
@@ -91,13 +92,15 @@ class MaterialParams
     std::unordered_map<std::string, MaterialId> matname_to_id_;
     size_type                                   max_el_;
 
-    // Host/device sstorage and reference
-    CELER_PIE_STRUCT(MaterialParamsData, const_reference) data_;
+    // Host/device storage and reference
+    PieMirror<MaterialParamsData> data_;
 
     // HELPER FUNCTIONS
-    void                      append_element_def(const ElementInput& inp);
-    PieSlice<MatElementComponent> extend_elcomponents(const MaterialInput& inp);
-    void                      append_material_def(const MaterialInput& inp);
+    using HostValue = MaterialParamsData<Ownership::value, MemSpace::host>;
+    void append_element_def(const ElementInput& inp, HostValue*);
+    PieSlice<MatElementComponent>
+         extend_elcomponents(const MaterialInput& inp, HostValue*) const;
+    void append_material_def(const MaterialInput& inp, HostValue*);
 };
 
 //---------------------------------------------------------------------------//
