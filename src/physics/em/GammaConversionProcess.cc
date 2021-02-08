@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GammaAnnihilationProcess.cc
+//! \file GammaConversionProcess.cc
 //---------------------------------------------------------------------------//
-#include "GammaAnnihilationProcess.hh"
+#include "GammaConversionProcess.hh"
 
 #include <utility>
 #include "BetheHeitlerModel.hh"
@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Construct from host data.
  */
-GammaAnnihilationProcess::GammaAnnihilationProcess(SPConstParticles particles)
+GammaConversionProcess::GammaConversionProcess(SPConstParticles particles)
     : particles_(std::move(particles))
     , positron_id_(particles_->find(pdg::positron()))
 {
@@ -27,7 +27,7 @@ GammaAnnihilationProcess::GammaAnnihilationProcess(SPConstParticles particles)
 /*!
  * Construct the models associated with this process.
  */
-auto GammaAnnihilationProcess::build_models(ModelIdGenerator next_id) const
+auto GammaConversionProcess::build_models(ModelIdGenerator next_id) const
     -> VecModel
 {
     return {std::make_shared<BetheHeitlerModel>(next_id(), *particles_)};
@@ -37,7 +37,7 @@ auto GammaAnnihilationProcess::build_models(ModelIdGenerator next_id) const
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto GammaAnnihilationProcess::step_limits(Applicability range) const
+auto GammaConversionProcess::step_limits(Applicability range) const
     -> StepLimitBuilders
 {
     CELER_EXPECT(range.particle == particles_->find(pdg::gamma()));
@@ -51,7 +51,7 @@ auto GammaAnnihilationProcess::step_limits(Applicability range) const
 /*!
  * Name of the process.
  */
-std::string GammaAnnihilationProcess::label() const
+std::string GammaConversionProcess::label() const
 {
     return "Photon annihiliation";
 }

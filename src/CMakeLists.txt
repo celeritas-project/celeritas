@@ -52,7 +52,7 @@ list(APPEND SOURCES
   physics/em/LivermorePEParams.cc
   physics/em/EPlusAnnihilationProcess.cc
   physics/em/EPlusGGModel.cc
-  physics/em/GammaAnnihilationProcess.cc
+  physics/em/GammaConversionProcess.cc
   physics/em/KleinNishinaModel.cc
   physics/em/MollerBhabhaModel.cc
   physics/grid/ValueGridBuilder.cc

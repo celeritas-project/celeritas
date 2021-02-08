@@ -11,7 +11,7 @@
 #include "physics/material/Types.hh"
 #include "physics/base/Units.hh"
 #include "physics/em/BetheHeitlerModel.hh"
-#include "physics/em/GammaAnnihilationProcess.hh"
+#include "physics/em/GammaConversionProcess.hh"
 #include "physics/material/MaterialTrackView.hh"
 
 #include "celeritas_test.hh"
@@ -22,7 +22,7 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::GammaAnnihilationProcess;
+using celeritas::GammaConversionProcess;
 using celeritas::detail::BetheHeitlerInteractor;
 using celeritas::units::AmuMass;
 namespace constants = celeritas::constants;
@@ -244,8 +244,8 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
 // TODO: Test all models for a given process?
 TEST_F(BetheHeitlerInteractorTest, model)
 {
-    GammaAnnihilationProcess process(this->get_particle_params());
-    ModelIdGenerator         next_id;
+    GammaConversionProcess process(this->get_particle_params());
+    ModelIdGenerator       next_id;
 
     // Construct the models associated with gamma annihilation
     auto models = process.build_models(next_id);
