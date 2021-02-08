@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include "base/Algorithms.hh"
-#include "physics/em/MockXsCalculator.hh"
+#include "physics/em/LivermoreXsCalculator.hh"
 
 namespace celeritas
 {
@@ -61,13 +61,13 @@ real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
     {
         // Use tabulated cross sections above K-shell energy but below energy
         // limit for parameterization
-        XsCalculator calc_xs(el.xs_high);
+        LivermoreXsCalculator calc_xs(el.xs_high);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     else
     {
         // Use tabulated cross sections below K-shell energy
-        XsCalculator calc_xs(el.xs_low);
+        LivermoreXsCalculator calc_xs(el.xs_low);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     return result;
