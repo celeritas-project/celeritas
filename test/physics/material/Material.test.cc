@@ -122,6 +122,9 @@ TEST_F(MaterialTest, params)
 {
     ASSERT_TRUE(params);
 
+    EXPECT_EQ(3, params->size());
+    EXPECT_EQ(4, params->num_elements());
+
     EXPECT_EQ(MaterialId{0}, params->find("NaI"));
     EXPECT_EQ(MaterialId{1}, params->find("hard vacuum"));
     EXPECT_EQ(MaterialId{2}, params->find("H2"));
