@@ -18,12 +18,12 @@ namespace celeritas
  * Construct from dynamic and static particle properties.
  */
 CELER_FUNCTION
-ParticleTrackView::ParticleTrackView(const ParticleParamsPointers& params,
-                                     const ParticleStatePointers&  states,
-                                     ThreadId                      id)
-    : params_(params), state_(states.vars[id.get()])
+ParticleTrackView::ParticleTrackView(const ParticleParamsRef& params,
+                                     const ParticleStateRef&  states,
+                                     ThreadId                 thread)
+    : params_(params), states_(states), thread_(thread)
 {
-    CELER_EXPECT(id < states.vars.size());
+    CELER_EXPECT(thread_ < states_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -33,9 +33,9 @@ ParticleTrackView::ParticleTrackView(const ParticleParamsPointers& params,
 CELER_FUNCTION ParticleTrackView&
 ParticleTrackView::operator=(const Initializer_t& other)
 {
-    CELER_EXPECT(other.particle_id < params_.defs.size());
+    CELER_EXPECT(other.particle_id < params_.particles.size());
     CELER_EXPECT(other.energy >= zero_quantity());
-    state_ = other;
+    states_.state[thread_] = other;
     return *this;
 }
 
@@ -51,7 +51,7 @@ void ParticleTrackView::energy(units::MevEnergy quantity)
 {
     CELER_EXPECT(this->particle_id());
     CELER_EXPECT(quantity >= zero_quantity());
-    state_.energy = quantity;
+    states_.state[thread_].energy = quantity;
 }
 
 //---------------------------------------------------------------------------//
@@ -62,7 +62,7 @@ void ParticleTrackView::energy(units::MevEnergy quantity)
  */
 CELER_FUNCTION ParticleId ParticleTrackView::particle_id() const
 {
-    return state_.particle_id;
+    return states_.state[thread_].particle_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -71,7 +71,7 @@ CELER_FUNCTION ParticleId ParticleTrackView::particle_id() const
  */
 CELER_FUNCTION units::MevEnergy ParticleTrackView::energy() const
 {
-    return state_.energy;
+    return states_.state[thread_].energy;
 }
 
 //---------------------------------------------------------------------------//
@@ -80,18 +80,27 @@ CELER_FUNCTION units::MevEnergy ParticleTrackView::energy() const
  */
 CELER_FUNCTION bool ParticleTrackView::is_stopped() const
 {
-    return state_.energy == zero_quantity();
+    return this->energy() == zero_quantity();
 }
 
 //---------------------------------------------------------------------------//
 // STATIC PROPERTIES
 //---------------------------------------------------------------------------//
 /*!
+ * Get static particle properties for the current state.
+ */
+CELER_FUNCTION ParticleView ParticleTrackView::particle_view() const
+{
+    return ParticleView(params_, states_.state[thread_].particle_id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Rest mass [MeV / c^2].
  */
 CELER_FUNCTION units::MevMass ParticleTrackView::mass() const
 {
-    return this->particle_def().mass;
+    return this->particle_view().mass();
 }
 
 //---------------------------------------------------------------------------//
@@ -100,7 +109,7 @@ CELER_FUNCTION units::MevMass ParticleTrackView::mass() const
  */
 CELER_FUNCTION units::ElementaryCharge ParticleTrackView::charge() const
 {
-    return this->particle_def().charge;
+    return this->particle_view().charge();
 }
 
 //---------------------------------------------------------------------------//
@@ -109,9 +118,11 @@ CELER_FUNCTION units::ElementaryCharge ParticleTrackView::charge() const
  */
 CELER_FUNCTION real_type ParticleTrackView::decay_constant() const
 {
-    return this->particle_def().decay_constant;
+    return this->particle_view().decay_constant();
 }
 
+//---------------------------------------------------------------------------//
+// COMBINED PROPERTIES
 //---------------------------------------------------------------------------//
 /*!
  * Speed [1/c].
@@ -214,18 +225,6 @@ CELER_FUNCTION units::MevMomentumSq ParticleTrackView::momentum_sq() const
 CELER_FUNCTION units::MevMomentum ParticleTrackView::momentum() const
 {
     return units::MevMomentum{std::sqrt(this->momentum_sq().value())};
-}
-
-//---------------------------------------------------------------------------//
-// PRIVATE METHODS
-//---------------------------------------------------------------------------//
-/*!
- * Get static particle defs for the current state.
- */
-CELER_FUNCTION const ParticleDef& ParticleTrackView::particle_def() const
-{
-    CELER_EXPECT(state_.particle_id < params_.defs.size());
-    return params_.defs[state_.particle_id.get()];
 }
 
 //---------------------------------------------------------------------------//

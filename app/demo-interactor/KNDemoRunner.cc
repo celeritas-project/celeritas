@@ -10,7 +10,6 @@
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
 #include "random/cuda/RngStateStore.hh"
-#include "physics/base/ParticleStateStore.hh"
 #include "physics/base/SecondaryAllocatorStore.hh"
 #include "physics/base/Units.hh"
 #include "DetectorStore.hh"
@@ -41,7 +40,7 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
     kn_pointers_.electron_id = pparams_->find(pdg::electron());
     kn_pointers_.gamma_id    = pparams_->find(pdg::gamma());
     kn_pointers_.inv_electron_mass
-        = 1 / pparams_->get(kn_pointers_.electron_id).mass.value();
+        = 1 / pparams_->get(kn_pointers_.electron_id).mass().value();
     CELER_ENSURE(kn_pointers_);
 }
 
@@ -65,7 +64,6 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
 
     // Allocate device data
     SecondaryAllocatorStore secondaries(args.num_tracks);
-    ParticleStateStore      track_states(args.num_tracks);
     RngStateStore           rng_states(args.num_tracks, args.seed);
     DeviceVector<Real3>     position(args.num_tracks);
     DeviceVector<Real3>     direction(args.num_tracks);
@@ -73,8 +71,11 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     DeviceVector<bool>      alive(args.num_tracks);
     DetectorStore           detector(args.num_tracks, args.tally_grid);
 
+    ParticleStateData<Ownership::value, MemSpace::device> track_states;
+    resize(&track_states, pparams_->host_pointers(), args.num_tracks);
+
     // Construct pointers to device data
-    ParamPointers params;
+    ParamsDeviceRef params;
     params.particle      = pparams_->device_pointers();
     params.xs            = xsparams_->device_pointers();
     params.kn_interactor = kn_pointers_;
@@ -83,8 +84,8 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     initial.particle = ParticleTrackState{kn_pointers_.gamma_id,
                                           units::MevEnergy{args.energy}};
 
-    StatePointers state;
-    state.particle  = track_states.device_pointers();
+    StateDeviceRef state;
+    state.particle  = track_states;
     state.rng       = rng_states.device_pointers();
     state.position  = position.device_pointers();
     state.direction = direction.device_pointers();

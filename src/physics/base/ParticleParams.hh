@@ -11,10 +11,10 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "base/DeviceVector.hh"
+#include "base/PieMirror.hh"
 #include "ParticleInterface.hh"
+#include "ParticleView.hh"
 #include "PDGNumber.hh"
-#include "ParticleInterface.hh"
 
 namespace celeritas
 {
@@ -39,6 +39,14 @@ namespace celeritas
 class ParticleParams
 {
   public:
+    //!@{
+    //! References to constructed data
+    using HostRef
+        = ParticleParamsData<Ownership::const_reference, MemSpace::host>;
+    using DeviceRef
+        = ParticleParamsData<Ownership::const_reference, MemSpace::device>;
+    //!@}
+
     //! Define a particle's input data
     struct ParticleInput
     {
@@ -59,7 +67,7 @@ class ParticleParams
     //// HOST ACCESSORS ////
 
     //! Number of particle definitions
-    size_type size() const { return md_.size(); }
+    ParticleId::value_type size() const { return md_.size(); }
 
     // Get particle name
     inline const std::string& id_to_label(ParticleId id) const;
@@ -73,16 +81,14 @@ class ParticleParams
     // Find the ID from a PDG code
     inline ParticleId find(PDGNumber pdg_code) const;
 
-    // Access definition on host for construction
-    inline const ParticleDef& get(ParticleId id) const;
+    // Access particle properties on host
+    inline ParticleView get(ParticleId id) const;
 
-    // TESTING ONLY: Get a view to the managed data
-    ParticleParamsPointers host_pointers() const;
+    //! Access material properties on the host
+    const HostRef& host_pointers() const { return data_.host(); }
 
-    //// DEVICE ACCESSORS ////
-
-    // Get a view to the managed data
-    ParticleParamsPointers device_pointers() const;
+    //! Access material properties on the device
+    const DeviceRef& device_pointers() const { return data_.device(); }
 
   private:
     // Saved copy of metadata
@@ -94,11 +100,8 @@ class ParticleParams
     // Map particle codes to registered IDs
     std::unordered_map<PDGNumber, ParticleId> pdg_to_id_;
 
-    // Host copy of definitions for host construction of other classes
-    std::vector<ParticleDef> host_defs_;
-
-    // Particle definitions on device
-    DeviceVector<ParticleDef> device_defs_;
+    // Host/device storage and reference
+    PieMirror<ParticleParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

@@ -9,7 +9,6 @@
 
 #include "base/DeviceVector.hh"
 #include "geometry/GeoStateStore.hh"
-#include "physics/base/ParticleStateStore.hh"
 #include "random/cuda/RngStateStore.hh"
 #include "SimStateStore.hh"
 #include "TrackInterface.hh"
@@ -47,7 +46,9 @@ class StateStore
     StatePointers device_pointers();
 
   private:
-    ParticleStateStore        particle_states_;
+    // XXX Unify these guys and possibly remove this state store?
+    ParticleStateData<Ownership::value, MemSpace::device> particle_states_;
+
     GeoStateStore             geo_states_;
     SimStateStore             sim_states_;
     RngStateStore             rng_states_;

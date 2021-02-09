@@ -26,7 +26,6 @@ namespace celeritas_test
 InteractorHostTestBase::InteractorHostTestBase()
 {
     this->resize_secondaries(128);
-    ps_pointers_.vars  = {&particle_state_, 1};
 }
 
 //---------------------------------------------------------------------------//
@@ -44,7 +43,7 @@ void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
     CELER_EXPECT(!inp.materials.empty());
 
     material_params_ = std::make_shared<MaterialParams>(std::move(inp));
-    resize(&ms_data_, 1, material_params_->max_element_components());
+    resize(&ms_data_, material_params_->host_pointers(), 1);
     ms_ref_ = ms_data_;
 }
 
@@ -56,7 +55,7 @@ void InteractorHostTestBase::set_material(const std::string& name)
 {
     CELER_EXPECT(material_params_);
 
-    ThreadId tid{0};
+    const ThreadId tid{0};
     ms_data_.state[tid].material_id = material_params_->find(name);
     mt_view_                        = std::make_shared<MaterialTrackView>(
         material_params_->host_pointers(), ms_ref_, tid);
@@ -80,7 +79,8 @@ void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
 {
     CELER_EXPECT(!inp.empty());
     particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
-    pp_pointers_     = particle_params_->host_pointers();
+    resize(&ps_data_, particle_params_->host_pointers(), 1);
+    ps_ref_ = ps_data_;
 }
 
 //---------------------------------------------------------------------------//
@@ -103,11 +103,15 @@ void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
     CELER_EXPECT(pdg);
     CELER_EXPECT(energy >= zero_quantity());
 
-    particle_state_.particle_id = particle_params_->find(pdg);
-    particle_state_.energy      = energy;
-
+    // Construct track view
     pt_view_ = std::make_shared<ParticleTrackView>(
-        pp_pointers_, ps_pointers_, ThreadId{0});
+        particle_params_->host_pointers(), ps_ref_, ThreadId{0});
+
+    // Initialize
+    ParticleTrackView::Initializer_t init;
+    init.particle_id = particle_params_->find(pdg);
+    init.energy      = energy;
+    *pt_view_        = init;
 }
 
 //---------------------------------------------------------------------------//
@@ -151,38 +155,23 @@ void InteractorHostTestBase::check_conservation(const Interaction& interaction) 
 void InteractorHostTestBase::check_energy_conservation(
     const Interaction& interaction) const
 {
-    ParticleTrackState    local_state = particle_state_;
-    ParticleStatePointers local_state_ptrs;
-    local_state_ptrs.vars = {&local_state, 1};
-
     // Sum of exiting kinetic energy
     real_type exit_energy = interaction.energy_deposition.value();
 
     // Subtract contribution from exiting particle state
     if (interaction && !action_killed(interaction.action))
     {
-        local_state.particle_id = particle_state_.particle_id;
-        local_state.energy      = interaction.energy;
-        ParticleTrackView exiting_track(
-            pp_pointers_, local_state_ptrs, ThreadId{0});
-        exit_energy += exiting_track.energy().value();
+        exit_energy += interaction.energy.value();
     }
 
     // Subtract contributions from exiting secondaries
     for (const Secondary& s : interaction.secondaries)
     {
-        local_state.particle_id = s.particle_id;
-        local_state.energy      = s.energy;
-        ParticleTrackView secondary_track(
-            pp_pointers_, local_state_ptrs, ThreadId{0});
-        exit_energy += secondary_track.energy().value();
+        exit_energy += s.energy.value();
     }
 
     // Compare against incident particle
-    {
-        ParticleTrackView parent_track(pp_pointers_, ps_pointers_, ThreadId{0});
-        EXPECT_SOFT_EQ(parent_track.energy().value(), exit_energy);
-    }
+    EXPECT_SOFT_EQ(this->particle_track().energy().value(), exit_energy);
 }
 
 //---------------------------------------------------------------------------//
@@ -192,9 +181,13 @@ void InteractorHostTestBase::check_energy_conservation(
 void InteractorHostTestBase::check_momentum_conservation(
     const Interaction& interaction) const
 {
-    ParticleTrackState    local_state = particle_state_;
-    ParticleStatePointers local_state_ptrs;
-    local_state_ptrs.vars = {&local_state, 1};
+    const auto& parent_track = this->particle_track();
+    ParState<celeritas::Ownership::value> temp_data;
+    resize(&temp_data, particle_params_->host_pointers(), 1);
+    ParState<celeritas::Ownership::reference> temp_ref;
+    temp_ref = temp_data;
+    ParticleTrackView temp_track(
+        particle_params_->host_pointers(), temp_ref, ThreadId{0});
 
     // Sum of exiting momentum
     Real3 exit_momentum = {0, 0, 0};
@@ -202,11 +195,11 @@ void InteractorHostTestBase::check_momentum_conservation(
     // Subtract contribution from exiting particle state
     if (interaction && !action_killed(interaction.action))
     {
-        local_state.particle_id = particle_state_.particle_id;
-        local_state.energy      = interaction.energy;
-        ParticleTrackView exiting_track(
-            pp_pointers_, local_state_ptrs, ThreadId{0});
-        axpy(exiting_track.momentum().value(),
+        ParticleTrackView::Initializer_t init;
+        init.particle_id = parent_track.particle_id();
+        init.energy      = interaction.energy;
+        temp_track       = init;
+        axpy(temp_track.momentum().value(),
              interaction.direction,
              &exit_momentum);
     }
@@ -214,16 +207,15 @@ void InteractorHostTestBase::check_momentum_conservation(
     // Subtract contributions from exiting secondaries
     for (const Secondary& s : interaction.secondaries)
     {
-        local_state.particle_id = s.particle_id;
-        local_state.energy      = s.energy;
-        ParticleTrackView secondary_track(
-            pp_pointers_, local_state_ptrs, ThreadId{0});
-        axpy(secondary_track.momentum().value(), s.direction, &exit_momentum);
+        ParticleTrackView::Initializer_t init;
+        init.particle_id = s.particle_id;
+        init.energy      = s.energy;
+        temp_track       = init;
+        axpy(temp_track.momentum().value(), s.direction, &exit_momentum);
     }
 
     // Compare against incident particle
     {
-        ParticleTrackView parent_track(pp_pointers_, ps_pointers_, ThreadId{0});
         Real3             delta_momentum = exit_momentum;
         axpy(-parent_track.momentum().value(), inc_direction_, &delta_momentum);
         EXPECT_SOFT_NEAR(0.0,

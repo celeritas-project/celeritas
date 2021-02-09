@@ -8,6 +8,7 @@
 #include "StateStore.hh"
 
 #include "base/Assert.hh"
+#include "base/PieBuilder.hh"
 
 namespace celeritas
 {
@@ -16,12 +17,13 @@ namespace celeritas
  * Construct with the track state storage objects.
  */
 StateStore::StateStore(const Input& inp)
-    : particle_states_(ParticleStateStore(inp.num_tracks))
-    , geo_states_(GeoStateStore(*inp.geo, inp.num_tracks))
+    : geo_states_(GeoStateStore(*inp.geo, inp.num_tracks))
     , sim_states_(SimStateStore(inp.num_tracks))
     , rng_states_(RngStateStore(inp.num_tracks, inp.host_seed))
-    , interactions_(this->size())
+    , interactions_(inp.num_tracks)
 {
+    make_pie_builder(&particle_states_.state).resize(inp.num_tracks);
+    CELER_ENSURE(inp.num_tracks == this->size());
 }
 
 //---------------------------------------------------------------------------//
@@ -31,7 +33,7 @@ StateStore::StateStore(const Input& inp)
 StatePointers StateStore::device_pointers()
 {
     StatePointers result;
-    result.particle     = particle_states_.device_pointers();
+    result.particle     = particle_states_;
     result.geo          = geo_states_.device_pointers();
     result.sim          = sim_states_.device_pointers();
     result.rng          = rng_states_.device_pointers();

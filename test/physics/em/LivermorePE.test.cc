@@ -92,7 +92,7 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
         pointers_.electron_id = params.find(pdg::electron());
         pointers_.gamma_id    = params.find(pdg::gamma());
         pointers_.inv_electron_mass
-            = 1 / (params.get(pointers_.electron_id).mass.value());
+            = 1 / (params.get(pointers_.electron_id).mass().value());
         pointers_.data = livermore_params_->host_pointers();
 
         // Set default particle to incident 1 keV photon

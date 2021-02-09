@@ -13,6 +13,11 @@ namespace celeritas_test
 {
 using namespace celeritas;
 
+using ParticleParamsPointers
+    = ParticleParamsData<Ownership::const_reference, MemSpace::device>;
+using ParticleStatePointers
+    = ParticleStateData<Ownership::reference, MemSpace::device>;
+
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//

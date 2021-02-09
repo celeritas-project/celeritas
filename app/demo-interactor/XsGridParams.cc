@@ -11,6 +11,7 @@
 #include <cmath>
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
+#include "comm/Device.hh"
 #include "physics/grid/UniformGrid.hh"
 
 namespace demo_interactor
@@ -20,11 +21,9 @@ namespace demo_interactor
  * Construct with input data.
  */
 XsGridParams::XsGridParams(const Input& input)
-    : xs_(input.xs.size())
-    , prime_index_(std::find(input.energy.begin(),
-                             input.energy.end(),
-                             input.prime_energy)
-                   - input.energy.begin())
+    : prime_index_(
+        std::find(input.energy.begin(), input.energy.end(), input.prime_energy)
+        - input.energy.begin())
     , host_xs_(input.xs)
 {
     CELER_EXPECT(input.energy.size() >= 2);
@@ -55,8 +54,12 @@ XsGridParams::XsGridParams(const Input& input)
     }
 #endif
 
-    // Copy xs values to device
-    xs_.copy_to_device(celeritas::make_span(input.xs));
+    if (celeritas::is_device_enabled())
+    {
+        // Copy xs values to device
+        xs_ = celeritas::DeviceVector<real_type>(input.xs.size());
+        xs_.copy_to_device(celeritas::make_span(input.xs));
+    }
 }
 
 //---------------------------------------------------------------------------//

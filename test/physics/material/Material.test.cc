@@ -23,6 +23,7 @@ using namespace celeritas;
 using celeritas::units::AmuMass;
 using celeritas_test::m_test;
 using celeritas_test::MTestInput;
+using celeritas_test::MTestOutput;
 
 //---------------------------------------------------------------------------//
 //! Test coulomb correction values
@@ -140,10 +141,9 @@ TEST_F(MaterialTest, params)
 
 TEST_F(MaterialTest, material_view)
 {
-    auto host_ptrs = params->host_pointers();
     {
         // NaI
-        MaterialView mat(host_ptrs, MaterialId{0});
+        MaterialView mat = params->get(MaterialId{0});
         EXPECT_SOFT_EQ(2.948915064677e+22, mat.number_density());
         EXPECT_SOFT_EQ(293.0, mat.temperature());
         EXPECT_EQ(MatterState::solid, mat.matter_state());
@@ -161,7 +161,7 @@ TEST_F(MaterialTest, material_view)
     }
     {
         // vacuum
-        MaterialView mat(host_ptrs, MaterialId{1});
+        MaterialView mat = params->get(MaterialId{1});
         EXPECT_SOFT_EQ(0, mat.number_density());
         EXPECT_SOFT_EQ(0, mat.temperature());
         EXPECT_EQ(MatterState::unspecified, mat.matter_state());
@@ -176,7 +176,7 @@ TEST_F(MaterialTest, material_view)
     }
     {
         // H2
-        MaterialView mat(host_ptrs, MaterialId{2});
+        MaterialView mat = params->get(MaterialId{2});
         EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.number_density());
         EXPECT_SOFT_EQ(100, mat.temperature());
         EXPECT_EQ(MatterState::gas, mat.matter_state());
@@ -206,7 +206,6 @@ TEST_F(MaterialTest, element_view)
     }
 }
 
-#if CELERITAS_USE_CUDA
 class MaterialDeviceTest : public MaterialTest
 {
     using Base = MaterialTest;
@@ -215,13 +214,13 @@ class MaterialDeviceTest : public MaterialTest
     void SetUp() override { Base::SetUp(); }
 };
 
-TEST_F(MaterialDeviceTest, all)
+TEST_F(MaterialDeviceTest, TEST_IF_CELERITAS_CUDA(all))
 {
     MTestInput input;
     input.init = {{MaterialId{0}}, {MaterialId{1}}, {MaterialId{2}}};
 
     MaterialStateData<Ownership::value, MemSpace::device> state_data;
-    resize(&state_data, input.init.size(), params->max_element_components());
+    resize(&state_data, params->host_pointers(), input.init.size());
     input.params = params->device_pointers();
     input.states = state_data;
 
@@ -232,7 +231,10 @@ TEST_F(MaterialDeviceTest, all)
               input.states.element_scratch.size());
 
     // Run GPU test
-    auto result = m_test(input);
+    MTestOutput result;
+#if CELERITAS_USE_CUDA
+    result = m_test(input);
+#endif
 
     const double expected_temperatures[] = {293, 0, 100};
     const double expected_rad_len[]
@@ -244,5 +246,3 @@ TEST_F(MaterialDeviceTest, all)
     EXPECT_VEC_SOFT_EQ(expected_rad_len, result.rad_len);
     EXPECT_VEC_SOFT_EQ(expected_tot_z, result.tot_z);
 }
-
-#endif

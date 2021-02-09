@@ -15,7 +15,6 @@
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "base/SpanRemapper.hh"
-#include "comm/Device.hh"
 #include "comm/Logger.hh"
 
 namespace celeritas
@@ -24,7 +23,7 @@ namespace celeritas
 /*!
  * Construct from a vector of material definitions.
  */
-MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
+MaterialParams::MaterialParams(const Input& inp)
 {
     CELER_EXPECT(!inp.materials.empty());
 
@@ -38,7 +37,6 @@ MaterialParams::MaterialParams(const Input& inp) : max_el_(0)
     {
         this->append_material_def(mat, &host_data);
     }
-    host_data.max_element_components = this->max_element_components();
 
     // Move to mirrored data, copying to device
     data_ = PieMirror<MaterialParamsData>{std::move(host_data)};
@@ -203,7 +201,8 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
     matnames_.push_back(inp.name);
 
     // Update maximum number of materials
-    max_el_ = std::max(max_el_, result.elements.size());
+    host_data->max_element_components
+        = std::max(host_data->max_element_components, result.elements.size());
 
     CELER_ENSURE(result.number_density >= 0);
     CELER_ENSURE(result.temperature >= 0);

@@ -40,7 +40,6 @@ list(APPEND SOURCES
   io/LivermorePEParamsReader.cc
   physics/base/Model.cc
   physics/base/ParticleParams.cc
-  physics/base/ParticleStateStore.cc
   physics/base/PhysicsParams.cc
   physics/base/Process.cc
   physics/base/SecondaryAllocatorStore.cc

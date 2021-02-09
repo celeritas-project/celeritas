@@ -7,10 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Pie.hh"
 #include "base/Macros.hh"
-#include "base/Span.hh"
 #include "Types.hh"
 #include "Units.hh"
+
+#ifndef __CUDA_ARCH__
+#    include "base/PieBuilder.hh"
+#endif
 
 namespace celeritas
 {
@@ -50,12 +54,30 @@ struct ParticleDef
  * \sa ParticleParams (owns the pointed-to data)
  * \sa ParticleTrackView (uses the pointed-to data in a kernel)
  */
-struct ParticleParamsPointers
+template<Ownership W, MemSpace M>
+struct ParticleParamsData
 {
-    Span<const ParticleDef> defs;
+    template<class T>
+    using Data = celeritas::Pie<T, W, M>;
 
-    //! Check whether the interface is initialized
-    explicit CELER_FUNCTION operator bool() const { return !defs.empty(); }
+    Data<ParticleDef> particles;
+
+    //// MEMBER FUNCTIONS ////
+
+    //! Whether the data is assigned
+    explicit inline CELER_FUNCTION operator bool() const
+    {
+        return !particles.empty();
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    ParticleParamsData& operator=(const ParticleParamsData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        particles = other.particles;
+        return *this;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -86,19 +108,47 @@ struct ParticleTrackState
  * The size of the view will be the size of the vector of tracks. Each particle
  * track state corresponds to the thread ID (\c ThreadId).
  *
- * \sa ParticleStateStore (owns the pointed-to data)
  * \sa ParticleTrackView (uses the pointed-to data in a kernel)
  */
-struct ParticleStatePointers
+template<Ownership W, MemSpace M>
+struct ParticleStateData
 {
-    Span<ParticleTrackState> vars;
+    template<class T>
+    using Data = celeritas::StatePie<T, W, M>;
 
-    //! Check whether the interface is initialized
-    explicit CELER_FUNCTION operator bool() const { return !vars.empty(); }
+    Data<ParticleTrackState> state;
+
+    //! Whether the interface is assigned
+    explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
 
     //! State size
-    CELER_FUNCTION size_type size() const { return vars.size(); }
+    CELER_FUNCTION ThreadId::value_type size() const { return state.size(); }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    ParticleStateData& operator=(ParticleStateData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        state = other.state;
+        return *this;
+    }
 };
+
+#ifndef __CUDA_ARCH__
+//---------------------------------------------------------------------------//
+/*!
+ * Resize particle states in host code.
+ */
+template<MemSpace M>
+inline void
+resize(ParticleStateData<Ownership::value, M>* data,
+       const ParticleParamsData<Ownership::const_reference, MemSpace::host>&,
+       size_type size)
+{
+    CELER_EXPECT(size > 0);
+    make_pie_builder(&data->state).resize(size);
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

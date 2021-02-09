@@ -46,7 +46,7 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
         pointers_.electron_id = params.find(pdg::electron());
         pointers_.gamma_id    = params.find(pdg::gamma());
         pointers_.inv_electron_mass
-            = 1 / (params.get(pointers_.electron_id).mass.value());
+            = 1 / (params.get(pointers_.electron_id).mass().value());
 
         // Set default particle to incident 10 MeV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{10});

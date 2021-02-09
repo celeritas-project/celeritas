@@ -41,15 +41,15 @@ void print_particles(const ParticleParams& particles)
     for (auto idx : range<ParticleId::value_type>(particles.size()))
     {
         ParticleId         particle_id{idx};
-        const ParticleDef& def = particles.get(particle_id);
+        const auto&        p = particles.get(particle_id);
 
         // clang-format off
         cout << "| "
              << setw(17) << std::left << particles.id_to_label(particle_id) << " | "
              << setw(11) << particles.id_to_pdg(particle_id).get() << " | "
-             << setw(10) << setprecision(6) << def.mass.value() << " | "
-             << setw(10) << setprecision(3) << def.charge.value() << " | "
-             << setw(11) << setprecision(3) << def.decay_constant
+             << setw(10) << setprecision(6) << p.mass().value() << " | "
+             << setw(10) << setprecision(3) << p.charge().value() << " | "
+             << setw(11) << setprecision(3) << p.decay_constant()
              << " |\n";
         // clang-format on
     }

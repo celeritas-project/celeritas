@@ -170,13 +170,8 @@ TEST_F(PieTest, host)
     EXPECT_EQ(1, mock.matid().unchecked_get());
 }
 
-TEST_F(PieTest, device)
+TEST_F(PieTest, TEST_IF_CELERITAS_CUDA(device))
 {
-    if (!celeritas::is_device_enabled())
-    {
-        SKIP("GPU capability is disabled");
-    }
-
     // Construct with 1024 states
     MockStatePies<Ownership::value, MemSpace::device> device_states;
     make_pie_builder(&device_states.matid).resize(1024);

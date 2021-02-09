@@ -150,6 +150,8 @@ class InteractorHostTestBase : public celeritas::Test
   private:
     template<celeritas::Ownership W>
     using MatState = celeritas::MaterialStateData<W, celeritas::MemSpace::host>;
+    template<celeritas::Ownership W>
+    using ParState = celeritas::ParticleStateData<W, celeritas::MemSpace::host>;
 
     std::shared_ptr<MaterialParams> material_params_;
     std::shared_ptr<ParticleParams> particle_params_;
@@ -158,9 +160,9 @@ class InteractorHostTestBase : public celeritas::Test
     MatState<celeritas::Ownership::value>     ms_data_;
     MatState<celeritas::Ownership::reference> ms_ref_;
 
-    celeritas::ParticleTrackState     particle_state_;
-    celeritas::ParticleParamsPointers pp_pointers_;
-    celeritas::ParticleStatePointers  ps_pointers_;
+    ParState<celeritas::Ownership::value>     ps_data_;
+    ParState<celeritas::Ownership::reference> ps_ref_;
+
     Real3                             inc_direction_ = {0, 0, 1};
     HostSecondaryStore                secondaries_;
 

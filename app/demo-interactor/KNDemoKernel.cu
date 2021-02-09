@@ -38,8 +38,8 @@ namespace
  * operate on two 32-thread chunks of data.
  *  https://developer.nvidia.com/blog/cuda-pro-tip-write-flexible-kernels-grid-stride-loops/
  */
-__global__ void initialize_kernel(ParamPointers const   params,
-                                  StatePointers const   states,
+__global__ void initialize_kernel(ParamsDeviceRef const params,
+                                  StateDeviceRef const  states,
                                   InitialPointers const init)
 {
     // Grid-stride loop, see
@@ -70,8 +70,8 @@ __global__ void initialize_kernel(ParamPointers const   params,
  * - Kills the secondary, depositing its local energy
  * - Applies the interaction (updating track direction and energy)
  */
-__global__ void iterate_kernel(ParamPointers const              params,
-                               StatePointers const              states,
+__global__ void iterate_kernel(ParamsDeviceRef const            params,
+                               StateDeviceRef const             states,
                                SecondaryAllocatorPointers const secondaries,
                                DetectorPointers const           detector)
 {
@@ -158,8 +158,8 @@ __global__ void iterate_kernel(ParamPointers const              params,
  * Initialize particle states.
  */
 void initialize(const CudaGridParams&  grid,
-                const ParamPointers&   params,
-                const StatePointers&   states,
+                const ParamsDeviceRef& params,
+                const StateDeviceRef&  states,
                 const InitialPointers& initial)
 {
     CELER_EXPECT(states.alive.size() == states.size());
@@ -174,8 +174,8 @@ void initialize(const CudaGridParams&  grid,
  * Run an iteration.
  */
 void iterate(const CudaGridParams&              grid,
-             const ParamPointers&               params,
-             const StatePointers&               state,
+             const ParamsDeviceRef&             params,
+             const StateDeviceRef&              state,
              const SecondaryAllocatorPointers&  secondaries,
              const celeritas::DetectorPointers& detector)
 {

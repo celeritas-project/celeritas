@@ -101,12 +101,12 @@ class PhysicsTestHost : public PhysicsTest
 
     struct
     {
-        ParticleParamsPointers particle;
+        ParticleParamsData<Ownership::const_reference, MemSpace::host> particle;
         PhysicsParamsPointers  physics;
     } params;
     struct
     {
-        ParticleStatePointers particle;
+        ParticleStateData<Ownership::reference, MemSpace::host> particle;
         PhysicsStatePointers  physics;
     } states;
 };
@@ -122,7 +122,7 @@ TEST_F(PhysicsTestHost, calc_tabulated_physics_step)
 
     // XXX add tests for a variety of energy ranges and multiple material IDs
     {
-        states.particle.vars[0].energy = MevEnergy{1e3};
+        states.particle.state[ThreadId{0}].energy = MevEnergy{1e3};
         real_type step
             = celeritas::calc_tabulated_physics_step(particle, physics);
         EXPECT_EQ(0, step);

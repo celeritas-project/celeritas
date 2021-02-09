@@ -11,16 +11,12 @@
 #include "celeritas_test.hh"
 #include "base/Array.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleStateStore.hh"
 #include "physics/base/ParticleInterface.hh"
 #include "physics/base/Units.hh"
 #include "Particle.test.hh"
 
 using celeritas::ParticleId;
 using celeritas::ParticleParams;
-using celeritas::ParticleParamsPointers;
-using celeritas::ParticleStatePointers;
-using celeritas::ParticleStateStore;
 using celeritas::ParticleTrackView;
 
 using celeritas::real_type;
@@ -33,7 +29,7 @@ using namespace celeritas_test;
 // TEST HARNESS BASE
 //---------------------------------------------------------------------------//
 
-class ParticleTrackViewTest : public celeritas::Test
+class ParticleTest : public celeritas::Test
 {
   protected:
     using Initializer_t = ParticleTrackView::Initializer_t;
@@ -66,7 +62,7 @@ class ParticleTrackViewTest : public celeritas::Test
     std::shared_ptr<ParticleParams> particle_params;
 };
 
-TEST_F(ParticleTrackViewTest, params_accessors)
+TEST_F(ParticleTest, params_accessors)
 {
     using celeritas::PDGNumber;
     const ParticleParams& defs = *this->particle_params;
@@ -87,9 +83,9 @@ TEST_F(ParticleTrackViewTest, params_accessors)
 // HOST TESTS
 //---------------------------------------------------------------------------//
 
-class ParticleTrackViewTestHost : public ParticleTrackViewTest
+class ParticleTestHost : public ParticleTest
 {
-    using Base = ParticleTrackViewTest;
+    using Base = ParticleTest;
 
   protected:
     void SetUp() override
@@ -98,19 +94,18 @@ class ParticleTrackViewTestHost : public ParticleTrackViewTest
         CELER_ASSERT(particle_params);
 
         // Construct views
-        params_view     = particle_params->host_pointers();
-        state_view.vars = celeritas::make_span(state_storage);
+        resize(&state_value, particle_params->host_pointers(), 1);
+        state_ref = state_value;
     }
 
-    celeritas::Array<celeritas::ParticleTrackState, 1> state_storage;
-
-    ParticleParamsPointers params_view;
-    ParticleStatePointers  state_view;
+    ParticleStateData<Ownership::value, MemSpace::host>     state_value;
+    ParticleStateData<Ownership::reference, MemSpace::host> state_ref;
 };
 
-TEST_F(ParticleTrackViewTestHost, electron)
+TEST_F(ParticleTestHost, electron)
 {
-    ParticleTrackView particle(params_view, state_view, ThreadId(0));
+    ParticleTrackView particle(
+        particle_params->host_pointers(), state_ref, ThreadId(0));
     particle = Initializer_t{ParticleId{0}, MevEnergy{0.5}};
 
     EXPECT_DOUBLE_EQ(0.5, particle.energy().value());
@@ -129,9 +124,10 @@ TEST_F(ParticleTrackViewTestHost, electron)
     EXPECT_TRUE(particle.is_stopped());
 }
 
-TEST_F(ParticleTrackViewTestHost, gamma)
+TEST_F(ParticleTestHost, gamma)
 {
-    ParticleTrackView particle(params_view, state_view, ThreadId(0));
+    ParticleTrackView particle(
+        particle_params->host_pointers(), state_ref, ThreadId(0));
     particle = Initializer_t{ParticleId{1}, MevEnergy{10}};
 
     EXPECT_DOUBLE_EQ(0, particle.mass().value());
@@ -140,41 +136,44 @@ TEST_F(ParticleTrackViewTestHost, gamma)
     EXPECT_DOUBLE_EQ(10, particle.momentum().value());
 }
 
-TEST_F(ParticleTrackViewTestHost, neutron)
+TEST_F(ParticleTestHost, neutron)
 {
-    ParticleTrackView particle(params_view, state_view, ThreadId(0));
+    ParticleTrackView particle(
+        particle_params->host_pointers(), state_ref, ThreadId(0));
     particle = Initializer_t{ParticleId{2}, MevEnergy{20}};
 
     EXPECT_DOUBLE_EQ(20, particle.energy().value());
     EXPECT_DOUBLE_EQ(1.0 / 879.4, particle.decay_constant());
 }
 
-#if CELERITAS_USE_CUDA
 //---------------------------------------------------------------------------//
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
 
-class ParticleTrackViewTestDevice : public ParticleTrackViewTest
+class ParticleDeviceTest : public ParticleTest
 {
-    using Base = ParticleTrackViewTest;
+    using Base = ParticleTest;
 };
 
-TEST_F(ParticleTrackViewTestDevice, calc_props)
+TEST_F(ParticleDeviceTest, TEST_IF_CELERITAS_CUDA(calc_props))
 {
     PTVTestInput input;
     input.init = {{ParticleId{0}, MevEnergy{0.5}},
                   {ParticleId{1}, MevEnergy{10}},
                   {ParticleId{2}, MevEnergy{20}}};
 
-    ParticleStateStore pstates(input.init.size());
+    ParticleStateData<Ownership::value, MemSpace::device> pstates;
+    resize(&pstates, particle_params->host_pointers(), input.init.size());
     input.params = particle_params->device_pointers();
-    input.states = pstates.device_pointers();
+    input.states = pstates;
 
     // Run GPU test
-    auto result = ptv_test(input);
+    PTVTestOutput result;
+#if CELERITAS_USE_CUDA
+    result = ptv_test(input);
+#endif
 
     // Check results
-    // PRINT_EXPECTED(result.props);
     const double expected_props[] = {0.5,
                                      0.5109989461,
                                      -1,
@@ -201,4 +200,3 @@ TEST_F(ParticleTrackViewTestDevice, calc_props)
                                      37982.61652};
     EXPECT_VEC_SOFT_EQ(expected_props, result.props);
 }
-#endif

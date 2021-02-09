@@ -11,11 +11,11 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "base/DeviceVector.hh"
 #include "base/PieMirror.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "MaterialInterface.hh"
+#include "MaterialView.hh"
 #include "Types.hh"
 #include "MaterialInterface.hh"
 
@@ -29,12 +29,11 @@ class MaterialParams
 {
   public:
     //!@{
-    //! References to constsructed data
+    //! References to constructed data
     using HostRef
         = MaterialParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = MaterialParamsData<Ownership::const_reference, MemSpace::device>;
-    using size_type = pie_size_type;
     //!@}
 
     //! Define an element's input data
@@ -77,20 +76,22 @@ class MaterialParams
     // TODO: Map different MaterialDefIds with same material name
     inline MaterialId find(const std::string& name) const;
 
+    // Access material definitions on host
+    inline MaterialView get(MaterialId id) const;
+
     //! Access material properties on the host
     const HostRef& host_pointers() const { return data_.host(); }
 
     //! Access material properties on the device
     const DeviceRef& device_pointers() const { return data_.device(); }
 
-    //! Maximum number of elements in any one material
-    size_type max_element_components() const { return max_el_; }
+    // Maximum number of elements in any one material
+    inline ElementComponentId::value_type max_element_components() const;
 
   private:
     std::vector<std::string>                    elnames_;
     std::vector<std::string>                    matnames_;
     std::unordered_map<std::string, MaterialId> matname_to_id_;
-    size_type                                   max_el_;
 
     // Host/device storage and reference
     PieMirror<MaterialParamsData> data_;

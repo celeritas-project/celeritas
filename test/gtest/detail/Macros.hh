@@ -49,6 +49,13 @@
 #    define TEST_IF_CELERITAS_DEBUG(name) DISABLED_##name
 #endif
 
+//! Construct a test name that is disabled when CUDA is disabled
+#if CELERITAS_USE_CUDA
+#    define TEST_IF_CELERITAS_CUDA(name) name
+#else
+#    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
+#endif
+
 //! Skip the remainder of the test (only run from the main function!!)
 #define SKIP(msg)                                                      \
     do                                                                 \

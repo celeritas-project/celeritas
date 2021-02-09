@@ -41,10 +41,11 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams particles,
 
     // Set up KN interactor data;
     namespace pdg            = celeritas::pdg;
+    kn_pointers_.model_id    = ModelId{0}; // Unused but needed for error check
     kn_pointers_.electron_id = pparams_->find(pdg::electron());
     kn_pointers_.gamma_id    = pparams_->find(pdg::gamma());
     kn_pointers_.inv_electron_mass
-        = 1 / pparams_->get(kn_pointers_.electron_id).mass.value();
+        = 1 / pparams_->get(kn_pointers_.electron_id).mass().value();
     CELER_ENSURE(kn_pointers_);
 }
 
@@ -61,7 +62,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     // Initialize results
     result_type result;
     result.time.reserve(args.max_steps);
-    result.alive.reserve(args.max_steps + 1);
+    result.alive.resize(args.max_steps + 1);
     result.edep.reserve(args.max_steps);
 
     // Start timer for overall execution and transport-only time
@@ -70,9 +71,6 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Random number generations
     std::mt19937 rng(args.seed);
-
-    // Particle param pointers
-    auto pp_host_ptrs = pparams_->host_pointers();
 
     // Physics calculator
     auto                  xs_host_ptrs = xsparams_->host_pointers();
@@ -86,6 +84,10 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     HostDetectorStore detector(args.max_steps, args.tally_grid);
     auto              detector_host_ptrs = detector.host_pointers();
 
+    // Particle state store
+    celeritas::ParticleStateData<Ownership::value, MemSpace::host> particle_state;
+    resize(&particle_state, pparams_->host_pointers(), 1);
+
     // Loop over particle tracks and events per track
     for (CELER_MAYBE_UNUSED auto n : celeritas::range(args.num_tracks))
     {
@@ -98,11 +100,16 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
         // Initialize particle state
         StatePointers state;
-        state.particle.vars = {&init_state, 1};
-        state.position      = {0, 0, 0};
-        state.direction     = {0, 0, 1};
-        state.time          = 0;
-        state.alive         = true;
+        state.particle  = particle_state;
+        state.position  = {0, 0, 0};
+        state.direction = {0, 0, 1};
+        state.time      = 0;
+        state.alive     = true;
+
+        // Create and initialize particle view
+        ParticleTrackView particle(
+            pparams_->host_pointers(), state.particle, ThreadId{0});
+        particle = init_state;
 
         // Secondary pointers
         SecondaryAllocatorView allocate_secondaries(secondary_host_ptrs);
@@ -113,14 +120,15 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
         DetectorView detector_hit(detector_host_ptrs);
 
         // Step counter
-        CELER_MAYBE_UNUSED size_type num_steps = 0;
+        size_type num_steps = 0;
 
         Stopwatch elapsed_time;
         while (state.alive && --remaining_steps > 0)
         {
-            // Get a particle track view to a single particle
-            auto particle
-                = ParticleTrackView(pp_host_ptrs, state.particle, ThreadId(0));
+            // Increment alive counter
+            CELER_ASSERT(num_steps < result.alive.size());
+            result.alive[num_steps]++;
+            ++num_steps;
 
             // Move to collision
             {
@@ -130,9 +138,6 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
                 celeritas::axpy(distance, state.direction, &state.position);
                 state.time += distance * celeritas::unit_cast(particle.speed());
             }
-
-            // Update step counter
-            ++num_steps;
 
             // Hit analysis
             Hit h;
@@ -175,7 +180,6 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             state.direction = interaction.direction;
             particle.energy(interaction.energy);
         }
-        CELER_ASSERT(num_steps <= args.max_steps);
         CELER_ASSERT(num_steps < args.max_steps
                          ? secondaries.get_size() == num_steps - 1
                          : secondaries.get_size() == num_steps);
@@ -204,6 +208,12 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     // Store timings
     result.time.push_back(transport_time);
     result.total_time = total_time();
+
+    // Reduce "alive" size
+    while (!result.alive.empty() && result.alive.back() == 0)
+    {
+        result.alive.pop_back();
+    }
 
     return result;
 }

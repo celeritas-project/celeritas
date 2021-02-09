@@ -44,4 +44,23 @@ MaterialId MaterialParams::find(const std::string& name) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get material properties for the given material.
+ */
+MaterialView MaterialParams::get(MaterialId id) const
+{
+    CELER_EXPECT(id < this->host_pointers().materials.size());
+    return MaterialView(this->host_pointers(), id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Maximum number of elements in any one material.
+ */
+ElementComponentId::value_type MaterialParams::max_element_components() const
+{
+    return this->host_pointers().max_element_components;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
