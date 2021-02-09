@@ -67,7 +67,7 @@ class ParticleParams
     //// HOST ACCESSORS ////
 
     //! Number of particle definitions
-    size_type size() const { return md_.size(); }
+    ParticleId::value_type size() const { return md_.size(); }
 
     // Get particle name
     inline const std::string& id_to_label(ParticleId id) const;

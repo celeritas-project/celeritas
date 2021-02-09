@@ -60,7 +60,7 @@ ParticleId ParticleParams::find(PDGNumber pdg_code) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get material properties for the given material.
+ * Get particle properties in host code.
  */
 ParticleView ParticleParams::get(ParticleId id) const
 {
