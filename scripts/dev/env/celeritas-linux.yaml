@@ -2,6 +2,7 @@ spack:
   specs: 
   - cmake
   - cuda
+  - doxygen
   - geant4
   - git
   - git-lfs
