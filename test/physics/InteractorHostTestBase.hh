@@ -12,6 +12,7 @@
 #include <vector>
 #include "base/Array.hh"
 #include "base/ArrayIO.hh"
+#include "base/PieStateStore.hh"
 #include "base/Span.hh"
 #include "base/StackAllocatorInterface.hh"
 #include "base/Types.hh"
@@ -148,20 +149,15 @@ class InteractorHostTestBase : public celeritas::Test
     void check_momentum_conservation(const Interaction& interaction) const;
 
   private:
-    template<celeritas::Ownership W>
-    using MatState = celeritas::MaterialStateData<W, celeritas::MemSpace::host>;
-    template<celeritas::Ownership W>
-    using ParState = celeritas::ParticleStateData<W, celeritas::MemSpace::host>;
+    template<template<celeritas::Ownership, celeritas::MemSpace> class S>
+    using StateStore = celeritas::PieStateStore<S, celeritas::MemSpace::host>;
 
     std::shared_ptr<MaterialParams> material_params_;
     std::shared_ptr<ParticleParams> particle_params_;
     RandomEngine                    rng_;
 
-    MatState<celeritas::Ownership::value>     ms_data_;
-    MatState<celeritas::Ownership::reference> ms_ref_;
-
-    ParState<celeritas::Ownership::value>     ps_data_;
-    ParState<celeritas::Ownership::reference> ps_ref_;
+    StateStore<celeritas::MaterialStateData> ms_;
+    StateStore<celeritas::ParticleStateData> ps_;
 
     Real3                             inc_direction_ = {0, 0, 1};
     HostSecondaryStore                secondaries_;

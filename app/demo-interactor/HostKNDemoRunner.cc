@@ -9,9 +9,10 @@
 
 #include <iostream>
 #include <random>
-#include "base/Stopwatch.hh"
-#include "base/Range.hh"
 #include "base/ArrayUtils.hh"
+#include "base/PieStateStore.hh"
+#include "base/Range.hh"
+#include "base/Stopwatch.hh"
 #include "random/distributions/ExponentialDistribution.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
@@ -40,7 +41,6 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams particles,
     CELER_EXPECT(xsparams_);
 
     // Set up KN interactor data;
-    namespace pdg            = celeritas::pdg;
     kn_pointers_.model_id    = ModelId{0}; // Unused but needed for error check
     kn_pointers_.electron_id = pparams_->find(pdg::electron());
     kn_pointers_.gamma_id    = pparams_->find(pdg::gamma());
@@ -85,30 +85,28 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     auto              detector_host_ptrs = detector.host_pointers();
 
     // Particle state store
-    celeritas::ParticleStateData<Ownership::value, MemSpace::host> particle_state;
-    resize(&particle_state, pparams_->host_pointers(), 1);
+    PieStateStore<ParticleStateData, MemSpace::host> particle_state(*pparams_,
+                                                                    1);
 
     // Loop over particle tracks and events per track
-    for (CELER_MAYBE_UNUSED auto n : celeritas::range(args.num_tracks))
+    for (CELER_MAYBE_UNUSED auto n : range(args.num_tracks))
     {
         // Place cap on maximum number of steps
         auto remaining_steps = args.max_steps;
 
         // Make the initial track state
-        celeritas::ParticleTrackState init_state = {
-            kn_pointers_.gamma_id, celeritas::units::MevEnergy(args.energy)};
+        ParticleTrackState init_state
+            = {kn_pointers_.gamma_id, units::MevEnergy(args.energy)};
 
         // Initialize particle state
-        StatePointers state;
-        state.particle  = particle_state;
-        state.position  = {0, 0, 0};
-        state.direction = {0, 0, 1};
-        state.time      = 0;
-        state.alive     = true;
+        Real3     position  = {0, 0, 0};
+        Real3     direction = {0, 0, 1};
+        real_type time      = 0;
+        bool      alive     = true;
 
         // Create and initialize particle view
         ParticleTrackView particle(
-            pparams_->host_pointers(), state.particle, ThreadId{0});
+            pparams_->host_pointers(), particle_state.ref(), ThreadId{0});
         particle = init_state;
 
         // Secondary pointers
@@ -123,7 +121,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
         size_type num_steps = 0;
 
         Stopwatch elapsed_time;
-        while (state.alive && --remaining_steps > 0)
+        while (alive && --remaining_steps > 0)
         {
             // Increment alive counter
             CELER_ASSERT(num_steps < result.alive.size());
@@ -135,32 +133,32 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
                 real_type sigma = calc_xs(particle.energy());
                 ExponentialDistribution<real_type> sample_distance(sigma);
                 real_type distance = sample_distance(rng);
-                celeritas::axpy(distance, state.direction, &state.position);
-                state.time += distance * celeritas::unit_cast(particle.speed());
+                celeritas::axpy(distance, direction, &position);
+                time += distance * celeritas::unit_cast(particle.speed());
             }
 
             // Hit analysis
             Hit h;
-            h.pos    = state.position;
+            h.pos    = position;
             h.thread = ThreadId(0);
-            h.time   = state.time;
+            h.time   = time;
 
             // Check for below energy cutoff
             if (particle.energy() < units::MevEnergy{0.01})
             {
                 // Particle is below interaction energy
-                h.dir              = state.direction;
+                h.dir              = direction;
                 h.energy_deposited = particle.energy();
 
                 // Deposit energy and kill
                 detector_hit(h);
-                state.alive = false;
+                alive = false;
                 continue;
             }
 
             // Construct the KN interactor
             KleinNishinaInteractor interact(
-                kn_pointers_, particle, state.direction, allocate_secondaries);
+                kn_pointers_, particle, direction, allocate_secondaries);
 
             // Perform interactions - emits a single particle
             auto interaction = interact(rng);
@@ -177,7 +175,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
             // Update the energy and direction in the state from the
             // interaction
-            state.direction = interaction.direction;
+            direction = interaction.direction;
             particle.energy(interaction.energy);
         }
         CELER_ASSERT(num_steps < args.max_steps

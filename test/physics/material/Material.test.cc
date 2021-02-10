@@ -15,7 +15,7 @@
 #include <cstring>
 #include <limits>
 #include "celeritas_test.hh"
-#include "base/DeviceVector.hh"
+#include "base/PieStateStore.hh"
 #include "physics/base/Units.hh"
 #include "Material.test.hh"
 
@@ -219,10 +219,11 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELERITAS_CUDA(all))
     MTestInput input;
     input.init = {{MaterialId{0}}, {MaterialId{1}}, {MaterialId{2}}};
 
-    MaterialStateData<Ownership::value, MemSpace::device> state_data;
-    resize(&state_data, params->host_pointers(), input.init.size());
+    PieStateStore<MaterialStateData, MemSpace::device> states(
+        *params, input.init.size());
+
     input.params = params->device_pointers();
-    input.states = state_data;
+    input.states = states.ref();
 
     EXPECT_EQ(params->max_element_components(),
               input.params.max_element_components);
