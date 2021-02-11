@@ -34,7 +34,7 @@ void MockModel::interact(const ModelInteractPointers&) const
 std::string MockModel::label() const
 {
     std::ostringstream os;
-    os << "MockModel(p=" << applic_.particle.get()
+    os << "MockModel(" << id_.get() << ", p=" << applic_.particle.get()
        << ", emin=" << applic_.lower.value()
        << ", emax=" << applic_.upper.value() << ")";
     return os.str();

@@ -18,9 +18,10 @@ namespace celeritas_test
 MockProcess::MockProcess(Input data) : data_(std::move(data))
 {
     CELER_EXPECT(data_.materials);
+    CELER_EXPECT(!data_.label.empty());
     CELER_EXPECT(!data_.applic.empty());
     CELER_EXPECT(data_.interact);
-    CELER_EXPECT(data_.xs >= 0);
+    CELER_EXPECT(data_.xs >= celeritas::zero_quantity());
     CELER_EXPECT(data_.energy_loss >= 0);
     CELER_EXPECT(data_.range >= 0);
 }
@@ -49,24 +50,30 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
     real_type    numdens = mat.number_density();
 
     StepLimitBuilders builders;
-    if (data_.xs > 0)
+    if (data_.xs > zero_quantity())
     {
-        real_type value   = data_.xs * numdens;
-        builders.macro_xs = std::make_unique<ValueGridLogBuilder>(
-            range.lower.value(), range.upper.value(), VecReal{value, value});
+        real_type value = unit_cast(data_.xs) * numdens;
+        builders[size_type(ValueGridType::macro_xs)]
+            = std::make_unique<ValueGridLogBuilder>(range.lower.value(),
+                                                    range.upper.value(),
+                                                    VecReal{value, value});
     }
     if (data_.energy_loss > 0)
     {
-        real_type value      = data_.energy_loss * numdens;
-        builders.energy_loss = std::make_unique<ValueGridLogBuilder>(
-            range.lower.value(), range.upper.value(), VecReal{value, value});
+        real_type value = data_.energy_loss * numdens;
+        builders[size_type(ValueGridType::energy_loss)]
+            = std::make_unique<ValueGridLogBuilder>(range.lower.value(),
+                                                    range.upper.value(),
+                                                    VecReal{value, value});
     }
     if (data_.range > 0)
     {
-        builders.range = std::make_unique<ValueGridLogBuilder>(
-            range.lower.value(),
-            range.upper.value(),
-            VecReal{range.lower.value(), range.upper.value()});
+        builders[size_type(ValueGridType::range)]
+            = std::make_unique<ValueGridLogBuilder>(
+                range.lower.value(),
+                range.upper.value(),
+                VecReal{data_.range * range.lower.value(),
+                        data_.range * range.upper.value()});
     }
 
     return builders;
@@ -75,7 +82,7 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
 //---------------------------------------------------------------------------//
 std::string MockProcess::label() const
 {
-    return "mock";
+    return data_.label;
 }
 
 //---------------------------------------------------------------------------//

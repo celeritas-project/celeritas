@@ -12,6 +12,7 @@
 #include <functional>
 #include <vector>
 #include "physics/base/Model.hh"
+#include "physics/base/Units.hh"
 #include "physics/material/MaterialParams.hh"
 
 namespace celeritas_test
@@ -37,6 +38,7 @@ class MockProcess : public celeritas::Process
     //!@{
     //! Type aliases
     using real_type        = celeritas::real_type;
+    using BarnMicroXs      = celeritas::Quantity<celeritas::units::Barn>;
     using Applicability    = celeritas::Applicability;
     using ModelIdGenerator = celeritas::ModelIdGenerator;
     using VecApplicability = std::vector<Applicability>;
@@ -47,9 +49,10 @@ class MockProcess : public celeritas::Process
     struct Input
     {
         SPConstMaterials materials;
+        std::string      label;
         VecApplicability applic;   //!< Applicablity per model
         ModelCallback    interact; //!< MockModel::interact callback
-        real_type        xs{};     //!< Constant per atom [cm^2]
+        BarnMicroXs      xs{};     //!< Constant per atom [bn]
         real_type energy_loss{};   //!< Constant per atom [MeV/cm / (1/cm^3)]
         real_type range{};         //!< Linearly increasing [cm/MeV]
     };
