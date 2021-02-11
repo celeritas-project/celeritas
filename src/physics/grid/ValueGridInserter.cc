@@ -15,10 +15,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with storage space requirements.
- *
- * This allocates the required amount of data on the host so that the vector
- * can keep track of its actual size.
+ * Construct with a reference to mutable host data.
  */
 ValueGridInserter::ValueGridInserter(RealPie* real_data, XsGridPie* xs_grid)
     : values_(real_data), xs_grids_(xs_grid)

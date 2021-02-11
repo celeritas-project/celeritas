@@ -31,7 +31,10 @@ struct XsGridData
     using size_type   = pie_size_type;
 
     //! "Special" value indicating none of the values are scaled by 1/E
-    static constexpr size_type no_scaling() { return size_type(-1); }
+    static CELER_CONSTEXPR_FUNCTION size_type no_scaling()
+    {
+        return size_type(-1);
+    }
 
     UniformGridData     log_energy;
     size_type           prime_index{no_scaling()};

@@ -46,7 +46,7 @@ class ValueGridInserter
     //!@}
 
   public:
-    // Construct with a reference to
+    // Construct with a reference to mutable host data
     ValueGridInserter(RealPie* real_data, XsGridPie* xs_grid);
 
     // Add a grid of xs-like data

@@ -26,7 +26,7 @@ namespace celeritas
  * scaled by the energy.
  *
  * \code
-    PhysicsGridCalculator calc_xs(xs_params);
+    PhysicsGridCalculator calc_xs(xs_grid, xs_params.reals);
     real_type xs = calc_xs(particle);
    \endcode
  */
