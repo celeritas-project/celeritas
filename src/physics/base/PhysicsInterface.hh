@@ -16,8 +16,9 @@
 
 namespace celeritas
 {
-// DELETE ME
-using XsGridPointers = XsGridData;
+//---------------------------------------------------------------------------//
+//! Currently all value grids are cross section grids
+using ValueGrid = XsGridData;
 
 //---------------------------------------------------------------------------//
 // PARAMS
@@ -63,7 +64,7 @@ struct ModelGroup
  */
 struct ValueTable
 {
-    Span<const XsGridPointers> material; //!< Value grid by material index
+    Span<const ValueGrid> material; //!< Value grid by material index
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
