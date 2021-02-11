@@ -49,4 +49,37 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Find the insertion point for a value.
+ *
+ * \todo Define an iterator adapter that dereferences using `__ldg` in
+ * device code.
+ * \todo Add a template on comparator if needed.
+ * \todo Add a "lower_bound_index" that will use the native pointer difference
+ * type instead of iterator arithmetic, for potential speedup on CUDA.
+ */
+template<class ForwardIt, class T>
+inline CELER_FUNCTION ForwardIt lower_bound(ForwardIt first,
+                                            ForwardIt last,
+                                            const T&  value)
+{
+    auto count = last - first;
+    while (count > 0)
+    {
+        auto      step   = count / 2;
+        ForwardIt middle = first + step;
+        if (*middle < value)
+        {
+            first = middle + 1;
+            count -= step + 1;
+        }
+        else
+        {
+            count = step;
+        }
+    }
+    return first;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

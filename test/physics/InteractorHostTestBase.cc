@@ -43,8 +43,7 @@ void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
     CELER_EXPECT(!inp.materials.empty());
 
     material_params_ = std::make_shared<MaterialParams>(std::move(inp));
-    resize(&ms_data_, material_params_->host_pointers(), 1);
-    ms_ref_ = ms_data_;
+    ms_ = StateStore<celeritas::MaterialStateData>(*material_params_, 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -55,10 +54,13 @@ void InteractorHostTestBase::set_material(const std::string& name)
 {
     CELER_EXPECT(material_params_);
 
-    const ThreadId tid{0};
-    ms_data_.state[tid].material_id = material_params_->find(name);
-    mt_view_                        = std::make_shared<MaterialTrackView>(
-        material_params_->host_pointers(), ms_ref_, tid);
+    mt_view_ = std::make_shared<MaterialTrackView>(
+        material_params_->host_pointers(), ms_.ref(), ThreadId{0});
+
+    // Initialize
+    MaterialTrackView::Initializer_t init;
+    init.material_id = material_params_->find(name);
+    *mt_view_        = init;
 }
 
 //---------------------------------------------------------------------------//
@@ -79,8 +81,7 @@ void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
 {
     CELER_EXPECT(!inp.empty());
     particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
-    resize(&ps_data_, particle_params_->host_pointers(), 1);
-    ps_ref_ = ps_data_;
+    ps_ = StateStore<celeritas::ParticleStateData>(*particle_params_, 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -105,7 +106,7 @@ void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
 
     // Construct track view
     pt_view_ = std::make_shared<ParticleTrackView>(
-        particle_params_->host_pointers(), ps_ref_, ThreadId{0});
+        particle_params_->host_pointers(), ps_.ref(), ThreadId{0});
 
     // Initialize
     ParticleTrackView::Initializer_t init;
@@ -181,13 +182,12 @@ void InteractorHostTestBase::check_energy_conservation(
 void InteractorHostTestBase::check_momentum_conservation(
     const Interaction& interaction) const
 {
-    const auto& parent_track = this->particle_track();
-    ParState<celeritas::Ownership::value> temp_data;
-    resize(&temp_data, particle_params_->host_pointers(), 1);
-    ParState<celeritas::Ownership::reference> temp_ref;
-    temp_ref = temp_data;
+    PieStateStore<celeritas::ParticleStateData, celeritas::MemSpace::host>
+                      temp_store(*particle_params_, 1);
     ParticleTrackView temp_track(
-        particle_params_->host_pointers(), temp_ref, ThreadId{0});
+        particle_params_->host_pointers(), temp_store.ref(), ThreadId{0});
+
+    const auto& parent_track = this->particle_track();
 
     // Sum of exiting momentum
     Real3 exit_momentum = {0, 0, 0};

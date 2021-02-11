@@ -10,6 +10,7 @@
 #include "celeritas_config.h"
 #include "celeritas_test.hh"
 #include "base/Array.hh"
+#include "base/PieStateStore.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleInterface.hh"
 #include "physics/base/Units.hh"
@@ -162,10 +163,10 @@ TEST_F(ParticleDeviceTest, TEST_IF_CELERITAS_CUDA(calc_props))
                   {ParticleId{1}, MevEnergy{10}},
                   {ParticleId{2}, MevEnergy{20}}};
 
-    ParticleStateData<Ownership::value, MemSpace::device> pstates;
-    resize(&pstates, particle_params->host_pointers(), input.init.size());
+    PieStateStore<ParticleStateData, MemSpace::device> pstates(
+        *particle_params, input.init.size());
     input.params = particle_params->device_pointers();
-    input.states = pstates;
+    input.states = pstates.ref();
 
     // Run GPU test
     PTVTestOutput result;

@@ -34,20 +34,6 @@ class HostKNDemoRunner
     using constSPXsGridParams = std::shared_ptr<const XsGridParams>;
     //!@}
 
-  private:
-    // CPU Version of the particle StatePointers
-    struct StatePointers
-    {
-        using ParticleStatePointers
-            = celeritas::ParticleStateData<Ownership::reference, MemSpace::host>;
-
-        ParticleStatePointers            particle;
-        celeritas::Real3                 position;
-        celeritas::Real3                 direction;
-        celeritas::real_type             time;
-        bool                             alive;
-    };
-
   public:
     // Construct with parameters
     HostKNDemoRunner(constSPParticleParams particles, constSPXsGridParams xs);
