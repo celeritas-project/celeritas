@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file BetheBlochInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/BetheBlochInteractor.hh"
+#include "physics/em/detail/BetheBlochInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
@@ -14,7 +14,7 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::BetheBlochInteractor;
+using celeritas::detail::BetheBlochInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -68,7 +68,7 @@ class BetheBlochInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::BetheBlochInteractorPointers pointers_;
+    celeritas::detail::BetheBlochInteractorPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//

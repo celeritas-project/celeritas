@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file WentzelInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/WentzelInteractor.hh"
+#include "physics/em/detail/WentzelInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
@@ -14,7 +14,7 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::WentzelInteractor;
+using celeritas::detail::WentzelInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -68,7 +68,7 @@ class WentzelInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::WentzelInteractorPointers pointers_;
+    celeritas::detail::WentzelInteractorPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//

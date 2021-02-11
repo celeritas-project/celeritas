@@ -14,9 +14,11 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "WentzelInteractorPointers.hh"
+#include "Wentzel.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -68,6 +70,7 @@ class WentzelInteractor
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
 
 #include "WentzelInteractor.i.hh"

@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file BremRelInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/BremRelInteractor.hh"
+#include "physics/em/detail/BremRelInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
@@ -15,7 +15,7 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::BremRelInteractor;
+using celeritas::detail::BremRelInteractor;
 using namespace celeritas;
 
 //---------------------------------------------------------------------------//
@@ -91,7 +91,7 @@ class BremRelInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::BremRelInteractorPointers pointers_;
+    celeritas::detail::BremRelInteractorPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//

@@ -14,9 +14,11 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "UrbanInteractorPointers.hh"
+#include "Urban.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -67,6 +69,7 @@ class UrbanInteractor
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
 
 #include "UrbanInteractor.i.hh"

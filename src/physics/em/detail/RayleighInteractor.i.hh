@@ -8,6 +8,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
@@ -62,4 +64,5 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

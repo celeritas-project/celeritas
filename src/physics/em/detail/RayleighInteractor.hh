@@ -14,9 +14,11 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "RayleighInteractorPointers.hh"
+#include "Rayleigh.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -68,6 +70,7 @@ class RayleighInteractor
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
 
 #include "RayleighInteractor.i.hh"

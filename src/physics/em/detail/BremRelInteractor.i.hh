@@ -10,6 +10,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
@@ -64,4 +66,5 @@ CELER_FUNCTION Interaction BremRelInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

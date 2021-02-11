@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UrbanInteractorPointers.hh
+//! \file Urban.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,6 +11,8 @@
 #include "base/Types.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -32,4 +34,5 @@ struct UrbanInteractorPointers
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

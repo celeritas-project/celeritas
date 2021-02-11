@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file UrbanInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/UrbanInteractor.hh"
+#include "physics/em/detail/UrbanInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
@@ -14,7 +14,7 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::UrbanInteractor;
+using celeritas::detail::UrbanInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -68,7 +68,7 @@ class UrbanInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::UrbanInteractorPointers pointers_;
+    celeritas::detail::UrbanInteractorPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//

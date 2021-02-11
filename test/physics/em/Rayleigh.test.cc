@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file RayleighInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/RayleighInteractor.hh"
+#include "physics/em/detail/RayleighInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
@@ -14,7 +14,7 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::RayleighInteractor;
+using celeritas::detail::RayleighInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -68,7 +68,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::RayleighInteractorPointers pointers_;
+    celeritas::detail::RayleighInteractorPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//

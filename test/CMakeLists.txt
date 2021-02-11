@@ -189,16 +189,16 @@ celeritas_cudaoptional_test(physics/material/Material)
 celeritas_setup_tests(SERIAL PREFIX physics/em)
 
 # NOTE: Remove '${_not_impl}' below at the start of developing each class.
-celeritas_add_test(physics/em/BetheBlochInteractor.test.cc ${_not_impl})
+celeritas_add_test(physics/em/BetheBloch.test.cc ${_not_impl})
 celeritas_add_test(physics/em/BetheHeitler.test.cc)
-celeritas_add_test(physics/em/BremRelInteractor.test.cc ${_not_impl})
+celeritas_add_test(physics/em/BremRel.test.cc ${_not_impl})
 celeritas_add_test(physics/em/EPlusGG.test.cc)
 celeritas_add_test(physics/em/KleinNishina.test.cc)
 celeritas_add_test(physics/em/LivermorePE.test.cc)
 celeritas_add_test(physics/em/MollerBhabha.test.cc)
-celeritas_add_test(physics/em/RayleighInteractor.test.cc ${_not_impl})
-celeritas_add_test(physics/em/UrbanInteractor.test.cc ${_not_impl})
-celeritas_add_test(physics/em/WentzelInteractor.test.cc ${_not_impl})
+celeritas_add_test(physics/em/Rayleigh.test.cc ${_not_impl})
+celeritas_add_test(physics/em/Urban.test.cc ${_not_impl})
+celeritas_add_test(physics/em/Wentzel.test.cc ${_not_impl})
 
 # END PHYSICS TESTS
 set(CELERITASTEST_LINK_LIBRARIES)

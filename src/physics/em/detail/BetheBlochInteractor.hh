@@ -14,9 +14,11 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "BetheBlochInteractorPointers.hh"
+#include "BetheBloch.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -68,6 +70,7 @@ class BetheBlochInteractor
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
 
 #include "BetheBlochInteractor.i.hh"

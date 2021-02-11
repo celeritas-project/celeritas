@@ -14,9 +14,11 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "BremRelInteractorPointers.hh"
+#include "BremRel.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -68,6 +70,7 @@ class BremRelInteractor
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
 
 #include "BremRelInteractor.i.hh"
