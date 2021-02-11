@@ -3,33 +3,32 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BremRelInteractor.test.cc
+//! \file UrbanInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/BremRelInteractor.hh"
+#include "physics/em/detail/UrbanInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "physics/base/Units.hh"
-#include "physics/material/MaterialTrackView.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::BremRelInteractor;
-using namespace celeritas;
+using celeritas::detail::UrbanInteractor;
+namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class BremRelInteractorTest : public celeritas_test::InteractorHostTestBase
+class UrbanInteractorTest : public celeritas_test::InteractorHostTestBase
 {
     using Base = celeritas_test::InteractorHostTestBase;
 
   protected:
     void SetUp() override
     {
-        using constants::na_avogadro;
+        using celeritas::ParticleDef;
         using namespace celeritas::units;
         constexpr auto zero   = celeritas::zero_quantity();
         constexpr auto stable = ParticleDef::stable_decay_constant();
@@ -49,28 +48,6 @@ class BremRelInteractorTest : public celeritas_test::InteractorHostTestBase
         // Set default particle to incident XXX MeV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{10});
         this->set_inc_direction({0, 0, 1});
-
-        // Create test materials
-        Base::set_material_params({
-            {
-                {1, AmuMass{1.008}, "H"},
-                {11, AmuMass{22.98976928}, "Na"},
-                {53, AmuMass{126.90447}, "I"},
-            },
-            {
-                {1e-5 * constants::na_avogadro,
-                 100.0,
-                 MatterState::gas,
-                 {{ElementId{0}, 1.0}},
-                 "H2"},
-                {0.05 * constants::na_avogadro,
-                 293.0,
-                 MatterState::solid,
-                 {{ElementId{1}, 0.5}, {ElementId{2}, 0.5}},
-                 "NaI"},
-            },
-        });
-        this->set_material("NaI");
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -91,17 +68,11 @@ class BremRelInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::BremRelInteractorPointers pointers_;
+    celeritas::detail::UrbanInteractorPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(BremRelInteractorTest, basic)
-{
-    // Temporary test of harness material track view
-    MaterialTrackView& mat_track = this->material_track();
-    EXPECT_EQ(2, mat_track.element_scratch().size());
-    EXPECT_EQ(MaterialId{1}, mat_track.material_id());
-}
+TEST_F(UrbanInteractorTest, basic) {}

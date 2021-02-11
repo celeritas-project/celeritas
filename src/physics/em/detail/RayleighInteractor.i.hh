@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BremRelInteractor.i.hh
+//! \file RayleighInteractor.i.hh
 //---------------------------------------------------------------------------//
 
-#include "base/Assert.hh"
-
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-BremRelInteractor::BremRelInteractor(const BremRelInteractorPointers& shared,
-                                     const ParticleTrackView&         particle,
-                                     const Real3&            inc_direction,
-                                     SecondaryAllocatorView& allocate)
+RayleighInteractor::RayleighInteractor(const RayleighInteractorPointers& shared,
+                                       const ParticleTrackView& particle,
+                                       const Real3&             inc_direction,
+                                       SecondaryAllocatorView&  allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)
@@ -27,7 +27,7 @@ BremRelInteractor::BremRelInteractor(const BremRelInteractorPointers& shared,
     CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
                  && inc_energy_ <= this->max_incident_energy());
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id); // XXX
-    CELER_NOT_IMPLEMENTED("relativistic Bremsstrahlung");
+    CELER_NOT_IMPLEMENTED("Rayleigh scattering");
 }
 
 //---------------------------------------------------------------------------//
@@ -35,7 +35,7 @@ BremRelInteractor::BremRelInteractor(const BremRelInteractorPointers& shared,
  * Sample using the XXX model.
  */
 template<class Engine>
-CELER_FUNCTION Interaction BremRelInteractor::operator()(Engine& rng)
+CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 {
     // Allocate space for XXX (electron, multiple particles, ...)
     Secondary* secondaries = this->allocate_(0); // XXX
@@ -64,4 +64,5 @@ CELER_FUNCTION Interaction BremRelInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

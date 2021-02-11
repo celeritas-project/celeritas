@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RayleighInteractor.test.cc
+//! \file WentzelInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/RayleighInteractor.hh"
+#include "physics/em/detail/WentzelInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
@@ -14,14 +14,14 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::RayleighInteractor;
+using celeritas::detail::WentzelInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
+class WentzelInteractorTest : public celeritas_test::InteractorHostTestBase
 {
     using Base = celeritas_test::InteractorHostTestBase;
 
@@ -68,11 +68,11 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::RayleighInteractorPointers pointers_;
+    celeritas::detail::WentzelInteractorPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(RayleighInteractorTest, basic) {}
+TEST_F(WentzelInteractorTest, basic) {}

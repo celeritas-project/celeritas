@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheBlochInteractor.hh
+//! \file WentzelInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,9 +14,11 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "BetheBlochInteractorPointers.hh"
+#include "Wentzel.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -28,15 +30,15 @@ namespace celeritas
  * XXXX class, as documented in section XXX of the Geant4 Physics
  * Reference (release 10.6).
  */
-class BetheBlochInteractor
+class WentzelInteractor
 {
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    BetheBlochInteractor(const BetheBlochInteractorPointers& shared,
-                         const ParticleTrackView&            particle,
-                         const Real3&                        inc_direction,
-                         SecondaryAllocatorView&             allocate);
+    WentzelInteractor(const WentzelInteractorPointers& shared,
+                      const ParticleTrackView&         particle,
+                      const Real3&                     inc_direction,
+                      SecondaryAllocatorView&          allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -58,7 +60,7 @@ class BetheBlochInteractor
 
   private:
     // Shared constant physics properties
-    const BetheBlochInteractorPointers& shared_;
+    const WentzelInteractorPointers& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
     // Incident direction
@@ -68,6 +70,7 @@ class BetheBlochInteractor
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
 
-#include "BetheBlochInteractor.i.hh"
+#include "WentzelInteractor.i.hh"

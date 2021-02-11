@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UrbanInteractor.hh
+//! \file BremRelInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,9 +14,11 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "UrbanInteractorPointers.hh"
+#include "BremRel.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -28,14 +30,15 @@ namespace celeritas
  * XXXX class, as documented in section XXX of the Geant4 Physics
  * Reference (release 10.6).
  */
-class UrbanInteractor
+class BremRelInteractor
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION UrbanInteractor(const UrbanInteractorPointers& shared,
-                                          const ParticleTrackView& particle,
-                                          const Real3& inc_direction,
-                                          SecondaryAllocatorView& allocate);
+    inline CELER_FUNCTION
+    BremRelInteractor(const BremRelInteractorPointers& shared,
+                      const ParticleTrackView&         particle,
+                      const Real3&                     inc_direction,
+                      SecondaryAllocatorView&          allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -57,7 +60,7 @@ class UrbanInteractor
 
   private:
     // Shared constant physics properties
-    const UrbanInteractorPointers& shared_;
+    const BremRelInteractorPointers& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
     // Incident direction
@@ -67,6 +70,7 @@ class UrbanInteractor
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
 
-#include "UrbanInteractor.i.hh"
+#include "BremRelInteractor.i.hh"

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file WentzelInteractorPointers.hh
+//! \file BremRel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,11 +12,13 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Device data for creating an interactor.
  */
-struct WentzelInteractorPointers
+struct BremRelInteractorPointers
 {
     //! ID of an electron
     ParticleId electron_id;
@@ -32,4 +34,5 @@ struct WentzelInteractorPointers
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

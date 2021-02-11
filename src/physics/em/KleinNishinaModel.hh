@@ -32,6 +32,9 @@ class KleinNishinaModel final : public Model
     // ID of the model
     ModelId model_id() const final;
 
+    //! Name of the model, for user interaction
+    std::string label() const final { return "Klein-Nishina"; }
+
   private:
     detail::KleinNishinaPointers interface_;
 };

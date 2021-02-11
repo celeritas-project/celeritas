@@ -3,20 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UrbanInteractor.i.hh
+//! \file WentzelInteractor.i.hh
 //---------------------------------------------------------------------------//
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-UrbanInteractor::UrbanInteractor(const UrbanInteractorPointers& shared,
-                                 const ParticleTrackView&       particle,
-                                 const Real3&                   inc_direction,
-                                 SecondaryAllocatorView&        allocate)
+WentzelInteractor::WentzelInteractor(const WentzelInteractorPointers& shared,
+                                     const ParticleTrackView&         particle,
+                                     const Real3&            inc_direction,
+                                     SecondaryAllocatorView& allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)
@@ -25,7 +27,7 @@ UrbanInteractor::UrbanInteractor(const UrbanInteractorPointers& shared,
     CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
                  && inc_energy_ <= this->max_incident_energy());
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id); // XXX
-    CELER_NOT_IMPLEMENTED("Urban multiple scattering");
+    CELER_NOT_IMPLEMENTED("Wentzel multiple scattering");
 }
 
 //---------------------------------------------------------------------------//
@@ -33,7 +35,7 @@ UrbanInteractor::UrbanInteractor(const UrbanInteractorPointers& shared,
  * Sample using the XXX model.
  */
 template<class Engine>
-CELER_FUNCTION Interaction UrbanInteractor::operator()(Engine& rng)
+CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
 {
     // Allocate space for XXX (electron, multiple particles, ...)
     Secondary* secondaries = this->allocate_(0); // XXX
@@ -62,4 +64,5 @@ CELER_FUNCTION Interaction UrbanInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

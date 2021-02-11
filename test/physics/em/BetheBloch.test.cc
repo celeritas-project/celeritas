@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UrbanInteractor.test.cc
+//! \file BetheBlochInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/UrbanInteractor.hh"
+#include "physics/em/detail/BetheBlochInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
@@ -14,14 +14,14 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::UrbanInteractor;
+using celeritas::detail::BetheBlochInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UrbanInteractorTest : public celeritas_test::InteractorHostTestBase
+class BetheBlochInteractorTest : public celeritas_test::InteractorHostTestBase
 {
     using Base = celeritas_test::InteractorHostTestBase;
 
@@ -68,11 +68,11 @@ class UrbanInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::UrbanInteractorPointers pointers_;
+    celeritas::detail::BetheBlochInteractorPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(UrbanInteractorTest, basic) {}
+TEST_F(BetheBlochInteractorTest, basic) {}

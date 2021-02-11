@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheBlochInteractor.test.cc
+//! \file RayleighInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/BetheBlochInteractor.hh"
+#include "physics/em/detail/RayleighInteractor.hh"
 
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
@@ -14,14 +14,14 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::BetheBlochInteractor;
+using celeritas::detail::RayleighInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class BetheBlochInteractorTest : public celeritas_test::InteractorHostTestBase
+class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
 {
     using Base = celeritas_test::InteractorHostTestBase;
 
@@ -68,11 +68,11 @@ class BetheBlochInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::BetheBlochInteractorPointers pointers_;
+    celeritas::detail::RayleighInteractorPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(BetheBlochInteractorTest, basic) {}
+TEST_F(RayleighInteractorTest, basic) {}

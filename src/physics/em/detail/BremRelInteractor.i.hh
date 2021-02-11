@@ -3,20 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheBlochInteractor.i.hh
+//! \file BremRelInteractor.i.hh
 //---------------------------------------------------------------------------//
 
+#include "base/Assert.hh"
+
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION BetheBlochInteractor::BetheBlochInteractor(
-    const BetheBlochInteractorPointers& shared,
-    const ParticleTrackView&            particle,
-    const Real3&                        inc_direction,
-    SecondaryAllocatorView&             allocate)
+CELER_FUNCTION
+BremRelInteractor::BremRelInteractor(const BremRelInteractorPointers& shared,
+                                     const ParticleTrackView&         particle,
+                                     const Real3&            inc_direction,
+                                     SecondaryAllocatorView& allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)
@@ -25,7 +29,7 @@ CELER_FUNCTION BetheBlochInteractor::BetheBlochInteractor(
     CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
                  && inc_energy_ <= this->max_incident_energy());
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id); // XXX
-    CELER_NOT_IMPLEMENTED("Bethe-Bloch ionization");
+    CELER_NOT_IMPLEMENTED("relativistic Bremsstrahlung");
 }
 
 //---------------------------------------------------------------------------//
@@ -33,7 +37,7 @@ CELER_FUNCTION BetheBlochInteractor::BetheBlochInteractor(
  * Sample using the XXX model.
  */
 template<class Engine>
-CELER_FUNCTION Interaction BetheBlochInteractor::operator()(Engine& rng)
+CELER_FUNCTION Interaction BremRelInteractor::operator()(Engine& rng)
 {
     // Allocate space for XXX (electron, multiple particles, ...)
     Secondary* secondaries = this->allocate_(0); // XXX
@@ -62,4 +66,5 @@ CELER_FUNCTION Interaction BetheBlochInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
