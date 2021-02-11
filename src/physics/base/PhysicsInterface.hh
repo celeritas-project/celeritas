@@ -17,6 +17,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Currently all value grids are cross section grids
+using ValueGrid = XsGridData;
+
+//---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
 //! Hardcoded types of grid data
@@ -60,7 +64,7 @@ struct ModelGroup
  */
 struct ValueTable
 {
-    Span<const XsGridPointers> material; //!< Value grid by material index
+    Span<const ValueGrid> material; //!< Value grid by material index
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
@@ -120,7 +124,7 @@ struct HardwiredModels
  * (ParticleId{1}) in material 2 (MaterialId{2}) will have the following
  * ID and cross section grid: \code
    ProcessId proc_id = params.particle[1].processes[0];
-   const UniformGridPointers& grid
+   const UniformGridData& grid
        =
  params.particle[1].table[int(PhysicsTableType::macro_xs)][0].material[2].log_energy;
  * \endcode

@@ -22,7 +22,7 @@ namespace demo_interactor
 struct KNDemoRunArgs
 {
     using size_type  = celeritas::size_type;
-    using GridParams = celeritas::UniformGridPointers;
+    using GridParams = celeritas::UniformGridData;
 
     double        energy;
     unsigned long seed;
@@ -60,6 +60,6 @@ void from_json(const nlohmann::json& j, KNDemoResult& value);
 
 namespace celeritas
 {
-void to_json(nlohmann::json& j, const UniformGridPointers& value);
-void from_json(const nlohmann::json& j, UniformGridPointers& value);
+void to_json(nlohmann::json& j, const UniformGridData& value);
+void from_json(const nlohmann::json& j, UniformGridData& value);
 } // namespace celeritas

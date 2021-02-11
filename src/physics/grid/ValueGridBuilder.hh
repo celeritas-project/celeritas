@@ -14,23 +14,10 @@
 
 namespace celeritas
 {
-class ValueGridStore;
-//---------------------------------------------------------------------------//
-//! Parameterization of the energy grid values for a physics array
-enum class ValueGridType
-{
-    xs,
-    generic
-};
-
+class ValueGridInserter;
 //---------------------------------------------------------------------------//
 /*!
  * Helper class for constructing on-device physics data for a single material.
- *
- * The physics manager will assemble all the array builders during setup, will
- * query all of them for the storage types and requirements, and allocate the
- * necessary storage. Each instance of the physics array builder class will
- * then copy the class data to the device.
  *
  * These builder classes are presumed to have a short/temporary lifespan and
  * should not be retained after the setup phase.
@@ -38,20 +25,11 @@ enum class ValueGridType
 class ValueGridBuilder
 {
   public:
-    //!@{
-    //! Type aliases
-    using Storage = std::pair<ValueGridType, size_type>;
-    //!@}
-
-  public:
     //! Virtual destructor for polymorphic deletion
     virtual ~ValueGridBuilder() = 0;
 
-    //! Get the storage requirements of a grid to be bulit
-    virtual Storage storage() const = 0;
-
     //! Construct the grid given a mutable reference to a store
-    virtual void build(ValueGridStore*) const = 0;
+    virtual void build(ValueGridInserter) const = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -83,11 +61,8 @@ class ValueGridXsBuilder final : public ValueGridBuilder
                        real_type emax,
                        VecReal   xs);
 
-    // Get the storage type and requirements
-    Storage storage() const final;
-
     // Construct in the given store
-    void build(ValueGridStore*) const final;
+    void build(ValueGridInserter) const final;
 
   private:
     real_type log_emin_;
@@ -114,11 +89,8 @@ class ValueGridLogBuilder final : public ValueGridBuilder
     // Construct
     ValueGridLogBuilder(real_type emin, real_type emax, VecReal value);
 
-    // Get the storage type and requirements
-    Storage storage() const final;
-
     // Construct in the given store
-    void build(ValueGridStore*) const final;
+    void build(ValueGridInserter) const final;
 
   private:
     real_type log_emin_;
@@ -148,11 +120,8 @@ class ValueGridGenericBuilder final : public ValueGridBuilder
     // Construct with linear interpolation
     ValueGridGenericBuilder(VecReal grid, VecReal value);
 
-    // Get the storage type and requirements
-    Storage storage() const final;
-
     // Construct in the given store
-    void build(ValueGridStore*) const final;
+    void build(ValueGridInserter) const final;
 
   private:
     VecReal grid_;

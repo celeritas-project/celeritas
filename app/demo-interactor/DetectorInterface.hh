@@ -35,7 +35,7 @@ struct Hit
 struct DetectorPointers
 {
     StackAllocatorPointers<Hit> hit_buffer;
-    UniformGridPointers         tally_grid;
+    UniformGridData             tally_grid;
     Span<real_type>             tally_deposition;
 
     //! Whether the interface is initialized

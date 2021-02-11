@@ -11,7 +11,7 @@
 #include "base/SoftEqual.hh"
 #include "physics/grid/UniformGrid.hh"
 #include "physics/grid/XsGridInterface.hh"
-#include "physics/grid/ValueGridStore.hh"
+#include "physics/grid/ValueGridInserter.hh"
 
 namespace celeritas
 {
@@ -95,7 +95,7 @@ ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
                             lambda_prim.front() / lambda_prim_energy.front()));
     CELER_EXPECT(is_nonnegative(lambda) && is_nonnegative(lambda_prim));
 
-    // Concatenate the two XS vectors: store the scaled (lambda_prim) value at
+    // Concatenate the two XS vectors: insert the scaled (lambda_prim) value at
     // the coincident point.
     VecReal xs(lambda.size() + lambda_prim.size() - 1);
     auto    dst = std::copy(lambda.begin(), lambda.end() - 1, xs.begin());
@@ -133,36 +133,21 @@ ValueGridXsBuilder::ValueGridXsBuilder(real_type emin,
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the storage type and requirements for the value grid.
- */
-auto ValueGridXsBuilder::storage() const -> Storage
-{
-    return {ValueGridType::xs, xs_.size()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct on device.
  */
-void ValueGridXsBuilder::build(ValueGridStore* store) const
+void ValueGridXsBuilder::build(ValueGridInserter insert) const
 {
-    CELER_EXPECT(store);
-    XsGridPointers ptrs;
-    // Construct log(energy) grid
-    ptrs.log_energy
-        = UniformGridPointers::from_bounds(log_emin_, log_emax_, xs_.size());
-    {
-        // Find and check prime energy index
-        UniformGrid grid{ptrs.log_energy};
-        ptrs.prime_index = grid.find(log_eprime_);
-        CELER_ASSERT(soft_equal(grid[ptrs.prime_index], log_eprime_));
-    }
+    auto log_energy
+        = UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size());
 
-    // Provide reference to values
-    ptrs.value = make_span(xs_);
+    // Find and check prime energy index
+    UniformGrid grid{log_energy};
+    auto        prime_index = grid.find(log_eprime_);
+    CELER_ASSERT(soft_equal(grid[prime_index], log_eprime_));
 
-    // Copy data to store
-    store->push_back(ptrs);
+    insert(UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size()),
+           prime_index,
+           make_span(xs_));
 }
 
 //---------------------------------------------------------------------------//
@@ -183,30 +168,12 @@ ValueGridLogBuilder::ValueGridLogBuilder(real_type emin,
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the storage type and requirements for the energy grid.
- */
-auto ValueGridLogBuilder::storage() const -> Storage
-{
-    return {ValueGridType::xs, xs_.size()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct on device.
  */
-void ValueGridLogBuilder::build(ValueGridStore* store) const
+void ValueGridLogBuilder::build(ValueGridInserter insert) const
 {
-    XsGridPointers ptrs;
-
-    // Construct log(energy) grid
-    ptrs.log_energy
-        = UniformGridPointers::from_bounds(log_emin_, log_emax_, xs_.size());
-
-    // Provide reference to values
-    ptrs.value = make_span(xs_);
-
-    // Copy data to store
-    store->push_back(ptrs);
+    insert(UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size()),
+           make_span(xs_));
 }
 
 //---------------------------------------------------------------------------//
@@ -241,30 +208,12 @@ ValueGridGenericBuilder::ValueGridGenericBuilder(VecReal grid, VecReal value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the storage type and requirements for the energy grid.
+ * Construct grid data in the given mutable insert.
  */
-auto ValueGridGenericBuilder::storage() const -> Storage
+void ValueGridGenericBuilder::build(ValueGridInserter insert) const
 {
-    return {ValueGridType::generic, 2 * grid_.size()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct grid data in the given mutable store.
- */
-void ValueGridGenericBuilder::build(ValueGridStore* store) const
-{
-    CELER_EXPECT(store);
-    GenericGridPointers ptrs;
-
-    // Provide reference to values
-    ptrs.grid         = make_span(grid_);
-    ptrs.value        = make_span(value_);
-    ptrs.grid_interp  = grid_interp_;
-    ptrs.value_interp = value_interp_;
-
-    // Copy data to store
-    store->push_back(ptrs);
+    insert({make_span(grid_), grid_interp_},
+           {make_span(value_), value_interp_});
 }
 
 //---------------------------------------------------------------------------//

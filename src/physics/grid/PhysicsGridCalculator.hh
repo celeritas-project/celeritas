@@ -26,7 +26,7 @@ namespace celeritas
  * scaled by the energy.
  *
  * \code
-    PhysicsGridCalculator calc_xs(xs_params);
+    PhysicsGridCalculator calc_xs(xs_grid, xs_params.reals);
     real_type xs = calc_xs(particle);
    \endcode
  */
@@ -35,19 +35,21 @@ class PhysicsGridCalculator
   public:
     //!@{
     //! Type aliases
-    using Energy = Quantity<XsGridPointers::EnergyUnits>;
+    using Energy = Quantity<XsGridData::EnergyUnits>;
+    using Values = Pie<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct from state-independent data
-    inline explicit CELER_FUNCTION
-    PhysicsGridCalculator(const XsGridPointers& data);
+    inline CELER_FUNCTION
+    PhysicsGridCalculator(const XsGridData& grid, const Values& values);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
   private:
-    const XsGridPointers& data_;
+    const XsGridData&     data_;
+    Span<const real_type> values_;
 };
 
 //---------------------------------------------------------------------------//

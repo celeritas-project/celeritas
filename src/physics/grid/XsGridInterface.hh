@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Span.hh"
+#include "base/Pie.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
-#include "UniformGrid.hh"
+#include "UniformGridInterface.hh"
 
 namespace celeritas
 {
@@ -24,21 +24,27 @@ namespace celeritas
  * Interpolation is linear-linear after transforming to log-E space and before
  * scaling the value by E (if the grid point is above prime_index).
  */
-struct XsGridPointers
+struct XsGridData
 {
     using EnergyUnits = units::Mev;
     using XsUnits     = units::NativeUnit; // 1/cm
+    using size_type   = pie_size_type;
 
-    UniformGridPointers   log_energy;
-    size_type             prime_index{size_type(-1)};
-    Span<const real_type> value;
+    //! "Special" value indicating none of the values are scaled by 1/E
+    static CELER_CONSTEXPR_FUNCTION size_type no_scaling()
+    {
+        return size_type(-1);
+    }
+
+    UniformGridData     log_energy;
+    size_type           prime_index{no_scaling()};
+    PieSlice<real_type> value;
 
     //! Whether the interface is initialized and valid
     explicit CELER_FUNCTION operator bool() const
     {
         return log_energy && (value.size() >= 2)
-               && (prime_index < log_energy.size
-                   || prime_index == size_type(-1))
+               && (prime_index < log_energy.size || prime_index == no_scaling())
                && log_energy.size == value.size();
     }
 };
@@ -47,12 +53,12 @@ struct XsGridPointers
 /*!
  * A generic grid of 1D data with arbitrary interpolation.
  */
-struct GenericGridPointers
+struct GenericGridData
 {
-    Span<const real_type> grid;         //!< x grid
-    Span<const real_type> value;        //!< f(x) value
-    Interp                grid_interp;  //!< Interpolation along x
-    Interp                value_interp; //!< Interpolation along f(x)
+    PieSlice<real_type> grid;         //!< x grid
+    PieSlice<real_type> value;        //!< f(x) value
+    Interp              grid_interp;  //!< Interpolation along x
+    Interp              value_interp; //!< Interpolation along f(x)
 
     //! Whether the interface is initialized and valid
     explicit CELER_FUNCTION operator bool() const

@@ -8,7 +8,7 @@
 
 #include "base/ArrayUtils.hh"
 #include "physics/em/AtomicRelaxationHelper.hh"
-#include "physics/em/MockXsCalculator.hh"
+#include "physics/em/LivermoreXsCalculator.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -72,7 +72,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
             if (inc_energy_ < el.thresh_low)
             {
                 // Use the tabulated subshell cross sections
-                XsCalculator calc_xs(shell.xs);
+                LivermoreXsCalculator calc_xs(shell.xs);
                 xs += ipow<3>(inv_energy_) * calc_xs(inc_energy_.value());
             }
             else

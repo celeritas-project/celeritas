@@ -106,9 +106,9 @@ class PhysicsParams
 
     //// DEVICE DATA ////
 
-    DeviceVector<UniformGridPointers> grid_inputs_;
+    DeviceVector<UniformGridData>     grid_inputs_;
     DeviceVector<real_type>           xsgrid_data_;
-    DeviceVector<XsGridPointers>      value_grids_;
+    DeviceVector<ValueGrid>           value_grids_;
     DeviceVector<ValueTable>          value_tables_;
     DeviceVector<ProcessId>           process_ids_;
     DeviceVector<ModelId>             model_ids_;

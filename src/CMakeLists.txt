@@ -55,7 +55,7 @@ list(APPEND SOURCES
   physics/em/KleinNishinaModel.cc
   physics/em/MollerBhabhaModel.cc
   physics/grid/ValueGridBuilder.cc
-  physics/grid/ValueGridStore.cc
+  physics/grid/ValueGridInserter.cc
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
   random/cuda/RngStateStore.cc

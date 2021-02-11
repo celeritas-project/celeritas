@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MockXsCalculator.i.hh
+//! \file LivermoreXsCalculator.i.hh
 //---------------------------------------------------------------------------//
 #include <cmath>
 #include "base/Interpolator.hh"
@@ -15,7 +15,9 @@ namespace celeritas
 /*!
  * Construct from state-independent data.
  */
-CELER_FUNCTION XsCalculator::XsCalculator(const ValueGrid& data) : data_(data)
+CELER_FUNCTION
+LivermoreXsCalculator::LivermoreXsCalculator(const LivermoreValueGrid& data)
+    : data_(data)
 {
     CELER_EXPECT(data_.energy.size() > 0);
     CELER_EXPECT(data_.xs.size() > 0);
@@ -25,7 +27,8 @@ CELER_FUNCTION XsCalculator::XsCalculator(const ValueGrid& data) : data_(data)
 /*!
  * Calculate the cross section.
  */
-CELER_FUNCTION real_type XsCalculator::operator()(const real_type energy) const
+CELER_FUNCTION real_type
+LivermoreXsCalculator::operator()(const real_type energy) const
 {
     // Snap out-of-bounds values to closest grid points
     real_type result;

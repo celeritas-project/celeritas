@@ -41,7 +41,7 @@ CELER_FUNCTION real_type calc_tabulated_physics_step(
             // Calculate macroscopic cross section for this process, then
             // accumulate it into the total cross section and save the cross
             // section for later.
-            PhysicsGridCalculator calc_xs(*table);
+            PhysicsGridCalculator calc_xs(*table, {});
             process_xs = calc_xs(particle.energy());
             total_macro_xs += process_xs;
         }
@@ -63,7 +63,7 @@ CELER_FUNCTION real_type calc_tabulated_physics_step(
 
         if (const auto* table = physics.table(PTT::range, ppid))
         {
-            PhysicsGridCalculator calc_range(*table);
+            PhysicsGridCalculator calc_range(*table, {});
             real_type process_range = calc_range(particle.energy());
             // TODO: scale range by sqrt(particle.energy() / minKE)
             // if < minKE??
@@ -103,7 +103,7 @@ CELER_FUNCTION real_type calc_energy_loss(const ParticleTrackView& particle,
         const ParticleProcessId ppid{pp_idx};
         if (const auto* table = physics.table(PTT::energy_loss, ppid))
         {
-            PhysicsGridCalculator calc_eloss_rate(*table);
+            PhysicsGridCalculator calc_eloss_rate(*table, {});
             total_eloss_rate += calc_eloss_rate(particle.energy());
         }
     }

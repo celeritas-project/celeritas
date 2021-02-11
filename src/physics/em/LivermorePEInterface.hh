@@ -11,7 +11,7 @@
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
-#include "MockXsCalculator.hh"
+#include "LivermoreXsCalculator.hh"
 
 namespace celeritas
 {
@@ -26,7 +26,7 @@ struct LivermoreSubshell
 
     // Tabulated subshell photoionization cross section (used below 5 keV)
     // TODO: value grid
-    ValueGrid xs;
+    LivermoreValueGrid xs;
 
     // Fit parameters for the integrated subshell photoionization cross
     // sections in the two different energy ranges (used above 5 keV)
@@ -44,13 +44,13 @@ struct LivermoreElement
 
     // Total cross section below the K-shell energy. Uses linear interpolation.
     // TODO: value grid
-    ValueGrid xs_low;
+    LivermoreValueGrid xs_low;
 
     // Total cross section above the K-shell energy but below the energy
     // threshold for the parameterized cross sections. Uses spline
     // interpolation.
     // TODO: value grid
-    ValueGrid xs_high;
+    LivermoreValueGrid xs_high;
 
     // SUBSHELL CROSS SECTIONS
 

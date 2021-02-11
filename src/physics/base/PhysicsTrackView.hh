@@ -28,7 +28,7 @@ class PhysicsTrackView
     //!@{
     //! Type aliases
     using SpanConstProcessId  = Span<const ProcessId>;
-    using PhysicsGridPointers = XsGridPointers;
+    using PhysicsGridPointers = ValueGrid;
     using Initializer_t       = PhysicsTrackInitializer;
     //!@}
 

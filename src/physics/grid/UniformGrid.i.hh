@@ -15,7 +15,7 @@ namespace celeritas
  * Construct with data.
  */
 CELER_FUNCTION
-UniformGrid::UniformGrid(const UniformGridPointers& data) : data_(data)
+UniformGrid::UniformGrid(const UniformGridData& data) : data_(data)
 {
     CELER_EXPECT(data_);
 }
