@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <vector>
+#include "base/Pie.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
 
@@ -25,11 +26,17 @@ class ValueGridInserter;
 class ValueGridBuilder
 {
   public:
+    //!@{
+    //! Type aliases
+    using ValueGridId = PieId<struct XsGridData>;
+    //!@}
+
+  public:
     //! Virtual destructor for polymorphic deletion
     virtual ~ValueGridBuilder() = 0;
 
     //! Construct the grid given a mutable reference to a store
-    virtual void build(ValueGridInserter) const = 0;
+    virtual ValueGridId build(ValueGridInserter) const = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -62,7 +69,7 @@ class ValueGridXsBuilder final : public ValueGridBuilder
                        VecReal   xs);
 
     // Construct in the given store
-    void build(ValueGridInserter) const final;
+    ValueGridId build(ValueGridInserter) const final;
 
   private:
     real_type log_emin_;
@@ -83,6 +90,7 @@ class ValueGridLogBuilder final : public ValueGridBuilder
     //!@{
     //! Type aliases
     using VecReal = std::vector<real_type>;
+    using Id      = PieId<XsGridData>;
     //!@}
 
   public:
@@ -90,7 +98,7 @@ class ValueGridLogBuilder final : public ValueGridBuilder
     ValueGridLogBuilder(real_type emin, real_type emax, VecReal value);
 
     // Construct in the given store
-    void build(ValueGridInserter) const final;
+    ValueGridId build(ValueGridInserter) const final;
 
   private:
     real_type log_emin_;
@@ -108,6 +116,7 @@ class ValueGridGenericBuilder final : public ValueGridBuilder
     //!@{
     //! Type aliases
     using VecReal = std::vector<real_type>;
+    using Id      = PieId<XsGridData>;
     //!@}
 
   public:
@@ -121,7 +130,7 @@ class ValueGridGenericBuilder final : public ValueGridBuilder
     ValueGridGenericBuilder(VecReal grid, VecReal value);
 
     // Construct in the given store
-    void build(ValueGridInserter) const final;
+    ValueGridId build(ValueGridInserter) const final;
 
   private:
     VecReal grid_;

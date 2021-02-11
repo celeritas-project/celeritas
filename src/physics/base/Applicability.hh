@@ -34,10 +34,13 @@ namespace celeritas
  */
 struct Applicability
 {
-    MaterialId       material{};
-    ParticleId       particle{};
-    units::MevEnergy lower = zero_quantity();
-    units::MevEnergy upper = max_quantity();
+    using EnergyUnits = units::Mev;
+    using Energy      = Quantity<EnergyUnits>;
+
+    MaterialId material{};
+    ParticleId particle{};
+    Energy     lower = zero_quantity();
+    Energy     upper = max_quantity();
 
     //! Range for a particle at rest
     static inline Applicability at_rest(ParticleId id)
@@ -53,7 +56,7 @@ struct Applicability
     //! Whether applicability is in a valid state
     inline explicit operator bool() const
     {
-        return static_cast<bool>(particle);
+        return static_cast<bool>(particle) && lower < upper;
     }
 };
 

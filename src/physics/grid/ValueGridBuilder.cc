@@ -135,7 +135,7 @@ ValueGridXsBuilder::ValueGridXsBuilder(real_type emin,
 /*!
  * Construct on device.
  */
-void ValueGridXsBuilder::build(ValueGridInserter insert) const
+auto ValueGridXsBuilder::build(ValueGridInserter insert) const -> ValueGridId
 {
     auto log_energy
         = UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size());
@@ -145,9 +145,10 @@ void ValueGridXsBuilder::build(ValueGridInserter insert) const
     auto        prime_index = grid.find(log_eprime_);
     CELER_ASSERT(soft_equal(grid[prime_index], log_eprime_));
 
-    insert(UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size()),
-           prime_index,
-           make_span(xs_));
+    return insert(
+        UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size()),
+        prime_index,
+        make_span(xs_));
 }
 
 //---------------------------------------------------------------------------//
@@ -170,10 +171,11 @@ ValueGridLogBuilder::ValueGridLogBuilder(real_type emin,
 /*!
  * Construct on device.
  */
-void ValueGridLogBuilder::build(ValueGridInserter insert) const
+auto ValueGridLogBuilder::build(ValueGridInserter insert) const -> ValueGridId
 {
-    insert(UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size()),
-           make_span(xs_));
+    return insert(
+        UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size()),
+        make_span(xs_));
 }
 
 //---------------------------------------------------------------------------//
@@ -210,10 +212,13 @@ ValueGridGenericBuilder::ValueGridGenericBuilder(VecReal grid, VecReal value)
 /*!
  * Construct grid data in the given mutable insert.
  */
-void ValueGridGenericBuilder::build(ValueGridInserter insert) const
+auto ValueGridGenericBuilder::build(ValueGridInserter insert) const
+    -> ValueGridId
 {
     insert({make_span(grid_), grid_interp_},
            {make_span(value_), value_interp_});
+    CELER_NOT_IMPLEMENTED("generic grids");
+    return {};
 }
 
 //---------------------------------------------------------------------------//
