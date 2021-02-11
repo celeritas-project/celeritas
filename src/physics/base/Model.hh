@@ -8,6 +8,7 @@
 #pragma once
 
 #include <set>
+#include <string>
 #include "base/Span.hh"
 #include "physics/grid/UniformGrid.hh"
 #include "Applicability.hh"
@@ -61,6 +62,9 @@ class Model
 
     //! ID of the model (should be stored by constructor)
     virtual ModelId model_id() const = 0;
+
+    //! Name of the model, for user interaction
+    virtual std::string label() const = 0;
 };
 
 //---------------------------------------------------------------------------//

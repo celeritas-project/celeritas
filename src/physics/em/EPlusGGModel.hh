@@ -33,6 +33,9 @@ class EPlusGGModel final : public Model
     // ID of the model
     ModelId model_id() const final;
 
+    //! Name of the model, for user interaction
+    std::string label() const final { return "Positron annihilation (2g)"; }
+
   private:
     detail::EPlusGGPointers interface_;
 };

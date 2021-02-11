@@ -35,6 +35,7 @@ class MockModel final : public celeritas::Model
     SetApplicability applicability() const final;
     void             interact(const ModelInteractPointers&) const final;
     ModelId          model_id() const final { return id_; }
+    std::string      label() const final;
 
   private:
     ModelId       id_;

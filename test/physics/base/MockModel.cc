@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "MockModel.hh"
 
+#include <sstream>
+
 namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
@@ -27,6 +29,15 @@ void MockModel::interact(const ModelInteractPointers&) const
 {
     // Inform calling test code that we've been launched
     cb_(this->model_id());
+}
+
+std::string MockModel::label() const
+{
+    std::ostringstream os;
+    os << "MockModel(p=" << applic_.particle.get()
+       << ", emin=" << applic_.lower.value()
+       << ", emax=" << applic_.upper.value() << ")";
+    return os.str();
 }
 
 //---------------------------------------------------------------------------//
