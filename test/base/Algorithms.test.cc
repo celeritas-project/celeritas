@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Algorithms.hh"
 
+#include <algorithm>
 #include "celeritas_test.hh"
 
 //---------------------------------------------------------------------------//
@@ -29,4 +30,26 @@ TEST(AlgorithmsTest, ipow)
     EXPECT_FLOAT_EQ(0.001f, celeritas::ipow<3>(0.1f));
     EXPECT_EQ(1e4, celeritas::ipow<4>(10.0));
     EXPECT_TRUE((std::is_same<int, decltype(celeritas::ipow<4>(5))>::value));
+}
+
+TEST(AlgorithmsTest, lower_bound)
+{
+    // Test empty vector
+    std::vector<int> v;
+    EXPECT_EQ(0, celeritas::lower_bound(v.begin(), v.end(), 10) - v.begin());
+
+    // Test a selection of sorted values, and values surroundig them
+    v = {-3, 1, 4, 9, 10, 11, 15, 15};
+
+    for (int val : v)
+    {
+        for (int delta : {-1, 0, 1})
+        {
+            auto expected = std::lower_bound(v.begin(), v.end(), val + delta);
+            auto actual
+                = celeritas::lower_bound(v.begin(), v.end(), val + delta);
+            EXPECT_EQ(expected - v.begin(), actual - v.begin())
+                << "Lower bound failed for value " << val + delta;
+        }
+    }
 }

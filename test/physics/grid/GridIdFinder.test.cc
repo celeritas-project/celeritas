@@ -35,16 +35,18 @@ class GridIdFinderTest : public celeritas::Test
 
 TEST_F(GridIdFinderTest, all)
 {
+    constexpr auto invalid = IdT{}.unchecked_get();
+
     grid = {1e-3, 1, 10, 11};
     ids  = {IdT{5}, IdT{3}, IdT{7}};
 
     FinderT find_id(make_span(grid), make_span(ids));
-    EXPECT_EQ(IdT{}, find_id(Energy{1e-6}));
-    EXPECT_EQ(IdT{5}, find_id(Energy{1e-3}));
-    EXPECT_EQ(IdT{5}, find_id(Energy{0.1}));
-    EXPECT_EQ(IdT{3}, find_id(Energy{1}));
-    EXPECT_EQ(IdT{3}, find_id(Energy{3}));
-    EXPECT_EQ(IdT{7}, find_id(Energy{10}));
-    EXPECT_EQ(IdT{7}, find_id(Energy{11}));
-    EXPECT_EQ(IdT{}, find_id(Energy{100}));
+    EXPECT_EQ(invalid, find_id(Energy{1e-6}).unchecked_get());
+    EXPECT_EQ(5, find_id(Energy{1e-3}).unchecked_get());
+    EXPECT_EQ(5, find_id(Energy{0.1}).unchecked_get());
+    EXPECT_EQ(3, find_id(Energy{1}).unchecked_get());
+    EXPECT_EQ(3, find_id(Energy{3}).unchecked_get());
+    EXPECT_EQ(7, find_id(Energy{10}).unchecked_get());
+    EXPECT_EQ(7, find_id(Energy{11}).unchecked_get());
+    EXPECT_EQ(invalid, find_id(Energy{100}).unchecked_get());
 }

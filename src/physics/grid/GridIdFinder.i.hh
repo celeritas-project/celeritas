@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file GridIdFinder.i.hh
 //---------------------------------------------------------------------------//
-
+#include "base/Algorithms.hh"
 #include "base/Assert.hh"
 
 namespace celeritas
@@ -14,7 +14,8 @@ namespace celeritas
 /*!
  * Construct from grid and values.
  *
- * \todo maybe construct from pies/slices?
+ * \todo Construct from reference to pies and slices so we can benefit from
+ * __ldg as needed
  */
 template<class K, class V>
 CELER_FUNCTION
@@ -29,10 +30,28 @@ GridIdFinder<K, V>::GridIdFinder(SpanConstGrid grid, SpanConstValue value)
  * Find the ID corresponding to the given value.
  */
 template<class K, class V>
-CELER_FUNCTION auto GridIdFinder<K, V>::operator()(argument_type) const
+CELER_FUNCTION auto GridIdFinder<K, V>::operator()(argument_type quant) const
     -> result_type
 {
-    CELER_NOT_IMPLEMENTED("GridIdFinder");
+    auto iter
+        = celeritas::lower_bound(grid_.begin(), grid_.end(), quant.value());
+    if (iter == grid_.end())
+    {
+        // Higher than end point
+        return {};
+    }
+    else if (iter == grid_.begin() && quant.value() != *iter)
+    {
+        // Below first point
+        return {};
+    }
+    else if (iter + 1 == grid_.end() || quant.value() != *iter)
+    {
+        // Exactly on end grid point, or not on a grid point at all: move to
+        // previous bin
+        --iter;
+    }
+    return value_[iter - grid_.begin()];
 }
 
 //---------------------------------------------------------------------------//
