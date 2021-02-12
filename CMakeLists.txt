@@ -96,11 +96,11 @@ if(CELERITAS_USE_CUDA)
 endif()
 
 if(CELERITAS_USE_Geant4)
-  find_package(Geant4 REQUIRED)
+  celeritas_find_package(Geant4 REQUIRED)
 endif()
 
 if(CELERITAS_USE_HepMC3)
-  find_package(HepMC3 REQUIRED)
+  celeritas_find_package(HepMC3 REQUIRED)
   # HepMC3's cmake config file does not provide an imported target yet
   # Anticipate that it will, and create if not present. HepMC3 is
   # a private dep of Celeritas, so no need to re-export this.
@@ -118,7 +118,7 @@ if(CELERITAS_USE_MPI)
 endif()
 
 if(CELERITAS_USE_ROOT)
-  find_package(ROOT REQUIRED)
+  celeritas_find_package_config(ROOT REQUIRED)
 endif()
 
 if(CELERITAS_USE_SWIG_Python)
@@ -131,7 +131,7 @@ if(CELERITAS_USE_SWIG_Python)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  find_package(VecGeom REQUIRED) # Minimum 1.1.7
+  celeritas_find_package_config(VecGeom REQUIRED)
 
   if((CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
       OR (NOT CELERITAS_USE_CUDA AND VecGeom_CUDA_FOUND))
