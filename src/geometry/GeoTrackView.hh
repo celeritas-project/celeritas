@@ -80,7 +80,7 @@ class GeoTrackView
     CELER_FUNCTION bool is_outside() const { return vgstate_.IsOutside(); }
 
     //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type tolerance() { return 1e-13; }
+    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
 
   private:
     //!@{
