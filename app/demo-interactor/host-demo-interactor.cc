@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
+#include "celeritas_version.h"
 #include "comm/Communicator.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
@@ -70,6 +71,7 @@ void run(std::istream& is)
     nlohmann::json outp = {
         {"run", run_args},
         {"result", result},
+        {"version", std::string(celeritas_version)},
     };
     cout << outp.dump() << endl;
 }

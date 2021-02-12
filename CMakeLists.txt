@@ -4,9 +4,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-# Note: 3.13 is the first CMake version that natively supports CUDA+MPI
 cmake_minimum_required(VERSION 3.12)
-project(Celeritas VERSION 0.0.1 LANGUAGES CXX)
+
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
+cgv_find_version(Celeritas)
+project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
 cmake_policy(VERSION 3.12...3.18)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")

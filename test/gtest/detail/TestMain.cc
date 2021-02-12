@@ -10,8 +10,10 @@
 #include <stdexcept>
 #include "celeritas_config.h"
 #include "base/ColorUtils.hh"
+#include "celeritas_version.h"
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
+#include "comm/Logger.hh"
 #include "comm/Operations.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "NonMasterResultPrinter.hh"
@@ -45,6 +47,12 @@ int test_main(int argc, char** argv)
                       << std::endl;
         }
         return 1;
+    }
+
+    if (comm.rank() == 0)
+    {
+        std::cout << color_code('x') << "Celeritas version "
+                  << celeritas_version << std::endl;
     }
 
     // Initialize google test

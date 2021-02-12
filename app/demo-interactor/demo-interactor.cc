@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
+#include "celeritas_version.h"
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
@@ -76,6 +77,7 @@ void run(std::istream& is)
         {"grid_params", grid_params},
         {"run", run_args},
         {"result", result},
+        {"version", std::string(celeritas_version)},
     };
     cout << outp.dump() << endl;
 }

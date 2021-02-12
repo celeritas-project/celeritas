@@ -11,9 +11,9 @@ set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
 set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
-set(_CONFIG_NAME "celeritas_config.h")
-configure_file("${_CONFIG_NAME}.in" "${_CONFIG_NAME}" @ONLY)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${_CONFIG_NAME}"
+configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/celeritas_config.h"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 
@@ -25,6 +25,13 @@ set(SOURCES)
 set(PRIVATE_DEPS)
 set(PUBLIC_DEPS)
 
+# Version information
+configure_file("celeritas_version.cc.in" "celeritas_version.cc" @ONLY)
+list(APPEND SOURCES
+  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_version.cc"
+)
+
+# Main library
 list(APPEND SOURCES
   base/Assert.cc
   base/ColorUtils.cc
@@ -162,9 +169,15 @@ install(TARGETS celeritas
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-foreach(_SUBDIR base geom)
+install(FILES
+  "${CMAKE_CURRENT_SOURCE_DIR}/celeritas_version.h"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+foreach(_SUBDIR base comm geometry io physics random sim
+    base/detail comm/detail geometry/detail sim/detail)
   file(GLOB _HEADERS
-    "${_SUBDIR}/*.h"
+    "${_SUBDIR}/*.hh"
   )
   install(FILES ${_HEADERS}
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${_SUBDIR}/"
