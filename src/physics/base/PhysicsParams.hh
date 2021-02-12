@@ -37,8 +37,8 @@ class ParticleParams;
  * Input options are:
  * - \c min_range: below this value, there is no extra transformation from
  *   particle range to step length.
- * - \c max_step_over_range: at higher energies (longer ranges), gradually
- *   decrease the minimum step length until it's this fraction of the tabulated
+ * - \c max_step_over_range: at higher energy (longer range), gradually
+ *   decrease the maximum step length until it's this fraction of the tabulated
  *   range.
  */
 class PhysicsParams
