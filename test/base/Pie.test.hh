@@ -5,9 +5,10 @@
 //---------------------------------------------------------------------------//
 //! \file Pie.test.hh
 //---------------------------------------------------------------------------//
-
+#include "base/Assert.hh"
 #include "base/Pie.hh"
 #include "base/Types.hh"
+#include "celeritas_config.h"
 
 namespace celeritas_test
 {
@@ -166,7 +167,14 @@ struct PTestInput
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void p_test(PTestInput);
+void pie_cuda_test(PTestInput);
+
+#if !CELERITAS_USE_CUDA
+inline void pie_cuda_test(PTestInput)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

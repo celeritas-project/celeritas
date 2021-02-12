@@ -10,6 +10,9 @@
 #include "PhysicsInterface.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Units.hh"
+#include "physics/grid/GridIdFinder.hh"
+#include "physics/grid/PhysicsGridCalculator.hh"
 #include "physics/material/Types.hh"
 #include "Types.hh"
 
@@ -27,9 +30,13 @@ class PhysicsTrackView
   public:
     //!@{
     //! Type aliases
-    using SpanConstProcessId  = Span<const ProcessId>;
-    using PhysicsGridPointers = ValueGrid;
-    using Initializer_t       = PhysicsTrackInitializer;
+    using Initializer_t = PhysicsTrackInitializer;
+    using PhysicsParamsPointers
+        = PhysicsParamsData<Ownership::const_reference, MemSpace::native>;
+    using PhysicsStatePointers
+        = PhysicsStateData<Ownership::reference, MemSpace::native>;
+
+    using ModelFinder = GridIdFinder<units::MevEnergy, ModelId>;
     //!@}
 
   public:
@@ -82,16 +89,21 @@ class PhysicsTrackView
     inline CELER_FUNCTION ProcessId process(ParticleProcessId) const;
 
     // Get table, null if not present for this particle/material/type
-    inline CELER_FUNCTION const PhysicsGridPointers*
-    table(PhysicsTableType table, ParticleProcessId) const;
+    inline CELER_FUNCTION ValueGridId value_grid(ValueGridType table,
+                                                 ParticleProcessId) const;
 
     // Models that apply to the given process ID
-    inline CELER_FUNCTION const ModelGroup& models(ParticleProcessId) const;
+    inline CELER_FUNCTION
+        ModelFinder make_model_finder(ParticleProcessId) const;
 
     //// STATIC FUNCTIONS (depend only on params data) ////
 
     // Calculate scaled step range
     inline CELER_FUNCTION real_type range_to_step(real_type range) const;
+
+    // Construct a grid calculator from a physics table
+    inline CELER_FUNCTION
+        PhysicsGridCalculator make_calculator(ValueGridId) const;
 
     //// SCRATCH SPACE ////
 

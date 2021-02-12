@@ -2,6 +2,7 @@ spack:
   specs: 
   - cmake
 
+  - doxygen
   - geant4
   - git
   - git-lfs
@@ -13,7 +14,7 @@ spack:
   - openmpi
   - python
 
-  - root +aqua
+  - root ~aqua
   - swig
     
   - veccore
@@ -22,7 +23,7 @@ spack:
   concretization: together
   packages:
     root:
-      variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~math ~gsl cxxstd=14
+      variants: ~davix ~examples ~opengl ~x ~tbb ~rootfit ~math ~gsl cxxstd=14
     all:
       providers:
         blas: [openblas]

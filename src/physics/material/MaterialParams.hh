@@ -66,6 +66,12 @@ class MaterialParams
     // Construct with a vector of material definitions
     explicit MaterialParams(const Input& inp);
 
+    //! Number of material definitions
+    MaterialId::value_type size() const { return matnames_.size(); }
+
+    //! Number of distinct elements definitions
+    ElementId::value_type num_elements() const { return elnames_.size(); }
+
     // Get element name
     inline const std::string& id_to_label(ElementId id) const;
 

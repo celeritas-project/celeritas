@@ -7,24 +7,31 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Span.hh"
+#include "base/Array.hh"
+#include "base/Pie.hh"
 #include "Types.hh"
 #include "physics/grid/XsGridInterface.hh"
 #include "physics/em/detail/LivermorePE.hh"
 #include "physics/em/detail/EPlusGG.hh"
 #include "physics/material/Types.hh"
 
+#ifndef __CUDA_ARCH__
+#    include "base/PieBuilder.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// TYPES
+//---------------------------------------------------------------------------//
 //! Currently all value grids are cross section grids
-using ValueGrid = XsGridData;
+using ValueGrid    = XsGridData;
+using ValueGridId  = OpaqueId<XsGridData>;
+using ValueTableId = OpaqueId<struct ValueTable>;
 
 //---------------------------------------------------------------------------//
-// PARAMS
-//---------------------------------------------------------------------------//
 //! Hardcoded types of grid data
-enum class PhysicsTableType
+enum class ValueGridType
 {
     macro_xs,    //!< Interaction cross sections
     energy_loss, //!< Energy loss per unit length
@@ -32,6 +39,11 @@ enum class PhysicsTableType
     size_        //!< Sentinel value
 };
 
+template<class T>
+using ValueGridArray = Array<T, size_type(ValueGridType::size_)>;
+
+//---------------------------------------------------------------------------//
+// PARAMS
 //---------------------------------------------------------------------------//
 /*!
  * Energy-dependent model IDs for a single process and particle type.
@@ -43,8 +55,8 @@ enum class PhysicsTableType
  */
 struct ModelGroup
 {
-    Span<const real_type> energy; //!< Energy grid bounds [MeV]
-    Span<const ModelId>   model;  //!< Corresponding models
+    PieSlice<real_type> energy; //!< Energy grid bounds [MeV]
+    PieSlice<ModelId>   model;  //!< Corresponding models
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
@@ -64,7 +76,7 @@ struct ModelGroup
  */
 struct ValueTable
 {
-    Span<const ValueGrid> material; //!< Value grid by material index
+    PieSlice<ValueGridId> material; //!< Value grid by material index
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
@@ -75,18 +87,17 @@ struct ValueTable
  * Processes for a single particle type.
  *
  * Each index should be accessed with type ParticleProcessId. The "tables" are
- * a fixed-size number of Span references to ValueTables. The first index of
- * the table (hard-coded) corresponds to PhysicsTableType; the second index is
+ * a fixed-size number of PieSlice references to ValueTables. The first index
+ * of the table (hard-coded) corresponds to ValueGridType; the second index is
  * a ParticleProcessId. So the cross sections for ParticleProcessId{2} would
- * be \code tables[size_type(PhysicsTableType::macro_xs)][2] \endcode. This
+ * be \code tables[size_type(ValueGridType::macro_xs)][2] \endcode. This
  * awkward access is encapsulated by the PhysicsTrackView.
  */
 struct ProcessGroup
 {
-    Span<const ProcessId> processes; //!< Processes that apply
-
-    Array<Span<const ValueTable>, size_type(PhysicsTableType::size_)> tables; //!< Data
-    Span<const ModelGroup> models; //!< Model applicability
+    PieSlice<ProcessId> processes; //!< Processes that apply [ppid]
+    ValueGridArray<PieSlice<ValueTable>> tables; //!< [vgt][ppid]
+    PieSlice<ModelGroup> models; //!< Model applicability [ppid]
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -126,24 +137,66 @@ struct HardwiredModels
    ProcessId proc_id = params.particle[1].processes[0];
    const UniformGridData& grid
        =
- params.particle[1].table[int(PhysicsTableType::macro_xs)][0].material[2].log_energy;
+ params.particle[1].table[int(ValueGridType::macro_xs)][0].material[2].log_energy;
  * \endcode
  */
-struct PhysicsParamsPointers
+template<Ownership W, MemSpace M>
+struct PhysicsParamsData
 {
-    Span<const ProcessGroup> particle;
-    HardwiredModels          hardwired;
-    size_type                max_particle_processes{};
+    template<class T>
+    using Data = Pie<T, W, M>;
+    template<class T>
+    using ParticleData = Pie<T, W, M, ParticleId>;
+
+    // Backend storage
+    Data<real_type>            reals;
+    Data<ModelId>              model_ids;
+    Data<ValueGrid>            value_grids;
+    Data<ValueGridId>          value_grid_ids;
+    Data<ProcessId>            process_ids;
+    Data<ValueTable>           value_tables;
+    Data<ModelGroup>           model_groups;
+    ParticleData<ProcessGroup> process_groups;
+
+    HardwiredModels       hardwired;
+    ProcessId::value_type max_particle_processes{};
 
     //// USER-CONFIGURABLE CONSTANTS ////
     real_type scaling_min_range{}; //!< rho [cm]
     real_type scaling_fraction{};  //!< alpha [unitless]
     // real_type max_eloss_fraction{};  //!< For scaled range calculation
 
+    //// MEMBER FUNCTIONS ////
+
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !particle.empty() && max_particle_processes;
+        return !process_groups.empty() && max_particle_processes
+               && scaling_min_range > 0 && scaling_fraction > 0;
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    PhysicsParamsData& operator=(const PhysicsParamsData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+
+        reals          = other.reals;
+        model_ids      = other.model_ids;
+        value_grids    = other.value_grids;
+        value_grid_ids = other.value_grid_ids;
+        process_ids    = other.process_ids;
+        value_tables   = other.value_tables;
+        model_groups   = other.model_groups;
+        process_groups = other.process_groups;
+
+        hardwired              = other.hardwired;
+        max_particle_processes = other.max_particle_processes;
+
+        scaling_min_range = other.scaling_min_range;
+        scaling_fraction  = other.scaling_fraction;
+
+        return *this;
     }
 };
 
@@ -186,17 +239,52 @@ struct PhysicsTrackInitializer
  * greatest number of element components of any material in the problem. This
  * can be used for the physics to calculate microscopic cross sections.
  */
-struct PhysicsStatePointers
+template<Ownership W, MemSpace M>
+struct PhysicsStateData
 {
-    Span<PhysicsTrackState> state;          //!< Track state [track]
-    Span<real_type>         per_process_xs; //!< XS [track][particle process]
+    template<class T>
+    using StateData = celeritas::StatePie<T, W, M>;
+    template<class T>
+    using Data = celeritas::Pie<T, W, M>;
+
+    StateData<PhysicsTrackState> state; //!< Track state [track]
+    Data<real_type> per_process_xs;     //!< XS [track][particle process]
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
 
     //! State size
     CELER_FUNCTION size_type size() const { return state.size(); }
+
+    //! Assign from another set of states
+    template<Ownership W2, MemSpace M2>
+    PhysicsStateData& operator=(PhysicsStateData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        state          = other.state;
+        per_process_xs = other.per_process_xs;
+        return *this;
+    }
 };
+
+#ifndef __CUDA_ARCH__
+//---------------------------------------------------------------------------//
+/*!
+ * Resize a material state in host code.
+ */
+template<MemSpace M>
+inline void resize(
+    PhysicsStateData<Ownership::value, M>*                               data,
+    const PhysicsParamsData<Ownership::const_reference, MemSpace::host>& params,
+    size_type                                                            size)
+{
+    CELER_EXPECT(size > 0);
+    CELER_EXPECT(params.max_particle_processes > 0);
+    make_pie_builder(&data->state).resize(size);
+    make_pie_builder(&data->per_process_xs)
+        .resize(size * params.max_particle_processes);
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

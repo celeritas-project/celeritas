@@ -12,6 +12,7 @@
 #include "Applicability.hh"
 #include "ModelIdGenerator.hh"
 #include "Types.hh"
+#include "PhysicsInterface.hh"
 #include "physics/grid/ValueGridBuilder.hh"
 
 namespace celeritas
@@ -30,6 +31,12 @@ class Model;
  *
  * Each process has an interaction ("post step doit") and may have both energy
  * loss and range limiters.
+ *
+ * The StepLimitBuilders is a fixed-size array corresponding to the physics
+ * interface enum \c ValueGridType :
+ * - macro_xs:    Cross section [1/cm]
+ * - energy_loss: dE/dx [MeV/cm]
+ * - range:       Range limit [cm]
  */
 class Process
 {
@@ -39,15 +46,8 @@ class Process
     using SPConstModel       = std::shared_ptr<const Model>;
     using UPConstGridBuilder = std::unique_ptr<const ValueGridBuilder>;
     using VecModel           = std::vector<SPConstModel>;
+    using StepLimitBuilders  = ValueGridArray<UPConstGridBuilder>;
     //!@}
-
-    //! Array builders for along-step energy loss and other quantities
-    struct StepLimitBuilders
-    {
-        UPConstGridBuilder macro_xs;    //!< Cross section [1/cm]
-        UPConstGridBuilder energy_loss; //!< dE/dx [MeV/cm]
-        UPConstGridBuilder range;       //!< Range limit [cm]
-    };
 
   public:
     // Virtual destructor for polymorphic deletion

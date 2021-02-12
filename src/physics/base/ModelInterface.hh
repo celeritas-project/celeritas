@@ -26,7 +26,7 @@ struct ModelInteractParams
 {
     ParticleParamsData<Ownership::const_reference, MemSpace::device> particle;
     MaterialParamsData<Ownership::const_reference, MemSpace::device> material;
-    PhysicsParamsPointers  physics;
+    PhysicsParamsData<Ownership::const_reference, MemSpace::device>  physics;
 
     //! True if valid
     CELER_FUNCTION operator bool() const
@@ -46,7 +46,7 @@ struct ModelInteractState
 {
     ParticleStateData<Ownership::reference, MemSpace::device> particle;
     MaterialStateData<Ownership::reference, MemSpace::device> material;
-    PhysicsStatePointers  physics;
+    PhysicsStateData<Ownership::reference, MemSpace::device>  physics;
     Span<const Real3>     direction;
     RngStatePointers      rng;
 

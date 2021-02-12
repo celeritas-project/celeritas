@@ -162,7 +162,7 @@ CELER_FUNCTION ParticleProcessId::value_type
 CELER_FUNCTION ProcessId PhysicsTrackView::process(ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    return this->process_group().processes[ppid.get()];
+    return params_.process_ids[this->process_group().processes[ppid.get()]];
 }
 
 //---------------------------------------------------------------------------//
@@ -176,42 +176,54 @@ CELER_FUNCTION ProcessId PhysicsTrackView::process(ParticleProcessId ppid) const
  * associated value (e.g. if the table type is "energy_loss" and the process is
  * not a slowing-down process).
  */
-CELER_FUNCTION auto PhysicsTrackView::table(PhysicsTableType  table_type,
-                                            ParticleProcessId ppid) const
-    -> const PhysicsGridPointers*
+CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
+                                                 ParticleProcessId ppid) const
+    -> ValueGridId
 {
-    CELER_EXPECT(int(table_type) < int(PhysicsTableType::size_));
+    CELER_EXPECT(int(table_type) < int(ValueGridType::size_));
     CELER_EXPECT(ppid < this->num_particle_processes());
-    const ValueTable& table
+    ValueTableId table_id
         = this->process_group().tables[int(table_type)][ppid.get()];
 
+    CELER_ASSERT(table_id);
+    const ValueTable& table = params_.value_tables[table_id];
     if (!table)
-        return nullptr;
+        return {}; // No table for this process
 
     CELER_EXPECT(material_ < table.material.size());
-    CELER_ENSURE(table.material[material_.get()]);
-    return &table.material[material_.get()];
+    auto grid_id_ref = table.material[material_.get()];
+    if (!grid_id_ref)
+        return {}; // No table for this particular material
+
+    return params_.value_grid_ids[grid_id_ref];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Models that apply to the given process ID.
  */
-CELER_FUNCTION const ModelGroup&
-                     PhysicsTrackView::models(ParticleProcessId ppid) const
+CELER_FUNCTION auto
+PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
+    -> ModelFinder
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    return this->process_group().models[ppid.get()];
+    const ModelGroup& mg
+        = params_.model_groups[this->process_group().models[ppid.get()]];
+    return ModelFinder(params_.reals[mg.energy], params_.model_ids[mg.model]);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate scaled step range.
  *
- * This is the updated step function given by Eq. 7.4: \f[
+ * This is the updated step function given by Eq. 7.4 of Geant4 Physics
+ * Reference Manual, Release 10.6: \f[
    s = \alpha r + \rho (1 - \alpha) (2 - \frac{\rho}{r})
  \f]
- * where alpha is \c max_step_over_range and rho is \c min_step
+ * where alpha is \c scaling_fraction and rho is \c scaling_min_range .
+ *
+ * Below scaling_min_range, no step scaling is applied, but the step can still
+ * be arbitrarily small.
  */
 CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 {
@@ -229,6 +241,17 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Access data for constructing PhysicsGridCalculator.
+ */
+CELER_FUNCTION PhysicsGridCalculator
+PhysicsTrackView::make_calculator(ValueGridId id) const
+{
+    CELER_EXPECT(id < params_.value_grids.size());
+    return PhysicsGridCalculator(params_.value_grids[id], params_.reals);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Access scratch space for particle-process cross section calculations.
  *
  * \todo Try changing the ordering to coalesce memory for GPU access.
@@ -239,7 +262,7 @@ CELER_FUNCTION real_type&
     CELER_EXPECT(ppid < this->num_particle_processes());
     auto idx = thread_.get() * params_.max_particle_processes + ppid.get();
     CELER_ENSURE(idx < states_.per_process_xs.size());
-    return states_.per_process_xs[idx];
+    return states_.per_process_xs[PieId<real_type>(idx)];
 }
 
 //---------------------------------------------------------------------------//
@@ -252,7 +275,7 @@ real_type PhysicsTrackView::per_process_xs(ParticleProcessId ppid) const
     CELER_EXPECT(ppid < this->num_particle_processes());
     auto idx = thread_.get() * params_.max_particle_processes + ppid.get();
     CELER_ENSURE(idx < states_.per_process_xs.size());
-    return states_.per_process_xs[idx];
+    return states_.per_process_xs[PieId<real_type>(idx)];
 }
 
 //---------------------------------------------------------------------------//
@@ -279,20 +302,20 @@ CELER_FUNCTION ProcessId PhysicsTrackView::eplusgg_process_id() const
 //! Get the thread-local state (mutable)
 CELER_FUNCTION PhysicsTrackState& PhysicsTrackView::state()
 {
-    return states_.state[thread_.get()];
+    return states_.state[thread_];
 }
 
 //! Get the thread-local state (const)
 CELER_FUNCTION const PhysicsTrackState& PhysicsTrackView::state() const
 {
-    return states_.state[thread_.get()];
+    return states_.state[thread_];
 }
 
 //! Get the group of processes that apply to the particle
 CELER_FUNCTION const ProcessGroup& PhysicsTrackView::process_group() const
 {
-    CELER_EXPECT(particle_ < params_.particle.size());
-    return params_.particle[particle_.get()];
+    CELER_EXPECT(particle_ < params_.process_groups.size());
+    return params_.process_groups[particle_];
 }
 
 //---------------------------------------------------------------------------//

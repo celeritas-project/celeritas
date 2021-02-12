@@ -10,7 +10,6 @@
 #include "base/Algorithms.hh"
 #include "base/NumericLimits.hh"
 #include "base/Range.hh"
-#include "physics/grid/PhysicsGridCalculator.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -25,7 +24,7 @@ CELER_FUNCTION real_type calc_tabulated_physics_step(
     CELER_EXPECT(physics.has_interaction_mfp());
 
     constexpr real_type inf = numeric_limits<real_type>::infinity();
-    using PTT               = PhysicsTableType;
+    using VGT               = ValueGridType;
 
     // Loop over all processes that apply to this track (based on particle
     // type) and calculate cross section and particle range.
@@ -36,12 +35,12 @@ CELER_FUNCTION real_type calc_tabulated_physics_step(
     {
         const ParticleProcessId ppid{pp_idx};
         real_type               process_xs = 0;
-        if (const auto* table = physics.table(PTT::macro_xs, ppid))
+        if (auto grid_id = physics.value_grid(VGT::macro_xs, ppid))
         {
             // Calculate macroscopic cross section for this process, then
             // accumulate it into the total cross section and save the cross
             // section for later.
-            PhysicsGridCalculator calc_xs(*table, {});
+            auto calc_xs = physics.make_calculator(grid_id);
             process_xs = calc_xs(particle.energy());
             total_macro_xs += process_xs;
         }
@@ -61,9 +60,9 @@ CELER_FUNCTION real_type calc_tabulated_physics_step(
         }
         physics.per_process_xs(ppid) = process_xs;
 
-        if (const auto* table = physics.table(PTT::range, ppid))
+        if (auto grid_id = physics.value_grid(VGT::range, ppid))
         {
-            PhysicsGridCalculator calc_range(*table, {});
+            auto      calc_range    = physics.make_calculator(grid_id);
             real_type process_range = calc_range(particle.energy());
             // TODO: scale range by sqrt(particle.energy() / minKE)
             // if < minKE??
@@ -92,7 +91,7 @@ CELER_FUNCTION real_type calc_energy_loss(const ParticleTrackView& particle,
 {
     CELER_EXPECT(step >= 0);
 
-    using PTT = PhysicsTableType;
+    using VGT = ValueGridType;
 
     // Loop over all processes that apply to this track (based on particle
     // type) and calculate cross section and particle range.
@@ -101,9 +100,9 @@ CELER_FUNCTION real_type calc_energy_loss(const ParticleTrackView& particle,
          range(physics.num_particle_processes()))
     {
         const ParticleProcessId ppid{pp_idx};
-        if (const auto* table = physics.table(PTT::energy_loss, ppid))
+        if (auto grid_id = physics.value_grid(VGT::energy_loss, ppid))
         {
-            PhysicsGridCalculator calc_eloss_rate(*table, {});
+            auto calc_eloss_rate = physics.make_calculator(grid_id);
             total_eloss_rate += calc_eloss_rate(particle.energy());
         }
     }
