@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
+#include "celeritas_version.h"
 #include "base/ColorUtils.hh"
 #include "base/Range.hh"
 #include "comm/Communicator.hh"
@@ -73,7 +74,11 @@ void run(std::istream& is)
     // Construct json output
     CELER_LOG(status) << "Exporting JSON metadata";
     nlohmann::json outp = {
-        {"metadata", image}, {"data", out_filename}, {"volumes", vol_names}};
+        {"metadata", image},
+        {"data", out_filename},
+        {"volumes", vol_names},
+        {"version", std::string(celeritas_version)},
+    };
     cout << outp.dump() << endl;
     CELER_LOG(info) << "Exported image to " << out_filename;
 }
