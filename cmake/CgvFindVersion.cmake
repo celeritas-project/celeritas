@@ -87,22 +87,26 @@ function(cgv_find_version)
     set(_CACHED_VERSION "${${_CACHE_VAR}}")
     if(NOT _CACHED_VERSION)
       # Building from a git checkout rather than a distribution
-      if(NOT GIT_EXECUTABLE)
-        find_package(Git QUIET REQUIRED)
+      if(NOT Git_FOUND)
+        find_package(Git QUIET)
       endif()
-      execute_process(
-        COMMAND "${GIT_EXECUTABLE}" "describe" "--tags" "--match" "v*"
-        WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
-        ERROR_VARIABLE _GIT_ERR
-        OUTPUT_VARIABLE _VERSION_STRING
-        RESULT_VARIABLE _GIT_RESULT
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-      )
+      if(Git_FOUND)
+        execute_process(
+          COMMAND "${GIT_EXECUTABLE}" "describe" "--tags" "--match" "v*"
+          WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
+          ERROR_VARIABLE _GIT_ERR
+          OUTPUT_VARIABLE _VERSION_STRING
+          RESULT_VARIABLE _GIT_RESULT
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+      else()
+        message(AUTHOR_WARNING "Could not find Git")
+      endif()
       if(_GIT_RESULT)
         message(AUTHOR_WARNING "No git tags in ${projname} matched 'v*': "
           "${_GIT_ERR}")
       elseif(NOT _VERSION_STRING)
-        message(WARNING "Failed to get ${projname} version from git: "
+        message(AUTHOR_WARNING "Failed to get ${projname} version from git: "
           "git describe returned an empty string")
       else()
         # Process description tag: e.g. v0.4.0-2-gc4af497 or v0.4.0
