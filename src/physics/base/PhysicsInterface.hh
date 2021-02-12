@@ -273,10 +273,10 @@ struct PhysicsStateData
  * Resize a material state in host code.
  */
 template<MemSpace M>
-inline void
-resize(PhysicsStateData<Ownership::value, M>*                  data,
-       const PhysicsParamsData<Ownership::const_reference, M>& params,
-       size_type                                               size)
+inline void resize(
+    PhysicsStateData<Ownership::value, M>*                               data,
+    const PhysicsParamsData<Ownership::const_reference, MemSpace::host>& params,
+    size_type                                                            size)
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params.max_particle_processes > 0);

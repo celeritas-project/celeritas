@@ -179,6 +179,8 @@ __global__ void {lowabbr}_test_kernel(unsigned int size)
     {lowabbr}_test_kernel<<<params.grid_size, params.block_size>>>(
         input.num_threads);
 
+    CELER_CUDA_CHECK_ERROR();
+
     {capabbr}TestOutput result;
     return result;
 }}

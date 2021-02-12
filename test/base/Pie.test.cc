@@ -183,9 +183,7 @@ TEST_F(PieTest, TEST_IF_CELERITAS_CUDA(device))
     kernel_input.states = device_states;
     kernel_input.result = device_result.device_pointers();
 
-#if CELERITAS_USE_CUDA
-    p_test(kernel_input);
-#endif
+    pie_cuda_test(kernel_input);
     std::vector<double> result(device_result.size());
     device_result.copy_to_host(celeritas::make_span(result));
 

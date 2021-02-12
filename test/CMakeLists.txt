@@ -172,7 +172,7 @@ set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
 
 celeritas_setup_tests(SERIAL PREFIX physics/base)
 celeritas_cudaoptional_test(physics/base/Particle)
-celeritas_add_test(physics/base/Physics.test.cc)
+celeritas_cudaoptional_test(physics/base/Physics)
 celeritas_add_test(physics/base/PhysicsStepUtils.test.cc ${_not_impl})
 
 celeritas_setup_tests(SERIAL PREFIX physics/grid)

@@ -12,10 +12,13 @@
 #include "base/Range.hh"
 #include "base/PieStateStore.hh"
 #include "physics/base/ParticleParams.hh"
+
 #include "PhysicsTestBase.hh"
+#include "Physics.test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
+using MevEnergy = celeritas::units::MevEnergy;
 
 //---------------------------------------------------------------------------//
 // PHYSICS BASE CLASS
@@ -98,7 +101,6 @@ class PhysicsTrackViewHostTest : public PhysicsTestBase
     using StateStore = PieStateStore<PhysicsStateData, MemSpace::host>;
     using ParamsHostRef
         = PhysicsParamsData<Ownership::const_reference, MemSpace::host>;
-    using MevEnergy = celeritas::units::MevEnergy;
     //!@}
 
     void SetUp() override
@@ -328,4 +330,129 @@ TEST_F(PhysicsTrackViewHostTest, model_finder)
     EXPECT_EQ(4, find_model(MevEnergy{5}).unchecked_get());
     EXPECT_EQ(5, find_model(MevEnergy{50}).unchecked_get());
     EXPECT_FALSE(find_model(MevEnergy{100.1}));
+}
+
+TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
+{
+    std::vector<real_type> step;
+    for (const char* particle : {"gamma", "anti-celeriton"})
+    {
+        PhysicsTrackView phys = this->make_track_view(particle, MaterialId{1});
+
+        for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
+        {
+            step.push_back(celeritas_test::calc_step(phys, MevEnergy{energy}));
+        }
+    }
+
+    // PRINT_EXPECTED(step);
+    const double expected_step[] = {166.6666666667,
+                                    166.6666666667,
+                                    166.6666666667,
+                                    166.6666666667,
+                                    inf,
+                                    0.003,
+                                    0.003,
+                                    0.7573333333333,
+                                    8.1598,
+                                    8.1598};
+    EXPECT_VEC_SOFT_EQ(expected_step, step);
+}
+
+//---------------------------------------------------------------------------//
+// PHYSICS TRACK VIEW (DEVICE)
+//---------------------------------------------------------------------------//
+
+#define PHYS_DEVICE_TEST TEST_IF_CELERITAS_CUDA(PhysicsTrackViewDeviceTest)
+class PHYS_DEVICE_TEST : public PhysicsTestBase
+{
+    using Base = PhysicsTestBase;
+
+  public:
+    //!@{
+    //! Type aliases
+    using StateStore = PieStateStore<PhysicsStateData, MemSpace::device>;
+    //!@}
+
+    void SetUp() override
+    {
+        Base::SetUp();
+
+        CELER_ASSERT(this->physics());
+    }
+
+    StateStore states;
+    celeritas::StatePie<PhysTestInit, Ownership::value, MemSpace::device> inits;
+};
+
+TEST_F(PHYS_DEVICE_TEST, all)
+{
+    // Construct initial conditions
+    {
+        celeritas::StatePie<PhysTestInit, Ownership::value, MemSpace::host>
+            temp_inits;
+
+        auto         init_builder = make_pie_builder(&temp_inits);
+        PhysTestInit thread_init;
+        for (unsigned int matid : {0, 2})
+        {
+            thread_init.mat = MaterialId{matid};
+            for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
+            {
+                thread_init.energy = MevEnergy{energy};
+                for (unsigned int particle : {0, 1, 2})
+                {
+                    thread_init.particle = ParticleId{particle};
+                    init_builder.push_back(thread_init);
+                }
+            }
+        }
+        this->inits = temp_inits;
+    }
+
+    states = StateStore(*this->physics(), this->inits.size());
+    celeritas::DeviceVector<real_type> step(this->states.size());
+
+    PTestInput inp;
+    inp.params = this->physics()->device_pointers();
+    inp.states = this->states.ref();
+    inp.inits  = this->inits;
+    inp.result = step.device_pointers();
+
+    phys_cuda_test(inp);
+    std::vector<real_type> step_host(step.size());
+    step.copy_to_host(make_span(step_host));
+    // clang-format on
+    const double expected_step_host[] = {1666.666666667,
+                                         0.002,
+                                         0.003,
+                                         1666.666666667,
+                                         0.002,
+                                         0.003,
+                                         1666.666666667,
+                                         0.556,
+                                         0.7573333333333,
+                                         1666.666666667,
+                                         8.1598,
+                                         8.1598,
+                                         inf,
+                                         8.1598,
+                                         8.1598,
+                                         1.666666666667,
+                                         0.002,
+                                         0.003,
+                                         1.666666666667,
+                                         0.002,
+                                         0.003,
+                                         1.666666666667,
+                                         0.5555555555556,
+                                         0.5555555555556,
+                                         1.666666666667,
+                                         1.25,
+                                         1.25,
+                                         inf,
+                                         8.1598,
+                                         8.1598};
+    // clang-format off
+    EXPECT_VEC_SOFT_EQ(expected_step_host, step_host);
 }
