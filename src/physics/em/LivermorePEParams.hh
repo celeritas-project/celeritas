@@ -24,12 +24,15 @@ class LivermorePEParams
   public:
     //@{
     //! Type aliases
-    using MevEnergy = units::MevEnergy;
     //@}
 
     struct SubshellInput
     {
-        MevEnergy              binding_energy; //!< Ionization energy
+        using EnergyUnits = units::Mev;
+        using XsUnits     = units::Barn;
+        using Energy      = Quantity<EnergyUnits>;
+
+        Energy                 binding_energy; //!< Ionization energy
         std::vector<real_type> param_low;  //!< Low energy xs fit parameters
         std::vector<real_type> param_high; //!< High energy xs fit parameters
         std::vector<real_type> xs;         //!< Tabulated cross sections
@@ -38,13 +41,12 @@ class LivermorePEParams
 
     struct ElementInput
     {
-        using EnergyUnits = units::Mev;
-        using XsUnits     = units::Barn;
+        using Energy = SubshellInput::Energy;
 
         ImportPhysicsVector xs_low;      //!< Low energy range tabulated xs
         ImportPhysicsVector xs_high;     //!< High energy range tabulated xs
-        MevEnergy           thresh_low;  //!< Threshold for low energy fit
-        MevEnergy           thresh_high; //!< Threshold for high energy fit
+        Energy              thresh_low;  //!< Threshold for low energy fit
+        Energy              thresh_high; //!< Threshold for high energy fit
         std::vector<SubshellInput> shells;
     };
 

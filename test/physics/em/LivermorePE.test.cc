@@ -20,12 +20,15 @@
 #include "physics/em/LivermorePEModel.hh"
 #include "physics/em/LivermorePEParams.hh"
 #include "physics/em/PhotoelectricProcess.hh"
+#include "physics/em/LivermorePEMacroXsCalculator.hh"
+#include "physics/material/MaterialTrackView.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
 using celeritas::AtomicRelaxationParams;
 using celeritas::AtomicRelaxationReader;
 using celeritas::ElementId;
+using celeritas::LivermorePEMacroXsCalculator;
 using celeritas::LivermorePEParams;
 using celeritas::LivermorePEParamsReader;
 using celeritas::PhotoelectricProcess;
@@ -441,4 +444,39 @@ TEST_F(LivermorePEInteractorTest, model)
     EXPECT_EQ(ParticleId{1}, applic.particle);
     EXPECT_EQ(celeritas::zero_quantity(), applic.lower);
     EXPECT_EQ(celeritas::max_quantity(), applic.upper);
+}
+
+TEST_F(LivermorePEInteractorTest, macro_xs)
+{
+    using celeritas::units::MevEnergy;
+
+    auto material = this->material_track().material_view();
+    LivermorePEMacroXsCalculator calc_macro_xs(pointers_, material);
+
+    int    num_points = 20;
+    double loge_min   = std::log(1.e-4);
+    double loge_max   = std::log(1.e6);
+    double delta      = (loge_max - loge_min) / (num_points - 1);
+    double loge       = loge_min;
+
+    std::vector<double> energy;
+    std::vector<double> macro_xs;
+
+    // Loop over many energies
+    for (int i = 0; i < num_points; ++i)
+    {
+        double e = std::exp(loge);
+        energy.push_back(e);
+        macro_xs.push_back(calc_macro_xs(MevEnergy{e}));
+        loge += delta;
+    }
+    const double expected_macro_xs[]
+        = {9.235615290944,     17.56658325086,     1.161217594282,
+           0.4108511065363,    0.01515608909912,   0.0004000659204694,
+           9.083754758322e-06, 2.449452106704e-07, 1.800625084911e-08,
+           3.188458732396e-09, 8.028833591133e-10, 2.2700912115e-10,
+           6.653075041804e-11, 1.971081007251e-11, 5.85857761177e-12,
+           1.743005702864e-12, 5.187166124179e-13, 1.543827005416e-13,
+           4.594922185898e-14, 1.367605938008e-14};
+    EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }
