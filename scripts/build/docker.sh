@@ -21,6 +21,8 @@ cd ${BUILD_DIR}
 set -x
 export CXXFLAGS="-Wall -Wextra -pedantic -Werror"
 
+git -C ${SOURCE_DIR} fetch -f --tags
+
 # Note: cuda_arch must match the spack.yaml file for the docker image, which
 # must match the hardware being used.
 cmake -G Ninja \

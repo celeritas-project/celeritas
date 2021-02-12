@@ -25,6 +25,7 @@ export CXXFLAGS="-Wall -Wextra -pedantic -Werror"
 export PATH\
 =${_sw}/cmake-3.18.4-liggd6utlx54xhzls3uypu3adngo6xe5/bin\
 :${_sw}/ninja-1.10.1-757xwyeqsyltrq4cuvnqzoe72dvtbuhr/bin\
+:${_sw}/git-2.29.0-m4hws3mtwtyelepfuzznwf6syoorbfra/bin\
 :/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 export CMAKE_PREFIX_PATH\
 =${_sw}/googletest-1.10.0-wd3am66hewqoxavcg66hoezbbmhtcgi5
@@ -35,6 +36,8 @@ export C_INCLUDE_PATH=
 export INCLUDE_PATH=
 export LIBRARY_PATH=
 export LD_LIBRARY_PATH=
+
+git -C ${SOURCE_DIR} fetch -f --tags
 
 # Note: cuda_arch must match the spack.yaml file for the docker image, which
 # must match the hardware being used.
