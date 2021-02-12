@@ -96,11 +96,11 @@ if(CELERITAS_USE_CUDA)
 endif()
 
 if(CELERITAS_USE_Geant4)
-  celeritas_find_package(Geant4 REQUIRED)
+  celeritas_find_package_config(Geant4 REQUIRED)
 endif()
 
 if(CELERITAS_USE_HepMC3)
-  celeritas_find_package(HepMC3 REQUIRED)
+  celeritas_find_package_config(HepMC3 REQUIRED)
   # HepMC3's cmake config file does not provide an imported target yet
   # Anticipate that it will, and create if not present. HepMC3 is
   # a private dep of Celeritas, so no need to re-export this.
