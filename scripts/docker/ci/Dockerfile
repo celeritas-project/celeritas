@@ -50,7 +50,7 @@ RUN apt-get -yqq update \
 # Install updated vecgeom (XXX: merge into spack install)
 RUN . /etc/profile.d/celeritas_spack_env.sh \
   && cd /opt \
-  && git clone --depth=1 https://gitlab.cern.ch/VecGeom/VecGeom.git vecgeom-src \
+  && git clone --depth=1 --branch v1.1.9 https://gitlab.cern.ch/VecGeom/VecGeom.git vecgeom-src \
   && mkdir vecgeom-build \
   && cd vecgeom-build \
   && cmake -DBACKEND:STRING=Scalar -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILTIN_VECCORE:BOOL=OFF -DNO_SPECIALIZATION:BOOL=ON -DVECGEOM_VECTOR:STRING=empty -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_STANDARD:STRING=14 -DCUDA:BOOL=ON -DGDML:BOOL=ON -DGEANT4:BOOL=OFF -DROOT:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DCTEST:BOOL=OFF -DGDMLTESTING:BOOL=OFF -DCUDA_ARCH:STRING=70 -DCMAKE_INSTALL_PREFIX:STRING=/opt/vecgeom -G Ninja ../vecgeom-src \

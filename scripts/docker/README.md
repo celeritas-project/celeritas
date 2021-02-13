@@ -14,8 +14,8 @@ Both images are based on `nvidia` Ubuntu installations.
 From inside this directory, you can build and tag both versions:
 
 ```console
-$ docker build -t celeritas/dev:latest .
-$ docker build -t celeritas/ci-cuda11:latest ci
+$ docker build -t celeritas/dev:$(date '+%Y-%m-%d') .
+$ docker build -t celeritas/ci-cuda11:$(date '+%Y-%m-%d') ci
 ```
 
 ## Pushing
@@ -23,8 +23,8 @@ $ docker build -t celeritas/ci-cuda11:latest ci
 The CI docker images should be pushed upstream to enable continuous
 integration. This is a one-line command:
 ```console
-$ docker push celeritas/dev:latest
-$ docker push celeritas/ci-cuda11:latest ci
+$ docker push celeritas/dev:$(date '+%Y-%m-%d')
+$ docker push celeritas/ci-cuda11:$(date '+%Y-%m-%d') ci
 ```
 but it requires that you log in with your `docker.io` credentials first:
 ```console
