@@ -167,9 +167,7 @@ void GeoParams::set_cuda_stack_size(int limit)
 {
     CELER_EXPECT(limit > 0);
     CELER_EXPECT(celeritas::is_device_enabled());
-#if CELERITAS_USE_CUDA
     CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
-#endif
 }
 
 //---------------------------------------------------------------------------//

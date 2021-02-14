@@ -138,7 +138,9 @@
 /*!
  * \def CELER_CUDA_CALL
  *
- * Execute the wrapped statement and throw a RuntimeError if it fails.
+ * When CUDA support is enabled, execute the wrapped statement and throw a
+ * RuntimeError if it fails. If CUDA is disabled, throw an unconfigured
+ * assertion.
  *
  * If it fails, we call \c cudaGetLastError to clear the error code.
  *
@@ -146,6 +148,9 @@
  *     CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));
  *     CELER_CUDA_CALL(cudaDeviceSynchronize());
  * \endcode
+ *
+ * \note A file that uses this macro must #include <cuda_runtime_api.h> or be
+ * compiled by NVCC (which implicitly includes that header).
  */
 #define CELER_CUDA_CALL(STATEMENT)                       \
     do                                                   \
@@ -162,6 +167,15 @@
         }                                                \
     } while (0)
 
+#if !CELERITAS_USE_CUDA
+#    undef CELER_CUDA_CALL
+#    define CELER_CUDA_CALL(STATEMENT)    \
+        do                                \
+        {                                 \
+            CELER_NOT_CONFIGURED("CUDA"); \
+        } while (0)
+#endif
+
 /*!
  * \def CELER_CUDA_CHECK_ERROR
  *
@@ -170,6 +184,42 @@
  * libraries have been called.
  */
 #define CELER_CUDA_CHECK_ERROR() CELER_CUDA_CALL(cudaPeekAtLastError())
+
+/*!
+ * \def CELER_MPI_CALL
+ *
+ * When MPI support is enabled, execute the wrapped statement and throw a
+ * RuntimeError if it fails. If MPI is disabled, throw an unconfigured
+ * assertion.
+ *
+ * If it fails, we call \c cudaGetLastError to clear the error code.
+ *
+ * \code
+ *     CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));
+ *     CELER_CUDA_CALL(cudaDeviceSynchronize());
+ * \endcode
+ *
+ * \note A file that uses this macro must #include <mpi.h>.
+ */
+#define CELER_MPI_CALL(STATEMENT)                             \
+    do                                                        \
+    {                                                         \
+        int mpi_result_ = (STATEMENT);                        \
+        if (CELER_UNLIKELY(mpi_result_ != MPI_SUCCESS))       \
+        {                                                     \
+            ::celeritas::throw_mpi_call_error(                \
+                mpi_result_, #STATEMENT, __FILE__, __LINE__); \
+        }                                                     \
+    } while (0)
+
+#if !CELERITAS_USE_MPI
+#    undef CELER_MPI_CALL
+#    define CELER_MPI_CALL(STATEMENT)    \
+        do                               \
+        {                                \
+            CELER_NOT_CONFIGURED("MPI"); \
+        } while (0)
+#endif
 
 namespace celeritas
 {
@@ -200,6 +250,12 @@ enum class DebugErrorType
                                         const char* code,
                                         const char* file,
                                         int         line);
+
+// Construct and throw a RuntimeError for failed MPI calls.
+[[noreturn]] void throw_mpi_call_error(int         errorcode,
+                                       const char* code,
+                                       const char* file,
+                                       int         line);
 
 #ifndef __CUDA_ARCH__
 // Construct and throw a RuntimeError.

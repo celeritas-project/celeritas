@@ -35,9 +35,13 @@ list(APPEND SOURCES
 list(APPEND SOURCES
   base/Assert.cc
   base/ColorUtils.cc
+  base/DeviceAllocation.cc
   base/TypeDemangler.cc
+  comm/Communicator.cc
+  comm/Device.cc
   comm/Logger.cc
   comm/LoggerTypes.cc
+  comm/ScopedMpiInit.cc
   comm/detail/LoggerMessage.cc
   io/GdmlGeometryMap.cc
   io/ImportProcess.cc
@@ -71,10 +75,8 @@ list(APPEND SOURCES
 
 if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
-    base/DeviceAllocation.cuda.cc
     base/KernelParamCalculator.cuda.cc
     base/Memory.cu
-    comm/Device.cuda.cc
     physics/em/detail/BetheHeitler.cu
     physics/em/detail/EPlusGG.cu
     physics/em/detail/KleinNishina.cu
@@ -86,9 +88,7 @@ if(CELERITAS_USE_CUDA)
   list(APPEND PRIVATE_DEPS CUDA::cudart)
 else()
   list(APPEND SOURCES
-    base/DeviceAllocation.nocuda.cc
     base/Memory.nocuda.cc
-    comm/Device.nocuda.cc
     random/cuda/curand.nocuda.cc
     random/cuda/detail/RngStateInit.nocuda.cc
     sim/detail/SimStateInit.nocuda.cc
@@ -107,16 +107,7 @@ else()
 endif()
 
 if(CELERITAS_USE_MPI)
-  list(APPEND SOURCES
-    comm/Communicator.mpi.cc
-    comm/ScopedMpiInit.mpi.cc
-  )
   list(APPEND PUBLIC_DEPS MPI::MPI_CXX)
-else()
-  list(APPEND SOURCES
-    comm/Communicator.nompi.cc
-    comm/ScopedMpiInit.nompi.cc
-  )
 endif()
 
 if(CELERITAS_USE_VecGeom)

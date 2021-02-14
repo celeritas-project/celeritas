@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "Assert.hh"
 
+#if CELERITAS_USE_MPI
+#    include <mpi.h>
+#endif
+
 #include <cstdlib>
 #include <sstream>
 #include "ColorUtils.hh"
@@ -95,6 +99,36 @@ RuntimeError::RuntimeError(const std::string& msg) : std::runtime_error(msg) {}
     msg << color_code('W') << file << ':' << line << ':'
         << color_code(' ') << "\nceleritas: "
         << color_code('R') << "cuda error: "
+        << color_code(' ') << error_string << "\n    "
+        << color_code('x') << code
+        << color_code(' ');
+    // clang-format on
+    throw RuntimeError(msg.str());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a message and throw an error from a runtime MPI failure.
+ */
+[[noreturn]] void throw_mpi_call_error(CELER_MAYBE_UNUSED int errorcode,
+                                       const char*            code,
+                                       const char*            file,
+                                       int                    line)
+{
+    std::string error_string;
+#if CELERITAS_USE_MPI
+    {
+        error_string.resize(MPI_MAX_ERROR_STRING);
+        int length = 0;
+        MPI_Error_string(errorcode, &error_string.front(), &length);
+        error_string.resize(length);
+    }
+#endif
+    std::ostringstream msg;
+    // clang-format off
+    msg << color_code('W') << file << ':' << line << ':'
+        << color_code(' ') << "\nceleritas: "
+        << color_code('R') << "mpi error: "
         << color_code(' ') << error_string << "\n    "
         << color_code('x') << code
         << color_code(' ');
