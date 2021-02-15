@@ -31,7 +31,7 @@ CELER_FUNCTION LinearPropagator::LinearPropagator(GeoTrackView* track)
 CELER_FUNCTION
 void LinearPropagator::operator()()
 {
-    this->apply_linear_step(track_.next_step() + track_.tolerance());
+    this->apply_linear_step(track_.next_step() + track_.extra_push());
 
     // Update state
     track_.move_next_volume();
@@ -53,7 +53,7 @@ void LinearPropagator::operator()(real_type dist)
     CELER_EXPECT(dist <= track_.next_step());
     this->apply_linear_step(dist);
 
-    if (std::fabs(track_.next_step()) < track_.tolerance())
+    if (std::fabs(track_.next_step()) < track_.extra_push())
     {
         track_.move_next_volume();
     }

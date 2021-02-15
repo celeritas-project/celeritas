@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="H">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <isotope N="12" Z="6" name="C12">
+      <atom unit="g/mole" value="12"/>
+    </isotope>
+    <isotope N="13" Z="6" name="C13">
+      <atom unit="g/mole" value="13.0034"/>
+    </isotope>
+    <element name="C">
+      <fraction n="0.9893" ref="C12"/>
+      <fraction n="0.0107" ref="C13"/>
+    </element>
+    <isotope N="14" Z="7" name="N14">
+      <atom unit="g/mole" value="14.0031"/>
+    </isotope>
+    <isotope N="15" Z="7" name="N15">
+      <atom unit="g/mole" value="15.0001"/>
+    </isotope>
+    <element name="N">
+      <fraction n="0.99632" ref="N14"/>
+      <fraction n="0.00368" ref="N15"/>
+    </element>
+    <isotope N="16" Z="8" name="O16">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O17">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O18">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="O">
+      <fraction n="0.99757" ref="O16"/>
+      <fraction n="0.00038" ref="O17"/>
+      <fraction n="0.00205" ref="O18"/>
+    </element>
+    <isotope N="24" Z="12" name="Mg24">
+      <atom unit="g/mole" value="23.985"/>
+    </isotope>
+    <isotope N="25" Z="12" name="Mg25">
+      <atom unit="g/mole" value="24.9858"/>
+    </isotope>
+    <isotope N="26" Z="12" name="Mg26">
+      <atom unit="g/mole" value="25.9826"/>
+    </isotope>
+    <element name="Mg">
+      <fraction n="0.7899" ref="Mg24"/>
+      <fraction n="0.1" ref="Mg25"/>
+      <fraction n="0.1101" ref="Mg26"/>
+    </element>
+    <isotope N="31" Z="15" name="P31">
+      <atom unit="g/mole" value="30.9738"/>
+    </isotope>
+    <element name="P">
+      <fraction n="1" ref="P31"/>
+    </element>
+    <isotope N="32" Z="16" name="S32">
+      <atom unit="g/mole" value="31.9721"/>
+    </isotope>
+    <isotope N="33" Z="16" name="S33">
+      <atom unit="g/mole" value="32.9715"/>
+    </isotope>
+    <isotope N="34" Z="16" name="S34">
+      <atom unit="g/mole" value="33.9679"/>
+    </isotope>
+    <isotope N="36" Z="16" name="S36">
+      <atom unit="g/mole" value="35.9671"/>
+    </isotope>
+    <element name="S">
+      <fraction n="0.9493" ref="S32"/>
+      <fraction n="0.0076" ref="S33"/>
+      <fraction n="0.0429" ref="S34"/>
+      <fraction n="0.0002" ref="S36"/>
+    </element>
+    <isotope N="40" Z="20" name="Ca40">
+      <atom unit="g/mole" value="39.9626"/>
+    </isotope>
+    <isotope N="42" Z="20" name="Ca42">
+      <atom unit="g/mole" value="41.9586"/>
+    </isotope>
+    <isotope N="43" Z="20" name="Ca43">
+      <atom unit="g/mole" value="42.9588"/>
+    </isotope>
+    <isotope N="44" Z="20" name="Ca44">
+      <atom unit="g/mole" value="43.9555"/>
+    </isotope>
+    <isotope N="46" Z="20" name="Ca46">
+      <atom unit="g/mole" value="45.9537"/>
+    </isotope>
+    <isotope N="48" Z="20" name="Ca48">
+      <atom unit="g/mole" value="47.9525"/>
+    </isotope>
+    <element name="Ca">
+      <fraction n="0.96941" ref="Ca40"/>
+      <fraction n="0.00647" ref="Ca42"/>
+      <fraction n="0.00135" ref="Ca43"/>
+      <fraction n="0.02086" ref="Ca44"/>
+      <fraction n="4e-05" ref="Ca46"/>
+      <fraction n="0.00187" ref="Ca48"/>
+    </element>
+    <material name="G4_BONE_COMPACT_ICRU" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="91.9"/>
+      <D unit="g/cm3" value="1.85"/>
+      <fraction n="0.064" ref="H"/>
+      <fraction n="0.278" ref="C"/>
+      <fraction n="0.027" ref="N"/>
+      <fraction n="0.41" ref="O"/>
+      <fraction n="0.002" ref="Mg"/>
+      <fraction n="0.07" ref="P"/>
+      <fraction n="0.002" ref="S"/>
+      <fraction n="0.147" ref="Ca"/>
+    </material>
+    <isotope N="19" Z="9" name="F19">
+      <atom unit="g/mole" value="18.9984"/>
+    </isotope>
+    <element name="F">
+      <fraction n="1" ref="F19"/>
+    </element>
+    <material name="G4_A-150_TISSUE" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="65.1"/>
+      <D unit="g/cm3" value="1.127"/>
+      <fraction n="0.101326898673101" ref="H"/>
+      <fraction n="0.775500224499776" ref="C"/>
+      <fraction n="0.0350569649430351" ref="N"/>
+      <fraction n="0.0523159476840523" ref="O"/>
+      <fraction n="0.0174219825780174" ref="F"/>
+      <fraction n="0.0183779816220184" ref="Ca"/>
+    </material>
+    <material name="G4_WATER" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="78"/>
+      <D unit="g/cm3" value="1"/>
+      <fraction n="0.111898477841067" ref="H"/>
+      <fraction n="0.888101522158933" ref="O"/>
+    </material>
+    <isotope N="36" Z="18" name="Ar36">
+      <atom unit="g/mole" value="35.9675"/>
+    </isotope>
+    <isotope N="38" Z="18" name="Ar38">
+      <atom unit="g/mole" value="37.9627"/>
+    </isotope>
+    <isotope N="40" Z="18" name="Ar40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="Ar">
+      <fraction n="0.003365" ref="Ar36"/>
+      <fraction n="0.000632" ref="Ar38"/>
+      <fraction n="0.996003" ref="Ar40"/>
+    </element>
+    <material name="G4_AIR" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="85.7"/>
+      <D unit="g/cm3" value="0.00120479"/>
+      <fraction n="0.000124000124000124" ref="C"/>
+      <fraction n="0.755267755267755" ref="N"/>
+      <fraction n="0.231781231781232" ref="O"/>
+      <fraction n="0.0128270128270128" ref="Ar"/>
+    </material>
+  </materials>
+
+  <solids>
+    <orb lunit="mm" name="Shape2" r="50"/>
+    <box lunit="mm" name="Shape1" x="120" y="120" z="120"/>
+    <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="Envelope" phi="0" theta="0" x1="140" x2="140" x3="140" x4="140" y1="160" y2="160" z="180"/>
+    <box lunit="mm" name="World" x="480" y="480" z="480"/>
+  </solids>
+
+  <structure>
+    <volume name="Shape2">
+      <materialref ref="G4_BONE_COMPACT_ICRU"/>
+      <solidref ref="Shape2"/>
+    </volume>
+    <volume name="Shape1">
+      <materialref ref="G4_A-150_TISSUE"/>
+      <solidref ref="Shape1"/>
+      <physvol name="Shape2">
+        <volumeref ref="Shape2"/>
+      </physvol>
+    </volume>
+    <volume name="Envelope">
+      <materialref ref="G4_WATER"/>
+      <solidref ref="Envelope"/>
+      <physvol name="Shape1">
+        <volumeref ref="Shape1"/>
+      </physvol>
+    </volume>
+    <volume name="World">
+      <materialref ref="G4_AIR"/>
+      <solidref ref="World"/>
+      <physvol name="env1">
+        <volumeref ref="Envelope"/>
+        <position name="env1_pos" unit="mm" x="100" y="100" z="100"/>
+      </physvol>
+      <physvol name="env2">
+        <volumeref ref="Envelope"/>
+        <position name="env2_pos" unit="mm" x="-100" y="100" z="100"/>
+      </physvol>
+      <physvol name="env3">
+        <volumeref ref="Envelope"/>
+        <position name="env3_pos" unit="mm" x="100" y="-100" z="100"/>
+      </physvol>
+      <physvol name="env4">
+        <volumeref ref="Envelope"/>
+        <position name="env4_pos" unit="mm" x="100" y="100" z="-100"/>
+      </physvol>
+      <physvol name="env5">
+        <volumeref ref="Envelope"/>
+        <position name="env5_pos" unit="mm" x="-100" y="-100" z="100"/>
+      </physvol>
+      <physvol name="env6">
+        <volumeref ref="Envelope"/>
+        <position name="env6_pos" unit="mm" x="-100" y="100" z="-100"/>
+      </physvol>
+      <physvol name="env7">
+        <volumeref ref="Envelope"/>
+        <position name="env7_pos" unit="mm" x="100" y="-100" z="-100"/>
+      </physvol>
+      <physvol name="env8">
+        <volumeref ref="Envelope"/>
+        <position name="env8_pos" unit="mm" x="-100" y="-100" z="-100"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="World"/>
+  </setup>
+
+</gdml>

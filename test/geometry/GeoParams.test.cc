@@ -38,10 +38,16 @@ class GeoParamsHostTest : public GeoParamsTest
 TEST_F(GeoParamsHostTest, accessors)
 {
     const auto& geom = *(this->params());
-    EXPECT_EQ(2, geom.num_volumes());
-    EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ("Detector", geom.id_to_label(VolumeId{0}));
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{1}));
+    EXPECT_EQ(11, geom.num_volumes());
+    EXPECT_EQ(4, geom.max_depth());
+
+    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}) );
+    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}) );
+    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}) );
+
+    unsigned int nvols = geom.num_volumes();
+    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{nvols - 2}));
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{nvols - 1}));
 }
 
 //---------------------------------------------------------------------------//
@@ -58,7 +64,7 @@ TEST_F(GeoParamsHostTest, print_geometry)
     EXPECT_NE(nullptr, device_view.world_volume);
 
 #if CELERITAS_USE_CUDA
-    // print geometry information from device
-    vecgeom::cxx::CudaManager::Instance().PrintGeometry();
+    // debug: print geometry information from device
+    //vecgeom::cxx::CudaManager::Instance().PrintGeometry();
 #endif
 }

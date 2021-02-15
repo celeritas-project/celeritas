@@ -10,11 +10,14 @@
 #include <VecGeom/navigation/NavigationState.h>
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoStateStore.hh"
+#include "comm/Device.hh"
 
 #include "GeoParamsTest.hh"
 #ifdef CELERITAS_USE_CUDA
 #    include "GeoTrackView.test.hh"
 #endif
+
+#include "base/ArrayIO.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -67,59 +70,59 @@ TEST_F(GeoTrackViewHostTest, track_line)
 
     {
         // Track from outside detector, moving right
-        geo = {{-6, 0, 0}, {1, 0, 0}};
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        geo = {{-10, -10, -10}, {1, 0, 0}};
+        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape2 center
 
         geo.find_next_step();
-        EXPECT_SOFT_EQ(1.0, geo.next_step());
+        EXPECT_SOFT_EQ(5, geo.next_step());
         geo.move_next_step();
-        EXPECT_SOFT_EQ(-5.0, geo.pos()[0]);
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+        EXPECT_SOFT_EQ(-5, geo.pos()[0]);
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape2 -> Shape1
 
         geo.find_next_step();
-        EXPECT_SOFT_EQ(10.0, geo.next_step());
+        EXPECT_SOFT_EQ(1, geo.next_step());
         geo.move_next_step();
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        EXPECT_EQ(VolumeId{9}, geo.volume_id()); // Shape1 -> Envelope
         EXPECT_EQ(false, geo.is_outside());
 
         geo.find_next_step();
-        EXPECT_SOFT_EQ(45.0, geo.next_step());
+        EXPECT_SOFT_EQ(1, geo.next_step());
         geo.move_next_step();
-        EXPECT_EQ(true, geo.is_outside());
+        EXPECT_EQ(false, geo.is_outside()); // leaving World
     }
 
     {
         // Track from outside edge fails
-        geo = {{50, 0, 0}, {-1, 0, 0}};
+        geo = {{24, 0, 0}, {-1, 0, 0}};
         EXPECT_EQ(true, geo.is_outside());
     }
 
     {
         // But it works when you move juuust inside
-        geo = {{50 - 1e-6, 0, 0}, {-1, 0, 0}};
+        geo = {{-24 + 1e-3, 6.5, 6.5}, {1, 0, 0}};
         EXPECT_EQ(false, geo.is_outside());
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        EXPECT_EQ(VolumeId{10}, geo.volume_id()); // World
         geo.find_next_step();
-        EXPECT_SOFT_EQ(45.0 - 1e-6, geo.next_step());
+        EXPECT_SOFT_EQ(7. - 1e-3, geo.next_step());
         geo.move_next_step();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+        EXPECT_EQ(VolumeId{3}, geo.volume_id()); // World -> Envelope
     }
     {
         // Track from inside detector
-        geo = {{0, 0, 0}, {1, 0, 0}};
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+        geo = {{-10, 10, 10}, {0, -1, 0}};
+        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape1 center
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(5.0, geo.next_step());
         geo.move_next_step();
-        EXPECT_SOFT_EQ(5.0, geo.pos()[0]);
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1 -> Shape2
         EXPECT_EQ(false, geo.is_outside());
 
         geo.find_next_step();
-        EXPECT_SOFT_EQ(45.0, geo.next_step());
+        EXPECT_SOFT_EQ(1.0, geo.next_step());
         geo.move_next_step();
-        EXPECT_EQ(true, geo.is_outside());
+        EXPECT_EQ(false, geo.is_outside());
     }
 }
 
@@ -134,15 +137,24 @@ class GeoTrackViewDeviceTest : public GeoParamsTest
 
 TEST_F(GeoTrackViewDeviceTest, track_lines)
 {
+    if (!celeritas::is_device_enabled())
+    {
+        SKIP("CUDA is disabled");
+    }
+
     CELER_ASSERT(this->params());
 
     // Set up test input
     VGGTestInput input;
     input.init = {
-        {{-6, 0, 0}, {1, 0, 0}},
-        {{0, 0, 0}, {1, 0, 0}},
-        {{50, 0, 0}, {-1, 0, 0}},
-        {{50 - 1e-6, 0, 0}, {-1, 0, 0}},
+        {{10, 10, 10}, {1, 0, 0}},
+        {{10, 10, -10}, {1, 0, 0}},
+        {{10, -10, 10}, {1, 0, 0}},
+        {{10, -10, -10}, {1, 0, 0}},
+        {{-10, 10, 10}, {-1, 0, 0}},
+        {{-10, 10, -10}, {-1, 0, 0}},
+        {{-10, -10, 10}, {-1, 0, 0}},
+        {{-10, -10, -10}, {-1, 0, 0}}
     };
     input.max_segments = 3;
     input.shared       = this->params()->device_pointers();
@@ -153,9 +165,13 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
     // Run kernel
     auto output = vgg_test(input);
 
-    static const int expected_ids[] = {1, 0, 1, 0, 1, -1, -1, -1, -1, 1, 0, 1};
+    static const int expected_ids[] = {
+        0, 1, 2, 0, 1, 5, 0, 1, 4, 0, 1, 8,
+        0, 1, 3, 0, 1, 7, 0, 1, 6, 0, 1, 9};
+
     static const double expected_distances[]
-        = {1, 10, 45, 5, 45, -1, -1, -1, -1, 45 - 1e-6, 10, 45};
+        = {5, 1, 1, 5, 1, 1, 5, 1, 1, 5, 1, 1,
+           5, 1, 1, 5, 1, 1, 5, 1, 1, 5, 1, 1};
 
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);

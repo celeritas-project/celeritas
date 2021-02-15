@@ -7,12 +7,15 @@
 //---------------------------------------------------------------------------//
 #include "geometry/LinearPropagator.hh"
 
-#include "GeoParamsTest.hh"
 #include "geometry/GeoStateStore.hh"
 
+#include "GeoParamsTest.hh"
 #ifdef CELERITAS_USE_CUDA
 #    include "LinearPropagator.test.hh"
 #endif
+
+#include "base/ArrayIO.hh"
+#include "comm/Device.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -64,10 +67,10 @@ class LinearPropagatorHostTest : public GeoParamsTest
 TEST_F(LinearPropagatorHostTest, accessors)
 {
     const auto& geom = *params();
-    EXPECT_EQ(2, geom.num_volumes());
-    EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ("Detector", geom.id_to_label(VolumeId{0}));
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{1}));
+    EXPECT_EQ(11, geom.num_volumes());
+    EXPECT_EQ(4, geom.max_depth());
+    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}));
+    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}));
 }
 
 //----------------------------------------------------------------------------//
@@ -79,59 +82,60 @@ TEST_F(LinearPropagatorHostTest, track_line)
 
     {
         // Track from outside detector, moving right
-        geo = {{-6, 0, 0}, {1, 0, 0}};
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        geo = {{-10, 10, 10}, {1, 0, 0}};
+        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape2 center
+
+        geo.find_next_step();
+        EXPECT_SOFT_EQ(5, geo.next_step());
+        propagate();
+        EXPECT_SOFT_EQ(-5, geo.pos()[0]);
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape2 -> Shape1
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(1.0, geo.next_step());
         propagate();
-        EXPECT_SOFT_EQ(-5.0, geo.pos()[0]);
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
-
-        geo.find_next_step();
-        EXPECT_SOFT_EQ(10.0, geo.next_step());
-        propagate();
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        EXPECT_EQ(VolumeId{3}, geo.volume_id()); // Shape1 -> Envelope
         EXPECT_EQ(false, geo.is_outside());
 
         geo.find_next_step();
-        EXPECT_SOFT_EQ(45.0, geo.next_step());
+        EXPECT_SOFT_EQ(1.0, geo.next_step());
         propagate();
-        EXPECT_EQ(true, geo.is_outside());
+        EXPECT_EQ(false, geo.is_outside()); // leaving World
     }
 
     {
         // Track from outside edge fails
-        geo = {{50, 0, 0}, {-1, 0, 0}};
+        geo = {{24, 0, 0}, {-1, 0, 0}};
         EXPECT_EQ(true, geo.is_outside());
     }
 
     {
         // But it works when you move juuust inside
-        geo = {{50 - 1e-6, 0, 0}, {-1, 0, 0}};
+        real_type eps = 1e-6;
+        geo           = {{-24 + eps, 6.5, 6.5}, {1, 0, 0}};
         EXPECT_EQ(false, geo.is_outside());
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        EXPECT_EQ(VolumeId{10}, geo.volume_id()); // World
         geo.find_next_step();
-        EXPECT_SOFT_EQ(45.0 - 1e-6, geo.next_step());
+        EXPECT_SOFT_EQ(7. - eps, geo.next_step());
         propagate();
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+        EXPECT_EQ(VolumeId{3}, geo.volume_id()); // World -> Envelope
     }
     {
         // Track from inside detector
-        geo = {{0, 0, 0}, {1, 0, 0}};
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+        geo = {{-10, 10, 10}, {0, -1, 0}};
+        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape1 center
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(5.0, geo.next_step());
         propagate();
-        EXPECT_SOFT_EQ(5.0, geo.pos()[0]);
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1 -> Shape2
         EXPECT_EQ(false, geo.is_outside());
 
         geo.find_next_step();
-        EXPECT_SOFT_EQ(45.0, geo.next_step());
+        EXPECT_SOFT_EQ(1.0, geo.next_step());
         propagate();
-        EXPECT_EQ(true, geo.is_outside());
+        EXPECT_EQ(false, geo.is_outside());
     }
 }
 
@@ -144,50 +148,49 @@ TEST_F(LinearPropagatorHostTest, track_intraVolume)
 
     {
         // Track from outside detector, moving right
-        geo = {{-6, 0, 0}, {1, 0, 0}};
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        geo = {{-10, 10, 10}, {0, 0, 1}};
+        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape2
 
         geo.find_next_step();
-        EXPECT_SOFT_EQ(1.0, geo.next_step());
+        EXPECT_SOFT_EQ(5, geo.next_step());
 
         // break next step into two
         propagate(0.5 * geo.next_step());
-        EXPECT_SOFT_EQ(-5.5, geo.pos()[0]);
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        EXPECT_SOFT_EQ(12.5, geo.pos()[2]);
+        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // still Shape2
 
         propagate(geo.next_step()); // all remaining
-        EXPECT_SOFT_EQ(-5.0, geo.pos()[0]);
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+        EXPECT_SOFT_EQ(15.0, geo.pos()[2]);
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape2 -> Shape1
 
-        // break next step into more than two, re-calculating next_step each
-        // time
+        // break next step into > 2 steps, re-calculating next_step each time
         geo.find_next_step();
-        EXPECT_SOFT_EQ(10.0, geo.next_step());
+        EXPECT_SOFT_EQ(1.0, geo.next_step()); // dist to next boundary
 
-        propagate(0.3 * geo.next_step()); // step 1 inside Detector
-        EXPECT_SOFT_EQ(-2.0, geo.pos()[0]);
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+        propagate(0.2 * geo.next_step()); // step 1 inside Detector
+        EXPECT_SOFT_EQ(15.2, geo.pos()[2]);
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1
 
         geo.find_next_step();
-        EXPECT_SOFT_EQ(7.0, geo.next_step());
+        EXPECT_SOFT_EQ(0.8, geo.next_step());
 
         propagate(0.5 * geo.next_step()); // step 2 inside Detector
-        EXPECT_SOFT_EQ(1.5, geo.pos()[0]);
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Detector
+        EXPECT_SOFT_EQ(15.6, geo.pos()[2]);
+        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1
 
         geo.find_next_step();
-        EXPECT_SOFT_EQ(3.5, geo.next_step());
+        EXPECT_SOFT_EQ(0.4, geo.next_step());
 
         propagate(geo.next_step()); // last step inside Detector
-        EXPECT_SOFT_EQ(5.0, geo.pos()[0]);
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // World
+        EXPECT_SOFT_EQ(16, geo.pos()[2]);
+        EXPECT_EQ(VolumeId{3}, geo.volume_id()); // Shape1 -> Envelope
     }
 }
 
+#if CELERITAS_USE_CUDA
 //---------------------------------------------------------------------------//
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
-#if CELERITAS_USE_CUDA
 
 class LinearPropagatorDeviceTest : public GeoParamsTest
 {
@@ -195,15 +198,20 @@ class LinearPropagatorDeviceTest : public GeoParamsTest
 
 TEST_F(LinearPropagatorDeviceTest, track_lines)
 {
+    if (!celeritas::is_device_enabled())
+    {
+        SKIP("CUDA is disabled");
+    }
+
     CELER_ASSERT(this->params());
 
     // Set up test input
     LinPropTestInput input;
     input.init = {
-        {{-6, 0, 0}, {1, 0, 0}},
-        {{0, 0, 0}, {1, 0, 0}},
-        {{50, 0, 0}, {-1, 0, 0}},
-        {{50 - 1e-6, 0, 0}, {-1, 0, 0}},
+        {{10, 10, 10}, {-1, 0, 0}},
+        {{10, -10, -10}, {0, 1, 0}},
+        {{-10, 10, -10}, {0, 0, 1}},
+        {{0, 0, 0}, {1, 1, 1}},
     };
     input.max_segments = 3;
     input.shared       = this->params()->device_pointers();
@@ -214,9 +222,9 @@ TEST_F(LinearPropagatorDeviceTest, track_lines)
     // Run kernel
     auto output = linProp_test(input);
 
-    static const int expected_ids[] = {1, 0, 1, 0, 1, -1, -1, -1, -1, 1, 0, 1};
+    static const int expected_ids[] = {0, 1, 2, 0, 1, 8, 0, 1, 7, 10, 2, 1};
     static const double expected_distances[]
-        = {1, 10, 45, 5, 45, -1, -1, -1, -1, 45 - 1e-6, 10, 45};
+        = {5, 1, 1, 5, 1, 2, 5, 1, 3, 3, 1, 2.47582530373998 };
 
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);

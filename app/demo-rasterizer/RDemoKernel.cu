@@ -102,6 +102,7 @@ void trace(const GeoParamsPointers& geo_params,
     trace_impl<<<params.grid_size, params.block_size>>>(
         geo_params, geo_state, image);
     CELER_CUDA_CHECK_ERROR();
+
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 }
 
