@@ -59,9 +59,6 @@ void run(std::istream& is)
     // Read input options
     auto inp = nlohmann::json::parse(is);
 
-    // Initialize GPU
-    celeritas::initialize_device(Communicator{});
-
     // Construct runner
     auto         grid_params = inp.at("grid_params").get<CudaGridParams>();
     KNDemoRunner run(load_params(), load_xs(), grid_params);
@@ -105,7 +102,10 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    if (!celeritas::is_device_enabled())
+    // Initialize GPU
+    celeritas::activate_device(Device::from_round_robin(comm));
+
+    if (!celeritas::device())
     {
         CELER_LOG(critical) << "CUDA capability is disabled";
         return EXIT_FAILURE;

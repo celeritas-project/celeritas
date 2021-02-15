@@ -33,10 +33,10 @@ int test_main(int argc, char** argv)
                ? Communicator{}
                : Communicator::comm_world());
 
-    // Initialize device
     try
     {
-        celeritas::initialize_device(comm);
+        // Initialize device
+        celeritas::activate_device(Device::from_round_robin(comm));
     }
     catch (const std::exception& e)
     {

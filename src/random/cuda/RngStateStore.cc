@@ -24,7 +24,7 @@ namespace celeritas
 RngStateStore::RngStateStore(size_type size, unsigned long host_seed)
     : data_(size)
 {
-    CELER_EXPECT(celeritas::is_device_enabled());
+    CELER_EXPECT(celeritas::device());
     CELER_EXPECT(size > 0);
 
     // Host-side RNG for seeding device RNG

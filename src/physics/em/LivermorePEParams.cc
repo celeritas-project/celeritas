@@ -51,7 +51,7 @@ LivermorePEParams::LivermorePEParams(const Input& inp)
         this->append_livermore_element(el);
     }
 
-    if (celeritas::is_device_enabled())
+    if (celeritas::device())
     {
         // Allocate device vectors
         device_elements_
@@ -114,7 +114,7 @@ LivermorePEParamsPointers LivermorePEParams::host_pointers() const
  */
 LivermorePEParamsPointers LivermorePEParams::device_pointers() const
 {
-    CELER_EXPECT(celeritas::is_device_enabled());
+    CELER_EXPECT(celeritas::device());
     LivermorePEParamsPointers result;
     result.elements = device_elements_.device_pointers();
 

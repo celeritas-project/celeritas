@@ -24,7 +24,7 @@ namespace celeritas
 DeviceAllocation::DeviceAllocation(size_type bytes) : size_(bytes)
 {
     CELER_EXPECT(bytes > 0);
-    CELER_EXPECT(is_device_enabled());
+    CELER_EXPECT(celeritas::device());
     void* ptr = nullptr;
     CELER_CUDA_CALL(cudaMalloc(&ptr, bytes));
     data_.reset(static_cast<Byte*>(ptr));

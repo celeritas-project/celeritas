@@ -36,9 +36,6 @@ void run(std::istream& is)
     // Read input options
     auto inp = nlohmann::json::parse(is);
 
-    // Initialize GPU
-    celeritas::initialize_device(Communicator{});
-
     // Load geometry
     auto geo_params = std::make_shared<GeoParams>(
         inp.at("input").get<std::string>().c_str());
@@ -128,7 +125,10 @@ int main(int argc, char* argv[])
         instream_ptr = &std::cin;
     }
 
-    if (!celeritas::is_device_enabled())
+    // Initialize GPU
+    celeritas::activate_device(Device::from_round_robin(comm));
+
+    if (!celeritas::device())
     {
         CELER_LOG(critical) << "CUDA capability is disabled";
         return EXIT_FAILURE;

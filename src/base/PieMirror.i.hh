@@ -19,7 +19,7 @@ PieMirror<P>::PieMirror(HostValue&& host) : host_(std::move(host))
 {
     CELER_EXPECT(host_);
     host_ref_ = host_;
-    if (celeritas::is_device_enabled())
+    if (celeritas::device())
     {
         // Copy data to device and save reference
         device_     = host_;
