@@ -13,8 +13,11 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
+
 #include "celeritas_version.h"
 #include "comm/Communicator.hh"
+#include "comm/DeviceIO.json.hh"
+#include "comm/KernelDiagnosticsIO.json.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "physics/base/ParticleParams.hh"
@@ -71,7 +74,14 @@ void run(std::istream& is)
     nlohmann::json outp = {
         {"run", run_args},
         {"result", result},
-        {"version", std::string(celeritas_version)},
+        {
+            "runtime",
+            {
+                {"version", std::string(celeritas_version)},
+                {"device", celeritas::device()},
+                {"kernels", celeritas::kernel_diagnostics()},
+            },
+        },
     };
     cout << outp.dump() << endl;
 }

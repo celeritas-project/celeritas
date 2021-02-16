@@ -64,3 +64,17 @@ print("Number of steps:", num_iters,
       "(average", num_track_steps / num_tracks, "per track)")
 print("Fraction of time in kernel:", sum(result['time']) /
         result['total_time'])
+
+runtime = out['runtime']
+if runtime['device'] is not None:
+    print("Device: {} with {:.1f} GB memory".format(
+        runtime['device']['name'],
+        runtime['device']['total_global_mem'] / 1e9)
+    )
+
+    kernel_stats = {k.pop('name'): k for k in runtime['kernels']}
+    print("Recorded {} kernels".format(len(kernel_stats)))
+    k = kernel_stats['iterate']
+    print(f"Iterate was called {k['num_launches']} times "
+          f"using {k['num_regs']} registers "
+          f"with occupancy of {k['occupancy']}")
