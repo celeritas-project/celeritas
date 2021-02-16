@@ -66,6 +66,9 @@ endif()
 #-----------------------------------------------------------------------------#
 # DEMO: physics interactions
 #-----------------------------------------------------------------------------#
+if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
+  message(SEND_ERROR "JSON support is required for demos")
+endif()
 
 if(CELERITAS_BUILD_DEMOS)
   add_library(celeritas_demo_interactor
