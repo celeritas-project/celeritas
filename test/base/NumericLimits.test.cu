@@ -52,7 +52,8 @@ NLTestOutput<T> nl_test()
     NLTestOutput<T>* result_device;
     CELER_CUDA_CALL(cudaMalloc(&result_device, sizeof(NLTestOutput<T>)));
 
-    celeritas::KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        nl_test_kernel<T>, "nl_test");
 
     auto params = calc_launch_params(3);
     nl_test_kernel<<<params.grid_size, params.block_size>>>(result_device);

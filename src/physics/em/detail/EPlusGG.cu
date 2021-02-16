@@ -74,7 +74,9 @@ void eplusgg_interact(const EPlusGGPointers&       eplusgg,
     CELER_EXPECT(model);
 
     // Calculate kernel launch params
-    auto params = KernelParamCalculator()(model.states.size());
+    static const KernelParamCalculator calc_kernel_params(
+        eplusgg_interact_kernel, "eplusgg_interact");
+    auto params = calc_kernel_params(model.states.size());
 
     // Launch the kernel
     eplusgg_interact_kernel<<<params.grid_size, params.block_size>>>(eplusgg,

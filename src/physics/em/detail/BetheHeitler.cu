@@ -83,7 +83,8 @@ void bethe_heitler_interact(const BetheHeitlerPointers&  bh,
     CELER_EXPECT(bh);
     CELER_EXPECT(model);
 
-    KernelParamCalculator calc_kernel_params;
+    static const KernelParamCalculator calc_kernel_params(
+        bethe_heitler_interact_kernel, "bethe_heitler_interact");
     auto                  params = calc_kernel_params(model.states.size());
     bethe_heitler_interact_kernel<<<params.grid_size, params.block_size>>>(
         bh, model);

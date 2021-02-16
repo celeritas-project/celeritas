@@ -81,7 +81,8 @@ SATestOutput sa_test(SATestInput input)
     // Construct and initialize output data
     thrust::device_vector<SATestOutput> out(1);
 
-    celeritas::KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        sa_test_kernel, "sa_test");
     auto params = calc_launch_params(input.num_threads);
     sa_test_kernel<<<params.grid_size, params.block_size>>>(
         input, raw_pointer_cast(out.data()));

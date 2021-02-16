@@ -95,7 +95,8 @@ void interact(StatePointers              states,
     CELER_EXPECT(states.size() > 0);
     CELER_EXPECT(states.size() == input.alloc_size.size());
 
-    KernelParamCalculator calc_launch_params;
+    static const KernelParamCalculator calc_launch_params(interact_kernel,
+                                                          "interact");
     auto                  lparams = calc_launch_params(states.size());
     interact_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, secondaries, input);
@@ -113,7 +114,8 @@ std::vector<unsigned int> tracks_test(StatePointers states)
     thrust::device_vector<unsigned int> output(states.size());
 
     // Launch a kernel to check the track ID of the initialized tracks
-    KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        tracks_test_kernel, "tracks_test");
     auto                  lparams = calc_launch_params(states.size());
     tracks_test_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, thrust::raw_pointer_cast(output.data()));
@@ -136,7 +138,8 @@ std::vector<unsigned int> initializers_test(TrackInitializerPointers inits)
     thrust::device_vector<unsigned int> output(inits.initializers.size());
 
     // Launch a kernel to check the track ID of the track initializers
-    KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        initializers_test_kernel, "initializers_test");
     auto lparams = calc_launch_params(inits.initializers.size());
     initializers_test_kernel<<<lparams.grid_size, lparams.block_size>>>(
         inits, thrust::raw_pointer_cast(output.data()));
@@ -159,7 +162,8 @@ std::vector<size_type> vacancies_test(TrackInitializerPointers inits)
     thrust::device_vector<size_type> output(inits.vacancies.size());
 
     // Launch a kernel to check the indices of the empty slots
-    KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        vacancies_test_kernel, "vacancies_test");
     auto                  lparams = calc_launch_params(inits.vacancies.size());
     vacancies_test_kernel<<<lparams.grid_size, lparams.block_size>>>(
         inits, thrust::raw_pointer_cast(output.data()));

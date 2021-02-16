@@ -67,7 +67,8 @@ VGGTestOutput vgg_test(VGGTestInput input)
     thrust::device_vector<double>   distances(ids.size(), -1.0);
 
     // Run kernel
-    celeritas::KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        vgg_test_kernel, "vgg_test");
     auto                             params = calc_launch_params(init.size());
     vgg_test_kernel<<<params.grid_size, params.block_size>>>(
         input.shared,

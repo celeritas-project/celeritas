@@ -27,19 +27,11 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Initialize with the number of threads per block.
- *
- * Require at least two warps per block.
- */
-KernelParamCalculator::KernelParamCalculator(dim_type size) : block_size_(size)
-{
-    CELER_EXPECT(size >= 64);
-    CELER_EXPECT(size % 32 == 0);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Calculate launch params given the number of threads.
+ *
+ * \todo Once we start worrying about multiple devices on a single machine, we
+ * could add a check for the device ID being the same one used to initialize
+ * the param calculator.
  */
 KernelParamCalculator::LaunchParams
 KernelParamCalculator::operator()(size_type min_num_threads) const
@@ -47,6 +39,9 @@ KernelParamCalculator::operator()(size_type min_num_threads) const
     CELER_EXPECT(min_num_threads > 0);
     CELER_EXPECT(min_num_threads <= static_cast<size_type>(
                      std::numeric_limits<dim_type>::max()));
+
+    // Update diagnostics for the kernel
+    celeritas::kernel_diagnostics().launch(id_, min_num_threads);
 
     // Ceiling integer division
     dim_type grid_size = ceil_div<dim_type>(min_num_threads, this->block_size_);

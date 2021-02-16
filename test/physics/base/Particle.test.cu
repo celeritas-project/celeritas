@@ -58,7 +58,8 @@ PTVTestOutput ptv_test(PTVTestInput input)
     thrust::device_vector<double>             result(init.size()
                                          * PTVTestOutput::props_per_thread());
 
-    celeritas::KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        ptv_test_kernel, "ptv_test");
     auto                             params = calc_launch_params(init.size());
     ptv_test_kernel<<<params.grid_size, params.block_size>>>(
         init.size(),

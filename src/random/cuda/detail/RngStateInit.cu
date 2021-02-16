@@ -48,7 +48,8 @@ void rng_state_init_device(const RngStatePointers&         device_ptrs,
     CELER_EXPECT(device_ptrs.size() == device_seeds.size());
 
     // Launch kernel to build RNG states on device
-    celeritas::KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        rng_init_kernel, "rng_init");
     auto params = calc_launch_params(device_seeds.size());
     rng_init_kernel<<<params.grid_size, params.block_size>>>(
         device_ptrs, device_seeds.data());

@@ -40,7 +40,8 @@ __global__ void phys_test_kernel(const PTestInput inp)
 void phys_cuda_test(const PTestInput& input)
 {
     CELER_ASSERT(input.inits.size() == input.states.size());
-    KernelParamCalculator calc_launch_params;
+    static const KernelParamCalculator calc_launch_params(phys_test_kernel,
+                                                          "phys_test");
     auto                  params = calc_launch_params(input.states.size());
     phys_test_kernel<<<params.grid_size, params.block_size>>>(input);
 

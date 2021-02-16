@@ -44,7 +44,8 @@ __global__ void sim_init_kernel(const SimStatePointers state)
 void sim_state_init_device(const SimStatePointers& device_ptrs)
 {
     // Launch kernel to build sim states on device
-    celeritas::KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        sim_init_kernel, "sim_init");
     auto params = calc_launch_params(device_ptrs.size());
     sim_init_kernel<<<params.grid_size, params.block_size>>>(device_ptrs);
     CELER_CUDA_CHECK_ERROR();
