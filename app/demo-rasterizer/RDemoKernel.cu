@@ -100,8 +100,8 @@ void trace(const GeoParamsPointers& geo_params,
     static const KernelParamCalculator calc_kernel_params(trace_kernel,
                                                           "trace");
 
-    auto                  params = calc_kernel_params(image.dims[0]);
-    trace_impl<<<params.grid_size, params.block_size>>>(
+    auto params = calc_kernel_params(image.dims[0]);
+    trace_kernel<<<params.grid_size, params.block_size>>>(
         geo_params, geo_state, image);
     CELER_CUDA_CHECK_ERROR();
 

@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <cuda_runtime_api.h>
+#include "Assert.hh"
 #include "Macros.hh"
 #include "OpaqueId.hh"
 #include "Types.hh"
@@ -59,13 +60,11 @@ class KernelParamCalculator
 
     // Construct with the default block size
     template<class F>
-    inline KernelParamCalculator(F kernel_func, const char* name);
+    KernelParamCalculator(F kernel_func, const char* name);
 
     // Construct with an explicit number of threads per block
     template<class F>
-    inline KernelParamCalculator(F           kernel_func,
-                                 const char* name,
-                                 dim_type    block_size);
+    KernelParamCalculator(F kernel_func, const char* name, dim_type block_size);
 
     // Get launch parameters
     LaunchParams operator()(size_type min_num_threads) const;
@@ -88,11 +87,13 @@ CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
 #ifdef __CUDA_ARCH__
     return ThreadId{blockIdx.x * blockDim.x + threadIdx.x};
 #else
-    return ThreadId{};
+    // blockIdx/threadIdx not available: shouldn't be called by host code
+    CELER_ASSERT_UNREACHABLE();
 #endif
 }
 
 #ifndef __CUDA_ARCH__
+// Hide host-side Device and KernelDiagnostsics from device build
 //---------------------------------------------------------------------------//
 /*!
  * Construct for the given global kernel F.
@@ -117,18 +118,6 @@ KernelParamCalculator::KernelParamCalculator(F           kernel_func,
     CELER_EXPECT(block_size >= 64);
     CELER_EXPECT(block_size % celeritas::device().warp_size() == 0);
     id_ = celeritas::kernel_diagnostics().insert(kernel_func, name, block_size);
-}
-#else
-template<class F>
-KernelParamCalculator::KernelParamCalculator(F, const char*)
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-
-template<class F>
-KernelParamCalculator::KernelParamCalculator(F, const char*, dim_type)
-{
-    CELER_ASSERT_UNREACHABLE();
 }
 #endif
 

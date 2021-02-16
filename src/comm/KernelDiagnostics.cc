@@ -7,11 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "KernelDiagnostics.hh"
 
-#include "celeritas_config.h"
-#if CELERITAS_USE_CUDA
-#    include <cuda_runtime_api.h>
-#endif
-
 #include <iostream>
 #include "base/Macros.hh"
 #include "base/Range.hh"
@@ -48,6 +43,7 @@ std::ostream& operator<<(std::ostream& os, const KernelDiagnostics& kd)
         os << "{\n"
             "  name: \""          << diag.name            << "\",\n"
             "  block_size: "      << diag.block_size      << ",\n"
+            "  num_regs: "        << diag.num_regs        << ",\n"
             "  const_mem: "       << diag.const_mem       << ",\n"
             "  local_mem: "       << diag.local_mem       << ",\n"
             "  occupancy: "       << diag.occupancy       << ",\n"
@@ -58,35 +54,6 @@ std::ostream& operator<<(std::ostream& os, const KernelDiagnostics& kd)
     }
     os << "])";
     return os;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add kernel diagnostics.
- */
-void KernelDiagnostics::push_back_kernel(value_type                     diag,
-                                         CELER_MAYBE_UNUSED const void* func)
-{
-#if CELERITAS_USE_CUDA
-    const Device& device = celeritas::device();
-    diag.device_id       = device.device_id();
-
-    cudaFuncAttributes attr;
-    CELER_CUDA_CALL(cudaFuncGetAttributes(&attr, func));
-    diag.num_regs  = attr.numRegs;
-    diag.const_mem = attr.constSizeBytes;
-    diag.local_mem = attr.localSizeBytes;
-
-    std::size_t dynamic_smem_size = 0;
-    int         num_blocks        = 0;
-    CELER_CUDA_CALL(cudaOccupancyMaxActiveBlocksPerMultiprocessor(
-        &num_blocks, func, diag.block_size, dynamic_smem_size));
-    diag.occupancy = static_cast<double>(num_blocks * diag.block_size)
-                     / device.max_threads();
-#else
-    CELER_NOT_CONFIGURED("CUDA");
-#endif
-    values_.push_back(std::move(diag));
 }
 
 //---------------------------------------------------------------------------//

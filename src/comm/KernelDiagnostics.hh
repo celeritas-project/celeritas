@@ -95,32 +95,6 @@ std::ostream& operator<<(std::ostream&, const KernelDiagnostics&);
 // INLINE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Register the given __global__ kernel function.
- */
-template<class F>
-inline auto
-KernelDiagnostics::insert(F func, const char* name, unsigned int block_size)
-    -> key_type
-{
-    auto iter_inserted = keys_.insert(
-        {reinterpret_cast<std::uintptr_t>(func), key_type{this->size()}});
-    if (iter_inserted.second)
-    {
-        // First time this kernel was added
-        value_type diag;
-        diag.name       = name;
-        diag.block_size = block_size;
-        this->push_back_kernel(std::move(diag),
-                               reinterpret_cast<const void*>(func));
-    }
-
-    CELER_ENSURE(keys_.size() == values_.size());
-    CELER_ENSURE(iter_inserted.first->second < this->size());
-    return iter_inserted.first->second;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the kernel diagnostics for a given ID.
  */
 auto KernelDiagnostics::at(key_type key) const -> const_reference
@@ -141,5 +115,50 @@ void KernelDiagnostics::launch(key_type key, unsigned int num_threads)
     diag.max_num_threads = std::max(num_threads, diag.max_num_threads);
 }
 
+#if __CUDACC__
+//---------------------------------------------------------------------------//
+/*!
+ * Register the given __global__ kernel function.
+ *
+ * This can only be called from CUDA code.
+ */
+template<class F>
+inline auto
+KernelDiagnostics::insert(F func, const char* name, unsigned int block_size)
+    -> key_type
+{
+    auto iter_inserted = keys_.insert(
+        {reinterpret_cast<std::uintptr_t>(func), key_type{this->size()}});
+    if (CELER_UNLIKELY(iter_inserted.second))
+    {
+        // First time this kernel was added
+        value_type diag;
+
+        const Device& device = celeritas::device();
+        diag.device_id       = device.device_id();
+        diag.name            = name;
+        diag.block_size      = block_size;
+
+        cudaFuncAttributes attr;
+        CELER_CUDA_CALL(cudaFuncGetAttributes(&attr, func));
+        diag.num_regs  = attr.numRegs;
+        diag.const_mem = attr.constSizeBytes;
+        diag.local_mem = attr.localSizeBytes;
+
+        std::size_t dynamic_smem_size = 0;
+        int         num_blocks        = 0;
+        CELER_CUDA_CALL(cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+            &num_blocks, func, diag.block_size, dynamic_smem_size));
+        diag.occupancy = static_cast<double>(num_blocks * diag.block_size)
+                         / device.max_threads();
+
+        values_.push_back(std::move(diag));
+    }
+
+    CELER_ENSURE(keys_.size() == values_.size());
+    CELER_ENSURE(iter_inserted.first->second < this->size());
+    return iter_inserted.first->second;
+}
+#endif
 //---------------------------------------------------------------------------//
 } // namespace celeritas
