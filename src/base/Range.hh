@@ -39,10 +39,126 @@ namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
+ * Proxy container for iterating over a range of integral values.
+ *
+ * Here, T can be any of:
+ * - an integer,
+ * - an enum that has a "size_" member, or
+ * - an OpaqueId.
+ */
+template<class T>
+class Range
+{
+    using TraitsT = detail::RangeTypeTraits<T>;
+
+  public:
+    //!@{
+    //! Type aliases
+    using const_iterator = detail::range_iter<T>;
+    using size_type      = typename TraitsT::counter_type;
+    using value_type     = T;
+    //@}
+
+    template<class U>
+    using step_type = typename TraitsT::template common_type<U>;
+
+  public:
+    //// CONSTRUCTORS ////
+
+    //! Empty constructor for empty range
+    CELER_FUNCTION Range() : begin_{}, end_{} {}
+
+    //! Construct from stop
+    CELER_FUNCTION Range(T end) : begin_{}, end_(end) {}
+
+    //! Construct from start/stop
+    CELER_FUNCTION Range(T begin, T end) : begin_(begin), end_(end) {}
+
+    //// CONTAINER-LIKE ACCESS ////
+
+    //!@{
+    //! Iterators
+    CELER_FORCEINLINE_FUNCTION const_iterator begin() const { return begin_; }
+    CELER_FORCEINLINE_FUNCTION const_iterator cbegin() const { return begin_; }
+    CELER_FORCEINLINE_FUNCTION const_iterator end() const { return end_; }
+    CELER_FORCEINLINE_FUNCTION const_iterator cend() const { return end_; }
+    //!@}
+
+    //! Number of elements
+    CELER_FUNCTION size_type size() const
+    {
+        return TraitsT::to_counter(*end_) - TraitsT::to_counter(*begin_);
+    }
+
+    //! Whether the range has no elements
+    CELER_FORCEINLINE_FUNCTION bool empty() const { return begin_ == end_; }
+
+    //// STRIDED ACCESS ////
+
+    //! Return a stepped range using a different integer type
+    template<class U, std::enable_if_t<std::is_signed<U>::value, U> = 0>
+    CELER_FUNCTION detail::StepRange<step_type<U>> step(U step)
+    {
+        if (step < 0)
+        {
+            using TraitsT = typename const_iterator::TraitsT;
+            return {TraitsT::increment(*end_, step), *begin_, step};
+        }
+
+        return {*begin_, *end_, step};
+    }
+
+    //! Return a stepped range using a different integer type
+    template<class U, std::enable_if_t<std::is_unsigned<U>::value, U> = 0>
+    CELER_FUNCTION detail::StepRange<step_type<U>> step(U step)
+    {
+        return {*begin_, *end_, step};
+    }
+
+  private:
+    const_iterator begin_;
+    const_iterator end_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Proxy container for an unbounded range with a given start value.
+ */
+template<class T>
+class Count
+{
+    using TraitsT = detail::RangeTypeTraits<T>;
+
+  public:
+    //!@{
+    //! Type aliases
+    using const_iterator = detail::inf_range_iter<T>;
+    using size_type      = typename TraitsT::counter_type;
+    using value_type     = T;
+    //@}
+
+    CELER_FUNCTION Count() : begin_{} {}
+    CELER_FUNCTION Count(T begin) : begin_(begin) {}
+
+    CELER_FUNCTION detail::InfStepRange<T> step(T step)
+    {
+        return {*begin_, step};
+    }
+
+    CELER_FUNCTION const_iterator begin() const { return begin_; }
+    CELER_FUNCTION const_iterator end() const { return const_iterator(); }
+    CELER_FUNCTION bool           empty() const { return false; }
+
+  private:
+    const_iterator begin_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a range over fixed beginning and end values.
  */
 template<class T>
-CELER_FUNCTION detail::FiniteRange<T> range(T begin, T end)
+CELER_FUNCTION Range<T> range(T begin, T end)
 {
     return {begin, end};
 }
@@ -52,7 +168,7 @@ CELER_FUNCTION detail::FiniteRange<T> range(T begin, T end)
  * Return a range with the default start value (0 for numeric types)
  */
 template<class T>
-CELER_FUNCTION detail::FiniteRange<T> range(T end)
+CELER_FUNCTION Range<T> range(T end)
 {
     return {end};
 }
@@ -62,7 +178,7 @@ CELER_FUNCTION detail::FiniteRange<T> range(T end)
  * Count upward from zero.
  */
 template<class T>
-CELER_FUNCTION detail::InfiniteRange<T> count()
+CELER_FUNCTION Count<T> count()
 {
     return {};
 }
@@ -72,7 +188,7 @@ CELER_FUNCTION detail::InfiniteRange<T> count()
  * Count upward from a value.
  */
 template<class T>
-CELER_FUNCTION detail::InfiniteRange<T> count(T begin)
+CELER_FUNCTION Count<T> count(T begin)
 {
     return {begin};
 }

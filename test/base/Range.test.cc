@@ -128,7 +128,7 @@ TEST(RangeTest, vec_fill)
 
 TEST(RangeTest, empty)
 {
-    celeritas::detail::FiniteRange<int> r;
+    celeritas::Range<int> r;
     EXPECT_TRUE(r.empty());
     EXPECT_EQ(0, r.size());
 }
@@ -252,12 +252,12 @@ TEST(RangeTest, opaque_id)
     using MatId = celeritas::OpaqueId<struct Mat>;
 
     {
-        celeritas::detail::FiniteRange<MatId> fr;
+        celeritas::Range<MatId> fr;
         EXPECT_EQ(0, fr.size());
         EXPECT_TRUE(fr.empty());
     }
     {
-        celeritas::detail::FiniteRange<MatId> fr(MatId{10});
+        celeritas::Range<MatId> fr(MatId{10});
         EXPECT_EQ(10, fr.size());
         EXPECT_FALSE(fr.empty());
         EXPECT_EQ(MatId{0}, *fr.begin());
@@ -303,6 +303,8 @@ TEST(CountTest, start)
         vals.push_back(i);
     }
     EXPECT_VEC_EQ((VecInt{10, 25, 40, 55, 70, 85}), vals);
+
+    EXPECT_EQ(10, *celeritas::Count<int>(10).begin());
 }
 
 TEST(CountTest, backward)
