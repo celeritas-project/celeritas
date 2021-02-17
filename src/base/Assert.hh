@@ -192,13 +192,6 @@
  * RuntimeError if it fails. If MPI is disabled, throw an unconfigured
  * assertion.
  *
- * If it fails, we call \c cudaGetLastError to clear the error code.
- *
- * \code
- *     CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));
- *     CELER_CUDA_CALL(cudaDeviceSynchronize());
- * \endcode
- *
  * \note A file that uses this macro must #include <mpi.h>.
  */
 #define CELER_MPI_CALL(STATEMENT)                             \
