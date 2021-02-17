@@ -10,6 +10,7 @@
 #include <iterator>
 #include <type_traits>
 #include <utility>
+#include "base/Assert.hh"
 #include "base/Macros.hh"
 
 namespace celeritas
@@ -18,17 +19,59 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 template<class T, class Enable = void>
-struct range_type_traits
+struct RangeTypeTraits
 {
     using value_type   = T;
     using counter_type = T;
+
+    template<class U>
+    using common_type = typename std::common_type<T, U>::type;
+
+    static CELER_CONSTEXPR_FUNCTION bool is_valid(value_type) { return true; }
+    static CELER_CONSTEXPR_FUNCTION counter_type to_counter(value_type v)
+    {
+        return v;
+    }
+    static CELER_CONSTEXPR_FUNCTION value_type to_value(counter_type c)
+    {
+        return c;
+    }
+    static CELER_FORCEINLINE_FUNCTION value_type increment(value_type   v,
+                                                           counter_type i)
+    {
+        v += i;
+        return v;
+    }
 };
 
+//! Specialization for enums with a "size_" member
 template<class T>
-struct range_type_traits<T, typename std::enable_if<std::is_enum<T>::value>::type>
+struct RangeTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type>
 {
     using value_type   = T;
     using counter_type = typename std::underlying_type<T>::type;
+    template<class U>
+    using common_type = value_type;
+
+    static CELER_CONSTEXPR_FUNCTION bool is_valid(value_type v)
+    {
+        return v <= T::size_;
+    }
+    static CELER_CONSTEXPR_FUNCTION counter_type to_counter(value_type v)
+    {
+        return static_cast<counter_type>(v);
+    }
+    static CELER_CONSTEXPR_FUNCTION value_type to_value(counter_type c)
+    {
+        return static_cast<value_type>(c);
+    }
+    static CELER_FORCEINLINE_FUNCTION value_type increment(value_type   v,
+                                                           counter_type i)
+    {
+        counter_type temp = to_counter(v);
+        temp += i;
+        return to_value(temp);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -38,55 +81,51 @@ class range_iter : public std::iterator<std::input_iterator_tag, T>
   public:
     //!@{
     //! Type aliases
-    using traits_t     = range_type_traits<T>;
-    using value_type   = typename traits_t::value_type;
-    using counter_type = typename traits_t::counter_type;
+    using TraitsT      = RangeTypeTraits<T>;
+    using value_type   = typename TraitsT::value_type;
+    using counter_type = typename TraitsT::counter_type;
     //!@}
 
   protected:
-    counter_type value_;
+    value_type value_;
 
   public:
     //// CONSTRUCTOR ////
 
-    CELER_FUNCTION range_iter(value_type value)
-        : value_(static_cast<counter_type>(value))
+    CELER_FUNCTION range_iter(value_type value) : value_(value)
     {
+        CELER_EXPECT(TraitsT::is_valid(value_));
     }
 
     //// ACCESSORS ////
 
-    CELER_FUNCTION value_type operator*() const
+    CELER_FORCEINLINE_FUNCTION value_type operator*() const { return value_; }
+    CELER_FORCEINLINE_FUNCTION value_type const* operator->() const
     {
-        return static_cast<value_type>(value_);
-    }
-
-    CELER_FUNCTION value_type const* operator->() const
-    {
-        return static_cast<const value_type*>(&value_);
+        return &value_;
     }
 
     //// ARITHMETIC ////
 
-    CELER_FUNCTION range_iter& operator++()
+    CELER_FORCEINLINE_FUNCTION range_iter& operator++()
     {
-        ++value_;
+        value_ = TraitsT::increment(value_, 1);
         return *this;
     }
 
-    CELER_FUNCTION range_iter operator++(int)
+    CELER_FORCEINLINE_FUNCTION range_iter operator++(int)
     {
         auto copy = *this;
-        ++*this;
+        value_    = TraitsT::increment(value_, 1);
         return copy;
     }
 
-    CELER_FUNCTION bool operator==(range_iter const& other) const
+    CELER_FORCEINLINE_FUNCTION bool operator==(range_iter const& other) const
     {
         return value_ == other.value_;
     }
 
-    CELER_FUNCTION bool operator!=(range_iter const& other) const
+    CELER_FORCEINLINE_FUNCTION bool operator!=(range_iter const& other) const
     {
         return !(*this == other);
     }
@@ -99,14 +138,14 @@ class inf_range_iter : public range_iter<T>
     using Base = range_iter<T>;
 
   public:
-    CELER_FUNCTION inf_range_iter(T value_ = T()) : Base(value_) {}
+    CELER_FORCEINLINE_FUNCTION inf_range_iter(T value_ = T()) : Base(value_) {}
 
-    CELER_FUNCTION bool operator==(inf_range_iter const&) const
+    CELER_FORCEINLINE_FUNCTION bool operator==(inf_range_iter const&) const
     {
         return false;
     }
 
-    CELER_FUNCTION bool operator!=(inf_range_iter const&) const
+    CELER_FORCEINLINE_FUNCTION bool operator!=(inf_range_iter const&) const
     {
         return true;
     }
@@ -117,15 +156,18 @@ template<class T>
 class step_range_iter : public range_iter<T>
 {
     using Base = range_iter<T>;
+    using TraitsT      = typename Base::TraitsT;
+    using counter_type = typename TraitsT::counter_type;
 
   public:
-    CELER_FUNCTION step_range_iter(T value, T step) : Base(value), step_(step)
+    CELER_FUNCTION step_range_iter(T value, counter_type step)
+        : Base(value), step_(step)
     {
     }
 
     CELER_FUNCTION step_range_iter& operator++()
     {
-        value_ += step_;
+        value_ = TraitsT::increment(value_, step_);
         return *this;
     }
 
@@ -136,18 +178,18 @@ class step_range_iter : public range_iter<T>
         return copy;
     }
 
-    template<class U = T>
+    template<class U = counter_type>
     CELER_FUNCTION typename std::enable_if_t<std::is_signed<U>::value, bool>
     operator==(step_range_iter const& other) const
     {
-        return step_ >= 0 ? value_ >= other.value_ : value_ < other.value_;
+        return step_ >= 0 ? !(value_ < other.value_) : value_ < other.value_;
     }
 
-    template<class U = T>
+    template<class U = counter_type>
     CELER_FUNCTION typename std::enable_if_t<std::is_unsigned<U>::value, bool>
     operator==(step_range_iter const& other) const
     {
-        return value_ >= other.value_;
+        return !(value_ < other.value_);
     }
 
     CELER_FUNCTION bool operator!=(step_range_iter const& other) const
@@ -157,7 +199,7 @@ class step_range_iter : public range_iter<T>
 
   private:
     using Base::value_;
-    T step_;
+    counter_type step_;
 };
 
 //---------------------------------------------------------------------------//
@@ -192,15 +234,15 @@ class StepRange
 {
   public:
     using IterT = step_range_iter<T>;
+    using counter_type = typename RangeTypeTraits<T>::counter_type;
 
-    CELER_FUNCTION StepRange(T begin, T end, T step)
+    CELER_FUNCTION StepRange(T begin, T end, counter_type step)
         : begin_(begin, step), end_(end, step)
     {
     }
 
-    CELER_FUNCTION IterT begin() const { return begin_; }
-
-    CELER_FUNCTION IterT end() const { return end_; }
+    CELER_FORCEINLINE_FUNCTION IterT begin() const { return begin_; }
+    CELER_FORCEINLINE_FUNCTION IterT end() const { return end_; }
 
   private:
     IterT begin_;
@@ -216,13 +258,16 @@ class InfStepRange
 {
   public:
     using IterT = inf_step_range_iter<T>;
+    using counter_type = typename RangeTypeTraits<T>::counter_type;
 
     //! Construct from start/stop
-    CELER_FUNCTION InfStepRange(T begin, T step) : begin_(begin, step) {}
+    CELER_FUNCTION InfStepRange(T begin, counter_type step)
+        : begin_(begin, step)
+    {
+    }
 
-    CELER_FUNCTION IterT begin() const { return begin_; }
-
-    CELER_FUNCTION IterT end() const { return IterT(); }
+    CELER_FORCEINLINE_FUNCTION IterT begin() const { return begin_; }
+    CELER_FORCEINLINE_FUNCTION IterT end() const { return IterT(); }
 
   private:
     IterT begin_;
@@ -237,7 +282,10 @@ class FiniteRange
 {
   public:
     using IterT        = range_iter<T>;
-    using counter_type = typename range_type_traits<T>::counter_type;
+    using TraitsT      = RangeTypeTraits<T>;
+    using counter_type = typename TraitsT::counter_type;
+    template<class U>
+    using step_type = typename TraitsT::template common_type<U>;
 
     //! Empty constructor for empty range
     CELER_FUNCTION FiniteRange() : begin_(T()), end_(T()) {}
@@ -247,13 +295,12 @@ class FiniteRange
 
     //! Return a stepped range using a different integer type
     template<class U, std::enable_if_t<std::is_signed<U>::value, U> = 0>
-    CELER_FUNCTION StepRange<typename std::common_type<T, U>::type> step(U step)
+    CELER_FUNCTION StepRange<step_type<U>> step(U step)
     {
         if (step < 0)
         {
-            // NOTE: if T and U are not compatible (e.g. T is unsigned and U is
-            // signed) then this should raise an implicit conversion error .
-            return {*end_ + step, *begin_, step};
+            using TraitsT = typename IterT::TraitsT;
+            return {TraitsT::increment(*end_, step), *begin_, step};
         }
 
         return {*begin_, *end_, step};
@@ -261,14 +308,17 @@ class FiniteRange
 
     //! Return a stepped range using a different integer type
     template<class U, std::enable_if_t<std::is_unsigned<U>::value, U> = 0>
-    CELER_FUNCTION StepRange<typename std::common_type<T, U>::type> step(U step)
+    CELER_FUNCTION StepRange<step_type<U>> step(U step)
     {
         return {*begin_, *end_, step};
     }
 
     CELER_FUNCTION IterT        begin() const { return begin_; }
     CELER_FUNCTION IterT        end() const { return end_; }
-    CELER_FUNCTION counter_type size() const { return *end_ - *begin_; }
+    CELER_FUNCTION counter_type size() const
+    {
+        return TraitsT::to_counter(*end_) - TraitsT::to_counter(*begin_);
+    }
     CELER_FUNCTION bool         empty() const { return end_ == begin_; }
 
   private:

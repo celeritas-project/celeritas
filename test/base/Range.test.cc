@@ -23,7 +23,6 @@ enum class Color : unsigned int
     red,
     green,
     blue,
-    yellow,
     size_ //!< Note: "size_" is necessary to take a range of enums
 };
 
@@ -158,18 +157,21 @@ TEST(RangeTest, enums)
 
 TEST(RangeTest, enum_step)
 {
+    EXPECT_TRUE((std::is_same<std::underlying_type<pokemon::Pokemon>::type,
+                              unsigned int>::value));
+
     /*!
      * The following should fail to compile because enums cannot be added to
      * ints.
      */
-    int ctr = 0;
-    for (auto p : celeritas::range(pokemon::size_).step(2))
+    std::vector<int> vals;
+    for (auto p : celeritas::range(pokemon::size_).step(3u))
     {
-        static_assert(std::is_same<decltype(p), int>::value,
-                      "Range result should be converted to int!");
-        EXPECT_EQ(p, ctr);
-        ctr += 2;
+        static_assert(std::is_same<decltype(p), pokemon::Pokemon>::value,
+                      "Pokemon range should still be an enum");
+        vals.push_back(static_cast<int>(p));
     }
+    EXPECT_VEC_EQ((VecInt{0, 3}), vals);
 }
 
 TEST(RangeTest, enum_classes)
@@ -181,15 +183,20 @@ TEST(RangeTest, enum_classes)
         ++ctr;
     }
 
-    /*!
-     * The following should fail to compile because enums cannot be added to
-     * ints.
-     */
-#if 0
-    for (Color c : celeritas::range(Color::red, Color::size_).step(2u))
+    auto srange = celeritas::range(Color::red, Color::size_).step(2u);
+    EXPECT_EQ(Color::red, *srange.begin());
+    EXPECT_EQ(static_cast<int>(Color::size_), static_cast<int>(*srange.end()));
+    EXPECT_EQ(srange.begin(), srange.begin());
+    EXPECT_NE(srange.begin(), srange.end());
+
+    std::vector<int> vals;
+    for (auto c : srange)
     {
+        static_assert(std::is_same<decltype(c), Color>::value,
+                      "Color range should still be an enum");
+        vals.push_back(static_cast<int>(c));
     }
-#endif
+    EXPECT_VEC_EQ((VecInt{0, 2}), vals);
 }
 
 TEST(RangeTest, backward)
@@ -219,19 +226,6 @@ TEST(RangeTest, backward_conversion)
     VecInt vals;
 
     /*!
-     * Note that the static assertion evaluates to false because there is no
-     * integer type that encompasses the full range of both int and unsigned
-     * long
-     * https://stackoverflow.com/questions/15211463/why-isnt-common-typelong-unsigned-longtype-long-long
-     */
-#if 0
-    static_assert(
-        std::is_same<typename std::common_type<int, unsigned long long>::type,
-                     long long>::value,
-        "Integer conversions are weird!");
-#endif
-
-    /*!
      * The following should fail to compile: "non-constant-expression cannot be
      * narrowed from type 'short' to 'unsigned int' in initializer list"
      * rightly showing that you can't step an unsigned int backward with the
@@ -241,7 +235,7 @@ TEST(RangeTest, backward_conversion)
     range<unsigned int>(5).step<signed short>(-1);
 #endif
 
-    // Result of 'step' should be common type of ULL and int
+    // Result of 'step' should be original range type
     for (auto i : range<int>(5).step<signed short>(-1))
     {
         static_assert(std::is_same<decltype(i), int>::value,
