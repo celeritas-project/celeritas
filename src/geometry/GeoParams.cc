@@ -99,7 +99,7 @@ GeoParams::~GeoParams()
 #if CELERITAS_USE_CUDA
     if (device_world_volume_)
     {
-        vecgeom::CudaManager::Instance().CleanGpu();
+        vecgeom::CudaManager::Instance().Clear();
     }
 #endif
     vecgeom::GeoManager::Instance().Clear();
