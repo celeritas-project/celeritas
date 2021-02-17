@@ -45,6 +45,7 @@ list(APPEND SOURCES
   comm/LoggerTypes.cc
   comm/ScopedMpiInit.cc
   comm/detail/LoggerMessage.cc
+  geometry/detail/ScopedTimeAndRedirect.cc
   io/GdmlGeometryMap.cc
   io/ImportProcess.cc
   io/ImportPhysicsTable.cc
