@@ -11,28 +11,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with the begin/past-the-end indices of the slice.
- */
-template<class T, class S>
-CELER_FUNCTION PieSlice<T, S>::PieSlice(size_type start, size_type stop)
-    : start_(start), stop_(stop)
-{
-    CELER_EXPECT(start_ <= stop_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access the index/ID corresponding to an element of this slice.
- */
-template<class T, class S>
-CELER_FUNCTION auto PieSlice<T, S>::operator[](size_type i) const -> value_type
-{
-    CELER_EXPECT(i < this->size());
-    return value_type(start_ + i);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct from another pie.
  */
 template<class T, Ownership W, MemSpace M, class I>
@@ -88,8 +66,8 @@ Pie<T, W, M, I>& Pie<T, W, M, I>::operator=(Pie<T, W2, M, I>& other)
 template<class T, Ownership W, MemSpace M, class I>
 CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) -> SpanT
 {
-    CELER_EXPECT(ps.stop() <= this->size());
-    return {this->data() + ps.start(), this->data() + ps.stop()};
+    CELER_EXPECT(*ps.end() < this->size() + 1);
+    return {this->data() + ps.begin()->get(), this->data() + ps.end()->get()};
 }
 
 //---------------------------------------------------------------------------//
@@ -100,8 +78,8 @@ template<class T, Ownership W, MemSpace M, class I>
 CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) const
     -> SpanConstT
 {
-    CELER_EXPECT(ps.stop() <= this->size());
-    return {this->data() + ps.start(), this->data() + ps.stop()};
+    CELER_EXPECT(*ps.end() < this->size() + 1);
+    return {this->data() + ps.begin()->get(), this->data() + ps.end()->get()};
 }
 
 //---------------------------------------------------------------------------//

@@ -9,6 +9,9 @@
 
 #include "base/KernelParamCalculator.cuda.hh"
 
+using celeritas::PieId;
+using celeritas::PieSlice;
+
 namespace celeritas_test
 {
 namespace
@@ -46,8 +49,8 @@ __global__ void pie_cuda_test_kernel(
     }
 
     // Do a stupid test of pie slice
-    celeritas::PieSlice<int> pr;
-    pr = celeritas::PieSlice<int>(123, 456);
+    PieSlice<int> pr;
+    pr = PieSlice<int>(PieId<int>(123), PieId<int>(456));
     if (pr.size() != 333)
     {
         // Failure

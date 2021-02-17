@@ -152,6 +152,11 @@ class range_iter : public std::iterator<std::input_iterator_tag, T>
         return copy;
     }
 
+    CELER_FORCEINLINE_FUNCTION range_iter operator+(counter_type inc) const
+    {
+        return {TraitsT::increment(value_, inc)};
+    }
+
     CELER_FORCEINLINE_FUNCTION bool operator==(range_iter const& other) const
     {
         return value_ == other.value_;
@@ -214,6 +219,11 @@ class step_range_iter : public range_iter<T>
         auto copy = *this;
         ++*this;
         return copy;
+    }
+
+    CELER_FORCEINLINE_FUNCTION step_range_iter operator+(counter_type inc)
+    {
+        return {TraitsT::increment(value_, inc * step_)};
     }
 
     template<class U = counter_type>

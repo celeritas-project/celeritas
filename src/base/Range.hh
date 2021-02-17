@@ -45,6 +45,9 @@ namespace celeritas
  * - an integer,
  * - an enum that has a "size_" member, or
  * - an OpaqueId.
+ *
+ * It is OK to dereference the end iterator! The result should just be the
+ * off-the-end value for the range, e.g. `FooEnum::size_` or `bar.size()`.
  */
 template<class T>
 class Range
@@ -83,6 +86,13 @@ class Range
     CELER_FORCEINLINE_FUNCTION const_iterator end() const { return end_; }
     CELER_FORCEINLINE_FUNCTION const_iterator cend() const { return end_; }
     //!@}
+
+    //! Array-like access
+    CELER_FORCEINLINE_FUNCTION value_type operator[](size_type i) const
+    {
+        CELER_EXPECT(i < this->size());
+        return *(begin_ + i);
+    }
 
     //! Number of elements
     CELER_FUNCTION size_type size() const

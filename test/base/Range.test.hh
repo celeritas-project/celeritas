@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Macros.hh"
 
+#include "celeritas_config.h"
 #include <cstdint>
 #include <vector>
 
@@ -41,5 +42,6 @@ inline RangeTestOutput rangedev_test(RangeTestInput)
     return {};
 }
 #endif
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

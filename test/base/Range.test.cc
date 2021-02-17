@@ -197,6 +197,17 @@ TEST(RangeTest, enum_classes)
         vals.push_back(static_cast<int>(c));
     }
     EXPECT_VEC_EQ((VecInt{0, 2}), vals);
+
+    /*!
+     * The following should fail because the enum doesn't have a size_ member.
+     *
+     * \verbatim
+     * ../src/base/detail/RangeImpl.hh:61:24: error: no member named 'size_' in
+     * 'WontWorkColors' \endverbatim
+     */
+#if 0
+    range(WontWorkColors::blue);
+#endif
 }
 
 TEST(RangeTest, backward)
@@ -257,11 +268,20 @@ TEST(RangeTest, opaque_id)
         EXPECT_TRUE(fr.empty());
     }
     {
-        celeritas::Range<MatId> fr(MatId{10});
-        EXPECT_EQ(10, fr.size());
-        EXPECT_FALSE(fr.empty());
-        EXPECT_EQ(MatId{0}, *fr.begin());
-        EXPECT_EQ(MatId{10}, *fr.end());
+        celeritas::Range<MatId> r(MatId{10});
+        EXPECT_EQ(10, r.size());
+        EXPECT_FALSE(r.empty());
+        EXPECT_EQ(MatId{0}, *r.begin());
+        EXPECT_EQ(MatId{3}, r[3]);
+        EXPECT_EQ(MatId{10}, *r.end());
+    }
+    {
+        celeritas::Range<MatId> r(MatId{3}, MatId{10});
+        EXPECT_EQ(7, r.size());
+        EXPECT_FALSE(r.empty());
+        EXPECT_EQ(MatId{3}, *r.begin());
+        EXPECT_EQ(MatId{5}, r[2]);
+        EXPECT_EQ(MatId{10}, *r.end());
     }
 
     VecInt vals;
