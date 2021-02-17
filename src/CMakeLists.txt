@@ -37,6 +37,7 @@ list(APPEND SOURCES
   base/ColorUtils.cc
   base/DeviceAllocation.cc
   comm/KernelDiagnostics.cc
+  base/ScopedStreamRedirect.cc
   base/TypeDemangler.cc
   comm/Communicator.cc
   comm/Device.cc
