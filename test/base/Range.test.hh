@@ -34,5 +34,12 @@ struct RangeTestOutput
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 RangeTestOutput rangedev_test(RangeTestInput);
+
+#if !CELERITAS_USE_CUDA
+inline RangeTestOutput rangedev_test(RangeTestInput)
+{
+    return {};
+}
+#endif
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

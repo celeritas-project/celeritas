@@ -18,23 +18,33 @@ using celeritas::range;
 using VecInt   = std::vector<int>;
 using Vec_UInt = std::vector<unsigned int>;
 
-enum class Colors : unsigned int
+enum class Color : unsigned int
 {
-    RED = 0,
-    GREEN,
-    BLUE,
-    YELLOW,
-    END_COLORS
+    red,
+    green,
+    blue,
+    yellow,
+    size_ //!< Note: "size_" is necessary to take a range of enums
 };
 
+enum class WontWorkColors
+{
+    red   = 1,
+    green = 2,
+    blue  = 4,
+};
+
+namespace pokemon
+{
 enum Pokemon
 {
-    CHARMANDER = 0,
-    BULBASAUR,
-    SQUIRTLE,
-    PIKACHU,
-    END_POKEMON
+    charmander = 0,
+    bulbasaur,
+    squirtle,
+    pikachu,
+    size_
 };
+}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -48,7 +58,7 @@ TEST(RangeTest, ints)
         ASSERT_EQ(sizeof(int), sizeof(i));
         vals.push_back(i);
     }
-    // EXPECT_VEC_EQ((VecInt{0,1,2,3}), vals);
+    EXPECT_VEC_EQ((VecInt{0, 1, 2, 3}), vals);
 }
 
 TEST(RangeTest, chars)
@@ -69,7 +79,7 @@ TEST(RangeTest, uint)
         vals.push_back(u);
     }
 
-    // EXPECT_VEC_EQ((Vec_UInt{20,22,24}), vals);
+    EXPECT_VEC_EQ((Vec_UInt{20, 22, 24}), vals);
 }
 
 TEST(RangeTest, large)
@@ -93,7 +103,7 @@ TEST(RangeTest, just_end)
         vals.push_back(i);
         ASSERT_LT(i, 10);
     }
-    // EXPECT_VEC_EQ((VecInt{0,1,2,3}), vals);
+    EXPECT_VEC_EQ((VecInt{0, 1, 2, 3}), vals);
 }
 
 TEST(RangeTest, vec_fill)
@@ -104,13 +114,13 @@ TEST(RangeTest, vec_fill)
 
     VecInt vals(r.begin(), r.end());
 
-    // EXPECT_VEC_EQ((VecInt{1,2,3,4}), vals);
+    EXPECT_VEC_EQ((VecInt{1, 2, 3, 4}), vals);
     EXPECT_EQ(5 - 1, r.size());
     EXPECT_FALSE(r.empty());
 
     // Re-assign
     vals.assign(r.begin(), r.end());
-    // EXPECT_VEC_EQ((VecInt{1,2,3,4}), vals);
+    EXPECT_VEC_EQ((VecInt{1, 2, 3, 4}), vals);
 
     r = celeritas::range(5, 5);
     EXPECT_EQ(0, r.size());
@@ -127,28 +137,33 @@ TEST(RangeTest, empty)
 TEST(RangeTest, enums)
 {
     int  ctr          = 0;
-    auto most_pokemon = celeritas::range(CHARMANDER, END_POKEMON);
-    for (Pokemon p : most_pokemon)
+    auto most_pokemon = celeritas::range(pokemon::charmander, pokemon::size_);
+    for (pokemon::Pokemon p : most_pokemon)
     {
-        EXPECT_EQ(p, (Pokemon)ctr);
+        EXPECT_EQ(p, (pokemon::Pokemon)ctr);
         ++ctr;
     }
     // Size of a range that returns enums
     EXPECT_EQ(4, most_pokemon.size());
 
     ctr = 0;
-    for (Pokemon p : celeritas::range(END_POKEMON))
+    for (auto p : celeritas::range(pokemon::size_))
     {
-        EXPECT_EQ(p, (Pokemon)ctr);
+        static_assert(std::is_same<decltype(p), pokemon::Pokemon>::value,
+                      "Pokemon range should be an enum");
+        EXPECT_EQ(p, (pokemon::Pokemon)ctr);
         ++ctr;
     }
 }
 
 TEST(RangeTest, enum_step)
 {
-    // Since the result of enum + int is int, this is OK --
+    /*!
+     * The following should fail to compile because enums cannot be added to
+     * ints.
+     */
     int ctr = 0;
-    for (auto p : celeritas::range(END_POKEMON).step(2))
+    for (auto p : celeritas::range(pokemon::size_).step(2))
     {
         static_assert(std::is_same<decltype(p), int>::value,
                       "Range result should be converted to int!");
@@ -160,18 +175,20 @@ TEST(RangeTest, enum_step)
 TEST(RangeTest, enum_classes)
 {
     int ctr = 0;
-    for (Colors c : celeritas::range(Colors::RED, Colors::END_COLORS))
+    for (Color c : celeritas::range(Color::red, Color::size_))
     {
-        EXPECT_EQ(c, (Colors)ctr);
+        EXPECT_EQ(c, (Color)ctr);
         ++ctr;
     }
 
     /*!
-     * The following should fail to compile because there's no common type
-     * between int and enum class.
+     * The following should fail to compile because enums cannot be added to
+     * ints.
      */
 #if 0
-    celeritas::range(Colors::END_COLORS).step(1);
+    for (Color c : celeritas::range(Color::red, Color::size_).step(2u))
+    {
+    }
 #endif
 }
 
@@ -185,7 +202,7 @@ TEST(RangeTest, backward)
         if (i > 6 || i < -1)
             break;
     }
-    // EXPECT_VEC_EQ((VecInt{4, 3, 2, 1, 0}), vals);
+    EXPECT_VEC_EQ((VecInt{4, 3, 2, 1, 0}), vals);
 
     vals.clear();
     for (auto i : range(6).step(-2))
@@ -194,7 +211,7 @@ TEST(RangeTest, backward)
         if (i > 7 || i < -3)
             break;
     }
-    // EXPECT_VEC_EQ((VecInt{4, 2, 0}), vals);
+    EXPECT_VEC_EQ((VecInt{4, 2, 0}), vals);
 }
 
 TEST(RangeTest, backward_conversion)
@@ -215,7 +232,7 @@ TEST(RangeTest, backward_conversion)
 #endif
 
     /*!
-     * The following should raise an error: "non-constant-expression cannot be
+     * The following should fail to compile: "non-constant-expression cannot be
      * narrowed from type 'short' to 'unsigned int' in initializer list"
      * rightly showing that you can't step an unsigned int backward with the
      * current implementation of range.
@@ -233,7 +250,7 @@ TEST(RangeTest, backward_conversion)
         if (i > 7 || i < -2)
             break;
     }
-    // EXPECT_VEC_EQ((VecInt{4, 3, 2, 1, 0}), vals);
+    EXPECT_VEC_EQ((VecInt{4, 3, 2, 1, 0}), vals);
 }
 
 TEST(CountTest, infinite)
@@ -245,7 +262,7 @@ TEST(CountTest, infinite)
     vals.push_back(*counter++);
     vals.push_back(*counter++);
 
-    // EXPECT_VEC_EQ((VecInt{0, 1, 2}), vals);
+    EXPECT_VEC_EQ((VecInt{0, 1, 2}), vals);
 
     EXPECT_FALSE(count<int>().empty());
 }
@@ -260,7 +277,7 @@ TEST(CountTest, start)
             break;
         vals.push_back(i);
     }
-    // EXPECT_VEC_EQ((VecInt{10, 25, 40, 55, 70, 85}), vals);
+    EXPECT_VEC_EQ((VecInt{10, 25, 40, 55, 70, 85}), vals);
 }
 
 TEST(CountTest, backward)
@@ -275,14 +292,13 @@ TEST(CountTest, backward)
         vals.push_back(i);
     }
 
-    // EXPECT_VEC_EQ((VecInt{3, 2, 1, 0, -1}), vals);
+    EXPECT_VEC_EQ((VecInt{3, 2, 1, 0, -1}), vals);
 }
 
 //---------------------------------------------------------------------------//
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
-#if CELERITAS_USE_CUDA
-TEST(DeviceRangeTest, grid_stride)
+TEST(TEST_IF_CELERITAS_CUDA(DeviceRangeTest), grid_stride)
 {
     // next prime after 1<<20 elements to avoid multiples of block/stride
     unsigned int N = 1048583;
@@ -311,5 +327,3 @@ TEST(DeviceRangeTest, grid_stride)
     RangeTestOutput result = rangedev_test(input);
     EXPECT_VEC_EQ(z_cpu, result.z);
 }
-
-#endif
