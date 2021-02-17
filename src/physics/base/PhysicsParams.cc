@@ -263,13 +263,12 @@ void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
     };
 
     Applicability applic;
-    for (auto particle_idx : range(data->process_groups.size()))
+    for (auto particle_id : range(ParticleId(data->process_groups.size())))
     {
-        applic.particle = ParticleId{particle_idx};
+        applic.particle = particle_id;
 
         // Processes for this particle
-        ProcessGroup& process_group
-            = data->process_groups[ParticleId{particle_idx}];
+        ProcessGroup& process_group = data->process_groups[particle_id];
         Span<const ProcessId> processes
             = data->process_ids[process_group.processes];
         Span<const ModelGroup> model_groups
@@ -303,9 +302,9 @@ void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
             }
 
             // Loop over materials
-            for (auto mat_idx : range(mats.size()))
+            for (auto mat_id : range(MaterialId{mats.size()}))
             {
-                applic.material = MaterialId{mat_idx};
+                applic.material = mat_id;
 
                 // Construct step limit builders
                 auto builders = proc.step_limits(applic);
@@ -320,7 +319,8 @@ void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
                 // Construct grids
                 for (auto vgt : range(size_type(ValueGridType::size_)))
                 {
-                    temp_grid_ids[vgt][mat_idx] = build_grid(builders[vgt]);
+                    temp_grid_ids[vgt][mat_id.get()]
+                        = build_grid(builders[vgt]);
                 }
             }
 

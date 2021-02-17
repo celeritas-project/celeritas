@@ -38,9 +38,9 @@ TEST_F(PhysicsParamsTest, accessors)
 
     // Test process names after construction
     std::vector<std::string> process_names;
-    for (auto process_idx : range(p.num_processes()))
+    for (auto process_id : range(ProcessId{p.num_processes()}))
     {
-        process_names.push_back(p.process(ProcessId{process_idx}).label());
+        process_names.push_back(p.process(process_id).label());
     }
     const std::string expected_process_names[]
         = {"scattering", "absorption", "purrs", "hisses", "meows"};
@@ -48,9 +48,9 @@ TEST_F(PhysicsParamsTest, accessors)
 
     // Test model names after construction
     std::vector<std::string> model_names;
-    for (auto model_idx : range(p.num_models()))
+    for (auto model_id : range(ModelId{p.num_models()}))
     {
-        model_names.push_back(p.model(ModelId{model_idx}).label());
+        model_names.push_back(p.model(model_id).label());
     }
     const std::string expected_model_names[]
         = {"MockModel(0, p=0, emin=1e-06, emax=100)",
@@ -67,12 +67,11 @@ TEST_F(PhysicsParamsTest, accessors)
 
     // Test host-accessible process map
     std::vector<std::string> process_map;
-    for (auto particle_idx : range(this->particles()->size()))
+    for (auto particle_id : range(ParticleId{this->particles()->size()}))
     {
-        std::string prefix
-            = this->particles()->id_to_label(ParticleId{particle_idx});
+        std::string prefix = this->particles()->id_to_label(particle_id);
         prefix.push_back(':');
-        for (ProcessId process_id : p.processes(ParticleId{particle_idx}))
+        for (ProcessId process_id : p.processes(particle_id))
         {
             process_map.push_back(prefix + process_names[process_id.get()]);
         }
@@ -115,9 +114,8 @@ class PhysicsTrackViewHostTest : public PhysicsTestBase
         state      = StateStore(*this->physics(), state_size);
 
         // Save mapping of process label -> ID
-        for (auto process_idx : range(this->physics()->num_processes()))
+        for (auto id : range(ProcessId{this->physics()->num_processes()}))
         {
-            ProcessId id{process_idx};
             process_names[this->physics()->process(id).label()] = id;
         }
     }
@@ -147,10 +145,11 @@ class PhysicsTrackViewHostTest : public PhysicsTestBase
         CELER_VALIDATE(iter != process_names.end(),
                        "No process named " << label);
         ProcessId pid = iter->second;
-        for (auto pp_idx : range(track.num_particle_processes()))
+        for (auto pp_id :
+             range(ParticleProcessId{track.num_particle_processes()}))
         {
-            if (track.process(ParticleProcessId{pp_idx}) == pid)
-                return ParticleProcessId{pp_idx};
+            if (track.process(pp_id) == pid)
+                return pp_id;
         }
         return {};
     }
@@ -236,16 +235,17 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
 
     for (const char* particle : {"gamma", "celeriton", "anti-celeriton"})
     {
-        for (auto mat_idx : range(this->materials()->size()))
+        for (auto mat_id : range(MaterialId{this->materials()->size()}))
         {
             const PhysicsTrackView phys
-                = this->make_track_view(particle, MaterialId{mat_idx});
+                = this->make_track_view(particle, mat_id);
 
-            for (auto pp_idx : range(phys.num_particle_processes()))
+            for (auto pp_id :
+                 range(ParticleProcessId{phys.num_particle_processes()}))
             {
                 for (ValueGridType vgt : range(ValueGridType::size_))
                 {
-                    auto id = phys.value_grid(vgt, ParticleProcessId{pp_idx});
+                    auto id = phys.value_grid(vgt, pp_id);
                     grid_ids.push_back(id ? id.get() : -1);
                 }
             }
@@ -269,10 +269,10 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
     std::vector<real_type> xs;
     for (const char* particle : {"gamma", "celeriton"})
     {
-        for (auto mat_idx : range(this->materials()->size()))
+        for (auto mat_id : range(MaterialId{this->materials()->size()}))
         {
             const PhysicsTrackView phys
-                = this->make_track_view(particle, MaterialId{mat_idx});
+                = this->make_track_view(particle, mat_id);
             auto scat_ppid = this->find_ppid(phys, "scattering");
             auto id = phys.value_grid(ValueGridType::macro_xs, scat_ppid);
             ASSERT_TRUE(id);
