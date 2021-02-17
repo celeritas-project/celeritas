@@ -3,11 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DeviceAllocation.cuda.cc
+//! \file DeviceAllocation.cc
 //---------------------------------------------------------------------------//
 #include "DeviceAllocation.hh"
 
-#include <cuda_runtime_api.h>
+#include "celeritas_config.h"
+#if CELERITAS_USE_CUDA
+#    include <cuda_runtime_api.h>
+#endif
+
 #include "Assert.hh"
 #include "comm/Device.hh"
 
@@ -52,7 +56,8 @@ void DeviceAllocation::copy_to_host(SpanBytes bytes) const
 
 //---------------------------------------------------------------------------//
 //! Deleter frees cuda data
-void DeviceAllocation::CudaFreeDeleter::operator()(Byte* ptr) const
+void DeviceAllocation::CudaFreeDeleter::operator()(
+    CELER_MAYBE_UNUSED Byte* ptr) const
 {
     CELER_CUDA_CALL(cudaFree(ptr));
 }

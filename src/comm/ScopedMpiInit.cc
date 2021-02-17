@@ -8,11 +8,15 @@
 #include "ScopedMpiInit.hh"
 
 #include <cstdlib>
-#include <mpi.h>
+
+#include "celeritas_config.h"
+#if CELERITAS_USE_MPI
+#    include <mpi.h>
+#endif
+
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Stopwatch.hh"
-#include "Logger.hh"
 #include "Logger.hh"
 
 namespace celeritas
@@ -32,15 +36,17 @@ ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
     switch (ScopedMpiInit::status())
     {
         case Status::disabled: {
-            CELER_LOG(info)
-                << "Disabling MPI support since the 'CELER_DISABLE_PARALLEL' "
-                   "environment variable is present and non-empty";
+            if (CELERITAS_USE_MPI)
+            {
+                CELER_LOG(info) << "Disabling MPI support since the "
+                                   "'CELER_DISABLE_PARALLEL' environment "
+                                   "variable is present and non-empty";
+            }
             break;
         }
         case Status::uninitialized: {
             Stopwatch get_time;
-            int       err = MPI_Init(argc, argv);
-            CELER_ASSERT(err == MPI_SUCCESS);
+            CELER_MPI_CALL(MPI_Init(argc, argv));
             status_ = Status::initialized;
             CELER_LOG(debug) << "MPI initialization took " << get_time() << "s";
             break;
@@ -65,17 +71,23 @@ ScopedMpiInit::~ScopedMpiInit()
     if (status_ == Status::initialized)
     {
         status_ = Status::uninitialized;
-        int err = MPI_Finalize();
-        CELER_ENSURE(err == MPI_SUCCESS);
+        CELER_MPI_CALL(MPI_Finalize());
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Whether MPI has been initialized or disabled.
+ *
+ * NOTE: This function *cannot* call the CELER_LOG macros because those macros
+ * query the status.
  */
 auto ScopedMpiInit::status() -> Status
 {
+    if (!CELERITAS_USE_MPI)
+    {
+        status_ = Status::disabled;
+    }
     if (CELER_UNLIKELY(status_ == Status::uninitialized))
     {
         const char* disable = std::getenv("CELER_DISABLE_PARALLEL");
@@ -89,8 +101,7 @@ auto ScopedMpiInit::status() -> Status
             // Allow for the case where another application has already
             // initialized MPI.
             int result = -1;
-            int err    = MPI_Initialized(&result);
-            CELER_ASSERT(err == MPI_SUCCESS);
+            CELER_MPI_CALL(MPI_Initialized(&result));
             status_ = result ? Status::initialized : Status::uninitialized;
         }
     }

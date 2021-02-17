@@ -1,26 +1,46 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Device.cuda.cc
+//! \file Device.cc
 //---------------------------------------------------------------------------//
 #include "Device.hh"
 
+#include "celeritas_config.h"
+#if CELERITAS_USE_CUDA
+#    include <cuda_runtime_api.h>
+#endif
+
 #include <cstdlib>
-#include <cuda_runtime_api.h>
+
 #include "base/Assert.hh"
 #include "base/Stopwatch.hh"
 #include "Communicator.hh"
 #include "Logger.hh"
 
+namespace celeritas
+{
 namespace
 {
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
+int determine_num_devices()
+{
+    int result = 0;
+    if (CELERITAS_USE_CUDA)
+    {
+        CELER_CUDA_CALL(cudaGetDeviceCount(&result));
+    }
+    return result;
+}
+
 bool determine_device_enable()
 {
+    if (!CELERITAS_USE_CUDA)
+        return false;
+
     const char* disable = std::getenv("CELER_DISABLE_DEVICE");
     if (disable && disable[0] != '\0')
     {
@@ -29,9 +49,7 @@ bool determine_device_enable()
                "environment variable is present and non-empty";
         return false;
     }
-    int num_devices = -1;
-    cudaGetDeviceCount(&num_devices);
-    if (num_devices <= 0)
+    if (determine_num_devices() <= 0)
     {
         CELER_LOG(warning) << "Disabling GPU support since no CUDA devices "
                               "are present";
@@ -39,10 +57,9 @@ bool determine_device_enable()
     }
     return true;
 }
+
 } // namespace
 
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 /*!
  * Determine whether the CUDA device is enabled.

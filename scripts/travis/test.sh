@@ -9,7 +9,7 @@ cd ${BUILD_DIR}
 ctest --output-on-failure
 
 # Run tests through valgrind
-if ! ctest -D ExperimentalMemCheck --output-on-failure; then
+if ! ctest -E demo- -D ExperimentalMemCheck --output-on-failure; then
   find Testing/Temporary -name "MemoryChecker.*.log" -exec cat {} +
   exit 1
 fi

@@ -3,33 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file src/comm/ScopedMpiInit.nompi.cc
+//! \file Communicator.cc
 //---------------------------------------------------------------------------//
-#include "ScopedMpiInit.hh"
+#include "Communicator.hh"
 
 #include "base/Assert.hh"
+#include "ScopedMpiInit.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Constructor is a null-op
+ * Construct with a native MPI communicator.
+ *
+ * This will fail with a \c NotConfigured error if MPI is disabled.
  */
-ScopedMpiInit::ScopedMpiInit(int*, char***) {}
-
-//---------------------------------------------------------------------------//
-/*!
- * Call MPI finalize on destruction.
- */
-ScopedMpiInit::~ScopedMpiInit() = default;
-
-//---------------------------------------------------------------------------//
-/*!
- * MPI is disabled for this build.
- */
-auto ScopedMpiInit::status() -> Status
+Communicator::Communicator(MpiComm comm) : comm_(comm)
 {
-    return ScopedMpiInit::Status::disabled;
+    CELER_EXPECT(comm != detail::MpiCommNull());
+    CELER_EXPECT(ScopedMpiInit::status() == ScopedMpiInit::Status::initialized);
+
+    // Save rank and size
+    CELER_MPI_CALL(MPI_Comm_rank(comm_, &rank_));
+    CELER_MPI_CALL(MPI_Comm_size(comm_, &size_));
+
+    CELER_ENSURE(this->rank() >= 0 && this->rank() < this->size());
 }
 
 //---------------------------------------------------------------------------//
