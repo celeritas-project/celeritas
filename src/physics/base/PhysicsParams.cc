@@ -239,7 +239,24 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
         process_groups.push_back(pgroup);
     }
 
-    // TODO: hardwired models
+    // Assign hardwired models that do on-the-fly xs calculation
+    for (auto model_idx : range(this->num_models()))
+    {
+        const Model&    model      = *models_[model_idx].first;
+        const ProcessId process_id = models_[model_idx].second;
+        const Process&  process    = *processes_[process_id.get()];
+        if (process.label() == "Photoelectric effect")
+        {
+            data->hardwired.photoelectric              = process_id;
+            data->hardwired.photoelectric_table_thresh = units::MevEnergy{0.2};
+            model.hardwire(&data->hardwired);
+        }
+        else if (process.label() == "Positron annihiliation")
+        {
+            data->hardwired.positron_annihilation = process_id;
+            model.hardwire(&data->hardwired);
+        }
+    }
 
     CELER_ENSURE(*data);
 }

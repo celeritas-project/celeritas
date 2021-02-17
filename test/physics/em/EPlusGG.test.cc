@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "physics/em/detail/EPlusGGInteractor.hh"
 
-#include <fstream>
 #include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
@@ -269,17 +268,17 @@ TEST_F(EPlusGGInteractorTest, macro_xs)
     auto                     material = this->material_track().material_view();
     EPlusGGMacroXsCalculator calc_macro_xs(pointers_, material);
 
-    int    num_points = 20;
-    double loge_min   = std::log(1.e-4);
-    double loge_max   = std::log(1.e6);
-    double delta      = (loge_max - loge_min) / (num_points - 1);
-    double loge       = loge_min;
+    int    num_vals = 20;
+    double loge_min = std::log(1.e-4);
+    double loge_max = std::log(1.e6);
+    double delta    = (loge_max - loge_min) / (num_vals - 1);
+    double loge     = loge_min;
 
     std::vector<double> energy;
     std::vector<double> macro_xs;
 
-    // Loop over many energies
-    for (int i = 0; i < num_points; ++i)
+    // Loop over energies
+    for (int i = 0; i < num_vals; ++i)
     {
         double e = std::exp(loge);
         energy.push_back(e);

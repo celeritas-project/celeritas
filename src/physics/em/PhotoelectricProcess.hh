@@ -32,10 +32,15 @@ class PhotoelectricProcess : public Process
 
   public:
     // Construct from Livermore photoelectric data
-    PhotoelectricProcess(SPConstParticles particles, SPConstData data);
+    PhotoelectricProcess(SPConstParticles   particles,
+                         ImportPhysicsTable xs_lo,
+                         ImportPhysicsTable xs_hi,
+                         SPConstData        data);
 
     // Construct from Livermore data and EADL atomic relaxation data
     PhotoelectricProcess(SPConstParticles   particles,
+                         ImportPhysicsTable xs_lo,
+                         ImportPhysicsTable xs_hi,
                          SPConstData        data,
                          SPConstAtomicRelax atomic_relaxation);
 
@@ -50,6 +55,8 @@ class PhotoelectricProcess : public Process
 
   private:
     SPConstParticles   particles_;
+    ImportPhysicsTable xs_lo_;
+    ImportPhysicsTable xs_hi_;
     SPConstData        data_;
     SPConstAtomicRelax atomic_relaxation_;
 };

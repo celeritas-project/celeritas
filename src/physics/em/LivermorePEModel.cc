@@ -46,9 +46,7 @@ LivermorePEModel::LivermorePEModel(
     const AtomicRelaxationParams& atomic_relaxation)
     : LivermorePEModel(id, particles, data)
 {
-    interface_.atomic_relaxation = celeritas::device()
-                                       ? atomic_relaxation.device_pointers()
-                                       : atomic_relaxation.host_pointers();
+    interface_.atomic_relaxation = atomic_relaxation.device_pointers();
 }
 
 //---------------------------------------------------------------------------//
@@ -86,6 +84,16 @@ void LivermorePEModel::interact(
 ModelId LivermorePEModel::model_id() const
 {
     return interface_.model_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Hardwire model data used for on-the-fly macro xs calculations.
+ */
+void LivermorePEModel::hardwire(HardwiredModels* hardwired) const
+{
+    hardwired->livermore_pe        = this->model_id();
+    hardwired->livermore_pe_params = &interface_;
 }
 
 //---------------------------------------------------------------------------//

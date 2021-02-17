@@ -45,6 +45,9 @@ class LivermorePEModel final : public Model
     //! Name of the model, for user interaction
     std::string label() const final { return "Livermore photoelectric"; }
 
+    // Hardwire data for models that calculate macro xs on the fly
+    void hardwire(HardwiredModels* hardwired) const final;
+
   private:
     detail::LivermorePEPointers interface_;
 };

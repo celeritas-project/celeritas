@@ -26,7 +26,7 @@ CELER_FUNCTION EPlusGGMacroXsCalculator::EPlusGGMacroXsCalculator(
 //---------------------------------------------------------------------------//
 /*!
  * The Heitler formula (section 10.3.2 of the Geant4 Physics Reference Manual,
- * Release 10.6)  is used to compute the macroscopic cross section for positron
+ * Release 10.6) is used to compute the macroscopic cross section for positron
  * annihilation on the fly at the given energy.
  */
 CELER_FUNCTION real_type
