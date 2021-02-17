@@ -54,7 +54,7 @@ CELER_FUNCTION detail::FiniteRange<T> range(T begin, T end)
 template<class T>
 CELER_FUNCTION detail::FiniteRange<T> range(T end)
 {
-    return {T(), end};
+    return {end};
 }
 
 //---------------------------------------------------------------------------//
@@ -64,7 +64,7 @@ CELER_FUNCTION detail::FiniteRange<T> range(T end)
 template<class T>
 CELER_FUNCTION detail::InfiniteRange<T> count()
 {
-    return {T()};
+    return {};
 }
 
 //---------------------------------------------------------------------------//

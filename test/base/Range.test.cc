@@ -247,6 +247,37 @@ TEST(RangeTest, backward_conversion)
     EXPECT_VEC_EQ((VecInt{4, 3, 2, 1, 0}), vals);
 }
 
+TEST(RangeTest, opaque_id)
+{
+    using MatId = celeritas::OpaqueId<struct Mat>;
+
+    {
+        celeritas::detail::FiniteRange<MatId> fr;
+        EXPECT_EQ(0, fr.size());
+        EXPECT_TRUE(fr.empty());
+    }
+    {
+        celeritas::detail::FiniteRange<MatId> fr(MatId{10});
+        EXPECT_EQ(10, fr.size());
+        EXPECT_FALSE(fr.empty());
+        EXPECT_EQ(MatId{0}, *fr.begin());
+        EXPECT_EQ(MatId{10}, *fr.end());
+    }
+
+    VecInt vals;
+    for (auto id : range(MatId{4}, MatId{6}))
+    {
+        vals.push_back(id.unchecked_get());
+    }
+    EXPECT_VEC_EQ((VecInt{4, 5}), vals);
+
+    auto srange = range(MatId{6}).step(3u);
+    EXPECT_EQ(MatId{0}, *srange.begin());
+    EXPECT_EQ(MatId{6}, *srange.end());
+
+    EXPECT_EQ(4, range(MatId{4}).size());
+}
+
 TEST(CountTest, infinite)
 {
     VecInt vals;
