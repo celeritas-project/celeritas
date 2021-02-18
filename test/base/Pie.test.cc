@@ -37,6 +37,8 @@ TEST(SimplePie, slice_types)
             celeritas::Pie<int, Ownership::const_reference, MemSpace::device>>));
 }
 
+// NOTE: these tests are essentially redundant with Range.test.cc since
+// PieSlice is a Range<OpaqueId> and PieId is an OpaqueId.
 TEST(SimplePie, slice)
 {
     using PieSliceT = celeritas::PieSlice<int>;
@@ -45,11 +47,11 @@ TEST(SimplePie, slice)
     EXPECT_EQ(0, ps.size());
     EXPECT_TRUE(ps.empty());
 
-    ps = PieSliceT{10, 21};
+    ps = PieSliceT{PieIdT{10}, PieIdT{21}};
     EXPECT_FALSE(ps.empty());
     EXPECT_EQ(11, ps.size());
-    EXPECT_EQ(10, ps.start());
-    EXPECT_EQ(21, ps.stop());
+    EXPECT_EQ(10, ps.begin()->unchecked_get());
+    EXPECT_EQ(21, ps.end()->unchecked_get());
 
     EXPECT_EQ(PieIdT{10}, ps[0]);
     EXPECT_EQ(PieIdT{12}, ps[2]);
@@ -64,13 +66,21 @@ TEST(SimplePie, size_limits)
     using IdType = celeritas::OpaqueId<struct Tiny, std::uint8_t>;
     Pie<double, Ownership::value, MemSpace::host, IdType> host_val;
     auto                build = make_pie_builder(&host_val);
-    std::vector<double> dummy(255);
+    std::vector<double> dummy(254);
     auto                slc = build.insert_back(dummy.begin(), dummy.end());
-    EXPECT_EQ(0, slc.start());
-    EXPECT_EQ(255, slc.stop());
+    EXPECT_EQ(0, slc.begin()->unchecked_get());
+    EXPECT_EQ(254, slc.end()->unchecked_get());
+
+    // Inserting a 255-element "range" would have caused an exception in debug
+    // because the "final" value `uint8_t(-1) = 255` of OpaqueId is
+    // reserved. Let's say that inserting N-1 elements is "unspecified"
+    // behavior -- but for now it should be OK to insert 255 as long as it's
+    // with a push_back and not a range insertion.
+    build.push_back(123);
 
 #if CELERITAS_DEBUG
-    // In debug mode, the item that exceeds the limit will throw.
+    // Inserting 256 elements when 255 is the max int *must* raise an error
+    // when debug assertions are enabled.
     EXPECT_THROW(build.push_back(1234.5), celeritas::DebugError);
 #else
     // With bounds checking disabled, a one-off check when getting a reference

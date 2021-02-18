@@ -41,10 +41,10 @@ class PieBuilder
     //!@{
     //! Type aliases
     using PieT       = Pie<T, Ownership::value, M, I>;
-    using PieIndexT  = I;
     using value_type = T;
     using size_type  = typename PieT::size_type;
-    using PieSliceT  = PieSlice<value_type, size_type>;
+    using PieIndexT  = typename PieT::PieIndexT;
+    using PieSliceT  = typename PieT::PieSliceT;
     //!@}
 
   public:
@@ -62,7 +62,7 @@ class PieBuilder
     inline PieSliceT insert_back(InputIterator first, InputIterator last);
 
     // Extend with a series of elements from an initializer list
-    inline PieSliceT insert_back(std::initializer_list<T> init);
+    inline PieSliceT insert_back(std::initializer_list<value_type> init);
 
     // Append a single element
     inline PieIndexT push_back(value_type element);

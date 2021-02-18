@@ -9,6 +9,7 @@
 
 #include "OpaqueId.hh"
 #include "PieTypes.hh"
+#include "Range.hh"
 #include "Types.hh"
 #include "detail/PieImpl.hh"
 
@@ -20,7 +21,8 @@ using PieId = OpaqueId<T, pie_size_type>;
 
 //---------------------------------------------------------------------------//
 /*!
- * Reference a contiguous subset of items inside a Pie.
+ * Reference a contiguous range of IDs corresponding to a slice of items.
+ *
  * \tparam T The value type of items to represent.
  *
  * A PieSlice is a range of \c OpaqueId<T> that reference a range of values of
@@ -30,11 +32,6 @@ using PieId = OpaqueId<T, pie_size_type>;
  * A PieSlice is only meaningful in connection with a particular Pie of type T.
  * It doesn't have any persistent connection to its associated pie and thus
  * must be used carefully.
- *
- * \todo It might be useful to extend \c range so that it works with OpaqueId
- * objects and has an \c operator[]; then this would just become a
- * `FiniteRange<OpaqueId<T, size>>`. \c start() would become \c *begin(), and
- * \c stop() would be \c *end().
  *
  * \todo It might also be good to have a `PieMap` -- mapping one OpaqueId to
  * another OpaqueId type (with just an offset value). This would be used for
@@ -57,40 +54,7 @@ using PieId = OpaqueId<T, pie_size_type>;
  * \endcode
  */
 template<class T, class Size = pie_size_type>
-class PieSlice
-{
-  public:
-    //!@{
-    using size_type = Size;
-    using value_type = OpaqueId<T, Size>;
-    //!@}
-
-  public:
-    //! Default to an empty slice
-    PieSlice() = default;
-
-    // Construct with a particular range of element indices
-    inline CELER_FUNCTION PieSlice(size_type start, size_type stop);
-
-    //!@{
-    //! Range of indices in the corresponding pie
-    CELER_CONSTEXPR_FUNCTION size_type start() const { return start_; }
-    CELER_CONSTEXPR_FUNCTION size_type stop() const { return stop_; }
-    //!@}
-
-    // Get an index corresponding to the given index
-    inline CELER_FUNCTION value_type operator[](size_type i) const;
-
-    //! Whether the slice is empty
-    CELER_CONSTEXPR_FUNCTION bool empty() const { return stop_ == start_; }
-
-    //! Number of elements
-    CELER_CONSTEXPR_FUNCTION size_type size() const { return stop_ - start_; }
-
-  private:
-    size_type start_{};
-    size_type stop_{};
-};
+using PieSlice = Range<OpaqueId<T, Size>>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -140,7 +104,7 @@ class Pie
     using const_reference_type = typename PieTraitsT::const_reference_type;
     using size_type            = typename I::value_type;
     using PieIndexT            = I;
-    using PieSliceT            = PieSlice<T, size_type>;
+    using PieSliceT            = Range<PieIndexT>;
     //!@}
 
   public:

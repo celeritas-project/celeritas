@@ -32,9 +32,9 @@ auto PieBuilder<T, M, I>::insert_back(InputIterator first, InputIterator last)
                  <= this->max_pie_size());
     static_assert(M == MemSpace::host,
                   "Insertion currently works only for host memory");
-    auto start = this->size();
+    auto start = PieIndexT{this->size()};
     this->storage().insert(this->storage().end(), first, last);
-    return {start, this->size()};
+    return {start, PieIndexT{this->size()}};
 }
 
 //---------------------------------------------------------------------------//

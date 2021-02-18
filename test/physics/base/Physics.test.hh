@@ -57,9 +57,8 @@ inline CELER_FUNCTION celeritas::real_type
 
     // Calc total macro_xs over processsess
     real_type total_xs = 0;
-    for (auto pp_idx : range(phys.num_particle_processes()))
+    for (auto ppid : range(ParticleProcessId{phys.num_particle_processes()}))
     {
-        ParticleProcessId ppid{pp_idx};
         real_type         process_xs = 0;
         if (auto id = phys.value_grid(ValueGridType::macro_xs, ppid))
         {
@@ -82,9 +81,8 @@ inline CELER_FUNCTION celeritas::real_type
     // Calc minimum range
     const auto inf  = numeric_limits<real_type>::infinity();
     real_type  step = inf;
-    for (auto pp_idx : range(phys.num_particle_processes()))
+    for (auto ppid : range(ParticleProcessId{phys.num_particle_processes()}))
     {
-        ParticleProcessId ppid{pp_idx};
         if (auto id = phys.value_grid(ValueGridType::range, ppid))
         {
             auto calc_range = phys.make_calculator(id);
