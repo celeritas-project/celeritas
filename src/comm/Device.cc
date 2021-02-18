@@ -58,6 +58,12 @@ unsigned int determine_num_devices()
 //---------------------------------------------------------------------------//
 /*!
  * Active CUDA device for Celeritas calls on the local thread/process.
+ *
+ * \todo This function is not thread-friendly. It assumes distributed memory
+ * parallelism with one device assigned per process. See
+ * https://github.com/celeritas-project/celeritas/pull/149#discussion_r577997723
+ * and
+ * https://github.com/celeritas-project/celeritas/pull/149#discussion_r578000062
  */
 Device& global_device()
 {
@@ -75,6 +81,11 @@ Device& global_device()
             device = Device(cur_id);
         }
     }
+
+#if defined(CELERITAS_USE_CUDA) && defined(_OPENMP)
+    CELER_NOT_IMPLEMENTED("OpenMP support with CUDA");
+#endif
+
     return device;
 }
 

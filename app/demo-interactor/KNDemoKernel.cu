@@ -163,6 +163,9 @@ void initialize(const CudaGridParams&  grid,
                 const StateDeviceRef&  states,
                 const InitialPointers& initial)
 {
+    // TODO: remove grid params in favor of one thread per track. In the
+    // meantime, `calc_kernel_params` registers the kernel call and occupancy
+    // with the diagnostics.
     static const KernelParamCalculator calc_kernel_params(
         initialize_kernel, "initialize", grid.block_size);
     calc_kernel_params(states.size());
@@ -184,6 +187,7 @@ void iterate(const CudaGridParams&              grid,
              const SecondaryAllocatorPointers&  secondaries,
              const celeritas::DetectorPointers& detector)
 {
+    // TODO: remove grid params, see above
     static const KernelParamCalculator calc_kernel_params(
         iterate_kernel, "iterate", grid.block_size);
     calc_kernel_params(states.size());
