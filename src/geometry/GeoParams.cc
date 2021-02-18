@@ -85,6 +85,8 @@ GeoParams::~GeoParams()
 #if CELERITAS_USE_CUDA
     if (device_world_volume_)
     {
+        // NOTE: if the following line fails to compile, you need to update
+        // VecGeom to at least 1.1.12 (or after 2021FEB17)
         vecgeom::CudaManager::Instance().Clear();
     }
 #endif
