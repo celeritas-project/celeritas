@@ -269,7 +269,8 @@ void init_tracks(const StatePointers&            states,
         = std::min(inits.vacancies.size(), inits.initializers.size());
 
     // Initialize tracks on device
-    KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        init_tracks_kernel, "init_tracks");
     auto                  lparams = calc_launch_params(num_vacancies);
     init_tracks_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits, num_vacancies);
@@ -285,7 +286,8 @@ void locate_alive(const StatePointers&            states,
                   const ParamPointers&            params,
                   const TrackInitializerPointers& inits)
 {
-    KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        locate_alive_kernel, "locate_alive");
     auto                  lparams = calc_launch_params(states.size());
     locate_alive_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits);
@@ -306,7 +308,8 @@ void process_primaries(Span<const Primary>             primaries,
                                                    - primaries.size());
     CELER_ASSERT(initializers.size() == primaries.size());
 
-    KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        process_primaries_kernel, "process_primaries");
     auto                  lparams = calc_launch_params(primaries.size());
     process_primaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
         primaries, initializers);
@@ -327,7 +330,8 @@ void process_secondaries(const StatePointers&     states,
     // Get a view to the last num_secondaries initializers
     inits.initializers = inits.initializers.subspan(inits.initializers.size()
                                                     - inits.parent.size());
-    KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        process_secondaries_kernel, "process_secondaries");
     auto                  lparams = calc_launch_params(states.size());
     process_secondaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits);

@@ -11,6 +11,7 @@
 #include <thrust/reduce.h>
 #include "base/ArrayUtils.hh"
 #include "base/Assert.hh"
+#include "base/KernelParamCalculator.cuda.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
@@ -162,6 +163,13 @@ void initialize(const CudaGridParams&  grid,
                 const StateDeviceRef&  states,
                 const InitialPointers& initial)
 {
+    // TODO: remove grid params in favor of one thread per track. In the
+    // meantime, `calc_kernel_params` registers the kernel call and occupancy
+    // with the diagnostics.
+    static const KernelParamCalculator calc_kernel_params(
+        initialize_kernel, "initialize", grid.block_size);
+    calc_kernel_params(states.size());
+
     CELER_EXPECT(states.alive.size() == states.size());
     CELER_EXPECT(states.rng.size() == states.size());
     initialize_kernel<<<grid.grid_size, grid.block_size>>>(
@@ -175,12 +183,17 @@ void initialize(const CudaGridParams&  grid,
  */
 void iterate(const CudaGridParams&              grid,
              const ParamsDeviceRef&             params,
-             const StateDeviceRef&              state,
+             const StateDeviceRef&              states,
              const SecondaryAllocatorPointers&  secondaries,
              const celeritas::DetectorPointers& detector)
 {
+    // TODO: remove grid params, see above
+    static const KernelParamCalculator calc_kernel_params(
+        iterate_kernel, "iterate", grid.block_size);
+    calc_kernel_params(states.size());
+
     iterate_kernel<<<grid.grid_size, grid.block_size>>>(
-        params, state, secondaries, detector);
+        params, states, secondaries, detector);
     CELER_CUDA_CHECK_ERROR();
 
     // Note: the device synchronize is useful for debugging and necessary for

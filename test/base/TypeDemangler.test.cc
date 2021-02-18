@@ -37,7 +37,21 @@ struct Honshu : public JapaneseIsland
 struct Hokkaido : public JapaneseIsland
 {
 };
+
+void do_stuff() {}
+
+template<class T>
+void do_templated_stuff(T)
+{
+}
+
 } // namespace tdtest
+
+template<class F>
+std::string get_templated_funcname(F)
+{
+    return TypeDemangler<F>()();
+}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -68,6 +82,9 @@ TEST(TypeDemanglerTest, static_types)
 #ifdef __GNUG__
     EXPECT_EQ("tdtest::FlorbyDorb<tdtest::Zanzibar>", fdz_type);
 #endif
+
+    get_templated_funcname(do_stuff);
+    get_templated_funcname(&do_templated_stuff<int>);
 }
 
 TEST(TypeDemanglerTest, dynamic)

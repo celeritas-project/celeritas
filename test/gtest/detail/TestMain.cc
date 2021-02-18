@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include "celeritas_config.h"
 #include "base/ColorUtils.hh"
+#include "comm/KernelDiagnostics.hh"
 #include "celeritas_version.h"
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
@@ -33,10 +34,10 @@ int test_main(int argc, char** argv)
                ? Communicator{}
                : Communicator::comm_world());
 
-    // Initialize device
     try
     {
-        celeritas::initialize_device(comm);
+        // Initialize device
+        celeritas::activate_device(Device::from_round_robin(comm));
     }
     catch (const std::exception& e)
     {
@@ -91,6 +92,14 @@ int test_main(int argc, char** argv)
         }
 
         failed = 1;
+    }
+
+    if (celeritas::device())
+    {
+        // Print kernel diagnostics
+        std::cout << color_code('x')
+                  << "Kernel diagnostics: " << celeritas::kernel_diagnostics()
+                  << color_code(' ') << std::endl;
     }
 
     // Print final results

@@ -64,7 +64,8 @@ __global__ void pie_cuda_test_kernel(
 //! Run on device and return results
 void pie_cuda_test(PTestInput input)
 {
-    celeritas::KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        pie_cuda_test_kernel, "pie_cuda_test");
     auto params = calc_launch_params(input.states.size());
     pie_cuda_test_kernel<<<params.grid_size, params.block_size>>>(
         input.params, input.states, input.result);

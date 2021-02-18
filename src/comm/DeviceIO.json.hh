@@ -1,25 +1,21 @@
-//---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+//----------------------------------*-C++-*----------------------------------//
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KernelParamCalculator.cuda.i.hh
+//! \file DeviceIO.json.hh
 //---------------------------------------------------------------------------//
+#pragma once
+
+#include <nlohmann/json.hpp>
+#include "Device.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Get the linear thread ID.
- */
-CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
-{
-#ifdef __CUDA_ARCH__
-    return ThreadId{blockIdx.x * blockDim.x + threadIdx.x};
-#else
-    return ThreadId{0u};
-#endif
-}
+
+// Write device diagnostics to JSON
+void to_json(nlohmann::json& j, const Device& value);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

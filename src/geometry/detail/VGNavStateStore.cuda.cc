@@ -31,7 +31,7 @@ VGNavStateStore::VGNavStateStore(size_type size, int depth)
 void VGNavStateStore::copy_to_device()
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(celeritas::is_device_enabled());
+    CELER_EXPECT(celeritas::device());
     pool_->CopyToGpu();
     CELER_CUDA_CHECK_ERROR();
 }

@@ -71,7 +71,9 @@ normalize_kernel(DetectorPointers const detector, real_type norm)
  */
 void bin_buffer(const DetectorPointers& detector)
 {
-    auto params = KernelParamCalculator()(detector.capacity());
+    static const KernelParamCalculator calc_params(bin_buffer_kernel,
+                                                   "bin_buffer");
+    auto params = calc_params(detector.capacity());
     bin_buffer_kernel<<<params.grid_size, params.block_size>>>(detector);
     CELER_CUDA_CHECK_ERROR();
 }
@@ -82,7 +84,9 @@ void bin_buffer(const DetectorPointers& detector)
  */
 void normalize(const DetectorPointers& device_ptrs, real_type norm)
 {
-    auto params = KernelParamCalculator()(device_ptrs.tally_deposition.size());
+    static const KernelParamCalculator calc_params(normalize_kernel,
+                                                   "normalize");
+    auto params = calc_params(device_ptrs.tally_deposition.size());
     normalize_kernel<<<params.grid_size, params.block_size>>>(device_ptrs,
                                                               norm);
     CELER_CUDA_CHECK_ERROR();

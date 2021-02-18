@@ -11,13 +11,18 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
+
 #include "celeritas_version.h"
 #include "base/ColorUtils.hh"
 #include "base/Range.hh"
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
+#include "comm/DeviceIO.json.hh"
+#include "comm/KernelDiagnostics.hh"
+#include "comm/KernelDiagnosticsIO.json.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
+
 #include "RDemoRunner.hh"
 
 using namespace celeritas;
@@ -35,9 +40,6 @@ void run(std::istream& is)
 {
     // Read input options
     auto inp = nlohmann::json::parse(is);
-
-    // Initialize GPU
-    celeritas::initialize_device(Communicator{});
 
     // Load geometry
     auto geo_params = std::make_shared<GeoParams>(
@@ -77,7 +79,14 @@ void run(std::istream& is)
         {"metadata", image},
         {"data", out_filename},
         {"volumes", vol_names},
-        {"version", std::string(celeritas_version)},
+        {
+            "runtime",
+            {
+                {"version", std::string(celeritas_version)},
+                {"device", celeritas::device()},
+                {"kernels", celeritas::kernel_diagnostics()},
+            },
+        },
     };
     cout << outp.dump() << endl;
     CELER_LOG(info) << "Exported image to " << out_filename;
@@ -128,7 +137,10 @@ int main(int argc, char* argv[])
         instream_ptr = &std::cin;
     }
 
-    if (!celeritas::is_device_enabled())
+    // Initialize GPU
+    celeritas::activate_device(Device(0));
+
+    if (!celeritas::device())
     {
         CELER_LOG(critical) << "CUDA capability is disabled";
         return EXIT_FAILURE;

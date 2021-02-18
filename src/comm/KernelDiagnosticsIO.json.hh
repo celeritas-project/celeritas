@@ -3,29 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PieMirror.i.hh
+//! \file KernelDiagnosticsIO.json.hh
 //---------------------------------------------------------------------------//
-#include <utility>
-#include "comm/Device.hh"
+#pragma once
+
+#include <nlohmann/json.hpp>
+#include "KernelDiagnostics.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Construct with defaults.
- */
-template<template<Ownership, MemSpace> class P>
-PieMirror<P>::PieMirror(HostValue&& host) : host_(std::move(host))
-{
-    CELER_EXPECT(host_);
-    host_ref_ = host_;
-    if (celeritas::device())
-    {
-        // Copy data to device and save reference
-        device_     = host_;
-        device_ref_ = device_;
-    }
-}
+
+// Write device diagnostics to JSON
+void to_json(nlohmann::json& j, const KernelDiagnostics& diagnostics);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

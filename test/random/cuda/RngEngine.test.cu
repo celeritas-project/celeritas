@@ -25,9 +25,9 @@ using celeritas::RngStateStore;
 // CUDA KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void sample_native(int                     num_samples,
-                              RngStatePointers        view,
-                              RngEngine::result_type* samples)
+__global__ void sample_native_kernel(int                     num_samples,
+                                     RngStatePointers        view,
+                                     RngEngine::result_type* samples)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < num_samples)
@@ -39,7 +39,7 @@ __global__ void sample_native(int                     num_samples,
 
 template<class RealType>
 __global__ void
-sample_real(int num_samples, RngStatePointers view, RealType* samples)
+sample_real_kernel(int num_samples, RngStatePointers view, RealType* samples)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < num_samples)
@@ -66,9 +66,10 @@ TEST(RngEngineIntTest, regression)
     RngStateStore container(num_samples);
     EXPECT_EQ(container.size(), num_samples);
 
-    celeritas::KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        sample_native_kernel, "sample_native");
     auto                             params = calc_launch_params(num_samples);
-    sample_native<<<params.grid_size, params.block_size>>>(
+    sample_native_kernel<<<params.grid_size, params.block_size>>>(
         num_samples,
         container.device_pointers(),
         thrust::raw_pointer_cast(samples.data()));
@@ -134,9 +135,10 @@ TYPED_TEST(RngEngineFloatTest, generate_canonical)
     RngStateStore container(num_samples);
     EXPECT_EQ(container.size(), num_samples);
 
-    celeritas::KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        sample_real_kernel<real_type>, "sample_real");
     auto                             params = calc_launch_params(num_samples);
-    sample_real<<<params.grid_size, params.block_size>>>(
+    sample_real_kernel<<<params.grid_size, params.block_size>>>(
         num_samples,
         container.device_pointers(),
         thrust::raw_pointer_cast(samples.data()));

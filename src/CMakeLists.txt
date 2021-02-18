@@ -36,6 +36,7 @@ list(APPEND SOURCES
   base/Assert.cc
   base/ColorUtils.cc
   base/DeviceAllocation.cc
+  comm/KernelDiagnostics.cc
   base/TypeDemangler.cc
   comm/Communicator.cc
   comm/Device.cc
@@ -104,6 +105,14 @@ else()
   list(APPEND SOURCES
     io/EventReader.nohepmc.cc
   )
+endif()
+
+if(CELERITAS_USE_JSON)
+  list(APPEND SOURCES
+    comm/DeviceIO.json.cc
+    comm/KernelDiagnosticsIO.json.cc
+  )
+  list(APPEND PUBLIC_DEPS nlohmann_json::nlohmann_json)
 endif()
 
 if(CELERITAS_USE_MPI)

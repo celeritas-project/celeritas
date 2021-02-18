@@ -13,12 +13,17 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
+
 #include "celeritas_version.h"
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
+#include "comm/DeviceIO.json.hh"
+#include "comm/KernelDiagnostics.hh"
+#include "comm/KernelDiagnosticsIO.json.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "physics/base/ParticleParams.hh"
+
 #include "KNDemoIO.hh"
 #include "KNDemoRunner.hh"
 #include "LoadXs.hh"
@@ -59,9 +64,6 @@ void run(std::istream& is)
     // Read input options
     auto inp = nlohmann::json::parse(is);
 
-    // Initialize GPU
-    celeritas::initialize_device(Communicator{});
-
     // Construct runner
     auto         grid_params = inp.at("grid_params").get<CudaGridParams>();
     KNDemoRunner run(load_params(), load_xs(), grid_params);
@@ -77,7 +79,14 @@ void run(std::istream& is)
         {"grid_params", grid_params},
         {"run", run_args},
         {"result", result},
-        {"version", std::string(celeritas_version)},
+        {
+            "runtime",
+            {
+                {"version", std::string(celeritas_version)},
+                {"device", celeritas::device()},
+                {"kernels", celeritas::kernel_diagnostics()},
+            },
+        },
     };
     cout << outp.dump() << endl;
 }
@@ -105,7 +114,10 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    if (!celeritas::is_device_enabled())
+    // Initialize GPU
+    celeritas::activate_device(Device(0));
+
+    if (!celeritas::device())
     {
         CELER_LOG(critical) << "CUDA capability is disabled";
         return EXIT_FAILURE;

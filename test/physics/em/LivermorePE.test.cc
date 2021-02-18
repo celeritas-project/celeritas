@@ -416,7 +416,7 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
 TEST_F(LivermorePEInteractorTest, model)
 {
     // Model is constructed with device pointers
-    if (!celeritas::is_device_enabled())
+    if (!celeritas::device())
     {
         SKIP("CUDA is disabled");
     }

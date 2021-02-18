@@ -54,7 +54,7 @@ TEST_F(GeoParamsHostTest, accessors)
 
 TEST_F(GeoParamsHostTest, print_geometry)
 {
-    if (!celeritas::is_device_enabled())
+    if (!celeritas::device())
     {
         SKIP("CUDA is disabled");
     }

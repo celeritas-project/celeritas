@@ -137,7 +137,7 @@ class GeoTrackViewDeviceTest : public GeoParamsTest
 
 TEST_F(GeoTrackViewDeviceTest, track_lines)
 {
-    if (!celeritas::is_device_enabled())
+    if (!celeritas::device())
     {
         SKIP("CUDA is disabled");
     }

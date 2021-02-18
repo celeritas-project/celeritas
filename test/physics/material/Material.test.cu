@@ -76,7 +76,8 @@ MTestOutput m_test(const MTestInput& input)
     thrust::device_vector<real_type>          rad_len(input.size());
     thrust::device_vector<real_type>          tot_z(input.size());
 
-    celeritas::KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        m_test_kernel, "m_test");
     auto                             params = calc_launch_params(init.size());
     m_test_kernel<<<params.grid_size, params.block_size>>>(
         init.size(),

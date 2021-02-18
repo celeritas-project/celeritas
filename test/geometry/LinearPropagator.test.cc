@@ -198,7 +198,7 @@ class LinearPropagatorDeviceTest : public GeoParamsTest
 
 TEST_F(LinearPropagatorDeviceTest, track_lines)
 {
-    if (!celeritas::is_device_enabled())
+    if (!celeritas::device())
     {
         SKIP("CUDA is disabled");
     }

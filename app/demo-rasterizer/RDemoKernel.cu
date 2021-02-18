@@ -30,9 +30,9 @@ __device__ int geo_id(const GeoTrackView& geo)
     return geo.volume_id().get();
 }
 
-__global__ void trace_impl(const GeoParamsPointers geo_params,
-                           const GeoStatePointers  geo_state,
-                           const ImagePointers     image_state)
+__global__ void trace_kernel(const GeoParamsPointers geo_params,
+                             const GeoStatePointers  geo_state,
+                             const ImagePointers     image_state)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= image_state.dims[0])
@@ -97,9 +97,11 @@ void trace(const GeoParamsPointers& geo_params,
 {
     CELER_EXPECT(image);
 
-    KernelParamCalculator calc_kernel_params;
-    auto                  params = calc_kernel_params(image.dims[0]);
-    trace_impl<<<params.grid_size, params.block_size>>>(
+    static const KernelParamCalculator calc_kernel_params(trace_kernel,
+                                                          "trace");
+
+    auto params = calc_kernel_params(image.dims[0]);
+    trace_kernel<<<params.grid_size, params.block_size>>>(
         geo_params, geo_state, image);
     CELER_CUDA_CHECK_ERROR();
 

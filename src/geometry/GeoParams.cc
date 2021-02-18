@@ -65,7 +65,7 @@ GeoParams::GeoParams(const char* gdml_filename)
     max_depth_   = vecgeom::GeoManager::Instance().getMaxDepth();
 
 #if CELERITAS_USE_CUDA
-    if (celeritas::is_device_enabled())
+    if (celeritas::device())
     {
         CELER_LOG(status) << "Converting to CUDA geometry";
         get_time           = {};
@@ -148,7 +148,7 @@ GeoParamsPointers GeoParams::host_pointers() const
  */
 GeoParamsPointers GeoParams::device_pointers() const
 {
-    CELER_EXPECT(celeritas::is_device_enabled());
+    CELER_EXPECT(celeritas::device());
     GeoParamsPointers result;
     result.world_volume
         = static_cast<const vecgeom::VPlacedVolume*>(device_world_volume_);
@@ -166,7 +166,7 @@ GeoParamsPointers GeoParams::device_pointers() const
 void GeoParams::set_cuda_stack_size(int limit)
 {
     CELER_EXPECT(limit > 0);
-    CELER_EXPECT(celeritas::is_device_enabled());
+    CELER_EXPECT(celeritas::device());
     CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
 }
 
