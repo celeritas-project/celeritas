@@ -152,23 +152,22 @@
  * \note A file that uses this macro must #include <cuda_runtime_api.h> or be
  * compiled by NVCC (which implicitly includes that header).
  */
-#define CELER_CUDA_CALL(STATEMENT)                       \
-    do                                                   \
-    {                                                    \
-        cudaError_t cuda_result_ = (STATEMENT);          \
-        if (CELER_UNLIKELY(cuda_result_ != cudaSuccess)) \
-        {                                                \
-            cudaGetLastError();                          \
-            ::celeritas::throw_cuda_call_error(          \
-                cudaGetErrorString(cuda_result_),        \
-                #STATEMENT,                              \
-                __FILE__,                                \
-                __LINE__);                               \
-        }                                                \
-    } while (0)
-
-#if !CELERITAS_USE_CUDA
-#    undef CELER_CUDA_CALL
+#if CELERITAS_USE_CUDA
+#    define CELER_CUDA_CALL(STATEMENT)                       \
+        do                                                   \
+        {                                                    \
+            cudaError_t cuda_result_ = (STATEMENT);          \
+            if (CELER_UNLIKELY(cuda_result_ != cudaSuccess)) \
+            {                                                \
+                cudaGetLastError();                          \
+                ::celeritas::throw_cuda_call_error(          \
+                    cudaGetErrorString(cuda_result_),        \
+                    #STATEMENT,                              \
+                    __FILE__,                                \
+                    __LINE__);                               \
+            }                                                \
+        } while (0)
+#else
 #    define CELER_CUDA_CALL(STATEMENT)    \
         do                                \
         {                                 \
@@ -194,19 +193,18 @@
  *
  * \note A file that uses this macro must #include <mpi.h>.
  */
-#define CELER_MPI_CALL(STATEMENT)                             \
-    do                                                        \
-    {                                                         \
-        int mpi_result_ = (STATEMENT);                        \
-        if (CELER_UNLIKELY(mpi_result_ != MPI_SUCCESS))       \
-        {                                                     \
-            ::celeritas::throw_mpi_call_error(                \
-                mpi_result_, #STATEMENT, __FILE__, __LINE__); \
-        }                                                     \
-    } while (0)
-
-#if !CELERITAS_USE_MPI
-#    undef CELER_MPI_CALL
+#if CELERITAS_USE_MPI
+#    define CELER_MPI_CALL(STATEMENT)                             \
+        do                                                        \
+        {                                                         \
+            int mpi_result_ = (STATEMENT);                        \
+            if (CELER_UNLIKELY(mpi_result_ != MPI_SUCCESS))       \
+            {                                                     \
+                ::celeritas::throw_mpi_call_error(                \
+                    mpi_result_, #STATEMENT, __FILE__, __LINE__); \
+            }                                                     \
+        } while (0)
+#else
 #    define CELER_MPI_CALL(STATEMENT)    \
         do                               \
         {                                \
