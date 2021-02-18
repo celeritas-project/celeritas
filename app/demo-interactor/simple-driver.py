@@ -15,6 +15,7 @@ inp = {
     'grid_params': {
         'block_size': 128,
         'grid_size': 32,
+        'sync': False,
     },
     'run': {
         'seed': 12345,

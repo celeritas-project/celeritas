@@ -29,6 +29,7 @@ struct CudaGridParams
 {
     unsigned int block_size = 256; //!< Threads per block
     unsigned int grid_size  = 32;  //!< Blocks per grid
+    bool         sync = false; //!< Call synchronize after every kernel
 };
 
 template<Ownership W, MemSpace M>
@@ -138,7 +139,7 @@ void iterate(const CudaGridParams&                        grid,
 
 //---------------------------------------------------------------------------//
 // Sum the total number of living particles
-celeritas::size_type reduce_alive(celeritas::Span<bool> alive);
+celeritas::size_type reduce_alive(celeritas::Span<bool> alive, const CudaGridParams&              grid);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_interactor

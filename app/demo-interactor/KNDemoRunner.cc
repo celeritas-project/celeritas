@@ -108,7 +108,10 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
                 detector.device_pointers());
 
         // Save the wall time
-        result.time.push_back(elapsed_time());
+        if (launch_params_.sync)
+        {
+            result.time.push_back(elapsed_time());
+        }
 
         // Clear secondaries, which have all effectively been "killed" inside
         // the `iterate` kernel (local energy deposited)
@@ -118,7 +121,7 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
         detector.bin_buffer();
 
         // Calculate and save number of living particles
-        result.alive.push_back(reduce_alive(alive.device_pointers()));
+        result.alive.push_back(reduce_alive(alive.device_pointers(), launch_params_));
 
         if (--remaining_steps == 0)
         {

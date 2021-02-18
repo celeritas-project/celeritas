@@ -196,24 +196,32 @@ void iterate(const CudaGridParams&              grid,
         params, states, secondaries, detector);
     CELER_CUDA_CHECK_ERROR();
 
-    // Note: the device synchronize is useful for debugging and necessary for
-    // timing diagnostics.
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+
+    if (grid.sync)
+    {
+        // Note: the device synchronize is useful for debugging and necessary for
+        // timing diagnostics.
+        CELER_CUDA_CALL(cudaDeviceSynchronize());
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Sum the total number of living particles.
  */
-size_type reduce_alive(Span<bool> alive)
+size_type reduce_alive(Span<bool> alive, const CudaGridParams&              grid)
 {
     size_type result = thrust::reduce(
         thrust::device_pointer_cast(alive.data()),
         thrust::device_pointer_cast(alive.data() + alive.size()),
         size_type(0),
         thrust::plus<size_type>());
+    CELER_CUDA_CHECK_ERROR();
 
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    if (grid.sync)
+    {
+        CELER_CUDA_CALL(cudaDeviceSynchronize());
+    }
     return result;
 }
 
