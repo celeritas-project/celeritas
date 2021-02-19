@@ -37,6 +37,7 @@ list(APPEND SOURCES
   base/ColorUtils.cc
   base/DeviceAllocation.cc
   comm/KernelDiagnostics.cc
+  base/ScopedStreamRedirect.cc
   base/TypeDemangler.cc
   comm/Communicator.cc
   comm/Device.cc
@@ -44,6 +45,7 @@ list(APPEND SOURCES
   comm/LoggerTypes.cc
   comm/ScopedMpiInit.cc
   comm/detail/LoggerMessage.cc
+  geometry/detail/ScopedTimeAndRedirect.cc
   io/GdmlGeometryMap.cc
   io/ImportProcess.cc
   io/ImportPhysicsTable.cc

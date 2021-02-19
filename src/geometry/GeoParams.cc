@@ -18,32 +18,13 @@
 #    include <VecGeom/management/CudaManager.h>
 #endif
 
-#include "base/Stopwatch.hh"
-#include "base/ColorUtils.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
 #include "GeoInterface.hh"
-
-namespace
-{
-//---------------------------------------------------------------------------//
-void print_time(double time_sec)
-{
-    using celeritas::color_code;
-
-    if (time_sec > 0.01)
-    {
-        CELER_LOG(diagnostic) << color_code('x') << "... " << time_sec << " s"
-                              << color_code(' ');
-    }
-}
-//---------------------------------------------------------------------------//
-} // namespace
+#include "detail/ScopedTimeAndRedirect.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-// MANAGEMENT
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a GDML input.
@@ -51,15 +32,17 @@ namespace celeritas
 GeoParams::GeoParams(const char* gdml_filename)
 {
     CELER_LOG(info) << "Loading from GDML at " << gdml_filename;
-    constexpr bool validate_xml_schema = false;
-    Stopwatch      get_time;
-    vgdml::Frontend::Load(gdml_filename, validate_xml_schema);
-    print_time(get_time());
+    {
+        detail::ScopedTimeAndRedirect time_and_output_;
+        constexpr bool                validate_xml_schema = false;
+        vgdml::Frontend::Load(gdml_filename, validate_xml_schema);
+    }
 
     CELER_LOG(status) << "Initializing tracking information";
-    get_time = {};
-    vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
-    print_time(get_time());
+    {
+        detail::ScopedTimeAndRedirect time_and_output_;
+        vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
+    }
 
     num_volumes_ = vecgeom::VPlacedVolume::GetIdCount();
     max_depth_   = vecgeom::GeoManager::Instance().getMaxDepth();
@@ -67,21 +50,24 @@ GeoParams::GeoParams(const char* gdml_filename)
 #if CELERITAS_USE_CUDA
     if (celeritas::device())
     {
-        CELER_LOG(status) << "Converting to CUDA geometry";
-        get_time           = {};
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
-        // cuda_manager.set_verbose(1);
-        cuda_manager.LoadGeometry();
-        CELER_CUDA_CALL(cudaDeviceSynchronize());
-        print_time(get_time());
+
+        CELER_LOG(status) << "Converting to CUDA geometry";
+        {
+            detail::ScopedTimeAndRedirect time_and_output_;
+            // cuda_manager.set_verbose(1);
+            cuda_manager.LoadGeometry();
+            CELER_CUDA_CALL(cudaDeviceSynchronize());
+        }
 
         CELER_LOG(status) << "Transferring geometry to GPU";
-        get_time              = {};
-        auto world_top_devptr = cuda_manager.Synchronize();
-        CELER_ASSERT(world_top_devptr != nullptr);
-        device_world_volume_ = world_top_devptr.GetPtr();
-        CELER_CUDA_CHECK_ERROR();
-        print_time(get_time());
+        {
+            detail::ScopedTimeAndRedirect time_and_output_;
+            auto world_top_devptr = cuda_manager.Synchronize();
+            CELER_ASSERT(world_top_devptr != nullptr);
+            device_world_volume_ = world_top_devptr.GetPtr();
+            CELER_CUDA_CHECK_ERROR();
+        }
 
         CELER_ENSURE(device_world_volume_);
     }
@@ -99,7 +85,9 @@ GeoParams::~GeoParams()
 #if CELERITAS_USE_CUDA
     if (device_world_volume_)
     {
-        vecgeom::CudaManager::Instance().CleanGpu();
+        // NOTE: if the following line fails to compile, you need to update
+        // VecGeom to at least 1.1.12 (or after 2021FEB17)
+        vecgeom::CudaManager::Instance().Clear();
     }
 #endif
     vecgeom::GeoManager::Instance().Clear();

@@ -47,15 +47,17 @@ RUN apt-get -yqq update \
         vim \
  && rm -rf /var/lib/apt/lists/*
 
-# Install updated vecgeom (XXX: merge into spack install)
+# Install updated vecgeom
 RUN . /etc/profile.d/celeritas_spack_env.sh \
   && cd /opt \
-  && git clone --depth=1 --branch v1.1.9 https://gitlab.cern.ch/VecGeom/VecGeom.git vecgeom-src \
-  && mkdir vecgeom-build \
-  && cd vecgeom-build \
-  && cmake -DBACKEND:STRING=Scalar -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILTIN_VECCORE:BOOL=OFF -DNO_SPECIALIZATION:BOOL=ON -DVECGEOM_VECTOR:STRING=empty -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_STANDARD:STRING=14 -DCUDA:BOOL=ON -DGDML:BOOL=ON -DGEANT4:BOOL=OFF -DROOT:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DCTEST:BOOL=OFF -DGDMLTESTING:BOOL=OFF -DCUDA_ARCH:STRING=70 -DCMAKE_INSTALL_PREFIX:STRING=/opt/vecgeom -G Ninja ../vecgeom-src \
+  && git clone https://gitlab.cern.ch/VecGeom/VecGeom.git vecgeom-src \
+  && cd vecgeom-src \
+  && git checkout 04268fe393532a25869b31c53658f48f5c313489 \
+  && mkdir build \
+  && cd build \
+  && cmake -DBACKEND:STRING=Scalar -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILTIN_VECCORE:BOOL=OFF -DNO_SPECIALIZATION:BOOL=ON -DVECGEOM_VECTOR:STRING=empty -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_STANDARD:STRING=14 -DCUDA:BOOL=ON -DGDML:BOOL=ON -DGEANT4:BOOL=OFF -DROOT:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DCTEST:BOOL=OFF -DGDMLTESTING:BOOL=OFF -DCUDA_ARCH:STRING=70 -DCMAKE_INSTALL_PREFIX:STRING=/opt/vecgeom -G Ninja .. \
   && ninja install \
-  && rm -rf /opt/vecgeom-build /opt/vecgeom-src \
+  && rm -rf /opt/vecgeom-src \
   && echo "export CMAKE_PREFIX_PATH=/opt/vecgeom:${CMAKE_PREFIX_PATH}" >> /etc/profile.d/celeritas_spack_env.sh
 
 # Set up entrypoint and group
