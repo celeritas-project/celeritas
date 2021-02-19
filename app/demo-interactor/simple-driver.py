@@ -75,7 +75,7 @@ if runtime['device'] is not None:
 
     kernel_stats = {k.pop('name'): k for k in runtime['kernels']}
     print("Recorded {} kernels".format(len(kernel_stats)))
-    k = kernel_stats['iterate']
-    print(f"Iterate was called {k['num_launches']} times "
+    k = kernel_stats['interact']
+    print(f"interact was called {k['num_launches']} times "
           f"using {k['num_regs']} registers "
           f"with occupancy of {k['occupancy']}")

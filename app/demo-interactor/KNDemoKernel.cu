@@ -62,23 +62,12 @@ __global__ void initialize_kernel(ParamsDeviceRef const params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Perform a single interaction per particle track.
- *
- * The interaction:
- * - Clears the energy deposition
- * - Samples the KN interaction
- * - Allocates and emits a secondary
- * - Kills the secondary, depositing its local energy
- * - Applies the interaction (updating track direction and energy)
+ * Sample cross sections and move to the collision point.
  */
-__global__ void iterate_kernel(ParamsDeviceRef const            params,
-                               StateDeviceRef const             states,
-                               SecondaryAllocatorPointers const secondaries,
-                               DetectorPointers const           detector)
+__global__ void
+move_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 {
-    SecondaryAllocatorView allocate_secondaries(secondaries);
-    DetectorView           detector_hit(detector);
-    PhysicsGridCalculator  calc_xs(params.tables.xs, params.tables.reals);
+    PhysicsGridCalculator calc_xs(params.tables.xs, params.tables.reals);
 
     for (unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
          tid < states.size();
@@ -94,23 +83,58 @@ __global__ void iterate_kernel(ParamsDeviceRef const            params,
         ParticleTrackView particle(
             params.particle, states.particle, ThreadId(tid));
         RngEngine rng(states.rng, ThreadId(tid));
-        Real3     pos  = states.position[tid];
-        Real3     dir  = states.direction[tid];
-        real_type time = states.time[tid];
 
         // Move to collision
-        demo_interactor::move_to_collision(
-            particle, calc_xs, dir, &pos, &time, rng);
+        demo_interactor::move_to_collision(particle,
+                                           calc_xs,
+                                           states.direction[tid],
+                                           &states.position[tid],
+                                           &states.time[tid],
+                                           rng);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform the iteraction plus cleanup.
+ *
+ * The interaction:
+ * - Allocates and emits a secondary
+ * - Kills the secondary, depositing its local energy
+ * - Applies the interaction (updating track direction and energy)
+ */
+__global__ void interact_kernel(ParamsDeviceRef const            params,
+                                StateDeviceRef const             states,
+                                SecondaryAllocatorPointers const secondaries,
+                                DetectorPointers const           detector)
+{
+    SecondaryAllocatorView allocate_secondaries(secondaries);
+    DetectorView           detector_hit(detector);
+
+    for (unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
+         tid < states.size();
+         tid += blockDim.x * gridDim.x)
+    {
+        // Skip loop if already dead
+        if (!states.alive[tid])
+        {
+            continue;
+        }
+
+        // Construct particle accessor from immutable and thread-local data
+        ParticleTrackView particle(
+            params.particle, states.particle, ThreadId(tid));
+        RngEngine rng(states.rng, ThreadId(tid));
 
         Hit h;
-        h.pos    = pos;
+        h.pos    = states.position[tid];
+        h.dir    = states.direction[tid];
         h.thread = ThreadId(tid);
-        h.time   = time;
+        h.time   = states.time[tid];
 
         if (particle.energy() < units::MevEnergy{0.01})
         {
             // Particle is below interaction energy
-            h.dir              = dir;
             h.energy_deposited = particle.energy();
 
             // Deposit energy and kill
@@ -121,7 +145,7 @@ __global__ void iterate_kernel(ParamsDeviceRef const            params,
 
         // Construct RNG and interaction interfaces
         KleinNishinaInteractor interact(
-            params.kn_interactor, particle, dir, allocate_secondaries);
+            params.kn_interactor, particle, h.dir, allocate_secondaries);
 
         // Perform interaction: should emit a single particle (an electron)
         Interaction interaction = interact(rng);
@@ -139,8 +163,6 @@ __global__ void iterate_kernel(ParamsDeviceRef const            params,
 
         // Update post-interaction state (apply interaction)
         states.direction[tid] = interaction.direction;
-        states.position[tid]  = pos;
-        states.time[tid]      = time;
         particle.energy(interaction.energy);
     }
 }
@@ -183,10 +205,16 @@ void iterate(const CudaGridParams&              grid,
 {
     // TODO: remove grid params, see above
     static const KernelParamCalculator calc_kernel_params(
-        iterate_kernel, "iterate", grid.block_size);
+        move_kernel, "move", grid.block_size);
     calc_kernel_params(states.size());
 
-    iterate_kernel<<<grid.grid_size, grid.block_size>>>(
+    move_kernel<<<grid.grid_size, grid.block_size>>>(params, states);
+    CELER_CUDA_CHECK_ERROR();
+
+    static const KernelParamCalculator calc_interact_params(
+        interact_kernel, "interact", grid.block_size);
+    calc_interact_params(states.size());
+    interact_kernel<<<grid.grid_size, grid.block_size>>>(
         params, states, secondaries, detector);
     CELER_CUDA_CHECK_ERROR();
 
