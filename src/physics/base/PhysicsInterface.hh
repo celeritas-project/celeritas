@@ -119,15 +119,15 @@ struct ProcessGroup
 struct HardwiredModels
 {
     // Photoelectric effect
-    ProcessId                          photoelectric;
-    units::MevEnergy                   photoelectric_table_thresh;
-    ModelId                            livermore_pe;
-    const detail::LivermorePEPointers* livermore_pe_params = nullptr;
+    ProcessId                   photoelectric;
+    units::MevEnergy            photoelectric_table_thresh;
+    ModelId                     livermore_pe;
+    detail::LivermorePEPointers livermore_pe_params;
 
     // Positron annihilation
-    ProcessId                      positron_annihilation;
-    ModelId                        eplusgg;
-    const detail::EPlusGGPointers* eplusgg_params = nullptr;
+    ProcessId               positron_annihilation;
+    ModelId                 eplusgg;
+    detail::EPlusGGPointers eplusgg_params;
 };
 
 //---------------------------------------------------------------------------//

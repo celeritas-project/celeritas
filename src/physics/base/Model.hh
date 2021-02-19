@@ -10,7 +10,6 @@
 #include <set>
 #include <string>
 #include "base/Span.hh"
-#include "physics/base/PhysicsInterface.hh"
 #include "physics/grid/UniformGrid.hh"
 #include "Applicability.hh"
 #include "Types.hh"
@@ -66,9 +65,6 @@ class Model
 
     //! Name of the model, for user interaction
     virtual std::string label() const = 0;
-
-    // Hardwire data for models that calculate macro xs on the fly
-    virtual void hardwire(HardwiredModels*) const {};
 };
 
 //---------------------------------------------------------------------------//

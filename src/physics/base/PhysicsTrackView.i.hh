@@ -206,17 +206,19 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
  * process is hardwired to calculate macroscopic cross sections on the fly. If
  * the result is null, tables should be used for this process/energy.
  */
-CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(
-    MevEnergy energy, ParticleProcessId ppid) const
+CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
+                                                         MevEnergy energy) const
 {
     ProcessId process = this->process(ppid);
-    if (!(process == this->photoelectric_process_id()
-          && energy < params_.hardwired.photoelectric_table_thresh)
-        && process != this->eplusgg_process_id())
-        return {};
-
-    auto find_model = this->make_model_finder(ppid);
-    return find_model(energy);
+    if ((process == this->photoelectric_process_id()
+         && energy < params_.hardwired.photoelectric_table_thresh)
+        || (process == this->eplusgg_process_id()))
+    {
+        auto find_model = this->make_model_finder(ppid);
+        return find_model(energy);
+    }
+    // Not a hardwired process
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -272,13 +274,13 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(ModelId       model,
     if (model == params_.hardwired.livermore_pe)
     {
         auto calc_xs = LivermorePEMacroXsCalculator(
-            *params_.hardwired.livermore_pe_params, material);
+            params_.hardwired.livermore_pe_params, material);
         result = calc_xs(energy);
     }
     else if (model == params_.hardwired.eplusgg)
     {
         auto calc_xs = EPlusGGMacroXsCalculator(
-            *params_.hardwired.eplusgg_params, material);
+            params_.hardwired.eplusgg_params, material);
         result = calc_xs(energy);
     }
 

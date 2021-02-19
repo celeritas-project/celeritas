@@ -37,7 +37,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
     {
         const ParticleProcessId ppid{pp_idx};
         real_type               process_xs = 0;
-        if (auto model_id = physics.hardwired_model(particle.energy(), ppid))
+        if (auto model_id = physics.hardwired_model(ppid, particle.energy()))
         {
             // Calculate macroscopic cross section on the fly for special
             // hardwired processes.

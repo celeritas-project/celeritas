@@ -15,6 +15,8 @@
 #include "base/VectorUtils.hh"
 #include "comm/Logger.hh"
 #include "ParticleParams.hh"
+#include "physics/em/EPlusGGModel.hh"
+#include "physics/em/LivermorePEModel.hh"
 #include "physics/grid/ValueGridInserter.hh"
 #include "physics/material/MaterialParams.hh"
 
@@ -244,17 +246,18 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
     {
         const Model&    model      = *models_[model_idx].first;
         const ProcessId process_id = models_[model_idx].second;
-        const Process&  process    = *processes_[process_id.get()];
-        if (process.label() == "Photoelectric effect")
+        if (auto* pe_model = dynamic_cast<const LivermorePEModel*>(&model))
         {
             data->hardwired.photoelectric              = process_id;
             data->hardwired.photoelectric_table_thresh = units::MevEnergy{0.2};
-            model.hardwire(&data->hardwired);
+            data->hardwired.livermore_pe               = ModelId{model_idx};
+            data->hardwired.livermore_pe_params = pe_model->device_pointers();
         }
-        else if (process.label() == "Positron annihiliation")
+        else if (auto* epgg_model = dynamic_cast<const EPlusGGModel*>(&model))
         {
             data->hardwired.positron_annihilation = process_id;
-            model.hardwire(&data->hardwired);
+            data->hardwired.eplusgg               = ModelId{model_idx};
+            data->hardwired.eplusgg_params = epgg_model->device_pointers();
         }
     }
 

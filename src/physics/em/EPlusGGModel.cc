@@ -74,14 +74,4 @@ ModelId EPlusGGModel::model_id() const
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Hardwire model data used for on-the-fly macro xs calculations.
- */
-void EPlusGGModel::hardwire(HardwiredModels* hardwired) const
-{
-    hardwired->eplusgg        = this->model_id();
-    hardwired->eplusgg_params = &interface_;
-}
-
-//---------------------------------------------------------------------------//
 } // namespace celeritas

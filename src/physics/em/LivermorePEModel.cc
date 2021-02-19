@@ -87,14 +87,4 @@ ModelId LivermorePEModel::model_id() const
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Hardwire model data used for on-the-fly macro xs calculations.
- */
-void LivermorePEModel::hardwire(HardwiredModels* hardwired) const
-{
-    hardwired->livermore_pe        = this->model_id();
-    hardwired->livermore_pe_params = &interface_;
-}
-
-//---------------------------------------------------------------------------//
 } // namespace celeritas

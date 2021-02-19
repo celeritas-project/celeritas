@@ -94,8 +94,8 @@ class PhysicsTrackView
                                                  ParticleProcessId) const;
 
     // Get hardwired model, null if not present
-    inline CELER_FUNCTION ModelId hardwired_model(MevEnergy energy,
-                                                  ParticleProcessId) const;
+    inline CELER_FUNCTION ModelId hardwired_model(ParticleProcessId ppid,
+                                                  MevEnergy energy) const;
 
     // Models that apply to the given process ID
     inline CELER_FUNCTION
