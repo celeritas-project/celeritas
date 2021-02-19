@@ -16,9 +16,9 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
 #include "random/cuda/RngEngine.hh"
-#include "random/distributions/ExponentialDistribution.hh"
 #include "physics/grid/PhysicsGridCalculator.hh"
 #include "DetectorView.hh"
+#include "KernelUtils.hh"
 
 using namespace celeritas;
 using celeritas::detail::KleinNishinaInteractor;
@@ -80,8 +80,8 @@ __global__ void iterate_kernel(ParamsDeviceRef const            params,
     DetectorView           detector_hit(detector);
     PhysicsGridCalculator  calc_xs(params.tables.xs, params.tables.reals);
 
-    for (int tid = blockIdx.x * blockDim.x + threadIdx.x;
-         tid < static_cast<int>(states.size());
+    for (unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
+         tid < states.size();
          tid += blockDim.x * gridDim.x)
     {
         // Skip loop if already dead
@@ -96,17 +96,12 @@ __global__ void iterate_kernel(ParamsDeviceRef const            params,
         RngEngine rng(states.rng, ThreadId(tid));
 
         // Move to collision
-        {
-            // Calculate cross section at the particle's energy
-            real_type sigma = calc_xs(particle.energy());
-            ExponentialDistribution<real_type> sample_distance(sigma);
-            // Sample distance-to-collision
-            real_type distance = sample_distance(rng);
-            // Move particle
-            axpy(distance, states.direction[tid], &states.position[tid]);
-            // Update time
-            states.time[tid] += distance * unit_cast(particle.speed());
-        }
+        demo_interactor::move_to_collision(particle,
+                                           calc_xs,
+                                           states.direction[tid],
+                                           &states.position[tid],
+                                           &states.time[tid],
+                                           rng);
 
         Hit h;
         h.pos    = states.position[tid];
@@ -196,11 +191,10 @@ void iterate(const CudaGridParams&              grid,
         params, states, secondaries, detector);
     CELER_CUDA_CHECK_ERROR();
 
-
     if (grid.sync)
     {
-        // Note: the device synchronize is useful for debugging and necessary for
-        // timing diagnostics.
+        // Note: the device synchronize is useful for debugging and necessary
+        // for timing diagnostics.
         CELER_CUDA_CALL(cudaDeviceSynchronize());
     }
 }
@@ -209,7 +203,7 @@ void iterate(const CudaGridParams&              grid,
 /*!
  * Sum the total number of living particles.
  */
-size_type reduce_alive(Span<bool> alive, const CudaGridParams&              grid)
+size_type reduce_alive(Span<bool> alive, const CudaGridParams& grid)
 {
     size_type result = thrust::reduce(
         thrust::device_pointer_cast(alive.data()),

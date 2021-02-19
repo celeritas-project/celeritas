@@ -121,7 +121,8 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
         detector.bin_buffer();
 
         // Calculate and save number of living particles
-        result.alive.push_back(reduce_alive(alive.device_pointers(), launch_params_));
+        result.alive.push_back(
+            reduce_alive(alive.device_pointers(), launch_params_));
 
         if (--remaining_steps == 0)
         {
