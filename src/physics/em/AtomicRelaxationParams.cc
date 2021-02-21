@@ -140,24 +140,12 @@ void AtomicRelaxationParams::append_element(const ElementInput& inp)
 {
     AtomicRelaxElement result;
 
-    // TODO: For an element Z with n shells of transition data, you can bound
-    // this worst case as n for radiative transitions and 2^n - 1 for
-    // non-radiative transitions if for a given vacancy the transitions always
-    // originate from the next subshell up. Physically this won't happen, so
-    // can we bound this tighter (maybe O(100) for non-radiative transitions,
-    // but that's still a lot)? Can we impose an energy cut below which we
-    // won't create secondaries in the relaxation cascade to reduce it further?
-    if (is_auger_enabled_)
-    {
-        result.max_secondary = std::exp2(inp.shells.size()) - 1;
-    }
-    else
-    {
-        result.max_secondary = inp.shells.size();
-    }
-
     // Copy subshell transition data
     result.shells = this->extend_shells(inp);
+
+    // Calculate the maximum possible number of secondaries that could be
+    // created in atomic relaxation
+    result.max_secondary = this->max_secondaries(result);
 
     // Add to host vector
     host_elements_.push_back(result);
@@ -245,5 +233,69 @@ Span<AtomicRelaxTransition> AtomicRelaxationParams::extend_transitions(
     return {host_transitions_.data() + start, transitions.size()};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the maximum number of secondaries that could be produced in atomic
+ * relaxation for the given element from the subshell transition data.
+ */
+size_type
+AtomicRelaxationParams::max_secondaries(const AtomicRelaxElement& el) const
+{
+    // No atomic relaxation data for this element
+    if (!el)
+        return 0;
+
+    // For an element with n shells of transition data, the maximum number of
+    // secondaries created can be upper-bounded as n if there are only
+    // radiative transitions and 2^n - 1 if there are non-radiative transitions
+    // for the worst (though generally not possible) case where for a given
+    // vacancy the transitions always originate from the next subshell up
+    size_type upper_bound = is_auger_enabled_ ? std::exp2(el.shells.size()) - 1
+                                              : el.shells.size();
+
+    // Store the results for subproblems that have already been calculated
+    std::unordered_map<SubshellId, size_type> visited;
+
+    // Find the maximum number of secondaries created, starting with the
+    // initial vacancy in the innermost subshell
+    size_type result = max_secondaries_helper(el, visited, SubshellId{0}, 0);
+    CELER_ENSURE(result <= upper_bound);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function for calculating the maximum possible number of secondaries
+ * produced when the initial vacancy is in the given subshell.
+ */
+size_type AtomicRelaxationParams::max_secondaries_helper(
+    const AtomicRelaxElement&                  el,
+    std::unordered_map<SubshellId, size_type>& visited,
+    SubshellId                                 vacancy_shell,
+    size_type                                  count) const
+{
+    // No transitions for this subshell, so no secondaries produced
+    if (!vacancy_shell || vacancy_shell.get() >= el.shells.size())
+        return 0;
+
+    auto iter = visited.find(vacancy_shell);
+    if (iter == visited.end())
+    {
+        size_type sub_count = 0;
+        for (const auto& tr : el.shells[vacancy_shell.get()].transitions)
+        {
+            sub_count = std::max(
+                max_secondaries_helper(el, visited, tr.initial_shell, count) + 1
+                    + max_secondaries_helper(el, visited, tr.auger_shell, count),
+                sub_count);
+        }
+        visited[vacancy_shell] = sub_count;
+        return count + sub_count;
+    }
+    else
+    {
+        return count + iter->second;
+    }
+}
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -281,7 +281,6 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
     const int num_samples   = 1000;
     Real3     inc_direction = {0, 0, 1};
     this->set_inc_direction(inc_direction);
-    this->resize_secondaries(16 * num_samples);
 
     // Sampled element
     ElementId el_id{0};
@@ -290,6 +289,11 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
     relax_inp_.is_auger_enabled = true;
     set_relaxation_params(relax_inp_);
     pointers_.atomic_relaxation = relax_params_->host_pointers();
+
+    // Allocate storage for secondaries (atomic relaxation + photoelectron)
+    auto max_secondary
+        = pointers_.atomic_relaxation.elements[el_id.get()].max_secondary + 1;
+    this->resize_secondaries(max_secondary * num_samples);
 
     // Create the interactor
     LivermorePEInteractor interact(pointers_,
@@ -329,7 +333,8 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
             energy_to_count[secondary.energy.value()]++;
         }
     }
-    EXPECT_EQ(16 * num_samples, this->secondary_allocator().get().size());
+    EXPECT_EQ(max_secondary * num_samples,
+              this->secondary_allocator().get().size());
     EXPECT_EQ(2180, num_secondaries);
 
     for (const auto& it : energy_to_count)
@@ -360,7 +365,6 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
     RandomEngine& rng_engine = this->rng();
 
     const int num_samples = 10000;
-    this->resize_secondaries(5 * num_samples);
 
     // Sampled element
     ElementId el_id{0};
@@ -369,6 +373,11 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
     relax_inp_.is_auger_enabled = false;
     set_relaxation_params(relax_inp_);
     pointers_.atomic_relaxation = relax_params_->host_pointers();
+
+    // Allocate storage for secondaries (atomic relaxation + photoelectron)
+    auto max_secondary
+        = pointers_.atomic_relaxation.elements[el_id.get()].max_secondary + 1;
+    this->resize_secondaries(max_secondary * num_samples);
 
     // Create the interactor
     LivermorePEInteractor interact(pointers_,
@@ -397,7 +406,8 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
             energy_to_count[secondary.energy.value()]++;
         }
     }
-    EXPECT_EQ(5 * num_samples, this->secondary_allocator().get().size());
+    EXPECT_EQ(max_secondary * num_samples,
+              this->secondary_allocator().get().size());
     EXPECT_EQ(10007, num_secondaries);
 
     for (const auto& it : energy_to_count)
