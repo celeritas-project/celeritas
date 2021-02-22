@@ -89,12 +89,6 @@ class AtomicRelaxationParams
     Span<AtomicRelaxSubshell> extend_shells(const ElementInput& inp);
     Span<AtomicRelaxTransition>
     extend_transitions(const std::vector<TransitionInput>& transitions);
-    size_type max_secondaries(const AtomicRelaxElement& el) const;
-    size_type
-    max_secondaries_helper(const AtomicRelaxElement&                  el,
-                           std::unordered_map<SubshellId, size_type>& visited,
-                           SubshellId vacancy_shell,
-                           size_type  count) const;
 };
 
 //---------------------------------------------------------------------------//

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "physics/em/detail/LivermorePEInteractor.hh"
 
+#include <cmath>
 #include <fstream>
 #include <map>
 #include "celeritas_test.hh"
@@ -26,6 +27,7 @@
 #include "physics/grid/ValueGridBuilder.hh"
 #include "physics/grid/ValueGridInserter.hh"
 #include "physics/material/MaterialTrackView.hh"
+#include "physics/em/detail/Utils.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
@@ -540,4 +542,66 @@ TEST_F(LivermorePEInteractorTest, macro_xs)
            1.743005702864e-12, 5.187166124179e-13, 1.543827005416e-13,
            4.594922185898e-14, 1.367605938008e-14};
     EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
+}
+
+TEST_F(LivermorePEInteractorTest, max_secondaries)
+{
+    using celeritas::AtomicRelaxElement;
+    using celeritas::AtomicRelaxSubshell;
+    using celeritas::AtomicRelaxTransition;
+    using celeritas::SubshellId;
+    using celeritas::detail::MaxSecondariesCalculator;
+
+    // For an element with n shells of transition data, the maximum number of
+    // secondaries created can be upper-bounded as n if there are only
+    // radiative transitions and 2^n - 1 if there are non-radiative transitions
+    // for the worst (though generally not possible) case where for a given
+    // vacancy the transitions always originate from the next subshell up
+    unsigned int num_shells        = 20;
+    unsigned int upper_bound_fluor = num_shells;
+    unsigned int upper_bound_auger = std::exp2(num_shells) - 1;
+
+    AtomicRelaxElement                   el;
+    std::vector<AtomicRelaxSubshell>     shell_storage(num_shells);
+    celeritas::Span<AtomicRelaxSubshell> shells = make_span(shell_storage);
+    {
+        // One radiative transition per subshell, each one originating in the
+        // next subshell up
+        std::vector<AtomicRelaxTransition> transition_storage;
+        transition_storage.reserve(num_shells);
+        for (auto i : celeritas::range(num_shells))
+        {
+            transition_storage.push_back(
+                {SubshellId{i + 1}, SubshellId{}, 1, 1});
+            shells[i].transitions = {transition_storage.data() + i, 1};
+        }
+        el.shells = shells;
+        MaxSecondariesCalculator calc_max_secondaries(el);
+        auto                     result = calc_max_secondaries();
+        EXPECT_EQ(upper_bound_fluor, result);
+    }
+    {
+        // num_shells - subshell_id non-radiative transitions per subshell, one
+        // originating in each of the higher subshells
+        std::vector<AtomicRelaxTransition> transition_storage;
+        transition_storage.reserve(num_shells * (num_shells + 1) / 2);
+        for (auto i : celeritas::range(num_shells))
+        {
+            auto start = transition_storage.size();
+            for (auto j : celeritas::range(i, num_shells))
+            {
+                transition_storage.push_back({SubshellId{j + 1},
+                                              SubshellId{j + 1},
+                                              1. / (num_shells - i),
+                                              1});
+            }
+            shells[i].transitions
+                = {transition_storage.data() + start,
+                   transition_storage.data() + transition_storage.size()};
+        }
+        el.shells = shells;
+        MaxSecondariesCalculator calc_max_secondaries(el);
+        auto                     result = calc_max_secondaries();
+        EXPECT_EQ(upper_bound_auger, result);
+    }
 }
