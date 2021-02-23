@@ -94,24 +94,23 @@ __global__ void iterate_kernel(ParamsDeviceRef const            params,
         ParticleTrackView particle(
             params.particle, states.particle, ThreadId(tid));
         RngEngine rng(states.rng, ThreadId(tid));
+        Real3     pos  = states.position[tid];
+        Real3     dir  = states.direction[tid];
+        real_type time = states.time[tid];
 
         // Move to collision
-        demo_interactor::move_to_collision(particle,
-                                           calc_xs,
-                                           states.direction[tid],
-                                           &states.position[tid],
-                                           &states.time[tid],
-                                           rng);
+        demo_interactor::move_to_collision(
+            particle, calc_xs, dir, &pos, &time, rng);
 
         Hit h;
-        h.pos    = states.position[tid];
+        h.pos    = pos;
         h.thread = ThreadId(tid);
-        h.time   = states.time[tid];
+        h.time   = time;
 
         if (particle.energy() < units::MevEnergy{0.01})
         {
             // Particle is below interaction energy
-            h.dir              = states.direction[tid];
+            h.dir              = dir;
             h.energy_deposited = particle.energy();
 
             // Deposit energy and kill
@@ -121,10 +120,8 @@ __global__ void iterate_kernel(ParamsDeviceRef const            params,
         }
 
         // Construct RNG and interaction interfaces
-        KleinNishinaInteractor interact(params.kn_interactor,
-                                        particle,
-                                        states.direction[tid],
-                                        allocate_secondaries);
+        KleinNishinaInteractor interact(
+            params.kn_interactor, particle, dir, allocate_secondaries);
 
         // Perform interaction: should emit a single particle (an electron)
         Interaction interaction = interact(rng);
@@ -142,6 +139,8 @@ __global__ void iterate_kernel(ParamsDeviceRef const            params,
 
         // Update post-interaction state (apply interaction)
         states.direction[tid] = interaction.direction;
+        states.position[tid]  = pos;
+        states.time[tid]      = time;
         particle.energy(interaction.energy);
     }
 }
