@@ -33,7 +33,7 @@ LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
     , inc_direction_(inc_direction)
     , inc_energy_(particle.energy().value())
     , allocate_(allocate)
-    , calc_micro_xs_(shared, particle)
+    , calc_micro_xs_(shared, particle.energy())
 {
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
     CELER_EXPECT(inc_energy_.value() > 0);
@@ -165,7 +165,7 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
     }
     else if (inc_energy_ < min_energy)
     {
-        // If the incident energy is below 1 keV, set it to 1 keV.
+        // If the incident energy is below 1 eV, set it to 1 eV.
         energy_per_mecsq = min_energy.value() * shared_.inv_electron_mass;
     }
     else

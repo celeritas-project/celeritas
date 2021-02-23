@@ -16,11 +16,21 @@ namespace celeritas
 /*!
  * Construct from host data.
  */
-PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
-                                           SPConstData      data)
-    : particles_(std::move(particles)), data_(std::move(data))
+PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
+                                           ImportPhysicsTable xs_lo,
+                                           ImportPhysicsTable xs_hi,
+                                           SPConstData        data)
+    : particles_(std::move(particles))
+    , xs_lo_(std::move(xs_lo))
+    , xs_hi_(std::move(xs_hi))
+    , data_(std::move(data))
 {
     CELER_EXPECT(particles_);
+    CELER_EXPECT(xs_lo_.table_type == ImportTableType::lambda);
+    CELER_EXPECT(xs_hi_.table_type == ImportTableType::lambda_prim);
+    CELER_EXPECT(!xs_lo_.physics_vectors.empty());
+    CELER_EXPECT(xs_lo_.physics_vectors.size()
+                 == xs_hi_.physics_vectors.size());
     CELER_EXPECT(data_);
 }
 
@@ -29,9 +39,14 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
  * Construct with atomic relaxation data.
  */
 PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
+                                           ImportPhysicsTable xs_lo,
+                                           ImportPhysicsTable xs_hi,
                                            SPConstData        data,
                                            SPConstAtomicRelax atomic_relaxation)
-    : PhotoelectricProcess(std::move(particles), std::move(data))
+    : PhotoelectricProcess(std::move(particles),
+                           std::move(xs_lo),
+                           std::move(xs_hi),
+                           std::move(data))
 {
     atomic_relaxation_ = std::move(atomic_relaxation);
     CELER_ENSURE(atomic_relaxation_);
@@ -65,10 +80,18 @@ auto PhotoelectricProcess::build_models(ModelIdGenerator next_id) const
 auto PhotoelectricProcess::step_limits(Applicability range) const
     -> StepLimitBuilders
 {
+    CELER_EXPECT(range.material < xs_lo_.physics_vectors.size());
     CELER_EXPECT(range.particle == particles_->find(pdg::gamma()));
 
-    // TODO
+    const auto& lo = xs_lo_.physics_vectors[range.material.get()];
+    const auto& hi = xs_hi_.physics_vectors[range.material.get()];
+    CELER_ASSERT(lo.vector_type == ImportPhysicsVectorType::log);
+    CELER_ASSERT(hi.vector_type == ImportPhysicsVectorType::log);
+
     StepLimitBuilders builders;
+    builders[size_type(ValueGridType::macro_xs)]
+        = std::make_unique<ValueGridXsBuilder>(ValueGridXsBuilder::from_geant(
+            make_span(lo.x), make_span(lo.y), make_span(hi.x), make_span(hi.y)));
     return builders;
 }
 
@@ -78,7 +101,7 @@ auto PhotoelectricProcess::step_limits(Applicability range) const
  */
 std::string PhotoelectricProcess::label() const
 {
-    return "photoelectric effect";
+    return "Photoelectric effect";
 }
 
 //---------------------------------------------------------------------------//

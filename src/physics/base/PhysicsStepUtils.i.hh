@@ -18,8 +18,10 @@ namespace celeritas
 /*!
  * Calculate physics steps based on cross sections and range limits.
  */
-CELER_FUNCTION real_type calc_tabulated_physics_step(
-    const ParticleTrackView& particle, PhysicsTrackView& physics)
+CELER_FUNCTION real_type
+calc_tabulated_physics_step(const MaterialTrackView& material,
+                            const ParticleTrackView& particle,
+                            PhysicsTrackView&        physics)
 {
     CELER_EXPECT(physics.has_interaction_mfp());
 
@@ -35,7 +37,16 @@ CELER_FUNCTION real_type calc_tabulated_physics_step(
     {
         const ParticleProcessId ppid{pp_idx};
         real_type               process_xs = 0;
-        if (auto grid_id = physics.value_grid(VGT::macro_xs, ppid))
+        if (auto model_id = physics.hardwired_model(ppid, particle.energy()))
+        {
+            // Calculate macroscopic cross section on the fly for special
+            // hardwired processes.
+            auto material_view = material.material_view();
+            process_xs         = physics.calc_xs_otf(
+                model_id, material_view, particle.energy());
+            total_macro_xs += process_xs;
+        }
+        else if (auto grid_id = physics.value_grid(VGT::macro_xs, ppid))
         {
             // Calculate macroscopic cross section for this process, then
             // accumulate it into the total cross section and save the cross
@@ -43,20 +54,6 @@ CELER_FUNCTION real_type calc_tabulated_physics_step(
             auto calc_xs = physics.make_calculator(grid_id);
             process_xs = calc_xs(particle.energy());
             total_macro_xs += process_xs;
-        }
-        else
-        {
-            // TODO: this won't work either because livermore does use
-            // tables above 200 keV.
-            ProcessId process = physics.process(ppid);
-            if (process == physics.photoelectric_process_id())
-            {
-                CELER_NOT_IMPLEMENTED("on-the-fly photoelectric xs");
-            }
-            else if (process == physics.eplusgg_process_id())
-            {
-                CELER_NOT_IMPLEMENTED("on-the-fly positron annihilation xs");
-            }
         }
         physics.per_process_xs(ppid) = process_xs;
 

@@ -6,6 +6,8 @@
 //! \file PhysicsTrackView.i.hh
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
+#include "physics/em/EPlusGGMacroXsCalculator.hh"
+#include "physics/em/LivermorePEMacroXsCalculator.hh"
 
 namespace celeritas
 {
@@ -200,6 +202,27 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Return the model ID that applies to the given process ID and energy if the
+ * process is hardwired to calculate macroscopic cross sections on the fly. If
+ * the result is null, tables should be used for this process/energy.
+ */
+CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
+                                                         MevEnergy energy) const
+{
+    ProcessId process = this->process(ppid);
+    if ((process == this->photoelectric_process_id()
+         && energy < params_.hardwired.photoelectric_table_thresh)
+        || (process == this->eplusgg_process_id()))
+    {
+        auto find_model = this->make_model_finder(ppid);
+        return find_model(energy);
+    }
+    // Not a hardwired process
+    return {};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Models that apply to the given process ID.
  */
 CELER_FUNCTION auto
@@ -237,6 +260,32 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
     range = alpha * range + rho * (1 - alpha) * (2 - rho / range);
     CELER_ENSURE(range > 0);
     return range;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate macroscopic cross section on the fly.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(ModelId       model,
+                                                       MaterialView& material,
+                                                       MevEnergy energy) const
+{
+    real_type result = 0.;
+    if (model == params_.hardwired.livermore_pe)
+    {
+        auto calc_xs = LivermorePEMacroXsCalculator(
+            params_.hardwired.livermore_pe_params, material);
+        result = calc_xs(energy);
+    }
+    else if (model == params_.hardwired.eplusgg)
+    {
+        auto calc_xs = EPlusGGMacroXsCalculator(
+            params_.hardwired.eplusgg_params, material);
+        result = calc_xs(energy);
+    }
+
+    CELER_ENSURE(result >= 0);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -280,11 +329,11 @@ real_type PhysicsTrackView::per_process_xs(ParticleProcessId ppid) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Process ID for photoelectric effect if Livermore model is in use.
+ * Process ID for photoelectric effect.
  */
 CELER_FUNCTION ProcessId PhysicsTrackView::photoelectric_process_id() const
 {
-    return params_.hardwired.gamma_photoelectric;
+    return params_.hardwired.photoelectric;
 }
 
 //---------------------------------------------------------------------------//

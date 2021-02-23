@@ -13,6 +13,7 @@
 #include "physics/base/Units.hh"
 #include "physics/grid/GridIdFinder.hh"
 #include "physics/grid/PhysicsGridCalculator.hh"
+#include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
 #include "Types.hh"
 
@@ -35,8 +36,8 @@ class PhysicsTrackView
         = PhysicsParamsData<Ownership::const_reference, MemSpace::native>;
     using PhysicsStatePointers
         = PhysicsStateData<Ownership::reference, MemSpace::native>;
-
-    using ModelFinder = GridIdFinder<units::MevEnergy, ModelId>;
+    using MevEnergy   = units::MevEnergy;
+    using ModelFinder = GridIdFinder<MevEnergy, ModelId>;
     //!@}
 
   public:
@@ -92,6 +93,10 @@ class PhysicsTrackView
     inline CELER_FUNCTION ValueGridId value_grid(ValueGridType table,
                                                  ParticleProcessId) const;
 
+    // Get hardwired model, null if not present
+    inline CELER_FUNCTION ModelId hardwired_model(ParticleProcessId ppid,
+                                                  MevEnergy energy) const;
+
     // Models that apply to the given process ID
     inline CELER_FUNCTION
         ModelFinder make_model_finder(ParticleProcessId) const;
@@ -100,6 +105,11 @@ class PhysicsTrackView
 
     // Calculate scaled step range
     inline CELER_FUNCTION real_type range_to_step(real_type range) const;
+
+    // Calculate macroscopic cross section on the fly for the given model
+    inline CELER_FUNCTION real_type calc_xs_otf(ModelId       model,
+                                                MaterialView& material,
+                                                MevEnergy     energy) const;
 
     // Construct a grid calculator from a physics table
     inline CELER_FUNCTION
@@ -113,7 +123,7 @@ class PhysicsTrackView
 
     //// HACKS ////
 
-    // Process ID for photoelectric effect if Livermore model is in use
+    // Process ID for photoelectric effect
     inline CELER_FUNCTION ProcessId photoelectric_process_id() const;
 
     // Process ID for positron annihilation

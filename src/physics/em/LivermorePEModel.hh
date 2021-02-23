@@ -45,6 +45,9 @@ class LivermorePEModel final : public Model
     //! Name of the model, for user interaction
     std::string label() const final { return "Livermore photoelectric"; }
 
+    // Access data on device
+    detail::LivermorePEPointers device_pointers() const { return interface_; }
+
   private:
     detail::LivermorePEPointers interface_;
 };

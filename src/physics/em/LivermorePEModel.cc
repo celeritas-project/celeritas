@@ -46,9 +46,7 @@ LivermorePEModel::LivermorePEModel(
     const AtomicRelaxationParams& atomic_relaxation)
     : LivermorePEModel(id, particles, data)
 {
-    interface_.atomic_relaxation = celeritas::device()
-                                       ? atomic_relaxation.device_pointers()
-                                       : atomic_relaxation.host_pointers();
+    interface_.atomic_relaxation = atomic_relaxation.device_pointers();
 }
 
 //---------------------------------------------------------------------------//

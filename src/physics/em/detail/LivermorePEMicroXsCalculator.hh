@@ -27,14 +27,15 @@ class LivermorePEMicroXsCalculator
   public:
     //!@{
     //! Type aliases
-    using MevEnergy = units::MevEnergy;
+    using XsUnits = LivermoreSubshell::XsUnits;
+    using Energy  = Quantity<LivermoreSubshell::EnergyUnits>;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
     LivermorePEMicroXsCalculator(const LivermorePEPointers& shared,
-                                 const ParticleTrackView&   particle);
+                                 Energy                     energy);
 
     // Compute cross section
     inline CELER_FUNCTION real_type operator()(ElementId el_id) const;
@@ -43,7 +44,7 @@ class LivermorePEMicroXsCalculator
     // Shared constant physics properties
     const LivermorePEPointers& shared_;
     // Incident gamma energy
-    const MevEnergy inc_energy_;
+    const Energy inc_energy_;
 };
 
 //---------------------------------------------------------------------------//

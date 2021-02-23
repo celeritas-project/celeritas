@@ -14,21 +14,33 @@
 #include "base/Range.hh"
 #include "comm/Device.hh"
 #include "io/AtomicRelaxationReader.hh"
+#include "io/ImportPhysicsTable.hh"
 #include "io/LivermorePEParamsReader.hh"
 #include "physics/base/Units.hh"
 #include "physics/em/AtomicRelaxationParams.hh"
 #include "physics/em/LivermorePEModel.hh"
 #include "physics/em/LivermorePEParams.hh"
 #include "physics/em/PhotoelectricProcess.hh"
+#include "physics/em/LivermorePEMacroXsCalculator.hh"
+#include "physics/grid/PhysicsGridCalculator.hh"
+#include "physics/grid/ValueGridBuilder.hh"
+#include "physics/grid/ValueGridInserter.hh"
+#include "physics/material/MaterialTrackView.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
+using celeritas::Applicability;
 using celeritas::AtomicRelaxationParams;
 using celeritas::AtomicRelaxationReader;
 using celeritas::ElementId;
+using celeritas::ImportPhysicsTable;
+using celeritas::ImportPhysicsVectorType;
+using celeritas::ImportTableType;
+using celeritas::LivermorePEMacroXsCalculator;
 using celeritas::LivermorePEParams;
 using celeritas::LivermorePEParamsReader;
 using celeritas::PhotoelectricProcess;
+using celeritas::ValueGridInserter;
 using celeritas::detail::LivermorePEInteractor;
 namespace pdg = celeritas::pdg;
 
@@ -245,7 +257,7 @@ TEST_F(LivermorePEInteractorTest, stress_test)
             for (int i = 0; i < num_samples; ++i)
             {
                 Interaction result = interact(rng_engine);
-                // SCOPED_TRACE(result);
+                SCOPED_TRACE(result);
                 this->sanity_check(result);
             }
             EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
@@ -415,17 +427,59 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
 
 TEST_F(LivermorePEInteractorTest, model)
 {
+    using celeritas::MemSpace;
+    using celeritas::Ownership;
+    using celeritas::Pie;
+
     // Model is constructed with device pointers
     if (!celeritas::device())
     {
         SKIP("CUDA is disabled");
     }
 
-    PhotoelectricProcess process(
-        this->get_particle_params(), livermore_params_, relax_params_);
-    ModelIdGenerator     next_id;
+    // Create physics tables
+    ImportPhysicsTable xs_lo;
+    xs_lo.table_type = ImportTableType::lambda;
+    xs_lo.physics_vectors.push_back(
+        {ImportPhysicsVectorType::log, {1e-2, 1, 1e2}, {1e-1, 1e-3, 1e-5}});
+
+    ImportPhysicsTable xs_hi;
+    xs_hi.table_type = ImportTableType::lambda_prim;
+    xs_hi.physics_vectors.push_back(
+        {ImportPhysicsVectorType::log, {1e2, 1e4, 1e6}, {1e-3, 1e-3, 1e-3}});
+
+    // Add atomic relaxation data
+    relax_inp_.is_auger_enabled = true;
+    set_relaxation_params(relax_inp_);
+
+    PhotoelectricProcess process(this->get_particle_params(),
+                                 xs_lo,
+                                 xs_hi,
+                                 livermore_params_,
+                                 relax_params_);
+
+    Applicability range    = {MaterialId{0},
+                           this->particle_params().find(pdg::gamma()),
+                           celeritas::zero_quantity(),
+                           celeritas::max_quantity()};
+    auto          builders = process.step_limits(range);
+
+    Pie<double, Ownership::value, MemSpace::host>                real_storage;
+    Pie<celeritas::XsGridData, Ownership::value, MemSpace::host> grid_storage;
+
+    ValueGridInserter insert(&real_storage, &grid_storage);
+    builders[int(celeritas::ValueGridType::macro_xs)]->build(insert);
+    EXPECT_EQ(1, grid_storage.size());
+
+    // Test cross sections calculated from tables
+    celeritas::PhysicsGridCalculator calc_xs(
+        grid_storage[ValueGridInserter::XsIndex{0}], real_storage);
+    EXPECT_SOFT_EQ(0.1, calc_xs(MevEnergy{1e-3}));
+    EXPECT_SOFT_EQ(1e-5, calc_xs(MevEnergy{1e2}));
+    EXPECT_SOFT_EQ(1e-9, calc_xs(MevEnergy{1e6}));
 
     // Construct the models associated with the photoelectric effect
+    ModelIdGenerator next_id;
     auto models = process.build_models(next_id);
     EXPECT_EQ(1, models.size());
 
@@ -441,4 +495,39 @@ TEST_F(LivermorePEInteractorTest, model)
     EXPECT_EQ(ParticleId{1}, applic.particle);
     EXPECT_EQ(celeritas::zero_quantity(), applic.lower);
     EXPECT_EQ(celeritas::max_quantity(), applic.upper);
+}
+
+TEST_F(LivermorePEInteractorTest, macro_xs)
+{
+    using celeritas::units::MevEnergy;
+
+    auto material = this->material_track().material_view();
+    LivermorePEMacroXsCalculator calc_macro_xs(pointers_, material);
+
+    int    num_vals = 20;
+    double loge_min = std::log(1.e-4);
+    double loge_max = std::log(1.e6);
+    double delta    = (loge_max - loge_min) / (num_vals - 1);
+    double loge     = loge_min;
+
+    std::vector<double> energy;
+    std::vector<double> macro_xs;
+
+    // Loop over energies
+    for (int i = 0; i < num_vals; ++i)
+    {
+        double e = std::exp(loge);
+        energy.push_back(e);
+        macro_xs.push_back(calc_macro_xs(MevEnergy{e}));
+        loge += delta;
+    }
+    const double expected_macro_xs[]
+        = {9.235615290944,     17.56658325086,     1.161217594282,
+           0.4108511065363,    0.01515608909912,   0.0004000659204694,
+           9.083754758322e-06, 2.449452106704e-07, 1.800625084911e-08,
+           3.188458732396e-09, 8.028833591133e-10, 2.2700912115e-10,
+           6.653075041804e-11, 1.971081007251e-11, 5.85857761177e-12,
+           1.743005702864e-12, 5.187166124179e-13, 1.543827005416e-13,
+           4.594922185898e-14, 1.367605938008e-14};
+    EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }

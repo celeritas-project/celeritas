@@ -36,6 +36,9 @@ class EPlusGGModel final : public Model
     //! Name of the model, for user interaction
     std::string label() const final { return "Positron annihilation (2g)"; }
 
+    // Access data on device
+    detail::EPlusGGPointers device_pointers() const { return interface_; }
+
   private:
     detail::EPlusGGPointers interface_;
 };
