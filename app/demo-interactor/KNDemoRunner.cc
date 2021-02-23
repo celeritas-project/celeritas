@@ -32,7 +32,6 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
     CELER_EXPECT(pparams_);
     CELER_EXPECT(xsparams_);
     CELER_EXPECT(launch_params_.block_size > 0);
-    CELER_EXPECT(launch_params_.grid_size > 0);
 
     // Set up KN interactor data;
     namespace pdg            = celeritas::pdg;

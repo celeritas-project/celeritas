@@ -28,7 +28,6 @@ using celeritas::Ownership;
 struct CudaGridParams
 {
     unsigned int block_size = 256; //!< Threads per block
-    unsigned int grid_size  = 32;  //!< Blocks per grid
     bool         sync       = false; //!< Call synchronize after every kernel
 };
 
