@@ -31,6 +31,7 @@ class GeoTrackView
     //!@{
     //! Type aliases
     using Initializer_t = GeoStateInitializer;
+    using NavState = vecgeom::NavigationState;
     //!@}
 
     //! Helper struct for initializing from an existing geometry state
@@ -64,6 +65,9 @@ class GeoTrackView
     CELER_FUNCTION const Real3& pos() const { return pos_; }
     CELER_FUNCTION const Real3& dir() const { return dir_; }
     CELER_FUNCTION real_type    next_step() const { return next_step_; }
+    //! XXX temporary accessors for FieldTrackView
+    CELER_FUNCTION NavState& vgnext() const { return vgnext_; }
+    CELER_FUNCTION NavState& vgstate() const { return vgstate_; }
     //!@}
 
     //!@{
@@ -86,7 +90,6 @@ class GeoTrackView
     //!@{
     //! Type aliases
     using Volume   = vecgeom::VPlacedVolume;
-    using NavState = vecgeom::NavigationState;
     //!@}
 
     //! Shared/persistent geometry data
