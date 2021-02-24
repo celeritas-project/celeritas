@@ -59,6 +59,7 @@ class OdeArray
         for(auto i : range(ode_dim)) v_[i] = v[i];
     }
 
+    // Assignment operator 
     CELER_FUNCTION
     OdeArray operator=(OdeArray const &v)
     {
