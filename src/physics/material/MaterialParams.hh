@@ -44,6 +44,23 @@ class MaterialParams
         std::string    name;          //!< Element name
     };
 
+    //!  Safe ids for production cut lookup
+    enum ProductionCutId
+    {
+        gamma,
+        electron,
+        positron,
+        proton
+    };
+
+    //!  Define a material's production cuts
+    struct ProductionCuts
+    {
+        // TODO use Quantity
+        real_type        range;  //!< [cm]
+        units::MevEnergy energy; //!< [MeV]
+    };
+
     //! Define a material's input data
     struct MaterialInput
     {
@@ -51,8 +68,10 @@ class MaterialParams
         real_type   temperature;    //!< Temperature [K]
         MatterState matter_state;   //!< Solid, liquid, gas
         std::vector<std::pair<ElementId, real_type>>
-                    elements_fractions; //!< Fraction of number density
-        std::string name;               //!< Material name
+            elements_fractions; //!< Fraction of number density
+        std::unordered_map<ProductionCutId, ProductionCuts>
+            production_cuts; //!< Production cuts for each ProductionCutId type
+        std::string name;    //!< Material name
     };
 
     //! Input data to construct this class

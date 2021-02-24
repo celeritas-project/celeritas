@@ -87,6 +87,9 @@ class RootImporter
     std::shared_ptr<GdmlGeometryMap> load_geometry_data();
     // Populate the shared_ptr<MaterialParams> with material information
     std::shared_ptr<MaterialParams> load_material_data();
+    // Safely switch between Import and Celeritas enums
+    MaterialParams::ProductionCutId
+    to_production_cut_id(const ImportProductionCut& id);
 };
 
 //---------------------------------------------------------------------------//

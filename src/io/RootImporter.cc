@@ -275,12 +275,46 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
             material_params.elements_fractions.push_back(
                 {elem_def_id, elem_key.second});
         }
+
+        for (const auto& cut_key : mat_key.second.range_cuts)
+        {
+            const auto prod_cut_id = this->to_production_cut_id(cut_key.first);
+
+            MaterialParams::ProductionCuts prod_cuts;
+            prod_cuts.range  = cut_key.second;
+            prod_cuts.energy = units::MevEnergy{
+                mat_key.second.energy_cuts.find(cut_key.first)->second};
+
+            material_params.production_cuts.insert({prod_cut_id, prod_cuts});
+        }
+
         input.materials.push_back(material_params);
     }
 
     // Construct MaterialParams and return it as a shared_ptr
     MaterialParams materials(input);
     return std::make_shared<MaterialParams>(std::move(materials));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Safely switch between ImportProductionCut to ProductionCutId enums.
+ */
+MaterialParams::ProductionCutId
+RootImporter::to_production_cut_id(const ImportProductionCut& id)
+{
+    switch (id)
+    {
+        case ImportProductionCut::gamma:
+            return MaterialParams::ProductionCutId::gamma;
+        case ImportProductionCut::electron:
+            return MaterialParams::ProductionCutId::electron;
+        case ImportProductionCut::positron:
+            return MaterialParams::ProductionCutId::positron;
+        case ImportProductionCut::proton:
+            return MaterialParams::ProductionCutId::proton;
+    }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

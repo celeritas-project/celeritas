@@ -236,20 +236,20 @@ ImportMaterialState to_material_state(const G4State& g4_material_state)
  * Safely switch from G4ProductionCutsIndex [G4ProductionCuts.hh] to
  * the same int value of ImportProductionCut.
  */
-int to_import_production_cut(const G4ProductionCutsIndex& g4_prodcut)
+ImportProductionCut to_import_production_cut(const G4ProductionCutsIndex& index)
 {
-    switch (g4_prodcut)
+    switch (index)
     {
         case idxG4GammaCut:
-            return (int)ImportProductionCut::gamma;
+            return ImportProductionCut::gamma;
         case idxG4ElectronCut:
-            return (int)ImportProductionCut::electron;
+            return ImportProductionCut::electron;
         case idxG4PositronCut:
-            return (int)ImportProductionCut::positron;
+            return ImportProductionCut::positron;
         case idxG4ProtonCut:
-            return (int)ImportProductionCut::proton;
+            return ImportProductionCut::proton;
         case NumberOfG4CutIndex:
-            return (int)ImportProductionCut::size;
+            CELER_ASSERT_UNREACHABLE();
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -330,13 +330,14 @@ void store_geometry(TFile*                       root_file,
         // Populate material range and energy cuts
         for (int i : celeritas::range(static_cast<int>(NumberOfG4CutIndex)))
         {
-            const auto      g4i      = static_cast<G4ProductionCutsIndex>(i);
-            const int       import_i = to_import_production_cut(g4i);
-            const real_type cut      = g4prod_cuts->GetProductionCut(g4i);
+            const auto      g4i = static_cast<G4ProductionCutsIndex>(i);
+            const auto      import_index = to_import_production_cut(g4i);
+            const real_type range_cut    = g4prod_cuts->GetProductionCut(g4i);
+            const real_type energy_cut
+                = range_to_e_converters[g4i]->Convert(range_cut, g4material);
 
-            material.range_cuts[import_i] = cut / cm;
-            material.energy_cuts[import_i]
-                = range_to_e_converters[g4i]->Convert(cut, g4material) / MeV;
+            material.range_cuts.insert({import_index, range_cut / cm});
+            material.energy_cuts.insert({import_index, energy_cut / MeV});
         }
 
         // Populate element information for this material
