@@ -29,6 +29,15 @@ enum class ImportMaterialState
     gas
 };
 
+enum class ImportProductionCut
+{
+    gamma,
+    electron,
+    positron,
+    proton,
+    size
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Store data of a given material and its elements.
@@ -37,20 +46,22 @@ enum class ImportMaterialState
  *
  * The data is exported via the app/geant-exporter. For further expanding
  * this struct, add the appropriate variables here and fetch the new values in
- * \c app/geant-exporter.cc : store_geometry(...).
+ * \c app/geant-exporter.cc:store_geometry(...).
  *
  * Units are defined at export time in the aforementioned function.
  */
 struct ImportMaterial
 {
-    std::string                  name;
-    ImportMaterialState          state;
-    real_type                    temperature;            // [K]
-    real_type                    density;                // [g/cm^3]
-    real_type                    electron_density;       // [1/cm^3]
-    real_type                    number_density;         // [1/cm^3]
-    real_type                    radiation_length;       // [cm]
-    real_type                    nuclear_int_length;     // [cm]
+    std::string         name;
+    ImportMaterialState state;
+    real_type           temperature;                                // [K]
+    real_type           density;                                    // [g/cm^3]
+    real_type           electron_density;                           // [1/cm^3]
+    real_type           number_density;                             // [1/cm^3]
+    real_type           radiation_length;                           // [cm]
+    real_type           nuclear_int_length;                         // [cm]
+    real_type           range_cuts[(int)ImportProductionCut::size]; // [cm]
+    real_type           energy_cuts[(int)ImportProductionCut::size]; // [MeV]
     std::map<elem_id, real_type> elements_fractions;     // Mass fractions
     std::map<elem_id, real_type> elements_num_fractions; // Number fractions
 };

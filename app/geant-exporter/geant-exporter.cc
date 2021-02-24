@@ -21,6 +21,11 @@
 #include <G4MaterialTable.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4Transportation.hh>
+#include <G4ProductionCutsTable.hh>
+#include "G4RToEConvForElectron.hh"
+#include "G4RToEConvForGamma.hh"
+#include "G4RToEConvForPositron.hh"
+#include "G4RToEConvForProton.hh"
 
 #include <TFile.h>
 #include <TTree.h>
@@ -50,6 +55,7 @@ using celeritas::ImportElement;
 using celeritas::ImportMaterial;
 using celeritas::ImportMaterialState;
 using celeritas::ImportParticle;
+using celeritas::ImportProductionCut;
 using celeritas::ImportVolume;
 using celeritas::mat_id;
 using celeritas::real_type;
@@ -177,7 +183,7 @@ void store_physics_tables(TFile* root_file, G4ParticleTable* particle_table)
 /*!
  * Recursive loop over all logical volumes.
  *
- * Function called by store_geometry(...)
+ * Function called by \c store_geometry(...) .
  */
 void loop_volumes(GdmlGeometryMap&       geometry,
                   const G4LogicalVolume& logical_volume)
@@ -227,12 +233,35 @@ ImportMaterialState to_material_state(const G4State& g4_material_state)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Safely switch from G4ProductionCutsIndex [G4ProductionCuts.hh] to
+ * the same int value of ImportProductionCut.
+ */
+int to_import_production_cut(const G4ProductionCutsIndex& g4_prodcut)
+{
+    switch (g4_prodcut)
+    {
+        case idxG4GammaCut:
+            return (int)ImportProductionCut::gamma;
+        case idxG4ElectronCut:
+            return (int)ImportProductionCut::electron;
+        case idxG4PositronCut:
+            return (int)ImportProductionCut::positron;
+        case idxG4ProtonCut:
+            return (int)ImportProductionCut::proton;
+        case NumberOfG4CutIndex:
+            return (int)ImportProductionCut::size;
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Write material table data to ROOT.
  *
  * The ROOT file must be open before this call.
  */
 void store_geometry(TFile*                       root_file,
-                    const G4ProductionCutsTable& g4production_cuts,
+                    const G4ProductionCutsTable& g4production_cuts_table,
                     const G4VPhysicalVolume&     world_volume)
 {
     CELER_EXPECT(root_file);
@@ -264,17 +293,26 @@ void store_geometry(TFile*                       root_file,
     }
 
     // Populate global material map
-    for (auto i : celeritas::range(g4production_cuts.GetTableSize()))
+    for (auto i : celeritas::range(g4production_cuts_table.GetTableSize()))
     {
         // Fetch material and element list
-        const auto& g4material_cuts
-            = g4production_cuts.GetMaterialCutsCouple(i);
-        const auto& g4material = g4material_cuts->GetMaterial();
-        const auto& g4elements = g4material->GetElementVector();
+        const auto& g4material_cuts_couple
+            = g4production_cuts_table.GetMaterialCutsCouple(i);
+        const auto& g4material  = g4material_cuts_couple->GetMaterial();
+        const auto& g4elements  = g4material->GetElementVector();
+        const auto& g4prod_cuts = g4material_cuts_couple->GetProductionCuts();
 
-        CELER_ASSERT(g4material_cuts);
+        CELER_ASSERT(g4material_cuts_couple);
         CELER_ASSERT(g4material);
         CELER_ASSERT(g4elements);
+        CELER_ASSERT(g4prod_cuts);
+
+        // Converters for populating material.energy_cuts
+        G4VRangeToEnergyConverter* range_to_e_converters[NumberOfG4CutIndex];
+        range_to_e_converters[idxG4GammaCut]    = new G4RToEConvForGamma();
+        range_to_e_converters[idxG4ElectronCut] = new G4RToEConvForElectron();
+        range_to_e_converters[idxG4PositronCut] = new G4RToEConvForPositron();
+        range_to_e_converters[idxG4ProtonCut]   = new G4RToEConvForProton();
 
         // Populate material information
         ImportMaterial material;
@@ -288,6 +326,18 @@ void store_geometry(TFile*                       root_file,
                                   / (1. / cm3);
         material.radiation_length   = g4material->GetRadlen() / cm;
         material.nuclear_int_length = g4material->GetNuclearInterLength() / cm;
+
+        // Populate material range and energy cuts
+        for (int i : celeritas::range(static_cast<int>(NumberOfG4CutIndex)))
+        {
+            const auto      g4i      = static_cast<G4ProductionCutsIndex>(i);
+            const int       import_i = to_import_production_cut(g4i);
+            const real_type cut      = g4prod_cuts->GetProductionCut(g4i);
+
+            material.range_cuts[import_i] = cut / cm;
+            material.energy_cuts[import_i]
+                = range_to_e_converters[g4i]->Convert(cut, g4material) / MeV;
+        }
 
         // Populate element information for this material
         for (auto j : celeritas::range(g4elements->size()))
@@ -306,9 +356,9 @@ void store_geometry(TFile*                       root_file,
             material.elements_num_fractions.insert({elid, elem_num_fraction});
         }
         // Add material to the global material map
-        geometry.add_material(g4material_cuts->GetIndex(), material);
+        geometry.add_material(g4material_cuts_couple->GetIndex(), material);
     }
-    CELER_LOG(info) << "Added " << g4production_cuts.GetTableSize()
+    CELER_LOG(info) << "Added " << g4production_cuts_table.GetTableSize()
                     << " materials";
 
     // Recursive loop over all logical volumes, starting from the world_volume
