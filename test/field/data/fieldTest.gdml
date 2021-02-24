@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!-- Copyright 2020 UT-Battelle, LLC, and other Celeritas developers. -->
+<!-- See the top-level COPYRIGHT file for details. -->
+<!-- SPDX-License-Identifier: (Apache-2.0 OR MIT) -->
+<!-- \file fieldTest.gdml -->
+<!-- \brief geometry of 6 layers -->
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define>
+    <position name="layer2L" unit="cm" x="0" y="-40" z="0" />
+    <position name="layer1L" unit="cm" x="0" y="-20" z="0" />
+    <position name="layer00" unit="cm" x="0" y="0"   z="0" />
+    <position name="layer1R" unit="cm" x="0" y="20"  z="0" />
+    <position name="layer2R" unit="cm" x="0" y="40"  z="0" />
+  </define>
+
+  <solids>
+    <box lunit="cm" name="WorldBox" x="200" y="400" z="200" />
+    <box lunit="cm" name="LayerBox" x="180" y="10" z="180" />
+  </solids>
+
+  <structure>
+    <volume name="Layer">
+      <solidref ref="LayerBox"/>
+    </volume>
+    <volume name="World">
+      <solidref ref="WorldBox"/>
+      <physvol>
+        <volumeref ref="Layer"/>
+        <positionref ref="layer2L"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="Layer"/>
+        <positionref ref="layer1L"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="Layer"/>
+        <positionref ref="layer00"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="Layer"/>
+        <positionref ref="layer1R"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="Layer"/>
+        <positionref ref="layer2R"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="World"/>
+  </setup>
+
+</gdml>

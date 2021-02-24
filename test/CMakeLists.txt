@@ -233,3 +233,60 @@ if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Field
+
+celeritas_setup_tests(SERIAL PREFIX field)
+
+if(CELERITAS_USE_VecGeom)
+  celeritas_setup_tests(SERIAL PREFIX field LINK_LIBRARIES VecGeom::vecgeom)
+  celeritas_add_test(field/RungeKutta.test.cc GPU)
+  celeritas_add_test(field/FieldIntegrator.test.cc GPU)
+  celeritas_add_test(field/FieldPropagator.test.cc GPU)
+
+  # CUDA tests: link cuda sources as needed
+  if(CELERITAS_USE_CUDA)
+    #  FieldPropagator
+    add_library(celeritas_field_test field/FieldPropagator.test.cu)
+    target_link_libraries(celeritas_field_test
+      PRIVATE
+      celeritas
+      VecGeom::vecgeomcuda
+      VecGeom::vecgeomcuda_static
+    )
+    set_target_properties(celeritas_field_test PROPERTIES
+      LINKER_LANGUAGE CUDA
+      CUDA_SEPARABLE_COMPILATION ON
+      POSITION_INDEPENDENT_CODE ON
+    )
+    target_link_libraries(field_FieldPropagator celeritas_field_test)
+
+    #  FieldIntegrator
+    add_library(celeritas_field_integrator_test field/FieldIntegrator.test.cu)
+    target_link_libraries(celeritas_field_integrator_test
+      PRIVATE
+      celeritas
+    )
+    set_target_properties(celeritas_field_integrator_test PROPERTIES
+      LINKER_LANGUAGE CUDA
+      CUDA_SEPARABLE_COMPILATION ON
+      POSITION_INDEPENDENT_CODE ON
+    )
+    target_link_libraries(field_FieldIntegrator 
+      celeritas_field_integrator_test)
+
+    #  RungeKutta
+    add_library(celeritas_field_rk4_test field/RungeKutta.test.cu)           
+    target_link_libraries(celeritas_field_rk4_test
+      PRIVATE
+      celeritas
+    )
+    set_target_properties(celeritas_field_rk4_test PROPERTIES
+      LINKER_LANGUAGE CUDA
+      CUDA_SEPARABLE_COMPILATION ON
+      POSITION_INDEPENDENT_CODE ON
+    )
+    target_link_libraries(field_RungeKutta celeritas_field_rk4_test)
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------#
