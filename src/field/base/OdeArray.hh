@@ -59,6 +59,13 @@ class OdeArray
         for(auto i : range(ode_dim)) v_[i] = v[i];
     }
 
+    CELER_FUNCTION
+    OdeArray operator=(OdeArray const &v)
+    {
+        for(auto i : range(ode_dim)) v_[i] = v[i];
+        return *this;
+    }
+
     // Access by an index
     CELER_FUNCTION
     real_type &operator[](const size_type i) 
