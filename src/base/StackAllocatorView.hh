@@ -66,9 +66,9 @@ class StackAllocatorView
     //!@{
     //! Type aliases
     using value_type  = T;
-    using size_type   = ull_int;
     using result_type = value_type*;
     using Pointers    = StackAllocatorPointers<T>;
+    using size_type   = typename Pointers::size_type;
     //!@}
 
   public:

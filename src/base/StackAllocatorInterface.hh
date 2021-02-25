@@ -22,7 +22,7 @@ struct StackAllocatorPointers
 {
     //!@{
     //! Type aliases
-    using size_type  = ull_int;
+    using size_type  = unsigned int;
     using value_type = T;
     //!@}
 
