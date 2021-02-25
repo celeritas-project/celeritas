@@ -41,14 +41,11 @@ class FieldTrackView
 
   public:
     // Construct from GeoTrackView and ParticleTrackView
-    inline CELER_FUNCTION
-    FieldTrackView(const GeoTrackView&      gt_view,
-                   const ParticleTrackView& pt_view);
-
+    inline CELER_FUNCTION FieldTrackView(const GeoTrackView&      gt_view,
+                                         const ParticleTrackView& pt_view);
 
     // Copy Construct
-    inline CELER_FUNCTION 
-    FieldTrackView(const FieldTrackView& other) = default;
+    inline CELER_FUNCTION FieldTrackView(const FieldTrackView& other) = default;
 
     //@{
     //! Accessors
@@ -61,7 +58,7 @@ class FieldTrackView
     //@{
     //! Modifiers via non-const references
     CELER_FUNCTION real_type& h() { return h_; }
-    CELER_FUNCTION ode_type&  y() { return y_; }
+    CELER_FUNCTION ode_type& y() { return y_; }
     CELER_FUNCTION real_type& safety() { return safety_; }
     CELER_FUNCTION vec3_type& origin() { return origin_; }
     //@}
@@ -69,7 +66,7 @@ class FieldTrackView
     /// STATIC PROPERTIES
 
     // Rest mass [MeV/c^2]
-    CELER_FUNCTION units::MevMass mass() const { return m_; } ;
+    CELER_FUNCTION units::MevMass mass() const { return m_; };
 
     // Charge [elemental charge e+]
     CELER_FUNCTION units::ElementaryCharge charge() const { return q_; };
@@ -84,21 +81,21 @@ class FieldTrackView
                                                vec3_type dir,
                                                real_type step);
 
-    // Update navigation and field states after a geometry limited step  
+    // Update navigation and field states after a geometry limited step
     CELER_FUNCTION void update_vgstates();
 
   private:
     //@{
     //! thread-local data
-    units::MevMass                 m_; //!< mass
-    units::ElementaryCharge        q_; //!< charge
-    real_type                      h_; //!< step length
-    ode_type                       y_; //!< position and momentum
-    real_type                 safety_; //!< current safety
-    vec3_type                 origin_; //!< origin of safety
-    NaviState&               vgstate_; //!< vecgeom navigation state
-    NaviState&                vgnext_; //!< vecgeom next navigation state
-    const Navigator*       navigator_; //!< vecgeom navigator
+    units::MevMass          m_;         //!< mass
+    units::ElementaryCharge q_;         //!< charge
+    real_type               h_;         //!< step length
+    ode_type                y_;         //!< position and momentum
+    real_type               safety_;    //!< current safety
+    vec3_type               origin_;    //!< origin of safety
+    NaviState&              vgstate_;   //!< vecgeom navigation state
+    NaviState&              vgnext_;    //!< vecgeom next navigation state
+    const Navigator*        navigator_; //!< vecgeom navigator
     //@}
 };
 

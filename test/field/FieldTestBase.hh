@@ -32,11 +32,11 @@ class FieldTestBase : public Test
   public:
     using NavState = vecgeom::cxx::NavigationState;
 
-    void SetUp() 
+    void SetUp()
     {
         // Set up shared geometry data
         std::string gdml_file
-	= celeritas::Test::test_data_path("field", "fieldTest.gdml");
+            = celeritas::Test::test_data_path("field", "fieldTest.gdml");
         geo_params = std::make_shared<GeoParams>(gdml_file.c_str());
 
         int max_depth = geo_params->max_depth();
@@ -45,8 +45,8 @@ class FieldTestBase : public Test
 
         geo_state_view.size       = 1;
         geo_state_view.vgmaxdepth = max_depth;
-	geo_state_view.pos        = &this->pos;
-	geo_state_view.dir        = &this->dir;
+        geo_state_view.pos        = &this->pos;
+        geo_state_view.dir        = &this->dir;
         geo_state_view.next_step  = &this->next_step;
         geo_state_view.vgstate    = this->state.get();
         geo_state_view.vgnext     = this->next_state.get();
@@ -56,44 +56,49 @@ class FieldTestBase : public Test
         CELER_ASSERT(geo_params_view.world_volume);
 
         // Set up shared particle data
-	constexpr auto stable = ParticleDef::stable_decay_constant();
+        constexpr auto stable = ParticleDef::stable_decay_constant();
 
-	ParticleParams::Input defs;
-	defs.push_back({"electron", pdg::electron(),
-		MevMass{0.5109989461}, ElementaryCharge{-1}, stable});
-	defs.push_back({"positron", pdg::positron(),
-		MevMass{0.5109989461}, ElementaryCharge{1}, stable});
+        ParticleParams::Input defs;
+        defs.push_back({"electron",
+                        pdg::electron(),
+                        MevMass{0.5109989461},
+                        ElementaryCharge{-1},
+                        stable});
+        defs.push_back({"positron",
+                        pdg::positron(),
+                        MevMass{0.5109989461},
+                        ElementaryCharge{1},
+                        stable});
 
-	particle_params
-	  = std::make_shared<ParticleParams>(std::move(defs));
+        particle_params = std::make_shared<ParticleParams>(std::move(defs));
 
         // Construct particle parameter views
         resize(&state_value, particle_params->host_pointers(), 1);
         state_ref = state_value;
 
-	// Set values of FieldParamsPointers;
-	field_params_view.delta_chord           = 0.25;
+        // Set values of FieldParamsPointers;
+        field_params_view.delta_chord           = 0.25;
         field_params_view.delta_intersection    = 1.0e-4;
-	field_params_view.epsilon_step          = 1.0e-5;
-	field_params_view.minimun_step          = 1.0e-5;
-	field_params_view.safety                = 0.9;
-	field_params_view.pgrow                 = -0.20;
-	field_params_view.pshrink               = -0.25;
-	field_params_view.errcon                = 1.0e-4;
-	field_params_view.max_stepping_increase = 5; 
-	field_params_view.max_stepping_decrease = 0.1; 
-        field_params_view.max_nsteps            = 100; 
+        field_params_view.epsilon_step          = 1.0e-5;
+        field_params_view.minimun_step          = 1.0e-5;
+        field_params_view.safety                = 0.9;
+        field_params_view.pgrow                 = -0.20;
+        field_params_view.pshrink               = -0.25;
+        field_params_view.errcon                = 1.0e-4;
+        field_params_view.max_stepping_increase = 5;
+        field_params_view.max_stepping_decrease = 0.1;
+        field_params_view.max_nsteps            = 100;
 
         // Input parameters of an electron in a uniform magnetic field
-	// XXX: make this as an input argument with v
-        test_params.nstates      = 32*32;
-        test_params.nsteps       = 12;
-        test_params.revolutions  = 10;
-        test_params.field_value  = 0.001;
-        test_params.radius       = 38.085386;
-        test_params.energy       = 10.9181415106;
-        test_params.momentum     = 11.417711;
-        test_params.epsilon      = 1.0e-5;   
+        // XXX: make this as an input argument with v
+        test_params.nstates     = 32 * 32;
+        test_params.nsteps      = 12;
+        test_params.revolutions = 10;
+        test_params.field_value = 0.001;
+        test_params.radius      = 38.085386;
+        test_params.energy      = 10.9181415106;
+        test_params.momentum    = 11.417711;
+        test_params.epsilon     = 1.0e-5;
     }
 
   protected:
@@ -104,15 +109,15 @@ class FieldTestBase : public Test
     std::unique_ptr<NavState> state;
     std::unique_ptr<NavState> next_state;
 
-    std::shared_ptr<GeoParams> geo_params;
+    std::shared_ptr<GeoParams>      geo_params;
     std::shared_ptr<ParticleParams> particle_params;
 
     ParticleStateData<Ownership::value, MemSpace::host>     state_value;
     ParticleStateData<Ownership::reference, MemSpace::host> state_ref;
 
     // Views
-    GeoParamsPointers geo_params_view;
-    GeoStatePointers  geo_state_view;
+    GeoParamsPointers   geo_params_view;
+    GeoStatePointers    geo_state_view;
     FieldParamsPointers field_params_view;
 
     // Test parameters

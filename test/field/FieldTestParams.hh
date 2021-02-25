@@ -28,6 +28,6 @@ struct FieldTestParams
     real_type momentum;
     real_type epsilon;
 };
- 
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

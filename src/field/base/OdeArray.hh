@@ -19,88 +19,91 @@ namespace celeritas
 /*!
  * A state array of the equation of motion: pos = v_[0-2], mom = v_[3-5]
  *
- * XXX TODO: extend this to include time and spin or to template with a 
+ * XXX TODO: extend this to include time and spin or to template with a
  * variable ode_dim and array type
  */
 
-class OdeArray 
+class OdeArray
 {
-  static constexpr size_type ode_dim  = 6;
-  using  ode_type = Array<real_type, ode_dim>;
+    static constexpr size_type ode_dim = 6;
+    using ode_type                     = Array<real_type, ode_dim>;
 
   private:
     ode_type v_;
 
   public:
-
     // Constructors
     CELER_FUNCTION
     OdeArray()
     {
-        for(auto i : range(ode_dim)) v_[i] = 0;
+        for (auto i : range(ode_dim))
+            v_[i] = 0;
     }
 
     CELER_FUNCTION
     OdeArray(const real_type c)
     {
-        for(auto i : range(ode_dim)) v_[i] = c;
+        for (auto i : range(ode_dim))
+            v_[i] = c;
     }
 
     CELER_FUNCTION
     OdeArray(const ode_type v)
     {
-        for(auto i : range(ode_dim)) v_[i] = v[i];
+        for (auto i : range(ode_dim))
+            v_[i] = v[i];
     }
 
     // Copy constructor
     CELER_FUNCTION
-    OdeArray(OdeArray const &v)
+    OdeArray(OdeArray const& v)
     {
-        for(auto i : range(ode_dim)) v_[i] = v[i];
+        for (auto i : range(ode_dim))
+            v_[i] = v[i];
     }
 
-    // Assignment operator 
+    // Assignment operator
     CELER_FUNCTION
-    OdeArray operator=(OdeArray const &v)
+    OdeArray operator=(OdeArray const& v)
     {
-        for(auto i : range(ode_dim)) v_[i] = v[i];
+        for (auto i : range(ode_dim))
+            v_[i] = v[i];
         return *this;
     }
 
     // Access by an index
     CELER_FUNCTION
-    real_type &operator[](const size_type i) 
-    { 
-       CELER_ASSERT(i < ode_dim);
-       return v_[i]; 
+    real_type& operator[](const size_type i)
+    {
+        CELER_ASSERT(i < ode_dim);
+        return v_[i];
     }
 
     CELER_FUNCTION
-    real_type const &operator[](const size_type i) const 
-    { 
-       CELER_ASSERT(i < ode_dim);
-       return v_[i]; 
+    real_type const& operator[](const size_type i) const
+    {
+        CELER_ASSERT(i < ode_dim);
+        return v_[i];
     }
 
     CELER_FUNCTION
-    ode_type get() const 
-    { 
-       return v_; 
-    }
+    ode_type get() const { return v_; }
 
     // Inplace binary operators
-#define INPLACE_BINARY_OP(OPERATOR)                         \
-    CELER_FUNCTION                                          \
-    OdeArray &operator OPERATOR(const OdeArray &rhs)        \
-    {                                                       \
-        for(auto i : range(ode_dim)) v_[i] OPERATOR rhs[i]; \
-        return *this;                                       \
-    }                                                       \
-    CELER_FUNCTION                                          \
-    OdeArray &operator OPERATOR(const real_type &c)         \
-    {                                                       \
-        for(auto i : range(ode_dim)) v_[i] OPERATOR c;      \
-        return *this;                                       \
+#define INPLACE_BINARY_OP(OPERATOR)                  \
+    CELER_FUNCTION                                   \
+    OdeArray& operator OPERATOR(const OdeArray& rhs) \
+    {                                                \
+        for (auto i : range(ode_dim))                \
+            v_[i] OPERATOR rhs[i];                   \
+        return *this;                                \
+    }                                                \
+    CELER_FUNCTION                                   \
+    OdeArray& operator OPERATOR(const real_type& c)  \
+    {                                                \
+        for (auto i : range(ode_dim))                \
+            v_[i] OPERATOR c;                        \
+        return *this;                                \
     }
     INPLACE_BINARY_OP(+=)
     INPLACE_BINARY_OP(-=)
@@ -116,81 +119,79 @@ class OdeArray
     const Real3 momentum() const { return {v_[3], v_[4], v_[5]}; }
 
     CELER_FUNCTION
-    real_type position_square() const 
-    { 
-       return v_[0]*v_[0] + v_[1]*v_[1] + v_[2]*v_[2]; 
+    real_type position_square() const
+    {
+        return v_[0] * v_[0] + v_[1] * v_[1] + v_[2] * v_[2];
     }
 
     CELER_FUNCTION
-    real_type distance_square(const OdeArray& y) const 
-    { 
-      return (v_[0]-y[0])*(v_[0]-y[0])
-            +(v_[1]-y[1])*(v_[1]-y[1])
-   	    +(v_[2]-y[2])*(v_[2]-y[2]);
+    real_type distance_square(const OdeArray& y) const
+    {
+        return (v_[0] - y[0]) * (v_[0] - y[0]) + (v_[1] - y[1]) * (v_[1] - y[1])
+               + (v_[2] - y[2]) * (v_[2] - y[2]);
     }
 
     CELER_FUNCTION
-    real_type distance_closest(const OdeArray& y1, 
-                               const OdeArray& y2) const 
-    { 
-      real_type d2y1  = (*this).distance_square(y1);
-      real_type d2y2  = (*this).distance_square(y2);
-      return sqrt(d2y1*d2y2/(d2y1+d2y2)); 
+    real_type distance_closest(const OdeArray& y1, const OdeArray& y2) const
+    {
+        real_type d2y1 = (*this).distance_square(y1);
+        real_type d2y2 = (*this).distance_square(y2);
+        return sqrt(d2y1 * d2y2 / (d2y1 + d2y2));
     }
 
     CELER_FUNCTION
-    real_type momentum_square() const 
-    { 
-       return v_[3]*v_[3] + v_[4]*v_[4] + v_[5]*v_[5]; 
+    real_type momentum_square() const
+    {
+        return v_[3] * v_[3] + v_[4] * v_[4] + v_[5] * v_[5];
     }
 
     CELER_FUNCTION
-    real_type momentum_mag() const 
-    { 
-        return sqrt(v_[3]*v_[3] + v_[4]*v_[4] + v_[5]*v_[5]); 
+    real_type momentum_mag() const
+    {
+        return sqrt(v_[3] * v_[3] + v_[4] * v_[4] + v_[5] * v_[5]);
     }
 
     CELER_FUNCTION
-    real_type momentum_inv() const 
-    { 
-        real_type mom = momentum_mag(); 
-        CELER_ASSERT(mom > 0);   
-        return 1.0/mom;
+    real_type momentum_inv() const
+    {
+        real_type mom = momentum_mag();
+        CELER_ASSERT(mom > 0);
+        return 1.0 / mom;
     }
 };
 
 #define ODE_BINARY_OP(OPERATOR, ASSIGNMENT)                              \
     CELER_FUNCTION                                                       \
-    OdeArray operator OPERATOR(const OdeArray &lhs, const OdeArray &rhs) \
+    OdeArray operator OPERATOR(const OdeArray& lhs, const OdeArray& rhs) \
     {                                                                    \
         OdeArray result(lhs);                                            \
         result ASSIGNMENT rhs;                                           \
         return result;                                                   \
     }                                                                    \
     CELER_FUNCTION                                                       \
-    OdeArray operator OPERATOR(OdeArray const &lhs, const real_type rhs) \
+    OdeArray operator OPERATOR(OdeArray const& lhs, const real_type rhs) \
     {                                                                    \
         OdeArray result(lhs);                                            \
         result ASSIGNMENT rhs;                                           \
         return result;                                                   \
     }                                                                    \
     CELER_FUNCTION                                                       \
-    OdeArray operator OPERATOR(const real_type lhs, OdeArray const &rhs) \
+    OdeArray operator OPERATOR(const real_type lhs, OdeArray const& rhs) \
     {                                                                    \
         OdeArray result(rhs);                                            \
         result ASSIGNMENT lhs;                                           \
         return result;                                                   \
     }
-    ODE_BINARY_OP(+, +=)
-    ODE_BINARY_OP(-, -=)
-    ODE_BINARY_OP(*, *=)
-    ODE_BINARY_OP(/, /=)
+ODE_BINARY_OP(+, +=)
+ODE_BINARY_OP(-, -=)
+ODE_BINARY_OP(*, *=)
+ODE_BINARY_OP(/, /=)
 #undef ODE_BINARY_OP
 
-    OdeArray operator-(OdeArray const &rhs)
-    {
-        return -1.0 * rhs;
-    }
+OdeArray operator-(OdeArray const& rhs)
+{
+    return -1.0 * rhs;
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -12,10 +12,9 @@ namespace celeritas
 /*!
  * Construct with the equation of motion.
  */
-template <typename T>
-CELER_FUNCTION
-FieldStepper<T>::FieldStepper(FieldEquation& equation)
-  : equation_(equation)
+template<typename T>
+CELER_FUNCTION FieldStepper<T>::FieldStepper(FieldEquation& equation)
+    : equation_(equation)
 {
 }
 
@@ -23,25 +22,25 @@ FieldStepper<T>::FieldStepper(FieldEquation& equation)
 /*!
  * Adaptive step size control
  */
-template <typename T>
+template<typename T>
 real_type FieldStepper<T>::stepper(real_type       hstep,
                                    const ode_type  y,
-			  	   const ode_type& dydx,
-				   ode_type&       yout)
+                                   const ode_type& dydx,
+                                   ode_type&       yout)
 {
     // Do two half steps
-    ode_stepper(0.5*hstep, y, dydx, ymid);
-    equation_(ymid, dydxmid);    
-    ode_stepper(0.5*hstep, ymid, dydxmid, yout); 
+    ode_stepper(0.5 * hstep, y, dydx, ymid);
+    equation_(ymid, dydxmid);
+    ode_stepper(0.5 * hstep, ymid, dydxmid, yout);
 
     // Do a full step
     ode_stepper(hstep, y, dydx, yt);
 
     // Stepper error: difference between the full step and two half steps
-    ode_type yerr =  yout - yt;
+    ode_type yerr = yout - yt;
 
     // Output correction with the 4th order coefficient (1/15)
-    yout += yerr/15.;
+    yout += yerr / 15.;
 
     // Evaluate tolerance and squre of the position accuracy
     real_type eps_pos = eps_rel_max() * hstep;
@@ -53,23 +52,22 @@ real_type FieldStepper<T>::stepper(real_type       hstep,
 
     // Evaluate tolerance and squre of the momentum accuracy
     real_type magvel2 = y.momentum_square();
-    real_type errvel2 = yerr.momentum_square(); 
+    real_type errvel2 = yerr.momentum_square();
 
     CELER_ASSERT(magvel2 > 0.0);
-    errvel2 /= (magvel2 * eps_rel_max() * eps_rel_max()); 
+    errvel2 /= (magvel2 * eps_rel_max() * eps_rel_max());
 
     // Return the square of the maximum truncation error
-    return std::fmax(errpos2, errvel2); 
+    return std::fmax(errpos2, errvel2);
 }
 
-template <typename T>
-real_type FieldStepper<T>::distance_chord(const ode_type y, 
-                                          const ode_type yout)
+template<typename T>
+real_type FieldStepper<T>::distance_chord(const ode_type y, const ode_type yout)
 {
-  return ymid.distance_closest(y,yout);
+    return ymid.distance_closest(y, yout);
 }
 
-template <typename T>
+template<typename T>
 void FieldStepper<T>::ode_rhs(ode_type y, ode_type& yout)
 {
     equation_(y, yout);

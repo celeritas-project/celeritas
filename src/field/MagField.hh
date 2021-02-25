@@ -16,8 +16,8 @@ namespace celeritas
 /*!
  * The MagField evaluates the magnetic field value at a given position.
  * Support: 1) a constant magnetic field
- *          2) a user defined field (e.g.: field map or parameterized field) 
- *             along with MagFieldPointers and MagFieldStore: XXX TODO 
+ *          2) a user defined field (e.g.: field map or parameterized field)
+ *             along with MagFieldPointers and MagFieldStore: XXX TODO
  */
 class MagField
 {
@@ -35,10 +35,8 @@ class MagField
     CELER_FUNCTION field_value operator()();
 
   private:
-
     //! Shared/persistent field data
     field_value value_;
-
 };
 
 //---------------------------------------------------------------------------//

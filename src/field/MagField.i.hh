@@ -13,10 +13,7 @@ namespace celeritas
  * Construct from a uniform magnetic field
  */
 CELER_FUNCTION
-MagField::MagField(const field_value& value)
-  : value_(value)
-{
-}
+MagField::MagField(const field_value& value) : value_(value) {}
 
 //---------------------------------------------------------------------------//
 /*!

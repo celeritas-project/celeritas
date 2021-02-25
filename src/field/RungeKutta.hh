@@ -22,7 +22,7 @@ namespace celeritas
  */
 class RungeKutta : public FieldStepper<RungeKutta>
 {
-  using ode_type = OdeArray;
+    using ode_type = OdeArray;
 
   public:
     // Construct with the equation of motion
@@ -31,8 +31,8 @@ class RungeKutta : public FieldStepper<RungeKutta>
     // Mandatory method - static inheritance
     CELER_FUNCTION void ode_stepper(real_type       h,
                                     const ode_type  y,
-	  	                    const ode_type& dydx,
-		                    ode_type&       yout);
+                                    const ode_type& dydx,
+                                    ode_type&       yout);
 
   private:
     // The base class is a friend of this

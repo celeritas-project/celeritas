@@ -29,7 +29,7 @@ struct FDTestOutput
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 FDTestOutput integrator_test(const celeritas::FieldParamsPointers& fd_ptr,
-                             FieldTestParams tp);
+                             FieldTestParams                       tp);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

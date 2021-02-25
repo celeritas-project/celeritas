@@ -32,16 +32,15 @@ using ParticleStatePointers
 struct FPTestInput
 {
     std::vector<GeoStateInitializer> init_geo;
-    GeoParamsPointers        geo_params;
-    GeoStatePointers         geo_states;
+    GeoParamsPointers                geo_params;
+    GeoStatePointers                 geo_states;
 
     std::vector<ParticleTrackState> init_track;
     ParticleParamsPointers          particle_params;
     ParticleStatePointers           particle_states;
 
-    FieldParamsPointers          field_params;
-    FieldTestParams              test_params;
-
+    FieldParamsPointers field_params;
+    FieldTestParams     test_params;
 };
 
 //---------------------------------------------------------------------------//

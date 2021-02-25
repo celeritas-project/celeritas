@@ -19,7 +19,7 @@ namespace celeritas_test
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 
-#ifdef CELERITAS_USE_CUDA                                                     
+#ifdef CELERITAS_USE_CUDA
 //---------------------------------------------------------------------------//
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
@@ -35,7 +35,7 @@ struct RK4TestOutput
 //! Run on device and return results
 RK4TestOutput rk4_test(FieldTestParams test_param);
 
-#endif   
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

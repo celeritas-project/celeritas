@@ -19,7 +19,7 @@ namespace celeritas
 struct FieldParamsPointers
 {
     //! accuracy for integration of one step = 0.01 mm
-  //    real_type delta_one_step;
+    //    real_type delta_one_step;
 
     //! the closest miss distrance = 0.25 mm
     real_type delta_chord;
@@ -36,23 +36,23 @@ struct FieldParamsPointers
     //! safety = 0.9
     real_type safety;
 
-    //! pgrow = -0.20 
+    //! pgrow = -0.20
     real_type pgrow;
 
     //! pshrink = -0.25
     real_type pshrink;
 
-    //! errcon = 1.0e-4 
+    //! errcon = 1.0e-4
     real_type errcon;
 
     //! max_stepping_increase = 5
-    real_type max_stepping_increase; 
+    real_type max_stepping_increase;
 
     //! max_stepping_increase = 0.1
-    real_type max_stepping_decrease; 
+    real_type max_stepping_decrease;
 
     //! max_nsteps = 100
-    size_type max_nsteps; 
+    size_type max_nsteps;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const

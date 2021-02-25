@@ -38,9 +38,8 @@ class FieldEquation
     CELER_FUNCTION void operator()(const ode_type y, ode_type& dydx) const;
 
     // evaluate the right hand side for a given B
-    CELER_FUNCTION void evaluate_rhs(const Real3 B,
-                                     const ode_type y,
-                                     ode_type& dydx) const;
+    CELER_FUNCTION void
+    evaluate_rhs(const Real3 B, const ode_type y, ode_type& dydx) const;
 
   private:
     real_type charge_;
