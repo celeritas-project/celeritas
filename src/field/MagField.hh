@@ -34,6 +34,9 @@ class MagField
     // return a uniform magnetic field value
     CELER_FUNCTION field_value operator()();
 
+    // return a magnetic field value at a given position
+    CELER_FUNCTION field_value operator()(const Real3 position);
+
   private:
     //! Shared/persistent field data
     field_value value_;
