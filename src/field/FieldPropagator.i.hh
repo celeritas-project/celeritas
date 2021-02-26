@@ -98,8 +98,8 @@ bool FieldPropagator::find_intersect_point(FieldTrackView& view,
 
     vec3_type start_position = detail::to_vector(y_start.position());
 
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(shared_.max_nsteps))
-    {
+    unsigned int step_countdown = shared_.max_nsteps;
+    do {
         ode_type yt = y_start;
 
         real_type hstep = integrator_.advance_chord_limited(trial_step, yt);
@@ -110,14 +110,20 @@ bool FieldPropagator::find_intersect_point(FieldTrackView& view,
         real_type delta
             = (detail::to_vector(yt.position()) - intersect_point).Mag();
 
-        if (delta < shared_.delta_intersection)
+        is_found = (delta < shared_.delta_intersection);
+
+        if (is_found)
         {
-            is_found = true;
             y_end    = yt;
-            break;
         }
         else
         {
+   	    if (CELER_UNLIKELY(--step_countdown == 0))
+	    {
+	        // Failed to converge, handle rare cases here
+	        break;
+	    }
+
             // Estimate a new trial step with the new position at yt
             real_type new_scale{1.0};
 
@@ -129,8 +135,7 @@ bool FieldPropagator::find_intersect_point(FieldTrackView& view,
 
             trial_step *= new_scale;
         }
-    }
-    //! XXX loop check
+    } while (!is_found);
 
     return is_found;
 }
