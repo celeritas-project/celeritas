@@ -18,9 +18,6 @@ namespace celeritas
  */
 struct FieldParamsPointers
 {
-    //! accuracy for integration of one step = 0.01 mm
-    //    real_type delta_one_step;
-
     //! the closest miss distrance = 0.25 mm
     real_type delta_chord;
 
@@ -30,8 +27,8 @@ struct FieldParamsPointers
     //! the relative error = 1.0e-5
     real_type epsilon_step;
 
-    //! min step size = 1.0e-5
-    real_type minimun_step;
+    //! minimum step size = 1.0e-5
+    real_type minimum_step;
 
     //! safety = 0.9
     real_type safety;
@@ -61,7 +58,7 @@ struct FieldParamsPointers
         return    delta_chord 
                && delta_intersection 
                && epsilon_step 
-               && minimun_step 
+               && minimum_step 
                && safety 
                && pgrow 
                && pshrink 

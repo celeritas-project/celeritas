@@ -80,7 +80,7 @@ class FieldTestBase : public Test
         field_params_view.delta_chord           = 0.25;
         field_params_view.delta_intersection    = 1.0e-4;
         field_params_view.epsilon_step          = 1.0e-5;
-        field_params_view.minimun_step          = 1.0e-5;
+        field_params_view.minimum_step          = 1.0e-5;
         field_params_view.safety                = 0.9;
         field_params_view.pgrow                 = -0.20;
         field_params_view.pshrink               = -0.25;

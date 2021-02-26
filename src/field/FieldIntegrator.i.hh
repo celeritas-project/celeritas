@@ -183,7 +183,7 @@ CELER_FUNCTION bool FieldIntegrator::accurate_advance(real_type  hstep,
         ode_type dydx;
         stepper_.ode_rhs(y, dydx);
 
-        if (h > shared_.minimun_step)
+        if (h > shared_.minimum_step)
         {
             hdid = one_good_step(h, y, dydx, hnext);
         }
@@ -207,7 +207,7 @@ CELER_FUNCTION bool FieldIntegrator::accurate_advance(real_type  hstep,
             break;
         }
 
-        h = std::fmax(hnext, shared_.minimun_step);
+        h = std::fmax(hnext, shared_.minimum_step);
         if (curve_length + h > end_curve_length)
         {
             h = end_curve_length - curve_length;
