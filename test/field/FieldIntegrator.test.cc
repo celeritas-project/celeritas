@@ -49,7 +49,9 @@ TEST_F(FieldIntegratorTest, field_integrator_host)
     FieldIntegrator integrator(field_params_view, rk4);
 
     // Initial state and the epected state after revolutions
-    OdeArray y({test_params.radius, 0, 0, 0, test_params.momentum, 0});
+    OdeArray y;
+    y[0]        = test_params.radius;
+    y[4]        = test_params.momentum;
     OdeArray yo = y;
 
     // The rhs of the equation and a temporary array

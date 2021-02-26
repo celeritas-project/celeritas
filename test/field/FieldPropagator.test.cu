@@ -93,17 +93,6 @@ __global__ void fp_test_kernel(const int                  size,
     step[tid.get()] = curved_length;
     pos[tid.get()]  = field_view.y()[0];
     mom[tid.get()]  = field_view.y()[4];
-
-    // Tests with input steps from 1.0e-5 to 1.0e+5
-    /*
-    field_view.h() = 1.0e-6;
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(11))
-    {
-        field_view.h() *= 10.;
-        real_type h = propagator(field_view);
-        REQUIRE(h == field_view.h());
-    }
-    */
 }
 
 //---------------------------------------------------------------------------//

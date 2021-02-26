@@ -64,7 +64,10 @@ TEST_F(FieldPropagatorHostTest, field_propagator_test_host)
     FieldPropagator propagator(field_params_view, integrator);
 
     // Initial state and the expected state after revolutions
-    OdeArray yo({test_params.radius, -100, 0, 0, test_params.momentum, 0});
+    OdeArray yo;
+    yo[0] = test_params.radius;
+    yo[1] = -100;
+    yo[4] = test_params.momentum;
 
     // Test parameters and the sub-step size
     double hstep = (2.0 * constants::pi * test_params.radius)
@@ -103,17 +106,6 @@ TEST_F(FieldPropagatorHostTest, field_propagator_test_host)
             EXPECT_DOUBLE_EQ(y_cross[i], field_view_0.y()[1]);
         }
     }
-
-    // Tests with input steps from 1.0e-5 to 1.0e+5
-    /*
-    field_view.h() = 1.0e-6;
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(11))
-    {
-        field_view.h() *= 10.;
-        real_type h = propagator(field_view);
-        EXPECT_DOUBLE_EQ(h, field_view.h());
-    }
-    */
 }
 
 #if CELERITAS_USE_CUDA

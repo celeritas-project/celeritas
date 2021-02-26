@@ -47,7 +47,9 @@ __global__ void integrator_test_kernel(const FieldParamsPointers pointers,
     FieldIntegrator integrator(pointers, rk4);
 
     // Initial state and the epected state after revolutions
-    OdeArray y({test_params.radius, 0, 0, 0, test_params.momentum, 0});
+    OdeArray y;
+    y[0] = test_params.radius;
+    y[4] = test_params.momentum;
 
     // The rhs of the equation and a temporary array
     OdeArray dydx;

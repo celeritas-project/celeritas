@@ -81,10 +81,13 @@ TEST_F(RungeKuttaTest, rk4_host)
     // Test parameters and the sub-step size
     real_type hstep = 2.0 * constants::pi * params.radius / params.nsteps;
 
-    for (auto i : celeritas::range(params.nstates))
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(params.nstates))
     {
         // Initial state and the epected state after revolutions
-        OdeArray y({params.radius, 0, i * 1.0e-6, 0, params.momentum, 0});
+        OdeArray y;
+        y[0] = params.radius;
+        y[4] = params.momentum;
+
         OdeArray expected_y = y;
 
         // The rhs of the equation and a temporary array

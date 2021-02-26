@@ -42,7 +42,10 @@ __global__ void rk4_test_kernel(FieldTestParams param,
     RungeKutta    rk4(equation);
 
     // Initial state and the epected state after revolutions
-    OdeArray y({param.radius, 0, tid.get() * 1.0e-6, 0, param.momentum, 0});
+    OdeArray y;
+    y[0] = param.radius;
+    y[2] = tid.get() * 1.0e-6; //!< XXX use random position here
+    y[4] = param.momentum;
 
     // The rhs of the equation and a temporary array
     OdeArray dydx;
