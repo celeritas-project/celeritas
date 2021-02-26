@@ -17,9 +17,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * The base class of Runga-Kutta family steppers
  *
- * This is the base class of field steppers
+ * \tparam T A derived class.
  */
 template<typename T>
 class FieldStepper
