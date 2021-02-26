@@ -40,20 +40,6 @@ class OdeArray
             v_[i] = 0;
     }
 
-    CELER_FUNCTION
-    OdeArray(const real_type c)
-    {
-        for (auto i : range(ode_dim))
-            v_[i] = c;
-    }
-
-    CELER_FUNCTION
-    OdeArray(const ode_type v)
-    {
-        for (auto i : range(ode_dim))
-            v_[i] = v[i];
-    }
-
     // Copy constructor
     CELER_FUNCTION
     OdeArray(OdeArray const& v)
@@ -97,7 +83,15 @@ class OdeArray
         for (auto i : range(ode_dim))                \
             v_[i] OPERATOR rhs[i];                   \
         return *this;                                \
-    }                                                \
+    }                                                
+    INPLACE_BINARY_OP(+=)
+    INPLACE_BINARY_OP(-=)
+    INPLACE_BINARY_OP(*=)
+    INPLACE_BINARY_OP(/=)
+#undef INPLACE_BINARY_OP
+
+    // Inplace binary operators
+#define INPLACE_SCALAR_OP(OPERATOR)                  \
     CELER_FUNCTION                                   \
     OdeArray& operator OPERATOR(const real_type& c)  \
     {                                                \
@@ -105,11 +99,9 @@ class OdeArray
             v_[i] OPERATOR c;                        \
         return *this;                                \
     }
-    INPLACE_BINARY_OP(+=)
-    INPLACE_BINARY_OP(-=)
-    INPLACE_BINARY_OP(*=)
-    INPLACE_BINARY_OP(/=)
-#undef INPLACE_BINARY_OP
+    INPLACE_SCALAR_OP(*=)
+    INPLACE_SCALAR_OP(/=)
+#undef INPLACE_SCALAR_OP
 
     // Derived accessors
     CELER_FUNCTION
@@ -167,7 +159,14 @@ class OdeArray
         OdeArray result(lhs);                                            \
         result ASSIGNMENT rhs;                                           \
         return result;                                                   \
-    }                                                                    \
+    }                                                                    
+ODE_BINARY_OP(+, +=)
+ODE_BINARY_OP(-, -=)
+ODE_BINARY_OP(*, *=)
+ODE_BINARY_OP(/, /=)
+#undef ODE_BINARY_OP
+
+#define ODE_SCALAR_OP(OPERATOR, ASSIGNMENT)                              \
     CELER_FUNCTION                                                       \
     OdeArray operator OPERATOR(OdeArray const& lhs, const real_type rhs) \
     {                                                                    \
@@ -182,11 +181,9 @@ class OdeArray
         result ASSIGNMENT lhs;                                           \
         return result;                                                   \
     }
-ODE_BINARY_OP(+, +=)
-ODE_BINARY_OP(-, -=)
-ODE_BINARY_OP(*, *=)
-ODE_BINARY_OP(/, /=)
-#undef ODE_BINARY_OP
+ODE_SCALAR_OP(*, *=)
+ODE_SCALAR_OP(/, /=)
+#undef ODE_SCALAR_OP
 
 OdeArray operator-(OdeArray const& rhs)
 {
