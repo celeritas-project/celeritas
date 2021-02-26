@@ -31,7 +31,7 @@ real_type FieldIntegrator::advance_chord_limited(real_type hstep, ode_type& y)
     real_type curve_length = 0;
 
     real_type dyerr;
-    real_type h = find_next_chord(hstep, y, yend, dyerr);
+    real_type h = this->find_next_chord(hstep, y, yend, dyerr);
 
     // evaluate a relative error
     real_type ratio = dyerr / (shared_.epsilon_step * h);
@@ -44,10 +44,10 @@ real_type FieldIntegrator::advance_chord_limited(real_type hstep, ode_type& y)
     else
     {
         // Compute the hnext for accuracy_advance
-        real_type hnext = new_step_size(h, ratio);
+        real_type hnext = this->new_step_size(h, ratio);
 
         // Advance more accurately to the "end of chord"
-        bool is_good = accurate_advance(h, y, curve_length, hnext);
+        bool is_good = this->accurate_advance(h, y, curve_length, hnext);
         if (!is_good)
         {
             h = curve_length;
@@ -78,7 +78,7 @@ real_type FieldIntegrator::find_next_chord(real_type       hstep,
         yend = y;
         real_type dchord_step;
 
-        dyerr = quick_advance(h, yend, dydx, dchord_step);
+        dyerr = this->quick_advance(h, yend, dydx, dchord_step);
 
         // Exit if the distance to the chord is small than the reference
         if (dchord_step <= shared_.delta_chord)
@@ -185,17 +185,17 @@ CELER_FUNCTION bool FieldIntegrator::accurate_advance(real_type  hstep,
 
         if (h > shared_.minimum_step)
         {
-            hdid = one_good_step(h, y, dydx, hnext);
+            hdid = this->one_good_step(h, y, dydx, hnext);
         }
         else
         {
             real_type dchord_step; // not used here
-            real_type dyerr = quick_advance(h, y, dydx, dchord_step);
+            real_type dyerr = this->quick_advance(h, y, dydx, dchord_step);
             hdid            = h;
 
             // Compute suggested new step
             CELER_ASSERT(h != 0.0);
-            hnext = new_step_size(h, dyerr / (h * shared_.epsilon_step));
+            hnext = this->new_step_size(h, dyerr / (h * shared_.epsilon_step));
         }
 
         // Update the current curve length

@@ -54,7 +54,7 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView& view)
 
         // Check whether this sub-step cross a volume boundary
         real_type intersect_scale;
-        intersect = is_boundary_crossing(view,
+        intersect = this->is_boundary_crossing(view,
                                          detail::to_vector(yo.position()),
                                          detail::to_vector(yc.position()),
                                          intersect_point,
@@ -64,7 +64,7 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView& view)
         {
             // Find the intersection point
             real_type trial_step = intersect_scale * sub_step;
-            bool      is_found   = find_intersect_point(
+            bool      is_found   = this->find_intersect_point(
                 view, yo, yc, intersect_point, trial_step);
 
             CELER_ASSERT(is_found);
@@ -121,11 +121,11 @@ bool FieldPropagator::find_intersect_point(FieldTrackView& view,
             // Estimate a new trial step with the new position at yt
             real_type new_scale{1.0};
 
-            is_boundary_crossing(view,
-                                 start_position,
-                                 detail::to_vector(yt.position()),
-                                 intersect_point,
-                                 new_scale);
+            this->is_boundary_crossing(view,
+                                       start_position,
+                                       detail::to_vector(yt.position()),
+                                       intersect_point,
+                                       new_scale);
 
             trial_step *= new_scale;
         }

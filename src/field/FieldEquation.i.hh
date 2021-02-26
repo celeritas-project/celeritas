@@ -41,7 +41,7 @@ CELER_FUNCTION void FieldEquation::set_charge(real_type charge)
 CELER_FUNCTION void FieldEquation::
                     operator()(const ode_type y, ode_type& dydx) const
 {
-    evaluate_rhs(field_(), y, dydx);
+    this->evaluate_rhs(field_(), y, dydx);
 }
 
 //---------------------------------------------------------------------------//
