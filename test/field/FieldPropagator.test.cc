@@ -197,9 +197,11 @@ TEST_F(FieldPropagatorDeviceTest, field_propagator_device_boundary)
     // Check stepper results
     for (unsigned int i = 0; i < output.pos.size(); ++i)
     {
-        EXPECT_DOUBLE_EQ(output.pos[i], -28.731417961805395);
-        EXPECT_DOUBLE_EQ(output.mom[i], -8.6134826826429052);
-        EXPECT_DOUBLE_EQ(output.step[i], 1582.7054662298867);
+        EXPECT_LT(fabs(output.pos[i] + 28.731417961805139),
+                  test_params.epsilon);
+        EXPECT_LT(fabs(output.mom[i] + 8.6134826826429052),
+                  test_params.epsilon);
+        EXPECT_DOUBLE_EQ(output.step[i], 1582.705466229889);
     }
 }
 
