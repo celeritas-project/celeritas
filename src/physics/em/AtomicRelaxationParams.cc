@@ -149,6 +149,12 @@ void AtomicRelaxationParams::append_element(const ElementInput& inp)
     detail::MaxSecondariesCalculator calc_max_secondaries(result);
     result.max_secondary = calc_max_secondaries();
 
+    // Maximum size of the stack used to store unprocessed vacancy subshell
+    // IDs. For radiative transitions, there is only ever one vacancy waiting
+    // to be processed. For non-radiative transitions, the upper bound on the
+    // stack size is the number of shells that have transition data.
+    result.max_stack_size = is_auger_enabled_ ? result.shells.size() : 1;
+
     // Add to host vector
     host_elements_.push_back(result);
 }

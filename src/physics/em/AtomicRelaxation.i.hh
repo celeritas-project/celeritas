@@ -21,12 +21,14 @@ CELER_FUNCTION
 AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
                                    ElementId                        el_id,
                                    SubshellId                       shell_id,
-                                   Span<Secondary> secondaries,
-                                   size_type       base_size)
+                                   Span<Secondary>  secondaries,
+                                   Span<SubshellId> vacancies,
+                                   size_type        base_size)
     : shared_(shared)
     , el_id_(el_id)
     , shell_id_(shell_id)
     , secondaries_(secondaries)
+    , vacancies_(vacancies)
     , base_size_(base_size)
 {
     CELER_EXPECT(!shared_ || el_id_ < shared_.elements.size());
@@ -61,8 +63,7 @@ AtomicRelaxation::operator()(Engine& rng)
     // transition data for a given element (19 for Z = 100). But in practice
     // that won't happen, and we could probably bound it closer to 5 for even
     // the highest Z.
-    Array<SubshellId, 10> vacancy_storage;
-    MiniStack<SubshellId> vacancies(make_span(vacancy_storage));
+    MiniStack<SubshellId> vacancies(vacancies_);
     vacancies.push(shell_id_);
 
     // Total number of secondaries

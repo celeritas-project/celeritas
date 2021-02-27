@@ -22,16 +22,24 @@ namespace celeritas
 class LivermorePEModel final : public Model
 {
   public:
+    //!@{
+    //! Type aliases
+    using SPConstSubshellIdAllocatorStore
+        = std::shared_ptr<SubshellIdAllocatorStore>;
+    //!@}
+
+  public:
     // Construct from model ID and other necessary data
     LivermorePEModel(ModelId                  id,
                      const ParticleParams&    particles,
                      const LivermorePEParams& data);
 
     // Construct with transition data for atomic relaxation
-    LivermorePEModel(ModelId                       id,
-                     const ParticleParams&         particles,
-                     const LivermorePEParams&      data,
-                     const AtomicRelaxationParams& atomic_relaxation);
+    LivermorePEModel(ModelId                         id,
+                     const ParticleParams&           particles,
+                     const LivermorePEParams&        data,
+                     const AtomicRelaxationParams&   atomic_relaxation,
+                     SPConstSubshellIdAllocatorStore vacancies);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -46,10 +54,11 @@ class LivermorePEModel final : public Model
     std::string label() const final { return "Livermore photoelectric"; }
 
     // Access data on device
-    detail::LivermorePEPointers device_pointers() const { return interface_; }
+    detail::LivermorePEPointers device_pointers() const;
 
   private:
-    detail::LivermorePEPointers interface_;
+    detail::LivermorePEPointers     interface_;
+    SPConstSubshellIdAllocatorStore vacancies_;
 };
 
 //---------------------------------------------------------------------------//

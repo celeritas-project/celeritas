@@ -39,9 +39,7 @@ size_type MaxSecondariesCalculator::operator()()
     // possible subshell the initial vacancy could be in
     size_type result = 0;
     for (SubshellId::value_type shell_idx : range(shells_.size()))
-    {
         result = max(result, this->calc(SubshellId{shell_idx}, 0));
-    }
     return result;
 }
 
@@ -58,23 +56,18 @@ MaxSecondariesCalculator::calc(SubshellId vacancy_shell, size_type count)
         return 0;
 
     auto it = visited_.find(vacancy_shell);
-    if (it == visited_.end())
-    {
-        size_type sub_count = 0;
-        for (const auto& transition : shells_[vacancy_shell.get()].transitions)
-        {
-            sub_count
-                = std::max(1 + this->calc(transition.initial_shell, count)
-                               + this->calc(transition.auger_shell, count),
-                           sub_count);
-        }
-        visited_[vacancy_shell] = sub_count;
-        return count + sub_count;
-    }
-    else
-    {
+    if (it != visited_.end())
         return count + it->second;
+
+    size_type sub_count = 0;
+    for (const auto& transition : shells_[vacancy_shell.get()].transitions)
+    {
+        sub_count = std::max(1 + this->calc(transition.initial_shell, count)
+                                 + this->calc(transition.auger_shell, count),
+                             sub_count);
     }
+    visited_[vacancy_shell] = sub_count;
+    return count + sub_count;
 }
 
 //---------------------------------------------------------------------------//

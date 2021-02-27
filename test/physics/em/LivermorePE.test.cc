@@ -42,6 +42,7 @@ using celeritas::LivermorePEMacroXsCalculator;
 using celeritas::LivermorePEParams;
 using celeritas::LivermorePEParamsReader;
 using celeritas::PhotoelectricProcess;
+using celeritas::SubshellId;
 using celeritas::ValueGridInserter;
 using celeritas::detail::LivermorePEInteractor;
 namespace pdg = celeritas::pdg;
@@ -156,10 +157,11 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    AtomicRelaxationParams::Input           relax_inp_;
-    std::shared_ptr<AtomicRelaxationParams> relax_params_;
-    std::shared_ptr<LivermorePEParams>      livermore_params_;
-    celeritas::detail::LivermorePEPointers  pointers_;
+    AtomicRelaxationParams::Input                       relax_inp_;
+    std::shared_ptr<AtomicRelaxationParams>             relax_params_;
+    std::shared_ptr<LivermorePEParams>                  livermore_params_;
+    celeritas::detail::LivermorePEPointers              pointers_;
+    celeritas_test::HostStackAllocatorStore<SubshellId> vacancies_;
 };
 
 //---------------------------------------------------------------------------//
@@ -292,6 +294,13 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
     set_relaxation_params(relax_inp_);
     pointers_.atomic_relaxation = relax_params_->host_pointers();
 
+    // Allocate space to hold unprocessed vacancy stack in atomic relaxation
+    auto max_stack_size
+        = pointers_.atomic_relaxation.elements[el_id.get()].max_stack_size;
+    EXPECT_EQ(4, max_stack_size);
+    vacancies_.resize(num_samples * max_stack_size);
+    pointers_.vacancies = vacancies_.host_pointers();
+
     // Allocate storage for secondaries (atomic relaxation + photoelectron)
     auto max_secondary
         = pointers_.atomic_relaxation.elements[el_id.get()].max_secondary + 1;
@@ -375,6 +384,13 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
     relax_inp_.is_auger_enabled = false;
     set_relaxation_params(relax_inp_);
     pointers_.atomic_relaxation = relax_params_->host_pointers();
+
+    // Allocate space to hold unprocessed vacancy stack in atomic relaxation
+    auto max_stack_size
+        = pointers_.atomic_relaxation.elements[el_id.get()].max_stack_size;
+    EXPECT_EQ(1, max_stack_size);
+    vacancies_.resize(num_samples * max_stack_size);
+    pointers_.vacancies = vacancies_.host_pointers();
 
     // Allocate storage for secondaries (atomic relaxation + photoelectron)
     auto max_secondary
@@ -463,12 +479,14 @@ TEST_F(LivermorePEInteractorTest, model)
     // Add atomic relaxation data
     relax_inp_.is_auger_enabled = true;
     set_relaxation_params(relax_inp_);
+    auto vacancies = std::make_shared<celeritas::SubshellIdAllocatorStore>(10);
 
     PhotoelectricProcess process(this->get_particle_params(),
                                  xs_lo,
                                  xs_hi,
                                  livermore_params_,
-                                 relax_params_);
+                                 relax_params_,
+                                 vacancies);
 
     Applicability range    = {MaterialId{0},
                            this->particle_params().find(pdg::gamma()),
@@ -549,7 +567,6 @@ TEST_F(LivermorePEInteractorTest, max_secondaries)
     using celeritas::AtomicRelaxElement;
     using celeritas::AtomicRelaxSubshell;
     using celeritas::AtomicRelaxTransition;
-    using celeritas::SubshellId;
     using celeritas::detail::MaxSecondariesCalculator;
 
     // For an element with n shells of transition data, the maximum number of

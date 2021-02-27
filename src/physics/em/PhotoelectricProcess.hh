@@ -28,6 +28,8 @@ class PhotoelectricProcess : public Process
     using SPConstParticles   = std::shared_ptr<const ParticleParams>;
     using SPConstData        = std::shared_ptr<const LivermorePEParams>;
     using SPConstAtomicRelax = std::shared_ptr<const AtomicRelaxationParams>;
+    using SPConstSubshellIdAllocatorStore
+        = std::shared_ptr<SubshellIdAllocatorStore>;
     //!@}
 
   public:
@@ -38,11 +40,12 @@ class PhotoelectricProcess : public Process
                          SPConstData        data);
 
     // Construct from Livermore data and EADL atomic relaxation data
-    PhotoelectricProcess(SPConstParticles   particles,
-                         ImportPhysicsTable xs_lo,
-                         ImportPhysicsTable xs_hi,
-                         SPConstData        data,
-                         SPConstAtomicRelax atomic_relaxation);
+    PhotoelectricProcess(SPConstParticles                particles,
+                         ImportPhysicsTable              xs_lo,
+                         ImportPhysicsTable              xs_hi,
+                         SPConstData                     data,
+                         SPConstAtomicRelax              atomic_relaxation,
+                         SPConstSubshellIdAllocatorStore vacancies);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;
@@ -54,11 +57,12 @@ class PhotoelectricProcess : public Process
     std::string label() const final;
 
   private:
-    SPConstParticles   particles_;
-    ImportPhysicsTable xs_lo_;
-    ImportPhysicsTable xs_hi_;
-    SPConstData        data_;
-    SPConstAtomicRelax atomic_relaxation_;
+    SPConstParticles                particles_;
+    ImportPhysicsTable              xs_lo_;
+    ImportPhysicsTable              xs_hi_;
+    SPConstData                     data_;
+    SPConstAtomicRelax              atomic_relaxation_;
+    SPConstSubshellIdAllocatorStore vacancies_;
 };
 
 //---------------------------------------------------------------------------//
