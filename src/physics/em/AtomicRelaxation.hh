@@ -60,7 +60,7 @@ class AtomicRelaxation
     SubshellId shell_id_;
     // Fluorescence photons and Auger electrons
     Span<Secondary> secondaries_;
-    // Stack to store unprocessed subshell vacancies
+    // Storage for stack of unprocessed subshell vacancies
     Span<SubshellId> vacancies_;
     // The number of secondaries already created by the primary process
     size_type base_size_;

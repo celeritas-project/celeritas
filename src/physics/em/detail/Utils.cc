@@ -17,10 +17,14 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with EADL transition data.
+ * Construct with EADL transition data and production thresholds.
  */
-MaxSecondariesCalculator::MaxSecondariesCalculator(const AtomicRelaxElement& el)
+MaxSecondariesCalculator::MaxSecondariesCalculator(const AtomicRelaxElement& el,
+                                                   MevEnergy electron_cut,
+                                                   MevEnergy gamma_cut)
     : shells_(el.shells)
+    , electron_cut_(electron_cut.value())
+    , gamma_cut_(gamma_cut.value())
 {
 }
 
@@ -62,7 +66,18 @@ MaxSecondariesCalculator::calc(SubshellId vacancy_shell, size_type count)
     size_type sub_count = 0;
     for (const auto& transition : shells_[vacancy_shell.get()].transitions)
     {
-        sub_count = std::max(1 + this->calc(transition.initial_shell, count)
+        // If this is a non-radiative transition with an energy above the
+        // electron production threshold, create an electron; if this is a
+        // radiative transition with an energy above the gamma production
+        // threshold, create a photon; otherwise, no secondaries produced.
+        size_type n;
+        if ((transition.energy >= electron_cut_ && transition.auger_shell)
+            || (transition.energy >= gamma_cut_ && !transition.auger_shell))
+            n = 1;
+        else
+            n = 0;
+
+        sub_count = std::max(n + this->calc(transition.initial_shell, count)
                                  + this->calc(transition.auger_shell, count),
                              sub_count);
     }

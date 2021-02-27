@@ -74,7 +74,7 @@ Span<SubshellId> AtomicRelaxationHelper::allocate_vacancies() const
 //---------------------------------------------------------------------------//
 /*!
  * Create the sampling distribution from preallocated storage for secondaries
- * and the shell ID of the initial vacancy
+ * and vacancies and the shell ID of the initial vacancy
  */
 CELER_FUNCTION AtomicRelaxation
 AtomicRelaxationHelper::build_distribution(Span<Secondary>  secondaries,

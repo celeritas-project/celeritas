@@ -29,6 +29,8 @@ namespace celeritas
  */
 AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     : is_auger_enabled_(inp.is_auger_enabled)
+    , electron_cut_(inp.electron_cut)
+    , gamma_cut_(inp.gamma_cut)
     , electron_id_(inp.electron_id)
     , gamma_id_(inp.gamma_id)
 {
@@ -106,9 +108,11 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
 AtomicRelaxParamsPointers AtomicRelaxationParams::host_pointers() const
 {
     AtomicRelaxParamsPointers result;
-    result.elements    = make_span(host_elements_);
-    result.electron_id = electron_id_;
-    result.gamma_id    = gamma_id_;
+    result.elements     = make_span(host_elements_);
+    result.electron_id  = electron_id_;
+    result.gamma_id     = gamma_id_;
+    result.electron_cut = electron_cut_;
+    result.gamma_cut    = gamma_cut_;
 
     CELER_ENSURE(result);
     return result;
@@ -123,9 +127,11 @@ AtomicRelaxParamsPointers AtomicRelaxationParams::device_pointers() const
     CELER_EXPECT(celeritas::device());
 
     AtomicRelaxParamsPointers result;
-    result.elements    = device_elements_.device_pointers();
-    result.electron_id = electron_id_;
-    result.gamma_id    = gamma_id_;
+    result.elements     = device_elements_.device_pointers();
+    result.electron_id  = electron_id_;
+    result.gamma_id     = gamma_id_;
+    result.electron_cut = electron_cut_;
+    result.gamma_cut    = gamma_cut_;
 
     CELER_ENSURE(result);
     return result;
@@ -146,7 +152,8 @@ void AtomicRelaxationParams::append_element(const ElementInput& inp)
 
     // Calculate the maximum possible number of secondaries that could be
     // created in atomic relaxation.
-    detail::MaxSecondariesCalculator calc_max_secondaries(result);
+    detail::MaxSecondariesCalculator calc_max_secondaries(
+        result, electron_cut_, gamma_cut_);
     result.max_secondary = calc_max_secondaries();
 
     // Maximum size of the stack used to store unprocessed vacancy subshell

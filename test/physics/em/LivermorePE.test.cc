@@ -304,6 +304,7 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
     // Allocate storage for secondaries (atomic relaxation + photoelectron)
     auto max_secondary
         = pointers_.atomic_relaxation.elements[el_id.get()].max_secondary + 1;
+    EXPECT_EQ(8, max_secondary);
     this->resize_secondaries(max_secondary * num_samples);
 
     // Create the interactor
@@ -395,6 +396,7 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
     // Allocate storage for secondaries (atomic relaxation + photoelectron)
     auto max_secondary
         = pointers_.atomic_relaxation.elements[el_id.get()].max_secondary + 1;
+    EXPECT_EQ(4, max_secondary);
     this->resize_secondaries(max_secondary * num_samples);
 
     // Create the interactor
@@ -572,11 +574,12 @@ TEST_F(LivermorePEInteractorTest, max_secondaries)
     // For an element with n shells of transition data, the maximum number of
     // secondaries created can be upper-bounded as n if there are only
     // radiative transitions and 2^n - 1 if there are non-radiative transitions
-    // for the worst (though generally not possible) case where for a given
-    // vacancy the transitions always originate from the next subshell up
+    // for the hypothetical worst case where for a given vacancy the
+    // transitions always originate from the next subshell up
     unsigned int num_shells        = 20;
     unsigned int upper_bound_fluor = num_shells;
     unsigned int upper_bound_auger = std::exp2(num_shells) - 1;
+    MevEnergy    e_cut             = MevEnergy{0};
 
     AtomicRelaxElement                   el;
     std::vector<AtomicRelaxSubshell>     shell_storage(num_shells);
@@ -593,7 +596,7 @@ TEST_F(LivermorePEInteractorTest, max_secondaries)
             shells[i].transitions = {transition_storage.data() + i, 1};
         }
         el.shells = shells;
-        MaxSecondariesCalculator calc_max_secondaries(el);
+        MaxSecondariesCalculator calc_max_secondaries(el, e_cut, e_cut);
         auto                     result = calc_max_secondaries();
         EXPECT_EQ(upper_bound_fluor, result);
     }
@@ -617,8 +620,20 @@ TEST_F(LivermorePEInteractorTest, max_secondaries)
                    transition_storage.data() + transition_storage.size()};
         }
         el.shells = shells;
-        MaxSecondariesCalculator calc_max_secondaries(el);
+        MaxSecondariesCalculator calc_max_secondaries(el, e_cut, e_cut);
         auto                     result = calc_max_secondaries();
         EXPECT_EQ(upper_bound_auger, result);
+    }
+    {
+        relax_inp_.is_auger_enabled = true;
+        relax_inp_.electron_cut     = MevEnergy{1.e-3};
+        relax_inp_.gamma_cut        = MevEnergy{1.e-3};
+        set_relaxation_params(relax_inp_);
+        EXPECT_EQ(1, relax_params_->host_pointers().elements[0].max_secondary);
+
+        relax_inp_.electron_cut = MevEnergy{1.e-4};
+        relax_inp_.gamma_cut    = MevEnergy{1.e-4};
+        set_relaxation_params(relax_inp_);
+        EXPECT_EQ(3, relax_params_->host_pointers().elements[0].max_secondary);
     }
 }

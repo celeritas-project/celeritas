@@ -19,20 +19,30 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Helper class for calculating the maximum possible number of secondaries
- * produced in atomic relaxation when the initial vacancy is in the given
- * subshell.
+ * produced in atomic relaxation for a given element and electron/photon
+ * production threshold.
  */
 class MaxSecondariesCalculator
 {
   public:
-    // Construct with EADL transition data
-    MaxSecondariesCalculator(const AtomicRelaxElement& el);
+    //!@{
+    //! Type aliases
+    using MevEnergy = units::MevEnergy;
+    //!@}
 
-    // Calculate the maximum possible secondaries produced
+  public:
+    // Construct with EADL transition data and production thresholds
+    MaxSecondariesCalculator(const AtomicRelaxElement& el,
+                             MevEnergy                 electron_cut,
+                             MevEnergy                 gamma_cut);
+
+    // Calculate the maximum possible number of secondaries produced
     size_type operator()();
 
   private:
     Span<const AtomicRelaxSubshell>           shells_;
+    const real_type                           electron_cut_;
+    const real_type                           gamma_cut_;
     std::unordered_map<SubshellId, size_type> visited_;
 
     // HELPER FUNCTIONS

@@ -15,7 +15,9 @@ namespace celeritas
  * Construct with shared and state data.
  *
  * The secondaries must have enough storage allocated for particles produced in
- * atomic relaxation: this should be handled in code *before* construction.
+ * atomic relaxation and the vacancies must have enough storage allocated for
+ * the stack of subshell IDs: this should be handled in code *before*
+ * construction.
  */
 CELER_FUNCTION
 AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
@@ -55,14 +57,6 @@ AtomicRelaxation::operator()(Engine& rng)
     }
 
     // Push the vacancy created by the primary process onto a stack
-    // TODO: How should we allocate storage for these vacancies? Possibly use
-    // StackAllocator? If we are only simulating radiative transitions, there
-    // is only ever 1 vacancy waiting to be processed. For non-radiative
-    // transitions, the upper bound on the maximum number of vacancies in the
-    // stack at one time is n, where n is the number of shells containing
-    // transition data for a given element (19 for Z = 100). But in practice
-    // that won't happen, and we could probably bound it closer to 5 for even
-    // the highest Z.
     MiniStack<SubshellId> vacancies(vacancies_);
     vacancies.push(shell_id_);
 
@@ -76,45 +70,48 @@ AtomicRelaxation::operator()(Engine& rng)
         // Pop the vacancy off the stack and check if it has transition data
         SubshellId vacancy_id = vacancies.pop();
         if (!vacancy_id)
-        {
             continue;
-        }
 
         // Sample a transition
-        size_type                  i;
-        real_type                  prob = generate_canonical(rng);
         const AtomicRelaxSubshell& shell
             = shared_.elements[el_id_.get()].shells[vacancy_id.get()];
+        real_type prob = generate_canonical(rng);
+        size_type i;
         for (i = 0; i < shell.transitions.size(); ++i)
         {
             if ((prob -= shell.transitions[i].probability) <= 0)
-            {
                 break;
-            }
         }
 
         // If no transition was sampled, continue to the next vacancy
         if (prob > 0.)
-        {
             continue;
-        }
-        const AtomicRelaxTransition& transition = shell.transitions[i];
 
-        CELER_ASSERT(count < secondaries_.size());
-        Secondary& secondary = secondaries_[count++];
-        secondary.direction  = sample_direction_(rng);
-        secondary.energy     = MevEnergy{transition.energy};
+        // Push the new vacancies onto the stack and create the secondary
+        const AtomicRelaxTransition& transition = shell.transitions[i];
         vacancies.push(transition.initial_shell);
-        if (!transition.auger_shell)
+        if (transition.auger_shell)
+        {
+            vacancies.push(transition.auger_shell);
+
+            if (transition.energy >= shared_.electron_cut.value())
+            {
+                // Sampled a non-radiative transition: create an Auger electron
+                CELER_ASSERT(count < secondaries_.size());
+                Secondary& secondary  = secondaries_[count++];
+                secondary.direction   = sample_direction_(rng);
+                secondary.energy      = MevEnergy{transition.energy};
+                secondary.particle_id = shared_.electron_id;
+            }
+        }
+        else if (transition.energy >= shared_.gamma_cut.value())
         {
             // Sampled a radiative transition: create a fluorescence photon
+            CELER_ASSERT(count < secondaries_.size());
+            Secondary& secondary  = secondaries_[count++];
+            secondary.direction   = sample_direction_(rng);
+            secondary.energy      = MevEnergy{transition.energy};
             secondary.particle_id = shared_.gamma_id;
-        }
-        else
-        {
-            // Sampled a non-radiative transition: create an Auger electron
-            secondary.particle_id = shared_.electron_id;
-            vacancies.push(transition.auger_shell);
         }
 
         // Accumulate the energy carried away by secondaries
