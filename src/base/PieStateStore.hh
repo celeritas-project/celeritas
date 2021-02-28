@@ -40,7 +40,7 @@ class PieStateStore
     //! Type aliases
     using Value     = S<Ownership::value, M>;
     using Ref       = S<Ownership::reference, M>;
-    using size_type = ThreadId::value_type;
+    using size_type = ThreadId::size_type;
     //!@}
 
   public:

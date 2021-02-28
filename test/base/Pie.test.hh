@@ -25,20 +25,18 @@ struct MockElement
     double atomic_mass;
 };
 
-using MockElementId
-    = celeritas::OpaqueId<MockElement, celeritas::pie_size_type>;
+using MockElementId = celeritas::ItemId<MockElement>;
 
 struct MockMaterial
 {
     double                           number_density;
-    celeritas::PieSlice<MockElement> elements;
+    celeritas::ItemRange<MockElement> elements;
 };
 
-using MockMaterialId
-    = celeritas::OpaqueId<MockMaterial, celeritas::pie_size_type>;
+using MockMaterialId = celeritas::ItemId<MockMaterial>;
 
 template<Ownership W, MemSpace M>
-struct MockParamsPies
+struct MockParamsData
 {
     //// TYPES ////
 
@@ -61,7 +59,7 @@ struct MockParamsPies
 
     //! Assign from another set of pies
     template<Ownership W2, MemSpace M2>
-    MockParamsPies& operator=(const MockParamsPies<W2, M2>& other)
+    MockParamsData& operator=(const MockParamsData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         elements               = other.elements;
@@ -76,7 +74,7 @@ struct MockParamsPies
  * Mock-up of a set of states.
  */
 template<Ownership W, MemSpace M>
-struct MockStatePies
+struct MockStateData
 {
     //// TYPES ////
 
@@ -92,13 +90,13 @@ struct MockStatePies
     explicit CELER_FUNCTION operator bool() const { return !matid.empty(); }
     CELER_FUNCTION celeritas::size_type size() const { return matid.size(); }
 
-    // NOTE: no constructor from MockStatePies<W2, M2> means that calling
-    //  MockStatePies<ref, host> foo = host_pies;
+    // NOTE: no constructor from MockStateData<W2, M2> means that calling
+    //  MockStateData<ref, host> foo = host_pies;
     // gives an ugly error message
 
     //! Assign from another set of pies on the host
     template<Ownership W2, MemSpace M2>
-    MockStatePies& operator=(MockStatePies<W2, M2>& other)
+    MockStateData& operator=(MockStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         matid = other.matid;
@@ -114,8 +112,8 @@ class MockTrackView
 {
   public:
     using ParamsPointers
-        = MockParamsPies<Ownership::const_reference, MemSpace::native>;
-    using StatePointers = MockStatePies<Ownership::reference, MemSpace::native>;
+        = MockParamsData<Ownership::const_reference, MemSpace::native>;
+    using StatePointers = MockStateData<Ownership::reference, MemSpace::native>;
     using ThreadId      = celeritas::ThreadId;
 
     CELER_FUNCTION MockTrackView(const ParamsPointers& params,
@@ -160,8 +158,8 @@ class MockTrackView
 //! Input data
 struct PTestInput
 {
-    MockParamsPies<Ownership::const_reference, MemSpace::device> params;
-    MockStatePies<Ownership::reference, MemSpace::device>        states;
+    MockParamsData<Ownership::const_reference, MemSpace::device> params;
+    MockStateData<Ownership::reference, MemSpace::device>        states;
     celeritas::Span<double>                                      result;
 };
 

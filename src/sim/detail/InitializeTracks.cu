@@ -82,7 +82,7 @@ __global__ void init_tracks_kernel(const StatePointers            states,
             {
                 // Copy the geometry state from the parent for improved
                 // performance
-                TrackId::value_type parent_id
+                TrackId::size_type parent_id
                     = inits.parent[inits.parent.size() - thread_id - 1];
                 GeoTrackView parent(
                     params.geo, states.geo, ThreadId{parent_id});
@@ -143,7 +143,7 @@ __global__ void locate_alive_kernel(const StatePointers            states,
             // TODO: This is nondeterministic; we need to calculate the track
             // ID in a reproducible way.
             CELER_ASSERT(sim.event_id() < inits.track_counter.size());
-            TrackId::value_type track_id
+            TrackId::size_type track_id
                 = atomic_add(&inits.track_counter[sim.event_id().get()], 1u);
 
             // Initialize the simulation state
@@ -234,7 +234,7 @@ __global__ void process_secondaries_kernel(const StatePointers states,
                 // TODO: This is nondeterministic; we need to calculate the
                 // track ID in a reproducible way.
                 CELER_ASSERT(sim.event_id() < inits.track_counter.size());
-                TrackId::value_type track_id = atomic_add(
+                TrackId::size_type track_id = atomic_add(
                     &inits.track_counter[sim.event_id().get()], 1u);
 
                 // Construct a track initializer from a secondary

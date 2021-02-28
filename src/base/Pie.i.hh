@@ -64,7 +64,7 @@ Pie<T, W, M, I>& Pie<T, W, M, I>::operator=(Pie<T, W2, M, I>& other)
  * Access a subspan.
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) -> SpanT
+CELER_FUNCTION auto Pie<T, W, M, I>::operator[](ItemRangeT ps) -> SpanT
 {
     CELER_EXPECT(*ps.end() < this->size() + 1);
     return {this->data() + ps.begin()->get(), this->data() + ps.end()->get()};
@@ -75,7 +75,7 @@ CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) -> SpanT
  * Access a subspan (const).
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) const
+CELER_FUNCTION auto Pie<T, W, M, I>::operator[](ItemRangeT ps) const
     -> SpanConstT
 {
     CELER_EXPECT(*ps.end() < this->size() + 1);
@@ -87,7 +87,7 @@ CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) const
  * Access a single element.
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieIndexT i) -> reference_type
+CELER_FUNCTION auto Pie<T, W, M, I>::operator[](ItemIdT i) -> reference_type
 {
     CELER_EXPECT(i < this->size());
     return this->storage()[i.get()];
@@ -98,7 +98,7 @@ CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieIndexT i) -> reference_type
  * Access a single element (const).
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieIndexT i) const
+CELER_FUNCTION auto Pie<T, W, M, I>::operator[](ItemIdT i) const
     -> const_reference_type
 {
     CELER_EXPECT(i < this->size());

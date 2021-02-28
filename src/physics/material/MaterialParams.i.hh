@@ -57,7 +57,7 @@ MaterialView MaterialParams::get(MaterialId id) const
 /*!
  * Maximum number of elements in any one material.
  */
-ElementComponentId::value_type MaterialParams::max_element_components() const
+ElementComponentId::size_type MaterialParams::max_element_components() const
 {
     return this->host_pointers().max_element_components;
 }

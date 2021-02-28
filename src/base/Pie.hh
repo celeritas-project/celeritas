@@ -15,9 +15,9 @@
 
 namespace celeritas
 {
-//! Opaque ID representing a single element of a pie.
+//! Opaque ID representing a single element of a container.
 template<class T>
-using PieId = OpaqueId<T, pie_size_type>;
+using ItemId = OpaqueId<T, unsigned int>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -25,43 +25,43 @@ using PieId = OpaqueId<T, pie_size_type>;
  *
  * \tparam T The value type of items to represent.
  *
- * A PieSlice is a range of \c OpaqueId<T> that reference a range of values of
- * type \c T in a \c Pie . The PieSlice acts like a \c slice object in Python
+ * A ItemRange is a range of \c OpaqueId<T> that reference a range of values of
+ * type \c T in a \c Pie . The ItemRange acts like a \c slice object in Python
  * when used on a Pie, returning a Span<T> of the underlying data.
  *
- * A PieSlice is only meaningful in connection with a particular Pie of type T.
- * It doesn't have any persistent connection to its associated pie and thus
+ * A ItemRange is only meaningful in connection with a particular Pie of type
+ * T. It doesn't have any persistent connection to its associated pie and thus
  * must be used carefully.
  *
  * \todo It might also be good to have a `PieMap` -- mapping one OpaqueId to
  * another OpaqueId type (with just an offset value). This would be used for
- * example in physics, where \c PieSlice objects themselves are supposed to be
+ * example in physics, where \c ItemRange objects themselves are supposed to be
  * indexed into with a particular ID type.
  *
  * \code
  * struct MyMaterial
  * {
  *     real_type number_density;
- *     PieSlice<ElementComponents> components;
+ *     ItemRange<ElementComponents> components;
  * };
  *
  * template<Ownership W, MemSpace M>
- * struct MyPies
+ * struct MyData
  * {
  *     Pie<ElementComponents, W, M> components;
  *     Pie<MyMaterial, W, M> materials;
  * };
  * \endcode
  */
-template<class T, class Size = pie_size_type>
-using PieSlice = Range<OpaqueId<T, Size>>;
+template<class T, class Size = unsigned int>
+using ItemRange = Range<OpaqueId<T, Size>>;
 
 //---------------------------------------------------------------------------//
 /*!
  * Manage generic array-like data ownership and transfer from host to device.
  *
- * Pies are constructed incrementally on the host, then copied (along with
- * their associated PieSlice ) to device. A Pie can act as a std::vector<T>,
+ * Data are constructed incrementally on the host, then copied (along with
+ * their associated ItemRange ) to device. A Pie can act as a std::vector<T>,
  * DeviceVector<T>, Span<T>, or Span<const T>. The Spans can point to host or
  * device memory, but the MemSpace template argument protects against
  * accidental accesses from the wrong memory space.
@@ -69,7 +69,7 @@ using PieSlice = Range<OpaqueId<T, Size>>;
  * Each Pie object is usually accessed with a Slice, which references a
  * contiguous set of elements in the Pie. For example, setup code on the host
  * would extend the Pie with a series of vectors, the addition of which
- * returns a PieSlice that returns the equivalent data on host or device. This
+ * returns a ItemRange that returns the equivalent data on host or device. This
  * methodology allows complex nested data structures to be built up quickly at
  * setup time without knowing the size requirements beforehand.
  *
@@ -88,7 +88,7 @@ using PieSlice = Range<OpaqueId<T, Size>>;
  * changes. This is another good argument for using Pie instead of Span for
  * device-compatible helper classes (e.g. grid calculator).
  */
-template<class T, Ownership W, MemSpace M, class I = PieId<T>>
+template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Pie
 {
     using PieTraitsT = detail::PieTraits<T, W>;
@@ -102,9 +102,9 @@ class Pie
     using const_pointer        = typename PieTraitsT::const_pointer;
     using reference_type       = typename PieTraitsT::reference_type;
     using const_reference_type = typename PieTraitsT::const_reference_type;
-    using size_type            = typename I::value_type;
-    using PieIndexT            = I;
-    using PieSliceT            = Range<PieIndexT>;
+    using size_type            = typename I::size_type;
+    using ItemIdT              = I;
+    using ItemRangeT           = Range<ItemIdT>;
     //!@}
 
   public:
@@ -142,12 +142,12 @@ class Pie
     //// ACCESS ////
 
     // Access a subset of the data with a slice
-    inline CELER_FUNCTION SpanT      operator[](PieSliceT ps);
-    inline CELER_FUNCTION SpanConstT operator[](PieSliceT ps) const;
+    inline CELER_FUNCTION SpanT      operator[](ItemRangeT ps);
+    inline CELER_FUNCTION SpanConstT operator[](ItemRangeT ps) const;
 
     // Access a single element
-    inline CELER_FUNCTION reference_type       operator[](PieIndexT i);
-    inline CELER_FUNCTION const_reference_type operator[](PieIndexT i) const;
+    inline CELER_FUNCTION reference_type       operator[](ItemIdT i);
+    inline CELER_FUNCTION const_reference_type operator[](ItemIdT i) const;
 
     // Direct accesors to underlying data
     CELER_CONSTEXPR_FUNCTION size_type     size() const;

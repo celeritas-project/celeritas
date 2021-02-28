@@ -92,7 +92,7 @@ void MaterialParams::append_element_def(const ElementInput& inp,
  * \todo It's the caller's responsibility to ensure that element IDs
  * aren't duplicated.
  */
-PieSlice<MatElementComponent>
+ItemRange<MatElementComponent>
 MaterialParams::extend_elcomponents(const MaterialInput& inp,
                                     HostValue*           host_data) const
 {

@@ -15,18 +15,18 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for constructing Pies.
+ * Helper class for constructing Data.
  *
  * This is intended for use with host data but can also be used to resize
  * device pies. It's constructed with a reference to the host pie, and it
  * provides vector-like methods for extending it. The size *cannot* be
- * decreased because that would invalidate previously created \c PieSlice
+ * decreased because that would invalidate previously created \c ItemRange
  * items.
  *
  * \code
     auto pb = make_pie_builder(&myintpie.host);
     pb.reserve(100);
-    PieSlice<int> insertion = pb.extend(local_ints.begin(), local_ints.end());
+    ItemRange<int> insertion = pb.extend(local_ints.begin(), local_ints.end());
     pb.push_back(123);
    \endcode
 
@@ -34,7 +34,7 @@ namespace celeritas
  * to allocate a host version and copy to device. (This is useful for state
  * allocations.)
  */
-template<class T, MemSpace M, class I = PieId<T>>
+template<class T, MemSpace M, class I = ItemId<T>>
 class PieBuilder
 {
   public:
@@ -43,8 +43,8 @@ class PieBuilder
     using PieT       = Pie<T, Ownership::value, M, I>;
     using value_type = T;
     using size_type  = typename PieT::size_type;
-    using PieIndexT  = typename PieT::PieIndexT;
-    using PieSliceT  = typename PieT::PieSliceT;
+    using ItemIdT    = typename PieT::ItemIdT;
+    using ItemRangeT = typename PieT::ItemRangeT;
     //!@}
 
   public:
@@ -59,13 +59,13 @@ class PieBuilder
 
     // Extend with a series of elements, returning the range inserted
     template<class InputIterator>
-    inline PieSliceT insert_back(InputIterator first, InputIterator last);
+    inline ItemRangeT insert_back(InputIterator first, InputIterator last);
 
     // Extend with a series of elements from an initializer list
-    inline PieSliceT insert_back(std::initializer_list<value_type> init);
+    inline ItemRangeT insert_back(std::initializer_list<value_type> init);
 
     // Append a single element
-    inline PieIndexT push_back(value_type element);
+    inline ItemIdT push_back(value_type element);
 
     //! Number of elements in the pie
     size_type size() const { return pie_.size(); }

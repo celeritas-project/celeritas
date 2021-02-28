@@ -31,7 +31,7 @@ template<class KeyQuantity, class ValueId>
 class GridIdFinder
 {
     static_assert(KeyQuantity::unit_type::value() > 0, "Invalid Quantity");
-    static_assert(sizeof(typename ValueId::value_type), "Invalid OpaqueId");
+    static_assert(sizeof(typename ValueId::size_type), "Invalid OpaqueId");
 
   public:
     //!@{

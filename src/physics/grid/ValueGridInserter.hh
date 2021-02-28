@@ -41,8 +41,8 @@ class ValueGridInserter
     using XsGridPie        = Pie<XsGridData, Ownership::value, MemSpace::host>;
     using SpanConstReal    = Span<const real_type>;
     using InterpolatedGrid = std::pair<SpanConstReal, Interp>;
-    using XsIndex          = PieId<XsGridData>;
-    using GenericIndex     = PieId<GenericGridData>;
+    using XsIndex          = ItemId<XsGridData>;
+    using GenericIndex     = ItemId<GenericGridData>;
     //!@}
 
   public:

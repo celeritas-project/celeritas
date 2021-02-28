@@ -9,8 +9,8 @@
 
 #include "base/KernelParamCalculator.cuda.hh"
 
-using celeritas::PieId;
-using celeritas::PieSlice;
+using celeritas::ItemId;
+using celeritas::ItemRange;
 
 namespace celeritas_test
 {
@@ -20,8 +20,8 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 __global__ void pie_cuda_test_kernel(
-    const MockParamsPies<Ownership::const_reference, MemSpace::device> params,
-    const MockStatePies<Ownership::reference, MemSpace::device>        states,
+    const MockParamsData<Ownership::const_reference, MemSpace::device> params,
+    const MockStateData<Ownership::reference, MemSpace::device>        states,
     const celeritas::Span<double>                                      results)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
@@ -49,8 +49,8 @@ __global__ void pie_cuda_test_kernel(
     }
 
     // Do a stupid test of pie slice
-    PieSlice<int> pr;
-    pr = PieSlice<int>(PieId<int>(123), PieId<int>(456));
+    ItemRange<int> pr;
+    pr = ItemRange<int>(ItemId<int>(123), ItemId<int>(456));
     if (pr.size() != 333)
     {
         // Failure

@@ -67,10 +67,10 @@ class MaterialParams
     explicit MaterialParams(const Input& inp);
 
     //! Number of material definitions
-    MaterialId::value_type size() const { return matnames_.size(); }
+    MaterialId::size_type size() const { return matnames_.size(); }
 
     //! Number of distinct elements definitions
-    ElementId::value_type num_elements() const { return elnames_.size(); }
+    ElementId::size_type num_elements() const { return elnames_.size(); }
 
     // Get element name
     inline const std::string& id_to_label(ElementId id) const;
@@ -92,7 +92,7 @@ class MaterialParams
     const DeviceRef& device_pointers() const { return data_.device(); }
 
     // Maximum number of elements in any one material
-    inline ElementComponentId::value_type max_element_components() const;
+    inline ElementComponentId::size_type max_element_components() const;
 
   private:
     std::vector<std::string>                    elnames_;
@@ -105,7 +105,7 @@ class MaterialParams
     // HELPER FUNCTIONS
     using HostValue = MaterialParamsData<Ownership::value, MemSpace::host>;
     void append_element_def(const ElementInput& inp, HostValue*);
-    PieSlice<MatElementComponent>
+    ItemRange<MatElementComponent>
          extend_elcomponents(const MaterialInput& inp, HostValue*) const;
     void append_material_def(const MaterialInput& inp, HostValue*);
 };

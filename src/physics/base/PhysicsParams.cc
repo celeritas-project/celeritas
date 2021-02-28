@@ -96,7 +96,7 @@ auto PhysicsParams::build_models() const -> VecModel
 
     // Construct models, assigning each model ID
     ModelIdGenerator next_model_id;
-    for (auto process_idx : range<ProcessId::value_type>(processes_.size()))
+    for (auto process_idx : range<ProcessId::size_type>(processes_.size()))
     {
         auto new_models = processes_[process_idx]->build_models(next_model_id);
         CELER_ASSERT(!new_models.empty());
@@ -184,7 +184,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
                 << "No processes are defined for particle '"
                 << particles.id_to_label(ParticleId{particle_idx});
         }
-        data->max_particle_processes = std::max<ProcessId::value_type>(
+        data->max_particle_processes = std::max<ProcessId::size_type>(
             data->max_particle_processes, process_to_models.size());
 
         std::vector<ProcessId>  temp_processes;

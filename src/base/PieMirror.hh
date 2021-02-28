@@ -30,7 +30,7 @@ namespace celeritas
  * class FooParams
  * {
  *   public:
- *     using PieDeviceRef = FooPies<Ownership::const_reference,
+ *     using PieDeviceRef = FooData<Ownership::const_reference,
  *                                  MemSpace::device>;
  *
  *     const PieDeviceRef& device_pointers() const
@@ -38,7 +38,7 @@ namespace celeritas
  *         return pies_.device();
  *     }
  *   private:
- *     PieMirror<FooPies> pies_;
+ *     PieMirror<FooData> pies_;
  * };
  * \endcode
  */

@@ -29,7 +29,7 @@ constexpr bool is_trivial_v = std::is_trivially_copyable<T>::value;
 
 TEST(SimplePie, slice_types)
 {
-    EXPECT_TRUE((is_trivial_v<celeritas::PieSlice<int>>));
+    EXPECT_TRUE((is_trivial_v<celeritas::ItemRange<int>>));
     EXPECT_TRUE((is_trivial_v<
                  celeritas::Pie<int, Ownership::reference, MemSpace::device>>));
     EXPECT_TRUE(
@@ -38,23 +38,23 @@ TEST(SimplePie, slice_types)
 }
 
 // NOTE: these tests are essentially redundant with Range.test.cc since
-// PieSlice is a Range<OpaqueId> and PieId is an OpaqueId.
+// ItemRange is a Range<OpaqueId> and ItemId is an OpaqueId.
 TEST(SimplePie, slice)
 {
-    using PieSliceT = celeritas::PieSlice<int>;
-    using PieIdT    = celeritas::PieId<int>;
-    PieSliceT ps;
+    using ItemRangeT = celeritas::ItemRange<int>;
+    using ItemIdT    = celeritas::ItemId<int>;
+    ItemRangeT ps;
     EXPECT_EQ(0, ps.size());
     EXPECT_TRUE(ps.empty());
 
-    ps = PieSliceT{PieIdT{10}, PieIdT{21}};
+    ps = ItemRangeT{ItemIdT{10}, ItemIdT{21}};
     EXPECT_FALSE(ps.empty());
     EXPECT_EQ(11, ps.size());
     EXPECT_EQ(10, ps.begin()->unchecked_get());
     EXPECT_EQ(21, ps.end()->unchecked_get());
 
-    EXPECT_EQ(PieIdT{10}, ps[0]);
-    EXPECT_EQ(PieIdT{12}, ps[2]);
+    EXPECT_EQ(ItemIdT{10}, ps[0]);
+    EXPECT_EQ(ItemIdT{12}, ps[2]);
 #if CELERITAS_DEBUG
     // Out of range
     EXPECT_THROW(ps[12], celeritas::DebugError);
@@ -98,11 +98,11 @@ TEST(SimplePie, size_limits)
 class PieTest : public celeritas::Test
 {
   protected:
-    using MockParamsMirror = celeritas::PieMirror<MockParamsPies>;
+    using MockParamsMirror = celeritas::PieMirror<MockParamsData>;
 
     void SetUp() override
     {
-        MockParamsPies<Ownership::value, MemSpace::host> host_pies;
+        MockParamsData<Ownership::value, MemSpace::host> host_pies;
         host_pies.max_element_components = 3;
 
         auto el_builder  = make_pie_builder(&host_pies.elements);
@@ -165,8 +165,8 @@ class PieTest : public celeritas::Test
 
 TEST_F(PieTest, host)
 {
-    MockStatePies<Ownership::value, MemSpace::host>     host_state;
-    MockStatePies<Ownership::reference, MemSpace::host> host_state_ref;
+    MockStateData<Ownership::value, MemSpace::host>     host_state;
+    MockStateData<Ownership::reference, MemSpace::host> host_state_ref;
 
     make_pie_builder(&host_state.matid).resize(1);
     host_state_ref = host_state;
@@ -183,7 +183,7 @@ TEST_F(PieTest, host)
 TEST_F(PieTest, TEST_IF_CELERITAS_CUDA(device))
 {
     // Construct with 1024 states
-    MockStatePies<Ownership::value, MemSpace::device> device_states;
+    MockStateData<Ownership::value, MemSpace::device> device_states;
     make_pie_builder(&device_states.matid).resize(1024);
 
     celeritas::DeviceVector<double> device_result(device_states.size());

@@ -151,7 +151,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::model_id() const
 /*!
  * Number of processes that apply to this track.
  */
-CELER_FUNCTION ParticleProcessId::value_type
+CELER_FUNCTION ParticleProcessId::size_type
                PhysicsTrackView::num_particle_processes() const
 {
     return this->process_group().size();
@@ -311,7 +311,7 @@ CELER_FUNCTION real_type&
     CELER_EXPECT(ppid < this->num_particle_processes());
     auto idx = thread_.get() * params_.max_particle_processes + ppid.get();
     CELER_ENSURE(idx < states_.per_process_xs.size());
-    return states_.per_process_xs[PieId<real_type>(idx)];
+    return states_.per_process_xs[ItemId<real_type>(idx)];
 }
 
 //---------------------------------------------------------------------------//
@@ -324,7 +324,7 @@ real_type PhysicsTrackView::per_process_xs(ParticleProcessId ppid) const
     CELER_EXPECT(ppid < this->num_particle_processes());
     auto idx = thread_.get() * params_.max_particle_processes + ppid.get();
     CELER_ENSURE(idx < states_.per_process_xs.size());
-    return states_.per_process_xs[PieId<real_type>(idx)];
+    return states_.per_process_xs[ItemId<real_type>(idx)];
 }
 
 //---------------------------------------------------------------------------//

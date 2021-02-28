@@ -74,7 +74,7 @@ struct MaterialDef
     real_type   number_density; //!< Atomic number density [1/cm^3]
     real_type   temperature;    //!< Temperature [K]
     MatterState matter_state;   //!< Solid, liquid, gas
-    PieSlice<MatElementComponent> elements; //!< Element components
+    ItemRange<MatElementComponent> elements; //!< Element components
 
     // COMPUTED PROPERTIES
 
@@ -102,7 +102,7 @@ struct MaterialParamsData
     Data<ElementDef>               elements;
     Data<MatElementComponent>      elcomponents;
     Data<MaterialDef>              materials;
-    ElementComponentId::value_type max_element_components{};
+    ElementComponentId::size_type  max_element_components{};
 
     //// MEMBER FUNCTIONS ////
 

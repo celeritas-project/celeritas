@@ -55,8 +55,8 @@ using ValueGridArray = Array<T, size_type(ValueGridType::size_)>;
  */
 struct ModelGroup
 {
-    PieSlice<real_type> energy; //!< Energy grid bounds [MeV]
-    PieSlice<ModelId>   model;  //!< Corresponding models
+    ItemRange<real_type> energy; //!< Energy grid bounds [MeV]
+    ItemRange<ModelId>   model;  //!< Corresponding models
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
@@ -76,7 +76,7 @@ struct ModelGroup
  */
 struct ValueTable
 {
-    PieSlice<ValueGridId> material; //!< Value grid by material index
+    ItemRange<ValueGridId> material; //!< Value grid by material index
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
@@ -87,7 +87,7 @@ struct ValueTable
  * Processes for a single particle type.
  *
  * Each index should be accessed with type ParticleProcessId. The "tables" are
- * a fixed-size number of PieSlice references to ValueTables. The first index
+ * a fixed-size number of ItemRange references to ValueTables. The first index
  * of the table (hard-coded) corresponds to ValueGridType; the second index is
  * a ParticleProcessId. So the cross sections for ParticleProcessId{2} would
  * be \code tables[size_type(ValueGridType::macro_xs)][2] \endcode. This
@@ -95,9 +95,9 @@ struct ValueTable
  */
 struct ProcessGroup
 {
-    PieSlice<ProcessId> processes; //!< Processes that apply [ppid]
-    ValueGridArray<PieSlice<ValueTable>> tables; //!< [vgt][ppid]
-    PieSlice<ModelGroup> models; //!< Model applicability [ppid]
+    ItemRange<ProcessId> processes; //!< Processes that apply [ppid]
+    ValueGridArray<ItemRange<ValueTable>> tables; //!< [vgt][ppid]
+    ItemRange<ModelGroup> models; //!< Model applicability [ppid]
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -106,7 +106,7 @@ struct ProcessGroup
     }
 
     //! Number of processes that apply
-    CELER_FUNCTION ParticleProcessId::value_type size() const
+    CELER_FUNCTION ParticleProcessId::size_type size() const
     {
         return processes.size();
     }
@@ -165,7 +165,7 @@ struct PhysicsParamsData
     ParticleData<ProcessGroup> process_groups;
 
     HardwiredModels       hardwired;
-    ProcessId::value_type max_particle_processes{};
+    ProcessId::size_type  max_particle_processes{};
 
     //// USER-CONFIGURABLE CONSTANTS ////
     real_type scaling_min_range{}; //!< rho [cm]
