@@ -9,7 +9,7 @@
 
 #include <memory>
 #include <vector>
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
 

@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "base/Range.hh"
 #include "base/Span.hh"
 #include "physics/base/PhysicsInterface.hh"
@@ -40,7 +40,9 @@ struct PTestInput
     celeritas::PhysicsParamsData<Ownership::const_reference, MemSpace::device>
                                                                         params;
     celeritas::PhysicsStateData<Ownership::reference, MemSpace::device> states;
-    celeritas::StatePie<PhysTestInit, Ownership::const_reference, MemSpace::device>
+    celeritas::StateCollection<PhysTestInit,
+                               Ownership::const_reference,
+                               MemSpace::device>
         inits;
 
     // Calculated "step" per track

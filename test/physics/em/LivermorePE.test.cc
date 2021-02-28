@@ -427,9 +427,9 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
 
 TEST_F(LivermorePEInteractorTest, model)
 {
+    using celeritas::Collection;
     using celeritas::MemSpace;
     using celeritas::Ownership;
-    using celeritas::Pie;
 
     // Model is constructed with device pointers
     if (!celeritas::device())
@@ -464,8 +464,9 @@ TEST_F(LivermorePEInteractorTest, model)
                            celeritas::max_quantity()};
     auto          builders = process.step_limits(range);
 
-    Pie<double, Ownership::value, MemSpace::host>                real_storage;
-    Pie<celeritas::XsGridData, Ownership::value, MemSpace::host> grid_storage;
+    Collection<double, Ownership::value, MemSpace::host> real_storage;
+    Collection<celeritas::XsGridData, Ownership::value, MemSpace::host>
+        grid_storage;
 
     ValueGridInserter insert(&real_storage, &grid_storage);
     builders[int(celeritas::ValueGridType::macro_xs)]->build(insert);

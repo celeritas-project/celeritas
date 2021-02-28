@@ -3,10 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Pie.test.hh
+//! \file Collection.test.hh
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "base/Types.hh"
 #include "celeritas_config.h"
 
@@ -41,12 +41,12 @@ struct MockParamsData
     //// TYPES ////
 
     template<class T>
-    using Pie = celeritas::Pie<T, W, M>;
+    using Collection = celeritas::Collection<T, W, M>;
 
     //// DATA ////
 
-    celeritas::Pie<MockElement, W, M>  elements;
-    celeritas::Pie<MockMaterial, W, M> materials;
+    celeritas::Collection<MockElement, W, M>  elements;
+    celeritas::Collection<MockMaterial, W, M> materials;
     int                                max_element_components{};
 
     //// MEMBER FUNCTIONS ////
@@ -79,20 +79,16 @@ struct MockStateData
     //// TYPES ////
 
     template<class T>
-    using Pie = celeritas::Pie<T, W, M>;
+    using Collection = celeritas::Collection<T, W, M>;
 
     //// DATA ////
 
-    celeritas::StatePie<MockMaterialId, W, M> matid;
+    celeritas::StateCollection<MockMaterialId, W, M> matid;
 
     //// MEMBER FUNCTIONS ////
 
     explicit CELER_FUNCTION operator bool() const { return !matid.empty(); }
     CELER_FUNCTION celeritas::size_type size() const { return matid.size(); }
-
-    // NOTE: no constructor from MockStateData<W2, M2> means that calling
-    //  MockStateData<ref, host> foo = host_pies;
-    // gives an ugly error message
 
     //! Assign from another set of pies on the host
     template<Ownership W2, MemSpace M2>

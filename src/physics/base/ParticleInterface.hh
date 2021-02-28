@@ -7,13 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "base/Macros.hh"
 #include "Types.hh"
 #include "Units.hh"
 
 #ifndef __CUDA_ARCH__
-#    include "base/PieBuilder.hh"
+#    include "base/CollectionBuilder.hh"
 #endif
 
 namespace celeritas
@@ -58,7 +58,7 @@ template<Ownership W, MemSpace M>
 struct ParticleParamsData
 {
     template<class T>
-    using Data = celeritas::Pie<T, W, M>;
+    using Data = celeritas::Collection<T, W, M>;
 
     Data<ParticleDef> particles;
 
@@ -114,7 +114,7 @@ template<Ownership W, MemSpace M>
 struct ParticleStateData
 {
     template<class T>
-    using Data = celeritas::StatePie<T, W, M>;
+    using Data = celeritas::StateCollection<T, W, M>;
 
     Data<ParticleTrackState> state;
 
@@ -146,7 +146,7 @@ resize(ParticleStateData<Ownership::value, M>* data,
        size_type size)
 {
     CELER_EXPECT(size > 0);
-    make_pie_builder(&data->state).resize(size);
+    make_builder(&data->state).resize(size);
 }
 #endif
 

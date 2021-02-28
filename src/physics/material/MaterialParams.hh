@@ -11,7 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "base/PieMirror.hh"
+#include "base/CollectionMirror.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "MaterialInterface.hh"
@@ -100,7 +100,7 @@ class MaterialParams
     std::unordered_map<std::string, MaterialId> matname_to_id_;
 
     // Host/device storage and reference
-    PieMirror<MaterialParamsData> data_;
+    CollectionMirror<MaterialParamsData> data_;
 
     // HELPER FUNCTIONS
     using HostValue = MaterialParamsData<Ownership::value, MemSpace::host>;

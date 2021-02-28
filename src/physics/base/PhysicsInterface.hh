@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Array.hh"
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "Types.hh"
 #include "physics/grid/XsGridInterface.hh"
 #include "physics/em/detail/LivermorePE.hh"
@@ -16,7 +16,7 @@
 #include "physics/material/Types.hh"
 
 #ifndef __CUDA_ARCH__
-#    include "base/PieBuilder.hh"
+#    include "base/CollectionBuilder.hh"
 #endif
 
 namespace celeritas
@@ -150,19 +150,19 @@ template<Ownership W, MemSpace M>
 struct PhysicsParamsData
 {
     template<class T>
-    using Data = Pie<T, W, M>;
+    using Items = Collection<T, W, M>;
     template<class T>
-    using ParticleData = Pie<T, W, M, ParticleId>;
+    using ParticleItems = Collection<T, W, M, ParticleId>;
 
     // Backend storage
-    Data<real_type>            reals;
-    Data<ModelId>              model_ids;
-    Data<ValueGrid>            value_grids;
-    Data<ValueGridId>          value_grid_ids;
-    Data<ProcessId>            process_ids;
-    Data<ValueTable>           value_tables;
-    Data<ModelGroup>           model_groups;
-    ParticleData<ProcessGroup> process_groups;
+    Items<real_type>            reals;
+    Items<ModelId>              model_ids;
+    Items<ValueGrid>            value_grids;
+    Items<ValueGridId>          value_grid_ids;
+    Items<ProcessId>            process_ids;
+    Items<ValueTable>           value_tables;
+    Items<ModelGroup>           model_groups;
+    ParticleItems<ProcessGroup> process_groups;
 
     HardwiredModels       hardwired;
     ProcessId::size_type  max_particle_processes{};
@@ -249,12 +249,12 @@ template<Ownership W, MemSpace M>
 struct PhysicsStateData
 {
     template<class T>
-    using StateData = celeritas::StatePie<T, W, M>;
+    using StateItems = celeritas::StateCollection<T, W, M>;
     template<class T>
-    using Data = celeritas::Pie<T, W, M>;
+    using Items = celeritas::Collection<T, W, M>;
 
-    StateData<PhysicsTrackState> state; //!< Track state [track]
-    Data<real_type> per_process_xs;     //!< XS [track][particle process]
+    StateItems<PhysicsTrackState> state; //!< Track state [track]
+    Items<real_type> per_process_xs;     //!< XS [track][particle process]
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
@@ -280,14 +280,14 @@ struct PhysicsStateData
  */
 template<MemSpace M>
 inline void resize(
-    PhysicsStateData<Ownership::value, M>*                               data,
+    PhysicsStateData<Ownership::value, M>*                               state,
     const PhysicsParamsData<Ownership::const_reference, MemSpace::host>& params,
     size_type                                                            size)
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params.max_particle_processes > 0);
-    make_pie_builder(&data->state).resize(size);
-    make_pie_builder(&data->per_process_xs)
+    make_builder(&state->state).resize(size);
+    make_builder(&state->per_process_xs)
         .resize(size * params.max_particle_processes);
 }
 #endif

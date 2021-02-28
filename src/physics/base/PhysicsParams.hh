@@ -9,7 +9,7 @@
 
 #include <memory>
 #include <vector>
-#include "base/PieMirror.hh"
+#include "base/CollectionMirror.hh"
 #include "base/Types.hh"
 #include "base/Units.hh"
 #include "Model.hh"
@@ -117,7 +117,7 @@ class PhysicsParams
     VecModel   models_;
 
     // Host/device storage and reference
-    PieMirror<PhysicsParamsData> data_;
+    CollectionMirror<PhysicsParamsData> data_;
 
   private:
     VecModel build_models() const;

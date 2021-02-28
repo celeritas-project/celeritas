@@ -11,7 +11,7 @@
 #include <cmath>
 #include <numeric>
 #include "detail/Utils.hh"
-#include "base/PieBuilder.hh"
+#include "base/CollectionBuilder.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "base/SpanRemapper.hh"
@@ -39,7 +39,7 @@ MaterialParams::MaterialParams(const Input& inp)
     }
 
     // Move to mirrored data, copying to device
-    data_ = PieMirror<MaterialParamsData>{std::move(host_data)};
+    data_ = CollectionMirror<MaterialParamsData>{std::move(host_data)};
 
     CELER_ENSURE(this->data_);
     CELER_ENSURE(this->host_pointers().elements.size() == inp.elements.size());
@@ -82,7 +82,7 @@ void MaterialParams::append_element_def(const ElementInput& inp,
     elnames_.push_back(inp.name);
 
     // Add to host vector
-    make_pie_builder(&host_data->elements).push_back(result);
+    make_builder(&host_data->elements).push_back(result);
 }
 
 //---------------------------------------------------------------------------//
@@ -140,7 +140,7 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp,
             return lhs.element < rhs.element;
         });
 
-    return make_pie_builder(&host_data->elcomponents)
+    return make_builder(&host_data->elcomponents)
         .insert_back(components.begin(), components.end());
 }
 
@@ -197,7 +197,7 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
     result.rad_length       = 1 / (rad_coeff * result.density);
 
     // Add to host vector
-    make_pie_builder(&host_data->materials).push_back(result);
+    make_builder(&host_data->materials).push_back(result);
     matnames_.push_back(inp.name);
 
     // Update maximum number of materials

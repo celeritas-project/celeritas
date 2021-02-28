@@ -30,8 +30,8 @@ namespace celeritas
  * \c celeritas::size_type (64-bit) because CUDA currently uses native 32-bit
  * pointer arithmetic. In general this should be the same type as the default
  * OpaqueId::size_type. It's possible that in large problems 4 billion
- * elements won'S be enough (for e.g. cross sections), but in that case the
- * ContainerBuilder will throw an assertion during construction.
+ * elements won't be enough (for e.g. cross sections), but in that case the
+ * CollectionBuilder will throw an assertion during construction.
  *
  * \todo Change \c celeritas::size_type to unsigned int by default, and use
  * \c std::size_t for compatibility with standard containers. Explicitly use

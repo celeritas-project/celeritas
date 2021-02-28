@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Pie.test.cu
+//! \file Collection.test.cu
 //---------------------------------------------------------------------------//
-#include "Pie.test.hh"
+#include "Collection.test.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
 
@@ -48,7 +48,7 @@ __global__ void pie_cuda_test_kernel(
         result = matid.get() + nd * el.atomic_mass / el.atomic_number;
     }
 
-    // Do a stupid test of pie slice
+    // Do a simple test of item range
     ItemRange<int> pr;
     pr = ItemRange<int>(ItemId<int>(123), ItemId<int>(456));
     if (pr.size() != 333)

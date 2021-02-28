@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Pie.test.cc
+//! \file Collection.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Pie.hh"
-#include "base/PieBuilder.hh"
-#include "base/PieMirror.hh"
+#include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
+#include "base/CollectionMirror.hh"
 
 #include <cstdint>
 #include <type_traits>
 #include "celeritas_test.hh"
-#include "Pie.test.hh"
+#include "Collection.test.hh"
 #include "base/DeviceVector.hh"
 #include "comm/Device.hh"
 
+using celeritas::Collection;
 using celeritas::MemSpace;
 using celeritas::Ownership;
-using celeritas::Pie;
 using celeritas::Span;
 using celeritas::ThreadId;
 
@@ -27,19 +27,20 @@ using namespace celeritas_test;
 template<class T>
 constexpr bool is_trivial_v = std::is_trivially_copyable<T>::value;
 
-TEST(SimplePie, slice_types)
+TEST(SimpleCollection, slice_types)
 {
     EXPECT_TRUE((is_trivial_v<celeritas::ItemRange<int>>));
-    EXPECT_TRUE((is_trivial_v<
-                 celeritas::Pie<int, Ownership::reference, MemSpace::device>>));
     EXPECT_TRUE(
         (is_trivial_v<
-            celeritas::Pie<int, Ownership::const_reference, MemSpace::device>>));
+            celeritas::Collection<int, Ownership::reference, MemSpace::device>>));
+    EXPECT_TRUE((is_trivial_v<celeritas::Collection<int,
+                                                    Ownership::const_reference,
+                                                    MemSpace::device>>));
 }
 
 // NOTE: these tests are essentially redundant with Range.test.cc since
 // ItemRange is a Range<OpaqueId> and ItemId is an OpaqueId.
-TEST(SimplePie, slice)
+TEST(SimpleCollection, slice)
 {
     using ItemRangeT = celeritas::ItemRange<int>;
     using ItemIdT    = celeritas::ItemId<int>;
@@ -61,11 +62,11 @@ TEST(SimplePie, slice)
 #endif
 }
 
-TEST(SimplePie, size_limits)
+TEST(SimpleCollection, size_limits)
 {
     using IdType = celeritas::OpaqueId<struct Tiny, std::uint8_t>;
-    Pie<double, Ownership::value, MemSpace::host, IdType> host_val;
-    auto                build = make_pie_builder(&host_val);
+    Collection<double, Ownership::value, MemSpace::host, IdType> host_val;
+    auto                build = make_builder(&host_val);
     std::vector<double> dummy(254);
     auto                slc = build.insert_back(dummy.begin(), dummy.end());
     EXPECT_EQ(0, slc.begin()->unchecked_get());
@@ -86,7 +87,7 @@ TEST(SimplePie, size_limits)
     // With bounds checking disabled, a one-off check when getting a reference
     // should catch the size failure.
     build.push_back(12345.6);
-    Pie<double, Ownership::const_reference, MemSpace::host, IdType> host_ref;
+    Collection<double, Ownership::const_reference, MemSpace::host, IdType> host_ref;
     EXPECT_THROW(host_ref = host_val, celeritas::RuntimeError);
 #endif
 }
@@ -95,18 +96,18 @@ TEST(SimplePie, size_limits)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class PieTest : public celeritas::Test
+class CollectionTest : public celeritas::Test
 {
   protected:
-    using MockParamsMirror = celeritas::PieMirror<MockParamsData>;
+    using MockParamsMirror = celeritas::CollectionMirror<MockParamsData>;
 
     void SetUp() override
     {
-        MockParamsData<Ownership::value, MemSpace::host> host_pies;
-        host_pies.max_element_components = 3;
+        MockParamsData<Ownership::value, MemSpace::host> host_data;
+        host_data.max_element_components = 3;
 
-        auto el_builder  = make_pie_builder(&host_pies.elements);
-        auto mat_builder = make_pie_builder(&host_pies.materials);
+        auto el_builder  = make_builder(&host_data.elements);
+        auto mat_builder = make_builder(&host_data.materials);
         el_builder.reserve(5);
         mat_builder.reserve(2);
 
@@ -137,23 +138,23 @@ class PieTest : public celeritas::Test
             mat_builder.push_back(m);
         }
         EXPECT_EQ(3, mat_builder.size());
-        EXPECT_EQ(3, host_pies.materials.size());
-        EXPECT_EQ(4, host_pies.elements.size());
+        EXPECT_EQ(3, host_data.materials.size());
+        EXPECT_EQ(4, host_data.elements.size());
 
         // Test host-accessible values and const correctness
         {
-            const auto& host_pies_const = host_pies;
+            const auto& host_data_const = host_data;
 
             const MockMaterial& m
-                = host_pies_const.materials[MockMaterialId{0}];
+                = host_data_const.materials[MockMaterialId{0}];
             EXPECT_EQ(3, m.elements.size());
-            Span<const MockElement> els = host_pies_const.elements[m.elements];
+            Span<const MockElement> els = host_data_const.elements[m.elements];
             EXPECT_EQ(3, els.size());
             EXPECT_EQ(6, els[2].atomic_number);
         }
 
         // Create references and copy to device if enabled
-        mock_params = MockParamsMirror{std::move(host_pies)};
+        mock_params = MockParamsMirror{std::move(host_data)};
     }
 
     MockParamsMirror mock_params;
@@ -163,12 +164,12 @@ class PieTest : public celeritas::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(PieTest, host)
+TEST_F(CollectionTest, host)
 {
     MockStateData<Ownership::value, MemSpace::host>     host_state;
     MockStateData<Ownership::reference, MemSpace::host> host_state_ref;
 
-    make_pie_builder(&host_state.matid).resize(1);
+    make_builder(&host_state.matid).resize(1);
     host_state_ref = host_state;
 
     // Assign
@@ -180,11 +181,11 @@ TEST_F(PieTest, host)
     EXPECT_EQ(1, mock.matid().unchecked_get());
 }
 
-TEST_F(PieTest, TEST_IF_CELERITAS_CUDA(device))
+TEST_F(CollectionTest, TEST_IF_CELERITAS_CUDA(device))
 {
     // Construct with 1024 states
     MockStateData<Ownership::value, MemSpace::device> device_states;
-    make_pie_builder(&device_states.matid).resize(1024);
+    make_builder(&device_states.matid).resize(1024);
 
     celeritas::DeviceVector<double> device_result(device_states.size());
 

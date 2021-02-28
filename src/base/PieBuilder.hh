@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PieBuilder.hh
+//! \file CollectionBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <initializer_list>
 #include <limits>
-#include "Pie.hh"
+#include "Collection.hh"
 
 namespace celeritas
 {
@@ -18,38 +18,40 @@ namespace celeritas
  * Helper class for constructing Data.
  *
  * This is intended for use with host data but can also be used to resize
- * device pies. It's constructed with a reference to the host pie, and it
+ * device pies. It's constructed with a reference to the host collection, and
+ it
  * provides vector-like methods for extending it. The size *cannot* be
  * decreased because that would invalidate previously created \c ItemRange
  * items.
  *
  * \code
-    auto pb = make_pie_builder(&myintpie.host);
+    auto pb = make_builder(&myintpie.host);
     pb.reserve(100);
     ItemRange<int> insertion = pb.extend(local_ints.begin(), local_ints.end());
     pb.push_back(123);
    \endcode
 
- * The PieBuilder can also be used to resize device-value pies without having
+ * The CollectionBuilder can also be used to resize device-value pies without
+ having
  * to allocate a host version and copy to device. (This is useful for state
  * allocations.)
  */
 template<class T, MemSpace M, class I = ItemId<T>>
-class PieBuilder
+class CollectionBuilder
 {
   public:
     //!@{
     //! Type aliases
-    using PieT       = Pie<T, Ownership::value, M, I>;
+    using CollectionT = Collection<T, Ownership::value, M, I>;
     using value_type = T;
-    using size_type  = typename PieT::size_type;
-    using ItemIdT    = typename PieT::ItemIdT;
-    using ItemRangeT = typename PieT::ItemRangeT;
+    using size_type   = typename CollectionT::size_type;
+    using ItemIdT     = typename CollectionT::ItemIdT;
+    using ItemRangeT  = typename CollectionT::ItemRangeT;
     //!@}
 
   public:
-    //! Construct from a pie
-    explicit PieBuilder(PieT* pie) : pie_(*pie) {}
+    //! Construct from a collection
+    explicit CollectionBuilder(CollectionT* collection) : col_(*collection) {}
 
     // Increase size to this capacity
     inline void resize(size_type count);
@@ -67,18 +69,18 @@ class PieBuilder
     // Append a single element
     inline ItemIdT push_back(value_type element);
 
-    //! Number of elements in the pie
-    size_type size() const { return pie_.size(); }
+    //! Number of elements in the collection
+    size_type size() const { return col_.size(); }
 
   private:
-    PieT& pie_;
+    CollectionT& col_;
 
-    using StorageT = typename PieT::StorageT;
-    StorageT&       storage() { return pie_.storage(); }
-    const StorageT& storage() const { return pie_.storage(); }
+    using StorageT = typename CollectionT::StorageT;
+    StorageT&       storage() { return col_.storage(); }
+    const StorageT& storage() const { return col_.storage(); }
 
-    //! Maximum elements in a Pie, in native std::size_t
-    static constexpr size_type max_pie_size()
+    //! Maximum elements in a Collection, in native std::size_t
+    static constexpr size_type max_sizee()
     {
         return std::numeric_limits<size_type>::max();
     }
@@ -86,18 +88,19 @@ class PieBuilder
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper function for constructing pie builders.
+ * Helper function for constructing collection builders.
  *
  * (Will not be needed under C++17's template argument deduction).
  */
 template<class T, MemSpace M, class I>
-PieBuilder<T, M, I> make_pie_builder(Pie<T, Ownership::value, M, I>* pie)
+CollectionBuilder<T, M, I>
+make_builder(Collection<T, Ownership::value, M, I>* collection)
 {
-    CELER_EXPECT(pie);
-    return PieBuilder<T, M, I>(pie);
+    CELER_EXPECT(collection);
+    return CollectionBuilder<T, M, I>(collection);
 }
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "PieBuilder.i.hh"
+#include "CollectionBuilder.i.hh"

@@ -8,7 +8,7 @@
 #include "StateStore.hh"
 
 #include "base/Assert.hh"
-#include "base/PieBuilder.hh"
+#include "base/CollectionBuilder.hh"
 
 namespace celeritas
 {
@@ -22,7 +22,7 @@ StateStore::StateStore(const Input& inp)
     , rng_states_(RngStateStore(inp.num_tracks, inp.host_seed))
     , interactions_(inp.num_tracks)
 {
-    make_pie_builder(&particle_states_.state).resize(inp.num_tracks);
+    make_builder(&particle_states_.state).resize(inp.num_tracks);
     CELER_ENSURE(inp.num_tracks == this->size());
 }
 

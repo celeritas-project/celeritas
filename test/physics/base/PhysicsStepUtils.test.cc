@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "physics/base/PhysicsStepUtils.hh"
 
-#include "base/PieStateStore.hh"
+#include "base/CollectionStateStore.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "celeritas_test.hh"
@@ -26,9 +26,12 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
     using Base = PhysicsTestBase;
 
   protected:
-    using MaterialStateStore = PieStateStore<MaterialStateData, MemSpace::host>;
-    using ParticleStateStore = PieStateStore<ParticleStateData, MemSpace::host>;
-    using PhysicsStateStore  = PieStateStore<PhysicsStateData, MemSpace::host>;
+    using MaterialStateStore
+        = CollectionStateStore<MaterialStateData, MemSpace::host>;
+    using ParticleStateStore
+        = CollectionStateStore<ParticleStateData, MemSpace::host>;
+    using PhysicsStateStore
+        = CollectionStateStore<PhysicsStateData, MemSpace::host>;
 
     void SetUp() override
     {

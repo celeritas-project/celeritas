@@ -20,8 +20,8 @@ using namespace celeritas;
 class ValueGridInserterTest : public celeritas::Test
 {
   protected:
-    Pie<real_type, Ownership::value, MemSpace::host>  real_storage;
-    Pie<XsGridData, Ownership::value, MemSpace::host> grid_storage;
+    Collection<real_type, Ownership::value, MemSpace::host>  real_storage;
+    Collection<XsGridData, Ownership::value, MemSpace::host> grid_storage;
 };
 
 //---------------------------------------------------------------------------//

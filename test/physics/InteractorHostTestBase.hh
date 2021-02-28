@@ -12,7 +12,7 @@
 #include <vector>
 #include "base/Array.hh"
 #include "base/ArrayIO.hh"
-#include "base/PieStateStore.hh"
+#include "base/CollectionStateStore.hh"
 #include "base/Span.hh"
 #include "base/StackAllocatorInterface.hh"
 #include "base/Types.hh"
@@ -150,7 +150,8 @@ class InteractorHostTestBase : public celeritas::Test
 
   private:
     template<template<celeritas::Ownership, celeritas::MemSpace> class S>
-    using StateStore = celeritas::PieStateStore<S, celeritas::MemSpace::host>;
+    using StateStore
+        = celeritas::CollectionStateStore<S, celeritas::MemSpace::host>;
 
     std::shared_ptr<MaterialParams> material_params_;
     std::shared_ptr<ParticleParams> particle_params_;

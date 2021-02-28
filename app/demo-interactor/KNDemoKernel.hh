@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "physics/base/ParticleInterface.hh"
@@ -35,7 +35,7 @@ template<Ownership W, MemSpace M>
 struct TableData
 {
     template<class T>
-    using Data = celeritas::Pie<T, W, M>;
+    using Data = celeritas::Collection<T, W, M>;
 
     Data<celeritas::real_type> reals;
     celeritas::XsGridData      xs;

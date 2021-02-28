@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PieMirror.hh
+//! \file CollectionMirror.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Assert.hh"
-#include "PieTypes.hh"
+#include "CollectionTypes.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for copying setup-time Pie classes to host and device.
+ * Helper class for copying setup-time Collection classes to host and device.
  *
  * This should generally be an implementation detail of Params classes, which
  * are constructed on host and must have the same data both on host and device.
@@ -30,20 +30,20 @@ namespace celeritas
  * class FooParams
  * {
  *   public:
- *     using PieDeviceRef = FooData<Ownership::const_reference,
+ *     using CollectionDeviceRef = FooData<Ownership::const_reference,
  *                                  MemSpace::device>;
  *
- *     const PieDeviceRef& device_pointers() const
+ *     const CollectionDeviceRef& device_pointers() const
  *     {
  *         return pies_.device();
  *     }
  *   private:
- *     PieMirror<FooData> pies_;
+ *     CollectionMirror<FooData> pies_;
  * };
  * \endcode
  */
 template<template<Ownership, MemSpace> class P>
-class PieMirror
+class CollectionMirror
 {
   public:
     //!@{
@@ -55,10 +55,10 @@ class PieMirror
 
   public:
     //! Default constructor leaves in an "unassigned" state
-    PieMirror() = default;
+    CollectionMirror() = default;
 
     // Construct from host data
-    explicit inline PieMirror(HostValue&& host);
+    explicit inline CollectionMirror(HostValue&& host);
 
     //! Whether the data is assigned
     explicit operator bool() const { return static_cast<bool>(host_); }
@@ -87,4 +87,4 @@ class PieMirror
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "PieMirror.i.hh"
+#include "CollectionMirror.i.hh"
