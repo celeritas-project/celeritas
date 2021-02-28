@@ -29,7 +29,7 @@ using MockElementId = celeritas::ItemId<MockElement>;
 
 struct MockMaterial
 {
-    double                           number_density;
+    double                            number_density;
     celeritas::ItemRange<MockElement> elements;
 };
 
@@ -47,7 +47,7 @@ struct MockParamsData
 
     celeritas::Collection<MockElement, W, M>  elements;
     celeritas::Collection<MockMaterial, W, M> materials;
-    int                                max_element_components{};
+    int                                       max_element_components{};
 
     //// MEMBER FUNCTIONS ////
 

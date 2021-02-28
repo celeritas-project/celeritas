@@ -104,9 +104,9 @@ class Collection
     using reference_type = typename CollectionTraitsT::reference_type;
     using const_reference_type =
         typename CollectionTraitsT::const_reference_type;
-    using size_type            = typename I::size_type;
-    using ItemIdT              = I;
-    using ItemRangeT           = Range<ItemIdT>;
+    using size_type  = typename I::size_type;
+    using ItemIdT    = I;
+    using ItemRangeT = Range<ItemIdT>;
     //!@}
 
   public:

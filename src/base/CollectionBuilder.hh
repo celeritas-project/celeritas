@@ -43,7 +43,7 @@ class CollectionBuilder
     //!@{
     //! Type aliases
     using CollectionT = Collection<T, Ownership::value, M, I>;
-    using value_type = T;
+    using value_type  = T;
     using size_type   = typename CollectionT::size_type;
     using ItemIdT     = typename CollectionT::ItemIdT;
     using ItemRangeT  = typename CollectionT::ItemRangeT;
