@@ -179,6 +179,7 @@ celeritas_add_test(physics/base/PhysicsStepUtils.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX physics/grid)
 celeritas_add_test(physics/grid/GridIdFinder.test.cc)
+celeritas_add_test(physics/grid/NonuniformGrid.test.cc)
 celeritas_add_test(physics/grid/UniformGrid.test.cc)
 celeritas_add_test(physics/grid/ValueGridBuilder.test.cc)
 celeritas_add_test(physics/grid/ValueGridInserter.test.cc)

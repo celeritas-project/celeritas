@@ -1,46 +1,53 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UniformGrid.hh
+//! \file NonuniformGrid.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Macros.hh"
+#include "base/Pie.hh"
 #include "base/Types.hh"
-#include "UniformGridInterface.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Interact with a uniform grid of increasing values.
+ * Interact with a nonuniform grid of increasing values.
  *
- * This simple class is used by physics vectors and classes that need to do
- * lookups on a uniform grid.
+ * This should have the same interface (aside from constructor) as
+ * UniformGrid.
  */
-class UniformGrid
+template<class T>
+class NonuniformGrid
 {
   public:
     //!@{
     //! Type aliases
     using size_type  = ::celeritas::size_type;
-    using value_type = ::celeritas::real_type;
+    using value_type = T;
+    using Values
+        = Pie<value_type, Ownership::const_reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct with data
-    explicit inline CELER_FUNCTION UniformGrid(const UniformGridData& data);
+    explicit inline CELER_FUNCTION
+    NonuniformGrid(const PieSlice<value_type>& values, const Values& data);
 
     //! Number of grid points
-    CELER_FORCEINLINE_FUNCTION size_type size() const { return data_.size; }
+    CELER_FORCEINLINE_FUNCTION size_type size() const { return data_.size(); }
 
     //! Minimum/first value
-    CELER_FORCEINLINE_FUNCTION value_type front() const { return data_.front; }
+    CELER_FORCEINLINE_FUNCTION value_type front() const
+    {
+        return data_.front();
+    }
 
     //! Maximum/last value
-    CELER_FORCEINLINE_FUNCTION value_type back() const { return data_.back; }
+    CELER_FORCEINLINE_FUNCTION value_type back() const { return data_.back(); }
 
     // Calculate the value at the given grid point
     inline CELER_FUNCTION value_type operator[](size_type i) const;
@@ -48,14 +55,12 @@ class UniformGrid
     // Find the index of the given value (*must* be in bounds)
     inline CELER_FUNCTION size_type find(value_type value) const;
 
-    //! Get the data used to construct this class
-    CELER_FUNCTION const UniformGridData& data() const { return data_; }
-
   private:
-    const UniformGridData data_;
+    // TODO: change backend for effiency if needeed
+    Span<const value_type> data_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "UniformGrid.i.hh"
+#include "NonuniformGrid.i.hh"
