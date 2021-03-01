@@ -9,7 +9,6 @@
 
 #include <cstdlib>
 #include <iomanip>
-#include <iostream>
 #include <tuple>
 
 #include <TFile.h>
@@ -301,9 +300,9 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
  * Safely switch between ImportProductionCut to ProductionCutId enums.
  */
 MaterialParams::ProductionCutId
-RootImporter::to_production_cut_id(const ImportProductionCut& id)
+RootImporter::to_production_cut_id(const ImportProductionCut& value)
 {
-    switch (id)
+    switch (value)
     {
         case ImportProductionCut::gamma:
             return MaterialParams::ProductionCutId::gamma;

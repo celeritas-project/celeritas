@@ -1,23 +1,22 @@
-# Celeritas dependency options
-set(CELERITAS_USE_CUDA OFF CACHE BOOL "")
-set(CELERITAS_USE_ROOT ON CACHE BOOL "")
-set(CELERITAS_USE_Geant4 ON CACHE BOOL "")
-set(CELERITAS_USE_VecGeom OFF CACHE BOOL "")
-set(CELERITAS_BUILD_TESTS OFF CACHE BOOL "")
+macro(set_cache_var var type val)
+  set(${var} "${val}" CACHE "${type}" "stognini.sh")
+endmacro()
 
-# VSCode export compile commands
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "")
+set_cache_var(CELERITAS_BUILD_DOCS BOOL ON)
 
-# Add all the warnings, and enable color diagnostics when using Ninja
-#set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -Werror -fcolor-diagnostics" CACHE STRING "")
+# Dependency options
+set_cache_var(CELERITAS_USE_CUDA BOOL OFF)
+set_cache_var(CELERITAS_USE_Geant4 BOOL ON)
+set_cache_var(CELERITAS_USE_MPI BOOL OFF)
+set_cache_var(CELERITAS_USE_ROOT BOOL ON)
+set_cache_var(CELERITAS_USE_SWIG_Python BOOL OFF)
+set_cache_var(CELERITAS_USE_VecGeom BOOL OFF)
+set_cache_var(CELERITAS_BUILD_TESTS BOOL OFF)
 
-# Libraries
-string(REPLACE ":" ";" _rpath "$ENV{DYLD_FALLBACK_LIBRARY_PATH}")
-set(CMAKE_BUILD_RPATH "${_rpath}" CACHE STRING "")
-set(CMAKE_INSTALL_RPATH "${_rpath};$ENV{prefix_dir}/lib" CACHE STRING "")
-
-# Enable color diagnostics when using Ninja
-foreach(LANG C CXX Fortran)
-  set(CMAKE_${LANG}_FLAGS "${CMAKE_${LANG}_FLAGS} -fcolor-diagnostics"
-      CACHE STRING "" FORCE)
-endforeach()
+# Build options
+set_cache_var(BUILD_SHARED_LIBS BOOL ON)
+set_cache_var(CMAKE_BUILD_TYPE STRING "Debug")
+set_cache_var(CMAKE_SWIG_CXX_FLAGS STRING
+  "-Wno-deprecated-declarations")
+#set_cache_var(CMAKE_CXX_FLAGS STRING
+#  "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always")

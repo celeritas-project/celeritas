@@ -89,7 +89,7 @@ class RootImporter
     std::shared_ptr<MaterialParams> load_material_data();
     // Safely switch between Import and Celeritas enums
     MaterialParams::ProductionCutId
-    to_production_cut_id(const ImportProductionCut& id);
+    to_production_cut_id(const ImportProductionCut& value);
 };
 
 //---------------------------------------------------------------------------//
