@@ -19,7 +19,7 @@
 #include "physics/base/Secondary.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
-#include "physics/grid/PhysicsGridCalculator.hh"
+#include "physics/grid/XsCalculator.hh"
 #include "DetectorView.hh"
 #include "HostStackAllocatorStore.hh"
 #include "HostDetectorStore.hh"
@@ -75,7 +75,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Physics calculator
     const auto&           xs_host_ptrs = xsparams_->host_pointers();
-    PhysicsGridCalculator calc_xs(xs_host_ptrs.xs, xs_host_ptrs.reals);
+    XsCalculator          calc_xs(xs_host_ptrs.xs, xs_host_ptrs.reals);
 
     // Make secondary store
     HostStackAllocatorStore<Secondary> secondaries(args.max_steps);

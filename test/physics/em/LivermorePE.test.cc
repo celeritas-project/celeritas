@@ -23,7 +23,7 @@
 #include "physics/em/LivermorePEParams.hh"
 #include "physics/em/PhotoelectricProcess.hh"
 #include "physics/em/LivermorePEMacroXsCalculator.hh"
-#include "physics/grid/PhysicsGridCalculator.hh"
+#include "physics/grid/XsCalculator.hh"
 #include "physics/grid/ValueGridBuilder.hh"
 #include "physics/grid/ValueGridInserter.hh"
 #include "physics/material/MaterialTrackView.hh"
@@ -504,7 +504,7 @@ TEST_F(LivermorePEInteractorTest, model)
     EXPECT_EQ(1, grid_storage.size());
 
     // Test cross sections calculated from tables
-    celeritas::PhysicsGridCalculator calc_xs(
+    celeritas::XsCalculator calc_xs(
         grid_storage[ValueGridInserter::XsIndex{0}], real_storage);
     EXPECT_SOFT_EQ(0.1, calc_xs(MevEnergy{1e-3}));
     EXPECT_SOFT_EQ(1e-5, calc_xs(MevEnergy{1e2}));

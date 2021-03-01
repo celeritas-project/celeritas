@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsGridCalculator.hh
+//! \file XsCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,7 +14,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Find and interpolate physics data based on a track's energy.
+ * Find and interpolate cross sections on a uniform log grid.
  *
  * \todo Currently this is hard-coded to use "cross section grid pointers"
  * which have energy coordinates uniform in log space. This should
@@ -26,11 +26,11 @@ namespace celeritas
  * scaled by the energy.
  *
  * \code
-    PhysicsGridCalculator calc_xs(xs_grid, xs_params.reals);
+    XsCalculator calc_xs(xs_grid, xs_params.reals);
     real_type xs = calc_xs(particle);
    \endcode
  */
-class PhysicsGridCalculator
+class XsCalculator
 {
   public:
     //!@{
@@ -42,17 +42,19 @@ class PhysicsGridCalculator
   public:
     // Construct from state-independent data
     inline CELER_FUNCTION
-    PhysicsGridCalculator(const XsGridData& grid, const Values& values);
+    XsCalculator(const XsGridData& grid, const Values& values);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
   private:
-    const XsGridData&     data_;
-    Span<const real_type> values_;
+    const XsGridData& data_;
+    const Values&     reals_;
+
+    CELER_FORCEINLINE_FUNCTION real_type get(size_type index) const;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "PhysicsGridCalculator.i.hh"
+#include "XsCalculator.i.hh"
