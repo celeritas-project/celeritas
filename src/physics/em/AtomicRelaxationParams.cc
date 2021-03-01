@@ -152,9 +152,8 @@ void AtomicRelaxationParams::append_element(const ElementInput& inp)
 
     // Calculate the maximum possible number of secondaries that could be
     // created in atomic relaxation.
-    detail::MaxSecondariesCalculator calc_max_secondaries(
-        result, electron_cut_, gamma_cut_);
-    result.max_secondary = calc_max_secondaries();
+    result.max_secondary
+        = detail::calc_max_secondaries(result, electron_cut_, gamma_cut_);
 
     // Maximum size of the stack used to store unprocessed vacancy subshell
     // IDs. For radiative transitions, there is only ever one vacancy waiting

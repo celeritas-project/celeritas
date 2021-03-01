@@ -17,6 +17,18 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the maximum possible number of secondaries produced in atomic
+ * relaxation.
+ */
+size_type calc_max_secondaries(const AtomicRelaxElement& el,
+                               units::MevEnergy          electron_cut,
+                               units::MevEnergy          gamma_cut)
+{
+    return MaxSecondariesCalculator(el, electron_cut, gamma_cut)();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with EADL transition data and production thresholds.
  */
 MaxSecondariesCalculator::MaxSecondariesCalculator(const AtomicRelaxElement& el,

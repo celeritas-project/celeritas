@@ -55,7 +55,7 @@ Span<Secondary> AtomicRelaxationHelper::allocate_secondaries() const
 CELER_FUNCTION
 Span<SubshellId> AtomicRelaxationHelper::allocate_vacancies() const
 {
-    size_type   size;
+    size_type   size      = 0;
     SubshellId* vacancies = nullptr;
     if (*this)
     {
@@ -63,10 +63,9 @@ Span<SubshellId> AtomicRelaxationHelper::allocate_vacancies() const
         SubshellIdAllocatorView allocate(vacancies_);
         size      = shared_.elements[el_id_.get()].max_stack_size;
         vacancies = allocate(size);
+        if (vacancies == nullptr)
+            size = 0;
     }
-
-    if (vacancies == nullptr)
-        size = 0;
 
     return {vacancies, size};
 }

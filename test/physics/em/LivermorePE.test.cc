@@ -569,7 +569,6 @@ TEST_F(LivermorePEInteractorTest, max_secondaries)
     using celeritas::AtomicRelaxElement;
     using celeritas::AtomicRelaxSubshell;
     using celeritas::AtomicRelaxTransition;
-    using celeritas::detail::MaxSecondariesCalculator;
 
     // For an element with n shells of transition data, the maximum number of
     // secondaries created can be upper-bounded as n if there are only
@@ -579,7 +578,6 @@ TEST_F(LivermorePEInteractorTest, max_secondaries)
     unsigned int num_shells        = 20;
     unsigned int upper_bound_fluor = num_shells;
     unsigned int upper_bound_auger = std::exp2(num_shells) - 1;
-    MevEnergy    e_cut             = MevEnergy{0};
 
     AtomicRelaxElement                   el;
     std::vector<AtomicRelaxSubshell>     shell_storage(num_shells);
@@ -595,9 +593,9 @@ TEST_F(LivermorePEInteractorTest, max_secondaries)
                 {SubshellId{i + 1}, SubshellId{}, 1, 1});
             shells[i].transitions = {transition_storage.data() + i, 1};
         }
-        el.shells = shells;
-        MaxSecondariesCalculator calc_max_secondaries(el, e_cut, e_cut);
-        auto                     result = calc_max_secondaries();
+        el.shells   = shells;
+        auto result = celeritas::detail::calc_max_secondaries(
+            el, MevEnergy{0}, MevEnergy{0});
         EXPECT_EQ(upper_bound_fluor, result);
     }
     {
@@ -619,9 +617,9 @@ TEST_F(LivermorePEInteractorTest, max_secondaries)
                 = {transition_storage.data() + start,
                    transition_storage.data() + transition_storage.size()};
         }
-        el.shells = shells;
-        MaxSecondariesCalculator calc_max_secondaries(el, e_cut, e_cut);
-        auto                     result = calc_max_secondaries();
+        el.shells   = shells;
+        auto result = celeritas::detail::calc_max_secondaries(
+            el, MevEnergy{0}, MevEnergy{0});
         EXPECT_EQ(upper_bound_auger, result);
     }
     {

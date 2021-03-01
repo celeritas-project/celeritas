@@ -17,6 +17,12 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+// Calculate the maximum possible secondaries produced in atomic relaxation
+size_type calc_max_secondaries(const AtomicRelaxElement& el,
+                               units::MevEnergy          electron_cut,
+                               units::MevEnergy          gamma_cut);
+
+//---------------------------------------------------------------------------//
 /*!
  * Helper class for calculating the maximum possible number of secondaries
  * produced in atomic relaxation for a given element and electron/photon
