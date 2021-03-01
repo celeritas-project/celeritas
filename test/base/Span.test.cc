@@ -7,10 +7,24 @@
 //---------------------------------------------------------------------------//
 #include "base/Span.hh"
 
+#include <iomanip>
+#include <sstream>
 #include <type_traits>
+#include "base/SpanIO.hh"
 #include "celeritas_test.hh"
 
 using celeritas::Span;
+
+namespace
+{
+template<class T, std::size_t E>
+std::string span_to_string(const Span<T, E>& s)
+{
+    std::ostringstream os;
+    os << s;
+    return os.str();
+}
+} // namespace
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -33,6 +47,7 @@ TEST_F(SpanTest, fixed_size_zero)
     EXPECT_EQ(0, empty_span.size());
     EXPECT_TRUE(empty_span.empty());
     EXPECT_EQ(sizeof(int*), sizeof(empty_span));
+    EXPECT_EQ("{}", span_to_string(empty_span));
 
     auto templ_subspan = empty_span.subspan<0, 0>();
     EXPECT_TRUE(
@@ -67,6 +82,7 @@ TEST_F(SpanTest, fixed_size)
     int          local_data[] = {123, 456};
     Span<int, 2> local_span(local_data);
     EXPECT_EQ(sizeof(int*), sizeof(local_span));
+    EXPECT_EQ("{123,456}", span_to_string(local_span));
 
     EXPECT_EQ(local_data, local_span.begin());
     EXPECT_EQ(local_data + 2, local_span.end());
@@ -117,6 +133,7 @@ TEST_F(SpanTest, dynamic_size)
     int       local_data[] = {123, 456, 789};
     Span<int> local_span(local_data);
     EXPECT_EQ(sizeof(int*) + sizeof(std::size_t), sizeof(local_span));
+    EXPECT_EQ("{123,456,789}", span_to_string(local_span));
 
     EXPECT_EQ(local_data, local_span.begin());
     EXPECT_EQ(local_data + 3, local_span.end());
@@ -170,4 +187,26 @@ TEST_F(SpanTest, dynamic_size)
     // Test pointer constructor
     Span<int> ptr_span(local_data, local_data + 3);
     EXPECT_EQ(local_data, ptr_span.data());
+}
+
+TEST_F(SpanTest, io_manip)
+{
+    int       local_data[] = {123, 456, 789};
+    Span<int> local_span(local_data);
+
+    {
+        std::ostringstream os;
+        os << std::setw(20) << local_span;
+        EXPECT_EQ("{   123,  456,  789}", os.str());
+    }
+    {
+        std::ostringstream os;
+        os << std::setw(3) << local_span;
+        EXPECT_EQ("{123,456,789}", os.str());
+    }
+    {
+        std::ostringstream os;
+        os << std::setw(20) << std::left << local_span;
+        EXPECT_EQ("{123   ,456  ,789  }", os.str());
+    }
 }
