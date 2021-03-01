@@ -48,14 +48,16 @@ LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
 template<class Engine>
 CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 {
-    // Allocate space to hold the single photoelectron emitted plus the total
-    // possible number of secondaries created in atomic relaxation, if enabled
+    // Allocate space for the single photoelectron emitted plus the maximum
+    // possible number of secondaries from atomic relaxation, if enabled, and
+    // space to hold the unprocessed vacancies in atomic relaxation, if enabled
     AtomicRelaxationHelper relax_helper(
-        shared_.atomic_relaxation, el_id_, allocate_, 1);
-    Span<Secondary> secondaries = relax_helper.allocate();
-    if (secondaries.empty())
+        shared_.atomic_relaxation, shared_.vacancies, el_id_, allocate_, 1);
+    Span<Secondary>  secondaries = relax_helper.allocate_secondaries();
+    Span<SubshellId> vacancies   = relax_helper.allocate_vacancies();
+    if (secondaries.empty() || (secondaries.size() > 1 && vacancies.empty()))
     {
-        // Failed to allocate space for secondaries
+        // Failed to allocate space for secondaries or stack
         return Interaction::from_failure();
     }
 
@@ -125,8 +127,8 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     secondaries.front().direction = this->sample_direction(rng);
 
     // Sample secondaries from atomic relaxation, if enabled
-    AtomicRelaxation sample_relaxation
-        = relax_helper.build_distribution(secondaries, SubshellId{shell_id});
+    AtomicRelaxation sample_relaxation = relax_helper.build_distribution(
+        secondaries, vacancies, SubshellId{shell_id});
     auto outgoing      = sample_relaxation(rng);
     result.secondaries = outgoing.secondaries;
 

@@ -24,7 +24,7 @@ CELER_FUNCTION StackAllocatorView<T>::StackAllocatorView(const Pointers& shared)
 
 //---------------------------------------------------------------------------//
 /*!
- * Allocate space for a given number of itemss.
+ * Allocate space for a given number of items.
  *
  * Returns NULL if allocation failed due to out-of-memory. Ensures that the
  * shared size reflects the amount of data allocated
