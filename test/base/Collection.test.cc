@@ -27,7 +27,7 @@ using namespace celeritas_test;
 template<class T>
 constexpr bool is_trivial_v = std::is_trivially_copyable<T>::value;
 
-TEST(SimpleCollection, slice_types)
+TEST(SimpleCollection, range_types)
 {
     EXPECT_TRUE((is_trivial_v<celeritas::ItemRange<int>>));
     EXPECT_TRUE(
@@ -40,7 +40,7 @@ TEST(SimpleCollection, slice_types)
 
 // NOTE: these tests are essentially redundant with Range.test.cc since
 // ItemRange is a Range<OpaqueId> and ItemId is an OpaqueId.
-TEST(SimpleCollection, slice)
+TEST(SimpleCollection, range)
 {
     using ItemRangeT = celeritas::ItemRange<int>;
     using ItemIdT    = celeritas::ItemId<int>;
@@ -68,9 +68,9 @@ TEST(SimpleCollection, size_limits)
     Collection<double, Ownership::value, MemSpace::host, IdType> host_val;
     auto                build = make_builder(&host_val);
     std::vector<double> dummy(254);
-    auto                slc = build.insert_back(dummy.begin(), dummy.end());
-    EXPECT_EQ(0, slc.begin()->unchecked_get());
-    EXPECT_EQ(254, slc.end()->unchecked_get());
+    auto                irange = build.insert_back(dummy.begin(), dummy.end());
+    EXPECT_EQ(0, irange.begin()->unchecked_get());
+    EXPECT_EQ(254, irange.end()->unchecked_get());
 
     // Inserting a 255-element "range" would have caused an exception in debug
     // because the "final" value `uint8_t(-1) = 255` of OpaqueId is
@@ -189,12 +189,12 @@ TEST_F(CollectionTest, TEST_IF_CELERITAS_CUDA(device))
 
     celeritas::DeviceVector<double> device_result(device_states.size());
 
-    PTestInput kernel_input;
+    CTestInput kernel_input;
     kernel_input.params = this->mock_params.device();
     kernel_input.states = device_states;
     kernel_input.result = device_result.device_pointers();
 
-    pie_cuda_test(kernel_input);
+    col_cuda_test(kernel_input);
     std::vector<double> result(device_result.size());
     device_result.copy_to_host(celeritas::make_span(result));
 

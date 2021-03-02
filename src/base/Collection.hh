@@ -25,13 +25,13 @@ using ItemId = OpaqueId<T, unsigned int>;
  *
  * \tparam T The value type of items to represent.
  *
- * A ItemRange is a range of \c OpaqueId<T> that reference a range of values of
- * type \c T in a \c Collection . The ItemRange acts like a \c slice object in
- * Python when used on a Collection, returning a Span<T> of the underlying
+ * An ItemRange is a range of \c OpaqueId<T> that reference a range of values
+ * of type \c T in a \c Collection . The ItemRange acts like a \c slice object
+ * in Python when used on a Collection, returning a Span<T> of the underlying
  * data.
  *
- * A ItemRange is only meaningful in connection with a particular Collection of
- * type T. It doesn't have any persistent connection to its associated
+ * An ItemRange is only meaningful in connection with a particular Collection
+ * of type T. It doesn't have any persistent connection to its associated
  * collection and thus must be used carefully.
  *
  * \todo It might also be good to have a `CollectionMap` -- mapping one

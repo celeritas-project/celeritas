@@ -57,7 +57,7 @@ struct MockParamsData
         return !materials.empty() && max_element_components >= 0;
     }
 
-    //! Assign from another set of pies
+    //! Assign from another set of collections
     template<Ownership W2, MemSpace M2>
     MockParamsData& operator=(const MockParamsData<W2, M2>& other)
     {
@@ -90,7 +90,7 @@ struct MockStateData
     explicit CELER_FUNCTION operator bool() const { return !matid.empty(); }
     CELER_FUNCTION celeritas::size_type size() const { return matid.size(); }
 
-    //! Assign from another set of pies on the host
+    //! Assign from another set of collections on the host
     template<Ownership W2, MemSpace M2>
     MockStateData& operator=(MockStateData<W2, M2>& other)
     {
@@ -152,7 +152,7 @@ class MockTrackView
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Input data
-struct PTestInput
+struct CTestInput
 {
     MockParamsData<Ownership::const_reference, MemSpace::device> params;
     MockStateData<Ownership::reference, MemSpace::device>        states;
@@ -161,10 +161,10 @@ struct PTestInput
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void pie_cuda_test(PTestInput);
+void col_cuda_test(CTestInput);
 
 #if !CELERITAS_USE_CUDA
-inline void pie_cuda_test(PTestInput)
+inline void col_cuda_test(CTestInput)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

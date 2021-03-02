@@ -19,7 +19,7 @@ namespace
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
-__global__ void pie_cuda_test_kernel(
+__global__ void col_cuda_test_kernel(
     const MockParamsData<Ownership::const_reference, MemSpace::device> params,
     const MockStateData<Ownership::reference, MemSpace::device>        states,
     const celeritas::Span<double>                                      results)
@@ -65,12 +65,12 @@ __global__ void pie_cuda_test_kernel(
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void pie_cuda_test(PTestInput input)
+void col_cuda_test(CTestInput input)
 {
     static const celeritas::KernelParamCalculator calc_launch_params(
-        pie_cuda_test_kernel, "pie_cuda_test");
+        col_cuda_test_kernel, "col_cuda_test");
     auto params = calc_launch_params(input.states.size());
-    pie_cuda_test_kernel<<<params.grid_size, params.block_size>>>(
+    col_cuda_test_kernel<<<params.grid_size, params.block_size>>>(
         input.params, input.states, input.result);
 
     CELER_CUDA_CHECK_ERROR();

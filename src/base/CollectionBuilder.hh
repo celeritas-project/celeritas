@@ -15,26 +15,26 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for constructing Data.
+ * Helper class for constructing Collection objects.
  *
  * This is intended for use with host data but can also be used to resize
- * device pies. It's constructed with a reference to the host collection, and
- it
- * provides vector-like methods for extending it. The size *cannot* be
+ * device collections. It's constructed with a reference to the host
+ collection,
+ * and it provides vector-like methods for extending it. The size *cannot* be
  * decreased because that would invalidate previously created \c ItemRange
  * items.
  *
  * \code
-    auto pb = make_builder(&myintpie.host);
-    pb.reserve(100);
-    ItemRange<int> insertion = pb.extend(local_ints.begin(), local_ints.end());
-    pb.push_back(123);
+    auto cb = make_builder(&myintcol.host);
+    cb.reserve(100);
+    ItemRange<int> insertion = cb.extend(local_ints.begin(), local_ints.end());
+    cb.push_back(123);
    \endcode
 
- * The CollectionBuilder can also be used to resize device-value pies without
- having
- * to allocate a host version and copy to device. (This is useful for state
- * allocations.)
+ * The CollectionBuilder can also be used to resize device-value collections
+ without
+ * having to allocate a host version and copy to device.
+ * (This is useful for state allocations.)
  */
 template<class T, MemSpace M, class I = ItemId<T>>
 class CollectionBuilder
@@ -80,7 +80,7 @@ class CollectionBuilder
     const StorageT& storage() const { return col_.storage(); }
 
     //! Maximum elements in a Collection, in native std::size_t
-    static constexpr size_type max_sizee()
+    static constexpr size_type max_size()
     {
         return std::numeric_limits<size_type>::max();
     }

@@ -31,14 +31,14 @@ namespace celeritas
  * {
  *   public:
  *     using CollectionDeviceRef = FooData<Ownership::const_reference,
- *                                  MemSpace::device>;
+ *                                         MemSpace::device>;
  *
  *     const CollectionDeviceRef& device_pointers() const
  *     {
- *         return pies_.device();
+ *         return data_.device();
  *     }
  *   private:
- *     CollectionMirror<FooData> pies_;
+ *     CollectionMirror<FooData> data_;
  * };
  * \endcode
  */
