@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
 #include "StackAllocatorInterface.hh"
 #include "Types.hh"
 
@@ -62,6 +63,11 @@ namespace celeritas
 template<class T>
 class StackAllocatorView
 {
+    static_assert(std::is_default_constructible<T>::value,
+                  "Value must be default constructible");
+    static_assert(std::is_trivially_destructible<T>::value,
+                  "Value must be trivially destructible");
+
   public:
     //!@{
     //! Type aliases
