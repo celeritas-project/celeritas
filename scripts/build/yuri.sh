@@ -4,8 +4,8 @@ SOURCE_DIR="$(cd "${BUILDSCRIPT_DIR}" && git rev-parse --show-toplevel)"
 
 printf "\e[2;37mBuilding from ${SOURCE_DIR}\e[0m\n"
 cd $SOURCE_DIR
-mkdir build-xcode 2>/dev/null || true
-cd build-xcode
+mkdir build 2>/dev/null || true
+cd build
 
 module load doxygen swig
 
@@ -13,7 +13,8 @@ CELERITAS_ENV=${SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view
 export PATH=$CELERITAS_ENV/bin:${PATH}
 export CMAKE_PREFIX_PATH=$CELERITAS_ENV:${CMAKE_PREFIX_PATH}
 
-cmake -C ${BUILDSCRIPT_DIR}/yuri.cmake -G Xcode \
+cmake -C ${BUILDSCRIPT_DIR}/yuri.cmake -G Ninja \
+  -DCMAKE_INSTALL_PREFIX:PATH=$SOURCE_DIR/install \
   ..
 ninja -v
 ctest --output-on-failure

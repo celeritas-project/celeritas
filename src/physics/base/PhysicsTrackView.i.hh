@@ -41,7 +41,6 @@ PhysicsTrackView::operator=(const Initializer_t&)
 {
     this->state().interaction_mfp = -1;
     this->state().step_length     = -1;
-    this->state().range_limit     = -1;
     this->state().macro_xs        = -1;
     this->state().model_id        = ModelId{};
     return *this;
@@ -81,16 +80,6 @@ CELER_FUNCTION void PhysicsTrackView::macro_xs(real_type inv_distance)
 
 //---------------------------------------------------------------------------//
 /*!
- * Set the maximum range from along-step energy loss.
- */
-CELER_FUNCTION void PhysicsTrackView::range_limit(real_type distance)
-{
-    CELER_EXPECT(distance > 0);
-    this->state().range_limit = distance;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Select a model ID for the current track.
  *
  * An "unassigned" model ID is valid, as it might represent a special case or a
@@ -124,10 +113,6 @@ CELER_FUNCTION real_type PhysicsTrackView::interaction_mfp() const
 //---------------------------------------------------------------------------//
 /*!
  * Maximum step length.
- *
- * \todo Maybe calculate on the fly, or set at the same time as range
- * limit/macro xs? Should be:
- * min(this->range_limit(), this->interaction_mfp() / this->macro_xs())
  */
 CELER_FUNCTION real_type PhysicsTrackView::step_length() const
 {
@@ -148,17 +133,6 @@ CELER_FUNCTION real_type PhysicsTrackView::macro_xs() const
     real_type xs = this->state().macro_xs;
     CELER_ENSURE(xs >= 0);
     return xs;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Maximum range from along-step energy loss.
- */
-CELER_FUNCTION real_type PhysicsTrackView::range_limit() const
-{
-    real_type limit = this->state().range_limit;
-    CELER_ENSURE(limit >= 0);
-    return limit;
 }
 
 //---------------------------------------------------------------------------//

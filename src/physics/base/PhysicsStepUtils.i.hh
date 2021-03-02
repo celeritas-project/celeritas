@@ -22,10 +22,13 @@ namespace celeritas
 /*!
  * Calculate physics step limits based on cross sections and range limiters.
  */
-CELER_FUNCTION void update_physics_step(const MaterialTrackView& material,
-                                        const ParticleTrackView& particle,
-                                        PhysicsTrackView&        physics)
+inline CELER_FUNCTION real_type
+calc_tabulated_physics_step(const MaterialTrackView& material,
+                            const ParticleTrackView& particle,
+                            PhysicsTrackView&        physics)
 {
+    CELER_EXPECT(physics.has_interaction_mfp());
+
     constexpr real_type inf = numeric_limits<real_type>::infinity();
     using VGT               = ValueGridType;
 
@@ -71,7 +74,9 @@ CELER_FUNCTION void update_physics_step(const MaterialTrackView& material,
         // user options
         min_range = physics.range_to_step(min_range);
     }
-    physics.range_limit(min_range);
+
+    // Update step length with discrete interaction
+    return min(min_range, physics.interaction_mfp() / total_macro_xs);
 }
 
 //---------------------------------------------------------------------------//
@@ -113,10 +118,11 @@ CELER_FUNCTION void update_physics_step(const MaterialTrackView& material,
  * \todo The geant3 manual makes the point that linear interpolation of energy
  * loss rate results in a piecewise constant energy deposition curve, which is
  * why they use spline interpolation. Investigate higher-order reconstruction
- * of energy loss curve, e.g. through spline-based interpolation.
+ * of energy loss curve, e.g. through spline-based interpolation or log-log
+ * interpolation.
  *
- * \todo Range should be a integral of a function of energy loss rate summed
- * over all processes, not independently considered.
+ * \note The inverse range correction assumes range is always the integral of
+ * the stopping power/energy loss.
  */
 CELER_FUNCTION ParticleTrackView::Energy
                calc_energy_loss(const ParticleTrackView& particle,
@@ -149,25 +155,32 @@ CELER_FUNCTION ParticleTrackView::Energy
     if (eloss > pre_step_energy.value() * physics.linear_loss_limit())
     {
         // Enough energy is lost over this step that the dE/dx linear
-        // approximation is probably wrong. Reduce the energy loss rate
-        // using range tables for individual processes.
-        const real_type remaining_range = physics.range_limit() - step;
-
-        // Find the highest energy such that the post-step range limiter is the
-        // same point as the pre-step estimate of the range.
-        real_type efinal = max<real_type>(0, pre_step_energy.value() - eloss);
+        // approximation is probably wrong. Use the definition of the range as
+        // the integral of 1/loss to back-calculate the actual energy loss
+        // along the curve given the actual step.
+        eloss = 0;
         for (auto ppid :
              range(ParticleProcessId{physics.num_particle_processes()}))
         {
             if (auto grid_id = physics.value_grid(VGT::range, ppid))
             {
+                // Recalculate beginning-of-step range (instead of storing)
+                auto calc_range
+                    = physics.make_calculator<RangeCalculator>(grid_id);
+                real_type remaining_range = calc_range(pre_step_energy) - step;
+                CELER_ASSERT(remaining_range > 0);
+
+                // Calculate energy along the range curve corresponding to the
+                // actual step taken: this gives the exact energy loss over the
+                // step due to this process.
                 auto calc_energy
                     = physics.make_calculator<InverseRangeCalculator>(grid_id);
-                efinal = max(efinal, calc_energy(remaining_range).value());
+                eloss += (pre_step_energy.value()
+                          - calc_energy(remaining_range).value());
             }
         }
-
-        eloss = pre_step_energy.value() - efinal;
+        CELER_ASSERT(eloss > 0);
+        CELER_ASSERT(eloss < pre_step_energy.value());
     }
 
     CELER_ENSURE(eloss <= pre_step_energy.value());

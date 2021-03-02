@@ -221,9 +221,7 @@ struct PhysicsParamsData
 struct PhysicsTrackState
 {
     real_type interaction_mfp; //!< Remaining MFP to interaction
-
     real_type step_length; //!< Overall physics step length
-    real_type range_limit; //!< Maximum step due to eloss
     real_type macro_xs;    //!< Total cross section
 
     ModelId            model_id;   //!< Selected model if interacting

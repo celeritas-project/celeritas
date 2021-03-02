@@ -17,10 +17,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // INLINE HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-inline CELER_FUNCTION void
-update_physics_step(const MaterialTrackView& material,
-                    const ParticleTrackView& particle,
-                    PhysicsTrackView&        physics);
+inline CELER_FUNCTION real_type
+calc_tabulated_physics_step(const MaterialTrackView& material,
+                            const ParticleTrackView& particle,
+                            PhysicsTrackView&        physics);
 
 inline CELER_FUNCTION ParticleTrackView::Energy
                       calc_energy_loss(const ParticleTrackView& particle,

@@ -56,9 +56,6 @@ class PhysicsTrackView
     // Set the overall physics step length
     inline CELER_FUNCTION void step_length(real_type);
 
-    // Set the maximum range from along-step energy loss [cm]
-    inline CELER_FUNCTION void range_limit(real_type);
-
     // Set the total (process-integrated) macroscopic xs [cm^-1]
     inline CELER_FUNCTION void macro_xs(real_type);
 
@@ -75,9 +72,6 @@ class PhysicsTrackView
 
     // Maximum step length [cm]
     CELER_FORCEINLINE_FUNCTION real_type step_length() const;
-
-    // Maximum range from along-step energy loss [cm]
-    CELER_FORCEINLINE_FUNCTION real_type range_limit() const;
 
     // Total (process-integrated) macroscopic xs [cm^-1]
     CELER_FORCEINLINE_FUNCTION real_type macro_xs() const;
