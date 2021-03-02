@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "physics/em/detail/LivermorePEInteractor.hh"
 
+#include <cmath>
 #include <fstream>
 #include <map>
 #include "celeritas_test.hh"
@@ -26,6 +27,7 @@
 #include "physics/grid/ValueGridBuilder.hh"
 #include "physics/grid/ValueGridInserter.hh"
 #include "physics/material/MaterialTrackView.hh"
+#include "physics/em/detail/Utils.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
@@ -40,6 +42,7 @@ using celeritas::LivermorePEMacroXsCalculator;
 using celeritas::LivermorePEParams;
 using celeritas::LivermorePEParamsReader;
 using celeritas::PhotoelectricProcess;
+using celeritas::SubshellId;
 using celeritas::ValueGridInserter;
 using celeritas::detail::LivermorePEInteractor;
 namespace pdg = celeritas::pdg;
@@ -158,6 +161,7 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
     std::shared_ptr<AtomicRelaxationParams> relax_params_;
     std::shared_ptr<LivermorePEParams>      livermore_params_;
     celeritas::detail::LivermorePEPointers  pointers_;
+    celeritas_test::HostStackAllocatorStore<SubshellId> vacancies_;
 };
 
 //---------------------------------------------------------------------------//
@@ -281,7 +285,6 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
     const int num_samples   = 1000;
     Real3     inc_direction = {0, 0, 1};
     this->set_inc_direction(inc_direction);
-    this->resize_secondaries(16 * num_samples);
 
     // Sampled element
     ElementId el_id{0};
@@ -290,6 +293,19 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
     relax_inp_.is_auger_enabled = true;
     set_relaxation_params(relax_inp_);
     pointers_.atomic_relaxation = relax_params_->host_pointers();
+
+    // Allocate space to hold unprocessed vacancy stack in atomic relaxation
+    auto max_stack_size
+        = pointers_.atomic_relaxation.elements[el_id.get()].max_stack_size;
+    EXPECT_EQ(4, max_stack_size);
+    vacancies_.resize(num_samples * max_stack_size);
+    pointers_.vacancies = vacancies_.host_pointers();
+
+    // Allocate storage for secondaries (atomic relaxation + photoelectron)
+    auto max_secondary
+        = pointers_.atomic_relaxation.elements[el_id.get()].max_secondary + 1;
+    EXPECT_EQ(8, max_secondary);
+    this->resize_secondaries(max_secondary * num_samples);
 
     // Create the interactor
     LivermorePEInteractor interact(pointers_,
@@ -329,7 +345,8 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
             energy_to_count[secondary.energy.value()]++;
         }
     }
-    EXPECT_EQ(16 * num_samples, this->secondary_allocator().get().size());
+    EXPECT_EQ(max_secondary * num_samples,
+              this->secondary_allocator().get().size());
     EXPECT_EQ(2180, num_secondaries);
 
     for (const auto& it : energy_to_count)
@@ -360,7 +377,6 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
     RandomEngine& rng_engine = this->rng();
 
     const int num_samples = 10000;
-    this->resize_secondaries(5 * num_samples);
 
     // Sampled element
     ElementId el_id{0};
@@ -369,6 +385,19 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
     relax_inp_.is_auger_enabled = false;
     set_relaxation_params(relax_inp_);
     pointers_.atomic_relaxation = relax_params_->host_pointers();
+
+    // Allocate space to hold unprocessed vacancy stack in atomic relaxation
+    auto max_stack_size
+        = pointers_.atomic_relaxation.elements[el_id.get()].max_stack_size;
+    EXPECT_EQ(1, max_stack_size);
+    vacancies_.resize(num_samples * max_stack_size);
+    pointers_.vacancies = vacancies_.host_pointers();
+
+    // Allocate storage for secondaries (atomic relaxation + photoelectron)
+    auto max_secondary
+        = pointers_.atomic_relaxation.elements[el_id.get()].max_secondary + 1;
+    EXPECT_EQ(4, max_secondary);
+    this->resize_secondaries(max_secondary * num_samples);
 
     // Create the interactor
     LivermorePEInteractor interact(pointers_,
@@ -397,7 +426,8 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
             energy_to_count[secondary.energy.value()]++;
         }
     }
-    EXPECT_EQ(5 * num_samples, this->secondary_allocator().get().size());
+    EXPECT_EQ(max_secondary * num_samples,
+              this->secondary_allocator().get().size());
     EXPECT_EQ(10007, num_secondaries);
 
     for (const auto& it : energy_to_count)
@@ -451,12 +481,14 @@ TEST_F(LivermorePEInteractorTest, model)
     // Add atomic relaxation data
     relax_inp_.is_auger_enabled = true;
     set_relaxation_params(relax_inp_);
+    auto vacancies = std::make_shared<celeritas::SubshellIdAllocatorStore>(10);
 
     PhotoelectricProcess process(this->get_particle_params(),
                                  xs_lo,
                                  xs_hi,
                                  livermore_params_,
-                                 relax_params_);
+                                 relax_params_,
+                                 vacancies);
 
     Applicability range    = {MaterialId{0},
                            this->particle_params().find(pdg::gamma()),
@@ -531,4 +563,76 @@ TEST_F(LivermorePEInteractorTest, macro_xs)
            1.743005702864e-12, 5.187166124179e-13, 1.543827005416e-13,
            4.594922185898e-14, 1.367605938008e-14};
     EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
+}
+
+TEST_F(LivermorePEInteractorTest, max_secondaries)
+{
+    using celeritas::AtomicRelaxElement;
+    using celeritas::AtomicRelaxSubshell;
+    using celeritas::AtomicRelaxTransition;
+
+    // For an element with n shells of transition data, the maximum number of
+    // secondaries created can be upper-bounded as n if there are only
+    // radiative transitions and 2^n - 1 if there are non-radiative transitions
+    // for the hypothetical worst case where for a given vacancy the
+    // transitions always originate from the next subshell up
+    unsigned int num_shells        = 20;
+    unsigned int upper_bound_fluor = num_shells;
+    unsigned int upper_bound_auger = std::exp2(num_shells) - 1;
+
+    AtomicRelaxElement                   el;
+    std::vector<AtomicRelaxSubshell>     shell_storage(num_shells);
+    celeritas::Span<AtomicRelaxSubshell> shells = make_span(shell_storage);
+    {
+        // One radiative transition per subshell, each one originating in the
+        // next subshell up
+        std::vector<AtomicRelaxTransition> transition_storage;
+        transition_storage.reserve(num_shells);
+        for (auto i : celeritas::range(num_shells))
+        {
+            transition_storage.push_back(
+                {SubshellId{i + 1}, SubshellId{}, 1, 1});
+            shells[i].transitions = {transition_storage.data() + i, 1};
+        }
+        el.shells   = shells;
+        auto result = celeritas::detail::calc_max_secondaries(
+            el, MevEnergy{0}, MevEnergy{0});
+        EXPECT_EQ(upper_bound_fluor, result);
+    }
+    {
+        // num_shells - subshell_id non-radiative transitions per subshell, one
+        // originating in each of the higher subshells
+        std::vector<AtomicRelaxTransition> transition_storage;
+        transition_storage.reserve(num_shells * (num_shells + 1) / 2);
+        for (auto i : celeritas::range(num_shells))
+        {
+            auto start = transition_storage.size();
+            for (auto j : celeritas::range(i, num_shells))
+            {
+                transition_storage.push_back({SubshellId{j + 1},
+                                              SubshellId{j + 1},
+                                              1. / (num_shells - i),
+                                              1});
+            }
+            shells[i].transitions
+                = {transition_storage.data() + start,
+                   transition_storage.data() + transition_storage.size()};
+        }
+        el.shells   = shells;
+        auto result = celeritas::detail::calc_max_secondaries(
+            el, MevEnergy{0}, MevEnergy{0});
+        EXPECT_EQ(upper_bound_auger, result);
+    }
+    {
+        relax_inp_.is_auger_enabled = true;
+        relax_inp_.electron_cut     = MevEnergy{1.e-3};
+        relax_inp_.gamma_cut        = MevEnergy{1.e-3};
+        set_relaxation_params(relax_inp_);
+        EXPECT_EQ(1, relax_params_->host_pointers().elements[0].max_secondary);
+
+        relax_inp_.electron_cut = MevEnergy{1.e-4};
+        relax_inp_.gamma_cut    = MevEnergy{1.e-4};
+        set_relaxation_params(relax_inp_);
+        EXPECT_EQ(3, relax_params_->host_pointers().elements[0].max_secondary);
+    }
 }

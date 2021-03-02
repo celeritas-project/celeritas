@@ -23,6 +23,7 @@
 #include "DetectorView.hh"
 #include "HostStackAllocatorStore.hh"
 #include "HostDetectorStore.hh"
+#include "KernelUtils.hh"
 
 using namespace celeritas;
 using celeritas::detail::KleinNishinaInteractor;
@@ -129,13 +130,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             ++num_steps;
 
             // Move to collision
-            {
-                real_type sigma = calc_xs(particle.energy());
-                ExponentialDistribution<real_type> sample_distance(sigma);
-                real_type distance = sample_distance(rng);
-                celeritas::axpy(distance, direction, &position);
-                time += distance * celeritas::unit_cast(particle.speed());
-            }
+            demo_interactor::move_to_collision(
+                particle, calc_xs, direction, &position, &time, rng);
 
             // Hit analysis
             Hit h;

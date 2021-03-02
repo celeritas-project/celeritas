@@ -15,6 +15,7 @@
 #include "base/SpanRemapper.hh"
 #include "base/VectorUtils.hh"
 #include "comm/Device.hh"
+#include "detail/Utils.hh"
 
 namespace celeritas
 {
@@ -28,6 +29,8 @@ namespace celeritas
  */
 AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     : is_auger_enabled_(inp.is_auger_enabled)
+    , electron_cut_(inp.electron_cut)
+    , gamma_cut_(inp.gamma_cut)
     , electron_id_(inp.electron_id)
     , gamma_id_(inp.gamma_id)
 {
@@ -108,6 +111,8 @@ AtomicRelaxParamsPointers AtomicRelaxationParams::host_pointers() const
     result.elements    = make_span(host_elements_);
     result.electron_id = electron_id_;
     result.gamma_id    = gamma_id_;
+    result.electron_cut = electron_cut_;
+    result.gamma_cut    = gamma_cut_;
 
     CELER_ENSURE(result);
     return result;
@@ -125,6 +130,8 @@ AtomicRelaxParamsPointers AtomicRelaxationParams::device_pointers() const
     result.elements    = device_elements_.device_pointers();
     result.electron_id = electron_id_;
     result.gamma_id    = gamma_id_;
+    result.electron_cut = electron_cut_;
+    result.gamma_cut    = gamma_cut_;
 
     CELER_ENSURE(result);
     return result;
@@ -140,24 +147,19 @@ void AtomicRelaxationParams::append_element(const ElementInput& inp)
 {
     AtomicRelaxElement result;
 
-    // TODO: For an element Z with n shells of transition data, you can bound
-    // this worst case as n for radiative transitions and 2^n - 1 for
-    // non-radiative transitions if for a given vacancy the transitions always
-    // originate from the next subshell up. Physically this won't happen, so
-    // can we bound this tighter (maybe O(100) for non-radiative transitions,
-    // but that's still a lot)? Can we impose an energy cut below which we
-    // won't create secondaries in the relaxation cascade to reduce it further?
-    if (is_auger_enabled_)
-    {
-        result.max_secondary = std::exp2(inp.shells.size()) - 1;
-    }
-    else
-    {
-        result.max_secondary = inp.shells.size();
-    }
-
     // Copy subshell transition data
     result.shells = this->extend_shells(inp);
+
+    // Calculate the maximum possible number of secondaries that could be
+    // created in atomic relaxation.
+    result.max_secondary
+        = detail::calc_max_secondaries(result, electron_cut_, gamma_cut_);
+
+    // Maximum size of the stack used to store unprocessed vacancy subshell
+    // IDs. For radiative transitions, there is only ever one vacancy waiting
+    // to be processed. For non-radiative transitions, the upper bound on the
+    // stack size is the number of shells that have transition data.
+    result.max_stack_size = is_auger_enabled_ ? result.shells.size() : 1;
 
     // Add to host vector
     host_elements_.push_back(result);

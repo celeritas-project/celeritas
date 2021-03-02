@@ -24,7 +24,7 @@ CELER_FUNCTION StackAllocatorView<T>::StackAllocatorView(const Pointers& shared)
 
 //---------------------------------------------------------------------------//
 /*!
- * Allocate space for a given number of itemss.
+ * Allocate space for a given number of items.
  *
  * Returns NULL if allocation failed due to out-of-memory. Ensures that the
  * shared size reflects the amount of data allocated
@@ -33,6 +33,7 @@ template<class T>
 CELER_FUNCTION auto StackAllocatorView<T>::operator()(size_type count)
     -> result_type
 {
+    CELER_EXPECT(count > 0);
     static_assert(std::is_default_constructible<T>::value,
                   "Value must be default constructible");
 

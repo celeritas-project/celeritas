@@ -27,8 +27,9 @@ namespace celeritas
  * \code
     // Construct the helper for a model that produces a single secondary
     AtomicRelaxationHelper relax_helper(shared, el_id, allocate, 1);
-    Span<Secondary> secondaries = relax_helper.allocate();
-    if (secondaries.empty())
+    Span<Secondary>  secondaries = relax_helper.allocate_secondaries();
+    Span<SubshellId> vacancies   = relax_helper.allocate_vacancies();
+    if (secondaries.empty() || (secondaries.size() > 1 && vacancies.empty()))
     {
         return Interaction::from_failure();
     }
@@ -37,7 +38,7 @@ namespace celeritas
     // ...
 
     AtomicRelaxation sample_relaxation
-        = relax_helper.build_distribution(secondaries, shell_id);
+        = relax_helper.build_distribution(secondaries, vacancies, shell_id);
     auto outgoing             = sample_relaxation(rng);
     result.secondaries        = outgoing.secondaries;
     result.energy_deposition -= outgoing.energy;
@@ -53,17 +54,23 @@ class AtomicRelaxationHelper
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    AtomicRelaxationHelper(const AtomicRelaxParamsPointers& shared,
-                           ElementId                        el_id,
-                           SecondaryAllocatorView&          allocate,
-                           size_type                        base_size);
+    AtomicRelaxationHelper(const AtomicRelaxParamsPointers&   shared,
+                           const SubshellIdAllocatorPointers& vacancies,
+                           ElementId                          el_id,
+                           SecondaryAllocatorView&            allocate,
+                           size_type                          base_size);
 
     // Allocate space for secondaries
-    inline CELER_FUNCTION Span<Secondary> allocate() const;
+    inline CELER_FUNCTION Span<Secondary> allocate_secondaries() const;
+
+    // Allocate space for subshell ID stack
+    inline CELER_FUNCTION Span<SubshellId> allocate_vacancies() const;
 
     // Create the sampling distribution
     inline CELER_FUNCTION AtomicRelaxation
-    build_distribution(Span<Secondary> secondaries, SubshellId shell_id) const;
+    build_distribution(Span<Secondary>  secondaries,
+                       Span<SubshellId> vacancies,
+                       SubshellId       shell_id) const;
 
     // Whether atomic relaxation should be applied
     explicit inline CELER_FUNCTION operator bool() const;
@@ -71,6 +78,8 @@ class AtomicRelaxationHelper
   private:
     // Shared EADL atomic relaxation data
     const AtomicRelaxParamsPointers& shared_;
+    // Allocate space for vacancy subshell ID stack
+    const SubshellIdAllocatorPointers& vacancies_;
     // Index in MaterialParams elements
     ElementId el_id_;
     // Allocate space for one or more secondary particles

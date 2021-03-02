@@ -53,6 +53,8 @@ class AtomicRelaxationParams
         std::vector<ElementInput> elements;
         ParticleId                electron_id{};
         ParticleId                gamma_id{};
+        MevEnergy electron_cut{0};    //!< Production threshold for electrons
+        MevEnergy gamma_cut{0};       //!< Production threshold for photons
         bool is_auger_enabled{false}; //!< Whether to produce Auger electrons
     };
 
@@ -70,6 +72,8 @@ class AtomicRelaxationParams
     //// HOST DATA ////
 
     bool                                is_auger_enabled_;
+    MevEnergy                           electron_cut_;
+    MevEnergy                           gamma_cut_;
     ParticleId                          electron_id_;
     ParticleId                          gamma_id_;
     std::unordered_map<int, SubshellId> des_to_id_;
