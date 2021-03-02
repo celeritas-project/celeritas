@@ -8,8 +8,8 @@
 #pragma once
 
 #include <vector>
-#include "base/Pie.hh"
-#include "base/PieBuilder.hh"
+#include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "XsGridInterface.hh"
@@ -37,17 +37,19 @@ class ValueGridInserter
   public:
     //!@{
     //! Type aliases
-    using RealPie          = Pie<real_type, Ownership::value, MemSpace::host>;
-    using XsGridPie        = Pie<XsGridData, Ownership::value, MemSpace::host>;
+    using RealCollection
+        = Collection<real_type, Ownership::value, MemSpace::host>;
+    using XsGridCollection
+        = Collection<XsGridData, Ownership::value, MemSpace::host>;
     using SpanConstReal    = Span<const real_type>;
     using InterpolatedGrid = std::pair<SpanConstReal, Interp>;
-    using XsIndex          = PieId<XsGridData>;
-    using GenericIndex     = PieId<GenericGridData>;
+    using XsIndex          = ItemId<XsGridData>;
+    using GenericIndex     = ItemId<GenericGridData>;
     //!@}
 
   public:
     // Construct with a reference to mutable host data
-    ValueGridInserter(RealPie* real_data, XsGridPie* xs_grid);
+    ValueGridInserter(RealCollection* real_data, XsGridCollection* xs_grid);
 
     // Add a grid of xs-like data
     XsIndex operator()(const UniformGridData& log_grid,
@@ -61,8 +63,8 @@ class ValueGridInserter
     GenericIndex operator()(InterpolatedGrid grid, InterpolatedGrid values);
 
   private:
-    PieBuilder<real_type, MemSpace::host>  values_;
-    PieBuilder<XsGridData, MemSpace::host> xs_grids_;
+    CollectionBuilder<real_type, MemSpace::host>  values_;
+    CollectionBuilder<XsGridData, MemSpace::host> xs_grids_;
 };
 
 //---------------------------------------------------------------------------//

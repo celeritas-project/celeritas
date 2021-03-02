@@ -8,7 +8,7 @@
 #include "ParticleParams.hh"
 
 #include "base/Assert.hh"
-#include "base/PieBuilder.hh"
+#include "base/CollectionBuilder.hh"
 
 namespace celeritas
 {
@@ -22,7 +22,7 @@ ParticleParams::ParticleParams(const Input& input)
 
     // Build elements and materials on host.
     ParticleParamsData<Ownership::value, MemSpace::host> host_data;
-    auto particles = make_pie_builder(&host_data.particles);
+    auto particles = make_builder(&host_data.particles);
     particles.reserve(input.size());
 
     for (const auto& particle : input)
@@ -54,7 +54,7 @@ ParticleParams::ParticleParams(const Input& input)
     }
 
     // Move to mirrored data, copying to device
-    data_ = PieMirror<ParticleParamsData>{std::move(host_data)};
+    data_ = CollectionMirror<ParticleParamsData>{std::move(host_data)};
 
     CELER_ENSURE(md_.size() == input.size());
     CELER_ENSURE(name_to_id_.size() == input.size());

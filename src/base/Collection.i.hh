@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Pie.i.hh
+//! \file Collection.i.hh
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 
@@ -11,51 +11,57 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from another pie.
+ * Construct from another collection.
  */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-Pie<T, W, M, I>::Pie(const Pie<T, W2, M2, I>& other)
-    : storage_(detail::PieAssigner<W, M>()(other.storage_))
+Collection<T, W, M, I>::Collection(const Collection<T, W2, M2, I>& other)
+    : storage_(detail::CollectionAssigner<W, M>()(other.storage_))
 {
-    detail::PieStorageValidator<W2>()(this->size(), other.storage().size());
+    detail::CollectionStorageValidator<W2>()(this->size(),
+                                             other.storage().size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from another pie (mutable).
+ * Construct from another collection (mutable).
  */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-Pie<T, W, M, I>::Pie(Pie<T, W2, M2, I>& other)
-    : storage_(detail::PieAssigner<W, M>()(other.storage_))
+Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
+    : storage_(detail::CollectionAssigner<W, M>()(other.storage_))
 {
-    detail::PieStorageValidator<W2>()(this->size(), other.storage().size());
+    detail::CollectionStorageValidator<W2>()(this->size(),
+                                             other.storage().size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Assign from another pie in the same memory space.
+ * Assign from another collection in the same memory space.
  */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2>
-Pie<T, W, M, I>& Pie<T, W, M, I>::operator=(const Pie<T, W2, M, I>& other)
+Collection<T, W, M, I>&
+Collection<T, W, M, I>::operator=(const Collection<T, W2, M, I>& other)
 {
-    storage_ = detail::PieAssigner<W, M>()(other.storage_);
-    detail::PieStorageValidator<W2>()(this->size(), other.storage().size());
+    storage_ = detail::CollectionAssigner<W, M>()(other.storage_);
+    detail::CollectionStorageValidator<W2>()(this->size(),
+                                             other.storage().size());
     return *this;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Assign (mutable!) from another pie in the same memory space.
+ * Assign (mutable!) from another collection in the same memory space.
  */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2>
-Pie<T, W, M, I>& Pie<T, W, M, I>::operator=(Pie<T, W2, M, I>& other)
+Collection<T, W, M, I>&
+Collection<T, W, M, I>::operator=(Collection<T, W2, M, I>& other)
 {
-    storage_ = detail::PieAssigner<W, M>()(other.storage_);
-    detail::PieStorageValidator<W2>()(this->size(), other.storage().size());
+    storage_ = detail::CollectionAssigner<W, M>()(other.storage_);
+    detail::CollectionStorageValidator<W2>()(this->size(),
+                                             other.storage().size());
     return *this;
 }
 
@@ -64,7 +70,7 @@ Pie<T, W, M, I>& Pie<T, W, M, I>::operator=(Pie<T, W2, M, I>& other)
  * Access a subspan.
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) -> SpanT
+CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) -> SpanT
 {
     CELER_EXPECT(*ps.end() < this->size() + 1);
     return {this->data() + ps.begin()->get(), this->data() + ps.end()->get()};
@@ -75,7 +81,7 @@ CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) -> SpanT
  * Access a subspan (const).
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) const
+CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) const
     -> SpanConstT
 {
     CELER_EXPECT(*ps.end() < this->size() + 1);
@@ -87,7 +93,8 @@ CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieSliceT ps) const
  * Access a single element.
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieIndexT i) -> reference_type
+CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i)
+    -> reference_type
 {
     CELER_EXPECT(i < this->size());
     return this->storage()[i.get()];
@@ -98,7 +105,7 @@ CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieIndexT i) -> reference_type
  * Access a single element (const).
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieIndexT i) const
+CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i) const
     -> const_reference_type
 {
     CELER_EXPECT(i < this->size());
@@ -109,25 +116,26 @@ CELER_FUNCTION auto Pie<T, W, M, I>::operator[](PieIndexT i) const
 //!@{
 //! Direct accesors to underlying data
 template<class T, Ownership W, MemSpace M, class I>
-CELER_CONSTEXPR_FUNCTION auto Pie<T, W, M, I>::size() const -> size_type
+CELER_CONSTEXPR_FUNCTION auto Collection<T, W, M, I>::size() const -> size_type
 {
     return this->storage().size();
 }
 
 template<class T, Ownership W, MemSpace M, class I>
-CELER_CONSTEXPR_FUNCTION bool Pie<T, W, M, I>::empty() const
+CELER_CONSTEXPR_FUNCTION bool Collection<T, W, M, I>::empty() const
 {
     return this->storage().empty();
 }
 
 template<class T, Ownership W, MemSpace M, class I>
-CELER_CONSTEXPR_FUNCTION auto Pie<T, W, M, I>::data() const -> const_pointer
+CELER_CONSTEXPR_FUNCTION auto Collection<T, W, M, I>::data() const
+    -> const_pointer
 {
     return this->storage().data();
 }
 
 template<class T, Ownership W, MemSpace M, class I>
-CELER_CONSTEXPR_FUNCTION auto Pie<T, W, M, I>::data() -> pointer
+CELER_CONSTEXPR_FUNCTION auto Collection<T, W, M, I>::data() -> pointer
 {
     return this->storage().data();
 }

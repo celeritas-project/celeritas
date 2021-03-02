@@ -10,7 +10,7 @@
 
 #include "celeritas_test.hh"
 #include "base/Range.hh"
-#include "base/PieStateStore.hh"
+#include "base/CollectionStateStore.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/grid/RangeCalculator.hh"
 #include "physics/grid/XsCalculator.hh"
@@ -99,7 +99,7 @@ class PhysicsTrackViewHostTest : public PhysicsTestBase
   public:
     //!@{
     //! Type aliases
-    using StateStore = PieStateStore<PhysicsStateData, MemSpace::host>;
+    using StateStore = CollectionStateStore<PhysicsStateData, MemSpace::host>;
     using ParamsHostRef
         = PhysicsParamsData<Ownership::const_reference, MemSpace::host>;
     //!@}
@@ -373,7 +373,7 @@ class PHYS_DEVICE_TEST : public PhysicsTestBase
   public:
     //!@{
     //! Type aliases
-    using StateStore = PieStateStore<PhysicsStateData, MemSpace::device>;
+    using StateStore = CollectionStateStore<PhysicsStateData, MemSpace::device>;
     //!@}
 
     void SetUp() override
@@ -384,17 +384,18 @@ class PHYS_DEVICE_TEST : public PhysicsTestBase
     }
 
     StateStore states;
-    celeritas::StatePie<PhysTestInit, Ownership::value, MemSpace::device> inits;
+    celeritas::StateCollection<PhysTestInit, Ownership::value, MemSpace::device>
+        inits;
 };
 
 TEST_F(PHYS_DEVICE_TEST, all)
 {
     // Construct initial conditions
     {
-        celeritas::StatePie<PhysTestInit, Ownership::value, MemSpace::host>
+        celeritas::StateCollection<PhysTestInit, Ownership::value, MemSpace::host>
             temp_inits;
 
-        auto         init_builder = make_pie_builder(&temp_inits);
+        auto         init_builder = make_builder(&temp_inits);
         PhysTestInit thread_init;
         for (unsigned int matid : {0, 2})
         {

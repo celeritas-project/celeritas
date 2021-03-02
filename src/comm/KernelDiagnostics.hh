@@ -48,7 +48,7 @@ class KernelDiagnostics
     using key_type        = OpaqueId<struct Kernel>;
     using value_type      = KernelProperties;
     using const_reference = const value_type&;
-    using size_type       = key_type::value_type;
+    using size_type       = key_type::size_type;
     //!@}
 
   public:

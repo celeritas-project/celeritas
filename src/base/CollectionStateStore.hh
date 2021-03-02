@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PieStateStore.hh
+//! \file CollectionStateStore.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "Assert.hh"
-#include "PieTypes.hh"
+#include "CollectionTypes.hh"
 #include "Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for storing Pie classes on host or device.
+ * Helper class for storing Collection classes on host or device.
  *
  * This can be used for unit tests (MemSpace is host) as well as production
  * code. States generally shouldn't be copied between host and device, so the
@@ -27,28 +27,28 @@ namespace celeritas
  * a value state and Params host pointers.
  *
  * \code
-    PieStateStore<ParticleStateData, MemSpace::device> pstates(
+    CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
         *particle_params, num_tracks);
     state_pointers.particle = pstates.ref();
    \endcode
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
-class PieStateStore
+class CollectionStateStore
 {
   public:
     //!@{
     //! Type aliases
     using Value     = S<Ownership::value, M>;
     using Ref       = S<Ownership::reference, M>;
-    using size_type = ThreadId::value_type;
+    using size_type = ThreadId::size_type;
     //!@}
 
   public:
-    PieStateStore() = default;
+    CollectionStateStore() = default;
 
     //! Construct from parameters
     template<class Params>
-    PieStateStore(const Params& p, size_type size)
+    CollectionStateStore(const Params& p, size_type size)
     {
         CELER_EXPECT(size > 0);
         resize(&val_, p.host_pointers(), size);

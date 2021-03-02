@@ -73,7 +73,7 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
         << "\n  model_groups: " << host_data.model_groups.size()
         << "\n  process_groups: " << host_data.process_groups.size();
 
-    data_ = PieMirror<PhysicsParamsData>{std::move(host_data)};
+    data_ = CollectionMirror<PhysicsParamsData>{std::move(host_data)};
 }
 
 //---------------------------------------------------------------------------//
@@ -96,7 +96,7 @@ auto PhysicsParams::build_models() const -> VecModel
 
     // Construct models, assigning each model ID
     ModelIdGenerator next_model_id;
-    for (auto process_idx : range<ProcessId::value_type>(processes_.size()))
+    for (auto process_idx : range<ProcessId::size_type>(processes_.size()))
     {
         auto new_models = processes_[process_idx]->build_models(next_model_id);
         CELER_ASSERT(!new_models.empty());
@@ -170,11 +170,11 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
         }
     }
 
-    auto process_groups = make_pie_builder(&data->process_groups);
-    auto process_ids    = make_pie_builder(&data->process_ids);
-    auto model_groups   = make_pie_builder(&data->model_groups);
-    auto model_ids      = make_pie_builder(&data->model_ids);
-    auto reals          = make_pie_builder(&data->reals);
+    auto process_groups = make_builder(&data->process_groups);
+    auto process_ids    = make_builder(&data->process_ids);
+    auto model_groups   = make_builder(&data->model_groups);
+    auto model_ids      = make_builder(&data->model_ids);
+    auto reals          = make_builder(&data->reals);
 
     process_groups.reserve(particle_models.size());
 
@@ -188,7 +188,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
                 << "No processes are defined for particle '"
                 << particles.id_to_label(ParticleId{particle_idx});
         }
-        data->max_particle_processes = std::max<ProcessId::value_type>(
+        data->max_particle_processes = std::max<ProcessId::size_type>(
             data->max_particle_processes, process_to_models.size());
 
         std::vector<ProcessId>  temp_processes;
@@ -279,8 +279,8 @@ void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
     using UPGridBuilder = Process::UPConstGridBuilder;
 
     ValueGridInserter insert_grid(&data->reals, &data->value_grids);
-    auto              value_tables   = make_pie_builder(&data->value_tables);
-    auto              value_grid_ids = make_pie_builder(&data->value_grid_ids);
+    auto              value_tables   = make_builder(&data->value_tables);
+    auto              value_grid_ids = make_builder(&data->value_grid_ids);
     auto              build_grid
         = [insert_grid](const UPGridBuilder& builder) -> ValueGridId {
         return builder ? builder->build(insert_grid) : ValueGridId{};

@@ -37,13 +37,19 @@ Span<Secondary> AtomicRelaxationHelper::allocate_secondaries() const
 {
     // Maxiumum number of secondaries that could be produced in both atomic
     // relaxation and the primary process
-    size_type size = base_size_;
+    size_type  size        = base_size_;
+    Secondary* secondaries = nullptr;
     if (*this)
+    {
         size += shared_.elements[el_id_.get()].max_secondary;
+    }
 
-    Secondary* secondaries = allocate_(size);
-    if (secondaries == nullptr)
-        size = 0;
+    if (size > 0)
+    {
+        secondaries = allocate_(size);
+        if (secondaries == nullptr)
+            size = 0;
+    }
 
     return {secondaries, size};
 }

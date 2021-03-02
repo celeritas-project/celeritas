@@ -9,7 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include "base/PieBuilder.hh"
+#include "base/CollectionBuilder.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "physics/grid/UniformGrid.hh"
@@ -66,10 +66,10 @@ XsGridParams::XsGridParams(const Input& input)
                                     input.prime_energy)
                           - input.energy.begin();
     CELER_EXPECT(host_xs.prime_index != input.energy.size());
-    host_xs.value = make_pie_builder(&host_data.reals)
+    host_xs.value = make_builder(&host_data.reals)
                         .insert_back(input.xs.begin(), input.xs.end());
 
-    data_ = celeritas::PieMirror<TableData>(std::move(host_data));
+    data_ = celeritas::CollectionMirror<TableData>(std::move(host_data));
 }
 
 //---------------------------------------------------------------------------//

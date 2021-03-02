@@ -82,7 +82,7 @@ class PhysicsTrackView
     //// PROCESSES (depend on particle type and possibly material) ////
 
     // Number of processes that apply to this track
-    inline CELER_FUNCTION ParticleProcessId::value_type
+    inline CELER_FUNCTION ParticleProcessId::size_type
                           num_particle_processes() const;
 
     // Process ID for the given within-particle process index

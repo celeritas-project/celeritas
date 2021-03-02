@@ -9,7 +9,7 @@
 
 #include <memory>
 #include <vector>
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
 
@@ -28,7 +28,7 @@ class ValueGridBuilder
   public:
     //!@{
     //! Type aliases
-    using ValueGridId = PieId<struct XsGridData>;
+    using ValueGridId = ItemId<struct XsGridData>;
     //!@}
 
   public:
@@ -91,7 +91,7 @@ class ValueGridLogBuilder : public ValueGridBuilder
     //! Type aliases
     using VecReal       = std::vector<real_type>;
     using SpanConstReal = Span<const real_type>;
-    using Id            = PieId<XsGridData>;
+    using Id            = ItemId<XsGridData>;
     //!@}
 
   public:
@@ -136,7 +136,7 @@ class ValueGridGenericBuilder final : public ValueGridBuilder
     //!@{
     //! Type aliases
     using VecReal = std::vector<real_type>;
-    using Id      = PieId<XsGridData>;
+    using Id      = ItemId<XsGridData>;
     //!@}
 
   public:

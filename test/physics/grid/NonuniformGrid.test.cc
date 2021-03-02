@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "physics/grid/NonuniformGrid.hh"
 
-#include "base/Pie.hh"
-#include "base/PieBuilder.hh"
+#include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
 #include "celeritas_test.hh"
 
 using celeritas::NonuniformGrid;
@@ -24,12 +24,12 @@ class NonuniformGridTest : public celeritas::Test
 
     void SetUp() override
     {
-        auto build = celeritas::make_pie_builder(&data);
-        slc        = build.insert_back({0, 1, 3, 3, 7});
+        auto build = celeritas::make_builder(&data);
+        irange     = build.insert_back({0, 1, 3, 3, 7});
     }
 
-    celeritas::PieSlice<int> slc;
-    celeritas::Pie<int, celeritas::Ownership::value, celeritas::MemSpace::host>
+    celeritas::ItemRange<int> irange;
+    celeritas::Collection<int, celeritas::Ownership::value, celeritas::MemSpace::host>
         data;
 };
 
@@ -39,7 +39,7 @@ class NonuniformGridTest : public celeritas::Test
 
 TEST_F(NonuniformGridTest, accessors)
 {
-    GridT grid(slc, data);
+    GridT grid(irange, data);
 
     EXPECT_EQ(5, grid.size());
     EXPECT_EQ(0, grid.front());
@@ -50,7 +50,7 @@ TEST_F(NonuniformGridTest, accessors)
 
 TEST_F(NonuniformGridTest, find)
 {
-    GridT grid(slc, data);
+    GridT grid(irange, data);
 
 #if CELERITAS_DEBUG
     EXPECT_THROW(grid.find(-1), celeritas::DebugError);

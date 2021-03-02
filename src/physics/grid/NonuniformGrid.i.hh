@@ -16,8 +16,8 @@ namespace celeritas
  */
 template<class T>
 CELER_FUNCTION
-NonuniformGrid<T>::NonuniformGrid(const PieSlice<value_type>& values,
-                                  const Values&               data)
+NonuniformGrid<T>::NonuniformGrid(const ItemRange<value_type>& values,
+                                  const Values&                data)
     : data_(data[values])
 {
     CELER_EXPECT(data_.size() >= 2);

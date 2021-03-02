@@ -11,7 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "base/PieMirror.hh"
+#include "base/CollectionMirror.hh"
 #include "ParticleInterface.hh"
 #include "ParticleView.hh"
 #include "PDGNumber.hh"
@@ -67,7 +67,7 @@ class ParticleParams
     //// HOST ACCESSORS ////
 
     //! Number of particle definitions
-    ParticleId::value_type size() const { return md_.size(); }
+    ParticleId::size_type size() const { return md_.size(); }
 
     // Get particle name
     inline const std::string& id_to_label(ParticleId id) const;
@@ -101,7 +101,7 @@ class ParticleParams
     std::unordered_map<PDGNumber, ParticleId> pdg_to_id_;
 
     // Host/device storage and reference
-    PieMirror<ParticleParamsData> data_;
+    CollectionMirror<ParticleParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

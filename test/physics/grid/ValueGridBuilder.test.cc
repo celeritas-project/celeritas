@@ -42,8 +42,8 @@ class ValueGridBuilderTest : public celeritas::Test
         }
     }
 
-    Pie<real_type, Ownership::value, MemSpace::host>  real_storage;
-    Pie<XsGridData, Ownership::value, MemSpace::host> grid_storage;
+    Collection<real_type, Ownership::value, MemSpace::host>  real_storage;
+    Collection<XsGridData, Ownership::value, MemSpace::host> grid_storage;
 };
 
 //---------------------------------------------------------------------------//

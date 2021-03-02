@@ -10,7 +10,7 @@
 #include <cmath>
 #include <vector>
 #include "base/Interpolator.hh"
-#include "base/PieBuilder.hh"
+#include "base/CollectionBuilder.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 
@@ -36,7 +36,7 @@ void CalculatorTestBase::build(real_type emin, real_type emax, size_type count)
     }
 
     value_storage_ = {};
-    data_.value    = make_pie_builder(&value_storage_)
+    data_.value    = make_builder(&value_storage_)
                       .insert_back(temp_xs.begin(), temp_xs.end());
     value_ref_ = value_storage_;
 

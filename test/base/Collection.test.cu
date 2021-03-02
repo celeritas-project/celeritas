@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Pie.test.cu
+//! \file Collection.test.cu
 //---------------------------------------------------------------------------//
-#include "Pie.test.hh"
+#include "Collection.test.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
 
-using celeritas::PieId;
-using celeritas::PieSlice;
+using celeritas::ItemId;
+using celeritas::ItemRange;
 
 namespace celeritas_test
 {
@@ -19,9 +19,9 @@ namespace
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
-__global__ void pie_cuda_test_kernel(
-    const MockParamsPies<Ownership::const_reference, MemSpace::device> params,
-    const MockStatePies<Ownership::reference, MemSpace::device>        states,
+__global__ void col_cuda_test_kernel(
+    const MockParamsData<Ownership::const_reference, MemSpace::device> params,
+    const MockStateData<Ownership::reference, MemSpace::device>        states,
     const celeritas::Span<double>                                      results)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
@@ -48,9 +48,9 @@ __global__ void pie_cuda_test_kernel(
         result = matid.get() + nd * el.atomic_mass / el.atomic_number;
     }
 
-    // Do a stupid test of pie slice
-    PieSlice<int> pr;
-    pr = PieSlice<int>(PieId<int>(123), PieId<int>(456));
+    // Do a simple test of item range
+    ItemRange<int> pr;
+    pr = ItemRange<int>(ItemId<int>(123), ItemId<int>(456));
     if (pr.size() != 333)
     {
         // Failure
@@ -65,12 +65,12 @@ __global__ void pie_cuda_test_kernel(
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void pie_cuda_test(PTestInput input)
+void col_cuda_test(CTestInput input)
 {
     static const celeritas::KernelParamCalculator calc_launch_params(
-        pie_cuda_test_kernel, "pie_cuda_test");
+        col_cuda_test_kernel, "col_cuda_test");
     auto params = calc_launch_params(input.states.size());
-    pie_cuda_test_kernel<<<params.grid_size, params.block_size>>>(
+    col_cuda_test_kernel<<<params.grid_size, params.block_size>>>(
         input.params, input.states, input.result);
 
     CELER_CUDA_CHECK_ERROR();

@@ -14,7 +14,8 @@ namespace celeritas
 /*!
  * Construct from grid and values.
  *
- * \todo Construct from reference to pies and slices so we can benefit from
+ * \todo Construct from reference to collections and ranges so we can benefit
+ * from
  * __ldg as needed
  */
 template<class K, class V>

@@ -8,7 +8,7 @@
 #pragma once
 
 #include "gtest/Test.hh"
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "physics/grid/XsGridInterface.hh"
 
 namespace celeritas_test
@@ -30,9 +30,10 @@ class CalculatorTestBase : public celeritas::Test
     using real_type  = celeritas::real_type;
     using size_type  = celeritas::size_type;
     using XsGridData = celeritas::XsGridData;
-    using Pointers   = celeritas::Pie<real_type,
-                                    celeritas::Ownership::const_reference,
-                                    celeritas::MemSpace::host>;
+    using Pointers
+        = celeritas::Collection<real_type,
+                                celeritas::Ownership::const_reference,
+                                celeritas::MemSpace::host>;
     using SpanReal   = celeritas::Span<real_type>;
     //!@}
 
@@ -47,7 +48,9 @@ class CalculatorTestBase : public celeritas::Test
 
   private:
     XsGridData data_;
-    celeritas::Pie<real_type, celeritas::Ownership::value, celeritas::MemSpace::host>
+    celeritas::Collection<real_type,
+                          celeritas::Ownership::value,
+                          celeritas::MemSpace::host>
              value_storage_;
     Pointers value_ref_;
 };

@@ -8,6 +8,10 @@
 #include "physics/grid/XsCalculator.hh"
 
 #include <algorithm>
+#include <cmath>
+#include "base/CollectionBuilder.hh"
+#include "base/Interpolator.hh"
+#include "base/Range.hh"
 #include "celeritas_test.hh"
 #include "CalculatorTestBase.hh"
 

@@ -36,7 +36,8 @@ class XsCalculator
     //!@{
     //! Type aliases
     using Energy = Quantity<XsGridData::EnergyUnits>;
-    using Values = Pie<real_type, Ownership::const_reference, MemSpace::native>;
+    using Values
+        = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}
 
   public:

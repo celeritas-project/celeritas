@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Collection.hh"
 #include "base/Macros.hh"
-#include "base/Pie.hh"
 #include "base/Types.hh"
 
 namespace celeritas
@@ -29,13 +29,13 @@ class NonuniformGrid
     using size_type  = ::celeritas::size_type;
     using value_type = T;
     using Values
-        = Pie<value_type, Ownership::const_reference, MemSpace::native>;
+        = Collection<value_type, Ownership::const_reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct with data
     explicit inline CELER_FUNCTION
-    NonuniformGrid(const PieSlice<value_type>& values, const Values& data);
+    NonuniformGrid(const ItemRange<value_type>& values, const Values& data);
 
     //! Number of grid points
     CELER_FORCEINLINE_FUNCTION size_type size() const { return data_.size(); }
