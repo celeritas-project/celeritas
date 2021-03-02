@@ -87,15 +87,10 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
  * manual. See also the longer discussions in section 8 of PHYS010 of the
  * Geant3 manual (1993).
  *
- * In Geant4's calculation \c G4VEnergyLossProcess::AlongStepDoIt:
- * - \c reduceFactor is 1 except for heavy ions
- * - \c massRatio is 1 except for heavy ions
- * - \c length = step
- * - \c fRange = physics.range_limit()
- * - \c linLossLimit = \c linear_loss_limit = \f$xi\f$
- *
- * Energy loss rate is a function of differential cross section: the integral
- * of low-energy secondaries (below \c T) produced as a function of energy: \f[
+ * Energy loss rate (stopping power) is a function of differential cross
+ * section: the integral of low-energy secondaries (below \c T) produced as a
+ * function of energy:
+ * \f[
  *   \frac{dE}{dx} = N_Z \int_0^T \frac{d \sigma_Z(E, T)}{dT} T dT
  * \f]
  *
@@ -106,23 +101,29 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
  *
  * Both Celeritas and Geant4 approximate the range limit as the minimum range
  * over all processes, rather than the range as a result from integrating all
- * energy loss processes over the allowed energy range.
+ * energy loss processes over the allowed energy range. This is usuallly not
+ * a problem in practice because the range will get automatically decreased by
+ * \c range_to_step .
  *
- * Geant4's stepping algorithm independently stores \c fRange for each process,
+ * Geant4's stepping algorithm independently stores the range for each process,
  * then (looping externally over all processes) calculates energy loss, checks
  * for the linear loss limit, and reduces the particle energy. Celeritas
  * inverts this loop so the total energy loss from along-step processess (not
  * including multiple scattering) is calculated first, then checked against
- * being greater than the lineaer loss limit.
+ * being greater than the linear loss limit.
+ *
+ * If energy loss is greater than the loss limit, we loop over all
+ * processes with range tables and recalculate the pre-step range and solve for
+ * the exact post-step energy loss.
+ *
+ * \note The inverse range correction assumes range is always the integral of
+ * the stopping power/energy loss.
  *
  * \todo The geant3 manual makes the point that linear interpolation of energy
  * loss rate results in a piecewise constant energy deposition curve, which is
  * why they use spline interpolation. Investigate higher-order reconstruction
  * of energy loss curve, e.g. through spline-based interpolation or log-log
  * interpolation.
- *
- * \note The inverse range correction assumes range is always the integral of
- * the stopping power/energy loss.
  */
 CELER_FUNCTION ParticleTrackView::Energy
                calc_energy_loss(const ParticleTrackView& particle,
