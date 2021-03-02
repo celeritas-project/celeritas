@@ -37,7 +37,7 @@ TrackInitializerStore::TrackInitializerStore(size_type            num_tracks,
 
     // Initialize the track counter for each event as the number of primary
     // particles in that event
-    std::vector<TrackId::value_type> host_track_counter;
+    std::vector<TrackId::size_type> host_track_counter;
     for (const auto& primary : primaries_)
     {
         const auto event_id = primary.event_id.get();
@@ -48,7 +48,7 @@ TrackInitializerStore::TrackInitializerStore(size_type            num_tracks,
         ++host_track_counter[event_id];
     }
     track_counter_
-        = DeviceVector<TrackId::value_type>(host_track_counter.size());
+        = DeviceVector<TrackId::size_type>(host_track_counter.size());
     track_counter_.copy_to_device(make_span(host_track_counter));
 }
 

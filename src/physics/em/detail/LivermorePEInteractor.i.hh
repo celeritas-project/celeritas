@@ -65,7 +65,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     real_type cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
     real_type xs     = 0.;
     const LivermoreElement& el = shared_.data.elements[el_id_.get()];
-    SubshellId::value_type  shell_id;
+    SubshellId::size_type   shell_id;
     for (shell_id = 0; shell_id < el.shells.size() - 1; ++shell_id)
     {
         const auto& shell = el.shells[shell_id];

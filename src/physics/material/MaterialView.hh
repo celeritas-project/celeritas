@@ -58,7 +58,7 @@ class MaterialView
     //// ELEMENT ACCESS ////
 
     // Number of elemental components
-    inline CELER_FUNCTION ElementComponentId::value_type num_elements() const;
+    inline CELER_FUNCTION ElementComponentId::size_type num_elements() const;
 
     // Element properties for a material-specific index
     inline CELER_FUNCTION ElementView element_view(ElementComponentId id) const;

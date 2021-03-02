@@ -9,7 +9,7 @@
 
 #include <memory>
 #include <vector>
-#include "base/PieMirror.hh"
+#include "base/CollectionMirror.hh"
 #include "base/Types.hh"
 #include "base/Units.hh"
 #include "Model.hh"
@@ -81,16 +81,16 @@ class PhysicsParams
     //// HOST ACCESSORS ////
 
     //! Number of models
-    ModelId::value_type num_models() const { return models_.size(); }
+    ModelId::size_type num_models() const { return models_.size(); }
 
     //! Number of processes
-    ProcessId::value_type num_processes() const { return processes_.size(); }
+    ProcessId::size_type num_processes() const { return processes_.size(); }
 
     // Number of particle types
-    inline ParticleId::value_type num_particles() const;
+    inline ParticleId::size_type num_particles() const;
 
     // Maximum number of processes that apply to any one particle
-    inline ProcessId::value_type max_particle_processes() const;
+    inline ProcessId::size_type max_particle_processes() const;
 
     // Get a model
     inline const Model& model(ModelId) const;
@@ -117,7 +117,7 @@ class PhysicsParams
     VecModel   models_;
 
     // Host/device storage and reference
-    PieMirror<PhysicsParamsData> data_;
+    CollectionMirror<PhysicsParamsData> data_;
 
   private:
     VecModel build_models() const;
@@ -132,7 +132,7 @@ class PhysicsParams
 /*!
  * Number of particle types.
  */
-auto PhysicsParams::num_particles() const -> ParticleId::value_type
+auto PhysicsParams::num_particles() const -> ParticleId::size_type
 {
     return this->host_pointers().process_ids.size();
 }
@@ -141,7 +141,7 @@ auto PhysicsParams::num_particles() const -> ParticleId::value_type
 /*!
  * Number of particle types.
  */
-auto PhysicsParams::max_particle_processes() const -> ProcessId::value_type
+auto PhysicsParams::max_particle_processes() const -> ProcessId::size_type
 {
     return this->host_pointers().max_particle_processes;
 }

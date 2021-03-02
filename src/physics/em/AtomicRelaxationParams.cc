@@ -108,9 +108,9 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
 AtomicRelaxParamsPointers AtomicRelaxationParams::host_pointers() const
 {
     AtomicRelaxParamsPointers result;
-    result.elements     = make_span(host_elements_);
-    result.electron_id  = electron_id_;
-    result.gamma_id     = gamma_id_;
+    result.elements    = make_span(host_elements_);
+    result.electron_id = electron_id_;
+    result.gamma_id    = gamma_id_;
     result.electron_cut = electron_cut_;
     result.gamma_cut    = gamma_cut_;
 
@@ -127,9 +127,9 @@ AtomicRelaxParamsPointers AtomicRelaxationParams::device_pointers() const
     CELER_EXPECT(celeritas::device());
 
     AtomicRelaxParamsPointers result;
-    result.elements     = device_elements_.device_pointers();
-    result.electron_id  = electron_id_;
-    result.gamma_id     = gamma_id_;
+    result.elements    = device_elements_.device_pointers();
+    result.electron_id = electron_id_;
+    result.gamma_id    = gamma_id_;
     result.electron_cut = electron_cut_;
     result.gamma_cut    = gamma_cut_;
 
@@ -183,7 +183,7 @@ AtomicRelaxationParams::extend_shells(const ElementInput& inp)
 
     // Create a mapping of subshell designator to index in the shells array
     des_to_id_.clear();
-    for (SubshellId::value_type i : range(inp.shells.size()))
+    for (SubshellId::size_type i : range(inp.shells.size()))
     {
         des_to_id_[inp.shells[i].designator] = SubshellId{i};
     }

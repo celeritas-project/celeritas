@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cmath>
 #include "base/Interpolator.hh"
-#include "base/PieBuilder.hh"
+#include "base/CollectionBuilder.hh"
 #include "base/Range.hh"
 #include "celeritas_test.hh"
 
@@ -43,7 +43,7 @@ class PhysicsGridCalculatorTest : public celeritas::Test
             temp_xs[i] = calc_xs(i);
         }
 
-        data.value = make_pie_builder(&stored_xs)
+        data.value = make_builder(&stored_xs)
                          .insert_back(temp_xs.begin(), temp_xs.end());
 
         CELER_ENSURE(data);
@@ -51,7 +51,7 @@ class PhysicsGridCalculatorTest : public celeritas::Test
     }
 
     XsGridData                                       data;
-    Pie<real_type, Ownership::value, MemSpace::host> stored_xs;
+    Collection<real_type, Ownership::value, MemSpace::host> stored_xs;
 };
 
 //---------------------------------------------------------------------------//

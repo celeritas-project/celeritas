@@ -8,7 +8,7 @@
 #pragma once
 
 #include <vector>
-#include "base/PieMirror.hh"
+#include "base/CollectionMirror.hh"
 #include "physics/grid/XsGridInterface.hh"
 #include "KNDemoKernel.hh"
 
@@ -53,7 +53,7 @@ class XsGridParams
     const HostRef& host_pointers() const { return data_.host(); }
 
   private:
-    celeritas::PieMirror<TableData> data_;
+    celeritas::CollectionMirror<TableData> data_;
 };
 
 //---------------------------------------------------------------------------//

@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PieImpl.hh
+//! \file CollectionImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../PieTypes.hh"
+#include "../CollectionTypes.hh"
 #include "base/Span.hh"
 
 #ifndef __CUDA_ARCH__
@@ -22,7 +22,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 template<class T, Ownership W>
-struct PieTraits
+struct CollectionTraits
 {
     using SpanT                = Span<T>;
     using SpanConstT           = Span<const T>;
@@ -34,7 +34,7 @@ struct PieTraits
 
 //---------------------------------------------------------------------------//
 template<class T>
-struct PieTraits<T, Ownership::reference>
+struct CollectionTraits<T, Ownership::reference>
 {
     using SpanT                = Span<T>;
     using SpanConstT           = Span<T>;
@@ -46,7 +46,7 @@ struct PieTraits<T, Ownership::reference>
 
 //---------------------------------------------------------------------------//
 template<class T>
-struct PieTraits<T, Ownership::const_reference>
+struct CollectionTraits<T, Ownership::const_reference>
 {
     using SpanT                = Span<const T>;
     using SpanConstT           = Span<const T>;
@@ -57,37 +57,40 @@ struct PieTraits<T, Ownership::const_reference>
 };
 
 //---------------------------------------------------------------------------//
-//! Memspace-dependent storage for a pie
+//! Memspace-dependent storage for a collection
 template<class T, Ownership W, MemSpace M>
-struct PieStorage
+struct CollectionStorage
 {
-    using type = typename PieTraits<T, W>::SpanT;
+    using type = typename CollectionTraits<T, W>::SpanT;
     type data;
 };
 
 template<class T>
-struct PieStorage<T, Ownership::value, MemSpace::host>;
+struct CollectionStorage<T, Ownership::value, MemSpace::host>;
 template<class T>
-struct PieStorage<T, Ownership::value, MemSpace::device>;
+struct CollectionStorage<T, Ownership::value, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
-//! Assignment semantics for a pie
+//! Assignment semantics for a collection
 template<Ownership W, MemSpace M>
-struct PieAssigner
+struct CollectionAssigner
 {
     template<class T, Ownership W2, MemSpace M2>
-    PieStorage<T, W, M> operator()(const PieStorage<T, W2, M2>& source)
+    CollectionStorage<T, W, M>
+    operator()(const CollectionStorage<T, W2, M2>& source)
     {
         static_assert(W != Ownership::reference || W2 == W,
                       "Can't create a reference from a const reference");
-        static_assert(M == M2, "Pie assignment from a different memory space");
+        static_assert(M == M2,
+                      "Collection assignment from a different memory space");
         return {{source.data.data(), source.data.size()}};
     }
 
     template<class T, Ownership W2, MemSpace M2>
-    PieStorage<T, W, M> operator()(PieStorage<T, W2, M2>& source)
+    CollectionStorage<T, W, M> operator()(CollectionStorage<T, W2, M2>& source)
     {
-        static_assert(M == M2, "Pie assignment from a different memory space");
+        static_assert(M == M2,
+                      "Collection assignment from a different memory space");
         static_assert(
             !(W == Ownership::reference && W2 == Ownership::const_reference),
             "Can't create a reference from a const reference");
@@ -96,14 +99,14 @@ struct PieAssigner
 };
 
 template<>
-struct PieAssigner<Ownership::value, MemSpace::host>;
+struct CollectionAssigner<Ownership::value, MemSpace::host>;
 template<>
-struct PieAssigner<Ownership::value, MemSpace::device>;
+struct CollectionAssigner<Ownership::value, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 //! Check that sizes are acceptable when creating references from values
 template<Ownership W>
-struct PieStorageValidator
+struct CollectionStorageValidator
 {
     template<class Size, class OtherSize>
     void operator()(Size, OtherSize)
@@ -112,13 +115,13 @@ struct PieStorageValidator
 };
 
 template<>
-struct PieStorageValidator<Ownership::value>;
+struct CollectionStorageValidator<Ownership::value>;
 
 #ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 //! Storage implementation for managed host data
 template<class T>
-struct PieStorage<T, Ownership::value, MemSpace::host>
+struct CollectionStorage<T, Ownership::value, MemSpace::host>
 {
     using type = std::vector<T>;
     type data;
@@ -126,7 +129,7 @@ struct PieStorage<T, Ownership::value, MemSpace::host>
 
 //! Storage implementation for managed device data
 template<class T>
-struct PieStorage<T, Ownership::value, MemSpace::device>
+struct CollectionStorage<T, Ownership::value, MemSpace::device>
 {
     using type = DeviceVector<T>;
     type data;
@@ -135,11 +138,11 @@ struct PieStorage<T, Ownership::value, MemSpace::device>
 //---------------------------------------------------------------------------//
 //! Assignment semantics for copying to host memory
 template<>
-struct PieAssigner<Ownership::value, MemSpace::host>
+struct CollectionAssigner<Ownership::value, MemSpace::host>
 {
     template<class T, Ownership W2, MemSpace M2>
-    PieStorage<T, Ownership::value, MemSpace::host>
-    operator()(const PieStorage<T, W2, M2>& source)
+    CollectionStorage<T, Ownership::value, MemSpace::host>
+    operator()(const CollectionStorage<T, W2, M2>& source)
     {
         static_assert(M2 == MemSpace::host,
                       "Can only assign host values from host data");
@@ -150,16 +153,16 @@ struct PieAssigner<Ownership::value, MemSpace::host>
 //---------------------------------------------------------------------------//
 //! Assignment semantics for copying to device memory
 template<>
-struct PieAssigner<Ownership::value, MemSpace::device>
+struct CollectionAssigner<Ownership::value, MemSpace::device>
 {
     template<class T, Ownership W2, MemSpace M2>
-    PieStorage<T, Ownership::value, MemSpace::device>
-    operator()(const PieStorage<T, W2, M2>& source)
+    CollectionStorage<T, Ownership::value, MemSpace::device>
+    operator()(const CollectionStorage<T, W2, M2>& source)
     {
         static_assert(M2 == MemSpace::host,
                       "Can only assign by value from host to device");
 
-        PieStorage<T, Ownership::value, MemSpace::device> result{
+        CollectionStorage<T, Ownership::value, MemSpace::device> result{
             DeviceVector<T>(source.data.size())};
         result.data.copy_to_device({source.data.data(), source.data.size()});
         return result;
@@ -169,15 +172,15 @@ struct PieAssigner<Ownership::value, MemSpace::device>
 //---------------------------------------------------------------------------//
 //! Check that sizes are acceptable when taking references
 template<>
-struct PieStorageValidator<Ownership::value>
+struct CollectionStorageValidator<Ownership::value>
 {
     template<class Size, class OtherSize>
     void operator()(Size dst, OtherSize src)
     {
         CELER_VALIDATE(dst == src,
-                       "Pie is too large: " << sizeof(Size)
-                                            << "-byte int cannot hold " << src
-                                            << " elements");
+                       "Collection is too large: " << sizeof(Size)
+                                                   << "-byte int cannot hold "
+                                                   << src << " elements");
     }
 };
 

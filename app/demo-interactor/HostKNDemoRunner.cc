@@ -10,7 +10,7 @@
 #include <iostream>
 #include <random>
 #include "base/ArrayUtils.hh"
-#include "base/PieStateStore.hh"
+#include "base/CollectionStateStore.hh"
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
 #include "random/distributions/ExponentialDistribution.hh"
@@ -86,8 +86,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     auto              detector_host_ptrs = detector.host_pointers();
 
     // Particle state store
-    PieStateStore<ParticleStateData, MemSpace::host> particle_state(*pparams_,
-                                                                    1);
+    CollectionStateStore<ParticleStateData, MemSpace::host> particle_state(
+        *pparams_, 1);
 
     // Loop over particle tracks and events per track
     for (CELER_MAYBE_UNUSED auto n : range(args.num_tracks))

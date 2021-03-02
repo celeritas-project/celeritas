@@ -63,7 +63,7 @@ class TrackInitializerStore
     DeviceVector<size_type> secondary_counts_;
 
     // Track ID counter for each event
-    DeviceVector<TrackId::value_type> track_counter_;
+    DeviceVector<TrackId::size_type> track_counter_;
 
     // Host-side primary particles
     std::vector<Primary> primaries_;

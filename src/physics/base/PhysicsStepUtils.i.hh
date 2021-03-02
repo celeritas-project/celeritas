@@ -32,7 +32,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
     // type) and calculate cross section and particle range.
     real_type total_macro_xs = 0;
     real_type min_range      = inf;
-    for (ParticleProcessId::value_type pp_idx :
+    for (ParticleProcessId::size_type pp_idx :
          range(physics.num_particle_processes()))
     {
         const ParticleProcessId ppid{pp_idx};
@@ -93,7 +93,7 @@ CELER_FUNCTION real_type calc_energy_loss(const ParticleTrackView& particle,
     // Loop over all processes that apply to this track (based on particle
     // type) and calculate cross section and particle range.
     real_type total_eloss_rate = 0;
-    for (ParticleProcessId::value_type pp_idx :
+    for (ParticleProcessId::size_type pp_idx :
          range(physics.num_particle_processes()))
     {
         const ParticleProcessId ppid{pp_idx};

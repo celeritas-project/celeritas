@@ -22,7 +22,7 @@ class ModelIdGenerator
     ModelId operator()() { return ModelId{id_++}; }
 
   private:
-    ModelId::value_type id_{0};
+    ModelId::size_type id_{0};
 };
 
 //---------------------------------------------------------------------------//

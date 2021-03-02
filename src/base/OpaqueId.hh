@@ -18,22 +18,34 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Type-safe container for an integer identifier.
+ * Type-safe index for accessing an array.
  *
- * \tparam Instantiator Class that uses the indexing type.
- * \tparam T Value type for the ID.
+ * \tparam ValueT Type of each item in the array.
+ * \tparam SizeT Integer index
  *
  * This allows type-safe, read-only indexing/access for a class. The value is
  * 'true' if it's assigned, 'false' if invalid.
+ *
+ * The size type defaults plain "unsigned int" (32-bit in CUDA) rather than
+ * \c celeritas::size_type (64-bit) because CUDA currently uses native 32-bit
+ * pointer arithmetic. In general this should be the same type as the default
+ * OpaqueId::size_type. It's possible that in large problems 4 billion
+ * elements won't be enough (for e.g. cross sections), but in that case the
+ * CollectionBuilder will throw an assertion during construction.
+ *
+ * \todo Change \c celeritas::size_type to unsigned int by default, and use
+ * \c std::size_t for compatibility with standard containers. Explicitly use
+ * long integer types in cases where we expect more than 4 billion elements of
+ * something on large runs.
  */
-template<class Instantiator, class T = unsigned int>
+template<class ValueT, class SizeT = unsigned int>
 class OpaqueId
 {
   public:
     //!@{
     //! Type aliases
-    using instantiator_type = Instantiator;
-    using value_type        = T;
+    using value_type = ValueT;
+    using size_type  = SizeT;
     //!@}
 
   public:
@@ -41,8 +53,7 @@ class OpaqueId
     CELER_CONSTEXPR_FUNCTION OpaqueId() : value_(OpaqueId::invalid_value()) {}
 
     //! Construct explicitly with stored value
-    explicit CELER_CONSTEXPR_FUNCTION OpaqueId(value_type index)
-        : value_(index)
+    explicit CELER_CONSTEXPR_FUNCTION OpaqueId(size_type index) : value_(index)
     {
     }
 
@@ -53,27 +64,24 @@ class OpaqueId
     }
 
     //! Get the ID's value
-    CELER_FORCEINLINE_FUNCTION value_type get() const
+    CELER_FORCEINLINE_FUNCTION size_type get() const
     {
         CELER_EXPECT(*this);
         return value_;
     }
 
     //! Get the value without checking for validity (atypical)
-    CELER_CONSTEXPR_FUNCTION value_type unchecked_get() const
-    {
-        return value_;
-    }
+    CELER_CONSTEXPR_FUNCTION size_type unchecked_get() const { return value_; }
 
   private:
-    value_type value_;
+    size_type value_;
 
     //// IMPLEMENTATION FUNCTIONS ////
 
     //! Value indicating the ID is not assigned
-    static CELER_CONSTEXPR_FUNCTION value_type invalid_value()
+    static CELER_CONSTEXPR_FUNCTION size_type invalid_value()
     {
-        return static_cast<value_type>(-1);
+        return static_cast<size_type>(-1);
     }
 };
 
@@ -81,37 +89,37 @@ class OpaqueId
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Test equality
-template<class I, class T>
-CELER_CONSTEXPR_FUNCTION bool operator==(OpaqueId<I, T> lhs, OpaqueId<I, T> rhs)
+template<class V, class S>
+CELER_CONSTEXPR_FUNCTION bool operator==(OpaqueId<V, S> lhs, OpaqueId<V, S> rhs)
 {
     return lhs.unchecked_get() == rhs.unchecked_get();
 }
 
 //! Test inequality
-template<class I, class T>
-CELER_CONSTEXPR_FUNCTION bool operator!=(OpaqueId<I, T> lhs, OpaqueId<I, T> rhs)
+template<class V, class S>
+CELER_CONSTEXPR_FUNCTION bool operator!=(OpaqueId<V, S> lhs, OpaqueId<V, S> rhs)
 {
     return !(lhs == rhs);
 }
 
 //! Allow less-than comparison for sorting
-template<class I, class T>
-CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<I, T> lhs, OpaqueId<I, T> rhs)
+template<class V, class S>
+CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<V, S> lhs, OpaqueId<V, S> rhs)
 {
     return lhs.unchecked_get() < rhs.unchecked_get();
 }
 
 //! Allow less-than comparison with *integer* for container comparison
-template<class I, class T, class U>
-CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<I, T> lhs, U rhs)
+template<class V, class S, class U>
+CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<V, S> lhs, U rhs)
 {
     // Cast to RHS
     return lhs && (U(lhs.unchecked_get()) < rhs);
 }
 
 //! Get the number of IDs enclosed by two opaque IDs.
-template<class I, class T>
-inline CELER_FUNCTION T operator-(OpaqueId<I, T> self, OpaqueId<I, T> other)
+template<class V, class S>
+inline CELER_FUNCTION S operator-(OpaqueId<V, S> self, OpaqueId<V, S> other)
 {
     CELER_EXPECT(self);
     CELER_EXPECT(other);
@@ -129,14 +137,14 @@ inline CELER_FUNCTION T operator-(OpaqueId<I, T> self, OpaqueId<I, T> other)
 namespace std
 {
 //! Specialization for std::hash for unordered storage.
-template<class I, class T>
-struct hash<celeritas::OpaqueId<I, T>>
+template<class V, class S>
+struct hash<celeritas::OpaqueId<V, S>>
 {
-    using argument_type = celeritas::OpaqueId<I, T>;
+    using argument_type = celeritas::OpaqueId<V, S>;
     using result_type   = std::size_t;
     result_type operator()(const argument_type& id) const noexcept
     {
-        return std::hash<T>()(id.unchecked_get());
+        return std::hash<S>()(id.unchecked_get());
     }
 };
 } // namespace std
