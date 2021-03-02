@@ -40,10 +40,6 @@ class LinearPropagator
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
   private:
-    // Fast move, update only the position.
-    inline CELER_FUNCTION real_type apply_linear_step(real_type step);
-
-  private:
     GeoTrackView& track_;
 };
 

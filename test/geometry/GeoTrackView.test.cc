@@ -11,6 +11,7 @@
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoStateStore.hh"
 #include "comm/Device.hh"
+#include "comm/Logger.hh"
 
 #include "GeoParamsTest.hh"
 #ifdef CELERITAS_USE_CUDA
@@ -91,10 +92,17 @@ TEST_F(GeoTrackViewHostTest, track_line)
         EXPECT_EQ(false, geo.is_outside()); // leaving World
     }
 
+    try
     {
         // Track from outside edge fails
+        CELER_LOG(info) << "Init a track with a pointer outside work "
+                           "volume...";
         geo = {{24, 0, 0}, {-1, 0, 0}};
         EXPECT_EQ(true, geo.is_outside());
+    }
+    catch (const std::exception& e)
+    {
+        // std::cerr<<"caught exception: "<< e.what() << std::endl;
     }
 
     {

@@ -54,9 +54,8 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
     vecgeom::GlobalLocator::LocateGlobalPoint(
         volume, detail::to_vector(pos_), vgstate_, contains_point);
 
-    // Set up next state
-    vgnext_.Clear();
-    next_step_ = celeritas::numeric_limits<real_type>::quiet_NaN();
+    // Prepare next step
+    this->find_next_step();
     return *this;
 }
 
@@ -74,9 +73,9 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
         pos_ = init.other.pos_;
     }
     // Set up the next state and initialize the direction
-    vgnext_.Clear();
-    next_step_ = celeritas::numeric_limits<real_type>::quiet_NaN();
     dir_       = init.dir;
+
+    this->find_next_step();
     return *this;
 }
 
@@ -97,15 +96,52 @@ CELER_FUNCTION void GeoTrackView::find_next_step()
                                                    vecgeom::kInfLength,
                                                    vgstate_,
                                                    vgnext_);
+    valid_ = true;
 }
 
 //---------------------------------------------------------------------------//
 //! Move to the next boundary and update volume accordingly
-CELER_FUNCTION void GeoTrackView::move_next_step()
+CELER_FUNCTION real_type GeoTrackView::move_to_boundary()
 {
+    if (!valid_)
+        find_next_step();
+
     // Move the next step plus an extra fudge distance
-    axpy(next_step_, dir_, &pos_);
+    real_type dist = next_step_ + this->extra_push();
+    axpy(dist, dir_, &pos_);
+    next_step_ = 0.;
     this->move_next_volume();
+    return dist;
+}
+
+//! Move to the next boundary and update volume accordingly
+CELER_FUNCTION real_type GeoTrackView::move_next_step()
+{
+    if (!valid_)
+        find_next_step();
+    real_type dist = next_step_;
+    axpy(next_step_, dir_, &pos_);
+    next_step_ = 0.;
+    this->move_next_volume();
+    return dist;
+}
+
+//! Move to the next boundary and update volume accordingly
+CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
+{
+    CELER_EXPECT(dist > 0.);
+
+    if (!valid_)
+        find_next_step();
+
+    // do not move beyond next boundary!
+    if (dist >= next_step_)
+        return this->move_to_boundary();
+
+    // move and update next_step_
+    axpy(dist, dir_, &pos_);
+    next_step_ -= dist;
+    return dist;
 }
 
 //---------------------------------------------------------------------------//
@@ -113,10 +149,10 @@ CELER_FUNCTION void GeoTrackView::move_next_step()
 CELER_FUNCTION void GeoTrackView::move_next_volume()
 {
     vgstate_ = vgnext_;
-    vgnext_.Clear();
+    this->find_next_step();
 }
 
-//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//1
 //! Get the volume ID in the current cell.
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {

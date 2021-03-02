@@ -32,11 +32,7 @@ CELER_FUNCTION
 LinearPropagator::result_type LinearPropagator::operator()()
 {
     result_type result;
-    result.distance
-        = this->apply_linear_step(track_.next_step() + track_.extra_push());
-
-    // Update state
-    track_.move_next_volume();
+    result.distance = track_.move_to_boundary();
     result.volume = track_.volume_id();
     return result;
 }
@@ -45,8 +41,7 @@ LinearPropagator::result_type LinearPropagator::operator()()
 /*!
  * Move track by a user-provided distance.
  *
- * Step must be within current volume. User can ask next_step() for maximum
- * distance allowed before reaching volume boundary.
+ * Step must be positive. track_ will check for boundaries to be crossed.
  *
  * \pre Assumes that next_step() has been properly called by client
  */
@@ -54,33 +49,11 @@ CELER_FUNCTION
 LinearPropagator::result_type LinearPropagator::operator()(real_type dist)
 {
     CELER_EXPECT(dist > 0.);
+
     result_type result;
-    real_type   minstep = fmin(dist, track_.next_step() + track_.extra_push());
-    result.distance     = this->apply_linear_step(minstep);
-
-    //.. for linear trajectory, assume that next_step() takes it to boundary
-    if (track_.next_step() < track_.extra_push())
-    {
-        track_.move_next_volume();
-    }
+    result.distance = track_.move_by(dist);
     result.volume = track_.volume_id();
-
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Do straight propagation to physics process or boundary and reduce next_step
- *
- * Scalar geometry length computation. The track is moved along track.dir()
- * direction by a distance track.next_step()
- */
-CELER_FUNCTION
-real_type LinearPropagator::apply_linear_step(real_type step)
-{
-    axpy(step, track_.dir(), &track_.pos());
-    track_.next_step() -= step;
-    return step;
 }
 
 } // namespace celeritas
