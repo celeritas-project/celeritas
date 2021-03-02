@@ -170,7 +170,7 @@ struct PhysicsParamsData
     //// USER-CONFIGURABLE CONSTANTS ////
     real_type scaling_min_range{}; //!< rho [cm]
     real_type scaling_fraction{};  //!< alpha [unitless]
-    // real_type max_eloss_fraction{};  //!< For scaled range calculation
+    real_type linear_loss_limit{}; //!< For scaled range calculation
 
     //// MEMBER FUNCTIONS ////
 
@@ -178,7 +178,8 @@ struct PhysicsParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return !process_groups.empty() && max_particle_processes
-               && scaling_min_range > 0 && scaling_fraction > 0;
+               && scaling_min_range > 0 && scaling_fraction > 0
+               && linear_loss_limit > 0;
     }
 
     //! Assign from another set of data
@@ -201,6 +202,7 @@ struct PhysicsParamsData
 
         scaling_min_range = other.scaling_min_range;
         scaling_fraction  = other.scaling_fraction;
+        linear_loss_limit = other.linear_loss_limit;
 
         return *this;
     }
@@ -218,9 +220,12 @@ struct PhysicsParamsData
  */
 struct PhysicsTrackState
 {
-    real_type          interaction_mfp; //!< Remaining MFP to interaction
-    real_type          step_length;     //!< Maximum step length
-    real_type          macro_xs;
+    real_type interaction_mfp; //!< Remaining MFP to interaction
+
+    real_type step_length; //!< Overall physics step length
+    real_type range_limit; //!< Maximum step due to eloss
+    real_type macro_xs;    //!< Total cross section
+
     ModelId            model_id;   //!< Selected model if interacting
     ElementComponentId element_id; //!< Selected element during interaction
 };

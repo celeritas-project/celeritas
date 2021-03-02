@@ -11,14 +11,8 @@
 
 #include "physics/material/MaterialParams.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/PhysicsParams.hh"
 #include "MockProcess.hh"
-
-namespace celeritas
-{
-class MaterialParams;
-class ParticleParams;
-class PhysicsParams;
-} // namespace celeritas
 
 namespace celeritas_test
 {
@@ -45,6 +39,7 @@ class PhysicsTestBase : public celeritas::Test
     using SPConstMaterials = std::shared_ptr<celeritas::MaterialParams>;
     using SPConstParticles = std::shared_ptr<celeritas::ParticleParams>;
     using SPConstPhysics   = std::shared_ptr<celeritas::PhysicsParams>;
+    using PhysicsOptions   = celeritas::PhysicsParams::Options;
     using Applicability    = celeritas::Applicability;
     using ModelId          = celeritas::ModelId;
     using ModelCallback    = std::function<void(ModelId)>;
@@ -57,6 +52,7 @@ class PhysicsTestBase : public celeritas::Test
 
     virtual SPConstMaterials build_materials() const;
     virtual SPConstParticles build_particles() const;
+    virtual PhysicsOptions   build_physics_options() const;
     virtual SPConstPhysics   build_physics() const;
 
     const SPConstMaterials& materials() const { return materials_; }

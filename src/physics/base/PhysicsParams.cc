@@ -126,8 +126,12 @@ void PhysicsParams::build_options(const Options& opts, HostValue* data) const
         "Non-positive max_step_over_range=" << opts.max_step_over_range);
     CELER_VALIDATE(opts.min_range > 0,
                    "Non-positive min_range=" << opts.min_range);
+    CELER_VALIDATE(
+        opts.linear_loss_limit >= 0 && opts.linear_loss_limit <= 1,
+        "Non-fractional linear_loss_limit=" << opts.linear_loss_limit);
     data->scaling_min_range = opts.min_range;
     data->scaling_fraction  = opts.max_step_over_range;
+    data->linear_loss_limit = opts.linear_loss_limit;
 }
 
 //---------------------------------------------------------------------------//

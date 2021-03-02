@@ -12,6 +12,8 @@
 #include "base/Range.hh"
 #include "base/PieStateStore.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/grid/RangeCalculator.hh"
+#include "physics/grid/XsCalculator.hh"
 
 #include "PhysicsTestBase.hh"
 #include "Physics.test.hh"
@@ -276,7 +278,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
             auto scat_ppid = this->find_ppid(phys, "scattering");
             auto id = phys.value_grid(ValueGridType::macro_xs, scat_ppid);
             ASSERT_TRUE(id);
-            auto calc_xs = phys.make_calculator(id);
+            auto calc_xs = phys.make_calculator<XsCalculator>(id);
             xs.push_back(calc_xs(MevEnergy{1.0}));
         }
     }
@@ -302,7 +304,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_range)
         ASSERT_TRUE(meow_ppid);
         auto id = phys.value_grid(ValueGridType::range, meow_ppid);
         ASSERT_TRUE(id);
-        auto calc_range = phys.make_calculator(id);
+        auto calc_range = phys.make_calculator<RangeCalculator>(id);
         for (real_type energy : {0.01, 1.0, 1e2})
         {
             range.push_back(calc_range(MevEnergy{energy}));
@@ -310,8 +312,9 @@ TEST_F(PhysicsTrackViewHostTest, calc_range)
         }
     }
 
-    const double expected_range[] = {0.04, 4, 40, 0.04, 4, 40};
-    const double expected_step[]  = {0.04, 0.958, 8.1598, 0.04, 0.958, 8.1598};
+    const double expected_range[] = {0.025, 2.5, 25, 0.025, 2.5, 25};
+    const double expected_step[]
+        = {0.025, 0.6568, 5.15968, 0.025, 0.6568, 5.15968};
     EXPECT_VEC_SOFT_EQ(expected_range, range);
     EXPECT_VEC_SOFT_EQ(expected_step, step);
 }
@@ -345,17 +348,16 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
         }
     }
 
-    // PRINT_EXPECTED(step);
     const double expected_step[] = {166.6666666667,
                                     166.6666666667,
                                     166.6666666667,
                                     166.6666666667,
                                     inf,
-                                    0.003,
-                                    0.003,
-                                    0.7573333333333,
-                                    8.1598,
-                                    8.1598};
+                                    2.5e-05,
+                                    0.00025,
+                                    0.178,
+                                    0.6568,
+                                    0.6568};
     EXPECT_VEC_SOFT_EQ(expected_step, step);
 }
 

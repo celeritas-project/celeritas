@@ -159,12 +159,14 @@ auto ValueGridXsBuilder::build(ValueGridInserter insert) const -> ValueGridId
  */
 ValueGridLogBuilder::ValueGridLogBuilder(real_type emin,
                                          real_type emax,
-                                         VecReal   xs)
-    : log_emin_(std::log(emin)), log_emax_(std::log(emax)), xs_(std::move(xs))
+                                         VecReal   value)
+    : log_emin_(std::log(emin))
+    , log_emax_(std::log(emax))
+    , value_(std::move(value))
 {
     CELER_EXPECT(emin > 0);
     CELER_EXPECT(emax > emin);
-    CELER_EXPECT(xs_.size() >= 2);
+    CELER_EXPECT(value_.size() >= 2);
 }
 
 //---------------------------------------------------------------------------//
@@ -174,8 +176,22 @@ ValueGridLogBuilder::ValueGridLogBuilder(real_type emin,
 auto ValueGridLogBuilder::build(ValueGridInserter insert) const -> ValueGridId
 {
     return insert(
-        UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size()),
-        make_span(xs_));
+        UniformGridData::from_bounds(log_emin_, log_emax_, value_.size()),
+        this->value());
+}
+
+//---------------------------------------------------------------------------//
+// RANGE BUILDER
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from raw data.
+ */
+ValueGridRangeBuilder::ValueGridRangeBuilder(real_type emin,
+                                             real_type emax,
+                                             VecReal   xs)
+    : Base(emin, emax, std::move(xs))
+{
+    CELER_EXPECT(is_monotonic_increasing(this->value()));
 }
 
 //---------------------------------------------------------------------------//
