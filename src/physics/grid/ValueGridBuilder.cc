@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ValueGridBuilder.hh"
 
+#include <algorithm>
 #include <cmath>
 #include "base/SoftEqual.hh"
 #include "physics/grid/UniformGrid.hh"
