@@ -33,6 +33,7 @@ template<class T>
 CELER_FUNCTION auto StackAllocatorView<T>::operator()(size_type count)
     -> result_type
 {
+    CELER_EXPECT(count > 0);
     static_assert(std::is_default_constructible<T>::value,
                   "Value must be default constructible");
 

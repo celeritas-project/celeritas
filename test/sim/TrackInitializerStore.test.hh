@@ -35,13 +35,6 @@ struct Interactor
 
     CELER_FUNCTION Interaction operator()()
     {
-        // Create secondary particles
-        Secondary* allocated = this->allocate_secondaries(alloc_size);
-        if (!allocated)
-        {
-            return Interaction::from_failure();
-        }
-
         Interaction result;
 
         // Kill the particle
@@ -50,13 +43,22 @@ struct Interactor
             result = Interaction::from_absorption();
         }
 
-        // Initialize secondaries
-        result.secondaries = {allocated, alloc_size};
-        for (auto& secondary : result.secondaries)
+        // Create secondaries
+        if (alloc_size > 0)
         {
-            secondary.particle_id = ParticleId(0);
-            secondary.energy      = units::MevEnergy(5.);
-            secondary.direction   = {1., 0., 0.};
+            Secondary* allocated = this->allocate_secondaries(alloc_size);
+            if (!allocated)
+            {
+                return Interaction::from_failure();
+            }
+
+            result.secondaries = {allocated, alloc_size};
+            for (auto& secondary : result.secondaries)
+            {
+                secondary.particle_id = ParticleId(0);
+                secondary.energy      = units::MevEnergy(5.);
+                secondary.direction   = {1., 0., 0.};
+            }
         }
 
         return result;
