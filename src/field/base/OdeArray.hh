@@ -83,7 +83,7 @@ class OdeArray
         for (auto i : range(ode_dim))                \
             v_[i] OPERATOR rhs[i];                   \
         return *this;                                \
-    }                                                
+    }
     INPLACE_BINARY_OP(+=)
     INPLACE_BINARY_OP(-=)
     INPLACE_BINARY_OP(*=)
@@ -91,13 +91,13 @@ class OdeArray
 #undef INPLACE_BINARY_OP
 
     // Inplace binary operators
-#define INPLACE_SCALAR_OP(OPERATOR)                  \
-    CELER_FUNCTION                                   \
-    OdeArray& operator OPERATOR(const real_type& c)  \
-    {                                                \
-        for (auto i : range(ode_dim))                \
-            v_[i] OPERATOR c;                        \
-        return *this;                                \
+#define INPLACE_SCALAR_OP(OPERATOR)                 \
+    CELER_FUNCTION                                  \
+    OdeArray& operator OPERATOR(const real_type& c) \
+    {                                               \
+        for (auto i : range(ode_dim))               \
+            v_[i] OPERATOR c;                       \
+        return *this;                               \
     }
     INPLACE_SCALAR_OP(*=)
     INPLACE_SCALAR_OP(/=)
@@ -110,19 +110,19 @@ class OdeArray
     CELER_FUNCTION
     const Real3 momentum() const { return {v_[3], v_[4], v_[5]}; }
 
-  // Setter
+    // Setter
     CELER_FUNCTION
     void position(const Real3 pos)
     {
         for (auto i : range(3))
-        v_[i] = pos[i];
+            v_[i] = pos[i];
     }
 
     CELER_FUNCTION
     void momentum(const Real3 mon)
     {
         for (auto i : range(3))
-        v_[i + 3] = mon[i];
+            v_[i + 3] = mon[i];
     }
 
     CELER_FUNCTION
@@ -174,7 +174,7 @@ class OdeArray
         OdeArray result(lhs);                                            \
         result ASSIGNMENT rhs;                                           \
         return result;                                                   \
-    }                                                                    
+    }
 ODE_BINARY_OP(+, +=)
 ODE_BINARY_OP(-, -=)
 ODE_BINARY_OP(*, *=)

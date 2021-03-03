@@ -57,7 +57,6 @@ class FieldPropagator
     }
 
   private:
-
     // Check whether there is a boundary crossing between two space points
     inline CELER_FUNCTION bool is_boundary_crossing(FieldTrackView& view,
                                                     const vec3_type x_start,
