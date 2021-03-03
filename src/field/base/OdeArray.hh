@@ -110,6 +110,21 @@ class OdeArray
     CELER_FUNCTION
     const Real3 momentum() const { return {v_[3], v_[4], v_[5]}; }
 
+  // Setter
+    CELER_FUNCTION
+    void position(const Real3 pos)
+    {
+        for (auto i : range(3))
+        v_[i] = pos[i];
+    }
+
+    CELER_FUNCTION
+    void momentum(const Real3 mon)
+    {
+        for (auto i : range(3))
+        v_[i + 3] = mon[i];
+    }
+
     CELER_FUNCTION
     real_type position_square() const
     {
