@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MagField.i.cuh
+//! \file MagField.i.hh
 //---------------------------------------------------------------------------//
 
 namespace celeritas
@@ -28,7 +28,7 @@ CELER_FUNCTION auto MagField::operator()() -> field_value
 /*!
  * Return a magnefic value at a given position
  */
-CELER_FUNCTION auto MagField::operator()(const Real3 position) -> field_value
+CELER_FUNCTION auto MagField::operator()(const Real3& position) -> field_value
 {
     // XXX: Not implemented yet, but a place holder for the next extension
     CELER_ENSURE(position[0] && position[1] && position[2]);

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MagField.cuh
+//! \file MagField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -35,7 +35,7 @@ class MagField
     CELER_FUNCTION field_value operator()();
 
     // return a magnetic field value at a given position
-    CELER_FUNCTION field_value operator()(const Real3 position);
+    CELER_FUNCTION field_value operator()(const Real3& position);
 
   private:
     //! Shared/persistent field data
