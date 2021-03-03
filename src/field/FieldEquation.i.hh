@@ -3,11 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldEquation.i.cuh
+//! \file FieldEquation.i.hh
 //---------------------------------------------------------------------------//
 #include "MagField.hh"
-#include <cmath>
+
 #include "base/Constants.hh"
+#include "base/Array.hh"
+#include "base/ArrayUtils.hh"
+#include "base/Algorithms.hh"
+
+#include <cmath>
 
 namespace celeritas
 {
@@ -38,35 +43,34 @@ CELER_FUNCTION void FieldEquation::set_charge(real_type charge)
  * Evaluate the right hand side of the field equation
  */
 
-CELER_FUNCTION void FieldEquation::
-                    operator()(const ode_type y, ode_type& dydx) const
+CELER_FUNCTION OdeArray FieldEquation::operator()(const ode_type& y)
 {
-    this->evaluate_rhs(field_(), y, dydx);
+    return this->evaluate_rhs(field_(), y);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate the right hand side of the Lorentz equation for a given B
+ *
+ * \f[
+    m \frac{d^2 \vec{x}}{d t^2} = (q/c)(\vec{v} \times  \vec{B})
+    s = |v|t
+    \vec{y} = d\vec{x}/ds
+    \frac{d\vec{x}}{ds} = \vec{v}/|v|
+    \frac{d\vec{y}}{ds} = (q/pc)(\vec{y} \times \vec{B})
+   \f]
  */
 
 CELER_FUNCTION
-void FieldEquation::evaluate_rhs(const Real3    B,
-                                 const ode_type y,
-                                 ode_type&      dy) const
+OdeArray FieldEquation::evaluate_rhs(const Real3& B, const ode_type& y)
 {
-    /*** m d^2x/dt^2 = (q/c)(vxB), s = |v|t, y = dx/ds
-         rhs:  dx/ds = v/|v|
-               dy/ds = (q/pc)(yxB)
-    */
+    ode_type dy;
 
-    dy[0] = y[3];
-    dy[1] = y[4];
-    dy[2] = y[5];
-    dy[3] = coeffi_ * (y[4] * B[2] - y[5] * B[1]);
-    dy[4] = coeffi_ * (y[5] * B[0] - y[3] * B[2]);
-    dy[5] = coeffi_ * (y[3] * B[1] - y[4] * B[0]);
-
+    dy.position(y.momentum());
+    dy.momentum(scaled_real3(coeffi_, cross_product(y.momentum(), B)));
     dy *= y.momentum_inv();
+
+    return dy;
 }
 
 //---------------------------------------------------------------------------//

@@ -30,16 +30,27 @@ class FieldEquation
     // Construct with a magnetic field
     CELER_FUNCTION FieldEquation(MagField& field);
 
-    // set charge if q != -eplus
+    // Set charge if q != -eplus
     CELER_FUNCTION void set_charge(real_type q);
 
-    // evaluate the right hand side
-    // XXX: add the position arguement for a non-uniform field
-    CELER_FUNCTION void operator()(const ode_type y, ode_type& dydx) const;
+    // Evaluate the right hand side
+    CELER_FUNCTION ode_type operator()(const ode_type& y);
+    // XXX: overload with the position arguement for a non-uniform field
 
-    // evaluate the right hand side for a given B
-    CELER_FUNCTION void
-    evaluate_rhs(const Real3 B, const ode_type y, ode_type& dydx) const;
+    // Evaluate the right hand side for a given B
+    CELER_FUNCTION ode_type evaluate_rhs(const Real3& B, const ode_type& y);
+
+  private:
+    // XXX: remove once scaled_array is added to ArrayUtils
+    CELER_FUNCTION Real3 scaled_real3(const real_type a, const Real3& x)
+    {
+        Real3 result;
+        for (std::size_t i = 0; i != 3; ++i)
+        {
+            result[i] = a * x[i];
+        }
+        return result;
+    }
 
   private:
     real_type charge_;
