@@ -101,7 +101,7 @@ TEST_F(RungeKuttaTest, rk4_host)
             // Travel hstep for num_steps times in the field
             for (CELER_MAYBE_UNUSED int j : celeritas::range(params.nsteps))
             {
-                equation(y, dydx);
+                dydx            = equation(y);
                 real_type error = rk4.stepper(hstep, y, dydx, yout);
                 y               = yout;
                 total_error += error;

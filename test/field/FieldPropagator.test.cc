@@ -139,7 +139,7 @@ TEST_F(FieldPropagatorDeviceTest, field_propagator_device)
                         {ParticleId{0}, MevEnergy{test_params.energy}},
                         {ParticleId{0}, MevEnergy{test_params.energy}}};
 
-    PieStateStore<ParticleStateData, MemSpace::device> pstates(
+    CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
         *particle_params, input.init_track.size());
     input.particle_params = particle_params->device_pointers();
     input.particle_states = pstates.ref();
@@ -183,7 +183,7 @@ TEST_F(FieldPropagatorDeviceTest, field_propagator_device_boundary)
                         {ParticleId{0}, MevEnergy{test_params.energy}},
                         {ParticleId{0}, MevEnergy{test_params.energy}}};
 
-    PieStateStore<ParticleStateData, MemSpace::device> pstates(
+    CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
         *particle_params, input.init_track.size());
     input.particle_params = particle_params->device_pointers();
     input.particle_states = pstates.ref();
@@ -201,7 +201,8 @@ TEST_F(FieldPropagatorDeviceTest, field_propagator_device_boundary)
                   test_params.epsilon);
         EXPECT_LT(fabs(output.mom[i] + 8.6134826826429052),
                   test_params.epsilon);
-        EXPECT_DOUBLE_EQ(output.step[i], 1582.705466229889);
+        EXPECT_LT(fabs(output.step[i] - 1582.7054662411308),
+                  test_params.epsilon);
     }
 }
 

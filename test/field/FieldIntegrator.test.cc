@@ -66,7 +66,7 @@ TEST_F(FieldIntegratorTest, field_integrator_host)
     real_type total_error        = 0;
     real_type total_step_length  = 0;
     real_type total_curve_length = 0;
-    real_type dist_chord, hnext;
+    real_type dist_chord;
 
     // Try the stepper by hstep for (num_revolutions * num_steps) times
     real_type delta = field_params_view.errcon;
@@ -76,31 +76,18 @@ TEST_F(FieldIntegratorTest, field_integrator_host)
         OdeArray  y_quick = y;
         real_type dyerr   = 0;
         {
-            equation(y_quick, dydx);
+            dydx  = equation(y_quick);
             dyerr = integrator.quick_advance(hstep, y_quick, dydx, dist_chord);
         }
         // Check the total error and the state (position, momentum)
         EXPECT_VEC_NEAR(yo.get(), y.get(), delta);
         total_error += sqrt(dyerr);
 
-        // test one_good_step
-        OdeArray  y_good      = y;
-        real_type step_length = 0;
-        {
-            equation(y_good, dydx);
-            step_length = integrator.one_good_step(hstep, y_good, dydx, hnext);
-        }
-
-        // Check the step length and the state
-        EXPECT_LT(fabs(step_length - hstep), delta);
-        EXPECT_VEC_NEAR(yo.get(), y.get(), delta);
-        total_step_length += step_length;
-
         // test accurate advance
         OdeArray  y_accurate   = y;
         real_type curve_length = 0;
         {
-            equation(y_accurate, dydx);
+            dydx = equation(y_accurate);
             integrator.accurate_advance(hstep, y_accurate, curve_length, .001);
         }
 
@@ -112,7 +99,7 @@ TEST_F(FieldIntegratorTest, field_integrator_host)
         // test find_next_chord
         OdeArray ystart = y;
         {
-            integrator.advance_chord_limited(hstep, ystart);
+            integrator(hstep, ystart);
         }
     }
 

@@ -60,7 +60,7 @@ __global__ void rk4_test_kernel(FieldTestParams param,
         // Travel hstep for nsteps times in the field
         for (CELER_MAYBE_UNUSED int i : celeritas::range(param.nsteps))
         {
-            equation(y, dydx);
+            dydx            = equation(y);
             real_type error = rk4.stepper(hstep, y, dydx, yout);
             y               = yout;
             total_error += error;

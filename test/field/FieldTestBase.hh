@@ -9,7 +9,7 @@
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoTrackView.hh"
 
-#include "base/PieStateStore.hh"
+#include "base/CollectionStateStore.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleInterface.hh"
 #include "physics/base/ParticleTrackView.hh"

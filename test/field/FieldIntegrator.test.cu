@@ -55,9 +55,11 @@ __global__ void integrator_test_kernel(const FieldParamsPointers pointers,
     OdeArray dydx;
 
     // Test parameters and the sub-step size
+    real_type circumference = 2.0 * constants::pi * test_params.radius;
+
     test_params.nsteps = 100;
-    double hstep       = (2.0 * constants::pi * test_params.radius)
-                   / test_params.nsteps;
+    double hstep       = circumference / test_params.nsteps;
+
     real_type curve_length = 0;
 
     for (CELER_MAYBE_UNUSED int i : celeritas::range(test_params.revolutions))
@@ -65,9 +67,11 @@ __global__ void integrator_test_kernel(const FieldParamsPointers pointers,
         // Travel hstep for num_steps times in the field
         for (CELER_MAYBE_UNUSED int j : celeritas::range(test_params.nsteps))
         {
-            equation(y, dydx);
+            dydx = equation(y);
             integrator.accurate_advance(hstep, y, curve_length, 0.001);
         }
+
+        // XXX TODO: Add a test for quick_advance
     }
 
     // output for validation
