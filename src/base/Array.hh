@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cstddef>
 #include "Macros.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -17,15 +17,17 @@ namespace celeritas
  * Fixed-size simple array for storage.
  *
  * This isn't fully standards-compliant with std::array: there's no support for
- * N=0 for example.
+ * N=0 for example. Additionally it uses the native celeritas \c size_type,
+ * even though this has *no* effect on generated code for values of N inside
+ * the range the size capacity.
  */
-template<class T, std::size_t N>
+template<class T, ::celeritas::size_type N>
 struct Array
 {
     //!@{
     //! Type aliases
     using value_type      = T;
-    using size_type       = std::size_t;
+    using size_type       = ::celeritas::size_type;
     using pointer         = value_type*;
     using const_pointer   = const value_type*;
     using reference       = value_type&;
@@ -99,11 +101,11 @@ struct Array
 /*!
  * Test equality of two arrays.
  */
-template<class T, std::size_t N>
+template<class T, size_type N>
 inline CELER_FUNCTION bool
 operator==(const Array<T, N>& lhs, const Array<T, N>& rhs)
 {
-    for (std::size_t i = 0; i != N; ++i)
+    for (size_type i = 0; i != N; ++i)
     {
         if (lhs[i] != rhs[i])
             return false;
@@ -115,12 +117,19 @@ operator==(const Array<T, N>& lhs, const Array<T, N>& rhs)
 /*!
  * Test inequality of two arrays.
  */
-template<class T, std::size_t N>
+template<class T, size_type N>
 CELER_FORCEINLINE_FUNCTION bool
 operator!=(const Array<T, N>& lhs, const Array<T, N>& rhs)
 {
     return !(lhs == rhs);
 }
+
+//---------------------------------------------------------------------------//
+// TYPE ALIASES
+//---------------------------------------------------------------------------//
+
+//! Fixed-size array for R3 calculations
+using Real3 = Array<real_type, 3>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

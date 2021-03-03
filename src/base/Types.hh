@@ -9,7 +9,6 @@
 #pragma once
 
 #include <cstddef>
-#include "Array.hh"
 
 namespace celeritas
 {
@@ -23,8 +22,6 @@ using ull_int = unsigned long long int;
 //! Numerical type for real numbers
 using real_type = double;
 
-//! Fixed-size array for R3 calculations
-using Real3 = Array<real_type, 3>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
