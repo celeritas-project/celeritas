@@ -36,4 +36,25 @@ enum class Byte : unsigned char
 };
 
 //---------------------------------------------------------------------------//
+//! Memory location of data
+enum class MemSpace
+{
+    host,
+    device,
+#ifdef __CUDACC__
+    native = device, // Included by a CUDA file
+#else
+    native = host,
+#endif
+};
+
+//! Data ownership flag
+enum class Ownership
+{
+    value,           //!< Ownership of the data, only on host
+    reference,       //!< Mutable reference to the data
+    const_reference, //!< Immutable reference to the data
+};
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

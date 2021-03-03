@@ -8,7 +8,6 @@
 #pragma once
 
 #include "OpaqueId.hh"
-#include "CollectionTypes.hh"
 #include "Range.hh"
 #include "Types.hh"
 #include "detail/CollectionImpl.hh"

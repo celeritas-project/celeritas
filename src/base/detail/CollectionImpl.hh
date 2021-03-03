@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../CollectionTypes.hh"
 #include "base/Span.hh"
+#include "base/Types.hh"
 
 #ifndef __CUDA_ARCH__
 #    include <vector>
