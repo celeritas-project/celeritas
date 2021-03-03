@@ -81,8 +81,8 @@ TrackInitializerPointers TrackInitializerStore::device_pointers()
 void TrackInitializerStore::extend_from_primaries()
 {
     // Number of primaries to copy to device
-    size_type count = std::min(initializers_.capacity() - initializers_.size(),
-                               primaries_.size());
+    auto count = std::min<size_type>(
+        initializers_.capacity() - initializers_.size(), primaries_.size());
     if (count)
     {
         initializers_.resize(initializers_.size() + count);

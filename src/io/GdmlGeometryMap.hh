@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
 #include <map>
+#include <string>
 
 #include "ImportMaterial.hh"
 #include "ImportVolume.hh"
@@ -31,10 +31,12 @@ namespace celeritas
 class GdmlGeometryMap
 {
   public:
-    // Construct/destruct with defaults
-    GdmlGeometryMap();
-    ~GdmlGeometryMap();
+    //!@{
+    //! Type aliases
+    using size_type = std::size_t;
+    //!@}
 
+  public:
     //// READ ////
 
     // Find material id given volume id

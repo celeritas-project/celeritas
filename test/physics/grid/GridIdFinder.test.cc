@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "physics/grid/GridIdFinder.hh"
 
-#include "celeritas_test.hh"
+#include "base/OpaqueId.hh"
 #include "physics/base/Units.hh"
+#include "celeritas_test.hh"
 
 using celeritas::GridIdFinder;
 using celeritas::make_span;

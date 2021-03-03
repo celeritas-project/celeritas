@@ -68,10 +68,10 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     {
         // Allocate device vectors
         device_elements_
-            = DeviceVector<AtomicRelaxElement>{host_elements_.size()};
-        device_shells_ = DeviceVector<AtomicRelaxSubshell>{host_shells_.size()};
+            = DeviceVector<AtomicRelaxElement>(host_elements_.size());
+        device_shells_ = DeviceVector<AtomicRelaxSubshell>(host_shells_.size());
         device_transitions_
-            = DeviceVector<AtomicRelaxTransition>{host_transitions_.size()};
+            = DeviceVector<AtomicRelaxTransition>(host_transitions_.size());
 
         // Remap shell->transition spans
         auto remap_transitions

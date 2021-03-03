@@ -9,6 +9,7 @@
 
 #include "Assert.hh"
 #include "CollectionTypes.hh"
+#include "OpaqueId.hh"
 #include "Types.hh"
 
 namespace celeritas
