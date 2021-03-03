@@ -9,9 +9,13 @@
 
 #include "gtest/Test.hh"
 
+#include <random>
 #include "physics/material/MaterialParams.hh"
 #include "physics/base/ParticleParams.hh"
+
+// Test helpers
 #include "MockProcess.hh"
+#include "random/DiagnosticRngEngine.hh"
 
 namespace celeritas
 {
@@ -42,6 +46,8 @@ class PhysicsTestBase : public celeritas::Test
   protected:
     //!@{
     //! Type aliases
+    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
+
     using SPConstMaterials = std::shared_ptr<celeritas::MaterialParams>;
     using SPConstParticles = std::shared_ptr<celeritas::ParticleParams>;
     using SPConstPhysics   = std::shared_ptr<celeritas::PhysicsParams>;
@@ -78,12 +84,19 @@ class PhysicsTestBase : public celeritas::Test
         return make_span(interactions_);
     }
 
+    //!@{
+    //! Random number generator
+    RandomEngine& rng() { return rng_; }
+    //!@}
+
+
   private:
     //// DATA ////
 
     SPConstMaterials materials_;
     SPConstParticles particles_;
     SPConstPhysics   physics_;
+    RandomEngine     rng_;
 
     mutable std::vector<ModelId> interactions_;
 };
