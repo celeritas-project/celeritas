@@ -28,7 +28,6 @@ struct XsGridData
 {
     using EnergyUnits = units::Mev;
     using XsUnits     = units::NativeUnit; // 1/cm
-    using size_type   = unsigned int;
 
     //! "Special" value indicating none of the values are scaled by 1/E
     static CELER_CONSTEXPR_FUNCTION size_type no_scaling()

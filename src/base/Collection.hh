@@ -54,7 +54,7 @@ using ItemId = OpaqueId<T, size_type>;
  * };
  * \endcode
  */
-template<class T, class Size = unsigned int>
+template<class T, class Size = size_type>
 using ItemRange = Range<OpaqueId<T, Size>>;
 
 //---------------------------------------------------------------------------//

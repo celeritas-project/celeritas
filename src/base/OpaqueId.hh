@@ -26,13 +26,6 @@ namespace celeritas
  *
  * This allows type-safe, read-only indexing/access for a class. The value is
  * 'true' if it's assigned, 'false' if invalid.
- *
- * The size type defaults plain "unsigned int" (32-bit in CUDA) rather than
- * \c celeritas::size_type (64-bit) because CUDA currently uses native 32-bit
- * pointer arithmetic. In general this should be the same type as the default
- * OpaqueId::size_type. It's possible that in large problems 4 billion
- * elements won't be enough (for e.g. cross sections), but in that case the
- * CollectionBuilder will throw an assertion during construction.
  */
 template<class ValueT, class SizeT = ::celeritas::size_type>
 class OpaqueId

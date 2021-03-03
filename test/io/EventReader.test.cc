@@ -94,7 +94,7 @@ TEST_P(EventReaderTest, read_all_formats)
         {-8.273504806466310e-2, 9.750892208717103e-1, 2.058055469649411e-1},
         {7.028153760960004e-2, -8.780402697122620e-1, -4.733981307893478e-1}};
 
-    for (std::size_t i = 0; i < primaries.size(); ++i)
+    for (auto i : range(primaries.size()))
     {
         const auto& primary = primaries[i];
 
