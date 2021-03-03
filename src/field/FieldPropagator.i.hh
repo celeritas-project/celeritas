@@ -49,16 +49,17 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView& view)
         ode_type  yo    = yc;
         real_type hstep = step_length - step_taken;
 
-        // Advance within the tolerence error for a trial step (hstep)
-        real_type sub_step = integrator_.advance_chord_limited(hstep, yc);
+        // For a given trial step (hstep), advance a sub_step within the
+        // required tolerence error and update current states (yc)
+        real_type sub_step = integrator_(hstep, yc);
 
         // Check whether this sub-step cross a volume boundary
         real_type intersect_scale;
         intersect = this->is_boundary_crossing(view,
-                                         detail::to_vector(yo.position()),
-                                         detail::to_vector(yc.position()),
-                                         intersect_point,
-                                         intersect_scale);
+                                               detail::to_vector(yo.position()),
+                                               detail::to_vector(yc.position()),
+                                               intersect_point,
+                                               intersect_scale);
 
         if (intersect)
         {
@@ -88,58 +89,11 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView& view)
     return step_taken;
 }
 
-bool FieldPropagator::find_intersect_point(FieldTrackView& view,
-                                           ode_type        y_start,
-                                           ode_type&       y_end,
-                                           vec3_type&      intersect_point,
-                                           real_type&      trial_step)
-{
-    bool is_found = false;
-
-    vec3_type start_position = detail::to_vector(y_start.position());
-
-    unsigned int step_countdown = shared_.max_nsteps;
-    do {
-        ode_type yt = y_start;
-
-        real_type hstep = integrator_.advance_chord_limited(trial_step, yt);
-
-        CELER_ASSERT(hstep == trial_step);
-
-        // Check yt point
-        real_type delta
-            = (detail::to_vector(yt.position()) - intersect_point).Mag();
-
-        is_found = (delta < shared_.delta_intersection);
-
-        if (is_found)
-        {
-            y_end    = yt;
-        }
-        else
-        {
-   	    if (CELER_UNLIKELY(--step_countdown == 0))
-	    {
-	        // Failed to converge, handle rare cases here
-	        break;
-	    }
-
-            // Estimate a new trial step with the new position at yt
-            real_type new_scale{1.0};
-
-            this->is_boundary_crossing(view,
-                                       start_position,
-                                       detail::to_vector(yt.position()),
-                                       intersect_point,
-                                       new_scale);
-
-            trial_step *= new_scale;
-        }
-    } while (!is_found);
-
-    return is_found;
-}
-
+//---------------------------------------------------------------------------//
+/*!
+ * Check whether there is a boundary crossing by the linear line between 
+ * two space points
+ */
 bool FieldPropagator::is_boundary_crossing(FieldTrackView& view,
                                            const vec3_type x_start,
                                            const vec3_type x_end,
@@ -189,6 +143,75 @@ bool FieldPropagator::is_boundary_crossing(FieldTrackView& view,
     }
 
     return is_intersect;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the first intersection point on a volume boundary along the curved  
+ * path in a magnetic field
+ */
+bool FieldPropagator::find_intersect_point(FieldTrackView& view,
+                                           const ode_type& y_start,
+                                           ode_type&       y_end,
+                                           vec3_type&      intersect_point,
+                                           real_type&      trial_step)
+{
+    vec3_type start_position = detail::to_vector(y_start.position());
+
+
+    ode_type yt = y_start;
+    bool is_found = check_intersect(yt, y_end, intersect_point, trial_step);
+
+    unsigned int remaining_steps = shared_.max_nsteps;
+    while(!is_found && --remaining_steps > 0)
+    {
+         // Estimate a new trial step with the new position at yt
+         real_type new_scale{1.0};
+
+         this->is_boundary_crossing(view,
+                                    start_position,
+                                    detail::to_vector(yt.position()),
+                                    intersect_point,
+                                    new_scale);
+
+         trial_step *= new_scale;
+
+         yt = y_start;
+         is_found = check_intersect(yt, y_end, intersect_point, trial_step);
+    }
+    // XXX TODO: loop check and handle rare cases if happen
+    CELER_ASSERT(is_found);
+
+    return is_found;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helfer for find_intersect_point: move by a new trial step and check whether
+ * the new position is on a volume boundary within a required accuracy 
+ */
+bool FieldPropagator::check_intersect(ode_type&   yt,
+                                      ode_type&   y_end,
+                                      vec3_type&  intersect_point,
+                                      real_type&  trial_step)
+{
+    bool is_found = false;
+
+    real_type hstep = integrator_(trial_step, yt);
+
+    CELER_ASSERT(hstep == trial_step);
+
+    // Check yt point
+    real_type delta
+        = (detail::to_vector(yt.position()) - intersect_point).Mag();
+
+    if (delta < shared_.delta_intersection)
+    {
+        is_found = true;
+        y_end = yt;
+    }
+
+    return is_found;
 }
 
 //---------------------------------------------------------------------------//

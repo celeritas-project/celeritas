@@ -35,8 +35,9 @@ class FieldPropagator
     using ode_type  = OdeArray;
     using vec3_type = vecgeom::Vector3D<real_type>;
 
-    //  using LengthUnits = units::millimeter;
-    //  using Length = Quantity<LengthUnits>;
+    // XXX TODO: use celetitas units
+    // using LengthUnits = units::millimeter;
+    // using Length = Quantity<LengthUnits>;
 
   public:
     // Construct with shared and state data
@@ -56,17 +57,26 @@ class FieldPropagator
     }
 
   private:
+
+    // Check whether there is a boundary crossing between two space points
     inline CELER_FUNCTION bool is_boundary_crossing(FieldTrackView& view,
                                                     const vec3_type x_start,
                                                     const vec3_type x_end,
                                                     vec3_type& intersect_point,
                                                     real_type& linear_step);
 
+    // Find the first intersection point on a volume boundary
     inline CELER_FUNCTION bool find_intersect_point(FieldTrackView& view,
-                                                    ode_type        y_start,
+                                                    const ode_type& y_start,
                                                     ode_type&       y_end,
                                                     vec3_type& intersect_point,
                                                     real_type& hstep);
+
+    // Helfer for find_intersect_point
+    inline CELER_FUNCTION bool check_intersect(ode_type&  y_start,
+                                               ode_type&  y_end,
+                                               vec3_type& intersect_point,
+                                               real_type& hstep);
 
   private:
     // Shared field parameters
