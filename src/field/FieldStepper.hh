@@ -32,18 +32,25 @@ class FieldStepper
 
     // Commom methods
     CELER_FUNCTION real_type stepper(real_type       h,
-                                     const ode_type  y,
+                                     const ode_type& y,
                                      const ode_type& dydx,
                                      ode_type&       yout);
 
-    CELER_FUNCTION real_type distance_chord(const ode_type y,
-                                            const ode_type yout);
+    CELER_FUNCTION real_type distance_chord(const ode_type& y,
+                                            const ode_type& yout) const
+    {
+        return ymid_.distance_closest(y, yout);
+    }
 
-    CELER_FUNCTION void ode_rhs(ode_type y, ode_type& yout);
+    // The right hand side of the field equation
+    CELER_FUNCTION ode_type ode_rhs(const ode_type& y) const
+    {
+        return equation_(y);
+    }
 
     // Static interfaces (Mandatory methods)
     CELER_FUNCTION void ode_stepper(real_type       h,
-                                    const ode_type  y,
+                                    const ode_type& y,
                                     const ode_type& dydx,
                                     ode_type&       yout)
     {
@@ -60,11 +67,11 @@ class FieldStepper
     FieldEquation& equation_;
 
     // States at the middle point
-    ode_type ymid;
-    ode_type dydxmid;
+    ode_type ymid_;
+    ode_type dydxmid_;
 
     // State by one full step and used as a temporary in ode_stepper
-    ode_type yt;
+    ode_type yt_;
 };
 
 //---------------------------------------------------------------------------//

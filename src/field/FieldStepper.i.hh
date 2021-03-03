@@ -24,20 +24,20 @@ CELER_FUNCTION FieldStepper<T>::FieldStepper(FieldEquation& equation)
  */
 template<typename T>
 real_type FieldStepper<T>::stepper(real_type       hstep,
-                                   const ode_type  y,
+                                   const ode_type& y,
                                    const ode_type& dydx,
                                    ode_type&       yout)
 {
     // Do two half steps
-    ode_stepper(0.5 * hstep, y, dydx, ymid);
-    equation_(ymid, dydxmid);
-    ode_stepper(0.5 * hstep, ymid, dydxmid, yout);
+    ode_stepper(0.5 * hstep, y, dydx, ymid_);
+    dydxmid_ = equation_(ymid_);
+    ode_stepper(0.5 * hstep, ymid_, dydxmid_, yout);
 
     // Do a full step
-    ode_stepper(hstep, y, dydx, yt);
+    ode_stepper(hstep, y, dydx, yt_);
 
     // Stepper error: difference between the full step and two half steps
-    ode_type yerr = yout - yt;
+    ode_type yerr = yout - yt_;
 
     // Output correction with the 4th order coefficient (1/15)
     yout += yerr / 15.;
@@ -61,16 +61,5 @@ real_type FieldStepper<T>::stepper(real_type       hstep,
     return std::fmax(errpos2, errvel2);
 }
 
-template<typename T>
-real_type FieldStepper<T>::distance_chord(const ode_type y, const ode_type yout)
-{
-    return ymid.distance_closest(y, yout);
-}
-
-template<typename T>
-void FieldStepper<T>::ode_rhs(ode_type y, ode_type& yout)
-{
-    equation_(y, yout);
-}
 //---------------------------------------------------------------------------//
 } // namespace celeritas

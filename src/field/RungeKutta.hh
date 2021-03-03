@@ -30,7 +30,7 @@ class RungeKutta : public FieldStepper<RungeKutta>
 
     // Mandatory method - static inheritance
     CELER_FUNCTION void ode_stepper(real_type       h,
-                                    const ode_type  y,
+                                    const ode_type& y,
                                     const ode_type& dydx,
                                     ode_type&       yout);
 
@@ -39,8 +39,8 @@ class RungeKutta : public FieldStepper<RungeKutta>
     friend class FieldStepper<RungeKutta>;
 
   private:
-    ode_type dydxm;
-    ode_type dydxt;
+    ode_type dydxm_;
+    ode_type dydxt_;
 };
 
 //---------------------------------------------------------------------------//
