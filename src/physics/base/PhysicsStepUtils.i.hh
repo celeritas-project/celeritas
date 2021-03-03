@@ -68,6 +68,8 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
         }
     }
 
+    physics.macro_xs(total_macro_xs);
+
     if (min_range != inf)
     {
         // One or more range limiters applied: scale range limit according to
