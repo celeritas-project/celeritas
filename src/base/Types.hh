@@ -10,7 +10,6 @@
 
 #include <cstddef>
 #include "Array.hh"
-#include "OpaqueId.hh"
 
 namespace celeritas
 {
@@ -26,9 +25,6 @@ using real_type = double;
 
 //! Fixed-size array for R3 calculations
 using Real3 = Array<real_type, 3>;
-
-//! Index of the current CUDA thread, with type safety for containers.
-using ThreadId = OpaqueId<struct Thread>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
