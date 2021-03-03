@@ -35,10 +35,12 @@ class FieldIntegrator
     inline CELER_FUNCTION
     FieldIntegrator(const FieldParamsPointers& shared, RungeKutta& stepper);
 
-    // Interfaces from G4ChordFinder
-    CELER_FUNCTION real_type advance_chord_limited(real_type step_trial,
-                                                   ode_type& y);
+    // For a given trial step (hstep), advance by a sub_step within
+    // a required tolerence error and update current states (y)
+    CELER_FUNCTION real_type operator()(real_type hstep, ode_type& y);
 
+    // Find the next acceptable chord of which sagitta is smaller than a
+    // given miss-distance (delta_chord) and evaluate the assocated error
     CELER_FUNCTION real_type find_next_chord(real_type       hstep,
                                              const ode_type& y,
                                              ode_type&       yend,
@@ -50,28 +52,40 @@ class FieldIntegrator
                                          real_type& curveLength,
                                          real_type  hinitial);
 
-    CELER_FUNCTION real_type one_good_step(real_type       hstep,
-                                           ode_type&       y,
-                                           const ode_type& dydx,
-                                           real_type&      hnext);
-
-    // advance for the small step
+    // Avance based on the miss distance and an associated stepper error
     CELER_FUNCTION real_type quick_advance(real_type       hstep,
                                            ode_type&       y,
                                            const ode_type& dydx,
                                            real_type&      dchord_step);
 
-    CELER_FUNCTION real_type new_step_size(real_type hstep, real_type error);
+  private:
+    // Advance within the truncated error and estimate a good next step size
+    CELER_FUNCTION real_type one_good_step(real_type       hstep,
+                                           ode_type&       y,
+                                           const ode_type& dydx,
+                                           real_type&      hnext);
 
-    CELER_FUNCTION void ode_rhs(const ode_type y, ode_type& dydx)
-    {
-        stepper_.ode_rhs(y, dydx);
-    }
+    // Find the next chord and return a step length taken and updates the state
+    CELER_FUNCTION real_type new_step_size(real_type hstep,
+                                           real_type error) const;
 
     // >>> COMMON PROPERTIES
 
-    //! XXX move to constants?
-    static CELER_CONSTEXPR_FUNCTION real_type permillion() { return 1e-6; }
+    static CELER_CONSTEXPR_FUNCTION real_type rel_tolerance() { return 1e-6; }
+
+    CELER_FUNCTION bool check_sagitta(real_type       hstep,
+                                      const ode_type& y,
+                                      const ode_type& dydx,
+                                      ode_type&       yend,
+                                      real_type&      dyerr,
+                                      real_type&      dchord);
+
+    CELER_FUNCTION bool move_step(real_type  hstep,
+                                  real_type  h_threshold,
+                                  real_type  end_curve_length,
+                                  ode_type&  y,
+                                  real_type& hnext,
+                                  real_type& curveLength);
 
   private:
     // Shared constant properties
