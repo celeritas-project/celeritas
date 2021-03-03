@@ -17,7 +17,7 @@ namespace celeritas
 {
 //! Opaque ID representing a single element of a container.
 template<class T>
-using ItemId = OpaqueId<T, unsigned int>;
+using ItemId = OpaqueId<T, size_type>;
 
 //---------------------------------------------------------------------------//
 /*!

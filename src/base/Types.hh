@@ -8,20 +8,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cstddef>
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Standard type for container sizes.
-using size_type = std::size_t;
-
-//! Equivalent to container size but compatible with CUDA atomics
-using ull_int = unsigned long long int;
+//! Standard type for container sizes, optimized for GPU use.
+using size_type = unsigned int;
 
 //! Numerical type for real numbers
 using real_type = double;
 
+//! Equivalent to std::size_t but compatible with CUDA atomics
+using ull_int = unsigned long long int;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
