@@ -307,13 +307,6 @@ void store_geometry(TFile*                       root_file,
         CELER_ASSERT(g4elements);
         CELER_ASSERT(g4prod_cuts);
 
-        // Converters for populating material.energy_cuts
-        G4VRangeToEnergyConverter* range_to_e_converters[NumberOfG4CutIndex];
-        range_to_e_converters[idxG4GammaCut]    = new G4RToEConvForGamma();
-        range_to_e_converters[idxG4ElectronCut] = new G4RToEConvForElectron();
-        range_to_e_converters[idxG4PositronCut] = new G4RToEConvForPositron();
-        range_to_e_converters[idxG4ProtonCut]   = new G4RToEConvForProton();
-
         // Populate material information
         ImportMaterial material;
         material.name             = g4material->GetName();
@@ -327,8 +320,15 @@ void store_geometry(TFile*                       root_file,
         material.radiation_length   = g4material->GetRadlen() / cm;
         material.nuclear_int_length = g4material->GetNuclearInterLength() / cm;
 
+        // Converters for populating material.energy_cuts
+        G4VRangeToEnergyConverter* range_to_e_converters[NumberOfG4CutIndex];
+        range_to_e_converters[idxG4GammaCut]    = new G4RToEConvForGamma();
+        range_to_e_converters[idxG4ElectronCut] = new G4RToEConvForElectron();
+        range_to_e_converters[idxG4PositronCut] = new G4RToEConvForPositron();
+        range_to_e_converters[idxG4ProtonCut]   = new G4RToEConvForProton();
+
         // Populate material range and energy cuts
-        for (int i : celeritas::range(static_cast<int>(NumberOfG4CutIndex)))
+        for (int i : celeritas::range((int)NumberOfG4CutIndex))
         {
             const auto      g4i = static_cast<G4ProductionCutsIndex>(i);
             const auto      import_index = to_import_production_cut(g4i);

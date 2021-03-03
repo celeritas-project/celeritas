@@ -47,7 +47,7 @@ class GdmlGeometryMap
     const ImportElement& get_element(elem_id element_id) const;
 
     // Return the size of the largest material element list
-    size_type max_num_elements() const;
+    auto max_num_elements() const -> size_type;
     // Return a reference to matid_to_material map
     const std::map<mat_id, ImportMaterial>& matid_to_material_map() const;
     // Return a reference to volid_to_volume_ map

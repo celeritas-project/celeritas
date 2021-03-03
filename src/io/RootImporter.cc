@@ -76,6 +76,7 @@ RootImporter::result_type RootImporter::operator()()
     geant_data.processes       = this->load_processes();
     geant_data.geometry        = this->load_geometry_data();
     geant_data.material_params = this->load_material_data();
+    geant_data.cutoff_params   = this->load_cutoff_data();
 
     // Sort processes based on particle def IDs, process types, etc.
     {
@@ -95,12 +96,13 @@ RootImporter::result_type RootImporter::operator()()
     CELER_ENSURE(geant_data.particle_params);
     CELER_ENSURE(geant_data.geometry);
     CELER_ENSURE(geant_data.material_params);
+    CELER_ENSURE(geant_data.cutoff_params);
     return geant_data;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Load all ImportParticle objects from the ROOT file as ParticleParams
+ * Load all ImportParticle objects from the ROOT file as ParticleParams.
  */
 std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
 {
@@ -163,7 +165,7 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
 
 //---------------------------------------------------------------------------//
 /*!
- * Load all ImportProcess objects from the ROOT file as a vector
+ * Load all ImportProcess objects from the ROOT file as a vector.
  */
 std::vector<ImportProcess> RootImporter::load_processes()
 {
@@ -194,7 +196,7 @@ std::vector<ImportProcess> RootImporter::load_processes()
 }
 //---------------------------------------------------------------------------//
 /*!
- * [TEMPORARY] Load GdmlGeometryMap object from the ROOT file
+ * [TEMPORARY] Load GdmlGeometryMap object from the ROOT file.
  *
  * For fully testing the loaded geometry information only.
  *
@@ -223,7 +225,7 @@ std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
 
 //---------------------------------------------------------------------------//
 /*!
- * Load GdmlGeometryMap from the ROOT file and populate MaterialParams
+ * Load GdmlGeometryMap from the ROOT file and populate MaterialParams.
  */
 std::shared_ptr<MaterialParams> RootImporter::load_material_data()
 {
@@ -231,7 +233,7 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
     // Open geometry branch
     std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
     CELER_ASSERT(tree_geometry);
-    CELER_ASSERT(tree_geometry->GetEntries()); // Must be 1
+    CELER_ASSERT(tree_geometry->GetEntries() == 1);
 
     // Load branch and fetch data
     GdmlGeometryMap  geometry;
@@ -274,7 +276,7 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
             material_params.elements_fractions.push_back(
                 {elem_def_id, elem_key.second});
         }
-
+        /*
         for (const auto& cut_key : mat_key.second.range_cuts)
         {
             const auto prod_cut_id = this->to_production_cut_id(cut_key.first);
@@ -286,7 +288,7 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
 
             material_params.production_cuts.insert({prod_cut_id, prod_cuts});
         }
-
+        */
         input.materials.push_back(material_params);
     }
 
@@ -297,8 +299,53 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Load Cutoff information from the ROOT file and populate CutoffParams.
+ */
+std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
+{
+    CELER_LOG(status) << "Loading cutoff data";
+
+    std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
+    CELER_ASSERT(tree_geometry);
+    CELER_ASSERT(tree_geometry->GetEntries() == 1);
+
+    // Load branch and fetch data
+    GdmlGeometryMap  geometry;
+    GdmlGeometryMap* geometry_ptr = &geometry;
+
+    int err_code
+        = tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+    CELER_ASSERT(err_code >= 0);
+    tree_geometry->GetEntry(0);
+
+    CutoffParams::Input input;
+
+    for (const auto& mat_key : geometry.matid_to_material_map())
+    {
+        // Acess cutoff data from root file
+        auto import_material = mat_key.second;
+
+        CutoffParams::MaterialCutoff material_cutoff;
+
+        for (const auto& elem_key : geometry.elemid_to_element_map())
+        {
+            SingleCutoff element_cutoff;
+
+            material_cutoff.push_back(element_cutoff);
+        }
+
+        input.push_back(material_cutoff);
+    }
+
+    CutoffParams cutoffs(input);
+    return std::make_shared<CutoffParams>(std::move(cutoffs));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Safely switch between ImportProductionCut to ProductionCutId enums.
  */
+/*
 MaterialParams::ProductionCutId
 RootImporter::to_production_cut_id(const ImportProductionCut& value)
 {
@@ -315,6 +362,6 @@ RootImporter::to_production_cut_id(const ImportProductionCut& value)
     }
     CELER_ASSERT_UNREACHABLE();
 }
-
+*/
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -15,6 +15,7 @@
 #include "base/Types.hh"
 #include "physics/base/ParticleInterface.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/CutoffParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "ImportProcess.hh"
 #include "GdmlGeometryMap.hh"
@@ -61,6 +62,7 @@ class RootImporter
         std::vector<ImportProcess>       processes;
         std::shared_ptr<GdmlGeometryMap> geometry;
         std::shared_ptr<MaterialParams>  material_params;
+        std::shared_ptr<CutoffParams>    cutoff_params;
     };
 
   public:
@@ -87,9 +89,11 @@ class RootImporter
     std::shared_ptr<GdmlGeometryMap> load_geometry_data();
     // Populate the shared_ptr<MaterialParams> with material information
     std::shared_ptr<MaterialParams> load_material_data();
+    // Populate the shared_ptr<CutoffParams> with cutoff data
+    std::shared_ptr<CutoffParams> load_cutoff_data();
     // Safely switch between Import and Celeritas enums
-    MaterialParams::ProductionCutId
-    to_production_cut_id(const ImportProductionCut& value);
+    // MaterialParams::ProductionCutId
+    // to_production_cut_id(const ImportProductionCut& value);
 };
 
 //---------------------------------------------------------------------------//
