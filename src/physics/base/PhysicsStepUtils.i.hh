@@ -53,7 +53,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
             // accumulate it into the total cross section and save the cross
             // section for later.
             auto calc_xs = physics.make_calculator(grid_id);
-            process_xs = calc_xs(particle.energy());
+            process_xs   = calc_xs(particle.energy());
             total_macro_xs += process_xs;
         }
         physics.per_process_xs(ppid) = process_xs;
