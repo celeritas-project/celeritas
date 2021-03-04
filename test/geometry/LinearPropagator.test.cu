@@ -47,7 +47,7 @@ __global__ void linProp_test_kernel(const GeoParamsPointers shared,
         distances[tid.get() * max_segments + seg] = geo.next_step();
 
         // Move next step
-        propagate();
+        auto temp = propagate();
     }
 }
 

@@ -29,12 +29,16 @@ CELER_FUNCTION LinearPropagator::LinearPropagator(GeoTrackView* track)
  * Move track by next_step(), which takes it to next volume boundary.
  */
 CELER_FUNCTION
-void LinearPropagator::operator()()
+LinearPropagator::result_type LinearPropagator::operator()()
 {
-    this->apply_linear_step(track_.next_step() + track_.extra_push());
+    result_type result;
+    result.distance
+        = this->apply_linear_step(track_.next_step() + track_.extra_push());
 
     // Update state
     track_.move_next_volume();
+    result.volume = track_.volume_id();
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -47,16 +51,21 @@ void LinearPropagator::operator()()
  * \pre Assumes that next_step() has been properly called by client
  */
 CELER_FUNCTION
-void LinearPropagator::operator()(real_type dist)
+LinearPropagator::result_type LinearPropagator::operator()(real_type dist)
 {
     CELER_EXPECT(dist > 0.);
-    CELER_EXPECT(dist <= track_.next_step());
-    this->apply_linear_step(dist);
+    result_type result;
+    real_type   minstep = fmin(dist, track_.next_step() + track_.extra_push());
+    result.distance     = this->apply_linear_step(minstep);
 
-    if (std::fabs(track_.next_step()) < track_.extra_push())
+    //.. for linear trajectory, assume that next_step() takes it to boundary
+    if (track_.next_step() < track_.extra_push())
     {
         track_.move_next_volume();
     }
+    result.volume = track_.volume_id();
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -67,10 +76,11 @@ void LinearPropagator::operator()(real_type dist)
  * direction by a distance track.next_step()
  */
 CELER_FUNCTION
-void LinearPropagator::apply_linear_step(real_type step)
+real_type LinearPropagator::apply_linear_step(real_type step)
 {
     axpy(step, track_.dir(), &track_.pos());
     track_.next_step() -= step;
+    return step;
 }
 
 } // namespace celeritas

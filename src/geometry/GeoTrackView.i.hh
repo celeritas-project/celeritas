@@ -120,8 +120,7 @@ CELER_FUNCTION void GeoTrackView::move_next_volume()
 //! Get the volume ID in the current cell.
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {
-    CELER_EXPECT(!this->is_outside());
-    return VolumeId{this->volume().id()};
+    return (this->is_outside() ? VolumeId{} : VolumeId{this->volume().id()});
 }
 
 //---------------------------------------------------------------------------//

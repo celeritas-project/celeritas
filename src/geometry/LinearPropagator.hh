@@ -20,19 +20,28 @@ class LinearPropagator
 {
     using Initializer_t = GeoStateInitializer;
 
+    //! Output results
+    struct result_type
+    {
+        real_type distance; //!< Distance traveled
+        VolumeId  volume;   //!< Post-propagation volume
+    };
+
   public:
-    // Construct from persistent and state data
+    //! Construct from persistent and state data
     inline CELER_FUNCTION LinearPropagator(GeoTrackView* track);
 
     // Move track by next_step(), which takes it to next volume boundary.
-    inline CELER_FUNCTION void operator()();
+    inline CELER_FUNCTION result_type operator()();
 
-    // Move track by a user-provided distance.
-    inline CELER_FUNCTION void operator()(real_type dist);
+    /*! Move track by a user-provided distance, or to the next boundary if
+     *  distance goes beyond it.
+     */
+    inline CELER_FUNCTION result_type operator()(real_type dist);
 
   private:
     // Fast move, update only the position.
-    inline CELER_FUNCTION void apply_linear_step(real_type step);
+    inline CELER_FUNCTION real_type apply_linear_step(real_type step);
 
   private:
     GeoTrackView& track_;

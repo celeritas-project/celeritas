@@ -87,19 +87,25 @@ TEST_F(LinearPropagatorHostTest, track_line)
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(5, geo.next_step());
-        propagate();
+
+        auto step = propagate(1.e10); // very large proposed step
+        EXPECT_SOFT_EQ(5, step.distance);
+        EXPECT_EQ(VolumeId{1}, step.volume); // Shape2 -> Shape1
         EXPECT_SOFT_EQ(-5, geo.pos()[0]);
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape2 -> Shape1
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(1.0, geo.next_step());
-        propagate();
-        EXPECT_EQ(VolumeId{3}, geo.volume_id()); // Shape1 -> Envelope
+
+        step = propagate(1.e10);
+        EXPECT_SOFT_EQ(1, step.distance);
+        EXPECT_EQ(VolumeId{3}, step.volume); // Shape1 -> Envelope
         EXPECT_EQ(false, geo.is_outside());
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(1.0, geo.next_step());
-        propagate();
+
+        step = propagate();
+        EXPECT_SOFT_EQ(1, step.distance);
         EXPECT_EQ(false, geo.is_outside()); // leaving World
     }
 
@@ -115,10 +121,13 @@ TEST_F(LinearPropagatorHostTest, track_line)
         geo           = {{-24 + eps, 6.5, 6.5}, {1, 0, 0}};
         EXPECT_EQ(false, geo.is_outside());
         EXPECT_EQ(VolumeId{10}, geo.volume_id()); // World
+
         geo.find_next_step();
         EXPECT_SOFT_EQ(7. - eps, geo.next_step());
-        propagate();
-        EXPECT_EQ(VolumeId{3}, geo.volume_id()); // World -> Envelope
+
+        auto step = propagate();
+        EXPECT_SOFT_EQ(7. - eps, step.distance);
+        EXPECT_EQ(VolumeId{3}, step.volume); // World -> Envelope
     }
     {
         // Track from inside detector
@@ -127,14 +136,17 @@ TEST_F(LinearPropagatorHostTest, track_line)
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(5.0, geo.next_step());
-        propagate();
+
+        auto step = propagate();
+        EXPECT_SOFT_EQ(5.0, step.distance);
         EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1 -> Shape2
+        EXPECT_EQ(VolumeId{1}, step.volume); // Shape1 -> Shape2
         EXPECT_EQ(false, geo.is_outside());
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(1.0, geo.next_step());
-        propagate();
+        step = propagate();
+        EXPECT_SOFT_EQ(1.0, step.distance);
         EXPECT_EQ(false, geo.is_outside());
     }
 }
@@ -155,35 +167,40 @@ TEST_F(LinearPropagatorHostTest, track_intraVolume)
         EXPECT_SOFT_EQ(5, geo.next_step());
 
         // break next step into two
-        propagate(0.5 * geo.next_step());
+        auto step = propagate(0.5 * geo.next_step());
+        EXPECT_SOFT_EQ(2.5, step.distance);
         EXPECT_SOFT_EQ(12.5, geo.pos()[2]);
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // still Shape2
+        EXPECT_EQ(VolumeId{0}, step.volume); // still Shape2
 
-        propagate(geo.next_step()); // all remaining
+        step = propagate(geo.next_step()); // all remaining
+        EXPECT_SOFT_EQ(2.5, step.distance);
         EXPECT_SOFT_EQ(15.0, geo.pos()[2]);
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape2 -> Shape1
+        EXPECT_EQ(VolumeId{1}, step.volume); // Shape2 -> Shape1
 
         // break next step into > 2 steps, re-calculating next_step each time
         geo.find_next_step();
         EXPECT_SOFT_EQ(1.0, geo.next_step()); // dist to next boundary
 
-        propagate(0.2 * geo.next_step()); // step 1 inside Detector
+        step = propagate(0.2 * geo.next_step()); // step 1 inside Detector
+        EXPECT_SOFT_EQ(0.2, step.distance);
         EXPECT_SOFT_EQ(15.2, geo.pos()[2]);
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1
+        EXPECT_EQ(VolumeId{1}, step.volume); // Shape1
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(0.8, geo.next_step());
 
-        propagate(0.5 * geo.next_step()); // step 2 inside Detector
+        step = propagate(0.5 * geo.next_step()); // step 2 inside Detector
+        EXPECT_SOFT_EQ(0.4, step.distance);
         EXPECT_SOFT_EQ(15.6, geo.pos()[2]);
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1
+        EXPECT_EQ(VolumeId{1}, step.volume); // Shape1
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(0.4, geo.next_step());
 
-        propagate(geo.next_step()); // last step inside Detector
+        step = propagate(geo.next_step()); // last step inside Detector
+        EXPECT_SOFT_EQ(0.4, step.distance);
         EXPECT_SOFT_EQ(16, geo.pos()[2]);
-        EXPECT_EQ(VolumeId{3}, geo.volume_id()); // Shape1 -> Envelope
+        EXPECT_EQ(VolumeId{3}, step.volume); // Shape1 -> Envelope
     }
 }
 
