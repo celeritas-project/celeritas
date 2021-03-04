@@ -505,8 +505,10 @@ TEST_F(LivermorePEInteractorTest, model)
     EXPECT_EQ(1, grid_storage.size());
 
     // Test cross sections calculated from tables
+    Collection<double, Ownership::const_reference, MemSpace::host> real_ref{
+        real_storage};
     celeritas::XsCalculator calc_xs(
-        grid_storage[ValueGridInserter::XsIndex{0}], real_storage);
+        grid_storage[ValueGridInserter::XsIndex{0}], real_ref);
     EXPECT_SOFT_EQ(0.1, calc_xs(MevEnergy{1e-3}));
     EXPECT_SOFT_EQ(1e-5, calc_xs(MevEnergy{1e2}));
     EXPECT_SOFT_EQ(1e-9, calc_xs(MevEnergy{1e6}));

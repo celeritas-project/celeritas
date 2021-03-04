@@ -40,9 +40,11 @@ class ValueGridBuilderTest : public celeritas::Test
         {
             b->build(insert);
         }
+        real_ref = real_storage;
     }
 
     Collection<real_type, Ownership::value, MemSpace::host>  real_storage;
+    Collection<real_type, Ownership::const_reference, MemSpace::host> real_ref;
     Collection<XsGridData, Ownership::value, MemSpace::host> grid_storage;
 };
 
@@ -75,13 +77,13 @@ TEST_F(ValueGridBuilderTest, xs_grid)
     // Test results using the physics calculator
     ASSERT_EQ(2, grid_storage.size());
     {
-        XsCalculator calc_xs(grid_storage[XsIndex{0}], real_storage);
+        XsCalculator calc_xs(grid_storage[XsIndex{0}], real_ref);
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));
         EXPECT_SOFT_EQ(0.2, calc_xs(Energy{1e2}));
         EXPECT_SOFT_EQ(0.3, calc_xs(Energy{1e3}));
     }
     {
-        XsCalculator calc_xs(grid_storage[XsIndex{1}], real_storage);
+        XsCalculator calc_xs(grid_storage[XsIndex{1}], real_ref);
         EXPECT_SOFT_EQ(10., calc_xs(Energy{1e-3}));
         EXPECT_SOFT_EQ(1., calc_xs(Energy{1e-2}));
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e-1}));
@@ -106,7 +108,7 @@ TEST_F(ValueGridBuilderTest, log_grid)
     // Test results using the physics calculator
     ASSERT_EQ(1, grid_storage.size());
     {
-        XsCalculator calc_xs(grid_storage[XsIndex{0}], real_storage);
+        XsCalculator calc_xs(grid_storage[XsIndex{0}], real_ref);
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));
         EXPECT_SOFT_EQ(0.2, calc_xs(Energy{1e2}));
         EXPECT_SOFT_EQ(0.3, calc_xs(Energy{1e3}));
@@ -133,7 +135,7 @@ TEST_F(ValueGridBuilderTest, DISABLED_generic_grid)
     // Test results using the physics calculator
     ASSERT_EQ(2, grid_storage.size());
     {
-        XsCalculator calc_xs(grid_storage[XsIndex{0}], real_storage);
+        XsCalculator calc_xs(grid_storage[XsIndex{0}], real_ref);
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));
         EXPECT_SOFT_EQ(0.2, calc_xs(Energy{1e2}));
         EXPECT_SOFT_EQ(0.3, calc_xs(Energy{1e3}));

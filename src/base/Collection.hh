@@ -121,11 +121,11 @@ class Collection
 
     // Construct from another collection
     template<Ownership W2, MemSpace M2>
-    inline Collection(const Collection<T, W2, M2, I>& other);
+    explicit inline Collection(const Collection<T, W2, M2, I>& other);
 
     // Construct from another collection (mutable)
     template<Ownership W2, MemSpace M2>
-    inline Collection(Collection<T, W2, M2, I>& other);
+    explicit inline Collection(Collection<T, W2, M2, I>& other);
 
     //!@{
     //! Default assignment
@@ -133,13 +133,13 @@ class Collection
     Collection& operator=(Collection&& other) = default;
     //!@}
 
-    // Assign from another collection in the same memory space
-    template<Ownership W2>
-    inline Collection& operator=(const Collection<T, W2, M, I>& other);
+    // Assign from another collectio
+    template<Ownership W2, MemSpace M2>
+    inline Collection& operator=(const Collection<T, W2, M2, I>& other);
 
-    // Assign (mutable!) from another collection in the same memory space
-    template<Ownership W2>
-    inline Collection& operator=(Collection<T, W2, M, I>& other);
+    // Assign (mutable!) from another collection
+    template<Ownership W2, MemSpace M2>
+    inline Collection& operator=(Collection<T, W2, M2, I>& other);
 
     //// ACCESS ////
 

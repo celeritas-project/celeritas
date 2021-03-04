@@ -26,11 +26,16 @@ class NonuniformGridTest : public celeritas::Test
     {
         auto build = celeritas::make_builder(&data);
         irange     = build.insert_back({0, 1, 3, 3, 7});
+        ref        = data;
     }
 
     celeritas::ItemRange<int> irange;
     celeritas::Collection<int, celeritas::Ownership::value, celeritas::MemSpace::host>
         data;
+    celeritas::Collection<int,
+                          celeritas::Ownership::const_reference,
+                          celeritas::MemSpace::host>
+        ref;
 };
 
 //---------------------------------------------------------------------------//
@@ -39,7 +44,7 @@ class NonuniformGridTest : public celeritas::Test
 
 TEST_F(NonuniformGridTest, accessors)
 {
-    GridT grid(irange, data);
+    GridT grid(irange, ref);
 
     EXPECT_EQ(5, grid.size());
     EXPECT_EQ(0, grid.front());
@@ -50,7 +55,7 @@ TEST_F(NonuniformGridTest, accessors)
 
 TEST_F(NonuniformGridTest, find)
 {
-    GridT grid(irange, data);
+    GridT grid(irange, ref);
 
 #if CELERITAS_DEBUG
     EXPECT_THROW(grid.find(-1), celeritas::DebugError);

@@ -37,12 +37,12 @@ Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
 
 //---------------------------------------------------------------------------//
 /*!
- * Assign from another collection in the same memory space.
+ * Assign from another collection.
  */
 template<class T, Ownership W, MemSpace M, class I>
-template<Ownership W2>
+template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>&
-Collection<T, W, M, I>::operator=(const Collection<T, W2, M, I>& other)
+Collection<T, W, M, I>::operator=(const Collection<T, W2, M2, I>& other)
 {
     storage_ = detail::CollectionAssigner<W, M>()(other.storage_);
     detail::CollectionStorageValidator<W2>()(this->size(),
@@ -52,12 +52,12 @@ Collection<T, W, M, I>::operator=(const Collection<T, W2, M, I>& other)
 
 //---------------------------------------------------------------------------//
 /*!
- * Assign (mutable!) from another collection in the same memory space.
+ * Assign (mutable!) from another collection.
  */
 template<class T, Ownership W, MemSpace M, class I>
-template<Ownership W2>
+template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>&
-Collection<T, W, M, I>::operator=(Collection<T, W2, M, I>& other)
+Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
 {
     storage_ = detail::CollectionAssigner<W, M>()(other.storage_);
     detail::CollectionStorageValidator<W2>()(this->size(),
