@@ -226,6 +226,7 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
         std::vector<restype> results(expected.size());
         for (auto i : range(expected.size()))
         {
+            (void)i;
             auto result = select_process_and_model(particle, phys, this->rng());
             results.emplace_back(result.ppid.get(), result.model.get());
             ++num_samples;
