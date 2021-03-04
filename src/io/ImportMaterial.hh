@@ -51,12 +51,6 @@ enum class ImportProductionCut
  */
 struct ImportMaterial
 {
-    struct CutValue
-    {
-        real_type energy; // [MeV]
-        real_type range;  // [cm]
-    };
-
     std::string                  name;
     ImportMaterialState          state;
     real_type                    temperature;            // [K]
@@ -65,7 +59,7 @@ struct ImportMaterial
     real_type                    number_density;         // [1/cm^3]
     real_type                    radiation_length;       // [cm]
     real_type                    nuclear_int_length;     // [cm]
-    std::map<int, CutValue>      pdg_cutoff;             // [MeV, cm]
+    std::map<int, real_type>     pdg_cutoff;             // [MeV]
     std::map<elem_id, real_type> elements_fractions;     // Mass fractions
     std::map<elem_id, real_type> elements_num_fractions; // Number fractions
 };

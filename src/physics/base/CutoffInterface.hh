@@ -18,7 +18,6 @@ namespace celeritas
 struct SingleCutoff
 {
     units::MevEnergy energy{};
-    real_type        range{};
 };
 
 //---------------------------------------------------------------------------//

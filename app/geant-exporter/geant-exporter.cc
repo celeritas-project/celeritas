@@ -335,8 +335,7 @@ void store_geometry(TFile*                       root_file,
             const real_type energy
                 = range_to_e_converters[g4i]->Convert(range, g4material);
 
-            ImportMaterial::CutValue cutoffs = {energy / MeV, range / cm};
-            material.pdg_cutoff.insert({to_pdg(g4i), cutoffs});
+            material.pdg_cutoff.insert({to_pdg(g4i), energy / MeV});
         }
 
         // Populate element information for this material

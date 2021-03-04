@@ -22,17 +22,16 @@ class CutoffParams
 {
   public:
     //!@{
-    //! Type aliases
+    //! References to constructed data
     using HostRef
         = CutoffParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = CutoffParamsData<Ownership::const_reference, MemSpace::device>;
-    using Energy         = units::MevEnergy;
-    using MaterialCutoff = std::vector<SingleCutoff>;
-    using Input          = std::vector<MaterialCutoff>;
     //!@}
 
-    Input cutoffs;
+    //! Input data to construct this class
+    using MaterialCutoff = std::vector<SingleCutoff>;
+    using Input          = std::vector<MaterialCutoff>;
 
   public:
     //! Construct with cutoff input data
@@ -47,7 +46,6 @@ class CutoffParams
   private:
     // Host/device storage and reference
     PieMirror<CutoffParamsData> data_;
-
     using HostValue = CutoffParamsData<Ownership::value, MemSpace::host>;
 };
 

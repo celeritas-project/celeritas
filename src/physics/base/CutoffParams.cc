@@ -6,7 +6,6 @@
 //! \file CutoffParams.cc
 //---------------------------------------------------------------------------//
 #include "CutoffParams.hh"
-
 #include "base/PieBuilder.hh"
 
 namespace celeritas
@@ -15,21 +14,25 @@ namespace celeritas
 /*!
  * Construct with defaults.
  */
-CutoffParams::CutoffParams(Input& inp)
+CutoffParams::CutoffParams(Input& input)
 {
-    CELER_EXPECT(inp.size() > 0);
+    CELER_EXPECT(input.size() > 0);
 
     HostValue host_data;
-    for (const auto& material_cutoffs : inp)
+    auto      cutoffs = make_pie_builder(&host_data.cutoffs);
+    cutoffs.reserve(input.size());
+
+    for (const auto& material_cutoffs : input)
     {
         for (const auto& element_cutoff : material_cutoffs)
         {
-            make_pie_builder(&host_data.cutoffs).push_back(element_cutoff);
+            cutoffs.push_back(std::move(element_cutoff));
         }
     }
 
     // Move to mirrored data, copying to device
     data_ = PieMirror<CutoffParamsData>{std::move(host_data)};
+    CELER_ENSURE(this->host_pointers().cutoffs.size() == input.size());
 }
 
 //---------------------------------------------------------------------------//

@@ -36,11 +36,6 @@ class CutoffView
         return cutoffs_.energy;
     }
 
-    CELER_FORCEINLINE_FUNCTION real_type range() const
-    {
-        return cutoffs_.range;
-    }
-
   private:
     SingleCutoff cutoffs_;
 };

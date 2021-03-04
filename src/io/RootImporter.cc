@@ -276,19 +276,6 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
             material_params.elements_fractions.push_back(
                 {elem_def_id, elem_key.second});
         }
-        /*
-        for (const auto& cut_key : mat_key.second.range_cuts)
-        {
-            const auto prod_cut_id = this->to_production_cut_id(cut_key.first);
-
-            MaterialParams::ProductionCuts prod_cuts;
-            prod_cuts.range  = cut_key.second;
-            prod_cuts.energy = units::MevEnergy{
-                mat_key.second.energy_cuts.find(cut_key.first)->second};
-
-            material_params.production_cuts.insert({prod_cut_id, prod_cuts});
-        }
-        */
         input.materials.push_back(material_params);
     }
 
@@ -344,13 +331,12 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
         for (int entry = 0; entry < tree_particles->GetEntries(); ++entry)
         {
             tree_particles->GetEntry(entry);
-            SingleCutoff particle_cutoff = {units::MevEnergy{0}, 0};
+            SingleCutoff particle_cutoff = {units::MevEnergy{0}};
             auto         iter = import_material.pdg_cutoff.find(particle.pdg);
 
             if (iter != import_material.pdg_cutoff.end())
             {
-                particle_cutoff = {units::MevEnergy{iter->second.energy},
-                                   iter->second.range};
+                particle_cutoff = {units::MevEnergy{iter->second}};
             }
             material_cutoff.push_back(particle_cutoff);
         }
