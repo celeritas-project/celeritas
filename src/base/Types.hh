@@ -8,27 +8,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cstddef>
-#include "Array.hh"
-#include "OpaqueId.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Standard type for container sizes.
-using size_type = std::size_t;
-
-//! Equivalent to container size but compatible with CUDA atomics
-using ull_int = unsigned long long int;
+//! Standard type for container sizes, optimized for GPU use.
+using size_type = unsigned int;
 
 //! Numerical type for real numbers
 using real_type = double;
 
-//! Fixed-size array for R3 calculations
-using Real3 = Array<real_type, 3>;
-
-//! Index of the current CUDA thread, with type safety for containers.
-using ThreadId = OpaqueId<struct Thread>;
+//! Equivalent to std::size_t but compatible with CUDA atomics
+using ull_int = unsigned long long int;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
@@ -43,6 +33,27 @@ enum class Interp
 //! Non-convertible type for raw data modeled after std::byte (C++17)
 enum class Byte : unsigned char
 {
+};
+
+//---------------------------------------------------------------------------//
+//! Memory location of data
+enum class MemSpace
+{
+    host,
+    device,
+#ifdef __CUDACC__
+    native = device, // Included by a CUDA file
+#else
+    native = host,
+#endif
+};
+
+//! Data ownership flag
+enum class Ownership
+{
+    value,           //!< Ownership of the data, only on host
+    reference,       //!< Mutable reference to the data
+    const_reference, //!< Immutable reference to the data
 };
 
 //---------------------------------------------------------------------------//

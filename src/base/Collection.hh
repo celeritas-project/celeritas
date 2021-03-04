@@ -8,7 +8,6 @@
 #pragma once
 
 #include "OpaqueId.hh"
-#include "CollectionTypes.hh"
 #include "Range.hh"
 #include "Types.hh"
 #include "detail/CollectionImpl.hh"
@@ -17,7 +16,7 @@ namespace celeritas
 {
 //! Opaque ID representing a single element of a container.
 template<class T>
-using ItemId = OpaqueId<T, unsigned int>;
+using ItemId = OpaqueId<T, size_type>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -54,7 +53,7 @@ using ItemId = OpaqueId<T, unsigned int>;
  * };
  * \endcode
  */
-template<class T, class Size = unsigned int>
+template<class T, class Size = size_type>
 using ItemRange = Range<OpaqueId<T, Size>>;
 
 //---------------------------------------------------------------------------//

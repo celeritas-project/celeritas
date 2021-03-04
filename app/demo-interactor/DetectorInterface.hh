@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Array.hh"
+#include "base/OpaqueId.hh"
 #include "base/StackAllocatorInterface.hh"
 #include "physics/grid/UniformGrid.hh"
 #include "physics/base/Units.hh"

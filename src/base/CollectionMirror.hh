@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Assert.hh"
-#include "CollectionTypes.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {

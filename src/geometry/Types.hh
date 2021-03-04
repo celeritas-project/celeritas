@@ -16,7 +16,7 @@ namespace celeritas
 class Geometry;
 //---------------------------------------------------------------------------//
 //! Opaque numeric identifier for a geometry cell
-using VolumeId = OpaqueId<Geometry, unsigned int>;
+using VolumeId = OpaqueId<struct Volume>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -8,11 +8,12 @@
 #pragma once
 
 #ifndef __CUDA_ARCH__
-#include <cstddef>
+#    include <cstddef>
 #    include <functional>
 #endif
 #include "Assert.hh"
 #include "Macros.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -25,20 +26,8 @@ namespace celeritas
  *
  * This allows type-safe, read-only indexing/access for a class. The value is
  * 'true' if it's assigned, 'false' if invalid.
- *
- * The size type defaults plain "unsigned int" (32-bit in CUDA) rather than
- * \c celeritas::size_type (64-bit) because CUDA currently uses native 32-bit
- * pointer arithmetic. In general this should be the same type as the default
- * OpaqueId::size_type. It's possible that in large problems 4 billion
- * elements won't be enough (for e.g. cross sections), but in that case the
- * CollectionBuilder will throw an assertion during construction.
- *
- * \todo Change \c celeritas::size_type to unsigned int by default, and use
- * \c std::size_t for compatibility with standard containers. Explicitly use
- * long integer types in cases where we expect more than 4 billion elements of
- * something on large runs.
  */
-template<class ValueT, class SizeT = unsigned int>
+template<class ValueT, class SizeT = ::celeritas::size_type>
 class OpaqueId
 {
   public:
@@ -125,6 +114,13 @@ inline CELER_FUNCTION S operator-(OpaqueId<V, S> self, OpaqueId<V, S> other)
     CELER_EXPECT(other);
     return self.unchecked_get() - other.unchecked_get();
 }
+
+//---------------------------------------------------------------------------//
+// TYPE ALIASES
+//---------------------------------------------------------------------------//
+
+//! Index of the current CUDA thread, using an imaginary class named Thread.
+using ThreadId = OpaqueId<struct Thread>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

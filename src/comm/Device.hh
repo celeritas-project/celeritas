@@ -27,14 +27,8 @@ class Communicator;
 class Device
 {
   public:
-    //!@{
-    //! Type aliases
-    using size_type = std::size_t;
-    //!@}
-
-  public:
     // Number of devices available on the local compute node
-    static unsigned int num_devices();
+    static int num_devices();
 
     // Construct in round-robin fashion from an MPI communicator
     static Device from_round_robin(const Communicator& comm);
@@ -59,7 +53,7 @@ class Device
     std::string name() const { return name_; }
 
     //! Total memory capacity (bytes)
-    size_type total_global_mem() const { return total_global_mem_; }
+    std::size_t total_global_mem() const { return total_global_mem_; }
 
     //! Maximum number of threads per multiprocessor
     int max_threads() const { return max_threads_; }
@@ -70,13 +64,13 @@ class Device
     //! Number of threads per warp
     unsigned int warp_size() const { return warp_size_; }
 
-    //! Default number of threads per block (TODO: make configurable?)
-    unsigned int default_block_size() const { return 256; }
+    //! Default number of threads per block (TODO: make configurable)
+    unsigned int default_block_size() const { return 256u; }
 
   private:
     int          id_                   = -1;
     std::string  name_                 = "<DISABLED>";
-    size_type    total_global_mem_     = 0;
+    std::size_t  total_global_mem_     = 0;
     int          max_threads_          = 0;
     int          num_multi_processors_ = 0;
     unsigned int warp_size_            = 0;

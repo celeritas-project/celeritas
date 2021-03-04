@@ -27,8 +27,8 @@ class StackAllocatorStore
     //!@{
     //! Type aliases
     using value_type = T;
-    using size_type  = ull_int;
     using Pointers   = StackAllocatorPointers<T>;
+    using size_type  = typename Pointers::size_type;
     //!@}
 
   public:

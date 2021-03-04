@@ -79,7 +79,7 @@ class CollectionBuilder
     StorageT&       storage() { return col_.storage(); }
     const StorageT& storage() const { return col_.storage(); }
 
-    //! Maximum elements in a Collection, in native std::size_t
+    //! Maximum elements in a Collection, in underlying storage size
     static constexpr size_type max_size()
     {
         return std::numeric_limits<size_type>::max();
