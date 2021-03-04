@@ -153,6 +153,24 @@ select_process_and_model(const ParticleTrackView& particle,
             // calculated and now?  Does the energy enters in the calculation
             // of the cross-section? What happens to the cross section per
             // process if there no model covering that energy range?
+            // See https://github.com/celeritas-project/celeritas/pull/165#issuecomment-790214691
+            // for some discussion, including this:
+            //
+            // Look up the model for the selected process at the reduced
+            // energy E'. If there's not one -- i.e. the along-step energy
+            // loss causes us to go below the lower threshold for the selected
+            // process -- we could simply zero out the cross section for that
+            // process and jump back up to the step above (resampling
+            // available processes). If we did the cutoff step correctly then
+            // there should be at least one process with a valid model.
+            //
+            // but
+            //
+            // Some of the glue pieces (cutoff testing, at rest) aren't yet in
+            // place, and I think for the moment we can skip the "resample if
+            // below process energy threshold" since I don't think there are
+            // any processes that have thresholds (aside from gamma, which has
+            // no continuous energy loss processes).
 
             return ProcessIdModelId{ppid, find_model(particle.energy())};
         }
