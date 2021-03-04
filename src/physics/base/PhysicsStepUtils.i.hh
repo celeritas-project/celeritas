@@ -131,11 +131,8 @@ CELER_FUNCTION ProcessIdModelId select_process_and_model(const ParticleTrackView
                                                          const PhysicsTrackView&  physics,
                                                          Engine&                  rng)
 {
-    if (physics.interaction_mfp() > 0)
-    {
-        // Nonzero MFP to interaction -- no interaction model
-        return {};
-    }
+    // Nonzero MFP to interaction -- no interaction model
+    CELER_EXPECT(physics.interaction_mfp() <= 0);
 
     // Sample ParticleProcessId from physics.per_process_xs()
 
