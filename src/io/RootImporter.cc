@@ -305,6 +305,7 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
 {
     CELER_LOG(status) << "Loading cutoff data";
 
+    // Load geometry tree
     std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
     CELER_ASSERT(tree_geometry);
     CELER_ASSERT(tree_geometry->GetEntries() == 1);
@@ -318,6 +319,19 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
     CELER_ASSERT(err_code >= 0);
     tree_geometry->GetEntry(0);
 
+    // Load particle tree
+    std::unique_ptr<TTree> tree_particles(
+        root_input_->Get<TTree>("particles"));
+    CELER_ASSERT(tree_particles);
+
+    // Load the particle data
+    ImportParticle  particle;
+    ImportParticle* temp_particle_ptr = &particle;
+
+    err_code = tree_particles->SetBranchAddress("ImportParticle",
+                                                &temp_particle_ptr);
+    CELER_ASSERT(err_code >= 0);
+
     CutoffParams::Input input;
 
     for (const auto& mat_key : geometry.matid_to_material_map())
@@ -327,13 +341,19 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
 
         CutoffParams::MaterialCutoff material_cutoff;
 
-        for (const auto& elem_key : geometry.elemid_to_element_map())
+        for (int entry = 0; entry < tree_particles->GetEntries(); ++entry)
         {
-            SingleCutoff element_cutoff;
+            tree_particles->GetEntry(entry);
+            SingleCutoff particle_cutoff = {units::MevEnergy{0}, 0};
+            auto         iter = import_material.pdg_cutoff.find(particle.pdg);
 
-            material_cutoff.push_back(element_cutoff);
+            if (iter != import_material.pdg_cutoff.end())
+            {
+                particle_cutoff = {units::MevEnergy{iter->second.energy},
+                                   iter->second.range};
+            }
+            material_cutoff.push_back(particle_cutoff);
         }
-
         input.push_back(material_cutoff);
     }
 

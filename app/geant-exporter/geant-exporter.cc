@@ -233,21 +233,21 @@ ImportMaterialState to_material_state(const G4State& g4_material_state)
 
 //---------------------------------------------------------------------------//
 /*!
- * Safely switch from G4ProductionCutsIndex [G4ProductionCuts.hh] to
- * the same int value of ImportProductionCut.
+ * Safely switch from G4ProductionCutsIndex [G4ProductionCuts.hh] to the
+ * particle's pdg encoding.
  */
-ImportProductionCut to_import_production_cut(const G4ProductionCutsIndex& index)
+int to_pdg(const G4ProductionCutsIndex& index)
 {
     switch (index)
     {
         case idxG4GammaCut:
-            return ImportProductionCut::gamma;
+            return celer_pdg::gamma().get();
         case idxG4ElectronCut:
-            return ImportProductionCut::electron;
+            return celer_pdg::electron().get();
         case idxG4PositronCut:
-            return ImportProductionCut::positron;
+            return celer_pdg::positron().get();
         case idxG4ProtonCut:
-            return ImportProductionCut::proton;
+            return celer_pdg::proton().get();
         case NumberOfG4CutIndex:
             CELER_ASSERT_UNREACHABLE();
     }
@@ -328,16 +328,15 @@ void store_geometry(TFile*                       root_file,
         range_to_e_converters[idxG4ProtonCut]   = new G4RToEConvForProton();
 
         // Populate material range and energy cuts
-        for (int i : celeritas::range((int)NumberOfG4CutIndex))
+        for (int i : celeritas::range(static_cast<int>(NumberOfG4CutIndex)))
         {
-            const auto      g4i = static_cast<G4ProductionCutsIndex>(i);
-            const auto      import_index = to_import_production_cut(g4i);
-            const real_type range_cut    = g4prod_cuts->GetProductionCut(g4i);
-            const real_type energy_cut
-                = range_to_e_converters[g4i]->Convert(range_cut, g4material);
+            const auto      g4i   = static_cast<G4ProductionCutsIndex>(i);
+            const real_type range = g4prod_cuts->GetProductionCut(g4i);
+            const real_type energy
+                = range_to_e_converters[g4i]->Convert(range, g4material);
 
-            material.range_cuts.insert({import_index, range_cut / cm});
-            material.energy_cuts.insert({import_index, energy_cut / MeV});
+            ImportMaterial::CutValue cutoffs = {energy / MeV, range / cm};
+            material.pdg_cutoff.insert({to_pdg(g4i), cutoffs});
         }
 
         // Populate element information for this material

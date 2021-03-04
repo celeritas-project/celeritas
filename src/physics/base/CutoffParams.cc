@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "CutoffParams.hh"
 
+#include "base/PieBuilder.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -18,6 +20,13 @@ CutoffParams::CutoffParams(Input& inp)
     CELER_EXPECT(inp.size() > 0);
 
     HostValue host_data;
+    for (const auto& material_cutoffs : inp)
+    {
+        for (const auto& element_cutoff : material_cutoffs)
+        {
+            make_pie_builder(&host_data.cutoffs).push_back(element_cutoff);
+        }
+    }
 
     // Move to mirrored data, copying to device
     data_ = PieMirror<CutoffParamsData>{std::move(host_data)};
