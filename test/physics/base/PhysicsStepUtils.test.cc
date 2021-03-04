@@ -182,9 +182,9 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
         EXPECT_EQ(result.ppid.get(), 1);
         EXPECT_EQ(result.model.get(), 2);
         ++num_samples;
-   }
+    }
 
-   {
+    {
         mat_init.material_id = MaterialId{1};
         par_init.energy      = MevEnergy{10};
         par_init.particle_id = this->particles()->find("celeriton");
@@ -201,7 +201,6 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
         real_type step
             = celeritas::calc_tabulated_physics_step(material, particle, phys);
         EXPECT_SOFT_EQ(4.1595999999999984, step);
-
         // Testing cheat.
         PhysicsTrackView::PhysicsStatePointers state_shortcut(phys_state.ref());
         state_shortcut.state[ThreadId{0}].interaction_mfp = 0;
@@ -223,6 +222,7 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
         }
     }
 
-   // (At least with std::mt19937) std::generate_canonical draws 2 number per calls.
-   EXPECT_EQ(2 * num_samples, this->rng().count());
+    // (At least with std::mt19937) std::generate_canonical draws 2 number per
+    // calls.
+    EXPECT_EQ(2 * num_samples, this->rng().count());
 }

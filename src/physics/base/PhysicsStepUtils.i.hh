@@ -53,7 +53,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
             // accumulate it into the total cross section and save the cross
             // section for later.
             auto calc_xs = physics.make_calculator(grid_id);
-            process_xs = calc_xs(particle.energy());
+            process_xs   = calc_xs(particle.energy());
             total_macro_xs += process_xs;
         }
         physics.per_process_xs(ppid) = process_xs;
@@ -127,9 +127,10 @@ CELER_FUNCTION real_type calc_energy_loss(const ParticleTrackView& particle,
  *   applicable model ID.
  */
 template<class Engine>
-CELER_FUNCTION ProcessIdModelId select_process_and_model(const ParticleTrackView& particle,
-                                                         const PhysicsTrackView&  physics,
-                                                         Engine&                  rng)
+CELER_FUNCTION ProcessIdModelId
+select_process_and_model(const ParticleTrackView& particle,
+                         const PhysicsTrackView&  physics,
+                         Engine&                  rng)
 {
     // Nonzero MFP to interaction -- no interaction model
     CELER_EXPECT(physics.interaction_mfp() <= 0);
@@ -143,14 +144,15 @@ CELER_FUNCTION ProcessIdModelId select_process_and_model(const ParticleTrackView
     for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
     {
         accum += physics.per_process_xs(ppid);
-        if (accum >= prob) {
+        if (accum >= prob)
+        {
             // Select the model and return;
             auto find_model = physics.make_model_finder(ppid);
 
-            // Does the energy change between the time the per_process_xs was calculated
-            // and now?  Does the energy enters in the calculation of the cross-section?
-            // What happens to the cross section per process if there no model covering
-            // that energy range?
+            // Does the energy change between the time the per_process_xs was
+            // calculated and now?  Does the energy enters in the calculation
+            // of the cross-section? What happens to the cross section per
+            // process if there no model covering that energy range?
 
             return ProcessIdModelId{ppid, find_model(particle.energy())};
         }

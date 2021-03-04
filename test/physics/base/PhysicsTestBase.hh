@@ -89,7 +89,6 @@ class PhysicsTestBase : public celeritas::Test
     RandomEngine& rng() { return rng_; }
     //!@}
 
-
   private:
     //// DATA ////
 

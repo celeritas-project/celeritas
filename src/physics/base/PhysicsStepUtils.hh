@@ -27,9 +27,10 @@ calc_energy_loss(const ParticleTrackView& particle,
                  const PhysicsTrackView&  physics,
                  real_type                step_length);
 
-struct ProcessIdModelId {
-   ParticleProcessId ppid;
-   ModelId           model;
+struct ProcessIdModelId
+{
+    ParticleProcessId ppid;
+    ModelId           model;
 };
 
 template<class Engine>
