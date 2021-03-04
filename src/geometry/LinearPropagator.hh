@@ -31,7 +31,7 @@ class LinearPropagator
     //! Construct from persistent and state data
     inline CELER_FUNCTION LinearPropagator(GeoTrackView* track);
 
-    // Move track by next_step(), which takes it to next volume boundary.
+    //! Move track to next volume boundary.
     inline CELER_FUNCTION result_type operator()();
 
     /*! Move track by a user-provided distance, or to the next boundary if

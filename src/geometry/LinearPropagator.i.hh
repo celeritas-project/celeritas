@@ -26,7 +26,7 @@ CELER_FUNCTION LinearPropagator::LinearPropagator(GeoTrackView* track)
 
 //---------------------------------------------------------------------------//
 /*!
- * Move track by next_step(), which takes it to next volume boundary.
+ * Move track to next volume boundary.
  */
 CELER_FUNCTION
 LinearPropagator::result_type LinearPropagator::operator()()
@@ -39,11 +39,8 @@ LinearPropagator::result_type LinearPropagator::operator()()
 
 //---------------------------------------------------------------------------//
 /*!
- * Move track by a user-provided distance.
- *
- * Step must be positive. track_ will check for boundaries to be crossed.
- *
- * \pre Assumes that next_step() has been properly called by client
+ * Move track by a user-provided distance, or to next boundary if distance is
+ * large enough.
  */
 CELER_FUNCTION
 LinearPropagator::result_type LinearPropagator::operator()(real_type dist)
