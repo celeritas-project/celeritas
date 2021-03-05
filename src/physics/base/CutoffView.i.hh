@@ -9,6 +9,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Construct view from host/device for the given particle and material ids.
+ */
 CutoffView::CutoffView(const CutoffPointers& params,
                        ParticleId            particle,
                        MaterialId            material)
@@ -18,7 +21,7 @@ CutoffView::CutoffView(const CutoffPointers& params,
     using CutoffId = OpaqueId<SingleCutoff>;
 
     CutoffId cutoff_id{params.num_particles * material.get() + particle.get()};
-    cutoffs_ = params.cutoffs[cutoff_id];
+    cutoff_ = params.cutoffs[cutoff_id];
 }
 //---------------------------------------------------------------------------//
 } // namespace celeritas

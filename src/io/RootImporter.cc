@@ -348,26 +348,4 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Safely switch between ImportProductionCut to ProductionCutId enums.
- */
-/*
-MaterialParams::ProductionCutId
-RootImporter::to_production_cut_id(const ImportProductionCut& value)
-{
-    switch (value)
-    {
-        case ImportProductionCut::gamma:
-            return MaterialParams::ProductionCutId::gamma;
-        case ImportProductionCut::electron:
-            return MaterialParams::ProductionCutId::electron;
-        case ImportProductionCut::positron:
-            return MaterialParams::ProductionCutId::positron;
-        case ImportProductionCut::proton:
-            return MaterialParams::ProductionCutId::proton;
-    }
-    CELER_ASSERT_UNREACHABLE();
-}
-*/
-//---------------------------------------------------------------------------//
 } // namespace celeritas

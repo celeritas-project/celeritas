@@ -23,6 +23,12 @@ struct SingleCutoff
 //---------------------------------------------------------------------------//
 /*!
  * Persistent shared cutoff data.
+ * 
+ * The data is a vector of cutoff energy values for every particle type and 
+ * material. 
+ * 
+ * \sa CutoffView
+ * \sa CutoffParams
  */
 template<Ownership W, MemSpace M>
 struct CutoffParamsData

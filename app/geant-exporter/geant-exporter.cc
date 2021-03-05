@@ -55,7 +55,6 @@ using celeritas::ImportElement;
 using celeritas::ImportMaterial;
 using celeritas::ImportMaterialState;
 using celeritas::ImportParticle;
-using celeritas::ImportProductionCut;
 using celeritas::ImportVolume;
 using celeritas::mat_id;
 using celeritas::real_type;
@@ -295,7 +294,7 @@ void store_geometry(TFile*                       root_file,
     // Populate global material map
     for (auto i : celeritas::range(g4production_cuts_table.GetTableSize()))
     {
-        // Fetch material and element list
+        // Fetch material, element, and production cuts lists
         const auto& g4material_cuts_couple
             = g4production_cuts_table.GetMaterialCutsCouple(i);
         const auto& g4material  = g4material_cuts_couple->GetMaterial();
@@ -320,7 +319,7 @@ void store_geometry(TFile*                       root_file,
         material.radiation_length   = g4material->GetRadlen() / cm;
         material.nuclear_int_length = g4material->GetNuclearInterLength() / cm;
 
-        // Converters for populating material.energy_cuts
+        // Range to energy converters for populating material.pdg_cutoff
         G4VRangeToEnergyConverter* range_to_e_converters[NumberOfG4CutIndex];
         range_to_e_converters[idxG4GammaCut]    = new G4RToEConvForGamma();
         range_to_e_converters[idxG4ElectronCut] = new G4RToEConvForElectron();

@@ -29,14 +29,6 @@ enum class ImportMaterialState
     gas
 };
 
-enum class ImportProductionCut
-{
-    gamma,
-    electron,
-    positron,
-    proton
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Store data of a given material and its elements.
@@ -48,6 +40,8 @@ enum class ImportProductionCut
  * \c app/geant-exporter.cc:store_geometry(...) .
  *
  * Units are defined at export time in the aforementioned function.
+ * 
+ * \sa RootImporter
  */
 struct ImportMaterial
 {

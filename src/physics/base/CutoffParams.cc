@@ -12,7 +12,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with defaults.
+ * Construct on both host and device.
  */
 CutoffParams::CutoffParams(Input& input)
 {

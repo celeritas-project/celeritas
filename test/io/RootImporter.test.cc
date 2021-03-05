@@ -23,7 +23,7 @@ using namespace celeritas;
 //---------------------------------------------------------------------------//
 /*!
  * The geant-exporter-data.root is created by the app/geant-exporter using the
- * four-steel-slabs.gdml example file available in app/geant-exporter/data
+ * four-steel-slabs.gdml example file available in app/geant-exporter/data.
  */
 class RootImporterTest : public celeritas::Test
 {
