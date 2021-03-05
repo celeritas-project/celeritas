@@ -30,7 +30,7 @@ class RootImporterTest : public celeritas::Test
   protected:
     void SetUp() override
     {
-        root_filename_ = this->test_data_path("io", "out.root");
+        root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
     }
 
     std::string root_filename_;

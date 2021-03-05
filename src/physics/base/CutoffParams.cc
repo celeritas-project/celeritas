@@ -19,8 +19,12 @@ CutoffParams::CutoffParams(Input& input)
     CELER_EXPECT(input.size() > 0);
 
     HostValue host_data;
-    auto      cutoffs = make_pie_builder(&host_data.cutoffs);
-    cutoffs.reserve(input.size());
+    host_data.num_materials = input.size();
+    host_data.num_particles = input.at(0).size();
+    auto cutoffs_size = host_data.num_materials * host_data.num_particles;
+
+    auto cutoffs = make_pie_builder(&host_data.cutoffs);
+    cutoffs.reserve(cutoffs_size);
 
     for (const auto& material_cutoffs : input)
     {
@@ -32,7 +36,7 @@ CutoffParams::CutoffParams(Input& input)
 
     // Move to mirrored data, copying to device
     data_ = PieMirror<CutoffParamsData>{std::move(host_data)};
-    CELER_ENSURE(this->host_pointers().cutoffs.size() == input.size());
+    CELER_ENSURE(this->host_pointers().cutoffs.size() == cutoffs_size);
 }
 
 //---------------------------------------------------------------------------//
