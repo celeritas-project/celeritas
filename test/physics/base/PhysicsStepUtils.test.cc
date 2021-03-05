@@ -217,13 +217,13 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
                                        {2, 8},
                                        {2, 8},
                                        {2, 8},
-                                       {2, 58},
+                                       {2, 8},
                                        {2, 8},
                                        {0, 1},
                                        {2, 8},
                                        {1, 5},
                                        {0, 1}});
-        std::vector<restype> results(expected.size());
+        std::vector<restype> results; // Could add: result.reserve(expected.size());
         for (auto i : range(expected.size()))
         {
             (void)i;
@@ -231,6 +231,7 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
             results.emplace_back(result.ppid.get(), result.model.get());
             ++num_samples;
         }
+        EXPECT_VEC_EQ(results, expected);
     }
 
     // (At least with std::mt19937) std::generate_canonical draws 2 number per
