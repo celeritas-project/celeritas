@@ -39,6 +39,7 @@ list(APPEND SOURCES
   comm/KernelDiagnostics.cc
   base/ScopedStreamRedirect.cc
   base/TypeDemangler.cc
+  base/detail/Copier.cc
   comm/Communicator.cc
   comm/Device.cc
   comm/Logger.cc
@@ -81,6 +82,7 @@ if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
     base/KernelParamCalculator.cuda.cc
     base/Memory.cu
+    base/detail/Filler.cu
     physics/em/detail/BetheHeitler.cu
     physics/em/detail/EPlusGG.cu
     physics/em/detail/KleinNishina.cu
