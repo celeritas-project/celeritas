@@ -124,9 +124,9 @@ if(CELERITAS_BUILD_DEMOS)
   )
 
   if(CELERITAS_BUILD_TESTS)
+    set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py")
     add_test(NAME "app/host-demo-interactor"
-      COMMAND "${Python_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py"
+      COMMAND "${Python_EXECUTABLE}" "${_driver}"
     )
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:host-demo-interactor>"
@@ -135,6 +135,7 @@ if(CELERITAS_BUILD_DEMOS)
     )
     set_tests_properties("app/host-demo-interactor" PROPERTIES
       ENVIRONMENT "${_env}"
+      REQUIRED_FILES "${_driver}"
     )
   endif()
 endif()
@@ -177,9 +178,10 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   )
 
   if(CELERITAS_BUILD_TESTS)
+    set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-rasterizer/simple-driver.py")
+    set(_gdml_inp "${PROJECT_SOURCE_DIR}/test/geometry/data/twoBoxes.gdml")
     add_test(NAME "app/demo-rasterizer"
-      COMMAND "${Python_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/demo-rasterizer/simple-driver.py"
+      COMMAND "${Python_EXECUTABLE}" "${_driver}" "${_gdml_inp}"
     )
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-rasterizer>"
@@ -188,6 +190,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     set_tests_properties("app/demo-rasterizer" PROPERTIES
       ENVIRONMENT "${_env}"
       RESOURCE_LOCK gpu
+      REQUIRED_FILES "${_driver};${_gdml_inp}"
     )
   endif()
 endif()

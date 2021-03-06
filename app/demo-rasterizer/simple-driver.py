@@ -9,7 +9,13 @@ import json
 from pprint import pprint
 import subprocess
 from os import environ
-from sys import exit
+from sys import exit, argv
+
+try:
+    (gdml_filename,) = argv[1:]
+except TypeError:
+    print("usage: {} inp.gdml".format(sys.argv[0]))
+    exit(2)
 
 inp = {
     'image': {
@@ -18,7 +24,7 @@ inp = {
         'rightward_ax': [1, 0, 0],
         'vertical_pixels': 32
     },
-    'input': '../../test/geometry/data/twoBoxes.gdml',
+    'input': gdml_filename,
     'output': 'two-boxes.bin'
 }
 
@@ -46,5 +52,5 @@ except json.decoder.JSONDecodeError as e:
     print("fatal:", str(e))
     exit(1)
 pprint(result)
-with open('{exe}.out.json', 'w') as f:
+with open(f'{exe}.out.json', 'w') as f:
     json.dump(result, f)
