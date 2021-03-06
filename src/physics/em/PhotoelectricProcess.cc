@@ -38,22 +38,21 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
 /*!
  * Construct with atomic relaxation data.
  */
-PhotoelectricProcess::PhotoelectricProcess(
-    SPConstParticles                particles,
-    ImportPhysicsTable              xs_lo,
-    ImportPhysicsTable              xs_hi,
-    SPConstData                     data,
-    SPConstAtomicRelax              atomic_relaxation,
-    SPConstSubshellIdAllocatorStore vacancies)
+PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
+                                           ImportPhysicsTable xs_lo,
+                                           ImportPhysicsTable xs_hi,
+                                           SPConstData        data,
+                                           SPConstAtomicRelax atomic_relaxation,
+                                           size_type vacancy_stack_size)
     : PhotoelectricProcess(std::move(particles),
                            std::move(xs_lo),
                            std::move(xs_hi),
                            std::move(data))
 {
-    atomic_relaxation_ = std::move(atomic_relaxation);
-    vacancies_         = std::move(vacancies);
+    atomic_relaxation_  = std::move(atomic_relaxation);
+    vacancy_stack_size_ = vacancy_stack_size;
     CELER_ENSURE(atomic_relaxation_);
-    CELER_ENSURE(vacancies_);
+    CELER_ENSURE(vacancy_stack_size_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -66,8 +65,11 @@ auto PhotoelectricProcess::build_models(ModelIdGenerator next_id) const
     if (atomic_relaxation_)
     {
         // Construct model with atomic relaxation enabled
-        return {std::make_shared<LivermorePEModel>(
-            next_id(), *particles_, *data_, *atomic_relaxation_, vacancies_)};
+        return {std::make_shared<LivermorePEModel>(next_id(),
+                                                   *particles_,
+                                                   *data_,
+                                                   *atomic_relaxation_,
+                                                   vacancy_stack_size_)};
     }
     else
     {

@@ -13,11 +13,11 @@
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocator.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
 #include "random/cuda/RngEngine.hh"
 #include "physics/grid/PhysicsGridCalculator.hh"
-#include "DetectorView.hh"
+#include "Detector.hh"
 #include "KernelUtils.hh"
 
 using namespace celeritas;
@@ -93,12 +93,10 @@ move_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
  * - Kills the secondary, depositing its local energy
  * - Applies the interaction (updating track direction and energy)
  */
-__global__ void interact_kernel(ParamsDeviceRef const            params,
-                                StateDeviceRef const             states,
-                                SecondaryAllocatorPointers const secondaries,
-                                DetectorPointers const           detector)
+__global__ void
+interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 {
-    SecondaryAllocatorView allocate_secondaries(secondaries);
+    StackAllocator<Secondary> allocate_secondaries(states.secondaries);
     unsigned int           tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     // Exit if out of range or already dead
@@ -111,8 +109,9 @@ __global__ void interact_kernel(ParamsDeviceRef const            params,
     ParticleTrackView particle(params.particle, states.particle, ThreadId(tid));
     RngEngine         rng(states.rng, ThreadId(tid));
 
-    DetectorView detector_hit(detector);
-    Hit          h;
+    Detector detector(params.detector, states.detector);
+
+    Hit h;
     h.pos    = states.position[tid];
     h.dir    = states.direction[tid];
     h.thread = ThreadId(tid);
@@ -124,7 +123,7 @@ __global__ void interact_kernel(ParamsDeviceRef const            params,
         h.energy_deposited = particle.energy();
 
         // Deposit energy and kill
-        detector_hit(h);
+        detector.buffer_hit(h);
         states.alive[tid] = false;
         return;
     }
@@ -143,13 +142,48 @@ __global__ void interact_kernel(ParamsDeviceRef const            params,
         const auto& secondary = interaction.secondaries.front();
         h.dir                 = secondary.direction;
         h.energy_deposited    = secondary.energy;
-        detector_hit(h);
+        detector.buffer_hit(h);
     }
 
     // Update post-interaction state (apply interaction)
     states.direction[tid] = interaction.direction;
     particle.energy(interaction.energy);
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Bin detector hits.
+ */
+__global__ void
+process_hits_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
+{
+    Detector        detector(params.detector, states.detector);
+    Detector::HitId hid{blockIdx.x * blockDim.x + threadIdx.x};
+
+    if (hid < detector.num_hits())
+    {
+        detector.process_hit(hid);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear secondaries and detector hits.
+ */
+__global__ void
+cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
+{
+    unsigned int thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
+    Detector     detector(params.detector, states.detector);
+    StackAllocator<Secondary> allocate_secondaries(states.secondaries);
+
+    if (thread_idx == 0)
+    {
+        allocate_secondaries.clear();
+        detector.clear_buffer();
+    }
+}
+
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -178,12 +212,12 @@ void initialize(const CudaGridParams&  opts,
 /*!
  * Run an iteration.
  */
-void iterate(const CudaGridParams&              opts,
-             const ParamsDeviceRef&             params,
-             const StateDeviceRef&              states,
-             const SecondaryAllocatorPointers&  secondaries,
-             const celeritas::DetectorPointers& detector)
+void iterate(const CudaGridParams&  opts,
+             const ParamsDeviceRef& params,
+             const StateDeviceRef&  states)
 {
+    //// Move to the collision site ////
+
     static const KernelParamCalculator calc_kernel_params(
         move_kernel, "move", opts.block_size);
     auto grid = calc_kernel_params(states.size());
@@ -191,11 +225,44 @@ void iterate(const CudaGridParams&              opts,
     move_kernel<<<grid.grid_size, grid.block_size>>>(params, states);
     CELER_CUDA_CHECK_ERROR();
 
+    //// Perform the interaction ////
+
     static const KernelParamCalculator calc_interact_params(
         interact_kernel, "interact", opts.block_size);
     grid = calc_interact_params(states.size());
-    interact_kernel<<<grid.grid_size, grid.block_size>>>(
-        params, states, secondaries, detector);
+    interact_kernel<<<grid.grid_size, grid.block_size>>>(params, states);
+    CELER_CUDA_CHECK_ERROR();
+
+    if (opts.sync)
+    {
+        // Note: the device synchronize is useful for debugging and necessary
+        // for timing diagnostics.
+        CELER_CUDA_CALL(cudaDeviceSynchronize());
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clean up after an iteration.
+ */
+void cleanup(const CudaGridParams&  opts,
+             const ParamsDeviceRef& params,
+             const StateDeviceRef&  states)
+{
+    //// Process hits ////
+
+    static const KernelParamCalculator calc_process_hits_params(
+        process_hits_kernel, "process_hits", opts.block_size);
+    auto grid = calc_process_hits_params(states.detector.capacity());
+    cleanup_kernel<<<grid.grid_size, grid.block_size>>>(params, states);
+    CELER_CUDA_CHECK_ERROR();
+
+    //// Clear buffers ////
+
+    static const KernelParamCalculator calc_cleanup_params(
+        cleanup_kernel, "cleanup", 32);
+    grid = calc_cleanup_params(1);
+    cleanup_kernel<<<grid.grid_size, grid.block_size>>>(params, states);
     CELER_CUDA_CHECK_ERROR();
 
     if (opts.sync)
@@ -210,7 +277,7 @@ void iterate(const CudaGridParams&              opts,
 /*!
  * Sum the total number of living particles.
  */
-size_type reduce_alive(Span<bool> alive, const CudaGridParams& grid)
+size_type reduce_alive(const CudaGridParams& grid, Span<const bool> alive)
 {
     size_type result = thrust::reduce(
         thrust::device_pointer_cast(alive.data()),

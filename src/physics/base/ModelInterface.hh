@@ -8,10 +8,11 @@
 #pragma once
 
 #include "base/Span.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "random/cuda/RngInterface.hh"
 #include "physics/material/MaterialInterface.hh"
-#include "SecondaryAllocatorInterface.hh"
+#include "Secondary.hh"
 #include "ParticleInterface.hh"
 #include "Interaction.hh"
 #include "PhysicsInterface.hh"
@@ -41,6 +42,7 @@ struct ModelInteractParams
  *
  * \todo The use of a Span<Real3> violates encapsulation; ideally we could use
  * a GeoStatePointers or directly pass the geo state store.
+ * \todo Template on memory space, use Collection for direction (?).
  */
 struct ModelInteractState
 {
@@ -67,18 +69,24 @@ struct ModelInteractState
 //---------------------------------------------------------------------------//
 /*!
  * Input and output device data to a generic Model::interact call.
+ *
+ * \todo Template on memory space, use Collection for interaction result.
  */
 struct ModelInteractPointers
 {
-    ModelInteractParams        params;
-    ModelInteractState         states;
-    SecondaryAllocatorPointers secondaries;
-    Span<Interaction>          result;
+    using SecondaryAllocatorData
+        = StackAllocatorData<Secondary, Ownership::reference, MemSpace::device>;
+
+    ModelInteractParams    params;
+    ModelInteractState     states;
+    SecondaryAllocatorData secondaries;
+    Span<Interaction>      result;
 
     //! True if valid
     CELER_FUNCTION operator bool() const
     {
-        return params && states && secondaries && !result.empty();
+        return params && states && secondaries
+               && result.size() == states.size();
     }
 };
 

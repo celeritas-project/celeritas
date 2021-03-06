@@ -12,7 +12,7 @@
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocator.hh"
 #include "physics/material/ElementSelector.hh"
 #include "physics/material/MaterialTrackView.hh"
 #include "LivermorePEInteractor.hh"
@@ -30,14 +30,16 @@ namespace
 /*!
  * Interact using the Livermore photoelectric model on applicable tracks.
  */
-__global__ void livermore_pe_interact_kernel(const LivermorePEPointers   pe,
-                                             const ModelInteractPointers ptrs)
+__global__ void
+livermore_pe_interact_kernel(const LivermorePEPointers        pe,
+                             const RelaxationScratchPointers& scratch,
+                             const ModelInteractPointers      ptrs)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= ptrs.states.size())
         return;
 
-    SecondaryAllocatorView allocate_secondaries(ptrs.secondaries);
+    StackAllocator<Secondary> allocate_secondaries(ptrs.secondaries);
     ParticleTrackView particle(ptrs.params.particle, ptrs.states.particle, tid);
     MaterialTrackView material(ptrs.params.material, ptrs.states.material, tid);
     PhysicsTrackView  physics(ptrs.params.physics,
@@ -61,6 +63,7 @@ __global__ void livermore_pe_interact_kernel(const LivermorePEPointers   pe,
     ElementId          el_id   = material.material_view().element_id(comp_id);
 
     LivermorePEInteractor interact(pe,
+                                   scratch,
                                    el_id,
                                    particle,
                                    ptrs.states.direction[tid.get()],
@@ -78,8 +81,9 @@ __global__ void livermore_pe_interact_kernel(const LivermorePEPointers   pe,
 /*!
  * Launch the Livermore photoelectric interaction.
  */
-void livermore_pe_interact(const LivermorePEPointers&   pe,
-                           const ModelInteractPointers& model)
+void livermore_pe_interact(const LivermorePEPointers&       pe,
+                           const RelaxationScratchPointers& scratch,
+                           const ModelInteractPointers&     model)
 {
     CELER_EXPECT(pe);
     CELER_EXPECT(model);
@@ -88,7 +92,7 @@ void livermore_pe_interact(const LivermorePEPointers&   pe,
         livermore_pe_interact_kernel, "livermore_pe_interact");
     auto                  params = calc_kernel_params(model.states.size());
     livermore_pe_interact_kernel<<<params.grid_size, params.block_size>>>(
-        pe, model);
+        pe, scratch, model);
     CELER_CUDA_CHECK_ERROR();
 }
 

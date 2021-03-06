@@ -72,7 +72,6 @@ endif()
 
 if(CELERITAS_BUILD_DEMOS)
   add_library(celeritas_demo_interactor
-    demo-interactor/HitAllocatorStore.cc
     demo-interactor/LoadXs.cc
     demo-interactor/KNDemoIO.cc
     demo-interactor/XsGridParams.cc
@@ -89,10 +88,8 @@ if(CELERITAS_BUILD_DEMOS)
   if(CELERITAS_USE_CUDA)
     add_executable(demo-interactor
       demo-interactor/demo-interactor.cc
-      demo-interactor/DetectorStore.cc
       demo-interactor/KNDemoRunner.cc
       demo-interactor/KNDemoKernel.cu
-      demo-interactor/detail/DetectorUtils.cu
     )
     target_link_libraries(demo-interactor celeritas_demo_interactor CUDA::cudart)
 
@@ -115,7 +112,6 @@ if(CELERITAS_BUILD_DEMOS)
   # Build CPU version
   add_executable(host-demo-interactor
     demo-interactor/host-demo-interactor.cc
-    demo-interactor/HostDetectorStore.cc
     demo-interactor/HostKNDemoRunner.cc
   )
   target_link_libraries(host-demo-interactor

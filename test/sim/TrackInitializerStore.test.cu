@@ -33,7 +33,7 @@ __global__ void interact_kernel(StatePointers              states,
         if (sim.alive())
         {
             // Allow the particle to interact and create secondaries
-            SecondaryAllocatorView allocate_secondaries(secondaries);
+            StackAllocator<Secondary> allocate_secondaries(secondaries);
             Interactor             interact(allocate_secondaries,
                                 input.alloc_size[thread_id.get()],
                                 input.alive[thread_id.get()]);
