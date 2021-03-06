@@ -223,7 +223,8 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
                                        {2, 8},
                                        {1, 5},
                                        {0, 1}});
-        std::vector<restype> results; // Could add: result.reserve(expected.size());
+        std::vector<restype> results; // Could add:
+                                      // result.reserve(expected.size());
         for (auto i : range(expected.size()))
         {
             (void)i;

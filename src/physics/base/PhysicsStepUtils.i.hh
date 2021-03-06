@@ -130,7 +130,8 @@ CELER_FUNCTION real_type calc_energy_loss(const ParticleTrackView& particle,
  * calculated and now?  Does the energy enters in the calculation
  * of the cross-section? What happens to the cross section per
  * process if there no model covering that energy range?
- * See https://github.com/celeritas-project/celeritas/pull/165#issuecomment-790214691
+ * See
+ * https://github.com/celeritas-project/celeritas/pull/165#issuecomment-790214691
  * for some discussion, including this:
  *
  * Look up the model for the selected process at the reduced
