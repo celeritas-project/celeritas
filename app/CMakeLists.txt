@@ -90,6 +90,7 @@ if(CELERITAS_BUILD_DEMOS)
       demo-interactor/demo-interactor.cc
       demo-interactor/KNDemoRunner.cc
       demo-interactor/KNDemoKernel.cu
+      demo-interactor/KNDemoKernel.thrust.cu
     )
     target_link_libraries(demo-interactor celeritas_demo_interactor CUDA::cudart)
 

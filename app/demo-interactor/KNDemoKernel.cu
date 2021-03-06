@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "KNDemoKernel.hh"
 
-#include <thrust/device_ptr.h>
-#include <thrust/reduce.h>
 #include "base/ArrayUtils.hh"
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
@@ -271,26 +269,6 @@ void cleanup(const CudaGridParams&  opts,
         // for timing diagnostics.
         CELER_CUDA_CALL(cudaDeviceSynchronize());
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Sum the total number of living particles.
- */
-size_type reduce_alive(const CudaGridParams& grid, Span<const bool> alive)
-{
-    size_type result = thrust::reduce(
-        thrust::device_pointer_cast(alive.data()),
-        thrust::device_pointer_cast(alive.data() + alive.size()),
-        size_type(0),
-        thrust::plus<size_type>());
-    CELER_CUDA_CHECK_ERROR();
-
-    if (grid.sync)
-    {
-        CELER_CUDA_CALL(cudaDeviceSynchronize());
-    }
-    return result;
 }
 
 //---------------------------------------------------------------------------//
