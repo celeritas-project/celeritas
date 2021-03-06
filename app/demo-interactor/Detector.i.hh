@@ -38,7 +38,7 @@ CELER_FUNCTION void Detector::buffer_hit(const Hit& hit)
 
 //---------------------------------------------------------------------------//
 /*!
- * Push the given hit onto the back of the detector stack.
+ * Get the number of hits in the buffer.
  */
 CELER_FUNCTION auto Detector::num_hits() const -> HitId::size_type
 {
@@ -47,7 +47,7 @@ CELER_FUNCTION auto Detector::num_hits() const -> HitId::size_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Push the given hit onto the back of the detector stack.
+ * Bin the given buffered hit into the
  */
 CELER_FUNCTION void Detector::process_hit(HitId id)
 {
@@ -55,9 +55,9 @@ CELER_FUNCTION void Detector::process_hit(HitId id)
 
     using namespace celeritas;
 
-    const Hit&  hit = allocate_.get()[id.get()];
+    const Hit&      hit = state_.hit_buffer.storage[id];
     UniformGrid grid(params_.tally_grid);
-    real_type   z_pos = hit.pos[2];
+    const real_type z_pos = hit.pos[2];
     size_type   bin;
 
     if (z_pos <= grid.front())

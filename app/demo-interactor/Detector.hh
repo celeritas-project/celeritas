@@ -16,6 +16,8 @@ namespace demo_interactor
 //---------------------------------------------------------------------------//
 /*!
  * Store a detector hit into the buffer.
+ *
+ * Input, processing, and resetting must all be done in separate kernels.
  */
 class Detector
 {
@@ -48,7 +50,7 @@ class Detector
 
     //// BUFFER CLEARING ////
 
-    // Clear the buffer after processing all
+    // Clear the buffer after processing all hits.
     inline CELER_FUNCTION void clear_buffer();
 
   private:

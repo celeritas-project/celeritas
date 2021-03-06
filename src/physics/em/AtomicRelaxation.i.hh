@@ -18,6 +18,10 @@ namespace celeritas
  * atomic relaxation and the vacancies must have enough storage allocated for
  * the stack of subshell IDs: this should be handled in code *before*
  * construction.
+ *
+ * The precondition of the element having relaxation data is satisfied by the
+ * AtomicRelaxationHelper -- it is only "true" if a distribution can be
+ * emitted.
  */
 CELER_FUNCTION
 AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
@@ -31,7 +35,8 @@ AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
     , secondaries_(secondaries)
     , vacancies_(vacancies)
 {
-    CELER_EXPECT(el_id_ < shared_.elements.size());
+    CELER_EXPECT(shared_ && el_id_ < shared_.elements.size()
+                 && shared_.elements[el_id_.get()]);
     CELER_EXPECT(shell_id);
 }
 
@@ -43,11 +48,13 @@ template<class Engine>
 CELER_FUNCTION AtomicRelaxation::result_type
 AtomicRelaxation::operator()(Engine& rng)
 {
-    // Push the vacancy created by the primary process onto a stack
     MiniStack<SubshellId> vacancies(vacancies_);
+
+    // The sampled shell ID might be outside the available data, in which case
+    // the loop below will immediately exit with no secondaries created.
     if (shell_id_ < shared_.elements[el_id_.get()].shells.size())
     {
-        // There is transition data for this shell.
+        // Push the vacancy created by the primary process onto a stack.
         vacancies.push(shell_id_);
     }
 

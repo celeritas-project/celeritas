@@ -85,6 +85,13 @@ namespace celeritas
  *
  * These separate kernel launches are needed as grid-level synchronization
  * points.
+ *
+ * \todo Instead of returning a pointer, return IdRange<T>. Rename
+ * StackAllocatorData to StackAllocation and have it look like a collection so
+ * that *it* will provide access to the data. Better yet, have a
+ * StackAllocation that can be a `const_reference` to the StackAllocatorData.
+ * Then the rule will be "you can't create a StackAllocator in the same kernel
+ * that you directly access a StackAllocation".
  */
 template<class T>
 class StackAllocator

@@ -22,9 +22,19 @@ AtomicRelaxationHelper::AtomicRelaxationHelper(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether atomic relaxation should be applied.
+ */
+CELER_FUNCTION AtomicRelaxationHelper::operator bool() const
+{
+    // Atomic relaxation is enabled and the element has transition data
+    return shared_ && shared_.elements[el_id_.get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Maximum number of secondaries that can be produced.
  */
-size_type AtomicRelaxationHelper::max_secondaries() const
+CELER_FUNCTION size_type AtomicRelaxationHelper::max_secondaries() const
 {
     CELER_EXPECT(*this);
     return shared_.elements[el_id_.get()].max_secondary;
@@ -37,7 +47,7 @@ size_type AtomicRelaxationHelper::max_secondaries() const
  * This temporary data is needed as part of a stack while processing the
  * cascade of electrons.
  */
-size_type AtomicRelaxationHelper::max_vacancies() const
+CELER_FUNCTION size_type AtomicRelaxationHelper::max_vacancies() const
 {
     CELER_EXPECT(*this);
     return shared_.elements[el_id_.get()].max_stack_size;
@@ -56,16 +66,6 @@ AtomicRelaxationHelper::build_distribution(SubshellId       shell_id,
     CELER_EXPECT(secondaries.size() == this->max_secondaries());
     CELER_EXPECT(vacancies.size() == this->max_vacancies());
     return AtomicRelaxation{shared_, el_id_, shell_id, secondaries, vacancies};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether atomic relaxation should be applied.
- */
-CELER_FUNCTION AtomicRelaxationHelper::operator bool() const
-{
-    // Atomic relaxation is enabled and the element has transition data
-    return shared_ && shared_.elements[el_id_.get()];
 }
 
 //---------------------------------------------------------------------------//
