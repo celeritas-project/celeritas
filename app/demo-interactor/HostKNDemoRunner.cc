@@ -19,7 +19,7 @@
 #include "physics/base/Units.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
-#include "physics/grid/PhysicsGridCalculator.hh"
+#include "physics/grid/XsCalculator.hh"
 #include "KernelUtils.hh"
 #include "Detector.hh"
 
@@ -118,7 +118,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
         // Create helper classes
         StackAllocator<Secondary> allocate_secondaries(state.secondaries);
         Detector                  detector(params.detector, state.detector);
-        PhysicsGridCalculator calc_xs(params.tables.xs, params.tables.reals);
+        XsCalculator calc_xs(params.tables.xs, params.tables.reals);
 
         CELER_ASSERT(state.secondaries.capacity() == args.max_steps);
         CELER_ASSERT(state.detector.hit_buffer.capacity() == args.max_steps);

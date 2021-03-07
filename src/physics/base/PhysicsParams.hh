@@ -40,6 +40,9 @@ class ParticleParams;
  * - \c max_step_over_range: at higher energy (longer range), gradually
  *   decrease the maximum step length until it's this fraction of the tabulated
  *   range.
+ * - \c linear_loss_limit: if the mean energy loss along a step is greater than
+ *   this fractional value of the pre-step kinetic energy, recalculate the
+ *   energy loss.
  */
 class PhysicsParams
 {
@@ -62,6 +65,7 @@ class PhysicsParams
     {
         real_type min_range           = 1 * units::millimeter; //!< rho_R
         real_type max_step_over_range = 0.2;                   //!< alpha_r
+        real_type linear_loss_limit   = 0.01;                  //!< xi
     };
 
     //! Physics parameter construction arguments

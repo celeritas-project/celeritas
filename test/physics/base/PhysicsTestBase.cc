@@ -77,12 +77,19 @@ auto PhysicsTestBase::build_particles() const -> SPConstParticles
 }
 
 //---------------------------------------------------------------------------//
+auto PhysicsTestBase::build_physics_options() const -> PhysicsOptions
+{
+    return {};
+}
+
+//---------------------------------------------------------------------------//
 auto PhysicsTestBase::build_physics() const -> SPConstPhysics
 {
     using Barn = MockProcess::BarnMicroXs;
     PhysicsParams::Input physics_inp;
     physics_inp.materials = this->materials();
     physics_inp.particles = this->particles();
+    physics_inp.options   = this->build_physics_options();
 
     // Add a few processes
     MockProcess::Input inp;
@@ -94,7 +101,6 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
                       make_applicability("celeriton", 1, 100)};
         inp.xs          = Barn{1.0};
         inp.energy_loss = {};
-        inp.range       = {};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
@@ -102,7 +108,6 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
         inp.applic      = {make_applicability("gamma", 1e-6, 100)};
         inp.xs          = Barn{2.0};
         inp.energy_loss = {};
-        inp.range       = {};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
@@ -112,8 +117,7 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
                       make_applicability("celeriton", 1, 10),
                       make_applicability("celeriton", 10, 100)};
         inp.xs          = Barn{3.0};
-        inp.energy_loss = 0.2;
-        inp.range       = 2;
+        inp.energy_loss = 0.2 * 1e-20; // 0.2 MeV/cm in celerogen
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
@@ -122,8 +126,7 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
         inp.applic      = {make_applicability("anti-celeriton", 1e-3, 1),
                       make_applicability("anti-celeriton", 1, 100)};
         inp.xs          = Barn{4.0};
-        inp.energy_loss = 0.3;
-        inp.range       = 3;
+        inp.energy_loss = 0.3 * 1e-20;
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
@@ -131,8 +134,7 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
         inp.applic      = {make_applicability("celeriton", 1e-3, 10),
                       make_applicability("anti-celeriton", 1e-3, 10)};
         inp.xs          = Barn{5.0};
-        inp.energy_loss = 0.4;
-        inp.range       = 4;
+        inp.energy_loss = 0.4 * 1e-20;
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     return std::make_shared<PhysicsParams>(std::move(physics_inp));

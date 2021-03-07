@@ -12,7 +12,6 @@
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "physics/grid/GridIdFinder.hh"
-#include "physics/grid/PhysicsGridCalculator.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
 #include "Types.hh"
@@ -54,10 +53,10 @@ class PhysicsTrackView
     // Set the remaining MFP to interaction
     inline CELER_FUNCTION void interaction_mfp(real_type);
 
-    // Set the physics step length
+    // Set the overall physics step length
     inline CELER_FUNCTION void step_length(real_type);
 
-    // Set the total (process-integrated) macroscopic xs
+    // Set the total (process-integrated) macroscopic xs [cm^-1]
     inline CELER_FUNCTION void macro_xs(real_type);
 
     // Select a model for the current interaction (or {} for no interaction)
@@ -106,14 +105,17 @@ class PhysicsTrackView
     // Calculate scaled step range
     inline CELER_FUNCTION real_type range_to_step(real_type range) const;
 
+    // Fractional energy loss allowed before post-step recalculation
+    inline CELER_FUNCTION real_type linear_loss_limit() const;
+
     // Calculate macroscopic cross section on the fly for the given model
     inline CELER_FUNCTION real_type calc_xs_otf(ModelId       model,
                                                 MaterialView& material,
                                                 MevEnergy     energy) const;
 
     // Construct a grid calculator from a physics table
-    inline CELER_FUNCTION
-        PhysicsGridCalculator make_calculator(ValueGridId) const;
+    template<class T>
+    inline CELER_FUNCTION T make_calculator(ValueGridId) const;
 
     //// SCRATCH SPACE ////
 

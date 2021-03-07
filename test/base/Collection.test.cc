@@ -148,7 +148,7 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(321, host_ref_cref[irange].back());
     EXPECT_EQ(321, host_ref_cref[AllInts<host>{}].back());
 
-    CRef<host> host_cref = host_val;
+    CRef<host> host_cref{host_val};
     EXPECT_EQ(4, host_ref.size());
     EXPECT_EQ(123, host_cref[IntId{0}]);
     EXPECT_EQ(123, host_cref[irange].front());
