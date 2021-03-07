@@ -187,6 +187,17 @@ cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACES
 //---------------------------------------------------------------------------//
+#define CDE_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, ARGS...)       \
+    do                                                              \
+    {                                                               \
+        static const KernelParamCalculator calc_kernel_params_(     \
+            NAME##_kernel, #NAME, BLOCK_SIZE);                      \
+        auto grid_ = calc_kernel_params_(THREADS);                  \
+                                                                    \
+        NAME##_kernel<<<grid_.grid_size, grid_.block_size>>>(ARGS); \
+        CELER_CUDA_CHECK_ERROR();                                   \
+    } while (0)
+
 /*!
  * Initialize particle states.
  */
@@ -195,15 +206,10 @@ void initialize(const CudaGridParams&  opts,
                 const StateDeviceRef&  states,
                 const InitialPointers& initial)
 {
-    static const KernelParamCalculator calc_kernel_params(
-        initialize_kernel, "initialize", opts.block_size);
-    auto grid = calc_kernel_params(states.size());
-
     CELER_EXPECT(states.alive.size() == states.size());
     CELER_EXPECT(states.rng.size() == states.size());
-    initialize_kernel<<<grid.grid_size, grid.block_size>>>(
-        params, states, initial);
-    CELER_CUDA_CHECK_ERROR();
+    CDE_LAUNCH_KERNEL(
+        initialize, opts.block_size, states.size(), params, states, initial);
 }
 
 //---------------------------------------------------------------------------//
@@ -214,27 +220,15 @@ void iterate(const CudaGridParams&  opts,
              const ParamsDeviceRef& params,
              const StateDeviceRef&  states)
 {
-    //// Move to the collision site ////
+    // Move to the collision site
+    CDE_LAUNCH_KERNEL(move, opts.block_size, states.size(), params, states);
 
-    static const KernelParamCalculator calc_kernel_params(
-        move_kernel, "move", opts.block_size);
-    auto grid = calc_kernel_params(states.size());
-
-    move_kernel<<<grid.grid_size, grid.block_size>>>(params, states);
-    CELER_CUDA_CHECK_ERROR();
-
-    //// Perform the interaction ////
-
-    static const KernelParamCalculator calc_interact_params(
-        interact_kernel, "interact", opts.block_size);
-    grid = calc_interact_params(states.size());
-    interact_kernel<<<grid.grid_size, grid.block_size>>>(params, states);
-    CELER_CUDA_CHECK_ERROR();
+    // Perform the interaction
+    CDE_LAUNCH_KERNEL(interact, opts.block_size, states.size(), params, states);
 
     if (opts.sync)
     {
-        // Note: the device synchronize is useful for debugging and necessary
-        // for timing diagnostics.
+        // Synchronize for granular kernel timing diagnostics
         CELER_CUDA_CALL(cudaDeviceSynchronize());
     }
 }
@@ -247,26 +241,18 @@ void cleanup(const CudaGridParams&  opts,
              const ParamsDeviceRef& params,
              const StateDeviceRef&  states)
 {
-    //// Process hits ////
+    // Process hits from buffer to grid
+    CDE_LAUNCH_KERNEL(process_hits,
+                      opts.block_size,
+                      states.detector.capacity(),
+                      params,
+                      states);
 
-    static const KernelParamCalculator calc_process_hits_params(
-        process_hits_kernel, "process_hits", opts.block_size);
-    auto grid = calc_process_hits_params(states.detector.capacity());
-    cleanup_kernel<<<grid.grid_size, grid.block_size>>>(params, states);
-    CELER_CUDA_CHECK_ERROR();
-
-    //// Clear buffers ////
-
-    static const KernelParamCalculator calc_cleanup_params(
-        cleanup_kernel, "cleanup", 32);
-    grid = calc_cleanup_params(1);
-    cleanup_kernel<<<grid.grid_size, grid.block_size>>>(params, states);
-    CELER_CUDA_CHECK_ERROR();
+    // Clear buffers
+    CDE_LAUNCH_KERNEL(cleanup, 32, 1, params, states);
 
     if (opts.sync)
     {
-        // Note: the device synchronize is useful for debugging and necessary
-        // for timing diagnostics.
         CELER_CUDA_CALL(cudaDeviceSynchronize());
     }
 }
