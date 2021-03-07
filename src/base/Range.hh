@@ -111,7 +111,6 @@ class Range
     {
         if (step < 0)
         {
-            using TraitsT = typename const_iterator::TraitsT;
             return {TraitsT::increment(*end_, step), *begin_, step};
         }
 

@@ -139,7 +139,7 @@ TEST(RangeTest, enums)
     auto most_pokemon = celeritas::range(pokemon::charmander, pokemon::size_);
     for (pokemon::Pokemon p : most_pokemon)
     {
-        EXPECT_EQ(p, (pokemon::Pokemon)ctr);
+        EXPECT_EQ(p, static_cast<pokemon::Pokemon>(ctr));
         ++ctr;
     }
     // Size of a range that returns enums
@@ -150,7 +150,7 @@ TEST(RangeTest, enums)
     {
         static_assert(std::is_same<decltype(p), pokemon::Pokemon>::value,
                       "Pokemon range should be an enum");
-        EXPECT_EQ(p, (pokemon::Pokemon)ctr);
+        EXPECT_EQ(p, static_cast<pokemon::Pokemon>(ctr));
         ++ctr;
     }
 }
@@ -179,7 +179,7 @@ TEST(RangeTest, enum_classes)
     int ctr = 0;
     for (Color c : celeritas::range(Color::red, Color::size_))
     {
-        EXPECT_EQ(c, (Color)ctr);
+        EXPECT_EQ(c, static_cast<Color>(ctr));
         ++ctr;
     }
 

@@ -30,9 +30,9 @@ const char* to_cstring(ImportProcessType value)
                                           "parallel",
                                           "phonon",
                                           "ucn"};
-    CELER_EXPECT(static_cast<int>(value) * sizeof(const char*)
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
                  < sizeof(strings));
-    return strings[static_cast<int>(value)];
+    return strings[static_cast<unsigned int>(value)];
 }
 
 //---------------------------------------------------------------------------//
@@ -61,9 +61,9 @@ const char* to_cstring(ImportProcessClass value)
                                           "mu_brems",
                                           "mu_pair_prod",
                                           "transportation"};
-    CELER_EXPECT(static_cast<int>(value) * sizeof(const char*)
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
                  < sizeof(strings));
-    return strings[static_cast<int>(value)];
+    return strings[static_cast<unsigned int>(value)];
 }
 
 //---------------------------------------------------------------------------//
@@ -82,9 +82,9 @@ const char* to_cstring(ImportModelClass value)
            "e_brem_lpm",     "e_plus_to_gg",      "livermore_photoelectric",
            "klein_nishina",  "bethe_heitler_lpm", "livermore_rayleigh",
            "mu_bethe_bloch", "mu_brem",           "mu_pair_prod"};
-    CELER_EXPECT(static_cast<int>(value) * sizeof(const char*)
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
                  < sizeof(strings));
-    return strings[static_cast<int>(value)];
+    return strings[static_cast<unsigned int>(value)];
 }
 
 //---------------------------------------------------------------------------//

@@ -17,9 +17,7 @@
 TEST(AlgorithmsTest, minmax)
 {
     EXPECT_EQ(1, celeritas::min<int>(1, 2));
-    EXPECT_NE(0.2, celeritas::min<float>(0.1, 0.2));
     EXPECT_EQ(2, celeritas::max<int>(1, 2));
-    EXPECT_NE(0.1, celeritas::max<float>(0.1, 0.2));
 }
 
 TEST(AlgorithmsTest, ipow)

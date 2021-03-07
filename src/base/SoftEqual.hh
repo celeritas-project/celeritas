@@ -19,11 +19,6 @@ namespace celeritas
  *
  * \note This functor is *not commutative*: eq(a,b) will not always give the
  * same as eq(b,a).
- *
- * \param rel tolerance of relative error (default 1.0e-12 for doubles)
- *
- * \param abs threshold for absolute error when comparing to zero
- *           (default 1.0e-14 for doubles)
  */
 template<class RealType = ::celeritas::real_type>
 class SoftEqual
@@ -68,9 +63,6 @@ class SoftEqual
 //---------------------------------------------------------------------------//
 /*!
  * Functor for floating point equality.
- *
- * \param abs threshold for absolute error when comparing to zero
- *           (default 1.0e-14 for doubles)
  */
 template<class RealType = ::celeritas::real_type>
 class SoftZero

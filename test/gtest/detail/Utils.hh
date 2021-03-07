@@ -19,7 +19,7 @@ const char* skip_cstring();
 
 //---------------------------------------------------------------------------//
 // Number of base-10 digits in an unsigned integer
-unsigned int num_digits(unsigned int val);
+int num_digits(unsigned long val);
 
 //---------------------------------------------------------------------------//
 std::string char_to_hex_string(unsigned char value);

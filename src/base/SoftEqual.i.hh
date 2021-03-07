@@ -34,6 +34,11 @@ CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel)
 //---------------------------------------------------------------------------//
 /*!
  * Construct with both relative and absolute precision.
+ *
+ * \param rel tolerance of relative error (default 1.0e-12 for doubles)
+ *
+ * \param abs threshold for absolute error when comparing to zero
+ *           (default 1.0e-14 for doubles)
  */
 template<class RealType>
 CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel, value_type abs)
@@ -100,7 +105,10 @@ CELER_FUNCTION SoftZero<RealType>::SoftZero()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with default absolute precision.
+ * Construct with specified precision.
+ *
+ * \param abs threshold for absolute error when comparing to zero
+ *           (default 1.0e-14 for doubles)
  */
 template<class RealType>
 CELER_FUNCTION SoftZero<RealType>::SoftZero(value_type abs) : abs_(abs)

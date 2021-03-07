@@ -36,7 +36,7 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
     PhysicsOptions build_physics_options() const override
     {
         PhysicsOptions opts;
-        if (false)
+        if (/* DISABLES CODE */ (false))
         {
             // Don't scale the range -- use exactly the analytic values our
             // model has.

@@ -23,7 +23,7 @@ CELER_FUNCTION Interpolator<XI, YI, T>::Interpolator(Point left, Point right)
         Y = 1
     };
 
-    CELER_EXPECT(left[X] != right[X]);
+    CELER_EXPECT(left[X] < right[X]);
     CELER_EXPECT(XTraits_t::valid_domain(left[X]));
     CELER_EXPECT(XTraits_t::valid_domain(right[X]));
     CELER_EXPECT(YTraits_t::valid_domain(left[Y]));

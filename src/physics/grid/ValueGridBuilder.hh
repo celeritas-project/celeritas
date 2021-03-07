@@ -57,10 +57,11 @@ class ValueGridXsBuilder final : public ValueGridBuilder
 
   public:
     // Construct from imported data
-    static ValueGridXsBuilder from_geant(SpanConstReal lambda_energy,
-                                         SpanConstReal lambda,
-                                         SpanConstReal lambda_prim_energy,
-                                         SpanConstReal lambda_prim);
+    static std::unique_ptr<ValueGridXsBuilder>
+    from_geant(SpanConstReal lambda_energy,
+               SpanConstReal lambda,
+               SpanConstReal lambda_prim_energy,
+               SpanConstReal lambda_prim);
 
     // Construct
     ValueGridXsBuilder(real_type emin,

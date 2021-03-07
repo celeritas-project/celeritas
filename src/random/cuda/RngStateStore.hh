@@ -24,7 +24,7 @@ class RngStateStore
     RngStateStore() = default;
 
     // Construct with the number of RNG states
-    explicit RngStateStore(size_type size, unsigned long host_seed = 12345u);
+    explicit RngStateStore(size_type size, unsigned int host_seed = 12345u);
 
     //! Number of states
     size_type size() const { return data_.size(); }
