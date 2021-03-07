@@ -8,6 +8,7 @@
 #include "physics/base/PhysicsStepUtils.hh"
 
 #include "base/CollectionStateStore.hh"
+#include "random/DiagnosticRngEngine.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "celeritas_test.hh"
@@ -24,6 +25,7 @@ using celeritas::units::MevEnergy;
 class PhysicsStepUtilsTest : public PhysicsTestBase
 {
     using Base = PhysicsTestBase;
+    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
 
   protected:
     using MaterialStateStore
@@ -43,9 +45,15 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
         phys_state = PhysicsStateStore(*this->physics(), 1);
     }
 
+    //!@{
+    //! Random number generator
+    RandomEngine& rng() { return rng_; }
+    //!@}
+
     MaterialStateStore mat_state;
     ParticleStateStore par_state;
     PhysicsStateStore  phys_state;
+    RandomEngine     rng_;
 };
 
 //---------------------------------------------------------------------------//
