@@ -27,7 +27,8 @@ namespace celeritas_test
  *   constant with energy.
  * - Energy loss rate is also constant with energy and scales with the number
  *   density.
- * - Range scales linearly with energy.
+ * - Range is determined by the energy loss rate -- constant energy loss rate k
+ *   means linear range of E/k.
  *
  * The given applicability vector has one element per model that it will
  * create. Each model can have a different particle type and/or energy range.
@@ -53,8 +54,7 @@ class MockProcess : public celeritas::Process
         VecApplicability applic;   //!< Applicablity per model
         ModelCallback    interact; //!< MockModel::interact callback
         BarnMicroXs      xs{};     //!< Constant per atom [bn]
-        real_type energy_loss{};   //!< Constant per atom [MeV/cm / (1/cm^3)]
-        real_type range{};         //!< Linearly increasing [cm/MeV]
+        real_type        energy_loss{}; //!< Constant per atom [MeV/cm / cm^-3]
     };
 
   public:

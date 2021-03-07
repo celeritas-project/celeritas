@@ -12,6 +12,8 @@
 #include "base/Range.hh"
 #include "base/CollectionStateStore.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/grid/RangeCalculator.hh"
+#include "physics/grid/XsCalculator.hh"
 
 #include "PhysicsTestBase.hh"
 #include "Physics.test.hh"
@@ -276,7 +278,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
             auto scat_ppid = this->find_ppid(phys, "scattering");
             auto id = phys.value_grid(ValueGridType::macro_xs, scat_ppid);
             ASSERT_TRUE(id);
-            auto calc_xs = phys.make_calculator(id);
+            auto calc_xs = phys.make_calculator<XsCalculator>(id);
             xs.push_back(calc_xs(MevEnergy{1.0}));
         }
     }
@@ -302,7 +304,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_range)
         ASSERT_TRUE(meow_ppid);
         auto id = phys.value_grid(ValueGridType::range, meow_ppid);
         ASSERT_TRUE(id);
-        auto calc_range = phys.make_calculator(id);
+        auto calc_range = phys.make_calculator<RangeCalculator>(id);
         for (real_type energy : {0.01, 1.0, 1e2})
         {
             range.push_back(calc_range(MevEnergy{energy}));
@@ -310,8 +312,9 @@ TEST_F(PhysicsTrackViewHostTest, calc_range)
         }
     }
 
-    const double expected_range[] = {0.04, 4, 40, 0.04, 4, 40};
-    const double expected_step[]  = {0.04, 0.958, 8.1598, 0.04, 0.958, 8.1598};
+    const double expected_range[] = {0.025, 2.5, 25, 0.025, 2.5, 25};
+    const double expected_step[]
+        = {0.025, 0.6568, 5.15968, 0.025, 0.6568, 5.15968};
     EXPECT_VEC_SOFT_EQ(expected_range, range);
     EXPECT_VEC_SOFT_EQ(expected_step, step);
 }
@@ -345,17 +348,16 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
         }
     }
 
-    // PRINT_EXPECTED(step);
     const double expected_step[] = {166.6666666667,
                                     166.6666666667,
                                     166.6666666667,
                                     166.6666666667,
                                     inf,
-                                    0.003,
-                                    0.003,
-                                    0.7573333333333,
-                                    8.1598,
-                                    8.1598};
+                                    2.5e-05,
+                                    0.00025,
+                                    0.178,
+                                    0.6568,
+                                    0.6568};
     EXPECT_VEC_SOFT_EQ(expected_step, step);
 }
 
@@ -423,37 +425,15 @@ TEST_F(PHYS_DEVICE_TEST, all)
     phys_cuda_test(inp);
     std::vector<real_type> step_host(step.size());
     step.copy_to_host(make_span(step_host));
-    // clang-format on
-    const double expected_step_host[] = {1666.666666667,
-                                         0.002,
-                                         0.003,
-                                         1666.666666667,
-                                         0.002,
-                                         0.003,
-                                         1666.666666667,
-                                         0.556,
-                                         0.7573333333333,
-                                         1666.666666667,
-                                         8.1598,
-                                         8.1598,
-                                         inf,
-                                         8.1598,
-                                         8.1598,
-                                         1.666666666667,
-                                         0.002,
-                                         0.003,
-                                         1.666666666667,
-                                         0.002,
-                                         0.003,
-                                         1.666666666667,
-                                         0.5555555555556,
-                                         0.5555555555556,
-                                         1.666666666667,
-                                         1.25,
-                                         1.25,
-                                         inf,
-                                         8.1598,
-                                         8.1598};
     // clang-format off
+    const double expected_step_host[] = {
+        1666.666666667, 0.00025, 0.00025, 1666.666666667, 0.0025,
+        0.0025, 1666.666666667, 0.6568, 0.6568, 1666.666666667,
+        5.15968, 5.15968, inf, 5.15968, 5.15968,
+        1.666666666667, 2.5e-07, 2.5e-07, 1.666666666667, 2.5e-06,
+        2.5e-06, 1.666666666667, 0.0025, 0.0025, 1.666666666667,
+        0.025, 0.025, inf, 0.025, 0.025};
+    // clang-format on
+    PRINT_EXPECTED(step_host);
     EXPECT_VEC_SOFT_EQ(expected_step_host, step_host);
 }

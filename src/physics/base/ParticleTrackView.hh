@@ -35,6 +35,7 @@ class ParticleTrackView
         = ParticleParamsData<Ownership::const_reference, MemSpace::native>;
     using ParticleStateRef
         = ParticleStateData<Ownership::reference, MemSpace::native>;
+    using Energy        = units::MevEnergy;
     using Initializer_t = ParticleTrackState;
     //!@}
 
@@ -49,7 +50,7 @@ class ParticleTrackView
                           operator=(const Initializer_t& other);
 
     // Change the particle's energy [MeV]
-    inline CELER_FUNCTION void energy(units::MevEnergy);
+    inline CELER_FUNCTION void energy(Energy);
 
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
@@ -57,7 +58,7 @@ class ParticleTrackView
     CELER_FORCEINLINE_FUNCTION ParticleId particle_id() const;
 
     // Kinetic energy [MeV]
-    CELER_FORCEINLINE_FUNCTION units::MevEnergy energy() const;
+    CELER_FORCEINLINE_FUNCTION Energy energy() const;
 
     // Whether the particle is stopped (zero kinetic energy)
     CELER_FORCEINLINE_FUNCTION bool is_stopped() const;

@@ -10,7 +10,7 @@
 #include "base/ArrayUtils.hh"
 #include "base/Macros.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "physics/grid/PhysicsGridCalculator.hh"
+#include "physics/grid/XsCalculator.hh"
 #include "random/distributions/ExponentialDistribution.hh"
 
 namespace demo_interactor
@@ -19,12 +19,12 @@ namespace demo_interactor
 
 template<class Rng>
 inline CELER_FUNCTION void
-move_to_collision(const celeritas::ParticleTrackView&     particle,
-                  const celeritas::PhysicsGridCalculator& calc_xs,
-                  const celeritas::Real3&                 direction,
-                  celeritas::Real3*                       position,
-                  celeritas::real_type*                   time,
-                  Rng&                                    rng)
+move_to_collision(const celeritas::ParticleTrackView& particle,
+                  const celeritas::XsCalculator&      calc_xs,
+                  const celeritas::Real3&             direction,
+                  celeritas::Real3*                   position,
+                  celeritas::real_type*               time,
+                  Rng&                                rng)
 {
     CELER_EXPECT(position && time);
     using celeritas::real_type;

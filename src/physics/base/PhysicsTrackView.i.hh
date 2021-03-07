@@ -172,7 +172,7 @@ CELER_FUNCTION ProcessId PhysicsTrackView::process(ParticleProcessId ppid) const
  * Return value grid data for the given table type and process if available.
  *
  * If the result is not null, it can be used to instantiate a
- * PhysicsGridCalculator.
+ * grid Calculator.
  *
  * If the result is null, it's likely because the process doesn't have the
  * associated value (e.g. if the table type is "energy_loss" and the process is
@@ -264,6 +264,15 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Fractional along-step energy loss allowed before recalculating from range.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::linear_loss_limit() const
+{
+    return params_.linear_loss_limit;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate macroscopic cross section on the fly.
  */
 CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(ModelId       model,
@@ -290,20 +299,21 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(ModelId       model,
 
 //---------------------------------------------------------------------------//
 /*!
- * Access data for constructing PhysicsGridCalculator.
+ * Construct a grid calculator of the given type.
+ *
+ * The calculator must take two arguments: a reference to XsGridData, and a
+ * reference to the Values data structure.
  */
-CELER_FUNCTION PhysicsGridCalculator
-PhysicsTrackView::make_calculator(ValueGridId id) const
+template<class T>
+CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
 {
     CELER_EXPECT(id < params_.value_grids.size());
-    return PhysicsGridCalculator(params_.value_grids[id], params_.reals);
+    return T{params_.value_grids[id], params_.reals};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Access scratch space for particle-process cross section calculations.
- *
- * \todo Try changing the ordering to coalesce memory for GPU access.
  */
 CELER_FUNCTION real_type&
                PhysicsTrackView::per_process_xs(ParticleProcessId ppid)

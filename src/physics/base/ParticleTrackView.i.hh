@@ -47,7 +47,7 @@ ParticleTrackView::operator=(const Initializer_t& other)
  * applications, the new energy should always be less than the starting energy.
  */
 CELER_FUNCTION
-void ParticleTrackView::energy(units::MevEnergy quantity)
+void ParticleTrackView::energy(Energy quantity)
 {
     CELER_EXPECT(this->particle_id());
     CELER_EXPECT(quantity >= zero_quantity());
@@ -69,7 +69,7 @@ CELER_FUNCTION ParticleId ParticleTrackView::particle_id() const
 /*!
  * Kinetic energy [MeV].
  */
-CELER_FUNCTION units::MevEnergy ParticleTrackView::energy() const
+CELER_FUNCTION auto ParticleTrackView::energy() const -> Energy
 {
     return states_.state[thread_].energy;
 }
