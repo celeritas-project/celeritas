@@ -56,8 +56,6 @@ ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
                                   "ScopedMpiInit";
             break;
         }
-        default:
-            CELER_ASSERT_UNREACHABLE();
     }
     CELER_ENSURE(status_ != Status::uninitialized);
 }

@@ -32,7 +32,7 @@ struct UniformGridData
     //! True if assigned and valid
     CELER_FUNCTION operator bool() const
     {
-        return size >= 2 && delta > 0 && front != back;
+        return size >= 2 && delta > 0 && front < back;
     }
 
     //// HELPER FUNCTIONS ////
@@ -50,7 +50,7 @@ UniformGridData
 UniformGridData::from_bounds(value_type front, value_type back, size_type size)
 {
     CELER_EXPECT(size >= 2);
-    CELER_EXPECT(back != front);
+    CELER_EXPECT(front < back);
     UniformGridData result;
     result.size  = size;
     result.front = front;

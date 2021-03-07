@@ -67,8 +67,8 @@ TEST_F(ValueGridBuilderTest, xs_grid)
         const real_type lambda_prim_energy[] = {1e-1, 1e0, 10};
         const real_type lambda_prim[]        = {.1 * 1e-1, .01 * 1, .001 * 10};
 
-        entries.push_back(make_shared<Builder_t>(Builder_t::from_geant(
-            lambda_energy, lambda, lambda_prim_energy, lambda_prim)));
+        entries.push_back(Builder_t::from_geant(
+            lambda_energy, lambda, lambda_prim_energy, lambda_prim));
     }
 
     // Build

@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Construct with the number of RNG states.
  */
-RngStateStore::RngStateStore(size_type size, unsigned long host_seed)
+RngStateStore::RngStateStore(size_type size, unsigned int host_seed)
     : data_(size)
 {
     CELER_EXPECT(celeritas::device());

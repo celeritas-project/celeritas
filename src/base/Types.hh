@@ -8,11 +8,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include "celeritas_config.h"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+#if CELERITAS_USE_CUDA
 //! Standard type for container sizes, optimized for GPU use.
 using size_type = unsigned int;
+#else
+using size_type = std::size_t;
+#endif
 
 //! Numerical type for real numbers
 using real_type = double;

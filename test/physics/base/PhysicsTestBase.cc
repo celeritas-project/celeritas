@@ -16,10 +16,6 @@ using namespace celeritas;
 namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
-//! Virtual destructor
-PhysicsTestBase::~PhysicsTestBase() = default;
-
-//---------------------------------------------------------------------------//
 void PhysicsTestBase::SetUp()
 {
     materials_ = this->build_materials();

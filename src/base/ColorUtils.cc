@@ -26,7 +26,7 @@ bool determine_use_color(FILE* stream)
     if (!term)
         return false;
 
-    if (strstr("xterm", term) == 0)
+    if (strstr("xterm", term) == nullptr)
         return true;
 
     // Other checks here? ...
