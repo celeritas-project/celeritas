@@ -46,8 +46,6 @@ class PhysicsTestBase : public celeritas::Test
     //!@}
 
   protected:
-    virtual ~PhysicsTestBase();
-
     void SetUp() override;
 
     virtual SPConstMaterials build_materials() const;

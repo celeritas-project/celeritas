@@ -179,8 +179,6 @@ TEST_F(PhysicsTrackViewHostTest, accessors)
 
     // Cross sections
     {
-        const PhysicsTrackView& gamma_cref = gamma;
-
         gamma.per_process_xs(ParticleProcessId{0}) = 1.2;
         gamma.per_process_xs(ParticleProcessId{1}) = 10.0;
         celer.per_process_xs(ParticleProcessId{0}) = 100.0;

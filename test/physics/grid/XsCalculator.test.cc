@@ -88,9 +88,9 @@ TEST_F(XsCalculatorTest, scaled_middle)
     std::fill(xs.begin(), xs.begin() + 3, 1.0);
 
     // Change constant to 3 just to shake things up
-    for (real_type& xs : xs)
+    for (real_type& x : xs)
     {
-        xs *= 3;
+        x *= 3;
     }
 
     XsCalculator calc(this->data(), this->values());

@@ -51,7 +51,7 @@ class Process
 
   public:
     // Virtual destructor for polymorphic deletion
-    virtual ~Process() = 0;
+    virtual ~Process();
 
     //! Construct the models associated with this process
     virtual VecModel build_models(ModelIdGenerator next_id) const = 0;
