@@ -85,16 +85,21 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
  *
  * See section 7.2.4 Run Time Energy Loss Computation of the Geant4 physics
  * manual. See also the longer discussions in section 8 of PHYS010 of the
- * Geant3 manual (1993).
- *
- * Energy loss rate (stopping power) is a function of differential cross
- * section: the integral of low-energy secondaries (below \c T) produced as a
- * function of energy:
+ * Geant3 manual (1993). Stopping power is an integral over low-exiting-energy
+ * secondaries. Above some threshold energy \em T_c we treat exiting
+ * secondaries discretely; below it, we lump them into this continuous loss
+ * term that varies based on the energy, the atomic number density, and the
+ * element number:
  * \f[
- *   \frac{dE}{dx} = N_Z \int_0^T \frac{d \sigma_Z(E, T)}{dT} T dT
+ *   \frac{dE}{dx} = N_Z \int_0^{T_c} \frac{d \sigma_Z(E, T)}{dT} T dT
  * \f]
+ * Here, the cross section is a function of the primary's energy \em E and the
+ * exiting secondary energy \em T.
  *
- * The stopping range \em R due to these low-energy processes is:
+ * The stopping range \em R due to these low-energy processes is an integral
+ * over the inverse of the stopping power: basically the distance that will
+ * take a particle (without discrete processes at play) from its current energy
+ * to an energy of zero.
  * \f[
  *   R = \int_0 ^{E_0} - \frac{dx}{dE} dE .
  * \f]
@@ -103,7 +108,8 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
  * over all processes, rather than the range as a result from integrating all
  * energy loss processes over the allowed energy range. This is usuallly not
  * a problem in practice because the range will get automatically decreased by
- * \c range_to_step .
+ * \c range_to_step , and the above range calculation neglects energy loss by
+ * discrete processes.
  *
  * Geant4's stepping algorithm independently stores the range for each process,
  * then (looping externally over all processes) calculates energy loss, checks

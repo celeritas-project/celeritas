@@ -10,8 +10,14 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//!@{
 /*!
- * Construct from another collection.
+ * Construct or assign from another collection.
+ *
+ * These are generally used to create "references" to "values" (same memory
+ * space) but can also be used to copy from device to host. The \c
+ * detail::CollectionAssigner class statically checks for allowable
+ * transformations and memory moves.
  */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
@@ -22,10 +28,6 @@ Collection<T, W, M, I>::Collection(const Collection<T, W2, M2, I>& other)
                                              other.storage().size());
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Construct from another collection (mutable).
- */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
@@ -35,10 +37,6 @@ Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
                                              other.storage().size());
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Assign from another collection.
- */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>&
@@ -50,10 +48,6 @@ Collection<T, W, M, I>::operator=(const Collection<T, W2, M2, I>& other)
     return *this;
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Assign (mutable!) from another collection.
- */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>&
@@ -64,6 +58,7 @@ Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
                                              other.storage().size());
     return *this;
 }
+//!@}
 
 //---------------------------------------------------------------------------//
 /*!
