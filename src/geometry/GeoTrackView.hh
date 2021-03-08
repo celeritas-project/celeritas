@@ -68,7 +68,7 @@ class GeoTrackView
     CELER_FUNCTION const Real3& dir() const { return dir_; }
     CELER_FUNCTION real_type    next_step() const
     {
-        CELER_ASSERT(valid_);
+        CELER_ASSERT(!dirty_);
         return next_step_;
     }
     //!@}
@@ -78,12 +78,12 @@ class GeoTrackView
     CELER_FUNCTION void set_pos(const Real3& newpos)
     {
         pos_   = newpos;
-        valid_ = false;
+        dirty_ = true;
     }
     CELER_FUNCTION void set_dir(const Real3& newdir)
     {
         dir_   = newdir;
-        valid_ = false;
+        dirty_ = true;
     }
     //!@}
 
@@ -113,7 +113,8 @@ class GeoTrackView
     Real3&     pos_;
     Real3&     dir_;
     real_type& next_step_;
-    bool       valid_;
+    // Flag to trigger update of geometry information if and only if needed
+    bool       dirty_;
     //!@}
 
   private:

@@ -34,9 +34,7 @@ class LinearPropagator
     //! Move track to next volume boundary.
     inline CELER_FUNCTION result_type operator()();
 
-    /*! Move track by a user-provided distance, or to the next boundary if
-     *  distance goes beyond it.
-     */
+    //! Move track by a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
   private:

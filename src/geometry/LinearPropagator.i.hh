@@ -39,8 +39,8 @@ LinearPropagator::result_type LinearPropagator::operator()()
 
 //---------------------------------------------------------------------------//
 /*!
- * Move track by a user-provided distance, or to next boundary if distance is
- * large enough.
+ * Move track by a user-provided distance, or to next boundary if distance
+ * requested goes beyond a volume boundary.
  */
 CELER_FUNCTION
 LinearPropagator::result_type LinearPropagator::operator()(real_type dist)

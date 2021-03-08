@@ -92,17 +92,12 @@ TEST_F(GeoTrackViewHostTest, track_line)
         EXPECT_EQ(false, geo.is_outside()); // leaving World
     }
 
-    try
     {
         // Track from outside edge fails
         CELER_LOG(info) << "Init a track with a pointer outside work "
-                           "volume...";
-        geo = {{24, 0, 0}, {-1, 0, 0}};
-        EXPECT_EQ(true, geo.is_outside());
-    }
-    catch (const std::exception& e)
-    {
-        // std::cerr<<"caught exception: "<< e.what() << std::endl;
+	                   "volume...";
+        EXPECT_THROW( (geo = {{24, 0, 0}, {-1, 0, 0}}), celeritas::DebugError );
+        EXPECT_EQ(geo.is_outside(), true);
     }
 
     {

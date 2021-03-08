@@ -26,6 +26,7 @@ GeoTrackView::GeoTrackView(const GeoParamsPointers& data,
     , pos_(stateview.pos[id.get()])
     , dir_(stateview.dir[id.get()])
     , next_step_(stateview.next_step[id.get()])
+    , dirty_(true)
 {
 }
 
@@ -96,14 +97,14 @@ CELER_FUNCTION void GeoTrackView::find_next_step()
                                                    vecgeom::kInfLength,
                                                    vgstate_,
                                                    vgnext_);
-    valid_ = true;
+    dirty_ = false;
 }
 
 //---------------------------------------------------------------------------//
 //! Move to the next boundary and update volume accordingly
 CELER_FUNCTION real_type GeoTrackView::move_to_boundary()
 {
-    if (!valid_)
+    if (dirty_)
         find_next_step();
 
     // Move the next step plus an extra fudge distance
@@ -117,7 +118,7 @@ CELER_FUNCTION real_type GeoTrackView::move_to_boundary()
 //! Move to the next boundary and update volume accordingly
 CELER_FUNCTION real_type GeoTrackView::move_next_step()
 {
-    if (!valid_)
+    if (dirty_)
         find_next_step();
     real_type dist = next_step_;
     axpy(next_step_, dir_, &pos_);
@@ -131,7 +132,7 @@ CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
 {
     CELER_EXPECT(dist > 0.);
 
-    if (!valid_)
+    if (dirty_)
         find_next_step();
 
     // do not move beyond next boundary!
@@ -152,10 +153,11 @@ CELER_FUNCTION void GeoTrackView::move_next_volume()
     this->find_next_step();
 }
 
-//---------------------------------------------------------------------------//1
+//---------------------------------------------------------------------------//
 //! Get the volume ID in the current cell.
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {
+    CELER_EXPECT(!dirty_);
     return (this->is_outside() ? VolumeId{} : VolumeId{this->volume().id()});
 }
 
