@@ -105,10 +105,6 @@ celeritas_setup_tests(PREFIX comm)
 celeritas_add_test(comm/Communicator.test.cc)
 celeritas_add_test(comm/Logger.test.cc)
 
-# Logger.test is benchmarking the speed of the logger and thus can fail
-# spurriously if there is too many other test being run concurrently
-set_property(TEST comm/Logger PROPERTY RUN_SERIAL true)
-
 #-----------------------------------------------------------------------------#
 # Geometry
 
