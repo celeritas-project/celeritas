@@ -6,7 +6,6 @@
 """
 """
 import json
-from pprint import pprint
 import subprocess
 from os import environ
 from sys import exit
@@ -42,8 +41,6 @@ result = subprocess.run([exe, '-'],
                         stdout=subprocess.PIPE)
 
 if result.returncode:
-    with open(f'{exe}.inp.json', 'w') as f:
-        json.dump(inp, f, indent=1)
     print("fatal: run failed with error", result.returncode)
     exit(result.returncode)
 

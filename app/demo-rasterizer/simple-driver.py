@@ -6,7 +6,6 @@
 """
 """
 import json
-from pprint import pprint
 import subprocess
 from os import environ
 from sys import exit, argv
@@ -52,6 +51,6 @@ except json.decoder.JSONDecodeError as e:
     print(out_text)
     print("fatal:", str(e))
     exit(1)
-pprint(result)
+print(json.dumps(result, indent=1))
 with open(f'{exe}.out.json', 'w') as f:
     json.dump(result, f)
