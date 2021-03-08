@@ -36,9 +36,9 @@ print("Running", exe)
 result = subprocess.run([exe, '-'],
                         input=json.dumps(inp).encode(),
                         stdout=subprocess.PIPE)
+with open(f'{exe}.inp.json', 'w') as f:
+    json.dump(inp, f, indent=1)
 if result.returncode:
-    with open(f'{exe}.inp.json', 'w') as f:
-        json.dump(inp, f, indent=1)
     print("Run failed with error", result.returncode)
     exit(result.returncode)
 
