@@ -29,16 +29,18 @@ inp = {
     }
 }
 
-print("Input:")
-pprint(inp)
-
 exe = environ.get('CELERITAS_DEMO_EXE', './demo-interactor')
+
+print("Input:")
+with open(f'{exe}.inp.json', 'w') as f:
+    json.dump(inp, f, indent=1)
+print(json.dumps(inp, indent=1))
+
 print("Running", exe)
 result = subprocess.run([exe, '-'],
                         input=json.dumps(inp).encode(),
                         stdout=subprocess.PIPE)
-with open(f'{exe}.inp.json', 'w') as f:
-    json.dump(inp, f, indent=1)
+
 if result.returncode:
     with open(f'{exe}.inp.json', 'w') as f:
         json.dump(inp, f, indent=1)
