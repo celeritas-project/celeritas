@@ -32,9 +32,9 @@ namespace celeritas
  * cutoffs in the future, when data is not imported anymore.
  * 
  * In order to avoid mistakes during construction time, the \c Input structure
- * is used. This forces the user to provide an equivalent structure, a 
- * \c vector<vector<ParticleCutoff>> , which when read, provides an ordered 
- * list of all particle cutoffs for each available material.
+ * is used. This forces the user to provide an equivalent structure, which when
+ * read, provides an ordered list of all particle cutoffs for each available
+ * material.
  */
 class CutoffParams
 {

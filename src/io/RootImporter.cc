@@ -333,7 +333,7 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
     for (const auto& mat_key : geometry.matid_to_material_map())
     {
         // Acess cutoff data from root file
-        auto import_material = mat_key.second;
+        auto                         import_material = mat_key.second;
         CutoffParams::MaterialCutoff material_cutoff;
 
         for (int entry : range(tree_particles->GetEntries()))
