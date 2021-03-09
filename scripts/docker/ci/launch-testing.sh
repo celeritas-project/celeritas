@@ -5,7 +5,13 @@ if [ -z "$1" ]; then
   exit 2;
 fi
 
-CONTAINER=$(docker run -t -d celeritas/ci-cuda11:2021-01-27)
+
+if [ -z "${CONFIG}" ]; then
+  echo "Defaulting CONFIG=bionic-minimal"
+  CONFIG=focal-cuda11
+fi
+
+CONTAINER=$(docker run -t -d ci-${CONFIG})
 echo "Launched container: ${CONTAINER}"
 docker exec -i $CONTAINER bash -l <<EOF || echo "*BUILD FAILED*"
 set -e

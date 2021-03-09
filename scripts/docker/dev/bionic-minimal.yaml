@@ -1,0 +1,32 @@
+spack:
+  specs:
+  - cmake
+
+
+
+  - git
+  - googletest
+
+
+  - ninja
+  - nlohmann-json
+
+  - python
+
+
+
+
+
+
+  - valgrind
+  concretization: together
+  packages:
+    valgrind:
+      variants: ~boost ~mpi
+    all:
+      target:
+      - x86_64
+      variants: cxxstd=14
+  config:
+    install_tree: /opt/software
+  view: /opt/view
