@@ -9,6 +9,7 @@
 
 #include "gtest/Test.hh"
 
+#include <random>
 #include "physics/material/MaterialParams.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
@@ -36,6 +37,7 @@ class PhysicsTestBase : public celeritas::Test
   protected:
     //!@{
     //! Type aliases
+
     using SPConstMaterials = std::shared_ptr<celeritas::MaterialParams>;
     using SPConstParticles = std::shared_ptr<celeritas::ParticleParams>;
     using SPConstPhysics   = std::shared_ptr<celeritas::PhysicsParams>;

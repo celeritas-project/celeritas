@@ -10,6 +10,7 @@
 #include "base/Algorithms.hh"
 #include "base/NumericLimits.hh"
 #include "base/Range.hh"
+#include "random/distributions/GenerateCanonical.hh"
 #include "physics/grid/EnergyLossCalculator.hh"
 #include "physics/grid/InverseRangeCalculator.hh"
 #include "physics/grid/RangeCalculator.hh"
@@ -204,27 +205,63 @@ CELER_FUNCTION ParticleTrackView::Energy
  *   determine the interacting process ID.
  * - From the process ID and (post-slowing-down) particle energy, we obtain the
  *   applicable model ID.
+ *
+ * Does the energy change between the time the per_process_xs was
+ * calculated and now?  Does the energy enters in the calculation
+ * of the cross-section? What happens to the cross section per
+ * process if there no model covering that energy range?
+ * See
+ * https://github.com/celeritas-project/celeritas/pull/165#issuecomment-790214691
+ * for some discussion, including this:
+ *
+ * Look up the model for the selected process at the reduced
+ * energy E'. If there's not one -- i.e. the along-step energy
+ * loss causes us to go below the lower threshold for the selected
+ * process -- we could simply zero out the cross section for that
+ * process and jump back up to the step above (resampling
+ * available processes). If we did the cutoff step correctly then
+ * there should be at least one process with a valid model.
+ *
+ * but
+ *
+ * Some of the glue pieces (cutoff testing, at rest) aren't yet in
+ * place, and I think for the moment we can skip the "resample if
+ * below process energy threshold" since I don't think there are
+ * any processes that have thresholds (aside from gamma, which has
+ * no continuous energy loss processes).
  */
 template<class Engine>
-CELER_FUNCTION ModelId select_model(const ParticleTrackView& particle,
-                                    const PhysicsTrackView&  physics,
-                                    Engine&                  rng)
+CELER_FUNCTION ProcessIdModelId
+select_process_and_model(const ParticleTrackView& particle,
+                         const PhysicsTrackView&  physics,
+                         Engine&                  rng)
 {
-    if (physics.interaction_mfp() > 0)
-    {
-        // Nonzero MFP to interaction -- no interaction model
-        return {};
-    }
+    // Nonzero MFP to interaction -- no interaction model
+    CELER_EXPECT(physics.interaction_mfp() <= 0);
 
     // Sample ParticleProcessId from physics.per_process_xs()
-    (void)sizeof(rng);
 
-    // Get ModelGroup from physics.models(ppid);
+    auto      total_macro_xs = physics.macro_xs();
+    real_type prob           = generate_canonical(rng) * total_macro_xs;
+    real_type accum          = 0.0;
 
-    // Find ModelId corresponding to energy bin
-    (void)sizeof(particle.energy());
+    for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
+    {
+        accum += physics.per_process_xs(ppid);
+        if (accum >= prob)
+        {
+            // Select the model and return; See doc above for
+            // details.
+            auto find_model = physics.make_model_finder(ppid);
 
-    CELER_NOT_IMPLEMENTED("selecting a model for interaction");
+            return ProcessIdModelId{ppid, find_model(particle.energy())};
+        }
+    }
+    // Since total_macro_xs is supposed to be the sum of the cross section
+    // and the random number should be between 0 and 1, we can't get here.
+    CELER_ASSERT_UNREACHABLE();
+
+    return {};
 }
 
 //---------------------------------------------------------------------------//
