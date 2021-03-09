@@ -10,7 +10,7 @@
 #include <iostream>
 #include <random>
 #include "base/ArrayUtils.hh"
-#include "base/PieStateStore.hh"
+#include "base/CollectionStateStore.hh"
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
 #include "random/distributions/ExponentialDistribution.hh"
@@ -19,10 +19,11 @@
 #include "physics/base/Secondary.hh"
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
-#include "physics/grid/PhysicsGridCalculator.hh"
+#include "physics/grid/XsCalculator.hh"
 #include "DetectorView.hh"
 #include "HostStackAllocatorStore.hh"
 #include "HostDetectorStore.hh"
+#include "KernelUtils.hh"
 
 using namespace celeritas;
 using celeritas::detail::KleinNishinaInteractor;
@@ -74,7 +75,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Physics calculator
     const auto&           xs_host_ptrs = xsparams_->host_pointers();
-    PhysicsGridCalculator calc_xs(xs_host_ptrs.xs, xs_host_ptrs.reals);
+    XsCalculator          calc_xs(xs_host_ptrs.xs, xs_host_ptrs.reals);
 
     // Make secondary store
     HostStackAllocatorStore<Secondary> secondaries(args.max_steps);
@@ -85,8 +86,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     auto              detector_host_ptrs = detector.host_pointers();
 
     // Particle state store
-    PieStateStore<ParticleStateData, MemSpace::host> particle_state(*pparams_,
-                                                                    1);
+    CollectionStateStore<ParticleStateData, MemSpace::host> particle_state(
+        *pparams_, 1);
 
     // Loop over particle tracks and events per track
     for (CELER_MAYBE_UNUSED auto n : range(args.num_tracks))
@@ -129,13 +130,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             ++num_steps;
 
             // Move to collision
-            {
-                real_type sigma = calc_xs(particle.energy());
-                ExponentialDistribution<real_type> sample_distance(sigma);
-                real_type distance = sample_distance(rng);
-                celeritas::axpy(distance, direction, &position);
-                time += distance * celeritas::unit_cast(particle.speed());
-            }
+            demo_interactor::move_to_collision(
+                particle, calc_xs, direction, &position, &time, rng);
 
             // Hit analysis
             Hit h;

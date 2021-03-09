@@ -65,9 +65,8 @@ TEST_F(RootImporterTest, import_particles)
     // Check all names/PDG codes
     std::vector<std::string> loaded_names;
     std::vector<int>         loaded_pdgs;
-    for (auto idx : range<ParticleId::value_type>(particles.size()))
+    for (auto particle_id : range(ParticleId{particles.size()}))
     {
-        ParticleId particle_id{idx};
         loaded_names.push_back(particles.id_to_label(particle_id));
         loaded_pdgs.push_back(particles.id_to_pdg(particle_id).get());
     }
@@ -292,11 +291,11 @@ TEST_F(RootImporterTest, import_cutoffs)
          {units::MevEnergy{0}, 0}}};
     // clang-format on
 
-    for (auto i : range<MaterialId::value_type>(materials.size()))
+    for (auto i : range<MaterialId::size_type>(materials.size()))
     {
         MaterialId   matid{i};
         MaterialView mat_view(materials.host_pointers(), matid);
-        for (auto j : range<ParticleId::value_type>(particles.size()))
+        for (auto j : range<ParticleId::size_type>(particles.size()))
         {
             ParticleId pid{j};
             CutoffView cutoff_view(cutoffs.host_pointers(), pid, matid);

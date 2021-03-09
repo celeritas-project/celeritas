@@ -14,12 +14,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Perform y <- ax + y
-template<class T, std::size_t N>
+template<class T, size_type N>
 inline CELER_FUNCTION void axpy(T a, const Array<T, N>& x, Array<T, N>* y);
 
 //---------------------------------------------------------------------------//
 // Calculate product of two vectors
-template<class T, std::size_t N>
+template<class T, size_type N>
 inline CELER_FUNCTION T dot_product(const Array<T, N>& x, const Array<T, N>& y);
 
 //---------------------------------------------------------------------------//
@@ -30,7 +30,7 @@ cross_product(const Array<T, 3>& x, const Array<T, 3>& y);
 
 //---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) norm of a vector
-template<class T, std::size_t N>
+template<class T, size_type N>
 inline CELER_FUNCTION T norm(const Array<T, N>& vec);
 
 //---------------------------------------------------------------------------//
@@ -47,7 +47,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot);
 
 //---------------------------------------------------------------------------//
 // Test for being approximately a unit vector
-template<class T, std::size_t N, class SoftEq>
+template<class T, size_type N, class SoftEq>
 inline CELER_FUNCTION bool
 is_soft_unit_vector(const Array<T, N>& v, SoftEq cmp);
 

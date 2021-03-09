@@ -35,13 +35,13 @@ const char* skip_cstring()
  *
  * This function is useful for pre-calculating field widths for printing.
  */
-unsigned int num_digits(unsigned int val)
+int num_digits(unsigned long val)
 {
     if (val == 0)
         return 1;
 
-    unsigned int result = 0;
-    unsigned int cur    = 1;
+    int           result = 0;
+    unsigned long cur    = 1;
 
     while (cur <= val)
     {

@@ -17,7 +17,8 @@ namespace celeritas
 /*!
  * Construct with a reference to mutable host data.
  */
-ValueGridInserter::ValueGridInserter(RealPie* real_data, XsGridPie* xs_grid)
+ValueGridInserter::ValueGridInserter(RealCollection*   real_data,
+                                     XsGridCollection* xs_grid)
     : values_(real_data), xs_grids_(xs_grid)
 {
     CELER_EXPECT(real_data && xs_grid);

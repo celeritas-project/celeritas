@@ -21,8 +21,12 @@ namespace celeritas
  */
 struct LivermoreSubshell
 {
+    using EnergyUnits = units::Mev;
+    using XsUnits     = units::Barn;
+    using Energy      = Quantity<EnergyUnits>;
+
     // Binding energy of the electron
-    units::MevEnergy binding_energy;
+    Energy binding_energy;
 
     // Tabulated subshell photoionization cross section (used below 5 keV)
     // TODO: value grid
@@ -40,6 +44,8 @@ struct LivermoreSubshell
  */
 struct LivermoreElement
 {
+    using Energy = LivermoreSubshell::Energy;
+
     // TOTAL CROSS SECTIONS
 
     // Total cross section below the K-shell energy. Uses linear interpolation.
@@ -58,8 +64,8 @@ struct LivermoreElement
 
     // Energy threshold for using the parameterized subshell cross sections in
     // the lower and upper energy range
-    units::MevEnergy thresh_low;
-    units::MevEnergy thresh_high;
+    Energy thresh_low;
+    Energy thresh_high;
 };
 
 //---------------------------------------------------------------------------//

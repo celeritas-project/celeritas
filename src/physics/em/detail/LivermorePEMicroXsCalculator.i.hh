@@ -18,10 +18,9 @@ namespace detail
  * Construct with shared and state data.
  */
 CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
-    const LivermorePEPointers& shared, const ParticleTrackView& particle)
-    : shared_(shared), inc_energy_(particle.energy().value())
+    const LivermorePEPointers& shared, Energy energy)
+    : shared_(shared), inc_energy_(energy.value())
 {
-    CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -37,7 +36,7 @@ real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
     // In Geant4, if the incident gamma energy is below the lowest binding
     // energy, it is set to the binding energy so that the photoelectric cross
     // section is constant rather than zero for low energy gammas.
-    MevEnergy energy     = max(inc_energy_, el.shells.back().binding_energy);
+    Energy    energy     = max(inc_energy_, el.shells.back().binding_energy);
     real_type inv_energy = 1. / energy.value();
 
     real_type result = 0.;

@@ -42,7 +42,10 @@ std::ostream& operator<<(std::ostream& os, const Span<T, E>& s)
 
     // First element gets the remainder
     os.width(width + remainder);
-    os << s[0];
+    if (!s.empty())
+    {
+        os << s[0];
+    }
 
     for (std::streamsize i = 1; i < size; ++i)
     {

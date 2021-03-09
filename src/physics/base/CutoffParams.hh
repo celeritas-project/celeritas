@@ -8,7 +8,7 @@
 #pragma once
 
 #include "CutoffInterface.hh"
-#include "base/PieMirror.hh"
+#include "base/CollectionMirror.hh"
 #include "physics/base/Units.hh"
 #include <vector>
 
@@ -63,7 +63,7 @@ class CutoffParams
 
   private:
     // Host/device storage and reference
-    PieMirror<CutoffParamsData> data_;
+    CollectionMirror<CutoffParamsData> data_;
     using HostValue = CutoffParamsData<Ownership::value, MemSpace::host>;
 };
 

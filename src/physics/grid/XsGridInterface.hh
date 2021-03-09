@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "UniformGridInterface.hh"
@@ -28,7 +28,6 @@ struct XsGridData
 {
     using EnergyUnits = units::Mev;
     using XsUnits     = units::NativeUnit; // 1/cm
-    using size_type   = pie_size_type;
 
     //! "Special" value indicating none of the values are scaled by 1/E
     static CELER_CONSTEXPR_FUNCTION size_type no_scaling()
@@ -38,7 +37,7 @@ struct XsGridData
 
     UniformGridData     log_energy;
     size_type           prime_index{no_scaling()};
-    PieSlice<real_type> value;
+    ItemRange<real_type> value;
 
     //! Whether the interface is initialized and valid
     explicit CELER_FUNCTION operator bool() const
@@ -55,8 +54,8 @@ struct XsGridData
  */
 struct GenericGridData
 {
-    PieSlice<real_type> grid;         //!< x grid
-    PieSlice<real_type> value;        //!< f(x) value
+    ItemRange<real_type> grid;         //!< x grid
+    ItemRange<real_type> value;        //!< f(x) value
     Interp              grid_interp;  //!< Interpolation along x
     Interp              value_interp; //!< Interpolation along f(x)
 

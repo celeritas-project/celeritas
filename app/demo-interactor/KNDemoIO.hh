@@ -24,11 +24,11 @@ struct KNDemoRunArgs
     using size_type  = celeritas::size_type;
     using GridParams = celeritas::UniformGridData;
 
-    double        energy;
-    unsigned long seed;
-    size_type     num_tracks;
-    size_type     max_steps;
-    GridParams    tally_grid;
+    double       energy;
+    unsigned int seed;
+    size_type    num_tracks;
+    size_type    max_steps;
+    GridParams   tally_grid;
 };
 
 //! Output from a single run

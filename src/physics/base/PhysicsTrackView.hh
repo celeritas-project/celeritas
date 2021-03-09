@@ -12,7 +12,7 @@
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "physics/grid/GridIdFinder.hh"
-#include "physics/grid/PhysicsGridCalculator.hh"
+#include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
 #include "Types.hh"
 
@@ -35,8 +35,8 @@ class PhysicsTrackView
         = PhysicsParamsData<Ownership::const_reference, MemSpace::native>;
     using PhysicsStatePointers
         = PhysicsStateData<Ownership::reference, MemSpace::native>;
-
-    using ModelFinder = GridIdFinder<units::MevEnergy, ModelId>;
+    using MevEnergy   = units::MevEnergy;
+    using ModelFinder = GridIdFinder<MevEnergy, ModelId>;
     //!@}
 
   public:
@@ -53,10 +53,10 @@ class PhysicsTrackView
     // Set the remaining MFP to interaction
     inline CELER_FUNCTION void interaction_mfp(real_type);
 
-    // Set the physics step length
+    // Set the overall physics step length
     inline CELER_FUNCTION void step_length(real_type);
 
-    // Set the total (process-integrated) macroscopic xs
+    // Set the total (process-integrated) macroscopic xs [cm^-1]
     inline CELER_FUNCTION void macro_xs(real_type);
 
     // Select a model for the current interaction (or {} for no interaction)
@@ -82,7 +82,7 @@ class PhysicsTrackView
     //// PROCESSES (depend on particle type and possibly material) ////
 
     // Number of processes that apply to this track
-    inline CELER_FUNCTION ParticleProcessId::value_type
+    inline CELER_FUNCTION ParticleProcessId::size_type
                           num_particle_processes() const;
 
     // Process ID for the given within-particle process index
@@ -91,6 +91,10 @@ class PhysicsTrackView
     // Get table, null if not present for this particle/material/type
     inline CELER_FUNCTION ValueGridId value_grid(ValueGridType table,
                                                  ParticleProcessId) const;
+
+    // Get hardwired model, null if not present
+    inline CELER_FUNCTION ModelId hardwired_model(ParticleProcessId ppid,
+                                                  MevEnergy energy) const;
 
     // Models that apply to the given process ID
     inline CELER_FUNCTION
@@ -101,9 +105,17 @@ class PhysicsTrackView
     // Calculate scaled step range
     inline CELER_FUNCTION real_type range_to_step(real_type range) const;
 
+    // Fractional energy loss allowed before post-step recalculation
+    inline CELER_FUNCTION real_type linear_loss_limit() const;
+
+    // Calculate macroscopic cross section on the fly for the given model
+    inline CELER_FUNCTION real_type calc_xs_otf(ModelId       model,
+                                                MaterialView& material,
+                                                MevEnergy     energy) const;
+
     // Construct a grid calculator from a physics table
-    inline CELER_FUNCTION
-        PhysicsGridCalculator make_calculator(ValueGridId) const;
+    template<class T>
+    inline CELER_FUNCTION T make_calculator(ValueGridId) const;
 
     //// SCRATCH SPACE ////
 
@@ -113,7 +125,7 @@ class PhysicsTrackView
 
     //// HACKS ////
 
-    // Process ID for photoelectric effect if Livermore model is in use
+    // Process ID for photoelectric effect
     inline CELER_FUNCTION ProcessId photoelectric_process_id() const;
 
     // Process ID for positron annihilation

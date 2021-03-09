@@ -50,7 +50,7 @@ CELER_FUNCTION MatterState MaterialView::matter_state() const
 /*!
  * Number of elements present in this material.
  */
-CELER_FUNCTION ElementComponentId::value_type MaterialView::num_elements() const
+CELER_FUNCTION ElementComponentId::size_type MaterialView::num_elements() const
 {
     return this->material_def().elements.size();
 }

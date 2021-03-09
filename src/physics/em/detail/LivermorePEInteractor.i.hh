@@ -33,7 +33,7 @@ LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
     , inc_direction_(inc_direction)
     , inc_energy_(particle.energy().value())
     , allocate_(allocate)
-    , calc_micro_xs_(shared, particle)
+    , calc_micro_xs_(shared, particle.energy())
 {
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
     CELER_EXPECT(inc_energy_.value() > 0);
@@ -48,14 +48,16 @@ LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
 template<class Engine>
 CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 {
-    // Allocate space to hold the single photoelectron emitted plus the total
-    // possible number of secondaries created in atomic relaxation, if enabled
+    // Allocate space for the single photoelectron emitted plus the maximum
+    // possible number of secondaries from atomic relaxation, if enabled, and
+    // space to hold the unprocessed vacancies in atomic relaxation, if enabled
     AtomicRelaxationHelper relax_helper(
-        shared_.atomic_relaxation, el_id_, allocate_, 1);
-    Span<Secondary> secondaries = relax_helper.allocate();
-    if (secondaries.empty())
+        shared_.atomic_relaxation, shared_.vacancies, el_id_, allocate_, 1);
+    Span<Secondary>  secondaries = relax_helper.allocate_secondaries();
+    Span<SubshellId> vacancies   = relax_helper.allocate_vacancies();
+    if (secondaries.empty() || (secondaries.size() > 1 && vacancies.empty()))
     {
-        // Failed to allocate space for secondaries
+        // Failed to allocate space for secondaries or stack
         return Interaction::from_failure();
     }
 
@@ -63,7 +65,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     real_type cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
     real_type xs     = 0.;
     const LivermoreElement& el = shared_.data.elements[el_id_.get()];
-    SubshellId::value_type  shell_id;
+    SubshellId::size_type   shell_id;
     for (shell_id = 0; shell_id < el.shells.size() - 1; ++shell_id)
     {
         const auto& shell = el.shells[shell_id];
@@ -125,8 +127,8 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     secondaries.front().direction = this->sample_direction(rng);
 
     // Sample secondaries from atomic relaxation, if enabled
-    AtomicRelaxation sample_relaxation
-        = relax_helper.build_distribution(secondaries, SubshellId{shell_id});
+    AtomicRelaxation sample_relaxation = relax_helper.build_distribution(
+        secondaries, vacancies, SubshellId{shell_id});
     auto outgoing      = sample_relaxation(rng);
     result.secondaries = outgoing.secondaries;
 
@@ -165,7 +167,7 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
     }
     else if (inc_energy_ < min_energy)
     {
-        // If the incident energy is below 1 keV, set it to 1 keV.
+        // If the incident energy is below 1 eV, set it to 1 eV.
         energy_per_mecsq = min_energy.value() * shared_.inv_electron_mass;
     }
     else

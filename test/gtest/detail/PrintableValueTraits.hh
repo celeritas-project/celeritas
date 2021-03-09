@@ -53,7 +53,8 @@ inline std::ostream& operator<<(std::ostream& os, StreamableChar sc)
                 os << 'r';
                 break;
             default:
-                os << 'x' << char_to_hex_string(sc.c);
+                os << 'x'
+                   << char_to_hex_string(static_cast<unsigned char>(sc.c));
                 break;
         }
     }
@@ -117,7 +118,7 @@ struct PrintableValueTraits<unsigned char>
 {
     static const char* name() { return "unsigned char"; }
     static void init(std::ostream& os) { os << std::setfill('0') << std::hex; }
-    static void print(std::ostream& os, int value)
+    static void        print(std::ostream& os, unsigned char value)
     {
         os << "0x" << char_to_hex_string(value);
     }
@@ -128,7 +129,7 @@ struct PrintableValueTraits<bool>
 {
     static const char* name() { return "bool"; }
     static void        init(std::ostream& os) { os << std::boolalpha; }
-    static void        print(std::ostream& os, float value) { os << value; }
+    static void        print(std::ostream& os, bool value) { os << value; }
 };
 
 template<>

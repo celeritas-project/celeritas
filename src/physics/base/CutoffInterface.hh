@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "physics/base/Units.hh"
 #include "Types.hh"
 #include "physics/base/Types.hh"
@@ -35,13 +35,13 @@ template<Ownership W, MemSpace M>
 struct CutoffParamsData
 {
     template<class T>
-    using Data = Pie<T, W, M>;
+    using Data = Collection<T, W, M>;
 
     // Backend storage
     Data<ParticleCutoff> cutoffs; // [num_particles][num_materials]
 
-    ParticleId::value_type num_particles{};
-    MaterialId::value_type num_materials{};
+    ParticleId::size_type num_particles;
+    MaterialId::size_type num_materials;
 
     //// MEMBER FUNCTIONS ////
 

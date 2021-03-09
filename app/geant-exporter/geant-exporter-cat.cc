@@ -38,10 +38,9 @@ void print_particles(const ParticleParams& particles)
 | ----------------- | ----------- | ---------- | ---------- | ----------- |
 )gfm";
 
-    for (auto idx : range<ParticleId::value_type>(particles.size()))
+    for (auto particle_id : range(ParticleId{particles.size()}))
     {
-        ParticleId         particle_id{idx};
-        const auto&        p = particles.get(particle_id);
+        const auto& p = particles.get(particle_id);
 
         // clang-format off
         cout << "| "

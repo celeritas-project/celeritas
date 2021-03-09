@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Array.hh"
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "Types.hh"
 #include "physics/grid/XsGridInterface.hh"
 #include "physics/em/detail/LivermorePE.hh"
@@ -16,7 +16,7 @@
 #include "physics/material/Types.hh"
 
 #ifndef __CUDA_ARCH__
-#    include "base/PieBuilder.hh"
+#    include "base/CollectionBuilder.hh"
 #endif
 
 namespace celeritas
@@ -55,8 +55,8 @@ using ValueGridArray = Array<T, size_type(ValueGridType::size_)>;
  */
 struct ModelGroup
 {
-    PieSlice<real_type> energy; //!< Energy grid bounds [MeV]
-    PieSlice<ModelId>   model;  //!< Corresponding models
+    ItemRange<real_type> energy; //!< Energy grid bounds [MeV]
+    ItemRange<ModelId>   model;  //!< Corresponding models
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
@@ -76,7 +76,7 @@ struct ModelGroup
  */
 struct ValueTable
 {
-    PieSlice<ValueGridId> material; //!< Value grid by material index
+    ItemRange<ValueGridId> material; //!< Value grid by material index
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
@@ -87,7 +87,7 @@ struct ValueTable
  * Processes for a single particle type.
  *
  * Each index should be accessed with type ParticleProcessId. The "tables" are
- * a fixed-size number of PieSlice references to ValueTables. The first index
+ * a fixed-size number of ItemRange references to ValueTables. The first index
  * of the table (hard-coded) corresponds to ValueGridType; the second index is
  * a ParticleProcessId. So the cross sections for ParticleProcessId{2} would
  * be \code tables[size_type(ValueGridType::macro_xs)][2] \endcode. This
@@ -95,9 +95,9 @@ struct ValueTable
  */
 struct ProcessGroup
 {
-    PieSlice<ProcessId> processes; //!< Processes that apply [ppid]
-    ValueGridArray<PieSlice<ValueTable>> tables; //!< [vgt][ppid]
-    PieSlice<ModelGroup> models; //!< Model applicability [ppid]
+    ItemRange<ProcessId> processes; //!< Processes that apply [ppid]
+    ValueGridArray<ItemRange<ValueTable>> tables; //!< [vgt][ppid]
+    ItemRange<ModelGroup> models; //!< Model applicability [ppid]
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -106,7 +106,7 @@ struct ProcessGroup
     }
 
     //! Number of processes that apply
-    CELER_FUNCTION ParticleProcessId::value_type size() const
+    CELER_FUNCTION ParticleProcessId::size_type size() const
     {
         return processes.size();
     }
@@ -118,10 +118,16 @@ struct ProcessGroup
  */
 struct HardwiredModels
 {
-    ProcessId                          gamma_photoelectric;
-    const detail::LivermorePEPointers* livermore_params = nullptr;
-    ProcessId                          positron_annihilation;
-    const detail::EPlusGGPointers*     eplusgg_params = nullptr;
+    // Photoelectric effect
+    ProcessId                   photoelectric;
+    units::MevEnergy            photoelectric_table_thresh;
+    ModelId                     livermore_pe;
+    detail::LivermorePEPointers livermore_pe_params;
+
+    // Positron annihilation
+    ProcessId               positron_annihilation;
+    ModelId                 eplusgg;
+    detail::EPlusGGPointers eplusgg_params;
 };
 
 //---------------------------------------------------------------------------//
@@ -144,27 +150,27 @@ template<Ownership W, MemSpace M>
 struct PhysicsParamsData
 {
     template<class T>
-    using Data = Pie<T, W, M>;
+    using Items = Collection<T, W, M>;
     template<class T>
-    using ParticleData = Pie<T, W, M, ParticleId>;
+    using ParticleItems = Collection<T, W, M, ParticleId>;
 
     // Backend storage
-    Data<real_type>            reals;
-    Data<ModelId>              model_ids;
-    Data<ValueGrid>            value_grids;
-    Data<ValueGridId>          value_grid_ids;
-    Data<ProcessId>            process_ids;
-    Data<ValueTable>           value_tables;
-    Data<ModelGroup>           model_groups;
-    ParticleData<ProcessGroup> process_groups;
+    Items<real_type>            reals;
+    Items<ModelId>              model_ids;
+    Items<ValueGrid>            value_grids;
+    Items<ValueGridId>          value_grid_ids;
+    Items<ProcessId>            process_ids;
+    Items<ValueTable>           value_tables;
+    Items<ModelGroup>           model_groups;
+    ParticleItems<ProcessGroup> process_groups;
 
     HardwiredModels       hardwired;
-    ProcessId::value_type max_particle_processes{};
+    ProcessId::size_type  max_particle_processes{};
 
     //// USER-CONFIGURABLE CONSTANTS ////
     real_type scaling_min_range{}; //!< rho [cm]
     real_type scaling_fraction{};  //!< alpha [unitless]
-    // real_type max_eloss_fraction{};  //!< For scaled range calculation
+    real_type linear_loss_limit{}; //!< For scaled range calculation
 
     //// MEMBER FUNCTIONS ////
 
@@ -172,7 +178,8 @@ struct PhysicsParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return !process_groups.empty() && max_particle_processes
-               && scaling_min_range > 0 && scaling_fraction > 0;
+               && scaling_min_range > 0 && scaling_fraction > 0
+               && linear_loss_limit > 0;
     }
 
     //! Assign from another set of data
@@ -195,6 +202,7 @@ struct PhysicsParamsData
 
         scaling_min_range = other.scaling_min_range;
         scaling_fraction  = other.scaling_fraction;
+        linear_loss_limit = other.linear_loss_limit;
 
         return *this;
     }
@@ -212,9 +220,10 @@ struct PhysicsParamsData
  */
 struct PhysicsTrackState
 {
-    real_type          interaction_mfp; //!< Remaining MFP to interaction
-    real_type          step_length;     //!< Maximum step length
-    real_type          macro_xs;
+    real_type interaction_mfp; //!< Remaining MFP to interaction
+    real_type step_length; //!< Overall physics step length
+    real_type macro_xs;    //!< Total cross section
+
     ModelId            model_id;   //!< Selected model if interacting
     ElementComponentId element_id; //!< Selected element during interaction
 };
@@ -243,12 +252,12 @@ template<Ownership W, MemSpace M>
 struct PhysicsStateData
 {
     template<class T>
-    using StateData = celeritas::StatePie<T, W, M>;
+    using StateItems = celeritas::StateCollection<T, W, M>;
     template<class T>
-    using Data = celeritas::Pie<T, W, M>;
+    using Items = celeritas::Collection<T, W, M>;
 
-    StateData<PhysicsTrackState> state; //!< Track state [track]
-    Data<real_type> per_process_xs;     //!< XS [track][particle process]
+    StateItems<PhysicsTrackState> state; //!< Track state [track]
+    Items<real_type> per_process_xs;     //!< XS [track][particle process]
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
@@ -274,14 +283,14 @@ struct PhysicsStateData
  */
 template<MemSpace M>
 inline void resize(
-    PhysicsStateData<Ownership::value, M>*                               data,
+    PhysicsStateData<Ownership::value, M>*                               state,
     const PhysicsParamsData<Ownership::const_reference, MemSpace::host>& params,
     size_type                                                            size)
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params.max_particle_processes > 0);
-    make_pie_builder(&data->state).resize(size);
-    make_pie_builder(&data->per_process_xs)
+    make_builder(&state->state).resize(size);
+    make_builder(&state->per_process_xs)
         .resize(size * params.max_particle_processes);
 }
 #endif

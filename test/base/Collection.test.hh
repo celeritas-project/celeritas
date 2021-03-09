@@ -3,10 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Pie.test.hh
+//! \file Collection.test.hh
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "base/Types.hh"
 #include "celeritas_config.h"
 
@@ -25,31 +25,29 @@ struct MockElement
     double atomic_mass;
 };
 
-using MockElementId
-    = celeritas::OpaqueId<MockElement, celeritas::pie_size_type>;
+using MockElementId = celeritas::ItemId<MockElement>;
 
 struct MockMaterial
 {
-    double                           number_density;
-    celeritas::PieSlice<MockElement> elements;
+    double                            number_density;
+    celeritas::ItemRange<MockElement> elements;
 };
 
-using MockMaterialId
-    = celeritas::OpaqueId<MockMaterial, celeritas::pie_size_type>;
+using MockMaterialId = celeritas::ItemId<MockMaterial>;
 
 template<Ownership W, MemSpace M>
-struct MockParamsPies
+struct MockParamsData
 {
     //// TYPES ////
 
     template<class T>
-    using Pie = celeritas::Pie<T, W, M>;
+    using Collection = celeritas::Collection<T, W, M>;
 
     //// DATA ////
 
-    celeritas::Pie<MockElement, W, M>  elements;
-    celeritas::Pie<MockMaterial, W, M> materials;
-    int                                max_element_components{};
+    celeritas::Collection<MockElement, W, M>  elements;
+    celeritas::Collection<MockMaterial, W, M> materials;
+    int                                       max_element_components{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -59,9 +57,9 @@ struct MockParamsPies
         return !materials.empty() && max_element_components >= 0;
     }
 
-    //! Assign from another set of pies
+    //! Assign from another set of collections
     template<Ownership W2, MemSpace M2>
-    MockParamsPies& operator=(const MockParamsPies<W2, M2>& other)
+    MockParamsData& operator=(const MockParamsData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         elements               = other.elements;
@@ -76,29 +74,25 @@ struct MockParamsPies
  * Mock-up of a set of states.
  */
 template<Ownership W, MemSpace M>
-struct MockStatePies
+struct MockStateData
 {
     //// TYPES ////
 
     template<class T>
-    using Pie = celeritas::Pie<T, W, M>;
+    using Collection = celeritas::Collection<T, W, M>;
 
     //// DATA ////
 
-    celeritas::StatePie<MockMaterialId, W, M> matid;
+    celeritas::StateCollection<MockMaterialId, W, M> matid;
 
     //// MEMBER FUNCTIONS ////
 
     explicit CELER_FUNCTION operator bool() const { return !matid.empty(); }
     CELER_FUNCTION celeritas::size_type size() const { return matid.size(); }
 
-    // NOTE: no constructor from MockStatePies<W2, M2> means that calling
-    //  MockStatePies<ref, host> foo = host_pies;
-    // gives an ugly error message
-
-    //! Assign from another set of pies on the host
+    //! Assign from another set of collections on the host
     template<Ownership W2, MemSpace M2>
-    MockStatePies& operator=(MockStatePies<W2, M2>& other)
+    MockStateData& operator=(MockStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         matid = other.matid;
@@ -114,8 +108,8 @@ class MockTrackView
 {
   public:
     using ParamsPointers
-        = MockParamsPies<Ownership::const_reference, MemSpace::native>;
-    using StatePointers = MockStatePies<Ownership::reference, MemSpace::native>;
+        = MockParamsData<Ownership::const_reference, MemSpace::native>;
+    using StatePointers = MockStateData<Ownership::reference, MemSpace::native>;
     using ThreadId      = celeritas::ThreadId;
 
     CELER_FUNCTION MockTrackView(const ParamsPointers& params,
@@ -158,19 +152,19 @@ class MockTrackView
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Input data
-struct PTestInput
+struct CTestInput
 {
-    MockParamsPies<Ownership::const_reference, MemSpace::device> params;
-    MockStatePies<Ownership::reference, MemSpace::device>        states;
+    MockParamsData<Ownership::const_reference, MemSpace::device> params;
+    MockStateData<Ownership::reference, MemSpace::device>        states;
     celeritas::Span<double>                                      result;
 };
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void pie_cuda_test(PTestInput);
+void col_cuda_test(CTestInput);
 
 #if !CELERITAS_USE_CUDA
-inline void pie_cuda_test(PTestInput)
+inline void col_cuda_test(CTestInput)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

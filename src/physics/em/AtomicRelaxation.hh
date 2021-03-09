@@ -44,6 +44,7 @@ class AtomicRelaxation
                      ElementId                        el_id,
                      SubshellId                       shell_id,
                      Span<Secondary>                  secondaries,
+                     Span<SubshellId>                 vacancies,
                      size_type                        base_size = 0);
 
     // Simulate atomic relaxation with an initial vacancy in the given shell ID
@@ -59,6 +60,8 @@ class AtomicRelaxation
     SubshellId shell_id_;
     // Fluorescence photons and Auger electrons
     Span<Secondary> secondaries_;
+    // Storage for stack of unprocessed subshell vacancies
+    Span<SubshellId> vacancies_;
     // The number of secondaries already created by the primary process
     size_type base_size_;
     // Angular distribution of secondaries

@@ -182,7 +182,7 @@ void InteractorHostTestBase::check_energy_conservation(
 void InteractorHostTestBase::check_momentum_conservation(
     const Interaction& interaction) const
 {
-    PieStateStore<celeritas::ParticleStateData, celeritas::MemSpace::host>
+    CollectionStateStore<celeritas::ParticleStateData, celeritas::MemSpace::host>
                       temp_store(*particle_params_, 1);
     ParticleTrackView temp_track(
         particle_params_->host_pointers(), temp_store.ref(), ThreadId{0});

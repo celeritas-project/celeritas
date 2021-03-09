@@ -7,12 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "base/Range.hh"
 #include "base/Span.hh"
 #include "physics/base/PhysicsInterface.hh"
 #include "physics/base/Units.hh"
 #include "physics/base/Types.hh"
+#include "physics/grid/RangeCalculator.hh"
+#include "physics/grid/XsCalculator.hh"
 #include "physics/material/Types.hh"
 
 // Kernel functions
@@ -40,7 +42,9 @@ struct PTestInput
     celeritas::PhysicsParamsData<Ownership::const_reference, MemSpace::device>
                                                                         params;
     celeritas::PhysicsStateData<Ownership::reference, MemSpace::device> states;
-    celeritas::StatePie<PhysTestInit, Ownership::const_reference, MemSpace::device>
+    celeritas::StateCollection<PhysTestInit,
+                               Ownership::const_reference,
+                               MemSpace::device>
         inits;
 
     // Calculated "step" per track
@@ -62,7 +66,7 @@ inline CELER_FUNCTION celeritas::real_type
         real_type         process_xs = 0;
         if (auto id = phys.value_grid(ValueGridType::macro_xs, ppid))
         {
-            auto calc_xs = phys.make_calculator(id);
+            auto calc_xs = phys.make_calculator<XsCalculator>(id);
             process_xs   = calc_xs(energy);
         }
 
@@ -85,7 +89,7 @@ inline CELER_FUNCTION celeritas::real_type
     {
         if (auto id = phys.value_grid(ValueGridType::range, ppid))
         {
-            auto calc_range = phys.make_calculator(id);
+            auto calc_range = phys.make_calculator<RangeCalculator>(id);
             step            = min(step, calc_range(energy));
         }
     }

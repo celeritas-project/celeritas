@@ -48,7 +48,7 @@ class KernelDiagnostics
     using key_type        = OpaqueId<struct Kernel>;
     using value_type      = KernelProperties;
     using const_reference = const value_type&;
-    using size_type       = key_type::value_type;
+    using size_type       = key_type::size_type;
     //!@}
 
   public:
@@ -115,7 +115,7 @@ void KernelDiagnostics::launch(key_type key, unsigned int num_threads)
     diag.max_num_threads = std::max(num_threads, diag.max_num_threads);
 }
 
-#if __CUDACC__
+#ifdef __CUDACC__
 //---------------------------------------------------------------------------//
 /*!
  * Register the given __global__ kernel function.

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "base/Types.hh"
+#include "physics/material/MaterialTrackView.hh"
 #include "ParticleTrackView.hh"
 #include "PhysicsTrackView.hh"
 
@@ -16,18 +17,27 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // INLINE HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-inline CELER_FUNCTION real_type calc_tabulated_physics_step(
-    const ParticleTrackView& particle, PhysicsTrackView& physics);
-
 inline CELER_FUNCTION real_type
-calc_energy_loss(const ParticleTrackView& particle,
-                 const PhysicsTrackView&  physics,
-                 real_type                step_length);
+calc_tabulated_physics_step(const MaterialTrackView& material,
+                            const ParticleTrackView& particle,
+                            PhysicsTrackView&        physics);
+
+inline CELER_FUNCTION ParticleTrackView::Energy
+                      calc_energy_loss(const ParticleTrackView& particle,
+                                       const PhysicsTrackView&  physics,
+                                       real_type                step_length);
+
+struct ProcessIdModelId
+{
+    ParticleProcessId ppid;
+    ModelId           model;
+};
 
 template<class Engine>
-inline CELER_FUNCTION ModelId select_model(const ParticleTrackView& particle,
-                                           const PhysicsTrackView&  physics,
-                                           Engine&                  rng);
+inline CELER_FUNCTION ProcessIdModelId
+select_process_and_model(const ParticleTrackView& particle,
+                         const PhysicsTrackView&  physics,
+                         Engine&                  rng);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

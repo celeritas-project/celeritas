@@ -129,7 +129,7 @@ TEST_F(LoggerTest, custom_log)
     EXPECT_EQ("Things failed because:  1 is the loneliest number", last_msg);
 }
 
-TEST_F(LoggerTest, performance)
+TEST_F(LoggerTest, DISABLED_performance)
 {
     // Construct a logger with an expensive output routine that will never be
     // called

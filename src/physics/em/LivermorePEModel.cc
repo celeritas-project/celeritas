@@ -40,15 +40,18 @@ LivermorePEModel::LivermorePEModel(ModelId                  id,
  * Construct with transition data for atomic relaxation.
  */
 LivermorePEModel::LivermorePEModel(
-    ModelId                       id,
-    const ParticleParams&         particles,
-    const LivermorePEParams&      data,
-    const AtomicRelaxationParams& atomic_relaxation)
+    ModelId                         id,
+    const ParticleParams&           particles,
+    const LivermorePEParams&        data,
+    const AtomicRelaxationParams&   atomic_relaxation,
+    SPConstSubshellIdAllocatorStore vacancies)
     : LivermorePEModel(id, particles, data)
 {
-    interface_.atomic_relaxation = celeritas::device()
-                                       ? atomic_relaxation.device_pointers()
-                                       : atomic_relaxation.host_pointers();
+    CELER_EXPECT(vacancies);
+    vacancies_                   = std::move(vacancies);
+    interface_.atomic_relaxation = atomic_relaxation.device_pointers();
+    interface_.vacancies         = vacancies_->device_pointers();
+    CELER_ENSURE(interface_);
 }
 
 //---------------------------------------------------------------------------//
@@ -73,7 +76,7 @@ void LivermorePEModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractPointers& pointers) const
 {
 #if CELERITAS_USE_CUDA
-    detail::livermore_pe_interact(interface_, pointers);
+    detail::livermore_pe_interact(this->device_pointers(), pointers);
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
@@ -86,6 +89,20 @@ void LivermorePEModel::interact(
 ModelId LivermorePEModel::model_id() const
 {
     return interface_.model_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access data on device
+ */
+detail::LivermorePEPointers LivermorePEModel::device_pointers() const
+{
+    detail::LivermorePEPointers result = interface_;
+    if (result.atomic_relaxation)
+        result.vacancies = vacancies_->device_pointers();
+
+    CELER_ENSURE(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

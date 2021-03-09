@@ -78,20 +78,24 @@ class DeviceAllocationTest : public celeritas::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(DeviceAllocationTest, all)
+TEST_F(DeviceAllocationTest, always)
 {
     DeviceAllocation alloc;
     EXPECT_EQ(0, alloc.size());
     EXPECT_TRUE(alloc.empty());
+}
 
 #if !CELERITAS_USE_CUDA
+TEST_F(DeviceAllocationTest, nocuda)
+{
     // Can't allocate
     EXPECT_THROW(DeviceAllocation(1234), celeritas::DebugError);
-    cout << "CUDA is disabled; skipping remainder of test." << endl;
-    return;
+}
 #endif
 
-    alloc = DeviceAllocation(1024);
+TEST_F(DeviceAllocationTest, TEST_IF_CELERITAS_CUDA(device))
+{
+    DeviceAllocation alloc(1024);
     EXPECT_EQ(1024, alloc.size());
     EXPECT_FALSE(alloc.empty());
 

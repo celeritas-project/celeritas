@@ -69,6 +69,7 @@ list(APPEND SOURCES
   physics/em/GammaConversionProcess.cc
   physics/em/KleinNishinaModel.cc
   physics/em/MollerBhabhaModel.cc
+  physics/em/detail/Utils.cc
   physics/grid/ValueGridBuilder.cc
   physics/grid/ValueGridInserter.cc
   physics/material/MaterialParams.cc

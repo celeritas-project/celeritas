@@ -38,12 +38,14 @@ struct LivermorePEPointers
     LivermorePEParamsPointers data;
     //! EADL transition data used for atomic relaxation
     AtomicRelaxParamsPointers atomic_relaxation;
+    //! Storage for the stack of vacancy subshell IDs
+    SubshellIdAllocatorPointers vacancies;
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return model_id && inv_electron_mass > 0 && electron_id && gamma_id
-               && data;
+               && data && (!atomic_relaxation == !vacancies);
     }
 };
 

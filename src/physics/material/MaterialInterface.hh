@@ -7,14 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Pie.hh"
+#include "base/Collection.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "MaterialInterface.hh"
 #include "Types.hh"
 
 #ifndef __CUDA_ARCH__
-#    include "base/PieBuilder.hh"
+#    include "base/CollectionBuilder.hh"
 #endif
 
 namespace celeritas
@@ -74,7 +74,7 @@ struct MaterialDef
     real_type   number_density; //!< Atomic number density [1/cm^3]
     real_type   temperature;    //!< Temperature [K]
     MatterState matter_state;   //!< Solid, liquid, gas
-    PieSlice<MatElementComponent> elements; //!< Element components
+    ItemRange<MatElementComponent> elements; //!< Element components
 
     // COMPUTED PROPERTIES
 
@@ -97,12 +97,12 @@ template<Ownership W, MemSpace M>
 struct MaterialParamsData
 {
     template<class T>
-    using Data = celeritas::Pie<T, W, M>;
+    using Data = celeritas::Collection<T, W, M>;
 
     Data<ElementDef>               elements;
     Data<MatElementComponent>      elcomponents;
     Data<MaterialDef>              materials;
-    ElementComponentId::value_type max_element_components{};
+    ElementComponentId::size_type  max_element_components{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -155,7 +155,7 @@ template<Ownership W, MemSpace M>
 struct MaterialStateData
 {
     template<class T>
-    using Data = celeritas::StatePie<T, W, M>;
+    using Data = celeritas::StateCollection<T, W, M>;
 
     Data<MaterialTrackState> state;
     Data<real_type> element_scratch; // 2D array: [num states][max components]
@@ -189,8 +189,8 @@ inline void resize(
     size_type                                                             size)
 {
     CELER_EXPECT(size > 0);
-    make_pie_builder(&data->state).resize(size);
-    make_pie_builder(&data->element_scratch)
+    make_builder(&data->state).resize(size);
+    make_builder(&data->element_scratch)
         .resize(size * params.max_element_components);
 }
 #endif

@@ -30,9 +30,9 @@ class StateStore
     //! Construction arguments
     struct Input
     {
-        size_type     num_tracks;
-        SPConstGeo    geo;
-        unsigned long host_seed = 12345u;
+        size_type    num_tracks;
+        SPConstGeo   geo;
+        unsigned int host_seed = 12345u;
     };
 
   public:

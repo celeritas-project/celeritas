@@ -11,9 +11,13 @@
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "physics/base/Units.hh"
+#include "physics/em/EPlusGGMacroXsCalculator.hh"
+#include "physics/material/MaterialTrackView.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
+using celeritas::ElementId;
+using celeritas::EPlusGGMacroXsCalculator;
 using celeritas::detail::EPlusGGInteractor;
 namespace pdg = celeritas::pdg;
 
@@ -28,8 +32,10 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
+        using celeritas::MatterState;
         using celeritas::ParticleDef;
         using namespace celeritas::units;
+        using namespace celeritas::constants;
         constexpr auto zero   = celeritas::zero_quantity();
         constexpr auto stable = ParticleDef::stable_decay_constant();
 
@@ -50,6 +56,19 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
         pointers_.positron_id   = params.find(pdg::positron());
         pointers_.gamma_id      = params.find(pdg::gamma());
         pointers_.electron_mass = 0.5109989461;
+
+        // Set up shared material data
+        MaterialParams::Input mi;
+        mi.elements  = {{19, AmuMass{39.0983}, "K"}};
+        mi.materials = {{1e-5 * na_avogadro,
+                         293.,
+                         MatterState::solid,
+                         {{ElementId{0}, 1.0}},
+                         "K"}};
+
+        // Set default material to potassium
+        this->set_material_params(mi);
+        this->set_material("K");
 
         // Set default particle to incident 10 MeV positron
         this->set_inc_particle(pdg::positron(), MevEnergy{10});
@@ -240,4 +259,39 @@ TEST_F(EPlusGGInteractorTest, stress_test)
     const double expected_avg_engine_samples[]
         = {4, 10.08703613281, 19.54248046875, 22.75891113281, 35.08276367188};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+}
+
+TEST_F(EPlusGGInteractorTest, macro_xs)
+{
+    using celeritas::units::MevEnergy;
+
+    auto                     material = this->material_track().material_view();
+    EPlusGGMacroXsCalculator calc_macro_xs(pointers_, material);
+
+    int    num_vals = 20;
+    double loge_min = std::log(1.e-4);
+    double loge_max = std::log(1.e6);
+    double delta    = (loge_max - loge_min) / (num_vals - 1);
+    double loge     = loge_min;
+
+    std::vector<double> energy;
+    std::vector<double> macro_xs;
+
+    // Loop over energies
+    for (int i = 0; i < num_vals; ++i)
+    {
+        double e = std::exp(loge);
+        energy.push_back(e);
+        macro_xs.push_back(calc_macro_xs(MevEnergy{e}));
+        loge += delta;
+    }
+    const double expected_macro_xs[]
+        = {0.001443034416941,  0.0007875334997718, 0.0004301446502063,
+           0.0002355766377589, 0.0001301463511539, 7.376415204169e-05,
+           4.419813786948e-05, 2.746581269388e-05, 1.508499252627e-05,
+           6.80154666357e-06,  2.782643662379e-06, 1.083362674122e-06,
+           4.039064800964e-07, 1.451975852737e-07, 5.07363090171e-08,
+           1.734848791099e-08, 5.833443676789e-09, 1.93572917075e-09,
+           6.355265134801e-10, 2.068312058021e-10};
+    EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }

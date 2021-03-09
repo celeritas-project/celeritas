@@ -7,22 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "GdmlGeometryMap.hh"
 
+#include <algorithm>
+#include "base/Assert.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct/destruct with defaults.
- */
-GdmlGeometryMap::GdmlGeometryMap()  = default;
-GdmlGeometryMap::~GdmlGeometryMap() = default;
-
-//---------------------------------------------------------------------------//
-// READ
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-/*!
- * Return the \c mat_id for a given \c vol_id .
+ * Return the mat_id for a given vol_id
  */
 mat_id GdmlGeometryMap::get_matid(vol_id volume_id) const
 {
