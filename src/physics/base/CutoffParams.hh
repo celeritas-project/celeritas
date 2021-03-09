@@ -33,7 +33,7 @@ namespace celeritas
  * 
  * In order to avoid mistakes during construction time, the \c Input structure
  * is used. This forces the user to provide an equivalent structure, a 
- * \c vector<vector<SingleCutoffs>> , which when read, provides an ordered 
+ * \c vector<vector<ParticleCutoff>> , which when read, provides an ordered 
  * list of all particle cutoffs for each available material.
  */
 class CutoffParams
@@ -48,7 +48,7 @@ class CutoffParams
     //!@}
 
     //! Input data to construct this class
-    using MaterialCutoff = std::vector<SingleCutoff>;
+    using MaterialCutoff = std::vector<ParticleCutoff>;
     using Input          = std::vector<MaterialCutoff>;
 
   public:

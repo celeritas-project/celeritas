@@ -149,6 +149,14 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
     // particle" tracks) together at the beginning of the list will make it
     // easier to human-read the particles while debugging, and having them
     // at adjacent memory locations could improve cacheing.
+    //
+    // TEMPORARILY DISABLED
+    // 1. this->load_cutoff_data() also would need to sort particle data.
+    // 2. RootImporter will be overhauled to just provide reading capabilities
+    //    and offload the ClassParams construction to smaller helper classes.
+    //    Sorting will be reimplemented at this point.
+
+    /*
     auto to_particle_key = [](const auto& inp) {
         int pdg = inp.pdg_code.get();
         return std::make_tuple(inp.mass, std::abs(pdg), pdg < 0);
@@ -158,6 +166,7 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
               [to_particle_key](const auto& lhs, const auto& rhs) {
                   return to_particle_key(lhs) < to_particle_key(rhs);
               });
+    */
 
     // Construct ParticleParams from the definitions
     return std::make_shared<ParticleParams>(std::move(defs));
@@ -325,18 +334,19 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
     {
         // Acess cutoff data from root file
         auto import_material = mat_key.second;
-
         CutoffParams::MaterialCutoff material_cutoff;
 
-        for (int entry = 0; entry < tree_particles->GetEntries(); ++entry)
+        for (int entry : range(tree_particles->GetEntries()))
         {
             tree_particles->GetEntry(entry);
-            SingleCutoff particle_cutoff = {units::MevEnergy{0}};
-            auto         iter = import_material.pdg_cutoff.find(particle.pdg);
+            ParticleCutoff particle_cutoff = {units::MevEnergy{0}, 0};
+            auto iter = import_material.pdg_cutoff.find(particle.pdg);
 
             if (iter != import_material.pdg_cutoff.end())
             {
-                particle_cutoff = {units::MevEnergy{iter->second}};
+                // PDG with non-zero cutoff values
+                particle_cutoff = {units::MevEnergy{iter->second.energy},
+                                   iter->second.range};
             }
             material_cutoff.push_back(particle_cutoff);
         }

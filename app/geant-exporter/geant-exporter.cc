@@ -326,7 +326,7 @@ void store_geometry(TFile*                       root_file,
         range_to_e_converters[idxG4PositronCut] = new G4RToEConvForPositron();
         range_to_e_converters[idxG4ProtonCut]   = new G4RToEConvForProton();
 
-        // Populate material range and energy cuts
+        // Populate material production cut values
         for (int i : celeritas::range(static_cast<int>(NumberOfG4CutIndex)))
         {
             const auto      g4i   = static_cast<G4ProductionCutsIndex>(i);
@@ -334,7 +334,11 @@ void store_geometry(TFile*                       root_file,
             const real_type energy
                 = range_to_e_converters[g4i]->Convert(range, g4material);
 
-            material.pdg_cutoff.insert({to_pdg(g4i), energy / MeV});
+            ImportMaterial::ProductionCut cutoffs;
+            cutoffs.energy = energy / MeV;
+            cutoffs.range  = range / cm;
+
+            material.pdg_cutoff.insert({to_pdg(g4i), cutoffs});
         }
 
         // Populate element information for this material

@@ -28,9 +28,9 @@ CutoffParams::CutoffParams(Input& input)
 
     for (const auto& material_cutoffs : input)
     {
-        for (const auto& element_cutoff : material_cutoffs)
+        for (const auto& particle_cutoff : material_cutoffs)
         {
-            cutoffs.push_back(std::move(element_cutoff));
+            cutoffs.push_back(std::move(particle_cutoff));
         }
     }
 

@@ -15,18 +15,19 @@
 
 namespace celeritas
 {
-struct SingleCutoff
+struct ParticleCutoff
 {
     units::MevEnergy energy{};
+    real_type        range{};
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Persistent shared cutoff data.
- * 
- * The data is a vector of cutoff energy values for every particle type and 
- * material. 
- * 
+ *
+ * The data is a vector of cutoff energy values for every particle type and
+ * material.
+ *
  * \sa CutoffView
  * \sa CutoffParams
  */
@@ -37,7 +38,7 @@ struct CutoffParamsData
     using Data = Pie<T, W, M>;
 
     // Backend storage
-    Data<SingleCutoff> cutoffs; // [num_particles][num_materials]
+    Data<ParticleCutoff> cutoffs; // [num_particles][num_materials]
 
     ParticleId::value_type num_particles{};
     MaterialId::value_type num_materials{};
