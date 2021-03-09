@@ -12,13 +12,30 @@ pipeline {
         stage('minimal') {
           agent {
             docker {
-              image 'celeritas/ci-cuda11:2021-01-27'
+              image 'celeritas/ci-bionic-minimal:2021-03-09'
               // Note: this image does not require CUDA
             }
           }
           steps {
             sh 'rm -rf build && mkdir -p build'
             sh 'SOURCE_DIR=. BUILD_DIR=build entrypoint-shell ./scripts/build/docker-minimal.sh'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+        stage('cuda-11-ndebug') {
+          agent {
+            docker {
+              image 'celeritas/ci-cuda11:2021-02-17'
+              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
+            }
+          }
+          steps {
+            sh 'rm -rf build && mkdir -p build'
+            sh 'SOURCE_DIR=. BUILD_DIR=build entrypoint-shell ./scripts/build/docker-cuda-ndebug.sh'
           }
           post {
             always {
@@ -35,7 +52,7 @@ pipeline {
           }
           steps {
             sh 'rm -rf build && mkdir -p build'
-            sh 'SOURCE_DIR=. BUILD_DIR=build entrypoint-shell ./scripts/build/docker.sh'
+            sh 'SOURCE_DIR=. BUILD_DIR=build entrypoint-shell ./scripts/build/docker-cuda.sh'
           }
           post {
             always {

@@ -1,8 +1,8 @@
-FROM  celeritas/dev:latest as builder
+ARG CONFIG
+FROM dev-${CONFIG} as builder
 
 LABEL maintainer="Seth Johnson <johnsonsr@ornl.gov>" \
       description="Celeritas CI build"
-# Run `docker build -t celeritas/ci:cuda11 .` to set up
 
 ###############################################################################
 # Export environment
@@ -29,7 +29,7 @@ RUN cd /opt/spack-environment && \
 ###############################################################################
 
 # Bare OS image to run the installed executables
-FROM nvidia/cuda:11.1-devel-ubuntu20.04
+FROM base-${CONFIG} as parent
 
 # Copy spack environment
 COPY --from=builder /opt/spack-environment /opt/spack-environment
@@ -41,24 +41,28 @@ COPY --from=builder /etc/profile.d/celeritas_spack_env.sh /etc/profile.d/celerit
 RUN apt-get -yqq update \
  && apt-get -yqq install --no-install-recommends \
         build-essential \
+        ca-certificates \
+        libc6-dbg \
         g++ \
         gcc \
         ssh \
         vim \
  && rm -rf /var/lib/apt/lists/*
 
-# Install updated vecgeom
-RUN . /etc/profile.d/celeritas_spack_env.sh \
+# Install vecgeom if requestedd
+ARG VECGEOM
+RUN test -z "${VECGEOM}" \
+  || ( . /etc/profile.d/celeritas_spack_env.sh \
   && cd /opt \
   && git clone https://gitlab.cern.ch/VecGeom/VecGeom.git vecgeom-src \
   && cd vecgeom-src \
-  && git checkout 04268fe393532a25869b31c53658f48f5c313489 \
+  && git checkout ${VECGEOM} \
   && mkdir build \
   && cd build \
   && cmake -DBACKEND:STRING=Scalar -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILTIN_VECCORE:BOOL=OFF -DNO_SPECIALIZATION:BOOL=ON -DVECGEOM_VECTOR:STRING=empty -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_STANDARD:STRING=14 -DCUDA:BOOL=ON -DGDML:BOOL=ON -DGEANT4:BOOL=OFF -DROOT:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DCTEST:BOOL=OFF -DGDMLTESTING:BOOL=OFF -DCUDA_ARCH:STRING=70 -DCMAKE_INSTALL_PREFIX:STRING=/opt/vecgeom -G Ninja .. \
   && ninja install \
   && rm -rf /opt/vecgeom-src \
-  && echo "export CMAKE_PREFIX_PATH=/opt/vecgeom:${CMAKE_PREFIX_PATH}" >> /etc/profile.d/celeritas_spack_env.sh
+  && echo "export CMAKE_PREFIX_PATH=/opt/vecgeom:${CMAKE_PREFIX_PATH}" >> /etc/profile.d/celeritas_spack_env.sh )
 
 # Set up entrypoint and group
 RUN groupadd -g 999 celeritas \
