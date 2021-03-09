@@ -1,7 +1,7 @@
-FROM  nvidia/cuda:11.1-devel-ubuntu20.04 as builder
+ARG CONFIG
+FROM base-${CONFIG} as builder
 LABEL maintainer="Seth Johnson <johnsonsr@ornl.gov>" \
       description="Celeritas prerequisites built with Spack"
-# Run `docker build -t celeritas/dev:prereq .` to set up
 
 ###############################################################################
 # From spack dockerfile:
@@ -43,9 +43,10 @@ RUN apt-get -yqq update \
  && rm -rf /var/lib/apt/lists/*
 
 # XXX replaced COPY commands with this
+ARG SPACK_VERSION
 RUN mkdir -p $SPACK_ROOT \
-    && curl -s -L https://api.github.com/repos/spack/spack/tarball/v0.16.0 \
-    | tar xzC $SPACK_ROOT --strip 1
+ && curl -s -L https://api.github.com/repos/spack/spack/tarball/${SPACK_VERSION} \
+ | tar xzC $SPACK_ROOT --strip 1
 
 RUN ln -s $SPACK_ROOT/share/spack/docker/entrypoint.bash \
           /usr/local/bin/docker-shell \
@@ -74,7 +75,8 @@ CMD ["interactive-shell"]
 # Install
 ###############################################################################
 
-COPY env.yaml /opt/spack-environment/spack.yaml
+ARG CONFIG
+COPY ${CONFIG}.yaml /opt/spack-environment/spack.yaml
 RUN cd /opt/spack-environment && spack env activate . \
     && spack install --fail-fast
 

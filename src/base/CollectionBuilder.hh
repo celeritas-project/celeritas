@@ -36,7 +36,7 @@ namespace celeritas
  * having to allocate a host version and copy to device.
  * (This is useful for state allocations.)
  */
-template<class T, MemSpace M, class I = ItemId<T>>
+template<class T, MemSpace M, class I>
 class CollectionBuilder
 {
   public:

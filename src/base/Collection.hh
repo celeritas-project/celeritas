@@ -56,6 +56,10 @@ using ItemId = OpaqueId<T, size_type>;
 template<class T, class Size = size_type>
 using ItemRange = Range<OpaqueId<T, Size>>;
 
+// Forward-declare collection builder, needed for GCC7
+template<class T2, MemSpace M2, class Id2>
+class CollectionBuilder;
+
 //---------------------------------------------------------------------------//
 /*!
  * Manage generic array-like data ownership and transfer from host to device.
@@ -161,6 +165,7 @@ class Collection
 
     detail::CollectionStorage<T, W, M> storage_{};
 
+  protected:
     //// FRIENDS ////
 
     template<class T2, Ownership W2, MemSpace M2, class Id2>
@@ -169,7 +174,6 @@ class Collection
     template<class T2, MemSpace M2, class Id2>
     friend class CollectionBuilder;
 
-  protected:
     //!@{
     // Private accessors for collection construction/access
     using StorageT = typename detail::CollectionStorage<T, W, M>::type;
