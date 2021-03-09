@@ -56,7 +56,8 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
         volume, detail::to_vector(pos_), vgstate_, contains_point);
 
     // Prepare next step
-    this->find_next_step();
+    this->find_next_step(this->is_outside() ? volume->LogicalVolume()
+                                            : vgstate_->Top());
     return *this;
 }
 
@@ -84,9 +85,15 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
 //! Find the distance to the next geometric boundary.
 CELER_FUNCTION void GeoTrackView::find_next_step()
 {
-    const vecgeom::LogicalVolume* logical_vol
-        = this->volume().GetLogicalVolume();
-    CELER_ASSERT(logical_vol);
+    return this->find_next_step(this->volume().LogicalVolume());
+}
+
+//---------------------------------------------------------------------------//
+//! Find the distance to the next geometric boundary.
+CELER_FUNCTION void
+GeoTrackView::find_next_step(const vecgeom::LogicalVolume* volume)
+{
+    CELER_EXPECT(logical_vol);
     const vecgeom::VNavigator* navigator
         = this->volume().GetLogicalVolume()->GetNavigator();
     CELER_ASSERT(navigator);
@@ -115,6 +122,7 @@ CELER_FUNCTION real_type GeoTrackView::move_to_boundary()
     return dist;
 }
 
+//---------------------------------------------------------------------------//
 //! Move to the next boundary and update volume accordingly
 CELER_FUNCTION real_type GeoTrackView::move_next_step()
 {
@@ -127,6 +135,7 @@ CELER_FUNCTION real_type GeoTrackView::move_next_step()
     return dist;
 }
 
+//---------------------------------------------------------------------------//
 //! Move to the next boundary and update volume accordingly
 CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
 {

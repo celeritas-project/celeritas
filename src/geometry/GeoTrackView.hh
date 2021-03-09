@@ -122,6 +122,10 @@ class GeoTrackView
     static inline CELER_FUNCTION NavState&
     get_nav_state(void* state, int vgmaxdepth, ThreadId thread);
 
+    // Find the distance to the next boundary
+    inline CELER_FUNCTION void
+    find_next_step(const vecgeom::LogicalVolume* volume);
+
   public:
     //! Get a reference to the current volume
     inline CELER_FUNCTION const Volume& volume() const;
