@@ -238,3 +238,30 @@ if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Field
+
+celeritas_setup_tests(SERIAL PREFIX field)
+
+if(CELERITAS_USE_VecGeom)
+  celeritas_setup_tests(SERIAL PREFIX field LINK_LIBRARIES VecGeom::vecgeom)
+  celeritas_add_test(field/RungeKutta.test.cc GPU)
+
+  # CUDA tests: link cuda sources as needed
+  if(CELERITAS_USE_CUDA)
+    #  RungeKutta
+    add_library(celeritas_field_rk4_test field/RungeKutta.test.cu)           
+    target_link_libraries(celeritas_field_rk4_test
+      PRIVATE
+      celeritas
+    )
+    set_target_properties(celeritas_field_rk4_test PROPERTIES
+      LINKER_LANGUAGE CUDA
+      CUDA_SEPARABLE_COMPILATION ON
+      POSITION_INDEPENDENT_CODE ON
+    )
+    target_link_libraries(field_RungeKutta celeritas_field_rk4_test)
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------#
+
