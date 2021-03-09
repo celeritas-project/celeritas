@@ -7,19 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "GdmlGeometryMap.hh"
 
+#include <algorithm>
+#include "base/Assert.hh"
+
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct/destruct with defaults
- */
-GdmlGeometryMap::GdmlGeometryMap()  = default;
-GdmlGeometryMap::~GdmlGeometryMap() = default;
-
-//---------------------------------------------------------------------------//
-// READ
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
 /*!
  * Return the mat_id for a given vol_id
@@ -69,7 +61,7 @@ const ImportElement& GdmlGeometryMap::get_element(elem_id element_id) const
  *
  * Can be used to preallocate storage for each thread for XS calculations
  */
-size_type GdmlGeometryMap::max_num_elements() const
+auto GdmlGeometryMap::max_num_elements() const -> size_type
 {
     size_type result = 0;
     for (const auto& key : matid_to_material_)

@@ -23,7 +23,6 @@ MockProcess::MockProcess(Input data) : data_(std::move(data))
     CELER_EXPECT(data_.interact);
     CELER_EXPECT(data_.xs >= celeritas::zero_quantity());
     CELER_EXPECT(data_.energy_loss >= 0);
-    CELER_EXPECT(data_.range >= 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -52,28 +51,26 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
     StepLimitBuilders builders;
     if (data_.xs > zero_quantity())
     {
-        real_type value = unit_cast(data_.xs) * numdens;
+        real_type xs = unit_cast(data_.xs) * numdens;
         builders[size_type(ValueGridType::macro_xs)]
-            = std::make_unique<ValueGridLogBuilder>(range.lower.value(),
-                                                    range.upper.value(),
-                                                    VecReal{value, value});
+            = std::make_unique<ValueGridLogBuilder>(
+                range.lower.value(), range.upper.value(), VecReal{xs, xs});
     }
     if (data_.energy_loss > 0)
     {
-        real_type value = data_.energy_loss * numdens;
+        real_type eloss_rate = data_.energy_loss * numdens;
         builders[size_type(ValueGridType::energy_loss)]
-            = std::make_unique<ValueGridLogBuilder>(range.lower.value(),
-                                                    range.upper.value(),
-                                                    VecReal{value, value});
-    }
-    if (data_.range > 0)
-    {
-        builders[size_type(ValueGridType::range)]
             = std::make_unique<ValueGridLogBuilder>(
                 range.lower.value(),
                 range.upper.value(),
-                VecReal{data_.range * range.lower.value(),
-                        data_.range * range.upper.value()});
+                VecReal{eloss_rate, eloss_rate});
+
+        builders[size_type(ValueGridType::range)]
+            = std::make_unique<ValueGridRangeBuilder>(
+                range.lower.value(),
+                range.upper.value(),
+                VecReal{range.lower.value() / eloss_rate,
+                        range.upper.value() / eloss_rate});
     }
 
     return builders;

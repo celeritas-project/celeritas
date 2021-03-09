@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ValueGridBuilder.hh"
 
+#include <algorithm>
 #include <cmath>
 #include "base/SoftEqual.hh"
 #include "physics/grid/UniformGrid.hh"
@@ -24,7 +25,8 @@ using SpanConstReal = ValueGridXsBuilder::SpanConstReal;
 bool is_contiguous_increasing(SpanConstReal first, SpanConstReal second)
 {
     return first.size() >= 2 && second.size() >= 2 && first.front() > 0
-           && first.back() > first.front() && second.front() == first.back()
+           && first.back() > first.front()
+           && soft_equal(second.front(), first.back())
            && second.back() > second.front();
 }
 
@@ -81,7 +83,7 @@ ValueGridBuilder::~ValueGridBuilder() = default;
 /*!
  * Construct XS arrays from imported data from Geant4.
  */
-ValueGridXsBuilder
+std::unique_ptr<ValueGridXsBuilder>
 ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
                                SpanConstReal lambda,
                                SpanConstReal lambda_prim_energy,
@@ -103,10 +105,10 @@ ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
     CELER_ASSERT(dst == xs.end());
 
     // Construct the grid
-    return {lambda_energy.front(),
-            lambda_prim_energy.front(),
-            lambda_prim_energy.back(),
-            std::move(xs)};
+    return std::make_unique<ValueGridXsBuilder>(lambda_energy.front(),
+                                                lambda_prim_energy.front(),
+                                                lambda_prim_energy.back(),
+                                                VecReal(std::move(xs)));
 }
 
 //---------------------------------------------------------------------------//
@@ -159,12 +161,14 @@ auto ValueGridXsBuilder::build(ValueGridInserter insert) const -> ValueGridId
  */
 ValueGridLogBuilder::ValueGridLogBuilder(real_type emin,
                                          real_type emax,
-                                         VecReal   xs)
-    : log_emin_(std::log(emin)), log_emax_(std::log(emax)), xs_(std::move(xs))
+                                         VecReal   value)
+    : log_emin_(std::log(emin))
+    , log_emax_(std::log(emax))
+    , value_(std::move(value))
 {
     CELER_EXPECT(emin > 0);
     CELER_EXPECT(emax > emin);
-    CELER_EXPECT(xs_.size() >= 2);
+    CELER_EXPECT(value_.size() >= 2);
 }
 
 //---------------------------------------------------------------------------//
@@ -174,8 +178,22 @@ ValueGridLogBuilder::ValueGridLogBuilder(real_type emin,
 auto ValueGridLogBuilder::build(ValueGridInserter insert) const -> ValueGridId
 {
     return insert(
-        UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size()),
-        make_span(xs_));
+        UniformGridData::from_bounds(log_emin_, log_emax_, value_.size()),
+        this->value());
+}
+
+//---------------------------------------------------------------------------//
+// RANGE BUILDER
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from raw data.
+ */
+ValueGridRangeBuilder::ValueGridRangeBuilder(real_type emin,
+                                             real_type emax,
+                                             VecReal   xs)
+    : Base(emin, emax, std::move(xs))
+{
+    CELER_EXPECT(is_monotonic_increasing(this->value()));
 }
 
 //---------------------------------------------------------------------------//

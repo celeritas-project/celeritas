@@ -22,7 +22,7 @@ class MiniStack
 {
   public:
     //!@{
-    using size_type  = unsigned int;
+    using size_type  = ::celeritas::size_type;
     using value_type = T;
     //!@}
 

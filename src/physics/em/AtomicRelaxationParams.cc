@@ -68,10 +68,10 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     {
         // Allocate device vectors
         device_elements_
-            = DeviceVector<AtomicRelaxElement>{host_elements_.size()};
-        device_shells_ = DeviceVector<AtomicRelaxSubshell>{host_shells_.size()};
+            = DeviceVector<AtomicRelaxElement>(host_elements_.size());
+        device_shells_ = DeviceVector<AtomicRelaxSubshell>(host_shells_.size());
         device_transitions_
-            = DeviceVector<AtomicRelaxTransition>{host_transitions_.size()};
+            = DeviceVector<AtomicRelaxTransition>(host_transitions_.size());
 
         // Remap shell->transition spans
         auto remap_transitions
@@ -108,9 +108,9 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
 AtomicRelaxParamsPointers AtomicRelaxationParams::host_pointers() const
 {
     AtomicRelaxParamsPointers result;
-    result.elements    = make_span(host_elements_);
-    result.electron_id = electron_id_;
-    result.gamma_id    = gamma_id_;
+    result.elements     = make_span(host_elements_);
+    result.electron_id  = electron_id_;
+    result.gamma_id     = gamma_id_;
     result.electron_cut = electron_cut_;
     result.gamma_cut    = gamma_cut_;
 
@@ -127,9 +127,9 @@ AtomicRelaxParamsPointers AtomicRelaxationParams::device_pointers() const
     CELER_EXPECT(celeritas::device());
 
     AtomicRelaxParamsPointers result;
-    result.elements    = device_elements_.device_pointers();
-    result.electron_id = electron_id_;
-    result.gamma_id    = gamma_id_;
+    result.elements     = device_elements_.device_pointers();
+    result.electron_id  = electron_id_;
+    result.gamma_id     = gamma_id_;
     result.electron_cut = electron_cut_;
     result.gamma_cut    = gamma_cut_;
 

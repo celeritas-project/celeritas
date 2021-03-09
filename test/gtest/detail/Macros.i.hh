@@ -30,7 +30,6 @@ constexpr bool can_soft_equiv()
 
 //---------------------------------------------------------------------------//
 /*!
- * \struct SoftPrecisionType
  * Get a "least common denominator" for soft comparisons.
  */
 template<class T1, class T2>
@@ -300,8 +299,8 @@ std::string failure_msg(const char*                             expected_expr,
     using std::setw;
 
     // Calculate how many digits we need to space out
-    unsigned int idig = num_digits(failures.back().index);
-    unsigned int vdig = 16;
+    int idig = num_digits(failures.back().index);
+    int vdig = 16;
 
     // Construct our own stringstream because google test ignores setw
     std::ostringstream os;
@@ -337,9 +336,9 @@ std::string float_failure_msg(const char* expected_expr,
     using std::setw;
 
     // Calculate how many digits we need to space out the index
-    unsigned int idig = num_digits(failures.back().index);
-    unsigned int vdig = std::max(std::numeric_limits<T1>::digits10,
-                                 std::numeric_limits<T2>::digits10);
+    int idig = num_digits(failures.back().index);
+    int vdig = std::max(std::numeric_limits<T1>::digits10,
+                        std::numeric_limits<T2>::digits10);
 
     // Construct our own stringstream because google test ignores setw
     std::ostringstream os;

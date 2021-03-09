@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "RngInterface.hh"
+#include "base/OpaqueId.hh"
 #include "random/distributions/GenerateCanonical.hh"
+#include "RngInterface.hh"
 
 namespace celeritas
 {

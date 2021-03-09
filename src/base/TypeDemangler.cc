@@ -21,7 +21,8 @@ std::string demangled_typeid_name(const char* typeid_name)
 #ifdef __GNUG__
     int status = -1;
     // Return a null-terminated string allocated with malloc
-    char* demangled = abi::__cxa_demangle(typeid_name, NULL, NULL, &status);
+    char* demangled
+        = abi::__cxa_demangle(typeid_name, nullptr, nullptr, &status);
 
     // Copy the C string to a STL string if successful, or the mangled name if
     // not

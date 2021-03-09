@@ -33,14 +33,14 @@ class UniformGrid
     // Construct with data
     explicit inline CELER_FUNCTION UniformGrid(const UniformGridData& data);
 
-    // Number of grid points
-    inline CELER_FUNCTION size_type size() const;
+    //! Number of grid points
+    CELER_FORCEINLINE_FUNCTION size_type size() const { return data_.size; }
 
     //! Minimum/first value
-    CELER_FUNCTION value_type front() const { return data_.front; }
+    CELER_FORCEINLINE_FUNCTION value_type front() const { return data_.front; }
 
-    // Maximum/last value
-    inline CELER_FUNCTION value_type back() const;
+    //! Maximum/last value
+    CELER_FORCEINLINE_FUNCTION value_type back() const { return data_.back; }
 
     // Calculate the value at the given grid point
     inline CELER_FUNCTION value_type operator[](size_type i) const;

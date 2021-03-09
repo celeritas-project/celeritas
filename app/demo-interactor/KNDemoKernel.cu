@@ -16,7 +16,7 @@
 #include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
 #include "random/cuda/RngEngine.hh"
-#include "physics/grid/PhysicsGridCalculator.hh"
+#include "physics/grid/XsCalculator.hh"
 #include "DetectorView.hh"
 #include "KernelUtils.hh"
 
@@ -75,7 +75,7 @@ move_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     RngEngine         rng(states.rng, ThreadId(tid));
 
     // Move to collision
-    PhysicsGridCalculator calc_xs(params.tables.xs, params.tables.reals);
+    XsCalculator calc_xs(params.tables.xs, params.tables.reals);
     demo_interactor::move_to_collision(particle,
                                        calc_xs,
                                        states.direction[tid],

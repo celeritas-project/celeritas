@@ -5,7 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file UniformGrid.i.hh
 //---------------------------------------------------------------------------//
-#include <algorithm>
 #include "base/Assert.hh"
 
 namespace celeritas
@@ -22,25 +21,7 @@ UniformGrid::UniformGrid(const UniformGridData& data) : data_(data)
 
 //---------------------------------------------------------------------------//
 /*!
- * Access the number of grid points.
- */
-CELER_FUNCTION size_type UniformGrid::size() const
-{
-    return data_.size;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access the highest value.
- */
-CELER_FUNCTION auto UniformGrid::back() const -> value_type
-{
-    return data_.back;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the value value at the given grid point.
+ * Get the value at the given grid point.
  */
 CELER_FUNCTION auto UniformGrid::operator[](size_type i) const -> value_type
 {

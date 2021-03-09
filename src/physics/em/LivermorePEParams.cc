@@ -55,9 +55,9 @@ LivermorePEParams::LivermorePEParams(const Input& inp)
     {
         // Allocate device vectors
         device_elements_
-            = DeviceVector<LivermoreElement>{host_elements_.size()};
-        device_shells_ = DeviceVector<LivermoreSubshell>{host_shells_.size()};
-        device_data_   = DeviceVector<real_type>{host_data_.size()};
+            = DeviceVector<LivermoreElement>(host_elements_.size());
+        device_shells_ = DeviceVector<LivermoreSubshell>(host_shells_.size());
+        device_data_   = DeviceVector<real_type>(host_data_.size());
 
         // Remap shell->data spans
         auto remap_data = make_span_remapper(make_span(host_data_),

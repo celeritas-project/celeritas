@@ -59,8 +59,8 @@ auto ComptonProcess::step_limits(Applicability range) const -> StepLimitBuilders
     // the input has already preprocessed the energy dependence.
     StepLimitBuilders builders;
     builders[size_type(ValueGridType::macro_xs)]
-        = std::make_unique<ValueGridXsBuilder>(ValueGridXsBuilder::from_geant(
-            make_span(lo.x), make_span(lo.y), make_span(hi.x), make_span(hi.y)));
+        = ValueGridXsBuilder::from_geant(
+            make_span(lo.x), make_span(lo.y), make_span(hi.x), make_span(hi.y));
     return builders;
 }
 

@@ -6,7 +6,6 @@
 """
 """
 import json
-from pprint import pprint
 import subprocess
 from os import environ
 from sys import exit
@@ -29,17 +28,19 @@ inp = {
     }
 }
 
-print("Input:")
-pprint(inp)
-
 exe = environ.get('CELERITAS_DEMO_EXE', './demo-interactor')
+
+print("Input:")
+with open(f'{exe}.inp.json', 'w') as f:
+    json.dump(inp, f, indent=1)
+print(json.dumps(inp, indent=1))
+
 print("Running", exe)
 result = subprocess.run([exe, '-'],
                         input=json.dumps(inp).encode(),
                         stdout=subprocess.PIPE)
+
 if result.returncode:
-    with open(f'{exe}.inp.json', 'w') as f:
-        json.dump(inp, f, indent=1)
     print("fatal: run failed with error", result.returncode)
     exit(result.returncode)
 

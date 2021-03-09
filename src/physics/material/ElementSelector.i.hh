@@ -26,7 +26,7 @@ CELER_FUNCTION ElementSelector::ElementSelector(const MaterialView& material,
 {
     CELER_EXPECT(!elements_.empty());
     CELER_EXPECT(storage.size() >= material.num_elements());
-    for (auto i : range<unsigned int>(elements_.size()))
+    for (auto i : range<size_type>(elements_.size()))
     {
         const real_type micro_xs = calc_micro_xs(elements_[i].element);
         CELER_ASSERT(micro_xs >= 0);
@@ -49,8 +49,8 @@ template<class Engine>
 CELER_FUNCTION ElementComponentId ElementSelector::operator()(Engine& rng) const
 {
     real_type    accum_xs = -material_xs_ * generate_canonical(rng);
-    unsigned int i        = 0;
-    unsigned int imax     = elements_.size() - 1;
+    size_type i        = 0;
+    size_type imax     = elements_.size() - 1;
     for (; i != imax; ++i)
     {
         accum_xs += elements_[i].fraction * elemental_xs_[i];

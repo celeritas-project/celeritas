@@ -167,6 +167,7 @@ add_library(CeleritasPhysicsTest
   physics/base/MockModel.cc
   physics/base/MockProcess.cc
   physics/base/PhysicsTestBase.cc
+  physics/grid/CalculatorTestBase.cc
 )
 target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
 set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
@@ -178,10 +179,13 @@ celeritas_add_test(physics/base/PhysicsStepUtils.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX physics/grid)
 celeritas_add_test(physics/grid/GridIdFinder.test.cc)
-celeritas_add_test(physics/grid/PhysicsGridCalculator.test.cc)
+celeritas_add_test(physics/grid/InverseRangeCalculator.test.cc)
+celeritas_add_test(physics/grid/NonuniformGrid.test.cc)
+celeritas_add_test(physics/grid/RangeCalculator.test.cc)
 celeritas_add_test(physics/grid/UniformGrid.test.cc)
 celeritas_add_test(physics/grid/ValueGridBuilder.test.cc)
 celeritas_add_test(physics/grid/ValueGridInserter.test.cc)
+celeritas_add_test(physics/grid/XsCalculator.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX physics/material)
 celeritas_add_test(physics/material/ElementSelector.test.cc)

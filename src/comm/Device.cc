@@ -26,7 +26,7 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-unsigned int determine_num_devices()
+int determine_num_devices()
 {
     if (!CELERITAS_USE_CUDA)
     {
@@ -101,9 +101,9 @@ Device& global_device()
  * CUDA-capable device is present, and if the 'CELER_DISABLE_DEVICE'
  * environment variable is not set.
  */
-unsigned int Device::num_devices()
+int Device::num_devices()
 {
-    static const unsigned int result = determine_num_devices();
+    static const int result = determine_num_devices();
     return result;
 }
 
@@ -114,7 +114,7 @@ unsigned int Device::num_devices()
 Device Device::from_round_robin(const Communicator& comm)
 {
     int num_devices = Device::num_devices();
-    if (!num_devices)
+    if (num_devices == 0)
     {
         // Null device
         return {};
@@ -129,8 +129,7 @@ Device Device::from_round_robin(const Communicator& comm)
  */
 Device::Device(int id) : id_(id)
 {
-    CELER_EXPECT(id >= 0
-                 && static_cast<unsigned int>(id) < Device::num_devices());
+    CELER_EXPECT(id >= 0 && id < Device::num_devices());
 
 #if CELERITAS_USE_CUDA
     cudaDeviceProp props;

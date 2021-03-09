@@ -62,9 +62,10 @@ class Span
     //! Construct from data and size
     CELER_FUNCTION Span(pointer d, size_type s) : s_(d, s) {}
 
-    //! Construct from two iterators
+    //! Construct from two contiguous random-access iterators
     template<class Iter>
-    CELER_FUNCTION Span(Iter first, Iter last) : s_(&(*first), last - first)
+    CELER_FUNCTION Span(Iter first, Iter last)
+        : s_(&(*first), static_cast<size_type>(last - first))
     {
     }
 

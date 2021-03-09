@@ -8,7 +8,6 @@
 #pragma once
 
 #include "OpaqueId.hh"
-#include "CollectionTypes.hh"
 #include "Range.hh"
 #include "Types.hh"
 #include "detail/CollectionImpl.hh"
@@ -17,7 +16,7 @@ namespace celeritas
 {
 //! Opaque ID representing a single element of a container.
 template<class T>
-using ItemId = OpaqueId<T, unsigned int>;
+using ItemId = OpaqueId<T, size_type>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -54,7 +53,7 @@ using ItemId = OpaqueId<T, unsigned int>;
  * };
  * \endcode
  */
-template<class T, class Size = unsigned int>
+template<class T, class Size = size_type>
 using ItemRange = Range<OpaqueId<T, Size>>;
 
 //---------------------------------------------------------------------------//
@@ -121,11 +120,11 @@ class Collection
 
     // Construct from another collection
     template<Ownership W2, MemSpace M2>
-    inline Collection(const Collection<T, W2, M2, I>& other);
+    explicit inline Collection(const Collection<T, W2, M2, I>& other);
 
     // Construct from another collection (mutable)
     template<Ownership W2, MemSpace M2>
-    inline Collection(Collection<T, W2, M2, I>& other);
+    explicit inline Collection(Collection<T, W2, M2, I>& other);
 
     //!@{
     //! Default assignment
@@ -133,13 +132,13 @@ class Collection
     Collection& operator=(Collection&& other) = default;
     //!@}
 
-    // Assign from another collection in the same memory space
-    template<Ownership W2>
-    inline Collection& operator=(const Collection<T, W2, M, I>& other);
+    // Assign from another collectio
+    template<Ownership W2, MemSpace M2>
+    inline Collection& operator=(const Collection<T, W2, M2, I>& other);
 
-    // Assign (mutable!) from another collection in the same memory space
-    template<Ownership W2>
-    inline Collection& operator=(Collection<T, W2, M, I>& other);
+    // Assign (mutable!) from another collection
+    template<Ownership W2, MemSpace M2>
+    inline Collection& operator=(Collection<T, W2, M2, I>& other);
 
     //// ACCESS ////
 

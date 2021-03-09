@@ -31,9 +31,9 @@ const char* to_cstring(ImportTableType value)
         "sublambda",
         "lambda_prim",
     };
-    CELER_EXPECT(static_cast<int>(value) * sizeof(const char*)
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
                  < sizeof(strings));
-    return strings[static_cast<int>(value)];
+    return strings[static_cast<unsigned int>(value)];
 }
 
 //---------------------------------------------------------------------------//
@@ -50,9 +50,9 @@ const char* to_cstring(ImportUnits value)
         "1/cm",
         "1/cm-MeV",
     };
-    CELER_EXPECT(static_cast<int>(value) * sizeof(const char*)
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
                  < sizeof(strings));
-    return strings[static_cast<int>(value)];
+    return strings[static_cast<unsigned int>(value)];
 }
 
 //---------------------------------------------------------------------------//

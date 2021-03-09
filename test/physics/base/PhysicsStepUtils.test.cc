@@ -35,6 +35,18 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
     using PhysicsStateStore
         = CollectionStateStore<PhysicsStateData, MemSpace::host>;
 
+    PhysicsOptions build_physics_options() const override
+    {
+        PhysicsOptions opts;
+        if (/* DISABLES CODE */ (false))
+        {
+            // Don't scale the range -- use exactly the analytic values our
+            // model has.
+            opts.min_range = inf;
+        }
+        return opts;
+    }
+
     void SetUp() override
     {
         Base::SetUp();
@@ -49,6 +61,30 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
     //! Random number generator
     RandomEngine& rng() { return rng_; }
     //!@}
+
+    PhysicsTrackView init_track(MaterialTrackView* mat,
+                                MaterialId         mid,
+                                ParticleTrackView* par,
+                                const char*        name,
+                                MevEnergy          energy)
+    {
+        CELER_EXPECT(mat && par);
+        CELER_EXPECT(mid < this->materials()->size());
+        *mat = MaterialTrackView::Initializer_t{mid};
+
+        ParticleTrackView::Initializer_t par_init;
+        par_init.particle_id = this->particles()->find(name);
+        CELER_EXPECT(par_init.particle_id);
+        par_init.energy = energy;
+        *par            = par_init;
+
+        PhysicsTrackView phys(this->physics()->host_pointers(),
+                              phys_state.ref(),
+                              par->particle_id(),
+                              mat->material_id(),
+                              ThreadId{0});
+        return phys;
+    }
 
     MaterialStateStore mat_state;
     ParticleStateStore par_state;
@@ -66,83 +102,103 @@ TEST_F(PhysicsStepUtilsTest, calc_tabulated_physics_step)
         this->materials()->host_pointers(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
         this->particles()->host_pointers(), par_state.ref(), ThreadId{0});
-    MaterialTrackView::Initializer_t mat_init;
-    ParticleTrackView::Initializer_t par_init;
 
-    // Test a variety of energy ranges and multiple material IDs
+    // Test a variety of energies and multiple material IDs
     {
-        mat_init.material_id = MaterialId{0};
-        par_init.energy      = MevEnergy{1};
-        par_init.particle_id = this->particles()->find("gamma");
-        material             = mat_init;
-        particle             = par_init;
-        PhysicsTrackView phys(this->physics()->host_pointers(),
-                              phys_state.ref(),
-                              par_init.particle_id,
-                              mat_init.material_id,
-                              ThreadId{0});
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
         real_type step
             = celeritas::calc_tabulated_physics_step(material, particle, phys);
         EXPECT_SOFT_EQ(1. / 3.e-4, step);
     }
     {
-        mat_init.material_id = MaterialId{1};
-        par_init.energy      = MevEnergy{10};
-        par_init.particle_id = this->particles()->find("celeriton");
-        material             = mat_init;
-        particle             = par_init;
-        PhysicsTrackView phys(this->physics()->host_pointers(),
-                              phys_state.ref(),
-                              par_init.particle_id,
-                              mat_init.material_id,
-                              ThreadId{0});
-        phys.interaction_mfp(1e-2);
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
+        phys.interaction_mfp(1e-4);
         real_type step
             = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(1.e-2 / 9.e-3, step);
+        EXPECT_SOFT_EQ(1.e-4 / 9.e-3, step);
 
         // Increase the distance to interaction so range limits the step length
         phys.interaction_mfp(1);
         step = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(4.1595999999999984, step);
-
-        // Decrease the particle energy
-        par_init.energy = MevEnergy{1e-2};
-        particle        = par_init;
-        step = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(2.e-2, step);
+        EXPECT_SOFT_EQ(0.6568, step);
     }
     {
-        mat_init.material_id = MaterialId{2};
-        par_init.energy      = MevEnergy{1e-2};
-        par_init.particle_id = this->particles()->find("anti-celeriton");
-        material             = mat_init;
-        particle             = par_init;
-        PhysicsTrackView phys(this->physics()->host_pointers(),
-                              phys_state.ref(),
-                              par_init.particle_id,
-                              mat_init.material_id,
-                              ThreadId{0});
-        phys.interaction_mfp(1e-2);
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-2});
         real_type step
             = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(1.e-2 / 9.e-1, step);
+        EXPECT_SOFT_EQ(2.5e-3, step);
+    }
+    {
+        PhysicsTrackView phys = this->init_track(&material,
+                                                 MaterialId{2},
+                                                 &particle,
+                                                 "anti-celeriton",
+                                                 MevEnergy{1e-2});
+        phys.interaction_mfp(1e-6);
+        real_type step
+            = celeritas::calc_tabulated_physics_step(material, particle, phys);
+        EXPECT_SOFT_EQ(1.e-6 / 9.e-1, step);
 
         // Increase the distance to interaction so range limits the step length
         phys.interaction_mfp(1);
         step = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(0.03, step);
-
-        // Increase the particle energy so interaction limits the step length
-        par_init.energy = MevEnergy{10};
-        particle        = par_init;
-        step = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(1. / 9.e-1, step);
+        EXPECT_SOFT_EQ(2.5e-5, step);
+    }
+    {
+        PhysicsTrackView phys = this->init_track(&material,
+                                                 MaterialId{2},
+                                                 &particle,
+                                                 "anti-celeriton",
+                                                 MevEnergy{10});
+        real_type        step
+            = celeritas::calc_tabulated_physics_step(material, particle, phys);
+        EXPECT_SOFT_EQ(2.5e-2, step);
     }
 }
 
-TEST_F(PhysicsStepUtilsTest, calc_energy_loss) {}
+TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
+{
+    MaterialTrackView material(
+        this->materials()->host_pointers(), mat_state.ref(), ThreadId{0});
+    ParticleTrackView particle(
+        this->particles()->host_pointers(), par_state.ref(), ThreadId{0});
+
+    {
+        // Long step, but gamma means no energy loss
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
+        EXPECT_SOFT_EQ(
+            0, celeritas::calc_energy_loss(particle, phys, 1e4).value());
+    }
+    {
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{0}, &particle, "celeriton", MevEnergy{10});
+        const real_type eloss_rate = 0.2 + 0.4;
+
+        // Tiny step: should still be linear loss (single process)
+        EXPECT_SOFT_EQ(
+            eloss_rate * 1e-6,
+            celeritas::calc_energy_loss(particle, phys, 1e-6).value());
+
+        // Long step (lose half energy) will call inverse lookup. The correct
+        // answer (if range table construction was done over energy loss)
+        // should be half since the slowing down rate is constant over all
+        real_type step = 0.5 * particle.energy().value() / eloss_rate;
+        EXPECT_SOFT_EQ(
+            5, celeritas::calc_energy_loss(particle, phys, step).value());
+
+        // Long step (lose half energy) will call inverse lookup. The correct
+        // answer (if range table construction was done over energy loss)
+        // should be half since the slowing down rate is constant over all
+        step = 0.999 * particle.energy().value() / eloss_rate;
+        EXPECT_SOFT_EQ(
+            9.99, celeritas::calc_energy_loss(particle, phys, step).value());
+    }
+}
 
 TEST_F(PhysicsStepUtilsTest, select_process_and_model)
 {

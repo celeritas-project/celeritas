@@ -6,10 +6,15 @@
 """
 """
 import json
-from pprint import pprint
 import subprocess
 from os import environ
-from sys import exit
+from sys import exit, argv
+
+try:
+    (gdml_filename,) = argv[1:]
+except TypeError:
+    print("usage: {} inp.gdml".format(sys.argv[0]))
+    exit(2)
 
 inp = {
     'image': {
@@ -18,21 +23,22 @@ inp = {
         'rightward_ax': [1, 0, 0],
         'vertical_pixels': 32
     },
-    'input': '../../test/geometry/data/twoBoxes.gdml',
+    'input': gdml_filename,
     'output': 'two-boxes.bin'
 }
 
-print("Input:")
-pprint(inp)
-
 exe = environ.get('CELERITAS_DEMO_EXE', './demo-rasterizer')
+
+print("Input:")
+with open(f'{exe}.inp.json', 'w') as f:
+    json.dump(inp, f, indent=1)
+print(json.dumps(inp, indent=1))
+
 print("Running", exe)
 result = subprocess.run([exe, '-'],
                         input=json.dumps(inp).encode(),
                         stdout=subprocess.PIPE)
 if result.returncode:
-    with open(f'{exe}.inp.json', 'w') as f:
-        json.dump(inp, f, indent=1)
     print("Run failed with error", result.returncode)
     exit(result.returncode)
 
@@ -45,6 +51,6 @@ except json.decoder.JSONDecodeError as e:
     print(out_text)
     print("fatal:", str(e))
     exit(1)
-pprint(result)
-with open('{exe}.out.json', 'w') as f:
+print(json.dumps(result, indent=1))
+with open(f'{exe}.out.json', 'w') as f:
     json.dump(result, f)

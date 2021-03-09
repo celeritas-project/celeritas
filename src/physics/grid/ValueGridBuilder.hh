@@ -57,10 +57,11 @@ class ValueGridXsBuilder final : public ValueGridBuilder
 
   public:
     // Construct from imported data
-    static ValueGridXsBuilder from_geant(SpanConstReal lambda_energy,
-                                         SpanConstReal lambda,
-                                         SpanConstReal lambda_prim_energy,
-                                         SpanConstReal lambda_prim);
+    static std::unique_ptr<ValueGridXsBuilder>
+    from_geant(SpanConstReal lambda_energy,
+               SpanConstReal lambda,
+               SpanConstReal lambda_prim_energy,
+               SpanConstReal lambda_prim);
 
     // Construct
     ValueGridXsBuilder(real_type emin,
@@ -84,13 +85,14 @@ class ValueGridXsBuilder final : public ValueGridBuilder
  *
  * This vector is still uniform in log(E).
  */
-class ValueGridLogBuilder final : public ValueGridBuilder
+class ValueGridLogBuilder : public ValueGridBuilder
 {
   public:
     //!@{
     //! Type aliases
-    using VecReal = std::vector<real_type>;
-    using Id      = ItemId<XsGridData>;
+    using VecReal       = std::vector<real_type>;
+    using SpanConstReal = Span<const real_type>;
+    using Id            = ItemId<XsGridData>;
     //!@}
 
   public:
@@ -100,10 +102,29 @@ class ValueGridLogBuilder final : public ValueGridBuilder
     // Construct in the given store
     ValueGridId build(ValueGridInserter) const final;
 
+    //! Access Values
+    SpanConstReal value() const { return make_span(value_); }
+
   private:
     real_type log_emin_;
     real_type log_emax_;
-    VecReal   xs_;
+    VecReal   value_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build a physics vector for range tables.
+ *
+ * Range tables are uniform in log(E), and range must monotonically increase
+ * with energy.
+ */
+class ValueGridRangeBuilder : public ValueGridLogBuilder
+{
+    using Base = ValueGridLogBuilder;
+
+  public:
+    // Construct
+    ValueGridRangeBuilder(real_type emin, real_type emax, VecReal value);
 };
 
 //---------------------------------------------------------------------------//

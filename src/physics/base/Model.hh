@@ -52,7 +52,7 @@ class Model
 
   public:
     // Virtual destructor for polymorphic deletion
-    virtual ~Model() = 0;
+    virtual ~Model();
 
     //! Get the applicable particle type and energy ranges of the model
     virtual SetApplicability applicability() const = 0;

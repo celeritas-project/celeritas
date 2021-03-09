@@ -115,7 +115,7 @@ void KernelDiagnostics::launch(key_type key, unsigned int num_threads)
     diag.max_num_threads = std::max(num_threads, diag.max_num_threads);
 }
 
-#if __CUDACC__
+#ifdef __CUDACC__
 //---------------------------------------------------------------------------//
 /*!
  * Register the given __global__ kernel function.
