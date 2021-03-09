@@ -36,7 +36,10 @@ cmake -G Ninja \
   -DCELERITAS_USE_ROOT:BOOL=OFF \
   -DCELERITAS_USE_VecGeom:BOOL=OFF \
   -DCELERITAS_DEBUG:BOOL=ON \
-  -DCMAKE_BUILD_TYPE:STRING="Debug" \
+  -DCMAKE_BUILD_TYPE:STRING="RelWithDebInfo" \
+  -DMEMORYCHECK_COMMAND_OPTIONS="--error-exitcode=1 --leak-check=full" \
   ${SOURCE_DIR}
 ninja -v -k0
 ctest $CTEST_ARGS
+
+ctest -E demo- -D ExperimentalMemCheck --output-on-failure

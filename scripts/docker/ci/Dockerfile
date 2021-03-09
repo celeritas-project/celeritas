@@ -42,6 +42,7 @@ RUN apt-get -yqq update \
  && apt-get -yqq install --no-install-recommends \
         build-essential \
         ca-certificates \
+        libc6-dbg \
         g++ \
         gcc \
         ssh \

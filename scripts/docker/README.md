@@ -40,6 +40,13 @@ and set up an image to use locally:
 $ ./ci/launch-testing.sh 123
 ```
 
+To mount the image with your local source directory:
+```console
+$ docker run --rm -ti -e "TERM=xterm-256color" \
+    -v /rnsdhpc/code/celeritas:src \
+    celeritas/ci-cuda11
+```
+
 
 The `dev` image runs as root, but the `ci-cuda11` runs as a user `celeritas`.
 This is the best way to [make OpenMPI happy](https://github.com/open-mpi/ompi/issues/4451).
