@@ -206,23 +206,13 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
         this->materials()->host_pointers(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
         this->particles()->host_pointers(), par_state.ref(), ThreadId{0});
-    MaterialTrackView::Initializer_t mat_init;
-    ParticleTrackView::Initializer_t par_init;
 
     unsigned int num_samples = 0;
 
     // Test a variety of energy ranges and multiple material IDs
     {
-        mat_init.material_id = MaterialId{0};
-        par_init.energy      = MevEnergy{1};
-        par_init.particle_id = this->particles()->find("gamma");
-        material             = mat_init;
-        particle             = par_init;
-        PhysicsTrackView phys(this->physics()->host_pointers(),
-                              phys_state.ref(),
-                              par_init.particle_id,
-                              mat_init.material_id,
-                              ThreadId{0});
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
         real_type step
             = celeritas::calc_tabulated_physics_step(material, particle, phys);
@@ -249,22 +239,14 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
     }
 
     {
-        mat_init.material_id = MaterialId{1};
-        par_init.energy      = MevEnergy{10};
-        par_init.particle_id = this->particles()->find("celeriton");
-        material             = mat_init;
-        particle             = par_init;
-        PhysicsTrackView phys(this->physics()->host_pointers(),
-                              phys_state.ref(),
-                              par_init.particle_id,
-                              mat_init.material_id,
-                              ThreadId{0});
-
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1);
 
         real_type step
             = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(4.1595999999999984, step);
+        EXPECT_SOFT_EQ(0.6568, step);
+
         // Testing cheat.
         PhysicsTrackView::PhysicsStatePointers state_shortcut(phys_state.ref());
         state_shortcut.state[ThreadId{0}].interaction_mfp = 0;
