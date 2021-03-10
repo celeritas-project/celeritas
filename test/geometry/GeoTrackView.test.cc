@@ -96,7 +96,7 @@ TEST_F(GeoTrackViewHostTest, track_line)
         // Track from outside edge fails
         CELER_LOG(info) << "Init a track with a pointer outside work "
 	                   "volume...";
-        EXPECT_THROW( (geo = {{24, 0, 0}, {-1, 0, 0}}), celeritas::DebugError );
+        geo = {{24, 0, 0}, {-1, 0, 0}};
         EXPECT_EQ(geo.is_outside(), true);
     }
 

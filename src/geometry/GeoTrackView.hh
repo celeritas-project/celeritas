@@ -53,7 +53,12 @@ class GeoTrackView
                           operator=(const DetailedInitializer& init);
 
     // Find the distance to the next boundary
-    inline CELER_FUNCTION void find_next_step();
+    CELER_FORCEINLINE_FUNCTION void find_next_step()
+    {
+        this->find_next_step(&this->volume());
+    }
+    inline CELER_FUNCTION void find_next_step(vecgeom::VPlacedVolume const* pv);
+
     // Move to the next boundary
     inline CELER_FUNCTION real_type move_to_boundary();
     inline CELER_FUNCTION real_type move_next_step();

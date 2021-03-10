@@ -45,8 +45,7 @@ __global__ void trace_kernel(const GeoParamsPointers geo_params,
     geo = GeoStateInitializer{image.start_pos(), image.start_dir()};
 
     int cur_id = geo_id(geo);
-    geo.find_next_step();
-    real_type geo_dist = geo.next_step();
+    real_type geo_dist = fmin(geo.next_step(), image_state.dims[1] * image_state.pixel_width);
 
     // Track along each pixel
     for (unsigned int i = 0; i < image_state.dims[1]; ++i)
@@ -72,8 +71,7 @@ __global__ void trace_kernel(const GeoParamsPointers geo_params,
             // Cross surface
             geo.move_next_step();
             cur_id = geo_id(geo);
-            geo.find_next_step();
-            geo_dist = geo.next_step();
+            geo_dist = fmin( geo.next_step(), image_state.dims[1] * image_state.pixel_width);
         }
 
         // Move to pixel boundary
