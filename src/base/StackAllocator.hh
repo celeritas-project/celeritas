@@ -36,7 +36,7 @@ namespace celeritas
            return Interaction::from_failure();
        }
        Interaction result;
-       result.secondaries = Span<Secondary>{allocated, 4};
+       result.secondaries = Span<Secondary>{allocated, 2};
        return result;
     };
  };
@@ -65,8 +65,7 @@ namespace celeritas
  *
  * You *cannot* safely access the current size of the stack in the same kernel
  * that's modifying it -- if the stack attempts to allocate beyond the end,
- then
- * the \c size() call will reflect that overflowed state, rather than the
+ * then the \c size() call will reflect that overflowed state, rather than the
  * corrected size reflecting the failed allocation.
  *
  * A third kernel with a single thread would then be responsible for clearing

@@ -18,6 +18,11 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the Livermore photoelectric model interaction.
+ *
+ * \todo When multiple methods that use atomic relaxation are in place, we
+ * should share AtomicRelaxationParams among them, and move
+ * `RelaxationScratchData` into that class, to reduce fixed-size memory
+ * allocations.
  */
 class LivermorePEModel final : public Model
 {
