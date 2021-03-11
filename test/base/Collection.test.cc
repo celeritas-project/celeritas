@@ -56,10 +56,6 @@ TEST(SimpleCollection, range)
 
     EXPECT_EQ(ItemIdT{10}, ps[0]);
     EXPECT_EQ(ItemIdT{12}, ps[2]);
-#if CELERITAS_DEBUG
-    // Out of range
-    EXPECT_THROW(ps[12], celeritas::DebugError);
-#endif
 }
 
 TEST(SimpleCollection, size_limits)
