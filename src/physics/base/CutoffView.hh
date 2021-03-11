@@ -41,10 +41,9 @@ class CutoffView
                                      ParticleId            particle,
                                      MaterialId            material);
 
-
-	//! Return energy cutoff value
+    //! Return energy cutoff value
     CELER_FORCEINLINE_FUNCTION Energy energy() const { return cutoff_.energy; }
-	//! Return range cutoff value
+    //! Return range cutoff value
     CELER_FORCEINLINE_FUNCTION real_type range() const
     {
         return cutoff_.range;

@@ -19,8 +19,8 @@ CutoffView::CutoffView(const CutoffPointers& params,
     CELER_EXPECT(particle < params.num_particles);
     CELER_EXPECT(material < params.num_materials);
     using CutoffId = OpaqueId<ParticleCutoff>;
-    CutoffId cutoff_id{params.num_particles * material.get() + particle.get()};
-    
+    CutoffId cutoff_id{params.num_materials * particle.get() + material.get()};
+
     cutoff_ = params.cutoffs[cutoff_id];
 }
 //---------------------------------------------------------------------------//

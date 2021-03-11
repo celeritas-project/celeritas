@@ -320,14 +320,19 @@ void store_geometry(TFile*                       root_file,
         material.nuclear_int_length = g4material->GetNuclearInterLength() / cm;
 
         // Range to energy converters for populating material.pdg_cutoff
-        G4VRangeToEnergyConverter* range_to_e_converters[NumberOfG4CutIndex];
-        range_to_e_converters[idxG4GammaCut]    = new G4RToEConvForGamma();
-        range_to_e_converters[idxG4ElectronCut] = new G4RToEConvForElectron();
-        range_to_e_converters[idxG4PositronCut] = new G4RToEConvForPositron();
-        range_to_e_converters[idxG4ProtonCut]   = new G4RToEConvForProton();
+        std::unique_ptr<G4VRangeToEnergyConverter>
+            range_to_e_converters[NumberOfG4CutIndex];
+        range_to_e_converters[idxG4GammaCut]
+            = std::make_unique<G4RToEConvForGamma>();
+        range_to_e_converters[idxG4ElectronCut]
+            = std::make_unique<G4RToEConvForElectron>();
+        range_to_e_converters[idxG4PositronCut]
+            = std::make_unique<G4RToEConvForPositron>();
+        range_to_e_converters[idxG4ProtonCut]
+            = std::make_unique<G4RToEConvForProton>();
 
         // Populate material production cut values
-        for (int i : celeritas::range(static_cast<int>(NumberOfG4CutIndex)))
+        for (int i : celeritas::range(NumberOfG4CutIndex))
         {
             const auto      g4i   = static_cast<G4ProductionCutsIndex>(i);
             const real_type range = g4prod_cuts->GetProductionCut(g4i);

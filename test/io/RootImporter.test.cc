@@ -260,49 +260,30 @@ TEST_F(RootImporterTest, import_cutoffs)
     const auto& materials = *data_.material_params;
     const auto& cutoffs   = *data_.cutoff_params;
 
-    // Particle ordering is the same as in the ROOT file
-    // clang-format off
-    ParticleCutoff expected_cutoffs[2][19] = {
-        // G4_Galactic
-        {{units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0.00099}, 0.07}, // positon
-         {units::MevEnergy{0.00099}, 0.07}, // electron
-         {units::MevEnergy{0.00099}, 0.07}, // gamma
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0.07}, 0.07}, // proton
-         {units::MevEnergy{0}, 0}},
-        // G4_STAINLESS-STEEL
-        {{units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0.91748791611094471}, 0.07},  // positron
-         {units::MevEnergy{0.96798954804640747}, 0.07},  // electron
-         {units::MevEnergy{0.017285751131040718}, 0.07}, // gamma
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0}, 0}, {units::MevEnergy{0}, 0},
-         {units::MevEnergy{0.07}, 0.07}, // proton
-         {units::MevEnergy{0}, 0}}};
-    // clang-format on
+    std::vector<double> energies, ranges;
 
-    for (auto i : range<MaterialId::size_type>(materials.size()))
+    for (auto i : range<ParticleId::size_type>(particles.size()))
     {
-        MaterialId   matid{i};
-        MaterialView mat_view(materials.host_pointers(), matid);
-        for (auto j : range<ParticleId::size_type>(particles.size()))
+        for (auto j : range<MaterialId::size_type>(materials.size()))
         {
-            ParticleId pid{j};
-            CutoffView cutoff_view(cutoffs.host_pointers(), pid, matid);
+            CutoffView cutoff_view(
+                cutoffs.host_pointers(), ParticleId{i}, MaterialId{j});
 
-            EXPECT_SOFT_EQ(expected_cutoffs[i][j].energy.value(),
-                           cutoff_view.energy().value());
-            EXPECT_SOFT_EQ(expected_cutoffs[i][j].range, cutoff_view.range());
+            energies.push_back(cutoff_view.energy().value());
+            ranges.push_back(cutoff_view.range());
         }
     }
+
+    // clang-format off
+    const double expected_energies[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0.00099, 0.9174879161109, 0.00099, 0.9679895480464, 0.00099, 
+        0.01728575113104, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.07, 0.07, 0, 0};
+
+    const double expected_ranges[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0.07, 0.07, 0, 0};
+    // clang-format on
+
+    EXPECT_VEC_SOFT_EQ(expected_energies, energies);
+    EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
 }

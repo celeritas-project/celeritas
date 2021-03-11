@@ -14,23 +14,25 @@ namespace celeritas
 /*!
  * Construct on both host and device.
  */
-CutoffParams::CutoffParams(Input& input)
+CutoffParams::CutoffParams(const Input& input)
 {
-    CELER_EXPECT(input.size() > 0);
+    CELER_EXPECT(input.materials);
+    CELER_EXPECT(input.particles);
+    CELER_EXPECT(input.cutoffs.size() > 0);
 
     HostValue host_data;
-    host_data.num_materials = input.size();
-    host_data.num_particles = input.at(0).size();
-    auto cutoffs_size = host_data.num_materials * host_data.num_particles;
+    host_data.num_materials = input.materials->size();
+    host_data.num_particles = input.particles->size();
+    const auto cutoffs_size = host_data.num_materials * host_data.num_particles;
 
     auto cutoffs = make_builder(&host_data.cutoffs);
     cutoffs.reserve(cutoffs_size);
 
-    for (const auto& material_cutoffs : input)
+    for (const auto& per_material_cutoffs : input.cutoffs)
     {
-        for (const auto& particle_cutoff : material_cutoffs)
+        for (const auto& material_cutoffs : per_material_cutoffs.cutoffs)
         {
-            cutoffs.push_back(std::move(particle_cutoff));
+            cutoffs.push_back(std::move(material_cutoffs));
         }
     }
 

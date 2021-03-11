@@ -10,6 +10,9 @@
 #include "CutoffInterface.hh"
 #include "base/CollectionMirror.hh"
 #include "physics/base/Units.hh"
+#include "physics/base/ParticleParams.hh"
+#include "physics/material/MaterialParams.hh"
+
 #include <vector>
 
 namespace celeritas
@@ -17,24 +20,22 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Data management for particle and material cutoff values.
- * 
- * Geant4 provides accessors to its production cuts from its 
+ *
+ * Geant4 provides accessors to its production cuts from its
  * \c G4MaterialCutsCouple class, which couples cutoff and material data.
  * During import, for simplicity, G4's production cuts are stored alongside
- * the material information, in \c ImportMaterial . Since this is a direct 
- * import from Geant4, the cutoff map in \c ImportMaterial stores the same
- * cuts as Geant4: gammas, electrons, positrons, and protons.
- * 
- * In Celeritas, particle cutoff is stored contiguously in a single vector 
- * of size num_particles * num_materials, which stores all particle cutoffs 
- * for all materials. During import, any particle that is not in Geant4's 
+ * the material information, in \c ImportMaterial . Since this is a direct
+ * import, the cutoff map in \c ImportMaterial stores only the cuts available
+ * in Geant4, i.e. only values for gammas, electrons, positrons, and protons.
+ *
+ * In Celeritas, particle cutoff is stored contiguously in a single vector
+ * of size num_particles * num_materials, which stores all particle cutoffs
+ * for all materials. During import, any particle that is not in Geant4's
  * list receives a zero cutoff value. This opens the possibility to expand
  * cutoffs in the future, when data is not imported anymore.
- * 
- * In order to avoid mistakes during construction time, the \c Input structure
- * is used. This forces the user to provide an equivalent structure, which when
- * read, provides an ordered list of all particle cutoffs for each available
- * material.
+ *
+ * The \c Input structure provides a failsafe mechanism to construct the 
+ * host/device data.
  */
 class CutoffParams
 {
@@ -45,15 +46,27 @@ class CutoffParams
         = CutoffParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = CutoffParamsData<Ownership::const_reference, MemSpace::device>;
+
+    using SPConstParticles = std::shared_ptr<const ParticleParams>;
+    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
     //!@}
 
     //! Input data to construct this class
-    using MaterialCutoff = std::vector<ParticleCutoff>;
-    using Input          = std::vector<MaterialCutoff>;
+    struct PerMaterialCutoffs
+    {
+        PDGNumber particle; //!< Particle for which these cutoffs apply
+        std::vector<ParticleCutoff> cutoffs; //!< Spans all materials
+    };
+    struct Input
+    {
+        SPConstParticles                particles;
+        SPConstMaterials                materials;
+        std::vector<PerMaterialCutoffs> cutoffs;
+    };
 
   public:
     //! Construct with cutoff input data
-    explicit CutoffParams(Input& input);
+    explicit CutoffParams(const Input& input);
 
     //! Access cutoff data on the host
     const HostRef& host_pointers() const { return data_.host(); }

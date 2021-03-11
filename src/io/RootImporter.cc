@@ -106,7 +106,6 @@ RootImporter::result_type RootImporter::operator()()
  */
 std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
 {
-    CELER_LOG(status) << "Loading particle data";
     // Open the 'particles' branch and reserve size for the converted data
     std::unique_ptr<TTree> tree_particles(
         root_input_->Get<TTree>("particles"));
@@ -143,31 +142,6 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
                                       : 1. / particle.lifetime);
     }
 
-    // Sort by increasing mass, then by PDG code (positive before negative of
-    // the same absolute value). Placing lighter particles
-    // (more likely to be created by various processes, so more "light
-    // particle" tracks) together at the beginning of the list will make it
-    // easier to human-read the particles while debugging, and having them
-    // at adjacent memory locations could improve cacheing.
-    //
-    // TEMPORARILY DISABLED
-    // 1. this->load_cutoff_data() also would need to sort particle data.
-    // 2. RootImporter will be overhauled to just provide reading capabilities
-    //    and offload the ClassParams construction to smaller helper classes.
-    //    Sorting will be reimplemented at this point.
-
-    /*
-    auto to_particle_key = [](const auto& inp) {
-        int pdg = inp.pdg_code.get();
-        return std::make_tuple(inp.mass, std::abs(pdg), pdg < 0);
-    };
-    std::sort(defs.begin(),
-              defs.end(),
-              [to_particle_key](const auto& lhs, const auto& rhs) {
-                  return to_particle_key(lhs) < to_particle_key(rhs);
-              });
-    */
-
     // Construct ParticleParams from the definitions
     return std::make_shared<ParticleParams>(std::move(defs));
 }
@@ -178,7 +152,6 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
  */
 std::vector<ImportProcess> RootImporter::load_processes()
 {
-    CELER_LOG(status) << "Loading physics processes";
     std::unique_ptr<TTree> tree_processes(
         root_input_->Get<TTree>("processes"));
     CELER_ASSERT(tree_processes);
@@ -214,11 +187,10 @@ std::vector<ImportProcess> RootImporter::load_processes()
  */
 std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
 {
-    CELER_LOG(status) << "Loading geometry data";
     // Open geometry branch
     std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
     CELER_ASSERT(tree_geometry);
-    CELER_ASSERT(tree_geometry->GetEntries()); // Must be 1
+    CELER_ASSERT(tree_geometry->GetEntries() == 1);
 
     // Load branch and fetch data
     GdmlGeometryMap  geometry;
@@ -238,7 +210,6 @@ std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
  */
 std::shared_ptr<MaterialParams> RootImporter::load_material_data()
 {
-    CELER_LOG(status) << "Loading material data";
     // Open geometry branch
     std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
     CELER_ASSERT(tree_geometry);
@@ -299,14 +270,19 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
  */
 std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
 {
-    CELER_LOG(status) << "Loading cutoff data";
+    CutoffParams::Input input;
+    input.materials = this->load_material_data();
+    input.particles = this->load_particle_data();
 
-    // Load geometry tree
+    CELER_ENSURE(input.materials);
+    CELER_ENSURE(input.particles);
+
+    // Load geometry tree to access cutoff data
     std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
     CELER_ASSERT(tree_geometry);
     CELER_ASSERT(tree_geometry->GetEntries() == 1);
 
-    // Load branch and fetch data
+    // Load branch data
     GdmlGeometryMap  geometry;
     GdmlGeometryMap* geometry_ptr = &geometry;
 
@@ -315,42 +291,32 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
     CELER_ASSERT(err_code >= 0);
     tree_geometry->GetEntry(0);
 
-    // Load particle tree
-    std::unique_ptr<TTree> tree_particles(
-        root_input_->Get<TTree>("particles"));
-    CELER_ASSERT(tree_particles);
-
-    // Load the particle data
-    ImportParticle  particle;
-    ImportParticle* temp_particle_ptr = &particle;
-
-    err_code = tree_particles->SetBranchAddress("ImportParticle",
-                                                &temp_particle_ptr);
-    CELER_ASSERT(err_code >= 0);
-
-    CutoffParams::Input input;
-
-    for (const auto& mat_key : geometry.matid_to_material_map())
+    for (const auto i : range<ParticleId::size_type>(input.particles->size()))
     {
-        // Acess cutoff data from root file
-        auto                         import_material = mat_key.second;
-        CutoffParams::MaterialCutoff material_cutoff;
+        CutoffParams::PerMaterialCutoffs m_cutoffs;
+        m_cutoffs.particle = input.particles->id_to_pdg(ParticleId{i});
 
-        for (int entry : range(tree_particles->GetEntries()))
+        for (const auto& mat_key : geometry.matid_to_material_map())
         {
-            tree_particles->GetEntry(entry);
-            ParticleCutoff particle_cutoff = {units::MevEnergy{0}, 0};
-            auto iter = import_material.pdg_cutoff.find(particle.pdg);
+            const auto iter
+                = mat_key.second.pdg_cutoff.find(m_cutoffs.particle.get());
 
-            if (iter != import_material.pdg_cutoff.end())
+            ParticleCutoff p_cutoff;
+            if (iter != mat_key.second.pdg_cutoff.end())
             {
-                // PDG with non-zero cutoff values
-                particle_cutoff = {units::MevEnergy{iter->second.energy},
-                                   iter->second.range};
+                // Found a valid Geant4 PDG with cutoff valids
+                p_cutoff.energy = units::MevEnergy{iter->second.energy};
+                p_cutoff.range  = iter->second.range;
             }
-            material_cutoff.push_back(particle_cutoff);
+            else
+            {
+                // Set cutoffs to zero
+                p_cutoff.energy = units::MevEnergy{0};
+                p_cutoff.range  = 0;
+            }
+            m_cutoffs.cutoffs.push_back(p_cutoff);
         }
-        input.push_back(material_cutoff);
+        input.cutoffs.push_back(m_cutoffs);
     }
 
     CutoffParams cutoffs(input);

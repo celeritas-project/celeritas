@@ -9,16 +9,21 @@
 
 #include "base/Collection.hh"
 #include "physics/base/Units.hh"
-#include "Types.hh"
+#include "physics/base/PDGNumber.hh"
 #include "physics/base/Types.hh"
 #include "physics/material/Types.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Store secondary cutoff information.
+ */
 struct ParticleCutoff
 {
-    units::MevEnergy energy{};
-    real_type        range{};
+    units::MevEnergy energy{}; //!< Converted range value
+    real_type        range{};  //!< [cm]
 };
 
 //---------------------------------------------------------------------------//
@@ -38,7 +43,7 @@ struct CutoffParamsData
     using Data = Collection<T, W, M>;
 
     // Backend storage
-    Data<ParticleCutoff> cutoffs; // [num_particles][num_materials]
+    Data<ParticleCutoff> cutoffs; // [num_materials][num_particles]
 
     ParticleId::size_type num_particles;
     MaterialId::size_type num_materials;
