@@ -45,6 +45,17 @@ enum Pokemon
 };
 }
 
+namespace fake_geant
+{
+enum G4MySillyIndex
+{
+    DoIt = 0,
+    ooOO00OOoo,
+    PostStepGetPhysicalInteractionLength,
+    NumberOfGeantIndex
+};
+}
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -171,6 +182,24 @@ TEST(RangeTest, enums)
         static_assert(std::is_same<decltype(p), pokemon::Pokemon>::value,
                       "Pokemon range should be an enum");
         EXPECT_EQ(p, static_cast<pokemon::Pokemon>(ctr));
+        ++ctr;
+    }
+
+#if CELERITAS_DEBUG
+    EXPECT_THROW(celeritas::range(static_cast<pokemon::Pokemon>(100)),
+                 celeritas::DebugError);
+#endif
+}
+
+TEST(RangeTest, different_enums)
+{
+    int ctr = 0;
+    for (auto i : celeritas::range(fake_geant::NumberOfGeantIndex))
+    {
+        static_assert(
+            std::is_same<decltype(i), fake_geant::G4MySillyIndex>::value,
+            "G4 range should be an enum");
+        EXPECT_EQ(i, static_cast<fake_geant::G4MySillyIndex>(ctr));
         ++ctr;
     }
 }
