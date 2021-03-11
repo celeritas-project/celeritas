@@ -90,18 +90,26 @@ class Range
     //! Array-like access
     CELER_FORCEINLINE_FUNCTION value_type operator[](size_type i) const
     {
-        CELER_EXPECT(i < this->size());
         return *(begin_ + i);
     }
 
     //! Number of elements
-    CELER_FUNCTION size_type size() const
+    CELER_FORCEINLINE_FUNCTION size_type size() const
     {
         return TraitsT::to_counter(*end_) - TraitsT::to_counter(*begin_);
     }
 
     //! Whether the range has no elements
     CELER_FORCEINLINE_FUNCTION bool empty() const { return begin_ == end_; }
+
+    //! First item in the range
+    CELER_FORCEINLINE_FUNCTION value_type front() const { return *begin_; }
+
+    //! Last item in the range
+    CELER_FORCEINLINE_FUNCTION value_type back() const
+    {
+        return (*this)[this->size() - 1];
+    }
 
     //// STRIDED ACCESS ////
 

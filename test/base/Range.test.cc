@@ -45,9 +45,40 @@ enum Pokemon
 };
 }
 
+namespace fake_geant
+{
+enum G4MySillyIndex
+{
+    DoIt = 0,
+    ooOO00OOoo,
+    PostStepGetPhysicalInteractionLength,
+    NumberOfGeantIndex
+};
+}
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+TEST(RangeTest, class_interface)
+{
+    using RangeT = celeritas::Range<int>;
+    RangeT r(1, 3);
+    EXPECT_EQ(2, r.size());
+    EXPECT_EQ(1, *r.begin());
+    EXPECT_EQ(3, *r.end());
+    EXPECT_EQ(1, r.front());
+    EXPECT_EQ(2, r.back());
+    EXPECT_FALSE(r.empty());
+
+    r = RangeT(5);
+    EXPECT_EQ(5, r.size());
+    EXPECT_EQ(0, r.front());
+    EXPECT_EQ(4, r.back());
+
+    r = RangeT();
+    EXPECT_EQ(0, r.size());
+    EXPECT_TRUE(r.empty());
+}
 
 TEST(RangeTest, ints)
 {
@@ -151,6 +182,24 @@ TEST(RangeTest, enums)
         static_assert(std::is_same<decltype(p), pokemon::Pokemon>::value,
                       "Pokemon range should be an enum");
         EXPECT_EQ(p, static_cast<pokemon::Pokemon>(ctr));
+        ++ctr;
+    }
+
+#if CELERITAS_DEBUG
+    EXPECT_THROW(celeritas::range(static_cast<pokemon::Pokemon>(100)),
+                 celeritas::DebugError);
+#endif
+}
+
+TEST(RangeTest, different_enums)
+{
+    int ctr = 0;
+    for (auto i : celeritas::range(fake_geant::NumberOfGeantIndex))
+    {
+        static_assert(
+            std::is_same<decltype(i), fake_geant::G4MySillyIndex>::value,
+            "G4 range should be an enum");
+        EXPECT_EQ(i, static_cast<fake_geant::G4MySillyIndex>(ctr));
         ++ctr;
     }
 }
