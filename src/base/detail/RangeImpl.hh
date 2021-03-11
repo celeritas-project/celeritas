@@ -46,6 +46,21 @@ struct RangeTypeTraits
     }
 };
 
+template<class T, class Enable = void>
+struct EnumWithSize
+{
+    static CELER_CONSTEXPR_FUNCTION bool is_valid(T) { return true; }
+};
+
+template<class T>
+struct EnumWithSize<T, typename std::enable_if<T::size_ >= 0>::type>
+{
+    static CELER_CONSTEXPR_FUNCTION bool is_valid(T value)
+    {
+        return value <= T::size_;
+    }
+};
+
 //! Specialization for enums with a "size_" member
 template<class T>
 struct RangeTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type>
@@ -58,7 +73,7 @@ struct RangeTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type>
     static CELER_CONSTEXPR_FUNCTION value_type zero() { return {}; }
     static CELER_CONSTEXPR_FUNCTION bool       is_valid(value_type v)
     {
-        return v <= T::size_;
+        return EnumWithSize<T>::is_valid(v);
     }
     static CELER_CONSTEXPR_FUNCTION counter_type to_counter(value_type v)
     {
