@@ -30,12 +30,12 @@ struct TwodGridData
     }
 
     //! Get the data location for a specified x-y coordinate.
-    CELER_FUNCTION ItemId<real_type> at(size_type x, size_type y) const
+    CELER_FUNCTION ItemId<real_type> at(size_type ix, size_type iy) const
     {
-        CELER_EXPECT(x < this->x.size());
-        CELER_EXPECT(y < this->y.size());
+        CELER_EXPECT(ix < this->x.size());
+        CELER_EXPECT(iy < this->y.size());
         return ItemId<real_type>{this->values.front().get()
-                                 + x * this->y.size() + y};
+                                 + ix * this->y.size() + iy};
     }
 };
 

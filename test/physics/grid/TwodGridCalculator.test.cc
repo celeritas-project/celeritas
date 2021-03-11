@@ -43,7 +43,7 @@ class TwodGridCalculatorTest : public celeritas::Test
         {
             for (auto j : range(ygrid_.size()))
             {
-                values[i * ny + j] = this->f(xgrid_[i], ygrid_[j]);
+                values[i * ny + j] = this->calc_expected(xgrid_[i], ygrid_[j]);
             }
         }
         grid_data_.values = build.insert_back(values.begin(), values.end());
@@ -54,7 +54,7 @@ class TwodGridCalculatorTest : public celeritas::Test
     }
 
     // Bilinear function of (x, y) should exactly reproduce with interpolation
-    real_type f(real_type x, real_type y) const
+    real_type calc_expected(real_type x, real_type y) const
     {
         return 1 + x + 2 * y - 0.5 * x * y;
     }
@@ -80,15 +80,16 @@ TEST_F(TwodGridCalculatorTest, all)
 
     // Outer extrema
     const real_type eps = 1e-6;
-    EXPECT_SOFT_EQ(f(-1, 0), interpolate({-1, 0}));
-    EXPECT_SOFT_EQ(f(3 - eps, 3.5 - eps), interpolate({3 - eps, 3.5 - eps}));
+    EXPECT_SOFT_EQ(calc_expected(-1, 0), interpolate({-1, 0}));
+    EXPECT_SOFT_EQ(calc_expected(3 - eps, 3.5 - eps),
+                   interpolate({3 - eps, 3.5 - eps}));
 
     // Interior points
     for (real_type x : {-1.0, -0.5, -0.9, 2.25})
     {
         for (real_type y : {0.0, 0.4, 1.6, 3.25})
         {
-            EXPECT_SOFT_EQ(f(x, y), interpolate({x, y}));
+            EXPECT_SOFT_EQ(calc_expected(x, y), interpolate({x, y}));
         }
     }
 }
