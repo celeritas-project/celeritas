@@ -10,9 +10,7 @@
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
 #include "random/cuda/RngStateStore.hh"
-#include "physics/base/SecondaryAllocatorStore.hh"
 #include "physics/base/Units.hh"
-#include "DetectorStore.hh"
 
 using namespace celeritas;
 
@@ -61,23 +59,33 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     // Start timer for overall execution
     Stopwatch total_time;
 
-    // Allocate device data
-    SecondaryAllocatorStore secondaries(args.num_tracks);
+    // Particle data
+    // TODO: refactor these as collections, and simplify
     RngStateStore           rng_states(args.num_tracks, args.seed);
     DeviceVector<Real3>     position(args.num_tracks);
     DeviceVector<Real3>     direction(args.num_tracks);
     DeviceVector<double>    time(args.num_tracks);
     DeviceVector<bool>      alive(args.num_tracks);
-    DetectorStore           detector(args.num_tracks, args.tally_grid);
 
     ParticleStateData<Ownership::value, MemSpace::device> track_states;
     resize(&track_states, pparams_->host_pointers(), args.num_tracks);
+
+    // Secondary data
+    StackAllocatorData<Secondary, Ownership::value, MemSpace::device> secondaries;
+    resize(&secondaries, args.num_tracks);
+
+    // Detector data
+    DetectorParamsData detector_params;
+    detector_params.tally_grid = args.tally_grid;
+    DetectorStateData<Ownership::value, MemSpace::device> detector_states;
+    resize(&detector_states, detector_params, args.num_tracks);
 
     // Construct pointers to device data
     ParamsDeviceRef params;
     params.particle      = pparams_->device_pointers();
     params.tables        = xsparams_->device_pointers();
     params.kn_interactor = kn_pointers_;
+    params.detector      = detector_params;
 
     InitialPointers initial;
     initial.particle = ParticleTrackState{kn_pointers_.gamma_id,
@@ -91,6 +99,9 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     state.time      = time.device_pointers();
     state.alive     = alive.device_pointers();
 
+    state.secondaries = secondaries;
+    state.detector    = detector_states;
+
     // Initialize particle states
     initialize(launch_params_, params, state, initial);
     result.alive.push_back(args.num_tracks);
@@ -100,11 +111,7 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     {
         // Launch the kernel
         Stopwatch elapsed_time;
-        iterate(launch_params_,
-                params,
-                state,
-                secondaries.device_pointers(),
-                detector.device_pointers());
+        demo_interactor::iterate(launch_params_, params, state);
 
         // Save the wall time
         if (launch_params_.sync)
@@ -112,16 +119,12 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
             result.time.push_back(elapsed_time());
         }
 
-        // Clear secondaries, which have all effectively been "killed" inside
-        // the `iterate` kernel (local energy deposited)
-        secondaries.clear();
-
-        // Bin detector depositions from the buffer into the grid
-        detector.bin_buffer();
+        // Process detector hits and clear secondaries
+        demo_interactor::cleanup(launch_params_, params, state);
 
         // Calculate and save number of living particles
-        result.alive.push_back(
-            reduce_alive(alive.device_pointers(), launch_params_));
+        result.alive.push_back(demo_interactor::reduce_alive(
+            launch_params_, alive.device_pointers()));
 
         if (--remaining_steps == 0)
         {
@@ -131,7 +134,8 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     }
 
     // Copy integrated energy deposition
-    result.edep = detector.finalize(1 / real_type(args.num_tracks));
+    result.edep.resize(detector_params.tally_grid.size);
+    demo_interactor::finalize(params, state, make_span(result.edep));
 
     // Store total time
     result.total_time = total_time();

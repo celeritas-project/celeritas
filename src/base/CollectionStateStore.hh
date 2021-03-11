@@ -57,6 +57,16 @@ class CollectionStateStore
         ref_ = val_;
     }
 
+    //! Construct without parameters
+    explicit CollectionStateStore(size_type size)
+    {
+        CELER_EXPECT(size > 0);
+        resize(&val_, size);
+
+        // Save reference
+        ref_ = val_;
+    }
+
     //! Whether any data is being stored
     explicit operator bool() const { return static_cast<bool>(val_); }
 

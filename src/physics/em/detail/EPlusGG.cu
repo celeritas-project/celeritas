@@ -13,7 +13,7 @@
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocator.hh"
 #include "EPlusGGInteractor.hh"
 
 namespace celeritas
@@ -37,7 +37,7 @@ __global__ void eplusgg_interact_kernel(const EPlusGGPointers       epgg,
         return;
 
     // Get views to this Secondary, Particle, and Physics
-    SecondaryAllocatorView allocate_secondaries(model.secondaries);
+    StackAllocator<Secondary> allocate_secondaries(model.secondaries);
     ParticleTrackView      particle(
         model.params.particle, model.states.particle, tid);
     PhysicsTrackView physics(model.params.physics,

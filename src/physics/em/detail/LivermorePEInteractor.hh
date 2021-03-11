@@ -12,7 +12,7 @@
 #include "base/Types.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "LivermorePE.hh"
@@ -49,16 +49,20 @@ class LivermorePEInteractor
     //!@{
     //! Type aliases
     using MevEnergy = units::MevEnergy;
+    using ParamsRef = LivermorePEPointers;
+    using Scratch
+        = RelaxationScratchData<Ownership::reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEInteractor(const LivermorePEPointers& shared,
+    LivermorePEInteractor(const ParamsRef&           shared,
+                          const Scratch&             scratch,
                           ElementId                  el_id,
                           const ParticleTrackView&   particle,
                           const Real3&               inc_direction,
-                          SecondaryAllocatorView&    allocate);
+                          StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -66,7 +70,9 @@ class LivermorePEInteractor
 
   private:
     // Shared constant physics properties
-    const LivermorePEPointers& shared_;
+    const ParamsRef& shared_;
+    // Shared scratch space
+    const Scratch& scratch_;
     // Index in MaterialParams/LivermorePEParams elements
     ElementId el_id_;
     // Incident direction
@@ -74,7 +80,7 @@ class LivermorePEInteractor
     // Incident gamma energy
     const MevEnergy inc_energy_;
     // Allocate space for one or more secondary particles
-    SecondaryAllocatorView& allocate_;
+    StackAllocator<Secondary>& allocate_;
     // Microscopic cross section calculator
     LivermorePEMicroXsCalculator calc_micro_xs_;
     // Reciprocal of the energy

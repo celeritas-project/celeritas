@@ -10,25 +10,26 @@
 #include <cstdint>
 #include <thrust/device_vector.h>
 #include "base/KernelParamCalculator.cuda.hh"
-#include "base/StackAllocatorView.hh"
+#include "base/StackAllocator.hh"
 
 using thrust::raw_pointer_cast;
 
 namespace celeritas_test
 {
-using StackAllocatorViewMock = celeritas::StackAllocatorView<MockSecondary>;
+using StackAllocatorMock = celeritas::StackAllocator<MockSecondary>;
 
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
-
-__global__ void sa_test_kernel(SATestInput input, SATestOutput* output)
+namespace
+{
+__global__ void sa_test_kernel(SATestInput const input, SATestOutput* output)
 {
     auto thread_idx = celeritas::KernelParamCalculator::thread_id().get();
     if (thread_idx >= input.num_threads)
         return;
 
-    StackAllocatorViewMock allocate(input.sa_pointers);
+    StackAllocatorMock allocate(input.sa_pointers);
     for (int i = 0; i < input.num_iters; ++i)
     {
         MockSecondary* secondaries = allocate(input.alloc_size);
@@ -55,28 +56,37 @@ __global__ void sa_test_kernel(SATestInput input, SATestOutput* output)
             &output->last_secondary_address,
             reinterpret_cast<celeritas::ull_int>(secondaries));
     }
-
-    // Do a max on the total in-kernel size, which *might* be under
-    // modification by atomics!
-    atomicMax(&output->max_size, static_cast<int>(*input.sa_pointers.size));
 }
 
-__global__ void sa_post_test_kernel(SATestInput input, SATestOutput* output)
+__global__ void
+sa_post_test_kernel(SATestInput const input, SATestOutput* output)
 {
     auto thread_id = celeritas::KernelParamCalculator::thread_id();
 
-    const StackAllocatorViewMock allocate(input.sa_pointers);
+    const StackAllocatorMock allocate(input.sa_pointers);
     if (thread_id == celeritas::ThreadId{0})
     {
         output->view_size = allocate.get().size();
     }
 }
 
+__global__ void sa_clear_kernel(SATestInput const input)
+{
+    auto thread_id = celeritas::KernelParamCalculator::thread_id();
+
+    StackAllocatorMock allocate(input.sa_pointers);
+    if (thread_id == celeritas::ThreadId{0})
+    {
+        allocate.clear();
+    }
+}
+} // namespace
+
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-SATestOutput sa_test(SATestInput input)
+SATestOutput sa_test(const SATestInput& input)
 {
     // Construct and initialize output data
     thrust::device_vector<SATestOutput> out(1);
@@ -90,6 +100,9 @@ SATestOutput sa_test(SATestInput input)
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Access secondaries after the first kernel completed
+    static const celeritas::KernelParamCalculator calc_post_params(
+        sa_post_test_kernel, "sa_post_test");
+    params = calc_launch_params(input.num_threads);
     sa_post_test_kernel<<<params.grid_size, params.block_size>>>(
         input, raw_pointer_cast(out.data()));
     CELER_CUDA_CHECK_ERROR();
@@ -98,6 +111,18 @@ SATestOutput sa_test(SATestInput input)
     // Copy data back to host
     thrust::host_vector<SATestOutput> host_result = out;
     return host_result.front();
+}
+
+//---------------------------------------------------------------------------//
+//! Clear secondaries, only a single thread needed
+void sa_clear(const SATestInput& input)
+{
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        sa_clear_kernel, "sa_clear", 32);
+    auto params = calc_launch_params(1);
+    sa_clear_kernel<<<params.grid_size, params.block_size>>>(input);
+    CELER_CUDA_CHECK_ERROR();
+    CELER_CUDA_CALL(cudaDeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//

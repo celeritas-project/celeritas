@@ -34,7 +34,7 @@ class CalculatorTestBase : public celeritas::Test
         = celeritas::Collection<real_type,
                                 celeritas::Ownership::const_reference,
                                 celeritas::MemSpace::host>;
-    using SpanReal   = celeritas::Span<real_type>;
+    using SpanReal = celeritas::Span<real_type>;
     //!@}
 
   public:

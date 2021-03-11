@@ -18,16 +18,14 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the Livermore photoelectric model interaction.
+ *
+ * \todo When multiple methods that use atomic relaxation are in place, we
+ * should share AtomicRelaxationParams among them, and move
+ * `RelaxationScratchData` into that class, to reduce fixed-size memory
+ * allocations.
  */
 class LivermorePEModel final : public Model
 {
-  public:
-    //!@{
-    //! Type aliases
-    using SPConstSubshellIdAllocatorStore
-        = std::shared_ptr<SubshellIdAllocatorStore>;
-    //!@}
-
   public:
     // Construct from model ID and other necessary data
     LivermorePEModel(ModelId                  id,
@@ -35,11 +33,11 @@ class LivermorePEModel final : public Model
                      const LivermorePEParams& data);
 
     // Construct with transition data for atomic relaxation
-    LivermorePEModel(ModelId                         id,
-                     const ParticleParams&           particles,
-                     const LivermorePEParams&        data,
-                     const AtomicRelaxationParams&   atomic_relaxation,
-                     SPConstSubshellIdAllocatorStore vacancies);
+    LivermorePEModel(ModelId                       id,
+                     const ParticleParams&         particles,
+                     const LivermorePEParams&      data,
+                     const AtomicRelaxationParams& atomic_relaxation,
+                     size_type                     num_vacancies);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -54,12 +52,24 @@ class LivermorePEModel final : public Model
     std::string label() const final { return "Livermore photoelectric"; }
 
     // Access data on device
-    detail::LivermorePEPointers device_pointers() const;
+    inline const detail::LivermorePEPointers& device_pointers() const;
 
   private:
     detail::LivermorePEPointers     interface_;
-    SPConstSubshellIdAllocatorStore vacancies_;
+    detail::RelaxationScratchData<Ownership::value, MemSpace::device>
+        relax_scratch_;
+    detail::RelaxationScratchData<Ownership::reference, MemSpace::device>
+        relax_scratch_ref_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access data on device.
+ */
+const detail::LivermorePEPointers& LivermorePEModel::device_pointers() const
+{
+    return interface_;
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

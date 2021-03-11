@@ -62,6 +62,15 @@ class CollectionBuilder;
 
 //---------------------------------------------------------------------------//
 /*!
+ * Sentinel class for obtaining a view to all items of a collection.
+ */
+template<class T, MemSpace M = MemSpace::native>
+struct AllItems
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Manage generic array-like data ownership and transfer from host to device.
  *
  * Data are constructed incrementally on the host, then copied (along with
@@ -102,14 +111,13 @@ class Collection
     //! Type aliases
     using SpanT          = typename CollectionTraitsT::SpanT;
     using SpanConstT     = typename CollectionTraitsT::SpanConstT;
-    using pointer        = typename CollectionTraitsT::pointer;
-    using const_pointer  = typename CollectionTraitsT::const_pointer;
     using reference_type = typename CollectionTraitsT::reference_type;
     using const_reference_type =
         typename CollectionTraitsT::const_reference_type;
     using size_type  = typename I::size_type;
     using ItemIdT    = I;
     using ItemRangeT = Range<ItemIdT>;
+    using AllItemsT  = AllItems<T, M>;
     //!@}
 
   public:
@@ -146,19 +154,21 @@ class Collection
 
     //// ACCESS ////
 
-    // Access a subset of the data with a slice
-    inline CELER_FUNCTION SpanT      operator[](ItemRangeT ps);
-    inline CELER_FUNCTION SpanConstT operator[](ItemRangeT ps) const;
-
     // Access a single element
     inline CELER_FUNCTION reference_type       operator[](ItemIdT i);
     inline CELER_FUNCTION const_reference_type operator[](ItemIdT i) const;
 
+    // Access a subset of the data with a slice
+    inline CELER_FUNCTION SpanT      operator[](ItemRangeT ps);
+    inline CELER_FUNCTION SpanConstT operator[](ItemRangeT ps) const;
+
+    // Access all data.
+    inline CELER_FUNCTION SpanT      operator[](AllItemsT);
+    inline CELER_FUNCTION SpanConstT operator[](AllItemsT) const;
+
     // Direct accesors to underlying data
     CELER_CONSTEXPR_FUNCTION size_type     size() const;
     CELER_CONSTEXPR_FUNCTION bool          empty() const;
-    CELER_CONSTEXPR_FUNCTION const_pointer data() const;
-    CELER_CONSTEXPR_FUNCTION pointer       data();
 
   private:
     //// DATA ////

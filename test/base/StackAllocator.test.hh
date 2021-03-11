@@ -18,16 +18,18 @@ struct MockSecondary
     int mock_id = -1; //!< Default to garbage value
 };
 
-using StackAllocatorPointersMock
-    = celeritas::StackAllocatorPointers<MockSecondary>;
-
 //! Input data
 struct SATestInput
 {
-    int                        num_threads;
-    int                        num_iters;
-    int                        alloc_size;
-    StackAllocatorPointersMock sa_pointers;
+    using MockAllocatorPointers
+        = celeritas::StackAllocatorData<MockSecondary,
+                                        celeritas::Ownership::reference,
+                                        celeritas::MemSpace::device>;
+
+    int                   num_threads;
+    int                   num_iters;
+    int                   alloc_size;
+    MockAllocatorPointers sa_pointers;
 };
 
 //---------------------------------------------------------------------------//
@@ -38,14 +40,26 @@ struct SATestOutput
 
     int     num_errors             = 0;
     int     num_allocations        = 0;
-    int     max_size               = 0;
     int     view_size              = 0;
     ull_int last_secondary_address = 0;
 };
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-SATestOutput sa_test(SATestInput);
+SATestOutput sa_test(const SATestInput&);
+void         sa_clear(const SATestInput&);
+
+#if !CELERITAS_USE_CUDA
+inline SATestOutput sa_test(const SATestInput&)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+
+inline void sa_clear(const SATestInput&)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

@@ -13,7 +13,7 @@
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocator.hh"
 #include "MollerBhabhaInteractor.hh"
 
 namespace celeritas
@@ -35,7 +35,7 @@ __global__ void moller_bhabha_interact_kernel(const MollerBhabhaPointers  mb,
     if (tid.get() >= ptrs.states.size())
         return;
 
-    SecondaryAllocatorView allocate_secondaries(ptrs.secondaries);
+    StackAllocator<Secondary> allocate_secondaries(ptrs.secondaries);
     ParticleTrackView particle(ptrs.params.particle, ptrs.states.particle, tid);
 
     PhysicsTrackView physics(ptrs.params.physics,

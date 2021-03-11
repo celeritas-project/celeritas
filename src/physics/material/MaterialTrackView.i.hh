@@ -63,10 +63,10 @@ CELER_FORCEINLINE_FUNCTION MaterialView MaterialTrackView::material_view() const
 CELER_FUNCTION Span<real_type> MaterialTrackView::element_scratch()
 {
     auto offset = thread_.get() * params_.max_element_components;
-    CELER_ENSURE(offset + params_.max_element_components
-                 <= states_.element_scratch.size());
-    return {states_.element_scratch.data() + offset,
-            params_.max_element_components};
+    Span<real_type> all_scratch
+        = states_.element_scratch[AllItems<real_type, MemSpace::native>{}];
+    CELER_ENSURE(offset + params_.max_element_components <= all_scratch.size());
+    return {all_scratch.data() + offset, params_.max_element_components};
 }
 
 //---------------------------------------------------------------------------//

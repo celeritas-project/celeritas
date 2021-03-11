@@ -3,37 +3,38 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DetectorView.i.hh
+//! \file CollectionAlgorithms.hh
 //---------------------------------------------------------------------------//
+#pragma once
 
-#include "base/Assert.hh"
-#include "base/Types.hh"
+#include "Collection.hh"
+#include "detail/Copier.hh"
+#include "detail/Filler.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with defaults.
+ * Fill the collection with the given value.
  */
-CELER_FUNCTION DetectorView::DetectorView(const DetectorPointers& pointers)
-    : allocate_(pointers.hit_buffer)
+template<class T, MemSpace M, class I>
+void fill(const T& value, Collection<T, Ownership::value, M, I>* col)
 {
+    CELER_EXPECT(col);
+    detail::Filler<T, M> fill_impl{value};
+    fill_impl((*col)[AllItems<T, M>{}]);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Push the given hit onto the back of the detector stack.
+ * Copy from the given collection to host.
  */
-CELER_FUNCTION void DetectorView::operator()(const Hit& hit)
+template<class T, Ownership W, MemSpace M, class I, std::size_t E>
+void copy_to_host(const Collection<T, W, M, I>& src, Span<T, E> dst)
 {
-    CELER_EXPECT(hit.thread);
-    CELER_EXPECT(hit.time > 0);
-    CELER_EXPECT(hit.energy_deposited > zero_quantity());
-
-    // Allocate and assign the given hit
-    Hit* allocated = this->allocate_(1);
-    CELER_ASSERT(allocated);
-    *allocated = hit;
+    CELER_EXPECT(src.size() == dst.size());
+    detail::Copier<T, M> copy_impl{src[AllItems<T, M>{}]};
+    copy_impl(MemSpace::host, dst);
 }
 
 //---------------------------------------------------------------------------//

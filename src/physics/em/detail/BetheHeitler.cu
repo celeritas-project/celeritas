@@ -13,7 +13,7 @@
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocator.hh"
 #include "physics/material/MaterialTrackView.hh"
 #include "BetheHeitlerInteractor.hh"
 
@@ -36,7 +36,7 @@ __global__ void bethe_heitler_interact_kernel(const BetheHeitlerPointers  bh,
     if (tid.get() >= ptrs.states.size())
         return;
 
-    SecondaryAllocatorView allocate_secondaries(ptrs.secondaries);
+    StackAllocator<Secondary> allocate_secondaries(ptrs.secondaries);
     ParticleTrackView particle(ptrs.params.particle, ptrs.states.particle, tid);
 
     // Setup for ElementView access

@@ -33,8 +33,8 @@ class AtomicRelaxation
 
     struct result_type
     {
-        Span<Secondary> secondaries;
-        real_type energy; //! Sum of the energies of the secondaries
+        size_type count{};  //!< Number of secondaries created
+        real_type energy{}; //!< Sum of the energies of the secondaries
     };
 
   public:
@@ -44,8 +44,7 @@ class AtomicRelaxation
                      ElementId                        el_id,
                      SubshellId                       shell_id,
                      Span<Secondary>                  secondaries,
-                     Span<SubshellId>                 vacancies,
-                     size_type                        base_size = 0);
+                     Span<SubshellId>                 vacancies);
 
     // Simulate atomic relaxation with an initial vacancy in the given shell ID
     template<class Engine>
@@ -62,8 +61,6 @@ class AtomicRelaxation
     Span<Secondary> secondaries_;
     // Storage for stack of unprocessed subshell vacancies
     Span<SubshellId> vacancies_;
-    // The number of secondaries already created by the primary process
-    size_type base_size_;
     // Angular distribution of secondaries
     IsotropicDistribution<real_type> sample_direction_;
 };

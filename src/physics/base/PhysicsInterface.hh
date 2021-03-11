@@ -221,8 +221,8 @@ struct PhysicsParamsData
 struct PhysicsTrackState
 {
     real_type interaction_mfp; //!< Remaining MFP to interaction
-    real_type step_length; //!< Overall physics step length
-    real_type macro_xs;    //!< Total cross section
+    real_type step_length;     //!< Overall physics step length
+    real_type macro_xs;        //!< Total cross section
 
     ModelId            model_id;   //!< Selected model if interacting
     ElementComponentId element_id; //!< Selected element during interaction

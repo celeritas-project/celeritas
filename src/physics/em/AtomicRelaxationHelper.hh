@@ -52,40 +52,31 @@ namespace celeritas
 class AtomicRelaxationHelper
 {
   public:
-    // Construct with shared and state data
+    // Construct with the currently interacting element
     inline CELER_FUNCTION
-    AtomicRelaxationHelper(const AtomicRelaxParamsPointers&   shared,
-                           const SubshellIdAllocatorPointers& vacancies,
-                           ElementId                          el_id,
-                           SecondaryAllocatorView&            allocate,
-                           size_type                          base_size);
-
-    // Allocate space for secondaries
-    inline CELER_FUNCTION Span<Secondary> allocate_secondaries() const;
-
-    // Allocate space for subshell ID stack
-    inline CELER_FUNCTION Span<SubshellId> allocate_vacancies() const;
-
-    // Create the sampling distribution
-    inline CELER_FUNCTION AtomicRelaxation
-    build_distribution(Span<Secondary>  secondaries,
-                       Span<SubshellId> vacancies,
-                       SubshellId       shell_id) const;
+    AtomicRelaxationHelper(const AtomicRelaxParamsPointers& shared,
+                           ElementId                        el_id);
 
     // Whether atomic relaxation should be applied
     explicit inline CELER_FUNCTION operator bool() const;
 
+    // Space needed for relaxation secondaries
+    inline CELER_FUNCTION size_type max_secondaries() const;
+
+    // Space needed for subshell ID stack
+    inline CELER_FUNCTION size_type max_vacancies() const;
+
+    // Create the sampling distribution from sampled shell and allocated mem
+    inline CELER_FUNCTION AtomicRelaxation
+    build_distribution(SubshellId       shell_id,
+                       Span<Secondary>  secondaries,
+                       Span<SubshellId> vacancies) const;
+
   private:
     // Shared EADL atomic relaxation data
     const AtomicRelaxParamsPointers& shared_;
-    // Allocate space for vacancy subshell ID stack
-    const SubshellIdAllocatorPointers& vacancies_;
     // Index in MaterialParams elements
     ElementId el_id_;
-    // Allocate space for one or more secondary particles
-    SecondaryAllocatorView& allocate_;
-    // Number of secondaries created in the primary process
-    size_type base_size_;
 };
 
 //---------------------------------------------------------------------------//

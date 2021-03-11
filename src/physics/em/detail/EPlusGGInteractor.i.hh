@@ -20,10 +20,10 @@ namespace detail
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-EPlusGGInteractor::EPlusGGInteractor(const EPlusGGPointers&   shared,
-                                     const ParticleTrackView& particle,
-                                     const Real3&             inc_direction,
-                                     SecondaryAllocatorView&  allocate)
+EPlusGGInteractor::EPlusGGInteractor(const EPlusGGPointers&     shared,
+                                     const ParticleTrackView&   particle,
+                                     const Real3&               inc_direction,
+                                     StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)
