@@ -46,13 +46,12 @@ CELER_FUNCTION real_type TwodGridCalculator::operator()(const Point& inp) const
         frac[ax] = (inp[ax] - lower_val) / (upper_val - lower_val);
     }
 
-    // Interpolate using the surorunding four values.
     // clang-format off
-    return (1 - frac[X]) * (1 - frac[Y]) * this->at(idx[X], idx[Y])
-           + (frac[X]) * (1 - frac[Y]) * this->at(idx[X] + 1, idx[Y])
-           + (1 - frac[X]) * (frac[Y]) * this->at(idx[X], idx[Y] + 1)
-           + (frac[X]) * (frac[Y]) * this->at(idx[X] + 1, idx[Y] + 1);
-    //clang-format on
+    return   (1 - frac[X]) * (1 - frac[Y]) * this->at(idx[X]    , idx[Y]    )
+           + (1 - frac[X]) * (    frac[Y]) * this->at(idx[X]    , idx[Y] + 1)
+           + (    frac[X]) * (1 - frac[Y]) * this->at(idx[X] + 1, idx[Y]    )
+           + (    frac[X]) * (    frac[Y]) * this->at(idx[X] + 1, idx[Y] + 1);
+    // clang-format on
 }
 
 //---------------------------------------------------------------------------//
