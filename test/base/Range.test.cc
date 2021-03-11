@@ -48,6 +48,26 @@ enum Pokemon
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+TEST(RangeTest, class_interface)
+{
+    using RangeT = celeritas::Range<int>;
+    RangeT r(1, 3);
+    EXPECT_EQ(2, r.size());
+    EXPECT_EQ(1, *r.begin());
+    EXPECT_EQ(3, *r.end());
+    EXPECT_EQ(1, r.front());
+    EXPECT_EQ(2, r.back());
+    EXPECT_FALSE(r.empty());
+
+    r = RangeT(5);
+    EXPECT_EQ(5, r.size());
+    EXPECT_EQ(0, r.front());
+    EXPECT_EQ(4, r.back());
+
+    r = RangeT();
+    EXPECT_EQ(0, r.size());
+    EXPECT_TRUE(r.empty());
+}
 
 TEST(RangeTest, ints)
 {
