@@ -36,7 +36,7 @@ auto EIonisationProcess::build_models(ModelIdGenerator next_id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct process from host data.
+ * Get cross section values.
  */
 auto EIonisationProcess::step_limits(Applicability range) const
     -> StepLimitBuilders
