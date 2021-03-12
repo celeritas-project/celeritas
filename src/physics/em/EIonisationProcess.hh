@@ -26,10 +26,17 @@ class EIonisationProcess : public Process
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     //!@}
 
+    struct Input
+    {
+        SPConstParticles   particles;
+        ImportPhysicsTable lambda;
+        ImportPhysicsTable dedx;
+        ImportPhysicsTable range;
+    };
+
   public:
     // Construct with lambda table
-    inline EIonisationProcess(SPConstParticles   particles,
-                              ImportPhysicsTable xs);
+    inline EIonisationProcess(Input input);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;
@@ -42,7 +49,9 @@ class EIonisationProcess : public Process
 
   private:
     SPConstParticles   particles_;
-    ImportPhysicsTable xs_;
+    ImportPhysicsTable xs_lambda_;
+    ImportPhysicsTable xs_dedx_;
+    ImportPhysicsTable xs_range_;
 };
 
 //---------------------------------------------------------------------------//

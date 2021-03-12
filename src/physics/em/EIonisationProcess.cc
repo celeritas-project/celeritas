@@ -15,13 +15,19 @@ namespace celeritas
 /*!
  * Construct process from host data.
  */
-EIonisationProcess::EIonisationProcess(SPConstParticles   particles,
-                                       ImportPhysicsTable xs)
-    : particles_(std::move(particles)), xs_(std::move(xs))
+EIonisationProcess::EIonisationProcess(Input input)
+    : particles_(std::move(input.particles))
+    , xs_lambda_(std::move(input.lambda))
+    , xs_dedx_(std::move(input.dedx))
+    , xs_range_(std::move(input.range))
 {
     CELER_EXPECT(particles_);
-    CELER_EXPECT(xs_.table_type == ImportTableType::lambda);
-    CELER_EXPECT(!xs_.physics_vectors.empty());
+    CELER_EXPECT(xs_lambda_.table_type == ImportTableType::lambda);
+    CELER_EXPECT(xs_dedx_.table_type == ImportTableType::dedx);
+    CELER_EXPECT(xs_range_.table_type == ImportTableType::range);
+    CELER_EXPECT(!xs_lambda_.physics_vectors.empty());
+    CELER_EXPECT(!xs_dedx_.physics_vectors.empty());
+    CELER_EXPECT(!xs_range_.physics_vectors.empty());
 }
 
 //---------------------------------------------------------------------------//
@@ -41,19 +47,26 @@ auto EIonisationProcess::build_models(ModelIdGenerator next_id) const
 auto EIonisationProcess::step_limits(Applicability range) const
     -> StepLimitBuilders
 {
-    CELER_EXPECT(range.material < xs_.physics_vectors.size());
+    CELER_EXPECT(range.material);
+    CELER_EXPECT(range.material < xs_lambda_.physics_vectors.size());
+    CELER_EXPECT(range.material < xs_dedx_.physics_vectors.size());
+    CELER_EXPECT(range.material < xs_range_.physics_vectors.size());
     CELER_EXPECT(range.particle == particles_->find(pdg::electron())
                  || range.particle == particles_->find(pdg::positron()));
 
-    const auto& lo = xs_.physics_vectors[range.material.get()];
-    const auto& hi = xs_.physics_vectors[range.material.get()];
-    CELER_ASSERT(lo.vector_type == ImportPhysicsVectorType::log);
-    CELER_ASSERT(hi.vector_type == ImportPhysicsVectorType::log);
+    const auto& xs_lambda = xs_lambda_.physics_vectors[range.material.get()];
+    const auto& xs_dedx   = xs_dedx_.physics_vectors[range.material.get()];
+    const auto& xs_range  = xs_range_.physics_vectors[range.material.get()];
+    CELER_ASSERT(xs_lambda.vector_type == ImportPhysicsVectorType::log);
+    CELER_ASSERT(xs_dedx.vector_type == ImportPhysicsVectorType::log);
+    CELER_ASSERT(xs_range.vector_type == ImportPhysicsVectorType::log);
 
+    // TODO complete builders
     StepLimitBuilders builders;
-    builders[size_type(ValueGridType::macro_xs)]
-        = ValueGridXsBuilder::from_geant(
-            make_span(lo.x), make_span(lo.y), make_span(hi.x), make_span(hi.y));
+    // builders[size_type(ValueGridType::macro_xs)]    = ? ;
+    // builders[size_type(ValueGridType::energy_loss)] = ? ;
+    // builders[size_type(ValueGridType::range)]       = ? ;
+
     return builders;
 }
 
