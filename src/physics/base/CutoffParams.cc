@@ -30,10 +30,11 @@ CutoffParams::CutoffParams(const Input& input)
 
     for (const auto& per_material_cutoffs : input.cutoffs)
     {
-        for (const auto& material_cutoffs : per_material_cutoffs.cutoffs)
-        {
-            cutoffs.push_back(std::move(material_cutoffs));
-        }
+        CELER_ASSERT(per_material_cutoffs.cutoffs.size()
+                     == host_data.num_materials);
+
+        cutoffs.insert_back(per_material_cutoffs.cutoffs.begin(),
+                            per_material_cutoffs.cutoffs.end());
     }
 
     // Move to mirrored data, copying to device
