@@ -63,6 +63,7 @@ list(APPEND SOURCES
   physics/em/PhotoelectricProcess.cc
   physics/em/LivermorePEModel.cc
   physics/em/LivermorePEParams.cc
+  physics/em/EIonisationProcess.cc
   physics/em/EPlusAnnihilationProcess.cc
   physics/em/EPlusGGModel.cc
   physics/em/GammaConversionProcess.cc
