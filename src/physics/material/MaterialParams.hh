@@ -14,6 +14,7 @@
 #include "base/CollectionMirror.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
+#include "ElementView.hh"
 #include "MaterialInterface.hh"
 #include "MaterialView.hh"
 #include "Types.hh"
@@ -84,6 +85,9 @@ class MaterialParams
 
     // Access material definitions on host
     inline MaterialView get(MaterialId id) const;
+
+    // Access element definitions on host
+    inline ElementView get(ElementId id) const;
 
     //! Access material properties on the host
     const HostRef& host_pointers() const { return data_.host(); }
