@@ -149,7 +149,7 @@
  *     CELER_CUDA_CALL(cudaDeviceSynchronize());
  * \endcode
  *
- * \note A file that uses this macro must #include <cuda_runtime_api.h> or be
+ * \note A file that uses this macro must include \c cuda_runtime_api.h or be
  * compiled by NVCC (which implicitly includes that header).
  */
 #if CELERITAS_USE_CUDA
@@ -191,7 +191,7 @@
  * RuntimeError if it fails. If MPI is disabled, throw an unconfigured
  * assertion.
  *
- * \note A file that uses this macro must #include <mpi.h>.
+ * \note A file that uses this macro must include \c mpi.h.
  */
 #if CELERITAS_USE_MPI
 #    define CELER_MPI_CALL(STATEMENT)                             \

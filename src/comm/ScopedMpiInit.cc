@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file src/comm/ScopedMpiInit.mpi.cc
+//! \file src/comm/ScopedMpiInit.cc
 //---------------------------------------------------------------------------//
 #include "ScopedMpiInit.hh"
 

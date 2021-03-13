@@ -81,9 +81,9 @@ using RelaxationScratchPointers
 //---------------------------------------------------------------------------//
 
 // Launch the Livermore photoelectric interaction
-void livermore_pe_interact(const LivermorePEPointers&       device_pointers,
-                           const RelaxationScratchPointers& device_scratch,
-                           const ModelInteractPointers&     interaction);
+void livermore_pe_interact(const LivermorePEPointers&       pe,
+                           const RelaxationScratchPointers& scratch,
+                           const ModelInteractPointers&     model);
 
 //---------------------------------------------------------------------------//
 } // namespace detail
