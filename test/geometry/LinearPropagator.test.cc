@@ -94,30 +94,25 @@ TEST_F(LinearPropagatorHostTest, track_line)
         step = propagate(1.e10);
         EXPECT_SOFT_EQ(1, step.distance);
         EXPECT_EQ(VolumeId{3}, step.volume); // Shape1 -> Envelope
-        EXPECT_EQ(false, geo.is_outside());
+        EXPECT_FALSE(geo.is_outside());
 
         step = propagate();
         EXPECT_SOFT_EQ(1, step.distance);
-        EXPECT_EQ(false, geo.is_outside()); // leaving World
+        EXPECT_FALSE(geo.is_outside()); // leaving World
     }
 
     {
-        // Track from outside edge fails
-        CELER_LOG(info) << "Init a track with a pointer outside work "
-                           "volume...";
-        geo = {{24, 0, 0}, {-1, 0, 0}};
-        EXPECT_EQ(true, geo.is_outside());
-    }
-
-    {
-        // But it works when you move juuust inside
-        real_type eps = 1e-6;
-        geo           = {{-24 + eps, 6.5, 6.5}, {1, 0, 0}};
-        EXPECT_EQ(false, geo.is_outside());
-        EXPECT_EQ(VolumeId{10}, geo.volume_id()); // World
+        // Track from outside edge used to fail
+        CELER_LOG(info) << "Init a track just outside of world volume...";
+        geo = {{-24, 6.5, 6.5}, {1, 0, 0}};
+        EXPECT_TRUE(geo.is_outside());
 
         auto step = propagate();
-        EXPECT_SOFT_EQ(7. - eps, step.distance);
+        EXPECT_FALSE(geo.is_outside());
+        EXPECT_EQ(VolumeId{10}, geo.volume_id()); // World
+
+        step = propagate();
+        EXPECT_SOFT_EQ(7., step.distance);
         EXPECT_EQ(VolumeId{3}, step.volume); // World -> Envelope
     }
     {
@@ -129,11 +124,11 @@ TEST_F(LinearPropagatorHostTest, track_line)
         EXPECT_SOFT_EQ(5.0, step.distance);
         EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
         EXPECT_EQ(VolumeId{1}, step.volume); // Shape1 -> Shape2
-        EXPECT_EQ(false, geo.is_outside());
+        EXPECT_FALSE(geo.is_outside());
 
         step = propagate();
         EXPECT_SOFT_EQ(1.0, step.distance);
-        EXPECT_EQ(false, geo.is_outside());
+        EXPECT_FALSE(geo.is_outside());
     }
 }
 

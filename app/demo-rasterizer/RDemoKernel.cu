@@ -11,6 +11,7 @@
 #include "base/KernelParamCalculator.cuda.hh"
 #include "geometry/GeoTrackView.hh"
 #include "ImageTrackView.hh"
+#include <cmath>
 
 using namespace celeritas;
 using namespace demo_rasterizer;
@@ -45,8 +46,8 @@ __global__ void trace_kernel(const GeoParamsPointers geo_params,
     geo = GeoStateInitializer{image.start_pos(), image.start_dir()};
 
     int       cur_id = geo_id(geo);
-    real_type geo_dist
-        = fmin(geo.next_step(), image_state.dims[1] * image_state.pixel_width);
+    real_type geo_dist = std::fmin(
+        geo.next_step(), image_state.dims[1] * image_state.pixel_width);
 
     // Track along each pixel
     for (unsigned int i = 0; i < image_state.dims[1]; ++i)
@@ -72,8 +73,8 @@ __global__ void trace_kernel(const GeoParamsPointers geo_params,
             // Cross surface
             geo.move_next_step();
             cur_id   = geo_id(geo);
-            geo_dist = fmin(geo.next_step(),
-                            image_state.dims[1] * image_state.pixel_width);
+            geo_dist = std::fmin(geo.next_step(),
+                                 image_state.dims[1] * image_state.pixel_width);
         }
 
         // Move to pixel boundary

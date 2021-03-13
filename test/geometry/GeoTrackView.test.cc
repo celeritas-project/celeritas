@@ -84,29 +84,25 @@ TEST_F(GeoTrackViewHostTest, track_line)
         EXPECT_SOFT_EQ(1, geo.next_step());
         geo.move_next_step();
         EXPECT_EQ(VolumeId{9}, geo.volume_id()); // Shape1 -> Envelope
-        EXPECT_EQ(false, geo.is_outside());
+        EXPECT_FALSE(geo.is_outside());
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(1, geo.next_step());
         geo.move_next_step();
-        EXPECT_EQ(false, geo.is_outside()); // leaving World
+        EXPECT_EQ(VolumeId{10}, geo.volume_id()); // Shape1 -> Envelope
+        EXPECT_FALSE(geo.is_outside());
     }
 
     {
-        // Track from outside edge fails
-        CELER_LOG(info) << "Init a track with a pointer outside work "
-                           "volume...";
-        geo = {{24, 0, 0}, {-1, 0, 0}};
-        EXPECT_EQ(geo.is_outside(), true);
-    }
+        // Track from outside edge used to fail
+        CELER_LOG(info) << "Init a track just outside of world volume...";
+        geo = {{-24, 6.5, 6.5}, {1, 0, 0}};
+        EXPECT_TRUE(geo.is_outside());
 
-    {
-        // But it works when you move juuust inside
-        geo = {{-24 + 1e-3, 6.5, 6.5}, {1, 0, 0}};
-        EXPECT_EQ(false, geo.is_outside());
+        geo.move_next_step();
         EXPECT_EQ(VolumeId{10}, geo.volume_id()); // World
         geo.find_next_step();
-        EXPECT_SOFT_EQ(7. - 1e-3, geo.next_step());
+        EXPECT_SOFT_EQ(7., geo.next_step());
         geo.move_next_step();
         EXPECT_EQ(VolumeId{3}, geo.volume_id()); // World -> Envelope
     }
@@ -120,12 +116,12 @@ TEST_F(GeoTrackViewHostTest, track_line)
         geo.move_next_step();
         EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
         EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1 -> Shape2
-        EXPECT_EQ(false, geo.is_outside());
+        EXPECT_FALSE(geo.is_outside());
 
         geo.find_next_step();
         EXPECT_SOFT_EQ(1.0, geo.next_step());
         geo.move_next_step();
-        EXPECT_EQ(false, geo.is_outside());
+        EXPECT_FALSE(geo.is_outside());
     }
 }
 

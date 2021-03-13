@@ -95,11 +95,11 @@ GeoTrackView::find_next_step(vecgeom::VPlacedVolume const* pplvol)
     if (this->is_outside())
     {
         // handling points outside of world volume
-        real_type step = 1.e+10;
-        next_step_     = pplvol->DistanceToIn(
-            detail::to_vector(pos_), detail::to_vector(dir_), step);
+        const real_type large = vecgeom::kInfLength;
+        next_step_            = pplvol->DistanceToIn(
+            detail::to_vector(pos_), detail::to_vector(dir_), large);
         vgnext_.Clear();
-        if (next_step_ < step)
+        if (next_step_ < large)
         {
             vgnext_.Push(pplvol);
         }
@@ -121,7 +121,7 @@ GeoTrackView::find_next_step(vecgeom::VPlacedVolume const* pplvol)
 CELER_FUNCTION real_type GeoTrackView::move_to_boundary()
 {
     if (dirty_)
-        find_next_step();
+        this->find_next_step();
 
     // Move the next step plus an extra fudge distance
     real_type dist = next_step_ + this->extra_push();
@@ -136,7 +136,7 @@ CELER_FUNCTION real_type GeoTrackView::move_to_boundary()
 CELER_FUNCTION real_type GeoTrackView::move_next_step()
 {
     if (dirty_)
-        find_next_step();
+        this->find_next_step();
     real_type dist = next_step_;
     axpy(next_step_, dir_, &pos_);
     next_step_ = 0.;
@@ -151,7 +151,7 @@ CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
     CELER_EXPECT(dist > 0.);
 
     if (dirty_)
-        find_next_step();
+        this->find_next_step();
 
     // do not move beyond next boundary!
     if (dist >= next_step_)
