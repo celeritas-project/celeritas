@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EPlusGGPEMacroXsCalculator.i.hh
+//! \file EPlusGGMacroXsCalculator.i.hh
 //---------------------------------------------------------------------------//
 
 #include "base/Algorithms.hh"

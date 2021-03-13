@@ -16,8 +16,11 @@ set(DOXYGEN_EXCLUDE_PATTERNS
   "*.nompi.cc"
   "*.nompi.i.hh"
   "*.noroot.cc"
-  "*/detail/*"
 )
+if(NOT CELERITAS_DEBUG)
+  list(APPEND DOXYGEN_EXCLUDE_PATTERNS "*/detail/*")
+endif()
+
 set(DOXYGEN_FILE_PATTERNS
   "*.h"
   "*.hh"
