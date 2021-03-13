@@ -53,7 +53,7 @@ namespace pdg = celeritas::pdg;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
+class LivermorePETest : public celeritas_test::InteractorHostTestBase
 {
     using Base = celeritas_test::InteractorHostTestBase;
 
@@ -181,7 +181,7 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(LivermorePEInteractorTest, basic)
+TEST_F(LivermorePETest, basic)
 {
     RandomEngine& rng_engine = this->rng();
 
@@ -240,7 +240,7 @@ TEST_F(LivermorePEInteractorTest, basic)
     }
 }
 
-TEST_F(LivermorePEInteractorTest, stress_test)
+TEST_F(LivermorePETest, stress_test)
 {
     RandomEngine& rng_engine = this->rng();
 
@@ -293,7 +293,7 @@ TEST_F(LivermorePEInteractorTest, stress_test)
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
 
-TEST_F(LivermorePEInteractorTest, distributions_all)
+TEST_F(LivermorePETest, distributions_all)
 {
     RandomEngine& rng_engine = this->rng();
 
@@ -387,7 +387,7 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
     EXPECT_VEC_EQ(expected_count, count);
 }
 
-TEST_F(LivermorePEInteractorTest, distributions_radiative)
+TEST_F(LivermorePETest, distributions_radiative)
 {
     RandomEngine& rng_engine = this->rng();
 
@@ -471,7 +471,7 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
     EXPECT_VEC_EQ(expected_count, count);
 }
 
-TEST_F(LivermorePEInteractorTest, model)
+TEST_F(LivermorePETest, model)
 {
     using celeritas::Collection;
 
@@ -481,27 +481,18 @@ TEST_F(LivermorePEInteractorTest, model)
         SKIP("CUDA is disabled");
     }
 
-    // Create physics tables
-    ImportPhysicsTable xs_lo;
-    xs_lo.table_type = ImportTableType::lambda;
-    xs_lo.physics_vectors.push_back(
-        {ImportPhysicsVectorType::log, {1e-2, 1, 1e2}, {1e-1, 1e-3, 1e-5}});
-
-    ImportPhysicsTable xs_hi;
-    xs_hi.table_type = ImportTableType::lambda_prim;
-    xs_hi.physics_vectors.push_back(
+    // Create physics table
+    ImportPhysicsTable xs;
+    xs.table_type = ImportTableType::lambda_prim;
+    xs.physics_vectors.push_back(
         {ImportPhysicsVectorType::log, {1e2, 1e4, 1e6}, {1e-3, 1e-3, 1e-3}});
 
     // Add atomic relaxation data
     relax_inp_.is_auger_enabled = true;
     set_relaxation_params(relax_inp_);
 
-    PhotoelectricProcess process(this->get_particle_params(),
-                                 xs_lo,
-                                 xs_hi,
-                                 livermore_params_,
-                                 relax_params_,
-                                 10);
+    PhotoelectricProcess process(
+        this->get_particle_params(), xs, livermore_params_, relax_params_, 10);
 
     Applicability range    = {MaterialId{0},
                            this->particle_params().find(pdg::gamma()),
@@ -522,7 +513,6 @@ TEST_F(LivermorePEInteractorTest, model)
         real_storage};
     celeritas::XsCalculator calc_xs(
         grid_storage[ValueGridInserter::XsIndex{0}], real_ref);
-    EXPECT_SOFT_EQ(0.1, calc_xs(MevEnergy{1e-3}));
     EXPECT_SOFT_EQ(1e-5, calc_xs(MevEnergy{1e2}));
     EXPECT_SOFT_EQ(1e-9, calc_xs(MevEnergy{1e6}));
 
@@ -545,7 +535,7 @@ TEST_F(LivermorePEInteractorTest, model)
     EXPECT_EQ(celeritas::max_quantity(), applic.upper);
 }
 
-TEST_F(LivermorePEInteractorTest, macro_xs)
+TEST_F(LivermorePETest, macro_xs)
 {
     using celeritas::units::MevEnergy;
 
@@ -580,7 +570,7 @@ TEST_F(LivermorePEInteractorTest, macro_xs)
     EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }
 
-TEST_F(LivermorePEInteractorTest, max_secondaries)
+TEST_F(LivermorePETest, max_secondaries)
 {
     using celeritas::AtomicRelaxElement;
     using celeritas::AtomicRelaxSubshell;

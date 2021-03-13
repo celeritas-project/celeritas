@@ -17,20 +17,15 @@ namespace celeritas
  * Construct from host data.
  */
 PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
-                                           ImportPhysicsTable xs_lo,
-                                           ImportPhysicsTable xs_hi,
+                                           ImportPhysicsTable xs,
                                            SPConstData        data)
     : particles_(std::move(particles))
-    , xs_lo_(std::move(xs_lo))
-    , xs_hi_(std::move(xs_hi))
+    , xs_(std::move(xs))
     , data_(std::move(data))
 {
     CELER_EXPECT(particles_);
-    CELER_EXPECT(xs_lo_.table_type == ImportTableType::lambda);
-    CELER_EXPECT(xs_hi_.table_type == ImportTableType::lambda_prim);
-    CELER_EXPECT(!xs_lo_.physics_vectors.empty());
-    CELER_EXPECT(xs_lo_.physics_vectors.size()
-                 == xs_hi_.physics_vectors.size());
+    CELER_EXPECT(xs_.table_type == ImportTableType::lambda_prim);
+    CELER_EXPECT(!xs_.physics_vectors.empty());
     CELER_EXPECT(data_);
 }
 
@@ -39,15 +34,11 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
  * Construct with atomic relaxation data.
  */
 PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
-                                           ImportPhysicsTable xs_lo,
-                                           ImportPhysicsTable xs_hi,
+                                           ImportPhysicsTable xs,
                                            SPConstData        data,
                                            SPConstAtomicRelax atomic_relaxation,
                                            size_type vacancy_stack_size)
-    : PhotoelectricProcess(std::move(particles),
-                           std::move(xs_lo),
-                           std::move(xs_hi),
-                           std::move(data))
+    : PhotoelectricProcess(std::move(particles), std::move(xs), std::move(data))
 {
     atomic_relaxation_  = std::move(atomic_relaxation);
     vacancy_stack_size_ = vacancy_stack_size;
@@ -86,18 +77,17 @@ auto PhotoelectricProcess::build_models(ModelIdGenerator next_id) const
 auto PhotoelectricProcess::step_limits(Applicability range) const
     -> StepLimitBuilders
 {
-    CELER_EXPECT(range.material < xs_lo_.physics_vectors.size());
+    CELER_EXPECT(range.material < xs_.physics_vectors.size());
     CELER_EXPECT(range.particle == particles_->find(pdg::gamma()));
 
-    const auto& lo = xs_lo_.physics_vectors[range.material.get()];
-    const auto& hi = xs_hi_.physics_vectors[range.material.get()];
-    CELER_ASSERT(lo.vector_type == ImportPhysicsVectorType::log);
-    CELER_ASSERT(hi.vector_type == ImportPhysicsVectorType::log);
+    const auto& vec = xs_.physics_vectors[range.material.get()];
+    CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
 
     StepLimitBuilders builders;
     builders[size_type(ValueGridType::macro_xs)]
-        = ValueGridXsBuilder::from_geant(
-            make_span(lo.x), make_span(lo.y), make_span(hi.x), make_span(hi.y));
+        = std::make_unique<ValueGridXsBuilder>(
+            vec.x.front(), vec.x.front(), vec.x.back(), vec.y);
+
     return builders;
 }
 
