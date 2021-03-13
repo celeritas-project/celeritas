@@ -6,8 +6,8 @@
 //! \file XsCalculator.i.hh
 //---------------------------------------------------------------------------//
 #include <cmath>
-#include "base/Interpolator.hh"
-#include "physics/grid/UniformGrid.hh"
+#include "Interpolator.hh"
+#include "UniformGrid.hh"
 
 namespace celeritas
 {

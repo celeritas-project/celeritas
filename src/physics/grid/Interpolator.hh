@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Array.hh"
-#include "Macros.hh"
-#include "Types.hh"
+#include "base/Array.hh"
+#include "base/Macros.hh"
+#include "base/Types.hh"
+#include "physics/base/Types.hh"
 #include "detail/InterpolatorTraits.hh"
 
 namespace celeritas

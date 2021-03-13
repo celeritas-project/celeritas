@@ -9,6 +9,7 @@
 
 #include "base/Collection.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
 #include "UniformGridInterface.hh"
 

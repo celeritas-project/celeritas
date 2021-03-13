@@ -8,7 +8,7 @@
 #include <cmath>
 #include "base/Algorithms.hh"
 #include "base/Assert.hh"
-#include "base/Interpolator.hh"
+#include "Interpolator.hh"
 
 namespace celeritas
 {

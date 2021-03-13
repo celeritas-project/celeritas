@@ -10,6 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
 
 namespace celeritas

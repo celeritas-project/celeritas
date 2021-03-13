@@ -8,8 +8,7 @@
 #pragma once
 
 #include <cmath>
-#include "../Types.hh"
-#include "../Macros.hh"
+#include "base/Macros.hh"
 
 namespace celeritas
 {
