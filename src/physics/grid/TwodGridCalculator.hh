@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Array.hh"
 #include "base/Collection.hh"
 #include "TwodGridInterface.hh"
-#include "NonuniformGrid.hh"
+#include "TwodSubgridCalculator.hh"
 
 namespace celeritas
 {
@@ -22,6 +23,9 @@ namespace celeritas
  * \code
     TwodGridCalculator calc(grid, params.reals);
     real_type interpolated = calc({energy.value(), exit});
+    // Or if the incident energy is reused...
+    auto calc2 = calc(energy.value());
+    interpolated = calc2(exit);
    \endcode
  */
 class TwodGridCalculator
@@ -42,20 +46,12 @@ class TwodGridCalculator
     // Calculate the value at the given x, y coordinates
     inline CELER_FUNCTION real_type operator()(const Point& xy) const;
 
+    // Get an interpolator for calculating y values for a given x
+    inline CELER_FUNCTION TwodSubgridCalculator operator()(real_type x) const;
+
   private:
-    using GridT = NonuniformGrid<real_type>;
-
-    Array<GridT, 2> grids_;
-    size_type       value_offset_;
+    const TwodGridData& grids_;
     const Values&   storage_;
-
-    inline CELER_FUNCTION real_type at(size_type x_idx, size_type y_idx) const;
-
-    enum
-    {
-        X = 0,
-        Y = 1
-    };
 };
 
 //---------------------------------------------------------------------------//
