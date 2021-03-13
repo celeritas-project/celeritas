@@ -119,7 +119,7 @@ class GeoTrackView
     Real3&     dir_;
     real_type& next_step_;
     // Flag to trigger update of geometry information if and only if needed
-    bool       dirty_;
+    bool dirty_;
     //!@}
 
   private:

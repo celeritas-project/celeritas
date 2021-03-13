@@ -95,7 +95,7 @@ TEST_F(GeoTrackViewHostTest, track_line)
     {
         // Track from outside edge fails
         CELER_LOG(info) << "Init a track with a pointer outside work "
-	                   "volume...";
+                           "volume...";
         geo = {{24, 0, 0}, {-1, 0, 0}};
         EXPECT_EQ(geo.is_outside(), true);
     }
@@ -149,16 +149,14 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
 
     // Set up test input
     VGGTestInput input;
-    input.init = {
-        {{10, 10, 10}, {1, 0, 0}},
-        {{10, 10, -10}, {1, 0, 0}},
-        {{10, -10, 10}, {1, 0, 0}},
-        {{10, -10, -10}, {1, 0, 0}},
-        {{-10, 10, 10}, {-1, 0, 0}},
-        {{-10, 10, -10}, {-1, 0, 0}},
-        {{-10, -10, 10}, {-1, 0, 0}},
-        {{-10, -10, -10}, {-1, 0, 0}}
-    };
+    input.init         = {{{10, 10, 10}, {1, 0, 0}},
+                  {{10, 10, -10}, {1, 0, 0}},
+                  {{10, -10, 10}, {1, 0, 0}},
+                  {{10, -10, -10}, {1, 0, 0}},
+                  {{-10, 10, 10}, {-1, 0, 0}},
+                  {{-10, 10, -10}, {-1, 0, 0}},
+                  {{-10, -10, 10}, {-1, 0, 0}},
+                  {{-10, -10, -10}, {-1, 0, 0}}};
     input.max_segments = 3;
     input.shared       = this->params()->device_pointers();
 
@@ -168,6 +166,7 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
     // Run kernel
     auto output = vgg_test(input);
 
+    // clang-format off
     static const int expected_ids[] = {
         0, 1, 2, 0, 1, 5, 0, 1, 4, 0, 1, 8,
         0, 1, 3, 0, 1, 7, 0, 1, 6, 0, 1, 9};
@@ -175,6 +174,7 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
     static const double expected_distances[]
         = {5, 1, 1, 5, 1, 1, 5, 1, 1, 5, 1, 1,
            5, 1, 1, 5, 1, 1, 5, 1, 1, 5, 1, 1};
+    // clang-format on
 
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);

@@ -217,9 +217,9 @@ TEST_F(LinearPropagatorDeviceTest, track_lines)
     // Run kernel
     auto output = linProp_test(input);
 
-    static const int expected_ids[] = {0, 1, 2, 0, 1, 8, 0, 1, 7, 10, 2, 1};
+    static const int    expected_ids[] = {0, 1, 2, 0, 1, 8, 0, 1, 7, 10, 2, 1};
     static const double expected_distances[]
-        = {5, 1, 1, 5, 1, 2, 5, 1, 3, 3, 1, 2.47582530373998 };
+        = {5, 1, 1, 5, 1, 2, 5, 1, 3, 3, 1, 2.47582530373998};
 
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);

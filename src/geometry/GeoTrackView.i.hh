@@ -75,7 +75,7 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
         pos_ = init.other.pos_;
     }
     // Set up the next state and initialize the direction
-    dir_       = init.dir;
+    dir_ = init.dir;
 
     this->find_next_step();
     return *this;
@@ -89,27 +89,29 @@ GeoTrackView::find_next_step(vecgeom::VPlacedVolume const* pplvol)
     CELER_ASSERT(pplvol);
 
     const vecgeom::VNavigator* navigator
-      = pplvol->GetLogicalVolume()->GetNavigator();
+        = pplvol->GetLogicalVolume()->GetNavigator();
     CELER_ASSERT(navigator);
 
-    if(this->is_outside()) {
-      // handling points outside of world volume
-      real_type step = 1.e+10;
-      next_step_     = pplvol->DistanceToIn(detail::to_vector(pos_),
-					    detail::to_vector(dir_),
-					    step);
-      vgnext_.Clear();
-      if (next_step_ < step) {
-	vgnext_.Push(pplvol);
-      }
+    if (this->is_outside())
+    {
+        // handling points outside of world volume
+        real_type step = 1.e+10;
+        next_step_     = pplvol->DistanceToIn(
+            detail::to_vector(pos_), detail::to_vector(dir_), step);
+        vgnext_.Clear();
+        if (next_step_ < step)
+        {
+            vgnext_.Push(pplvol);
+        }
     }
-    else {
-      next_step_
-          = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
-                                                     detail::to_vector(dir_),
-                                                     vecgeom::kInfLength,
-                                                     vgstate_,
-                                                     vgnext_);
+    else
+    {
+        next_step_
+            = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
+                                                       detail::to_vector(dir_),
+                                                       vecgeom::kInfLength,
+                                                       vgstate_,
+                                                       vgnext_);
     }
     dirty_ = false;
 }
