@@ -7,6 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "physics/base/Units.hh"
+#include "physics/grid/TwodSubgridCalculator.hh"
+#include "random/distributions/UniformRealDistribution.hh"
+#include "SeltzerBerger.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -38,7 +43,7 @@ namespace detail
  * \f]
  * and
  * \f[
-    x_\mathrm{max} = \ln (E + k_\rho E^2)
+    x_\mathrm{max} = \ln (E^2 + k_\rho E^2)
  * \f]
  *
  * The exiting kinetic energy is calculated in a rejection loop: without the
@@ -59,11 +64,16 @@ namespace detail
  *
  * The acceptance condition for the loop is the ratio of the cross differential
  * cross section \f$ S(\ln E, x) \f$ to the maximum cross section \f$
- * S_\mathrm{max}(\ln E)\f$. These two values are looked up via the
+ * S_\mathrm{max}(\ln E)\f$. These two values are interpolated up via the
  * precalculated 2D Seltzer-Berger tables imported from G4EMLOW data. The
  * index of the maximum value of \em S at each energy grid point is stored in
- * advance -- this allows us to efficiently calculate the exactly correct
- * maximum through linear interpolation for a given energy.
+ * advance -- this allows us to efficiently calculate a close bounding maximum
+ * value through linear interpolation for a given energy.
+ *
+ * \todo Add a template parameter for a cross section scaling, which will be an
+ * identity function (always returning 1) for electrons but is
+ * SBPositronXsScaling for positrons. Use it to adjust max_xs on construction
+ * and modify the sampled xs during iteration.
  */
 class SBEnergyDistribution
 {
@@ -72,35 +82,50 @@ class SBEnergyDistribution
     //! Type aliases
     using SBData
         = SeltzerBergerData<Ownership::const_reference, MemSpace::native>;
-    using EnergySq = real_type;
+    using Energy   = units::MevEnergy;
+    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}
 
   public:
     // Construct from data
-    inline CELER_FUNCTION
-    SBEnergyDistribution(const SBData&            data,
-                         const ParticleTrackView& particle,
-                         ElementId                element,
-                         EnergySq                 density_correction,
-                         Energy                   min_gamma_energy);
+    inline CELER_FUNCTION SBEnergyDistribution(const SBData& data,
+                                               Energy        inc_energy,
+                                               ElementId     element,
+                                               EnergySq density_correction,
+                                               Energy   min_gamma_energy);
 
     template<class Engine>
     inline CELER_FUNCTION Energy operator()(Engine& rng);
 
+    //// DEBUG FUNCTIONALITY ////
+
+    //! Maximum cross section calculated for rejection
+    real_type max_xs() const { return 1 / inv_max_xs_; }
+
   private:
-    //// IMPLEMENTATION TYPES ////
-
-    enum class ParticleType : bool
-    {
-        positron,
-        electron
-    };
-
     //// IMPLEMENTATION DATA ////
 
-    const SBData&      shared_;
-    const ParticleType pt_;
-    real_type          inc_energy_;
+    using SBTables
+        = SeltzerBergerTableData<Ownership::const_reference, MemSpace::native>;
+    using UniformSampler = UniformRealDistribution<>;
+
+    const real_type             inc_energy_;
+    const TwodSubgridCalculator calc_xs_;
+    const real_type             inv_max_xs_;
+
+    const real_type dens_corr_;
+    UniformSampler  sample_log_exit_efrac_;
+
+    //// CONSTRUCTION HELPER FUNCTIONS ////
+
+    inline CELER_FUNCTION TwodSubgridCalculator
+    make_xs_calc(const SBTables&, ElementId element) const;
+
+    inline CELER_FUNCTION real_type calc_max_xs(const SBTables&,
+                                                ElementId element) const;
+
+    inline CELER_FUNCTION UniformSampler
+    make_lee_sampler(real_type min_gamma_energy) const;
 };
 
 //---------------------------------------------------------------------------//
