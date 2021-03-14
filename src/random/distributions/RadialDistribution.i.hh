@@ -33,8 +33,7 @@ template<class Generator>
 CELER_FUNCTION auto RadialDistribution<RealType>::operator()(Generator& rng)
     -> result_type
 {
-    constexpr auto one_third = static_cast<RealType>(1.0 / 3.0);
-    return std::pow(generate_canonical<RealType>(rng), one_third) * radius_;
+    return std::cbrt(generate_canonical<RealType>(rng)) * radius_;
 }
 
 //---------------------------------------------------------------------------//
