@@ -32,6 +32,9 @@ CutoffParams::CutoffParams(const Input& input)
     {
         const auto& per_material_cutoffs = input.cutoffs.find(pid)->second;
 
+        CELER_ASSERT(per_material_cutoffs.cutoffs.size()
+                     == host_data.num_materials);
+
         host_cutoffs.insert_back(per_material_cutoffs.cutoffs.begin(),
                                  per_material_cutoffs.cutoffs.end());
     }
