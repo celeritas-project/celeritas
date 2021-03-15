@@ -29,4 +29,12 @@ using ParticleProcessId = OpaqueId<ProcessId>;
 using SubshellId = OpaqueId<struct Subshell>;
 
 //---------------------------------------------------------------------------//
+//! Whether an interpolation is linear or logarithmic
+enum class Interp
+{
+    linear,
+    log
+};
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

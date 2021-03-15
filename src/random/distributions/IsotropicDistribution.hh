@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Sample points uniformly on the surface of a unit sphere.
  */
-template<class RealType = double>
+template<class RealType = ::celeritas::real_type>
 class IsotropicDistribution
 {
   public:

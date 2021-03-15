@@ -8,6 +8,7 @@
 #pragma once
 
 #include "base/Macros.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {
@@ -24,7 +25,7 @@ namespace celeritas
  * inversion and multiplication will be optimized out (and the code will be
  * exactly identical to `-std::log(rng.ran())`.
  */
-template<class RealType = double>
+template<class RealType = ::celeritas::real_type>
 class ExponentialDistribution
 {
   public:

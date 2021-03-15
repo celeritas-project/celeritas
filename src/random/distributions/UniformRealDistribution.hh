@@ -8,6 +8,7 @@
 #pragma once
 
 #include "base/Macros.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {
@@ -15,7 +16,7 @@ namespace celeritas
 /*!
  * Sample from a uniform distribution.
  */
-template<class RealType = double>
+template<class RealType = ::celeritas::real_type>
 class UniformRealDistribution
 {
   public:
@@ -28,7 +29,7 @@ class UniformRealDistribution
   public:
     // Constructor
     explicit inline CELER_FUNCTION
-    UniformRealDistribution(real_type a = 0.0, real_type b = 1.0);
+    UniformRealDistribution(real_type a = 0, real_type b = 1);
 
     // Sample a random number according to the distribution
     template<class Generator>
