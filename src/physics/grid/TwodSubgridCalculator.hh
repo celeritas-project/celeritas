@@ -54,7 +54,7 @@ class TwodSubgridCalculator
   private:
     const TwodGridData& grids_;
     const Values&       storage_;
-    InterpT             x_loc_;
+    const InterpT       x_loc_;
 
     inline CELER_FUNCTION real_type at(size_type x_idx, size_type y_idx) const;
 };

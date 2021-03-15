@@ -11,7 +11,11 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with defaults.
+ * Construct with grid data, backend values, and lower X data.
+ *
+ * This is typically constructed from a TwodGridCalculator. The interpolated x
+ * location could be extended to allow a fractional value of 1 to support
+ * interpolating on the highest value of the x grid.
  */
 CELER_FUNCTION
 TwodSubgridCalculator::TwodSubgridCalculator(const TwodGridData& grids,
@@ -22,7 +26,7 @@ TwodSubgridCalculator::TwodSubgridCalculator(const TwodGridData& grids,
     CELER_EXPECT(grids);
     CELER_EXPECT(grids.values.back() < storage.size());
     CELER_EXPECT(x_loc.index + 1 < grids.x.size());
-    CELER_EXPECT(x_loc.fraction >= 0 && x_loc_.fraction <= 1);
+    CELER_EXPECT(x_loc.fraction >= 0 && x_loc_.fraction < 1);
 }
 
 //---------------------------------------------------------------------------//
