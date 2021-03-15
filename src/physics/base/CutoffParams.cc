@@ -45,7 +45,7 @@ CutoffParams::CutoffParams(const Input& input)
         else
         {
             // PDG not added to Input.cutoffs. Set cutoffs to zero
-            while (host_cutoffs.size() < host_data.num_materials)
+            for (CELER_MAYBE_UNUSED auto i : range(host_data.num_materials))
             {
                 host_cutoffs.push_back({units::MevEnergy{zero_quantity()}, 0});
             }
