@@ -6,10 +6,9 @@
 //! \file RungeKutta.test.cc
 //---------------------------------------------------------------------------//
 
-#include "field/RungeKutta.hh"
+#include "field/RungeKuttaStepper.hh"
 #include "field/MagField.hh"
 #include "field/FieldEquation.hh"
-#include "field/base/OdeArray.hh"
 
 #include "base/Range.hh"
 #include "base/Types.hh"
@@ -52,7 +51,7 @@ class RungeKuttaTest : public Test
         param.delta_z     = 67.003310629;       // z-change/revolution [mm]
         param.momentum_y  = 10.9610028286;      // initial momentum_y  [MeV]
         param.momentum_z  = 3.1969591583;       // initial momentum_z  [MeV]
-        param.nstates     = 32 * 512;           // number of states (tracks)
+        param.nstates     = 128 * 512;          // number of states (tracks)
         param.nsteps      = 100;                // number of steps/revolution
         param.revolutions = 10;                 // number of revolutions
         param.epsilon     = 1.0e-5; // tolerance of the stepper error
@@ -70,9 +69,9 @@ class RungeKuttaTest : public Test
 TEST_F(RungeKuttaTest, rk4_host)
 {
     // Construct the Runge-Kutta stepper
-    MagField      field({0, 0, param.field_value});
-    FieldEquation equation(field);
-    RungeKutta    rk4(equation);
+    MagField                         field({0, 0, param.field_value});
+    FieldEquation                    equation(field);
+    RungeKuttaStepper<FieldEquation> rk4(equation);
 
     // Test parameters and the sub-step size
     real_type hstep = 2.0 * constants::pi * param.radius / param.nsteps;
@@ -80,17 +79,25 @@ TEST_F(RungeKuttaTest, rk4_host)
     for (CELER_MAYBE_UNUSED int i : celeritas::range(param.nstates))
     {
         // Initial state and the epected state after revolutions
-        OdeArray<real_type, 6> y;
+        //        OdeArray<real_type, 6> y;
+        Array<real_type, 6> y;
         y[0] = param.radius;
+        y[1] = 0.0;
         y[2] = i * 1.0e-6;
+        y[3] = 0.0;
         y[4] = param.momentum_y;
         y[5] = param.momentum_z;
 
-        OdeArray<real_type, 6> expected_y = y;
+        //        OdeArray<real_type, 6> expected_y = y;
+        Array<real_type, 6> expected_y;
+        for (std::size_t i = 0; i != 6; ++i)
+            expected_y[i] = y[i];
 
         // The rhs of the equation and a temporary array
-        OdeArray<real_type, 6> dydx;
-        OdeArray<real_type, 6> yout;
+        //        OdeArray<real_type, 6> dydx;
+        //        OdeArray<real_type, 6> yout;
+        Array<real_type, 6> dydx;
+        Array<real_type, 6> yout;
 
         // Try the stepper by hstep for (num_revolutions * num_steps) times
         real_type total_err2 = 0;
@@ -103,11 +110,13 @@ TEST_F(RungeKuttaTest, rk4_host)
                 dydx           = equation(y);
                 yout           = rk4(hstep, y, dydx);
                 real_type err2 = rk4.error(hstep, y);
-                y              = yout;
+
+                for (std::size_t i = 0; i != 6; ++i)
+                    y[i] = yout[i];
                 total_err2 += err2;
             }
             // Check the state after each revolution and the total error
-            EXPECT_VEC_NEAR(expected_y.get(), y.get(), sqrt(total_err2));
+            EXPECT_VEC_NEAR(expected_y, y, sqrt(total_err2));
             EXPECT_LT(total_err2, param.epsilon);
         }
     }

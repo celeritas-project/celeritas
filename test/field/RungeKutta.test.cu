@@ -12,7 +12,7 @@
 
 #include "field/MagField.hh"
 #include "field/FieldEquation.hh"
-#include "field/RungeKutta.hh"
+#include "field/RungeKuttaStepper.hh"
 
 #include "base/Range.hh"
 #include "base/Types.hh"
@@ -39,20 +39,25 @@ __global__ void rk4_test_kernel(FieldTestParams param,
         return;
 
     // Construct the Runge-Kutta stepper
-    MagField      field({0, 0, param.field_value});
-    FieldEquation equation(field);
-    RungeKutta    rk4(equation);
+    MagField                         field({0, 0, param.field_value});
+    FieldEquation                    equation(field);
+    RungeKuttaStepper<FieldEquation> rk4(equation);
 
     // Initial state and the epected state after revolutions
-    OdeArray<real_type, 6> y;
+    //    OdeArray<real_type, 6> y;
+    Array<real_type, 6> y;
     y[0] = param.radius;
+    y[1] = 0.0;
     y[2] = tid.get() * 1.0e-6; //!< XXX use random position here
+    y[3] = 0;
     y[4] = param.momentum_y;
     y[5] = param.momentum_z;
 
     // The rhs of the equation and a temporary array
-    OdeArray<real_type, 6> dydx;
-    OdeArray<real_type, 6> yout;
+    //    OdeArray<real_type, 6> dydx;
+    //    OdeArray<real_type, 6> yout;
+    Array<real_type, 6> dydx;
+    Array<real_type, 6> yout;
 
     // Test parameters and the sub-step size
     real_type hstep       = 2.0 * constants::pi * param.radius / param.nsteps;
@@ -63,10 +68,12 @@ __global__ void rk4_test_kernel(FieldTestParams param,
         // Travel hstep for nsteps times in the field
         for (CELER_MAYBE_UNUSED int i : celeritas::range(param.nsteps))
         {
-            dydx            = equation(y);
-            yout            = rk4(hstep, y, dydx);
+            dydx = equation(y);
+            yout = rk4(hstep, y, dydx);
+            //            printf("yout[0]=%g dydx[1]=%g\n",yout[0],dydx[0]);
             real_type error = rk4.error(hstep, y);
-            y               = yout;
+            for (int i = 0; i != 6; ++i)
+                y[i] = yout[i];
             total_error += error;
         }
     }
