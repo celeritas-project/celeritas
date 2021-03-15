@@ -55,17 +55,28 @@ auto EIonisationProcess::step_limits(Applicability range) const
                  || range.particle == particles_->find(pdg::positron()));
 
     const auto& xs_lambda = xs_lambda_.physics_vectors[range.material.get()];
-    const auto& xs_dedx   = xs_dedx_.physics_vectors[range.material.get()];
+    const auto& xs_eloss  = xs_dedx_.physics_vectors[range.material.get()];
     const auto& xs_range  = xs_range_.physics_vectors[range.material.get()];
     CELER_ASSERT(xs_lambda.vector_type == ImportPhysicsVectorType::log);
-    CELER_ASSERT(xs_dedx.vector_type == ImportPhysicsVectorType::log);
+    CELER_ASSERT(xs_eloss.vector_type == ImportPhysicsVectorType::log);
     CELER_ASSERT(xs_range.vector_type == ImportPhysicsVectorType::log);
 
-    // TODO complete builders
     StepLimitBuilders builders;
-    // builders[size_type(ValueGridType::macro_xs)]    = ? ;
-    // builders[size_type(ValueGridType::energy_loss)] = ? ;
-    // builders[size_type(ValueGridType::range)]       = ? ;
+    builders[size_type(ValueGridType::macro_xs)]
+        = std::make_unique<ValueGridXsBuilder>(xs_lambda.x.front(),
+                                               xs_lambda.x.front(),
+                                               xs_lambda.x.back(),
+                                               xs_lambda.y);
+    builders[size_type(ValueGridType::energy_loss)]
+        = std::make_unique<ValueGridXsBuilder>(xs_eloss.x.front(),
+                                               xs_eloss.x.front(),
+                                               xs_eloss.x.back(),
+                                               xs_eloss.y);
+    builders[size_type(ValueGridType::range)]
+        = std::make_unique<ValueGridXsBuilder>(xs_range.x.front(),
+                                               xs_range.x.front(),
+                                               xs_range.x.back(),
+                                               xs_range.y);
 
     return builders;
 }
