@@ -73,13 +73,13 @@ TEST_F(RootImporterTest, import_particles)
 
     // Particle ordering is the same as in the ROOT file
     // clang-format off
-    const std::string expected_loaded_names[] = {"He3", "alpha", "anti_He3", 
-        "anti_alpha", "anti_deuteron", "anti_proton", "anti_triton", 
-        "deuteron", "e+", "e-", "gamma", "kaon+", "kaon-", "mu+", "mu-", "pi+", 
-        "pi-", "proton", "triton"};
-    const int expected_loaded_pdgs[] = {1000020030, 1000020040, -1000020030, 
-        -1000020040, -1000010020, -2212, -1000010030, 1000010020, -11, 11, 22, 
-        321, -321, -13, 13, 211, -211, 2212, 1000010030};
+    const std::string expected_loaded_names[] = {"gamma", "e-", "e+", "mu-",
+        "mu+", "pi+", "pi-", "kaon+", "kaon-", "proton", "anti_proton",
+        "deuteron", "anti_deuteron", "He3", "anti_He3", "triton",
+        "anti_triton", "alpha", "anti_alpha"};
+    const int expected_loaded_pdgs[] = {22, 11, -11, 13, -13, 211, -211, 321,
+        -321, 2212, -2212, 1000010020, -1000010020, 1000020030, -1000020030,
+        1000010030, -1000010030, 1000020040, -1000020040};
     // clang-format on
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
@@ -262,26 +262,24 @@ TEST_F(RootImporterTest, import_cutoffs)
 
     std::vector<double> energies, ranges;
 
-    for (auto i : range<ParticleId::size_type>(particles.size()))
+    for (const auto pid : range(ParticleId{particles.size()}))
     {
-        for (auto j : range<MaterialId::size_type>(materials.size()))
+        for (const auto matid : range(MaterialId{materials.size()}))
         {
-            CutoffView cutoff_view(
-                cutoffs.host_pointers(), ParticleId{i}, MaterialId{j});
-
+            CutoffView cutoff_view(cutoffs.host_pointers(), pid, matid);
             energies.push_back(cutoff_view.energy().value());
             ranges.push_back(cutoff_view.range());
         }
     }
 
     // clang-format off
-    const double expected_energies[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0.00099, 0.9174879161109, 0.00099, 0.9679895480464, 0.00099, 
-        0.01728575113104, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.07, 0.07, 0, 0};
-
-    const double expected_ranges[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0.07, 0.07, 0, 0};
+    const double expected_energies[] = {0.00099, 0.01728575113104, 0.00099,
+        0.9679895480464, 0.00099, 0.9174879161109, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0};
+    const double expected_ranges[] = {0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);

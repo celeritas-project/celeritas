@@ -14,6 +14,7 @@
 #include "physics/material/MaterialParams.hh"
 
 #include <vector>
+#include <map>
 
 namespace celeritas
 {
@@ -34,7 +35,7 @@ namespace celeritas
  * list receives a zero cutoff value. This opens the possibility to expand
  * cutoffs in the future, when data is not imported anymore.
  *
- * The \c Input structure provides a failsafe mechanism to construct the 
+ * The \c Input structure provides a failsafe mechanism to construct the
  * host/device data.
  */
 class CutoffParams
@@ -49,19 +50,20 @@ class CutoffParams
 
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
+    using MaterialCutoffs  = std::vector<ParticleCutoff>;
     //!@}
 
     //! Input data to construct this class
     struct PerMaterialCutoffs
     {
-        PDGNumber particle; //!< Particle for which these cutoffs apply
-        std::vector<ParticleCutoff> cutoffs; //!< Spans all materials
+        PDGNumber       pdg;     //!< Particle for which these cutoffs apply
+        MaterialCutoffs cutoffs; //!< Spans all materials
     };
     struct Input
     {
-        SPConstParticles                particles;
-        SPConstMaterials                materials;
-        std::vector<PerMaterialCutoffs> cutoffs;
+        SPConstParticles                         particles;
+        SPConstMaterials                         materials;
+        std::map<ParticleId, PerMaterialCutoffs> cutoffs;
     };
 
   public:

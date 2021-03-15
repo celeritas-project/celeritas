@@ -142,6 +142,22 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
                                       : 1. / particle.lifetime);
     }
 
+    // Sort by increasing mass, then by PDG code (positive before negative of
+    // the same absolute value). Placing lighter particles
+    // (more likely to be created by various processes, so more "light
+    // particle" tracks) together at the beginning of the list will make it
+    // easier to human-read the particles while debugging, and having them
+    // at adjacent memory locations could improve cacheing.
+    auto to_particle_key = [](const auto& inp) {
+        int pdg = inp.pdg_code.get();
+        return std::make_tuple(inp.mass, std::abs(pdg), pdg < 0);
+    };
+    std::sort(defs.begin(),
+              defs.end(),
+              [to_particle_key](const auto& lhs, const auto& rhs) {
+                  return to_particle_key(lhs) < to_particle_key(rhs);
+              });
+
     // Construct ParticleParams from the definitions
     return std::make_shared<ParticleParams>(std::move(defs));
 }
@@ -291,20 +307,23 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
     CELER_ASSERT(err_code >= 0);
     tree_geometry->GetEntry(0);
 
-    for (const auto i : range<ParticleId::size_type>(input.particles->size()))
+    for (auto pid : range(ParticleId{input.particles->size()}))
     {
         CutoffParams::PerMaterialCutoffs m_cutoffs;
-        m_cutoffs.particle = input.particles->id_to_pdg(ParticleId{i});
+        m_cutoffs.pdg = input.particles->id_to_pdg(pid);
 
-        for (const auto& mat_key : geometry.matid_to_material_map())
+        const auto& geometry_matid_material = geometry.matid_to_material_map();
+
+        for (auto matid : range(MaterialId{input.materials->size()}))
         {
-            const auto iter
-                = mat_key.second.pdg_cutoff.find(m_cutoffs.particle.get());
+            const auto& material
+                = geometry_matid_material.find(matid.get())->second;
 
+            const auto& iter = material.pdg_cutoff.find(m_cutoffs.pdg.get());
             ParticleCutoff p_cutoff;
-            if (iter != mat_key.second.pdg_cutoff.end())
+            if (iter != material.pdg_cutoff.end())
             {
-                // Found a valid Geant4 PDG with cutoff valids
+                // Is a particle type with assigned cutoff values
                 p_cutoff.energy = units::MevEnergy{iter->second.energy};
                 p_cutoff.range  = iter->second.range;
             }
@@ -316,7 +335,7 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
             }
             m_cutoffs.cutoffs.push_back(p_cutoff);
         }
-        input.cutoffs.push_back(m_cutoffs);
+        input.cutoffs.insert({pid, m_cutoffs});
     }
 
     CutoffParams cutoffs(input);

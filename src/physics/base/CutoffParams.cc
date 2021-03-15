@@ -25,16 +25,15 @@ CutoffParams::CutoffParams(const Input& input)
     host_data.num_particles = input.particles->size();
     const auto cutoffs_size = host_data.num_materials * host_data.num_particles;
 
-    auto cutoffs = make_builder(&host_data.cutoffs);
-    cutoffs.reserve(cutoffs_size);
+    auto host_cutoffs = make_builder(&host_data.cutoffs);
+    host_cutoffs.reserve(cutoffs_size);
 
-    for (const auto& per_material_cutoffs : input.cutoffs)
+    for (const auto pid : range(ParticleId{input.particles->size()}))
     {
-        CELER_ASSERT(per_material_cutoffs.cutoffs.size()
-                     == host_data.num_materials);
+        const auto& per_material_cutoffs = input.cutoffs.find(pid)->second;
 
-        cutoffs.insert_back(per_material_cutoffs.cutoffs.begin(),
-                            per_material_cutoffs.cutoffs.end());
+        host_cutoffs.insert_back(per_material_cutoffs.cutoffs.begin(),
+                                 per_material_cutoffs.cutoffs.end());
     }
 
     // Move to mirrored data, copying to device
