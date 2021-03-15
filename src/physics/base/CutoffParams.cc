@@ -39,7 +39,6 @@ CutoffParams::CutoffParams(const Input& input)
             // Found valid PDG and cutoff values
             const auto& vec_mat_cutoffs = iter->second;
             CELER_ASSERT(vec_mat_cutoffs.size() == host_data.num_materials);
-
             host_cutoffs.insert_back(vec_mat_cutoffs.begin(),
                                      vec_mat_cutoffs.end());
         }
