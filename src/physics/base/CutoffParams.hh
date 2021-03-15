@@ -54,16 +54,11 @@ class CutoffParams
     //!@}
 
     //! Input data to construct this class
-    struct PerMaterialCutoffs
-    {
-        PDGNumber       pdg;     //!< Particle for which these cutoffs apply
-        MaterialCutoffs cutoffs; //!< Spans all materials
-    };
     struct Input
     {
-        SPConstParticles                         particles;
-        SPConstMaterials                         materials;
-        std::map<ParticleId, PerMaterialCutoffs> cutoffs;
+        SPConstParticles                     particles;
+        SPConstMaterials                     materials;
+        std::map<PDGNumber, MaterialCutoffs> cutoffs;
     };
 
   public:

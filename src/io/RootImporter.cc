@@ -309,8 +309,9 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
 
     for (auto pid : range(ParticleId{input.particles->size()}))
     {
-        CutoffParams::PerMaterialCutoffs m_cutoffs;
-        m_cutoffs.pdg = input.particles->id_to_pdg(pid);
+        CutoffParams::MaterialCutoffs m_cutoffs;
+
+        const auto pdg = input.particles->id_to_pdg(pid);
 
         const auto& geometry_matid_material = geometry.matid_to_material_map();
 
@@ -319,7 +320,7 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
             const auto& material
                 = geometry_matid_material.find(matid.get())->second;
 
-            const auto& iter = material.pdg_cutoff.find(m_cutoffs.pdg.get());
+            const auto&    iter = material.pdg_cutoff.find(pdg.get());
             ParticleCutoff p_cutoff;
             if (iter != material.pdg_cutoff.end())
             {
@@ -333,9 +334,9 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
                 p_cutoff.energy = units::MevEnergy{0};
                 p_cutoff.range  = 0;
             }
-            m_cutoffs.cutoffs.push_back(p_cutoff);
+            m_cutoffs.push_back(p_cutoff);
         }
-        input.cutoffs.insert({pid, m_cutoffs});
+        input.cutoffs.insert({pdg, m_cutoffs});
     }
 
     CutoffParams cutoffs(input);

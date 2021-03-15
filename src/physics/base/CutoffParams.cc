@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "CutoffParams.hh"
 #include "base/CollectionBuilder.hh"
+#include "physics/base/Units.hh"
 
 namespace celeritas
 {
@@ -30,13 +31,26 @@ CutoffParams::CutoffParams(const Input& input)
 
     for (const auto pid : range(ParticleId{input.particles->size()}))
     {
-        const auto& per_material_cutoffs = input.cutoffs.find(pid)->second;
+        const auto  pdg  = input.particles->id_to_pdg(pid);
+        const auto& iter = input.cutoffs.find(pdg);
 
-        CELER_ASSERT(per_material_cutoffs.cutoffs.size()
-                     == host_data.num_materials);
+        if (iter != input.cutoffs.end())
+        {
+            // Found valid PDG and cutoff values
+            const auto& vec_mat_cutoffs = iter->second;
+            CELER_ASSERT(vec_mat_cutoffs.size() == host_data.num_materials);
 
-        host_cutoffs.insert_back(per_material_cutoffs.cutoffs.begin(),
-                                 per_material_cutoffs.cutoffs.end());
+            host_cutoffs.insert_back(vec_mat_cutoffs.begin(),
+                                     vec_mat_cutoffs.end());
+        }
+        else
+        {
+            // PDG not added to Input.cutoffs. Set cutoffs to zero
+            for (int i : range(host_data.num_materials))
+            {
+                host_cutoffs.push_back({units::MevEnergy{zero_quantity()}, 0});
+            }
+        }
     }
 
     // Move to mirrored data, copying to device
