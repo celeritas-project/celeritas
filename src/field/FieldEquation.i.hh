@@ -8,17 +8,13 @@
 #include "MagField.hh"
 
 #include "base/Constants.hh"
-#include "base/Array.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Algorithms.hh"
-
 #include <cmath>
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a magnetic field.
+ * Construct with a const magnetic field.
  */
 CELER_FUNCTION
 FieldEquation::FieldEquation(const MagField& field) : field_(field)
@@ -51,16 +47,26 @@ CELER_FUNCTION void FieldEquation::set_charge(units::ElementaryCharge charge)
    \f]
  */
 CELER_FUNCTION
-OdeArray<real_type, 6> FieldEquation::operator()(const ode_type& y) const
+auto FieldEquation::operator()(const OdeArray& y) const -> OdeArray
 {
-    ode_type dy;
+    // Get the magnetic field value at the given position
+    Real3 B = field_({y[0], y[1], y[2]});
 
-    dy.position(y.momentum());
-    dy.momentum(
-        cross_product(y.momentum_scaled(coeffi_), field_(y.position())));
-    dy *= y.momentum_inv();
+    // Evalue the right-hand-side of the equation
+    OdeArray rhs;
 
-    return dy;
+    real_type momentum_mag2 = y[3] * y[3] + y[4] * y[4] + y[5] * y[5];
+    CELER_ASSERT(momentum_mag2 > 0.0);
+    real_type momenum_inv = 1.0 / std::sqrt(momentum_mag2);
+
+    rhs[0] = y[3] * momenum_inv;
+    rhs[1] = y[4] * momenum_inv;
+    rhs[2] = y[5] * momenum_inv;
+    rhs[3] = coeffi_ * (y[4] * B[2] - y[5] * B[1]) * momenum_inv;
+    rhs[4] = coeffi_ * (y[5] * B[0] - y[3] * B[2]) * momenum_inv;
+    rhs[5] = coeffi_ * (y[3] * B[1] - y[4] * B[0]) * momenum_inv;
+
+    return rhs;
 }
 
 //---------------------------------------------------------------------------//

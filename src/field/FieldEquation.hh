@@ -10,7 +10,6 @@
 #include "MagField.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
-#include "field/base/OdeArray.hh"
 
 namespace celeritas
 {
@@ -24,18 +23,18 @@ class FieldEquation
   public:
     //@{
     //! Type aliases
-    using ode_type = OdeArray<real_type, 6>;
+    using OdeArray = Array<real_type, 6>;
     //@}
 
   public:
-    // Construct with a magnetic field
+    //! Construct with a magnetic field
     CELER_FUNCTION FieldEquation(const MagField& field);
 
-    // Set charge if q != -eplus
+    //! Set charge if q != -eplus
     CELER_FUNCTION void set_charge(units::ElementaryCharge q);
 
-    // Evaluate the right hand side of the field equation
-    CELER_FUNCTION ode_type operator()(const ode_type& y) const;
+    //! Evaluate the right hand side of the field equation
+    CELER_FUNCTION auto operator()(const OdeArray& y) const -> OdeArray;
 
   private:
     //! Scale factor for the coefficient of the equation (temporary)
