@@ -19,7 +19,6 @@ CutoffParams::CutoffParams(const Input& input)
 {
     CELER_EXPECT(input.materials);
     CELER_EXPECT(input.particles);
-    CELER_EXPECT(!input.cutoffs.empty());
 
     HostValue host_data;
     host_data.num_materials = input.materials->size();
