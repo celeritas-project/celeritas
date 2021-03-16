@@ -122,7 +122,7 @@ struct HardwiredModels
     ProcessId                   photoelectric;
     units::MevEnergy            photoelectric_table_thresh;
     ModelId                     livermore_pe;
-    detail::LivermorePEPointers livermore_pe_params;
+    detail::LivermorePEPointers livermore_pe_data;
 
     // Positron annihilation
     ProcessId               positron_annihilation;

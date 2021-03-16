@@ -52,7 +52,7 @@ list(APPEND SOURCES
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/AtomicRelaxationReader.cc
-  io/LivermorePEParamsReader.cc
+  io/LivermorePEReader.cc
   physics/base/CutoffParams.cc
   physics/base/Model.cc
   physics/base/ParticleParams.cc
@@ -63,7 +63,6 @@ list(APPEND SOURCES
   physics/em/ComptonProcess.cc
   physics/em/PhotoelectricProcess.cc
   physics/em/LivermorePEModel.cc
-  physics/em/LivermorePEParams.cc
   physics/em/EPlusAnnihilationProcess.cc
   physics/em/EPlusGGModel.cc
   physics/em/GammaConversionProcess.cc
