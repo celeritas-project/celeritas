@@ -15,19 +15,19 @@ namespace celeritas
 /*!
  * Construct process from host data.
  */
-EIonisationProcess::EIonisationProcess(Input input)
+EIonisationProcess::EIonisationProcess(const Input& input)
     : particles_(std::move(input.particles))
-    , xs_lambda_(std::move(input.lambda))
-    , xs_dedx_(std::move(input.dedx))
-    , xs_range_(std::move(input.range))
+    , lambda_table_(std::move(input.lambda))
+    , dedx_table_(std::move(input.dedx))
+    , range_table_(std::move(input.range))
 {
     CELER_EXPECT(particles_);
-    CELER_EXPECT(xs_lambda_.table_type == ImportTableType::lambda);
-    CELER_EXPECT(xs_dedx_.table_type == ImportTableType::dedx);
-    CELER_EXPECT(xs_range_.table_type == ImportTableType::range);
-    CELER_EXPECT(!xs_lambda_.physics_vectors.empty());
-    CELER_EXPECT(!xs_dedx_.physics_vectors.empty());
-    CELER_EXPECT(!xs_range_.physics_vectors.empty());
+    CELER_EXPECT(lambda_table_.table_type == ImportTableType::lambda);
+    CELER_EXPECT(dedx_table_.table_type == ImportTableType::dedx);
+    CELER_EXPECT(range_table_.table_type == ImportTableType::range);
+    CELER_EXPECT(!lambda_table_.physics_vectors.empty());
+    CELER_EXPECT(!dedx_table_.physics_vectors.empty());
+    CELER_EXPECT(!range_table_.physics_vectors.empty());
 }
 
 //---------------------------------------------------------------------------//
@@ -48,15 +48,15 @@ auto EIonisationProcess::step_limits(Applicability range) const
     -> StepLimitBuilders
 {
     CELER_EXPECT(range.material);
-    CELER_EXPECT(range.material < xs_lambda_.physics_vectors.size());
-    CELER_EXPECT(range.material < xs_dedx_.physics_vectors.size());
-    CELER_EXPECT(range.material < xs_range_.physics_vectors.size());
+    CELER_EXPECT(range.material < lambda_table_.physics_vectors.size());
+    CELER_EXPECT(range.material < dedx_table_.physics_vectors.size());
+    CELER_EXPECT(range.material < range_table_.physics_vectors.size());
     CELER_EXPECT(range.particle == particles_->find(pdg::electron())
                  || range.particle == particles_->find(pdg::positron()));
 
-    const auto& xs_lambda = xs_lambda_.physics_vectors[range.material.get()];
-    const auto& xs_eloss  = xs_dedx_.physics_vectors[range.material.get()];
-    const auto& xs_range  = xs_range_.physics_vectors[range.material.get()];
+    const auto& xs_lambda = lambda_table_.physics_vectors[range.material.get()];
+    const auto& xs_eloss  = dedx_table_.physics_vectors[range.material.get()];
+    const auto& xs_range  = range_table_.physics_vectors[range.material.get()];
     CELER_ASSERT(xs_lambda.vector_type == ImportPhysicsVectorType::log);
     CELER_ASSERT(xs_eloss.vector_type == ImportPhysicsVectorType::log);
     CELER_ASSERT(xs_range.vector_type == ImportPhysicsVectorType::log);
@@ -77,6 +77,18 @@ auto EIonisationProcess::step_limits(Applicability range) const
                                                xs_range.x.front(),
                                                xs_range.x.back(),
                                                xs_range.y);
+
+#if 0
+    // From PR #184
+    builders[ValueGridType::macro_xs] = ValueGridLogBuilder::from_geant(
+        make_span(xs_lambda.x), make_span(xs_lambda.y));
+
+    builders[ValueGridType::energy_loss] = ValueGridLogBuilder::from_geant(
+        make_span(xs_eloss.x), make_span(xs_eloss.y));
+
+    builders[ValueGridType::range] = ValueGridRangeBuilder::from_geant(
+        make_span(xs_range.x), make_span(xs_range.y));
+#endif
 
     return builders;
 }

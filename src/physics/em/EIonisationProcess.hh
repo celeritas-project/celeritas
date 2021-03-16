@@ -36,7 +36,7 @@ class EIonisationProcess : public Process
 
   public:
     // Construct with lambda table
-    inline EIonisationProcess(Input input);
+    inline EIonisationProcess(const Input& input);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;
@@ -49,9 +49,9 @@ class EIonisationProcess : public Process
 
   private:
     SPConstParticles   particles_;
-    ImportPhysicsTable xs_lambda_;
-    ImportPhysicsTable xs_dedx_;
-    ImportPhysicsTable xs_range_;
+    ImportPhysicsTable lambda_table_;
+    ImportPhysicsTable dedx_table_;
+    ImportPhysicsTable range_table_;
 };
 
 //---------------------------------------------------------------------------//
