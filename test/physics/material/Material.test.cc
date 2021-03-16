@@ -123,6 +123,7 @@ TEST_F(MaterialTest, params)
     ASSERT_TRUE(params);
 
     EXPECT_EQ(3, params->size());
+    EXPECT_EQ(3, params->num_materials());
     EXPECT_EQ(4, params->num_elements());
 
     EXPECT_EQ(MaterialId{0}, params->find("NaI"));

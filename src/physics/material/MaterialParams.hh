@@ -70,6 +70,9 @@ class MaterialParams
     //! Number of material definitions
     MaterialId::size_type size() const { return matnames_.size(); }
 
+    //! Number of materials
+    MaterialId::size_type num_materials() const { return matnames_.size(); }
+
     //! Number of distinct elements definitions
     ElementId::size_type num_elements() const { return elnames_.size(); }
 
