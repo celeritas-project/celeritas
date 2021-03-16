@@ -54,6 +54,7 @@ list(APPEND SOURCES
   io/AtomicRelaxationReader.cc
   io/LivermorePEParamsReader.cc
   physics/base/CutoffParams.cc
+  physics/base/ImportedProcessAdapter.cc
   physics/base/Model.cc
   physics/base/ParticleParams.cc
   physics/base/PhysicsParams.cc

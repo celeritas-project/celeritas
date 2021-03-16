@@ -11,9 +11,9 @@
 #include "celeritas_test.hh"
 #include "base/ColorUtils.hh"
 
+using celeritas::soft_mod;
 using celeritas::SoftEqual;
 using celeritas::SoftZero;
-using celeritas::soft_mod;
 
 //---------------------------------------------------------------------------//
 
