@@ -105,7 +105,7 @@ ImportedProcessAdapter::ImportedProcessAdapter(SPConstImported imported,
 
         auto particle_id = particles->find(pdg);
         CELER_VALIDATE(particle_id,
-                       "Parrticle PDG{" << pdg.get() << "} is not available");
+                       "Particle PDG{" << pdg.get() << "} is not available");
 
         // Save process data IDs for this particle type
         ids_[particle_id] = proc_ids;

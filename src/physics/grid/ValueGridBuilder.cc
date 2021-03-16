@@ -191,7 +191,7 @@ auto ValueGridXsBuilder::build(ValueGridInserter insert) const -> ValueGridId
 // LOG BUILDER
 //---------------------------------------------------------------------------//
 /*!
- * Construct XS arrays from scaled (*E) data from Geant4.
+ * Construct XS arrays from log-spaced geant cross section data.
  */
 std::unique_ptr<ValueGridLogBuilder>
 ValueGridLogBuilder::from_geant(SpanConstReal lambda_energy,
