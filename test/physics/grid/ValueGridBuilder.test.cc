@@ -43,7 +43,7 @@ class ValueGridBuilderTest : public celeritas::Test
         real_ref = real_storage;
     }
 
-    Collection<real_type, Ownership::value, MemSpace::host> real_storage;
+    Collection<real_type, Ownership::value, MemSpace::host>  real_storage;
     Collection<real_type, Ownership::const_reference, MemSpace::host> real_ref;
     Collection<XsGridData, Ownership::value, MemSpace::host> grid_storage;
 };
