@@ -6,7 +6,7 @@
 //! \file RangeCalculator.i.hh
 //---------------------------------------------------------------------------//
 #include <cmath>
-#include "base/Interpolator.hh"
+#include "Interpolator.hh"
 #include "physics/grid/UniformGrid.hh"
 
 namespace celeritas

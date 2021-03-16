@@ -8,7 +8,6 @@
 #pragma once
 
 #include "base/DeviceVector.hh"
-#include "physics/base/SecondaryAllocatorStore.hh"
 #include "ParamStore.hh"
 #include "StateStore.hh"
 #include "TrackInitializerInterface.hh"

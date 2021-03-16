@@ -19,8 +19,8 @@ namespace detail
 CELER_FUNCTION
 BremRelInteractor::BremRelInteractor(const BremRelInteractorPointers& shared,
                                      const ParticleTrackView&         particle,
-                                     const Real3&            inc_direction,
-                                     SecondaryAllocatorView& allocate)
+                                     const Real3&               inc_direction,
+                                     StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)

@@ -30,13 +30,6 @@ using ull_int = unsigned long long int;
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
-//! Whether an interpolation is linear or logarithmic (template parameter)
-enum class Interp
-{
-    linear,
-    log
-};
-
 //! Non-convertible type for raw data modeled after std::byte (C++17)
 enum class Byte : unsigned char
 {

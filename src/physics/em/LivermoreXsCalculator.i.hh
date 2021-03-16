@@ -6,8 +6,8 @@
 //! \file LivermoreXsCalculator.i.hh
 //---------------------------------------------------------------------------//
 #include <cmath>
-#include "base/Interpolator.hh"
 #include "base/Macros.hh"
+#include "physics/grid/Interpolator.hh"
 
 namespace celeritas
 {

@@ -18,6 +18,9 @@ namespace celeritas
 /*!
  * Data management for the Livermore EPICS2014 Electron Photon Interaction
  * Cross Section library.
+ *
+ * \todo Combine with livermore model and move the input description to `io/`.
+ * \todo Use Collection and CollectionMirror for data storage.
  */
 class LivermorePEParams
 {

@@ -1,22 +1,20 @@
-//----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+//---------------------------------*-CUDA-*----------------------------------//
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SecondaryAllocatorInterface.hh
+//! \file Filler.cu
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "Secondary.hh"
-#include "base/StackAllocatorInterface.hh"
+#include "Filler.t.cuh"
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
-//!@{
-//! Type aliases for secondary allocation
-using SecondaryAllocatorPointers = StackAllocatorPointers<Secondary>;
-//!@}
-
+template class Filler<real_type, MemSpace::device>;
+template class Filler<size_type, MemSpace::device>;
+template class Filler<int, MemSpace::device>;
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

@@ -18,22 +18,25 @@ namespace celeritas
  * atomic relaxation and the vacancies must have enough storage allocated for
  * the stack of subshell IDs: this should be handled in code *before*
  * construction.
+ *
+ * The precondition of the element having relaxation data is satisfied by the
+ * AtomicRelaxationHelper -- it is only "true" if a distribution can be
+ * emitted.
  */
 CELER_FUNCTION
 AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
                                    ElementId                        el_id,
                                    SubshellId                       shell_id,
                                    Span<Secondary>  secondaries,
-                                   Span<SubshellId> vacancies,
-                                   size_type        base_size)
+                                   Span<SubshellId> vacancies)
     : shared_(shared)
     , el_id_(el_id)
     , shell_id_(shell_id)
     , secondaries_(secondaries)
     , vacancies_(vacancies)
-    , base_size_(base_size)
 {
-    CELER_EXPECT(!shared_ || el_id_ < shared_.elements.size());
+    CELER_EXPECT(shared_ && el_id_ < shared_.elements.size()
+                 && shared_.elements[el_id_.get()]);
     CELER_EXPECT(shell_id);
 }
 
@@ -45,23 +48,19 @@ template<class Engine>
 CELER_FUNCTION AtomicRelaxation::result_type
 AtomicRelaxation::operator()(Engine& rng)
 {
-    // Particles produced and energy removed by secondaries
-    result_type result{{secondaries_.data(), base_size_}, 0.};
+    MiniStack<SubshellId> vacancies(vacancies_);
 
-    // Atomic relaxation is off *or* there is no transition data for this
-    // element (true for Z < 6) *or* there is no transition data for this shell
-    if (!shared_ || !shared_.elements[el_id_.get()]
-        || shell_id_.get() >= shared_.elements[el_id_.get()].shells.size())
+    // The sampled shell ID might be outside the available data, in which case
+    // the loop below will immediately exit with no secondaries created.
+    if (shell_id_ < shared_.elements[el_id_.get()].shells.size())
     {
-        return result;
+        // Push the vacancy created by the primary process onto a stack.
+        vacancies.push(shell_id_);
     }
 
-    // Push the vacancy created by the primary process onto a stack
-    MiniStack<SubshellId> vacancies(vacancies_);
-    vacancies.push(shell_id_);
-
     // Total number of secondaries
-    size_type count = base_size_;
+    size_type count      = 0;
+    real_type sum_energy = 0;
 
     // Generate the shower of photons and electrons produced by radiative and
     // non-radiative transitions
@@ -115,10 +114,12 @@ AtomicRelaxation::operator()(Engine& rng)
         }
 
         // Accumulate the energy carried away by secondaries
-        result.energy += transition.energy;
+        sum_energy += transition.energy;
     }
 
-    result.secondaries = {secondaries_.data(), count};
+    result_type result;
+    result.count  = count;
+    result.energy = sum_energy;
     return result;
 }
 

@@ -52,7 +52,7 @@ class UniformGrid
     CELER_FUNCTION const UniformGridData& data() const { return data_; }
 
   private:
-    const UniformGridData data_;
+    const UniformGridData& data_;
 };
 
 //---------------------------------------------------------------------------//

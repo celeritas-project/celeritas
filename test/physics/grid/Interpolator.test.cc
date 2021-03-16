@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file Interpolator.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Interpolator.hh"
+#include "physics/grid/Interpolator.hh"
 
 #include "celeritas_test.hh"
 

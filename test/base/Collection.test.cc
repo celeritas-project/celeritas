@@ -8,6 +8,7 @@
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/CollectionMirror.hh"
+#include "base/CollectionAlgorithms.hh"
 
 #include <cstdint>
 #include <type_traits>
@@ -16,6 +17,7 @@
 #include "base/DeviceVector.hh"
 #include "comm/Device.hh"
 
+using celeritas::AllItems;
 using celeritas::Collection;
 using celeritas::MemSpace;
 using celeritas::Ownership;
@@ -27,7 +29,7 @@ using namespace celeritas_test;
 template<class T>
 constexpr bool is_trivial_v = std::is_trivially_copyable<T>::value;
 
-TEST(SimpleCollection, range_types)
+TEST(ItemRange, types)
 {
     EXPECT_TRUE((is_trivial_v<celeritas::ItemRange<int>>));
     EXPECT_TRUE(
@@ -40,7 +42,7 @@ TEST(SimpleCollection, range_types)
 
 // NOTE: these tests are essentially redundant with Range.test.cc since
 // ItemRange is a Range<OpaqueId> and ItemId is an OpaqueId.
-TEST(SimpleCollection, range)
+TEST(ItemRange, accessors)
 {
     using ItemRangeT = celeritas::ItemRange<int>;
     using ItemIdT    = celeritas::ItemId<int>;
@@ -56,13 +58,9 @@ TEST(SimpleCollection, range)
 
     EXPECT_EQ(ItemIdT{10}, ps[0]);
     EXPECT_EQ(ItemIdT{12}, ps[2]);
-#if CELERITAS_DEBUG
-    // Out of range
-    EXPECT_THROW(ps[12], celeritas::DebugError);
-#endif
 }
 
-TEST(SimpleCollection, size_limits)
+TEST(CollectionBuilder, size_limits)
 {
     using IdType = celeritas::OpaqueId<struct Tiny, std::uint8_t>;
     Collection<double, Ownership::value, MemSpace::host, IdType> host_val;
@@ -93,7 +91,97 @@ TEST(SimpleCollection, size_limits)
 }
 
 //---------------------------------------------------------------------------//
-// TEST HARNESS
+// SIMPLE TESTS
+//---------------------------------------------------------------------------//
+
+class SimpleCollectionTest : public celeritas::Test
+{
+  protected:
+    using IntId    = celeritas::ItemId<int>;
+    using IntRange = celeritas::ItemRange<int>;
+    template<MemSpace M>
+    using AllInts = celeritas::AllItems<int, M>;
+
+    template<MemSpace M>
+    using Value = Collection<int, Ownership::value, M>;
+    template<MemSpace M>
+    using Ref = Collection<int, Ownership::reference, M>;
+    template<MemSpace M>
+    using CRef = Collection<int, Ownership::const_reference, M>;
+
+    static constexpr MemSpace host   = MemSpace::host;
+    static constexpr MemSpace device = MemSpace::device;
+};
+
+TEST_F(SimpleCollectionTest, accessors)
+{
+    Value<host> host_val;
+    EXPECT_TRUE(host_val.empty());
+
+    auto irange = make_builder(&host_val).insert_back({0, 1, 2, 3});
+    EXPECT_EQ(4, host_val.size());
+    EXPECT_FALSE(host_val.empty());
+
+    EXPECT_EQ(2, host_val[IntId{2}]);
+    EXPECT_EQ(4, host_val[irange].size());
+    EXPECT_EQ(4, host_val[AllInts<host>{}].size());
+
+    Ref<host> host_ref(host_val);
+    EXPECT_EQ(4, host_ref.size());
+    host_ref = {};
+    EXPECT_EQ(0, host_ref.size());
+    host_ref = host_val;
+    EXPECT_EQ(4, host_ref.size());
+
+    host_ref[IntId{0}] = 123;
+    EXPECT_EQ(123, host_val[IntId{0}]);
+    EXPECT_EQ(123, host_ref[IntId{0}]);
+    host_ref[irange].back() = 321;
+    EXPECT_EQ(321, host_ref[IntId{3}]);
+
+    const Ref<host>& host_ref_cref = host_ref;
+    EXPECT_EQ(123, host_ref_cref[IntId{0}]);
+    EXPECT_EQ(321, host_ref_cref[irange].back());
+    EXPECT_EQ(321, host_ref_cref[AllInts<host>{}].back());
+
+    CRef<host> host_cref{host_val};
+    EXPECT_EQ(4, host_ref.size());
+    EXPECT_EQ(123, host_cref[IntId{0}]);
+    EXPECT_EQ(123, host_cref[irange].front());
+    EXPECT_EQ(321, host_cref[AllInts<host>{}].back());
+}
+
+TEST_F(SimpleCollectionTest, algo_host)
+{
+    Value<host> src;
+
+    // Test 'fill'
+    make_builder(&src).resize(4);
+    celeritas::fill(123, &src);
+    EXPECT_EQ(123, src[IntId{0}]);
+    EXPECT_EQ(123, src[IntId{3}]);
+    src[IntId{1}] = 2;
+
+    // Test 'copy_to_host'
+    std::vector<int> dst(src.size());
+    celeritas::copy_to_host(src, celeritas::make_span(dst));
+}
+
+TEST_F(SimpleCollectionTest, TEST_IF_CELERITAS_CUDA(algo_device))
+{
+    Value<device> src;
+    make_builder(&src).resize(2);
+    celeritas::fill(123, &src);
+
+    // Test 'copy_to_host'
+    std::vector<int> dst(src.size());
+    celeritas::copy_to_host(src, celeritas::make_span(dst));
+    EXPECT_EQ(123, dst.front());
+    EXPECT_EQ(123, dst.back());
+}
+
+//---------------------------------------------------------------------------//
+// COMPLEX TESTS
 //---------------------------------------------------------------------------//
 
 class CollectionTest : public celeritas::Test

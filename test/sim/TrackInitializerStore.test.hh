@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "base/DeviceVector.hh"
 #include "physics/base/Interaction.hh"
-#include "physics/base/SecondaryAllocatorInterface.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocator.hh"
+#include "physics/base/Secondary.hh"
 #include "sim/SimTrackView.hh"
 #include "sim/TrackInterface.hh"
 #include "sim/TrackInitializerInterface.hh"
@@ -24,9 +24,9 @@ using namespace celeritas;
 //! Interactor
 struct Interactor
 {
-    CELER_FUNCTION Interactor(SecondaryAllocatorView& allocate_secondaries,
-                              size_type               alloc_size,
-                              char                    alive)
+    CELER_FUNCTION Interactor(StackAllocator<Secondary>& allocate_secondaries,
+                              size_type                  alloc_size,
+                              char                       alive)
         : allocate_secondaries(allocate_secondaries)
         , alloc_size(alloc_size)
         , alive(alive)
@@ -64,7 +64,7 @@ struct Interactor
         return result;
     }
 
-    SecondaryAllocatorView& allocate_secondaries;
+    StackAllocator<Secondary>& allocate_secondaries;
     size_type               alloc_size;
     char                    alive;
 };
@@ -96,6 +96,11 @@ struct ITTestOutput
     std::vector<unsigned int> initializer_id;
     std::vector<size_type>    vacancy;
 };
+
+using SecondaryAllocatorPointers
+    = celeritas::StackAllocatorData<Secondary,
+                                    celeritas::Ownership::reference,
+                                    celeritas::MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to produce secondaries and apply cutoffs

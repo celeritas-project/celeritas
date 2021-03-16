@@ -14,7 +14,7 @@
 
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
@@ -43,7 +43,7 @@ class MollerBhabhaInteractor
     MollerBhabhaInteractor(const MollerBhabhaPointers& shared,
                            const ParticleTrackView&    particle,
                            const Real3&                inc_direction,
-                           SecondaryAllocatorView&     allocate);
+                           StackAllocator<Secondary>&  allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -59,7 +59,7 @@ class MollerBhabhaInteractor
     // Incident direction
     const Real3& inc_direction_;
     // Allocate space for one or more secondary particles
-    SecondaryAllocatorView& allocate_;
+    StackAllocator<Secondary>& allocate_;
     // Incident particle flag for selecting Moller or Bhabha scattering
     bool inc_particle_is_electron_;
 }; // namespace MollerBhabhaInteractor

@@ -10,8 +10,8 @@
 #include <algorithm>
 #include <numeric>
 #include "celeritas_test.hh"
+#include "base/CollectionStateStore.hh"
 #include "geometry/GeoParams.hh"
-#include "physics/base/SecondaryAllocatorStore.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "sim/TrackInterface.hh"
@@ -22,6 +22,9 @@
 namespace celeritas_test
 {
 using namespace celeritas;
+
+template<Ownership W, MemSpace M>
+using SecondaryAllocatorData = celeritas::StackAllocatorData<Secondary, W, M>;
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -113,9 +116,10 @@ TEST_F(TrackInitTest, run)
     std::vector<Primary> primaries = generate_primaries(12);
 
     // Allocate storage on device
-    StateStore              states({num_tracks, geo_params, 12345u});
-    SecondaryAllocatorStore secondaries(capacity);
-    TrackInitializerStore   track_init(num_tracks, capacity, primaries);
+    StateStore states({num_tracks, geo_params, 12345u});
+    CollectionStateStore<SecondaryAllocatorData, MemSpace::device> secondaries(
+        capacity);
+    TrackInitializerStore track_init(num_tracks, capacity, primaries);
 
     // Check that all of the track slots were marked as empty
     ITTestOutput output, expected;
@@ -146,9 +150,8 @@ TEST_F(TrackInitTest, run)
     ITTestInput            input(alloc, alive);
 
     // Launch kernel to process interactions
-    interact(states.device_pointers(),
-             secondaries.device_pointers(),
-             input.device_pointers());
+    interact(
+        states.device_pointers(), secondaries.ref(), input.device_pointers());
 
     // Launch a kernel to create track initializers from secondaries
     track_init.extend_from_secondaries(&states, &params);
@@ -190,7 +193,8 @@ TEST_F(TrackInitTest, primaries)
 
     // Allocate storage on device
     StateStore              states({num_tracks, geo_params, 12345u});
-    SecondaryAllocatorStore secondaries(capacity);
+    CollectionStateStore<SecondaryAllocatorData, MemSpace::device> secondaries(
+        capacity);
     TrackInitializerStore   track_init(num_tracks, capacity, primaries);
 
     // Kill all the tracks in each interaction and don't produce secondaries
@@ -214,7 +218,7 @@ TEST_F(TrackInitTest, primaries)
 
             // Launch kernel that will kill all trackss
             interact(states.device_pointers(),
-                     secondaries.device_pointers(),
+                     secondaries.ref(),
                      input.device_pointers());
 
             // Launch a kernel to create track initializers from secondaries
@@ -244,7 +248,8 @@ TEST_F(TrackInitTest, secondaries)
 
     // Allocate storage on device
     StateStore              states({num_tracks, geo_params, 12345u});
-    SecondaryAllocatorStore secondaries(capacity);
+    CollectionStateStore<SecondaryAllocatorData, MemSpace::device> secondaries(
+        capacity);
     TrackInitializerStore   track_init(num_tracks, capacity, primaries);
 
     // Allocate input device data (number of secondaries to produce for each
@@ -271,7 +276,7 @@ TEST_F(TrackInitTest, secondaries)
 
         // Launch kernel to process interactions
         interact(states.device_pointers(),
-                 secondaries.device_pointers(),
+                 secondaries.ref(),
                  input.device_pointers());
 
         // Launch a kernel to create track initializers from secondaries

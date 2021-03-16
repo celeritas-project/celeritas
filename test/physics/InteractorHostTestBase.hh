@@ -14,7 +14,7 @@
 #include "base/ArrayIO.hh"
 #include "base/CollectionStateStore.hh"
 #include "base/Span.hh"
-#include "base/StackAllocatorInterface.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "physics/base/ModelIdGenerator.hh"
 #include "physics/base/ParticleParams.hh"
@@ -25,18 +25,14 @@
 #include "physics/material/MaterialInterface.hh"
 
 // Test helpers
-#include "base/HostStackAllocatorStore.hh"
 #include "gtest/Test.hh"
 #include "random/DiagnosticRngEngine.hh"
 
 namespace celeritas
 {
-template<class T>
-class StackAllocatorView;
 class ParticleTrackView;
 class MaterialTrackView;
 struct Interaction;
-struct Secondary;
 } // namespace celeritas
 
 namespace celeritas_test
@@ -51,6 +47,7 @@ namespace celeritas_test
 class InteractorHostTestBase : public celeritas::Test
 {
   public:
+    static constexpr celeritas::MemSpace host = celeritas::MemSpace::host;
     //!@{
     //! Type aliases
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
@@ -71,10 +68,8 @@ class InteractorHostTestBase : public celeritas::Test
     using ParticleTrackView      = celeritas::ParticleTrackView;
     using Real3                  = celeritas::Real3;
     using Secondary              = celeritas::Secondary;
-    using SecondaryAllocatorView = celeritas::StackAllocatorView<Secondary>;
+    using SecondaryAllocator     = celeritas::StackAllocator<Secondary>;
     using constSpanSecondaries   = celeritas::Span<const Secondary>;
-
-    using HostSecondaryStore = HostStackAllocatorStore<Secondary>;
     //!@}
 
   public:
@@ -125,9 +120,8 @@ class InteractorHostTestBase : public celeritas::Test
 
     //!@{
     //! Secondary stack storage and access
-    void                      resize_secondaries(int count);
-    const HostSecondaryStore& secondaries() const { return secondaries_; }
-    SecondaryAllocatorView&   secondary_allocator()
+    void                resize_secondaries(int count);
+    SecondaryAllocator& secondary_allocator()
     {
         CELER_EXPECT(sa_view_);
         return *sa_view_;
@@ -152,6 +146,9 @@ class InteractorHostTestBase : public celeritas::Test
     template<template<celeritas::Ownership, celeritas::MemSpace> class S>
     using StateStore
         = celeritas::CollectionStateStore<S, celeritas::MemSpace::host>;
+    template<celeritas::Ownership W, celeritas::MemSpace M>
+    using SecondaryStackData
+        = celeritas::StackAllocatorData<celeritas::Secondary, W, M>;
 
     std::shared_ptr<MaterialParams> material_params_;
     std::shared_ptr<ParticleParams> particle_params_;
@@ -160,13 +157,13 @@ class InteractorHostTestBase : public celeritas::Test
     StateStore<celeritas::MaterialStateData> ms_;
     StateStore<celeritas::ParticleStateData> ps_;
 
-    Real3                             inc_direction_ = {0, 0, 1};
-    HostSecondaryStore                secondaries_;
+    Real3                          inc_direction_ = {0, 0, 1};
+    StateStore<SecondaryStackData> secondaries_;
 
     // Views
-    std::shared_ptr<MaterialTrackView>      mt_view_;
-    std::shared_ptr<ParticleTrackView>      pt_view_;
-    std::shared_ptr<SecondaryAllocatorView> sa_view_;
+    std::shared_ptr<MaterialTrackView>  mt_view_;
+    std::shared_ptr<ParticleTrackView>  pt_view_;
+    std::shared_ptr<SecondaryAllocator> sa_view_;
 };
 
 //---------------------------------------------------------------------------//

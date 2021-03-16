@@ -28,8 +28,6 @@ class PhotoelectricProcess : public Process
     using SPConstParticles   = std::shared_ptr<const ParticleParams>;
     using SPConstData        = std::shared_ptr<const LivermorePEParams>;
     using SPConstAtomicRelax = std::shared_ptr<const AtomicRelaxationParams>;
-    using SPConstSubshellIdAllocatorStore
-        = std::shared_ptr<SubshellIdAllocatorStore>;
     //!@}
 
   public:
@@ -40,12 +38,12 @@ class PhotoelectricProcess : public Process
                          SPConstData        data);
 
     // Construct from Livermore data and EADL atomic relaxation data
-    PhotoelectricProcess(SPConstParticles                particles,
-                         ImportPhysicsTable              xs_lo,
-                         ImportPhysicsTable              xs_hi,
-                         SPConstData                     data,
-                         SPConstAtomicRelax              atomic_relaxation,
-                         SPConstSubshellIdAllocatorStore vacancies);
+    PhotoelectricProcess(SPConstParticles   particles,
+                         ImportPhysicsTable xs_lo,
+                         ImportPhysicsTable xs_hi,
+                         SPConstData        data,
+                         SPConstAtomicRelax atomic_relaxation,
+                         size_type          vacancy_stack_size);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;
@@ -62,7 +60,7 @@ class PhotoelectricProcess : public Process
     ImportPhysicsTable              xs_hi_;
     SPConstData                     data_;
     SPConstAtomicRelax              atomic_relaxation_;
-    SPConstSubshellIdAllocatorStore vacancies_;
+    size_type                       vacancy_stack_size_{};
 };
 
 //---------------------------------------------------------------------------//

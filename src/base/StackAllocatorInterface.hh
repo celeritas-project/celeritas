@@ -7,47 +7,62 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "Collection.hh"
 #include "Macros.hh"
-#include "Span.hh"
 #include "Types.hh"
+
+#ifndef __CUDA_ARCH__
+#    include "CollectionAlgorithms.hh"
+#    include "CollectionBuilder.hh"
+#endif
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Pointers to stack allocator data.
+ * Storage for a stack and its dynamic size.
  */
-template<class T>
-struct StackAllocatorPointers
+template<class T, Ownership W, MemSpace M>
+struct StackAllocatorData
 {
-    //!@{
-    //! Type aliases
-    using size_type  = ::celeritas::size_type;
-    using value_type = T;
-    //!@}
-
-    Span<T>    storage;        //!< Allocated capacity
-    size_type* size = nullptr; //!< Stored size
+    celeritas::Collection<T, W, M>         storage; //!< Allocated capacity
+    celeritas::Collection<size_type, W, M> size;    //!< Stored size
 
     // Whether the interface is initialized
-    explicit inline CELER_FUNCTION operator bool() const;
+    explicit inline CELER_FUNCTION operator bool() const
+    {
+        return !storage.empty() && !size.empty();
+    }
 
     //! Total capacity of stack
     CELER_FUNCTION size_type capacity() const { return storage.size(); }
+
+    //! Assign from another stack
+    template<Ownership W2, MemSpace M2>
+    StackAllocatorData& operator=(StackAllocatorData<T, W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        storage = other.storage;
+        size    = other.size;
+        return *this;
+    }
 };
 
-//---------------------------------------------------------------------------//
-// INLINE FUNCTIONS
+#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
- * Whether the interface is initialized.
+ * Resize a stack allocator in host code.
  */
-template<class T>
-CELER_FUNCTION StackAllocatorPointers<T>::operator bool() const
+template<class T, MemSpace M>
+inline void
+resize(StackAllocatorData<T, Ownership::value, M>* data, size_type capacity)
 {
-    CELER_EXPECT(storage.empty() || size);
-    return !storage.empty();
+    CELER_EXPECT(capacity > 0);
+    make_builder(&data->storage).resize(capacity);
+    make_builder(&data->size).resize(1);
+    celeritas::fill(size_type(0), &data->size);
 }
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

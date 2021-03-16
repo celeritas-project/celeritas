@@ -8,7 +8,7 @@
 #include "InteractorHostTestBase.hh"
 
 #include "base/ArrayUtils.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocator.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/ParticleTrackView.hh"
@@ -134,9 +134,8 @@ void InteractorHostTestBase::set_inc_direction(const Real3& dir)
 void InteractorHostTestBase::resize_secondaries(int count)
 {
     CELER_EXPECT(count > 0);
-    secondaries_.resize(count);
-    sa_view_ = std::make_shared<SecondaryAllocatorView>(
-        secondaries_.host_pointers());
+    secondaries_ = StateStore<SecondaryStackData>(count);
+    sa_view_ = std::make_shared<StackAllocator<Secondary>>(secondaries_.ref());
 }
 
 //---------------------------------------------------------------------------//

@@ -115,7 +115,6 @@ KernelParamCalculator::KernelParamCalculator(F           kernel_func,
                                              dim_type    block_size)
     : block_size_(block_size)
 {
-    CELER_EXPECT(block_size >= 64);
     CELER_EXPECT(block_size % celeritas::device().warp_size() == 0);
     id_ = celeritas::kernel_diagnostics().insert(kernel_func, name, block_size);
 }

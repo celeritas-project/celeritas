@@ -12,18 +12,16 @@
 #include "base/ArrayUtils.hh"
 #include "base/CollectionStateStore.hh"
 #include "base/Range.hh"
+#include "base/StackAllocator.hh"
 #include "base/Stopwatch.hh"
 #include "random/distributions/ExponentialDistribution.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
 #include "physics/base/Secondary.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
 #include "physics/grid/XsCalculator.hh"
-#include "DetectorView.hh"
-#include "HostStackAllocatorStore.hh"
-#include "HostDetectorStore.hh"
 #include "KernelUtils.hh"
+#include "Detector.hh"
 
 using namespace celeritas;
 using celeritas::detail::KleinNishinaInteractor;
@@ -73,33 +71,41 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     // Random number generations
     std::mt19937 rng(args.seed);
 
-    // Physics calculator
-    const auto&           xs_host_ptrs = xsparams_->host_pointers();
-    XsCalculator          calc_xs(xs_host_ptrs.xs, xs_host_ptrs.reals);
+    // Particle data
+    ParticleStateData<Ownership::value, MemSpace::host> track_states;
+    resize(&track_states, pparams_->host_pointers(), 1);
 
     // Make secondary store
-    HostStackAllocatorStore<Secondary> secondaries(args.max_steps);
-    auto secondary_host_ptrs = secondaries.host_pointers();
+    StackAllocatorData<Secondary, Ownership::value, MemSpace::host> secondaries;
+    resize(&secondaries, args.max_steps);
 
-    // Make detector store
-    HostDetectorStore detector(args.max_steps, args.tally_grid);
-    auto              detector_host_ptrs = detector.host_pointers();
+    // Detector data
+    DetectorParamsData detector_params;
+    detector_params.tally_grid = args.tally_grid;
+    DetectorStateData<Ownership::value, MemSpace::host> detector_states;
+    resize(&detector_states, detector_params, args.max_steps);
 
-    // Particle state store
-    CollectionStateStore<ParticleStateData, MemSpace::host> particle_state(
-        *pparams_, 1);
+    // Construct references
+    ParamsHostRef params;
+    params.particle      = pparams_->host_pointers();
+    params.tables        = xsparams_->host_pointers();
+    params.kn_interactor = kn_pointers_;
+    params.detector      = detector_params;
+
+    // Construct initialization
+    InitialPointers initial;
+    initial.particle = ParticleTrackState{kn_pointers_.gamma_id,
+                                          units::MevEnergy{args.energy}};
+
+    StateHostRef state;
+    state.particle    = track_states;
+    state.secondaries = secondaries;
+    state.detector    = detector_states;
 
     // Loop over particle tracks and events per track
     for (CELER_MAYBE_UNUSED auto n : range(args.num_tracks))
     {
-        // Place cap on maximum number of steps
-        auto remaining_steps = args.max_steps;
-
-        // Make the initial track state
-        ParticleTrackState init_state
-            = {kn_pointers_.gamma_id, units::MevEnergy(args.energy)};
-
-        // Initialize particle state
+        // Storage for track state
         Real3     position  = {0, 0, 0};
         Real3     direction = {0, 0, 1};
         real_type time      = 0;
@@ -107,21 +113,25 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
         // Create and initialize particle view
         ParticleTrackView particle(
-            pparams_->host_pointers(), particle_state.ref(), ThreadId{0});
-        particle = init_state;
+            params.particle, state.particle, ThreadId{0});
 
-        // Secondary pointers
-        SecondaryAllocatorView allocate_secondaries(secondary_host_ptrs);
-        CELER_ASSERT(secondaries.capacity() == args.max_steps);
+        // Create helper classes
+        StackAllocator<Secondary> allocate_secondaries(state.secondaries);
+        Detector                  detector(params.detector, state.detector);
+        XsCalculator calc_xs(params.tables.xs, params.tables.reals);
+
+        CELER_ASSERT(state.secondaries.capacity() == args.max_steps);
+        CELER_ASSERT(state.detector.hit_buffer.capacity() == args.max_steps);
         CELER_ASSERT(allocate_secondaries.get().size() == 0);
+        CELER_ASSERT(detector.num_hits() == 0);
 
-        // Detector hits
-        DetectorView detector_hit(detector_host_ptrs);
-
-        // Step counter
+        // Counters
         size_type num_steps = 0;
-
+        auto      remaining_steps = args.max_steps;
         Stopwatch elapsed_time;
+
+        particle = initial.particle;
+
         while (alive && --remaining_steps > 0)
         {
             // Increment alive counter
@@ -136,6 +146,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             // Hit analysis
             Hit h;
             h.pos    = position;
+            h.dir    = direction;
             h.thread = ThreadId(0);
             h.time   = time;
 
@@ -143,11 +154,10 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             if (particle.energy() < units::MevEnergy{0.01})
             {
                 // Particle is below interaction energy
-                h.dir              = direction;
                 h.energy_deposited = particle.energy();
 
                 // Deposit energy and kill
-                detector_hit(h);
+                detector.buffer_hit(h);
                 alive = false;
                 continue;
             }
@@ -157,7 +167,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
                 kn_pointers_, particle, direction, allocate_secondaries);
 
             // Perform interactions - emits a single particle
-            auto interaction = interact(rng);
+            Interaction interaction = interact(rng);
             CELER_ASSERT(interaction);
             CELER_ASSERT(interaction.secondaries.size() == 1);
 
@@ -166,7 +176,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
                 const auto& secondary = interaction.secondaries.front();
                 h.dir                 = secondary.direction;
                 h.energy_deposited    = secondary.energy;
-                detector_hit(h);
+                detector.buffer_hit(h);
             }
 
             // Update the energy and direction in the state from the
@@ -175,35 +185,34 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             particle.energy(interaction.energy);
         }
         CELER_ASSERT(num_steps < args.max_steps
-                         ? secondaries.get_size() == num_steps - 1
-                         : secondaries.get_size() == num_steps);
-        CELER_ASSERT(secondaries.get_size()
-                     == allocate_secondaries.get().size());
-        CELER_ASSERT(
-            StackAllocatorView<Hit>(detector.host_pointers().hit_buffer)
-                .get()
-                .size()
-            == num_steps);
+                         ? allocate_secondaries.get().size() == num_steps - 1
+                         : allocate_secondaries.get().size() == num_steps);
+        CELER_ASSERT(detector.num_hits() == num_steps);
 
         // Store transport time
         transport_time += elapsed_time();
 
         // Clear secondaries
-        secondaries.clear();
-        CELER_ASSERT(secondaries.get_size() == 0);
+        allocate_secondaries.clear();
+        CELER_ASSERT(allocate_secondaries.get().size() == 0);
 
         // Bin the tally results from the buffer onto the grid
-        detector.bin_buffer();
+        for (auto hit_id : range(Detector::HitId{detector.num_hits()}))
+        {
+            detector.process_hit(hit_id);
+        }
+        detector.clear_buffer();
     }
 
     // Copy integrated energy deposition
-    result.edep = detector.finalize(1 / real_type(args.num_tracks));
+    result.edep.resize(detector_params.tally_grid.size);
+    demo_interactor::finalize(params, state, make_span(result.edep));
 
     // Store timings
     result.time.push_back(transport_time);
     result.total_time = total_time();
 
-    // Reduce "alive" size
+    // Remove trailing zeros from preallocated "alive" size
     while (!result.alive.empty() && result.alive.back() == 0)
     {
         result.alive.pop_back();

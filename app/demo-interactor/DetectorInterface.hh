@@ -10,10 +10,14 @@
 #include "base/Array.hh"
 #include "base/OpaqueId.hh"
 #include "base/StackAllocatorInterface.hh"
-#include "physics/grid/UniformGrid.hh"
+#include "physics/grid/UniformGridInterface.hh"
 #include "physics/base/Units.hh"
 
-namespace celeritas
+#ifndef __CUDA_ARCH__
+#    include "base/CollectionBuilder.hh"
+#endif
+
+namespace demo_interactor
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -23,29 +27,74 @@ namespace celeritas
  */
 struct Hit
 {
-    Real3            pos;
-    Real3            dir;
-    ThreadId         thread;
-    real_type        time;
-    units::MevEnergy energy_deposited;
+    celeritas::Real3            pos;
+    celeritas::Real3            dir;
+    celeritas::ThreadId         thread;
+    celeritas::real_type        time;
+    celeritas::units::MevEnergy energy_deposited;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Interface to detector hit buffer.
  */
-struct DetectorPointers
+struct DetectorParamsData
 {
-    StackAllocatorPointers<Hit> hit_buffer;
-    UniformGridData             tally_grid;
-    Span<real_type>             tally_deposition;
+    celeritas::UniformGridData tally_grid;
 
-    //! Whether the interface is initialized
-    explicit CELER_FUNCTION operator bool() const { return bool(hit_buffer); }
-
-    //! Total capacity of hit buffer
-    CELER_FUNCTION size_type capacity() const { return hit_buffer.capacity(); }
+    //! Whether the data is initialized
+    explicit CELER_FUNCTION operator bool() const { return bool(tally_grid); }
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+/*!
+ * Interface to detector hit buffer.
+ */
+template<celeritas::Ownership W, celeritas::MemSpace M>
+struct DetectorStateData
+{
+    using real_type = celeritas::real_type;
+    using size_type = celeritas::size_type;
+
+    celeritas::StackAllocatorData<Hit, W, M> hit_buffer;
+    celeritas::Collection<real_type, W, M>   tally_deposition;
+
+    //! Whether the interface is initialized
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return bool(hit_buffer) && !tally_deposition.empty();
+    }
+
+    //! Total capacity of hit buffer
+    CELER_FUNCTION size_type capacity() const { return hit_buffer.capacity(); }
+
+    //! Assign from another set of data
+    template<celeritas::Ownership W2, celeritas::MemSpace M2>
+    DetectorStateData& operator=(DetectorStateData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        hit_buffer       = other.hit_buffer;
+        tally_deposition = other.tally_deposition;
+        return *this;
+    }
+};
+
+#ifndef __CUDA_ARCH__
+//---------------------------------------------------------------------------//
+/*!
+ * Allocate components and capacity for the detector.
+ */
+template<celeritas::MemSpace M>
+inline void resize(DetectorStateData<celeritas::Ownership::value, M>* data,
+                   const DetectorParamsData&                          params,
+                   celeritas::size_type                               size)
+{
+    CELER_EXPECT(params);
+    CELER_EXPECT(size > 0);
+    resize(&data->hit_buffer, size);
+    make_builder(&data->tally_deposition).resize(params.tally_grid.size);
+}
+#endif
+
+//---------------------------------------------------------------------------//
+} // namespace demo_interactor

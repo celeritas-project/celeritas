@@ -27,10 +27,10 @@ inline CELER_FUNCTION real_type generate_canonical(Generator& g);
 /*!
  * Generate random numbers in [0, 1).
  *
- * This is essentially an implementation detail; it can be overridden to
- * specialize on the Generator type.
+ * This is essentially an implementation detail; partial specialization can be
+ * used to sample using special functions with a given generator.
  */
-template<class Generator, class RealType = double>
+template<class Generator, class RealType = ::celeritas::real_type>
 class GenerateCanonical
 {
     static_assert(std::is_floating_point<RealType>::value,

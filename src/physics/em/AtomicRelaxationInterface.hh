@@ -9,22 +9,12 @@
 
 #include "base/Macros.hh"
 #include "base/Span.hh"
-#include "base/StackAllocatorStore.t.hh"
-#include "base/StackAllocatorView.hh"
 #include "base/Types.hh"
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-//!@{
-//! Type aliases for subshell ID allocation
-using SubshellIdAllocatorPointers = StackAllocatorPointers<SubshellId>;
-using SubshellIdAllocatorStore    = StackAllocatorStore<SubshellId>;
-using SubshellIdAllocatorView     = StackAllocatorView<SubshellId>;
-//!@}
-
 //---------------------------------------------------------------------------//
 /*!
  * Atomic relaxation transition data. The transition probabilities describe

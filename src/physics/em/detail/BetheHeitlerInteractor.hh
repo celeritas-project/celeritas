@@ -12,7 +12,7 @@
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Secondary.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocator.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
 #include "BetheHeitler.hh"
@@ -31,7 +31,7 @@ namespace detail
  * \note This performs the same sampling routine as in Geant4's
  * G4BetheHeitlerModel, as documented in section 6.5 of the Geant4 Physics
  * Reference (release 10.6), applicable to incident gammas with energy
- * \$f E_gamma \leq 100 GeV \$f. For \$f E_gamma > 80 \$f GeV, it is suggested
+ * \f$ E_gamma \leq 100\f$ GeV . For \f$ E_gamma > 80 \f$ GeV, it is suggested
  * to use `G4PairProductionRelModel`.
  */
 class BetheHeitlerInteractor
@@ -42,7 +42,7 @@ class BetheHeitlerInteractor
     BetheHeitlerInteractor(const BetheHeitlerPointers& shared,
                            const ParticleTrackView&    particle,
                            const Real3&                inc_direction,
-                           SecondaryAllocatorView&     allocate,
+                           StackAllocator<Secondary>&  allocate,
                            const ElementView&          element);
 
     // Sample an interaction with the given RNG
@@ -90,7 +90,7 @@ class BetheHeitlerInteractor
     const Real3& inc_direction_;
 
     // Allocate space for a secondary particle
-    SecondaryAllocatorView& allocate_;
+    StackAllocator<Secondary>& allocate_;
 
     // Element properties for calculating screening functions and variables
     const ElementView& element_;

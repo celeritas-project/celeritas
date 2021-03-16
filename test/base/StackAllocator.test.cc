@@ -5,40 +5,54 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocator.test.cc
 //---------------------------------------------------------------------------//
-#include "base/StackAllocatorStore.hh"
-#include "base/StackAllocatorView.hh"
+#include "base/StackAllocator.hh"
 
 #include <cstdint>
+#include "base/CollectionStateStore.hh"
 #include "celeritas_test.hh"
 #include "StackAllocator.test.hh"
-#include "HostStackAllocatorStore.hh"
-#include "base/StackAllocatorStore.t.hh"
 
 using namespace celeritas_test;
 
-// Explicitly instantiate mock stack allocator
-namespace celeritas
-{
-template class StackAllocatorStore<MockSecondary>;
-}
+template<celeritas::Ownership W, celeritas::MemSpace M>
+using MockAllocatorData = celeritas::StackAllocatorData<MockSecondary, W, M>;
 
 //---------------------------------------------------------------------------//
 // HOST TESTS
 //---------------------------------------------------------------------------//
 
-class StackAllocatorHostTest : public celeritas::Test
+class StackAllocatorTest : public celeritas::Test
 {
   protected:
-    using StackAllocatorView = celeritas::StackAllocatorView<MockSecondary>;
+    using Allocator = celeritas::StackAllocator<MockSecondary>;
 
-    HostStackAllocatorStore<MockSecondary> secondaries_;
+    // Get the actual number of allocated secondaries
+    int actual_allocations(const SATestInput& in, const SATestOutput& out) const
+    {
+        using std::uintptr_t;
+
+        // Use pointer arithmetic on GPUs:
+        // - "start" pointer of final allocation
+        // - Plus size of final allocation
+        // - Minus allocation "begin" address
+        MockSecondary* storage_end_ptr
+            = static_cast<MockSecondary*>(
+                  reinterpret_cast<void*>(out.last_secondary_address))
+              + in.alloc_size;
+        constexpr celeritas::ItemId<MockSecondary> first_item{0};
+        return storage_end_ptr - &in.sa_pointers.storage[first_item];
+    }
 };
 
-TEST_F(StackAllocatorHostTest, allocation)
+//---------------------------------------------------------------------------//
+
+TEST_F(StackAllocatorTest, host)
 {
-    // Set "uninitialized" storage to invalid value
-    secondaries_.resize(16, MockSecondary{-123});
-    StackAllocatorView alloc(secondaries_.host_pointers());
+    using StateStore
+        = celeritas::CollectionStateStore<MockAllocatorData,
+                                          celeritas::MemSpace::host>;
+    StateStore data(16);
+    Allocator  alloc(data.ref());
     EXPECT_EQ(16, alloc.capacity());
 
     // Allocate 8 of the 16 slots
@@ -62,52 +76,25 @@ TEST_F(StackAllocatorHostTest, allocation)
     ptr = alloc(8);
     ASSERT_NE(nullptr, ptr);
     EXPECT_EQ(16, alloc.get().size());
-    EXPECT_EQ(16, const_cast<const StackAllocatorView&>(alloc).get().size());
+    EXPECT_EQ(16, const_cast<const Allocator&>(alloc).get().size());
 }
 
 //---------------------------------------------------------------------------//
-// DEVICE TESTS
-//---------------------------------------------------------------------------//
-#if CELERITAS_USE_CUDA
 
-class StackAllocatorDeviceTest : public celeritas::Test
+TEST_F(StackAllocatorTest, TEST_IF_CELERITAS_CUDA(device))
 {
-  protected:
-    using StackAllocatorStore = celeritas::StackAllocatorStore<MockSecondary>;
+    using StateStore
+        = celeritas::CollectionStateStore<MockAllocatorData,
+                                          celeritas::MemSpace::device>;
 
-    void SetUp() override
-    {
-        // Allocate 1024 secondaries
-        storage = StackAllocatorStore(1024);
-    }
+    StateStore data(1024);
 
-    // Get the actual number of allocated secondaries
-    int actual_allocations(const SATestInput& in, const SATestOutput& out) const
-    {
-        using std::uintptr_t;
-
-        // Use GPU pointer arithmetic:
-        // - "start" pointer of final allocation
-        // - Plus size of final allocation
-        // - Minus allocation "begin" address
-        MockSecondary* storage_end_ptr
-            = static_cast<MockSecondary*>(
-                  reinterpret_cast<void*>(out.last_secondary_address))
-              + in.alloc_size;
-        return storage_end_ptr - in.sa_pointers.storage.data();
-    }
-
-    StackAllocatorStore storage;
-};
-
-TEST_F(StackAllocatorDeviceTest, run)
-{
-    EXPECT_EQ(1024, storage.capacity());
+    EXPECT_EQ(1024, data.ref().capacity());
     int accum_expected_alloc = 0;
 
     // Allocate a subset of the stack
     SATestInput input;
-    input.sa_pointers = storage.device_pointers();
+    input.sa_pointers = data.ref();
     input.num_threads = 64;
     input.num_iters   = 1;
     input.alloc_size  = 2;
@@ -117,9 +104,7 @@ TEST_F(StackAllocatorDeviceTest, run)
               result.num_allocations);
     accum_expected_alloc += result.num_allocations;
     EXPECT_EQ(accum_expected_alloc, actual_allocations(input, result));
-    EXPECT_EQ(accum_expected_alloc, result.max_size);
     EXPECT_EQ(accum_expected_alloc, result.view_size);
-    EXPECT_EQ(accum_expected_alloc, storage.get_size());
 
     // Run again, two iterations per thread
     input.num_iters  = 2;
@@ -130,9 +115,7 @@ TEST_F(StackAllocatorDeviceTest, run)
               result.num_allocations);
     accum_expected_alloc += result.num_allocations;
     EXPECT_EQ(accum_expected_alloc, actual_allocations(input, result));
-    EXPECT_EQ(accum_expected_alloc, result.max_size);
     EXPECT_EQ(accum_expected_alloc, result.view_size);
-    EXPECT_EQ(accum_expected_alloc, storage.get_size());
 
     // Run again, too many iterations (so storage gets filled up)
     input.num_iters   = 128;
@@ -142,14 +125,11 @@ TEST_F(StackAllocatorDeviceTest, run)
     EXPECT_EQ(0, result.num_errors);
     EXPECT_EQ(1024 - accum_expected_alloc, result.num_allocations);
     EXPECT_EQ(1024, actual_allocations(input, result));
-    EXPECT_LE(1024, result.max_size);
     EXPECT_EQ(1024, result.view_size);
-    EXPECT_EQ(1024, storage.get_size());
 
     // Reset secondary storage
-    storage.clear();
-    EXPECT_EQ(1024, storage.capacity());
-    EXPECT_EQ(0, storage.get_size());
+    sa_clear(input);
+    EXPECT_EQ(1024, data.ref().capacity());
 
     // Run again until full
     input.num_threads = 512;
@@ -159,16 +139,5 @@ TEST_F(StackAllocatorDeviceTest, run)
     EXPECT_EQ(0, result.num_errors);
     EXPECT_EQ(1024, result.num_allocations);
     EXPECT_EQ(1024, actual_allocations(input, result));
-    EXPECT_LE(1024, result.max_size);
     EXPECT_EQ(1024, result.view_size);
-    EXPECT_EQ(1024, storage.get_size());
-
-    // Check move operation
-    {
-        StackAllocatorStore temp_store = std::move(storage);
-        EXPECT_EQ(1024, temp_store.capacity());
-        EXPECT_EQ(1024, temp_store.get_size());
-    }
 }
-
-#endif

@@ -11,7 +11,7 @@
 #include "base/Types.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "physics/base/SecondaryAllocatorView.hh"
+#include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "KleinNishina.hh"
@@ -42,7 +42,7 @@ class KleinNishinaInteractor
     KleinNishinaInteractor(const KleinNishinaPointers& shared,
                            const ParticleTrackView&    particle,
                            const Real3&                inc_direction,
-                           SecondaryAllocatorView&     allocate);
+                           StackAllocator<Secondary>&  allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -56,7 +56,7 @@ class KleinNishinaInteractor
     // Incident direction
     const Real3& inc_direction_;
     // Allocate space for a secondary particle
-    SecondaryAllocatorView& allocate_;
+    StackAllocator<Secondary>& allocate_;
 };
 
 //---------------------------------------------------------------------------//

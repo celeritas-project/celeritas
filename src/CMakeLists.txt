@@ -39,6 +39,7 @@ list(APPEND SOURCES
   comm/KernelDiagnostics.cc
   base/ScopedStreamRedirect.cc
   base/TypeDemangler.cc
+  base/detail/Copier.cc
   comm/Communicator.cc
   comm/Device.cc
   comm/Logger.cc
@@ -57,7 +58,6 @@ list(APPEND SOURCES
   physics/base/ParticleParams.cc
   physics/base/PhysicsParams.cc
   physics/base/Process.cc
-  physics/base/SecondaryAllocatorStore.cc
   physics/em/AtomicRelaxationParams.cc
   physics/em/BetheHeitlerModel.cc
   physics/em/ComptonProcess.cc
@@ -81,7 +81,7 @@ list(APPEND SOURCES
 if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
     base/KernelParamCalculator.cuda.cc
-    base/Memory.cu
+    base/detail/Filler.cu
     physics/em/detail/BetheHeitler.cu
     physics/em/detail/EPlusGG.cu
     physics/em/detail/KleinNishina.cu
@@ -93,7 +93,6 @@ if(CELERITAS_USE_CUDA)
   list(APPEND PRIVATE_DEPS CUDA::cudart)
 else()
   list(APPEND SOURCES
-    base/Memory.nocuda.cc
     random/cuda/curand.nocuda.cc
     random/cuda/detail/RngStateInit.nocuda.cc
     sim/detail/SimStateInit.nocuda.cc
