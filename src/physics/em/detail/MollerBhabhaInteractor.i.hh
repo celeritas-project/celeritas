@@ -39,6 +39,7 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 {
     CELER_EXPECT(particle.particle_id() == shared_.electron_id
                  || particle.particle_id() == shared_.positron_id);
+    CELER_EXPECT(shared_.cutoff_energy < inc_energy_);
 }
 
 //---------------------------------------------------------------------------//
@@ -60,18 +61,31 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
+    // Set up cutoff threshold
+    real_type min_sampled_energy;
+    if (shared_.cutoff_energy < shared_.min_valid_energy)
+    {
+        // Use model's low energy boundary
+        min_sampled_energy = shared_.min_valid_energy;
+    }
+    else
+    {
+        // Use suggested cutoff value
+        min_sampled_energy = shared_.cutoff_energy;
+    }
+
     real_type epsilon;
 
     if (inc_particle_is_electron_)
     {
         MollerEnergyDistribution sample_moller(
-            shared_.electron_mass_c_sq, shared_.min_valid_energy, inc_energy_);
+            shared_.electron_mass_c_sq, min_sampled_energy, inc_energy_);
         epsilon = sample_moller(rng);
     }
     else
     {
         BhabhaEnergyDistribution sample_bhabha(
-            shared_.electron_mass_c_sq, shared_.min_valid_energy, inc_energy_);
+            shared_.electron_mass_c_sq, min_sampled_energy, inc_energy_);
         epsilon = sample_bhabha(rng);
     }
 

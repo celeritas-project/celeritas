@@ -33,8 +33,10 @@ struct MollerBhabhaPointers
     ParticleId positron_id;
     // Electron mass * c^2 [MeV]
     real_type electron_mass_c_sq;
-    // Mininum energy limit [MeV]
+    // Model's mininum energy limit [MeV]
     real_type min_valid_energy;
+    // Secondary cutoff energy limit [MeV]
+    real_type cutoff_energy;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const

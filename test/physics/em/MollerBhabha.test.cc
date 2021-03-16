@@ -57,6 +57,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         pointers_.positron_id        = params.find(pdg::positron());
         pointers_.electron_mass_c_sq = 0.5109989461;
         pointers_.min_valid_energy   = 1e-3; // [MeV]
+        pointers_.cutoff_energy      = 0;    // [MeV]
 
         // Set default incident direction. Particle is defined in the tests
         this->set_inc_direction({0, 0, 1});
