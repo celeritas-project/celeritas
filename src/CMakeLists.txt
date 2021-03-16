@@ -140,7 +140,6 @@ if(CELERITAS_USE_VecGeom)
       geometry/detail/VGNavStateStore.cuda.cc
       sim/detail/InitializeTracks.cu
     )
-    list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
   else()
     list(APPEND SOURCES
       geometry/detail/VGNavStateStore.nocuda.cc
@@ -152,17 +151,13 @@ endif()
 add_library(celeritas ${SOURCES})
 add_library(Celeritas::Core ALIAS celeritas)
 
-if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
-  set_target_properties(celeritas PROPERTIES
-    LINKER_LANGUAGE CUDA
-    CUDA_SEPARABLE_COMPILATION ON
-  )
-endif()
-
 target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
 )
+if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
+  celeritas_link_vecgeom_cuda(celeritas)
+endif()
 
 target_include_directories(celeritas
   PUBLIC

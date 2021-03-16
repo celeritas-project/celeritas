@@ -132,28 +132,21 @@ if(CELERITAS_USE_VecGeom)
     # See https://github.com/celeritas-project/celeritas/pull/10 for a
     # discussion of the failures from trying to directly build an executable
     # from code with CUDA separable compilation. This extra test library is
-    # necessary.
+    # necessary. Furthermore, celeritas must be linked *before* vecgeom.
     add_library(celeritas_vgtest
       geometry/GeoTrackView.test.cu
       geometry/LinearPropagator.test.cu
     )
-    target_link_libraries(celeritas_vgtest
-      PRIVATE
-      celeritas
-      VecGeom::vecgeomcuda
-      VecGeom::vecgeomcuda_static
-    )
-    set_target_properties(celeritas_vgtest PROPERTIES
-      LINKER_LANGUAGE CUDA
-      CUDA_SEPARABLE_COMPILATION ON
-      POSITION_INDEPENDENT_CODE ON
-    )
+    target_link_libraries(celeritas_vgtest PRIVATE celeritas)
+    celeritas_link_vecgeom_cuda(celeritas_vgtest)
     list(APPEND CELERITASTEST_LINK_LIBRARIES celeritas_vgtest)
   endif()
 
   celeritas_add_test(geometry/GeoParams.test.cc GPU)
   celeritas_add_test(geometry/GeoTrackView.test.cc GPU)
   celeritas_add_test(geometry/LinearPropagator.test.cc GPU)
+
+  set(CELERITASTEST_LINK_LIBRARIES)
 endif()
 
 #-----------------------------------------------------------------------------#
