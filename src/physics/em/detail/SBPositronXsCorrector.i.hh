@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SBPositronXsScaling.i.hh
+//! \file SBPositronXsCorrector.i.hh
 //---------------------------------------------------------------------------//
 #include <cmath>
 
@@ -17,10 +17,10 @@ namespace detail
 /*!
  * Construct with positron data and energy range.
  */
-SBPositronXsScaling::SBPositronXsScaling(Mass               positron_mass,
-                                         const ElementView& el,
-                                         Energy             min_gamma_energy,
-                                         Energy             inc_energy)
+SBPositronXsCorrector::SBPositronXsCorrector(Mass               positron_mass,
+                                             const ElementView& el,
+                                             Energy min_gamma_energy,
+                                             Energy inc_energy)
     : positron_mass_{positron_mass.value()}
     , alpha_z_{celeritas::constants::alpha_fine_structure * el.atomic_number()}
     , inc_energy_(inc_energy.value())
@@ -33,7 +33,7 @@ SBPositronXsScaling::SBPositronXsScaling(Mass               positron_mass,
 /*!
  * Calculate scaling factor for the given exiting gamma energy.
  */
-CELER_FUNCTION real_type SBPositronXsScaling::operator()(Energy energy) const
+CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
 {
     CELER_EXPECT(energy > zero_quantity());
     CELER_EXPECT(energy.value() < inc_energy_);
@@ -53,7 +53,7 @@ CELER_FUNCTION real_type SBPositronXsScaling::operator()(Energy energy) const
  * functions.
  */
 CELER_FUNCTION real_type
-SBPositronXsScaling::calc_lorentz_factor(real_type gamma_energy) const
+SBPositronXsCorrector::calc_lorentz_factor(real_type gamma_energy) const
 {
     CELER_EXPECT(gamma_energy > 0 && gamma_energy <= inc_energy_);
     // Positron has all the energy except what it gave to the gamma

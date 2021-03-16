@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SBPositronXsScaling.hh
+//! \file SBPositronXsCorrector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -33,7 +33,7 @@ namespace detail
  * production cutoff energy, and \f$ E \f$ is the provisionally sampled exiting
  * energy.
  */
-class SBPositronXsScaling
+class SBPositronXsCorrector
 {
   public:
     //!@{
@@ -43,10 +43,10 @@ class SBPositronXsScaling
 
   public:
     // Construct with positron data
-    inline CELER_FUNCTION SBPositronXsScaling(Mass               positron_mass,
-                                              const ElementView& el,
-                                              Energy min_gamma_energy,
-                                              Energy inc_energy);
+    inline CELER_FUNCTION SBPositronXsCorrector(Mass positron_mass,
+                                                const ElementView& el,
+                                                Energy min_gamma_energy,
+                                                Energy inc_energy);
 
     // Calculate cross section scaling factor for the given exiting energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
@@ -65,4 +65,4 @@ class SBPositronXsScaling
 } // namespace detail
 } // namespace celeritas
 
-#include "SBPositronXsScaling.i.hh"
+#include "SBPositronXsCorrector.i.hh"
