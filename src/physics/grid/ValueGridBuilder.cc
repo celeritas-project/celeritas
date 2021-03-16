@@ -159,7 +159,7 @@ ValueGridXsBuilder::ValueGridXsBuilder(real_type emin,
     , xs_(std::move(xs))
 {
     CELER_EXPECT(emin > 0);
-    CELER_EXPECT(eprime > emin);
+    CELER_EXPECT(eprime >= emin);
     CELER_EXPECT(emax > eprime);
     CELER_EXPECT(xs_.size() >= 2);
     CELER_EXPECT(
