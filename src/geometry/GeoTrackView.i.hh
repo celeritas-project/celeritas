@@ -49,14 +49,18 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
     const vecgeom::VPlacedVolume* worldvol       = shared_.world_volume;
     const bool                    contains_point = true;
 
-    // Note that LocateGlobalPoint sets vgstate. If `vgstate_` is outside
+    // Note that LocateGlobalPoint sets `vgstate_`. If `vgstate_` is outside
     // (including possibly on the outside volume edge), the volume pointer it
-    // returns will be null
+    // returns would be null at this point.
     vecgeom::GlobalLocator::LocateGlobalPoint(
         worldvol, detail::to_vector(pos_), vgstate_, contains_point);
 
-    // Prepare for next step
-    this->find_next_step(this->is_outside() ? worldvol : &this->volume());
+    // Prepare for next step. If outside, vgstate_ will be reset to return
+    //  world volume instead of null.
+    if (this->is_outside())
+        this->find_next_step_outside();
+    else
+        this->find_next_step();
 
     return *this;
 }
@@ -83,36 +87,36 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
 
 //---------------------------------------------------------------------------//
 //! Find the distance to the next geometric boundary.
-CELER_FUNCTION void
-GeoTrackView::find_next_step(vecgeom::VPlacedVolume const* pplvol)
+CELER_FUNCTION void GeoTrackView::find_next_step()
 {
-    CELER_ASSERT(pplvol);
-
     const vecgeom::VNavigator* navigator
-        = pplvol->GetLogicalVolume()->GetNavigator();
+        = this->volume().GetLogicalVolume()->GetNavigator();
     CELER_ASSERT(navigator);
 
-    if (this->is_outside())
-    {
-        // handling points outside of world volume
-        const real_type large = vecgeom::kInfLength;
-        next_step_            = pplvol->DistanceToIn(
-            detail::to_vector(pos_), detail::to_vector(dir_), large);
-        vgnext_.Clear();
-        if (next_step_ < large)
-        {
-            vgnext_.Push(pplvol);
-        }
-    }
-    else
-    {
-        next_step_
-            = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
-                                                       detail::to_vector(dir_),
-                                                       vecgeom::kInfLength,
-                                                       vgstate_,
-                                                       vgnext_);
-    }
+    next_step_
+        = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
+                                                   detail::to_vector(dir_),
+                                                   vecgeom::kInfLength,
+                                                   vgstate_,
+                                                   vgnext_);
+    dirty_ = false;
+}
+
+//---------------------------------------------------------------------------//
+//! For outside points, find distance to world volume
+CELER_FUNCTION void GeoTrackView::find_next_step_outside()
+{
+    CELER_EXPECT(this->is_outside());
+
+    // handling points outside of world volume
+    const vecgeom::VPlacedVolume* pplvol = shared_.world_volume;
+    const real_type               large  = vecgeom::kInfLength;
+    next_step_                           = pplvol->DistanceToIn(
+        detail::to_vector(pos_), detail::to_vector(dir_), large);
+    vgnext_.Clear();
+    if (next_step_ < large)
+        vgnext_.Push(pplvol);
+
     dirty_ = false;
 }
 
@@ -145,7 +149,7 @@ CELER_FUNCTION real_type GeoTrackView::move_next_step()
 }
 
 //---------------------------------------------------------------------------//
-//! Move to the next boundary and update volume accordingly
+//! Move by a given distance. If a boundary to be crossed, stop there instead
 CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
 {
     CELER_EXPECT(dist > 0.);
@@ -168,7 +172,10 @@ CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
 CELER_FUNCTION void GeoTrackView::move_next_volume()
 {
     vgstate_ = vgnext_;
-    this->find_next_step();
+    if (this->is_outside())
+        this->find_next_step_outside();
+    else
+        this->find_next_step();
 }
 
 //---------------------------------------------------------------------------//
@@ -209,7 +216,9 @@ GeoTrackView::get_nav_state(void*                  state,
 //! Get a reference to the current volume, or to world volume if outside
 CELER_FUNCTION const vecgeom::VPlacedVolume& GeoTrackView::volume() const
 {
-    return this->is_outside() ? *(shared_.world_volume) : *this->vgstate_.Top();
+    const vecgeom::VPlacedVolume* vol_ptr = vgstate_.Top();
+    CELER_ENSURE(vol_ptr);
+    return *vol_ptr;
 }
 
 } // namespace celeritas
