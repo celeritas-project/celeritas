@@ -13,7 +13,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access invariant material and particle dependent cutoff values.
+ * Access invariant material- and particle-dependent cutoff values.
  *
  * \c CutoffParamsData is defined in \c CutoffInterface and constructed by
  * \c CutoffParams .
@@ -36,7 +36,7 @@ class CutoffView
     //!@}
 
   public:
-    //! Construct for the given particle and material ids
+    // Construct for the given particle and material ids
     inline CELER_FUNCTION CutoffView(const CutoffPointers& params,
                                      ParticleId            particle,
                                      MaterialId            material);

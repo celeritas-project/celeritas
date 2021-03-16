@@ -6,6 +6,7 @@
 //! \file CutoffParams.cc
 //---------------------------------------------------------------------------//
 #include "CutoffParams.hh"
+
 #include "base/CollectionBuilder.hh"
 #include "physics/base/Units.hh"
 

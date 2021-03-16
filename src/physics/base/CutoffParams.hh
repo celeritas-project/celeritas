@@ -7,14 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "CutoffInterface.hh"
+#include <map>
+#include <vector>
+
 #include "base/CollectionMirror.hh"
 #include "physics/base/Units.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
-
-#include <vector>
-#include <map>
+#include "CutoffInterface.hh"
 
 namespace celeritas
 {
@@ -62,7 +62,7 @@ class CutoffParams
     };
 
   public:
-    //! Construct with cutoff input data
+    // Construct with cutoff input data
     explicit CutoffParams(const Input& input);
 
     //! Access cutoff data on the host
