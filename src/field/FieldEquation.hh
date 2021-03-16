@@ -23,7 +23,7 @@ class FieldEquation
   public:
     //@{
     //! Type aliases
-    using OdeArray = Array<real_type, 6>;
+    using OdeState = Array<real_type, 6>;
     //@}
 
   public:
@@ -34,7 +34,7 @@ class FieldEquation
     CELER_FUNCTION void set_charge(units::ElementaryCharge q);
 
     //! Evaluate the right hand side of the field equation
-    CELER_FUNCTION auto operator()(const OdeArray& y) const -> OdeArray;
+    CELER_FUNCTION auto operator()(const OdeState& y) const -> OdeState;
 
   private:
     //! Scale factor for the coefficient of the equation (temporary)

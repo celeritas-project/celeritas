@@ -44,7 +44,6 @@ __global__ void rk4_test_kernel(FieldTestParams param,
     RungeKuttaStepper<FieldEquation> rk4(equation);
 
     // Initial state and the epected state after revolutions
-    //    OdeArray<real_type, 6> y;
     Array<real_type, 6> y;
     y[0] = param.radius;
     y[1] = 0.0;
@@ -54,8 +53,6 @@ __global__ void rk4_test_kernel(FieldTestParams param,
     y[5] = param.momentum_z;
 
     // The rhs of the equation and a temporary array
-    //    OdeArray<real_type, 6> dydx;
-    //    OdeArray<real_type, 6> yout;
     Array<real_type, 6> dydx;
     Array<real_type, 6> yout;
 
@@ -63,17 +60,15 @@ __global__ void rk4_test_kernel(FieldTestParams param,
     real_type hstep       = 2.0 * constants::pi * param.radius / param.nsteps;
     real_type total_error = 0;
 
-    for (int nr = 0; nr < param.revolutions; ++nr)
+    for (auto nr : range(param.revolutions))
     {
         // Travel hstep for nsteps times in the field
         for (CELER_MAYBE_UNUSED int i : celeritas::range(param.nsteps))
         {
             dydx = equation(y);
             yout = rk4(hstep, y, dydx);
-            //            printf("yout[0]=%g dydx[1]=%g\n",yout[0],dydx[0]);
             real_type error = rk4.error(hstep, y);
-            for (int i = 0; i != 6; ++i)
-                y[i] = yout[i];
+            y               = yout;
             total_error += error;
         }
     }

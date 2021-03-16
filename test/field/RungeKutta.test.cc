@@ -46,15 +46,15 @@ class RungeKuttaTest : public Test
           dir_0 = {0.0, 0.96, 0.28}
         */
 
-        param.field_value = 1.0 * units::tesla; // field value along z [tesla]
-        param.radius      = 38.085386036;       // radius of curvature [mm]
-        param.delta_z     = 67.003310629;       // z-change/revolution [mm]
-        param.momentum_y  = 10.9610028286;      // initial momentum_y  [MeV]
-        param.momentum_z  = 3.1969591583;       // initial momentum_z  [MeV]
-        param.nstates     = 128 * 512;          // number of states (tracks)
-        param.nsteps      = 100;                // number of steps/revolution
-        param.revolutions = 10;                 // number of revolutions
-        param.epsilon     = 1.0e-5; // tolerance of the stepper error
+        param.field_value = 1.0 * units::tesla; //! field value along z [tesla]
+        param.radius      = 38.085386036;       //! radius of curvature [mm]
+        param.delta_z     = 67.003310629;       //! z-change/revolution [mm]
+        param.momentum_y  = 10.9610028286;      //! initial momentum_y  [MeV]
+        param.momentum_z  = 3.1969591583;       //! initial momentum_z  [MeV]
+        param.nstates     = 128 * 512;          //! number of states (tracks)
+        param.nsteps      = 100;                //! number of steps/revolution
+        param.revolutions = 10;                 //! number of revolutions
+        param.epsilon     = 1.0e-5;             //! tolerance error
     }
 
   protected:
@@ -79,7 +79,6 @@ TEST_F(RungeKuttaTest, rk4_host)
     for (CELER_MAYBE_UNUSED int i : celeritas::range(param.nstates))
     {
         // Initial state and the epected state after revolutions
-        //        OdeArray<real_type, 6> y;
         Array<real_type, 6> y;
         y[0] = param.radius;
         y[1] = 0.0;
@@ -88,20 +87,17 @@ TEST_F(RungeKuttaTest, rk4_host)
         y[4] = param.momentum_y;
         y[5] = param.momentum_z;
 
-        //        OdeArray<real_type, 6> expected_y = y;
         Array<real_type, 6> expected_y;
         for (std::size_t i = 0; i != 6; ++i)
             expected_y[i] = y[i];
 
         // The rhs of the equation and a temporary array
-        //        OdeArray<real_type, 6> dydx;
-        //        OdeArray<real_type, 6> yout;
         Array<real_type, 6> dydx;
         Array<real_type, 6> yout;
 
         // Try the stepper by hstep for (num_revolutions * num_steps) times
         real_type total_err2 = 0;
-        for (int nr = 0; nr < param.revolutions; ++nr)
+        for (int nr : range(param.revolutions))
         {
             // Travel hstep for num_steps times in the field
             expected_y[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
@@ -110,9 +106,7 @@ TEST_F(RungeKuttaTest, rk4_host)
                 dydx           = equation(y);
                 yout           = rk4(hstep, y, dydx);
                 real_type err2 = rk4.error(hstep, y);
-
-                for (std::size_t i = 0; i != 6; ++i)
-                    y[i] = yout[i];
+                y              = yout;
                 total_err2 += err2;
             }
             // Check the state after each revolution and the total error

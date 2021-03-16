@@ -32,27 +32,27 @@ class RungeKuttaStepper
 {
     //@{
     //! Type aliases
-    using OdeArray = typename FieldEquation_T::OdeArray;
+    using OdeState = typename FieldEquation_T::OdeState;
     //@}
 
   public:
-    // Construct with the equation of motion
+    //! Construct with the equation of motion
     inline CELER_FUNCTION RungeKuttaStepper(FieldEquation_T& equation);
 
-    // Adaptive step size control
+    //! Adaptive step size control
     CELER_FUNCTION auto operator()(real_type       step,
-                                   const OdeArray& beg_state,
-                                   const OdeArray& beg_slope) -> OdeArray;
+                                   const OdeState& beg_state,
+                                   const OdeState& beg_slope) -> OdeState;
 
-    // Stepper truncation error
-    CELER_FUNCTION real_type error(real_type step, const OdeArray& beg_state);
+    //! Stepper truncation error
+    CELER_FUNCTION real_type error(real_type step, const OdeState& beg_state);
 
     // Closerest distance between the chord and the mid-point
-    CELER_FUNCTION real_type distance_chord(const OdeArray& beg_state,
-                                            const OdeArray& end_state) const;
+    CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
+                                            const OdeState& end_state) const;
 
-    // The right hand side of the field equation
-    CELER_FUNCTION OdeArray ode_rhs(const OdeArray& beg_state) const
+    //! The right hand side of the field equation
+    CELER_FUNCTION OdeState ode_rhs(const OdeState& beg_state) const
     {
         return equation_(beg_state);
     }
@@ -60,21 +60,21 @@ class RungeKuttaStepper
   private:
     //! return the final state by the 4th order Runge-Kutta method
     CELER_FUNCTION auto stepper(real_type       step,
-                                const OdeArray& beg_state,
-                                const OdeArray& end_slope) -> OdeArray;
+                                const OdeState& beg_state,
+                                const OdeState& end_slope) -> OdeState;
 
     //! Maximum relative error scale
     static CELER_CONSTEXPR_FUNCTION real_type eps_rel_max() { return 1e-3; }
 
   private:
-    // Equation of the motion
+    //! Equation of the motion
     FieldEquation_T& equation_;
 
-    // State at the middle point
-    OdeArray mid_state_;
+    //! State at the middle point
+    OdeState mid_state_;
 
-    // Stepper truncation error at the end of the full step
-    OdeArray stepper_error_;
+    //! Stepper truncation error at the end of the full step
+    OdeState state_err_;
 };
 
 //---------------------------------------------------------------------------//

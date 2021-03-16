@@ -14,18 +14,18 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a const magnetic field.
+ * Construct with a constant magnetic field.
  */
 CELER_FUNCTION
 FieldEquation::FieldEquation(const MagField& field) : field_(field)
 {
-    // set the default charge and the lorentz_cof with -eplus
+    // set the default charge and the (Lorentz) coefficent with -eplus
     set_charge(units::ElementaryCharge{-1.0});
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Set charge for this track and recalcuate lorentz_cof
+ * Set charge for this track and reset the (Lorentz) coefficent
  */
 
 CELER_FUNCTION void FieldEquation::set_charge(units::ElementaryCharge charge)
@@ -47,13 +47,13 @@ CELER_FUNCTION void FieldEquation::set_charge(units::ElementaryCharge charge)
    \f]
  */
 CELER_FUNCTION
-auto FieldEquation::operator()(const OdeArray& y) const -> OdeArray
+auto FieldEquation::operator()(const OdeState& y) const -> OdeState
 {
-    // Get the magnetic field value at the given position
+    // Get a magnetic field value at a given position
     Real3 B = field_({y[0], y[1], y[2]});
 
-    // Evalue the right-hand-side of the equation
-    OdeArray rhs;
+    // Evaluate the right-hand-side of the equation
+    OdeState rhs;
 
     real_type momentum_mag2 = y[3] * y[3] + y[4] * y[4] + y[5] * y[5];
     CELER_ASSERT(momentum_mag2 > 0.0);
