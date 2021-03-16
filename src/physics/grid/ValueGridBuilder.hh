@@ -64,6 +64,10 @@ class ValueGridXsBuilder final : public ValueGridBuilder
                SpanConstReal lambda_prim_energy,
                SpanConstReal lambda_prim);
 
+    // Construct from just scaled cross sections
+    static std::unique_ptr<ValueGridXsBuilder>
+    from_scaled(SpanConstReal lambda_prim_energy, SpanConstReal lambda_prim);
+
     // Construct
     ValueGridXsBuilder(real_type emin,
                        real_type eprime,
@@ -97,6 +101,10 @@ class ValueGridLogBuilder : public ValueGridBuilder
     //!@}
 
   public:
+    // Construct from full grids
+    static std::unique_ptr<ValueGridLogBuilder>
+    from_geant(SpanConstReal full_energy, SpanConstReal xs);
+
     // Construct
     ValueGridLogBuilder(real_type emin, real_type emax, VecReal value);
 
