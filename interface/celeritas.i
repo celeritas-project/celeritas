@@ -76,6 +76,7 @@
 
 namespace celeritas
 {
+class CutoffParams;
 class ParticleParams;
 class MaterialParams;
 }

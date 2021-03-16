@@ -116,8 +116,8 @@ void print_processes(const std::vector<ImportProcess>& processes,
     // Print summary
     cout << "# Processes\n"
          << R"gfm(
-| Process        | Particle      | Models                   | Tables                   |
-| -------------- | ------------- | ------------------------ | ------------------------ |
+| Process        | Particle      | Models                    | Tables                   |
+| -------------- | ------------- | ------------------------- | ------------------------ |
 )gfm";
     for (const ImportProcess& proc : processes)
     {
@@ -125,7 +125,7 @@ void print_processes(const std::vector<ImportProcess>& processes,
         CELER_ASSERT(pdef_id);
 
         cout << "| " << setw(14) << to_cstring(proc.process_class) << " | "
-             << setw(13) << particles.id_to_label(pdef_id) << " | " << setw(24)
+             << setw(13) << particles.id_to_label(pdef_id) << " | " << setw(25)
              << to_string(
                     join(proc.models.begin(),
                          proc.models.end(),
@@ -155,7 +155,8 @@ void print_processes(const std::vector<ImportProcess>& processes,
  *
  * TODO: add a print_materials to use material params directly.
  */
-void print_geometry(const GdmlGeometryMap& geometry)
+void print_geometry(const GdmlGeometryMap& geometry,
+                    const ParticleParams&  particles)
 {
     //// PRINT ELEMENT LIST ////
 
@@ -181,6 +182,7 @@ void print_geometry(const GdmlGeometryMap& geometry)
              << setw(10) << element.atomic_mass << " |\n";
         // clang-format on
     }
+    cout << endl;
 
     //// PRINT MATERIAL LIST ///
 
@@ -206,6 +208,50 @@ void print_geometry(const GdmlGeometryMap& geometry)
                                    return geometry.get_element(key.first).name;
                                }))
              << " |\n";
+    }
+    cout << endl;
+
+    //// PRINT CUTOFF LIST ///
+
+    cout << R"gfm(
+## Cutoffs per material
+
+| Material ID | Name                            | Cutoffs [MeV, cm]               |
+| ----------- | ------------------------------- | ------------------------------- |
+)gfm";
+
+    std::map<int, std::string> pdg_label;
+    for (auto particle_id : range(ParticleId{particles.size()}))
+    {
+        const int   pdg   = particles.id_to_pdg(particle_id).get();
+        const auto& label = particles.id_to_label(particle_id);
+        pdg_label.insert({pdg, label});
+    }
+
+    for (const auto& mat_key : material_map)
+    {
+        const auto& material      = geometry.get_material(mat_key.first);
+        bool        is_first_line = true;
+        for (const auto& cutoff_key : mat_key.second.pdg_cutoff)
+        {
+            const std::string label = pdg_label.find(cutoff_key.first)->second;
+            const std::string str_cuts
+                = label + ": " + std::to_string(cutoff_key.second.energy)
+                  + ", " + std::to_string(cutoff_key.second.range);
+
+            if (is_first_line)
+            {
+                cout << "| " << setw(11) << mat_key.first << " | " << setw(31)
+                     << material.name << " | " << setw(31) << str_cuts
+                     << " |\n";
+                is_first_line = false;
+            }
+            else
+            {
+                cout << "|             |                                 | "
+                     << setw(31) << str_cuts << " |\n";
+            }
+        }
     }
     cout << endl;
 
@@ -277,7 +323,7 @@ int main(int argc, char* argv[])
 
     print_particles(*data.particle_params);
     print_processes(data.processes, *data.particle_params);
-    print_geometry(*data.geometry);
+    print_geometry(*data.geometry, *data.particle_params);
 
     return EXIT_SUCCESS;
 }

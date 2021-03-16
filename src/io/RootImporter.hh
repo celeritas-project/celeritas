@@ -15,6 +15,7 @@
 #include "base/Types.hh"
 #include "physics/base/ParticleInterface.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/CutoffParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "ImportProcess.hh"
 #include "GdmlGeometryMap.hh"
@@ -26,13 +27,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * RootImporter loads particle, physics table, material, and geometry
- * data from the ROOT file created by the app/geant-exporter external code.
+ * RootImporter loads particle, physics table, material, production cutoffs
+ * and geometry data from the ROOT file created by the app/geant-exporter
+ * external code.
  *
  * The geant-exporter app only pulls data from Geant4, and we will keep it
- * that way for validation and comparison purposes. Conversely, MaterialParams
- * is a Celeritas class. Thus, RootImporter acts as a bridge and is responsible
- * for converting any quantity between Geant4 -> Celeritas.
+ * that way for validation and comparison purposes. Conversely, all the
+ * \c ClassParams classes are the ones used in Celeritas. Thus,
+ * \c RootImporter , along with all \c ImportClass type of classes, are the
+ * link between Geant4 and Celeritas.
  *
  * Usage:
  * \code
@@ -40,15 +43,14 @@ namespace celeritas
  *  auto geant_data = import();
  * \endcode
  *
- * Physics tables currently are a vector<ImportPhysicsTable>, since many
+ * Physics tables currently are a \c vector<ImportPhysicsTable>, since many
  * parameters are at play when selecting a given table:
  * ImportParticle, ImportTableType, ImportProcessClass, and ImportModelClass.
- * See RootImporter.test.cc for an example on how to fetch a given table.
- * This method will probably have to be improved.
+ * See \c RootImporter.test.cc for an example on how to fetch a given table.
  *
- * Material and volume information are stored in a GdmlGeometryMap object.
- * The GdmlGeometryMap::mat_id value returned from a given vol_id represents
- * the position of said material in the ImportPhysicsTable vectors:
+ * Material and volume information are stored by the \c GdmlGeometryMap class.
+ * The mat_id value returned from a given vol_id represents the position of 
+ * said material in the ImportPhysicsTable vectors:
  * \c ImportPhysicsTable.physics_vectors.at(mat_id_value).
  */
 class RootImporter
@@ -61,6 +63,7 @@ class RootImporter
         std::vector<ImportProcess>       processes;
         std::shared_ptr<GdmlGeometryMap> geometry;
         std::shared_ptr<MaterialParams>  material_params;
+        std::shared_ptr<CutoffParams>    cutoff_params;
     };
 
   public:
@@ -87,6 +90,8 @@ class RootImporter
     std::shared_ptr<GdmlGeometryMap> load_geometry_data();
     // Populate the shared_ptr<MaterialParams> with material information
     std::shared_ptr<MaterialParams> load_material_data();
+    // Populate the shared_ptr<CutoffParams> with cutoff data
+    std::shared_ptr<CutoffParams> load_cutoff_data();
 };
 
 //---------------------------------------------------------------------------//

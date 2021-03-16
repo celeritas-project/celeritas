@@ -9,7 +9,6 @@
 
 #include <cstdlib>
 #include <iomanip>
-#include <iostream>
 #include <tuple>
 
 #include <TFile.h>
@@ -77,6 +76,7 @@ RootImporter::result_type RootImporter::operator()()
     geant_data.processes       = this->load_processes();
     geant_data.geometry        = this->load_geometry_data();
     geant_data.material_params = this->load_material_data();
+    geant_data.cutoff_params   = this->load_cutoff_data();
 
     // Sort processes based on particle def IDs, process types, etc.
     {
@@ -96,16 +96,16 @@ RootImporter::result_type RootImporter::operator()()
     CELER_ENSURE(geant_data.particle_params);
     CELER_ENSURE(geant_data.geometry);
     CELER_ENSURE(geant_data.material_params);
+    CELER_ENSURE(geant_data.cutoff_params);
     return geant_data;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Load all ImportParticle objects from the ROOT file as ParticleParams
+ * Load all ImportParticle objects from the ROOT file as ParticleParams.
  */
 std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
 {
-    CELER_LOG(status) << "Loading particle data";
     // Open the 'particles' branch and reserve size for the converted data
     std::unique_ptr<TTree> tree_particles(
         root_input_->Get<TTree>("particles"));
@@ -164,11 +164,10 @@ std::shared_ptr<ParticleParams> RootImporter::load_particle_data()
 
 //---------------------------------------------------------------------------//
 /*!
- * Load all ImportProcess objects from the ROOT file as a vector
+ * Load all ImportProcess objects from the ROOT file as a vector.
  */
 std::vector<ImportProcess> RootImporter::load_processes()
 {
-    CELER_LOG(status) << "Loading physics processes";
     std::unique_ptr<TTree> tree_processes(
         root_input_->Get<TTree>("processes"));
     CELER_ASSERT(tree_processes);
@@ -195,7 +194,7 @@ std::vector<ImportProcess> RootImporter::load_processes()
 }
 //---------------------------------------------------------------------------//
 /*!
- * [TEMPORARY] Load GdmlGeometryMap object from the ROOT file
+ * [TEMPORARY] Load GdmlGeometryMap object from the ROOT file.
  *
  * For fully testing the loaded geometry information only.
  *
@@ -204,11 +203,10 @@ std::vector<ImportProcess> RootImporter::load_processes()
  */
 std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
 {
-    CELER_LOG(status) << "Loading geometry data";
     // Open geometry branch
     std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
     CELER_ASSERT(tree_geometry);
-    CELER_ASSERT(tree_geometry->GetEntries()); // Must be 1
+    CELER_ASSERT(tree_geometry->GetEntries() == 1);
 
     // Load branch and fetch data
     GdmlGeometryMap  geometry;
@@ -224,15 +222,14 @@ std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
 
 //---------------------------------------------------------------------------//
 /*!
- * Load GdmlGeometryMap from the ROOT file and populate MaterialParams
+ * Load GdmlGeometryMap from the ROOT file and populate MaterialParams.
  */
 std::shared_ptr<MaterialParams> RootImporter::load_material_data()
 {
-    CELER_LOG(status) << "Loading material data";
     // Open geometry branch
     std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
     CELER_ASSERT(tree_geometry);
-    CELER_ASSERT(tree_geometry->GetEntries()); // Must be 1
+    CELER_ASSERT(tree_geometry->GetEntries() == 1);
 
     // Load branch and fetch data
     GdmlGeometryMap  geometry;
@@ -281,6 +278,67 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
     // Construct MaterialParams and return it as a shared_ptr
     MaterialParams materials(input);
     return std::make_shared<MaterialParams>(std::move(materials));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load Cutoff information from the ROOT file and populate CutoffParams.
+ */
+std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
+{
+    CutoffParams::Input input;
+    input.materials = this->load_material_data();
+    input.particles = this->load_particle_data();
+
+    CELER_ENSURE(input.materials);
+    CELER_ENSURE(input.particles);
+
+    // Load geometry tree to access cutoff data
+    std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
+    CELER_ASSERT(tree_geometry);
+    CELER_ASSERT(tree_geometry->GetEntries() == 1);
+
+    // Load branch data
+    GdmlGeometryMap  geometry;
+    GdmlGeometryMap* geometry_ptr = &geometry;
+
+    int err_code
+        = tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
+    CELER_ASSERT(err_code >= 0);
+    tree_geometry->GetEntry(0);
+
+    for (auto pid : range(ParticleId{input.particles->size()}))
+    {
+        CutoffParams::MaterialCutoffs m_cutoffs;
+        const auto                    pdg   = input.particles->id_to_pdg(pid);
+        const auto& geometry_matid_material = geometry.matid_to_material_map();
+
+        for (auto matid : range(MaterialId{input.materials->size()}))
+        {
+            const auto& material
+                = geometry_matid_material.find(matid.get())->second;
+            const auto& iter = material.pdg_cutoff.find(pdg.get());
+
+            ParticleCutoff p_cutoff;
+            if (iter != material.pdg_cutoff.end())
+            {
+                // Is a particle type with assigned cutoff values
+                p_cutoff.energy = units::MevEnergy{iter->second.energy};
+                p_cutoff.range  = iter->second.range;
+            }
+            else
+            {
+                // Set cutoffs to zero
+                p_cutoff.energy = units::MevEnergy{zero_quantity()};
+                p_cutoff.range  = 0;
+            }
+            m_cutoffs.push_back(p_cutoff);
+        }
+        input.cutoffs.insert({pdg, m_cutoffs});
+    }
+
+    CutoffParams cutoffs(input);
+    return std::make_shared<CutoffParams>(std::move(cutoffs));
 }
 
 //---------------------------------------------------------------------------//
