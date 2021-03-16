@@ -89,7 +89,7 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
     MaterialStateStore mat_state;
     ParticleStateStore par_state;
     PhysicsStateStore  phys_state;
-    RandomEngine       rng_;
+    RandomEngine     rng_;
 };
 
 //---------------------------------------------------------------------------//
