@@ -58,6 +58,13 @@ endfunction()
 
 set(_not_impl DISABLE)
 
+if(NOT CELERITAS_USE_HepMC3)
+  set(_needs_hepmc DISABLE)
+endif()
+if(NOT CELERITAS_USE_ROOT)
+  set(_needs_root DISABLE)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Gtest additions
 celeritas_setup_tests(SERIAL PREFIX gtest/detail)
@@ -145,13 +152,6 @@ endif()
 
 celeritas_setup_tests(SERIAL PREFIX io)
 
-if(NOT CELERITAS_USE_HepMC3)
-  set(_needs_hepmc DISABLE)
-endif()
-if(NOT CELERITAS_USE_ROOT)
-  set(_needs_root DISABLE)
-endif()
-
 celeritas_add_test(io/RootImporter.test.cc ${_needs_root}
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc})
@@ -193,7 +193,7 @@ celeritas_setup_tests(SERIAL PREFIX physics/material)
 celeritas_add_test(physics/material/ElementSelector.test.cc)
 celeritas_cudaoptional_test(physics/material/Material)
 
-#-----------------------------------------------------------------------------#
+#-------------------------------------#
 # Physics (EM)
 
 celeritas_setup_tests(SERIAL PREFIX physics/em)
@@ -209,6 +209,19 @@ celeritas_add_test(physics/em/MollerBhabha.test.cc)
 celeritas_add_test(physics/em/Rayleigh.test.cc ${_not_impl})
 celeritas_add_test(physics/em/Urban.test.cc ${_not_impl})
 celeritas_add_test(physics/em/Wentzel.test.cc ${_not_impl})
+
+# Optional dependence on low-energy EM data
+if(CELERITAS_USE_Geant4)
+  set(_ds G4EMLOW)
+  set(_geant_emlow
+     ENVIRONMENT "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
+  )
+endif()
+
+celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
+  ${_geant_emlow}
+  LINK_LIBRARIES Celeritas::ROOT)
+
 
 # END PHYSICS TESTS
 set(CELERITASTEST_LINK_LIBRARIES)
