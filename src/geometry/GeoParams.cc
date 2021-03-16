@@ -23,6 +23,13 @@
 #include "GeoInterface.hh"
 #include "detail/ScopedTimeAndRedirect.hh"
 
+#ifdef CELERITAS_USE_ROOT
+#    include "TGeoManager.h"
+#endif
+#ifdef VECGEOM_ROOT
+#    include "VecGeom/management/RootGeoManager.h"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -31,11 +38,41 @@ namespace celeritas
  */
 GeoParams::GeoParams(const char* gdml_filename)
 {
-    CELER_LOG(info) << "Loading from GDML at " << gdml_filename;
     {
         detail::ScopedTimeAndRedirect time_and_output_;
+
+#ifndef CELERITAS_USE_ROOT
+        CELER_LOG(info) << "VecGeom parsing: Loading from GDML at "
+                        << gdml_filename;
         constexpr bool                validate_xml_schema = false;
         vgdml::Frontend::Load(gdml_filename, validate_xml_schema);
+#else
+
+#    ifdef VECGEOM_ROOT
+        // use Root available from VecGeom
+        CELER_LOG(info) << "RootGeoManager parsing: Loading from GDML at "
+                        << gdml_filename;
+        vecgeom::RootGeoManager::Instance().set_verbose(1);
+        vecgeom::RootGeoManager::Instance().LoadRootGeometry(gdml_filename);
+
+#    else
+        // use Root available from VecGeom
+        CELER_LOG(info) << "Root TGeoManager parsing: Loading from GDML at "
+                        << gdml_filename;
+        TGeoManager::Import(gdml_filename);
+
+        vecgeom::GeoManager::Instance().Clear();
+        TGeoNode const* const world_root = ::gGeoManager->GetTopNode();
+        // Convert() will recursively convert daughters
+        Stopwatch timer;
+        timer.Start();
+        auto fWorld = Convert(world_root);
+        timer.Stop();
+        std::cout << "*** Conversion of ROOT -> VecGeom finished ("
+                  << timer.Elapsed() << " s) ***\n";
+#    endif
+
+#endif
     }
 
     CELER_LOG(status) << "Initializing tracking information";
@@ -72,6 +109,7 @@ GeoParams::GeoParams(const char* gdml_filename)
         CELER_ENSURE(device_world_volume_);
     }
 #endif
+
     CELER_ENSURE(num_volumes_ > 0);
     CELER_ENSURE(max_depth_ > 0);
 }

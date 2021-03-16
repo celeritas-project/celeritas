@@ -41,13 +41,23 @@ TEST_F(GeoParamsHostTest, accessors)
     EXPECT_EQ(11, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
 
+    unsigned int nvols = geom.num_volumes();
+
+#ifdef VECGEOM_ROOT
+    EXPECT_EQ("World_1", geom.id_to_label(VolumeId{0}));
+    EXPECT_EQ("env1", geom.id_to_label(VolumeId{1}));
+    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{2}));
+
+    EXPECT_EQ("env7", geom.id_to_label(VolumeId{nvols - 2}));
+    EXPECT_EQ("env8", geom.id_to_label(VolumeId{nvols - 1}));
+#else
     EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}));
     EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}));
     EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}));
 
-    unsigned int nvols = geom.num_volumes();
     EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{nvols - 2}));
     EXPECT_EQ("World", geom.id_to_label(VolumeId{nvols - 1}));
+#endif
 }
 
 //---------------------------------------------------------------------------//
