@@ -100,12 +100,11 @@ TEST_F(CutoffParamsTest, empty_cutoffs)
     CutoffParams cutoff_params(input);
 
     std::vector<double> energies, ranges;
-    for (int pid : range(particle_params->size()))
+    for (const auto pid : range(ParticleId{particle_params->size()}))
     {
-        for (int matid : range(material_params->size()))
+        for (const auto matid : range(MaterialId{material_params->size()}))
         {
-            CutoffView cutoff_view(
-                cutoff_params.host_pointers(), ParticleId{0}, MaterialId{0});
+            CutoffView cutoff_view(cutoff_params.host_pointers(), pid, matid);
             energies.push_back(cutoff_view.energy().value());
             ranges.push_back(cutoff_view.range());
         }
