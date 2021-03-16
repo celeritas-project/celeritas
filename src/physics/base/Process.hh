@@ -12,12 +12,13 @@
 #include "Applicability.hh"
 #include "ModelIdGenerator.hh"
 #include "Types.hh"
-#include "PhysicsInterface.hh"
 #include "physics/grid/ValueGridBuilder.hh"
+#include "physics/grid/ValueGridInterface.hh"
 
 namespace celeritas
 {
 class Model;
+
 //---------------------------------------------------------------------------//
 /*!
  * An interface/factory method for creating models.

@@ -52,20 +52,20 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
     if (data_.xs > zero_quantity())
     {
         real_type xs = unit_cast(data_.xs) * numdens;
-        builders[size_type(ValueGridType::macro_xs)]
+        builders[ValueGridType::macro_xs]
             = std::make_unique<ValueGridLogBuilder>(
                 range.lower.value(), range.upper.value(), VecReal{xs, xs});
     }
     if (data_.energy_loss > 0)
     {
         real_type eloss_rate = data_.energy_loss * numdens;
-        builders[size_type(ValueGridType::energy_loss)]
+        builders[ValueGridType::energy_loss]
             = std::make_unique<ValueGridLogBuilder>(
                 range.lower.value(),
                 range.upper.value(),
                 VecReal{eloss_rate, eloss_rate});
 
-        builders[size_type(ValueGridType::range)]
+        builders[ValueGridType::range]
             = std::make_unique<ValueGridRangeBuilder>(
                 range.lower.value(),
                 range.upper.value(),

@@ -72,6 +72,7 @@ list(APPEND SOURCES
   physics/em/detail/Utils.cc
   physics/grid/ValueGridBuilder.cc
   physics/grid/ValueGridInserter.cc
+  physics/grid/ValueGridInterface.cc
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
   random/cuda/RngStateStore.cc

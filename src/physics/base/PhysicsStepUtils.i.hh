@@ -15,6 +15,7 @@
 #include "physics/grid/InverseRangeCalculator.hh"
 #include "physics/grid/RangeCalculator.hh"
 #include "physics/grid/XsCalculator.hh"
+#include "physics/grid/ValueGridInterface.hh"
 #include "Types.hh"
 
 namespace celeritas
