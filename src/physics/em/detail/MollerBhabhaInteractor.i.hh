@@ -74,6 +74,10 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         min_sampled_energy = shared_.cutoff_energy;
     }
 
+    // TODO: do we assert or do we return Interaction::from_failure()?
+    // Avoid an infinite sampling loop
+    CELER_ASSERT(min_sampled_energy < 0.5 * inc_energy_);
+
     // Sample energy transfer fraction
     real_type epsilon;
     if (inc_particle_is_electron_)
