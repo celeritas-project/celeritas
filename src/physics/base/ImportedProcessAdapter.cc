@@ -194,7 +194,7 @@ auto ImportedProcessAdapter::step_limits(Applicability range) const
     {
         const auto& vec = get_vector(ids.range);
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::range] = ValueGridLogBuilder::from_geant(
+        builders[ValueGridType::range] = ValueGridLogBuilder::from_range(
             make_span(vec.x), make_span(vec.y));
     }
 

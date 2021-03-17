@@ -191,20 +191,34 @@ auto ValueGridXsBuilder::build(ValueGridInserter insert) const -> ValueGridId
 // LOG BUILDER
 //---------------------------------------------------------------------------//
 /*!
- * Construct XS arrays from log-spaced geant cross section data.
+ * Construct arrays from log-spaced geant data.
  */
-std::unique_ptr<ValueGridLogBuilder>
-ValueGridLogBuilder::from_geant(SpanConstReal lambda_energy,
-                                SpanConstReal lambda)
+auto ValueGridLogBuilder::from_geant(SpanConstReal energy, SpanConstReal value)
+    -> UPLogBuilder
 {
-    CELER_EXPECT(lambda.size() == lambda_energy.size());
-    CELER_EXPECT(is_monotonic_increasing(lambda_energy));
-    CELER_EXPECT(is_nonnegative(lambda));
+    CELER_EXPECT(!energy.empty());
+    CELER_EXPECT(has_log_spacing(energy));
+    CELER_EXPECT(value.size() == energy.size());
 
     return std::make_unique<ValueGridLogBuilder>(
-        lambda_energy.front(),
-        lambda_energy.back(),
-        VecReal{lambda.begin(), lambda.end()});
+        energy.front(), energy.back(), VecReal{value.begin(), value.end()});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct XS arrays from log-spaced geant range data.
+ *
+ * Range data must be monotonically increasing, since it's the integral of the
+ * (always nonnegative) stopping power -dE/dx . If not monotonic then the
+ * inverse range cannot be calculated.
+ */
+auto ValueGridLogBuilder::from_range(SpanConstReal energy, SpanConstReal value)
+    -> UPLogBuilder
+{
+    CELER_EXPECT(!energy.empty());
+    CELER_EXPECT(is_monotonic_increasing(value));
+    CELER_EXPECT(value.front() > 0);
+    return ValueGridLogBuilder::from_geant(energy, value);
 }
 
 //---------------------------------------------------------------------------//
@@ -232,20 +246,6 @@ auto ValueGridLogBuilder::build(ValueGridInserter insert) const -> ValueGridId
     return insert(
         UniformGridData::from_bounds(log_emin_, log_emax_, value_.size()),
         this->value());
-}
-
-//---------------------------------------------------------------------------//
-// RANGE BUILDER
-//---------------------------------------------------------------------------//
-/*!
- * Construct from raw data.
- */
-ValueGridRangeBuilder::ValueGridRangeBuilder(real_type emin,
-                                             real_type emax,
-                                             VecReal   xs)
-    : Base(emin, emax, std::move(xs))
-{
-    CELER_EXPECT(is_monotonic_increasing(this->value()));
 }
 
 //---------------------------------------------------------------------------//

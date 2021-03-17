@@ -47,8 +47,7 @@ class ImportedProcesses
     inline ImportProcessId::size_type size() const;
 
   private:
-    std::vector<ImportProcess> processes_;
-
+    std::vector<ImportProcess>          processes_;
     std::map<key_type, ImportProcessId> ids_;
 };
 

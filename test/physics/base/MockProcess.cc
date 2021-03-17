@@ -65,12 +65,11 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
                 range.upper.value(),
                 VecReal{eloss_rate, eloss_rate});
 
-        builders[ValueGridType::range]
-            = std::make_unique<ValueGridRangeBuilder>(
-                range.lower.value(),
-                range.upper.value(),
-                VecReal{range.lower.value() / eloss_rate,
-                        range.upper.value() / eloss_rate});
+        builders[ValueGridType::range] = std::make_unique<ValueGridLogBuilder>(
+            range.lower.value(),
+            range.upper.value(),
+            VecReal{range.lower.value() / eloss_rate,
+                    range.upper.value() / eloss_rate});
     }
 
     return builders;
