@@ -74,7 +74,8 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         min_sampled_energy = shared_.cutoff_energy;
     }
 
-    // TODO: do we assert or do we return Interaction::from_failure()?
+    // TODO: do we assert here? Do we return Interaction::from_failure()? Do we
+    // CELER_EXPECT this condition in the constructor?
     // Avoid an infinite sampling loop
     CELER_ASSERT(min_sampled_energy < 0.5 * inc_energy_);
 

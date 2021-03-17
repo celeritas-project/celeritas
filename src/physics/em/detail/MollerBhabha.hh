@@ -31,11 +31,12 @@ struct MollerBhabhaPointers
     ParticleId electron_id;
     //! ID of a positron
     ParticleId positron_id;
-    // Electron mass * c^2 [MeV]
+    //! Electron mass * c^2 [MeV]
     real_type electron_mass_c_sq;
-    // Model's mininum energy limit [MeV]
+    //! Model's mininum energy limit [MeV]
     real_type min_valid_energy;
-    // Secondary (electron) cutoff energy limit [MeV]
+    //! Secondary (electron) cutoff energy limit [MeV]
+    //! If set to zero the interactor will use the hardcoded minimum energy
     real_type cutoff_energy;
 
     //! Check whether the data is assigned

@@ -343,12 +343,21 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     EXPECT_VEC_SOFT_EQ(expected_m_inc_edep, m_inc_edep);
     EXPECT_VEC_SOFT_EQ(expected_m_sec_cost, m_sec_cost);
     EXPECT_VEC_SOFT_EQ(expected_m_sec_e, m_sec_e);
+    for (const auto secondary_energy : m_sec_e)
+    {
+        EXPECT_TRUE(secondary_energy > pointers_.cutoff_energy);
+    }
+
     //// Bhabha
     EXPECT_VEC_SOFT_EQ(expected_b_inc_exit_cost, b_inc_exit_cost);
     EXPECT_VEC_SOFT_EQ(expected_b_inc_exit_e, b_inc_exit_e);
     EXPECT_VEC_SOFT_EQ(expected_b_inc_edep, b_inc_edep);
     EXPECT_VEC_SOFT_EQ(expected_b_sec_cost, b_sec_cost);
     EXPECT_VEC_SOFT_EQ(expected_b_sec_e, b_sec_e);
+    for (const auto secondary_energy : b_sec_e)
+    {
+        EXPECT_TRUE(secondary_energy > pointers_.cutoff_energy);
+    }
 }
 
 //---------------------------------------------------------------------------//
