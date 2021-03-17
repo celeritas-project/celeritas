@@ -217,6 +217,7 @@ celeritas_add_test(physics/em/KleinNishina.test.cc)
 celeritas_add_test(physics/em/LivermorePE.test.cc)
 celeritas_add_test(physics/em/MollerBhabha.test.cc)
 celeritas_add_test(physics/em/Rayleigh.test.cc ${_not_impl})
+celeritas_add_test(physics/em/SeltzerBerger.test.cc)
 celeritas_add_test(physics/em/Urban.test.cc ${_not_impl})
 celeritas_add_test(physics/em/Wentzel.test.cc ${_not_impl})
 

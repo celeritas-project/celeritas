@@ -195,10 +195,9 @@ TEST_F(MaterialTest, material_view)
 
 TEST_F(MaterialTest, element_view)
 {
-    auto host_ptrs = params->host_pointers();
     {
         // Test aluminum
-        ElementView el(host_ptrs, ElementId{1});
+        ElementView el = params->get(ElementId{1});
         EXPECT_EQ(13, el.atomic_number());
         EXPECT_SOFT_EQ(26.9815385, el.atomic_mass().value());
         EXPECT_SOFT_EQ(std::pow(13.0, 1.0 / 3), el.cbrt_z());
