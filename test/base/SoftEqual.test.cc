@@ -11,6 +11,7 @@
 #include "celeritas_test.hh"
 #include "base/ColorUtils.hh"
 
+using celeritas::soft_mod;
 using celeritas::SoftEqual;
 using celeritas::SoftZero;
 
@@ -126,4 +127,17 @@ TYPED_TEST(FloatingTest, soft_zero)
     const value_type inf = Limits_t::infinity();
     EXPECT_FALSE(comp(inf));
     EXPECT_FALSE(comp(-inf));
+}
+
+TYPED_TEST(FloatingTest, soft_mod)
+{
+    using value_type = typename TestFixture::value_type;
+
+    EXPECT_TRUE(soft_mod(value_type(1.0), value_type(0.25)));
+    EXPECT_FALSE(soft_mod(value_type(1.0), value_type(0.8)));
+
+    auto tol = SoftEqual<value_type>().rel() / 2;
+    EXPECT_TRUE(soft_mod(value_type(1), value_type(0.25)));
+    EXPECT_TRUE(soft_mod(value_type(3.6) + tol, value_type(1.2)));
+    EXPECT_TRUE(soft_mod(value_type(3.6) - tol, value_type(1.2)));
 }

@@ -8,6 +8,7 @@
 #include "PhotoelectricProcess.hh"
 
 #include <utility>
+#include "io/LivermorePEReader.hh"
 #include "LivermorePEModel.hh"
 
 namespace celeritas
@@ -16,17 +17,18 @@ namespace celeritas
 /*!
  * Construct from host data.
  */
-PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
-                                           SPConstMaterials   materials,
-                                           ImportPhysicsTable xs)
+PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
+                                           SPConstMaterials materials,
+                                           SPConstImported  process_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
-    , xs_(std::move(xs))
+    , imported_(process_data,
+                particles_,
+                ImportProcessClass::photoelectric,
+                {pdg::gamma()})
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
-    CELER_EXPECT(xs_.table_type == ImportTableType::lambda_prim);
-    CELER_EXPECT(!xs_.physics_vectors.empty());
 }
 
 //---------------------------------------------------------------------------//
@@ -35,11 +37,11 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
  */
 PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
                                            SPConstMaterials   materials,
-                                           ImportPhysicsTable xs,
+                                           SPConstImported    process_data,
                                            SPConstAtomicRelax atomic_relaxation,
                                            size_type vacancy_stack_size)
     : PhotoelectricProcess(
-        std::move(particles), std::move(materials), std::move(xs))
+        std::move(particles), std::move(materials), std::move(process_data))
 {
     atomic_relaxation_  = std::move(atomic_relaxation);
     vacancy_stack_size_ = vacancy_stack_size;
@@ -54,7 +56,7 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles   particles,
 auto PhotoelectricProcess::build_models(ModelIdGenerator next_id) const
     -> VecModel
 {
-    LivermorePEModel::ReadData load_data;
+    LivermorePEModel::ReadData load_data = LivermorePEReader();
     if (atomic_relaxation_)
     {
         // Construct model with atomic relaxation enabled
@@ -77,21 +79,10 @@ auto PhotoelectricProcess::build_models(ModelIdGenerator next_id) const
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto PhotoelectricProcess::step_limits(Applicability range) const
+auto PhotoelectricProcess::step_limits(Applicability applic) const
     -> StepLimitBuilders
 {
-    CELER_EXPECT(range.material < xs_.physics_vectors.size());
-    CELER_EXPECT(range.particle == particles_->find(pdg::gamma()));
-
-    const auto& vec = xs_.physics_vectors[range.material.get()];
-    CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-
-    StepLimitBuilders builders;
-    builders[size_type(ValueGridType::macro_xs)]
-        = std::make_unique<ValueGridXsBuilder>(
-            vec.x.front(), vec.x.front(), vec.x.back(), vec.y);
-
-    return builders;
+    return imported_.step_limits(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

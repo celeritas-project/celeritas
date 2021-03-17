@@ -22,24 +22,6 @@
 
 namespace celeritas
 {
-namespace
-{
-const char* to_cstring(ValueGridType grid)
-{
-    switch (grid)
-    {
-        case ValueGridType::macro_xs:
-            return "macro_xs";
-        case ValueGridType::energy_loss:
-            return "energy_loss";
-        case ValueGridType::range:
-            return "range";
-        default:
-            return "[INVALID]";
-    }
-}
-} // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with processes and helper classes.
@@ -346,7 +328,7 @@ void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
                                    "loss");
 
                 // Construct grids
-                for (auto vgt : range(size_type(ValueGridType::size_)))
+                for (auto vgt : range(ValueGridType::size_))
                 {
                     temp_grid_ids[vgt][mat_id.get()]
                         = build_grid(builders[vgt]);
@@ -354,7 +336,7 @@ void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
             }
 
             // Outer loop over grid types
-            for (auto vgt : range(size_type(ValueGridType::size_)))
+            for (auto vgt : range(ValueGridType::size_))
             {
                 if (!std::any_of(temp_grid_ids[vgt].begin(),
                                  temp_grid_ids[vgt].end(),
@@ -376,7 +358,7 @@ void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
         }
 
         // Construct value tables
-        for (auto vgt : range(size_type(ValueGridType::size_)))
+        for (auto vgt : range(ValueGridType::size_))
         {
             process_group.tables[vgt] = value_tables.insert_back(
                 temp_tables[vgt].begin(), temp_tables[vgt].end());
