@@ -26,51 +26,31 @@ CELER_FUNCTION LinearPropagator::LinearPropagator(GeoTrackView* track)
 
 //---------------------------------------------------------------------------//
 /*!
- * Move track by next_step(), which takes it to next volume boundary.
+ * Move track to next volume boundary.
  */
 CELER_FUNCTION
-void LinearPropagator::operator()()
+LinearPropagator::result_type LinearPropagator::operator()()
 {
-    this->apply_linear_step(track_.next_step() + track_.extra_push());
-
-    // Update state
-    track_.move_next_volume();
+    result_type result;
+    result.distance = track_.move_to_boundary();
+    result.volume = track_.volume_id();
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Move track by a user-provided distance.
- *
- * Step must be within current volume. User can ask next_step() for maximum
- * distance allowed before reaching volume boundary.
- *
- * \pre Assumes that next_step() has been properly called by client
+ * Move track by a user-provided distance, or to next boundary if distance
+ * requested goes beyond a volume boundary.
  */
 CELER_FUNCTION
-void LinearPropagator::operator()(real_type dist)
+LinearPropagator::result_type LinearPropagator::operator()(real_type dist)
 {
     CELER_EXPECT(dist > 0.);
-    CELER_EXPECT(dist <= track_.next_step());
-    this->apply_linear_step(dist);
 
-    if (std::fabs(track_.next_step()) < track_.extra_push())
-    {
-        track_.move_next_volume();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Do straight propagation to physics process or boundary and reduce next_step
- *
- * Scalar geometry length computation. The track is moved along track.dir()
- * direction by a distance track.next_step()
- */
-CELER_FUNCTION
-void LinearPropagator::apply_linear_step(real_type step)
-{
-    axpy(step, track_.dir(), &track_.pos());
-    track_.next_step() -= step;
+    result_type result;
+    result.distance = track_.move_by(dist);
+    result.volume = track_.volume_id();
+    return result;
 }
 
 } // namespace celeritas
