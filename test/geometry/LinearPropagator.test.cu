@@ -40,14 +40,11 @@ __global__ void linProp_test_kernel(const GeoParamsPointers shared,
     {
         if (geo.is_outside())
             break;
-        geo.find_next_step();
 
         // Save current ID and distance to travel
-        ids[tid.get() * max_segments + seg]       = geo.volume_id();
-        distances[tid.get() * max_segments + seg] = geo.next_step();
-
-        // Move next step
-        auto temp = propagate();
+        auto step                                 = propagate();
+        ids[tid.get() * max_segments + seg]       = step.volume;
+        distances[tid.get() * max_segments + seg] = step.distance;
     }
 }
 

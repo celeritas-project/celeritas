@@ -143,9 +143,10 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
 
     CELER_ASSERT(this->params());
 
+    // clang-format off
     // Set up test input
     VGGTestInput input;
-    input.init         = {{{10, 10, 10}, {1, 0, 0}},
+    input.init = {{{10, 10, 10}, {1, 0, 0}},
                   {{10, 10, -10}, {1, 0, 0}},
                   {{10, -10, 10}, {1, 0, 0}},
                   {{10, -10, -10}, {1, 0, 0}},
@@ -153,6 +154,7 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
                   {{-10, 10, -10}, {-1, 0, 0}},
                   {{-10, -10, 10}, {-1, 0, 0}},
                   {{-10, -10, -10}, {-1, 0, 0}}};
+    // clang-format on
     input.max_segments = 3;
     input.shared       = this->params()->device_pointers();
 
@@ -164,8 +166,8 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
 
     // clang-format off
     static const int expected_ids[] = {
-        0, 1, 2, 0, 1, 5, 0, 1, 4, 0, 1, 8,
-        0, 1, 3, 0, 1, 7, 0, 1, 6, 0, 1, 9};
+        1, 2,10, 1, 5,10, 1, 4,10, 1, 8,10,
+        1, 3,10, 1, 7,10, 1, 6,10, 1, 9,10};
 
     static const double expected_distances[]
         = {5, 1, 1, 5, 1, 1, 5, 1, 1, 5, 1, 1,

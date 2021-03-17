@@ -38,14 +38,13 @@ __global__ void vgg_test_kernel(const GeoParamsPointers shared,
     {
         if (geo.is_outside())
             break;
-        geo.find_next_step();
+
+        // Move next step
+        real_type dist = geo.move_next_step();
 
         // Save current ID and distance to travel
         ids[tid.get() * max_segments + seg]       = geo.volume_id();
-        distances[tid.get() * max_segments + seg] = geo.next_step();
-
-        // Move next step
-        geo.move_next_step();
+        distances[tid.get() * max_segments + seg] = dist;
     }
 }
 
