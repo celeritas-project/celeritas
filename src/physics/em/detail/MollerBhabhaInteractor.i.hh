@@ -22,8 +22,8 @@ namespace detail
 /*!
  * Construct with shared and state data.
  *
- * The incident particle must be above the energy threshold: this should be
- * handled in code *before* the interactor is constructed.
+ * The incident particle must be within the model's valid energy range. this
+ * must be handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     const MollerBhabhaPointers& shared,
@@ -61,7 +61,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Set up cutoff threshold
+    // Set up energy threshold for secondary production
     real_type min_sampled_energy;
     if (shared_.cutoff_energy < shared_.min_valid_energy)
     {
@@ -74,8 +74,8 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         min_sampled_energy = shared_.cutoff_energy;
     }
 
+    // Sample energy transfer fraction
     real_type epsilon;
-
     if (inc_particle_is_electron_)
     {
         MollerEnergyDistribution sample_moller(

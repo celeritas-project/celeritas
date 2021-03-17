@@ -38,14 +38,14 @@ namespace detail
 class MollerBhabhaInteractor
 {
   public:
-    // Construct with shared and state data
+    //! Construct with shared and state data
     inline CELER_FUNCTION
     MollerBhabhaInteractor(const MollerBhabhaPointers& shared,
                            const ParticleTrackView&    particle,
                            const Real3&                inc_direction,
                            StackAllocator<Secondary>&  allocate);
 
-    // Sample an interaction with the given RNG
+    //! Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
@@ -58,10 +58,10 @@ class MollerBhabhaInteractor
     const real_type inc_momentum_;
     // Incident direction
     const Real3& inc_direction_;
-    // Allocate space for one or more secondary particles
+    // Allocate space for the secondary particle
     StackAllocator<Secondary>& allocate_;
     // Incident particle flag for selecting Moller or Bhabha scattering
-    bool inc_particle_is_electron_;
+    const bool inc_particle_is_electron_;
 }; // namespace MollerBhabhaInteractor
 
 //---------------------------------------------------------------------------//

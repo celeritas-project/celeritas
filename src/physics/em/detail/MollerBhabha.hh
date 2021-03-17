@@ -35,7 +35,7 @@ struct MollerBhabhaPointers
     real_type electron_mass_c_sq;
     // Model's mininum energy limit [MeV]
     real_type min_valid_energy;
-    // Secondary cutoff energy limit [MeV]
+    // Secondary (electron) cutoff energy limit [MeV]
     real_type cutoff_energy;
 
     //! Check whether the data is assigned
