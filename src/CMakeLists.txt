@@ -53,6 +53,7 @@ list(APPEND SOURCES
   io/ImportPhysicsVector.cc
   io/AtomicRelaxationReader.cc
   io/LivermorePEParamsReader.cc
+  io/SeltzerBergerReader.cc
   physics/base/CutoffParams.cc
   physics/base/Model.cc
   physics/base/ParticleParams.cc

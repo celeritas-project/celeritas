@@ -151,10 +151,20 @@ endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
+if(NOT CELERITAS_USE_Geant4)
+  set(_needs_geant4 DISABLE)
+else()
+  # Define G4LE environment variable
+  set(_ds G4EMLOW)
+  set(_needs_geant4 ENVIRONMENT
+    "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}")
+endif()
 
 celeritas_add_test(io/RootImporter.test.cc ${_needs_root}
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc})
+celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
+
 
 #-----------------------------------------------------------------------------#
 # Physics
