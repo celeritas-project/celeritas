@@ -14,6 +14,7 @@
 #include "base/CollectionMirror.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
+#include "ElementView.hh"
 #include "MaterialInterface.hh"
 #include "MaterialView.hh"
 #include "Types.hh"
@@ -69,6 +70,9 @@ class MaterialParams
     //! Number of material definitions
     MaterialId::size_type size() const { return matnames_.size(); }
 
+    //! Number of materials
+    MaterialId::size_type num_materials() const { return matnames_.size(); }
+
     //! Number of distinct elements definitions
     ElementId::size_type num_elements() const { return elnames_.size(); }
 
@@ -84,6 +88,9 @@ class MaterialParams
 
     // Access material definitions on host
     inline MaterialView get(MaterialId id) const;
+
+    // Access element definitions on host
+    inline ElementView get(ElementId id) const;
 
     //! Access material properties on the host
     const HostRef& host_pointers() const { return data_.host(); }

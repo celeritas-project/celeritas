@@ -14,21 +14,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from host data.
+ * Construct from particles and imported Geant data.
  */
-ComptonProcess::ComptonProcess(SPConstParticles   particles,
-                               ImportPhysicsTable xs_lo,
-                               ImportPhysicsTable xs_hi)
+ComptonProcess::ComptonProcess(SPConstParticles particles,
+                               SPConstImported  process_data)
     : particles_(std::move(particles))
-    , xs_lo_(std::move(xs_lo))
-    , xs_hi_(std::move(xs_hi))
+    , imported_(
+          process_data, particles_, ImportProcessClass::compton, {pdg::gamma()})
 {
     CELER_EXPECT(particles_);
-    CELER_EXPECT(xs_lo_.table_type == ImportTableType::lambda);
-    CELER_EXPECT(xs_hi_.table_type == ImportTableType::lambda_prim);
-    CELER_EXPECT(!xs_lo_.physics_vectors.empty());
-    CELER_EXPECT(xs_lo_.physics_vectors.size()
-                 == xs_hi_.physics_vectors.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -44,24 +38,10 @@ auto ComptonProcess::build_models(ModelIdGenerator next_id) const -> VecModel
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto ComptonProcess::step_limits(Applicability range) const -> StepLimitBuilders
+auto ComptonProcess::step_limits(Applicability applic) const
+    -> StepLimitBuilders
 {
-    CELER_EXPECT(range.material < xs_lo_.physics_vectors.size());
-    CELER_EXPECT(range.particle == particles_->find(pdg::gamma()));
-
-    const auto& lo = xs_lo_.physics_vectors[range.material.get()];
-    const auto& hi = xs_hi_.physics_vectors[range.material.get()];
-    CELER_ASSERT(lo.vector_type == ImportPhysicsVectorType::log);
-    CELER_ASSERT(hi.vector_type == ImportPhysicsVectorType::log);
-
-    // The only Compton model we use is Klein-Nishina. In the case of more
-    // refined energies, switch based on the given applicability or hope that
-    // the input has already preprocessed the energy dependence.
-    StepLimitBuilders builders;
-    builders[size_type(ValueGridType::macro_xs)]
-        = ValueGridXsBuilder::from_geant(
-            make_span(lo.x), make_span(lo.y), make_span(hi.x), make_span(hi.y));
-    return builders;
+    return imported_.step_limits(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

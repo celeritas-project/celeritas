@@ -21,7 +21,10 @@ namespace celeritas
 Communicator::Communicator(MpiComm comm) : comm_(comm)
 {
     CELER_EXPECT(comm != detail::MpiCommNull());
-    CELER_EXPECT(ScopedMpiInit::status() == ScopedMpiInit::Status::initialized);
+    CELER_VALIDATE(
+        ScopedMpiInit::status() == ScopedMpiInit::Status::initialized,
+        "MPI was not initialized: set the environment variable "
+        "CELER_DISABLE_PARALLEL=1 to disable externally");
 
     // Save rank and size
     CELER_MPI_CALL(MPI_Comm_rank(comm_, &rank_));

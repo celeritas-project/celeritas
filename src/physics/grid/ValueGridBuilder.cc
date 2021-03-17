@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "physics/grid/UniformGrid.hh"
 #include "physics/grid/XsGridInterface.hh"
@@ -20,7 +21,7 @@ namespace
 {
 using SpanConstReal = ValueGridXsBuilder::SpanConstReal;
 //---------------------------------------------------------------------------//
-//// HELPER FUNCTIONS ////
+// HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 bool is_contiguous_increasing(SpanConstReal first, SpanConstReal second)
 {
@@ -30,13 +31,25 @@ bool is_contiguous_increasing(SpanConstReal first, SpanConstReal second)
            && second.back() > second.front();
 }
 
+real_type calc_log_delta(SpanConstReal vec)
+{
+    return std::pow(vec.back() / vec.front(), real_type(1) / (vec.size() - 1));
+}
+
+bool has_log_spacing(SpanConstReal vec)
+{
+    real_type delta = calc_log_delta(vec);
+    for (auto i : range(vec.size() - 1))
+    {
+        if (!soft_equal(delta, vec[i + 1] / vec[i]))
+            return false;
+    }
+    return true;
+}
+
 bool has_same_log_spacing(SpanConstReal first, SpanConstReal second)
 {
-    auto calc_log_delta = [](SpanConstReal vec) {
-        return vec.back() / (vec.front() * (vec.size() - 1));
-    };
-    real_type delta[] = {calc_log_delta(first), calc_log_delta(second)};
-    return soft_equal(delta[0], delta[1]);
+    return soft_equal(calc_log_delta(first), calc_log_delta(second));
 }
 
 bool is_nonnegative(SpanConstReal vec)
@@ -51,7 +64,7 @@ bool is_on_grid_point(real_type value, real_type lo, real_type hi, size_type siz
         return false;
 
     real_type delta = (hi - lo) / size;
-    return soft_zero(std::fmod(value - lo, delta));
+    return soft_mod(value - lo, delta);
 }
 
 bool is_monotonic_increasing(SpanConstReal grid)
@@ -90,6 +103,8 @@ ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
                                SpanConstReal lambda_prim)
 {
     CELER_EXPECT(is_contiguous_increasing(lambda_energy, lambda_prim_energy));
+    CELER_EXPECT(has_log_spacing(lambda_energy)
+                 && has_log_spacing(lambda_prim_energy));
     CELER_EXPECT(has_same_log_spacing(lambda_energy, lambda_prim_energy));
     CELER_EXPECT(lambda.size() == lambda_energy.size());
     CELER_EXPECT(lambda_prim.size() == lambda_prim_energy.size());
@@ -113,6 +128,25 @@ ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct XS arrays from scaled (*E) data from Geant4.
+ */
+std::unique_ptr<ValueGridXsBuilder>
+ValueGridXsBuilder::from_scaled(SpanConstReal lambda_prim_energy,
+                                SpanConstReal lambda_prim)
+{
+    CELER_EXPECT(lambda_prim.size() == lambda_prim_energy.size());
+    CELER_EXPECT(has_log_spacing(lambda_prim_energy));
+    CELER_EXPECT(is_nonnegative(lambda_prim));
+
+    return std::make_unique<ValueGridXsBuilder>(
+        lambda_prim_energy.front(),
+        lambda_prim_energy.front(),
+        lambda_prim_energy.back(),
+        VecReal{lambda_prim.begin(), lambda_prim.end()});
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from raw data.
  */
 ValueGridXsBuilder::ValueGridXsBuilder(real_type emin,
@@ -125,7 +159,7 @@ ValueGridXsBuilder::ValueGridXsBuilder(real_type emin,
     , xs_(std::move(xs))
 {
     CELER_EXPECT(emin > 0);
-    CELER_EXPECT(eprime > emin);
+    CELER_EXPECT(eprime >= emin);
     CELER_EXPECT(emax > eprime);
     CELER_EXPECT(xs_.size() >= 2);
     CELER_EXPECT(
@@ -157,6 +191,38 @@ auto ValueGridXsBuilder::build(ValueGridInserter insert) const -> ValueGridId
 // LOG BUILDER
 //---------------------------------------------------------------------------//
 /*!
+ * Construct arrays from log-spaced geant data.
+ */
+auto ValueGridLogBuilder::from_geant(SpanConstReal energy, SpanConstReal value)
+    -> UPLogBuilder
+{
+    CELER_EXPECT(!energy.empty());
+    CELER_EXPECT(has_log_spacing(energy));
+    CELER_EXPECT(value.size() == energy.size());
+
+    return std::make_unique<ValueGridLogBuilder>(
+        energy.front(), energy.back(), VecReal{value.begin(), value.end()});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct XS arrays from log-spaced geant range data.
+ *
+ * Range data must be monotonically increasing, since it's the integral of the
+ * (always nonnegative) stopping power -dE/dx . If not monotonic then the
+ * inverse range cannot be calculated.
+ */
+auto ValueGridLogBuilder::from_range(SpanConstReal energy, SpanConstReal value)
+    -> UPLogBuilder
+{
+    CELER_EXPECT(!energy.empty());
+    CELER_EXPECT(is_monotonic_increasing(value));
+    CELER_EXPECT(value.front() > 0);
+    return ValueGridLogBuilder::from_geant(energy, value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from raw data.
  */
 ValueGridLogBuilder::ValueGridLogBuilder(real_type emin,
@@ -180,20 +246,6 @@ auto ValueGridLogBuilder::build(ValueGridInserter insert) const -> ValueGridId
     return insert(
         UniformGridData::from_bounds(log_emin_, log_emax_, value_.size()),
         this->value());
-}
-
-//---------------------------------------------------------------------------//
-// RANGE BUILDER
-//---------------------------------------------------------------------------//
-/*!
- * Construct from raw data.
- */
-ValueGridRangeBuilder::ValueGridRangeBuilder(real_type emin,
-                                             real_type emax,
-                                             VecReal   xs)
-    : Base(emin, emax, std::move(xs))
-{
-    CELER_EXPECT(is_monotonic_increasing(this->value()));
 }
 
 //---------------------------------------------------------------------------//

@@ -185,7 +185,7 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
     CELER_EXPECT(int(table_type) < int(ValueGridType::size_));
     CELER_EXPECT(ppid < this->num_particle_processes());
     ValueTableId table_id
-        = this->process_group().tables[int(table_type)][ppid.get()];
+        = this->process_group().tables[table_type][ppid.get()];
 
     CELER_ASSERT(table_id);
     const ValueTable& table = params_.value_tables[table_id];

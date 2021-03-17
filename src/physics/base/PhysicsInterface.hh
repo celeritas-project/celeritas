@@ -10,9 +10,10 @@
 #include "base/Array.hh"
 #include "base/Collection.hh"
 #include "Types.hh"
-#include "physics/grid/XsGridInterface.hh"
 #include "physics/em/detail/LivermorePE.hh"
 #include "physics/em/detail/EPlusGG.hh"
+#include "physics/grid/ValueGridInterface.hh"
+#include "physics/grid/XsGridInterface.hh"
 #include "physics/material/Types.hh"
 
 #ifndef __CUDA_ARCH__
@@ -28,19 +29,6 @@ namespace celeritas
 using ValueGrid    = XsGridData;
 using ValueGridId  = OpaqueId<XsGridData>;
 using ValueTableId = OpaqueId<struct ValueTable>;
-
-//---------------------------------------------------------------------------//
-//! Hardcoded types of grid data
-enum class ValueGridType
-{
-    macro_xs,    //!< Interaction cross sections
-    energy_loss, //!< Energy loss per unit length
-    range,       //!< Particle range
-    size_        //!< Sentinel value
-};
-
-template<class T>
-using ValueGridArray = Array<T, size_type(ValueGridType::size_)>;
 
 //---------------------------------------------------------------------------//
 // PARAMS
