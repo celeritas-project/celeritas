@@ -64,9 +64,10 @@ endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
-
-# Optional dependence on low-energy EM data
-if(CELERITAS_USE_Geant4)
+if(NOT CELERITAS_USE_Geant4)
+  set(_needs_geant4 DISABLE)
+else()
+  # Optional dependence on low-energy EM data
   set(_ds G4EMLOW)
   set(_geant_emlow
      ENVIRONMENT "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
@@ -163,7 +164,7 @@ celeritas_setup_tests(SERIAL PREFIX io)
 celeritas_add_test(io/RootImporter.test.cc ${_needs_root}
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc})
-celeritas_add_test(io/SeltzerBergerReader.test.cc ${_geant_emlow})
+celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Physics
