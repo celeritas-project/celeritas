@@ -104,18 +104,40 @@ struct ProcessGroup
 /*!
  * Model data for special hardwired cases (on-the-fly xs calculations).
  */
+template<Ownership W, MemSpace M>
 struct HardwiredModels
 {
     // Photoelectric effect
-    ProcessId                   photoelectric;
-    units::MevEnergy            photoelectric_table_thresh;
-    ModelId                     livermore_pe;
-    detail::LivermorePEPointers livermore_pe_data;
+    ProcessId                     photoelectric;
+    units::MevEnergy              photoelectric_table_thresh;
+    ModelId                       livermore_pe;
+    detail::LivermorePEData<W, M> livermore_pe_data;
 
     // Positron annihilation
     ProcessId               positron_annihilation;
     ModelId                 eplusgg;
     detail::EPlusGGPointers eplusgg_params;
+
+    //// MEMBER FUNCTIONS ////
+
+    //! Assign from another set of hardwired models
+    template<Ownership W2, MemSpace M2>
+    HardwiredModels& operator=(const HardwiredModels<W2, M2>& other)
+    {
+        // Note: don't require the other set of hardwired models to be assigned
+        photoelectric = other.photoelectric;
+        if (photoelectric)
+        {
+            // Only assign photoelectric data if that process is present
+            photoelectric_table_thresh = other.photoelectric_table_thresh;
+            livermore_pe               = other.livermore_pe;
+            livermore_pe_data          = other.livermore_pe_data;
+        }
+        positron_annihilation = other.positron_annihilation;
+        eplusgg               = other.eplusgg;
+        eplusgg_params        = other.eplusgg_params;
+        return *this;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -152,8 +174,8 @@ struct PhysicsParamsData
     Items<ModelGroup>           model_groups;
     ParticleItems<ProcessGroup> process_groups;
 
-    HardwiredModels      hardwired;
-    ProcessId::size_type max_particle_processes{};
+    HardwiredModels<W, M> hardwired;
+    ProcessId::size_type  max_particle_processes{};
 
     //// USER-CONFIGURABLE CONSTANTS ////
     real_type scaling_min_range{}; //!< rho [cm]

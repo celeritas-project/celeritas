@@ -237,12 +237,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             data->hardwired.photoelectric              = process_id;
             data->hardwired.photoelectric_table_thresh = units::MevEnergy{0.2};
             data->hardwired.livermore_pe               = ModelId{model_idx};
-            // TODO: fix me
-#ifdef __CUDACC__
-            data->hardwired.livermore_pe_data = pe_model->device_pointers();
-#else
             data->hardwired.livermore_pe_data = pe_model->host_pointers();
-#endif
         }
         else if (auto* epgg_model = dynamic_cast<const EPlusGGModel*>(&model))
         {
