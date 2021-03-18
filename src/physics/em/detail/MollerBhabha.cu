@@ -72,7 +72,7 @@ void moller_bhabha_interact(const MollerBhabhaPointers&  mb,
 
     static const KernelParamCalculator calc_kernel_params(
         moller_bhabha_interact_kernel, "moller_bhabha_interact");
-    auto                  params = calc_kernel_params(model.states.size());
+    auto params = calc_kernel_params(model.states.size());
     moller_bhabha_interact_kernel<<<params.grid_size, params.block_size>>>(
         mb, model);
     CELER_CUDA_CHECK_ERROR();

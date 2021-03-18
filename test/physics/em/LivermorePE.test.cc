@@ -94,7 +94,7 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
 
         // Set Livermore photoelectric data
         LivermorePEParams::Input li;
-        LivermorePEParamsReader read_element_data(data_path.c_str());
+        LivermorePEParamsReader  read_element_data(data_path.c_str());
         li.elements.push_back(read_element_data(19));
         set_livermore_params(li);
 

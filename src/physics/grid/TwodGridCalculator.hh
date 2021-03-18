@@ -51,7 +51,7 @@ class TwodGridCalculator
 
   private:
     const TwodGridData& grids_;
-    const Values&   storage_;
+    const Values&       storage_;
 };
 
 //---------------------------------------------------------------------------//

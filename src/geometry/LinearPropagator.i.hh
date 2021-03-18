@@ -33,7 +33,7 @@ LinearPropagator::result_type LinearPropagator::operator()()
 {
     result_type result;
     result.distance = track_.move_to_boundary();
-    result.volume = track_.volume_id();
+    result.volume   = track_.volume_id();
     return result;
 }
 
@@ -49,7 +49,7 @@ LinearPropagator::result_type LinearPropagator::operator()(real_type dist)
 
     result_type result;
     result.distance = track_.move_by(dist);
-    result.volume = track_.volume_id();
+    result.volume   = track_.volume_id();
     return result;
 }
 

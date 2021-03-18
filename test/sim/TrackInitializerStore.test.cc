@@ -192,10 +192,10 @@ TEST_F(TrackInitTest, primaries)
     std::vector<Primary> primaries     = generate_primaries(num_primaries);
 
     // Allocate storage on device
-    StateStore              states({num_tracks, geo_params, 12345u});
+    StateStore states({num_tracks, geo_params, 12345u});
     CollectionStateStore<SecondaryAllocatorData, MemSpace::device> secondaries(
         capacity);
-    TrackInitializerStore   track_init(num_tracks, capacity, primaries);
+    TrackInitializerStore track_init(num_tracks, capacity, primaries);
 
     // Kill all the tracks in each interaction and don't produce secondaries
     std::vector<size_type> alloc(num_tracks, 0);
@@ -247,10 +247,10 @@ TEST_F(TrackInitTest, secondaries)
     std::vector<Primary> primaries     = generate_primaries(num_primaries);
 
     // Allocate storage on device
-    StateStore              states({num_tracks, geo_params, 12345u});
+    StateStore states({num_tracks, geo_params, 12345u});
     CollectionStateStore<SecondaryAllocatorData, MemSpace::device> secondaries(
         capacity);
-    TrackInitializerStore   track_init(num_tracks, capacity, primaries);
+    TrackInitializerStore track_init(num_tracks, capacity, primaries);
 
     // Allocate input device data (number of secondaries to produce for each
     // track and whether the track survives the interaction)

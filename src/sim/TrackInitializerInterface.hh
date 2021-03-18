@@ -34,11 +34,11 @@ struct TrackInitializer
  */
 struct TrackInitializerPointers
 {
-    Span<TrackInitializer>    initializers;
-    Span<size_type>           parent;
-    Span<size_type>           vacancies;
-    Span<size_type>           secondary_counts;
-    Span<TrackId::size_type>  track_counter;
+    Span<TrackInitializer>   initializers;
+    Span<size_type>          parent;
+    Span<size_type>          vacancies;
+    Span<size_type>          secondary_counts;
+    Span<TrackId::size_type> track_counter;
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const

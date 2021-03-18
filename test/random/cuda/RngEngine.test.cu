@@ -68,7 +68,7 @@ TEST(RngEngineIntTest, regression)
 
     static const celeritas::KernelParamCalculator calc_launch_params(
         sample_native_kernel, "sample_native");
-    auto                             params = calc_launch_params(num_samples);
+    auto params = calc_launch_params(num_samples);
     sample_native_kernel<<<params.grid_size, params.block_size>>>(
         num_samples,
         container.device_pointers(),
@@ -137,7 +137,7 @@ TYPED_TEST(RngEngineFloatTest, generate_canonical)
 
     static const celeritas::KernelParamCalculator calc_launch_params(
         sample_real_kernel<real_type>, "sample_real");
-    auto                             params = calc_launch_params(num_samples);
+    auto params = calc_launch_params(num_samples);
     sample_real_kernel<<<params.grid_size, params.block_size>>>(
         num_samples,
         container.device_pointers(),

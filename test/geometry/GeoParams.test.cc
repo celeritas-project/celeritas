@@ -41,9 +41,9 @@ TEST_F(GeoParamsHostTest, accessors)
     EXPECT_EQ(11, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
 
-    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}) );
-    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}) );
-    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}) );
+    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}));
+    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}));
+    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}));
 
     unsigned int nvols = geom.num_volumes();
     EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{nvols - 2}));
@@ -65,6 +65,6 @@ TEST_F(GeoParamsHostTest, print_geometry)
 
 #if CELERITAS_USE_CUDA
     // debug: print geometry information from device
-    //vecgeom::cxx::CudaManager::Instance().PrintGeometry();
+    // vecgeom::cxx::CudaManager::Instance().PrintGeometry();
 #endif
 }

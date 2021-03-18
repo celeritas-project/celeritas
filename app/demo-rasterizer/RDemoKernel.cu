@@ -45,7 +45,7 @@ __global__ void trace_kernel(const GeoParamsPointers geo_params,
     // Start track at the leftmost point in the requested direction
     geo = GeoStateInitializer{image.start_pos(), image.start_dir()};
 
-    int       cur_id = geo_id(geo);
+    int       cur_id   = geo_id(geo);
     real_type geo_dist = std::fmin(
         geo.next_step(), image_state.dims[1] * image_state.pixel_width);
 

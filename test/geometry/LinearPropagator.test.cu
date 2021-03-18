@@ -68,7 +68,7 @@ LinPropTestOutput linProp_test(LinPropTestInput input)
     // Run kernel
     static const celeritas::KernelParamCalculator calc_launch_params(
         linProp_test_kernel, "linProp_test");
-    auto                             params = calc_launch_params(init.size());
+    auto params = calc_launch_params(init.size());
     linProp_test_kernel<<<params.grid_size, params.block_size>>>(
         input.shared,
         input.state,

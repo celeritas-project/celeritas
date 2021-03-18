@@ -49,7 +49,7 @@ namespace celeritas
  * See \c RootImporter.test.cc for an example on how to fetch a given table.
  *
  * Material and volume information are stored by the \c GdmlGeometryMap class.
- * The mat_id value returned from a given vol_id represents the position of 
+ * The mat_id value returned from a given vol_id represents the position of
  * said material in the ImportPhysicsTable vectors:
  * \c ImportPhysicsTable.physics_vectors.at(mat_id_value).
  */

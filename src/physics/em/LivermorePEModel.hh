@@ -55,7 +55,7 @@ class LivermorePEModel final : public Model
     inline const detail::LivermorePEPointers& device_pointers() const;
 
   private:
-    detail::LivermorePEPointers     interface_;
+    detail::LivermorePEPointers interface_;
     detail::RelaxationScratchData<Ownership::value, MemSpace::device>
         relax_scratch_;
     detail::RelaxationScratchData<Ownership::reference, MemSpace::device>

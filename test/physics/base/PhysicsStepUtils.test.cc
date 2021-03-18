@@ -24,7 +24,7 @@ using celeritas::units::MevEnergy;
 
 class PhysicsStepUtilsTest : public PhysicsTestBase
 {
-    using Base = PhysicsTestBase;
+    using Base         = PhysicsTestBase;
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
 
   protected:
@@ -89,7 +89,7 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
     MaterialStateStore mat_state;
     ParticleStateStore par_state;
     PhysicsStateStore  phys_state;
-    RandomEngine     rng_;
+    RandomEngine       rng_;
 };
 
 //---------------------------------------------------------------------------//

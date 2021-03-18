@@ -99,10 +99,10 @@ struct MaterialParamsData
     template<class T>
     using Data = celeritas::Collection<T, W, M>;
 
-    Data<ElementDef>               elements;
-    Data<MatElementComponent>      elcomponents;
-    Data<MaterialDef>              materials;
-    ElementComponentId::size_type  max_element_components{};
+    Data<ElementDef>              elements;
+    Data<MatElementComponent>     elcomponents;
+    Data<MaterialDef>             materials;
+    ElementComponentId::size_type max_element_components{};
 
     //// MEMBER FUNCTIONS ////
 
