@@ -18,7 +18,6 @@
 #include "MaterialInterface.hh"
 #include "MaterialView.hh"
 #include "Types.hh"
-#include "MaterialInterface.hh"
 
 namespace celeritas
 {

@@ -10,7 +10,6 @@
 #include "base/Collection.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
-#include "MaterialInterface.hh"
 #include "Types.hh"
 
 #ifndef __CUDA_ARCH__

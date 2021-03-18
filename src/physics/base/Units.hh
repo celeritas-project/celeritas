@@ -33,6 +33,13 @@ struct Mev
     }
 };
 
+//! Unit for annotating the logarithm of (E/MeV)
+struct LogMev
+{
+    //! Conversion factor is not multiplicative
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return 1; }
+};
+
 //! Unit for relativistic speeds
 struct CLight
 {
@@ -67,9 +74,16 @@ struct Amu
 struct Barn
 {
     //! Conversion factor from the unit to CGS
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::barn; }
+};
+
+//! Unit for cross sections
+struct Millibarn
+{
+    //! Conversion factor from the unit to CGS
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
-        return 1e-24 * units::centimeter * units::centimeter;
+        return 1e-3 * units::barn;
     }
 };
 
@@ -81,6 +95,7 @@ using CLightSq = UnitProduct<CLight, CLight>;
 //! Units for particle quantities
 using ElementaryCharge = Quantity<EElectron>;
 using MevEnergy        = Quantity<Mev>;
+using LogMevEnergy     = Quantity<LogMev>;
 using MevMass          = Quantity<UnitDivide<Mev, CLightSq>>;
 using MevMomentum      = Quantity<UnitDivide<Mev, CLight>>;
 using MevMomentumSq    = Quantity<UnitDivide<UnitProduct<Mev, Mev>, CLightSq>>;
