@@ -10,7 +10,7 @@
 #include "physics/base/Process.hh"
 
 #include "physics/base/ParticleParams.hh"
-#include "io/ImportPhysicsTable.hh"
+#include "physics/base/ImportedProcessAdapter.hh"
 
 namespace celeritas
 {
@@ -24,34 +24,26 @@ class EIonisationProcess : public Process
     //!@{
     //! Type aliases
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
+    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
     //!@}
-
-    struct Input
-    {
-        SPConstParticles   particles;
-        ImportPhysicsTable lambda;
-        ImportPhysicsTable dedx;
-        ImportPhysicsTable range;
-    };
 
   public:
     // Construct with lambda table
-    inline EIonisationProcess(const Input& input);
+    EIonisationProcess(SPConstParticles particles,
+                              SPConstImported  process_data);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;
 
     // Get the interaction cross sections for the given energy range
-    StepLimitBuilders step_limits(Applicability range) const final;
+    StepLimitBuilders step_limits(Applicability applicability) const final;
 
     // Name of the process
     std::string label() const final;
 
   private:
-    SPConstParticles   particles_;
-    ImportPhysicsTable lambda_table_;
-    ImportPhysicsTable dedx_table_;
-    ImportPhysicsTable range_table_;
+    SPConstParticles       particles_;
+    ImportedProcessAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//

@@ -35,7 +35,7 @@ class ComptonProcess : public Process
     VecModel build_models(ModelIdGenerator next_id) const final;
 
     // Get the interaction cross sections for the given energy range
-    StepLimitBuilders step_limits(Applicability range) const final;
+    StepLimitBuilders step_limits(Applicability applic) const final;
 
     // Name of the process
     std::string label() const final;
