@@ -49,7 +49,6 @@ class LivermorePEInteractor
     //!@{
     //! Type aliases
     using MevEnergy = units::MevEnergy;
-    using ParamsRef = LivermorePEPointers;
     using Scratch
         = RelaxationScratchData<Ownership::reference, MemSpace::native>;
     //!@}
@@ -57,7 +56,7 @@ class LivermorePEInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEInteractor(const ParamsRef&           shared,
+    LivermorePEInteractor(const LivermorePEPointers& shared,
                           const Scratch&             scratch,
                           ElementId                  el_id,
                           const ParticleTrackView&   particle,
@@ -70,10 +69,10 @@ class LivermorePEInteractor
 
   private:
     // Shared constant physics properties
-    const ParamsRef& shared_;
+    const LivermorePEPointers& shared_;
     // Shared scratch space
     const Scratch& scratch_;
-    // Index in MaterialParams/LivermorePEParams elements
+    // Index in MaterialParams elements
     ElementId el_id_;
     // Incident direction
     const Real3& inc_direction_;

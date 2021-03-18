@@ -12,7 +12,7 @@
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/em/AtomicRelaxationParams.hh"
-#include "physics/em/LivermorePEParams.hh"
+#include "physics/material/MaterialParams.hh"
 
 namespace celeritas
 {
@@ -26,21 +26,21 @@ class PhotoelectricProcess : public Process
     //!@{
     //! Type aliases
     using SPConstParticles   = std::shared_ptr<const ParticleParams>;
+    using SPConstMaterials   = std::shared_ptr<const MaterialParams>;
     using SPConstImported    = std::shared_ptr<const ImportedProcesses>;
-    using SPConstData        = std::shared_ptr<const LivermorePEParams>;
     using SPConstAtomicRelax = std::shared_ptr<const AtomicRelaxationParams>;
     //!@}
 
   public:
     // Construct from Livermore photoelectric data
     PhotoelectricProcess(SPConstParticles particles,
-                         SPConstImported  process_data,
-                         SPConstData      data);
+                         SPConstMaterials materials,
+                         SPConstImported  process_data);
 
     // Construct from Livermore data and EADL atomic relaxation data
     PhotoelectricProcess(SPConstParticles   particles,
+                         SPConstMaterials   materials,
                          SPConstImported    process_data,
-                         SPConstData        data,
                          SPConstAtomicRelax atomic_relaxation,
                          size_type          vacancy_stack_size);
 
@@ -55,8 +55,8 @@ class PhotoelectricProcess : public Process
 
   private:
     SPConstParticles       particles_;
+    SPConstMaterials       materials_;
     ImportedProcessAdapter imported_;
-    SPConstData            data_;
     SPConstAtomicRelax     atomic_relaxation_;
     size_type              vacancy_stack_size_{};
 };

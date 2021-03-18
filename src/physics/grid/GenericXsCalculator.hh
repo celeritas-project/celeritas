@@ -3,56 +3,46 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermoreXsCalculator.hh
+//! \file GenericXsCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Collection.hh"
 #include "base/Macros.hh"
-#include "base/Span.hh"
 #include "base/Types.hh"
-#include "physics/base/Types.hh"
-#include "physics/base/Units.hh"
+#include "XsGridInterface.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Storage for energy and cross sections.
- * TODO: replace with GenericGridData
+ * Find and interpolate cross sections on a nonuniform grid.
  */
-struct LivermoreValueGrid
-{
-    Span<const real_type> energy;
-    Span<const real_type> xs;
-    Interp                interp;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Find and interpolate cross section data.
- * TODO: temporary
- */
-class LivermoreXsCalculator
+class GenericXsCalculator
 {
   public:
     //@{
     //! Type aliases
-    using MevEnergy = units::MevEnergy;
+    using Values
+        = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //@}
 
   public:
-    // Construct from state-independent data
-    explicit inline CELER_FUNCTION
-    LivermoreXsCalculator(const LivermoreValueGrid& data);
+    // Construct from grid data and backend values
+    inline CELER_FUNCTION
+    GenericXsCalculator(const GenericGridData& grid, const Values& values);
 
-    // Find and interpolate basesd on the particle track's current energy
+    // Find and interpolate the cross section from the given energy
     inline CELER_FUNCTION real_type operator()(const real_type energy) const;
 
   private:
-    const LivermoreValueGrid& data_;
+    const GenericGridData& data_;
+    const Values&          reals_;
+
+    CELER_FORCEINLINE_FUNCTION real_type get(size_type index) const;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "LivermoreXsCalculator.i.hh"
+#include "GenericXsCalculator.i.hh"

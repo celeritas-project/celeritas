@@ -6,6 +6,8 @@
 //! \file LivermorePE.test.cc
 //---------------------------------------------------------------------------//
 #include "physics/em/detail/LivermorePEInteractor.hh"
+#include "physics/em/LivermorePEModel.hh"
+#include "physics/em/LivermorePEMacroXsCalculator.hh"
 
 #include <cmath>
 #include <fstream>
@@ -16,13 +18,10 @@
 #include "comm/Device.hh"
 #include "io/AtomicRelaxationReader.hh"
 #include "io/ImportPhysicsTable.hh"
-#include "io/LivermorePEParamsReader.hh"
+#include "io/LivermorePEReader.hh"
 #include "physics/base/Units.hh"
 #include "physics/em/AtomicRelaxationParams.hh"
-#include "physics/em/LivermorePEModel.hh"
-#include "physics/em/LivermorePEParams.hh"
 #include "physics/em/PhotoelectricProcess.hh"
-#include "physics/em/LivermorePEMacroXsCalculator.hh"
 #include "physics/grid/XsCalculator.hh"
 #include "physics/grid/ValueGridBuilder.hh"
 #include "physics/grid/ValueGridInserter.hh"
@@ -39,8 +38,8 @@ using celeritas::ImportPhysicsTable;
 using celeritas::ImportPhysicsVectorType;
 using celeritas::ImportTableType;
 using celeritas::LivermorePEMacroXsCalculator;
-using celeritas::LivermorePEParams;
-using celeritas::LivermorePEParamsReader;
+using celeritas::LivermorePEModel;
+using celeritas::LivermorePEReader;
 using celeritas::MemSpace;
 using celeritas::Ownership;
 using celeritas::PhotoelectricProcess;
@@ -53,17 +52,11 @@ namespace pdg = celeritas::pdg;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
+class LivermorePETest : public celeritas_test::InteractorHostTestBase
 {
     using Base = celeritas_test::InteractorHostTestBase;
 
   protected:
-    void set_livermore_params(LivermorePEParams::Input inp)
-    {
-        CELER_EXPECT(!inp.elements.empty());
-        livermore_params_ = std::make_shared<LivermorePEParams>(std::move(inp));
-    }
-
     void set_relaxation_params(AtomicRelaxationParams::Input inp)
     {
         CELER_EXPECT(!inp.elements.empty());
@@ -88,33 +81,7 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
               ElementaryCharge{-1},
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
-
-        const auto& params    = this->particle_params();
-        std::string data_path = this->test_data_path("physics/em", "");
-
-        // Set Livermore photoelectric data
-        LivermorePEParams::Input li;
-        LivermorePEParamsReader  read_element_data(data_path.c_str());
-        li.elements.push_back(read_element_data(19));
-        set_livermore_params(li);
-
-        // Set atomic relaxation data
-        AtomicRelaxationReader read_transition_data(data_path.c_str(),
-                                                    data_path.c_str());
-        relax_inp_.elements.push_back(read_transition_data(19));
-        relax_inp_.electron_id = params.find(pdg::electron());
-        relax_inp_.gamma_id    = params.find(pdg::gamma());
-
-        // Set Livermore PE model interface
-        pointers_.electron_id = params.find(pdg::electron());
-        pointers_.gamma_id    = params.find(pdg::gamma());
-        pointers_.inv_electron_mass
-            = 1 / (params.get(pointers_.electron_id).mass().value());
-        pointers_.data = livermore_params_->host_pointers();
-
-        // Set default particle to incident 1 keV photon
-        this->set_inc_particle(pdg::gamma(), MevEnergy{0.001});
-        this->set_inc_direction({0, 0, 1});
+        const auto& particles = this->particle_params();
 
         // Set up shared material data
         MaterialParams::Input mi;
@@ -124,10 +91,26 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
                          MatterState::solid,
                          {{ElementId{0}, 1.0}},
                          "K"}};
-
-        // Set default material to potassium
         this->set_material_params(mi);
         this->set_material("K");
+
+        // Set Livermore photoelectric data
+        std::string       data_path = this->test_data_path("physics/em", "");
+        LivermorePEReader read_element_data(data_path.c_str());
+
+        model_ = std::make_shared<LivermorePEModel>(
+            ModelId{0}, particles, this->material_params(), read_element_data);
+
+        // Set atomic relaxation data
+        AtomicRelaxationReader read_transition_data(data_path.c_str(),
+                                                    data_path.c_str());
+        relax_inp_.elements.push_back(read_transition_data(19));
+        relax_inp_.electron_id = particles.find(pdg::electron());
+        relax_inp_.gamma_id    = particles.find(pdg::gamma());
+
+        // Set default particle to incident 1 keV photon
+        this->set_inc_particle(pdg::gamma(), MevEnergy{0.001});
+        this->set_inc_direction({0, 0, 1});
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -145,7 +128,8 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
         {
             const auto& electron = interaction.secondaries.front();
             EXPECT_TRUE(electron);
-            EXPECT_EQ(pointers_.electron_id, electron.particle_id);
+            EXPECT_EQ(model_->host_pointers().ids.electron,
+                      electron.particle_id);
             EXPECT_GT(this->particle_track().energy().value(),
                       electron.energy.value());
             EXPECT_LT(0, electron.energy.value());
@@ -166,13 +150,11 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
+    std::shared_ptr<LivermorePEModel>       model_;
     AtomicRelaxationParams::Input           relax_inp_;
     std::shared_ptr<AtomicRelaxationParams> relax_params_;
-    std::shared_ptr<LivermorePEParams>      livermore_params_;
     celeritas::detail::RelaxationScratchData<Ownership::value, MemSpace::host>
         relax_store_;
-
-    celeritas::detail::LivermorePEPointers pointers_;
     celeritas::detail::RelaxationScratchData<Ownership::reference, MemSpace::host>
         scratch_;
 };
@@ -181,7 +163,7 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(LivermorePEInteractorTest, basic)
+TEST_F(LivermorePETest, basic)
 {
     RandomEngine& rng_engine = this->rng();
 
@@ -192,7 +174,7 @@ TEST_F(LivermorePEInteractorTest, basic)
     ElementId el_id{0};
 
     // Create the interactor
-    LivermorePEInteractor interact(pointers_,
+    LivermorePEInteractor interact(model_->host_pointers(),
                                    scratch_,
                                    el_id,
                                    this->particle_track(),
@@ -240,7 +222,7 @@ TEST_F(LivermorePEInteractorTest, basic)
     }
 }
 
-TEST_F(LivermorePEInteractorTest, stress_test)
+TEST_F(LivermorePETest, stress_test)
 {
     RandomEngine& rng_engine = this->rng();
 
@@ -265,7 +247,7 @@ TEST_F(LivermorePEInteractorTest, stress_test)
             this->resize_secondaries(num_samples);
 
             // Create interactor
-            LivermorePEInteractor interact(pointers_,
+            LivermorePEInteractor interact(model_->host_pointers(),
                                            scratch_,
                                            el_id,
                                            this->particle_track(),
@@ -293,7 +275,7 @@ TEST_F(LivermorePEInteractorTest, stress_test)
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
 
-TEST_F(LivermorePEInteractorTest, distributions_all)
+TEST_F(LivermorePETest, distributions_all)
 {
     RandomEngine& rng_engine = this->rng();
 
@@ -305,24 +287,25 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
     ElementId el_id{0};
 
     // Add atomic relaxation data
+    auto pointers               = model_->host_pointers();
     relax_inp_.is_auger_enabled = true;
     set_relaxation_params(relax_inp_);
-    pointers_.atomic_relaxation = relax_params_->host_pointers();
+    pointers.atomic_relaxation = relax_params_->host_pointers();
 
     // Allocate space to hold unprocessed vacancy stack in atomic relaxation
     auto max_stack_size
-        = pointers_.atomic_relaxation.elements[el_id.get()].max_stack_size;
+        = pointers.atomic_relaxation.elements[el_id.get()].max_stack_size;
     EXPECT_EQ(4, max_stack_size);
     this->resize_vacancies(max_stack_size * num_samples);
 
     // Allocate storage for secondaries (atomic relaxation + photoelectron)
     auto max_secondary
-        = pointers_.atomic_relaxation.elements[el_id.get()].max_secondary + 1;
+        = pointers.atomic_relaxation.elements[el_id.get()].max_secondary + 1;
     EXPECT_EQ(8, max_secondary);
     this->resize_secondaries(max_secondary * num_samples);
 
     // Create the interactor
-    LivermorePEInteractor interact(pointers_,
+    LivermorePEInteractor interact(pointers,
                                    scratch_,
                                    el_id,
                                    this->particle_track(),
@@ -387,7 +370,7 @@ TEST_F(LivermorePEInteractorTest, distributions_all)
     EXPECT_VEC_EQ(expected_count, count);
 }
 
-TEST_F(LivermorePEInteractorTest, distributions_radiative)
+TEST_F(LivermorePETest, distributions_radiative)
 {
     RandomEngine& rng_engine = this->rng();
 
@@ -400,22 +383,23 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
     relax_inp_.is_auger_enabled = false;
     set_relaxation_params(relax_inp_);
 
-    pointers_.atomic_relaxation = relax_params_->host_pointers();
+    auto pointers              = model_->host_pointers();
+    pointers.atomic_relaxation = relax_params_->host_pointers();
 
     // Allocate space to hold unprocessed vacancy stack in atomic relaxation
     auto max_stack_size
-        = pointers_.atomic_relaxation.elements[el_id.get()].max_stack_size;
+        = pointers.atomic_relaxation.elements[el_id.get()].max_stack_size;
     EXPECT_EQ(1, max_stack_size);
     this->resize_vacancies(max_stack_size * num_samples);
 
     // Allocate storage for secondaries (atomic relaxation + photoelectron)
     auto max_secondary
-        = pointers_.atomic_relaxation.elements[el_id.get()].max_secondary + 1;
+        = pointers.atomic_relaxation.elements[el_id.get()].max_secondary + 1;
     EXPECT_EQ(4, max_secondary);
     this->resize_secondaries(max_secondary * num_samples);
 
     // Create the interactor
-    LivermorePEInteractor interact(pointers_,
+    LivermorePEInteractor interact(pointers,
                                    scratch_,
                                    el_id,
                                    this->particle_track(),
@@ -471,12 +455,13 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
     EXPECT_VEC_EQ(expected_count, count);
 }
 
-TEST_F(LivermorePEInteractorTest, macro_xs)
+TEST_F(LivermorePETest, macro_xs)
 {
     using celeritas::units::MevEnergy;
 
     auto material = this->material_track().material_view();
-    LivermorePEMacroXsCalculator calc_macro_xs(pointers_, material);
+    LivermorePEMacroXsCalculator calc_macro_xs(model_->host_pointers(),
+                                               material);
 
     int    num_vals = 20;
     double loge_min = std::log(1.e-4);
@@ -506,7 +491,7 @@ TEST_F(LivermorePEInteractorTest, macro_xs)
     EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }
 
-TEST_F(LivermorePEInteractorTest, max_secondaries)
+TEST_F(LivermorePETest, max_secondaries)
 {
     using celeritas::AtomicRelaxElement;
     using celeritas::AtomicRelaxSubshell;

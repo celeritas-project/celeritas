@@ -3,12 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePEParamsReader.cc
+//! \file LivermorePEReader.cc
 //---------------------------------------------------------------------------//
-#include "LivermorePEParamsReader.hh"
+#include "LivermorePEReader.hh"
 
 #include <fstream>
 #include <sstream>
+#include "base/Assert.hh"
+#include "base/Macros.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {
@@ -17,7 +20,7 @@ namespace celeritas
  * Construct the reader using the G4LEDATA environment variable to get the path
  * to the data.
  */
-LivermorePEParamsReader::LivermorePEParamsReader()
+LivermorePEReader::LivermorePEReader()
 {
     const char* env_var = std::getenv("G4LEDATA");
     CELER_VALIDATE(env_var, "Environment variable G4LEDATA is not defined.");
@@ -30,8 +33,7 @@ LivermorePEParamsReader::LivermorePEParamsReader()
 /*!
  * Construct the reader with the path to the directory containing the data.
  */
-LivermorePEParamsReader::LivermorePEParamsReader(const char* path)
-    : path_(path)
+LivermorePEReader::LivermorePEReader(const char* path) : path_(path)
 {
     CELER_EXPECT(!path_.empty());
     if (path_.back() == '/')
@@ -44,8 +46,8 @@ LivermorePEParamsReader::LivermorePEParamsReader(const char* path)
 /*!
  * Read the data for the given element.
  */
-LivermorePEParamsReader::result_type
-LivermorePEParamsReader::operator()(int atomic_number) const
+LivermorePEReader::result_type
+LivermorePEReader::operator()(AtomicNumber atomic_number) const
 {
     CELER_EXPECT(atomic_number > 0 && atomic_number < 101);
 
@@ -60,19 +62,19 @@ LivermorePEParamsReader::operator()(int atomic_number) const
         CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
         // Set the physics vector type and the data type
-        result.xs_high.vector_type = ImportPhysicsVectorType::free;
+        result.xs_hi.vector_type = ImportPhysicsVectorType::free;
 
         // Read tabulated energies and cross sections
         real_type energy_min = 0.;
         real_type energy_max = 0.;
         size_type size       = 0;
         infile >> energy_min >> energy_max >> size >> size;
-        result.xs_high.x.resize(size);
-        result.xs_high.y.resize(size);
+        result.xs_hi.x.resize(size);
+        result.xs_hi.y.resize(size);
         for (size_type i = 0; i < size; ++i)
         {
             CELER_ASSERT(infile);
-            infile >> result.xs_high.x[i] >> result.xs_high.y[i];
+            infile >> result.xs_hi.x[i] >> result.xs_hi.y[i];
         }
     }
 
@@ -83,7 +85,7 @@ LivermorePEParamsReader::operator()(int atomic_number) const
         CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
 
         // Set the physics vector type and the data type
-        result.xs_low.vector_type = ImportPhysicsVectorType::free;
+        result.xs_lo.vector_type = ImportPhysicsVectorType::free;
 
         // Check that the file is not empty
         if (!(infile.peek() == std::ifstream::traits_type::eof()))
@@ -93,12 +95,12 @@ LivermorePEParamsReader::operator()(int atomic_number) const
             real_type energy_max = 0.;
             size_type size       = 0;
             infile >> energy_min >> energy_max >> size >> size;
-            result.xs_low.x.resize(size);
-            result.xs_low.y.resize(size);
+            result.xs_lo.x.resize(size);
+            result.xs_lo.y.resize(size);
             for (size_type i = 0; i < size; ++i)
             {
                 CELER_ASSERT(infile);
-                infile >> result.xs_low.x[i] >> result.xs_low.y[i];
+                infile >> result.xs_lo.x[i] >> result.xs_lo.y[i];
             }
         }
     }
@@ -112,23 +114,19 @@ LivermorePEParamsReader::operator()(int atomic_number) const
         // Read the number of subshells and energy threshold
         constexpr size_type num_param  = 6;
         size_type           num_shells = 0;
-        real_type           threshold  = 0.;
-        infile >> num_shells >> num_shells >> threshold;
-        result.thresh_low = units::MevEnergy{threshold};
+        infile >> num_shells >> num_shells >> result.thresh_lo;
         result.shells.resize(num_shells);
 
         // Read the binding energies and fit parameters
         for (auto& shell : result.shells)
         {
             CELER_ASSERT(infile);
-            real_type binding_energy;
-            infile >> binding_energy;
-            shell.binding_energy = units::MevEnergy{binding_energy};
-            shell.param_low.resize(num_param);
+            infile >> shell.binding_energy;
+            shell.param_lo.resize(num_param);
             for (size_type i = 0; i < num_param; ++i)
             {
                 CELER_ASSERT(infile);
-                infile >> shell.param_low[i];
+                infile >> shell.param_lo[i];
             }
         }
     }
@@ -142,9 +140,7 @@ LivermorePEParamsReader::operator()(int atomic_number) const
         // Read the number of subshells and energy threshold
         constexpr size_type num_param  = 6;
         size_type           num_shells = 0;
-        real_type           threshold  = 0.;
-        infile >> num_shells >> num_shells >> threshold;
-        result.thresh_high = units::MevEnergy{threshold};
+        infile >> num_shells >> num_shells >> result.thresh_hi;
         CELER_ASSERT(num_shells == result.shells.size());
 
         // Read the binding energies and fit parameters
@@ -153,12 +149,12 @@ LivermorePEParamsReader::operator()(int atomic_number) const
             CELER_ASSERT(infile);
             real_type binding_energy;
             infile >> binding_energy;
-            CELER_ASSERT(binding_energy == shell.binding_energy.value());
-            shell.param_high.resize(num_param);
+            CELER_ASSERT(binding_energy == shell.binding_energy);
+            shell.param_hi.resize(num_param);
             for (size_type i = 0; i < num_param; ++i)
             {
                 CELER_ASSERT(infile);
-                infile >> shell.param_high[i];
+                infile >> shell.param_hi[i];
             }
         }
     }
