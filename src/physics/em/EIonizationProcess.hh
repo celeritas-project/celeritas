@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EIonisationProcess.hh
+//! \file EIonizationProcess.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,9 +16,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Ionisation process for electrons and positrons.
+ * Ionization process for electrons and positrons.
  */
-class EIonisationProcess : public Process
+class EIonizationProcess : public Process
 {
   public:
     //!@{
@@ -29,8 +29,8 @@ class EIonisationProcess : public Process
 
   public:
     // Construct with lambda table
-    EIonisationProcess(SPConstParticles particles,
-                              SPConstImported  process_data);
+    EIonizationProcess(SPConstParticles particles,
+                       SPConstImported  process_data);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;

@@ -65,7 +65,7 @@ list(APPEND SOURCES
   physics/em/ComptonProcess.cc
   physics/em/PhotoelectricProcess.cc
   physics/em/LivermorePEModel.cc
-  physics/em/EIonisationProcess.cc
+  physics/em/EIonizationProcess.cc
   physics/em/EPlusAnnihilationProcess.cc
   physics/em/EPlusGGModel.cc
   physics/em/GammaConversionProcess.cc

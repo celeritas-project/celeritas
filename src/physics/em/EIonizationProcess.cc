@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EIonisationProcess.cc
+//! \file EIonizationProcess.cc
 //---------------------------------------------------------------------------//
-#include "EIonisationProcess.hh"
+#include "EIonizationProcess.hh"
 
 #include "MollerBhabhaModel.hh"
 
@@ -15,7 +15,7 @@ namespace celeritas
 /*!
  * Construct process from host data.
  */
-EIonisationProcess::EIonisationProcess(SPConstParticles particles,
+EIonizationProcess::EIonizationProcess(SPConstParticles particles,
                                        SPConstImported  process_data)
     : particles_(std::move(particles))
     , imported_(process_data,
@@ -30,7 +30,7 @@ EIonisationProcess::EIonisationProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto EIonisationProcess::build_models(ModelIdGenerator next_id) const
+auto EIonizationProcess::build_models(ModelIdGenerator next_id) const
     -> VecModel
 {
     return {std::make_shared<MollerBhabhaModel>(next_id(), *particles_)};
@@ -40,7 +40,7 @@ auto EIonisationProcess::build_models(ModelIdGenerator next_id) const
 /*!
  * Get cross section values.
  */
-auto EIonisationProcess::step_limits(Applicability applicability) const
+auto EIonizationProcess::step_limits(Applicability applicability) const
     -> StepLimitBuilders
 {
     return imported_.step_limits(std::move(applicability));
@@ -50,9 +50,9 @@ auto EIonisationProcess::step_limits(Applicability applicability) const
 /*!
  * Name of the process.
  */
-std::string EIonisationProcess::label() const
+std::string EIonizationProcess::label() const
 {
-    return "Electron/positron ionisation";
+    return "Electron/positron ionization";
 }
 
 //---------------------------------------------------------------------------//

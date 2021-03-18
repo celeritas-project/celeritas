@@ -10,7 +10,7 @@
 #include "physics/base/Model.hh"
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/PhotoelectricProcess.hh"
-#include "physics/em/EIonisationProcess.hh"
+#include "physics/em/EIonizationProcess.hh"
 #include "io/LivermorePEReader.hh"
 #include "io/RootImporter.hh"
 #include "celeritas_test.hh"
@@ -78,10 +78,10 @@ TEST_F(ImportedProcessesTest, compton)
     }
 }
 
-TEST_F(ImportedProcessesTest, eionisation)
+TEST_F(ImportedProcessesTest, eionization)
 {
     // Create photoelectric process
-    auto process = std::make_shared<EIonisationProcess>(particles_, processes_);
+    auto process = std::make_shared<EIonizationProcess>(particles_, processes_);
 
     // Test model
     auto models = process->build_models(ModelIdGenerator{});
