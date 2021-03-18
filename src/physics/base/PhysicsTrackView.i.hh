@@ -283,7 +283,7 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(ModelId       model,
     if (model == params_.hardwired.livermore_pe)
     {
         auto calc_xs = LivermorePEMacroXsCalculator(
-            params_.hardwired.livermore_pe_params, material);
+            params_.hardwired.livermore_pe_data, material);
         result = calc_xs(energy);
     }
     else if (model == params_.hardwired.eplusgg)

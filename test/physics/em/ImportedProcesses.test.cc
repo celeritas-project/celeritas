@@ -10,7 +10,7 @@
 #include "physics/base/Model.hh"
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/PhotoelectricProcess.hh"
-#include "io/LivermorePEParamsReader.hh"
+#include "io/LivermorePEReader.hh"
 #include "io/RootImporter.hh"
 #include "celeritas_test.hh"
 
@@ -79,36 +79,17 @@ TEST_F(ImportedProcessesTest, compton)
 
 TEST_F(ImportedProcessesTest, livermore)
 {
-    if (!CELERITAS_USE_CUDA)
-    {
-        // constructor contains device_pointers because it doesn't use
-        // Collection
-        SKIP("FIXME: livermore model currently requires CUDA");
-    }
-
-    // Set up livermore params reader (requires Geant4 environment variables)
-    std::unique_ptr<LivermorePEParamsReader> read_el;
+    // Create photoelectric process (requires Geant4 environment variables)
+    std::shared_ptr<PhotoelectricProcess> process;
     try
     {
-        read_el = std::make_unique<LivermorePEParamsReader>();
+        process = std::make_shared<PhotoelectricProcess>(
+            particles_, materials_, processes_);
     }
     catch (const RuntimeError& e)
     {
-        SKIP("Failed to set up reader: " << e.what());
+        SKIP("Failed to create process: " << e.what());
     }
-
-    // Load livermore data
-    LivermorePEParams::Input li;
-    for (auto el_id : range(ElementId{materials_->num_elements()}))
-    {
-        auto el_view = materials_->get(el_id);
-        li.elements.push_back((*read_el)(el_view.atomic_number()));
-    }
-    auto livermore_data = std::make_shared<LivermorePEParams>(std::move(li));
-
-    // Create photoelectric process
-    auto process = std::make_shared<PhotoelectricProcess>(
-        particles_, processes_, livermore_data);
 
     // Test model
     auto models = process->build_models(ModelIdGenerator{});

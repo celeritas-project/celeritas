@@ -15,12 +15,7 @@ namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    CalculatorTestBase ...;
-   \endcode
+ * Test harness base class for interpolating values on grids.
  */
 class CalculatorTestBase : public celeritas::Test
 {
@@ -30,6 +25,9 @@ class CalculatorTestBase : public celeritas::Test
     using real_type  = celeritas::real_type;
     using size_type  = celeritas::size_type;
     using XsGridData = celeritas::XsGridData;
+    using Values     = celeritas::Collection<real_type,
+                                         celeritas::Ownership::value,
+                                         celeritas::MemSpace::host>;
     using Pointers
         = celeritas::Collection<real_type,
                                 celeritas::Ownership::const_reference,
@@ -48,11 +46,8 @@ class CalculatorTestBase : public celeritas::Test
 
   private:
     XsGridData data_;
-    celeritas::Collection<real_type,
-                          celeritas::Ownership::value,
-                          celeritas::MemSpace::host>
-             value_storage_;
-    Pointers value_ref_;
+    Values     value_storage_;
+    Pointers   value_ref_;
 };
 
 //---------------------------------------------------------------------------//
