@@ -90,16 +90,18 @@ TEST_F(ImportedProcessesTest, eionisation)
     EXPECT_EQ("Moller/Bhabha scattering", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
-    Applicability applic = *all_applic.begin();
 
     // Test step limits
     for (auto mat_id : range(MaterialId{materials_->num_materials()}))
     {
-        applic.material = mat_id;
-        auto builders   = process->step_limits(applic);
-        EXPECT_TRUE(builders[VGT::macro_xs]);
-        EXPECT_TRUE(builders[VGT::energy_loss]);
-        EXPECT_TRUE(builders[VGT::range]);
+        for (auto applic : all_applic)
+        {
+            applic.material = mat_id;
+            auto builders   = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::macro_xs]);
+            EXPECT_TRUE(builders[VGT::energy_loss]);
+            EXPECT_TRUE(builders[VGT::range]);
+        }
     }
 }
 
