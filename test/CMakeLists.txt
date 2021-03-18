@@ -58,6 +58,21 @@ endfunction()
 
 set(_not_impl DISABLE)
 
+if(NOT CELERITAS_USE_HepMC3)
+  set(_needs_hepmc DISABLE)
+endif()
+if(NOT CELERITAS_USE_ROOT)
+  set(_needs_root DISABLE)
+endif()
+
+# Optional dependence on low-energy EM data
+if(CELERITAS_USE_Geant4)
+  set(_ds G4EMLOW)
+  set(_geant_emlow
+     ENVIRONMENT "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
+  )
+endif()
+
 #-----------------------------------------------------------------------------#
 # Gtest additions
 celeritas_setup_tests(SERIAL PREFIX gtest/detail)
@@ -145,26 +160,10 @@ endif()
 
 celeritas_setup_tests(SERIAL PREFIX io)
 
-if(NOT CELERITAS_USE_HepMC3)
-  set(_needs_hepmc DISABLE)
-endif()
-if(NOT CELERITAS_USE_ROOT)
-  set(_needs_root DISABLE)
-endif()
-if(NOT CELERITAS_USE_Geant4)
-  set(_needs_geant4 DISABLE)
-else()
-  # Define G4LE environment variable
-  set(_ds G4EMLOW)
-  set(_needs_geant4 ENVIRONMENT
-    "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}")
-endif()
-
 celeritas_add_test(io/RootImporter.test.cc ${_needs_root}
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc})
-celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
-
+celeritas_add_test(io/SeltzerBergerReader.test.cc ${_geant_emlow})
 
 #-----------------------------------------------------------------------------#
 # Physics
@@ -203,7 +202,7 @@ celeritas_setup_tests(SERIAL PREFIX physics/material)
 celeritas_add_test(physics/material/ElementSelector.test.cc)
 celeritas_cudaoptional_test(physics/material/Material)
 
-#-----------------------------------------------------------------------------#
+#-------------------------------------#
 # Physics (EM)
 
 celeritas_setup_tests(SERIAL PREFIX physics/em)
@@ -220,6 +219,12 @@ celeritas_add_test(physics/em/Rayleigh.test.cc ${_not_impl})
 celeritas_add_test(physics/em/SeltzerBerger.test.cc)
 celeritas_add_test(physics/em/Urban.test.cc ${_not_impl})
 celeritas_add_test(physics/em/Wentzel.test.cc ${_not_impl})
+
+celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
+  ${_geant_emlow}
+  GPU # TODO: delete when device pointers are no longer directly accessed
+  LINK_LIBRARIES Celeritas::ROOT)
+
 
 # END PHYSICS TESTS
 set(CELERITASTEST_LINK_LIBRARIES)
