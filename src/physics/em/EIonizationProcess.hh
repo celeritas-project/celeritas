@@ -28,7 +28,7 @@ class EIonizationProcess : public Process
     //!@}
 
   public:
-    // Construct with lambda table
+    // Construct with imported data
     EIonizationProcess(SPConstParticles particles,
                        SPConstImported  process_data);
 
