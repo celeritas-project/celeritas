@@ -103,7 +103,7 @@ TEST_F(ImportedProcessesTest, eionisation)
     }
 }
 
-TEST_F(ImportedProcessesTest, livermore)
+TEST_F(ImportedProcessesTest, photoelectric)
 {
     if (!CELERITAS_USE_CUDA)
     {
