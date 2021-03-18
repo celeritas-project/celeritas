@@ -96,7 +96,7 @@ class DeviceVector
     inline const T* data() const;
 
   private:
-    DeviceAllocation allocation_;
+    DeviceAllocation                    allocation_;
     detail::InitializedValue<size_type> size_;
     detail::InitializedValue<size_type> capacity_;
 };

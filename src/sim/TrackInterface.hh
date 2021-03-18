@@ -25,7 +25,7 @@ namespace celeritas
  */
 struct ParamPointers
 {
-    GeoParamsPointers      geo;
+    GeoParamsPointers                                                geo;
     MaterialParamsData<Ownership::const_reference, MemSpace::device> material;
     ParticleParamsData<Ownership::const_reference, MemSpace::device> particle;
 
@@ -45,10 +45,10 @@ struct ParamPointers
 struct StatePointers
 {
     ParticleStateData<Ownership::reference, MemSpace::device> particle;
-    GeoStatePointers      geo;
-    SimStatePointers      sim;
-    RngStatePointers      rng;
-    Span<Interaction>     interactions;
+    GeoStatePointers                                          geo;
+    SimStatePointers                                          sim;
+    RngStatePointers                                          rng;
+    Span<Interaction>                                         interactions;
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const

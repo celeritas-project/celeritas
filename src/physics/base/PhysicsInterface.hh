@@ -152,8 +152,8 @@ struct PhysicsParamsData
     Items<ModelGroup>           model_groups;
     ParticleItems<ProcessGroup> process_groups;
 
-    HardwiredModels       hardwired;
-    ProcessId::size_type  max_particle_processes{};
+    HardwiredModels      hardwired;
+    ProcessId::size_type max_particle_processes{};
 
     //// USER-CONFIGURABLE CONSTANTS ////
     real_type scaling_min_range{}; //!< rho [cm]

@@ -115,4 +115,13 @@ class GdmlGeometryMap;
 %rename(RootImportResult) celeritas::RootImporter::result_type;
 %include "io/RootImporter.hh"
 
+//---------------------------------------------------------------------------//
+
+%{
+#include "io/SeltzerBergerReader.hh"
+%}
+
+%include "io/ImportSBTable.hh"
+%include "io/SeltzerBergerReader.hh"
+
 // vim: set ft=lex ts=2 sw=2 sts=2 :

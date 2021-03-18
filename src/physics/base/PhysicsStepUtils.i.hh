@@ -40,7 +40,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
     real_type min_range      = inf;
     for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
     {
-        real_type               process_xs = 0;
+        real_type process_xs = 0;
         if (auto model_id = physics.hardwired_model(ppid, particle.energy()))
         {
             // Calculate macroscopic cross section on the fly for special
@@ -56,7 +56,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
             // accumulate it into the total cross section and save the cross
             // section for later.
             auto calc_xs = physics.make_calculator<XsCalculator>(grid_id);
-            process_xs = calc_xs(particle.energy());
+            process_xs   = calc_xs(particle.energy());
             total_macro_xs += process_xs;
         }
         physics.per_process_xs(ppid) = process_xs;
@@ -65,7 +65,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
         {
             auto calc_range = physics.make_calculator<RangeCalculator>(grid_id);
             real_type process_range = calc_range(particle.energy());
-            min_range = min(min_range, process_range);
+            min_range               = min(min_range, process_range);
         }
     }
     physics.macro_xs(total_macro_xs);
@@ -143,7 +143,7 @@ CELER_FUNCTION ParticleTrackView::Energy
                       == EnergyLossCalculator::Energy::unit_type::value(),
                   "Incompatible energy types");
 
-    using VGT = ValueGridType;
+    using VGT                  = ValueGridType;
     const auto pre_step_energy = particle.energy();
 
     // Calculate the sum of energy loss rate over all processes.

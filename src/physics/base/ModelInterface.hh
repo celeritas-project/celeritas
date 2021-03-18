@@ -49,8 +49,8 @@ struct ModelInteractState
     ParticleStateData<Ownership::reference, MemSpace::device> particle;
     MaterialStateData<Ownership::reference, MemSpace::device> material;
     PhysicsStateData<Ownership::reference, MemSpace::device>  physics;
-    Span<const Real3>     direction;
-    RngStatePointers      rng;
+    Span<const Real3>                                         direction;
+    RngStatePointers                                          rng;
 
     //! True if valid
     CELER_FUNCTION operator bool() const

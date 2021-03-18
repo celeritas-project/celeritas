@@ -95,7 +95,7 @@ __global__ void
 interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 {
     StackAllocator<Secondary> allocate_secondaries(states.secondaries);
-    unsigned int           tid = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int              tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     // Exit if out of range or already dead
     if (tid >= states.size() || !states.alive[tid])

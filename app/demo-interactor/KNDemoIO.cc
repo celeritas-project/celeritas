@@ -16,8 +16,7 @@ namespace demo_interactor
 //! I/O routines for JSON
 void to_json(nlohmann::json& j, const CudaGridParams& v)
 {
-    j = nlohmann::json{{"block_size", v.block_size},
-                       {"sync", v.sync}};
+    j = nlohmann::json{{"block_size", v.block_size}, {"sync", v.sync}};
 }
 
 void from_json(const nlohmann::json& j, CudaGridParams& v)

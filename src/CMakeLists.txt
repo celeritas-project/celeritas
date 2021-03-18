@@ -53,6 +53,7 @@ list(APPEND SOURCES
   io/ImportPhysicsVector.cc
   io/AtomicRelaxationReader.cc
   io/LivermorePEReader.cc
+  io/SeltzerBergerReader.cc
   physics/base/CutoffParams.cc
   physics/base/ImportedProcessAdapter.cc
   physics/base/Model.cc
@@ -69,6 +70,7 @@ list(APPEND SOURCES
   physics/em/GammaConversionProcess.cc
   physics/em/KleinNishinaModel.cc
   physics/em/MollerBhabhaModel.cc
+  physics/em/SeltzerBergerModel.cc
   physics/em/detail/Utils.cc
   physics/grid/ValueGridBuilder.cc
   physics/grid/ValueGridInserter.cc

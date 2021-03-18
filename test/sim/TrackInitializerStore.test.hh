@@ -65,8 +65,8 @@ struct Interactor
     }
 
     StackAllocator<Secondary>& allocate_secondaries;
-    size_type               alloc_size;
-    char                    alive;
+    size_type                  alloc_size;
+    char                       alive;
 };
 
 //! Input data

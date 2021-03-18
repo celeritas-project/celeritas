@@ -78,7 +78,7 @@ MTestOutput m_test(const MTestInput& input)
 
     static const celeritas::KernelParamCalculator calc_launch_params(
         m_test_kernel, "m_test");
-    auto                             params = calc_launch_params(init.size());
+    auto params = calc_launch_params(init.size());
     m_test_kernel<<<params.grid_size, params.block_size>>>(
         init.size(),
         input.params,

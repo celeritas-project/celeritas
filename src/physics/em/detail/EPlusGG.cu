@@ -38,7 +38,7 @@ __global__ void eplusgg_interact_kernel(const EPlusGGPointers       epgg,
 
     // Get views to this Secondary, Particle, and Physics
     StackAllocator<Secondary> allocate_secondaries(model.secondaries);
-    ParticleTrackView      particle(
+    ParticleTrackView         particle(
         model.params.particle, model.states.particle, tid);
     PhysicsTrackView physics(model.params.physics,
                              model.states.physics,
