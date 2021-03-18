@@ -44,18 +44,14 @@ TEST_F(SeltzerBergerReaderTest, read)
            0.99,  0.995, 0.999, 0.9995, 0.9999, 0.99995, 0.99999, 1};
 
     SeltzerBergerReader reader;
-    {
-        const auto result = reader(1); // Hydrogen
-        EXPECT_VEC_SOFT_EQ(log_incident_energy, result.x);
-        EXPECT_VEC_SOFT_EQ(exiting_efrac, result.y);
-        EXPECT_EQ(1824, result.value.size());
-        EXPECT_EQ(4.6875e-2, result.value.back());
-    }
-    {
-        const auto result = reader(94); // Plutonium
-        EXPECT_VEC_SOFT_EQ(log_incident_energy, result.x);
-        EXPECT_VEC_SOFT_EQ(exiting_efrac, result.y);
-        EXPECT_EQ(1824, result.value.size());
-        EXPECT_EQ(1.50879, result.value.back());
-    }
+    const auto          result = reader(1); // Hydrogen
+    EXPECT_VEC_SOFT_EQ(log_incident_energy, result.x);
+    EXPECT_VEC_SOFT_EQ(exiting_efrac, result.y);
+    EXPECT_EQ(1824, result.value.size());
+    EXPECT_EQ(4.6875e-2, result.value.back());
+
+    // For Z = 93-99, the incident log energy grid and reduced photon energy
+    // grid in the bremsstrahlung data files are incorrect (smaller than the
+    // number of DCS values), so this should fail.
+    EXPECT_THROW(reader(94), celeritas::RuntimeError);
 }
