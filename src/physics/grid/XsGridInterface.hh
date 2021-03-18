@@ -9,6 +9,7 @@
 
 #include "base/Collection.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
 #include "UniformGridInterface.hh"
 
@@ -35,8 +36,8 @@ struct XsGridData
         return size_type(-1);
     }
 
-    UniformGridData     log_energy;
-    size_type           prime_index{no_scaling()};
+    UniformGridData      log_energy;
+    size_type            prime_index{no_scaling()};
     ItemRange<real_type> value;
 
     //! Whether the interface is initialized and valid
@@ -56,8 +57,8 @@ struct GenericGridData
 {
     ItemRange<real_type> grid;         //!< x grid
     ItemRange<real_type> value;        //!< f(x) value
-    Interp              grid_interp;  //!< Interpolation along x
-    Interp              value_interp; //!< Interpolation along f(x)
+    Interp               grid_interp;  //!< Interpolation along x
+    Interp               value_interp; //!< Interpolation along f(x)
 
     //! Whether the interface is initialized and valid
     explicit CELER_FUNCTION operator bool() const

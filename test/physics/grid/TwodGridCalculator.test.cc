@@ -6,15 +6,47 @@
 //! \file TwodGridCalculator.test.cc
 //---------------------------------------------------------------------------//
 #include "physics/grid/TwodGridCalculator.hh"
+#include "physics/grid/detail/FindInterp.hh"
 
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
+#include "physics/grid/UniformGrid.hh"
 #include "celeritas_test.hh"
 
 using celeritas::Ownership;
 using celeritas::range;
 using celeritas::real_type;
+using celeritas::size_type;
 using celeritas::TwodGridCalculator;
+
+TEST(Detail, FindInterp)
+{
+    using namespace celeritas;
+
+    auto              data = UniformGridData::from_bounds(1.0, 5.0, 3);
+    const UniformGrid grid(data);
+
+    {
+        auto interp = detail::find_interp(grid, 1.0);
+        EXPECT_EQ(0, interp.index);
+        EXPECT_SOFT_EQ(0.0, interp.fraction);
+    }
+    {
+        auto interp = detail::find_interp(grid, 3.0);
+        EXPECT_EQ(1, interp.index);
+        EXPECT_SOFT_EQ(0.0, interp.fraction);
+    }
+    {
+        auto interp = detail::find_interp(grid, 4.0);
+        EXPECT_EQ(1, interp.index);
+        EXPECT_SOFT_EQ(0.5, interp.fraction);
+    }
+#if CELERITAS_DEBUG
+    EXPECT_THROW(detail::find_interp(grid, 0.999), celeritas::DebugError);
+    EXPECT_THROW(detail::find_interp(grid, 5.0), celeritas::DebugError);
+    EXPECT_THROW(detail::find_interp(grid, 5.001), celeritas::DebugError);
+#endif
+}
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -71,7 +103,7 @@ class TwodGridCalculatorTest : public celeritas::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(TwodGridCalculatorTest, all)
+TEST_F(TwodGridCalculatorTest, whole_grid)
 {
     TwodGridCalculator interpolate(grid_data_, ref_);
 
@@ -92,4 +124,27 @@ TEST_F(TwodGridCalculatorTest, all)
             EXPECT_SOFT_EQ(calc_expected(x, y), interpolate({x, y}));
         }
     }
+}
+
+TEST_F(TwodGridCalculatorTest, subgrid)
+{
+    std::vector<size_type> lower_idx;
+    std::vector<real_type> frac;
+
+    for (real_type x : {-1., .5, 2.99})
+    {
+        auto interpolate = TwodGridCalculator(grid_data_, ref_)(x);
+        lower_idx.push_back(interpolate.x_index());
+        frac.push_back(interpolate.x_fraction());
+        for (real_type y : {0.0, 0.4, 1.6, 3.25})
+        {
+            EXPECT_SOFT_EQ(calc_expected(x, y), interpolate(y));
+        }
+    }
+
+    const unsigned int expected_lower_idx[] = {0u, 1u, 2u};
+    const double       expected_frac[]      = {0, 0.5, 0.995};
+
+    EXPECT_VEC_EQ(expected_lower_idx, lower_idx);
+    EXPECT_VEC_SOFT_EQ(expected_frac, frac);
 }

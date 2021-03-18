@@ -31,7 +31,7 @@ namespace detail
  * \note This performs the same sampling routine as in Geant4's
  * G4BetheHeitlerModel, as documented in section 6.5 of the Geant4 Physics
  * Reference (release 10.6), applicable to incident gammas with energy
- * \$f E_gamma \leq 100 GeV \$f. For \$f E_gamma > 80 \$f GeV, it is suggested
+ * \f$ E_gamma \leq 100\f$ GeV . For \f$ E_gamma > 80 \f$ GeV, it is suggested
  * to use `G4PairProductionRelModel`.
  */
 class BetheHeitlerInteractor

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "base/Macros.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {
@@ -15,7 +16,7 @@ namespace celeritas
 /*!
  * Sample from a uniform radial distribution.
  */
-template<class RealType = double>
+template<class RealType = ::celeritas::real_type>
 class RadialDistribution
 {
   public:

@@ -118,7 +118,7 @@ struct PrintableValueTraits<unsigned char>
 {
     static const char* name() { return "unsigned char"; }
     static void init(std::ostream& os) { os << std::setfill('0') << std::hex; }
-    static void        print(std::ostream& os, unsigned char value)
+    static void print(std::ostream& os, unsigned char value)
     {
         os << "0x" << char_to_hex_string(value);
     }

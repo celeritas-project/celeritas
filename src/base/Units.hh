@@ -65,6 +65,7 @@ constexpr real_type farad    = coulomb / volt;
 //!@{
 //! Other units
 constexpr real_type millimeter = 0.1 * centimeter;
+constexpr real_type barn       = 1e-24 * centimeter * centimeter;
 //!@}
 
 //---------------------------------------------------------------------------//

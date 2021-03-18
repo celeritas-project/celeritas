@@ -167,8 +167,8 @@ class Collection
     inline CELER_FUNCTION SpanConstT operator[](AllItemsT) const;
 
     // Direct accesors to underlying data
-    CELER_CONSTEXPR_FUNCTION size_type     size() const;
-    CELER_CONSTEXPR_FUNCTION bool          empty() const;
+    CELER_CONSTEXPR_FUNCTION size_type size() const;
+    CELER_CONSTEXPR_FUNCTION bool      empty() const;
 
   private:
     //// DATA ////

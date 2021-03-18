@@ -10,7 +10,7 @@
 #include "physics/base/Process.hh"
 
 #include "physics/base/ParticleParams.hh"
-#include "io/ImportPhysicsTable.hh"
+#include "physics/base/ImportedProcessAdapter.hh"
 
 namespace celeritas
 {
@@ -24,13 +24,12 @@ class ComptonProcess : public Process
     //!@{
     //! Type aliases
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
+    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
     //!@}
 
   public:
-    // Construct from "lambda" and "lambda_prim" tables
-    ComptonProcess(SPConstParticles   particles,
-                   ImportPhysicsTable xs_lo,
-                   ImportPhysicsTable xs_hi);
+    // Construct from imported data
+    ComptonProcess(SPConstParticles particles, SPConstImported process_data);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;
@@ -42,9 +41,8 @@ class ComptonProcess : public Process
     std::string label() const final;
 
   private:
-    SPConstParticles   particles_;
-    ImportPhysicsTable xs_lo_;
-    ImportPhysicsTable xs_hi_;
+    SPConstParticles       particles_;
+    ImportedProcessAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//

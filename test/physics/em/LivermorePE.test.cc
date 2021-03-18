@@ -94,7 +94,7 @@ class LivermorePEInteractorTest : public celeritas_test::InteractorHostTestBase
 
         // Set Livermore photoelectric data
         LivermorePEParams::Input li;
-        LivermorePEParamsReader read_element_data(data_path.c_str());
+        LivermorePEParamsReader  read_element_data(data_path.c_str());
         li.elements.push_back(read_element_data(19));
         set_livermore_params(li);
 
@@ -469,80 +469,6 @@ TEST_F(LivermorePEInteractorTest, distributions_radiative)
         = {2, 1, 1, 1, 2, 2525, 2228, 4358, 337, 181, 361, 10};
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_EQ(expected_count, count);
-}
-
-TEST_F(LivermorePEInteractorTest, model)
-{
-    using celeritas::Collection;
-
-    // Model is constructed with device pointers
-    if (!celeritas::device())
-    {
-        SKIP("CUDA is disabled");
-    }
-
-    // Create physics tables
-    ImportPhysicsTable xs_lo;
-    xs_lo.table_type = ImportTableType::lambda;
-    xs_lo.physics_vectors.push_back(
-        {ImportPhysicsVectorType::log, {1e-2, 1, 1e2}, {1e-1, 1e-3, 1e-5}});
-
-    ImportPhysicsTable xs_hi;
-    xs_hi.table_type = ImportTableType::lambda_prim;
-    xs_hi.physics_vectors.push_back(
-        {ImportPhysicsVectorType::log, {1e2, 1e4, 1e6}, {1e-3, 1e-3, 1e-3}});
-
-    // Add atomic relaxation data
-    relax_inp_.is_auger_enabled = true;
-    set_relaxation_params(relax_inp_);
-
-    PhotoelectricProcess process(this->get_particle_params(),
-                                 xs_lo,
-                                 xs_hi,
-                                 livermore_params_,
-                                 relax_params_,
-                                 10);
-
-    Applicability range    = {MaterialId{0},
-                           this->particle_params().find(pdg::gamma()),
-                           celeritas::zero_quantity(),
-                           celeritas::max_quantity()};
-    auto          builders = process.step_limits(range);
-
-    Collection<double, Ownership::value, MemSpace::host> real_storage;
-    Collection<celeritas::XsGridData, Ownership::value, MemSpace::host>
-        grid_storage;
-
-    ValueGridInserter insert(&real_storage, &grid_storage);
-    builders[int(celeritas::ValueGridType::macro_xs)]->build(insert);
-    EXPECT_EQ(1, grid_storage.size());
-
-    // Test cross sections calculated from tables
-    Collection<double, Ownership::const_reference, MemSpace::host> real_ref{
-        real_storage};
-    celeritas::XsCalculator calc_xs(
-        grid_storage[ValueGridInserter::XsIndex{0}], real_ref);
-    EXPECT_SOFT_EQ(0.1, calc_xs(MevEnergy{1e-3}));
-    EXPECT_SOFT_EQ(1e-5, calc_xs(MevEnergy{1e2}));
-    EXPECT_SOFT_EQ(1e-9, calc_xs(MevEnergy{1e6}));
-
-    // Construct the models associated with the photoelectric effect
-    ModelIdGenerator next_id;
-    auto models = process.build_models(next_id);
-    EXPECT_EQ(1, models.size());
-
-    auto livermore_pe = models.front();
-    EXPECT_EQ(ModelId{0}, livermore_pe->model_id());
-
-    // Get the particle types and energy ranges this model applies to
-    auto set_applic = livermore_pe->applicability();
-    EXPECT_EQ(1, set_applic.size());
-
-    auto applic = *set_applic.begin();
-    EXPECT_EQ(MaterialId{}, applic.material);
-    EXPECT_EQ(ParticleId{1}, applic.particle);
-    EXPECT_EQ(celeritas::zero_quantity(), applic.lower);
-    EXPECT_EQ(celeritas::max_quantity(), applic.upper);
 }
 
 TEST_F(LivermorePEInteractorTest, macro_xs)

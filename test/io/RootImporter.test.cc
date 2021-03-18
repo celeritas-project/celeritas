@@ -10,6 +10,7 @@
 #include <algorithm>
 #include "io/ImportPhysicsTable.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/base/CutoffView.hh"
 #include "physics/material/MaterialView.hh"
 #include "base/Types.hh"
 #include "base/Range.hh"
@@ -23,7 +24,11 @@ using namespace celeritas;
 //---------------------------------------------------------------------------//
 /*!
  * The geant-exporter-data.root is created by the app/geant-exporter using the
- * four-steel-slabs.gdml example file available in app/geant-exporter/data
+ * four-steel-slabs.gdml example file available in app/geant-exporter/data.
+ *
+ * \note
+ * G4EMLOW7.12 and G4EMLOW7.13 produce slightly different physics vector
+ * values for steel, failing \c import_processes test.
  */
 class RootImporterTest : public celeritas::Test
 {
@@ -31,9 +36,13 @@ class RootImporterTest : public celeritas::Test
     void SetUp() override
     {
         root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
+
+        RootImporter import_from_root(root_filename_.c_str());
+        data_ = import_from_root();
     }
 
-    std::string root_filename_;
+    std::string               root_filename_;
+    RootImporter::result_type data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -41,17 +50,14 @@ class RootImporterTest : public celeritas::Test
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, import_particles)
 {
-    RootImporter import_from_root(root_filename_.c_str());
-    auto         data = import_from_root();
-
-    const auto& particles = *data.particle_params;
+    const auto& particles = *data_.particle_params;
 
     EXPECT_EQ(19, particles.size());
 
     // Check electron data
-    ParticleId electron_id = data.particle_params->find(PDGNumber(11));
+    ParticleId electron_id = data_.particle_params->find(PDGNumber(11));
     ASSERT_GE(electron_id.get(), 0);
-    const auto& electron = data.particle_params->get(electron_id);
+    const auto& electron = data_.particle_params->get(electron_id);
     EXPECT_SOFT_EQ(0.510998910, electron.mass().value());
     EXPECT_EQ(-1, electron.charge().value());
     EXPECT_EQ(0, electron.decay_constant());
@@ -65,6 +71,7 @@ TEST_F(RootImporterTest, import_particles)
         loaded_pdgs.push_back(particles.id_to_pdg(particle_id).get());
     }
 
+    // Particle ordering is the same as in the ROOT file
     // clang-format off
     const std::string expected_loaded_names[] = {"gamma", "e-", "e+", "mu-",
         "mu+", "pi+", "pi-", "kaon+", "kaon-", "proton", "anti_proton",
@@ -82,8 +89,7 @@ TEST_F(RootImporterTest, import_particles)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, import_processes)
 {
-    RootImporter import_from_root(root_filename_.c_str());
-    auto         processes = import_from_root().processes;
+    const auto& processes = data_.processes;
 
     auto iter = std::find_if(
         processes.begin(), processes.end(), [](const ImportProcess& proc) {
@@ -112,8 +118,8 @@ TEST_F(RootImporterTest, import_processes)
         ASSERT_EQ(85, steel.x.size());
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_EQ(839.66834289225289, steel.y.front());
-        EXPECT_SOFT_EQ(11.207441942857839, steel.y.back());
+        EXPECT_SOFT_EQ(839.66835335480653, steel.y.front());
+        EXPECT_SOFT_EQ(11.207442027393293, steel.y.back());
     }
     {
         // Test range table
@@ -129,8 +135,8 @@ TEST_F(RootImporterTest, import_processes)
         ASSERT_EQ(85, steel.x.size());
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_EQ(2.3818928234342666e-07, steel.y.front());
-        EXPECT_SOFT_EQ(8922642.803467935, steel.y.back());
+        EXPECT_SOFT_EQ(2.3818927937550707e-07, steel.y.front());
+        EXPECT_SOFT_EQ(8922642.7361662444, steel.y.back());
     }
     {
         // Test cross section table
@@ -147,28 +153,25 @@ TEST_F(RootImporterTest, import_processes)
         EXPECT_SOFT_EQ(1.9413894232088691, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
         EXPECT_SOFT_EQ(0, steel.y.front());
-        EXPECT_SOFT_EQ(0.24960554022818102, steel.y[1]);
-        EXPECT_SOFT_EQ(0.58950470972977953, steel.y.back());
+        EXPECT_SOFT_EQ(0.24960554333948043, steel.y[1]);
+        EXPECT_SOFT_EQ(0.58950471707787622, steel.y.back());
     }
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, import_geometry)
 {
-    RootImporter import_from_root(root_filename_.c_str());
-    auto         data = import_from_root();
-
-    auto map = data.geometry->volid_to_matid_map();
+    auto map = data_.geometry->volid_to_matid_map();
     EXPECT_EQ(map.size(), 5);
 
     // Fetch a given ImportVolume provided a vol_id
     vol_id       volid  = 0;
-    ImportVolume volume = data.geometry->get_volume(volid);
+    ImportVolume volume = data_.geometry->get_volume(volid);
     EXPECT_EQ(volume.name, "box");
 
     // Fetch respective mat_id and ImportMaterial from the given vol_id
-    mat_id         matid    = data.geometry->get_matid(volid);
-    ImportMaterial material = data.geometry->get_material(matid);
+    mat_id         matid    = data_.geometry->get_matid(volid);
+    ImportMaterial material = data_.geometry->get_material(matid);
 
     // Test material
     EXPECT_EQ(1, matid);
@@ -176,11 +179,11 @@ TEST_F(RootImporterTest, import_geometry)
     EXPECT_EQ(ImportMaterialState::solid, material.state);
     EXPECT_SOFT_EQ(293.15, material.temperature); // [K]
     EXPECT_SOFT_EQ(8, material.density);          // [g/cm^3]
-    EXPECT_SOFT_EQ(2.2444324067595881e+24,
+    EXPECT_SOFT_EQ(2.2444320228819809e+24,
                    material.electron_density); // [1/cm^3]
-    EXPECT_SOFT_EQ(8.6993504137968536e+22, material.number_density); // [1/cm^3]
-    EXPECT_SOFT_EQ(1.7380670928095856, material.radiation_length);   // [cm]
-    EXPECT_SOFT_EQ(16.678055775064472, material.nuclear_int_length); // [cm]
+    EXPECT_SOFT_EQ(8.6993489258991514e+22, material.number_density); // [1/cm^3]
+    EXPECT_SOFT_EQ(1.738067064482842, material.radiation_length);    // [cm]
+    EXPECT_SOFT_EQ(16.678057097389537, material.nuclear_int_length); // [cm]
     EXPECT_EQ(3, material.elements_fractions.size());
 
     // Test elements within material
@@ -196,7 +199,7 @@ TEST_F(RootImporterTest, import_geometry)
     for (auto const& iter : material.elements_fractions)
     {
         auto elid    = iter.first;
-        auto element = data.geometry->get_element(elid);
+        auto element = data_.geometry->get_element(elid);
 
         EXPECT_EQ(elements_name[i], element.name);
         EXPECT_EQ(atomic_number[i], element.atomic_number);
@@ -209,14 +212,11 @@ TEST_F(RootImporterTest, import_geometry)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, import_material_params)
 {
-    RootImporter import_from_root(root_filename_.c_str());
-    auto         data = import_from_root();
-
     // Material labels
     std::string material_label;
-    material_label = data.material_params->id_to_label(MaterialId{0});
+    material_label = data_.material_params->id_to_label(MaterialId{0});
     EXPECT_EQ(material_label, "G4_Galactic");
-    material_label = data.material_params->id_to_label(MaterialId{1});
+    material_label = data_.material_params->id_to_label(MaterialId{1});
     EXPECT_EQ(material_label, "G4_STAINLESS-STEEL");
 
     /*!
@@ -226,15 +226,15 @@ TEST_F(RootImporterTest, import_material_params)
      * Celeritas constants results in the slightly different numerical values
      * calculated by Celeritas.
      */
-    celeritas::MaterialView mat(data.material_params->host_pointers(),
+    celeritas::MaterialView mat(data_.material_params->host_pointers(),
                                 MaterialId{1});
 
     EXPECT_EQ(MatterState::solid, mat.matter_state());
     EXPECT_SOFT_EQ(293.15, mat.temperature());         // [K]
-    EXPECT_SOFT_EQ(8.0000013655195588, mat.density()); // [g/cm^3]
-    EXPECT_SOFT_EQ(2.2444324067595884e+24,
+    EXPECT_SOFT_EQ(7.9999999972353661, mat.density()); // [g/cm^3]
+    EXPECT_SOFT_EQ(2.2444320228819809e+24,
                    mat.electron_density());                       // [1/cm^3]
-    EXPECT_SOFT_EQ(8.6993504137968536e+22, mat.number_density()); // [1/cm^3]
+    EXPECT_SOFT_EQ(8.6993489258991514e+22, mat.number_density()); // [1/cm^3]
 
     // Test elements by unpacking them
     std::vector<unsigned int> els;
@@ -251,4 +251,37 @@ TEST_F(RootImporterTest, import_material_params)
     static real_type          expected_fracs[] = {0.74, 0.18, 0.08};
     EXPECT_VEC_EQ(expected_els, els);
     EXPECT_VEC_SOFT_EQ(expected_fracs, fracs);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(RootImporterTest, import_cutoffs)
+{
+    const auto& particles = *data_.particle_params;
+    const auto& materials = *data_.material_params;
+    const auto& cutoffs   = *data_.cutoff_params;
+
+    std::vector<double> energies, ranges;
+
+    for (const auto pid : range(ParticleId{particles.size()}))
+    {
+        for (const auto matid : range(MaterialId{materials.size()}))
+        {
+            CutoffView cutoff_view(cutoffs.host_pointers(), pid, matid);
+            energies.push_back(cutoff_view.energy().value());
+            ranges.push_back(cutoff_view.range());
+        }
+    }
+
+    // clang-format off
+    const double expected_energies[] = {0.00099, 0.0173344452484621, 0.00099,
+        0.970694711604435, 0.00099, 0.926090152562135, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0};
+    const double expected_ranges[] = {0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0};
+    // clang-format on
+
+    EXPECT_VEC_SOFT_EQ(expected_energies, energies);
+    EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
 }

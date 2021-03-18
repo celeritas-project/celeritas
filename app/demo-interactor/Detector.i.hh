@@ -56,9 +56,9 @@ CELER_FUNCTION void Detector::process_hit(HitId id)
     using namespace celeritas;
 
     const Hit&      hit = state_.hit_buffer.storage[id];
-    UniformGrid grid(params_.tally_grid);
+    UniformGrid     grid(params_.tally_grid);
     const real_type z_pos = hit.pos[2];
-    size_type   bin;
+    size_type       bin;
 
     if (z_pos <= grid.front())
         bin = 0;

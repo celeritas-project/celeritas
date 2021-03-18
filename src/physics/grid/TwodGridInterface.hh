@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
+#include "base/Collection.hh"
+#include "base/Types.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -34,8 +38,10 @@ struct TwodGridData
     {
         CELER_EXPECT(ix < this->x.size());
         CELER_EXPECT(iy < this->y.size());
-        return ItemId<real_type>{this->values.front().get()
-                                 + ix * this->y.size() + iy};
+        size_type index = ix * this->y.size() + iy;
+
+        CELER_ENSURE(index < this->x.size() * this->y.size());
+        return ItemId<real_type>{index + this->values.front().get()};
     }
 };
 

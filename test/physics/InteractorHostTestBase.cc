@@ -215,7 +215,7 @@ void InteractorHostTestBase::check_momentum_conservation(
 
     // Compare against incident particle
     {
-        Real3             delta_momentum = exit_momentum;
+        Real3 delta_momentum = exit_momentum;
         axpy(-parent_track.momentum().value(), inc_direction_, &delta_momentum);
         EXPECT_SOFT_NEAR(0.0,
                          dot_product(delta_momentum, delta_momentum),

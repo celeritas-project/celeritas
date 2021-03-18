@@ -6,7 +6,7 @@
 //! \file Interpolator.i.hh
 //---------------------------------------------------------------------------//
 #include <cmath>
-#include "Assert.hh"
+#include "base/Assert.hh"
 
 namespace celeritas
 {

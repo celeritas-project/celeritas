@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "detail/SoftEqualTraits.hh"
 #include "Macros.hh"
 #include "Types.hh"
@@ -120,6 +122,18 @@ template<class RealType>
 inline CELER_FUNCTION bool soft_zero(RealType actual)
 {
     return SoftZero<RealType>()(actual);
+}
+
+//---------------------------------------------------------------------------//
+//! Soft modulo operator
+template<class RealType>
+inline CELER_FUNCTION bool soft_mod(RealType dividend, RealType divisor)
+{
+    auto remainder = std::fmod(dividend, divisor);
+
+    SoftEqual<RealType> seq(detail::SoftEqualTraits<RealType>::rel_prec());
+
+    return seq(0, remainder) || seq(divisor, remainder);
 }
 
 } // namespace celeritas

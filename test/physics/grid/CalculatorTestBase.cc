@@ -9,10 +9,10 @@
 
 #include <cmath>
 #include <vector>
-#include "base/Interpolator.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
+#include "physics/grid/Interpolator.hh"
 
 using namespace celeritas;
 

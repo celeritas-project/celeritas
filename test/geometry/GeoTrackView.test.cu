@@ -38,14 +38,13 @@ __global__ void vgg_test_kernel(const GeoParamsPointers shared,
     {
         if (geo.is_outside())
             break;
-        geo.find_next_step();
+
+        // Move next step
+        real_type dist = geo.move_next_step();
 
         // Save current ID and distance to travel
         ids[tid.get() * max_segments + seg]       = geo.volume_id();
-        distances[tid.get() * max_segments + seg] = geo.next_step();
-
-        // Move next step
-        geo.move_next_step();
+        distances[tid.get() * max_segments + seg] = dist;
     }
 }
 
@@ -69,7 +68,7 @@ VGGTestOutput vgg_test(VGGTestInput input)
     // Run kernel
     static const celeritas::KernelParamCalculator calc_launch_params(
         vgg_test_kernel, "vgg_test");
-    auto                             params = calc_launch_params(init.size());
+    auto params = calc_launch_params(init.size());
     vgg_test_kernel<<<params.grid_size, params.block_size>>>(
         input.shared,
         input.state,

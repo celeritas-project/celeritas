@@ -58,6 +58,22 @@ endfunction()
 
 set(_not_impl DISABLE)
 
+if(NOT CELERITAS_USE_HepMC3)
+  set(_needs_hepmc DISABLE)
+endif()
+if(NOT CELERITAS_USE_ROOT)
+  set(_needs_root DISABLE)
+endif()
+if(NOT CELERITAS_USE_Geant4)
+  set(_needs_geant4 DISABLE)
+else()
+  # Optional dependence on low-energy EM data
+  set(_ds G4EMLOW)
+  set(_geant_emlow
+     ENVIRONMENT "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
+  )
+endif()
+
 #-----------------------------------------------------------------------------#
 # Gtest additions
 celeritas_setup_tests(SERIAL PREFIX gtest/detail)
@@ -75,7 +91,6 @@ celeritas_add_test(base/ArrayUtils.test.cc)
 celeritas_add_test(base/Constants.test.cc)
 celeritas_add_test(base/DeviceAllocation.test.cc GPU)
 celeritas_add_test(base/DeviceVector.test.cc GPU)
-celeritas_add_test(base/Interpolator.test.cc)
 celeritas_add_test(base/Join.test.cc)
 celeritas_add_test(base/OpaqueId.test.cc)
 celeritas_add_test(base/Quantity.test.cc)
@@ -146,16 +161,10 @@ endif()
 
 celeritas_setup_tests(SERIAL PREFIX io)
 
-if(NOT CELERITAS_USE_HepMC3)
-  set(_needs_hepmc DISABLE)
-endif()
-if(NOT CELERITAS_USE_ROOT)
-  set(_needs_root DISABLE)
-endif()
-
 celeritas_add_test(io/RootImporter.test.cc ${_needs_root}
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc})
+celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Physics
@@ -173,12 +182,14 @@ target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
 set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
 
 celeritas_setup_tests(SERIAL PREFIX physics/base)
+celeritas_add_test(physics/base/CutoffParams.test.cc)
 celeritas_cudaoptional_test(physics/base/Particle)
 celeritas_cudaoptional_test(physics/base/Physics)
 celeritas_add_test(physics/base/PhysicsStepUtils.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX physics/grid)
 celeritas_add_test(physics/grid/GridIdFinder.test.cc)
+celeritas_add_test(physics/grid/Interpolator.test.cc)
 celeritas_add_test(physics/grid/InverseRangeCalculator.test.cc)
 celeritas_add_test(physics/grid/NonuniformGrid.test.cc)
 celeritas_add_test(physics/grid/RangeCalculator.test.cc)
@@ -192,7 +203,7 @@ celeritas_setup_tests(SERIAL PREFIX physics/material)
 celeritas_add_test(physics/material/ElementSelector.test.cc)
 celeritas_cudaoptional_test(physics/material/Material)
 
-#-----------------------------------------------------------------------------#
+#-------------------------------------#
 # Physics (EM)
 
 celeritas_setup_tests(SERIAL PREFIX physics/em)
@@ -206,8 +217,15 @@ celeritas_add_test(physics/em/KleinNishina.test.cc)
 celeritas_add_test(physics/em/LivermorePE.test.cc)
 celeritas_add_test(physics/em/MollerBhabha.test.cc)
 celeritas_add_test(physics/em/Rayleigh.test.cc ${_not_impl})
+celeritas_add_test(physics/em/SeltzerBerger.test.cc)
 celeritas_add_test(physics/em/Urban.test.cc ${_not_impl})
 celeritas_add_test(physics/em/Wentzel.test.cc ${_not_impl})
+
+celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
+  ${_geant_emlow}
+  GPU # TODO: delete when device pointers are no longer directly accessed
+  LINK_LIBRARIES Celeritas::ROOT)
+
 
 # END PHYSICS TESTS
 set(CELERITASTEST_LINK_LIBRARIES)

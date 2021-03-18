@@ -10,7 +10,6 @@
 #include "base/Collection.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
-#include "MaterialInterface.hh"
 #include "Types.hh"
 
 #ifndef __CUDA_ARCH__
@@ -99,10 +98,10 @@ struct MaterialParamsData
     template<class T>
     using Data = celeritas::Collection<T, W, M>;
 
-    Data<ElementDef>               elements;
-    Data<MatElementComponent>      elcomponents;
-    Data<MaterialDef>              materials;
-    ElementComponentId::size_type  max_element_components{};
+    Data<ElementDef>              elements;
+    Data<MatElementComponent>     elcomponents;
+    Data<MaterialDef>             materials;
+    ElementComponentId::size_type max_element_components{};
 
     //// MEMBER FUNCTIONS ////
 

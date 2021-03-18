@@ -61,11 +61,11 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
 
     // Particle data
     // TODO: refactor these as collections, and simplify
-    RngStateStore           rng_states(args.num_tracks, args.seed);
-    DeviceVector<Real3>     position(args.num_tracks);
-    DeviceVector<Real3>     direction(args.num_tracks);
-    DeviceVector<double>    time(args.num_tracks);
-    DeviceVector<bool>      alive(args.num_tracks);
+    RngStateStore        rng_states(args.num_tracks, args.seed);
+    DeviceVector<Real3>  position(args.num_tracks);
+    DeviceVector<Real3>  direction(args.num_tracks);
+    DeviceVector<double> time(args.num_tracks);
+    DeviceVector<bool>   alive(args.num_tracks);
 
     ParticleStateData<Ownership::value, MemSpace::device> track_states;
     resize(&track_states, pparams_->host_pointers(), args.num_tracks);

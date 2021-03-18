@@ -55,6 +55,16 @@ MaterialView MaterialParams::get(MaterialId id) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get properties for the given element.
+ */
+ElementView MaterialParams::get(ElementId id) const
+{
+    CELER_EXPECT(id < this->host_pointers().elements.size());
+    return ElementView(this->host_pointers(), id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Maximum number of elements in any one material.
  */
 ElementComponentId::size_type MaterialParams::max_element_components() const
