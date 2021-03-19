@@ -34,7 +34,7 @@ to installing and activating the Spack prerequisites for building Celeritas.
 Alternatively, you can manually perform the following steps:
 - Clone Spack following its [getting started instructions](https://spack.readthedocs.io/en/latest/getting_started.html)
 - Add CUDA to your `$SPACK_ROOT/etc/spack/packages.yaml` file
-- Run `spack env add celeritas scripts/dev/env/celeritas-linux.yaml` (or
+- Run `spack env create celeritas scripts/dev/env/celeritas-linux.yaml` (or
   replace `linux` with `darwin` if running on a mac); then `spack -e
   celeritas concretize` and `spack -e celeritas install`
 - Run and add to your startup environment profile `spack env activate
