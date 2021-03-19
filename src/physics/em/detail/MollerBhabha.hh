@@ -43,7 +43,7 @@ struct MollerBhabhaPointers
     explicit inline CELER_FUNCTION operator bool() const
     {
         return electron_id && positron_id && electron_mass_c_sq > 0
-               && min_valid_energy > 0;
+               && min_valid_energy > 0 && cutoff_energy >= 0;
     }
 };
 

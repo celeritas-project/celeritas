@@ -12,6 +12,7 @@
 #include "base/Types.hh"
 #include "random/cuda/RngInterface.hh"
 #include "physics/material/MaterialInterface.hh"
+#include "physics/base/CutoffInterface.hh"
 #include "Secondary.hh"
 #include "ParticleInterface.hh"
 #include "Interaction.hh"
@@ -28,11 +29,12 @@ struct ModelInteractParams
     ParticleParamsData<Ownership::const_reference, MemSpace::device> particle;
     MaterialParamsData<Ownership::const_reference, MemSpace::device> material;
     PhysicsParamsData<Ownership::const_reference, MemSpace::device>  physics;
+    CutoffParamsData<Ownership::const_reference, MemSpace::device>   cutoffs;
 
     //! True if valid
     CELER_FUNCTION operator bool() const
     {
-        return physics && particle && material;
+        return physics && particle && material && cutoffs;
     }
 };
 
@@ -49,8 +51,8 @@ struct ModelInteractState
     ParticleStateData<Ownership::reference, MemSpace::device> particle;
     MaterialStateData<Ownership::reference, MemSpace::device> material;
     PhysicsStateData<Ownership::reference, MemSpace::device>  physics;
-    Span<const Real3>     direction;
-    RngStatePointers      rng;
+    Span<const Real3>                                         direction;
+    RngStatePointers                                          rng;
 
     //! True if valid
     CELER_FUNCTION operator bool() const
