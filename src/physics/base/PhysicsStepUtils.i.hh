@@ -31,8 +31,8 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
 {
     CELER_EXPECT(physics.has_interaction_mfp());
 
-    constexpr real_type inf = numeric_limits<real_type>::infinity();
-    using VGT               = ValueGridType;
+    const real_type inf = numeric_limits<real_type>::infinity();
+    using VGT           = ValueGridType;
 
     // Loop over all processes that apply to this track (based on particle
     // type) and calculate cross section and particle range.

@@ -176,7 +176,7 @@ CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> zero_quantity()
 /*!
  * Get a quantitity greater than any other numeric quantity.
  */
-CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> max_quantity()
+inline CELER_FUNCTION detail::UnitlessQuantity<real_type> max_quantity()
 {
     return {numeric_limits<real_type>::infinity()};
 }
@@ -185,7 +185,7 @@ CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> max_quantity()
 /*!
  * Get a quantitity less than any other numeric quantity.
  */
-CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> neg_max_quantity()
+inline CELER_FUNCTION detail::UnitlessQuantity<real_type> neg_max_quantity()
 {
     return {-numeric_limits<real_type>::infinity()};
 }

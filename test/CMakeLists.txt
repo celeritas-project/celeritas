@@ -102,13 +102,8 @@ celeritas_add_test(base/Stopwatch.test.cc)
 celeritas_add_test(base/TypeDemangler.test.cc)
 celeritas_add_test(base/VectorUtils.test.cc)
 
-if(CELERITAS_USE_CUDA)
-  celeritas_add_test(base/NumericLimits.test.cc
-    SOURCES base/NumericLimits.test.cu
-    GPU)
-endif()
-
 celeritas_cudaoptional_test(base/Collection)
+celeritas_cudaoptional_test(base/NumericLimits)
 celeritas_cudaoptional_test(base/Range)
 celeritas_cudaoptional_test(base/StackAllocator)
 
