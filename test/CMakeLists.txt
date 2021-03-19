@@ -64,14 +64,16 @@ endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
+
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
 else()
   # Optional dependence on low-energy EM data
   set(_ds G4EMLOW)
-  set(_geant_emlow
+  set(_optional_geant4
      ENVIRONMENT "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
   )
+  set(_needs_geant4 ${_optional_geant4})
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -218,7 +220,7 @@ celeritas_add_test(physics/em/Urban.test.cc ${_not_impl})
 celeritas_add_test(physics/em/Wentzel.test.cc ${_not_impl})
 
 celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
-  ${_geant_emlow}
+  ${_optional_geant4}
   GPU # TODO: delete when device pointers are no longer directly accessed
   LINK_LIBRARIES Celeritas::ROOT)
 
