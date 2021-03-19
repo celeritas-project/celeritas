@@ -25,8 +25,8 @@ MollerBhabhaModel::MollerBhabhaModel(ModelId               id,
     interface_.positron_id = particles.find(pdg::positron());
 
     CELER_VALIDATE(interface_.electron_id && interface_.positron_id,
-                   "Electron and positron particles must be enabled to use "
-                   "the Moller-Bhabha Model.");
+                   "Electrons and positrons must be enabled to use the "
+                   "Moller-Bhabha Model.");
 
     interface_.electron_mass_c_sq
         = particles.get(interface_.electron_id).mass().value(); // [MeV]

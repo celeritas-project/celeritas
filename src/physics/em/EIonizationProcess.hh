@@ -1,9 +1,9 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ComptonProcess.hh
+//! \file EIonizationProcess.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,9 +16,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Compton scattering process for gammas.
+ * Ionization process for electrons and positrons.
  */
-class ComptonProcess : public Process
+class EIonizationProcess : public Process
 {
   public:
     //!@{
@@ -28,14 +28,15 @@ class ComptonProcess : public Process
     //!@}
 
   public:
-    // Construct from imported data
-    ComptonProcess(SPConstParticles particles, SPConstImported process_data);
+    // Construct with imported data
+    EIonizationProcess(SPConstParticles particles,
+                       SPConstImported  process_data);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;
 
     // Get the interaction cross sections for the given energy range
-    StepLimitBuilders step_limits(Applicability applic) const final;
+    StepLimitBuilders step_limits(Applicability applicability) const final;
 
     // Name of the process
     std::string label() const final;
