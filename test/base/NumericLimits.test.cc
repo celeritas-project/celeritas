@@ -23,7 +23,7 @@ class RealNumericLimitsTest : public celeritas::Test
 {
 };
 using RealTypes = ::testing::Types<float, double>;
-TYPED_TEST_SUITE(RealNumericLimitsTest, RealTypes);
+TYPED_TEST_SUITE(RealNumericLimitsTest, RealTypes, );
 
 TYPED_TEST(RealNumericLimitsTest, host)
 {
@@ -36,7 +36,11 @@ TYPED_TEST(RealNumericLimitsTest, host)
     EXPECT_TRUE(std::isnan(celer_limits_t::quiet_NaN()));
 }
 
+#if CELERITAS_USE_CUDA
 TYPED_TEST(RealNumericLimitsTest, device)
+#else
+TYPED_TEST(RealNumericLimitsTest, DISABLED_device)
+#endif
 {
     using celer_limits_t = celeritas::numeric_limits<TypeParam>;
     auto result          = nl_test<TypeParam>();
@@ -58,7 +62,7 @@ class UIntNumericLimitsTest : public celeritas::Test
 
 using UIntTypes
     = ::testing::Types<unsigned int, unsigned long, unsigned long long>;
-TYPED_TEST_SUITE(UIntNumericLimitsTest, UIntTypes);
+TYPED_TEST_SUITE(UIntNumericLimitsTest, UIntTypes, );
 
 TYPED_TEST(UIntNumericLimitsTest, host)
 {
