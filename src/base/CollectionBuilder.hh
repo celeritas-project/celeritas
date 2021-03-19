@@ -99,6 +99,21 @@ make_builder(Collection<T, Ownership::value, M, I>* collection)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Helper function for resizing a single collection.
+ *
+ * This is useful for analogy to the resize method defined for states.
+ */
+template<class T, MemSpace M, class I>
+void resize(Collection<T, Ownership::value, M, I>* collection,
+            typename I::size_type                  size)
+{
+    CELER_EXPECT(collection);
+    CELER_EXPECT(size > 0);
+    CollectionBuilder<T, M, I>(collection).resize(size);
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
 
 #include "CollectionBuilder.i.hh"

@@ -8,10 +8,10 @@
 #pragma once
 
 #include <vector>
-#include "KNDemoKernel.hh"
-#include "physics/grid/UniformGrid.hh"
-#include "base/Types.hh"
 #include <nlohmann/json.hpp>
+#include "base/Types.hh"
+#include "physics/grid/UniformGrid.hh"
+#include "KNDemoKernel.hh"
 
 namespace demo_interactor
 {
