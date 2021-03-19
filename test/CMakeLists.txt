@@ -137,13 +137,11 @@ if(CELERITAS_USE_VecGeom)
       geometry/GeoTrackView.test.cu
       geometry/LinearPropagator.test.cu
     )
-    # NOTE: changing link order causes segfault at runtime:
-    # must be celeritas, then vg, then vg_static
     target_link_libraries(celeritas_vgtest
       PRIVATE
+      celeritas
       VecGeom::vecgeomcuda
       VecGeom::vecgeomcuda_static
-      celeritas
     )
     set_target_properties(celeritas_vgtest PROPERTIES
       LINKER_LANGUAGE CUDA
