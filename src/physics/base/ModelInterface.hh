@@ -10,7 +10,7 @@
 #include "base/Span.hh"
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "random/RngInterface.hh"
+#include "random/cuda/RngInterface.hh"
 #include "physics/material/MaterialInterface.hh"
 #include "Secondary.hh"
 #include "ParticleInterface.hh"
@@ -50,7 +50,7 @@ struct ModelInteractState
     MaterialStateData<Ownership::reference, MemSpace::device> material;
     PhysicsStateData<Ownership::reference, MemSpace::device>  physics;
     Span<const Real3>                                         direction;
-    RngStateData<Ownership::reference, MemSpace::device>      rng;
+    RngStatePointers                                          rng;
 
     //! True if valid
     CELER_FUNCTION operator bool() const

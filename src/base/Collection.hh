@@ -25,8 +25,7 @@ namespace celeritas
  * type or a struct of such types.
  *
  * An individual item in a \c Collection<T> can be accessed with \c ItemId<T>,
-a
- * contiguous subset of items are accessed with \c ItemRange<T>, and the
+ * a contiguous subset of items are accessed with \c ItemRange<T>, and the
  * entirety of the data are accessed with \c AllItems<T>. All three of these
  * classes are trivially copyable, so they can be embedded in structs that can
  * be managed by a Collection. A group of Collections, one for each data type,
