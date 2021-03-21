@@ -28,7 +28,7 @@ namespace celeritas
  * positive). For ranges shorter than the minimum energy in the table, the
  * resulting energy is scaled:
  * \f[
-    E = E_\textrm{min}} \left( \frac{r}{r_\textrm{min}} \right)^2
+    E = E_\mathrm{min} \left( \frac{r}{r_\mathrm{min}} \right)^2
  * \f]
  * This scaling is the inverse of the off-the-end energy scaling in the
  * RangeCalculator.
