@@ -81,15 +81,15 @@ template<Ownership W, MemSpace M>
 struct LivermorePEXsData
 {
     template<class T>
-    using Data = Collection<T, W, M>;
+    using Items = Collection<T, W, M>;
     template<class T>
-    using ElementData = Collection<T, W, M, ElementId>;
+    using ElementItems = Collection<T, W, M, ElementId>;
 
     //// MEMBER DATA ////
 
-    Data<real_type>               reals;
-    Data<LivermoreSubshell>       shells;
-    ElementData<LivermoreElement> elements;
+    Items<real_type>               reals;
+    Items<LivermoreSubshell>       shells;
+    ElementItems<LivermoreElement> elements;
 
     //// MEMBER FUNCTIONS ////
 

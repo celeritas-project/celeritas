@@ -159,10 +159,14 @@ struct HardwiredModels
 template<Ownership W, MemSpace M>
 struct PhysicsParamsData
 {
+    //// TYPES ////
+
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
     using ParticleItems = Collection<T, W, M, ParticleId>;
+
+    //// DATA ////
 
     // Backend storage
     Items<real_type>            reals;
@@ -174,15 +178,16 @@ struct PhysicsParamsData
     Items<ModelGroup>           model_groups;
     ParticleItems<ProcessGroup> process_groups;
 
+    // Special data
     HardwiredModels<W, M> hardwired;
     ProcessId::size_type  max_particle_processes{};
 
-    //// USER-CONFIGURABLE CONSTANTS ////
+    // User-configurable constants
     real_type scaling_min_range{}; //!< rho [cm]
     real_type scaling_fraction{};  //!< alpha [unitless]
     real_type linear_loss_limit{}; //!< For scaled range calculation
 
-    //// MEMBER FUNCTIONS ////
+    //// METHODS ////
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
@@ -261,13 +266,19 @@ struct PhysicsTrackInitializer
 template<Ownership W, MemSpace M>
 struct PhysicsStateData
 {
+    //// TYPES ////
+
     template<class T>
     using StateItems = celeritas::StateCollection<T, W, M>;
     template<class T>
     using Items = celeritas::Collection<T, W, M>;
 
+    //// DATA ////
+
     StateItems<PhysicsTrackState> state; //!< Track state [track]
     Items<real_type> per_process_xs;     //!< XS [track][particle process]
+
+    //// METHODS ////
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
@@ -289,7 +300,7 @@ struct PhysicsStateData
 #ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
- * Resize a material state in host code.
+ * Resize the state in host code.
  */
 template<MemSpace M>
 inline void resize(

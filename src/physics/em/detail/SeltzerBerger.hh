@@ -63,15 +63,15 @@ struct SeltzerBergerTableData
     //// MEMBER FUNCTIONS ////
 
     template<class T>
-    using Data = Collection<T, W, M>;
+    using Items = Collection<T, W, M>;
     template<class T>
-    using ElementData = Collection<T, W, M, ElementId>;
+    using ElementItems = Collection<T, W, M, ElementId>;
 
     //// MEMBER DATA ////
 
-    Data<real_type>                 reals;
-    Data<size_type>                 sizes;
-    ElementData<SBElementTableData> elements;
+    Items<real_type>                 reals;
+    Items<size_type>                 sizes;
+    ElementItems<SBElementTableData> elements;
 
     //// MEMBER FUNCTIONS ////
 

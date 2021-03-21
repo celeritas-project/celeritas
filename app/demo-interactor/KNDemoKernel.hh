@@ -37,9 +37,9 @@ template<Ownership W, MemSpace M>
 struct TableData
 {
     template<class T>
-    using Data = celeritas::Collection<T, W, M>;
+    using Items = celeritas::Collection<T, W, M>;
 
-    Data<celeritas::real_type> reals;
+    Items<celeritas::real_type> reals;
     celeritas::XsGridData      xs;
 
     //// MEMBER FUNCTIONS ////
