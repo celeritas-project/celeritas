@@ -57,7 +57,8 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         pointers_.positron_id        = params.find(pdg::positron());
         pointers_.electron_mass_c_sq = 0.5109989461;
         pointers_.min_valid_energy   = 1e-3; // [MeV]
-        pointers_.cutoff_energy      = 0;    // [MeV]
+        //! If cutoff is zero the hardcoded minimum energy is used
+        pointers_.cutoff_energy = 0; // [MeV]
 
         // Set default incident direction. Particle is defined in the tests
         this->set_inc_direction({0, 0, 1});
@@ -345,6 +346,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     EXPECT_VEC_SOFT_EQ(expected_m_sec_e, m_sec_e);
     for (const auto secondary_energy : m_sec_e)
     {
+        // Verify if all secondaries are above the cutoff threshld
         EXPECT_TRUE(secondary_energy > pointers_.cutoff_energy);
     }
 
@@ -356,6 +358,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     EXPECT_VEC_SOFT_EQ(expected_b_sec_e, b_sec_e);
     for (const auto secondary_energy : b_sec_e)
     {
+        // Verify if all secondaries are above the cutoff threshld
         EXPECT_TRUE(secondary_energy > pointers_.cutoff_energy);
     }
 }
