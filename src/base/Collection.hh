@@ -14,6 +14,61 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * \page collections Collections and Collection Groups
+ *
+ * The \c Collection manages data allocation and transfer between CPU and GPU.
+ * Its primary design goal is facilitating construction of deeply hierarchical
+ * data on host at setup time and seamlessly copying to device.
+ * The templated \c T must be trivially copyable---either a fundamental data
+ * type or a struct of such types.
+ *
+ * An individual item in a \c Collection<T> can be accessed with \c ItemId<T>,
+ * a contiguous subset of items are accessed with \c ItemRange<T>, and the
+ * entirety of the data are accessed with \c AllItems<T>. All three of these
+ * classes are trivially copyable, so they can be embedded in structs that can
+ * be managed by a Collection. A group of Collections, one for each data type,
+ * can therefore be trivially copied to the GPU to enable arbitrarily deep and
+ * complex data hierarchies.
+ *
+ * By convention, groups of Collections are either "StateData", which are
+ * meant to be mutable, never directly copied between host and device, and
+ * store data typically accessed by thread ID; and "ParamsData", which are
+ * immutable and typically mirrorerd on both host and device. A collection
+ * group has the following requirements to be compatible with the \c
+ * CollectionMirror, \c CollectionStateStore, and other such helper classes:
+ * - Be a struct templated with \c template<Ownership W, MemSpace M>
+ * - Contain only Collection objects and trivially copyable structs
+ * - Define an operator bool that is true if and only if the class data is
+ *   assigned and consistent
+ * - Define a templated assignment operator on "other" Ownership and MemSpace
+ *   which assigns every member to the right-hand-side's member
+ *
+ * Additionally, a StateData collection group must define
+ * - A member function \c size() returning the number of entries (i.e. number
+ *   of threads)
+ * - A free function \c resize with one of two signatures:
+ * \code
+void resize(
+    StateData<Ownership::value, M>*                               data,
+    const ParamsData<Ownership::const_reference, MemSpace::host>& params,
+    size_type                                                     size);
+// or...
+void resize(
+    StateData<Ownership::value, M>* data,
+    size_type                       size);
+ * \endcode
+ *
+ * Also by convention, related collection groups are stored in a \c
+ * Interface.hh file.
+ *
+ * See ParticleParamsData and ParticleStateData for minimal examples of using
+ * collection groups. The MaterialParamsData demonstrates additional complexity
+ * by having a multi-level data hierarchy, and MaterialStateData has a resize
+ * function that uses params data. PhysicsParamsData is a very complex example.
+ */
+
 //! Opaque ID representing a single element of a container.
 template<class T>
 using ItemId = OpaqueId<T, size_type>;
@@ -74,12 +129,13 @@ struct AllItems
  * Manage generic array-like data ownership and transfer from host to device.
  *
  * Data are constructed incrementally on the host, then copied (along with
- * their associated ItemRange ) to device. A Collection can act as a
+ * their associated ItemRange) to device. A Collection can act as a
  * std::vector<T>, DeviceVector<T>, Span<T>, or Span<const T>. The Spans can
  * point to host or device memory, but the MemSpace template argument protects
  * against accidental accesses from the wrong memory space.
  *
- * Each Collection object is usually accessed with a Slice, which references a
+ * Each Collection object is usually accessed with an ItemRange, which
+ * references a
  * contiguous set of elements in the Collection. For example, setup code on the
  * host would extend the Collection with a series of vectors, the addition of
  * which returns a ItemRange that returns the equivalent data on host or

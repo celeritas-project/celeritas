@@ -241,6 +241,23 @@ class CollectionTest : public celeritas::Test
             EXPECT_EQ(6, els[2].atomic_number);
         }
 
+        // Test references helpers
+        {
+            using celeritas::make_ref;
+            using celeritas::make_const_ref;
+
+            auto host_cref = make_const_ref(host_data);
+            EXPECT_TRUE((std::is_same<decltype(host_cref),
+                                     MockParamsData<Ownership::const_reference,
+                                                    MemSpace::host>>::value));
+
+            const auto& host_value_const = host_data;
+            auto        host_cref2       = make_const_ref(host_value_const);
+            EXPECT_TRUE((std::is_same<decltype(host_cref2),
+                                     MockParamsData<Ownership::const_reference,
+                                                    MemSpace::host>>::value));
+        }
+
         // Create references and copy to device if enabled
         mock_params = MockParamsMirror{std::move(host_data)};
     }
@@ -248,19 +265,22 @@ class CollectionTest : public celeritas::Test
     MockParamsMirror mock_params;
 };
 
+template<MemSpace M>
+inline void resize(MockStateData<Ownership::value, M>* data, celeritas::size_type size)
+{
+    CELER_EXPECT(size > 0);
+    make_builder(&data->matid).resize(size);
+}
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
 TEST_F(CollectionTest, host)
 {
-    MockStateData<Ownership::value, MemSpace::host>     host_state;
-    MockStateData<Ownership::reference, MemSpace::host> host_state_ref;
-
-    make_builder(&host_state.matid).resize(1);
-    host_state_ref = host_state;
-
-    // Assign
+    MockStateData<Ownership::value, MemSpace::host> host_state;
+    resize(&host_state, 1);
+    auto host_state_ref = celeritas::make_ref(host_state);
     host_state_ref.matid[ThreadId{0}] = MockMaterialId{1};
 
     // Create view
@@ -273,7 +293,7 @@ TEST_F(CollectionTest, TEST_IF_CELERITAS_CUDA(device))
 {
     // Construct with 1024 states
     MockStateData<Ownership::value, MemSpace::device> device_states;
-    make_builder(&device_states.matid).resize(1024);
+    resize(&device_states, 1024);
 
     celeritas::DeviceVector<double> device_result(device_states.size());
 

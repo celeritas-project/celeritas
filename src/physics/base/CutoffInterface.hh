@@ -40,10 +40,10 @@ template<Ownership W, MemSpace M>
 struct CutoffParamsData
 {
     template<class T>
-    using Data = Collection<T, W, M>;
+    using Items = Collection<T, W, M>;
 
     // Backend storage
-    Data<ParticleCutoff> cutoffs; // [num_materials][num_particles]
+    Items<ParticleCutoff> cutoffs; // [num_materials][num_particles]
 
     ParticleId::size_type num_particles;
     MaterialId::size_type num_materials;
