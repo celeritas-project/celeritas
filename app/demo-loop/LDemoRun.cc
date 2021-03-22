@@ -100,15 +100,14 @@ LDemoResult run_gpu(LDemoArgs args)
     resize(&state_storage,
            build_params_refs<MemSpace::host>(params),
            args.num_tracks);
-    StateDeviceRef states_ref;
-    states_ref = state_storage;
+    StateDeviceRef states_ref = make_ref(state_storage);
 
     CELER_NOT_IMPLEMENTED("TODO: stepping loop");
 
-    // - Initialize fixed number of primaries (isotropic samples
+    // - Initialize fixed number of primaries (isotropic samples?)
 
-    bool alive = true;
-    while (alive)
+    bool any_alive = true;
+    while (any_alive)
     {
         demo_loop::pre_step(params_ref, states_ref);
         // - Geometry propagate

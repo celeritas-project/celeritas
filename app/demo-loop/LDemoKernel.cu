@@ -46,15 +46,15 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACES
 //---------------------------------------------------------------------------//
-#define CDL_LAUNCH_KERNEL(NAME, THREADS, ARGS...)                            \
-    do                                                                       \
-    {                                                                        \
-        static const ::celeritas::KernelParamCalculator calc_kernel_params_( \
-            NAME##_kernel, #NAME);                                           \
-        auto grid_ = calc_kernel_params_(THREADS);                           \
-                                                                             \
-        NAME##_kernel<<<grid_.grid_size, grid_.block_size>>>(ARGS);          \
-        CELER_CUDA_CHECK_ERROR();                                            \
+#define CDL_LAUNCH_KERNEL(NAME, THREADS, ARGS...)                   \
+    do                                                              \
+    {                                                               \
+        static const ::celeritas::KernelParamCalculator NAME##_ckp( \
+            NAME##_kernel, #NAME);                                  \
+        auto kp = NAME##_ckp(THREADS);                              \
+                                                                    \
+        NAME##_kernel<<<kp.grid_size, kp.block_size>>>(ARGS);       \
+        CELER_CUDA_CHECK_ERROR();                                   \
     } while (0)
 
 //---------------------------------------------------------------------------//
