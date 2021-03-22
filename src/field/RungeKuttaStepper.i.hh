@@ -12,44 +12,55 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a field equation.
- */
-template<class FieldEquation_T>
-CELER_FUNCTION
-RungeKuttaStepper<FieldEquation_T>::RungeKuttaStepper(FieldEquation_T& eq)
-    : equation_(eq)
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Adaptive step size control
+ *
+ * For a magnetic field equation \em f along a charged particle trajectory
+ * with state \em y, which includes position and momentum but may also include
+ * time and spin. For N-variables (\em i = 1, ... N), the right hand side of
+ * the equation
+ * \f[
+ *  \frac{dy_{i}}{ds} = f_i (s, y_{i})
+ * \f]
+ * and the fouth order Runge-Kutta solution for a given step size, \em h is
+ * \f[
+ *  y_{n+1} - y_{n} = h f(x_n, y_n) = \frac{h}{6} (k_1 + 2 k_2 + 2 k_3 + k_4)
+ * \f]
+ * which is the average slope at four different points,
+ * The truncation error is the difference of the final states of one full step
+ * (\em y1) and two half steps (\em y2)
+ * \f[
+ *  \Delta = y_2 - y_1, y(x+h) = y_2 + \frac{\Delta}{15} + \math{O}(h^{6})
+ * \f]
  */
 template<class T>
 CELER_FUNCTION 
 auto RungeKuttaStepper<T>::operator()(real_type step, 
                                       const OdeState& beg_state, 
-                                      const OdeState& beg_slope) -> OdeState
+                                      const OdeState& beg_slope) -> Result
 {
     using celeritas::axpy;
     real_type           half_step               = step / real_type(2);
     constexpr real_type fourth_order_correction = 1 / real_type(15);
 
+    Result result;
+
     // Do two half steps
-    mid_state_         = stepper(half_step, beg_state, beg_slope);
-    OdeState end_state = stepper(half_step, mid_state_, equation_(mid_state_));
+    result.mid_state = do_step(half_step, beg_state, beg_slope);
+    result.end_state = do_step(half_step, 
+                               result.mid_state, 
+                               equation_(result.mid_state));
 
     // Do a full step
-    OdeState yt = stepper(step, beg_state, beg_slope);
+    OdeState yt = do_step(step, beg_state, beg_slope);
 
     // Stepper error: difference between the full step and two half steps
-    state_err_ = end_state;
-    axpy(real_type(-1.0), yt, &state_err_);
+    result.err_state = result.end_state;
+    axpy(real_type(-1.0), yt, &result.err_state);
 
     // Output correction with the 4th order coefficient (1/15)
-    axpy(fourth_order_correction, state_err_, &end_state);
+    axpy(fourth_order_correction, result.err_state, &result.end_state);
 
-    return end_state;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -57,10 +68,10 @@ auto RungeKuttaStepper<T>::operator()(real_type step,
  * The classical RungeKuttaStepper stepper (the 4th order)
  */
 template<class T>
-CELER_FUNCTION auto RungeKuttaStepper<T>::stepper(real_type       step,
-                                                  const OdeState& beg_state,
-                                                  const OdeState& beg_slope)
-    -> OdeState
+CELER_FUNCTION auto
+RungeKuttaStepper<T>::do_step(real_type       step,
+                              const OdeState& beg_state,
+                              const OdeState& beg_slope) const -> OdeState
 {
     using celeritas::axpy;
     real_type           half_step = step / real_type(2);
@@ -91,59 +102,6 @@ CELER_FUNCTION auto RungeKuttaStepper<T>::stepper(real_type       step,
     axpy(sixth * step, end_slope, &end_state);
 
     return end_state;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Evaluate the stepper truncation error: max(pos_error^2, scale*mom_error^2)
- */
-template<class T>
-CELER_FUNCTION real_type RungeKuttaStepper<T>::error(real_type       step,
-                                                     const OdeState& beg_state)
-{
-    // Evaluate tolerance and squre of the position and momentum accuracy
-    real_type eps_pos = eps_rel_max() * step;
-
-    real_type magvel2{0.0};
-    real_type errpos2{0.0};
-    real_type errvel2{0.0};
-
-    for (auto i : range(3))
-    {
-        magvel2 += beg_state[i + 3] * beg_state[i + 3];
-        errpos2 += state_err_[i] * state_err_[i];
-        errvel2 += state_err_[i + 3] * state_err_[i + 3];
-    }
-
-    // Scale relative to a required tolerance
-    CELER_ASSERT(errpos2 > 0.0);
-    CELER_ASSERT(magvel2 > 0.0);
-
-    errpos2 /= (eps_pos * eps_pos);
-    errvel2 /= (magvel2 * eps_rel_max() * eps_rel_max());
-
-    // Return the square of the maximum truncation error
-    return std::fmax(errpos2, errvel2);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Closerest distance between the chord and the mid-point
- */
-template<class T>
-CELER_FUNCTION real_type RungeKuttaStepper<T>::distance_chord(
-    const OdeState& beg_state, const OdeState& end_state) const
-{
-    real_type beg_dist2{0};
-    real_type end_dist2{0};
-
-    for (auto i : range(3))
-    {
-        beg_dist2 += beg_state[i] * beg_state[i];
-        end_dist2 += end_state[i] * end_state[i];
-    }
-
-    return std::sqrt(beg_dist2 * end_dist2 / (beg_dist2 + end_dist2));
 }
 
 //---------------------------------------------------------------------------//
