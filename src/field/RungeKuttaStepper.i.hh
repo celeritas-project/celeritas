@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include "base/ArrayUtils.hh"
+#include "FieldUtils.hh"
 
 namespace celeritas
 {
