@@ -64,6 +64,10 @@ class ValueGridXsBuilder final : public ValueGridBuilder
                SpanConstReal lambda_prim_energy,
                SpanConstReal lambda_prim);
 
+    // Construct from just scaled cross sections
+    static std::unique_ptr<ValueGridXsBuilder>
+    from_scaled(SpanConstReal lambda_prim_energy, SpanConstReal lambda_prim);
+
     // Construct
     ValueGridXsBuilder(real_type emin,
                        real_type eprime,
@@ -94,9 +98,16 @@ class ValueGridLogBuilder : public ValueGridBuilder
     using VecReal       = std::vector<real_type>;
     using SpanConstReal = Span<const real_type>;
     using Id            = ItemId<XsGridData>;
+    using UPLogBuilder  = std::unique_ptr<ValueGridLogBuilder>;
     //!@}
 
   public:
+    // Construct from full grids
+    static UPLogBuilder from_geant(SpanConstReal energy, SpanConstReal value);
+
+    // Construct from range
+    static UPLogBuilder from_range(SpanConstReal energy, SpanConstReal range);
+
     // Construct
     ValueGridLogBuilder(real_type emin, real_type emax, VecReal value);
 
@@ -110,22 +121,6 @@ class ValueGridLogBuilder : public ValueGridBuilder
     real_type log_emin_;
     real_type log_emax_;
     VecReal   value_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Build a physics vector for range tables.
- *
- * Range tables are uniform in log(E), and range must monotonically increase
- * with energy.
- */
-class ValueGridRangeBuilder : public ValueGridLogBuilder
-{
-    using Base = ValueGridLogBuilder;
-
-  public:
-    // Construct
-    ValueGridRangeBuilder(real_type emin, real_type emax, VecReal value);
 };
 
 //---------------------------------------------------------------------------//

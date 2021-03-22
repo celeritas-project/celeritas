@@ -350,9 +350,9 @@ void GeantPhysicsTableWriter::fill_energy_loss_tables(
                         ImportTableType::dedx_subsec);
         this->add_table(process.DEDXunRestrictedTable(),
                         ImportTableType::dedx_unrestricted);
-        this->add_table(process.IonisationTable(), ImportTableType::ionisation);
+        this->add_table(process.IonisationTable(), ImportTableType::ionization);
         this->add_table(process.IonisationTableForSubsec(),
-                        ImportTableType::ionisation_subsec);
+                        ImportTableType::ionization_subsec);
         this->add_table(process.CSDARangeTable(), ImportTableType::csda_range);
         this->add_table(process.SecondaryRangeTable(),
                         ImportTableType::secondary_range);
@@ -426,8 +426,8 @@ void GeantPhysicsTableWriter::add_table(const G4PhysicsTable* g4table,
         case ImportTableType::dedx:
         case ImportTableType::dedx_subsec:
         case ImportTableType::dedx_unrestricted:
-        case ImportTableType::ionisation:
-        case ImportTableType::ionisation_subsec:
+        case ImportTableType::ionization:
+        case ImportTableType::ionization_subsec:
             table.x_units = ImportUnits::mev;
             table.y_units = ImportUnits::mev_per_cm;
             break;

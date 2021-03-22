@@ -25,6 +25,15 @@ CMake utility functions for Celeritas.
 
   Once upstream packages are updated, this can be replaced by ``find_package``.
 
+
+.. command:: celeritas_link_vecgeom_cuda
+
+  Link the given target privately against VecGeom with CUDA support.
+
+  ::
+
+    celeritas_link_vecgeom_cuda(<target>)
+
 #]=======================================================================]
 include(FindPackageHandleStandardArgs)
 
@@ -32,5 +41,17 @@ macro(celeritas_find_package_config _package)
   find_package(${_package} CONFIG ${ARGN})
   find_package_handle_standard_args(${_package} CONFIG_MODE)
 endmacro()
+
+function(celeritas_link_vecgeom_cuda target)
+  set_target_properties(${target} PROPERTIES
+    LINKER_LANGUAGE CUDA
+    CUDA_SEPARABLE_COMPILATION ON
+  )
+  target_link_libraries(${target}
+    PRIVATE
+    VecGeom::vecgeomcuda
+    VecGeom::vecgeomcuda_static
+  )
+endfunction()
 
 #-----------------------------------------------------------------------------#

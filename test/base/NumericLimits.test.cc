@@ -15,31 +15,59 @@
 using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
-// TEST HARNESS
+// REAL TYPES
 //---------------------------------------------------------------------------//
 
 template<class T>
-class NumericLimitsTest : public celeritas::Test
+class RealNumericLimitsTest : public celeritas::Test
 {
-  protected:
-    void SetUp() override {}
+};
+using RealTypes = ::testing::Types<float, double>;
+TYPED_TEST_SUITE(RealNumericLimitsTest, RealTypes, );
+
+TYPED_TEST(RealNumericLimitsTest, host)
+{
+    using std_limits_t   = std::numeric_limits<TypeParam>;
+    using celer_limits_t = celeritas::numeric_limits<TypeParam>;
+
+    EXPECT_EQ(std_limits_t::epsilon(), celer_limits_t::epsilon());
+    EXPECT_EQ(std_limits_t::infinity(), celer_limits_t::infinity());
+    EXPECT_EQ(std_limits_t::max(), celer_limits_t::max());
+    EXPECT_TRUE(std::isnan(celer_limits_t::quiet_NaN()));
+}
+
+#if CELERITAS_USE_CUDA
+TYPED_TEST(RealNumericLimitsTest, device)
+#else
+TYPED_TEST(RealNumericLimitsTest, DISABLED_device)
+#endif
+{
+    using celer_limits_t = celeritas::numeric_limits<TypeParam>;
+    auto result          = nl_test<TypeParam>();
+
+    EXPECT_EQ(celer_limits_t::epsilon(), result.eps);
+    EXPECT_TRUE(std::isnan(result.nan));
+    EXPECT_EQ(celer_limits_t::infinity(), result.inf);
+    EXPECT_EQ(celer_limits_t::max(), result.max);
+}
+
+//---------------------------------------------------------------------------//
+// UNSIGNED INT TYPES
+//---------------------------------------------------------------------------//
+
+template<class T>
+class UIntNumericLimitsTest : public celeritas::Test
+{
 };
 
-using RealTypes = ::testing::Types<float, double>;
-TYPED_TEST_SUITE(NumericLimitsTest, RealTypes);
+using UIntTypes
+    = ::testing::Types<unsigned int, unsigned long, unsigned long long>;
+TYPED_TEST_SUITE(UIntNumericLimitsTest, UIntTypes, );
 
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
-// Test that on-device and on-host values are equivalent
-TYPED_TEST(NumericLimitsTest, all)
+TYPED_TEST(UIntNumericLimitsTest, host)
 {
-    using limits_t = celeritas::numeric_limits<TypeParam>;
-    auto result    = nl_test<TypeParam>();
+    using std_limits_t   = std::numeric_limits<TypeParam>;
+    using celer_limits_t = celeritas::numeric_limits<TypeParam>;
 
-    EXPECT_EQ(limits_t::epsilon(), result.eps);
-    EXPECT_TRUE(std::isnan(result.nan));
-    EXPECT_EQ(limits_t::infinity(), result.inf);
-    EXPECT_EQ(limits_t::max(), result.max);
+    EXPECT_EQ(std_limits_t::max(), celer_limits_t::max());
 }

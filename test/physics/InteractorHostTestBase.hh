@@ -60,16 +60,16 @@ class InteractorHostTestBase : public celeritas::Test
     using MaterialParams    = celeritas::MaterialParams;
     using MaterialTrackView = celeritas::MaterialTrackView;
 
-    using Interaction            = celeritas::Interaction;
-    using ModelIdGenerator       = celeritas::ModelIdGenerator;
-    using ModelId                = celeritas::ModelId;
-    using ParticleId             = celeritas::ParticleId;
-    using ParticleParams         = celeritas::ParticleParams;
-    using ParticleTrackView      = celeritas::ParticleTrackView;
-    using Real3                  = celeritas::Real3;
-    using Secondary              = celeritas::Secondary;
-    using SecondaryAllocator     = celeritas::StackAllocator<Secondary>;
-    using constSpanSecondaries   = celeritas::Span<const Secondary>;
+    using Interaction          = celeritas::Interaction;
+    using ModelIdGenerator     = celeritas::ModelIdGenerator;
+    using ModelId              = celeritas::ModelId;
+    using ParticleId           = celeritas::ParticleId;
+    using ParticleParams       = celeritas::ParticleParams;
+    using ParticleTrackView    = celeritas::ParticleTrackView;
+    using Real3                = celeritas::Real3;
+    using Secondary            = celeritas::Secondary;
+    using SecondaryAllocator   = celeritas::StackAllocator<Secondary>;
+    using constSpanSecondaries = celeritas::Span<const Secondary>;
     //!@}
 
   public:

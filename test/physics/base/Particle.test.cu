@@ -60,7 +60,7 @@ PTVTestOutput ptv_test(PTVTestInput input)
 
     static const celeritas::KernelParamCalculator calc_launch_params(
         ptv_test_kernel, "ptv_test");
-    auto                             params = calc_launch_params(init.size());
+    auto params = calc_launch_params(init.size());
     ptv_test_kernel<<<params.grid_size, params.block_size>>>(
         init.size(),
         input.params,

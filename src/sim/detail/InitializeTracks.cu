@@ -271,7 +271,7 @@ void init_tracks(const StatePointers&            states,
     // Initialize tracks on device
     static const celeritas::KernelParamCalculator calc_launch_params(
         init_tracks_kernel, "init_tracks");
-    auto                  lparams = calc_launch_params(num_vacancies);
+    auto lparams = calc_launch_params(num_vacancies);
     init_tracks_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits, num_vacancies);
     CELER_CUDA_CHECK_ERROR();
@@ -288,7 +288,7 @@ void locate_alive(const StatePointers&            states,
 {
     static const celeritas::KernelParamCalculator calc_launch_params(
         locate_alive_kernel, "locate_alive");
-    auto                  lparams = calc_launch_params(states.size());
+    auto lparams = calc_launch_params(states.size());
     locate_alive_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits);
     CELER_CUDA_CHECK_ERROR();
@@ -310,7 +310,7 @@ void process_primaries(Span<const Primary>             primaries,
 
     static const celeritas::KernelParamCalculator calc_launch_params(
         process_primaries_kernel, "process_primaries");
-    auto                  lparams = calc_launch_params(primaries.size());
+    auto lparams = calc_launch_params(primaries.size());
     process_primaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
         primaries, initializers);
     CELER_CUDA_CHECK_ERROR();
@@ -332,7 +332,7 @@ void process_secondaries(const StatePointers&     states,
                                                     - inits.parent.size());
     static const celeritas::KernelParamCalculator calc_launch_params(
         process_secondaries_kernel, "process_secondaries");
-    auto                  lparams = calc_launch_params(states.size());
+    auto lparams = calc_launch_params(states.size());
     process_secondaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, params, inits);
     CELER_CUDA_CHECK_ERROR();

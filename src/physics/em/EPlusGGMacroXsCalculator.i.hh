@@ -6,6 +6,7 @@
 //! \file EPlusGGMacroXsCalculator.i.hh
 //---------------------------------------------------------------------------//
 
+#include <cmath>
 #include "base/Algorithms.hh"
 #include "base/Assert.hh"
 #include "base/Constants.hh"

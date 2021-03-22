@@ -185,7 +185,7 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
     CELER_EXPECT(int(table_type) < int(ValueGridType::size_));
     CELER_EXPECT(ppid < this->num_particle_processes());
     ValueTableId table_id
-        = this->process_group().tables[int(table_type)][ppid.get()];
+        = this->process_group().tables[table_type][ppid.get()];
 
     CELER_ASSERT(table_id);
     const ValueTable& table = params_.value_tables[table_id];
@@ -283,7 +283,7 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(ModelId       model,
     if (model == params_.hardwired.livermore_pe)
     {
         auto calc_xs = LivermorePEMacroXsCalculator(
-            params_.hardwired.livermore_pe_params, material);
+            params_.hardwired.livermore_pe_data, material);
         result = calc_xs(energy);
     }
     else if (model == params_.hardwired.eplusgg)

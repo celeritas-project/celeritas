@@ -118,8 +118,8 @@ TEST_F(RootImporterTest, import_processes)
         ASSERT_EQ(85, steel.x.size());
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_EQ(839.66834289225289, steel.y.front());
-        EXPECT_SOFT_EQ(11.205845009964834, steel.y.back());
+        EXPECT_SOFT_EQ(839.66835335480653, steel.y.front());
+        EXPECT_SOFT_EQ(11.207442027393293, steel.y.back());
     }
     {
         // Test range table
@@ -135,8 +135,8 @@ TEST_F(RootImporterTest, import_processes)
         ASSERT_EQ(85, steel.x.size());
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_EQ(2.3818928234342666e-07, steel.y.front());
-        EXPECT_SOFT_EQ(8923914.3599599935, steel.y.back());
+        EXPECT_SOFT_EQ(2.3818927937550707e-07, steel.y.front());
+        EXPECT_SOFT_EQ(8922642.7361662444, steel.y.back());
     }
     {
         // Test cross section table
@@ -150,11 +150,11 @@ TEST_F(RootImporterTest, import_processes)
         EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
         ASSERT_EQ(steel.x.size(), steel.y.size());
         ASSERT_EQ(55, steel.x.size());
-        EXPECT_SOFT_EQ(1.9359790960928149, steel.x.front());
+        EXPECT_SOFT_EQ(1.9413894232088691, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
         EXPECT_SOFT_EQ(0, steel.y.front());
-        EXPECT_SOFT_EQ(0.24709010460842684, steel.y[1]);
-        EXPECT_SOFT_EQ(0.59115215175950464, steel.y.back());
+        EXPECT_SOFT_EQ(0.24960554333948043, steel.y[1]);
+        EXPECT_SOFT_EQ(0.58950471707787622, steel.y.back());
     }
 }
 
@@ -179,11 +179,11 @@ TEST_F(RootImporterTest, import_geometry)
     EXPECT_EQ(ImportMaterialState::solid, material.state);
     EXPECT_SOFT_EQ(293.15, material.temperature); // [K]
     EXPECT_SOFT_EQ(8, material.density);          // [g/cm^3]
-    EXPECT_SOFT_EQ(2.2444324067595881e+24,
+    EXPECT_SOFT_EQ(2.2444320228819809e+24,
                    material.electron_density); // [1/cm^3]
-    EXPECT_SOFT_EQ(8.6993504137968536e+22, material.number_density); // [1/cm^3]
-    EXPECT_SOFT_EQ(1.7380670928095856, material.radiation_length);   // [cm]
-    EXPECT_SOFT_EQ(16.678055775064472, material.nuclear_int_length); // [cm]
+    EXPECT_SOFT_EQ(8.6993489258991514e+22, material.number_density); // [1/cm^3]
+    EXPECT_SOFT_EQ(1.738067064482842, material.radiation_length);    // [cm]
+    EXPECT_SOFT_EQ(16.678057097389537, material.nuclear_int_length); // [cm]
     EXPECT_EQ(3, material.elements_fractions.size());
 
     // Test elements within material
@@ -231,10 +231,10 @@ TEST_F(RootImporterTest, import_material_params)
 
     EXPECT_EQ(MatterState::solid, mat.matter_state());
     EXPECT_SOFT_EQ(293.15, mat.temperature());         // [K]
-    EXPECT_SOFT_EQ(8.0000013655195588, mat.density()); // [g/cm^3]
-    EXPECT_SOFT_EQ(2.2444324067595884e+24,
+    EXPECT_SOFT_EQ(7.9999999972353661, mat.density()); // [g/cm^3]
+    EXPECT_SOFT_EQ(2.2444320228819809e+24,
                    mat.electron_density());                       // [1/cm^3]
-    EXPECT_SOFT_EQ(8.6993504137968536e+22, mat.number_density()); // [1/cm^3]
+    EXPECT_SOFT_EQ(8.6993489258991514e+22, mat.number_density()); // [1/cm^3]
 
     // Test elements by unpacking them
     std::vector<unsigned int> els;
@@ -273,10 +273,10 @@ TEST_F(RootImporterTest, import_cutoffs)
     }
 
     // clang-format off
-    const double expected_energies[] = {0.00099, 0.01728575113104, 0.00099,
-        0.9679895480464, 0.00099, 0.9174879161109, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0};
+    const double expected_energies[] = {0.00099, 0.0173344452484621, 0.00099,
+        0.970694711604435, 0.00099, 0.926090152562135, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0};
     const double expected_ranges[] = {0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0};

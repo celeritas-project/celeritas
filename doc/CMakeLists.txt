@@ -26,6 +26,7 @@ set(DOXYGEN_FILE_PATTERNS
   "*.hh"
   "*.cc"
   "*.cu"
+  "*.md"
 )
 set(DOXYGEN_EXTENSION_MAPPING "cu=C++")
 
@@ -35,6 +36,7 @@ set(DOXYGEN_MACRO_EXPANSION YES)
 set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
 set(DOXYGEN_QT_AUTOBRIEF YES)
 set(DOXYGEN_DISTRIBUTE_GROUP_DOC YES)
+set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 
 # Verbosity/warning levels
 if(NOT DEFINED DOXYGEN_QUIET)
@@ -48,10 +50,11 @@ endif()
 # Output options
 set(DOXYGEN_GENERATE_XML ${_USE_BREATHE})
 set(DOXYGEN_PROJECT_LOGO
-  "${CMAKE_CURRENT_SOURCE_DIR}/_static/celeritas-logo.png")
+  "${CMAKE_CURRENT_SOURCE_DIR}/_static/celeritas-thumbnail.png")
 
 doxygen_add_docs(doc
   "${PROJECT_SOURCE_DIR}/src"
+  "${PROJECT_SOURCE_DIR}/README.md"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Processing C++ documentation with Doxygen"
 )

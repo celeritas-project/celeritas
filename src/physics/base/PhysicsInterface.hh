@@ -10,9 +10,10 @@
 #include "base/Array.hh"
 #include "base/Collection.hh"
 #include "Types.hh"
-#include "physics/grid/XsGridInterface.hh"
 #include "physics/em/detail/LivermorePE.hh"
 #include "physics/em/detail/EPlusGG.hh"
+#include "physics/grid/ValueGridInterface.hh"
+#include "physics/grid/XsGridInterface.hh"
 #include "physics/material/Types.hh"
 
 #ifndef __CUDA_ARCH__
@@ -28,19 +29,6 @@ namespace celeritas
 using ValueGrid    = XsGridData;
 using ValueGridId  = OpaqueId<XsGridData>;
 using ValueTableId = OpaqueId<struct ValueTable>;
-
-//---------------------------------------------------------------------------//
-//! Hardcoded types of grid data
-enum class ValueGridType
-{
-    macro_xs,    //!< Interaction cross sections
-    energy_loss, //!< Energy loss per unit length
-    range,       //!< Particle range
-    size_        //!< Sentinel value
-};
-
-template<class T>
-using ValueGridArray = Array<T, size_type(ValueGridType::size_)>;
 
 //---------------------------------------------------------------------------//
 // PARAMS
@@ -116,18 +104,40 @@ struct ProcessGroup
 /*!
  * Model data for special hardwired cases (on-the-fly xs calculations).
  */
+template<Ownership W, MemSpace M>
 struct HardwiredModels
 {
     // Photoelectric effect
-    ProcessId                   photoelectric;
-    units::MevEnergy            photoelectric_table_thresh;
-    ModelId                     livermore_pe;
-    detail::LivermorePEPointers livermore_pe_params;
+    ProcessId                     photoelectric;
+    units::MevEnergy              photoelectric_table_thresh;
+    ModelId                       livermore_pe;
+    detail::LivermorePEData<W, M> livermore_pe_data;
 
     // Positron annihilation
     ProcessId               positron_annihilation;
     ModelId                 eplusgg;
     detail::EPlusGGPointers eplusgg_params;
+
+    //// MEMBER FUNCTIONS ////
+
+    //! Assign from another set of hardwired models
+    template<Ownership W2, MemSpace M2>
+    HardwiredModels& operator=(const HardwiredModels<W2, M2>& other)
+    {
+        // Note: don't require the other set of hardwired models to be assigned
+        photoelectric = other.photoelectric;
+        if (photoelectric)
+        {
+            // Only assign photoelectric data if that process is present
+            photoelectric_table_thresh = other.photoelectric_table_thresh;
+            livermore_pe               = other.livermore_pe;
+            livermore_pe_data          = other.livermore_pe_data;
+        }
+        positron_annihilation = other.positron_annihilation;
+        eplusgg               = other.eplusgg;
+        eplusgg_params        = other.eplusgg_params;
+        return *this;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -149,10 +159,14 @@ struct HardwiredModels
 template<Ownership W, MemSpace M>
 struct PhysicsParamsData
 {
+    //// TYPES ////
+
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
     using ParticleItems = Collection<T, W, M, ParticleId>;
+
+    //// DATA ////
 
     // Backend storage
     Items<real_type>            reals;
@@ -164,15 +178,16 @@ struct PhysicsParamsData
     Items<ModelGroup>           model_groups;
     ParticleItems<ProcessGroup> process_groups;
 
-    HardwiredModels       hardwired;
+    // Special data
+    HardwiredModels<W, M> hardwired;
     ProcessId::size_type  max_particle_processes{};
 
-    //// USER-CONFIGURABLE CONSTANTS ////
+    // User-configurable constants
     real_type scaling_min_range{}; //!< rho [cm]
     real_type scaling_fraction{};  //!< alpha [unitless]
     real_type linear_loss_limit{}; //!< For scaled range calculation
 
-    //// MEMBER FUNCTIONS ////
+    //// METHODS ////
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
@@ -251,13 +266,19 @@ struct PhysicsTrackInitializer
 template<Ownership W, MemSpace M>
 struct PhysicsStateData
 {
+    //// TYPES ////
+
     template<class T>
     using StateItems = celeritas::StateCollection<T, W, M>;
     template<class T>
     using Items = celeritas::Collection<T, W, M>;
 
+    //// DATA ////
+
     StateItems<PhysicsTrackState> state; //!< Track state [track]
     Items<real_type> per_process_xs;     //!< XS [track][particle process]
+
+    //// METHODS ////
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
@@ -279,7 +300,7 @@ struct PhysicsStateData
 #ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
- * Resize a material state in host code.
+ * Resize the state in host code.
  */
 template<MemSpace M>
 inline void resize(

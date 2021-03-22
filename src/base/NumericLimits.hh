@@ -7,62 +7,80 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cfloat>
+#include <climits>
 #ifdef __CUDA_ARCH__
-#    include <cfloat>
-#    include <climits>
 #    include <math_constants.h>
 #else
 #    include <limits>
 #endif
+#include "Macros.hh"
 
 namespace celeritas
 {
-#ifdef __CUDA_ARCH__
+/*!
+ */
 template<class Numeric>
 struct numeric_limits;
 
 template<>
 struct numeric_limits<float>
 {
-    static constexpr __device__ float epsilon() { return FLT_EPSILON; }
-    static constexpr __device__ float quiet_NaN() { return CUDART_NAN_F; }
-    static constexpr __device__ float infinity() { return CUDART_INF_F; }
-    static constexpr __device__ float max() { return FLT_MAX; }
+    static CELER_CONSTEXPR_FUNCTION float epsilon() { return FLT_EPSILON; }
+    static CELER_CONSTEXPR_FUNCTION float max() { return FLT_MAX; }
+
+#ifndef __CUDA_ARCH__
+    static float quiet_NaN()
+    {
+        return std::numeric_limits<float>::quiet_NaN();
+    }
+    static float infinity() { return std::numeric_limits<float>::infinity(); }
+#else
+    static CELER_FUNCTION float  quiet_NaN() { return CUDART_NAN_F; }
+    static CELER_FUNCTION float  infinity() { return CUDART_INF_F; }
+#endif
 };
 
 template<>
 struct numeric_limits<double>
 {
-    static constexpr __device__ double epsilon() { return DBL_EPSILON; }
-    static constexpr __device__ double quiet_NaN() { return CUDART_NAN; }
-    static constexpr __device__ double infinity() { return CUDART_INF; }
-    static constexpr __device__ double max() { return DBL_MAX; }
+    static CELER_CONSTEXPR_FUNCTION double epsilon() { return DBL_EPSILON; }
+    static CELER_CONSTEXPR_FUNCTION double max() { return DBL_MAX; }
+
+#ifndef __CUDA_ARCH__
+    static double quiet_NaN()
+    {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    static double infinity()
+    {
+        return std::numeric_limits<double>::infinity();
+    }
+#else
+    static CELER_FUNCTION double quiet_NaN() { return CUDART_NAN; }
+    static CELER_FUNCTION double infinity() { return CUDART_INF; }
+#endif
 };
 
 template<>
 struct numeric_limits<unsigned int>
 {
-    static constexpr __device__ unsigned int max() { return UINT_MAX; }
+    static CELER_CONSTEXPR_FUNCTION unsigned int max() { return UINT_MAX; }
 };
 
 template<>
 struct numeric_limits<unsigned long>
 {
-    static constexpr __device__ unsigned long max() { return ULONG_MAX; }
+    static CELER_CONSTEXPR_FUNCTION unsigned long max() { return ULONG_MAX; }
 };
 
 template<>
 struct numeric_limits<unsigned long long>
 {
-    static constexpr __device__ unsigned long long max() { return ULLONG_MAX; }
+    static CELER_CONSTEXPR_FUNCTION unsigned long long max()
+    {
+        return ULLONG_MAX;
+    }
 };
-
-#else // not __CUDA_ARCH__
-
-//! Alias to standard library numeric limits
-template<class Numeric>
-using numeric_limits = std::numeric_limits<Numeric>;
-
-#endif // __CUDA_ARCH__
 
 } // namespace celeritas

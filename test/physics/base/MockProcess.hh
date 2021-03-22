@@ -51,9 +51,9 @@ class MockProcess : public celeritas::Process
     {
         SPConstMaterials materials;
         std::string      label;
-        VecApplicability applic;   //!< Applicablity per model
-        ModelCallback    interact; //!< MockModel::interact callback
-        BarnMicroXs      xs{};     //!< Constant per atom [bn]
+        VecApplicability applic;        //!< Applicablity per model
+        ModelCallback    interact;      //!< MockModel::interact callback
+        BarnMicroXs      xs{};          //!< Constant per atom [bn]
         real_type        energy_loss{}; //!< Constant per atom [MeV/cm / cm^-3]
     };
 

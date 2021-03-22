@@ -19,10 +19,9 @@ namespace celeritas
  *
  * This is intended for use with host data but can also be used to resize
  * device collections. It's constructed with a reference to the host
- collection,
- * and it provides vector-like methods for extending it. The size *cannot* be
- * decreased because that would invalidate previously created \c ItemRange
- * items.
+ * collection, and it provides vector-like methods for extending it. The size
+ * *cannot* be decreased because that would invalidate previously created \c
+ * ItemRange items.
  *
  * \code
     auto cb = make_builder(&myintcol.host);
@@ -32,9 +31,8 @@ namespace celeritas
    \endcode
 
  * The CollectionBuilder can also be used to resize device-value collections
- without
- * having to allocate a host version and copy to device.
- * (This is useful for state allocations.)
+ * without having to allocate a host version and copy to device. (This is
+ * useful for state allocations.)
  */
 template<class T, MemSpace M, class I>
 class CollectionBuilder
@@ -100,6 +98,33 @@ make_builder(Collection<T, Ownership::value, M, I>* collection)
     return CollectionBuilder<T, M, I>(collection);
 }
 
+//---------------------------------------------------------------------------//
+//!@{
+//! Helper functions for constructing references to state/params data.
+template<template<Ownership, MemSpace> class S, MemSpace M>
+inline S<Ownership::reference, M> make_ref(S<Ownership::value, M>& states)
+{
+    S<Ownership::reference, M> result;
+    result = states;
+    return result;
+}
+
+template<template<Ownership, MemSpace> class P, MemSpace M>
+inline P<Ownership::const_reference, M>
+make_ref(const P<Ownership::value, M>& params)
+{
+    P<Ownership::const_reference, M> result;
+    result = params;
+    return result;
+}
+
+template<template<Ownership, MemSpace> class P, MemSpace M>
+inline decltype(auto) make_const_ref(const P<Ownership::value, M>& params)
+{
+    return make_ref(params);
+}
+
+//!@}
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 

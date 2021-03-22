@@ -52,8 +52,10 @@ list(APPEND SOURCES
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/AtomicRelaxationReader.cc
-  io/LivermorePEParamsReader.cc
+  io/LivermorePEReader.cc
+  io/SeltzerBergerReader.cc
   physics/base/CutoffParams.cc
+  physics/base/ImportedProcessAdapter.cc
   physics/base/Model.cc
   physics/base/ParticleParams.cc
   physics/base/PhysicsParams.cc
@@ -63,15 +65,17 @@ list(APPEND SOURCES
   physics/em/ComptonProcess.cc
   physics/em/PhotoelectricProcess.cc
   physics/em/LivermorePEModel.cc
-  physics/em/LivermorePEParams.cc
+  physics/em/EIonizationProcess.cc
   physics/em/EPlusAnnihilationProcess.cc
   physics/em/EPlusGGModel.cc
   physics/em/GammaConversionProcess.cc
   physics/em/KleinNishinaModel.cc
   physics/em/MollerBhabhaModel.cc
+  physics/em/SeltzerBergerModel.cc
   physics/em/detail/Utils.cc
   physics/grid/ValueGridBuilder.cc
   physics/grid/ValueGridInserter.cc
+  physics/grid/ValueGridInterface.cc
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
   random/cuda/RngStateStore.cc
@@ -136,7 +140,6 @@ if(CELERITAS_USE_VecGeom)
       geometry/detail/VGNavStateStore.cuda.cc
       sim/detail/InitializeTracks.cu
     )
-    list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
   else()
     list(APPEND SOURCES
       geometry/detail/VGNavStateStore.nocuda.cc
@@ -148,17 +151,13 @@ endif()
 add_library(celeritas ${SOURCES})
 add_library(Celeritas::Core ALIAS celeritas)
 
-if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
-  set_target_properties(celeritas PROPERTIES
-    LINKER_LANGUAGE CUDA
-    CUDA_SEPARABLE_COMPILATION ON
-  )
-endif()
-
 target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
 )
+if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
+  celeritas_link_vecgeom_cuda(celeritas)
+endif()
 
 target_include_directories(celeritas
   PUBLIC

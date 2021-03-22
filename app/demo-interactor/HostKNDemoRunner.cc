@@ -126,7 +126,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
         CELER_ASSERT(detector.num_hits() == 0);
 
         // Counters
-        size_type num_steps = 0;
+        size_type num_steps       = 0;
         auto      remaining_steps = args.max_steps;
         Stopwatch elapsed_time;
 

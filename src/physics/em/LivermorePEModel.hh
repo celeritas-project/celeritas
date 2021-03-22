@@ -8,9 +8,13 @@
 #pragma once
 
 #include "physics/base/Model.hh"
+
+#include <functional>
+#include "base/CollectionMirror.hh"
+#include "io/ImportLivermorePE.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/em/AtomicRelaxationParams.hh"
-#include "physics/em/LivermorePEParams.hh"
+#include "physics/material/MaterialParams.hh"
 #include "detail/LivermorePE.hh"
 
 namespace celeritas
@@ -27,17 +31,23 @@ namespace celeritas
 class LivermorePEModel final : public Model
 {
   public:
-    // Construct from model ID and other necessary data
-    LivermorePEModel(ModelId                  id,
-                     const ParticleParams&    particles,
-                     const LivermorePEParams& data);
+    //!@{
+    using AtomicNumber       = int;
+    using MevEnergy          = units::MevEnergy;
+    using SPConstAtomicRelax = std::shared_ptr<const AtomicRelaxationParams>;
+    using ReadData           = std::function<ImportLivermorePE(AtomicNumber)>;
+    using HostRef            = detail::LivermorePEHostRef;
+    using DeviceRef          = detail::LivermorePEDeviceRef;
+    //!@}
 
-    // Construct with transition data for atomic relaxation
-    LivermorePEModel(ModelId                       id,
-                     const ParticleParams&         particles,
-                     const LivermorePEParams&      data,
-                     const AtomicRelaxationParams& atomic_relaxation,
-                     size_type                     num_vacancies);
+  public:
+    // Construct from model ID and other necessary data
+    LivermorePEModel(ModelId               id,
+                     const ParticleParams& particles,
+                     const MaterialParams& materials,
+                     ReadData              load_data,
+                     SPConstAtomicRelax    atomic_relaxation = nullptr,
+                     size_type             num_vacancies     = 0);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -51,25 +61,26 @@ class LivermorePEModel final : public Model
     //! Name of the model, for user interaction
     std::string label() const final { return "Livermore photoelectric"; }
 
-    // Access data on device
-    inline const detail::LivermorePEPointers& device_pointers() const;
+    //! Access data on the host
+    const HostRef& host_pointers() const { return data_.host(); }
+
+    //! Access data on the device
+    const DeviceRef& device_pointers() const { return data_.device(); }
 
   private:
-    detail::LivermorePEPointers     interface_;
+    // Host/device storage and reference
+    CollectionMirror<detail::LivermorePEData> data_;
+
     detail::RelaxationScratchData<Ownership::value, MemSpace::device>
         relax_scratch_;
     detail::RelaxationScratchData<Ownership::reference, MemSpace::device>
         relax_scratch_ref_;
-};
 
-//---------------------------------------------------------------------------//
-/*!
- * Access data on device.
- */
-const detail::LivermorePEPointers& LivermorePEModel::device_pointers() const
-{
-    return interface_;
-}
+    using HostXsData
+        = detail::LivermorePEXsData<Ownership::value, MemSpace::host>;
+    void
+    append_element(const ImportLivermorePE& inp, HostXsData* xs_data) const;
+};
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

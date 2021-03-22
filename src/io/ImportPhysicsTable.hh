@@ -23,8 +23,8 @@ enum class ImportTableType
     dedx,
     dedx_subsec,
     dedx_unrestricted,
-    ionisation,
-    ionisation_subsec,
+    ionization,
+    ionization_subsec,
     csda_range, //!< Continuous slowing down approximation
     range,
     secondary_range,

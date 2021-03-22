@@ -51,10 +51,14 @@ class GeoTrackView
     // Initialize the state from a parent state and new direction
     inline CELER_FUNCTION GeoTrackView&
                           operator=(const DetailedInitializer& init);
+
     // Find the distance to the next boundary
     inline CELER_FUNCTION void find_next_step();
+
     // Move to the next boundary
-    inline CELER_FUNCTION void move_next_step();
+    inline CELER_FUNCTION real_type move_to_boundary();
+    inline CELER_FUNCTION real_type move_next_step();
+    inline CELER_FUNCTION real_type move_by(real_type step);
 
     // Update current volume, called whenever move reaches boundary
     inline CELER_FUNCTION void move_next_volume();
@@ -63,14 +67,25 @@ class GeoTrackView
     //! State accessors
     CELER_FUNCTION const Real3& pos() const { return pos_; }
     CELER_FUNCTION const Real3& dir() const { return dir_; }
-    CELER_FUNCTION real_type    next_step() const { return next_step_; }
+    CELER_FUNCTION real_type    next_step() const
+    {
+        CELER_ASSERT(!dirty_);
+        return next_step_;
+    }
     //!@}
 
     //!@{
-    //! State modifiers via non-const references
-    CELER_FUNCTION Real3& pos() { return pos_; }
-    CELER_FUNCTION Real3& dir() { return dir_; }
-    CELER_FUNCTION real_type& next_step() { return next_step_; }
+    //! State modifiers will force state update before next step
+    CELER_FUNCTION void set_pos(const Real3& newpos)
+    {
+        pos_   = newpos;
+        dirty_ = true;
+    }
+    CELER_FUNCTION void set_dir(const Real3& newdir)
+    {
+        dir_   = newdir;
+        dirty_ = true;
+    }
     //!@}
 
     //! Get the volume ID in the current cell.
@@ -99,12 +114,17 @@ class GeoTrackView
     Real3&     pos_;
     Real3&     dir_;
     real_type& next_step_;
+    // Flag to trigger update of geometry information if and only if needed
+    bool dirty_;
     //!@}
 
   private:
     //! Get a reference to the state from a NavStatePool's pointer
     static inline CELER_FUNCTION NavState&
     get_nav_state(void* state, int vgmaxdepth, ThreadId thread);
+
+    // Find the distance to the next boundary
+    inline CELER_FUNCTION void find_next_step_outside();
 
   public:
     //! Get a reference to the current volume

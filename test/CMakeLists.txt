@@ -58,6 +58,24 @@ endfunction()
 
 set(_not_impl DISABLE)
 
+if(NOT CELERITAS_USE_HepMC3)
+  set(_needs_hepmc DISABLE)
+endif()
+if(NOT CELERITAS_USE_ROOT)
+  set(_needs_root DISABLE)
+endif()
+
+if(NOT CELERITAS_USE_Geant4)
+  set(_needs_geant4 DISABLE)
+else()
+  # Optional dependence on low-energy EM data
+  set(_ds G4EMLOW)
+  set(_optional_geant4
+     ENVIRONMENT "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
+  )
+  set(_needs_geant4 ${_optional_geant4})
+endif()
+
 #-----------------------------------------------------------------------------#
 # Gtest additions
 celeritas_setup_tests(SERIAL PREFIX gtest/detail)
@@ -86,13 +104,8 @@ celeritas_add_test(base/Stopwatch.test.cc)
 celeritas_add_test(base/TypeDemangler.test.cc)
 celeritas_add_test(base/VectorUtils.test.cc)
 
-if(CELERITAS_USE_CUDA)
-  celeritas_add_test(base/NumericLimits.test.cc
-    SOURCES base/NumericLimits.test.cu
-    GPU)
-endif()
-
 celeritas_cudaoptional_test(base/Collection)
+celeritas_cudaoptional_test(base/NumericLimits)
 celeritas_cudaoptional_test(base/Range)
 celeritas_cudaoptional_test(base/StackAllocator)
 
@@ -116,28 +129,21 @@ if(CELERITAS_USE_VecGeom)
     # See https://github.com/celeritas-project/celeritas/pull/10 for a
     # discussion of the failures from trying to directly build an executable
     # from code with CUDA separable compilation. This extra test library is
-    # necessary.
+    # necessary. Furthermore, celeritas must be linked *before* vecgeom.
     add_library(celeritas_vgtest
       geometry/GeoTrackView.test.cu
       geometry/LinearPropagator.test.cu
     )
-    target_link_libraries(celeritas_vgtest
-      PRIVATE
-      celeritas
-      VecGeom::vecgeomcuda
-      VecGeom::vecgeomcuda_static
-    )
-    set_target_properties(celeritas_vgtest PROPERTIES
-      LINKER_LANGUAGE CUDA
-      CUDA_SEPARABLE_COMPILATION ON
-      POSITION_INDEPENDENT_CODE ON
-    )
+    target_link_libraries(celeritas_vgtest PRIVATE celeritas)
+    celeritas_link_vecgeom_cuda(celeritas_vgtest)
     list(APPEND CELERITASTEST_LINK_LIBRARIES celeritas_vgtest)
   endif()
 
   celeritas_add_test(geometry/GeoParams.test.cc GPU)
   celeritas_add_test(geometry/GeoTrackView.test.cc GPU)
   celeritas_add_test(geometry/LinearPropagator.test.cc GPU)
+
+  set(CELERITASTEST_LINK_LIBRARIES)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -145,16 +151,10 @@ endif()
 
 celeritas_setup_tests(SERIAL PREFIX io)
 
-if(NOT CELERITAS_USE_HepMC3)
-  set(_needs_hepmc DISABLE)
-endif()
-if(NOT CELERITAS_USE_ROOT)
-  set(_needs_root DISABLE)
-endif()
-
 celeritas_add_test(io/RootImporter.test.cc ${_needs_root}
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc})
+celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Physics
@@ -178,6 +178,7 @@ celeritas_cudaoptional_test(physics/base/Physics)
 celeritas_add_test(physics/base/PhysicsStepUtils.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX physics/grid)
+celeritas_add_test(physics/grid/GenericXsCalculator.test.cc)
 celeritas_add_test(physics/grid/GridIdFinder.test.cc)
 celeritas_add_test(physics/grid/Interpolator.test.cc)
 celeritas_add_test(physics/grid/InverseRangeCalculator.test.cc)
@@ -193,7 +194,7 @@ celeritas_setup_tests(SERIAL PREFIX physics/material)
 celeritas_add_test(physics/material/ElementSelector.test.cc)
 celeritas_cudaoptional_test(physics/material/Material)
 
-#-----------------------------------------------------------------------------#
+#-------------------------------------#
 # Physics (EM)
 
 celeritas_setup_tests(SERIAL PREFIX physics/em)
@@ -207,8 +208,15 @@ celeritas_add_test(physics/em/KleinNishina.test.cc)
 celeritas_add_test(physics/em/LivermorePE.test.cc)
 celeritas_add_test(physics/em/MollerBhabha.test.cc)
 celeritas_add_test(physics/em/Rayleigh.test.cc ${_not_impl})
+celeritas_add_test(physics/em/SeltzerBerger.test.cc)
 celeritas_add_test(physics/em/Urban.test.cc ${_not_impl})
 celeritas_add_test(physics/em/Wentzel.test.cc ${_not_impl})
+
+celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
+  ${_optional_geant4}
+  GPU # TODO: delete when device pointers are no longer directly accessed
+  LINK_LIBRARIES Celeritas::ROOT)
+
 
 # END PHYSICS TESTS
 set(CELERITASTEST_LINK_LIBRARIES)

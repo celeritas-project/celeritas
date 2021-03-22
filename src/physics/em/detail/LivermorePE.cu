@@ -31,9 +31,9 @@ namespace
  * Interact using the Livermore photoelectric model on applicable tracks.
  */
 __global__ void
-livermore_pe_interact_kernel(const LivermorePEPointers        pe,
-                             const RelaxationScratchPointers& scratch,
-                             const ModelInteractPointers      ptrs)
+livermore_pe_interact_kernel(const LivermorePEDeviceRef        pe,
+                             const RelaxationScratchDeviceRef& scratch,
+                             const ModelInteractPointers       ptrs)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= ptrs.states.size())
@@ -49,7 +49,7 @@ livermore_pe_interact_kernel(const LivermorePEPointers        pe,
                              tid);
 
     // This interaction only applies if the Livermore PE model was selected
-    if (physics.model_id() != pe.model_id)
+    if (physics.model_id() != pe.ids.model)
         return;
 
     RngEngine rng(ptrs.states.rng, tid);
@@ -81,16 +81,16 @@ livermore_pe_interact_kernel(const LivermorePEPointers        pe,
 /*!
  * Launch the Livermore photoelectric interaction.
  */
-void livermore_pe_interact(const LivermorePEPointers&       pe,
-                           const RelaxationScratchPointers& scratch,
-                           const ModelInteractPointers&     model)
+void livermore_pe_interact(const LivermorePEDeviceRef&       pe,
+                           const RelaxationScratchDeviceRef& scratch,
+                           const ModelInteractPointers&      model)
 {
     CELER_EXPECT(pe);
     CELER_EXPECT(model);
 
     static const KernelParamCalculator calc_kernel_params(
         livermore_pe_interact_kernel, "livermore_pe_interact");
-    auto                  params = calc_kernel_params(model.states.size());
+    auto params = calc_kernel_params(model.states.size());
     livermore_pe_interact_kernel<<<params.grid_size, params.block_size>>>(
         pe, scratch, model);
     CELER_CUDA_CHECK_ERROR();

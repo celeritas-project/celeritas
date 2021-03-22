@@ -6,6 +6,8 @@
 //! \file NumericLimits.test.hh
 //---------------------------------------------------------------------------//
 
+#include "base/Assert.hh"
+
 namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
@@ -25,6 +27,14 @@ struct NLTestOutput
 //! Run on device and return results
 template<class T>
 NLTestOutput<T> nl_test();
+
+#if !CELERITAS_USE_CUDA
+template<class T>
+inline NLTestOutput<T> nl_test()
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

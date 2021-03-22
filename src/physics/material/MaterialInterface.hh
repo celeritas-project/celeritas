@@ -10,7 +10,6 @@
 #include "base/Collection.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
-#include "MaterialInterface.hh"
 #include "Types.hh"
 
 #ifndef __CUDA_ARCH__
@@ -97,12 +96,12 @@ template<Ownership W, MemSpace M>
 struct MaterialParamsData
 {
     template<class T>
-    using Data = celeritas::Collection<T, W, M>;
+    using Items = celeritas::Collection<T, W, M>;
 
-    Data<ElementDef>               elements;
-    Data<MatElementComponent>      elcomponents;
-    Data<MaterialDef>              materials;
-    ElementComponentId::size_type  max_element_components{};
+    Items<ElementDef>             elements;
+    Items<MatElementComponent>    elcomponents;
+    Items<MaterialDef>            materials;
+    ElementComponentId::size_type max_element_components{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -155,10 +154,10 @@ template<Ownership W, MemSpace M>
 struct MaterialStateData
 {
     template<class T>
-    using Data = celeritas::StateCollection<T, W, M>;
+    using Items = celeritas::StateCollection<T, W, M>;
 
-    Data<MaterialTrackState> state;
-    Data<real_type> element_scratch; // 2D array: [num states][max components]
+    Items<MaterialTrackState> state;
+    Items<real_type> element_scratch; // 2D array: [num states][max components]
 
     //! Whether the interface is assigned
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }

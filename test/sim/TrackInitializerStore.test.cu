@@ -34,7 +34,7 @@ __global__ void interact_kernel(StatePointers              states,
         {
             // Allow the particle to interact and create secondaries
             StackAllocator<Secondary> allocate_secondaries(secondaries);
-            Interactor             interact(allocate_secondaries,
+            Interactor                interact(allocate_secondaries,
                                 input.alloc_size[thread_id.get()],
                                 input.alive[thread_id.get()]);
             states.interactions[thread_id.get()] = interact();
@@ -97,7 +97,7 @@ void interact(StatePointers              states,
 
     static const KernelParamCalculator calc_launch_params(interact_kernel,
                                                           "interact");
-    auto                  lparams = calc_launch_params(states.size());
+    auto lparams = calc_launch_params(states.size());
     interact_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, secondaries, input);
     CELER_CUDA_CHECK_ERROR();
@@ -116,7 +116,7 @@ std::vector<unsigned int> tracks_test(StatePointers states)
     // Launch a kernel to check the track ID of the initialized tracks
     static const celeritas::KernelParamCalculator calc_launch_params(
         tracks_test_kernel, "tracks_test");
-    auto                  lparams = calc_launch_params(states.size());
+    auto lparams = calc_launch_params(states.size());
     tracks_test_kernel<<<lparams.grid_size, lparams.block_size>>>(
         states, thrust::raw_pointer_cast(output.data()));
     CELER_CUDA_CHECK_ERROR();
@@ -164,7 +164,7 @@ std::vector<size_type> vacancies_test(TrackInitializerPointers inits)
     // Launch a kernel to check the indices of the empty slots
     static const celeritas::KernelParamCalculator calc_launch_params(
         vacancies_test_kernel, "vacancies_test");
-    auto                  lparams = calc_launch_params(inits.vacancies.size());
+    auto lparams = calc_launch_params(inits.vacancies.size());
     vacancies_test_kernel<<<lparams.grid_size, lparams.block_size>>>(
         inits, thrust::raw_pointer_cast(output.data()));
     CELER_CUDA_CHECK_ERROR();

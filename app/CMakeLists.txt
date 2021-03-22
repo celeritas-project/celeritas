@@ -145,22 +145,16 @@ endif()
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   # Since the demo kernel links against VecGeom, which requires CUDA separable
   # compilation, it cannot be linked directly into an executable.
-  add_library(demo_rasterizer_cuda
+  add_library(celeritas_demo_rasterizer
     demo-rasterizer/RDemoRunner.cc
     demo-rasterizer/RDemoKernel.cu
   )
-  set_target_properties(demo_rasterizer_cuda PROPERTIES
-    LINKER_LANGUAGE CUDA
-    CUDA_SEPARABLE_COMPILATION ON
-    POSITION_INDEPENDENT_CODE ON
-  )
-  target_link_libraries(demo_rasterizer_cuda
+  target_link_libraries(celeritas_demo_rasterizer
     PRIVATE
-    celeritas
-    VecGeom::vecgeomcuda
-    VecGeom::vecgeomcuda_static
-    nlohmann_json::nlohmann_json
+      celeritas
+      nlohmann_json::nlohmann_json
   )
+  celeritas_link_vecgeom_cuda(celeritas_demo_rasterizer)
 
   # Add the executable
   add_executable(demo-rasterizer
@@ -171,7 +165,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   target_link_libraries(demo-rasterizer
     celeritas
     VecGeom::vecgeom
-    demo_rasterizer_cuda
+    celeritas_demo_rasterizer
     nlohmann_json::nlohmann_json
   )
 

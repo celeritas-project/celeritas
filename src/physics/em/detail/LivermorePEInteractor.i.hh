@@ -8,7 +8,7 @@
 
 #include "base/ArrayUtils.hh"
 #include "physics/em/AtomicRelaxationHelper.hh"
-#include "physics/em/LivermoreXsCalculator.hh"
+#include "physics/grid/GenericXsCalculator.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -23,7 +23,7 @@ namespace detail
  * handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION
-LivermorePEInteractor::LivermorePEInteractor(const ParamsRef&         shared,
+LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
                                              const Scratch&           scratch,
                                              ElementId                el_id,
                                              const ParticleTrackView& particle,
@@ -37,7 +37,7 @@ LivermorePEInteractor::LivermorePEInteractor(const ParamsRef&         shared,
     , allocate_(allocate)
     , calc_micro_xs_(shared, particle.energy())
 {
-    CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
+    CELER_EXPECT(particle.particle_id() == shared_.ids.gamma);
     CELER_EXPECT(inc_energy_.value() > 0);
     CELER_EXPECT(!shared_.atomic_relaxation || scratch_.vacancies);
 
@@ -89,25 +89,26 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     // Sample the shell from which the photoelectron is emitted
     real_type cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
     real_type xs     = 0.;
-    const LivermoreElement& el = shared_.data.elements[el_id_.get()];
+    const LivermoreElement& el = shared_.xs_data.elements[el_id_];
+    const auto&             shells = shared_.xs_data.shells[el.shells];
     SubshellId::size_type   shell_id;
-    for (shell_id = 0; shell_id < el.shells.size() - 1; ++shell_id)
+    for (shell_id = 0; shell_id < shells.size() - 1; ++shell_id)
     {
-        const auto& shell = el.shells[shell_id];
+        const auto& shell = shells[shell_id];
         if (inc_energy_ > shell.binding_energy)
         {
-            if (inc_energy_ < el.thresh_low)
+            if (inc_energy_ < el.thresh_lo)
             {
                 // Use the tabulated subshell cross sections
-                LivermoreXsCalculator calc_xs(shell.xs);
+                GenericXsCalculator calc_xs(shell.xs, shared_.xs_data.reals);
                 xs += ipow<3>(inv_energy_) * calc_xs(inc_energy_.value());
             }
             else
             {
                 // Use parameterized integrated subshell cross sections
-                const auto& param = inc_energy_ >= el.thresh_high
-                                        ? shell.param_high
-                                        : shell.param_low;
+                const auto& param = inc_energy_ >= el.thresh_hi
+                                        ? shared_.xs_data.reals[shell.param_hi]
+                                        : shared_.xs_data.reals[shell.param_lo];
 
                 // Calculate the subshell cross section from the fit parameters
                 // and energy as \sigma(E) = a_1 / E + a_2 / E^2 + a_3 / E^3 +
@@ -132,7 +133,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     // If the binding energy of the sampled shell is greater than the incident
     // photon energy, no secondaries are produced and the energy is deposited
     // locally.
-    MevEnergy binding_energy = el.shells[shell_id].binding_energy;
+    MevEnergy binding_energy = shells[shell_id].binding_energy;
     if (binding_energy > inc_energy_)
     {
         result.energy_deposition = inc_energy_;
@@ -143,7 +144,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     CELER_ASSERT(!secondaries.empty());
     {
         Secondary& electron  = secondaries.front();
-        electron.particle_id = shared_.electron_id;
+        electron.particle_id = shared_.ids.electron;
 
         // Electron kinetic energy is the difference between the incident
         // photon energy and the binding energy of the shell

@@ -74,7 +74,7 @@ class DeviceAllocation
     //// DATA ////
 
     detail::InitializedValue<size_type> size_;
-    DeviceUniquePtr data_;
+    DeviceUniquePtr                     data_;
 };
 
 // Swap two allocations

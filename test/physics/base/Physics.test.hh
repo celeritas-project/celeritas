@@ -63,7 +63,7 @@ inline CELER_FUNCTION celeritas::real_type
     real_type total_xs = 0;
     for (auto ppid : range(ParticleProcessId{phys.num_particle_processes()}))
     {
-        real_type         process_xs = 0;
+        real_type process_xs = 0;
         if (auto id = phys.value_grid(ValueGridType::macro_xs, ppid))
         {
             auto calc_xs = phys.make_calculator<XsCalculator>(id);
