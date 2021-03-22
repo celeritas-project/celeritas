@@ -37,7 +37,7 @@ class RungeKuttaStepper
 
   public:
     //! Construct with the equation of motion
-    CELER_FUNCTION 
+    CELER_FUNCTION
     RungeKuttaStepper(const FieldEquation_T& eq) : equation_(eq) {}
 
     //! Adaptive step size control
@@ -54,7 +54,6 @@ class RungeKuttaStepper
   private:
     //! Equation of the motion
     const FieldEquation_T& equation_;
-
 };
 
 //---------------------------------------------------------------------------//

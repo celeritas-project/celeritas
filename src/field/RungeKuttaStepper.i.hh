@@ -34,10 +34,9 @@ namespace celeritas
  * \f]
  */
 template<class T>
-CELER_FUNCTION 
-auto RungeKuttaStepper<T>::operator()(real_type step, 
-                                      const OdeState& beg_state, 
-                                      const OdeState& beg_slope) -> Result
+CELER_FUNCTION auto RungeKuttaStepper<T>::
+                    operator()(real_type step, const OdeState& beg_state, const OdeState& beg_slope)
+    -> Result
 {
     using celeritas::axpy;
     real_type           half_step               = step / real_type(2);
@@ -47,9 +46,8 @@ auto RungeKuttaStepper<T>::operator()(real_type step,
 
     // Do two half steps
     result.mid_state = do_step(half_step, beg_state, beg_slope);
-    result.end_state = do_step(half_step, 
-                               result.mid_state, 
-                               equation_(result.mid_state));
+    result.end_state
+        = do_step(half_step, result.mid_state, equation_(result.mid_state));
 
     // Do a full step
     OdeState yt = do_step(step, beg_state, beg_slope);

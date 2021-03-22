@@ -13,7 +13,6 @@ namespace celeritas
 //! Perform y <- ax + y for OdeState
 inline CELER_FUNCTION void axpy(real_type a, const OdeState& x, OdeState* y);
 
-
 namespace field
 {
 //! Evaluate the stepper truncation error
