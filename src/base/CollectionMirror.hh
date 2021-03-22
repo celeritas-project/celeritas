@@ -73,7 +73,7 @@ class CollectionMirror
     //! Get device pointers after construction
     const DeviceRef& device() const
     {
-        CELER_EXPECT(*this);
+        CELER_ENSURE(device_ref_);
         return device_ref_;
     }
 

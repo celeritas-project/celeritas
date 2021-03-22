@@ -24,7 +24,7 @@ namespace celeritas
  * The State class must be templated on ownership and memory space, and
  * additionally must have an operator bool(), a templated operator=, and a
  * size() accessor. It must also define a free function "resize" that takes
- * a value state and Params host pointers.
+ * a value state and (optionally) Params host pointers.
  *
  * \code
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(

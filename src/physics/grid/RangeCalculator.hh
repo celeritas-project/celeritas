@@ -24,7 +24,7 @@ namespace celeritas
  *
  * Below the minimum tabulated energy, the range is scaled:
  * \f[
-    r = r_\textrm{min} \sqrt{\frac{E}{E_\textrm{min}}}
+    r = r_\mathrm{min} \sqrt{\frac{E}{E_\mathrm{min}}}
  * \f]
  */
 class RangeCalculator
