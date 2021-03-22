@@ -71,5 +71,3 @@ CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
 //---------------------------------------------------------------------------//
 } // namespace field
 } // namespace celeritas
-
-namespace field

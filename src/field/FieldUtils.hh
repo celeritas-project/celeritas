@@ -11,8 +11,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 //! Perform y <- ax + y for OdeState
-CELER_FUNCTION
-inline void axpy(real_type a, const OdeState& x, OdeState* y);
+inline CELER_FUNCTION void axpy(real_type a, const OdeState& x, OdeState* y);
+
 
 namespace field
 {
