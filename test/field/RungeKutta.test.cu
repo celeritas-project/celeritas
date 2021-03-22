@@ -11,12 +11,15 @@
 #include <thrust/device_vector.h>
 
 #include "field/MagField.hh"
-#include "field/FieldEquation.hh"
+#include "field/MagFieldEquation.hh"
 #include "field/RungeKuttaStepper.hh"
+#include "field/FieldInterface.hh"
 
 #include "base/Range.hh"
 #include "base/Types.hh"
 #include "base/Constants.hh"
+#include "base/Units.hh"
+#include "physics/base/Units.hh"
 
 using thrust::raw_pointer_cast;
 
@@ -39,22 +42,17 @@ __global__ void rk4_test_kernel(FieldTestParams param,
         return;
 
     // Construct the Runge-Kutta stepper
-    MagField                         field({0, 0, param.field_value});
-    FieldEquation                    equation(field);
-    RungeKuttaStepper<FieldEquation> rk4(equation);
+    MagField         field({0, 0, param.field_value});
+    MagFieldEquation equation(field, units::ElementaryCharge{-1});
+    RungeKuttaStepper<MagFieldEquation> rk4(equation);
 
     // Initial state and the epected state after revolutions
-    Array<real_type, 6> y;
-    y[0] = param.radius;
-    y[1] = 0.0;
-    y[2] = tid.get() * 1.0e-6; //!< XXX use random position here
-    y[3] = 0;
-    y[4] = param.momentum_y;
-    y[5] = param.momentum_z;
+    OdeState y;
+    y.pos = {param.radius, 0.0, tid.get() * 1.0e-6};
+    y.mom = {0.0, param.momentum_y, param.momentum_z};
 
     // The rhs of the equation and a temporary array
-    Array<real_type, 6> dydx;
-    Array<real_type, 6> yout;
+    OdeState dydx;
 
     // Test parameters and the sub-step size
     real_type hstep       = 2.0 * constants::pi * param.radius / param.nsteps;
@@ -65,19 +63,19 @@ __global__ void rk4_test_kernel(FieldTestParams param,
         // Travel hstep for nsteps times in the field
         for (CELER_MAYBE_UNUSED int i : celeritas::range(param.nsteps))
         {
-            dydx = equation(y);
-            yout = rk4(hstep, y, dydx);
-            real_type error = rk4.error(hstep, y);
-            y               = yout;
-            total_error += error;
+            dydx                    = equation(y);
+            RungeKuttaResult result = rk4(hstep, y, dydx);
+            y                       = result.end_state;
+            total_error
+                += field::truncation_error(hstep, 0.001, y, result.err_state);
         }
     }
 
     // Output for verification
-    pos_x[tid.get()] = y[0];
-    pos_z[tid.get()] = y[2];
-    mom_y[tid.get()] = y[4];
-    mom_z[tid.get()] = y[5];
+    pos_x[tid.get()] = y.pos[0];
+    pos_z[tid.get()] = y.pos[2];
+    mom_y[tid.get()] = y.mom[1];
+    mom_z[tid.get()] = y.mom[2];
     error[tid.get()] = total_error;
 }
 

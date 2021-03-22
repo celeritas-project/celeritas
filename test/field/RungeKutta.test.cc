@@ -8,7 +8,7 @@
 
 #include "field/RungeKuttaStepper.hh"
 #include "field/MagField.hh"
-#include "field/FieldEquation.hh"
+#include "field/MagFieldEquation.hh"
 
 #include "base/Range.hh"
 #include "base/Types.hh"
@@ -47,11 +47,11 @@ class RungeKuttaTest : public Test
         */
 
         param.field_value = 1.0 * units::tesla; //! field value along z [tesla]
-        param.radius      = 38.085386036;       //! radius of curvature [mm]
-        param.delta_z     = 67.003310629;       //! z-change/revolution [mm]
-        param.momentum_y  = 10.9610028286;      //! initial momentum_y  [MeV]
-        param.momentum_z  = 3.1969591583;       //! initial momentum_z  [MeV]
-        param.nstates     = 128 * 512;          //! number of states (tracks)
+        param.radius      = 3.8085386036;       //! radius of curvature [cm]
+        param.delta_z     = 6.7003310629;       //! z-change/revolution [cm]
+        param.momentum_y  = 10.9610028286;      //! initial momentum_y [MeV/c]
+        param.momentum_z  = 3.1969591583;       //! initial momentum_z [MeV/c]
+        param.nstates     = 32 * 512;           //! number of states (tracks)
         param.nsteps      = 100;                //! number of steps/revolution
         param.revolutions = 10;                 //! number of revolutions
         param.epsilon     = 1.0e-5;             //! tolerance error
@@ -69,9 +69,9 @@ class RungeKuttaTest : public Test
 TEST_F(RungeKuttaTest, rk4_host)
 {
     // Construct the Runge-Kutta stepper
-    MagField                         field({0, 0, param.field_value});
-    FieldEquation                    equation(field);
-    RungeKuttaStepper<FieldEquation> rk4(equation);
+    MagField         field({0, 0, param.field_value});
+    MagFieldEquation equation(field, units::ElementaryCharge{-1});
+    RungeKuttaStepper<MagFieldEquation> rk4(equation);
 
     // Test parameters and the sub-step size
     real_type hstep = 2.0 * constants::pi * param.radius / param.nsteps;
@@ -79,38 +79,30 @@ TEST_F(RungeKuttaTest, rk4_host)
     for (CELER_MAYBE_UNUSED int i : celeritas::range(param.nstates))
     {
         // Initial state and the epected state after revolutions
-        Array<real_type, 6> y;
-        y[0] = param.radius;
-        y[1] = 0.0;
-        y[2] = i * 1.0e-6;
-        y[3] = 0.0;
-        y[4] = param.momentum_y;
-        y[5] = param.momentum_z;
+        OdeState y;
+        y.pos = {param.radius, 0.0, i * 1.0e-6};
+        y.mom = {0.0, param.momentum_y, param.momentum_z};
 
-        Array<real_type, 6> expected_y;
-        for (std::size_t i = 0; i != 6; ++i)
-            expected_y[i] = y[i];
-
-        // The rhs of the equation and a temporary array
-        Array<real_type, 6> dydx;
-        Array<real_type, 6> yout;
+        OdeState expected_y = y;
+        OdeState dydx;
 
         // Try the stepper by hstep for (num_revolutions * num_steps) times
         real_type total_err2 = 0;
         for (int nr : range(param.revolutions))
         {
             // Travel hstep for num_steps times in the field
-            expected_y[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
+            expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
             for (CELER_MAYBE_UNUSED int j : celeritas::range(param.nsteps))
             {
-                dydx           = equation(y);
-                yout           = rk4(hstep, y, dydx);
-                real_type err2 = rk4.error(hstep, y);
-                y              = yout;
-                total_err2 += err2;
+                dydx                    = equation(y);
+                RungeKuttaResult result = rk4(hstep, y, dydx);
+                y                       = result.end_state;
+                total_err2 += field::truncation_error(
+                    hstep, 0.001, y, result.err_state);
             }
             // Check the state after each revolution and the total error
-            EXPECT_VEC_NEAR(expected_y, y, sqrt(total_err2));
+            EXPECT_VEC_NEAR(expected_y.pos, y.pos, sqrt(total_err2));
+            EXPECT_VEC_NEAR(expected_y.mom, y.mom, sqrt(total_err2));
             EXPECT_LT(total_err2, param.epsilon);
         }
     }
@@ -132,13 +124,13 @@ TEST_F(RungeKuttaDeviceTest, rk4_device)
 
     // Check stepper results
     real_type zstep = param.delta_z * param.revolutions;
-    for (unsigned int i = 0; i < output.pos_x.size(); ++i)
+    for (auto i : celeritas::range(output.pos_x.size()))
     {
         real_type error = std::sqrt(output.error[i]);
-        EXPECT_LT(fabs(output.pos_x[i] - param.radius), error);
-        EXPECT_LT(fabs(output.pos_z[i] - (zstep + i * 1.0e-6)), error);
-        EXPECT_LT(fabs(output.mom_y[i] - param.momentum_y), error);
-        EXPECT_LT(fabs(output.mom_z[i] - param.momentum_z), error);
+        EXPECT_SOFT_NEAR(output.pos_x[i], param.radius, error);
+        EXPECT_SOFT_NEAR(output.pos_z[i], zstep + i * 1.0e-6, error);
+        EXPECT_SOFT_NEAR(output.mom_y[i], param.momentum_y, error);
+        EXPECT_SOFT_NEAR(output.mom_z[i], param.momentum_z, error);
         EXPECT_LT(output.error[i], param.epsilon);
     }
 }
