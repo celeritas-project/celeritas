@@ -19,26 +19,19 @@ namespace celeritas
 class MagField
 {
   public:
-    //@{
-    //! Type aliases
-    using field_value = Real3;
-    using field_type  = bool;
-    //@}
-
-  public:
     //! Construct from a uniform field
-    CELER_FUNCTION MagField(const field_value& value);
+    CELER_FUNCTION MagField(const Real3& value);
 
     //! Return a magnetic field value at a given position
-    CELER_FUNCTION auto operator()(const Real3& position) const -> field_value;
+    CELER_FUNCTION Real3 operator()(const Real3& position) const;
 
     //! Interface for a position-dependent magnetic field
-    CELER_FUNCTION auto get_field(const Real3& position) const -> field_value;
+    CELER_FUNCTION Real3 get_field(const Real3& position) const;
 
   private:
     //! Shared/persistent field data
-    field_value value_;
-    field_type  uniform_;
+    Real3 value_;
+    bool  uniform_;
 };
 
 //---------------------------------------------------------------------------//

@@ -15,16 +15,13 @@ namespace celeritas
  * Construct from a uniform magnetic field
  */
 CELER_FUNCTION
-MagField::MagField(const field_value& value) : value_(value), uniform_(true)
-{
-}
+MagField::MagField(const Real3& value) : value_(value), uniform_(true) {}
 
 //---------------------------------------------------------------------------//
 /*!
  * Return a magnetic field value at a given position
  */
-CELER_FUNCTION auto MagField::operator()(const Real3& position) const
-    -> field_value
+CELER_FUNCTION Real3 MagField::operator()(const Real3& position) const
 {
     return (uniform_) ? value_ : get_field(position);
 }
@@ -35,8 +32,7 @@ CELER_FUNCTION auto MagField::operator()(const Real3& position) const
  * XXX TODO: 1) add ctors to support FieldMap or ParameterizedField
  *           2) evaluate the position dependent field value
  */
-CELER_FUNCTION auto MagField::get_field(const Real3& position) const
-    -> field_value
+CELER_FUNCTION Real3 MagField::get_field(const Real3& position) const
 {
     CELER_ENSURE(position.size() == 3);
     return value_;
