@@ -109,6 +109,8 @@ class MaterialTest : public celeritas::Test
              MatterState::gas,
              {{ElementId{0}, 1.0}},
              "H2"},
+            // Diatomic hydrogen with the same name and different properties
+            {1.073e+20, 110.0, MatterState::gas, {{ElementId{0}, 1.0}}, "H2"},
         };
         params = std::make_shared<MaterialParams>(std::move(inp));
     }
@@ -122,13 +124,14 @@ TEST_F(MaterialTest, params)
 {
     ASSERT_TRUE(params);
 
-    EXPECT_EQ(3, params->size());
-    EXPECT_EQ(3, params->num_materials());
+    EXPECT_EQ(4, params->size());
+    EXPECT_EQ(4, params->num_materials());
     EXPECT_EQ(4, params->num_elements());
 
     EXPECT_EQ(MaterialId{0}, params->find("NaI"));
     EXPECT_EQ(MaterialId{1}, params->find("hard vacuum"));
     EXPECT_EQ(MaterialId{2}, params->find("H2"));
+    EXPECT_EQ(MaterialId{3}, params->find("H2_3"));
     EXPECT_EQ(MaterialId{}, params->find("nonexistent material"));
 
     EXPECT_EQ("H", params->id_to_label(ElementId{0}));
