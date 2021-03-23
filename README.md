@@ -34,7 +34,7 @@ to installing and activating the Spack prerequisites for building Celeritas.
 Alternatively, you can manually perform the following steps:
 - Clone Spack following its [getting started instructions](https://spack.readthedocs.io/en/latest/getting_started.html)
 - Add CUDA to your `$SPACK_ROOT/etc/spack/packages.yaml` file
-- Run `spack env add celeritas scripts/dev/env/celeritas-linux.yaml` (or
+- Run `spack env create celeritas scripts/dev/env/celeritas-linux.yaml` (or
   replace `linux` with `darwin` if running on a mac); then `spack -e
   celeritas concretize` and `spack -e celeritas install`
 - Run and add to your startup environment profile `spack env activate
@@ -82,4 +82,4 @@ guidelines and best practices for code in the project.
 
 The [code design page](https://github.com/celeritas-project/celeritas/wiki/Code-design) outlines the basic physics design philosophy and classes.
 
-Some [codebase images and graphs](https://github.com/celeritas-project/celeritas-docs/tree/master/celeritas-code) are available on the `celeritas-docs` repo.
+Some [codebase images and graphs](https://github.com/celeritas-project/celeritas-docs/tree/master/graphs) are available on the `celeritas-docs` repo.

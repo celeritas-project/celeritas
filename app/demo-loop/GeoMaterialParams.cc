@@ -3,25 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CutoffView.i.hh
+//! \file GeoMaterialParams.cc
 //---------------------------------------------------------------------------//
+#include "GeoMaterialParams.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct view from host/device for the given particle and material ids.
+ * Construct from geometry and material params.
  */
-CELER_FUNCTION CutoffView::CutoffView(const CutoffPointers& params,
-                                      ParticleId            particle,
-                                      MaterialId            material)
+GeoMaterialParams::GeoMaterialParams(Input)
 {
-    CELER_EXPECT(particle < params.num_particles);
-    CELER_EXPECT(material < params.num_materials);
-    using CutoffId = OpaqueId<ParticleCutoff>;
-    CutoffId cutoff_id{params.num_materials * particle.get() + material.get()};
-
-    cutoff_ = params.cutoffs[cutoff_id];
+    CELER_NOT_IMPLEMENTED("TODO: GeoMaterialParams");
 }
 
 //---------------------------------------------------------------------------//

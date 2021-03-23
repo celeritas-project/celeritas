@@ -148,6 +148,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   add_library(celeritas_demo_rasterizer
     demo-rasterizer/RDemoRunner.cc
     demo-rasterizer/RDemoKernel.cu
+    demo-rasterizer/ImageIO.cc
+    demo-rasterizer/ImageStore.cc
   )
   target_link_libraries(celeritas_demo_rasterizer
     PRIVATE
@@ -159,8 +161,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   # Add the executable
   add_executable(demo-rasterizer
     demo-rasterizer/demo-rasterizer.cc
-    demo-rasterizer/ImageIO.cc
-    demo-rasterizer/ImageStore.cc
   )
   target_link_libraries(demo-rasterizer
     celeritas
@@ -185,6 +185,48 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
       REQUIRED_FILES "${_driver};${_gdml_inp}"
     )
   endif()
+endif()
+
+#-----------------------------------------------------------------------------#
+# DEMO: full physics loop
+#-----------------------------------------------------------------------------#
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
+  set(_cuda_src)
+  if(CELERITAS_USE_CUDA)
+    set(_cuda_src
+      demo-loop/LDemoKernel.cu
+    )
+  endif()
+  add_library(celeritas_demo_loop
+    demo-loop/GeoMaterialParams.cc
+    demo-loop/LDemoIO.cc
+    demo-loop/LDemoParams.cc
+    demo-loop/LDemoRun.cc
+    demo-loop/demo-loop.cc
+    ${_cuda_src}
+  )
+
+  if(CELERITAS_USE_CUDA)
+    celeritas_link_vecgeom_cuda(celeritas_demo_loop)
+  endif()
+  target_link_libraries(celeritas_demo_loop
+    PRIVATE
+    celeritas
+    nlohmann_json::nlohmann_json
+    Celeritas::ROOT
+  )
+
+  # Add the executable
+  add_executable(demo-loop
+    demo-loop/demo-loop.cc
+  )
+  target_link_libraries(demo-loop
+    celeritas
+    VecGeom::vecgeom
+    celeritas_demo_loop
+    nlohmann_json::nlohmann_json
+  )
+
 endif()
 
 #-----------------------------------------------------------------------------#
