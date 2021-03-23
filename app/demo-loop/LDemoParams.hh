@@ -7,12 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "geometry/GeoMaterialParams.hh"
 #include "geometry/GeoParams.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "GeoMaterialParams.hh"
 
 namespace demo_loop
 {

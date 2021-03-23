@@ -139,6 +139,8 @@ if(CELERITAS_USE_VecGeom)
     list(APPEND CELERITASTEST_LINK_LIBRARIES celeritas_vgtest)
   endif()
 
+  celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
+    LINK_LIBRARIES Celeritas::ROOT)
   celeritas_add_test(geometry/GeoParams.test.cc GPU)
   celeritas_add_test(geometry/GeoTrackView.test.cc GPU)
   celeritas_add_test(geometry/LinearPropagator.test.cc GPU)

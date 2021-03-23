@@ -128,6 +128,7 @@ endif()
 
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
+    geometry/GeoMaterialParams.cc
     geometry/GeoParams.cc
     geometry/GeoStateStore.cc
     sim/ParamStore.cc
