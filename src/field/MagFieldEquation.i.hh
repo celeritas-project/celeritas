@@ -41,7 +41,7 @@ CELER_FUNCTION
 auto MagFieldEquation::operator()(const OdeState& y) const -> OdeState
 {
     // Get a magnetic field value at a given position
-    Real3 mag_vec = field_(y.pos);
+    Real3 mag_vec = field_();
 
     real_type momentum_mag2 = dot_product(y.mom, y.mom);
     CELER_ASSERT(momentum_mag2 > 0.0);

@@ -20,18 +20,14 @@ class MagField
 {
   public:
     // Construct from a uniform field
-    CELER_FUNCTION MagField(const Real3& value);
+    explicit CELER_FUNCTION MagField(const Real3& value);
 
     // Return a magnetic field value at a given position
-    CELER_FUNCTION Real3 operator()(const Real3& position) const;
-
-    // Interface for a position-dependent magnetic field
-    CELER_FUNCTION Real3 get_field(const Real3& position) const;
+    CELER_FUNCTION Real3 operator()() const;
 
   private:
     // Shared/persistent field data
     Real3 value_;
-    bool  uniform_;
 };
 
 //---------------------------------------------------------------------------//
