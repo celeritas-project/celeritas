@@ -24,11 +24,11 @@ class MagFieldEquation
 {
   public:
     // Construct with a magnetic field
-    CELER_FUNCTION
+    inline CELER_FUNCTION
     MagFieldEquation(const MagField& field, units::ElementaryCharge q);
 
     // Evaluate the right hand side of the field equation
-    CELER_FUNCTION auto operator()(const OdeState& y) const -> OdeState;
+    inline CELER_FUNCTION auto operator()(const OdeState& y) const -> OdeState;
 
   private:
     const MagField&         field_;
