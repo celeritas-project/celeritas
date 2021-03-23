@@ -97,8 +97,8 @@ TEST_F(RungeKuttaTest, rk4_host)
                 dydx                    = equation(y);
                 RungeKuttaResult result = rk4(hstep, y, dydx);
                 y                       = result.end_state;
-                total_err2 += field::truncation_error(
-                    hstep, 0.001, y, result.err_state);
+                total_err2
+                    += truncation_error(hstep, 0.001, y, result.err_state);
             }
             // Check the state after each revolution and the total error
             EXPECT_VEC_NEAR(expected_y.pos, y.pos, sqrt(total_err2));

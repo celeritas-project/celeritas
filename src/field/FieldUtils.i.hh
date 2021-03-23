@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include "base/ArrayUtils.hh"
+#include <cmath>
 
 namespace celeritas
 {
@@ -19,8 +20,6 @@ void axpy(real_type a, const OdeState& x, OdeState* y)
     axpy(a, x.mom, &y->mom);
 }
 
-namespace field
-{
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate the stepper truncation error: max(pos_error^2, scale*mom_error^2)
@@ -69,5 +68,4 @@ CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace field
 } // namespace celeritas

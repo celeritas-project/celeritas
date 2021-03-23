@@ -13,8 +13,6 @@ namespace celeritas
 //! Perform y <- ax + y for OdeState
 inline CELER_FUNCTION void axpy(real_type a, const OdeState& x, OdeState* y);
 
-namespace field
-{
 //! Evaluate the stepper truncation error
 inline CELER_FUNCTION real_type truncation_error(real_type       step,
                                                  real_type       eps_rel_max,
@@ -27,7 +25,6 @@ inline CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
                                                const OdeState& end_state);
 
 //---------------------------------------------------------------------------//
-} // namespace field
 } // namespace celeritas
 
 #include "FieldUtils.i.hh"

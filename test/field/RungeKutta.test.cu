@@ -66,8 +66,7 @@ __global__ void rk4_test_kernel(FieldTestParams param,
             dydx                    = equation(y);
             RungeKuttaResult result = rk4(hstep, y, dydx);
             y                       = result.end_state;
-            total_error
-                += field::truncation_error(hstep, 0.001, y, result.err_state);
+            total_error += truncation_error(hstep, 0.001, y, result.err_state);
         }
     }
 
