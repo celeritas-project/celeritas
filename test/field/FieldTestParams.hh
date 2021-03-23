@@ -9,8 +9,6 @@
 
 #include "base/Types.hh"
 
-using namespace celeritas;
-
 namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
@@ -19,6 +17,9 @@ namespace celeritas_test
 
 struct FieldTestParams
 {
+    using size_type = celeritas::size_type;
+    using real_type = celeritas::real_type;
+
     size_type nstates;
     int       nsteps;
     int       revolutions;

@@ -7,25 +7,20 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
 #include "FieldTestParams.hh"
 #include "base/Types.hh"
-#include <vector>
-
-using namespace celeritas;
 
 namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
-
-#ifdef CELERITAS_USE_CUDA
-//---------------------------------------------------------------------------//
-// DEVICE TESTS
-//---------------------------------------------------------------------------//
 //! Output results
 struct RK4TestOutput
 {
+    using real_type = celeritas::real_type;
+
     std::vector<real_type> pos_x;
     std::vector<real_type> pos_z;
     std::vector<real_type> mom_y;
@@ -37,6 +32,11 @@ struct RK4TestOutput
 //! Run on device and return results
 RK4TestOutput rk4_test(FieldTestParams test_param);
 
+#if !CELERITAS_USE_CUDA
+inline RK4TestOutput rk4_test(FieldTestParams)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
 #endif
 
 //---------------------------------------------------------------------------//

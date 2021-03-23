@@ -19,9 +19,7 @@
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
 
-#ifdef CELERITAS_USE_CUDA
-#    include "RungeKutta.test.hh"
-#endif
+#include "RungeKutta.test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -66,7 +64,7 @@ class RungeKuttaTest : public Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(RungeKuttaTest, rk4_host)
+TEST_F(RungeKuttaTest, host)
 {
     // Construct the Runge-Kutta stepper
     MagField         field({0, 0, param.field_value});
@@ -108,16 +106,9 @@ TEST_F(RungeKuttaTest, rk4_host)
     }
 }
 
-#if CELERITAS_USE_CUDA
-//---------------------------------------------------------------------------//
-// DEVICE TESTS
 //---------------------------------------------------------------------------//
 
-class RungeKuttaDeviceTest : public RungeKuttaTest
-{
-};
-
-TEST_F(RungeKuttaDeviceTest, rk4_device)
+TEST_F(RungeKuttaTest, TEST_IF_CELERITAS_CUDA(device))
 {
     // Run kernel
     auto output = rk4_test(param);
@@ -136,4 +127,3 @@ TEST_F(RungeKuttaDeviceTest, rk4_device)
 }
 
 //---------------------------------------------------------------------------//
-#endif
