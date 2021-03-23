@@ -160,7 +160,7 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
     if (!iter_inserted.second)
     {
         // Insertion failed due to duplicate material name
-        // Create unique material name by concatenating name and MaterialId
+        // Create unique material name by concatenating its name and MaterialId
         std::string name_id
             = inp.name + "_"
               + std::to_string(MaterialId(host_data->materials.size()).get());
