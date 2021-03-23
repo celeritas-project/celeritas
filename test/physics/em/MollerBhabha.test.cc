@@ -80,9 +80,6 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         pointers_.electron_id        = params.find(pdg::electron());
         pointers_.positron_id        = params.find(pdg::positron());
         pointers_.electron_mass_c_sq = 0.5109989461;
-
-        // Set default incident direction. Particle is defined in the tests
-        this->set_inc_direction({0, 0, 1});
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -241,7 +238,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
                                   {1e5, {3, 7, -6}}};
     // clang-format on
 
-    // Set electron energy cutoff value to 1 MeV
+    // Create CutoffParams with a 1 MeV electron cutoff
     CutoffParams::MaterialCutoffs material_cutoffs;
     material_cutoffs.push_back({MevEnergy{1}, 0});
 
@@ -316,7 +313,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     EXPECT_VEC_SOFT_EQ(expected_m_sec_e, m_results.sec_e);
     for (const auto secondary_energy : m_results.sec_e)
     {
-        // Verify if all secondaries are above the cutoff threshld
+        // Verify if secondary is above the cutoff threshold
         EXPECT_TRUE(secondary_energy > cutoff_view.energy().value());
     }
 
@@ -328,158 +325,11 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     EXPECT_VEC_SOFT_EQ(expected_b_sec_e, b_results.sec_e);
     for (const auto secondary_energy : b_results.sec_e)
     {
-        // Verify if all secondaries are above the cutoff threshld
+        // Verify if secondary is above the cutoff threshold
         EXPECT_TRUE(secondary_energy > cutoff_view.energy().value());
     }
 }
 
-#if 0
-//---------------------------------------------------------------------------//
-TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
-{
-    // Sample 4 Moller and 4 Bhabha interactors
-    this->resize_secondaries(8);
-    RandomEngine& rng_engine = this->rng();
-
-    // Sample Moller results
-    std::vector<double> m_inc_exit_cost;
-    std::vector<double> m_inc_exit_e;
-    std::vector<double> m_inc_edep;
-    std::vector<double> m_sec_cost;
-    std::vector<double> m_sec_e;
-
-    // Sample Bhabha results
-    std::vector<double> b_inc_exit_cost;
-    std::vector<double> b_inc_exit_e;
-    std::vector<double> b_inc_edep;
-    std::vector<double> b_sec_cost;
-    std::vector<double> b_sec_e;
-
-    // Select energies for the incident particle's interactor test [MeV]
-    real_type inc_energies[4] = {10, 1e2, 1e3, 1e5};
-
-    Real3 dir0 = {5, 5, 5};
-    Real3 dir1 = {-3, 7, 10};
-    Real3 dir2 = {1, -10, 5};
-    Real3 dir3 = {3, 7, -6};
-    normalize_direction(&dir0);
-    normalize_direction(&dir1);
-    normalize_direction(&dir2);
-    normalize_direction(&dir3);
-
-    // Select directions for the incident particle's interactor test
-    Real3 inc_direction[4] = {dir0, dir1, dir2, dir3};
-
-    // Set electron cutoff value
-    CutoffParams::MaterialCutoffs material_cutoffs;
-    material_cutoffs.push_back({MevEnergy{1}, 0});
-
-    CutoffParams::Input cutoff_inp;
-    cutoff_inp.materials = this->get_material_params();
-    cutoff_inp.particles = this->get_particle_params();
-    cutoff_inp.cutoffs.insert({pdg::electron(), material_cutoffs});
-    this->set_cutoff_params(cutoff_inp);
-
-    CutoffView cutoff_view(this->get_cutoff_params()->host_pointers(),
-                           ParticleId{0},
-                           MaterialId{0});
-
-    for (int i : celeritas::range(4))
-    {
-        this->set_inc_direction(inc_direction[i]);
-
-        //// Sample Moller
-        this->set_inc_particle(pdg::electron(), MevEnergy{inc_energies[i]});
-
-        MollerBhabhaInteractor m_interactor(pointers_,
-                                            this->particle_track(),
-                                            cutoff_view,
-                                            this->direction(),
-                                            this->secondary_allocator());
-
-        Interaction m_result = m_interactor(rng_engine);
-        this->sanity_check(m_result);
-
-        m_inc_exit_cost.push_back(
-            dot_product(m_result.direction, this->direction()));
-        m_inc_exit_e.push_back(m_result.energy.value());
-        m_inc_edep.push_back(m_result.energy_deposition.value());
-        EXPECT_EQ(1, m_result.secondaries.size());
-        m_sec_cost.push_back(
-            dot_product(m_result.secondaries[0].direction, this->direction()));
-        m_sec_e.push_back(m_result.secondaries[0].energy.value());
-
-        //// Sample Bhabha
-        this->set_inc_particle(pdg::positron(), MevEnergy{inc_energies[i]});
-
-        MollerBhabhaInteractor b_interactor(pointers_,
-                                            this->particle_track(),
-                                            cutoff_view,
-                                            this->direction(),
-                                            this->secondary_allocator());
-
-        Interaction b_result = b_interactor(rng_engine);
-        this->sanity_check(b_result);
-
-        b_inc_exit_cost.push_back(
-            dot_product(b_result.direction, this->direction()));
-        b_inc_exit_e.push_back(b_result.energy.value());
-        b_inc_edep.push_back(b_result.energy_deposition.value());
-        EXPECT_EQ(1, b_result.secondaries.size());
-        b_sec_cost.push_back(
-            dot_product(b_result.secondaries[0].direction, this->direction()));
-        b_sec_e.push_back(b_result.secondaries[0].energy.value());
-    }
-
-    //// Moller
-    // Gold values based on the host rng. Energies are in MeV
-    const double expected_m_inc_exit_cost[]
-        = {0.9784675127353, 0.9997401875592, 0.9999953862586, 0.9999999997589};
-    const double expected_m_inc_exit_e[]
-        = {6.75726441249, 95.11275692125, 991.0427997072, 99995.28168559};
-    const double expected_m_inc_edep[] = {0, 0, 0, 0};
-    const double expected_m_sec_cost[]
-        = {0.9154612855963, 0.91405872098, 0.9478947756541, 0.9066254320384};
-    const double expected_m_sec_e[]
-        = {3.24273558751, 4.887243078746, 8.957200292789, 4.718314414109};
-
-    //// Bhabha
-    // Gold values based on the host rng. Energies are in MeV
-    const double expected_b_inc_exit_cost[]
-        = {0.9774788335858, 0.9999472046111, 0.9999992012865, 0.999999999931};
-    const double expected_b_inc_exit_e[]
-        = {6.654742369665, 98.96696134497, 998.4378016843, 99998.64983431};
-    const double expected_b_inc_edep[] = {0, 0, 0, 0};
-    const double expected_b_sec_cost[]
-        = {0.9188415916986, 0.7126175077086, 0.777906053136, 0.7544377929863};
-    const double expected_b_sec_e[]
-        = {3.345257630335, 1.033038655033, 1.562198315728, 1.350165690206};
-
-    //// Moller
-    EXPECT_VEC_SOFT_EQ(expected_m_inc_exit_cost, m_inc_exit_cost);
-    EXPECT_VEC_SOFT_EQ(expected_m_inc_exit_e, m_inc_exit_e);
-    EXPECT_VEC_SOFT_EQ(expected_m_inc_edep, m_inc_edep);
-    EXPECT_VEC_SOFT_EQ(expected_m_sec_cost, m_sec_cost);
-    EXPECT_VEC_SOFT_EQ(expected_m_sec_e, m_sec_e);
-    for (const auto secondary_energy : m_sec_e)
-    {
-        // Verify if all secondaries are above the cutoff threshld
-        EXPECT_TRUE(secondary_energy > cutoff_view.energy().value());
-    }
-
-    //// Bhabha
-    EXPECT_VEC_SOFT_EQ(expected_b_inc_exit_cost, b_inc_exit_cost);
-    EXPECT_VEC_SOFT_EQ(expected_b_inc_exit_e, b_inc_exit_e);
-    EXPECT_VEC_SOFT_EQ(expected_b_inc_edep, b_inc_edep);
-    EXPECT_VEC_SOFT_EQ(expected_b_sec_cost, b_sec_cost);
-    EXPECT_VEC_SOFT_EQ(expected_b_sec_e, b_sec_e);
-    for (const auto secondary_energy : b_sec_e)
-    {
-        // Verify if all secondaries are above the cutoff threshld
-        EXPECT_TRUE(secondary_energy > cutoff_view.energy().value());
-    }
-}
-#endif
 //---------------------------------------------------------------------------//
 TEST_F(MollerBhabhaInteractorTest, stress_test)
 {
