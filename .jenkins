@@ -29,7 +29,7 @@ pipeline {
         stage('cuda-11-ndebug') {
           agent {
             docker {
-              image 'celeritas/ci-cuda11:2021-02-17'
+              image 'celeritas/ci-focal-cuda11:2021-03-22'
               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
             }
           }
@@ -46,7 +46,7 @@ pipeline {
         stage('cuda-11') {
           agent {
             docker {
-              image 'celeritas/ci-cuda11:2021-03-22'
+              image 'celeritas/ci-focal-cuda11:2021-03-22'
               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
             }
           }
