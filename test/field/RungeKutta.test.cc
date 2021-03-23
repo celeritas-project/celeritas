@@ -74,7 +74,8 @@ TEST_F(RungeKuttaTest, host)
     // Test parameters and the sub-step size
     real_type hstep = 2.0 * constants::pi * param.radius / param.nsteps;
 
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(param.nstates))
+    // Only test every 128 states to reduce debug runtime
+    for (unsigned int i : celeritas::range(param.nstates).step(128u))
     {
         // Initial state and the epected state after revolutions
         OdeState y;
