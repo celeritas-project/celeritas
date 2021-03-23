@@ -96,6 +96,26 @@ const ParticleParams& InteractorHostTestBase::particle_params() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Set cutoff parameters.
+ */
+void InteractorHostTestBase::set_cutoff_params(CutoffParams::Input inp)
+{
+    CELER_EXPECT(inp.materials && inp.particles);
+    cutoff_params_ = std::make_shared<CutoffParams>(std::move(inp));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access cutoff parameters.
+ */
+const CutoffParams& InteractorHostTestBase::cutoff_params() const
+{
+    CELER_EXPECT(cutoff_params_);
+    return *cutoff_params_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Initialize the incident particle data
  */
 void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)

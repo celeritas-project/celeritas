@@ -15,12 +15,16 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 #include "physics/material/MaterialTrackView.hh"
+#include "physics/base/CutoffView.hh"
 
 using celeritas::Action;
+using celeritas::CutoffView;
 using celeritas::dot_product;
 using celeritas::normalize_direction;
+using celeritas::ParticleCutoff;
 using celeritas::detail::MollerBhabhaInteractor;
 using celeritas::units::AmuMass;
+using celeritas::units::MevEnergy;
 namespace constants = celeritas::constants;
 namespace pdg       = celeritas::pdg;
 
@@ -52,17 +56,6 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
                                     ElementaryCharge{1},
                                     stable}});
 
-        const auto& params           = this->particle_params();
-        pointers_.electron_id        = params.find(pdg::electron());
-        pointers_.positron_id        = params.find(pdg::positron());
-        pointers_.electron_mass_c_sq = 0.5109989461;
-        pointers_.min_valid_energy   = 1e-3; // [MeV]
-        //! If cutoff is zero the hardcoded minimum energy is used
-        pointers_.cutoff_energy = 0; // [MeV]
-
-        // Set default incident direction. Particle is defined in the tests
-        this->set_inc_direction({0, 0, 1});
-
         // Setup MaterialView
         MaterialParams::Input inp;
         inp.elements  = {{29, AmuMass{63.546}, "Cu"}};
@@ -75,6 +68,21 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         };
         this->set_material_params(inp);
         this->set_material("Cu");
+
+        // Set basic CutoffParams (no cuts)
+        CutoffParams::Input cutoff_inp;
+        cutoff_inp.materials = this->get_material_params();
+        cutoff_inp.particles = this->get_particle_params();
+        this->set_cutoff_params(cutoff_inp);
+
+        // Set MollerBhabhaPointers
+        const auto& params           = this->particle_params();
+        pointers_.electron_id        = params.find(pdg::electron());
+        pointers_.positron_id        = params.find(pdg::positron());
+        pointers_.electron_mass_c_sq = 0.5109989461;
+
+        // Set default incident direction. Particle is defined in the tests
+        this->set_inc_direction({0, 0, 1});
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -148,11 +156,16 @@ TEST_F(MollerBhabhaInteractorTest, basic)
     {
         this->set_inc_direction(inc_direction[i]);
 
+        CutoffView cutoff_view(this->get_cutoff_params()->host_pointers(),
+                               ParticleId{0},
+                               MaterialId{0});
+
         //// Sample Moller
         this->set_inc_particle(pdg::electron(), MevEnergy{inc_energies[i]});
 
         MollerBhabhaInteractor m_interactor(pointers_,
                                             this->particle_track(),
+                                            cutoff_view,
                                             this->direction(),
                                             this->secondary_allocator());
 
@@ -173,6 +186,7 @@ TEST_F(MollerBhabhaInteractorTest, basic)
 
         MollerBhabhaInteractor b_interactor(pointers_,
                                             this->particle_track(),
+                                            cutoff_view,
                                             this->direction(),
                                             this->secondary_allocator());
 
@@ -266,8 +280,20 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     // Select directions for the incident particle's interactor test
     Real3 inc_direction[4] = {dir0, dir1, dir2, dir3};
 
-    // Select secondary cutoff value
-    pointers_.cutoff_energy = 1; // [MeV]
+    // TODO Set secondary cutoff value
+    // Set electron cutoff value
+    CutoffParams::MaterialCutoffs material_cutoffs;
+    material_cutoffs.push_back({MevEnergy{1}, 0});
+
+    CutoffParams::Input cutoff_inp;
+    cutoff_inp.materials = this->get_material_params();
+    cutoff_inp.particles = this->get_particle_params();
+    cutoff_inp.cutoffs.insert({pdg::electron(), material_cutoffs});
+    this->set_cutoff_params(cutoff_inp);
+
+    CutoffView cutoff_view(this->get_cutoff_params()->host_pointers(),
+                           ParticleId{0},
+                           MaterialId{0});
 
     for (int i : celeritas::range(4))
     {
@@ -278,6 +304,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
 
         MollerBhabhaInteractor m_interactor(pointers_,
                                             this->particle_track(),
+                                            cutoff_view,
                                             this->direction(),
                                             this->secondary_allocator());
 
@@ -298,6 +325,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
 
         MollerBhabhaInteractor b_interactor(pointers_,
                                             this->particle_track(),
+                                            cutoff_view,
                                             this->direction(),
                                             this->secondary_allocator());
 
@@ -347,7 +375,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     for (const auto secondary_energy : m_sec_e)
     {
         // Verify if all secondaries are above the cutoff threshld
-        EXPECT_TRUE(secondary_energy > pointers_.cutoff_energy);
+        EXPECT_TRUE(secondary_energy > cutoff_view.energy().value());
     }
 
     //// Bhabha
@@ -359,7 +387,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     for (const auto secondary_energy : b_sec_e)
     {
         // Verify if all secondaries are above the cutoff threshld
-        EXPECT_TRUE(secondary_energy > pointers_.cutoff_energy);
+        EXPECT_TRUE(secondary_energy > cutoff_view.energy().value());
     }
 }
 
@@ -370,6 +398,10 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
 
     const int           num_samples = 1e4;
     std::vector<double> avg_engine_samples;
+
+    CutoffView cutoff_view(this->get_cutoff_params()->host_pointers(),
+                           ParticleId{0},
+                           MaterialId{0});
 
     // Moller's max energy fraction is 0.5, which leads to E_K > 2e-3
     // Bhabha's max energy fraction is 1.0, which leads to E_K > 1e-3
@@ -396,6 +428,7 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
                 this->set_inc_particle(particle, MevEnergy{inc_e});
                 MollerBhabhaInteractor mb_interact(pointers_,
                                                    this->particle_track(),
+                                                   cutoff_view,
                                                    this->direction(),
                                                    this->secondary_allocator());
 

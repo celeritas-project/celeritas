@@ -28,18 +28,20 @@ namespace detail
 CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     const MollerBhabhaPointers& shared,
     const ParticleTrackView&    particle,
+    const CutoffView&           cutoffs,
     const Real3&                inc_direction,
     StackAllocator<Secondary>&  allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_momentum_(particle.momentum().value())
     , inc_direction_(inc_direction)
+    , secondary_energy_cutoff_(cutoffs.energy().value())
     , allocate_(allocate)
     , inc_particle_is_electron_(particle.particle_id() == shared_.electron_id)
 {
     CELER_EXPECT(particle.particle_id() == shared_.electron_id
                  || particle.particle_id() == shared_.positron_id);
-    CELER_EXPECT(shared_.cutoff_energy < inc_energy_);
+    CELER_EXPECT(cutoffs.energy().value() < inc_energy_);
 }
 
 //---------------------------------------------------------------------------//
@@ -62,17 +64,8 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     }
 
     // Set up energy threshold for secondary production
-    real_type min_sampled_energy;
-    if (shared_.cutoff_energy < shared_.min_valid_energy)
-    {
-        // Use model's low energy boundary
-        min_sampled_energy = shared_.min_valid_energy;
-    }
-    else
-    {
-        // Use suggested cutoff value
-        min_sampled_energy = shared_.cutoff_energy;
-    }
+    real_type min_sampled_energy
+        = std::max(shared_.min_valid_energy, secondary_energy_cutoff_);
 
     // TODO: do we assert here? Do we return Interaction::from_failure()? Do we
     // CELER_EXPECT this condition in the constructor?

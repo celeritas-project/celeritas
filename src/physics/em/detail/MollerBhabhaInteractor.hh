@@ -14,10 +14,11 @@
 
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
+#include "physics/base/CutoffView.hh"
 #include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "physics/material/ElementView.hh"
+#include "physics/material/MaterialView.hh"
 
 #include "MollerBhabha.hh"
 
@@ -42,6 +43,7 @@ class MollerBhabhaInteractor
     inline CELER_FUNCTION
     MollerBhabhaInteractor(const MollerBhabhaPointers& shared,
                            const ParticleTrackView&    particle,
+                           const CutoffView&           cutoffs,
                            const Real3&                inc_direction,
                            StackAllocator<Secondary>&  allocate);
 
@@ -58,11 +60,13 @@ class MollerBhabhaInteractor
     const real_type inc_momentum_;
     // Incident direction
     const Real3& inc_direction_;
+    // Secondary cutoff value for current particle and material
+    const real_type secondary_energy_cutoff_;
     // Allocate space for the secondary particle
     StackAllocator<Secondary>& allocate_;
     // Incident particle flag for selecting Moller or Bhabha scattering
     const bool inc_particle_is_electron_;
-}; // namespace MollerBhabhaInteractor
+};
 
 //---------------------------------------------------------------------------//
 } // namespace detail

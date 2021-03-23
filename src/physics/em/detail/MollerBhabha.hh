@@ -34,16 +34,15 @@ struct MollerBhabhaPointers
     //! Electron mass * c^2 [MeV]
     real_type electron_mass_c_sq;
     //! Model's mininum energy limit [MeV]
-    real_type min_valid_energy;
-    //! Secondary (electron) cutoff energy limit [MeV]
-    //! If set to zero the interactor will use the hardcoded minimum energy
-    real_type cutoff_energy;
+    const real_type min_valid_energy = 1e-3;
+    //! Model's maximum energy limit [MeV]
+    const real_type max_valid_energy = 100e6;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
         return electron_id && positron_id && electron_mass_c_sq > 0
-               && min_valid_energy > 0 && cutoff_energy >= 0;
+               && min_valid_energy > 0;
     }
 };
 

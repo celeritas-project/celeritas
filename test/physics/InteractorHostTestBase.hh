@@ -19,6 +19,8 @@
 #include "physics/base/ModelIdGenerator.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleInterface.hh"
+#include "physics/base/CutoffParams.hh"
+#include "physics/base/CutoffInterface.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/MaterialParams.hh"
@@ -60,6 +62,8 @@ class InteractorHostTestBase : public celeritas::Test
     using MaterialParams    = celeritas::MaterialParams;
     using MaterialTrackView = celeritas::MaterialTrackView;
 
+    using CutoffParams = celeritas::CutoffParams;
+
     using Interaction          = celeritas::Interaction;
     using ModelIdGenerator     = celeritas::ModelIdGenerator;
     using ModelId              = celeritas::ModelId;
@@ -83,6 +87,11 @@ class InteractorHostTestBase : public celeritas::Test
     //! Set and get material properties
     void                  set_material_params(MaterialParams::Input inp);
     const MaterialParams& material_params() const;
+    std::shared_ptr<const MaterialParams> get_material_params() const
+    {
+        CELER_EXPECT(material_params_);
+        return material_params_;
+    }
     //!@}
 
     //!@{
@@ -93,6 +102,17 @@ class InteractorHostTestBase : public celeritas::Test
     {
         CELER_EXPECT(particle_params_);
         return particle_params_;
+    }
+    //!@}
+
+    //!@{
+    //! Set and get cutoff params
+    void                set_cutoff_params(CutoffParams::Input inp);
+    const CutoffParams& cutoff_params() const;
+    std::shared_ptr<const CutoffParams> get_cutoff_params() const
+    {
+        CELER_EXPECT(cutoff_params_);
+        return cutoff_params_;
     }
     //!@}
 
@@ -152,6 +172,7 @@ class InteractorHostTestBase : public celeritas::Test
 
     std::shared_ptr<MaterialParams> material_params_;
     std::shared_ptr<ParticleParams> particle_params_;
+    std::shared_ptr<CutoffParams>   cutoff_params_;
     RandomEngine                    rng_;
 
     StateStore<celeritas::MaterialStateData> ms_;
