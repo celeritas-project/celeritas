@@ -41,37 +41,17 @@ GeoParams::GeoParams(const char* gdml_filename)
     {
         detail::ScopedTimeAndRedirect time_and_output_;
 
-#ifndef CELERITAS_USE_ROOT
-        CELER_LOG(info) << "VecGeom parsing: Loading from GDML at "
-                        << gdml_filename;
-        constexpr bool                validate_xml_schema = false;
-        vgdml::Frontend::Load(gdml_filename, validate_xml_schema);
-#else
-
-#    ifdef VECGEOM_ROOT
+#if CELERITAS_USE_ROOT && defined(VECGEOM_ROOT)
         // use Root available from VecGeom
         CELER_LOG(info) << "RootGeoManager parsing: Loading from GDML at "
                         << gdml_filename;
         vecgeom::RootGeoManager::Instance().set_verbose(1);
         vecgeom::RootGeoManager::Instance().LoadRootGeometry(gdml_filename);
-
-#    else
-        // use Root available from VecGeom
-        CELER_LOG(info) << "Root TGeoManager parsing: Loading from GDML at "
+#else
+        CELER_LOG(info) << "VecGeom parsing: Loading from GDML at "
                         << gdml_filename;
-        TGeoManager::Import(gdml_filename);
-
-        vecgeom::GeoManager::Instance().Clear();
-        TGeoNode const* const world_root = ::gGeoManager->GetTopNode();
-        // Convert() will recursively convert daughters
-        Stopwatch timer;
-        timer.Start();
-        auto fWorld = Convert(world_root);
-        timer.Stop();
-        std::cout << "*** Conversion of ROOT -> VecGeom finished ("
-                  << timer.Elapsed() << " s) ***\n";
-#    endif
-
+        constexpr bool validate_xml_schema = false;
+        vgdml::Frontend::Load(gdml_filename, validate_xml_schema);
 #endif
     }
 
