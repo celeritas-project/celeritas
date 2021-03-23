@@ -198,7 +198,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     )
   endif()
   add_library(celeritas_demo_loop
-    demo-loop/GeoMaterialParams.cc
     demo-loop/LDemoIO.cc
     demo-loop/LDemoParams.cc
     demo-loop/LDemoRun.cc

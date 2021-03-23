@@ -9,6 +9,7 @@
 
 #include "base/StackAllocatorInterface.hh"
 #include "geometry/GeoInterface.hh"
+#include "geometry/GeoMaterialInterface.hh"
 #include "physics/base/CutoffInterface.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleInterface.hh"
@@ -16,7 +17,6 @@
 #include "physics/base/Secondary.hh"
 #include "physics/material/MaterialInterface.hh"
 #include "random/cuda/RngInterface.hh"
-#include "GeoMaterialInterface.hh"
 
 namespace demo_loop
 {
