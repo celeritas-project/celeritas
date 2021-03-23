@@ -82,4 +82,4 @@ guidelines and best practices for code in the project.
 
 The [code design page](https://github.com/celeritas-project/celeritas/wiki/Code-design) outlines the basic physics design philosophy and classes.
 
-Some [codebase images and graphs](https://github.com/celeritas-project/celeritas-docs/tree/master/celeritas-code) are available on the `celeritas-docs` repo.
+Some [codebase images and graphs](https://github.com/celeritas-project/celeritas-docs/tree/master/graphs) are available on the `celeritas-docs` repo.
