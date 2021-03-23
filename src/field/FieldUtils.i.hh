@@ -49,7 +49,7 @@ CELER_FUNCTION real_type truncation_error(real_type       step,
 
 //---------------------------------------------------------------------------//
 /*!
- * Closerest distance between the chord (from beg_state.pos to end_state.pos)
+ * Closest distance between the chord (from beg_state.pos to end_state.pos)
  * and the mid-state
  */
 CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,

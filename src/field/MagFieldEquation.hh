@@ -23,11 +23,11 @@ namespace celeritas
 class MagFieldEquation
 {
   public:
-    //! Construct with a magnetic field
+    // Construct with a magnetic field
     CELER_FUNCTION
     MagFieldEquation(const MagField& field, units::ElementaryCharge q);
 
-    //! Evaluate the right hand side of the field equation
+    // Evaluate the right hand side of the field equation
     CELER_FUNCTION auto operator()(const OdeState& y) const -> OdeState;
 
   private:
