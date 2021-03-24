@@ -165,13 +165,12 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
             = inp.name + "_"
               + std::to_string(MaterialId(host_data->materials.size()).get());
 
-        CELER_LOG(warning) << "Material " << inp.name
-                           << " already exists with id "
-                           << iter_inserted.second << ". This new id ("
-                           << host_data->materials.size()
-                           << ") will be appended to its name to create the "
-                              "unique name identifier "
-                           << name_id << ".";
+        CELER_LOG(info)
+            << "Material name " << inp.name << " already exists with id "
+            << iter_inserted.second << ". Its id ("
+            << host_data->materials.size()
+            << ") will be used to create a new unique name identifier ("
+            << name_id << ").";
 
         auto iter_reinserted = matname_to_id_.insert(
             {name_id, MaterialId(host_data->materials.size())});
