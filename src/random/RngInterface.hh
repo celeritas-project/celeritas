@@ -95,10 +95,10 @@ struct RngThreadState<MemSpace::host>
  * Initialize an RNG.
  */
 template<MemSpace M>
-struct RngIntializer;
+struct RngInitializer;
 
 template<>
-struct RngIntializer<MemSpace::device>
+struct RngInitializer<MemSpace::device>
 {
     ull_int seed;
 };

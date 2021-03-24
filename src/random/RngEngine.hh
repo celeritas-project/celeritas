@@ -27,7 +27,7 @@ class RngEngine
     //!@{
     //! Type aliases
     using result_type   = unsigned int;
-    using Initializer_t = RngIntializer<MemSpace::native>;
+    using Initializer_t = RngInitializer<MemSpace::native>;
     using StateRef      = RngStateData<Ownership::reference, MemSpace::native>;
     //!@}
 

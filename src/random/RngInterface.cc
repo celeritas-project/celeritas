@@ -27,7 +27,7 @@ void resize(
     CELER_EXPECT(size > 0);
     CELER_EXPECT(celeritas::device());
 
-    using RngInit = RngIntializer<MemSpace::device>;
+    using RngInit = RngInitializer<MemSpace::device>;
 
     // Host-side RNG for seeding device RNG
     std::mt19937                           host_rng(params.seed);

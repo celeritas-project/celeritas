@@ -18,7 +18,7 @@ namespace detail
 template<Ownership W, MemSpace M>
 struct RngInitData
 {
-    StateCollection<RngIntializer<M>, W, M> seeds;
+    StateCollection<RngInitializer<M>, W, M> seeds;
 
     //// METHODS ////
 
