@@ -9,7 +9,7 @@
 
 #include "base/DeviceVector.hh"
 #include "geometry/GeoStateStore.hh"
-#include "random/cuda/RngStateStore.hh"
+#include "random/RngInterface.hh"
 #include "SimStateStore.hh"
 #include "TrackInterface.hh"
 
@@ -48,10 +48,10 @@ class StateStore
   private:
     // XXX Unify these guys and possibly remove this state store?
     ParticleStateData<Ownership::value, MemSpace::device> particle_states_;
+    RngStateData<Ownership::value, MemSpace::device>      rng_states_;
 
     GeoStateStore             geo_states_;
     SimStateStore             sim_states_;
-    RngStateStore             rng_states_;
     DeviceVector<Interaction> interactions_;
 };
 

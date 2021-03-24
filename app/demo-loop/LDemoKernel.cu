@@ -8,7 +8,7 @@
 #include "LDemoKernel.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
-#include "random/cuda/RngEngine.hh"
+#include "random/RngEngine.hh"
 #include "random/distributions/ExponentialDistribution.hh"
 #include "physics/base/PhysicsStepUtils.hh"
 
