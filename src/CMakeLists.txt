@@ -94,7 +94,8 @@ if(CELERITAS_USE_CUDA)
     random/cuda/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
   )
-  list(APPEND PRIVATE_DEPS CUDA::cudart)
+  # TODO: CUDA RNG is included by host code
+  list(APPEND PUBLIC_DEPS CUDA::cudart)
 else()
   list(APPEND SOURCES
     random/cuda/curand.nocuda.cc

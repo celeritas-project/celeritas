@@ -80,10 +80,6 @@ if(CELERITAS_BUILD_DEMOS)
     celeritas
     nlohmann_json::nlohmann_json
   )
-  if(CELERITAS_USE_CUDA)
-    # Celeritas RNG uses CUDA but doesn't propagate RT library
-    target_link_libraries(celeritas_demo_interactor PUBLIC CUDA::cudart)
-  endif()
 
   if(CELERITAS_USE_CUDA)
     add_executable(demo-interactor
@@ -92,7 +88,7 @@ if(CELERITAS_BUILD_DEMOS)
       demo-interactor/KNDemoKernel.cu
       demo-interactor/KNDemoKernel.thrust.cu
     )
-    target_link_libraries(demo-interactor celeritas_demo_interactor CUDA::cudart)
+    target_link_libraries(demo-interactor celeritas_demo_interactor)
 
     if(CELERITAS_BUILD_TESTS)
       set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py")
