@@ -6,6 +6,9 @@
 //! \file RayleighInteractor.i.hh
 //---------------------------------------------------------------------------//
 
+#include "base/ArrayUtils.hh"
+#include "random/distributions/IsotropicDistribution.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -15,52 +18,117 @@ namespace detail
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-RayleighInteractor::RayleighInteractor(const RayleighInteractorPointers& shared,
-                                       const ParticleTrackView& particle,
-                                       const Real3&             inc_direction,
-                                       StackAllocator<Secondary>& allocate)
+RayleighInteractor::RayleighInteractor(const RayleighNativePointers& shared,
+                                       const ParticleTrackView&      particle,
+                                       const Real3&       inc_direction,
+                                       const ElementView& element)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)
-    , allocate_(allocate)
+    , element_(element)
 {
     CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
                  && inc_energy_ <= this->max_incident_energy());
-    CELER_EXPECT(particle.particle_id() == shared_.gamma_id); // XXX
-    CELER_NOT_IMPLEMENTED("Rayleigh scattering");
+    CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample using the XXX model.
+ * Sample using the G4LivermoreRayleighModel model.
  */
 template<class Engine>
 CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 {
-    // Allocate space for XXX (electron, multiple particles, ...)
-    Secondary* secondaries = this->allocate_(0); // XXX
-    if (secondaries == nullptr)
-    {
-        // Failed to allocate space for a secondary
-        return Interaction::from_failure();
-    }
-
-    // XXX sample
-    (void)sizeof(rng);
+    real_type energy = inc_energy_.value();
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
-    result.action      = Action::scattered;                     // XXX
-    result.energy      = units::MevEnergy{inc_energy_.value()}; // XXX
-    result.direction   = inc_direction_;
-    result.secondaries = {secondaries, 1}; // XXX
+    result.action = Action::scattered;
+    result.energy = units::MevEnergy{energy};
 
-    // Save outgoing secondary data
-    secondaries[0].particle_id = shared_.electron_id; // XXX
-    secondaries[0].energy      = units::MevEnergy{0}; // XXX
-    secondaries[0].direction   = {0, 0, 0};           // XXX
+    // Sample direction for a given Z: G4RayleighAngularGenerator
+    unsigned int Z = element_.atomic_number();
+    using ItemIdT  = celeritas::ItemId<int>;
+    Array<real_type, rayleigh_num_parameters> params
+        = shared_.params.data[ItemIdT{Z - 1}];
+
+    real_type xx = form_factor() * form_factor() * energy * energy;
+
+    real_type n0 = params[6] - 1.0;
+    real_type n1 = params[7] - 1.0;
+    real_type n2 = params[8] - 1.0;
+    real_type b0 = params[3];
+    real_type b1 = params[4];
+    real_type b2 = params[5];
+
+    real_type w0 = this->evaluate_weight(xx * b0, n0);
+    real_type w1 = this->evaluate_weight(xx * b1, n1);
+    real_type w2 = this->evaluate_weight(xx * b2, n2);
+
+    real_type x0 = w0 * params[0] / (b0 * n0);
+    real_type x1 = w1 * params[1] / (b1 * n1);
+    real_type x2 = w2 * params[2] / (b2 * n2);
+
+    real_type                          cost;
+    UniformRealDistribution<real_type> u01(0, 1.0);
+
+    do
+    {
+        real_type w = w0;
+        real_type n = n0;
+        real_type b = b0;
+        real_type x = u01(rng) * (x0 + x1 + x2);
+
+        if (x > x0)
+        {
+            x -= x0;
+            if (x <= x1)
+            {
+                w = w1;
+                n = n1;
+                b = b1;
+            }
+            else
+            {
+                w = w2;
+                n = n2;
+                b = b2;
+            }
+        }
+        n = 1.0 / n;
+
+        // Sampling of scattering angle
+        real_type y = w * u01(rng);
+        if (y < num_limit())
+        {
+            x = y * n * (1. + 0.5 * (n + 1.) * y * (1. - (n + 2.) * y / 3.));
+        }
+        else
+        {
+            x = std::exp(-n * std::log(1. - y)) - 1.0;
+        }
+
+        cost = 1.0 - 2.0 * x / (b * xx);
+
+    } while (2 * u01(rng) > 1.0 + cost * cost || cost < -1.0);
+
+    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
+
+    // Scattered direction
+    result.direction
+        = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
 
     return result;
+}
+
+CELER_FUNCTION
+real_type RayleighInteractor::evaluate_weight(real_type x, real_type nx) const
+{
+    return (x > num_limit())
+               ? 1.0 - std::exp(-nx * std::log(1.0 + x))
+               : nx * x
+                     * (1.0
+                        - 0.5 * (nx - 1.0) * x * (1.0 - (nx - 2.0) * x / 3.));
 }
 
 //---------------------------------------------------------------------------//

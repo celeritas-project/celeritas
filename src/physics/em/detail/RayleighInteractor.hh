@@ -11,9 +11,9 @@
 #include "base/Types.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "base/StackAllocator.hh"
-#include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
+#include "physics/material/Types.hh"
+#include "physics/material/ElementView.hh"
 #include "Rayleigh.hh"
 
 namespace celeritas
@@ -35,10 +35,10 @@ class RayleighInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    RayleighInteractor(const RayleighInteractorPointers& shared,
-                       const ParticleTrackView&          particle,
-                       const Real3&                      inc_direction,
-                       StackAllocator<Secondary>&        allocate);
+    RayleighInteractor(const RayleighNativePointers& shared,
+                       const ParticleTrackView&      particle,
+                       const Real3&                  inc_direction,
+                       const ElementView&            element);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -46,27 +46,40 @@ class RayleighInteractor
 
     //// COMMON PROPERTIES ////
 
-    //! Minimum incident energy for this model to be valid
+    //! Minimum incident energy for this model to be valid: 10 * eV
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
     {
-        return units::MevEnergy{0}; // XXX
+        return units::MevEnergy{1.0e-5};
     }
 
-    //! Maximum incident energy for this model to be valid
+    //! Maximum incident energy for this model to be valid: 1 * GeV
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_incident_energy()
     {
-        return units::MevEnergy{0}; // XXX
+        return units::MevEnergy{1.0e+3};
     }
 
   private:
+    //! form factor
+    static CELER_CONSTEXPR_FUNCTION real_type form_factor()
+    {
+        return units::centimeter / (constants::c_light * constants::h_planck);
+    }
+
+    //! limit
+    static CELER_CONSTEXPR_FUNCTION real_type num_limit() { return 0.02; }
+
+    //! auxiliary
+    CELER_FUNCTION real_type evaluate_weight(real_type x, real_type nx) const;
+
+  private:
     // Shared constant physics properties
-    const RayleighInteractorPointers& shared_;
+    const RayleighNativePointers& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
     // Incident direction
     const Real3& inc_direction_;
-    // Allocate space for one or more secondary particles
-    StackAllocator<Secondary>& allocate_;
+    // Element of material
+    const ElementView& element_;
 };
 
 //---------------------------------------------------------------------------//
