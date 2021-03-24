@@ -23,10 +23,8 @@
 #include "GeoInterface.hh"
 #include "detail/ScopedTimeAndRedirect.hh"
 
-#ifdef CELERITAS_USE_ROOT
+#if CELERITAS_USE_ROOT && defined(VECGEOM_ROOT)
 #    include "TGeoManager.h"
-#endif
-#ifdef VECGEOM_ROOT
 #    include "VecGeom/management/RootGeoManager.h"
 #endif
 

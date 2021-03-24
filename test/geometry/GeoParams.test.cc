@@ -43,7 +43,7 @@ TEST_F(GeoParamsHostTest, accessors)
 
     unsigned int nvols = geom.num_volumes();
 
-#ifdef VECGEOM_ROOT
+#if CELERITAS_USE_ROOT && defined(VECGEOM_ROOT)
     EXPECT_EQ("World_1", geom.id_to_label(VolumeId{0}));
     EXPECT_EQ("env1", geom.id_to_label(VolumeId{1}));
     EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{2}));
