@@ -19,23 +19,9 @@ list(APPEND CELER_SOURCES
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 
-if(CELERITAS_USE_VecGeom)
-  list(APPEND CELER_SOURCES
-    geometry/GeoParamsTest.cc
-  )
-endif()
-
 add_library(CeleritasTest ${CELER_SOURCES})
 add_library(Celeritas::Test ALIAS CeleritasTest)
 target_link_libraries(CeleritasTest PUBLIC celeritas GTest::GTest)
-
-if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
-  target_link_libraries(CeleritasTest
-    PRIVATE
-      VecGeom::vecgeomcuda
-      VecGeom::vecgeomcuda_static
-  )
-endif()
 
 target_include_directories(CeleritasTest
   PUBLIC
@@ -124,31 +110,35 @@ celeritas_add_test(comm/Logger.test.cc)
 # Geometry
 
 if(CELERITAS_USE_VecGeom)
-  celeritas_setup_tests(SERIAL PREFIX geometry
-    LINK_LIBRARIES VecGeom::vecgeom)
-
-  # CUDA tests: link cuda sources as needed
+  # See https://github.com/celeritas-project/celeritas/pull/10 for a
+  # discussion of the failures from trying to directly build an executable
+  # from code with CUDA separable compilation. This extra test library is
+  # necessary. Furthermore, celeritas must be linked *before* vecgeom.
+  set(CELER_VGTEST_SOURCES
+    geometry/GeoTestBase.cc
+  )
   if(CELERITAS_USE_CUDA)
-    # See https://github.com/celeritas-project/celeritas/pull/10 for a
-    # discussion of the failures from trying to directly build an executable
-    # from code with CUDA separable compilation. This extra test library is
-    # necessary. Furthermore, celeritas must be linked *before* vecgeom.
-    add_library(celeritas_vgtest
+    list(APPEND CELER_VGTEST_SOURCES
       geometry/GeoTrackView.test.cu
       geometry/LinearPropagator.test.cu
     )
-    target_link_libraries(celeritas_vgtest PRIVATE celeritas)
-    celeritas_link_vecgeom_cuda(celeritas_vgtest)
-    list(APPEND CELERITASTEST_LINK_LIBRARIES celeritas_vgtest)
   endif()
+
+  add_library(CeleritasGeometryTest
+    ${CELER_VGTEST_SOURCES}
+  )
+  target_link_libraries(CeleritasGeometryTest PUBLIC CeleritasTest VecGeom::vecgeom)
+  if(CELERITAS_USE_CUDA)
+    celeritas_link_vecgeom_cuda(CeleritasGeometryTest)
+  endif()
+
+  celeritas_setup_tests(SERIAL PREFIX geometry
+    LINK_LIBRARIES CeleritasGeometryTest)
 
   celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
     LINK_LIBRARIES Celeritas::ROOT)
-  celeritas_add_test(geometry/GeoParams.test.cc GPU)
-  celeritas_add_test(geometry/GeoTrackView.test.cc GPU)
+  celeritas_add_test(geometry/Geo.test.cc GPU)
   celeritas_add_test(geometry/LinearPropagator.test.cc GPU)
-
-  set(CELERITASTEST_LINK_LIBRARIES)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -173,16 +163,18 @@ add_library(CeleritasPhysicsTest
   physics/base/PhysicsTestBase.cc
   physics/grid/CalculatorTestBase.cc
 )
-target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
-set(CELERITASTEST_LINK_LIBRARIES CeleritasPhysicsTest)
 
-celeritas_setup_tests(SERIAL PREFIX physics/base)
+target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
+
+celeritas_setup_tests(SERIAL PREFIX physics/base
+  LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_add_test(physics/base/CutoffParams.test.cc)
 celeritas_cudaoptional_test(physics/base/Particle)
 celeritas_cudaoptional_test(physics/base/Physics)
 celeritas_add_test(physics/base/PhysicsStepUtils.test.cc)
 
-celeritas_setup_tests(SERIAL PREFIX physics/grid)
+celeritas_setup_tests(SERIAL PREFIX physics/grid
+  LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_add_test(physics/grid/GenericXsCalculator.test.cc)
 celeritas_add_test(physics/grid/GridIdFinder.test.cc)
 celeritas_add_test(physics/grid/Interpolator.test.cc)
@@ -195,14 +187,16 @@ celeritas_add_test(physics/grid/ValueGridBuilder.test.cc)
 celeritas_add_test(physics/grid/ValueGridInserter.test.cc)
 celeritas_add_test(physics/grid/XsCalculator.test.cc)
 
-celeritas_setup_tests(SERIAL PREFIX physics/material)
+celeritas_setup_tests(SERIAL PREFIX physics/material
+  LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_add_test(physics/material/ElementSelector.test.cc)
 celeritas_cudaoptional_test(physics/material/Material)
 
 #-------------------------------------#
 # Physics (EM)
 
-celeritas_setup_tests(SERIAL PREFIX physics/em)
+celeritas_setup_tests(SERIAL PREFIX physics/em
+  LINK_LIBRARIES CeleritasPhysicsTest)
 
 # NOTE: Remove '${_not_impl}' below at the start of developing each class.
 celeritas_add_test(physics/em/BetheBloch.test.cc ${_not_impl})
@@ -221,10 +215,6 @@ celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
   ${_optional_geant4}
   GPU # TODO: delete when device pointers are no longer directly accessed
   LINK_LIBRARIES Celeritas::ROOT)
-
-
-# END PHYSICS TESTS
-set(CELERITASTEST_LINK_LIBRARIES)
 
 #-----------------------------------------------------------------------------#
 # Random

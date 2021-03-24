@@ -7,10 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "geometry/GeoMaterialParams.hh"
 
-#include "celeritas_test.hh"
+#include "geometry/GeoParams.hh"
 #include "geometry/GeoMaterialView.hh"
 #include "io/RootImporter.hh"
-#include "GeoParamsTest.hh"
+
+#include "GeoTestBase.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 
@@ -18,8 +20,10 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeoMaterialTest : public celeritas::Test
+class GeoMaterialTest : public celeritas_test::GeoTestBase
 {
+    std::string filename() const override { return "slabsGeometry.gdml"; }
+
     void SetUp() override
     {
         // Load ROOT file
@@ -30,14 +34,9 @@ class GeoMaterialTest : public celeritas::Test
         // Set up shared material data
         material_ = std::move(loaded.material_params);
 
-        // Set up shared geometry data
-        std::string geo_file
-            = this->test_data_path("geometry", "slabsGeometry.gdml");
-        geometry_ = std::make_shared<GeoParams>(geo_file.c_str());
-
         // Create geometry/material coupling
         GeoMaterialParams::Input input;
-        input.geometry  = geometry_;
+        input.geometry  = this->geo_params();
         input.materials = material_;
         input.volume_to_mat
             = std::vector<MaterialId>(input.geometry->num_volumes());
@@ -51,7 +50,6 @@ class GeoMaterialTest : public celeritas::Test
     }
 
   protected:
-    std::shared_ptr<const GeoParams>         geometry_;
     std::shared_ptr<const MaterialParams>    material_;
     std::shared_ptr<const GeoMaterialParams> geo_mat_;
 };
@@ -60,12 +58,14 @@ class GeoMaterialTest : public celeritas::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(GeoMaterialTest, all)
+TEST_F(GeoMaterialTest, host)
 {
     const unsigned int expected_mat_id[] = {1, 1, 1, 1, 0};
 
-    EXPECT_EQ(5, geometry_->num_volumes());
-    for (auto i : range(geometry_->num_volumes()))
+    const auto& geo = *this->geo_params();
+    ;
+    EXPECT_EQ(5, geo.num_volumes());
+    for (auto i : range(geo.num_volumes()))
     {
         GeoMaterialView geo_mat_view(geo_mat_->host_pointers(), VolumeId{i});
         EXPECT_EQ(MaterialId{expected_mat_id[i]}, geo_mat_view.material());

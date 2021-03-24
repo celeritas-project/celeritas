@@ -5,36 +5,70 @@
 //---------------------------------------------------------------------------//
 //! \file GeoTrackView.test.cc
 //---------------------------------------------------------------------------//
+#include "geometry/GeoParams.hh"
 #include "geometry/GeoTrackView.hh"
 
 #include <VecGeom/navigation/NavigationState.h>
-#include "geometry/GeoParams.hh"
+#include "base/ArrayIO.hh"
 #include "geometry/GeoStateStore.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
+#include "celeritas_test.hh"
 
-#include "GeoParamsTest.hh"
-#ifdef CELERITAS_USE_CUDA
-#    include "GeoTrackView.test.hh"
-#endif
-
-#include "base/ArrayIO.hh"
+#include "GeoTestBase.hh"
+#include "Geo.test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
-// HOST TESTS
+// TESTS
 //---------------------------------------------------------------------------//
 
-class GeoTrackViewHostTest : public GeoParamsTest
+class GeoParamsHostTest : public GeoTestBase
+{
+  public:
+    std::string filename() const override { return "fourLevels.gdml"; }
+
+    void SetUp() override
+    {
+        host_view = this->geo_params()->host_pointers();
+        CELER_ASSERT(host_view.world_volume);
+    }
+
+    // Views
+    celeritas::GeoParamsPointers host_view;
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(GeoParamsHostTest, accessors)
+{
+    const auto& geom = *this->geo_params();
+    EXPECT_EQ(11, geom.num_volumes());
+    EXPECT_EQ(4, geom.max_depth());
+
+    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}));
+    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}));
+    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}));
+
+    unsigned int nvols = geom.num_volumes();
+    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{nvols - 2}));
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{nvols - 1}));
+}
+
+//---------------------------------------------------------------------------//
+
+class GeoTrackViewTest : public GeoTestBase
 {
   public:
     using NavState = vecgeom::cxx::NavigationState;
 
+    std::string filename() const override { return "fourLevels.gdml"; }
+
     void SetUp() override
     {
-        int max_depth = this->params()->max_depth();
+        int max_depth = this->geo_params()->max_depth();
         state.reset(NavState::MakeInstance(max_depth));
         next_state.reset(NavState::MakeInstance(max_depth));
 
@@ -46,7 +80,7 @@ class GeoTrackViewHostTest : public GeoParamsTest
         state_view.vgstate    = this->state.get();
         state_view.vgnext     = this->next_state.get();
 
-        params_view = this->params()->host_pointers();
+        params_view = this->geo_params()->host_pointers();
         CELER_ASSERT(params_view.world_volume);
     }
 
@@ -63,7 +97,7 @@ class GeoTrackViewHostTest : public GeoParamsTest
     GeoParamsPointers params_view;
 };
 
-TEST_F(GeoTrackViewHostTest, track_line)
+TEST_F(GeoTrackViewTest, host)
 {
     // Construct geometry interface from persistent geometry data, state view,
     // and thread ID (which for CPU is just zero).
@@ -125,23 +159,9 @@ TEST_F(GeoTrackViewHostTest, track_line)
     }
 }
 
-#if CELERITAS_USE_CUDA
-//---------------------------------------------------------------------------//
-// DEVICE TESTS
-//---------------------------------------------------------------------------//
-
-class GeoTrackViewDeviceTest : public GeoParamsTest
+TEST_F(GeoTrackViewTest, TEST_IF_CELERITAS_CUDA(device))
 {
-};
-
-TEST_F(GeoTrackViewDeviceTest, track_lines)
-{
-    if (!celeritas::device())
-    {
-        SKIP("CUDA is disabled");
-    }
-
-    CELER_ASSERT(this->params());
+    CELER_ASSERT(this->geo_params());
 
     // clang-format off
     // Set up test input
@@ -156,9 +176,9 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
                   {{-10, -10, -10}, {-1, 0, 0}}};
     // clang-format on
     input.max_segments = 3;
-    input.shared       = this->params()->device_pointers();
+    input.shared       = this->geo_params()->device_pointers();
 
-    GeoStateStore device_states(*this->params(), input.init.size());
+    GeoStateStore device_states(*this->geo_params(), input.init.size());
     input.state = device_states.device_pointers();
 
     // Run kernel
@@ -178,6 +198,3 @@ TEST_F(GeoTrackViewDeviceTest, track_lines)
     EXPECT_VEC_EQ(expected_ids, output.ids);
     EXPECT_VEC_SOFT_EQ(output.distances, expected_distances);
 }
-
-//---------------------------------------------------------------------------//
-#endif

@@ -220,9 +220,7 @@ function(celeritas_setup_tests)
 
   # Set special variables
   foreach(_var LINK_LIBRARIES ADD_DEPENDENCIES PREFIX)
-    if(PARSE_${_var})
-      set(CELERITASTEST_${_var} "${PARSE_${_var}}" PARENT_SCOPE)
-    endif()
+    set(CELERITASTEST_${_var} "${PARSE_${_var}}" PARENT_SCOPE)
   endforeach()
 
   # Override default num procs if requested

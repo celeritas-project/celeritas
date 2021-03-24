@@ -8,24 +8,24 @@
 #pragma once
 
 #include <vector>
+#include "base/Assert.hh"
 #include "geometry/GeoInterface.hh"
 #include "geometry/LinearPropagator.hh"
 
 namespace celeritas_test
 {
-using namespace celeritas;
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
-using LinPropTestInit = GeoStateInitializer;
+using LinPropTestInit = celeritas::GeoStateInitializer;
 
 //! Input data
 struct LinPropTestInput
 {
     std::vector<LinPropTestInit> init;
     int                          max_segments = 0;
-    GeoParamsPointers            shared;
-    GeoStatePointers             state;
+    celeritas::GeoParamsPointers shared;
+    celeritas::GeoStatePointers  state;
 };
 
 //---------------------------------------------------------------------------//
@@ -38,7 +38,14 @@ struct LinPropTestOutput
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-LinPropTestOutput linProp_test(LinPropTestInput);
+LinPropTestOutput linprop_test(LinPropTestInput);
+
+#if !CELERITAS_USE_CUDA
+LinPropTestOutput linprop_test(LinPropTestInput)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

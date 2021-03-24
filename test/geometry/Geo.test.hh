@@ -9,7 +9,7 @@
 
 #include <vector>
 #include "geometry/GeoInterface.hh"
-#include "geometry/GeoTrackView.hh"
+#include "base/Assert.hh"
 
 namespace celeritas_test
 {
@@ -39,6 +39,13 @@ struct VGGTestOutput
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 VGGTestOutput vgg_test(VGGTestInput);
+
+#if !CELERITAS_USE_CUDA
+inline VGGTestOutput vgg_test(VGGTestInput)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

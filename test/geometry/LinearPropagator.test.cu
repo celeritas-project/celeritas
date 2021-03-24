@@ -13,6 +13,7 @@
 #include "geometry/LinearPropagator.hh"
 
 using thrust::raw_pointer_cast;
+using namespace celeritas;
 
 namespace celeritas_test
 {
@@ -20,7 +21,7 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void linProp_test_kernel(const GeoParamsPointers shared,
+__global__ void linprop_test_kernel(const GeoParamsPointers shared,
                                     const GeoStatePointers  state,
                                     const int               size,
                                     const LinPropTestInit*  start,
@@ -52,7 +53,7 @@ __global__ void linProp_test_kernel(const GeoParamsPointers shared,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-LinPropTestOutput linProp_test(LinPropTestInput input)
+LinPropTestOutput linprop_test(LinPropTestInput input)
 {
     CELER_EXPECT(input.shared);
     CELER_EXPECT(input.state);
@@ -67,9 +68,9 @@ LinPropTestOutput linProp_test(LinPropTestInput input)
 
     // Run kernel
     static const celeritas::KernelParamCalculator calc_launch_params(
-        linProp_test_kernel, "linProp_test");
+        linprop_test_kernel, "linprop_test");
     auto params = calc_launch_params(init.size());
-    linProp_test_kernel<<<params.grid_size, params.block_size>>>(
+    linprop_test_kernel<<<params.grid_size, params.block_size>>>(
         input.shared,
         input.state,
         init.size(),
