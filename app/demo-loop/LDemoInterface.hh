@@ -16,7 +16,7 @@
 #include "physics/base/PhysicsInterface.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/material/MaterialInterface.hh"
-#include "random/cuda/RngInterface.hh"
+#include "random/RngInterface.hh"
 
 namespace demo_loop
 {
@@ -89,7 +89,7 @@ struct StateData
     celeritas::MaterialStateData<W, M> materials;
     celeritas::ParticleStateData<W, M> particles;
     celeritas::PhysicsStateData<W, M>  physics;
-    celeritas::RngStatePointers        rng; // TODO: upgrade to collection
+    celeritas::RngStateData<W, M>      rng;
 
     // Stacks
     celeritas::StackAllocatorData<celeritas::Secondary, W, M> secondaries;
