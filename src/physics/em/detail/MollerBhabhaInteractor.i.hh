@@ -65,7 +65,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 
     // Set up energy threshold for secondary production
     real_type min_sampled_energy
-        = std::max(shared_.min_valid_energy, secondary_energy_cutoff_);
+        = std::max(shared_.min_valid_energy(), secondary_energy_cutoff_);
 
     // TODO: do we assert here? Do we return Interaction::from_failure()? Do we
     // CELER_EXPECT this condition in the constructor?

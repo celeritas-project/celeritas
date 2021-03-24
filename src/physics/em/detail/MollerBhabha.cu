@@ -13,6 +13,7 @@
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
+#include "physics/material/MaterialTrackView.hh"
 #include "physics/base/CutoffView.hh"
 #include "base/StackAllocator.hh"
 #include "MollerBhabhaInteractor.hh"
@@ -39,20 +40,28 @@ __global__ void moller_bhabha_interact_kernel(const MollerBhabhaPointers  mb,
     StackAllocator<Secondary> allocate_secondaries(ptrs.secondaries);
     ParticleTrackView particle(ptrs.params.particle, ptrs.states.particle, tid);
 
+    MaterialTrackView material(ptrs.params.material, ptrs.states.material, tid);
+
     PhysicsTrackView physics(ptrs.params.physics,
                              ptrs.states.physics,
                              particle.particle_id(),
-                             MaterialId{},
+                             material.material_id(),
                              tid);
 
-    CutoffView cutoff(ptrs.params.cutoffs, ParticleId{}, MaterialId{});
+    CutoffView cutoff(
+        ptrs.params.cutoffs, particle.particle_id(), material.material_id());
 
     // This interaction only applies if the MB model was selected
     if (physics.model_id() != mb.model_id)
+    {
         return;
+    }
 
-    MollerBhabhaInteractor interact(
-        mb, particle, cutoff, ptrs.states.direction[tid.get()], allocate_secondaries);
+    MollerBhabhaInteractor interact(mb,
+                                    particle,
+                                    cutoff,
+                                    ptrs.states.direction[tid.get()],
+                                    allocate_secondaries);
 
     RngEngine rng(ptrs.states.rng, tid);
     ptrs.result[tid.get()] = interact(rng);

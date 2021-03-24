@@ -34,15 +34,20 @@ struct MollerBhabhaPointers
     //! Electron mass * c^2 [MeV]
     real_type electron_mass_c_sq;
     //! Model's mininum energy limit [MeV]
-    const real_type min_valid_energy = 1e-3;
+    static CELER_CONSTEXPR_FUNCTION real_type min_valid_energy()
+    {
+        return 1e-3;
+    }
     //! Model's maximum energy limit [MeV]
-    const real_type max_valid_energy = 100e6;
+    static CELER_CONSTEXPR_FUNCTION real_type max_valid_energy()
+    {
+        return 100e6;
+    }
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return electron_id && positron_id && electron_mass_c_sq > 0
-               && min_valid_energy > 0;
+        return electron_id && positron_id && electron_mass_c_sq > 0;
     }
 };
 

@@ -47,7 +47,7 @@ class MollerBhabhaInteractor
                            const Real3&                inc_direction,
                            StackAllocator<Secondary>&  allocate);
 
-    //! Sample an interaction with the given RNG
+    // Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
