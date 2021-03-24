@@ -20,10 +20,6 @@ namespace celeritas
  * The RngEngine uses a C++11-like interface to generate random data. The
  * sampling of uniform floating point data is done with specializations to the
  * GenerateCanonical class.
- *
- * \todo The CUDA random documentation suggests loading the RNG into local
- * memory and then storing back to global memory at the end of a kernel. This
- * could be safely achieved with a custom destructor.
  */
 class RngEngine
 {
@@ -31,22 +27,22 @@ class RngEngine
     //!@{
     //! Type aliases
     using result_type   = unsigned int;
-    using Initializer_t = RngSeed;
+    using Initializer_t = RngIntializer<MemSpace::native>;
+    using StateRef      = RngStateData<Ownership::reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct from state
-    inline CELER_FUNCTION
-    RngEngine(const RngStatePointers& view, const ThreadId& id);
+    inline CELER_FUNCTION RngEngine(const StateRef& state, const ThreadId& id);
 
     // Initialize state from seed
-    inline CELER_FUNCTION RngEngine& operator=(Initializer_t s);
+    inline CELER_FUNCTION RngEngine& operator=(const Initializer_t& s);
 
     // Sample a random number
     inline CELER_FUNCTION result_type operator()();
 
   private:
-    RngState& state_;
+    curandState_t* state_;
 
     template<class Generator, class RealType>
     friend class GenerateCanonical;

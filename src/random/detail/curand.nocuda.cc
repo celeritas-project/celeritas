@@ -11,29 +11,32 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 void curand_init(unsigned long long,
                  unsigned long long,
                  unsigned long long,
-                 curandState_t*)
+                 MockCurandState*)
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_NOT_CONFIGURED("CUDA");
 }
 
-unsigned int curand(curandState_t*)
+unsigned int curand(MockCurandState*)
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_NOT_CONFIGURED("CUDA");
 }
 
-float curand_uniform(curandState_t*)
+float curand_uniform(MockCurandState*)
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_NOT_CONFIGURED("CUDA");
 }
 
-double curand_uniform_double(curandState_t*)
+double curand_uniform_double(MockCurandState*)
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_NOT_CONFIGURED("CUDA");
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

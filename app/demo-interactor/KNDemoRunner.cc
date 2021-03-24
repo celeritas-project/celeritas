@@ -9,7 +9,6 @@
 
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
-#include "random/cuda/RngStateStore.hh"
 #include "physics/base/Units.hh"
 
 using namespace celeritas;
@@ -61,7 +60,6 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
 
     // Particle data
     // TODO: refactor these as collections, and simplify
-    RngStateStore        rng_states(args.num_tracks, args.seed);
     DeviceVector<Real3>  position(args.num_tracks);
     DeviceVector<Real3>  direction(args.num_tracks);
     DeviceVector<double> time(args.num_tracks);
@@ -69,6 +67,11 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
 
     ParticleStateData<Ownership::value, MemSpace::device> track_states;
     resize(&track_states, pparams_->host_pointers(), args.num_tracks);
+
+    RngStateData<Ownership::value, MemSpace::device> rng_states;
+    RngParamsData<Ownership::value, MemSpace::host>  rng_params;
+    rng_params.seed = args.seed;
+    resize(&rng_states, make_const_ref(rng_params), args.num_tracks);
 
     // Secondary data
     StackAllocatorData<Secondary, Ownership::value, MemSpace::device> secondaries;
@@ -93,7 +96,7 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
 
     StateDeviceRef state;
     state.particle  = track_states;
-    state.rng       = rng_states.device_pointers();
+    state.rng       = rng_states;
     state.position  = position.device_pointers();
     state.direction = direction.device_pointers();
     state.time      = time.device_pointers();
