@@ -71,6 +71,7 @@ list(APPEND SOURCES
   physics/em/GammaConversionProcess.cc
   physics/em/KleinNishinaModel.cc
   physics/em/MollerBhabhaModel.cc
+  physics/em/RayleighModel.cc
   physics/em/SeltzerBergerModel.cc
   physics/em/detail/Utils.cc
   physics/grid/ValueGridBuilder.cc
@@ -91,6 +92,7 @@ if(CELERITAS_USE_CUDA)
     physics/em/detail/KleinNishina.cu
     physics/em/detail/MollerBhabha.cu
     physics/em/detail/LivermorePE.cu
+    physics/em/detail/Rayleigh.cu
     random/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
   )
