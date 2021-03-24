@@ -120,7 +120,9 @@ TEST_F({name}Test, all)
 TEST_HEADER_FILE = '''
 namespace celeritas_test
 {{
-using namespace {namespace};
+using celeritas::Ownership;
+using celeritas::MemSpace;
+
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
@@ -174,12 +176,14 @@ __global__ void {lowabbr}_test_kernel(unsigned int size)
 //! Run on device and return results
 {capabbr}TestOutput {lowabbr}_test({capabbr}TestInput input)
 {{
-    celeritas::KernelParamCalculator calc_launch_params;
+    static const celeritas::KernelParamCalculator calc_launch_params(
+        {lowabbr}_test_kernel, "{lowabbr}_test");
     auto params = calc_launch_params(input.num_threads);
     {lowabbr}_test_kernel<<<params.grid_size, params.block_size>>>(
         input.num_threads);
 
     CELER_CUDA_CHECK_ERROR();
+    CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     {capabbr}TestOutput result;
     return result;
