@@ -41,7 +41,10 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 {
     CELER_EXPECT(particle.particle_id() == shared_.electron_id
                  || particle.particle_id() == shared_.positron_id);
-    CELER_EXPECT(cutoffs.energy().value() < inc_energy_);
+
+    secondary_energy_cutoff_ = celeritas::max(
+        secondary_energy_cutoff_,
+        (inc_particle_is_electron_ ? 2 : 1) * shared_.min_valid_energy());
 }
 
 //---------------------------------------------------------------------------//
@@ -54,6 +57,15 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 {
+    if (secondary_energy_cutoff_ >= inc_energy_)
+    {
+        Interaction result;
+        result.action    = Action::unchanged;
+        result.energy    = units::MevEnergy{inc_energy_};
+        result.direction = inc_direction_;
+        return result;
+    }
+
     // Allocate memory for the produced electron
     Secondary* electron_secondary = this->allocate_(1);
 
@@ -63,27 +75,18 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Set up energy threshold for secondary production
-    real_type min_sampled_energy
-        = celeritas::max(shared_.min_valid_energy(), secondary_energy_cutoff_);
-
-    // TODO: do we assert here? Do we return Interaction::from_failure()? Do we
-    // CELER_EXPECT this condition in the constructor?
-    // Avoid an infinite sampling loop
-    CELER_ASSERT(min_sampled_energy < 0.5 * inc_energy_);
-
     // Sample energy transfer fraction
     real_type epsilon;
     if (inc_particle_is_electron_)
     {
         MollerEnergyDistribution sample_moller(
-            shared_.electron_mass_c_sq, min_sampled_energy, inc_energy_);
+            shared_.electron_mass_c_sq, secondary_energy_cutoff_, inc_energy_);
         epsilon = sample_moller(rng);
     }
     else
     {
         BhabhaEnergyDistribution sample_bhabha(
-            shared_.electron_mass_c_sq, min_sampled_energy, inc_energy_);
+            shared_.electron_mass_c_sq, secondary_energy_cutoff_, inc_energy_);
         epsilon = sample_bhabha(rng);
     }
 

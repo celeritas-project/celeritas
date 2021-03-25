@@ -65,16 +65,6 @@ void InteractorHostTestBase::set_material(const std::string& name)
 
 //---------------------------------------------------------------------------//
 /*!
- * Access material parameters.
- */
-const MaterialParams& InteractorHostTestBase::material_params() const
-{
-    CELER_EXPECT(material_params_);
-    return *material_params_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Set particle parameters.
  */
 void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
@@ -86,32 +76,12 @@ void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Access particle parameters.
- */
-const ParticleParams& InteractorHostTestBase::particle_params() const
-{
-    CELER_EXPECT(particle_params_);
-    return *particle_params_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Set cutoff parameters.
  */
 void InteractorHostTestBase::set_cutoff_params(CutoffParams::Input inp)
 {
     CELER_EXPECT(inp.materials && inp.particles);
     cutoff_params_ = std::make_shared<CutoffParams>(std::move(inp));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access cutoff parameters.
- */
-const CutoffParams& InteractorHostTestBase::cutoff_params() const
-{
-    CELER_EXPECT(cutoff_params_);
-    return *cutoff_params_;
 }
 
 //---------------------------------------------------------------------------//

@@ -61,7 +61,7 @@ class MollerBhabhaInteractor
     // Incident direction
     const Real3& inc_direction_;
     // Secondary cutoff value for current particle and material
-    const real_type secondary_energy_cutoff_;
+    real_type secondary_energy_cutoff_;
     // Allocate space for the secondary particle
     StackAllocator<Secondary>& allocate_;
     // Incident particle flag for selecting Moller or Bhabha scattering
