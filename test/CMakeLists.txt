@@ -21,8 +21,7 @@ list(APPEND CELER_SOURCES
 
 add_library(CeleritasTest ${CELER_SOURCES})
 add_library(Celeritas::Test ALIAS CeleritasTest)
-target_link_libraries(CeleritasTest PUBLIC celeritas GTest::GTest)
-
+target_link_libraries(CeleritasTest PRIVATE celeritas PUBLIC GTest::GTest)
 target_include_directories(CeleritasTest
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -113,27 +112,28 @@ if(CELERITAS_USE_VecGeom)
   # See https://github.com/celeritas-project/celeritas/pull/10 for a
   # discussion of the failures from trying to directly build an executable
   # from code with CUDA separable compilation. This extra test library is
-  # necessary. Furthermore, celeritas must be linked *before* vecgeom.
+  # necessary. Furthermore, celeritas must be linked *before* vecgeom. Using
+  # PUBLIC library linkage with Celeritas causes headaches in this respect --
+  # that's why CeleritasTest and this library use PRIVATE.
   set(CELER_VGTEST_SOURCES
     geometry/GeoTestBase.cc
   )
   if(CELERITAS_USE_CUDA)
     list(APPEND CELER_VGTEST_SOURCES
-      geometry/GeoTrackView.test.cu
+      geometry/Geo.test.cu
       geometry/LinearPropagator.test.cu
     )
   endif()
-
-  add_library(CeleritasGeometryTest
-    ${CELER_VGTEST_SOURCES}
+  add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES})
+  target_link_libraries(CeleritasVecgeomTest
+    PRIVATE Celeritas::Test Celeritas::Core VecGeom::vecgeom
   )
-  target_link_libraries(CeleritasGeometryTest PUBLIC CeleritasTest VecGeom::vecgeom)
   if(CELERITAS_USE_CUDA)
-    celeritas_link_vecgeom_cuda(CeleritasGeometryTest)
+    celeritas_link_vecgeom_cuda(CeleritasVecgeomTest)
   endif()
 
   celeritas_setup_tests(SERIAL PREFIX geometry
-    LINK_LIBRARIES CeleritasGeometryTest)
+    LINK_LIBRARIES CeleritasVecgeomTest VecGeom::vecgeom)
 
   celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
     LINK_LIBRARIES Celeritas::ROOT)
