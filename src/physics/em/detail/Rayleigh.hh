@@ -11,7 +11,6 @@
 #include "base/Types.hh"
 #include "base/Collection.hh"
 #include "physics/base/Types.hh"
-#include "RayleighData.hh"
 
 namespace celeritas
 {
@@ -21,9 +20,21 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Rayleigh angular parameters (form factor) based on modified fit formulas
- * from Dermott E. Cullen, "A simple model of photon transport", Nucl.
- * Instrum. Meth. Phys. Res. B v.101, (4), 499-510.
+ * Rayleigh angular parameters (form factor) for sampling the angular 
+ * distribution of coherently scattered photon
+ */
+constexpr unsigned int rayleigh_num_parameters = 9;
+constexpr unsigned int rayleigh_num_elements   = 100;
+
+struct RayleighData 
+{
+    static real_type 
+        angular_parameters[rayleigh_num_parameters][rayleigh_num_elements]; 
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Storage for Rayleigh angular parameters
  */
 template<Ownership W, MemSpace M>
 struct RayleighParameters
@@ -33,7 +44,7 @@ struct RayleighParameters
     template<class T>
     using Items = celeritas::Collection<T, W, M, IntId>;
 
-    Items<Array<real_type, detail::rayleigh_num_parameters>> data;
+    Items<Array<real_type, rayleigh_num_parameters>> data;
 
     explicit CELER_FUNCTION operator bool() const { return !data.empty(); }
 

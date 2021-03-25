@@ -13,8 +13,6 @@
 #include "physics/base/PDGNumber.hh"
 #include "physics/base/ParticleParams.hh"
 
-#include "detail/RayleighData.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -81,7 +79,7 @@ ModelId RayleighModel::model_id() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert an Rayleigh data to a RayleighParameters and store.
+ * Convert an RayleighData to a RayleighParameters and store.
  */
 void RayleighModel::build_data(HostValue* pointers)
 {
@@ -95,7 +93,8 @@ void RayleighModel::build_data(HostValue* pointers)
     {
         for (auto j : range(detail::rayleigh_num_parameters))
         {
-            (parameter_arrays[i])[j] = detail::rayleigh_parameters[j][i];
+            (parameter_arrays[i])[j] = 
+                 detail::RayleighData::angular_parameters[j][i];
         }
         data.push_back(parameter_arrays[i]);
     }

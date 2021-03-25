@@ -3,30 +3,37 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RayleighData.hh
+//! \file Rayleigh.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
 #include "base/Types.hh"
+#include "Rayleigh.hh"
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-/*!                                                                          
- * Tabulated data of  modified fit formulas from Dermott E. Cullen, Nucl. 
- * Instrum. Meth. Phys. Res. B v.101, (4),499-510.
+/*!
+ * Tabulated data of the form factor based on modified fit formulas from
+ * Dermott E. Cullen, Nucl. Instrum. Meth. Phys. Res. B v.101, (4),499-510.
+ * The angular distribution of coherently scattered photons is a product of
+ * Rayleigh scattering (\em R) and a correction factor (\em f),
+ * \f[
+    \sigma (\cos) = R(\cos\theta) f(E, \cos)
+     R = [1 + cos^{2}]
+     f = [FF(E, cos) + AS(E)]^{2}
+   \f]
+ * where \em cos is the cosine of the photon scattering angle, E is the
+ * incident photon energy, \em FF is the form factor (unit-less) and \em AS
+ * is the anomalous scattering factor.
  *
- * Excerpted from from G4RayleighAngularGenerator.cc of Geant4 6.10
+ * Excerpted from from G4RayleighAngularGenerator.cc of Geant4 6.10.
+ * Parameters for Z = 0 are dropped as they are zeros and not used.
  */
-static constexpr unsigned int rayleigh_num_parameters = 9;
-static constexpr unsigned int rayleigh_num_elements   = 100;
-
-static constexpr real_type 
-rayleigh_parameters[rayleigh_num_parameters][rayleigh_num_elements] = 
-{
-    // clang-format off
+real_type RayleighData::angular_parameters[detail::rayleigh_num_parameters]
+                                          [detail::rayleigh_num_elements]
+    = {
+        // clang-format off
     
 // pp0
 { 0,       2.,      5.21459, 10.2817, 3.66207,
@@ -232,7 +239,7 @@ rayleigh_parameters[rayleigh_num_parameters][rayleigh_num_elements] =
   2.47985, 2.47126, 1.72573, 3.44856, 1.36451, 
   2.8715,  2.35731, 1.28196, 4.1224,  1.32633  // 91-100
 }
-    // clang-format on
+        // clang-format on
 };
 
 //---------------------------------------------------------------------------//
