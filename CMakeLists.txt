@@ -45,7 +45,8 @@ endif()
 if(CMAKE_VERSION VERSION_LESS 3.17 AND CELERITAS_USE_CUDA
     AND CELERITAS_USE_VecGeom)
   message(FATAL_ERROR "VecGeom+CUDA has mysterious runtime errors under CMake "
-    "3.15. Use a newer version of CMake.")
+    "3.17. Please, for the sake of your own mental health, "
+    "use a newer version of CMake.")
 endif()
 if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
   message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
