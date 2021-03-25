@@ -5,12 +5,13 @@
 //---------------------------------------------------------------------------//
 //! \file LinearPropagator.test.cu
 //---------------------------------------------------------------------------//
-#include "LinearPropagator.test.hh"
+#include "geometry/LinearPropagator.hh"
 
 #include <thrust/device_vector.h>
 #include "base/KernelParamCalculator.cuda.hh"
 #include "geometry/GeoTrackView.hh"
-#include "geometry/LinearPropagator.hh"
+
+#include "LinearPropagator.test.hh"
 
 using thrust::raw_pointer_cast;
 using namespace celeritas;
@@ -21,19 +22,18 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void linprop_test_kernel(const GeoParamsPointers shared,
-                                    const GeoStatePointers  state,
-                                    const int               size,
-                                    const LinPropTestInit*  start,
-                                    const int               max_segments,
-                                    VolumeId*               ids,
-                                    double*                 distances)
+__global__ void linprop_test_kernel(const GeoParamsCRefDevice params,
+                                    const GeoStateRefDevice   state,
+                                    const LinPropTestInit*    start,
+                                    const int                 max_segments,
+                                    VolumeId*                 ids,
+                                    double*                   distances)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= size)
+    if (tid.get() >= state.size())
         return;
 
-    GeoTrackView geo(shared, state, tid);
+    GeoTrackView geo(params, state, tid);
     geo = start[tid.get()];
 
     LinearPropagator propagate(&geo);
@@ -55,9 +55,9 @@ __global__ void linprop_test_kernel(const GeoParamsPointers shared,
 //! Run on device and return results
 LinPropTestOutput linprop_test(LinPropTestInput input)
 {
-    CELER_EXPECT(input.shared);
+    CELER_EXPECT(input.params);
     CELER_EXPECT(input.state);
-    CELER_EXPECT(input.init.size() == input.state.size);
+    CELER_EXPECT(input.init.size() == input.state.size());
     CELER_EXPECT(input.max_segments > 0);
 
     // Temporary device data for kernel
@@ -71,9 +71,8 @@ LinPropTestOutput linprop_test(LinPropTestInput input)
         linprop_test_kernel, "linprop_test");
     auto params = calc_launch_params(init.size());
     linprop_test_kernel<<<params.grid_size, params.block_size>>>(
-        input.shared,
+        input.params,
         input.state,
-        init.size(),
         raw_pointer_cast(init.data()),
         input.max_segments,
         raw_pointer_cast(ids.data()),

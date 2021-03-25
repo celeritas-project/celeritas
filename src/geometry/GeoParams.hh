@@ -23,6 +23,14 @@ namespace celeritas
 class GeoParams
 {
   public:
+    //!@{
+    //! References to constructed data
+    using HostRef = GeoParamsData<Ownership::const_reference, MemSpace::host>;
+    using DeviceRef
+        = GeoParamsData<Ownership::const_reference, MemSpace::device>;
+    //!@}
+
+  public:
     // Construct from a GDML filename
     explicit GeoParams(const char* gdml_filename);
 
@@ -41,15 +49,13 @@ class GeoParams
     size_type num_volumes() const { return num_volumes_; }
 
     //! Maximum nested geometry depth
-    int max_depth() const { return max_depth_; }
+    int max_depth() const { return host_ref_.max_depth; }
 
-    // View in-host geometry data for CPU debugging
-    GeoParamsPointers host_pointers() const;
+    //! View in-host geometry data for CPU debugging
+    const HostRef& host_pointers() const { return host_ref_; }
 
-    //// DEVICE ACCESSORS ////
-
-    // Get a view to the managed on-device data
-    GeoParamsPointers device_pointers() const;
+    //! Get a view to the managed on-device data
+    const DeviceRef& device_pointers() const { return device_ref_; }
 
     //// DEVICE UTILITIES ////
 
@@ -57,10 +63,10 @@ class GeoParams
     static void set_cuda_stack_size(int limit);
 
   private:
-    int       max_depth_   = 0;
     size_type num_volumes_ = 0;
 
-    const void* device_world_volume_ = nullptr;
+    HostRef   host_ref_;
+    DeviceRef device_ref_;
 };
 
 //---------------------------------------------------------------------------//

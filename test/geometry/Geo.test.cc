@@ -8,11 +8,11 @@
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoTrackView.hh"
 
-#include <VecGeom/navigation/NavigationState.h>
 #include "base/ArrayIO.hh"
-#include "geometry/GeoStateStore.hh"
+#include "base/CollectionStateStore.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
+#include "geometry/GeoInterface.hh"
 #include "celeritas_test.hh"
 
 #include "GeoTestBase.hh"
@@ -28,16 +28,9 @@ using namespace celeritas_test;
 class GeoParamsHostTest : public GeoTestBase
 {
   public:
+    using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
+
     std::string filename() const override { return "fourLevels.gdml"; }
-
-    void SetUp() override
-    {
-        host_view = this->geo_params()->host_pointers();
-        CELER_ASSERT(host_view.world_volume);
-    }
-
-    // Views
-    celeritas::GeoParamsPointers host_view;
 };
 
 //---------------------------------------------------------------------------//
@@ -59,111 +52,98 @@ TEST_F(GeoParamsHostTest, accessors)
 
 //---------------------------------------------------------------------------//
 
-class GeoTrackViewTest : public GeoTestBase
+class GeoTrackViewHostTest : public GeoTestBase
 {
   public:
-    using NavState = vecgeom::cxx::NavigationState;
+    using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
     std::string filename() const override { return "fourLevels.gdml"; }
 
-    void SetUp() override
+    void SetUp() override { state = StateStore(*this->geo_params(), 1); }
+
+    GeoTrackView make_geo_track_view()
     {
-        int max_depth = this->geo_params()->max_depth();
-        state.reset(NavState::MakeInstance(max_depth));
-        next_state.reset(NavState::MakeInstance(max_depth));
-
-        state_view.size       = 1;
-        state_view.vgmaxdepth = max_depth;
-        state_view.pos        = &this->pos;
-        state_view.dir        = &this->dir;
-        state_view.next_step  = &this->next_step;
-        state_view.vgstate    = this->state.get();
-        state_view.vgnext     = this->next_state.get();
-
-        params_view = this->geo_params()->host_pointers();
-        CELER_ASSERT(params_view.world_volume);
+        return GeoTrackView(
+            this->geo_params()->host_pointers(), state.ref(), ThreadId(0));
     }
 
   protected:
-    // State data
-    Real3                     pos;
-    Real3                     dir;
-    real_type                 next_step;
-    std::unique_ptr<NavState> state;
-    std::unique_ptr<NavState> next_state;
-
-    // Views
-    GeoStatePointers  state_view;
-    GeoParamsPointers params_view;
+    StateStore state;
 };
 
-TEST_F(GeoTrackViewTest, host)
+TEST_F(GeoTrackViewHostTest, from_outside)
 {
-    // Construct geometry interface from persistent geometry data, state view,
-    // and thread ID (which for CPU is just zero).
-    GeoTrackView geo(params_view, state_view, ThreadId(0));
+    GeoTrackView geo = this->make_geo_track_view();
+    geo              = {{-10, -10, -10}, {1, 0, 0}};
+    EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape2 center
 
-    {
-        // Track from outside detector, moving right
-        geo = {{-10, -10, -10}, {1, 0, 0}};
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape2 center
+    geo.find_next_step();
+    EXPECT_SOFT_EQ(5, geo.next_step());
+    geo.move_next_step();
+    EXPECT_SOFT_EQ(-5, geo.pos()[0]);
+    EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape2 -> Shape1
 
-        geo.find_next_step();
-        EXPECT_SOFT_EQ(5, geo.next_step());
-        geo.move_next_step();
-        EXPECT_SOFT_EQ(-5, geo.pos()[0]);
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape2 -> Shape1
+    geo.find_next_step();
+    EXPECT_SOFT_EQ(1, geo.next_step());
+    geo.move_next_step();
+    EXPECT_EQ(VolumeId{9}, geo.volume_id()); // Shape1 -> Envelope
+    EXPECT_FALSE(geo.is_outside());
 
-        geo.find_next_step();
-        EXPECT_SOFT_EQ(1, geo.next_step());
-        geo.move_next_step();
-        EXPECT_EQ(VolumeId{9}, geo.volume_id()); // Shape1 -> Envelope
-        EXPECT_FALSE(geo.is_outside());
-
-        geo.find_next_step();
-        EXPECT_SOFT_EQ(1, geo.next_step());
-        geo.move_next_step();
-        EXPECT_EQ(VolumeId{10}, geo.volume_id()); // Shape1 -> Envelope
-        EXPECT_FALSE(geo.is_outside());
-    }
-
-    {
-        // Track from outside edge used to fail
-        CELER_LOG(info) << "Init a track just outside of world volume...";
-        geo = {{-24, 6.5, 6.5}, {1, 0, 0}};
-        EXPECT_TRUE(geo.is_outside());
-
-        geo.move_next_step();
-        EXPECT_EQ(VolumeId{10}, geo.volume_id()); // World
-        geo.find_next_step();
-        EXPECT_SOFT_EQ(7., geo.next_step());
-        geo.move_next_step();
-        EXPECT_EQ(VolumeId{3}, geo.volume_id()); // World -> Envelope
-    }
-    {
-        // Track from inside detector
-        geo = {{-10, 10, 10}, {0, -1, 0}};
-        EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape1 center
-
-        geo.find_next_step();
-        EXPECT_SOFT_EQ(5.0, geo.next_step());
-        geo.move_next_step();
-        EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
-        EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1 -> Shape2
-        EXPECT_FALSE(geo.is_outside());
-
-        geo.find_next_step();
-        EXPECT_SOFT_EQ(1.0, geo.next_step());
-        geo.move_next_step();
-        EXPECT_FALSE(geo.is_outside());
-    }
+    geo.find_next_step();
+    EXPECT_SOFT_EQ(1, geo.next_step());
+    geo.move_next_step();
+    EXPECT_EQ(VolumeId{10}, geo.volume_id()); // Shape1 -> Envelope
+    EXPECT_FALSE(geo.is_outside());
 }
 
-TEST_F(GeoTrackViewTest, TEST_IF_CELERITAS_CUDA(device))
+TEST_F(GeoTrackViewHostTest, from_outside_edge)
+{
+    GeoTrackView geo = this->make_geo_track_view();
+    geo              = {{-24, 6.5, 6.5}, {1, 0, 0}};
+    EXPECT_TRUE(geo.is_outside());
+
+    geo.move_next_step();
+    EXPECT_EQ(VolumeId{10}, geo.volume_id()); // World
+    geo.find_next_step();
+    EXPECT_SOFT_EQ(7., geo.next_step());
+    geo.move_next_step();
+    EXPECT_EQ(VolumeId{3}, geo.volume_id()); // World -> Envelope
+}
+
+TEST_F(GeoTrackViewHostTest, inside)
+{
+    GeoTrackView geo = this->make_geo_track_view();
+    geo              = {{-10, 10, 10}, {0, -1, 0}};
+    EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape1 center
+
+    geo.find_next_step();
+    EXPECT_SOFT_EQ(5.0, geo.next_step());
+    geo.move_next_step();
+    EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
+    EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1 -> Shape2
+    EXPECT_FALSE(geo.is_outside());
+
+    geo.find_next_step();
+    EXPECT_SOFT_EQ(1.0, geo.next_step());
+    geo.move_next_step();
+    EXPECT_FALSE(geo.is_outside());
+}
+
+//---------------------------------------------------------------------------//
+
+#define GEO_DEVICE_TEST TEST_IF_CELERITAS_CUDA(GeoTrackViewDeviceTest)
+class GEO_DEVICE_TEST : public GeoTestBase
+{
+  public:
+    using StateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
+
+    std::string filename() const override { return "fourLevels.gdml"; }
+};
+
+TEST_F(GEO_DEVICE_TEST, all)
 {
     CELER_ASSERT(this->geo_params());
 
-    // clang-format off
     // Set up test input
     VGGTestInput input;
     input.init = {{{10, 10, 10}, {1, 0, 0}},
@@ -174,12 +154,10 @@ TEST_F(GeoTrackViewTest, TEST_IF_CELERITAS_CUDA(device))
                   {{-10, 10, -10}, {-1, 0, 0}},
                   {{-10, -10, 10}, {-1, 0, 0}},
                   {{-10, -10, -10}, {-1, 0, 0}}};
-    // clang-format on
+    StateStore device_states(*this->geo_params(), input.init.size());
     input.max_segments = 3;
-    input.shared       = this->geo_params()->device_pointers();
-
-    GeoStateStore device_states(*this->geo_params(), input.init.size());
-    input.state = device_states.device_pointers();
+    input.params       = this->geo_params()->device_pointers();
+    input.state        = device_states.ref();
 
     // Run kernel
     auto output = vgg_test(input);

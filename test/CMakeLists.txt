@@ -22,6 +22,7 @@ list(APPEND CELER_SOURCES
 add_library(CeleritasTest ${CELER_SOURCES})
 add_library(Celeritas::Test ALIAS CeleritasTest)
 target_link_libraries(CeleritasTest PRIVATE celeritas PUBLIC GTest::GTest)
+
 target_include_directories(CeleritasTest
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

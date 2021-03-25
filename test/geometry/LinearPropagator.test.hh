@@ -10,22 +10,29 @@
 #include <vector>
 #include "base/Assert.hh"
 #include "geometry/GeoInterface.hh"
-#include "geometry/LinearPropagator.hh"
 
 namespace celeritas_test
 {
+using celeritas::MemSpace;
+using celeritas::Ownership;
+
+using GeoParamsCRefDevice
+    = celeritas::GeoParamsData<Ownership::const_reference, MemSpace::device>;
+using GeoStateRefDevice
+    = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
+
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
-using LinPropTestInit = celeritas::GeoStateInitializer;
+using LinPropTestInit = celeritas::GeoTrackInitializer;
 
 //! Input data
 struct LinPropTestInput
 {
     std::vector<LinPropTestInit> init;
     int                          max_segments = 0;
-    celeritas::GeoParamsPointers shared;
-    celeritas::GeoStatePointers  state;
+    GeoParamsCRefDevice          params;
+    GeoStateRefDevice            state;
 };
 
 //---------------------------------------------------------------------------//

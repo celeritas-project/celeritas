@@ -15,17 +15,15 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 //! Construct from persistent and state data.
 CELER_FUNCTION
-GeoTrackView::GeoTrackView(const GeoParamsPointers& data,
-                           const GeoStatePointers&  stateview,
-                           const ThreadId&          id)
+GeoTrackView::GeoTrackView(const GeoParamsRef& data,
+                           const GeoStateRef&  stateview,
+                           const ThreadId&     thread)
     : shared_(data)
-    , vgstate_(GeoTrackView::get_nav_state(
-          stateview.vgstate, stateview.vgmaxdepth, id))
-    , vgnext_(GeoTrackView::get_nav_state(
-          stateview.vgnext, stateview.vgmaxdepth, id))
-    , pos_(stateview.pos[id.get()])
-    , dir_(stateview.dir[id.get()])
-    , next_step_(stateview.next_step[id.get()])
+    , vgstate_(stateview.vgstate.at(shared_.max_depth, thread))
+    , vgnext_(stateview.vgnext.at(shared_.max_depth, thread))
+    , pos_(stateview.pos[thread])
+    , dir_(stateview.dir[thread])
+    , next_step_(stateview.next_step[thread])
     , dirty_(true)
 {
 }
@@ -188,30 +186,6 @@ CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 
 //---------------------------------------------------------------------------//
 // PRIVATE CLASS FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Determine the pointer to the navigation state for a particular index.
- *
- * When using the "cuda"-namespace navigation state (i.e., compiling with NVCC)
- * it's necessary to transform the raw data pointer into an index.
- */
-CELER_FUNCTION auto
-GeoTrackView::get_nav_state(void*                  state,
-                            CELER_MAYBE_UNUSED int vgmaxdepth,
-                            ThreadId               thread) -> NavState&
-{
-    CELER_EXPECT(state);
-    char* ptr = reinterpret_cast<char*>(state);
-#ifdef __NVCC__
-    ptr += vecgeom::cuda::NavigationState::SizeOfInstanceAlignAware(vgmaxdepth)
-           * thread.get();
-#else
-    CELER_EXPECT(thread.get() == 0);
-#endif
-    CELER_ENSURE(ptr);
-    return *reinterpret_cast<NavState*>(ptr);
-}
-
 //---------------------------------------------------------------------------//
 //! Get a reference to the current volume, or to world volume if outside
 CELER_FUNCTION const vecgeom::VPlacedVolume& GeoTrackView::volume() const

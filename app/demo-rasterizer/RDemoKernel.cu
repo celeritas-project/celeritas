@@ -31,9 +31,9 @@ __device__ int geo_id(const GeoTrackView& geo)
     return geo.volume_id().get();
 }
 
-__global__ void trace_kernel(const GeoParamsPointers geo_params,
-                             const GeoStatePointers  geo_state,
-                             const ImagePointers     image_state)
+__global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
+                             const GeoStateRefDevice   geo_state,
+                             const ImagePointers       image_state)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= image_state.dims[0])
@@ -43,7 +43,7 @@ __global__ void trace_kernel(const GeoParamsPointers geo_params,
     GeoTrackView   geo(geo_params, geo_state, tid);
 
     // Start track at the leftmost point in the requested direction
-    geo = GeoStateInitializer{image.start_pos(), image.start_dir()};
+    geo = GeoTrackInitializer{image.start_pos(), image.start_dir()};
 
     int       cur_id   = geo_id(geo);
     real_type geo_dist = std::fmin(
@@ -92,9 +92,9 @@ __global__ void trace_kernel(const GeoParamsPointers geo_params,
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
-void trace(const GeoParamsPointers& geo_params,
-           const GeoStatePointers&  geo_state,
-           const ImagePointers&     image)
+void trace(const GeoParamsCRefDevice& geo_params,
+           const GeoStateRefDevice&   geo_state,
+           const ImagePointers&       image)
 {
     CELER_EXPECT(image);
 

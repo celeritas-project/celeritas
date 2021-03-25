@@ -14,9 +14,17 @@ namespace demo_rasterizer
 {
 //---------------------------------------------------------------------------//
 
-void trace(const celeritas::GeoParamsPointers& geo_params,
-           const celeritas::GeoStatePointers&  geo_state,
-           const ImagePointers&                image);
+using celeritas::MemSpace;
+using celeritas::Ownership;
+
+using GeoParamsCRefDevice
+    = celeritas::GeoParamsData<Ownership::const_reference, MemSpace::device>;
+using GeoStateRefDevice
+    = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
+
+void trace(const GeoParamsCRefDevice& geo_params,
+           const GeoStateRefDevice&   geo_state,
+           const ImagePointers&       image);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_rasterizer

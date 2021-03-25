@@ -129,9 +129,10 @@ endif()
 
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
+    geometry/GeoInterface.cc
     geometry/GeoMaterialParams.cc
     geometry/GeoParams.cc
-    geometry/GeoStateStore.cc
+    geometry/detail/VGNavCollection.cc
     sim/ParamStore.cc
     sim/StateStore.cc
     sim/TrackInitializerStore.cc
@@ -139,12 +140,10 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
   if(CELERITAS_USE_CUDA)
     list(APPEND SOURCES
-      geometry/detail/VGNavStateStore.cuda.cc
       sim/detail/InitializeTracks.cu
     )
   else()
     list(APPEND SOURCES
-      geometry/detail/VGNavStateStore.nocuda.cc
       sim/detail/InitializeTracks.nocuda.cc
     )
   endif()

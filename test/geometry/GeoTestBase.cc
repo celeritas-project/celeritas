@@ -48,6 +48,9 @@ auto GeoTestBase::geo_params() const -> const SPConstGeo&
     {
         std::string test_file
             = celeritas::Test::test_data_path("geometry", filename.c_str());
+        // MUST reset geometry before trying to build a new one
+        // since VecGeom is all full of globals
+        lazy_.geo.reset();
         lazy_.geo = std::make_shared<celeritas::GeoParams>(test_file.c_str());
         lazy_.filename = std::move(filename);
     }

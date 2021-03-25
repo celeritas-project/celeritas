@@ -13,19 +13,26 @@
 
 namespace celeritas_test
 {
-using namespace celeritas;
+using celeritas::MemSpace;
+using celeritas::Ownership;
+
+using GeoParamsCRefDevice
+    = celeritas::GeoParamsData<Ownership::const_reference, MemSpace::device>;
+using GeoStateRefDevice
+    = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
+
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
-using VGGTestInit = GeoStateInitializer;
+using VGGTestInit = celeritas::GeoTrackInitializer;
 
 //! Input data
 struct VGGTestInput
 {
     std::vector<VGGTestInit> init;
     int                      max_segments = 0;
-    GeoParamsPointers        shared;
-    GeoStatePointers         state;
+    GeoParamsCRefDevice      params;
+    GeoStateRefDevice        state;
 };
 
 //---------------------------------------------------------------------------//

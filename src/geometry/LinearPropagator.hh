@@ -18,8 +18,7 @@ namespace celeritas
  */
 class LinearPropagator
 {
-    using Initializer_t = GeoStateInitializer;
-
+  public:
     //! Output results
     struct result_type
     {
