@@ -247,3 +247,11 @@ if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Field
+
+celeritas_setup_tests(SERIAL PREFIX field)
+
+celeritas_cudaoptional_test(field/RungeKutta)
+
+#-----------------------------------------------------------------------------#
+
