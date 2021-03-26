@@ -8,8 +8,10 @@
 #pragma once
 
 #include "base/Array.hh"
+#include "base/ArrayUtils.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
+#include "physics/base/Units.hh"
 #include "sim/Action.hh"
 #include "Secondary.hh"
 
@@ -32,6 +34,10 @@ struct Interaction
 
     // Return an interaction representing an absorbed process
     static inline CELER_FUNCTION Interaction from_absorption();
+
+    // Return an interaction with no change in the particle's state
+    static inline CELER_FUNCTION Interaction
+    from_unchanged(const units::MevEnergy energy, const Real3 direction);
 
     // Whether the interaction succeeded
     explicit inline CELER_FUNCTION operator bool() const;
@@ -65,7 +71,24 @@ CELER_FUNCTION Interaction Interaction::from_absorption()
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the interaction succeeded
+ * Construct an interaction for edge cases where there is no state change.
+ */
+CELER_FUNCTION Interaction Interaction::from_unchanged(
+    const units::MevEnergy energy, const Real3 direction)
+{
+    CELER_EXPECT(energy.value() > 0);
+
+    Interaction result;
+    result.action    = Action::unchanged;
+    result.energy    = energy;
+    result.direction = direction;
+    normalize_direction(&result.direction);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the interaction succeeded.
  */
 CELER_FUNCTION Interaction::operator bool() const
 {

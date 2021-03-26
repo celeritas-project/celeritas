@@ -41,9 +41,9 @@ class UrbanInteractorTest : public celeritas_test::InteractorHostTestBase
               ElementaryCharge{-1},
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
-        const auto& params    = this->particle_params();
-        pointers_.electron_id = params->find(pdg::electron());
-        pointers_.gamma_id    = params->find(pdg::gamma());
+        const auto& params    = *this->particle_params();
+        pointers_.electron_id = params.find(pdg::electron());
+        pointers_.gamma_id    = params.find(pdg::gamma());
 
         // Set default particle to incident XXX MeV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{10});

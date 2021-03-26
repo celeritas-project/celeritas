@@ -42,11 +42,11 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
              {"gamma", pdg::gamma(), zero, zero, stable}});
 
         // TODO: this should be part of the process's data storage/management
-        const auto& params    = this->particle_params();
-        pointers_.electron_id = params->find(pdg::electron());
-        pointers_.gamma_id    = params->find(pdg::gamma());
+        const auto& params    = *this->particle_params();
+        pointers_.electron_id = params.find(pdg::electron());
+        pointers_.gamma_id    = params.find(pdg::gamma());
         pointers_.inv_electron_mass
-            = 1 / (params->get(pointers_.electron_id).mass().value());
+            = 1 / (params.get(pointers_.electron_id).mass().value());
 
         // Set default particle to incident 10 MeV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{10});

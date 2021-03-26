@@ -81,7 +81,7 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
               ElementaryCharge{-1},
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
-        const auto& particles = this->particle_params();
+        const auto& particles = *this->particle_params();
 
         // Set up shared material data
         MaterialParams::Input mi;
@@ -99,14 +99,14 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
         LivermorePEReader read_element_data(data_path.c_str());
 
         model_ = std::make_shared<LivermorePEModel>(
-            ModelId{0}, *particles, *this->material_params(), read_element_data);
+            ModelId{0}, particles, *this->material_params(), read_element_data);
 
         // Set atomic relaxation data
         AtomicRelaxationReader read_transition_data(data_path.c_str(),
                                                     data_path.c_str());
         relax_inp_.elements.push_back(read_transition_data(19));
-        relax_inp_.electron_id = particles->find(pdg::electron());
-        relax_inp_.gamma_id    = particles->find(pdg::gamma());
+        relax_inp_.electron_id = particles.find(pdg::electron());
+        relax_inp_.gamma_id    = particles.find(pdg::gamma());
 
         // Set default particle to incident 1 keV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{0.001});

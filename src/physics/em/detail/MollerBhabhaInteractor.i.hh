@@ -59,11 +59,10 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 {
     if (secondary_energy_cutoff_ >= inc_energy_)
     {
-        Interaction result;
-        result.action    = Action::unchanged;
-        result.energy    = units::MevEnergy{inc_energy_};
-        result.direction = inc_direction_;
-        return result;
+        // The secondary should not be emitted. This interaction cannot happen
+        // and the incident particle must undergo an energy loss process.
+        return Interaction::from_unchanged(units::MevEnergy{inc_energy_},
+                                           inc_direction_);
     }
 
     // Allocate memory for the produced electron

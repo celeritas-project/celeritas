@@ -76,11 +76,11 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         this->set_cutoff_params(cutoff_inp);
 
         // Set MollerBhabhaPointers
-        const auto& params    = this->particle_params();
-        pointers_.electron_id = params->find(pdg::electron());
-        pointers_.positron_id = params->find(pdg::positron());
+        const auto& params    = *this->particle_params();
+        pointers_.electron_id = params.find(pdg::electron());
+        pointers_.positron_id = params.find(pdg::positron());
         pointers_.electron_mass_c_sq
-            = params->get(pointers_.electron_id).mass().value();
+            = params.get(pointers_.electron_id).mass().value();
     }
 
     void sanity_check(const Interaction& interaction) const
