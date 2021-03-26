@@ -19,9 +19,7 @@ namespace celeritas
  * Map a track's geometry state to a material ID.
  *
  * For the forseeable future this class should just be a vector of MaterialIds,
- * one per material.
- *
- * \todo Move to the main source code?
+ * one per volume.
  */
 class GeoMaterialParams
 {
@@ -53,6 +51,8 @@ class GeoMaterialParams
 
   private:
     CollectionMirror<GeoMaterialParamsData> data_;
+
+    using HostValue = GeoMaterialParamsData<Ownership::value, MemSpace::host>;
 };
 
 //---------------------------------------------------------------------------//

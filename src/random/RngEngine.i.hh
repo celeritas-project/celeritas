@@ -15,19 +15,19 @@ namespace celeritas
  * Construct from state.
  */
 CELER_FUNCTION
-RngEngine::RngEngine(const RngStatePointers& view, const ThreadId& id)
-    : state_(view.rng[id.get()])
+RngEngine::RngEngine(const StateRef& state, const ThreadId& id)
 {
-    CELER_EXPECT(id < view.rng.size());
+    CELER_EXPECT(id < state.rng.size());
+    state_ = &state.rng[id].state;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the RNG engine with a seed value.
  */
-CELER_FUNCTION RngEngine& RngEngine::operator=(RngSeed s)
+CELER_FUNCTION RngEngine& RngEngine::operator=(const Initializer_t& s)
 {
-    curand_init(s.seed, 0, 0, &state_);
+    curand_init(s.seed, 0, 0, state_);
     return *this;
 }
 
@@ -37,7 +37,7 @@ CELER_FUNCTION RngEngine& RngEngine::operator=(RngSeed s)
  */
 CELER_FUNCTION auto RngEngine::operator()() -> result_type
 {
-    return curand(&state_);
+    return curand(state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -49,7 +49,7 @@ CELER_FUNCTION auto RngEngine::operator()() -> result_type
 CELER_FUNCTION float
 GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 {
-    return curand_uniform(&rng.state_);
+    return curand_uniform(rng.state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -59,7 +59,7 @@ GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 CELER_FUNCTION double
 GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)
 {
-    return curand_uniform_double(&rng.state_);
+    return curand_uniform_double(rng.state_);
 }
 
 //---------------------------------------------------------------------------//

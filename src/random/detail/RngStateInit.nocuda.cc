@@ -17,8 +17,9 @@ namespace detail
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
-void rng_state_init_device(const RngStatePointers&,
-                           Span<const RngSeed::value_type>)
+void rng_state_init(
+    const RngStateData<Ownership::reference, MemSpace::device>&,
+    const RngInitData<Ownership::const_reference, MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

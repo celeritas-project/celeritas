@@ -10,7 +10,7 @@
 #include "base/Span.hh"
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "random/cuda/RngInterface.hh"
+#include "random/RngInterface.hh"
 #include "physics/material/MaterialInterface.hh"
 #include "physics/base/CutoffInterface.hh"
 #include "Secondary.hh"
@@ -26,10 +26,13 @@ namespace celeritas
  */
 struct ModelInteractParams
 {
-    ParticleParamsData<Ownership::const_reference, MemSpace::device> particle;
-    MaterialParamsData<Ownership::const_reference, MemSpace::device> material;
-    PhysicsParamsData<Ownership::const_reference, MemSpace::device>  physics;
-    CutoffParamsData<Ownership::const_reference, MemSpace::device>   cutoffs;
+    template<template<Ownership, MemSpace> class P>
+    using DeviceCRef = P<Ownership::const_reference, MemSpace::device>;
+
+    DeviceCRef<ParticleParamsData> particle;
+    DeviceCRef<MaterialParamsData> material;
+    DeviceCRef<PhysicsParamsData>  physics;
+    DeviceCRef<CutoffParamsData>   cutoffs;
 
     //! True if valid
     CELER_FUNCTION operator bool() const
@@ -48,11 +51,14 @@ struct ModelInteractParams
  */
 struct ModelInteractState
 {
-    ParticleStateData<Ownership::reference, MemSpace::device> particle;
-    MaterialStateData<Ownership::reference, MemSpace::device> material;
-    PhysicsStateData<Ownership::reference, MemSpace::device>  physics;
-    Span<const Real3>                                         direction;
-    RngStatePointers                                          rng;
+    template<template<Ownership, MemSpace> class S>
+    using DeviceRef = S<Ownership::reference, MemSpace::device>;
+
+    DeviceRef<ParticleStateData> particle;
+    DeviceRef<MaterialStateData> material;
+    DeviceRef<PhysicsStateData>  physics;
+    DeviceRef<RngStateData>      rng;
+    Span<const Real3>            direction;
 
     //! True if valid
     CELER_FUNCTION operator bool() const

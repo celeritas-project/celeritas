@@ -8,7 +8,7 @@
 #include "LivermorePE.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
-#include "random/cuda/RngEngine.hh"
+#include "random/RngEngine.hh"
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"

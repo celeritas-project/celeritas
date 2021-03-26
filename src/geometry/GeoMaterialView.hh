@@ -55,5 +55,3 @@ GeoMaterialView::GeoMaterialView(const GeoMaterialPointers& params,
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-#include "GeoMaterialView.i.hh"

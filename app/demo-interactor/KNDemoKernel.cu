@@ -13,7 +13,7 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "base/StackAllocator.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
-#include "random/cuda/RngEngine.hh"
+#include "random/RngEngine.hh"
 #include "physics/grid/XsCalculator.hh"
 #include "Detector.hh"
 #include "KernelUtils.hh"
