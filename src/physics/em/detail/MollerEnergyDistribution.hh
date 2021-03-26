@@ -51,7 +51,7 @@ class MollerEnergyDistribution
     {
         return 0.5;
     }
-}; // namespace MollerEnergyDistribution
+};
 
 //---------------------------------------------------------------------------//
 } // namespace detail

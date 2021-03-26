@@ -42,7 +42,7 @@ class BremRelInteractorTest : public celeritas_test::InteractorHostTestBase
               ElementaryCharge{-1},
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
-        const auto& params    = this->particle_params();
+        const auto& params    = *this->particle_params();
         pointers_.electron_id = params.find(pdg::electron());
         pointers_.gamma_id    = params.find(pdg::gamma());
 

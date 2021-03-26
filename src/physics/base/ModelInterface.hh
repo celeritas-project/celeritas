@@ -12,6 +12,7 @@
 #include "base/Types.hh"
 #include "random/RngInterface.hh"
 #include "physics/material/MaterialInterface.hh"
+#include "physics/base/CutoffInterface.hh"
 #include "Secondary.hh"
 #include "ParticleInterface.hh"
 #include "Interaction.hh"
@@ -31,11 +32,12 @@ struct ModelInteractParams
     DeviceCRef<ParticleParamsData> particle;
     DeviceCRef<MaterialParamsData> material;
     DeviceCRef<PhysicsParamsData>  physics;
+    DeviceCRef<CutoffParamsData>   cutoffs;
 
     //! True if valid
     CELER_FUNCTION operator bool() const
     {
-        return physics && particle && material;
+        return physics && particle && material && cutoffs;
     }
 };
 
