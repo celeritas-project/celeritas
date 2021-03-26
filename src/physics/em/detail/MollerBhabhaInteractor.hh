@@ -18,7 +18,6 @@
 #include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "physics/material/MaterialView.hh"
 
 #include "MollerBhabha.hh"
 

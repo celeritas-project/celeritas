@@ -37,7 +37,7 @@ struct Interaction
 
     // Return an interaction with no change in the particle's state
     static inline CELER_FUNCTION Interaction
-    from_unchanged(const units::MevEnergy energy, const Real3 direction);
+    from_unchanged(units::MevEnergy energy, const Real3& direction);
 
     // Whether the interaction succeeded
     explicit inline CELER_FUNCTION operator bool() const;
@@ -74,15 +74,15 @@ CELER_FUNCTION Interaction Interaction::from_absorption()
  * Construct an interaction for edge cases where there is no state change.
  */
 CELER_FUNCTION Interaction Interaction::from_unchanged(
-    const units::MevEnergy energy, const Real3 direction)
+    units::MevEnergy energy, const Real3& direction)
 {
     CELER_EXPECT(energy.value() > 0);
+    CELER_EXPECT(is_soft_unit_vector(direction, SoftEqual<real_type>()));
 
     Interaction result;
     result.action    = Action::unchanged;
     result.energy    = energy;
     result.direction = direction;
-    normalize_direction(&result.direction);
     return result;
 }
 
