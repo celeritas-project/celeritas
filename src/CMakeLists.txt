@@ -129,7 +129,6 @@ endif()
 
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
-    geometry/GeoInterface.cc
     geometry/GeoMaterialParams.cc
     geometry/GeoParams.cc
     geometry/detail/VGNavCollection.cc

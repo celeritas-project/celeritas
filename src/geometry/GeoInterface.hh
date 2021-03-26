@@ -14,6 +14,10 @@
 #include "detail/VGNavCollection.hh"
 #include "detail/VGTraits.hh"
 
+#ifndef __CUDA_ARCH__
+#    include "base/CollectionBuilder.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -133,6 +137,7 @@ struct GeoStateData
     }
 };
 
+#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Resize particle states in host code.
@@ -141,7 +146,21 @@ template<MemSpace M>
 void resize(
     GeoStateData<Ownership::value, M>*                               data,
     const GeoParamsData<Ownership::const_reference, MemSpace::host>& params,
-    size_type                                                        size);
+    size_type                                                        size)
+{
+    CELER_EXPECT(data);
+    CELER_EXPECT(size > 0);
+    CELER_EXPECT(params.max_depth > 0);
+
+    make_builder(&data->pos).resize(size);
+    make_builder(&data->dir).resize(size);
+    make_builder(&data->next_step).resize(size);
+    data->vgstate.resize(params.max_depth, size);
+    data->vgnext.resize(params.max_depth, size);
+
+    CELER_ENSURE(data);
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
