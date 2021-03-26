@@ -146,7 +146,8 @@ struct VGNavCollection<Ownership::value, MemSpace::device>
         = std::unique_ptr<vecgeom::cxx::NavStatePool, NavStatePoolDeleter>;
 
     UPNavStatePool pool;
-    void*          ptr = nullptr;
+    void*          ptr  = nullptr;
+    size_type      size = 0;
 
     // Resize based on geometry params and state size
     void resize(int max_depth, size_type size);
@@ -168,6 +169,7 @@ struct VGNavCollection<Ownership::reference, MemSpace::device>
     using NavState = vecgeom::cuda::NavigationState;
 
     void* ptr = nullptr;
+    size_type size = 0;
 
     // Assign from device value
     void operator=(VGNavCollection<Ownership::value, MemSpace::device>& other);
@@ -186,13 +188,13 @@ CELER_FUNCTION auto VGNavCollection<Ownership::reference, MemSpace::device>::at(
 {
     CELER_EXPECT(ptr);
     CELER_EXPECT(max_depth > 0);
+    CELER_EXPECT(thread < size);
 #ifdef __NVCC__
     // This code only compiles when run through CUDA so it must be escaped.
     char* result = reinterpret_cast<char*>(this->ptr);
     result += NavState::SizeOfInstanceAlignAware(max_depth) * thread.get();
     return *reinterpret_cast<NavState*>(ptr);
 #else
-    (void)sizeof(thread);
     CELER_ASSERT_UNREACHABLE();
 #endif
 }
