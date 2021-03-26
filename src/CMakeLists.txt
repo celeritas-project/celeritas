@@ -205,6 +205,10 @@ if(CELERITAS_USE_ROOT)
     io/ImportProcess.hh
     io/ImportVolume.hh
     io/RootImporter.hh
+    io/ParticleParamsLoader.hh
+    io/MaterialParamsLoader.hh
+    io/ImportProcessLoader.hh
+    io/RootLoader.hh
     MODULE celeritas_root
     LINKDEF io/RootInterfaceLinkDef.h
   )
@@ -216,6 +220,10 @@ if(CELERITAS_USE_ROOT)
   add_library(celeritas_root SHARED
     ${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx
     io/RootImporter.cc
+    io/ParticleParamsLoader.cc
+    io/MaterialParamsLoader.cc
+    io/ImportProcessLoader.cc
+    io/RootLoader.cc
   )
   target_link_libraries(celeritas_root
     PRIVATE celeritas ROOT::Core ROOT::Tree
