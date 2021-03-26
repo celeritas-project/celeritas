@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <celeritas_config.h>
 #include <algorithm>
 #include <iosfwd>
 #include <unordered_map>
@@ -79,7 +80,7 @@ class KernelDiagnostics
     std::vector<value_type> values_;
 
     //// HELPER FUNCTIONS ////
-    void push_back_kernel(value_type diag, const void* func);
+    void log_launch(value_type& diag, unsigned int num_threads);
 };
 
 //---------------------------------------------------------------------------//
@@ -113,6 +114,9 @@ void KernelDiagnostics::launch(key_type key, unsigned int num_threads)
     value_type& diag = values_[key.get()];
     ++diag.num_launches;
     diag.max_num_threads = std::max(num_threads, diag.max_num_threads);
+#if CELERITAS_DEBUG
+    this->log_launch(diag, num_threads);
+#endif
 }
 
 #ifdef __CUDACC__
