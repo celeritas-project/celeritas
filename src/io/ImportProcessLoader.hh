@@ -22,6 +22,8 @@ namespace celeritas
  *  ImportProcessLoader process_loader(root_loader);
  *  const auto processes = process_loader();
  * \endcode
+ *
+ * \sa RootLoader
  */
 class ImportProcessLoader
 {

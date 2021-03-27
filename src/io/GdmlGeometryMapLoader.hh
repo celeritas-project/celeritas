@@ -21,6 +21,9 @@ namespace celeritas
  *  GdmlGeometryMapLoader geometry_loader(root_loader);
  *  const auto geometry = geometry_loader();
  * \endcode
+ *
+ * \sa GdmlGeometryMap
+ * \sa RootLoader
  */
 class GdmlGeometryMapLoader
 {

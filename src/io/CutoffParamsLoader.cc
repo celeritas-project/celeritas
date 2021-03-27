@@ -10,6 +10,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TBranch.h>
+#include <TLeaf.h>
 
 #include "GdmlGeometryMap.hh"
 #include "MaterialParamsLoader.hh"

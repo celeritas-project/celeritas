@@ -233,9 +233,9 @@ if(CELERITAS_USE_ROOT)
     PRIVATE celeritas ROOT::Core ROOT::Tree
   )
 else()
-  # ROOT is disabled: add an importer that
+  # ROOT is disabled
   add_library(celeritas_root
-    io/RootImporter.noroot.cc
+    io/RootLoader.noroot.cc
   )
   target_link_libraries(celeritas_root PRIVATE celeritas)
 endif()

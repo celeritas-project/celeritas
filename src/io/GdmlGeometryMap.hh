@@ -27,6 +27,11 @@ namespace celeritas
  * - The volume id maps volumes in the global volume map.
  * - Volume id and material id are linked by a map, so that given a volume id
  *   one can retrieve full material and element information, including XS data.
+ *
+ * \sa ImportElement
+ * \sa ImportMaterial
+ * \sa ImportVolume
+ * \sa GdmlGeometryMapLoader
  */
 class GdmlGeometryMap
 {

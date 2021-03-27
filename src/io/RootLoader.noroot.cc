@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RootImporter.noroot.cc
+//! \file RootLoader.noroot.cc
 //---------------------------------------------------------------------------//
-#include "RootImporter.hh"
+#include "RootLoader.hh"
 
 #include "base/Assert.hh"
 
@@ -18,14 +18,14 @@ class TFile
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-RootImporter::RootImporter(const char*)
+RootLoader::RootLoader(const char*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-RootImporter::~RootImporter() = default;
+RootLoader::~RootLoader() = default;
 
-auto RootImporter::operator()() -> result_type
+auto RootLoader::get() -> const std::shared_ptr<TFile>
 {
     CELER_ASSERT_UNREACHABLE();
 }

@@ -15,8 +15,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load ROOT file as a unique_ptr<TFile> and provide access to it for other
- * loader classes.
+ * Load ROOT file as a shared_ptr<TFile>, providing access to the TFile to
+ * any class that needs ROOT reading capabilities.
  *
   * \code
  *  RootLoader root_loader("/path/to/root_file.root");
@@ -30,9 +30,9 @@ class RootLoader
     RootLoader(const char* filename);
 
     // Access the ROOT TFile
-    const std::shared_ptr<TFile> get() const;
+    const std::shared_ptr<TFile> get();
 
-    // Verify loader
+    // Verify if the ROOT TFile is open
     operator bool() const;
     
   private:
