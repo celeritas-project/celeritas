@@ -18,16 +18,15 @@ namespace celeritas
  * Load ROOT file as a unique_ptr<TFile> and provide access to it for other
  * loader classes.
  *
- * Optional detailed class description, and possibly example usage:
- * \code
-    RootLoader root_loader("/path/to/root_file.root");
-    auto tfile = root_loader.get();
-   \endcode
+  * \code
+ *  RootLoader root_loader("/path/to/root_file.root");
+ *  auto tfile = root_loader.get();
+ * \endcode
  */
 class RootLoader
 {
   public:
-    // Construct with defaults
+    // Construct with root filename
     RootLoader(const char* filename);
 
     // Access the ROOT TFile

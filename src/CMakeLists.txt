@@ -208,6 +208,8 @@ if(CELERITAS_USE_ROOT)
     io/ParticleParamsLoader.hh
     io/MaterialParamsLoader.hh
     io/ImportProcessLoader.hh
+    io/CutoffParamsLoader.hh
+    io/GdmlGeometryMapLoader.hh
     io/RootLoader.hh
     MODULE celeritas_root
     LINKDEF io/RootInterfaceLinkDef.h
@@ -223,6 +225,8 @@ if(CELERITAS_USE_ROOT)
     io/ParticleParamsLoader.cc
     io/MaterialParamsLoader.cc
     io/ImportProcessLoader.cc
+    io/CutoffParamsLoader.cc
+    io/GdmlGeometryMapLoader.cc
     io/RootLoader.cc
   )
   target_link_libraries(celeritas_root

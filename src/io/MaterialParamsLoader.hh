@@ -17,17 +17,16 @@ namespace celeritas
  * Load MaterialParams by reading the imported material data from the ROOT
  * file produced by the app/geant-exporter.
  *
- * Optional detailed class description, and possibly example usage:
  * \code
-    MaterialParamsLoader material_loader(root_loader);
-    const auto material_params = material_loader();
-   \endcode
+ *  MaterialParamsLoader material_loader(root_loader);
+ *  const auto material_params = material_loader();
+ * \endcode
  */
 class MaterialParamsLoader
 {
   public:
     // Construct with RootLoader
-    MaterialParamsLoader(RootLoader root_loader);
+    MaterialParamsLoader(RootLoader& root_loader);
 
     // Return constructed MaterialParams
     const std::shared_ptr<const MaterialParams> operator()();

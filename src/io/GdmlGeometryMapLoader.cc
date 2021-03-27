@@ -3,14 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImportProcessLoader.cc
+//! \file GdmlGeometryMapLoader.cc
 //---------------------------------------------------------------------------//
-#include "ImportProcessLoader.hh"
+#include "GdmlGeometryMapLoader.hh"
 
 #include <TFile.h>
 #include <TTree.h>
+#include <TBranch.h>
 
-#include "base/Range.hh"
+#include "base/Assert.hh"
+#include "GdmlGeometryMap.hh"
 
 namespace celeritas
 {
@@ -18,42 +20,35 @@ namespace celeritas
 /*!
  * Construct with RootLoader.
  */
-ImportProcessLoader::ImportProcessLoader(RootLoader& root_loader)
+GdmlGeometryMapLoader::GdmlGeometryMapLoader(RootLoader& root_loader)
     : root_loader_(root_loader)
 {
-    CELER_ENSURE(root_loader_);
+    CELER_ENSURE(root_loader);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Load ImportProcess data.
+ * Load GdmlGeometryMap as a shared_ptr.
  */
-const std::vector<const ImportProcess> ImportProcessLoader::operator()()
+const std::shared_ptr<const GdmlGeometryMap> GdmlGeometryMapLoader::operator()()
 {
     const auto tfile = root_loader_.get();
 
-    std::unique_ptr<TTree> tree_processes(tfile->Get<TTree>("processes"));
-    CELER_ASSERT(tree_processes);
-    CELER_ASSERT(tree_processes->GetEntries());
+    // Open geometry branch
+    std::unique_ptr<TTree> tree_geometry(tfile->Get<TTree>("geometry"));
+    CELER_ASSERT(tree_geometry);
+    CELER_ASSERT(tree_geometry->GetEntries() == 1);
 
-    // Load branch
-    ImportProcess  process;
-    ImportProcess* process_ptr = &process;
+    // Load branch and fetch data
+    GdmlGeometryMap  geometry;
+    GdmlGeometryMap* geometry_ptr = &geometry;
 
     int err_code
-        = tree_processes->SetBranchAddress("ImportProcess", &process_ptr);
+        = tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
     CELER_ASSERT(err_code >= 0);
+    tree_geometry->GetEntry(0);
 
-    std::vector<const ImportProcess> processes;
-
-    // Populate physics process vector
-    for (size_type i : range(tree_processes->GetEntries()))
-    {
-        tree_processes->GetEntry(i);
-        processes.push_back(process);
-    }
-
-    return processes;
+    return std::make_shared<GdmlGeometryMap>(std::move(geometry));
 }
 
 //---------------------------------------------------------------------------//

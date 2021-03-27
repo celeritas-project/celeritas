@@ -3,33 +3,33 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleParamsLoader.hh
+//! \file CutoffParamsLoader.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/ParticleParams.hh"
+#include "physics/base/CutoffParams.hh"
 #include "RootLoader.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load ParticleParams by reading the imported particle data from the ROOT
+ * Load CutoffParams by reading the imported production cut data from the ROOT
  * file produced by the app/geant-exporter.
  *
  * \code
- *  ParticleParamsLoader particle_loader(root_loader);
- *  const auto particle_params = particle_loader();
+ *  CutoffParamsLoader cutoff_loader(root_loader);
+ *  const auto Cutoff_params = cutoff_loader();
  * \endcode
  */
-class ParticleParamsLoader
+class CutoffParamsLoader
 {
   public:
     // Construct with RootLoader
-    ParticleParamsLoader(RootLoader& root_loader);
+    CutoffParamsLoader(RootLoader& root_loader);
 
-    // Return constructed ParticleParams
-    const std::shared_ptr<const ParticleParams> operator()();
+    // Return constructed CutoffParams
+    const std::shared_ptr<const CutoffParams> operator()();
 
   private:
     RootLoader root_loader_;

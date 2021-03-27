@@ -164,6 +164,10 @@ celeritas_add_test(io/MaterialParamsLoader.test.cc ${_needs_root}
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_add_test(io/ImportProcessLoader.test.cc ${_needs_root}
   LINK_LIBRARIES Celeritas::ROOT)
+  celeritas_add_test(io/CutoffParamsLoader.test.cc ${_needs_root}
+  LINK_LIBRARIES Celeritas::ROOT)
+celeritas_add_test(io/GdmlGeometryMapLoader.test.cc ${_needs_root}
+  LINK_LIBRARIES Celeritas::ROOT)
 celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 

@@ -10,7 +10,6 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TBranch.h>
-#include <TLeaf.h>
 
 #include "base/Assert.hh"
 #include "ImportMaterial.hh"
@@ -48,7 +47,7 @@ MatterState to_matter_state(const ImportMaterialState state)
 /*!
  * Construct with RootLoader.
  */
-MaterialParamsLoader::MaterialParamsLoader(RootLoader root_loader)
+MaterialParamsLoader::MaterialParamsLoader(RootLoader& root_loader)
     : root_loader_(root_loader)
 {
     CELER_ENSURE(root_loader);

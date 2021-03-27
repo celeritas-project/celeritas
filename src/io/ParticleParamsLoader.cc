@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Construct with RootLoader.
  */
-ParticleParamsLoader::ParticleParamsLoader(RootLoader root_loader)
+ParticleParamsLoader::ParticleParamsLoader(RootLoader& root_loader)
     : root_loader_(root_loader)
 {
     CELER_ENSURE(root_loader);

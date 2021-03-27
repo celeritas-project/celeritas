@@ -3,33 +3,33 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleParamsLoader.hh
+//! \file GdmlGeometryMapLoader.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/ParticleParams.hh"
 #include "RootLoader.hh"
+#include "GdmlGeometryMap.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load ParticleParams by reading the imported particle data from the ROOT
- * file produced by the app/geant-exporter.
+ * Load GdmlGeometryMap data by reading the imported material and volume data
+ * from the ROOT file produced by the app/geant-exporter.
  *
  * \code
- *  ParticleParamsLoader particle_loader(root_loader);
- *  const auto particle_params = particle_loader();
+ *  GdmlGeometryMapLoader geometry_loader(root_loader);
+ *  const auto geometry = geometry_loader();
  * \endcode
  */
-class ParticleParamsLoader
+class GdmlGeometryMapLoader
 {
   public:
     // Construct with RootLoader
-    ParticleParamsLoader(RootLoader& root_loader);
+    GdmlGeometryMapLoader(RootLoader& root_loader);
 
-    // Return constructed ParticleParams
-    const std::shared_ptr<const ParticleParams> operator()();
+    // Return constructed GdmlGeometryMap
+    const std::shared_ptr<const GdmlGeometryMap> operator()();
 
   private:
     RootLoader root_loader_;

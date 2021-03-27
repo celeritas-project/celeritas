@@ -18,17 +18,16 @@ namespace celeritas
  * Load ImportProcess data by reading the imported material data from the ROOT
  * file produced by the app/geant-exporter.
  *
- * Optional detailed class description, and possibly example usage:
- * \code
-    ImportProcessLoader process_loader(root_loader);
-    const auto processes = process_loader();
-   \endcode
+  * \code
+ *  ImportProcessLoader process_loader(root_loader);
+ *  const auto processes = process_loader();
+ * \endcode
  */
 class ImportProcessLoader
 {
   public:
     // Construct with RootLoader
-    ImportProcessLoader(RootLoader root_loader);
+    ImportProcessLoader(RootLoader& root_loader);
 
     // Return constructed MaterialParams
     const std::vector<const ImportProcess> operator()();
