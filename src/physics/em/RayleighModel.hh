@@ -9,6 +9,7 @@
 
 #include "base/CollectionMirror.hh"
 #include "physics/base/Model.hh"
+#include "physics/material/MaterialParams.hh"
 #include "detail/Rayleigh.hh"
 
 namespace celeritas
@@ -25,14 +26,16 @@ class RayleighModel final : public Model
     //@{
     //! Type aliases
     using HostRef
-      = detail::RayleighPointers<Ownership::const_reference, MemSpace::host>;
+        = detail::RayleighPointers<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
-      = detail::RayleighPointers<Ownership::const_reference, MemSpace::device>;
+        = detail::RayleighPointers<Ownership::const_reference, MemSpace::device>;
     //@}
 
   public:
     // Construct from model ID and other necessary data
-    RayleighModel(ModelId id, const ParticleParams& particles);
+    RayleighModel(ModelId               id,
+                  const ParticleParams& particles,
+                  const MaterialParams& materials);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -53,13 +56,13 @@ class RayleighModel final : public Model
     const DeviceRef& device_pointers() const { return pointers_.device(); }
 
   private:
-    // Host/device storage and reference 
+    // Host/device storage and reference
     CollectionMirror<detail::RayleighPointers> pointers_;
 
   private:
-    using HostValue 
-       = detail::RayleighPointers<Ownership::value, MemSpace::host>;
-    void build_data(HostValue* pointers);
+    using HostValue
+        = detail::RayleighPointers<Ownership::value, MemSpace::host>;
+    void build_data(HostValue* pointers, const MaterialParams& materials);
 };
 
 //---------------------------------------------------------------------------//

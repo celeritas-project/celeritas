@@ -12,9 +12,10 @@
 #include "random/RngEngine.hh"
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
+#include "physics/material/Types.hh"
 #include "physics/material/MaterialTrackView.hh"
 #include "physics/material/ElementView.hh"
-#include "physics/material/MaterialView.hh"
+#include "physics/material/ElementSelector.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "base/StackAllocator.hh"
 #include "RayleighInteractor.hh"
@@ -59,14 +60,12 @@ __global__ void rayleigh_interact_kernel(const RayleighDeviceRef     rayleigh,
 
     RngEngine rng(model.states.rng, tid);
 
-    MaterialView material_view = material.material_view();
+    // Sample an element
+    ElementId el_id{0};
 
     // Do the interaction
     RayleighInteractor interact(
-        rayleigh,
-        particle,
-        model.states.direction[tid.get()],
-        material_view.element_view(celeritas::ElementComponentId{0}));
+        rayleigh, particle, model.states.direction[tid.get()], el_id);
 
     model.result[tid.get()] = interact(rng);
     CELER_ENSURE(model.result[tid.get()]);

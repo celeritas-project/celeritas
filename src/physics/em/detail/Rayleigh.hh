@@ -20,16 +20,27 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Rayleigh angular parameters (form factor) for sampling the angular 
+ * Rayleigh angular parameters (form factor) for sampling the angular
  * distribution of coherently scattered photon
  */
 constexpr unsigned int rayleigh_num_parameters = 9;
 constexpr unsigned int rayleigh_num_elements   = 100;
 
-struct RayleighData 
+struct RayleighData
 {
-    static real_type 
-        angular_parameters[rayleigh_num_parameters][rayleigh_num_elements]; 
+    static real_type angular_parameters[rayleigh_num_parameters]
+                                       [rayleigh_num_elements];
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Storage for Rayleigh angular parameters
+ */
+struct RayleighElementData
+{
+    Real3 n;
+    Real3 b;
+    Real3 x;
 };
 
 //---------------------------------------------------------------------------//
@@ -39,21 +50,29 @@ struct RayleighData
 template<Ownership W, MemSpace M>
 struct RayleighParameters
 {
-    using IntId = celeritas::ItemId<int>;
+    //    using IntId = celeritas::ItemId<int>;
+    using UintId = celeritas::ItemId<unsigned int>;
 
     template<class T>
-    using Items = celeritas::Collection<T, W, M, IntId>;
+    using Items = celeritas::Collection<T, W, M, UintId>;
 
-    Items<Array<real_type, rayleigh_num_parameters>> data;
+    Items<Real3> data_n;
+    Items<Real3> data_b;
+    Items<Real3> data_x;
 
-    explicit CELER_FUNCTION operator bool() const { return !data.empty(); }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !data_n.empty() & !data_b.empty() & !data_x.empty();
+    }
 
     //! Assign from another set of parameters
     template<Ownership W2, MemSpace M2>
     RayleighParameters& operator=(const RayleighParameters<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        data = other.data;
+        data_n = other.data_n;
+        data_b = other.data_b;
+        data_x = other.data_x;
 
         return *this;
     }

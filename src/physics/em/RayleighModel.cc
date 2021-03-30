@@ -19,7 +19,9 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-RayleighModel::RayleighModel(ModelId id, const ParticleParams& particles)
+RayleighModel::RayleighModel(ModelId               id,
+                             const ParticleParams& particles,
+                             const MaterialParams& materials)
 {
     CELER_EXPECT(id);
 
@@ -31,7 +33,7 @@ RayleighModel::RayleighModel(ModelId id, const ParticleParams& particles)
                    "gamma particles must be enabled to use the "
                    "Rayleigh Model.");
 
-    this->build_data(&host_pointers);
+    this->build_data(&host_pointers, materials);
 
     // Move to mirrored data, copying to device
     pointers_
@@ -81,22 +83,41 @@ ModelId RayleighModel::model_id() const
 /*!
  * Convert an RayleighData to a RayleighParameters and store.
  */
-void RayleighModel::build_data(HostValue* pointers)
+void RayleighModel::build_data(HostValue*            pointers,
+                               const MaterialParams& materials)
 {
-    auto data = make_builder(&pointers->params.data);
-    data.reserve(detail::rayleigh_num_elements);
+    // Number of elements
+    unsigned int num_elements = materials.num_elements();
 
-    Array<real_type, detail::rayleigh_num_parameters>
-        parameter_arrays[detail::rayleigh_num_elements];
+    // Build data for available elements
+    using RayleighData = detail::RayleighData;
 
-    for (auto i : range(detail::rayleigh_num_elements))
+    auto data_n = make_builder(&pointers->params.data_n);
+    auto data_b = make_builder(&pointers->params.data_b);
+    auto data_x = make_builder(&pointers->params.data_x);
+
+    data_n.reserve(num_elements);
+    data_b.reserve(num_elements);
+    data_x.reserve(num_elements);
+
+    for (auto el_id : range(ElementId{num_elements}))
     {
-        for (auto j : range(detail::rayleigh_num_parameters))
+        unsigned int z = materials.get(el_id).atomic_number() - 1;
+        CELER_ASSERT(z < detail::rayleigh_num_elements);
+
+        Real3 n_array;
+        Real3 b_array;
+        Real3 x_array;
+
+        for (auto j : range(3))
         {
-            (parameter_arrays[i])[j] = 
-                 detail::RayleighData::angular_parameters[j][i];
+            n_array[j] = RayleighData::angular_parameters[j + 6][z] - 1.0;
+            b_array[j] = RayleighData::angular_parameters[j + 3][z];
+            x_array[j] = RayleighData::angular_parameters[j][z];
         }
-        data.push_back(parameter_arrays[i]);
+        data_n.push_back(n_array);
+        data_b.push_back(b_array);
+        data_x.push_back(x_array);
     }
 }
 
