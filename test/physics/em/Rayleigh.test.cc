@@ -103,7 +103,7 @@ TEST_F(RayleighInteractorTest, basic)
 {
     const int num_samples = 4;
 
-    // Sample an element
+    // Sample an element (TODO: add ElementSelector)
     ElementId el_id{0};
 
     // Create the interactor
