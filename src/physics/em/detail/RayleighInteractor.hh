@@ -13,7 +13,6 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
-#include "physics/material/ElementView.hh"
 #include "Rayleigh.hh"
 
 namespace celeritas
@@ -24,21 +23,23 @@ namespace detail
 /*!
  * Brief class description.
  *
- * This is a model for XXXX process. Additional description
+ * This is a model for the Rayleigh scattering process for photons.
  *
  * \note This performs the same sampling routine as in Geant4's
- * XXXX class, as documented in section XXX of the Geant4 Physics
- * Reference (release 10.6).
+ * G4LivermoreRayleighModel class, as documented in section 6.2.2 of the
+ * Geant4 Physics Reference (release 10.6).
  */
 class RayleighInteractor
 {
+    using ItemIdT = celeritas::ItemId<unsigned int>;
+
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
     RayleighInteractor(const RayleighNativePointers& shared,
                        const ParticleTrackView&      particle,
                        const Real3&                  inc_direction,
-                       const ElementView&            element);
+                       ElementId                     element_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -59,17 +60,29 @@ class RayleighInteractor
     }
 
   private:
-    //! form factor
-    static CELER_CONSTEXPR_FUNCTION real_type form_factor()
+    //! cm/hc in the MeV energy unit
+    static CELER_CONSTEXPR_FUNCTION real_type hc_factor()
     {
-        return units::centimeter / (constants::c_light * constants::h_planck);
+        return units::centimeter * unit_cast(units::MevMomentum{1.0})
+               / (constants::c_light * constants::h_planck);
     }
 
     //! limit
     static CELER_CONSTEXPR_FUNCTION real_type num_limit() { return 0.02; }
 
+    struct SampleInput
+    {
+        real_type factor{0};
+        Real3     weight{0, 0, 0};
+        Real3     prob{0, 0, 0};
+    };
+
     //! auxiliary
-    CELER_FUNCTION real_type evaluate_weight(real_type x, real_type nx) const;
+    CELER_FUNCTION auto evaluate_weight_and_prob(real_type    energy,
+                                                 const Real3& b,
+                                                 const Real3& n,
+                                                 const Real3& x) const
+        -> SampleInput;
 
   private:
     // Shared constant physics properties
@@ -78,8 +91,8 @@ class RayleighInteractor
     const units::MevEnergy inc_energy_;
     // Incident direction
     const Real3& inc_direction_;
-    // Element of material
-    const ElementView& element_;
+    // Id of element
+    ElementId element_id_;
 };
 
 //---------------------------------------------------------------------------//
