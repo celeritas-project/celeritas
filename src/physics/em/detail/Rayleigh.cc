@@ -19,11 +19,11 @@ namespace detail
  * The angular distribution of coherently scattered photons is a product of
  * Rayleigh scattering (\em R) and a correction factor (\em f),
  * \f[
-    \sigma (\cos) = R(\cos\theta) f(E, \cos)
+    \Phi (E, \cos) = R(\cos\theta) f(E, \cos)
      R = [1 + cos^{2}]
      f = [FF(E, cos) + AS(E)]^{2}
    \f]
- * where \em cos is the cosine of the photon scattering angle, E is the
+ * where \em cos is the cosine of the photon scattering angle, \em E is the
  * incident photon energy, \em FF is the form factor (unit-less) and \em AS
  * is the anomalous scattering factor.
  *
