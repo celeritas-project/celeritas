@@ -49,7 +49,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         // Set up shared particle data for RayleighModel
         Base::set_particle_params(
             {{"gamma", pdg::gamma(), zero, zero, stable}});
-        const auto& particles = this->particle_params();
+        const auto& particles = *this->particle_params();
         pointers_.gamma_id    = particles.find(pdg::gamma());
 
         // Set default particle to incident 1 MeV photon
@@ -75,7 +75,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
 
         // Construct RayleighModel and set the host data pointers
         model_ = std::make_shared<RayleighModel>(
-            ModelId{0}, particles, this->material_params());
+            ModelId{0}, particles, *this->material_params());
         pointers_ = model_->host_pointers();
     }
 
