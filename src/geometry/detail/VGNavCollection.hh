@@ -193,7 +193,7 @@ CELER_FUNCTION auto VGNavCollection<Ownership::reference, MemSpace::device>::at(
     // This code only compiles when run through CUDA so it must be escaped.
     char* result = reinterpret_cast<char*>(this->ptr);
     result += NavState::SizeOfInstanceAlignAware(max_depth) * thread.get();
-    return *reinterpret_cast<NavState*>(ptr);
+    return *reinterpret_cast<NavState*>(result);
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
