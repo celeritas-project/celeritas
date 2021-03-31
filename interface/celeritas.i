@@ -86,7 +86,12 @@ class MaterialParams;
 //---------------------------------------------------------------------------//
 
 %{
-#include "io/RootImporter.hh"
+#include "io/RootLoader.hh"
+#include "io/MaterialParamsLoader.hh"
+#include "io/ParticleParamsLoader.hh"
+#include "io/CutoffParamsLoader.hh"
+#include "io/ImportProcessLoader.hh"
+#include "io/GdmlGeometryMapLoader.hh"
 %}
 
 namespace celeritas
@@ -112,8 +117,12 @@ class GdmlGeometryMap;
 %include "io/ImportProcess.hh"
 
 %template(VecImportProcesss) std::vector<celeritas::ImportProcess>;
-%rename(RootImportResult) celeritas::RootImporter::result_type;
-%include "io/RootImporter.hh"
+%include "io/RootLoader.hh"
+%include "io/MaterialParamsLoader.hh"
+%include "io/ParticleParamsLoader.hh"
+%include "io/CutoffParamsLoader.hh"
+%include "io/ImportProcessLoader.hh"
+%include "io/GdmlGeometryMapLoader.hh"
 
 //---------------------------------------------------------------------------//
 

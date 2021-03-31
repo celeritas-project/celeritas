@@ -18,7 +18,6 @@
 #pragma link C++ class celeritas::ImportMaterial::ProductionCut+;
 #pragma link C++ class celeritas::ImportElement+;
 #pragma link C++ class celeritas::ImportVolume+;
-#pragma link C++ class celeritas::RootImporter+;
 #pragma link C++ class celeritas::RootLoader+;
 // clang-format on
 
