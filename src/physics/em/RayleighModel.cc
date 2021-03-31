@@ -92,32 +92,23 @@ void RayleighModel::build_data(HostValue*            pointers,
     // Build data for available elements
     using RayleighData = detail::RayleighData;
 
-    auto data_n = make_builder(&pointers->params.data_n);
-    auto data_b = make_builder(&pointers->params.data_b);
-    auto data_x = make_builder(&pointers->params.data_x);
-
-    data_n.reserve(num_elements);
-    data_b.reserve(num_elements);
-    data_x.reserve(num_elements);
+    auto data = make_builder(&pointers->params.data);
+    data.reserve(num_elements);
 
     for (auto el_id : range(ElementId{num_elements}))
     {
         unsigned int z = materials.get(el_id).atomic_number() - 1;
-        CELER_ASSERT(z < detail::rayleigh_num_elements);
+        CELER_ASSERT(z < RayleighData::num_elements);
 
-        Real3 n_array;
-        Real3 b_array;
-        Real3 x_array;
+        detail::RayleighElementData el_data;
 
         for (auto j : range(3))
         {
-            n_array[j] = RayleighData::angular_parameters[j + 6][z] - 1.0;
-            b_array[j] = RayleighData::angular_parameters[j + 3][z];
-            x_array[j] = RayleighData::angular_parameters[j][z];
+            el_data.a[j] = RayleighData::angular_parameters[j][z];
+            el_data.b[j] = RayleighData::angular_parameters[j + 3][z];
+            el_data.n[j] = RayleighData::angular_parameters[j + 6][z] - 1.0;
         }
-        data_n.push_back(n_array);
-        data_b.push_back(b_array);
-        data_x.push_back(x_array);
+        data.push_back(el_data);
     }
 }
 

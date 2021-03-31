@@ -30,8 +30,7 @@ namespace detail
  * Excerpted from from G4RayleighAngularGenerator.cc of Geant4 6.10.
  * Parameters for Z = 0 are dropped as they are zeros and not used.
  */
-real_type RayleighData::angular_parameters[detail::rayleigh_num_parameters]
-                                          [detail::rayleigh_num_elements]
+const real_type RayleighData::angular_parameters[num_parameters][num_elements]
     = {
         // clang-format off
     

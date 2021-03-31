@@ -23,24 +23,29 @@ namespace detail
  * Rayleigh angular parameters (form factor) for sampling the angular
  * distribution of coherently scattered photon
  */
-constexpr unsigned int rayleigh_num_parameters = 9;
-constexpr unsigned int rayleigh_num_elements   = 100;
-
 struct RayleighData
 {
-    static real_type angular_parameters[rayleigh_num_parameters]
-                                       [rayleigh_num_elements];
+    static const unsigned int num_parameters = 9;
+    static const unsigned int num_elements   = 100;
+
+    static const real_type angular_parameters[num_parameters][num_elements];
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Storage for Rayleigh angular parameters
+ * Rayleigh angular parameters to fit tabulated form factors (\em FF)
+ * \f[
+ *  FF(E,cos)^2 = \Sigma_{j} \frac{a_j}{[1 + b_j x]^{n}}
+ * \f]
+ * where \f$ x= E^{2}(1-cos\theta) \f$ and \em n is the high energy slope of
+ * the form factor and \em a and \em b are free parameters to obtain the best
+ * fit to the form factor. The unit for the energy (\em E) is in MeV.
  */
 struct RayleighElementData
 {
-    Real3 n;
+    Real3 a;
     Real3 b;
-    Real3 x;
+    Real3 n;
 };
 
 //---------------------------------------------------------------------------//
@@ -50,29 +55,21 @@ struct RayleighElementData
 template<Ownership W, MemSpace M>
 struct RayleighParameters
 {
-    //    using IntId = celeritas::ItemId<int>;
-    using UintId = celeritas::ItemId<unsigned int>;
+    using ElementId = celeritas::ItemId<unsigned int>;
 
     template<class T>
-    using Items = celeritas::Collection<T, W, M, UintId>;
+    using ElementItems = celeritas::Collection<T, W, M, ElementId>;
 
-    Items<Real3> data_n;
-    Items<Real3> data_b;
-    Items<Real3> data_x;
+    ElementItems<RayleighElementData> data;
 
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return !data_n.empty() & !data_b.empty() & !data_x.empty();
-    }
+    explicit CELER_FUNCTION operator bool() const { return !data.empty(); }
 
     //! Assign from another set of parameters
     template<Ownership W2, MemSpace M2>
     RayleighParameters& operator=(const RayleighParameters<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        data_n = other.data_n;
-        data_b = other.data_b;
-        data_x = other.data_x;
+        data = other.data;
 
         return *this;
     }
