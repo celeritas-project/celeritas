@@ -11,6 +11,7 @@
 #include "geometry/GeoMaterialView.hh"
 #include "io/RootLoader.hh"
 #include "io/MaterialParamsLoader.hh"
+#include "io/GdmlGeometryMapLoader.hh"
 
 #include "GeoParamsTest.hh"
 
@@ -32,6 +33,9 @@ class GeoMaterialTest : public celeritas::Test
         // Set up shared material data
         material_ = std::move(MaterialParamsLoader(root_loader)());
 
+        // Set up Gdml geometry data
+        auto gdml_geometry_map_ = GdmlGeometryMapLoader(root_loader)();
+
         // Set up shared geometry data
         std::string geo_file
             = this->test_data_path("geometry", "four-steel-slabs.gdml");
@@ -43,7 +47,7 @@ class GeoMaterialTest : public celeritas::Test
         input.materials = material_;
         input.volume_to_mat
             = std::vector<MaterialId>(input.geometry->num_volumes());
-        for (const auto& kv : loaded.geometry->volid_to_matid_map())
+        for (const auto& kv : gdml_geometry_map_->volid_to_matid_map())
         {
             CELER_ASSERT(kv.first < input.volume_to_mat.size());
             CELER_ASSERT(kv.second < input.materials->num_materials());
