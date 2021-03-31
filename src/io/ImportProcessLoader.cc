@@ -28,7 +28,7 @@ ImportProcessLoader::ImportProcessLoader(RootLoader& root_loader)
 /*!
  * Load ImportProcess data.
  */
-const std::vector<const ImportProcess> ImportProcessLoader::operator()()
+const std::vector<ImportProcess> ImportProcessLoader::operator()()
 {
     const auto tfile = root_loader_.get();
 
@@ -44,7 +44,7 @@ const std::vector<const ImportProcess> ImportProcessLoader::operator()()
         = tree_processes->SetBranchAddress("ImportProcess", &process_ptr);
     CELER_ASSERT(err_code >= 0);
 
-    std::vector<const ImportProcess> processes;
+    std::vector<ImportProcess> processes;
 
     // Populate physics process vector
     for (size_type i : range(tree_processes->GetEntries()))

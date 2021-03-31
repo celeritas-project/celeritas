@@ -113,8 +113,8 @@ void print_process(const ImportProcess& proc, const ParticleParams& particles)
 /*!
  * Print physics properties.
  */
-void print_processes(const std::vector<const ImportProcess>& processes,
-                     const ParticleParams&                   particles)
+void print_processes(const std::vector<ImportProcess>& processes,
+                     const ParticleParams&             particles)
 {
     CELER_LOG(info) << "Loaded " << processes.size() << " processes";
 

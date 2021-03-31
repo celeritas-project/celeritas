@@ -32,7 +32,7 @@ class ImportProcessLoader
     ImportProcessLoader(RootLoader& root_loader);
 
     // Return constructed MaterialParams
-    const std::vector<const ImportProcess> operator()();
+    const std::vector<ImportProcess> operator()();
 
   private:
     RootLoader root_loader_;
