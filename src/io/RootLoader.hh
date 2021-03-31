@@ -32,8 +32,8 @@ class RootLoader
     // Access the ROOT TFile
     const std::shared_ptr<TFile> get();
 
-    // Verify if the ROOT TFile is open
-    operator bool() const;
+    // Verify if TFile is open
+    explicit operator bool() const;
     
   private:
     std::shared_ptr<TFile> tfile_;

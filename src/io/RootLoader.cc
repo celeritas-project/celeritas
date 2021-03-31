@@ -35,6 +35,10 @@ const std::shared_ptr<TFile> RootLoader::get()
     return tfile_;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Verify if TFile is open. Mostly used by assertion macros.
+ */
 RootLoader::operator bool() const
 {
     return tfile_->IsOpen();

@@ -35,7 +35,7 @@ class ImportedProcesses
 
   public:
     // Construct with imported tables
-    explicit ImportedProcesses(std::vector<ImportProcess> io);
+    explicit ImportedProcesses(std::vector<const ImportProcess> io);
 
     // Return physics tables for a particle type and process
     ImportProcessId find(key_type) const;
@@ -47,7 +47,7 @@ class ImportedProcesses
     inline ImportProcessId::size_type size() const;
 
   private:
-    std::vector<ImportProcess>          processes_;
+    std::vector<const ImportProcess>    processes_;
     std::map<key_type, ImportProcessId> ids_;
 };
 

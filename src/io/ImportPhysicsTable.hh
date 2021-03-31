@@ -53,7 +53,8 @@ enum class ImportUnits
  * Imported physics table.
  *
  * The geant-exporter app stores Geant4 physics tables into a ROOT file, while
- * the RootImporter class is responsible for loading said data into memory.
+ * the ImportProcessLoader class is responsible for loading said data into
+ * memory.
  */
 struct ImportPhysicsTable
 {

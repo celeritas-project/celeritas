@@ -8,7 +8,13 @@
 #include "LDemoParams.hh"
 
 #include "comm/Logger.hh"
-#include "io/RootImporter.hh"
+#include "io/RootLoader.hh"
+#include "io/MaterialParamsLoader.hh"
+#include "io/ParticleParamsLoader.hh"
+#include "io/CutoffParamsLoader.hh"
+#include "io/ImportProcessLoader.hh"
+#include "io/GdmlGeometryMapLoader.hh"
+
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/EIonizationProcess.hh"
@@ -28,7 +34,7 @@ LDemoParams load_params(const LDemoArgs& args)
     LDemoParams result;
 
     // Load ROOT file
-    auto loaded = RootImporter(args.physics_filename.c_str())();
+    auto root_loader = RootLoader(args.physics_filename.c_str());
 
     // Load geometry
     {
@@ -38,18 +44,20 @@ LDemoParams load_params(const LDemoArgs& args)
 
     // Load materials
     {
-        result.materials = std::move(loaded.material_params);
+        result.materials = std::move(MaterialParamsLoader(root_loader)());
     }
 
     // Create geometry/material coupling
     {
+        const auto loaded_geometry = GdmlGeometryMapLoader(root_loader)();
+
         GeoMaterialParams::Input input;
         input.geometry  = result.geometry;
         input.materials = result.materials;
 
         input.volume_to_mat
             = std::vector<MaterialId>(input.geometry->num_volumes());
-        for (const auto& kv : loaded.geometry->volid_to_matid_map())
+        for (const auto& kv : loaded_geometry->volid_to_matid_map())
         {
             CELER_ASSERT(kv.first < input.volume_to_mat.size());
             CELER_ASSERT(kv.second < result.materials->num_materials());
@@ -60,13 +68,13 @@ LDemoParams load_params(const LDemoArgs& args)
 
     // Construct particle params
     {
-        result.particles = std::move(loaded.particle_params);
+        result.particles = std::move(ParticleParamsLoader(root_loader)());
     }
 
     // Construct cutoffs
     {
-        CutoffParams::Input input;
-        result.cutoffs = std::make_shared<CutoffParams>(std::move(input));
+        result.cutoffs = std::make_shared<CutoffParams>(
+            std::move(CutoffParamsLoader(root_loader)()));
     }
 
     // Load physics: create individual processes with make_shared
@@ -75,8 +83,8 @@ LDemoParams load_params(const LDemoArgs& args)
         input.particles = result.particles;
         input.materials = result.materials;
 
-        auto process_data
-            = std::make_shared<ImportedProcesses>(std::move(loaded.processes));
+        auto process_data = std::make_shared<ImportedProcesses>(
+            std::move(ImportProcessLoader(root_loader)()));
         input.processes.push_back(
             std::make_shared<ComptonProcess>(result.particles, process_data));
         CELER_NOT_IMPLEMENTED("TODO: add remaining processes");

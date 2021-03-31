@@ -15,7 +15,12 @@
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "physics/base/ParticleInterface.hh"
-#include "io/RootImporter.hh"
+#include "io/RootLoader.hh"
+#include "io/MaterialParamsLoader.hh"
+#include "io/ParticleParamsLoader.hh"
+#include "io/CutoffParamsLoader.hh"
+#include "io/ImportProcessLoader.hh"
+#include "io/GdmlGeometryMapLoader.hh"
 #include "io/GdmlGeometryMap.hh"
 
 using namespace celeritas;
@@ -108,8 +113,8 @@ void print_process(const ImportProcess& proc, const ParticleParams& particles)
 /*!
  * Print physics properties.
  */
-void print_processes(const std::vector<ImportProcess>& processes,
-                     const ParticleParams&             particles)
+void print_processes(const std::vector<const ImportProcess>& processes,
+                     const ParticleParams&                   particles)
 {
     CELER_LOG(info) << "Loaded " << processes.size() << " processes";
 
@@ -306,11 +311,14 @@ int main(int argc, char* argv[])
         return 2;
     }
 
-    RootImporter::result_type data;
+    RootLoader root_loader(argv[1]);
+    // TODO not sure we need this exception handling...
     try
     {
-        RootImporter import(argv[1]);
-        data = import();
+        if (!root_loader)
+        {
+            throw;
+        }
     }
     catch (const DebugError& e)
     {
@@ -321,9 +329,11 @@ int main(int argc, char* argv[])
 
     CELER_LOG(info) << "Successfully loaded ROOT file '" << argv[1] << "'";
 
-    print_particles(*data.particle_params);
-    print_processes(data.processes, *data.particle_params);
-    print_geometry(*data.geometry, *data.particle_params);
+    print_particles(*ParticleParamsLoader(root_loader)().get());
+    print_processes(ImportProcessLoader(root_loader)(),
+                    *ParticleParamsLoader(root_loader)().get());
+    print_geometry(*GdmlGeometryMapLoader(root_loader)().get(),
+                   *ParticleParamsLoader(root_loader)().get());
 
     return EXIT_SUCCESS;
 }

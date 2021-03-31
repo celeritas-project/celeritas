@@ -12,7 +12,11 @@
 #include "physics/em/PhotoelectricProcess.hh"
 #include "physics/em/EIonizationProcess.hh"
 #include "io/LivermorePEReader.hh"
-#include "io/RootImporter.hh"
+#include "io/RootLoader.hh"
+#include "io/MaterialParamsLoader.hh"
+#include "io/ParticleParamsLoader.hh"
+#include "io/ImportProcessLoader.hh"
+
 #include "celeritas_test.hh"
 
 using namespace celeritas;
@@ -31,14 +35,14 @@ class ImportedProcessesTest : public celeritas::Test
 
     void SetUp() override
     {
-        RootImporter import_from_root(
-            this->test_data_path("io", "geant-exporter-data.root").c_str());
+        std::string root_file
+            = this->test_data_path("io", "geant-exporter-data.root");
+        RootLoader root_loader(root_file.c_str());
 
-        auto data  = import_from_root();
-        particles_ = std::move(data.particle_params);
-        materials_ = std::move(data.material_params);
-        processes_
-            = std::make_shared<ImportedProcesses>(std::move(data.processes));
+        particles_ = std::move(ParticleParamsLoader(root_loader)());
+        materials_ = std::move(MaterialParamsLoader(root_loader)());
+        processes_ = std::make_shared<ImportedProcesses>(
+            std::move(ImportProcessLoader(root_loader)()));
 
         CELER_ENSURE(particles_);
         CELER_ENSURE(processes_->size() > 0);

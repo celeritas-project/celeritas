@@ -9,7 +9,9 @@
 
 #include "celeritas_test.hh"
 #include "geometry/GeoMaterialView.hh"
-#include "io/RootImporter.hh"
+#include "io/RootLoader.hh"
+#include "io/MaterialParamsLoader.hh"
+
 #include "GeoParamsTest.hh"
 
 using namespace celeritas;
@@ -25,14 +27,14 @@ class GeoMaterialTest : public celeritas::Test
         // Load ROOT file
         std::string root_file
             = this->test_data_path("io", "geant-exporter-data.root");
-        auto loaded = RootImporter(root_file.c_str())();
+        auto root_loader = RootLoader(root_file.c_str());
 
         // Set up shared material data
-        material_ = std::move(loaded.material_params);
+        material_ = std::move(MaterialParamsLoader(root_loader)());
 
         // Set up shared geometry data
         std::string geo_file
-            = this->test_data_path("geometry", "slabsGeometry.gdml");
+            = this->test_data_path("geometry", "four-steel-slabs.gdml");
         geometry_ = std::make_shared<GeoParams>(geo_file.c_str());
 
         // Create geometry/material coupling

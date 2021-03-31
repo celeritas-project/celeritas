@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Construct with imported tabular data.
  */
-ImportedProcesses::ImportedProcesses(std::vector<ImportProcess> io)
+ImportedProcesses::ImportedProcesses(std::vector<const ImportProcess> io)
     : processes_(std::move(io))
 {
     for (auto id : range(ImportProcessId{this->size()}))
