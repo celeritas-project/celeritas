@@ -32,6 +32,7 @@ class CutoffParamsLoaderTest : public celeritas::Test
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
 TEST_F(CutoffParamsLoaderTest, load_cutoff_params)
 {
     RootLoader           root_loader(this->root_filename_.c_str());

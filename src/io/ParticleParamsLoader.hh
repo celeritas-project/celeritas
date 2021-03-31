@@ -22,6 +22,7 @@ namespace celeritas
  *  const auto particle_params = particle_loader();
  * \endcode
  *
+ * \sa ParticleParams
  * \sa RootLoader
  */
 class ParticleParamsLoader

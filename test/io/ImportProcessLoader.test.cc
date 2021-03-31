@@ -30,6 +30,7 @@ class ImportProcessLoaderTest : public celeritas::Test
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
 TEST_F(ImportProcessLoaderTest, load_import_processes)
 {
     RootLoader          root_loader(this->root_filename_.c_str());

@@ -29,6 +29,7 @@ class ParticleParamsLoaderTest : public celeritas::Test
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
 TEST_F(ParticleParamsLoaderTest, load_particle_params)
 {
     RootLoader           root_loader(this->root_filename_.c_str());

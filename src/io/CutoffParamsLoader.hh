@@ -22,6 +22,7 @@ namespace celeritas
  *  const auto Cutoff_params = cutoff_loader();
  * \endcode
  *
+ * \sa CutoffParams
  * \sa RootLoader
  */
 class CutoffParamsLoader

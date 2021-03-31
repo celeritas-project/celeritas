@@ -10,7 +10,7 @@
 #include "base/Assert.hh"
 
 // We're not linking against ROOT: declare a TFile so that its null-op
-// destructor can be called by the unique_ptr destructor.
+// destructor can be called by the shared_ptr destructor.
 class TFile
 {
 };

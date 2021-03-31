@@ -22,6 +22,7 @@ namespace celeritas
  *  const auto material_params = material_loader();
  * \endcode
  *
+ * \sa MaterialParams
  * \sa RootLoader
  */
 class MaterialParamsLoader

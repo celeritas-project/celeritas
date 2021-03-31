@@ -28,6 +28,7 @@ class MaterialParamsLoaderTest : public celeritas::Test
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
 TEST_F(MaterialParamsLoaderTest, load_material_params)
 {
     RootLoader           root_loader(this->root_filename_.c_str());

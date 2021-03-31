@@ -30,6 +30,7 @@ class GdmlGeometryMapLoaderTest : public celeritas::Test
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
 TEST_F(GdmlGeometryMapLoaderTest, load_gdml_geometry)
 {
     RootLoader            root_loader(this->root_filename_.c_str());

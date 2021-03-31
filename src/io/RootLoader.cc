@@ -22,7 +22,9 @@ RootLoader::RootLoader(const char* filename)
 {
     CELER_LOG(status) << "Opening ROOT file";
     tfile_ = std::shared_ptr<TFile>(TFile::Open(filename, "read"));
-    CELER_ENSURE(tfile_ && !tfile_->IsZombie());
+
+    CELER_VALIDATE(tfile_ && !tfile_->IsZombie(),
+                   "Could not read ROOT file '" << filename << "'");
 }
 
 //---------------------------------------------------------------------------//
