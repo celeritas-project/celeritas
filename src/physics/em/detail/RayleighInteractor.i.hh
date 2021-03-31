@@ -20,10 +20,10 @@ namespace detail
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-RayleighInteractor::RayleighInteractor(const RayleighNativePointers& shared,
-                                       const ParticleTrackView&      particle,
-                                       const Real3&                  direction,
-                                       ElementId                     el_id)
+RayleighInteractor::RayleighInteractor(const RayleighNativeRef& shared,
+                                       const ParticleTrackView& particle,
+                                       const Real3&             direction,
+                                       ElementId                el_id)
 
     : shared_(shared)
     , inc_energy_(particle.energy().value())

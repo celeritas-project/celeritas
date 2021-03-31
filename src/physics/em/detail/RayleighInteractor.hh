@@ -39,10 +39,10 @@ class RayleighInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    RayleighInteractor(const RayleighNativePointers& shared,
-                       const ParticleTrackView&      particle,
-                       const Real3&                  inc_direction,
-                       ElementId                     element_id);
+    RayleighInteractor(const RayleighNativeRef& shared,
+                       const ParticleTrackView& particle,
+                       const Real3&             inc_direction,
+                       ElementId                element_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -88,7 +88,7 @@ class RayleighInteractor
 
   private:
     // Shared constant physics properties
-    const RayleighNativePointers& shared_;
+    const RayleighNativeRef& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
     // Incident direction

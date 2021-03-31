@@ -50,7 +50,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         Base::set_particle_params(
             {{"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& particles = *this->particle_params();
-        pointers_.gamma_id    = particles.find(pdg::gamma());
+        group_.gamma_id    = particles.find(pdg::gamma());
 
         // Set default particle to incident 1 MeV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{1.0});
@@ -73,26 +73,25 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         this->set_material_params(inp);
         this->set_material("PbWO");
 
-        // Construct RayleighModel and set the host data pointers
+        // Construct RayleighModel and set the host data group
         model_ = std::make_shared<RayleighModel>(
             ModelId{0}, particles, *this->material_params());
-        pointers_ = model_->host_pointers();
+        group_ = model_->host_group();
     }
 
     void sanity_check(const Interaction& interaction) const
     {
         ASSERT_TRUE(interaction);
 
-        // Check change to parent track
+        // Check change to parent track - coherent scattering
         EXPECT_EQ(this->particle_track().energy().value(),
                   interaction.energy.value());
-        EXPECT_EQ(1.0, interaction.energy.value());
         EXPECT_EQ(celeritas::Action::scattered, interaction.action);
     }
 
   protected:
-    std::shared_ptr<RayleighModel>            model_;
-    celeritas::detail::RayleighNativePointers pointers_;
+    std::shared_ptr<RayleighModel>       model_;
+    celeritas::detail::RayleighNativeRef group_;
 };
 
 //---------------------------------------------------------------------------//
@@ -107,7 +106,7 @@ TEST_F(RayleighInteractorTest, basic)
     ElementId el_id{0};
 
     // Create the interactor
-    RayleighInteractor interact(this->model_->host_pointers(),
+    RayleighInteractor interact(this->model_->host_group(),
                                 this->particle_track(),
                                 this->direction(),
                                 el_id);
@@ -142,7 +141,7 @@ TEST_F(RayleighInteractorTest, stress_test)
     ElementId el_id{0};
 
     // Create the interactor
-    RayleighInteractor interact(this->model_->host_pointers(),
+    RayleighInteractor interact(this->model_->host_group(),
                                 this->particle_track(),
                                 this->direction(),
                                 el_id);

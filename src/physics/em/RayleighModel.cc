@@ -25,21 +25,21 @@ RayleighModel::RayleighModel(ModelId               id,
 {
     CELER_EXPECT(id);
 
-    HostValue host_pointers;
+    HostValue host_group;
 
-    host_pointers.model_id = id;
-    host_pointers.gamma_id = particles.find(pdg::gamma());
-    CELER_VALIDATE(host_pointers.model_id && host_pointers.gamma_id,
+    host_group.model_id = id;
+    host_group.gamma_id = particles.find(pdg::gamma());
+    CELER_VALIDATE(host_group.model_id && host_group.gamma_id,
                    "gamma particles must be enabled to use the "
                    "Rayleigh Model.");
 
-    this->build_data(&host_pointers, materials);
+    this->build_data(&host_group, materials);
 
     // Move to mirrored data, copying to device
-    pointers_
-        = CollectionMirror<detail::RayleighPointers>{std::move(host_pointers)};
+    group_
+        = CollectionMirror<detail::RayleighGroup>{std::move(host_group)};
 
-    CELER_ENSURE(this->pointers_);
+    CELER_ENSURE(this->group_);
 }
 
 //---------------------------------------------------------------------------//
@@ -49,7 +49,7 @@ RayleighModel::RayleighModel(ModelId               id,
 auto RayleighModel::applicability() const -> SetApplicability
 {
     Applicability rayleigh_scattering;
-    rayleigh_scattering.particle = this->host_pointers().gamma_id;
+    rayleigh_scattering.particle = this->host_group().gamma_id;
     rayleigh_scattering.lower    = units::MevEnergy{1e-5};
     rayleigh_scattering.upper    = units::MevEnergy{1e+8};
 
@@ -61,10 +61,10 @@ auto RayleighModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void RayleighModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractPointers& pointers) const
+    CELER_MAYBE_UNUSED const ModelInteractPointers& group) const
 {
 #if CELERITAS_USE_CUDA
-    detail::rayleigh_interact(this->device_pointers(), pointers);
+    detail::rayleigh_interact(this->device_group(), group);
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
@@ -76,14 +76,14 @@ void RayleighModel::interact(
  */
 ModelId RayleighModel::model_id() const
 {
-    return this->host_pointers().model_id;
+    return this->host_group().model_id;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert an RayleighData to a RayleighParameters and store.
  */
-void RayleighModel::build_data(HostValue*            pointers,
+void RayleighModel::build_data(HostValue*            group,
                                const MaterialParams& materials)
 {
     // Number of elements
@@ -92,7 +92,7 @@ void RayleighModel::build_data(HostValue*            pointers,
     // Build data for available elements
     using RayleighData = detail::RayleighData;
 
-    auto data = make_builder(&pointers->params.data);
+    auto data = make_builder(&group->params.data);
     data.reserve(num_elements);
 
     for (auto el_id : range(ElementId{num_elements}))

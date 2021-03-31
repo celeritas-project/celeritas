@@ -80,7 +80,7 @@ struct RayleighParameters
  * Device data for creating an interactor.
  */
 template<Ownership W, MemSpace M>
-struct RayleighPointers
+struct RayleighGroup
 {
     //! Model ID
     ModelId model_id;
@@ -99,7 +99,7 @@ struct RayleighPointers
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    RayleighPointers& operator=(const RayleighPointers<W2, M2>& other)
+    RayleighGroup& operator=(const RayleighGroup<W2, M2>& other)
     {
         CELER_EXPECT(other);
         model_id = other.model_id;
@@ -110,11 +110,11 @@ struct RayleighPointers
 };
 
 using RayleighDeviceRef
-    = RayleighPointers<Ownership::const_reference, MemSpace::device>;
+    = RayleighGroup<Ownership::const_reference, MemSpace::device>;
 using RayleighHostRef
-    = RayleighPointers<Ownership::const_reference, MemSpace::host>;
-using RayleighNativePointers
-    = RayleighPointers<Ownership::const_reference, MemSpace::native>;
+    = RayleighGroup<Ownership::const_reference, MemSpace::host>;
+using RayleighNativeRef
+    = RayleighGroup<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
 // KERNEL LAUNCHERS
