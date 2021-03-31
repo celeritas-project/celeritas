@@ -31,7 +31,10 @@ namespace detail
  */
 class RayleighInteractor
 {
+    //!@{
+    //! Type aliases
     using ItemIdT = celeritas::ItemId<unsigned int>;
+    //!@}
 
   public:
     // Construct with shared and state data
@@ -67,9 +70,10 @@ class RayleighInteractor
                / (constants::c_light * constants::h_planck);
     }
 
-    //! limit
-    static CELER_CONSTEXPR_FUNCTION real_type num_limit() { return 0.02; }
+    //! A point where the functional form of the form factor fit changes
+    static CELER_CONSTEXPR_FUNCTION real_type fit_slice() { return 0.02; }
 
+    //! Intermediate data for sampling input
     struct SampleInput
     {
         real_type factor{0};
@@ -77,11 +81,9 @@ class RayleighInteractor
         Real3     prob{0, 0, 0};
     };
 
-    //! auxiliary
-    CELER_FUNCTION auto evaluate_weight_and_prob(real_type    energy,
-                                                 const Real3& b,
-                                                 const Real3& n,
-                                                 const Real3& x) const
+    //! Evaluate weights and probabilities for the angular sampling algorithm
+    CELER_FUNCTION auto
+    evaluate_weight_and_prob(real_type energy, const ItemIdT& id) const
         -> SampleInput;
 
   private:

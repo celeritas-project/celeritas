@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 
 #include "base/ArrayUtils.hh"
+#include "base/Algorithms.hh"
+#include "random/distributions/GenerateCanonical.hh"
 #include "random/distributions/IsotropicDistribution.hh"
 
 namespace celeritas
@@ -48,48 +50,51 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
     result.action = Action::scattered;
     result.energy = units::MevEnergy{inc_energy_.value()};
 
-    // Sample direction for a given Z: G4RayleighAngularGenerator
+    // Sample direction for a given atomic number: G4RayleighAngularGenerator
     ItemIdT item_id = ItemIdT{element_id_.get()};
 
-    Real3 pn = shared_.params.data_n[item_id];
-    Real3 pb = shared_.params.data_b[item_id];
-    Real3 px = shared_.params.data_x[item_id];
+    SampleInput input = this->evaluate_weight_and_prob(energy, item_id);
 
-    SampleInput input = this->evaluate_weight_and_prob(energy, pb, pn, px);
+    Real3 pb = shared_.params.data[item_id].b;
+    Real3 pn = shared_.params.data[item_id].n;
 
-    real_type                          cost;
-    UniformRealDistribution<real_type> u01(0, 1.0);
+    constexpr real_type half = 0.5;
+    real_type           cost;
 
     do
     {
-        unsigned  index = 0;
-        real_type x     = u01(rng);
-
-        if (x > input.prob[0])
+        unsigned int index = 0;
+        // Sample index from input.prob
         {
-            index = (x <= input.prob[0] + input.prob[1]) ? 1 : 2;
+            real_type u = generate_canonical(rng);
+            if (u > input.prob[0])
+            {
+                index = (u <= input.prob[0] + input.prob[1]) ? 1 : 2;
+            }
         }
 
         real_type w = input.weight[index];
         real_type n = pn[index];
         real_type b = pb[index];
 
-        n = 1.0 / n;
+        n = 1 / n;
 
         // Sampling of scattering angle
-        real_type y = w * u01(rng);
-        if (y < num_limit())
+        real_type x;
+        real_type y = w * generate_canonical(rng);
+
+        if (y < fit_slice())
         {
-            x = y * n * (1. + 0.5 * (n + 1.) * y * (1. - (n + 2.) * y / 3.));
+            x = y * n * (1 + half * (n + 1) * y * (1 - (n + 2) * y / 3));
         }
         else
         {
-            x = std::exp(-n * std::log(1. - y)) - 1.0;
+            x = std::pow(1 - y, -n) - 1;
         }
 
-        cost = 1.0 - 2.0 * x / (b * input.factor);
+        cost = 1 - 2 * x / (b * input.factor);
 
-    } while (2 * u01(rng) > 1.0 + cost * cost || cost < -1.0);
+    } while (2 * generate_canonical(rng) > 1 + ipow<2>(cost) || cost < -1);
 
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
 
@@ -101,16 +106,17 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 }
 
 CELER_FUNCTION
-auto RayleighInteractor::evaluate_weight_and_prob(real_type    energy,
-                                                  const Real3& b,
-                                                  const Real3& n,
-                                                  const Real3& px) const
+auto RayleighInteractor::evaluate_weight_and_prob(real_type      energy,
+                                                  const ItemIdT& item_id) const
     -> SampleInput
 {
     SampleInput input;
 
-    real_type factor = energy * hc_factor();
-    input.factor     = factor * factor;
+    Real3 a = shared_.params.data[item_id].a;
+    Real3 b = shared_.params.data[item_id].b;
+    Real3 n = shared_.params.data[item_id].n;
+
+    input.factor = ipow<2>(energy * RayleighInteractor::hc_factor());
 
     Real3 x = b;
     axpy(input.factor, b, &x);
@@ -118,18 +124,17 @@ auto RayleighInteractor::evaluate_weight_and_prob(real_type    energy,
     Real3 prob;
     for (auto i : range(3))
     {
-        input.weight[i]
-            = (x[i] > num_limit())
-                  ? 1.0 - std::exp(-n[i] * std::log(1.0 + x[i]))
-                  : n[i] * x[i]
-                        * (1.0
-                           - 0.5 * (n[i] - 1.0) * (x[i])
-                                 * (1.0 - (n[i] - 2.0) * (x[i]) / 3.));
+        input.weight[i] = (x[i] > fit_slice())
+                              ? 1 - std::pow(1 + x[i], -n[i])
+                              : n[i] * x[i]
+                                    * (1
+                                       - real_type(0.5) * (n[i] - 1) * (x[i])
+                                             * (1 - (n[i] - 2) * (x[i]) / 3));
 
-        prob[i] = input.weight[i] * px[i] / (b[i] * n[i]);
+        prob[i] = input.weight[i] * a[i] / (b[i] * n[i]);
     }
 
-    real_type inv_sum = 1.0 / (prob[0] + prob[1] + prob[2]);
+    real_type inv_sum = 1 / (prob[0] + prob[1] + prob[2]);
     axpy(inv_sum, prob, &input.prob);
 
     return input;
