@@ -73,8 +73,8 @@ LDemoParams load_params(const LDemoArgs& args)
 
     // Construct cutoffs
     {
-        result.cutoffs = std::make_shared<CutoffParams>(
-            std::move(CutoffParamsLoader(root_loader)()));
+        CutoffParams::Input input;
+        result.cutoffs = std::make_shared<CutoffParams>(std::move(input));
     }
 
     // Load physics: create individual processes with make_shared
