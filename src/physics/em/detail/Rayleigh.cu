@@ -17,7 +17,6 @@
 #include "physics/material/ElementView.hh"
 #include "physics/material/ElementSelector.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "base/StackAllocator.hh"
 #include "RayleighInteractor.hh"
 
 namespace celeritas
@@ -40,9 +39,8 @@ __global__ void rayleigh_interact_kernel(const RayleighDeviceRef     rayleigh,
     if (tid.get() >= model.states.size())
         return;
 
-    // Get views to this Secondary, Particle, and Physics
-    StackAllocator<Secondary> allocate_secondaries(model.secondaries);
-    ParticleTrackView         particle(
+    // Get views to Particle, and Physics
+    ParticleTrackView particle(
         model.params.particle, model.states.particle, tid);
 
     MaterialTrackView material(
