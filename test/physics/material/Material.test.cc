@@ -249,8 +249,8 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELERITAS_CUDA(all))
 
     EXPECT_EQ(params->max_element_components(),
               input.params.max_element_components);
-    EXPECT_EQ(3, input.states.state.size());
-    EXPECT_EQ(3 * params->max_element_components(),
+    EXPECT_EQ(4, input.states.state.size());
+    EXPECT_EQ(4 * params->max_element_components(),
               input.states.element_scratch.size());
 
     // Run GPU test
