@@ -66,7 +66,7 @@ class RayleighInteractor
     //! cm/hc in the MeV energy unit
     static CELER_CONSTEXPR_FUNCTION real_type hc_factor()
     {
-        return units::centimeter * unit_cast(units::MevMomentum{1.0})
+        return units::centimeter * unit_cast(units::MevEnergy{1.0})
                / (constants::c_light * constants::h_planck);
     }
 
