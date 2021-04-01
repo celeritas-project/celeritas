@@ -41,38 +41,11 @@ struct RayleighData
  * the form factor and \em a and \em b are free parameters to obtain the best
  * fit to the form factor. The unit for the energy (\em E) is in MeV.
  */
-struct RayleighElementData
+struct RayleighParameters
 {
     Real3 a;
     Real3 b;
     Real3 n;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Storage for Rayleigh angular parameters
- */
-template<Ownership W, MemSpace M>
-struct RayleighParameters
-{
-    using ElementId = celeritas::ItemId<unsigned int>;
-
-    template<class T>
-    using ElementItems = celeritas::Collection<T, W, M, ElementId>;
-
-    ElementItems<RayleighElementData> data;
-
-    explicit CELER_FUNCTION operator bool() const { return !data.empty(); }
-
-    //! Assign from another set of parameters
-    template<Ownership W2, MemSpace M2>
-    RayleighParameters& operator=(const RayleighParameters<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        data = other.data;
-
-        return *this;
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -89,12 +62,16 @@ struct RayleighGroup
     ParticleId gamma_id;
 
     //! Rayleigh angular parameters
-    RayleighParameters<W, M> params;
+    using ElementId = celeritas::ItemId<unsigned int>;
+
+    template<class T>
+    using ElementItems = celeritas::Collection<T, W, M, ElementId>;
+    ElementItems<RayleighParameters> params;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return model_id && gamma_id && params;
+        return model_id && gamma_id && !params.empty();
     }
 
     //! Assign from another set of data

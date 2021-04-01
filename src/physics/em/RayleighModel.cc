@@ -36,8 +36,7 @@ RayleighModel::RayleighModel(ModelId               id,
     this->build_data(&host_group, materials);
 
     // Move to mirrored data, copying to device
-    group_
-        = CollectionMirror<detail::RayleighGroup>{std::move(host_group)};
+    group_ = CollectionMirror<detail::RayleighGroup>{std::move(host_group)};
 
     CELER_ENSURE(this->group_);
 }
@@ -92,23 +91,23 @@ void RayleighModel::build_data(HostValue*            group,
     // Build data for available elements
     using RayleighData = detail::RayleighData;
 
-    auto data = make_builder(&group->params.data);
-    data.reserve(num_elements);
+    auto params = make_builder(&group->params);
+    params.reserve(num_elements);
 
     for (auto el_id : range(ElementId{num_elements}))
     {
         unsigned int z = materials.get(el_id).atomic_number() - 1;
         CELER_ASSERT(z < RayleighData::num_elements);
 
-        detail::RayleighElementData el_data;
+        detail::RayleighParameters el_params;
 
         for (auto j : range(3))
         {
-            el_data.a[j] = RayleighData::angular_parameters[j][z];
-            el_data.b[j] = RayleighData::angular_parameters[j + 3][z];
-            el_data.n[j] = RayleighData::angular_parameters[j + 6][z] - 1.0;
+            el_params.a[j] = RayleighData::angular_parameters[j][z];
+            el_params.b[j] = RayleighData::angular_parameters[j + 3][z];
+            el_params.n[j] = RayleighData::angular_parameters[j + 6][z] - 1.0;
         }
-        data.push_back(el_data);
+        params.push_back(el_params);
     }
 }
 

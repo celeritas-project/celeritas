@@ -55,8 +55,8 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 
     SampleInput input = this->evaluate_weight_and_prob(energy, item_id);
 
-    Real3 pb = shared_.params.data[item_id].b;
-    Real3 pn = shared_.params.data[item_id].n;
+    Real3 pb = shared_.params[item_id].b;
+    Real3 pn = shared_.params[item_id].n;
 
     constexpr real_type half = 0.5;
     real_type           cost;
@@ -112,9 +112,9 @@ auto RayleighInteractor::evaluate_weight_and_prob(real_type      energy,
 {
     SampleInput input;
 
-    Real3 a = shared_.params.data[item_id].a;
-    Real3 b = shared_.params.data[item_id].b;
-    Real3 n = shared_.params.data[item_id].n;
+    Real3 a = shared_.params[item_id].a;
+    Real3 b = shared_.params[item_id].b;
+    Real3 n = shared_.params[item_id].n;
 
     input.factor = ipow<2>(energy * RayleighInteractor::hc_factor());
 
