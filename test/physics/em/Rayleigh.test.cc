@@ -109,7 +109,7 @@ TEST_F(RayleighInteractorTest, basic)
     // Sample scattering angle and count rng used for each incident energy
     RandomEngine& rng_engine = this->rng();
 
-    for (double inc_e : {0.05, 0.1, 1.0, 10.0, 100.0})
+    for (double inc_e : {1e-5, 1e-4, 0.001, 0.01, 0.1, 1., 10., 100., 1000.})
     {
         // Set the incident particle energy
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
@@ -123,7 +123,6 @@ TEST_F(RayleighInteractorTest, basic)
                                     this->direction(),
                                     el_id);
 
-
         // Produce a sample from the original/incident photon
         celeritas::Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -134,13 +133,18 @@ TEST_F(RayleighInteractorTest, basic)
         rng_counts.push_back(rng_engine.count());
     }
 
-    const real_type expected_angle[] = {-0.726848858395344,
-                                        -0.95887836792401,
-                                        -0.910276761243175,
-                                        -0.223090692143936,
-                                        -0.388188923742863};
+    const real_type expected_angle[] = {0.383668498876068,
+                                        -0.99294588967104,
+                                        0.780467077338104,
+                                        0.985521422599946,
+                                        0.875273769840553,
+                                        0.999674148324654,
+                                        0.999998842967848,
+                                        0.99999999296325,
+                                        0.999999999919784};
 
-    const unsigned long int expected_rng_counts[] = {17774, 1568, 74, 8, 14};
+    const unsigned long int expected_rng_counts[]
+        = {14, 8, 8, 8, 8, 8, 8, 8, 8};
 
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
     EXPECT_VEC_EQ(expected_rng_counts, rng_counts);
@@ -148,18 +152,18 @@ TEST_F(RayleighInteractorTest, basic)
 
 TEST_F(RayleighInteractorTest, stress_test)
 {
-    const int num_samples = 1028;
+    const int num_samples = 8192;
 
     // Sample an element
     ElementId el_id{0};
 
-    std::vector<real_type>         average_angle;
-    std::vector<real_type>         average_rng_counts;
+    std::vector<real_type> average_angle;
+    std::vector<real_type> average_rng_counts;
 
     // Sample scattering angle and count rng used for each incident energy
     RandomEngine& rng_engine = this->rng();
 
-    for (double inc_e : {0.05, 0.1, 1.0, 10.0, 100.0})
+    for (double inc_e : {1e-5, 1e-4, 0.001, 0.01, 0.1, 1., 10., 100., 1000.})
     {
         // Set the incident particle energy
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
@@ -188,13 +192,18 @@ TEST_F(RayleighInteractorTest, stress_test)
         average_angle.push_back(sum_angle / num_samples);
     }
 
-    const real_type expected_average_rng_counts[] = {49710, 11914, 137, 12, 10};
+    const real_type expected_average_rng_counts[]
+        = {10, 11, 11, 9, 8, 8, 8, 8, 8};
 
-    const real_type expected_average_angle[] = {-0.003575422006847,
-                                                0.03399904936658,
-                                                -0.01054842299125,
-                                                0.008589239285608,
-                                                -0.01178001515854};
+    const real_type expected_average_angle[] = {0.00231121922009911,
+                                                0.00899744556924152,
+                                                0.00779010297910534,
+                                                0.583035907797808,
+                                                0.951988493573674,
+                                                0.999415919902184,
+                                                0.999994055745254,
+                                                0.999999938196652,
+                                                0.999999999411519};
 
     EXPECT_VEC_SOFT_EQ(expected_average_rng_counts, average_rng_counts);
     EXPECT_VEC_SOFT_EQ(expected_average_angle, average_angle);
