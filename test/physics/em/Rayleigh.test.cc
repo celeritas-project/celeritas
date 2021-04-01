@@ -103,14 +103,19 @@ TEST_F(RayleighInteractorTest, basic)
     // Sample an element (TODO: add ElementSelector)
     ElementId el_id{0};
 
-    std::vector<double>            angle;
+    std::vector<real_type>         angle;
     std::vector<unsigned long int> rng_counts;
 
     // Sample scattering angle and count rng used for each incident energy
+    RandomEngine& rng_engine = this->rng();
+
     for (double inc_e : {0.05, 0.1, 1.0, 10.0, 100.0})
     {
         // Set the incident particle energy
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
+
+        // Reset rng count
+        rng_engine.reset_count();
 
         // Create the interactor
         RayleighInteractor interact(this->model_->host_group(),
@@ -118,7 +123,6 @@ TEST_F(RayleighInteractorTest, basic)
                                     this->direction(),
                                     el_id);
 
-        RandomEngine& rng_engine = this->rng();
 
         // Produce a sample from the original/incident photon
         celeritas::Interaction result = interact(rng_engine);
@@ -130,14 +134,13 @@ TEST_F(RayleighInteractorTest, basic)
         rng_counts.push_back(rng_engine.count());
     }
 
-    const double expected_angle[] = {-0.726848858395344,
-                                     -0.95887836792401,
-                                     -0.910276761243175,
-                                     -0.223090692143936,
-                                     -0.388188923742863};
+    const real_type expected_angle[] = {-0.726848858395344,
+                                        -0.95887836792401,
+                                        -0.910276761243175,
+                                        -0.223090692143936,
+                                        -0.388188923742863};
 
-    const unsigned long int expected_rng_counts[]
-        = {17774ul, 19342ul, 19416ul, 19424ul, 19438ul};
+    const unsigned long int expected_rng_counts[] = {17774, 1568, 74, 8, 14};
 
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
     EXPECT_VEC_EQ(expected_rng_counts, rng_counts);
@@ -151,21 +154,24 @@ TEST_F(RayleighInteractorTest, stress_test)
     ElementId el_id{0};
 
     std::vector<real_type>         average_angle;
-    std::vector<unsigned long int> average_rng_counts;
+    std::vector<real_type>         average_rng_counts;
 
     // Sample scattering angle and count rng used for each incident energy
+    RandomEngine& rng_engine = this->rng();
+
     for (double inc_e : {0.05, 0.1, 1.0, 10.0, 100.0})
     {
         // Set the incident particle energy
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
+
+        // Reset the rng counter
+        rng_engine.reset_count();
 
         // Create the interactor
         RayleighInteractor interact(this->model_->host_group(),
                                     this->particle_track(),
                                     this->direction(),
                                     el_id);
-
-        RandomEngine& rng_engine = this->rng();
 
         // Produce num_samples from the original/incident photon
         real_type sum_angle = 0;
@@ -182,8 +188,7 @@ TEST_F(RayleighInteractorTest, stress_test)
         average_angle.push_back(sum_angle / num_samples);
     }
 
-    const unsigned long int expected_average_rng_counts[]
-        = {49710ul, 61624ul, 61762ul, 61774ul, 61785ul};
+    const real_type expected_average_rng_counts[] = {49710, 11914, 137, 12, 10};
 
     const real_type expected_average_angle[] = {-0.003575422006847,
                                                 0.03399904936658,
@@ -191,6 +196,6 @@ TEST_F(RayleighInteractorTest, stress_test)
                                                 0.008589239285608,
                                                 -0.01178001515854};
 
-    EXPECT_VEC_EQ(expected_average_rng_counts, average_rng_counts);
+    EXPECT_VEC_SOFT_EQ(expected_average_rng_counts, average_rng_counts);
     EXPECT_VEC_SOFT_EQ(expected_average_angle, average_angle);
 }
