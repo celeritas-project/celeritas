@@ -50,7 +50,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         Base::set_particle_params(
             {{"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& particles = *this->particle_params();
-        group_.gamma_id    = particles.find(pdg::gamma());
+        group_.gamma_id       = particles.find(pdg::gamma());
 
         // Set default particle to incident 1 MeV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{1.0});
@@ -100,59 +100,97 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
 
 TEST_F(RayleighInteractorTest, basic)
 {
-    const int num_samples = 4;
-
     // Sample an element (TODO: add ElementSelector)
     ElementId el_id{0};
 
-    // Create the interactor
-    RayleighInteractor interact(this->model_->host_group(),
-                                this->particle_track(),
-                                this->direction(),
-                                el_id);
+    std::vector<double>            angle;
+    std::vector<unsigned long int> rng_counts;
 
-    RandomEngine& rng_engine = this->rng();
-
-    // Produce four samples from the original/incident photon
-    std::vector<double> angle;
-
-    for (CELER_MAYBE_UNUSED auto i : celeritas::range(num_samples))
+    // Sample scattering angle and count rng used for each incident energy
+    for (double inc_e : {0.05, 0.1, 1.0, 10.0, 100.0})
     {
+        // Set the incident particle energy
+        this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
+
+        // Create the interactor
+        RayleighInteractor interact(this->model_->host_group(),
+                                    this->particle_track(),
+                                    this->direction(),
+                                    el_id);
+
+        RandomEngine& rng_engine = this->rng();
+
+        // Produce a sample from the original/incident photon
         celeritas::Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
         this->sanity_check(result);
+        rng_engine.count();
 
         angle.push_back(dot_product(result.direction, this->direction()));
+        rng_counts.push_back(rng_engine.count());
     }
 
-    const double expected_angle[] = {-0.0798080588007317,
-                                     -0.199218754040088,
-                                     -0.420659925857054,
-                                     0.464669752940999};
+    const double expected_angle[] = {-0.726848858395344,
+                                     -0.95887836792401,
+                                     -0.910276761243175,
+                                     -0.223090692143936,
+                                     -0.388188923742863};
+
+    const unsigned long int expected_rng_counts[]
+        = {17774ul, 19342ul, 19416ul, 19424ul, 19438ul};
 
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
+    EXPECT_VEC_EQ(expected_rng_counts, rng_counts);
 }
 
 TEST_F(RayleighInteractorTest, stress_test)
 {
-    const int num_samples = 8192;
+    const int num_samples = 1028;
 
     // Sample an element
     ElementId el_id{0};
 
-    // Create the interactor
-    RayleighInteractor interact(this->model_->host_group(),
-                                this->particle_track(),
-                                this->direction(),
-                                el_id);
+    std::vector<real_type>         average_angle;
+    std::vector<unsigned long int> average_rng_counts;
 
-    RandomEngine& rng_engine = this->rng();
-
-    // Produce four samples from the original/incident photon
-    for (CELER_MAYBE_UNUSED auto i : celeritas::range(num_samples))
+    // Sample scattering angle and count rng used for each incident energy
+    for (double inc_e : {0.05, 0.1, 1.0, 10.0, 100.0})
     {
-        celeritas::Interaction result = interact(rng_engine);
-        SCOPED_TRACE(result);
-        this->sanity_check(result);
+        // Set the incident particle energy
+        this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
+
+        // Create the interactor
+        RayleighInteractor interact(this->model_->host_group(),
+                                    this->particle_track(),
+                                    this->direction(),
+                                    el_id);
+
+        RandomEngine& rng_engine = this->rng();
+
+        // Produce num_samples from the original/incident photon
+        real_type sum_angle = 0;
+        for (CELER_MAYBE_UNUSED auto i : celeritas::range(num_samples))
+        {
+            celeritas::Interaction result = interact(rng_engine);
+            SCOPED_TRACE(result);
+            this->sanity_check(result);
+            rng_engine.count();
+            sum_angle += dot_product(result.direction, this->direction());
+        }
+
+        average_rng_counts.push_back(rng_engine.count() / num_samples);
+        average_angle.push_back(sum_angle / num_samples);
     }
+
+    const unsigned long int expected_average_rng_counts[]
+        = {49710ul, 61624ul, 61762ul, 61774ul, 61785ul};
+
+    const real_type expected_average_angle[] = {-0.003575422006847,
+                                                0.03399904936658,
+                                                -0.01054842299125,
+                                                0.008589239285608,
+                                                -0.01178001515854};
+
+    EXPECT_VEC_EQ(expected_average_rng_counts, average_rng_counts);
+    EXPECT_VEC_SOFT_EQ(expected_average_angle, average_angle);
 }
