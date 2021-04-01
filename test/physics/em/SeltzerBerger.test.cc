@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "physics/em/detail/SBPositronXsCorrector.hh"
 #include "physics/em/detail/SBEnergyDistribution.hh"
-#include "physics/em/detail/SeltzerBergerInteractor.hh"
 #include "physics/em/SeltzerBergerModel.hh"
 
 #include "celeritas_test.hh"
@@ -26,7 +25,6 @@ using celeritas::SeltzerBergerModel;
 using celeritas::SeltzerBergerReader;
 using celeritas::detail::SBEnergyDistribution;
 using celeritas::detail::SBPositronXsCorrector;
-using celeritas::detail::SeltzerBergerInteractor;
 using celeritas::units::AmuMass;
 using celeritas::units::MevMass;
 namespace constants = celeritas::constants;
@@ -97,7 +95,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         using celeritas::ipow;
         using namespace celeritas::constants;
 
-        auto           mat    = this->material_params().get(matid);
+        auto           mat    = this->material_params()->get(matid);
         constexpr auto migdal = 4 * pi * re_electron * ipow<2>(lambda_compton);
 
         real_type density_factor = mat.electron_density() * migdal;
@@ -135,12 +133,10 @@ TEST_F(SeltzerBergerTest, sb_tables)
 
 TEST_F(SeltzerBergerTest, sb_positron_xs_scaling)
 {
-    const MevMass positron_mass
-        = this->particle_params()
-              .get(this->particle_params().find(pdg::positron()))
-              .mass();
+    const ParticleParams& pp        = *this->particle_params();
+    const MevMass     positron_mass = pp.get(pp.find(pdg::positron())).mass();
     const MevEnergy   gamma_cutoff{0.01};
-    const ElementView el = this->material_params().get(ElementId{0});
+    const ElementView el = this->material_params()->get(ElementId{0});
 
     std::vector<real_type> scaling_frac;
 
