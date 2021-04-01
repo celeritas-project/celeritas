@@ -110,7 +110,7 @@ class MaterialTest : public celeritas::Test
              {{ElementId{0}, 1.0}},
              "H2"},
             // Diatomic hydrogen with the same name and different properties
-            {1.073e+20, 110.0, MatterState::gas, {{ElementId{0}, 1.0}}, "H2"},
+            {1.072e+20, 110.0, MatterState::gas, {{ElementId{0}, 1.0}}, "H2"},
         };
         params = std::make_shared<MaterialParams>(std::move(inp));
     }
@@ -142,6 +142,7 @@ TEST_F(MaterialTest, params)
     EXPECT_EQ("NaI", params->id_to_label(MaterialId{0}));
     EXPECT_EQ("hard vacuum", params->id_to_label(MaterialId{1}));
     EXPECT_EQ("H2", params->id_to_label(MaterialId{2}));
+    EXPECT_EQ("H2_3", params->id_to_label(MaterialId{3}));
 
     EXPECT_EQ(2, params->max_element_components());
 }
@@ -195,6 +196,20 @@ TEST_F(MaterialTest, material_view)
         auto els = mat.elements();
         ASSERT_EQ(1, els.size());
     }
+    {
+        // H2_3
+        MaterialView mat = params->get(MaterialId{3});
+        EXPECT_SOFT_EQ(1.072e+20, mat.number_density());
+        EXPECT_SOFT_EQ(110, mat.temperature());
+        EXPECT_EQ(MatterState::gas, mat.matter_state());
+        EXPECT_SOFT_EQ(0.00017943386624303615, mat.density());
+        EXPECT_SOFT_EQ(1.072e+20, mat.electron_density());
+        EXPECT_SOFT_EQ(351367.47504673258, mat.radiation_length());
+
+        // Test element view
+        auto els = mat.elements();
+        ASSERT_EQ(1, els.size());
+    }
 }
 
 TEST_F(MaterialTest, element_view)
@@ -223,7 +238,8 @@ class MaterialDeviceTest : public MaterialTest
 TEST_F(MaterialDeviceTest, TEST_IF_CELERITAS_CUDA(all))
 {
     MTestInput input;
-    input.init = {{MaterialId{0}}, {MaterialId{1}}, {MaterialId{2}}};
+    input.init
+        = {{MaterialId{0}}, {MaterialId{1}}, {MaterialId{2}}, {MaterialId{3}}};
 
     CollectionStateStore<MaterialStateData, MemSpace::device> states(
         *params, input.init.size());
@@ -243,11 +259,11 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELERITAS_CUDA(all))
     result = m_test(input);
 #endif
 
-    const double expected_temperatures[] = {293, 0, 100};
+    const double expected_temperatures[] = {293, 0, 100, 110};
     const double expected_rad_len[]
-        = {3.5393292693170424, inf, 350729.99844063615};
+        = {3.5393292693170424, inf, 350729.99844063615, 351367.47504673258};
     const double expected_tot_z[]
-        = {9.4365282069664e+23, 0, 1.07394843590447e+20};
+        = {9.4365282069664e+23, 0, 1.07394843590447e+20, 1.072e20};
 
     EXPECT_VEC_SOFT_EQ(expected_temperatures, result.temperatures);
     EXPECT_VEC_SOFT_EQ(expected_rad_len, result.rad_len);
