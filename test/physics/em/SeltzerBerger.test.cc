@@ -73,8 +73,8 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         SeltzerBergerReader read_element_data(data_path.c_str());
 
         model_ = std::make_shared<SeltzerBergerModel>(ModelId{0},
-                                                      this->particle_params(),
-                                                      this->material_params(),
+                                                      *this->particle_params(),
+                                                      *this->material_params(),
                                                       read_element_data);
     }
 

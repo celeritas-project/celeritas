@@ -24,6 +24,7 @@ enum class Action
     spawned,   //!< Primary particle from an event or creation of a secondary
     scattered, //!< Scattering interaction
     entered_volume, //!< Propagated to a new region of space
+    unchanged,      //!< Edge cases where an interactor returns no change
     // KILLING ACTIONS BELOW
     begin_killed_,
     absorbed = begin_killed_, //!< Absorbed (killed)
@@ -54,6 +55,16 @@ inline CELER_FUNCTION bool action_killed(Action a)
 {
     CELER_EXPECT(int(a) < int(Action::end_killed_));
     return int(a) >= int(Action::begin_killed_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the given action does not alters the particle's state.
+ */
+inline CELER_FUNCTION bool action_unchanged(Action a)
+{
+    CELER_EXPECT(int(a) < int(Action::end_killed_));
+    return int(a) == int(Action::unchanged);
 }
 
 //---------------------------------------------------------------------------//

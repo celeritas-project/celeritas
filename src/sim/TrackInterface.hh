@@ -12,7 +12,7 @@
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleInterface.hh"
 #include "physics/material/MaterialInterface.hh"
-#include "random/cuda/RngInterface.hh"
+#include "random/RngInterface.hh"
 #include "SimInterface.hh"
 
 namespace celeritas
@@ -45,9 +45,10 @@ struct ParamPointers
 struct StatePointers
 {
     ParticleStateData<Ownership::reference, MemSpace::device> particle;
+    RngStateData<Ownership::reference, MemSpace::device>      rng;
+
     GeoStatePointers                                          geo;
     SimStatePointers                                          sim;
-    RngStatePointers                                          rng;
     Span<Interaction>                                         interactions;
 
     //! Whether the data are assigned

@@ -57,7 +57,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
               ElementaryCharge{1},
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
-        const auto& params    = this->particle_params();
+        const auto& params    = *this->particle_params();
         pointers_.electron_id = params.find(pdg::electron());
         pointers_.positron_id = params.find(pdg::positron());
         pointers_.gamma_id    = params.find(pdg::gamma());
@@ -244,7 +244,7 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
 // TODO: Test all models for a given process?
 TEST_F(BetheHeitlerInteractorTest, model)
 {
-    GammaConversionProcess process(this->get_particle_params());
+    GammaConversionProcess process(this->particle_params());
     ModelIdGenerator       next_id;
 
     // Construct the models associated with gamma annihilation

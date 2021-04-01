@@ -22,23 +22,29 @@ namespace detail
 /*!
  * Construct with shared and state data.
  *
- * The incident particle must be above the energy threshold: this should be
- * handled in code *before* the interactor is constructed.
+ * The incident particle must be within the model's valid energy range. this
+ * must be handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     const MollerBhabhaPointers& shared,
     const ParticleTrackView&    particle,
+    const CutoffView&           cutoffs,
     const Real3&                inc_direction,
     StackAllocator<Secondary>&  allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_momentum_(particle.momentum().value())
     , inc_direction_(inc_direction)
+    , secondary_energy_cutoff_(cutoffs.energy().value())
     , allocate_(allocate)
     , inc_particle_is_electron_(particle.particle_id() == shared_.electron_id)
 {
     CELER_EXPECT(particle.particle_id() == shared_.electron_id
                  || particle.particle_id() == shared_.positron_id);
+
+    secondary_energy_cutoff_ = celeritas::max(
+        secondary_energy_cutoff_,
+        (inc_particle_is_electron_ ? 2 : 1) * shared_.min_valid_energy());
 }
 
 //---------------------------------------------------------------------------//
@@ -51,6 +57,14 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 {
+    if (secondary_energy_cutoff_ >= inc_energy_)
+    {
+        // The secondary should not be emitted. This interaction cannot happen
+        // and the incident particle must undergo an energy loss process.
+        return Interaction::from_unchanged(units::MevEnergy{inc_energy_},
+                                           inc_direction_);
+    }
+
     // Allocate memory for the produced electron
     Secondary* electron_secondary = this->allocate_(1);
 
@@ -60,18 +74,18 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
+    // Sample energy transfer fraction
     real_type epsilon;
-
     if (inc_particle_is_electron_)
     {
         MollerEnergyDistribution sample_moller(
-            shared_.electron_mass_c_sq, shared_.min_valid_energy, inc_energy_);
+            shared_.electron_mass_c_sq, secondary_energy_cutoff_, inc_energy_);
         epsilon = sample_moller(rng);
     }
     else
     {
         BhabhaEnergyDistribution sample_bhabha(
-            shared_.electron_mass_c_sq, shared_.min_valid_energy, inc_energy_);
+            shared_.electron_mass_c_sq, secondary_energy_cutoff_, inc_energy_);
         epsilon = sample_bhabha(rng);
     }
 

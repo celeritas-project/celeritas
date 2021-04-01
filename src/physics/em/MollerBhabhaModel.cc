@@ -30,7 +30,6 @@ MollerBhabhaModel::MollerBhabhaModel(ModelId               id,
 
     interface_.electron_mass_c_sq
         = particles.get(interface_.electron_id).mass().value(); // [MeV]
-    interface_.min_valid_energy = 1e-3;                         // [MeV]
 
     CELER_ENSURE(interface_);
 }
@@ -48,11 +47,11 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
     // positron's). This prevents it to run an infinite number of Moller
     // sampling loops.
     electron_applic.particle = interface_.electron_id;
-    electron_applic.lower = units::MevEnergy{2 * interface_.min_valid_energy};
-    electron_applic.upper = units::MevEnergy{100e6};
+    electron_applic.lower = units::MevEnergy{2 * interface_.min_valid_energy()};
+    electron_applic.upper = units::MevEnergy{interface_.max_valid_energy()};
 
     positron_applic.particle = interface_.positron_id;
-    positron_applic.lower    = units::MevEnergy{interface_.min_valid_energy};
+    positron_applic.lower    = units::MevEnergy{interface_.min_valid_energy()};
     positron_applic.upper    = electron_applic.upper;
 
     return {electron_applic, positron_applic};

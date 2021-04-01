@@ -16,7 +16,7 @@
 #include "base/StackAllocator.hh"
 #include "physics/em/detail/KleinNishina.hh"
 #include "physics/grid/XsGridInterface.hh"
-#include "random/cuda/RngInterface.hh"
+#include "random/RngInterface.hh"
 #include "DetectorInterface.hh"
 
 namespace demo_interactor
@@ -105,7 +105,7 @@ struct StateData
         = celeritas::StackAllocatorData<celeritas::Secondary, W, M>;
 
     celeritas::ParticleStateData<W, M>    particle;
-    celeritas::RngStatePointers           rng;
+    celeritas::RngStateData<Ownership::reference, MemSpace::device> rng;
     celeritas::Span<celeritas::Real3>     position;
     celeritas::Span<celeritas::Real3>     direction;
     celeritas::Span<celeritas::real_type> time;

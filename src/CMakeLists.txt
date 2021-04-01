@@ -78,7 +78,7 @@ list(APPEND SOURCES
   physics/grid/ValueGridInterface.cc
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
-  random/cuda/RngStateStore.cc
+  random/RngInterface.cc
   sim/SimStateStore.cc
 )
 
@@ -91,14 +91,15 @@ if(CELERITAS_USE_CUDA)
     physics/em/detail/KleinNishina.cu
     physics/em/detail/MollerBhabha.cu
     physics/em/detail/LivermorePE.cu
-    random/cuda/detail/RngStateInit.cu
+    random/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
   )
-  list(APPEND PRIVATE_DEPS CUDA::cudart)
+  # TODO: CUDA RNG is included by host code
+  list(APPEND PUBLIC_DEPS CUDA::cudart)
 else()
   list(APPEND SOURCES
-    random/cuda/curand.nocuda.cc
-    random/cuda/detail/RngStateInit.nocuda.cc
+    random/detail/curand.nocuda.cc
+    random/detail/RngStateInit.nocuda.cc
     sim/detail/SimStateInit.nocuda.cc
   )
 endif()
@@ -128,6 +129,7 @@ endif()
 
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
+    geometry/GeoMaterialParams.cc
     geometry/GeoParams.cc
     geometry/GeoStateStore.cc
     sim/ParamStore.cc

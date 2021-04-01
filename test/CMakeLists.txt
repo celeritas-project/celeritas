@@ -58,6 +58,9 @@ endfunction()
 
 set(_not_impl DISABLE)
 
+if(NOT CELERITAS_USE_CUDA)
+  set(_needs_cuda DISABLE)
+endif()
 if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
 endif()
@@ -139,6 +142,8 @@ if(CELERITAS_USE_VecGeom)
     list(APPEND CELERITASTEST_LINK_LIBRARIES celeritas_vgtest)
   endif()
 
+  celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
+    LINK_LIBRARIES Celeritas::ROOT)
   celeritas_add_test(geometry/GeoParams.test.cc GPU)
   celeritas_add_test(geometry/GeoTrackView.test.cc GPU)
   celeritas_add_test(geometry/LinearPropagator.test.cc GPU)
@@ -232,9 +237,9 @@ celeritas_add_test(random/distributions/IsotropicDistribution.test.cc)
 celeritas_add_test(random/distributions/RadialDistribution.test.cc)
 celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 
-if(CELERITAS_USE_CUDA)
-  celeritas_add_test(random/cuda/RngEngine.test.cu GPU)
-endif()
+# Note: this test should compile fine without CUDA but currently doesn't have
+# any # tests that run because the RngEngine is CUDA-only.
+celeritas_cudaoptional_test(random/RngEngine ${_needs_cuda})
 
 #-----------------------------------------------------------------------------#
 # Sim
