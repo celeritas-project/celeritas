@@ -20,7 +20,7 @@ namespace celeritas
  * time and spin. For N-variables (\em i = 1, ... N), the right hand side of
  * the equation
  * \f[
- *  \frac{dy_{i}}{ds} = f_i (s, y_{i})
+ *  \frac{\dif y_{i}}{\dif s} = f_i (s, y_{i})
  * \f]
  * and the fouth order Runge-Kutta solution for a given step size, \em h is
  * \f[
@@ -30,7 +30,7 @@ namespace celeritas
  * The truncation error is the difference of the final states of one full step
  * (\em y1) and two half steps (\em y2)
  * \f[
- *  \Delta = y_2 - y_1, y(x+h) = y_2 + \frac{\Delta}{15} + \math{O}(h^{6})
+ *  \Delta = y_2 - y_1, y(x+h) = y_2 + \frac{\Delta}{15} + \mathrm{O}(h^{6})
  * \f]
  */
 template<class T>
