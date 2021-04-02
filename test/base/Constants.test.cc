@@ -52,7 +52,7 @@ TEST(ConstantsTest, formulas)
         a0_bohr,
         1e-11);
     EXPECT_SOFT_NEAR(alpha_fine_structure * alpha_fine_structure * a0_bohr,
-                     re_electron,
+                     r_electron,
                      1e-11);
 }
 
