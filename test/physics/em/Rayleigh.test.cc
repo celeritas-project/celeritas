@@ -188,12 +188,20 @@ TEST_F(RayleighInteractorTest, stress_test)
             sum_angle += dot_product(result.direction, this->direction());
         }
 
-        average_rng_counts.push_back(rng_engine.count() / num_samples);
+        average_rng_counts.push_back(real_type(rng_engine.count())
+                                     / real_type(num_samples));
         average_angle.push_back(sum_angle / num_samples);
     }
 
-    const real_type expected_average_rng_counts[]
-        = {10, 11, 11, 9, 8, 8, 8, 8, 8};
+    const real_type expected_average_rng_counts[] = {10.943603515625,
+                                                     11.01025390625,
+                                                     11.08935546875,
+                                                     9.82080078125,
+                                                     8.308349609375,
+                                                     8.002197265625,
+                                                     8,
+                                                     8,
+                                                     8};
 
     const real_type expected_average_angle[] = {0.00231121922009911,
                                                 0.00899744556924152,
