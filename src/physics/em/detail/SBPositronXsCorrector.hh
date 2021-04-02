@@ -19,12 +19,12 @@ namespace detail
 /*!
  * Scale SB differential cross sections for positrons.
  *
- * This correction factor appears in the bowels of \c
+ * This cross section correction factor appears in the bowels of \c
  * G4SeltzerBergerModel::SampleEnergyTransfer in Geant4 and scales the SB cross
  * section by a factor
  * \f[
    \frac{\sigma_\mathrm{corrected}}{\sigma}
-       = \alpha Z [ \beta(E) - \beta(E_c) ]
+       = \exp( \alpha Z [ \beta(E) - \beta(E_c) ] )
  \f]
  * where \f$ \beta \f$ is the Lorentz factor: \f[
   \beta(E) = \frac{E + m_e c^2}{\sqrt{E * E + 2 * E * m_e * c^2}} \,,
@@ -32,6 +32,15 @@ namespace detail
  * \f$ \alpha \f$ is the fine structure constant, \f$E_c\f$ is the gamma
  * production cutoff energy, and \f$ E \f$ is the provisionally sampled exiting
  * energy.
+ *
+ * The correction factor is described in:
+ *
+ *   Kim, Longhuan, R. H. Pratt, S. M. Seltzer, and M. J. Berger. “Ratio of
+ *   Positron to Electron Bremsstrahlung Energy Loss: An Approximate Scaling
+ *   Law.” Physical Review A 33, no. 5 (May 1, 1986): 3002–9.
+ *   https://doi.org/10.1103/PhysRevA.33.3002.
+ *
+ * \todo Integrate into the actual sampling process.
  */
 class SBPositronXsCorrector
 {

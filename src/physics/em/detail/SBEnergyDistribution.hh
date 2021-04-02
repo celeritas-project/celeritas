@@ -21,54 +21,60 @@ namespace detail
  * Sample exiting photon energy from Bremsstrahlung.
  *
  * The SB energy distribution uses tabulated Seltzer-Berger differential cross
- * section data, which stores cumulative probabilities as a function of
- * incident particle energy and exiting gamma energy (see SeltzerBergerModel
+ * section data from G4EMLOW, which stores scaled cross sections as a function
+ * of incident particle energy and exiting gamma energy (see SeltzerBergerModel
  * for details). The sampling procedure is roughly laid out in section
  * [PHYS341] of the GEANT3 physics reference manual, although like Geant4 we
- * use raw tabulated  SB data rather than a parameter fit. Also like Geant4 we
+ * use raw tabulated SB data rather than a parameter fit. Also like Geant4 we
  * include the extra density correction factor.
  *
- * The algorithm is roughly thus. Calculate allowable exit energy range from
- * the gamma energy production cutoff and the incident particle energy. The
- * exiting energy fraction \em x of the kinetic energy transferred to the
- * photon is nominally between \em x_c and 1, where \em x_c is from
- * the cutoff energy for producing gammas \em E_c. However due to a correction
- * factor \f$k_\rho\f$ (which depends on the incident particle mass + energy
- * and the material's electron density) the exiting energy cutoffs are
- *
- * The minimum and maximum values of \em x, adjusted for the correction factor,
- * are:
+ * Once an element and incident energy have been selected, the exiting energy
+ * distribution is the differential cross section, which is stored as a scaled
+ * tabulated value. The reconstructed cross section gives the pdf
  * \f[
-    x_\mathrm{min} = \ln (E_c^2 + k_\rho E^2)
+ *   p(\kappa) \propto \frac{d \sigma}{dk}s
+               \propto \frac{1}{\kappa} \chi_Z(E, \kappa)
  * \f]
- * and
- * \f[
-    x_\mathrm{max} = \ln (E^2 + k_\rho E^2)
- * \f]
- *
- * The exiting kinetic energy is calculated in a rejection loop: without the
- * correction factor, the provisional value of \em x would be sampled from
- * \f[
-   \frac{1}{\ln 1/x_c} \frac{1}{x}
+ * where \f$ \kappa = k / E \f$ is the ratio of the emitted photon energy to
+ * the incident charged particle energy, and the domain of \em p is
+ * nominally restricted by the allowable energy range \f$ \kappa_c < \kappa < 1
+ * \f$, where \f$ \kappa_c \f$ is from the cutoff energy \f$ E_c \f$ for
+ * secondary gamma production. This distribution is sampled by decomposing it
+ * into an analytic sampling of \f$ 1/\kappa \f$ and a rejection sample on
+ * the scaled cross section \f$ \chi \f$.
+ * The analytic sample over the domain is from \f[
+   p_1(\kappa) \frac{1}{\ln 1/\kappa_c} \frac{1}{\kappa}
  * \f]
  * by sampling
  * \f[
-   x = \exp( \xi \ln x_c )
+   \kappa = \exp( \xi \ln \kappa_c ) \,,
    \f]
- * but with a nonzero correction the exiting photon kinetic energy is sampled
- * from
+ * and the rejection sample is the ratio of the scaled differential cross
+ * section at the exiting energy to the maximum across all exiting energies.
  * \f[
- *  E_\gamma = \sqrt{ \exp(x_\mathrm{min} + \xi [x_\mathrm{max} -
- x_\mathrm{min}]) - k_\rho E^2}
- * \f]
+   p_2(\kappa) = \frac{\chi_Z(E, \kappa)}{\max_\kappa \chi_Z(E, \kappa)}
+   \f]
+ * Since the tabulated data is bilinearly interpolated in incident and exiting
+ * energy, we can calculate a bounding maximum by precalculating (at
+ * setup time) the index of the maximum value of \f$ \chi \f$ and
+ * linearly interpolating those maximum values based on the incident energy.
  *
- * The acceptance condition for the loop is the ratio of the cross differential
- * cross section \f$ S(\ln E, x) \f$ to the maximum cross section \f$
- * S_\mathrm{max}(\ln E)\f$. These two values are interpolated up via the
- * precalculated 2D Seltzer-Berger tables imported from G4EMLOW data. The
- * index of the maximum value of \em S at each energy grid point is stored in
- * advance -- this allows us to efficiently calculate a close bounding maximum
- * value through linear interpolation for a given energy.
+ * The above algorithm is idealized; in practice, the minimum and maximum
+ * values are adjusted for a constant factor \f$d_\rho\f$, which depends on the
+ * incident particle mass + energy and the material's electron density:
+ * \f[
+    \kappa_\mathrm{min} = \ln (E_c^2 + d_\rho E^2)
+ * \f]
+ * and
+ * \f[
+    \kappa_\mathrm{max} = \ln (E^2 + d_\rho E^2) \, .
+ * \f]
+ * With this correction, the sample of the exiting gamma energy
+ * \f$ k = \kappa / E \f$ is transformed from the simple exponential above to:
+ * \f[
+ *  k = \sqrt{ \exp(\kappa_\mathrm{min} + \xi [\kappa_\mathrm{max} -
+ \kappa_\mathrm{min}]) - d_\rho E^2}
+ * \f]
  *
  * \todo Add a template parameter for a cross section scaling, which will be an
  * identity function (always returning 1) for electrons but is
