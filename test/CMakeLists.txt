@@ -142,8 +142,10 @@ if(CELERITAS_USE_VecGeom)
     list(APPEND CELERITASTEST_LINK_LIBRARIES celeritas_vgtest)
   endif()
 
-  celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
-    LINK_LIBRARIES Celeritas::ROOT)
+  if(CELERITAS_USE_ROOT)
+    celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
+      LINK_LIBRARIES Celeritas::ROOT)
+  endif()
   celeritas_add_test(geometry/GeoParams.test.cc GPU)
   celeritas_add_test(geometry/GeoTrackView.test.cc GPU)
   celeritas_add_test(geometry/LinearPropagator.test.cc GPU)
@@ -156,16 +158,19 @@ endif()
 
 celeritas_setup_tests(SERIAL PREFIX io)
 
-celeritas_add_test(io/ParticleParamsLoader.test.cc ${_needs_root}
-  LINK_LIBRARIES Celeritas::ROOT)
-celeritas_add_test(io/MaterialParamsLoader.test.cc ${_needs_root}
-  LINK_LIBRARIES Celeritas::ROOT)
-celeritas_add_test(io/ImportProcessLoader.test.cc ${_needs_root}
-  LINK_LIBRARIES Celeritas::ROOT)
-  celeritas_add_test(io/CutoffParamsLoader.test.cc ${_needs_root}
-  LINK_LIBRARIES Celeritas::ROOT)
-celeritas_add_test(io/GdmlGeometryMapLoader.test.cc ${_needs_root}
-  LINK_LIBRARIES Celeritas::ROOT)
+if(CELERITAS_USE_ROOT)
+  celeritas_add_test(io/ParticleParamsLoader.test.cc ${_needs_root}
+    LINK_LIBRARIES Celeritas::ROOT)
+  celeritas_add_test(io/MaterialParamsLoader.test.cc ${_needs_root}
+    LINK_LIBRARIES Celeritas::ROOT)
+  celeritas_add_test(io/ImportProcessLoader.test.cc ${_needs_root}
+    LINK_LIBRARIES Celeritas::ROOT)
+    celeritas_add_test(io/CutoffParamsLoader.test.cc ${_needs_root}
+    LINK_LIBRARIES Celeritas::ROOT)
+  celeritas_add_test(io/GdmlGeometryMapLoader.test.cc ${_needs_root}
+    LINK_LIBRARIES Celeritas::ROOT)
+endif()
+
 celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
@@ -225,10 +230,12 @@ celeritas_add_test(physics/em/SeltzerBerger.test.cc)
 celeritas_add_test(physics/em/Urban.test.cc ${_not_impl})
 celeritas_add_test(physics/em/Wentzel.test.cc ${_not_impl})
 
-celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
-  ${_optional_geant4}
-  GPU # TODO: delete when device pointers are no longer directly accessed
-  LINK_LIBRARIES Celeritas::ROOT)
+if(CELERITAS_USE_ROOT)
+  celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
+    ${_optional_geant4}
+    GPU # TODO: delete when device pointers are no longer directly accessed
+    LINK_LIBRARIES Celeritas::ROOT)
+endif()
 
 
 # END PHYSICS TESTS

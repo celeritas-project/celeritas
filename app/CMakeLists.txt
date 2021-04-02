@@ -186,20 +186,22 @@ endif()
 #-----------------------------------------------------------------------------#
 # DEMO: full physics loop
 #-----------------------------------------------------------------------------#
-if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom AND CELERITAS_USE_ROOT)
   set(_cuda_src)
   if(CELERITAS_USE_CUDA)
     set(_cuda_src
       demo-loop/LDemoKernel.cu
     )
   endif()
-  add_library(celeritas_demo_loop
-    demo-loop/LDemoIO.cc
-    demo-loop/LDemoParams.cc
-    demo-loop/LDemoRun.cc
-    demo-loop/demo-loop.cc
-    ${_cuda_src}
-  )
+  if(CELERITAS_USE_ROOT)
+    add_library(celeritas_demo_loop
+      demo-loop/LDemoIO.cc
+      demo-loop/LDemoParams.cc
+      demo-loop/LDemoRun.cc
+      demo-loop/demo-loop.cc
+      ${_cuda_src}
+    )
+  endif()
 
   if(CELERITAS_USE_CUDA)
     celeritas_link_vecgeom_cuda(celeritas_demo_loop)

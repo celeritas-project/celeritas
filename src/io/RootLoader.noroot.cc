@@ -23,9 +23,7 @@ RootLoader::RootLoader(const char*)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-RootLoader::~RootLoader() = default;
-
-auto RootLoader::get() -> const std::shared_ptr<TFile>
+auto RootLoader::get() const -> const std::shared_ptr<TFile>
 {
     CELER_ASSERT_UNREACHABLE();
 }
