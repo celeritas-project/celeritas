@@ -107,15 +107,12 @@ TEST_F(RayleighInteractorTest, basic)
     std::vector<unsigned long int> rng_counts;
 
     // Sample scattering angle and count rng used for each incident energy
-    RandomEngine& rng_engine = this->rng();
-
     for (double inc_e : {1e-5, 1e-4, 0.001, 0.01, 0.1, 1., 10., 100., 1000.})
     {
+        RandomEngine& rng_engine = this->rng();
+
         // Set the incident particle energy
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
-
-        // Reset rng count
-        rng_engine.reset_count();
 
         // Create the interactor
         RayleighInteractor interact(this->model_->host_group(),
@@ -127,7 +124,6 @@ TEST_F(RayleighInteractorTest, basic)
         celeritas::Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
         this->sanity_check(result);
-        rng_engine.count();
 
         angle.push_back(dot_product(result.direction, this->direction()));
         rng_counts.push_back(rng_engine.count());
@@ -161,15 +157,13 @@ TEST_F(RayleighInteractorTest, stress_test)
     std::vector<real_type> average_rng_counts;
 
     // Sample scattering angle and count rng used for each incident energy
-    RandomEngine& rng_engine = this->rng();
-
     for (double inc_e : {1e-5, 1e-4, 0.001, 0.01, 0.1, 1., 10., 100., 1000.})
     {
         // Set the incident particle energy
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
 
         // Reset the rng counter
-        rng_engine.reset_count();
+        RandomEngine& rng_engine = this->rng();
 
         // Create the interactor
         RayleighInteractor interact(this->model_->host_group(),

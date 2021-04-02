@@ -331,8 +331,6 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
 //---------------------------------------------------------------------------//
 TEST_F(MollerBhabhaInteractorTest, stress_test)
 {
-    RandomEngine& rng = this->rng();
-
     const int           num_samples = 1e4;
     std::vector<double> avg_engine_samples;
 
@@ -348,6 +346,7 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
     {
         for (double inc_e : {5e-3, 1.0, 10.0, 100.0, 1000.0})
         {
+            RandomEngine&           rng_engine            = this->rng();
             RandomEngine::size_type num_particles_sampled = 0;
 
             // Loop over several incident directions (shouldn't affect anything
@@ -371,7 +370,7 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
                 // Loop over half the sample size
                 for (int i = 0; i < num_samples; ++i)
                 {
-                    Interaction result = mb_interact(rng);
+                    Interaction result = mb_interact(rng_engine);
                     this->sanity_check(result);
                 }
 
@@ -379,9 +378,8 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
                           this->secondary_allocator().get().size());
                 num_particles_sampled += num_samples;
             }
-            avg_engine_samples.push_back(double(rng.count())
+            avg_engine_samples.push_back(double(rng_engine.count())
                                          / double(num_particles_sampled));
-            rng.reset_count();
         }
     }
     // Gold values for average number of calls to rng
