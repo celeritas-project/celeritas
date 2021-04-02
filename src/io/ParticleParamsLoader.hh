@@ -29,7 +29,7 @@ class ParticleParamsLoader
 {
   public:
     // Construct with RootLoader
-    ParticleParamsLoader(RootLoader& root_loader);
+    explicit ParticleParamsLoader(RootLoader& root_loader);
 
     // Return constructed ParticleParams
     const std::shared_ptr<const ParticleParams> operator()();

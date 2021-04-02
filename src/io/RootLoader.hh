@@ -27,10 +27,10 @@ class RootLoader
 {
   public:
     // Construct with root filename
-    RootLoader(const char* filename);
+    explicit RootLoader(const char* filename);
 
     // Access the ROOT TFile
-    const std::shared_ptr<TFile> get();
+    const std::shared_ptr<TFile> get() const;
 
     // Verify if TFile is open
     explicit operator bool() const;

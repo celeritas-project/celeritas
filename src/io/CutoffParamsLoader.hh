@@ -29,7 +29,7 @@ class CutoffParamsLoader
 {
   public:
     // Construct with RootLoader
-    CutoffParamsLoader(RootLoader& root_loader);
+    explicit CutoffParamsLoader(RootLoader& root_loader);
 
     // Return constructed CutoffParams
     const std::shared_ptr<const CutoffParams> operator()();

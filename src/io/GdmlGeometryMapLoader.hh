@@ -29,7 +29,7 @@ class GdmlGeometryMapLoader
 {
   public:
     // Construct with RootLoader
-    GdmlGeometryMapLoader(RootLoader& root_loader);
+    explicit GdmlGeometryMapLoader(RootLoader& root_loader);
 
     // Return constructed GdmlGeometryMap
     const std::shared_ptr<const GdmlGeometryMap> operator()();

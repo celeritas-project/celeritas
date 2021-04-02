@@ -30,7 +30,7 @@ class ImportProcessLoader
 {
   public:
     // Construct with RootLoader
-    ImportProcessLoader(RootLoader& root_loader);
+    explicit ImportProcessLoader(RootLoader& root_loader);
 
     // Return constructed ImportProcess
     const std::vector<ImportProcess> operator()();

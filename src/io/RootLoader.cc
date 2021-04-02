@@ -31,7 +31,7 @@ RootLoader::RootLoader(const char* filename)
 /*!
  * Access ROOT TFile.
  */
-const std::shared_ptr<TFile> RootLoader::get()
+const std::shared_ptr<TFile> RootLoader::get() const
 {
     CELER_EXPECT(tfile_);
     return tfile_;

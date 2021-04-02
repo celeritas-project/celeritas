@@ -29,7 +29,7 @@ class MaterialParamsLoader
 {
   public:
     // Construct with RootLoader
-    MaterialParamsLoader(RootLoader& root_loader);
+    explicit MaterialParamsLoader(RootLoader& root_loader);
 
     // Return constructed MaterialParams
     const std::shared_ptr<const MaterialParams> operator()();
