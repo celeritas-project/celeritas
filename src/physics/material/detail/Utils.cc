@@ -79,7 +79,7 @@ real_type calc_mass_rad_coeff(const ElementDef& el)
     CELER_EXPECT(el.atomic_mass > zero_quantity());
     CELER_EXPECT(el.coulomb_correction > 0);
     using constants::alpha_fine_structure;
-    using constants::re_electron;
+    using constants::r_electron;
 
     const real_type z_real = el.atomic_number;
 
@@ -94,15 +94,15 @@ real_type calc_mass_rad_coeff(const ElementDef& el)
         case 4: lrad = 4.71; lrad_prime = 5.924; break;
             // clang-format on
         default:
-            lrad       = std::log(184.15 * std::pow(z_real, -1.0 / 3));
-            lrad_prime = std::log(1194.0 * std::pow(z_real, -2.0 / 3));
+            lrad = std::log(184.15 * std::pow(z_real, real_type(-1) / 3));
+            lrad_prime = std::log(1194.0 * std::pow(z_real, real_type(-2) / 3));
     }
 
     // Eq 34.25
-    constexpr real_type inv_x0_factor = 4 * alpha_fine_structure * re_electron
-                                        * re_electron;
+    constexpr real_type inv_x0_factor = 4 * alpha_fine_structure
+                                        * ipow<2>(r_electron);
     return inv_x0_factor / unit_cast(el.atomic_mass)
-           * (z_real * z_real * (lrad - el.coulomb_correction)
+           * (ipow<2>(z_real) * (lrad - el.coulomb_correction)
               + z_real * lrad_prime);
 }
 
