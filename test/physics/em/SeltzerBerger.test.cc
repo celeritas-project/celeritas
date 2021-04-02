@@ -100,7 +100,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
                                 * ipow<2>(lambdabar_electron);
 
         real_type density_factor = mat.electron_density() * migdal;
-        return EnergySq{density_factor * e.value() * e.value()};
+        return EnergySq{density_factor * ipow<2>(e.value())};
     }
 
     void sanity_check(const Interaction& interaction) const
