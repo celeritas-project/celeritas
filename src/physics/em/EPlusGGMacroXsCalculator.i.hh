@@ -34,13 +34,13 @@ CELER_FUNCTION real_type
 EPlusGGMacroXsCalculator::operator()(MevEnergy energy) const
 {
     using constants::pi;
-    using constants::re_electron;
+    using constants::r_electron;
 
     energy                 = max(MevEnergy{1.e-6}, energy);
     const real_type gamma  = energy.value() / electron_mass_;
     const real_type g1     = gamma + 1.;
     const real_type g2     = gamma * (gamma + 2.);
-    real_type       result = electron_density_ * pi * re_electron * re_electron
+    real_type       result = electron_density_ * pi * r_electron * r_electron
                        * ((g1 * (g1 + 4) + 1.) * std::log(g1 + std::sqrt(g2))
                           - (g1 + 3.) * std::sqrt(g2))
                        / (g2 * (g1 + 1.));

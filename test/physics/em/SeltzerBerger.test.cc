@@ -96,7 +96,8 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         using namespace celeritas::constants;
 
         auto           mat    = this->material_params()->get(matid);
-        constexpr auto migdal = 4 * pi * re_electron * ipow<2>(lambda_compton);
+        constexpr auto migdal = 4 * pi * r_electron
+                                * ipow<2>(lambdabar_electron);
 
         real_type density_factor = mat.electron_density() * migdal;
         return EnergySq{density_factor * e.value() * e.value()};

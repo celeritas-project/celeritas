@@ -33,9 +33,9 @@ namespace constants
  * k_boltzmann          | k_Boltzmann             | |
  * mu_magnetic          | mu0                     | Vacuum permeability
  * na_avogadro          | Avogadro                | [1/mol]
- * re_electron          | classic_electr_radius   | Classical electron radius
+ * r_electron           | classic_electr_radius   | Classical electron radius
  * kcd_luminous         | [none]                  | Lumens per Watt
- * lambda_compton       | electron_Compton_length | Reduced Compton wavelength
+ * lambdabar_electron   | electron_Compton_length | Reduced Compton wavelength
  *
  * Some experimental physical constants are derived from the other physical
  * constants, but for consistency and clarity they are presented numerically
@@ -76,10 +76,10 @@ constexpr real_type eps_electric         = 8.8541878128e-12 * units::farad
                                    / units::meter;
 constexpr real_type mu_magnetic = 1.25663706212e-6 * units::newton
                                   / (units::ampere * units::ampere);
-constexpr real_type re_electron  = 2.8179403262e-15 * units::meter;
-constexpr real_type rinf_rydberg = 10973731.568160 / units::meter;
-constexpr real_type eh_hartree   = 4.3597447222071e-18 / units::meter;
-constexpr real_type lambda_compton = 3.8615926796e-13 * units::meter;
+constexpr real_type r_electron         = 2.8179403262e-15 * units::meter;
+constexpr real_type rinf_rydberg       = 10973731.568160 / units::meter;
+constexpr real_type eh_hartree         = 4.3597447222071e-18 / units::meter;
+constexpr real_type lambdabar_electron = 3.8615926796e-13 * units::meter;
 //!@}
 
 //---------------------------------------------------------------------------//
