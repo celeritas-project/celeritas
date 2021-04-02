@@ -148,8 +148,6 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
 
 TEST_F(KleinNishinaInteractorTest, stress_test)
 {
-    RandomEngine& rng_engine = this->rng();
-
     const int           num_samples = 8192;
     std::vector<double> avg_engine_samples;
 
@@ -157,6 +155,8 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
+
+        RandomEngine&           rng_engine            = this->rng();
         RandomEngine::size_type num_particles_sampled = 0;
 
         // Loop over several incident directions (shouldn't affect anything
@@ -186,7 +186,6 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
         }
         avg_engine_samples.push_back(double(rng_engine.count())
                                      / double(num_particles_sampled));
-        rng_engine.reset_count();
     }
 
     // PRINT_EXPECTED(avg_engine_samples);

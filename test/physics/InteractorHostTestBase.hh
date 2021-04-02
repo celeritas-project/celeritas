@@ -41,10 +41,10 @@ namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test harness base class for a host-side Interactor.
+ * Test harness base class for EM physics models.
  *
- * This class initializes host versions of some of the common inputs to an
- * Interactor. It \b cannot be used for testing device instantiations.
+ * \todo Since this now uses Collection objects it's generally safe to use this
+ * to test Models as well as device code -- think about renaming it.
  */
 class InteractorHostTestBase : public celeritas::Test
 {
@@ -146,8 +146,12 @@ class InteractorHostTestBase : public celeritas::Test
     //!@}
 
     //!@{
-    //! Random number generator
-    RandomEngine& rng() { return rng_; }
+    //! Get random number generator with clean counter
+    RandomEngine& rng()
+    {
+        rng_.reset_count();
+        return rng_;
+    }
     //!@}
 
     // Check for energy and momentum conservation

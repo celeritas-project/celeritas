@@ -163,7 +163,6 @@ TEST_F(SeltzerBergerTest, sb_positron_xs_scaling)
 
 TEST_F(SeltzerBergerTest, sb_energy_dist)
 {
-    RandomEngine&   rng_engine = this->rng();
     const MevEnergy gamma_cutoff{0.0009};
 
     const int           num_samples = 8192;
@@ -190,6 +189,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         double total_exit_energy = 0;
 
         // Loop over many particles
+        RandomEngine& rng_engine = this->rng();
         for (int i = 0; i < num_samples; ++i)
         {
             Energy exit_gamma = sample_energy(rng_engine);
@@ -200,7 +200,6 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
 
         avg_exit_frac.push_back(total_exit_energy / (num_samples * inc_energy));
         avg_engine_samples.push_back(double(rng_engine.count()) / num_samples);
-        rng_engine.reset_count();
     }
 
     // clang-format off
