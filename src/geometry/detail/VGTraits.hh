@@ -1,18 +1,35 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoParamsTest.cc
+//! \file VGTraits.hh
 //---------------------------------------------------------------------------//
+#pragma once
 
-#include "GeoParamsTest.hh"
+#include <VecGeom/volumes/PlacedVolume.h>
+#include "base/Types.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
+template<MemSpace M>
+struct VGTraits;
 
-GeoParamsTest::SPConstGeo GeoParamsTest::geom_ = nullptr;
+template<>
+struct VGTraits<MemSpace::host>
+{
+    using PlacedVolume = vecgeom::cxx::VPlacedVolume;
+};
+
+template<>
+struct VGTraits<MemSpace::device>
+{
+    using PlacedVolume = vecgeom::cuda::VPlacedVolume;
+};
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace detail
+} // namespace celeritas

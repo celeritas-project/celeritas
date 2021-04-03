@@ -7,10 +7,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <VecGeom/volumes/PlacedVolume.h>
 #include "base/Array.hh"
+#include "base/Collection.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "detail/VGNavCollection.hh"
+#include "detail/VGTraits.hh"
+
+#ifndef __CUDA_ARCH__
+#    include "base/CollectionBuilder.hh"
+#endif
 
 namespace celeritas
 {
@@ -32,14 +38,31 @@ namespace celeritas
  * __NVCC__ compiler) we can't simply declare this pointer to be in the \c cuda
  * or \c cxx explicit namespaces.
  */
-struct GeoParamsPointers
+template<Ownership W, MemSpace M>
+struct GeoParamsData
 {
-    const vecgeom::VPlacedVolume* world_volume = nullptr;
+    using PlacedVolumeT = typename detail::VGTraits<M>::PlacedVolume;
 
-    //! Check whether the interface is initialized
+    const PlacedVolumeT* world_volume = nullptr;
+    int                  max_depth    = 0;
+
+    //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return bool(world_volume);
+        return world_volume != nullptr && max_depth > 0;
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    GeoParamsData& operator=(GeoParamsData<W2, M2>& other)
+    {
+        static_assert(M2 == M && W2 == Ownership::value
+                          && W == Ownership::reference,
+                      "Only supported assignment is from value to reference");
+        CELER_EXPECT(other);
+        world_volume = other.world_volume;
+        max_depth    = other.max_depth;
+        return *this;
     }
 };
 
@@ -49,7 +72,7 @@ struct GeoParamsPointers
 /*!
  * Data required to initialize a geometry state.
  */
-struct GeoStateInitializer
+struct GeoTrackInitializer
 {
     Real3 pos;
     Real3 dir;
@@ -66,24 +89,78 @@ struct GeoStateInitializer
  * vecgeom::NavStateContainer::GetGPUPointer; and they are only meaningful with
  * the corresponding \c vgmaxdepth, the result of \c GeoManager::getMaxDepth .
  */
-struct GeoStatePointers
+template<Ownership W, MemSpace M>
+struct GeoStateData
 {
-    size_type size       = 0;
-    size_type vgmaxdepth = 0;
-    void*     vgstate    = nullptr;
-    void*     vgnext     = nullptr;
+    //// TYPES ////
 
-    Real3*     pos       = nullptr;
-    Real3*     dir       = nullptr;
-    real_type* next_step = nullptr;
+    template<class T>
+    using Items = celeritas::StateCollection<T, W, M>;
+
+    //// DATA ////
+
+    // Collections
+    Items<Real3>     pos;
+    Items<Real3>     dir;
+    Items<real_type> next_step;
+
+    // Wrapper for NavStatePool, vector, or void*
+    detail::VGNavCollection<W, M> vgstate;
+    detail::VGNavCollection<W, M> vgnext;
+
+    //// METHODS ////
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return bool(size) && bool(vgmaxdepth) && bool(vgstate) && bool(vgnext)
-               && bool(pos) && bool(dir) && bool(next_step);
+        return this->size() > 0 && dir.size() == this->size()
+               && next_step.size() == this->size() && vgstate && vgnext;
+    }
+
+    //! State size
+    CELER_FUNCTION ThreadId::size_type size() const { return pos.size(); }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    GeoStateData& operator=(GeoStateData<W2, M2>& other)
+    {
+        static_assert(M2 == M && W2 == Ownership::value
+                          && W == Ownership::reference,
+                      "Only supported assignment is from value to reference");
+        CELER_EXPECT(other);
+        pos       = other.pos;
+        dir       = other.dir;
+        next_step = other.next_step;
+        vgstate   = other.vgstate;
+        vgnext    = other.vgnext;
+        return *this;
     }
 };
+
+#ifndef __CUDA_ARCH__
+//---------------------------------------------------------------------------//
+/*!
+ * Resize particle states in host code.
+ */
+template<MemSpace M>
+void resize(
+    GeoStateData<Ownership::value, M>*                               data,
+    const GeoParamsData<Ownership::const_reference, MemSpace::host>& params,
+    size_type                                                        size)
+{
+    CELER_EXPECT(data);
+    CELER_EXPECT(size > 0);
+    CELER_EXPECT(params.max_depth > 0);
+
+    make_builder(&data->pos).resize(size);
+    make_builder(&data->dir).resize(size);
+    make_builder(&data->next_step).resize(size);
+    data->vgstate.resize(params.max_depth, size);
+    data->vgnext.resize(params.max_depth, size);
+
+    CELER_ENSURE(data);
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

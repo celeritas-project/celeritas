@@ -220,9 +220,7 @@ function(celeritas_setup_tests)
 
   # Set special variables
   foreach(_var LINK_LIBRARIES ADD_DEPENDENCIES PREFIX)
-    if(PARSE_${_var})
-      set(CELERITASTEST_${_var} "${PARSE_${_var}}" PARENT_SCOPE)
-    endif()
+    set(CELERITASTEST_${_var} "${PARSE_${_var}}" PARENT_SCOPE)
   endforeach()
 
   # Override default num procs if requested
@@ -311,9 +309,10 @@ function(celeritas_add_test SOURCE_FILE)
     # Create an executable and link libraries against it
     add_executable(${_TARGET} "${SOURCE_FILE}" ${PARSE_SOURCES})
     target_link_libraries(${_TARGET}
+      Celeritas::Test Celeritas::Core
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
-      Celeritas::Test)
+    )
 
     if(PARSE_ADD_DEPENDENCIES OR CELERITASTEST_ADD_DEPENDENCIES)
       # Add additional dependencies

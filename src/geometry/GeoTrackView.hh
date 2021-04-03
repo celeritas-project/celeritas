@@ -30,7 +30,10 @@ class GeoTrackView
   public:
     //!@{
     //! Type aliases
-    using Initializer_t = GeoStateInitializer;
+    using Initializer_t = GeoTrackInitializer;
+    using GeoParamsRef
+        = GeoParamsData<Ownership::const_reference, MemSpace::native>;
+    using GeoStateRef = GeoStateData<Ownership::reference, MemSpace::native>;
     //!@}
 
     //! Helper struct for initializing from an existing geometry state
@@ -42,9 +45,9 @@ class GeoTrackView
 
   public:
     // Construct from persistent and state data
-    inline CELER_FUNCTION GeoTrackView(const GeoParamsPointers& data,
-                                       const GeoStatePointers&  stateview,
-                                       const ThreadId&          id);
+    inline CELER_FUNCTION GeoTrackView(const GeoParamsRef& data,
+                                       const GeoStateRef&  stateview,
+                                       const ThreadId&     id);
 
     // Initialize the state
     inline CELER_FUNCTION GeoTrackView& operator=(const Initializer_t& init);
@@ -105,7 +108,7 @@ class GeoTrackView
     //!@}
 
     //! Shared/persistent geometry data
-    const GeoParamsPointers& shared_;
+    const GeoParamsRef& shared_;
 
     //!@{
     //! Referenced thread-local data
@@ -119,10 +122,6 @@ class GeoTrackView
     //!@}
 
   private:
-    //! Get a reference to the state from a NavStatePool's pointer
-    static inline CELER_FUNCTION NavState&
-    get_nav_state(void* state, int vgmaxdepth, ThreadId thread);
-
     // Find the distance to the next boundary
     inline CELER_FUNCTION void find_next_step_outside();
 

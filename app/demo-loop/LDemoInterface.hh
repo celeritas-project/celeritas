@@ -44,7 +44,7 @@ struct ControlOptions
 template<Ownership W, MemSpace M>
 struct ParamsData
 {
-    celeritas::GeoParamsPointers           geometry;
+    celeritas::GeoParamsData<W, M>         geometry;
     celeritas::GeoMaterialParamsData<W, M> geo_mats;
 
     celeritas::MaterialParamsData<W, M> materials;

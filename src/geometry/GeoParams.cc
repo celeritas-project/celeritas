@@ -45,7 +45,8 @@ GeoParams::GeoParams(const char* gdml_filename)
     }
 
     num_volumes_ = vecgeom::VPlacedVolume::GetIdCount();
-    max_depth_   = vecgeom::GeoManager::Instance().getMaxDepth();
+    host_ref_.world_volume = vecgeom::GeoManager::Instance().GetWorld();
+    host_ref_.max_depth    = vecgeom::GeoManager::Instance().getMaxDepth();
 
 #if CELERITAS_USE_CUDA
     if (celeritas::device())
@@ -65,15 +66,15 @@ GeoParams::GeoParams(const char* gdml_filename)
             detail::ScopedTimeAndRedirect time_and_output_;
             auto world_top_devptr = cuda_manager.Synchronize();
             CELER_ASSERT(world_top_devptr != nullptr);
-            device_world_volume_ = world_top_devptr.GetPtr();
+            device_ref_.world_volume = world_top_devptr.GetPtr();
+            device_ref_.max_depth    = host_ref_.max_depth;
             CELER_CUDA_CHECK_ERROR();
         }
-
-        CELER_ENSURE(device_world_volume_);
+        CELER_ENSURE(device_ref_);
     }
 #endif
     CELER_ENSURE(num_volumes_ > 0);
-    CELER_ENSURE(max_depth_ > 0);
+    CELER_ENSURE(host_ref_);
 }
 
 //---------------------------------------------------------------------------//
@@ -83,13 +84,15 @@ GeoParams::GeoParams(const char* gdml_filename)
 GeoParams::~GeoParams()
 {
 #if CELERITAS_USE_CUDA
-    if (device_world_volume_)
+    if (device_ref_)
     {
+        CELER_LOG(debug) << "Clearing VecGeom GPU data";
         // NOTE: if the following line fails to compile, you need to update
         // VecGeom to at least 1.1.12 (or after 2021FEB17)
         vecgeom::CudaManager::Instance().Clear();
     }
 #endif
+    CELER_LOG(debug) << "Clearing VecGeom CPU data";
     vecgeom::GeoManager::Instance().Clear();
 }
 
@@ -121,35 +124,12 @@ auto GeoParams::label_to_id(const std::string& label) const -> VolumeId
 
 //---------------------------------------------------------------------------//
 /*!
- * View in-host geometry data for CPU debugging.
- */
-GeoParamsPointers GeoParams::host_pointers() const
-{
-    GeoParamsPointers result;
-    result.world_volume = vecgeom::GeoManager::Instance().GetWorld();
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a view to the managed on-device data.
- */
-GeoParamsPointers GeoParams::device_pointers() const
-{
-    CELER_EXPECT(celeritas::device());
-    GeoParamsPointers result;
-    result.world_volume
-        = static_cast<const vecgeom::VPlacedVolume*>(device_world_volume_);
-    CELER_ENSURE(result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Increase CUDA stack size to enable complex geometries.
  *
  * For the cms2018.gdml detector geometry, the default stack size is too small,
  * and a limit of 32768 is recommended.
+ *
+ * \todo Move to Device.hh/cc
  */
 void GeoParams::set_cuda_stack_size(int limit)
 {

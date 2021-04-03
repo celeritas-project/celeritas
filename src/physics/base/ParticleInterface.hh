@@ -105,6 +105,8 @@ struct ParticleTrackState
     units::MevEnergy energy;      //!< Kinetic energy [MeV]
 };
 
+using ParticleTrackInitializer = ParticleTrackState;
+
 //---------------------------------------------------------------------------//
 /*!
  * Data storage/access for particle properties.

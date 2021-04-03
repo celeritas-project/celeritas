@@ -11,9 +11,24 @@
 #include "base/Macros.hh"
 #include "base/Range.hh"
 #include "comm/Device.hh"
+#include "comm/Logger.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * In debug mode, log a message about an impending launch.
+ *
+ * In debug mode performance isn't critical, so it's OK to have unused log
+ * messages.
+ */
+void KernelDiagnostics::log_launch(value_type& diag, unsigned int num_threads)
+{
+    CELER_LOG(debug) << "Launching '" << diag.name << "' on "
+                     << diag.block_size << " blocks with " << num_threads
+                     << " threads";
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Global reference to shared Celeritas kernel diagnostics.

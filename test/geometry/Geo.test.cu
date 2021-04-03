@@ -5,13 +5,15 @@
 //---------------------------------------------------------------------------//
 //! \file GeoTrackView.test.cu
 //---------------------------------------------------------------------------//
-#include "GeoTrackView.test.hh"
+#include "geometry/GeoTrackView.hh"
 
 #include <thrust/device_vector.h>
 #include "base/KernelParamCalculator.cuda.hh"
-#include "geometry/GeoTrackView.hh"
+
+#include "Geo.test.hh"
 
 using thrust::raw_pointer_cast;
+using namespace celeritas;
 
 namespace celeritas_test
 {
@@ -19,19 +21,20 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void vgg_test_kernel(const GeoParamsPointers shared,
-                                const GeoStatePointers  state,
-                                const int               size,
-                                const VGGTestInit*      start,
-                                const int               max_segments,
-                                VolumeId*               ids,
-                                double*                 distances)
+__global__ void vgg_test_kernel(const GeoParamsCRefDevice params,
+                                const GeoStateRefDevice   state,
+                                const VGGTestInit*        start,
+                                const int                 max_segments,
+                                VolumeId*                 ids,
+                                double*                   distances)
 {
+    CELER_EXPECT(params && state);
+
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= size)
+    if (tid.get() >= state.size())
         return;
 
-    GeoTrackView geo(shared, state, tid);
+    GeoTrackView geo(params, state, tid);
     geo = start[tid.get()];
 
     for (int seg = 0; seg < max_segments; ++seg)
@@ -54,9 +57,9 @@ __global__ void vgg_test_kernel(const GeoParamsPointers shared,
 //! Run on device and return results
 VGGTestOutput vgg_test(VGGTestInput input)
 {
-    CELER_EXPECT(input.shared);
+    CELER_EXPECT(input.params);
     CELER_EXPECT(input.state);
-    CELER_EXPECT(input.init.size() == input.state.size);
+    CELER_EXPECT(input.init.size() == input.state.size());
     CELER_EXPECT(input.max_segments > 0);
 
     // Temporary device data for kernel
@@ -70,9 +73,8 @@ VGGTestOutput vgg_test(VGGTestInput input)
         vgg_test_kernel, "vgg_test");
     auto params = calc_launch_params(init.size());
     vgg_test_kernel<<<params.grid_size, params.block_size>>>(
-        input.shared,
+        input.params,
         input.state,
-        init.size(),
         raw_pointer_cast(init.data()),
         input.max_segments,
         raw_pointer_cast(ids.data()),
