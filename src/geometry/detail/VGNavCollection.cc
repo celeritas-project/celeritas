@@ -66,16 +66,17 @@ void NavStatePoolDeleter::operator()(arg_type ptr) const
 /*!
  * Allocate the pool and save the GPU pointer.
  */
-void VGNavCollection<Ownership::value, MemSpace::device>::resize(int max_depth,
+void VGNavCollection<Ownership::value, MemSpace::device>::resize(int       md,
                                                                  size_type sz)
 {
-    CELER_EXPECT(max_depth > 0);
+    CELER_EXPECT(md > 0);
     CELER_EXPECT(sz > 0);
     CELER_EXPECT(celeritas::device());
 
-    pool.reset(new vecgeom::cxx::NavStatePool(sz, max_depth));
-    ptr = pool->GetGPUPointer();
-    size = sz;
+    pool.reset(new vecgeom::cxx::NavStatePool(sz, md));
+    this->ptr       = pool->GetGPUPointer();
+    this->max_depth = md;
+    this->size      = sz;
 }
 
 //---------------------------------------------------------------------------//
@@ -88,8 +89,9 @@ void VGNavCollection<Ownership::reference, MemSpace::device>::operator=(
     VGNavCollection<Ownership::value, MemSpace::device>& other)
 {
     CELER_ASSERT(other);
-    ptr = other.ptr;
-    size = other.size;
+    ptr       = other.ptr;
+    max_depth = other.max_depth;
+    size      = other.size;
 }
 
 //---------------------------------------------------------------------------//

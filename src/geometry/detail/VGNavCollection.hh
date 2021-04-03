@@ -147,6 +147,7 @@ struct VGNavCollection<Ownership::value, MemSpace::device>
 
     UPNavStatePool pool;
     void*          ptr  = nullptr;
+    int            max_depth = 0;
     size_type      size = 0;
 
     // Resize based on geometry params and state size
@@ -161,38 +162,48 @@ struct VGNavCollection<Ownership::value, MemSpace::device>
  * Reference on-device memory owned by VGNavCollection<value, device>.
  *
  * The NavStatePool underpinning the storage returns a void pointer that must
- * be manually manipulated to get a single state pointer.
+ * be manually manipulated to get a single state pointer. The max_depth
+ * argument must be the same as the GeoParams.
  */
 template<>
 struct VGNavCollection<Ownership::reference, MemSpace::device>
 {
     using NavState = vecgeom::cuda::NavigationState;
 
-    void* ptr = nullptr;
-    size_type size = 0;
+    void*     ptr       = nullptr;
+    int       max_depth = 0;
+    size_type size      = 0;
 
     // Assign from device value
     void operator=(VGNavCollection<Ownership::value, MemSpace::device>& other);
     // Get the navigation state for the given thread
     inline CELER_FUNCTION NavState& at(int max_depth, ThreadId thread) const;
-    //! True if the collection is assigned/valiid
-    explicit CELER_FUNCTION operator bool() const { return ptr; }
+
+    //! True if the collection is assigned/valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return ptr && size > 0 && max_depth > 0;
+    }
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the navigation state at the given thread.
+ *
+ * The max_depth_param is used for error checking against the allocated
+ * max_depth.
  */
 CELER_FUNCTION auto VGNavCollection<Ownership::reference, MemSpace::device>::at(
-    int max_depth, ThreadId thread) const -> NavState&
+    int max_depth_param, ThreadId thread) const -> NavState&
 {
-    CELER_EXPECT(ptr);
-    CELER_EXPECT(max_depth > 0);
-    CELER_EXPECT(thread < size);
+    CELER_EXPECT(this->ptr);
+    CELER_EXPECT(thread < this->size);
+    CELER_EXPECT(max_depth_param == this->max_depth);
 #ifdef __NVCC__
     // This code only compiles when run through CUDA so it must be escaped.
     char* result = reinterpret_cast<char*>(this->ptr);
-    result += NavState::SizeOfInstanceAlignAware(max_depth) * thread.get();
+    result += NavState::SizeOfInstanceAlignAware(max_depth_param)
+              * thread.get();
     return *reinterpret_cast<NavState*>(result);
 #else
     CELER_ASSERT_UNREACHABLE();
