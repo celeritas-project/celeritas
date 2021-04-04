@@ -24,7 +24,7 @@ SBPositronXsCorrector::SBPositronXsCorrector(Mass               positron_mass,
     : positron_mass_{positron_mass.value()}
     , alpha_z_{celeritas::constants::alpha_fine_structure * el.atomic_number()}
     , inc_energy_(inc_energy.value())
-    , cutoff_lorentz_{this->calc_lorentz_factor(min_gamma_energy.value())}
+    , cutoff_invbeta_{this->calc_invbeta(min_gamma_energy.value())}
 {
     CELER_EXPECT(inc_energy > min_gamma_energy);
 }
@@ -37,14 +37,24 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
 {
     CELER_EXPECT(energy > zero_quantity());
     CELER_EXPECT(energy.value() < inc_energy_);
-    real_type delta = cutoff_lorentz_
-                      - this->calc_lorentz_factor(energy.value());
+    real_type delta = cutoff_invbeta_
+                      - this->calc_invbeta(energy.value());
     return std::exp(alpha_z_ * delta);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the lorentz factor (beta) of the positron for a gamma energy.
+ * Calculate the inverse of the relativistic positron speed.
+ *
+ * The input here is the exiting gamma energy, so the positron energy is the
+ * remainder from the incident energy. The relativistic speed \f$ \beta \f$
+ * is:
+ * \f[
+  \beta^{-1}(K) = \frac{K + m c^2}{\sqrt{K^2 + 2 K m c^2}}
+   = \frac{K + mc^2}{\sqrt{K^2 + 2 K mc^2 + (mc^2)^2 - (mc^2)^2}}
+   = \frac{K + mc^2}{\sqrt{(K + mc^2)^2 - mc^2}}
+   = 1/\sqrt{1 - \left( \frac{mc^2}{K + mc^2} \right)^2}
+ * \f]
  *
  * \todo I originally wanted all these sort of calculations to be in
  * ParticleTrackView, but that class requires a full set of state, params, etc.
@@ -53,7 +63,7 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
  * functions.
  */
 CELER_FUNCTION real_type
-SBPositronXsCorrector::calc_lorentz_factor(real_type gamma_energy) const
+SBPositronXsCorrector::calc_invbeta(real_type gamma_energy) const
 {
     CELER_EXPECT(gamma_energy > 0 && gamma_energy <= inc_energy_);
     // Positron has all the energy except what it gave to the gamma
