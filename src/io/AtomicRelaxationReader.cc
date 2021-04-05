@@ -83,8 +83,7 @@ AtomicRelaxationReader::operator()(int atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
-                       << "' "
-                          "(should contain fluorescence data)");
+                       << "' (should contain fluorescence data)");
 
         int       des    = 0;
         real_type energy = 0.;
@@ -130,8 +129,7 @@ AtomicRelaxationReader::operator()(int atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
-                       << "' "
-                          "(should contain Auger transition data)");
+                       << "' (should contain Auger transition data)");
 
         int       des       = 0;
         int       auger_des = 0;

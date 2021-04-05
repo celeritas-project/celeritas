@@ -43,7 +43,7 @@
  * Always-on runtime assertion macro. This can check user input and input data
  * consistency, and will raise RuntimeError on failure with a descriptive error
  * message that is streamed as the second argument. This should not be used on
- device.
+ * device.
  *
  * The error message should read:
    ```

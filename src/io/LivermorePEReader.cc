@@ -63,8 +63,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
-                       << "' "
-                          "(should contain cross section data)");
+                       << "' (should contain cross section data)");
 
         // Set the physics vector type and the data type
         result.xs_hi.vector_type = ImportPhysicsVectorType::free;
@@ -89,8 +88,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
-                       << "' "
-                          "(should contain cross section data)");
+                       << "' (should contain cross section data)");
 
         // Set the physics vector type and the data type
         result.xs_lo.vector_type = ImportPhysicsVectorType::free;
@@ -119,8 +117,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
-                       << "' "
-                          "(should contain subshell fit parameters)");
+                       << "' (should contain subshell fit parameters)");
 
         // Read the number of subshells and energy threshold
         constexpr size_type num_param  = 6;
@@ -148,8 +145,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
-                       << "' "
-                          "(should contain subshell fit parameters)");
+                       << "' (should contain subshell fit parameters)");
 
         // Read the number of subshells and energy threshold
         constexpr size_type num_param  = 6;
@@ -179,8 +175,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
-                       << "' "
-                          "(should contain subshell cross sections)");
+                       << "' (should contain subshell cross sections)");
 
         for (auto& shell : result.shells)
         {
