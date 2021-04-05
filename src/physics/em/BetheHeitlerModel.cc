@@ -27,8 +27,9 @@ BetheHeitlerModel::BetheHeitlerModel(ModelId               id,
 
     CELER_VALIDATE(interface_.electron_id && interface_.positron_id
                        && interface_.gamma_id,
-                   "Electron, positron and gamma particles must be enabled to "
-                   "use the Bethe-Heitler Model.");
+                   << "missing electron, positron and/or gamma particles "
+                      "(required for "
+                   << this->label() << ")");
     interface_.inv_electron_mass
         = 1 / particles.get(interface_.electron_id).mass().value();
     CELER_ENSURE(interface_);

@@ -42,7 +42,34 @@
  *
  * Always-on runtime assertion macro. This can check user input and input data
  * consistency, and will raise RuntimeError on failure with a descriptive error
- * message. This should not be used on device.
+ * message that is streamed as the second argument. This should not be used on
+ device.
+ *
+ * The error message should read:
+   ```
+   <PROBLEM> (<WHY IT'S A PROBLEM>) <SUGGESTION>?
+   ```
+ *
+ * Examples with correct casing and punctuation:
+ * - failed to open '{filename}' (should contain relaxation data)
+ * - unexpected end of file '{filename}' (data is inconsistent with
+ *   boundaries)
+ * - MPI was not initialized (needed to construct a communicator). Maybe set
+ *   the environment variable CELER_DISABLE_PARALLEL=1 to disable
+ *   externally?"
+ * - invalid min_range={opts.min_range} (should be positive)"
+ *
+ * \code
+ * CELER_VALIDATE(file_stream,
+ *                << "failed to open " << filename "
+ *                << " (should contain relaxation data)");
+ * \endcode
+ *
+ * An always-on debug-type assertion without a detailed message can be
+ * constructed by omitting the stream (but leaving the comma):
+ * \code
+    CELER_VALIDATE(file_stream,)
+ * \endcode
  */
 /*!
  * \def CELER_ASSERT_UNREACHABLE
@@ -91,7 +118,7 @@
         if (CELER_UNLIKELY(!(COND)))                                  \
         {                                                             \
             std::ostringstream celer_runtime_msg_;                    \
-            celer_runtime_msg_ << MSG;                                \
+            celer_runtime_msg_ MSG;                                   \
             ::celeritas::throw_runtime_error(                         \
                 celer_runtime_msg_.str(), #COND, __FILE__, __LINE__); \
         }                                                             \

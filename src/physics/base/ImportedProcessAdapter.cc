@@ -26,9 +26,11 @@ ImportedProcesses::ImportedProcesses(std::vector<ImportProcess> io)
         auto insertion = ids_.insert(
             {key_type{PDGNumber{ip.particle_pdg}, ip.process_class}, id});
         CELER_VALIDATE(insertion.second,
-                       "Encountered duplicate imported process class '"
-                           << to_cstring(ip.process_class) << "' for PDG{"
-                           << ip.particle_pdg << "}");
+                       << "encountered duplicate imported process class '"
+                       << to_cstring(ip.process_class) << "' for PDG{"
+                       << ip.particle_pdg
+                       << "} (each particle must have at most one process of "
+                          "a given type)");
     }
 
     CELER_ENSURE(processes_.size() == ids_.size());
@@ -66,9 +68,9 @@ ImportedProcessAdapter::ImportedProcessAdapter(SPConstImported imported,
         ParticleProcessIds proc_ids;
         proc_ids.process = imported_->find({pdg, process_class});
         CELER_VALIDATE(proc_ids.process,
-                       "Imported process data is unavalable for '"
-                           << to_cstring(process_class) << "' for PDG{"
-                           << pdg.get() << "}");
+                       << "imported process data is unavalable for PDG{"
+                       << pdg.get() << "} (needed for '"
+                       << to_cstring(process_class) << "')");
 
         // Loop through available tables
         const auto& tables = imported_->get(proc_ids.process).tables;
@@ -96,16 +98,20 @@ ImportedProcessAdapter::ImportedProcessAdapter(SPConstImported imported,
             }
             CELER_ASSERT(dst);
             CELER_VALIDATE(!*dst,
-                           "Duplicate table type '"
-                               << to_cstring(tables[table_id.get()].table_type)
-                               << "' in process data for '"
-                               << to_cstring(process_class) << "'");
+                           << "duplicate table type '"
+                           << to_cstring(tables[table_id.get()].table_type)
+                           << "' in process data for '"
+                           << to_cstring(process_class)
+                           << "' (each type should be unique to a process for "
+                              "a given partice)");
             *dst = table_id;
         }
 
         auto particle_id = particles->find(pdg);
         CELER_VALIDATE(particle_id,
-                       "Particle PDG{" << pdg.get() << "} is not available");
+                       << "particle PDG{" << pdg.get()
+                       << "} was not loaded (needed for '"
+                       << to_cstring(process_class) << "')");
 
         // Save process data IDs for this particle type
         ids_[particle_id] = proc_ids;

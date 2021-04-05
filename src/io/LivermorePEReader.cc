@@ -23,7 +23,9 @@ namespace celeritas
 LivermorePEReader::LivermorePEReader()
 {
     const char* env_var = std::getenv("G4LEDATA");
-    CELER_VALIDATE(env_var, "Environment variable G4LEDATA is not defined.");
+    CELER_VALIDATE(env_var,
+                   << "environment variable G4LEDATA is not defined (needed "
+                      "to locate Livermore data)");
     std::ostringstream os;
     os << env_var << "/livermore/phot_epics2014";
     path_ = os.str();
@@ -59,7 +61,10 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
     {
         std::string   filename = path_ + "/pe-cs-" + Z + ".dat";
         std::ifstream infile(filename);
-        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile,
+                       << "failed to open '" << filename
+                       << "' "
+                          "(should contain cross section data)");
 
         // Set the physics vector type and the data type
         result.xs_hi.vector_type = ImportPhysicsVectorType::free;
@@ -82,7 +87,10 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
     {
         std::string   filename = path_ + "/pe-le-cs-" + Z + ".dat";
         std::ifstream infile(filename);
-        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile,
+                       << "failed to open '" << filename
+                       << "' "
+                          "(should contain cross section data)");
 
         // Set the physics vector type and the data type
         result.xs_lo.vector_type = ImportPhysicsVectorType::free;
@@ -109,7 +117,10 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
     {
         std::string   filename = path_ + "/pe-low-" + Z + ".dat";
         std::ifstream infile(filename);
-        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile,
+                       << "failed to open '" << filename
+                       << "' "
+                          "(should contain subshell fit parameters)");
 
         // Read the number of subshells and energy threshold
         constexpr size_type num_param  = 6;
@@ -135,7 +146,10 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
     {
         std::string   filename = path_ + "/pe-high-" + Z + ".dat";
         std::ifstream infile(filename);
-        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile,
+                       << "failed to open '" << filename
+                       << "' "
+                          "(should contain subshell fit parameters)");
 
         // Read the number of subshells and energy threshold
         constexpr size_type num_param  = 6;
@@ -163,7 +177,10 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
     {
         std::string   filename = path_ + "/pe-ss-cs-" + Z + ".dat";
         std::ifstream infile(filename);
-        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile,
+                       << "failed to open '" << filename
+                       << "' "
+                          "(should contain subshell cross sections)");
 
         for (auto& shell : result.shells)
         {

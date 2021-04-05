@@ -103,14 +103,15 @@ auto PhysicsParams::build_models() const -> VecModel
  */
 void PhysicsParams::build_options(const Options& opts, HostValue* data) const
 {
-    CELER_VALIDATE(
-        opts.max_step_over_range > 0,
-        "Non-positive max_step_over_range=" << opts.max_step_over_range);
+    CELER_VALIDATE(opts.max_step_over_range > 0,
+                   << "invalid max_step_over_range="
+                   << opts.max_step_over_range << " (should be positive)");
     CELER_VALIDATE(opts.min_range > 0,
-                   "Non-positive min_range=" << opts.min_range);
-    CELER_VALIDATE(
-        opts.linear_loss_limit >= 0 && opts.linear_loss_limit <= 1,
-        "Non-fractional linear_loss_limit=" << opts.linear_loss_limit);
+                   << "invalid min_range=" << opts.min_range
+                   << " (should be positive)");
+    CELER_VALIDATE(opts.linear_loss_limit >= 0 && opts.linear_loss_limit <= 1,
+                   << "invalid linear_loss_limit=" << opts.linear_loss_limit
+                   << " (should be be within 0 <= limit <= 1)");
     data->scaling_min_range = opts.min_range;
     data->scaling_fraction  = opts.max_step_over_range;
     data->linear_loss_limit = opts.linear_loss_limit;
@@ -143,7 +144,8 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
                 CELER_NOT_IMPLEMENTED("Material-dependent models");
             }
             CELER_VALIDATE(applic.particle < particles.size(),
-                           "Invalid particle ID");
+                           << "invalid particle ID "
+                           << applic.particle.unchecked_get());
             CELER_ASSERT(applic.lower < applic.upper);
             particle_models[applic.particle.get()][process_id].push_back(
                 {applic.lower.value(),
@@ -199,11 +201,13 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             {
                 CELER_VALIDATE(
                     temp_energy_grid.back() == std::get<0>(r),
-                    "Models for process '"
-                        << this->process(pid_models.first).label()
-                        << "' of particle type '"
-                        << particles.id_to_label(ParticleId{particle_idx})
-                        << "' are discontinuous in energy");
+                    << "models for process '"
+                    << this->process(pid_models.first).label()
+                    << "' of particle type '"
+                    << particles.id_to_label(ParticleId{particle_idx})
+                    << "' has no data between energies of "
+                    << temp_energy_grid.back() << " and " << std::get<0>(r)
+                    << " (energy range must be contiguous)");
                 temp_energy_grid.push_back(std::get<1>(r));
                 temp_models.push_back(std::get<2>(r));
             }
@@ -318,9 +322,9 @@ void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
                     std::any_of(builders.begin(),
                                 builders.end(),
                                 [](const UPGridBuilder& p) { return bool(p); }),
-                    "Process '" << proc.label()
-                                << "' has neither interaction nor energy "
-                                   "loss");
+                    << "process '" << proc.label()
+                    << "' has neither interaction nor energy loss (it must "
+                       "have at least one)");
 
                 // Construct grids
                 for (auto vgt : range(ValueGridType::size_))

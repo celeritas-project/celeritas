@@ -145,7 +145,7 @@ class PhysicsTrackViewHostTest : public PhysicsTestBase
     {
         auto iter = process_names.find(label);
         CELER_VALIDATE(iter != process_names.end(),
-                       "No process named " << label);
+                       << "No process named " << label);
         ProcessId pid = iter->second;
         for (auto pp_id :
              range(ParticleProcessId{track.num_particle_processes()}))

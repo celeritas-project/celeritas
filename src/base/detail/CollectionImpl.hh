@@ -178,9 +178,8 @@ struct CollectionStorageValidator<Ownership::value>
     void operator()(Size dst, OtherSize src)
     {
         CELER_VALIDATE(dst == src,
-                       "Collection is too large: " << sizeof(Size)
-                                                   << "-byte int cannot hold "
-                                                   << src << " elements");
+                       << "collection is too large (" << sizeof(Size)
+                       << "-byte int cannot hold " << src << " elements)");
     }
 };
 
