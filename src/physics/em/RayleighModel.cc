@@ -30,9 +30,8 @@ RayleighModel::RayleighModel(ModelId               id,
     host_group.model_id = id;
     host_group.gamma_id = particles.find(pdg::gamma());
     CELER_VALIDATE(host_group.gamma_id,
-                   << "missing gamma particles "
-                      "(required for "
-                   << this->label() << ")");
+                   << "missing gamma particles (required for " << this->label()
+                   << ")");
 
     this->build_data(&host_group, materials);
 
