@@ -39,8 +39,9 @@ SeltzerBergerModel::SeltzerBergerModel(ModelId               id,
     host_data.ids.positron = particles.find(pdg::positron());
     host_data.ids.gamma    = particles.find(pdg::gamma());
     CELER_VALIDATE(host_data.ids,
-                   "Electron, positron and gamma particles must be enabled to "
-                   "use the Seltzer-Berger Model.");
+                   << "missing electron, positron, and/or gamma particles "
+                      "(required for "
+                   << this->label() << ")");
 
     // Save particle properties
     host_data.electron_mass

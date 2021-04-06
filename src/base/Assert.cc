@@ -156,10 +156,11 @@ RuntimeError::RuntimeError(const std::string& msg) : std::runtime_error(msg) {}
     }
 
     msg << "celeritas: " << color_code('R') << "runtime error: ";
-    if (verbose_message)
+    if (verbose_message || detail.empty())
     {
-        msg << color_code('x') << condition << color_code(' ')
-            << " failed:\n    ";
+        msg << color_code('x') << condition << color_code(' ') << " failed";
+        if (!detail.empty())
+            msg << ":\n    ";
     }
     else
     {

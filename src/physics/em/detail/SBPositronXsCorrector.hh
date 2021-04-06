@@ -24,14 +24,17 @@ namespace detail
  * section by a factor
  * \f[
    \frac{\sigma_\mathrm{corrected}}{\sigma}
-       = \exp( \alpha Z [ \beta(E) - \beta(E_c) ] )
- \f]
- * where \f$ \beta \f$ is the Lorentz factor: \f[
-  \beta(E) = \frac{E + m_e c^2}{\sqrt{E * E + 2 * E * m_e * c^2}} \,,
+       = \exp( \alpha Z [ \beta^{-1}(E - E') - \beta^{-1}(E - k_c) ] )
  * \f]
- * \f$ \alpha \f$ is the fine structure constant, \f$E_c\f$ is the gamma
- * production cutoff energy, and \f$ E \f$ is the provisionally sampled exiting
- * energy.
+ * where the inverse positron speed is : \f[
+  \beta^{-1}(E) = \frac{c}{v} = \sqrt{1 - \left( \frac{m_e c^2}{E + m_e c^2}
+  \right)^2}
+  \,,
+ * \f]
+ * \f$ \alpha \f$ is the fine structure constant, \f$E\f$ is the
+ * incident positron kinetic energy, \f$k_c\f$ is the gamma
+ * production cutoff energy, and \f$ E' \f$ is the provisionally sampled
+ * exiting kinetic energy of the positron.
  *
  * The correction factor is described in:
  *
@@ -64,10 +67,9 @@ class SBPositronXsCorrector
     const real_type positron_mass_;
     const real_type alpha_z_;
     const real_type inc_energy_;
-    const real_type cutoff_lorentz_;
+    const real_type cutoff_invbeta_;
 
-    inline CELER_FUNCTION real_type
-    calc_lorentz_factor(real_type gamma_energy) const;
+    inline CELER_FUNCTION real_type calc_invbeta(real_type gamma_energy) const;
 };
 
 //---------------------------------------------------------------------------//

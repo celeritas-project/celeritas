@@ -21,7 +21,9 @@ namespace celeritas
 AtomicRelaxationReader::AtomicRelaxationReader()
 {
     const char* env_var = std::getenv("G4LEDATA");
-    CELER_VALIDATE(env_var, "Environment variable G4LEDATA is not defined.");
+    CELER_VALIDATE(env_var,
+                   << "environment variable G4LEDATA is not defined (needed "
+                      "to locate atomic relaxation data)");
     {
         std::ostringstream os;
         os << env_var << "/fluor";
@@ -79,7 +81,9 @@ AtomicRelaxationReader::operator()(int atomic_number) const
     {
         std::string   filename = fluor_path_ + "/fl-tr-pr-" + Z + ".dat";
         std::ifstream infile(filename);
-        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile,
+                       << "failed to open '" << filename
+                       << "' (should contain fluorescence data)");
 
         int       des    = 0;
         real_type energy = 0.;
@@ -123,7 +127,9 @@ AtomicRelaxationReader::operator()(int atomic_number) const
     {
         std::string   filename = auger_path_ + "/au-tr-pr-" + Z + ".dat";
         std::ifstream infile(filename);
-        CELER_VALIDATE(infile, "Couldn't open '" << filename << "'");
+        CELER_VALIDATE(infile,
+                       << "failed to open '" << filename
+                       << "' (should contain Auger transition data)");
 
         int       des       = 0;
         int       auger_des = 0;

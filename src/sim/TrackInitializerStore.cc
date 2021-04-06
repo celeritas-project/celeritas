@@ -181,11 +181,10 @@ void TrackInitializerStore::extend_from_secondaries(StateStore* states,
         = detail::reduce_counts(secondary_counts_.device_pointers());
     CELER_VALIDATE(
         num_secondaries + initializers_.size() <= initializers_.capacity(),
-        "Insufficient capacity ("
-            << initializers_.capacity() << ") for track initializers: created "
-            << num_secondaries
-            << " new secondaries for a total capacity requirement of "
-            << num_secondaries + initializers_.size());
+        << "insufficient capacity (" << initializers_.capacity()
+        << ") for track initializers (created " << num_secondaries
+        << " new secondaries for a total capacity requirement of "
+        << num_secondaries + initializers_.size() << ")");
     // The exclusive prefix sum of the number of secondaries produced by each
     // track is used to get the start index in the vector of track initializers
     // for each thread. Starting at that index, each thread creates track

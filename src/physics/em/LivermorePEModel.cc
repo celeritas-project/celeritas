@@ -35,8 +35,9 @@ LivermorePEModel::LivermorePEModel(ModelId               id,
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.gamma    = particles.find(pdg::gamma());
     CELER_VALIDATE(host_data.ids,
-                   "Electron and gamma particles must be enabled to use the "
-                   "Livermore Photoelectric Model.");
+                   << "missing electron and/or gamma particles "
+                      "(required for "
+                   << this->label() << ")");
 
     // Save particle properties
     host_data.inv_electron_mass

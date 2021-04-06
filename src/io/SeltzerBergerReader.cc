@@ -21,7 +21,9 @@ namespace celeritas
 SeltzerBergerReader::SeltzerBergerReader()
 {
     const char* env_var = std::getenv("G4LEDATA");
-    CELER_VALIDATE(env_var, "Environment variable G4LEDATA is not defined.");
+    CELER_VALIDATE(env_var,
+                   << "environment variable G4LEDATA is not defined (needed "
+                      "to locate Seltzer-Berger data)");
     std::ostringstream os;
     os << env_var << "/brem_SB";
     path_ = os.str();
@@ -58,7 +60,9 @@ SeltzerBergerReader::operator()(AtomicNumber atomic_number) const
     // Open file for given atomic number
     std::string   file = path_ + "/br" + std::to_string(atomic_number);
     std::ifstream input_stream(file.c_str());
-    CELER_VALIDATE(input_stream, "Could not open file '" << file << "'");
+    CELER_VALIDATE(input_stream,
+                   << "failed to open '" << file
+                   << "' (should contain SB cross section data)");
 
     // Fetch binning information
     unsigned int dummy;
@@ -98,7 +102,8 @@ SeltzerBergerReader::operator()(AtomicNumber atomic_number) const
     // Check that we've reached the end of the file
     input_stream >> dummy;
     CELER_VALIDATE(!input_stream,
-                   "Import completed before end of file '" << file << "'");
+                   << "unexpected end of file '" << file
+                   << "' (data is inconsistent with boundaries)");
 
     CELER_ENSURE(!result.x.empty() && !result.y.empty());
     return result;
