@@ -33,6 +33,18 @@ CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Return the value or (if it's negative) then zero.
+ *
+ * This is constructed to correctly propagate NaN.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v)
+{
+    return (v < 0) ? 0 : v;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return an integer power of the input value.
  *
  * Example: \code

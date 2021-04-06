@@ -20,6 +20,16 @@ TEST(AlgorithmsTest, minmax)
     EXPECT_EQ(2, celeritas::max<int>(1, 2));
 }
 
+TEST(AlgorithmsTest, clamp)
+{
+    using celeritas::clamp_to_nonneg;
+    constexpr auto nan = std::numeric_limits<double>::quiet_NaN();
+
+    EXPECT_DOUBLE_EQ(1.2345, clamp_to_nonneg(1.2345));
+    EXPECT_DOUBLE_EQ(0.0, clamp_to_nonneg(-123));
+    EXPECT_TRUE(std::isnan(celeritas::clamp_to_nonneg(nan)));
+}
+
 TEST(AlgorithmsTest, ipow)
 {
     EXPECT_DOUBLE_EQ(1, celeritas::ipow<0>(0.0));

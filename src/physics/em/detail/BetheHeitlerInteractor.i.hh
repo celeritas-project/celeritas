@@ -86,14 +86,10 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // Decide to choose f1, g1 or f2, g2 based on N1, N2 (factors from
         // corrected Bethe-Heitler cross section; c.f. Eq. 6.6 of Geant4
         // Physics Reference 10.6)
-        real_type             f10 = this->screening_phi1_aux(delta_min);
-        real_type             f20 = this->screening_phi2_aux(delta_min);
+        const real_type       f10 = this->screening_phi1_aux(delta_min);
+        const real_type       f20 = this->screening_phi2_aux(delta_min);
         BernoulliDistribution choose_f1g1(ipow<2>(half - epsilon_min) * f10,
                                           real_type(1.5) * f20);
-
-        auto clamp_nonneg = [](real_type value) {
-            return celeritas::max(value, real_type(0));
-        };
 
         // Temporary sample values used in rejection
         real_type reject_threshold;
@@ -111,8 +107,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 real_type delta = this->impact_parameter(epsilon);
                 CELER_ASSERT(delta <= delta_max && delta >= delta_min);
                 // Calculate g1 "rejection" function
-                reject_threshold = clamp_nonneg(this->screening_phi1_aux(delta))
-                                   / clamp_nonneg(f10);
+                reject_threshold = this->screening_phi1_aux(delta) / f10;
                 CELER_ASSERT(reject_threshold > 0 && reject_threshold <= 1);
             }
             else
@@ -126,11 +121,10 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 real_type delta = this->impact_parameter(epsilon);
                 CELER_ASSERT(delta <= delta_max && delta >= delta_min);
                 // Calculate g2 "rejection" function
-                reject_threshold = clamp_nonneg(this->screening_phi2_aux(delta))
-                                   / clamp_nonneg(f20);
+                reject_threshold = this->screening_phi2_aux(delta) / f20;
                 CELER_ASSERT(reject_threshold > 0 && reject_threshold <= 1);
             }
-        } while (BernoulliDistribution(1 - reject_threshold)(rng));
+        } while (!BernoulliDistribution(reject_threshold)(rng));
     }
 
     // Construct interaction for change to primary (incident) particle (gamma)
@@ -153,18 +147,15 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     // Note that momentum is not exactly conserved.
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
     real_type                          phi  = sample_phi(rng);
-    real_type                          sinp = std::sin(phi);
-    real_type                          cosp = std::cos(phi);
+
     // Electron
     real_type cost = this->sample_cos_theta(secondaries[0].energy.value(), rng);
     secondaries[0].direction
         = rotate(from_spherical(cost, phi), inc_direction_);
     // Positron
-    cost           = sample_cos_theta(secondaries[1].energy.value(), rng);
-    real_type sint = std::sqrt(1 - ipow<2>(cost));
+    cost = this->sample_cos_theta(secondaries[1].energy.value(), rng);
     secondaries[1].direction
-        = rotate({-sint * cosp, -sint * sinp, cost}, inc_direction_);
-
+        = rotate(from_spherical(cost, phi + constants::pi), inc_direction_);
     return result;
 }
 
@@ -213,17 +204,20 @@ real_type BetheHeitlerInteractor::screening_phi2(real_type delta) const
 CELER_FUNCTION real_type
 BetheHeitlerInteractor::screening_phi1_aux(real_type delta) const
 {
-    return (3 * this->screening_phi1(delta) - this->screening_phi2(delta)
-            - element_.coulomb_correction());
+    // TODO: maybe assert instead of "clamp"? Not clear when this is negative
+    return celeritas::clamp_to_nonneg(3 * this->screening_phi1(delta)
+                                      - this->screening_phi2(delta)
+                                      - element_.coulomb_correction());
 }
 
 CELER_FUNCTION real_type
 BetheHeitlerInteractor::screening_phi2_aux(real_type delta) const
 {
+    // TODO: maybe assert instead of "clamp"? Not clear when this is negative
     using R = real_type;
-    return (R(1.5) * this->screening_phi1(delta)
-            - R(0.5) * this->screening_phi2(delta)
-            - element_.coulomb_correction());
+    return celeritas::clamp_to_nonneg(R(1.5) * this->screening_phi1(delta)
+                                      - R(0.5) * this->screening_phi2(delta)
+                                      - element_.coulomb_correction());
 }
 
 //---------------------------------------------------------------------------//
