@@ -43,6 +43,10 @@ class ParticleParams;
  * - \c linear_loss_limit: if the mean energy loss along a step is greater than
  *   this fractional value of the pre-step kinetic energy, recalculate the
  *   energy loss.
+ * - \c use_integral: for energy loss processes, the particle energy changes
+ *   over the step, so the assumption that the cross section is constant is no
+ *   longer valid. Use MC integration to sample the discrete interaction with
+ *   the correct probability.
  */
 class PhysicsParams
 {
@@ -66,6 +70,7 @@ class PhysicsParams
         real_type min_range           = 1 * units::millimeter; //!< rho_R
         real_type max_step_over_range = 0.2;                   //!< alpha_r
         real_type linear_loss_limit   = 0.01;                  //!< xi
+        bool      use_integral        = true;
     };
 
     //! Physics parameter construction arguments
@@ -127,7 +132,9 @@ class PhysicsParams
     VecModel build_models() const;
     void     build_options(const Options& opts, HostValue* data) const;
     void     build_ids(const ParticleParams& particles, HostValue* data) const;
-    void     build_xs(const MaterialParams& mats, HostValue* data) const;
+    void     build_xs(const Options&        opts,
+                      const MaterialParams& mats,
+                      HostValue*            data) const;
 };
 
 //---------------------------------------------------------------------------//

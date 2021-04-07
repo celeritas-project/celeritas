@@ -92,6 +92,17 @@ class PhysicsTrackView
     inline CELER_FUNCTION ValueGridId value_grid(ValueGridType table,
                                                  ParticleProcessId) const;
 
+    // Whether to use integral approach to sample interaction probability
+    inline CELER_FUNCTION bool use_integral(ParticleProcessId ppid) const;
+
+    // Energy corresponding to the maximum cross section for the material
+    inline CELER_FUNCTION real_type energy_max(ParticleProcessId ppid) const;
+
+    // Calculate macroscopic cross section for the process
+    inline CELER_FUNCTION real_type calc_xs(ParticleProcessId ppid,
+                                            ValueGridId       grid_id,
+                                            MevEnergy         energy) const;
+
     // Get hardwired model, null if not present
     inline CELER_FUNCTION ModelId hardwired_model(ParticleProcessId ppid,
                                                   MevEnergy energy) const;
@@ -108,10 +119,13 @@ class PhysicsTrackView
     // Fractional energy loss allowed before post-step recalculation
     inline CELER_FUNCTION real_type linear_loss_limit() const;
 
+    // Energy scaling fraction used to estimate maximum xs over the step
+    inline CELER_FUNCTION real_type energy_fraction() const;
+
     // Calculate macroscopic cross section on the fly for the given model
-    inline CELER_FUNCTION real_type calc_xs_otf(ModelId       model,
-                                                MaterialView& material,
-                                                MevEnergy     energy) const;
+    inline CELER_FUNCTION real_type calc_xs_otf(ModelId             model,
+                                                const MaterialView& material,
+                                                MevEnergy energy) const;
 
     // Construct a grid calculator from a physics table
     template<class T>

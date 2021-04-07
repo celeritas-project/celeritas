@@ -60,11 +60,13 @@ struct ModelGroup
  * It is allowable for this to be "false" (i.e. no materials assigned)
  * indicating that the value table doesn't apply in the context -- for
  * example, an empty ValueTable macro_xs means that the process doesn't have a
- * discrete interaction.
+ * discrete interaction. Only macro_xs ValueTables will have energy_max
+ * assigned, and only for processes that also have an energy_loss ValueTable.
  */
 struct ValueTable
 {
-    ItemRange<ValueGridId> material; //!< Value grid by material index
+    ItemRange<ValueGridId> material;   //!< Value grid by material index
+    ItemRange<real_type>   energy_max; //!< Energy of the largest xs [material]
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
@@ -78,7 +80,7 @@ struct ValueTable
  * a fixed-size number of ItemRange references to ValueTables. The first index
  * of the table (hard-coded) corresponds to ValueGridType; the second index is
  * a ParticleProcessId. So the cross sections for ParticleProcessId{2} would
- * be \code tables[size_type(ValueGridType::macro_xs)][2] \endcode. This
+ * be \code tables[ValueGridType::macro_xs][2] \endcode. This
  * awkward access is encapsulated by the PhysicsTrackView.
  */
 struct ProcessGroup

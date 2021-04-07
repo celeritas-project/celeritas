@@ -257,18 +257,18 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
         // least once.
         using restype = std::pair<unsigned int, unsigned int>;
         std::vector<restype> expected({{1, 5},
-                                       {1, 5},
-                                       {2, 8},
-                                       {1, 5},
                                        {2, 8},
                                        {2, 8},
                                        {2, 8},
                                        {2, 8},
                                        {2, 8},
                                        {0, 1},
+                                       {1, 5},
+                                       {2, 8},
                                        {2, 8},
                                        {1, 5},
-                                       {0, 1}});
+                                       {1, 5},
+                                       {2, 8}});
         std::vector<restype> results; // Could add:
                                       // result.reserve(expected.size());
         for (auto i : range(expected.size()))
@@ -279,9 +279,48 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
             ++num_samples;
         }
         EXPECT_VEC_EQ(results, expected);
+        EXPECT_EQ(56, this->rng().count());
     }
+    {
+        // Test the integral approach
+        const real_type expected_acceptance_rate[] = {11. / 12, 0.5, 1};
 
-    // (At least with std::mt19937) std::generate_canonical draws 2 number per
-    // calls.
-    EXPECT_EQ(2 * num_samples, this->rng().count());
+        unsigned int           num_samples   = 20000;
+        std::vector<real_type> inc_energy    = {0.01, 0.1, 10};
+        std::vector<real_type> scaled_energy = {0.001, 0.001, 8};
+
+        for (auto i : range(inc_energy.size()))
+        {
+            PhysicsTrackView  phys = this->init_track(&material,
+                                                     MaterialId{0},
+                                                     &particle,
+                                                     "electron",
+                                                     MevEnergy{inc_energy[i]});
+            ParticleProcessId ppid{0};
+            EXPECT_TRUE(phys.use_integral(ppid));
+            auto grid_id = phys.value_grid(ValueGridType::macro_xs, ppid);
+            CELER_ASSERT(grid_id);
+
+            // Get the estimate of the maximum cross section over the step
+            real_type xs_max = phys.calc_xs(ppid, grid_id, particle.energy());
+            phys.per_process_xs(ppid) = xs_max;
+            phys.macro_xs(xs_max);
+
+            // Set the post-step energy
+            particle.energy(MevEnergy{scaled_energy[i]});
+
+            unsigned int count = 0;
+            for (unsigned int j = 0; j < num_samples; ++j)
+            {
+                if (select_process_and_model(particle, phys, this->rng()))
+                    ++count;
+            }
+            // Note that if the cross section is larger at the post-step
+            // energy, the interaction should always occur and the acceptance
+            // rate will be exactly 1.
+            real_type acceptance_rate = real_type(count) / num_samples;
+            EXPECT_SOFT_NEAR(
+                expected_acceptance_rate[i], acceptance_rate, 1e-2);
+        }
+    }
 }

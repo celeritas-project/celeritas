@@ -34,8 +34,8 @@ TEST_F(PhysicsParamsTest, accessors)
 {
     const PhysicsParams& p = *this->physics();
 
-    EXPECT_EQ(5, p.num_processes());
-    EXPECT_EQ(2 + 1 + 3 + 2 + 2, p.num_models());
+    EXPECT_EQ(6, p.num_processes());
+    EXPECT_EQ(2 + 1 + 3 + 2 + 2 + 1, p.num_models());
     EXPECT_EQ(3, p.max_particle_processes());
 
     // Test process names after construction
@@ -45,7 +45,7 @@ TEST_F(PhysicsParamsTest, accessors)
         process_names.push_back(p.process(process_id).label());
     }
     const std::string expected_process_names[]
-        = {"scattering", "absorption", "purrs", "hisses", "meows"};
+        = {"scattering", "absorption", "purrs", "hisses", "meows", "barks"};
     EXPECT_VEC_EQ(expected_process_names, process_names);
 
     // Test model names after construction
@@ -64,7 +64,8 @@ TEST_F(PhysicsParamsTest, accessors)
            "MockModel(6, p=2, emin=0.001, emax=1)",
            "MockModel(7, p=2, emin=1, emax=100)",
            "MockModel(8, p=1, emin=0.001, emax=10)",
-           "MockModel(9, p=2, emin=0.001, emax=10)"};
+           "MockModel(9, p=2, emin=0.001, emax=10)",
+           "MockModel(10, p=3, emin=0.001, emax=10)"};
     EXPECT_VEC_EQ(expected_model_names, model_names);
 
     // Test host-accessible process map
@@ -84,7 +85,8 @@ TEST_F(PhysicsParamsTest, accessors)
                                                 "celeriton:purrs",
                                                 "celeriton:meows",
                                                 "anti-celeriton:hisses",
-                                                "anti-celeriton:meows"};
+                                                "anti-celeriton:meows",
+                                                "electron:barks"};
     EXPECT_VEC_EQ(expected_process_map, process_map);
 }
 
@@ -315,6 +317,40 @@ TEST_F(PhysicsTrackViewHostTest, calc_range)
         = {0.025, 0.6568, 5.15968, 0.025, 0.6568, 5.15968};
     EXPECT_VEC_SOFT_EQ(expected_range, range);
     EXPECT_VEC_SOFT_EQ(expected_step, step);
+}
+
+TEST_F(PhysicsTrackViewHostTest, use_integral)
+{
+    {
+        // No energy loss tables
+        const PhysicsTrackView phys
+            = this->make_track_view("celeriton", MaterialId{2});
+        auto ppid = this->find_ppid(phys, "scattering");
+        ASSERT_TRUE(ppid);
+        EXPECT_FALSE(phys.use_integral(ppid));
+        auto id = phys.value_grid(ValueGridType::macro_xs, ppid);
+        ASSERT_TRUE(id);
+        EXPECT_SOFT_EQ(0.1, phys.calc_xs(ppid, id, MevEnergy{1.0}));
+    }
+    {
+        // Energy loss tables and energy-dependent macro xs
+        std::vector<real_type> xs;
+        const PhysicsTrackView phys
+            = this->make_track_view("electron", MaterialId{2});
+        auto ppid = this->find_ppid(phys, "barks");
+        ASSERT_TRUE(ppid);
+        EXPECT_TRUE(phys.use_integral(ppid));
+        EXPECT_SOFT_EQ(0.8, phys.energy_fraction());
+        EXPECT_SOFT_EQ(0.1, phys.energy_max(ppid));
+        auto id = phys.value_grid(ValueGridType::macro_xs, ppid);
+        ASSERT_TRUE(id);
+        for (real_type energy : {0.001, 0.01, 0.1, 0.11, 10.0})
+        {
+            xs.push_back(phys.calc_xs(ppid, id, MevEnergy{energy}));
+        }
+        const double expected_xs[] = {0.6, 36. / 55, 1.2, 1.2, 357. / 495};
+        EXPECT_VEC_SOFT_EQ(expected_xs, xs);
+    }
 }
 
 TEST_F(PhysicsTrackViewHostTest, model_finder)

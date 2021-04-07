@@ -8,6 +8,7 @@
 #include "base/Assert.hh"
 #include "physics/em/EPlusGGMacroXsCalculator.hh"
 #include "physics/em/LivermorePEMacroXsCalculator.hh"
+#include "physics/grid/XsCalculator.hh"
 
 namespace celeritas
 {
@@ -202,6 +203,94 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether to use integral approach to sample the discrete interaction.
+ *
+ * For energy loss processes, the particle will have a different energy at the
+ * pre- and post-step points. This means the assumption that the cross section
+ * is constant along the step is no longer valid. Instead, Monte Carlo
+ * integration can be used to sample the interaction for the discrete
+ * process with the correct probability from the exact distribution,
+ * \f[
+     p = 1 - \exp \left( -\int_{E_0}^{E_1} n \sigma(E) \dif s \right),
+ * \f]
+ * where \f$ E_0 \f$ is the pre-step energy, \f$ E_1 \f$ is the post-step
+ * energy, \em n is the atom density, and \em s is the interaction length.
+ *
+ * At the start of the step, the maximum value of the cross section over the
+ * step \f$ \sigma_{max} \f$ is estimated and used as the macroscopic cross
+ * section for the process rather than \f$ \sigma_{E_0} \f$. After the step,
+ * the new value of the cross section \f$ \sigma(E_1) \f$ is calculated, and
+ * the discrete interaction for the process occurs with probability
+ * \f[
+     p = \frac{\sigma(E_1)}{\sigma_{\max}}.
+ * \f]
+ *
+ * See section 7.4 of the Geant4 Physics Reference (release 10.6) for details.
+ */
+CELER_FUNCTION bool PhysicsTrackView::use_integral(ParticleProcessId ppid) const
+{
+    CELER_EXPECT(ppid < this->num_particle_processes());
+    return this->energy_max(ppid) > 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Energy corresponding to the maximum cross section for the material.
+ *
+ * If for this particle process the macro_xs \c ValueTable is "true" and \c
+ * energy_max is assigned, the process also has energy loss tables and the
+ * integral approach is being used. If \c energy_max[material] is nonzero,
+ * those tables are present for this material.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::energy_max(ParticleProcessId ppid) const
+{
+    CELER_EXPECT(ppid < this->num_particle_processes());
+    ValueTableId table_id
+        = this->process_group().tables[ValueGridType::macro_xs][ppid.get()];
+
+    CELER_ASSERT(table_id);
+    const ValueTable& table = params_.value_tables[table_id];
+
+    real_type result = 0;
+    if (table && !table.energy_max.empty())
+    {
+        CELER_ASSERT(material_ < table.energy_max.size());
+        result = params_.reals[table.energy_max[material_.get()]];
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate macroscopic cross section for the process.
+ *
+ * If this is an energy loss process, this returns the estimate of the maximum
+ * cross section over the step. If the energy of the global maximum of the
+ * cross section (calculated at initialization) is in the interval \f$ [\xi
+ * E_0, E_0) \f$, where \f$ \E_0 \f$ is the pre-step energy and \f$ \xi \f$ is
+ * \c energy_fraction, \f$ \sigma_{\max} \f$ is set to the global maximum.
+ * Otherwise, \f$ \sigma_{\max} = \max( \sigma(E_0), \sigma(\xi E_0) ) \f$.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
+                                                   ValueGridId       grid_id,
+                                                   MevEnergy energy) const
+{
+    auto      calc_xs    = this->make_calculator<XsCalculator>(grid_id);
+    real_type energy_max = this->energy_max(ppid);
+    if (energy_max > 0)
+    {
+        // Use the integral approach for energy loss processes
+        real_type energy_xi = energy.value() * this->energy_fraction();
+        if (energy_max >= energy_xi && energy_max < energy.value())
+            return calc_xs(MevEnergy{energy_max});
+        else
+            return max(calc_xs(energy), calc_xs(MevEnergy{energy_xi}));
+    }
+    return calc_xs(energy);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return the model ID that applies to the given process ID and energy if the
  * process is hardwired to calculate macroscopic cross sections on the fly. If
  * the result is null, tables should be used for this process/energy.
@@ -273,11 +362,23 @@ CELER_FUNCTION real_type PhysicsTrackView::linear_loss_limit() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Energy scaling fraction used to estimate maximum cross section over a step.
+ *
+ * This parameter is defined as \f$ \xi = 1 - \alpha \f$, where \f$ \alpha \f$
+ * is \c scaling_fraction.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::energy_fraction() const
+{
+    CELER_EXPECT(params_.scaling_fraction <= 1);
+    return 1 - params_.scaling_fraction;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate macroscopic cross section on the fly.
  */
-CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(ModelId       model,
-                                                       MaterialView& material,
-                                                       MevEnergy energy) const
+CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(
+    ModelId model, const MaterialView& material, MevEnergy energy) const
 {
     real_type result = 0.;
     if (model == params_.hardwired.livermore_pe)

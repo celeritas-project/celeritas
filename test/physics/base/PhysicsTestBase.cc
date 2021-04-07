@@ -69,6 +69,11 @@ auto PhysicsTestBase::build_particles() const -> SPConstParticles
                    MevMass{1},
                    ElementaryCharge{-1},
                    stable});
+    inp.push_back({"electron",
+                   pdg::electron(),
+                   MevMass{0.5109989461},
+                   ElementaryCharge{-1},
+                   stable});
     return std::make_shared<ParticleParams>(std::move(inp));
 }
 
@@ -95,14 +100,14 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
         inp.label       = "scattering";
         inp.applic      = {make_applicability("gamma", 1e-6, 100),
                       make_applicability("celeriton", 1, 100)};
-        inp.xs          = Barn{1.0};
+        inp.xs          = {Barn{1.0}, Barn{1.0}};
         inp.energy_loss = {};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
         inp.label       = "absorption";
         inp.applic      = {make_applicability("gamma", 1e-6, 100)};
-        inp.xs          = Barn{2.0};
+        inp.xs          = {Barn{2.0}, Barn{2.0}};
         inp.energy_loss = {};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
@@ -112,7 +117,7 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
         inp.applic      = {make_applicability("celeriton", 1e-3, 1),
                       make_applicability("celeriton", 1, 10),
                       make_applicability("celeriton", 10, 100)};
-        inp.xs          = Barn{3.0};
+        inp.xs          = {Barn{3.0}, Barn{3.0}};
         inp.energy_loss = 0.2 * 1e-20; // 0.2 MeV/cm in celerogen
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
@@ -121,7 +126,7 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
         inp.label       = "hisses";
         inp.applic      = {make_applicability("anti-celeriton", 1e-3, 1),
                       make_applicability("anti-celeriton", 1, 100)};
-        inp.xs          = Barn{4.0};
+        inp.xs          = {Barn{4.0}, Barn{4.0}};
         inp.energy_loss = 0.3 * 1e-20;
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
@@ -129,8 +134,16 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
         inp.label       = "meows";
         inp.applic      = {make_applicability("celeriton", 1e-3, 10),
                       make_applicability("anti-celeriton", 1e-3, 10)};
-        inp.xs          = Barn{5.0};
+        inp.xs          = {Barn{5.0}, Barn{5.0}};
         inp.energy_loss = 0.4 * 1e-20;
+        physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
+    }
+    {
+        // Energy-dependent cross section
+        inp.label       = "barks";
+        inp.applic      = {make_applicability("electron", 1e-3, 10)};
+        inp.xs          = {Barn{6.0}, Barn{12.0}, Barn{6.0}};
+        inp.energy_loss = 0.5 * 1e-20;
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
