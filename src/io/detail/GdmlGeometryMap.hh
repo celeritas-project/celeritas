@@ -70,6 +70,13 @@ class GdmlGeometryMap
     // Add pair <vol_id, mat_id> to the map
     void link_volume_material(vol_id volid, mat_id matid);
 
+    // Boolean operator for assertion macros
+    explicit operator bool() const
+    {
+        return matid_to_material_.size() > 0 && volid_to_volume_.size() > 0
+               && elemid_to_element_.size() > 0 && volid_to_matid_.size() > 0;
+    }
+
   private:
     // Global maps
     std::map<mat_id, ImportMaterial> matid_to_material_;

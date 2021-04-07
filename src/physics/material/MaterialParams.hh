@@ -21,6 +21,7 @@
 
 namespace celeritas
 {
+struct ImportData;
 //---------------------------------------------------------------------------//
 /*!
  * Data management for material, element, and nuclide properties.
@@ -63,6 +64,8 @@ class MaterialParams
     };
 
   public:
+    // Construct from an imported file
+    static std::shared_ptr<MaterialParams> from_import(const ImportData& data);
     // Construct with a vector of material definitions
     explicit MaterialParams(const Input& inp);
 
