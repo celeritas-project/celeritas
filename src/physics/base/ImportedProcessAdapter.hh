@@ -20,6 +20,7 @@
 namespace celeritas
 {
 class ParticleParams;
+struct ImportData;
 //---------------------------------------------------------------------------//
 /*!
  * Manage imported physics data.
@@ -34,6 +35,10 @@ class ImportedProcesses
     //!@}
 
   public:
+    // Construct from imported file
+    static std::shared_ptr<ImportedProcesses>
+    from_import(const ImportData& data);
+
     // Construct with imported tables
     explicit ImportedProcesses(std::vector<ImportProcess> io);
 

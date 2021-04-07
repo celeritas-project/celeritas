@@ -9,9 +9,21 @@
 
 #include "base/Range.hh"
 #include "physics/base/ParticleParams.hh"
+#include "io/ImportData.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with imported data from file.
+ */
+std::shared_ptr<ImportedProcesses>
+ImportedProcesses::from_import(const ImportData& data)
+{
+    CELER_EXPECT(!data.processes.empty());
+    return std::make_shared<ImportedProcesses>(std::move(data.processes));
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with imported tabular data.
