@@ -307,7 +307,7 @@ int main(int argc, char* argv[])
         return 2;
     }
 
-    RootImporter::result_type data;
+    ImportData data;
     try
     {
         RootImporter import(argv[1]);
@@ -322,9 +322,9 @@ int main(int argc, char* argv[])
 
     CELER_LOG(info) << "Successfully loaded ROOT file '" << argv[1] << "'";
 
-    print_particles(*data.particle_params);
-    print_processes(data.processes, *data.particle_params);
-    print_geometry(*data.geometry, *data.particle_params);
+    // print_particles(*data.particle_params);
+    // print_processes(data.processes, *data.particle_params);
+    // print_geometry(*data.geometry, *data.particle_params);
 
     return EXIT_SUCCESS;
 }

@@ -9,9 +9,59 @@
 
 #include "base/Assert.hh"
 #include "base/CollectionBuilder.hh"
+#include "io/ImportData.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with a vector of particle definitions.
+ */
+std::shared_ptr<ParticleParams>
+ParticleParams::from_import(const ImportData& data)
+{
+    CELER_EXPECT(!data.particles.empty());
+
+    const auto particles = data.particles;
+    Input      defs(particles.size());
+
+    for (auto i : range(particles.size()))
+    {
+        const auto particle = particles.at(i);
+        CELER_ASSERT(!particle.name.empty());
+
+        // Convert metadata
+        defs[i].name     = particle.name;
+        defs[i].pdg_code = PDGNumber{particle.pdg};
+        CELER_ASSERT(defs[i].pdg_code);
+
+        // Convert data
+        defs[i].mass           = units::MevMass{particle.mass};
+        defs[i].charge         = units::ElementaryCharge{particle.charge};
+        defs[i].decay_constant = (particle.is_stable
+                                      ? ParticleDef::stable_decay_constant()
+                                      : 1. / particle.lifetime);
+    }
+
+    // Sort by increasing mass, then by PDG code (positive before negative of
+    // the same absolute value). Placing lighter particles
+    // (more likely to be created by various processes, so more "light
+    // particle" tracks) together at the beginning of the list will make it
+    // easier to human-read the particles while debugging, and having them
+    // at adjacent memory locations could improve cacheing.
+    auto to_particle_key = [](const auto& inp) {
+        int pdg = inp.pdg_code.get();
+        return std::make_tuple(inp.mass, std::abs(pdg), pdg < 0);
+    };
+    std::sort(defs.begin(),
+              defs.end(),
+              [to_particle_key](const auto& lhs, const auto& rhs) {
+                  return to_particle_key(lhs) < to_particle_key(rhs);
+              });
+
+    return std::make_shared<ParticleParams>(std::move(defs));
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with a vector of particle definitions.

@@ -69,15 +69,22 @@ RootImporter::~RootImporter() = default;
 /*!
  * Load all data from the input file.
  */
-RootImporter::result_type RootImporter::operator()()
+ImportData RootImporter::operator()()
 {
-    result_type geant_data;
-    geant_data.particle_params = this->load_particle_data();
-    geant_data.processes       = this->load_processes();
-    geant_data.geometry        = this->load_geometry_data();
-    geant_data.material_params = this->load_material_data();
-    geant_data.cutoff_params   = this->load_cutoff_data();
+    std::unique_ptr<TTree> tree_data(root_input_->Get<TTree>("geant4_data"));
+    CELER_ASSERT(tree_data);
+    CELER_ASSERT(tree_data->GetEntries() == 1);
 
+    ImportData  import_data;
+    ImportData* import_data_ptr = &import_data;
+    int err_code = tree_data->SetBranchAddress("ImportData", &import_data_ptr);
+    CELER_ASSERT(err_code >= 0);
+
+    tree_data->GetEntry(0);
+
+    return import_data;
+
+#if 0
     // Sort processes based on particle def IDs, process types, etc.
     {
         const ParticleParams& particles = *geant_data.particle_params;
@@ -92,12 +99,7 @@ RootImporter::result_type RootImporter::operator()()
                       return to_process_key(left) < to_process_key(right);
                   });
     }
-
-    CELER_ENSURE(geant_data.particle_params);
-    CELER_ENSURE(geant_data.geometry);
-    CELER_ENSURE(geant_data.material_params);
-    CELER_ENSURE(geant_data.cutoff_params);
-    return geant_data;
+#endif
 }
 
 //---------------------------------------------------------------------------//

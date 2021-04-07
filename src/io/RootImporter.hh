@@ -17,8 +17,7 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "detail/ImportProcess.hh"
-#include "detail/GdmlGeometryMap.hh"
+#include "ImportData.hh"
 
 // ROOT
 class TFile;
@@ -56,17 +55,6 @@ namespace celeritas
 class RootImporter
 {
   public:
-    //! Return value from importing from the ROOT file
-    struct result_type
-    {
-        std::shared_ptr<ParticleParams>  particle_params;
-        std::vector<ImportProcess>       processes;
-        std::shared_ptr<GdmlGeometryMap> geometry;
-        std::shared_ptr<MaterialParams>  material_params;
-        std::shared_ptr<CutoffParams>    cutoff_params;
-    };
-
-  public:
     // Construct with exported ROOT file
     explicit RootImporter(const char* filename);
 
@@ -74,7 +62,7 @@ class RootImporter
     ~RootImporter();
 
     // Load data from the ROOT file into result_type
-    result_type operator()();
+    ImportData operator()();
 
   private:
     //// DATA ////
