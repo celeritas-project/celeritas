@@ -8,7 +8,7 @@
 #include "io/RootImporter.hh"
 
 #include <algorithm>
-#include "io/ImportPhysicsTable.hh"
+#include "io/detail/ImportPhysicsTable.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/material/MaterialView.hh"

@@ -35,10 +35,10 @@
 #include "comm/Communicator.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
-#include "io/ImportParticle.hh"
-#include "io/ImportPhysicsTable.hh"
+#include "io/detail/ImportParticle.hh"
+#include "io/detail/ImportPhysicsTable.hh"
+#include "io/detail/GdmlGeometryMap.hh"
 #include "io/ImportData.hh"
-#include "io/GdmlGeometryMap.hh"
 #include "physics/base/PDGNumber.hh"
 
 #include "ActionInitialization.hh"

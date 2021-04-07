@@ -8,11 +8,11 @@
 #pragma once
 
 #include <vector>
-#include "ImportParticle.hh"
-#include "ImportElement.hh"
-#include "ImportMaterial.hh"
-#include "ImportProcess.hh"
-#include "GdmlGeometryMap.hh"
+#include "detail/ImportParticle.hh"
+#include "detail/ImportElement.hh"
+#include "detail/ImportMaterial.hh"
+#include "detail/ImportProcess.hh"
+#include "detail/GdmlGeometryMap.hh"
 
 namespace celeritas
 {

@@ -24,9 +24,9 @@
 #include <G4ProcessType.hh>
 #include <G4Material.hh>
 
-#include "io/ImportProcess.hh"
-#include "io/ImportPhysicsTable.hh"
-#include "io/ImportPhysicsVector.hh"
+#include "io/detail/ImportProcess.hh"
+#include "io/detail/ImportPhysicsTable.hh"
+#include "io/detail/ImportPhysicsVector.hh"
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/TypeDemangler.hh"

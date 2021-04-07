@@ -103,13 +103,13 @@ class GdmlGeometryMap;
 %rename(xs_hi) ImportTableType::lambda_prim;
 }
 
-%include "io/ImportPhysicsVector.hh"
+%include "io/detail/ImportPhysicsVector.hh"
 %template(VecImportPhysicsVector) std::vector<celeritas::ImportPhysicsVector>;
 
-%include "io/ImportPhysicsTable.hh"
+%include "io/detail/ImportPhysicsTable.hh"
 
 %template(VecImportPhysicsTable) std::vector<celeritas::ImportPhysicsTable>;
-%include "io/ImportProcess.hh"
+%include "io/detail/ImportProcess.hh"
 
 %template(VecImportProcesss) std::vector<celeritas::ImportProcess>;
 %rename(RootImportResult) celeritas::RootImporter::result_type;

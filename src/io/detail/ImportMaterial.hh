@@ -11,8 +11,8 @@
 #include <map>
 #include <vector>
 
-#include "detail/ImportElement.hh"
-#include "detail/GdmlGeometryMapTypes.hh"
+#include "ImportElement.hh"
+#include "GdmlGeometryMapTypes.hh"
 #include "base/Types.hh"
 
 namespace celeritas

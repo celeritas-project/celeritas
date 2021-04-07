@@ -13,7 +13,7 @@
 #include <vector>
 #include "base/OpaqueId.hh"
 #include "base/Span.hh"
-#include "io/ImportProcess.hh"
+#include "io/detail/ImportProcess.hh"
 #include "Process.hh"
 #include "PDGNumber.hh"
 

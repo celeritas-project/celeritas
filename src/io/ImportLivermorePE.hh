@@ -8,7 +8,7 @@
 #pragma once
 
 #include <vector>
-#include "ImportPhysicsVector.hh"
+#include "detail/ImportPhysicsVector.hh"
 
 namespace celeritas
 {

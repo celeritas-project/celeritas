@@ -17,8 +17,8 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "ImportProcess.hh"
-#include "GdmlGeometryMap.hh"
+#include "detail/ImportProcess.hh"
+#include "detail/GdmlGeometryMap.hh"
 
 // ROOT
 class TFile;

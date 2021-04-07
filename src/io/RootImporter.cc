@@ -20,7 +20,7 @@
 #include "base/Range.hh"
 #include "comm/Logger.hh"
 #include "physics/base/Units.hh"
-#include "ImportParticle.hh"
+#include "detail/ImportParticle.hh"
 
 namespace celeritas
 {

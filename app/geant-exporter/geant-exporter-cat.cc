@@ -16,7 +16,7 @@
 #include "comm/ScopedMpiInit.hh"
 #include "physics/base/ParticleInterface.hh"
 #include "io/RootImporter.hh"
-#include "io/GdmlGeometryMap.hh"
+#include "io/detail/GdmlGeometryMap.hh"
 
 using namespace celeritas;
 using std::cout;

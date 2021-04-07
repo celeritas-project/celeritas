@@ -12,7 +12,7 @@
 #include <vector>
 #include <memory>
 
-#include "io/ImportProcess.hh"
+#include "io/detail/ImportProcess.hh"
 
 using celeritas::ImportProcess;
 

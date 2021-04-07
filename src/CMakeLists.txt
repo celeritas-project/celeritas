@@ -47,10 +47,10 @@ list(APPEND SOURCES
   comm/ScopedMpiInit.cc
   comm/detail/LoggerMessage.cc
   geometry/detail/ScopedTimeAndRedirect.cc
-  io/GdmlGeometryMap.cc
-  io/ImportProcess.cc
-  io/ImportPhysicsTable.cc
-  io/ImportPhysicsVector.cc
+  io/detail/GdmlGeometryMap.cc
+  io/detail/ImportProcess.cc
+  io/detail/ImportPhysicsTable.cc
+  io/detail/ImportPhysicsVector.cc
   io/AtomicRelaxationReader.cc
   io/LivermorePEReader.cc
   io/SeltzerBergerReader.cc
@@ -197,14 +197,14 @@ if(CELERITAS_USE_ROOT)
   include(${ROOT_USE_FILE})
 
   root_generate_dictionary(CeleritasRootInterface
-    io/GdmlGeometryMap.hh
-    io/ImportElement.hh
-    io/ImportMaterial.hh
-    io/ImportParticle.hh
-    io/ImportPhysicsTable.hh
-    io/ImportPhysicsVector.hh
-    io/ImportProcess.hh
-    io/ImportVolume.hh
+    io/detail/GdmlGeometryMap.hh
+    io/detail/ImportElement.hh
+    io/detail/ImportMaterial.hh
+    io/detail/ImportParticle.hh
+    io/detail/ImportPhysicsTable.hh
+    io/detail/ImportPhysicsVector.hh
+    io/detail/ImportProcess.hh
+    io/detail/ImportVolume.hh
     io/ImportData.hh
     io/RootImporter.hh
     MODULE celeritas_root
