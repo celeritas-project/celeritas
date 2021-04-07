@@ -14,6 +14,8 @@
 
 #include "io/ImportProcess.hh"
 
+using celeritas::ImportProcess;
+
 class TFile;
 class TTree;
 
@@ -34,17 +36,13 @@ enum class TableSelection
 
 //---------------------------------------------------------------------------//
 /*!
- * Use an existing TFile address as input to create a new "tables" TTree used
- * store Geant physics tables.
- *
- * TFile passed to the constructor must be open with the "recreate" flag so the
- * class has writing privileges.
+ * TODO Update documentation here.
  */
 class GeantPhysicsTableWriter
 {
   public:
-    // Constructor adds a new "tables" TTree to the existing ROOT TFile
-    GeantPhysicsTableWriter(TFile* root_file, TableSelection which_tables);
+    // Construct with selected list of tables
+    GeantPhysicsTableWriter(TableSelection which_tables);
 
     // Write the tables on destruction
     ~GeantPhysicsTableWriter();
@@ -54,26 +52,27 @@ class GeantPhysicsTableWriter
     void operator()(const G4ParticleDefinition& particle,
                     const G4VProcess&           process);
 
+    // Fetch the full list of physics processes created using operator()
+    std::vector<ImportProcess> get() { return processes_; }
+
   private:
-    // Loop over EM processes and write tables to the ROOT file
+    // Loop over EM processes and store them in processes_
     void fill_em_tables(const G4VEmProcess& em_process);
-    // Loop over energy loss processes and write tables to the ROOT file
+    // Loop over energy loss processes and store them in processes_
     void fill_energy_loss_tables(const G4VEnergyLossProcess& eloss_process);
-    // Loop over multiple scattering processes and write tables to the ROOT
-    // file
+    // Loop over multiple scattering processes and store them in processes_
     void
     fill_multiple_scattering_tables(const G4VMultipleScattering& msc_process);
-    // Write the remaining elements of this->table_ and fill the tables TTree
+    // Write the remaining elements of this->table_
     void add_table(const G4PhysicsTable*      table,
                    celeritas::ImportTableType table_type);
 
   private:
-    TFile* root_file_;
+    // Stored process data
+    std::vector<ImportProcess> processes_;
     // Whether to write tables that aren't used by physics
     TableSelection which_tables_;
 
-    // TTree created by the constructor
-    std::unique_ptr<TTree> tree_process_;
     // Temporary processs data for writing to the tree
     celeritas::ImportProcess process_;
 

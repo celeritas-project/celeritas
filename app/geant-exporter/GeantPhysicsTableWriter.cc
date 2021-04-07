@@ -221,32 +221,16 @@ real_type units_to_scaling(ImportUnits units)
 /*!
  * Construct with existing TFile reference
  */
-GeantPhysicsTableWriter::GeantPhysicsTableWriter(TFile*         root_file,
-                                                 TableSelection which_tables)
-    : root_file_(root_file), which_tables_(which_tables)
+GeantPhysicsTableWriter::GeantPhysicsTableWriter(TableSelection which_tables)
+    : which_tables_(which_tables)
 {
-    CELER_EXPECT(root_file);
-    this->tree_process_ = std::make_unique<TTree>("processes", "processes");
-    auto* tbranch       = tree_process_->Branch("ImportProcess", &process_);
-    CELER_ENSURE(tbranch);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Write the tables on destruction.
+ * Default destructor.
  */
-GeantPhysicsTableWriter::~GeantPhysicsTableWriter()
-{
-    try
-    {
-        int err_code = root_file_->Write();
-        CELER_ENSURE(err_code >= 0);
-    }
-    catch (const std::exception& e)
-    {
-        CELER_LOG(error) << "Failed to write physics tables: " << e.what();
-    }
-}
+GeantPhysicsTableWriter::~GeantPhysicsTableWriter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -302,7 +286,7 @@ void GeantPhysicsTableWriter::operator()(const G4ParticleDefinition& particle,
                          << ProcessTypeDemangler()(process) << ")";
     }
 
-    tree_process_->Fill();
+    processes_.push_back(process_);
 }
 
 //---------------------------------------------------------------------------//

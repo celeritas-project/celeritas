@@ -37,6 +37,7 @@
 #include "comm/ScopedMpiInit.hh"
 #include "io/ImportParticle.hh"
 #include "io/ImportPhysicsTable.hh"
+#include "io/ImportData.hh"
 #include "io/GdmlGeometryMap.hh"
 #include "physics/base/PDGNumber.hh"
 
@@ -51,6 +52,7 @@ using namespace geant_exporter;
 namespace celer_pdg = celeritas::pdg;
 using celeritas::elem_id;
 using celeritas::GdmlGeometryMap;
+using celeritas::ImportData;
 using celeritas::ImportElement;
 using celeritas::ImportMaterial;
 using celeritas::ImportMaterialState;
@@ -68,24 +70,18 @@ using std::endl;
  *
  * The ROOT file must be open before this call.
  */
-void store_particles(TFile* root_file, G4ParticleTable* particle_table)
+void store_particles(ImportData& data, G4ParticleTable* particle_table)
 {
-    CELER_EXPECT(root_file);
     CELER_EXPECT(particle_table);
 
     CELER_LOG(status) << "Exporting particles";
     TTree tree_particles("particles", "particles");
 
-    // Create temporary particle
-    ImportParticle particle;
-    TBranch*       branch = tree_particles.Branch("ImportParticle", &particle);
-    CELER_ASSERT(branch);
-
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
     particle_iterator.reset();
 
-    int num_particles = 0;
+    unsigned int num_particles = 0;
     while (particle_iterator())
     {
         G4ParticleDefinition* g4_particle_def = particle_iterator.value();
@@ -94,6 +90,7 @@ void store_particles(TFile* root_file, G4ParticleTable* particle_table)
         if (g4_particle_def->GetPDGEncoding() == 0)
             continue;
 
+        ImportParticle particle;
         particle.name      = g4_particle_def->GetParticleName();
         particle.pdg       = g4_particle_def->GetPDGEncoding();
         particle.mass      = g4_particle_def->GetPDGMass();
@@ -108,14 +105,13 @@ void store_particles(TFile* root_file, G4ParticleTable* particle_table)
             particle.lifetime /= s;
         }
 
-        tree_particles.Fill();
+        data.particles.push_back(particle);
+
         ++num_particles;
         CELER_LOG(debug) << "Added " << g4_particle_def->GetParticleName();
     }
 
     CELER_LOG(info) << "Added " << num_particles << " particles";
-    int err_code = root_file->Write();
-    CELER_ENSURE(err_code >= 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -124,16 +120,14 @@ void store_particles(TFile* root_file, G4ParticleTable* particle_table)
  *
  * The ROOT file must be open before this call.
  */
-void store_physics_tables(TFile* root_file, G4ParticleTable* particle_table)
+void store_physics_tables(ImportData& data, G4ParticleTable* particle_table)
 {
-    CELER_EXPECT(root_file);
     CELER_EXPECT(particle_table);
 
     CELER_LOG(status) << "Exporting physics tables";
 
     // Start table writer
-    GeantPhysicsTableWriter add_physics_table(root_file,
-                                              TableSelection::minimal);
+    GeantPhysicsTableWriter process_writer(TableSelection::minimal);
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -170,12 +164,14 @@ void store_physics_tables(TFile* root_file, G4ParticleTable* particle_table)
                 continue;
             }
 
-            add_physics_table(g4_particle_def, *process_list[j]);
+            process_writer(g4_particle_def, *process_list[j]);
         }
 
         CELER_LOG(info) << "Added " << process_list.size() << " processes for "
                         << g4_particle_def.GetParticleName();
     }
+
+    data.processes = process_writer.get();
 }
 
 //---------------------------------------------------------------------------//
@@ -259,39 +255,35 @@ int to_pdg(const G4ProductionCutsIndex& index)
  *
  * The ROOT file must be open before this call.
  */
-void store_geometry(TFile*                       root_file,
+void store_geometry(ImportData&                  data,
                     const G4ProductionCutsTable& g4production_cuts_table,
                     const G4VPhysicalVolume&     world_volume)
 {
-    CELER_EXPECT(root_file);
-
     CELER_LOG(status) << "Exporting material and volume information";
 
-    TTree tree_materials("geometry", "geometry");
-
-    // Create geometry map and ROOT branch
     GdmlGeometryMap geometry;
-    TBranch* branch = tree_materials.Branch("GdmlGeometryMap", &geometry);
-    CELER_ASSERT(branch);
 
-    // Populate global element map
+    // Loop over element data
     const auto g4element_table = *G4Element::GetElementTable();
     for (const auto& g4element : g4element_table)
     {
         CELER_ASSERT(g4element);
         ImportElement element;
-        elem_id       elid            = g4element->GetIndex();
         element.name                  = g4element->GetName();
         element.atomic_number         = g4element->GetZ();
         element.atomic_mass           = g4element->GetAtomicMassAmu();
         element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
         element.coulomb_factor        = g4element->GetfCoulomb();
 
-        // Add element to the global element map
+        // Add element to ImportData
+        data.elements.push_back(element);
+
+        // Add element to the global geometry element map
+        elem_id elid = g4element->GetIndex();
         geometry.add_element(elid, element);
     }
 
-    // Populate global material map
+    // Loop over material data
     for (auto i : celeritas::range(g4production_cuts_table.GetTableSize()))
     {
         // Fetch material, element, and production cuts lists
@@ -319,7 +311,7 @@ void store_geometry(TFile*                       root_file,
         material.radiation_length   = g4material->GetRadlen() / cm;
         material.nuclear_int_length = g4material->GetNuclearInterLength() / cm;
 
-        // Range to energy converters for populating material.pdg_cutoff
+        // Range to energy converters for populating material.cutoffs
         std::unique_ptr<G4VRangeToEnergyConverter>
             range_to_e_converters[NumberOfG4CutIndex];
         range_to_e_converters[idxG4GammaCut]
@@ -339,11 +331,11 @@ void store_geometry(TFile*                       root_file,
             const real_type energy
                 = range_to_e_converters[g4i]->Convert(range, g4material);
 
-            ImportMaterial::ProductionCut cutoffs;
+            ImportMaterial::ImportProductionCut cutoffs;
             cutoffs.energy = energy / MeV;
             cutoffs.range  = range / cm;
 
-            material.pdg_cutoff.insert({to_pdg(g4i), cutoffs});
+            material.pdg_cutoffs.insert({to_pdg(g4i), cutoffs});
         }
 
         // Populate element information for this material
@@ -351,17 +343,21 @@ void store_geometry(TFile*                       root_file,
         {
             const auto& g4element = g4elements->at(j);
             CELER_ASSERT(g4element);
-            elem_id   elid               = g4element->GetIndex();
-            real_type elem_mass_fraction = g4material->GetFractionVector()[j];
+
+            ImportMaterial::ImportMatElemComponent elem_comp;
+            elem_comp.element_id    = g4element->GetIndex();
+            elem_comp.mass_fraction = g4material->GetFractionVector()[j];
             real_type elem_num_density
                 = g4material->GetVecNbOfAtomsPerVolume()[j] / (1. / cm3);
-            real_type elem_num_fraction = elem_num_density
-                                          / material.number_density;
+            elem_comp.number_fraction = elem_num_density
+                                        / material.number_density;
 
-            // Add global element id and its mass/number fraction
-            material.elements_fractions.insert({elid, elem_mass_fraction});
-            material.elements_num_fractions.insert({elid, elem_num_fraction});
+            // Add material's element information
+            material.elements.push_back(elem_comp);
         }
+
+        // Add material to ImportData
+        data.materials.push_back(material);
         // Add material to the global material map
         geometry.add_material(g4material_cuts_couple->GetIndex(), material);
     }
@@ -370,11 +366,7 @@ void store_geometry(TFile*                       root_file,
 
     // Recursive loop over all logical volumes, starting from the world_volume
     // Populate volume information and map volumes with materials
-    loop_volumes(geometry, *world_volume.GetLogicalVolume());
-
-    tree_materials.Fill();
-    int err_code = root_file->Write();
-    CELER_ENSURE(err_code >= 0);
+    loop_volumes(data.geometry, *world_volume.GetLogicalVolume());
 }
 
 //---------------------------------------------------------------------------//
@@ -453,18 +445,27 @@ int main(int argc, char* argv[])
     CELER_LOG(info) << "Created ROOT output file '" << root_output_filename
                     << "'";
 
+    TTree tree_data("geant4_data", "geant4_data");
+
+    ImportData import_data;
+    TBranch*   branch = tree_data.Branch("ImportData", &import_data);
+    CELER_ASSERT(branch);
+
     // Store particle information
-    store_particles(root_output.get(), G4ParticleTable::GetParticleTable());
+    store_particles(import_data, G4ParticleTable::GetParticleTable());
 
     // Store physics tables
-    store_physics_tables(root_output.get(),
-                         G4ParticleTable::GetParticleTable());
+    store_physics_tables(import_data, G4ParticleTable::GetParticleTable());
 
     // Store material and volume information
-    store_geometry(root_output.get(),
+    store_geometry(import_data,
                    *G4ProductionCutsTable::GetProductionCutsTable(),
                    *world_phys_volume);
 
+    // Write data to disk and close ROOT file
+    tree_data.Fill();
+    int err_code = root_output->Write();
+    CELER_ENSURE(err_code >= 0);
     CELER_LOG(status) << "Closing output file";
     root_output->Close();
 

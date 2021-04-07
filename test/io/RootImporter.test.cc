@@ -184,7 +184,7 @@ TEST_F(RootImporterTest, import_geometry)
     EXPECT_SOFT_EQ(8.6993489258991514e+22, material.number_density); // [1/cm^3]
     EXPECT_SOFT_EQ(1.738067064482842, material.radiation_length);    // [cm]
     EXPECT_SOFT_EQ(16.678057097389537, material.nuclear_int_length); // [cm]
-    EXPECT_EQ(3, material.elements_fractions.size());
+    EXPECT_EQ(3, material.elements.size());
 
     // Test elements within material
     static const int array_size                = 3;
@@ -196,15 +196,14 @@ TEST_F(RootImporterTest, import_geometry)
         = {55.845110798, 51.996130136999994, 58.693325100900005}; // [AMU]
 
     int i = 0;
-    for (auto const& iter : material.elements_fractions)
+    for (auto& elem_comp : material.elements)
     {
-        auto elid    = iter.first;
-        auto element = data_.geometry->get_element(elid);
+        auto element = data_.geometry->get_element(elem_comp.element_id);
 
         EXPECT_EQ(elements_name[i], element.name);
         EXPECT_EQ(atomic_number[i], element.atomic_number);
         EXPECT_SOFT_EQ(atomic_mass[i], element.atomic_mass);
-        EXPECT_SOFT_EQ(fraction[i], iter.second);
+        EXPECT_SOFT_EQ(fraction[i], elem_comp.number_fraction);
         i++;
     }
 }

@@ -41,11 +41,11 @@ enum class ImportTableType
 enum class ImportUnits
 {
     none,       //!< Unitless
-    mev,        //!< Energy (MeV)
-    mev_per_cm, //!< Energy loss (MeV / cm)
-    cm,         //!< Range (cm)
-    cm_inv,     //!< Macroscopic xs (1/cm)
-    cm_mev_inv, //!< Macroscopic xs divided by energy (1/cm-MeV)
+    mev,        //!< Energy [MeV]
+    mev_per_cm, //!< Energy loss [MeV/cm]
+    cm,         //!< Range [cm]
+    cm_inv,     //!< Macroscopic xs [1/cm]
+    cm_mev_inv, //!< Macroscopic xs divided by energy [1/cm-MeV]
 };
 
 //---------------------------------------------------------------------------//

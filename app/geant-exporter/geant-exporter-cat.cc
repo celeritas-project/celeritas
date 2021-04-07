@@ -201,12 +201,13 @@ void print_geometry(const GdmlGeometryMap& geometry,
         const auto& material = geometry.get_material(mat_key.first);
         cout << "| " << setw(11) << mat_key.first << " | " << setw(31)
              << material.name << " | " << setw(31)
-             << to_string(join(material.elements_fractions.begin(),
-                               material.elements_fractions.end(),
-                               ", ",
-                               [&geometry](const auto& key) {
-                                   return geometry.get_element(key.first).name;
-                               }))
+             << to_string(join(
+                    material.elements.begin(),
+                    material.elements.end(),
+                    ", ",
+                    [&geometry](const auto& element) {
+                        return geometry.get_element(element.element_id).name;
+                    }))
              << " |\n";
     }
     cout << endl;
@@ -232,7 +233,7 @@ void print_geometry(const GdmlGeometryMap& geometry,
     {
         const auto& material      = geometry.get_material(mat_key.first);
         bool        is_first_line = true;
-        for (const auto& cutoff_key : mat_key.second.pdg_cutoff)
+        for (const auto& cutoff_key : mat_key.second.pdg_cutoffs)
         {
             const std::string label = pdg_label.find(cutoff_key.first)->second;
             const std::string str_cuts

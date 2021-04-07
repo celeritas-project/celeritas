@@ -264,13 +264,13 @@ std::shared_ptr<MaterialParams> RootImporter::load_material_data()
         material_params.number_density = mat_key.second.number_density;
         material_params.matter_state   = to_matter_state(mat_key.second.state);
 
-        for (const auto& elem_key : mat_key.second.elements_num_fractions)
+        for (const auto& elem_comp : mat_key.second.elements)
         {
-            ElementId elem_def_id{elem_key.first};
+            ElementId elem_def_id{elem_comp.element_id};
 
             // Populate MaterialParams number fractions
             material_params.elements_fractions.push_back(
-                {elem_def_id, elem_key.second});
+                {elem_def_id, elem_comp.number_fraction});
         }
         input.materials.push_back(material_params);
     }
@@ -317,10 +317,10 @@ std::shared_ptr<CutoffParams> RootImporter::load_cutoff_data()
         {
             const auto& material
                 = geometry_matid_material.find(matid.get())->second;
-            const auto& iter = material.pdg_cutoff.find(pdg.get());
+            const auto& iter = material.pdg_cutoffs.find(pdg.get());
 
             ParticleCutoff p_cutoff;
-            if (iter != material.pdg_cutoff.end())
+            if (iter != material.pdg_cutoffs.end())
             {
                 // Is a particle type with assigned cutoff values
                 p_cutoff.energy = units::MevEnergy{iter->second.energy};

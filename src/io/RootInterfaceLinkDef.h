@@ -15,9 +15,11 @@
 #pragma link C++ class celeritas::ImportPhysicsVector+;
 #pragma link C++ class celeritas::GdmlGeometryMap+;
 #pragma link C++ class celeritas::ImportMaterial+;
-#pragma link C++ class celeritas::ImportMaterial::ProductionCut+;
+#pragma link C++ class celeritas::ImportMaterial::ImportProductionCut+;
+#pragma link C++ class celeritas::ImportMaterial::ImportMatElemComponent+;
 #pragma link C++ class celeritas::ImportElement+;
 #pragma link C++ class celeritas::ImportVolume+;
+#pragma link C++ class celeritas::ImportData+;
 #pragma link C++ class celeritas::RootImporter+;
 // clang-format on
 

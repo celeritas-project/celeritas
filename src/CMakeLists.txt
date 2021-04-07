@@ -205,6 +205,7 @@ if(CELERITAS_USE_ROOT)
     io/ImportPhysicsVector.hh
     io/ImportProcess.hh
     io/ImportVolume.hh
+    io/ImportData.hh
     io/RootImporter.hh
     MODULE celeritas_root
     LINKDEF io/RootInterfaceLinkDef.h

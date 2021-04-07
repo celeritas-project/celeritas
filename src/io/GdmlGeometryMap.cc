@@ -66,7 +66,7 @@ auto GdmlGeometryMap::max_num_elements() const -> size_type
     size_type result = 0;
     for (const auto& key : matid_to_material_)
     {
-        result = std::max(result, key.second.elements_fractions.size());
+        result = std::max(result, key.second.elements.size());
     }
     return result;
 }
