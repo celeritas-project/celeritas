@@ -86,10 +86,10 @@ TEST_F(ParticleTest, params_accessors)
 }
 
 //---------------------------------------------------------------------------//
-// IMPORT DATA TEST
+// IMPORT PARTICLE DATA TEST
 //---------------------------------------------------------------------------//
 
-class ParticleTestImport : public celeritas::Test
+class ParticleImportTest : public celeritas::Test
 {
   protected:
     void SetUp() override
@@ -102,7 +102,7 @@ class ParticleTestImport : public celeritas::Test
     ImportData  data_;
 };
 
-TEST_F(ParticleTestImport, import_particle)
+TEST_F(ParticleImportTest, import_particle)
 {
     const auto particles = ParticleParams::from_import(data_);
 
