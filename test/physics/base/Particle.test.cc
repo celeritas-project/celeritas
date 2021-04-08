@@ -14,11 +14,16 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleInterface.hh"
 #include "physics/base/Units.hh"
+#include "io/ImportData.hh"
+#include "io/RootImporter.hh"
 #include "Particle.test.hh"
 
 using celeritas::ParticleId;
 using celeritas::ParticleParams;
 using celeritas::ParticleTrackView;
+
+using celeritas::ImportData;
+using celeritas::RootImporter;
 
 using celeritas::real_type;
 using celeritas::ThreadId;
@@ -78,6 +83,58 @@ TEST_F(ParticleTest, params_accessors)
 
     EXPECT_EQ("electron", defs.id_to_label(ParticleId(0)));
     EXPECT_EQ(PDGNumber(11), defs.id_to_pdg(ParticleId(0)));
+}
+
+//---------------------------------------------------------------------------//
+// IMPORT DATA TEST
+//---------------------------------------------------------------------------//
+
+class ParticleTestImport : public celeritas::Test
+{
+  protected:
+    void SetUp() override
+    {
+        root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
+        RootImporter import_from_root(root_filename_.c_str());
+        data_ = import_from_root();
+    }
+    std::string root_filename_;
+    ImportData  data_;
+};
+
+TEST_F(ParticleTestImport, import_particle)
+{
+    const auto particles = ParticleParams::from_import(data_);
+
+    // Check electron data
+    ParticleId electron_id = particles->find(PDGNumber(11));
+    ASSERT_GE(electron_id.get(), 0);
+    const auto& electron = particles->get(electron_id);
+    EXPECT_SOFT_EQ(0.510998910, electron.mass().value());
+    EXPECT_EQ(-1, electron.charge().value());
+    EXPECT_EQ(0, electron.decay_constant());
+    // Check all names/PDG codes
+    std::vector<std::string> loaded_names;
+    std::vector<int>         loaded_pdgs;
+    for (auto particle_id : range(ParticleId{particles->size()}))
+    {
+        loaded_names.push_back(particles->id_to_label(particle_id));
+        loaded_pdgs.push_back(particles->id_to_pdg(particle_id).get());
+    }
+
+    // Particle ordering is the same as in the ROOT file
+    // clang-format off
+    const std::string expected_loaded_names[] = {"gamma", "e-", "e+", "mu-",
+        "mu+", "pi+", "pi-", "kaon+", "kaon-", "proton", "anti_proton",
+        "deuteron", "anti_deuteron", "He3", "anti_He3", "triton",
+        "anti_triton", "alpha", "anti_alpha"};
+    const int expected_loaded_pdgs[] = {22, 11, -11, 13, -13, 211, -211, 321,
+        -321, 2212, -2212, 1000010020, -1000010020, 1000020030, -1000020030,
+        1000010030, -1000010030, 1000020040, -1000020040};
+    // clang-format on
+
+    EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
+    EXPECT_VEC_EQ(expected_loaded_pdgs, loaded_pdgs);
 }
 
 //---------------------------------------------------------------------------//

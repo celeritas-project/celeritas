@@ -17,13 +17,14 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "ImportData.hh"
 
 // ROOT
 class TFile;
 
 namespace celeritas
 {
+struct ImportData;
+
 //---------------------------------------------------------------------------//
 /*!
  * RootImporter loads particle, physics table, material, production cutoffs
@@ -67,19 +68,6 @@ class RootImporter
   private:
     //// DATA ////
     std::unique_ptr<TFile> root_input_;
-
-    //// HELPER FUNCTIONS ////
-
-    // Populate the shared_ptr<ParticleParams> with particle information
-    std::shared_ptr<ParticleParams> load_particle_data();
-    // Populate a vector of ImportPhysicsTable objects
-    std::vector<ImportProcess> load_processes();
-    // Load GdmlGeometryMap object
-    std::shared_ptr<GdmlGeometryMap> load_geometry_data();
-    // Populate the shared_ptr<MaterialParams> with material information
-    std::shared_ptr<MaterialParams> load_material_data();
-    // Populate the shared_ptr<CutoffParams> with cutoff data
-    std::shared_ptr<CutoffParams> load_cutoff_data();
 };
 
 //---------------------------------------------------------------------------//

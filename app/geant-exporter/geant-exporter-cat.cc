@@ -16,6 +16,7 @@
 #include "comm/ScopedMpiInit.hh"
 #include "physics/base/ParticleInterface.hh"
 #include "io/RootImporter.hh"
+#include "io/ImportData.hh"
 #include "io/detail/GdmlGeometryMap.hh"
 
 using namespace celeritas;
@@ -24,6 +25,7 @@ using std::endl;
 using std::setprecision;
 using std::setw;
 
+#if 0
 //---------------------------------------------------------------------------//
 /*!
  * Print particle properties.
@@ -285,6 +287,7 @@ void print_geometry(const GdmlGeometryMap& geometry,
     }
     cout << endl;
 }
+#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -321,6 +324,8 @@ int main(int argc, char* argv[])
     }
 
     CELER_LOG(info) << "Successfully loaded ROOT file '" << argv[1] << "'";
+
+    cout << data.particles.size() << endl;
 
     // print_particles(*data.particle_params);
     // print_processes(data.processes, *data.particle_params);
