@@ -228,9 +228,7 @@ celeritas_add_test(random/distributions/IsotropicDistribution.test.cc)
 celeritas_add_test(random/distributions/RadialDistribution.test.cc)
 celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 
-# Note: this test should compile fine without CUDA but currently doesn't have
-# any # tests that run because the RngEngine is CUDA-only.
-celeritas_cudaoptional_test(random/RngEngine ${_needs_cuda})
+celeritas_cudaoptional_test(random/RngEngine)
 
 #-----------------------------------------------------------------------------#
 # Sim
