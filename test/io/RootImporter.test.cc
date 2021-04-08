@@ -24,8 +24,9 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 /*!
- * The geant-exporter-data.root is created by the app/geant-exporter using the
- * four-steel-slabs.gdml example file available in app/geant-exporter/data.
+ * The \e geant-exporter-data.root is created by the \e app/geant-exporter
+ * using the \e four-steel-slabs.gdml example file available in
+ * \e app/geant-exporter/data.
  *
  * \note
  * G4EMLOW7.12 and G4EMLOW7.13 produce slightly different physics vector

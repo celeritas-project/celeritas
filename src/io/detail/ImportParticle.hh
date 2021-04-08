@@ -16,9 +16,9 @@ namespace celeritas
 /*!
  * Store particle data.
  *
- * The data is exported via the app/geant-exporter. For further expanding
+ * The data is exported via the \e app/geant-exporter. For further expanding
  * this struct, add the appropriate variables here and fetch the new values in
- * \c app/geant-exporter.cc:store_particles(...) .
+ * \c geant-exporter.cc:store_particles(...) .
  */
 struct ImportParticle
 {

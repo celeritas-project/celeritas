@@ -23,7 +23,7 @@ using namespace celeritas;
 
 class GeoMaterialTest : public celeritas_test::GeoTestBase
 {
-    std::string filename() const override { return "slabsGeometry.gdml"; }
+    std::string filename() const override { return "four-steel-slabs.gdml"; }
 
     void SetUp() override
     {

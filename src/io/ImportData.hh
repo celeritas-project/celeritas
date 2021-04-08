@@ -23,7 +23,7 @@ namespace celeritas
  * This struct combines all import structs and classes into one single object
  * for a simpler read/write interface with ROOT and Celeritas.
  *
- * All the data imported to Celeritas is stored in this single struct. Any
+ * All the data imported to Celeritas is stored in this single entity. Any
  * external app should fill this struct and record it in a ROOT TBranch, which
  * will be read by \c RootImporter to load the data into Celeritas.
  *
@@ -32,6 +32,7 @@ namespace celeritas
  * \sa ImportMaterial
  * \sa ImportProcess
  * \sa GdmlGeometryMap
+ * \sa RootImporter
  */
 struct ImportData
 {

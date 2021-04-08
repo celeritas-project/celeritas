@@ -42,8 +42,6 @@ using celeritas::ImportProcessType;
 using celeritas::ImportTableType;
 using celeritas::ImportUnits;
 using celeritas::PDGNumber;
-using celeritas::real_type;
-
 using ProcessTypeDemangler = celeritas::TypeDemangler<G4VProcess>;
 
 namespace geant_exporter
@@ -195,7 +193,7 @@ to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
 /*!
  * Get a multiplicative geant-natural-units constant to convert the units.
  */
-real_type units_to_scaling(ImportUnits units)
+double units_to_scaling(ImportUnits units)
 {
     switch (units)
     {
@@ -219,7 +217,7 @@ real_type units_to_scaling(ImportUnits units)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with existing TFile reference
+ * Construct with a selected list of tables.
  */
 ImportProcessWriter::ImportProcessWriter(TableSelection which_tables)
     : which_tables_(which_tables)
@@ -234,7 +232,7 @@ ImportProcessWriter::~ImportProcessWriter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Add physics tables to the ROOT file from given process and particle.
+ * Add physics tables to this->processes_ from a given particle and process.
  */
 void ImportProcessWriter::operator()(const G4ParticleDefinition& particle,
                                      const G4VProcess&           process)
@@ -265,19 +263,19 @@ void ImportProcessWriter::operator()(const G4ParticleDefinition& particle,
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
     {
         // G4VEmProcess tables
-        this->fill_em_tables(*em_process);
+        this->store_em_tables(*em_process);
     }
     else if (const auto* energy_loss
              = dynamic_cast<const G4VEnergyLossProcess*>(&process))
     {
         // G4VEnergyLossProcess tables
-        this->fill_energy_loss_tables(*energy_loss);
+        this->store_energy_loss_tables(*energy_loss);
     }
     else if (const auto* multiple_scattering
              = dynamic_cast<const G4VMultipleScattering*>(&process))
     {
         // G4VMultipleScattering tables
-        this->fill_multiple_scattering_tables(*multiple_scattering);
+        this->store_multiple_scattering_tables(*multiple_scattering);
     }
     else
     {
@@ -291,9 +289,9 @@ void ImportProcessWriter::operator()(const G4ParticleDefinition& particle,
 
 //---------------------------------------------------------------------------//
 /*!
- * Write EM process tables to the TTree.
+ * Store EM XS tables to this->process_.
  */
-void ImportProcessWriter::fill_em_tables(const G4VEmProcess& process)
+void ImportProcessWriter::store_em_tables(const G4VEmProcess& process)
 {
     for (auto i : celeritas::range(process.GetNumberOfModels()))
     {
@@ -308,9 +306,9 @@ void ImportProcessWriter::fill_em_tables(const G4VEmProcess& process)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write energy loss tables to the TTree.
+ * Store energy loss XS tables to this->process_.
  */
-void ImportProcessWriter::fill_energy_loss_tables(
+void ImportProcessWriter::store_energy_loss_tables(
     const G4VEnergyLossProcess& process)
 {
     for (auto i : celeritas::range(process.NumberOfModels()))
@@ -329,7 +327,7 @@ void ImportProcessWriter::fill_energy_loss_tables(
         this->add_table(process.InverseRangeTable(),
                         ImportTableType::inverse_range);
 
-        // None of these tables appear to be used in geant4.
+        // None of these tables appear to be used in Geant4
         this->add_table(process.DEDXTableForSubsec(),
                         ImportTableType::dedx_subsec);
         this->add_table(process.DEDXunRestrictedTable(),
@@ -346,12 +344,12 @@ void ImportProcessWriter::fill_energy_loss_tables(
 
 //---------------------------------------------------------------------------//
 /*!
- * Write multiple scattering tables to the TTree.
+ * Store multiple scattering XS tables to this->process_.
  *
  * Whereas other EM processes combine the model tables into a single process
  * table, MSC keeps them independent.
  */
-void ImportProcessWriter::fill_multiple_scattering_tables(
+void ImportProcessWriter::store_multiple_scattering_tables(
     const G4VMultipleScattering& process)
 {
     // TODO: Figure out a method to get the number of models. Max is 4.
@@ -369,10 +367,7 @@ void ImportProcessWriter::fill_multiple_scattering_tables(
 
 //---------------------------------------------------------------------------//
 /*!
- * Write data from a geant4 physics table if available.
- *
- * It finishes writing the remaining elements of this->process_ and fills the
- * "tables" TTree.
+ * Write data from a Geant4 physics table if available.
  */
 void ImportProcessWriter::add_table(const G4PhysicsTable* g4table,
                                     ImportTableType       table_type)
@@ -437,8 +432,8 @@ void ImportProcessWriter::add_table(const G4PhysicsTable* g4table,
     };
 
     // Convert units
-    real_type x_scaling = units_to_scaling(table.x_units);
-    real_type y_scaling = units_to_scaling(table.y_units);
+    double x_scaling = units_to_scaling(table.x_units);
+    double y_scaling = units_to_scaling(table.y_units);
 
     // Save physics vectors
     for (const auto* g4vector : *g4table)

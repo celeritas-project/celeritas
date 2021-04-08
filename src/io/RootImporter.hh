@@ -27,31 +27,31 @@ struct ImportData;
 
 //---------------------------------------------------------------------------//
 /*!
- * RootImporter loads particle, physics table, material, production cutoffs
- * and geometry data from the ROOT file created by the app/geant-exporter
- * external code.
+ * RootImporter loads particle, element, material, process, and volume
+ * information from a ROOT file that contains an \c ImportData object.
+ * Currently, said ROOT file is created by the \e app/geant-exporter external
+ * code.
  *
- * The geant-exporter app only pulls data from Geant4, and we will keep it
- * that way for validation and comparison purposes. Conversely, all the
- * \c ClassParams classes are the ones used in Celeritas. Thus,
- * \c RootImporter , along with all \c ImportClass type of classes, are the
- * link between Geant4 and Celeritas.
+ * The geant-exporter app only pulls data from Geant4. Conversely, all the
+ * \c [Class]Params only live in Celeritas. Thus, \c RootImporter , along with
+ * all \c Import[Class] type of classes, are the link between Geant4 and
+ * Celeritas. Every host/device class that relies on imported data has its own
+ * \c from_import(...) function that will take the data loaded by the
+ * \c RootImporter and import it accordingly:
  *
- * Usage:
  * \code
- *  RootImporter import("/path/to/rootfile.root");
- *  auto geant_data = import("tree_name", "branch_name");
+ *  RootImporter import("/path/to/root_file.root");
+ *  const auto data            = import("tree_name", "import_data_branch");
+ *  const auto particle_params = ParticleParams::from_import(data);
+ *  const auto material_params = MaterialParams::from_import(data);
+ *  const auto cutoff_params   = CutoffParams::from_import(data);
+ *  // And so on
  * \endcode
  *
- * Physics tables currently are a \c vector<ImportPhysicsTable>, since many
- * parameters are at play when selecting a given table:
- * ImportParticle, ImportTableType, ImportProcessClass, and ImportModelClass.
- * See \c RootImporter.test.cc for an example on how to fetch a given table.
- *
- * Material and volume information are stored by the \c GdmlGeometryMap class.
- * The mat_id value returned from a given vol_id represents the position of
- * said material in the ImportPhysicsTable vectors:
- * \c ImportPhysicsTable.physics_vectors.at(mat_id_value).
+ * Material and volume information are stored in the \c GdmlGeometryMap class.
+ * The \c mat_id returned from a given \c vol_id represents the position of
+ * said material in the \c ImportPhysicsTable vectors:
+ * \c ImportPhysicsTable.physics_vectors.at(mat_id) .
  */
 class RootImporter
 {

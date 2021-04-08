@@ -61,7 +61,7 @@ void print_particles(const ParticleParams& particles)
 
 //---------------------------------------------------------------------------//
 /*!
- * Print physics properties.
+ * Print process information.
  */
 void print_process(const ImportProcess& proc, const ParticleParams& particles)
 {
@@ -110,7 +110,7 @@ void print_process(const ImportProcess& proc, const ParticleParams& particles)
 
 //---------------------------------------------------------------------------//
 /*!
- * Print physics properties.
+ * Print stored data for all available processes.
  */
 void print_processes(const std::vector<ImportProcess>& processes,
                      const ParticleParams&             particles)
@@ -155,7 +155,8 @@ void print_processes(const std::vector<ImportProcess>& processes,
 
 //---------------------------------------------------------------------------//
 /*!
- * Print GDML properties.
+ * Print GDML properties: element, material, secondary cutoff, and volume
+ * information.
  *
  * TODO: add a print_materials to use material params directly.
  */

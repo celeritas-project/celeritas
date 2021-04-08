@@ -14,7 +14,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Return the \c mat_id of a given \c vol_id.
+ * Return the \c mat_id of a given \c vol_id .
  */
 mat_id GdmlGeometryMap::get_matid(vol_id volume_id) const
 {
@@ -25,7 +25,7 @@ mat_id GdmlGeometryMap::get_matid(vol_id volume_id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the ImportVolume associated with the \c vol_id.
+ * Return the ImportVolume associated with the \c vol_id .
  */
 const ImportVolume& GdmlGeometryMap::get_volume(vol_id volume_id) const
 {
@@ -36,7 +36,7 @@ const ImportVolume& GdmlGeometryMap::get_volume(vol_id volume_id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the ImportMaterial associated with the \c mat_id.
+ * Return the ImportMaterial associated with the \c mat_id .
  */
 const ImportMaterial& GdmlGeometryMap::get_material(mat_id material_id) const
 {
@@ -46,7 +46,7 @@ const ImportMaterial& GdmlGeometryMap::get_material(mat_id material_id) const
 }
 //---------------------------------------------------------------------------//
 /*!
- * Return the ImportElement associated with the \c elem_id.
+ * Return the ImportElement associated with the \c elem_id .
  */
 const ImportElement& GdmlGeometryMap::get_element(elem_id element_id) const
 {
