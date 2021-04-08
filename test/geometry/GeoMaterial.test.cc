@@ -10,6 +10,7 @@
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoMaterialView.hh"
 #include "io/RootImporter.hh"
+#include "io/ImportData.hh"
 
 #include "GeoTestBase.hh"
 #include "celeritas_test.hh"
@@ -29,10 +30,11 @@ class GeoMaterialTest : public celeritas_test::GeoTestBase
         // Load ROOT file
         std::string root_file
             = this->test_data_path("io", "geant-exporter-data.root");
-        auto loaded = RootImporter(root_file.c_str())();
+        const auto data
+            = RootImporter(root_file.c_str())("geant4_data", "ImportData");
 
         // Set up shared material data
-        material_ = std::move(loaded.material_params);
+        material_ = std::move(MaterialParams::from_import(data));
 
         // Create geometry/material coupling
         GeoMaterialParams::Input input;
@@ -40,7 +42,7 @@ class GeoMaterialTest : public celeritas_test::GeoTestBase
         input.materials = material_;
         input.volume_to_mat
             = std::vector<MaterialId>(input.geometry->num_volumes());
-        for (const auto& kv : loaded.geometry->volid_to_matid_map())
+        for (const auto& kv : data.geometry.volid_to_matid_map())
         {
             CELER_ASSERT(kv.first < input.volume_to_mat.size());
             CELER_ASSERT(kv.second < input.materials->num_materials());

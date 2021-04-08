@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ImportedProcessAdapter.hh"
 
+#include <algorithm>
+
 #include "base/Range.hh"
 #include "physics/base/ParticleParams.hh"
 #include "io/ImportData.hh"

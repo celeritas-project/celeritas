@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ParticleParams.hh"
 
+#include <algorithm>
+
 #include "base/Assert.hh"
 #include "base/CollectionBuilder.hh"
 #include "io/ImportData.hh"

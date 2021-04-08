@@ -9,6 +9,7 @@
 
 #include "comm/Logger.hh"
 #include "io/RootImporter.hh"
+#include "io/ImportData.hh"
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/EIonizationProcess.hh"
@@ -27,8 +28,9 @@ LDemoParams load_params(const LDemoArgs& args)
     CELER_LOG(status) << "Loading input files";
     LDemoParams result;
 
-    // Load ROOT file
-    auto loaded = RootImporter(args.physics_filename.c_str())();
+    // Load data from ROOT file
+    const auto data = RootImporter(args.physics_filename.c_str())(
+        "geant4_data", "ImportData");
 
     // Load geometry
     {
@@ -38,7 +40,7 @@ LDemoParams load_params(const LDemoArgs& args)
 
     // Load materials
     {
-        result.materials = std::move(loaded.material_params);
+        result.materials = std::move(MaterialParams::from_import(data));
     }
 
     // Create geometry/material coupling
@@ -49,7 +51,7 @@ LDemoParams load_params(const LDemoArgs& args)
 
         input.volume_to_mat
             = std::vector<MaterialId>(input.geometry->num_volumes());
-        for (const auto& kv : loaded.geometry->volid_to_matid_map())
+        for (const auto& kv : data.geometry.volid_to_matid_map())
         {
             CELER_ASSERT(kv.first < input.volume_to_mat.size());
             CELER_ASSERT(kv.second < result.materials->num_materials());
@@ -60,7 +62,7 @@ LDemoParams load_params(const LDemoArgs& args)
 
     // Construct particle params
     {
-        result.particles = std::move(loaded.particle_params);
+        result.particles = std::move(ParticleParams::from_import(data));
     }
 
     // Construct cutoffs
@@ -76,7 +78,7 @@ LDemoParams load_params(const LDemoArgs& args)
         input.materials = result.materials;
 
         auto process_data
-            = std::make_shared<ImportedProcesses>(std::move(loaded.processes));
+            = std::make_shared<ImportedProcesses>(std::move(data.processes));
         input.processes.push_back(
             std::make_shared<ComptonProcess>(result.particles, process_data));
         CELER_NOT_IMPLEMENTED("TODO: add remaining processes");
