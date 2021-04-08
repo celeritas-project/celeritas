@@ -15,7 +15,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a vector of particle definitions.
+ * Construct with imported data from file.
  */
 std::shared_ptr<ParticleParams>
 ParticleParams::from_import(const ImportData& data)

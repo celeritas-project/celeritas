@@ -21,7 +21,24 @@ std::shared_ptr<ImportedProcesses>
 ImportedProcesses::from_import(const ImportData& data)
 {
     CELER_EXPECT(!data.processes.empty());
-    return std::make_shared<ImportedProcesses>(std::move(data.processes));
+
+    // Sort processes based on particle def IDs, process types, etc.
+    auto processes = data.processes;
+    auto particles = ParticleParams::from_import(data);
+
+    auto to_process_key = [&particles](const ImportProcess& ip) {
+        return std::make_tuple(particles->find(PDGNumber{ip.particle_pdg}),
+                               ip.process_class);
+    };
+
+    std::sort(processes.begin(),
+              processes.end(),
+              [&to_process_key](const ImportProcess& left,
+                                const ImportProcess& right) {
+                  return to_process_key(left) < to_process_key(right);
+              });
+
+    return std::make_shared<ImportedProcesses>(std::move(processes));
 }
 
 //---------------------------------------------------------------------------//

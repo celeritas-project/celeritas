@@ -18,6 +18,8 @@
 
 namespace celeritas
 {
+struct ImportData;
+
 //---------------------------------------------------------------------------//
 /*!
  * Data management for particle and material cutoff values.
@@ -62,6 +64,9 @@ class CutoffParams
     };
 
   public:
+    // Construct from imported file
+    static std::shared_ptr<CutoffParams> from_import(const ImportData& data);
+
     // Construct with cutoff input data
     explicit CutoffParams(const Input& input);
 

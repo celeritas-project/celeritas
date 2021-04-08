@@ -9,9 +9,64 @@
 
 #include "base/CollectionBuilder.hh"
 #include "physics/base/Units.hh"
+#include "io/ImportData.hh"
+#include "ParticleParams.hh"
+#include "physics/material/MaterialParams.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with imported data from file.
+ */
+std::shared_ptr<CutoffParams> CutoffParams::from_import(const ImportData& data)
+{
+    CELER_EXPECT(!data.particles.empty());
+    CELER_EXPECT(!data.materials.empty());
+    CELER_EXPECT(data.geometry);
+
+    CutoffParams::Input input;
+    input.particles = ParticleParams::from_import(data);
+    input.materials = MaterialParams::from_import(data);
+
+    CELER_ENSURE(input.particles);
+    CELER_ENSURE(input.materials);
+
+    for (auto pid : range(ParticleId{input.particles->size()}))
+    {
+        CutoffParams::MaterialCutoffs m_cutoffs;
+        const auto                    pdg = input.particles->id_to_pdg(pid);
+        const auto&                   geometry_matid_material
+            = data.geometry.matid_to_material_map();
+
+        for (auto matid : range(MaterialId{input.materials->size()}))
+        {
+            const auto& material
+                = geometry_matid_material.find(matid.get())->second;
+            const auto& iter = material.pdg_cutoffs.find(pdg.get());
+
+            ParticleCutoff p_cutoff;
+            if (iter != material.pdg_cutoffs.end())
+            {
+                // Is a particle type with assigned cutoff values
+                p_cutoff.energy = units::MevEnergy{iter->second.energy};
+                p_cutoff.range  = iter->second.range;
+            }
+            else
+            {
+                // Set cutoffs to zero
+                p_cutoff.energy = units::MevEnergy{zero_quantity()};
+                p_cutoff.range  = 0;
+            }
+            m_cutoffs.push_back(p_cutoff);
+        }
+        input.cutoffs.insert({pdg, m_cutoffs});
+    }
+
+    CutoffParams cutoffs(input);
+    return std::make_shared<CutoffParams>(std::move(cutoffs));
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct on both host and device.

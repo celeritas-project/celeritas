@@ -48,7 +48,7 @@ MatterState to_matter_state(const ImportMaterialState state)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from an imported data file.
+ * Construct with imported data from file.
  */
 std::shared_ptr<MaterialParams>
 MaterialParams::from_import(const ImportData& data)
