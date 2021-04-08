@@ -247,7 +247,7 @@ class MaterialParamsImportTest : public celeritas::Test
     ImportData  data_;
 };
 
-TEST_F(MaterialParamsImportTest, import_materials)
+TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_materials))
 {
     const auto material_params = MaterialParams::from_import(data_);
     // Material labels

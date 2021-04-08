@@ -170,7 +170,7 @@ class CutoffParamsImportTest : public celeritas::Test
     ImportData  data_;
 };
 
-TEST_F(CutoffParamsImportTest, import_cutoffs)
+TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
 {
     const auto particles = ParticleParams::from_import(data_);
     const auto materials = MaterialParams::from_import(data_);

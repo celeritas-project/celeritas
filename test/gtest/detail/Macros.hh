@@ -56,6 +56,13 @@
 #    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
 #endif
 
+//! Construct a test name that is disabled when ROOT is disabled
+#if CELERITAS_USE_ROOT
+#    define TEST_IF_CELERITAS_USE_ROOT(name) name
+#else
+#    define TEST_IF_CELERITAS_USE_ROOT(name) DISABLED_##name
+#endif
+
 //! Skip the remainder of the test (only run from the main function!!)
 #define SKIP(msg)                                                      \
     do                                                                 \

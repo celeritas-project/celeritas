@@ -59,35 +59,5 @@ ImportData RootImporter::operator()()
     return import_data;
 }
 
-#if 0
-//---------------------------------------------------------------------------//
-/*!
- * [TEMPORARY] Load GdmlGeometryMap object from the ROOT file.
- *
- * For fully testing the loaded geometry information only.
- *
- * It will be removed as soon as we can load both MATERIAL and VOLUME
- * information into host/device classes.
- */
-std::shared_ptr<GdmlGeometryMap> RootImporter::load_geometry_data()
-{
-    // Open geometry branch
-    std::unique_ptr<TTree> tree_geometry(root_input_->Get<TTree>("geometry"));
-    CELER_ASSERT(tree_geometry);
-    CELER_ASSERT(tree_geometry->GetEntries() == 1);
-
-    // Load branch and fetch data
-    GdmlGeometryMap  geometry;
-    GdmlGeometryMap* geometry_ptr = &geometry;
-
-    int err_code
-        = tree_geometry->SetBranchAddress("GdmlGeometryMap", &geometry_ptr);
-    CELER_ASSERT(err_code >= 0);
-    tree_geometry->GetEntry(0);
-
-    return std::make_shared<GdmlGeometryMap>(std::move(geometry));
-}
-#endif
-
 //---------------------------------------------------------------------------//
 } // namespace celeritas

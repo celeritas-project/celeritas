@@ -17,6 +17,9 @@ class TFile
 
 namespace celeritas
 {
+struct ImportData
+{
+};
 //---------------------------------------------------------------------------//
 RootImporter::RootImporter(const char*)
 {
@@ -25,7 +28,7 @@ RootImporter::RootImporter(const char*)
 
 RootImporter::~RootImporter() = default;
 
-auto RootImporter::operator()() -> result_type
+auto RootImporter::operator()() -> ImportData
 {
     CELER_ASSERT_UNREACHABLE();
 }

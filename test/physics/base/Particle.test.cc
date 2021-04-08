@@ -102,7 +102,7 @@ class ParticleImportTest : public celeritas::Test
     ImportData  data_;
 };
 
-TEST_F(ParticleImportTest, import_particle)
+TEST_F(ParticleImportTest, TEST_IF_CELERITAS_USE_ROOT(import_particle))
 {
     const auto particles = ParticleParams::from_import(data_);
 
