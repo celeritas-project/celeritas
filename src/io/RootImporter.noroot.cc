@@ -28,7 +28,8 @@ RootImporter::RootImporter(const char*)
 
 RootImporter::~RootImporter() = default;
 
-auto RootImporter::operator()() -> ImportData
+auto RootImporter::operator()(const char* tree_name, const char* branch_name)
+    -> ImportData
 {
     CELER_ASSERT_UNREACHABLE();
 }

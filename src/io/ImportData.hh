@@ -18,10 +18,20 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Import all the needed data from Geant4.
- * 
- * This struct combines all other import structures into one single object for
- * a simpler read/write interface.
+ * Import all the needed data from external sources (currently Geant4).
+ *
+ * This struct combines all import structs and classes into one single object
+ * for a simpler read/write interface with ROOT and Celeritas.
+ *
+ * All the data imported to Celeritas is stored in this single struct. Any
+ * external app should fill this struct and record it in a ROOT TBranch, which
+ * will be read by \c RootImporter to load the data into Celeritas.
+ *
+ * \sa ImportParticle
+ * \sa ImportElement
+ * \sa ImportMaterial
+ * \sa ImportProcess
+ * \sa GdmlGeometryMap
  */
 struct ImportData
 {
@@ -30,6 +40,12 @@ struct ImportData
     std::vector<ImportMaterial> materials;
     std::vector<ImportProcess>  processes;
     GdmlGeometryMap             geometry;
+
+    explicit operator bool() const
+    {
+        return !particles.empty() && !elements.empty() && !materials.empty()
+               && !processes.empty() && geometry;
+    }
 };
 
 //---------------------------------------------------------------------------//

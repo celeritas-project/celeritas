@@ -18,13 +18,14 @@ namespace celeritas
 /*!
  * Store element data.
  *
- * Used by ImportMaterial and GdmlGeometryMap.
- *
  * The data is exported via the app/geant-exporter. For further expanding this
  * struct, add the aproppriate variables here and fetch the new values in
- * \c app/geant-exporter.cc : store_geometry(...).
+ * \c app/geant-exporter.cc:store_geometry(...).
  *
  * Units are defined at export time in the aforementioned function.
+ *
+ * \sa ImportData
+ * \sa GdmlGeometryMap
  */
 struct ImportElement
 {

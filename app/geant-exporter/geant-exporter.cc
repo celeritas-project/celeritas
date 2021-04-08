@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geant-exporter.cc
-//! Geant4 particle, XS tables, material, and volume data exporter app.
+//! Geant4 pre-processed data exporter app.
 //---------------------------------------------------------------------------//
 #include <cstdlib>
 #include <memory>
@@ -22,10 +22,10 @@
 #include <G4SystemOfUnits.hh>
 #include <G4Transportation.hh>
 #include <G4ProductionCutsTable.hh>
-#include "G4RToEConvForElectron.hh"
-#include "G4RToEConvForGamma.hh"
-#include "G4RToEConvForPositron.hh"
-#include "G4RToEConvForProton.hh"
+#include <G4RToEConvForElectron.hh>
+#include <G4RToEConvForGamma.hh>
+#include <G4RToEConvForPositron.hh>
+#include <G4RToEConvForProton.hh>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -44,7 +44,7 @@
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
-#include "GeantPhysicsTableWriter.hh"
+#include "ImportProcessWriter.hh"
 #include "GeantLoggerAdapter.hh"
 #include "GeantExceptionHandler.hh"
 
@@ -59,16 +59,13 @@ using celeritas::ImportMaterialState;
 using celeritas::ImportParticle;
 using celeritas::ImportVolume;
 using celeritas::mat_id;
-using celeritas::real_type;
 using celeritas::vol_id;
 using std::cout;
 using std::endl;
 
 //---------------------------------------------------------------------------//
 /*!
- * Write particle table data to ROOT.
- *
- * The ROOT file must be open before this call.
+ * Write particle information to ImportData.
  */
 void store_particles(ImportData& data, G4ParticleTable* particle_table)
 {
@@ -116,18 +113,16 @@ void store_particles(ImportData& data, G4ParticleTable* particle_table)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write physics table data to ROOT.
- *
- * The ROOT file must be open before this call.
+ * Write physics processes, models, and XS table data to ImportData.
  */
-void store_physics_tables(ImportData& data, G4ParticleTable* particle_table)
+void store_physics_processes(ImportData& data, G4ParticleTable* particle_table)
 {
     CELER_EXPECT(particle_table);
 
     CELER_LOG(status) << "Exporting physics tables";
 
     // Start table writer
-    GeantPhysicsTableWriter process_writer(TableSelection::minimal);
+    ImportProcessWriter process_writer(TableSelection::minimal);
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -251,9 +246,7 @@ int to_pdg(const G4ProductionCutsIndex& index)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write material table data to ROOT.
- *
- * The ROOT file must be open before this call.
+ * Write element, material, cutoff, and volume information to ImportData.
  */
 void store_geometry(ImportData&                  data,
                     const G4ProductionCutsTable& g4production_cuts_table,
@@ -282,7 +275,7 @@ void store_geometry(ImportData&                  data,
     }
 
     // Loop over material data
-    for (auto i : celeritas::range(g4production_cuts_table.GetTableSize()))
+    for (int i : celeritas::range(g4production_cuts_table.GetTableSize()))
     {
         // Fetch material, element, and production cuts lists
         const auto& g4material_cuts_couple
@@ -324,9 +317,9 @@ void store_geometry(ImportData&                  data,
         // Populate material production cut values
         for (int i : celeritas::range(NumberOfG4CutIndex))
         {
-            const auto      g4i   = static_cast<G4ProductionCutsIndex>(i);
-            const real_type range = g4prod_cuts->GetProductionCut(g4i);
-            const real_type energy
+            const auto   g4i   = static_cast<G4ProductionCutsIndex>(i);
+            const double range = g4prod_cuts->GetProductionCut(g4i);
+            const double energy
                 = range_to_e_converters[g4i]->Convert(range, g4material);
 
             ImportMaterial::ImportProductionCut cutoffs;
@@ -337,7 +330,7 @@ void store_geometry(ImportData&                  data,
         }
 
         // Populate element information for this material
-        for (auto j : celeritas::range(g4elements->size()))
+        for (int j : celeritas::range(g4elements->size()))
         {
             const auto& g4element = g4elements->at(j);
             CELER_ASSERT(g4element);
@@ -345,8 +338,8 @@ void store_geometry(ImportData&                  data,
             ImportMaterial::ImportMatElemComponent elem_comp;
             elem_comp.element_id    = g4element->GetIndex();
             elem_comp.mass_fraction = g4material->GetFractionVector()[j];
-            real_type elem_num_density
-                = g4material->GetVecNbOfAtomsPerVolume()[j] / (1. / cm3);
+            double elem_num_density = g4material->GetVecNbOfAtomsPerVolume()[j]
+                                      / (1. / cm3);
             elem_comp.number_fraction = elem_num_density
                                         / material.number_density;
 
@@ -370,10 +363,11 @@ void store_geometry(ImportData&                  data,
 
 //---------------------------------------------------------------------------//
 /*!
- * This application exports particle information, XS physics tables, material,
- * and volume information constructed by the physics list and geometry.
+ * This application exports particle information, process, model, XS physics
+ * tables, material, and volume information constructed by the physics list
+ * loaded by the GDMLgeometry.
  *
- * The data is stored into a ROOT file.
+ * The data is stored into a ROOT file as an \c ImportData struct.
  */
 int main(int argc, char* argv[])
 {
@@ -453,13 +447,15 @@ int main(int argc, char* argv[])
     // Store particle information
     store_particles(import_data, G4ParticleTable::GetParticleTable());
 
-    // Store physics tables
-    store_physics_tables(import_data, G4ParticleTable::GetParticleTable());
+    // Store processes, models, and XS tables for each available particle
+    store_physics_processes(import_data, G4ParticleTable::GetParticleTable());
 
-    // Store material and volume information
+    // Store element, material, cutoff, and volume information from the GDML
     store_geometry(import_data,
                    *G4ProductionCutsTable::GetProductionCutsTable(),
                    *world_phys_volume);
+
+    CELER_ENSURE(import_data);
 
     // Write data to disk and close ROOT file
     tree_data.Fill();

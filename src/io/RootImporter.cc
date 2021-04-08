@@ -37,22 +37,28 @@ RootImporter::RootImporter(const char* filename)
 }
 
 //---------------------------------------------------------------------------//
-//! Default destructor
+/*!
+ * Default destructor.
+ */
 RootImporter::~RootImporter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Load all data from the input file.
+ * Load data from the ROOT input file by providing the tree and branch names.
  */
-ImportData RootImporter::operator()()
+ImportData
+RootImporter::operator()(const char* tree_name, const char* branch_name)
 {
-    std::unique_ptr<TTree> tree_data(root_input_->Get<TTree>("geant4_data"));
+    CELER_EXPECT(tree_name);
+    CELER_EXPECT(branch_name);
+
+    std::unique_ptr<TTree> tree_data(root_input_->Get<TTree>(tree_name));
     CELER_ASSERT(tree_data);
     CELER_ASSERT(tree_data->GetEntries() == 1);
 
     ImportData  import_data;
     ImportData* import_data_ptr = &import_data;
-    int err_code = tree_data->SetBranchAddress("ImportData", &import_data_ptr);
+    int err_code = tree_data->SetBranchAddress(branch_name, &import_data_ptr);
     CELER_ASSERT(err_code >= 0);
     tree_data->GetEntry(0);
 

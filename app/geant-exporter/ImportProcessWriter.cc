@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantPhysicsTableWriter.cc
+//! \file ImportProcessWriter.cc
 //---------------------------------------------------------------------------//
-#include "GeantPhysicsTableWriter.hh"
+#include "ImportProcessWriter.hh"
 
 #include <fstream>
 #include <string>
@@ -221,7 +221,7 @@ real_type units_to_scaling(ImportUnits units)
 /*!
  * Construct with existing TFile reference
  */
-GeantPhysicsTableWriter::GeantPhysicsTableWriter(TableSelection which_tables)
+ImportProcessWriter::ImportProcessWriter(TableSelection which_tables)
     : which_tables_(which_tables)
 {
 }
@@ -230,14 +230,14 @@ GeantPhysicsTableWriter::GeantPhysicsTableWriter(TableSelection which_tables)
 /*!
  * Default destructor.
  */
-GeantPhysicsTableWriter::~GeantPhysicsTableWriter() = default;
+ImportProcessWriter::~ImportProcessWriter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
  * Add physics tables to the ROOT file from given process and particle.
  */
-void GeantPhysicsTableWriter::operator()(const G4ParticleDefinition& particle,
-                                         const G4VProcess&           process)
+void ImportProcessWriter::operator()(const G4ParticleDefinition& particle,
+                                     const G4VProcess&           process)
 {
     // Check for duplicate processes
     auto iter_ok = written_processes_.insert({&process, {&particle}});
@@ -293,7 +293,7 @@ void GeantPhysicsTableWriter::operator()(const G4ParticleDefinition& particle,
 /*!
  * Write EM process tables to the TTree.
  */
-void GeantPhysicsTableWriter::fill_em_tables(const G4VEmProcess& process)
+void ImportProcessWriter::fill_em_tables(const G4VEmProcess& process)
 {
     for (auto i : celeritas::range(process.GetNumberOfModels()))
     {
@@ -310,7 +310,7 @@ void GeantPhysicsTableWriter::fill_em_tables(const G4VEmProcess& process)
 /*!
  * Write energy loss tables to the TTree.
  */
-void GeantPhysicsTableWriter::fill_energy_loss_tables(
+void ImportProcessWriter::fill_energy_loss_tables(
     const G4VEnergyLossProcess& process)
 {
     for (auto i : celeritas::range(process.NumberOfModels()))
@@ -351,7 +351,7 @@ void GeantPhysicsTableWriter::fill_energy_loss_tables(
  * Whereas other EM processes combine the model tables into a single process
  * table, MSC keeps them independent.
  */
-void GeantPhysicsTableWriter::fill_multiple_scattering_tables(
+void ImportProcessWriter::fill_multiple_scattering_tables(
     const G4VMultipleScattering& process)
 {
     // TODO: Figure out a method to get the number of models. Max is 4.
@@ -374,8 +374,8 @@ void GeantPhysicsTableWriter::fill_multiple_scattering_tables(
  * It finishes writing the remaining elements of this->process_ and fills the
  * "tables" TTree.
  */
-void GeantPhysicsTableWriter::add_table(const G4PhysicsTable* g4table,
-                                        ImportTableType       table_type)
+void ImportProcessWriter::add_table(const G4PhysicsTable* g4table,
+                                    ImportTableType       table_type)
 {
     if (!g4table)
     {

@@ -315,7 +315,7 @@ int main(int argc, char* argv[])
     try
     {
         RootImporter import(argv[1]);
-        data = import();
+        data = import("geant4_data", "ImportData");
     }
     catch (const DebugError& e)
     {

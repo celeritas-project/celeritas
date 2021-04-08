@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantPhysicsTableWriter.hh
+//! \file ImportProcessWriter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -38,14 +38,14 @@ enum class TableSelection
 /*!
  * TODO Update documentation here.
  */
-class GeantPhysicsTableWriter
+class ImportProcessWriter
 {
   public:
     // Construct with selected list of tables
-    GeantPhysicsTableWriter(TableSelection which_tables);
+    ImportProcessWriter(TableSelection which_tables);
 
     // Write the tables on destruction
-    ~GeantPhysicsTableWriter();
+    ~ImportProcessWriter();
 
     // Write the physics tables from a given particle and physics process
     // Expected to be called within a G4ParticleTable iterator loop

@@ -34,15 +34,14 @@ enum class ImportMaterialState
 /*!
  * Store data of a given material and its elements.
  *
- * Used by the GdmlGeometryMap class.
- *
  * The data is exported via the app/geant-exporter. For further expanding
  * this struct, add the appropriate variables here and fetch the new values in
  * \c app/geant-exporter.cc:store_geometry(...) .
  *
  * Units are defined at export time in the aforementioned function.
  *
- * \sa RootImporter
+ * \sa ImportData
+ * \sa GdmlGeometryMap
  */
 struct ImportMaterial
 {

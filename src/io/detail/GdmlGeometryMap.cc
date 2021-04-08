@@ -14,7 +14,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Return the mat_id for a given vol_id
+ * Return the \c mat_id of a given \c vol_id.
  */
 mat_id GdmlGeometryMap::get_matid(vol_id volume_id) const
 {
@@ -112,6 +112,8 @@ const std::map<vol_id, mat_id>& GdmlGeometryMap::volid_to_matid_map() const
 
 //---------------------------------------------------------------------------//
 // WRITE
+//---------------------------------------------------------------------------//
+
 //---------------------------------------------------------------------------//
 /*!
  * Add \c pair<mat_id,ImportMaterial> to the \c matid_to_material_ map.

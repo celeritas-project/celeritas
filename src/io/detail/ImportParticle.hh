@@ -16,8 +16,9 @@ namespace celeritas
 /*!
  * Store particle data.
  *
- * ImportParticle objects are stored into a ROOT file by the app/geant-exporter
- * and retrieved by the RootImporter class.
+ * The data is exported via the app/geant-exporter. For further expanding
+ * this struct, add the appropriate variables here and fetch the new values in
+ * \c app/geant-exporter.cc:store_particles(...) .
  */
 struct ImportParticle
 {

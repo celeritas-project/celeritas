@@ -35,7 +35,8 @@ class ImportedProcessesTest : public celeritas::Test
         RootImporter import_from_root(
             this->test_data_path("io", "geant-exporter-data.root").c_str());
 
-        auto data  = import_from_root();
+        auto data = import_from_root("geant4_data", "ImportData");
+
         particles_ = std::move(ParticleParams::from_import(data));
         materials_ = std::move(MaterialParams::from_import(data));
         processes_

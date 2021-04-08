@@ -40,7 +40,7 @@ struct ImportData;
  * Usage:
  * \code
  *  RootImporter import("/path/to/rootfile.root");
- *  auto geant_data = import();
+ *  auto geant_data = import("tree_name", "branch_name");
  * \endcode
  *
  * Physics tables currently are a \c vector<ImportPhysicsTable>, since many
@@ -62,8 +62,8 @@ class RootImporter
     // Release ROOT file on exit
     ~RootImporter();
 
-    // Load data from the ROOT file into result_type
-    ImportData operator()();
+    // Load data from the ROOT file
+    ImportData operator()(const char* tree_name, const char* branch_name);
 
   private:
     //// DATA ////

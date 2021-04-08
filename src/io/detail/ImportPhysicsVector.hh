@@ -37,8 +37,8 @@ enum class ImportPhysicsVectorType
 struct ImportPhysicsVector
 {
     ImportPhysicsVectorType vector_type;
-    std::vector<real_type>  x; // (Geant4's binVector)
-    std::vector<real_type>  y; // (Geant4's dataVector)
+    std::vector<double>     x; // (Geant4's binVector)
+    std::vector<double>     y; // (Geant4's dataVector)
 };
 
 //---------------------------------------------------------------------------//
