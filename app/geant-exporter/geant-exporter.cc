@@ -261,8 +261,6 @@ void store_geometry(ImportData&                  data,
 {
     CELER_LOG(status) << "Exporting material and volume information";
 
-    GdmlGeometryMap geometry;
-
     // Loop over element data
     const auto g4element_table = *G4Element::GetElementTable();
     for (const auto& g4element : g4element_table)
@@ -280,7 +278,7 @@ void store_geometry(ImportData&                  data,
 
         // Add element to the global geometry element map
         elem_id elid = g4element->GetIndex();
-        geometry.add_element(elid, element);
+        data.geometry.add_element(elid, element);
     }
 
     // Loop over material data
@@ -359,7 +357,8 @@ void store_geometry(ImportData&                  data,
         // Add material to ImportData
         data.materials.push_back(material);
         // Add material to the global material map
-        geometry.add_material(g4material_cuts_couple->GetIndex(), material);
+        data.geometry.add_material(g4material_cuts_couple->GetIndex(),
+                                   material);
     }
     CELER_LOG(info) << "Added " << g4production_cuts_table.GetTableSize()
                     << " materials";
