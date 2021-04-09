@@ -48,8 +48,7 @@ __global__ void moller_bhabha_interact_kernel(const MollerBhabhaPointers  mb,
                              material.material_id(),
                              tid);
 
-    CutoffView cutoff(
-        ptrs.params.cutoffs, particle.particle_id(), material.material_id());
+    CutoffView cutoff(ptrs.params.cutoffs, material.material_id());
 
     // This interaction only applies if the MB model was selected
     if (physics.model_id() != mb.model_id)

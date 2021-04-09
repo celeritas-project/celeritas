@@ -104,9 +104,9 @@ TEST_F(CutoffParamsTest, empty_cutoffs)
     {
         for (const auto matid : range(MaterialId{material_params->size()}))
         {
-            CutoffView cutoff_view(cutoff_params.host_pointers(), pid, matid);
-            energies.push_back(cutoff_view.energy().value());
-            ranges.push_back(cutoff_view.range());
+            CutoffView cutoff_view(cutoff_params.host_pointers(), matid);
+            energies.push_back(cutoff_view.energy(pid).value());
+            ranges.push_back(cutoff_view.range(pid));
         }
     }
 
@@ -136,10 +136,10 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
     {
         for (const auto matid : range(MaterialId{material_params->size()}))
         {
-            CutoffView cutoff_view(cutoff_params.host_pointers(), pid, matid);
+            CutoffView cutoff_view(cutoff_params.host_pointers(), matid);
 
-            energies.push_back(cutoff_view.energy().value());
-            ranges.push_back(cutoff_view.range());
+            energies.push_back(cutoff_view.energy(pid).value());
+            ranges.push_back(cutoff_view.range(pid));
         }
     }
 

@@ -20,9 +20,9 @@ namespace celeritas
  *
  * \code
  * CutoffParams cutoffs(input);
- * CutoffView cutoff_view(cutoffs.host_pointers(), particle_id, material_id);
- * cutoff_view.energy();
- * cutoff_view.range();
+ * CutoffView cutoff_view(cutoffs.host_pointers(), material_id);
+ * cutoff_view.energy(particle_id);
+ * cutoff_view.range(particle_id);
  * \endcode
  */
 class CutoffView
@@ -30,6 +30,7 @@ class CutoffView
   public:
     //!@{
     //! Type aliases
+    using CutoffId = OpaqueId<ParticleCutoff>;
     using CutoffPointers
         = CutoffParamsData<Ownership::const_reference, MemSpace::native>;
     using Energy = units::MevEnergy;
@@ -38,19 +39,17 @@ class CutoffView
   public:
     // Construct for the given particle and material ids
     inline CELER_FUNCTION CutoffView(const CutoffPointers& params,
-                                     ParticleId            particle,
                                      MaterialId            material);
 
     //! Return energy cutoff value
-    CELER_FORCEINLINE_FUNCTION Energy energy() const { return cutoff_.energy; }
+    inline CELER_FUNCTION Energy energy(ParticleId particle) const;
+
     //! Return range cutoff value
-    CELER_FORCEINLINE_FUNCTION real_type range() const
-    {
-        return cutoff_.range;
-    }
+    inline CELER_FUNCTION real_type range(ParticleId particle) const;
 
   private:
-    ParticleCutoff cutoff_;
+    const CutoffPointers& params_;
+    MaterialId            material_;
 };
 
 //---------------------------------------------------------------------------//
