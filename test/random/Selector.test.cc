@@ -18,16 +18,11 @@ using celeritas_test::SequenceEngine;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-template<class T>
 class PdfSelectorTest : public celeritas::Test
 {
   public:
-    using PdfSelector
-        = celeritas::Selector<std::function<double(int)>, int, T::value>;
+    using SelectorT = celeritas::Selector<std::function<double(int)>, int>;
 };
-
-using BoolValueTypes = ::testing::Types<std::true_type, std::false_type>;
-TYPED_TEST_SUITE(PdfSelectorTest, BoolValueTypes, );
 
 SequenceEngine make_rng(double select_val)
 {
@@ -38,10 +33,8 @@ SequenceEngine make_rng(double select_val)
 // TESTS
 //---------------------------------------------------------------------------//
 
-TYPED_TEST(PdfSelectorTest, typical)
+TEST_F(PdfSelectorTest, typical)
 {
-    using SelectorT = typename TestFixture::PdfSelector;
-
     static const double prob[] = {0.1, 0.3, 0.5, 0.1};
 
     SelectorT sample_prob{[](int i) { return prob[i]; }, 4, 1.0};
@@ -68,9 +61,8 @@ TYPED_TEST(PdfSelectorTest, typical)
     EXPECT_EQ(3, sample_prob(rng));
 }
 
-TYPED_TEST(PdfSelectorTest, zeros)
+TEST_F(PdfSelectorTest, zeros)
 {
-    using SelectorT            = typename TestFixture::PdfSelector;
     static const double prob[] = {0.0, 0.0, 0.4, 0.6};
 
     SelectorT sample_prob{[](int i) { return prob[i]; }, 4, 1.0};
@@ -82,40 +74,13 @@ TYPED_TEST(PdfSelectorTest, zeros)
     EXPECT_EQ(2, sample_prob(rng));
 }
 
-TYPED_TEST(PdfSelectorTest, invalid_total)
+TEST_F(PdfSelectorTest, TEST_IF_CELERITAS_DEBUG(invalid_total))
 {
-    using SelectorT             = typename TestFixture::PdfSelector;
     static const double prob[]  = {0.1, 0.3, 0.5, 0.1};
     auto                get_val = [](int i) { return prob[i]; };
 
-    {
-        // Too high
-        SelectorT sample_prob{get_val, 4, 1.1};
-
-        // Not checked since last entry isn't reached; answer is biased
-        auto rng = make_rng(0.75);
-        EXPECT_EQ(2, sample_prob(rng));
-
-        rng = make_rng(0.95);
-        if (CELERITAS_DEBUG && sample_prob.use_debug_sampling)
-        {
-            // Should be checked on final value
-            EXPECT_THROW(sample_prob(rng), celeritas::DebugError);
-        }
-        else
-        {
-            EXPECT_EQ(3, sample_prob(rng));
-        }
-    }
-    {
-        // Too low (last value isn't accounted for)
-        SelectorT sample_prob{get_val, 4, 0.9};
-
-        // Error checking won't catch too-low total unless we always loop over
-        // all values
-        auto rng = make_rng(0.9999);
-        EXPECT_EQ(2, sample_prob(rng));
-    }
+    EXPECT_THROW(SelectorT(get_val, 4, 1.1), celeritas::DebugError);
+    EXPECT_THROW(SelectorT(get_val, 4, 0.9), celeritas::DebugError);
 }
 
 TEST(SelectorTest, make_selector)
@@ -154,16 +119,15 @@ TEST(SelectorTest, selector_element)
 
     rng = make_rng(1.000000001 / 7.0);
     EXPECT_EQ(1, sample_el(rng).unchecked_get());
-    const int expected_evaluated[] = {0, 0, 0, 1};
-    EXPECT_VEC_EQ(expected_evaluated, evaluated);
 
     rng = make_rng(3.0001 / 7.0);
     EXPECT_EQ(2, sample_el(rng).unchecked_get());
 
-    // In debug, extra error checking evaluates the "last" one
-    if (sample_el.use_debug_sampling)
+    // In debug, extra error checking evaluates all IDs during construction.
+    // Final value is only ever evaluated as part of debugging.
+    if (CELERITAS_DEBUG)
     {
-        const int expected_evaluated_final[] = {0, 0, 0, 1, 0, 1, 2};
+        const int expected_evaluated_final[] = {0, 1, 2, 0, 0, 0, 1, 0, 1};
         EXPECT_VEC_EQ(expected_evaluated_final, evaluated);
     }
     else

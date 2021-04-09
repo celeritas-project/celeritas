@@ -15,13 +15,15 @@ namespace celeritas
 /*!
  * Construct with function, size, and accumulated value.
  */
-template<class F, class T, bool D>
+template<class F, class T>
 CELER_FUNCTION
-Selector<F, T, D>::Selector(F&& eval, value_type size, real_type total)
+Selector<F, T>::Selector(F&& eval, value_type size, real_type total)
     : eval_{std::forward<F>(eval)}, last_{size}, total_{total}
 {
     CELER_EXPECT(last_ != IterT{});
-    CELER_EXPECT(total_ >= 0);
+    CELER_EXPECT(total_ > 0);
+    CELER_EXPECT(
+        celeritas::soft_equal(this->debug_accumulated_total(), total_));
 
     // Don't accumulate the last value except to assert that the 'total'
     // isn't out-of-bounds
@@ -32,37 +34,37 @@ Selector<F, T, D>::Selector(F&& eval, value_type size, real_type total)
 /*!
  * Sample from the distribution.
  */
-template<class F, class T, bool D>
+template<class F, class T>
 template<class Engine>
-CELER_FUNCTION T Selector<F, T, D>::operator()(Engine& rng) const
+CELER_FUNCTION T Selector<F, T>::operator()(Engine& rng) const
 {
-    if (!use_debug_sampling)
+    real_type accum = -total_ * generate_canonical(rng);
+    for (IterT iter{}; iter != last_; ++iter)
     {
-        real_type accum = -total_ * generate_canonical(rng);
-        for (IterT iter{}; iter != last_; ++iter)
-        {
-            accum += eval_(*iter);
-            if (accum > 0)
-                return *iter;
-        }
+        accum += eval_(*iter);
+        if (accum > 0)
+            return *iter;
     }
-    else
-    {
-        // Equivalent to opt, but uses one more register and checks final value
-        real_type accum = 0;
-        real_type stop  = total_ * generate_canonical(rng);
-        for (IterT iter{}; iter != last_; ++iter)
-        {
-            accum += eval_(*iter);
-            if (accum > stop)
-                return *iter;
-        }
 
-        // Check that the final value works and sums up to the expected total
-        accum += eval_(*last_);
-        CELER_ENSURE(celeritas::soft_equal(accum, total_));
-    }
     return *last_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Accumulate total value for debug checking.
+ *
+ * This should *only* be used in the constructor before last_ is decremented.
+ */
+template<class F, class T>
+CELER_FUNCTION auto Selector<F, T>::debug_accumulated_total() const
+    -> real_type
+{
+    real_type accum = 0;
+    for (IterT iter{}; iter != last_; ++iter)
+    {
+        accum += eval_(*iter);
+    }
+    return accum;
 }
 
 //---------------------------------------------------------------------------//

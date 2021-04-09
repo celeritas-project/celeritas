@@ -20,9 +20,12 @@ namespace celeritas
  * integer index or by OpaqueId. Edge cases are thoroughly tested (it will
  * never iterate off the end, even for incorrect values of the "total"
  * probability/xs), and it uses one fewer register than the typical
- * accumulation algorithm. A "debug" version can check that the provided
- "total"
- * value isn't higher than the sum.
+ * accumulation algorithm. When building with debug checking, the constructor
+ * asserts that the provided "total" value is consistent.
+ *
+ * The given function *must* return a consistent value for the same given
+ * argument.
+ *
  * \code
     auto select_el = make_selector(
         [](ElementId i) { return xs[i.get()]; },
@@ -37,7 +40,7 @@ namespace celeritas
     size_type idx = select_val(rng);
    \endcode
  */
-template<class F, class T, bool D = CELERITAS_DEBUG>
+template<class F, class T>
 class Selector
 {
   public:
@@ -46,8 +49,6 @@ class Selector
     using value_type = T;
     using real_type  = typename std::result_of<F(value_type)>::type;
     //!@}
-
-    constexpr static bool use_debug_sampling = D;
 
   public:
     // Construct with function, size, and accumulated value
@@ -63,6 +64,9 @@ class Selector
     F         eval_;
     IterT     last_;
     real_type total_;
+
+    // Total value, for debug checking
+    inline CELER_FUNCTION real_type debug_accumulated_total() const;
 };
 
 //---------------------------------------------------------------------------//
