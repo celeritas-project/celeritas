@@ -15,7 +15,7 @@ namespace geant_exporter
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a particle gun for a Geant4 minimal run.
+ * Construct a particle gun for the minimal simulation run.
  */
 PrimaryGeneratorAction::PrimaryGeneratorAction()
     : G4VUserPrimaryGeneratorAction(), particle_gun_(nullptr)

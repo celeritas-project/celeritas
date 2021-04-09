@@ -17,19 +17,18 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with imported data from file.
+ * Construct with imported data.
  */
 std::shared_ptr<ParticleParams>
 ParticleParams::from_import(const ImportData& data)
 {
-    CELER_EXPECT(!data.particles.empty());
+    CELER_EXPECT(data);
 
-    const auto particles = data.particles;
-    Input      defs(particles.size());
+    Input defs(data.particles.size());
 
-    for (auto i : range(particles.size()))
+    for (auto i : range(data.particles.size()))
     {
-        const auto particle = particles.at(i);
+        const auto& particle = data.particles.at(i);
         CELER_ASSERT(!particle.name.empty());
 
         // Convert metadata

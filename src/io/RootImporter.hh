@@ -32,31 +32,24 @@ struct ImportData;
  * Currently, said ROOT file is created by the \e app/geant-exporter external
  * code.
  *
- * The geant-exporter app only pulls data from Geant4. Conversely, all the
- * \c [Class]Params only live in Celeritas. Thus, \c RootImporter , along with
- * all \c Import[Class] type of classes, are the link between Geant4 and
- * Celeritas. Every host/device class that relies on imported data has its own
- * \c from_import(...) function that will take the data loaded by the
- * \c RootImporter and import it accordingly:
+ * \c RootImporter , along with all \c Import[Class] type of classes, are the
+ * link between Geant4 and Celeritas. Every Celeritas' host/device class that
+ * relies on imported data has its own \c from_import(...) function that will
+ * take the data loaded by the \c RootImporter and load it accordingly:
  *
  * \code
  *  RootImporter import("/path/to/root_file.root");
- *  const auto data            = import("tree_name", "import_data_branch");
+ *  const auto data            = import("tree", "import_data_branch");
  *  const auto particle_params = ParticleParams::from_import(data);
  *  const auto material_params = MaterialParams::from_import(data);
  *  const auto cutoff_params   = CutoffParams::from_import(data);
  *  // And so on
  * \endcode
- *
- * Material and volume information are stored in the \c GdmlGeometryMap class.
- * The \c mat_id returned from a given \c vol_id represents the position of
- * said material in the \c ImportPhysicsTable vectors:
- * \c ImportPhysicsTable.physics_vectors.at(mat_id) .
  */
 class RootImporter
 {
   public:
-    // Construct with exported ROOT file
+    // Construct with ROOT file name
     explicit RootImporter(const char* filename);
 
     // Release ROOT file on exit
@@ -66,7 +59,6 @@ class RootImporter
     ImportData operator()(const char* tree_name, const char* branch_name);
 
   private:
-    //// DATA ////
     std::unique_ptr<TFile> root_input_;
 };
 

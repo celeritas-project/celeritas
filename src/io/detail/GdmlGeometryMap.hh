@@ -20,15 +20,15 @@ namespace celeritas
 /*!
  * Store material, element, and volume information.
  *
- * - The material id maps materials in the global material map. It also
- *   represents the position of the material in the vector<ImportPhysicsVector>
- *   of the ImportPhysicsTable.
- * - The element id maps elements in the global element map.
- * - The volume id maps volumes in the global volume map.
- * - Volume id and material id are linked by a map, so that given a volume id
- *   one can retrieve full material and element information, including XS data.
- *
- * The data is exported via the \e geant-exporter in
+ * - The \c mat_id maps materials in the global material map. It also
+ *   represents the position of said material in the \c ImportPhysicsTable
+ *   vectors: \c ImportPhysicsTable.physics_vectors.at(mat_id) .
+ * - The \c elem_id maps elements in the global element map.
+ * - The \c vol_id maps volumes in the global volume map.
+ * - \c vol_id and \c mat_id pairs are also mapped, such that from a \c vol_id
+ *   one can fully retrieve all material and element information.
+ * 
+ * This data is exported via the \e geant-exporter in
  * \c geant-exporter.cc:store_geometry(...) .
  *
  * \sa ImportData
@@ -55,6 +55,7 @@ class GdmlGeometryMap
 
     // Return the size of the largest material element list
     auto max_num_elements() const -> size_type;
+
     // Return a reference to matid_to_material map
     const std::map<mat_id, ImportMaterial>& matid_to_material_map() const;
     // Return a reference to volid_to_volume_ map
@@ -78,8 +79,8 @@ class GdmlGeometryMap
     // Boolean operator for assertion macros
     explicit operator bool() const
     {
-        return matid_to_material_.size() > 0 && volid_to_volume_.size() > 0
-               && elemid_to_element_.size() > 0 && volid_to_matid_.size() > 0;
+        return !matid_to_material_.empty() && !volid_to_volume_.empty()
+               && !elemid_to_element_.empty() && !volid_to_matid_.empty();
     }
 
   private:

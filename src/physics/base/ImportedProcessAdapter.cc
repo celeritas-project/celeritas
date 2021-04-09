@@ -17,12 +17,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with imported data from file.
+ * Construct with imported data.
  */
 std::shared_ptr<ImportedProcesses>
 ImportedProcesses::from_import(const ImportData& data)
 {
-    CELER_EXPECT(!data.processes.empty());
+    CELER_EXPECT(data);
 
     // Sort processes based on particle def IDs, process types, etc.
     auto processes = data.processes;

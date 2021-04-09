@@ -64,7 +64,7 @@ class MaterialParams
     };
 
   public:
-    // Construct from imported file
+    // Construct with imported data
     static std::shared_ptr<MaterialParams> from_import(const ImportData& data);
 
     // Construct with a vector of material definitions

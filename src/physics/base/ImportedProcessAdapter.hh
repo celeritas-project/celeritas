@@ -35,7 +35,7 @@ class ImportedProcesses
     //!@}
 
   public:
-    // Construct from imported file
+    // Construct with imported data
     static std::shared_ptr<ImportedProcesses>
     from_import(const ImportData& data);
 

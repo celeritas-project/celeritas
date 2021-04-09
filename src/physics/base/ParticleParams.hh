@@ -63,7 +63,7 @@ class ParticleParams
     using Input = std::vector<ParticleInput>;
 
   public:
-    // Construct from imported file
+    // Construct with imported data
     static std::shared_ptr<ParticleParams> from_import(const ImportData& data);
 
     // Construct with a vector of particle definitions

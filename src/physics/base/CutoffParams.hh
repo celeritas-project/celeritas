@@ -64,7 +64,7 @@ class CutoffParams
     };
 
   public:
-    // Construct from imported file
+    // Construct with imported data
     static std::shared_ptr<CutoffParams> from_import(const ImportData& data);
 
     // Construct with cutoff input data
