@@ -107,6 +107,9 @@ void PhysicsParams::build_options(const Options& opts, HostValue* data) const
     CELER_VALIDATE(opts.max_step_over_range > 0,
                    << "invalid max_step_over_range="
                    << opts.max_step_over_range << " (should be positive)");
+    CELER_VALIDATE(opts.min_eprime_over_e > 0 && opts.min_eprime_over_e < 1,
+                   << "invalid min_eprime_over_e=" << opts.min_eprime_over_e
+                   << " (should be be within 0 < limit < 1)");
     CELER_VALIDATE(opts.min_range > 0,
                    << "invalid min_range=" << opts.min_range
                    << " (should be positive)");
@@ -115,6 +118,7 @@ void PhysicsParams::build_options(const Options& opts, HostValue* data) const
                    << " (should be be within 0 <= limit <= 1)");
     data->scaling_min_range = opts.min_range;
     data->scaling_fraction  = opts.max_step_over_range;
+    data->energy_fraction   = opts.min_eprime_over_e;
     data->linear_loss_limit = opts.linear_loss_limit;
 }
 
@@ -352,6 +356,7 @@ void PhysicsParams::build_xs(const Options&        opts,
 
                     // Find the energy of the largest cross section
                     real_type xs_max = 0;
+                    real_type e_max  = 0;
                     for (auto i : range(loge_grid.size()))
                     {
                         real_type energy = std::exp(loge_grid[i]);
@@ -361,11 +366,12 @@ void PhysicsParams::build_xs(const Options&        opts,
 
                         if (xs > xs_max)
                         {
-                            xs_max                   = xs;
-                            energy_max[mat_id.get()] = energy;
+                            xs_max = xs;
+                            e_max  = energy;
                         }
                     }
-                    CELER_ASSERT(energy_max[mat_id.get()] > 0);
+                    CELER_ASSERT(e_max > 0);
+                    energy_max[mat_id.get()] = e_max;
                 }
             }
 

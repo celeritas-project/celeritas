@@ -205,8 +205,8 @@ CELER_FUNCTION ParticleTrackView::Energy
  *   determine the interacting process ID.
  * - From the process ID and (post-slowing-down) particle energy, we obtain the
  *   applicable model ID.
- * - For continuous-discrete interactions, the post-step energy will be
- *   different from the pre-step energy, so the assumption that the cross
+ * - For energy loss (continuous-discrete) processes, the post-step energy will
+ *   be different from the pre-step energy, so the assumption that the cross
  *   section is constant along the step is no longer valid. Use the "integral
  *   approach" to sample the discrete interaction from the correct probability
  *   distribution (section 7.4 of the Geant4 Physics Reference release 10.6).

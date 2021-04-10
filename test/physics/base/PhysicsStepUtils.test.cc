@@ -283,11 +283,10 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
     }
     {
         // Test the integral approach
-        const real_type expected_acceptance_rate[] = {11. / 12, 0.5, 1};
-
-        unsigned int           num_samples   = 20000;
-        std::vector<real_type> inc_energy    = {0.01, 0.1, 10};
-        std::vector<real_type> scaled_energy = {0.001, 0.001, 8};
+        unsigned int           num_samples   = 10000;
+        std::vector<real_type> inc_energy    = {0.01, 0.01, 0.1, 10};
+        std::vector<real_type> scaled_energy = {0.001, 0.00999, 0.001, 8};
+        std::vector<real_type> acceptance_rate;
 
         for (auto i : range(inc_energy.size()))
         {
@@ -315,12 +314,10 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
                 if (select_process_and_model(particle, phys, this->rng()))
                     ++count;
             }
-            // Note that if the cross section is larger at the post-step
-            // energy, the interaction should always occur and the acceptance
-            // rate will be exactly 1.
-            real_type acceptance_rate = real_type(count) / num_samples;
-            EXPECT_SOFT_NEAR(
-                expected_acceptance_rate[i], acceptance_rate, 1e-2);
+            acceptance_rate.push_back(real_type(count) / num_samples);
         }
+        const real_type expected_acceptance_rate[]
+            = {0.9204, 0.9999, 0.4972, 1};
+        EXPECT_VEC_EQ(expected_acceptance_rate, acceptance_rate);
     }
 }

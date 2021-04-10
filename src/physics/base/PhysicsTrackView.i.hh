@@ -275,17 +275,20 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
                                                    ValueGridId       grid_id,
                                                    MevEnergy energy) const
 {
-    auto      calc_xs    = this->make_calculator<XsCalculator>(grid_id);
+    auto calc_xs = this->make_calculator<XsCalculator>(grid_id);
+
+    // Check if the integral approach is used (true if \c energy_max > 0). If
+    // so, an estimate of the maximum cross section over the step is used as
+    // the macro xs for this process
     real_type energy_max = this->energy_max(ppid);
     if (energy_max > 0)
     {
-        // Use the integral approach for energy loss processes
         real_type energy_xi = energy.value() * this->energy_fraction();
         if (energy_max >= energy_xi && energy_max < energy.value())
             return calc_xs(MevEnergy{energy_max});
-        else
-            return max(calc_xs(energy), calc_xs(MevEnergy{energy_xi}));
+        return max(calc_xs(energy), calc_xs(MevEnergy{energy_xi}));
     }
+
     return calc_xs(energy);
 }
 
@@ -364,13 +367,12 @@ CELER_FUNCTION real_type PhysicsTrackView::linear_loss_limit() const
 /*!
  * Energy scaling fraction used to estimate maximum cross section over a step.
  *
- * This parameter is defined as \f$ \xi = 1 - \alpha \f$, where \f$ \alpha \f$
- * is \c scaling_fraction.
+ * By default this parameter is defined as \f$ \xi = 1 - \alpha \f$, where \f$
+ * \alpha \f$ is \c scaling_fraction.
  */
 CELER_FUNCTION real_type PhysicsTrackView::energy_fraction() const
 {
-    CELER_EXPECT(params_.scaling_fraction <= 1);
-    return 1 - params_.scaling_fraction;
+    return params_.energy_fraction;
 }
 
 //---------------------------------------------------------------------------//
@@ -380,7 +382,7 @@ CELER_FUNCTION real_type PhysicsTrackView::energy_fraction() const
 CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(
     ModelId model, const MaterialView& material, MevEnergy energy) const
 {
-    real_type result = 0.;
+    real_type result = 0;
     if (model == params_.hardwired.livermore_pe)
     {
         auto calc_xs = LivermorePEMacroXsCalculator(

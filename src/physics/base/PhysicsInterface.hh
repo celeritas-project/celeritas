@@ -187,6 +187,7 @@ struct PhysicsParamsData
     // User-configurable constants
     real_type scaling_min_range{}; //!< rho [cm]
     real_type scaling_fraction{};  //!< alpha [unitless]
+    real_type energy_fraction{};   //!< xi [unitless]
     real_type linear_loss_limit{}; //!< For scaled range calculation
 
     //// METHODS ////
@@ -196,7 +197,7 @@ struct PhysicsParamsData
     {
         return !process_groups.empty() && max_particle_processes
                && scaling_min_range > 0 && scaling_fraction > 0
-               && linear_loss_limit > 0;
+               && energy_fraction > 0 && linear_loss_limit > 0;
     }
 
     //! Assign from another set of data
@@ -219,6 +220,7 @@ struct PhysicsParamsData
 
         scaling_min_range = other.scaling_min_range;
         scaling_fraction  = other.scaling_fraction;
+        energy_fraction   = other.energy_fraction;
         linear_loss_limit = other.linear_loss_limit;
 
         return *this;
