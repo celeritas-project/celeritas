@@ -11,6 +11,7 @@
 #include "base/Types.hh"
 #include "base/Collection.hh"
 #include "physics/base/Types.hh"
+#include "physics/material/Types.hh"
 
 namespace celeritas
 {
@@ -60,9 +61,6 @@ struct RayleighGroup
 
     //! ID of a gamma
     ParticleId gamma_id;
-
-    //! Rayleigh angular parameters
-    using ElementId = celeritas::ItemId<unsigned int>;
 
     template<class T>
     using ElementItems = celeritas::Collection<T, W, M, ElementId>;

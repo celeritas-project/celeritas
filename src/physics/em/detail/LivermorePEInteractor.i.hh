@@ -41,7 +41,7 @@ LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
     CELER_EXPECT(inc_energy_.value() > 0);
     CELER_EXPECT(!shared_.atomic_relaxation || scratch_.vacancies);
 
-    inv_energy_ = 1. / inc_energy_.value();
+    inv_energy_ = 1 / inc_energy_.value();
 }
 
 //---------------------------------------------------------------------------//
@@ -88,7 +88,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 
     // Sample the shell from which the photoelectron is emitted
     real_type cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
-    real_type xs     = 0.;
+    real_type xs               = 0;
     const LivermoreElement& el = shared_.xs_data.elements[el_id_];
     const auto&             shells = shared_.xs_data.shells[el.shells];
     SubshellId::size_type   shell_id;
@@ -216,16 +216,17 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
     }
 
     // Calculate Lorentz factors of the photoelectron
-    real_type gamma = energy_per_mecsq + 1.;
-    real_type beta  = std::sqrt(energy_per_mecsq * (gamma + 1.)) / gamma;
-    real_type a     = (1. - beta) / beta;
+    real_type gamma = energy_per_mecsq + 1;
+    real_type beta  = std::sqrt(energy_per_mecsq * (gamma + 1)) / gamma;
+    real_type a     = (1 - beta) / beta;
 
     // Second term inside the brackets in Eq. 2.8 in the Penelope manual
-    real_type b = 0.5 * beta * gamma * energy_per_mecsq * (gamma - 2.);
+    constexpr real_type half = 0.5;
+    real_type b = half * beta * gamma * energy_per_mecsq * (gamma - 2);
 
     // Maximum of the rejection function g(1 - cos \theta) given in Eq. 2.8,
     // which is attained when 1 - cos \theta = 0
-    real_type g_max = 2. * (1. / a + b);
+    real_type g_max = 2 * (1 / a + b);
 
     // Rejection loop: sample 1 - cos \theta
     real_type g;
@@ -235,17 +236,17 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
         // Sample 1 - cos \theta from the distribution given in Eq. 2.9 using
         // the inverse function (Eq. 2.11)
         real_type u = generate_canonical(rng);
-        nu          = 2. * a * (2. * u + (a + 2.) * std::sqrt(u))
-             / ((a + 2.) * (a + 2.) - 4. * u);
+        nu          = 2 * a * (2 * u + (a + 2) * std::sqrt(u))
+             / ((a + 2) * (a + 2) - 4 * u);
 
         // Calculate the rejection function (Eq 2.8) at the sampled value
-        g = (2. - nu) * (1. / (a + nu) + b);
+        g = (2 - nu) * (1 / (a + nu) + b);
     } while (g < g_max * generate_canonical(rng));
 
     // Sample the azimuthal angle and calculate the direction of the
     // photoelectron
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    return rotate(from_spherical(1. - nu, sample_phi(rng)), inc_direction_);
+    return rotate(from_spherical(1 - nu, sample_phi(rng)), inc_direction_);
 }
 
 //---------------------------------------------------------------------------//

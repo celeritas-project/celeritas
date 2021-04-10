@@ -58,10 +58,11 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
                                            * shared_.inv_electron_mass;
     const real_type epsilon_0     = 1 / (1 + 2 * inc_energy_per_mecsq);
     const real_type log_epsilon_0 = std::log(epsilon_0);
+    constexpr real_type half          = 0.5;
 
     // Probability of alpha_1 to choose f1 (sample epsilon)
     BernoulliDistribution choose_f1(-log_epsilon_0,
-                                    0.5 * (1 - epsilon_0 * epsilon_0));
+                                    half * (1 - epsilon_0 * epsilon_0));
     // Sample square of f_2(\eps) \propto \eps on [\eps_0, 1]
     UniformRealDistribution<real_type> sample_f2_sq(epsilon_0 * epsilon_0, 1);
 
