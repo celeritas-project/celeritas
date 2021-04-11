@@ -105,15 +105,15 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
             }
             else
             {
+                // clang-format off
                 // Use parameterized integrated subshell cross sections
-                const auto& param = inc_energy_ >= el.thresh_hi
-                                        ? shared_.xs_data.reals[shell.param_hi]
-                                        : shared_.xs_data.reals[shell.param_lo];
+                const auto& param = shared_.xs_data.reals[
+                    inc_energy_ >= el.thresh_hi ? shell.param_hi
+                                                : shell.param_lo];
 
                 // Calculate the subshell cross section from the fit parameters
                 // and energy as \sigma(E) = a_1 / E + a_2 / E^2 + a_3 / E^3 +
                 // a_4 / E^4 + a_5 / E^5 + a_6 / E^6.
-                // clang-format off
                 xs += inv_energy_ * (param[0] + inv_energy_ * (param[1]
                     + inv_energy_ * (param[2] + inv_energy_ * (param[3]
                     + inv_energy_ * (param[4] + inv_energy_ *  param[5])))));
