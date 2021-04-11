@@ -114,9 +114,9 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
                 // and energy as \sigma(E) = a_1 / E + a_2 / E^2 + a_3 / E^3 +
                 // a_4 / E^4 + a_5 / E^5 + a_6 / E^6.
                 // clang-format off
-                xs = inv_energy_ * (param[0] + inv_energy_ * (param[1]
-                   + inv_energy_ * (param[2] + inv_energy_ * (param[3]
-                   + inv_energy_ * (param[4] + inv_energy_ * param[5])))));
+                xs += inv_energy_ * (param[0] + inv_energy_ * (param[1]
+                    + inv_energy_ * (param[2] + inv_energy_ * (param[3]
+                    + inv_energy_ * (param[4] + inv_energy_ *  param[5])))));
                 // clang-format on
             }
 
