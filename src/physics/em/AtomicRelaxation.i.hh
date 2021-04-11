@@ -25,11 +25,14 @@ namespace celeritas
  */
 CELER_FUNCTION
 AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
+                                   const CutoffView&                cutoffs,
                                    ElementId                        el_id,
                                    SubshellId                       shell_id,
                                    Span<Secondary>  secondaries,
                                    Span<SubshellId> vacancies)
     : shared_(shared)
+    , gamma_cutoff_(cutoffs.energy(shared_.gamma_id).value())
+    , electron_cutoff_(cutoffs.energy(shared_.electron_id).value())
     , el_id_(el_id)
     , shell_id_(shell_id)
     , secondaries_(secondaries)
@@ -93,7 +96,7 @@ AtomicRelaxation::operator()(Engine& rng)
         {
             vacancies.push(transition.auger_shell);
 
-            if (transition.energy >= shared_.electron_cut.value())
+            if (transition.energy >= electron_cutoff_)
             {
                 // Sampled a non-radiative transition: create an Auger electron
                 CELER_ASSERT(count < secondaries_.size());
@@ -103,7 +106,7 @@ AtomicRelaxation::operator()(Engine& rng)
                 secondary.particle_id = shared_.electron_id;
             }
         }
-        else if (transition.energy >= shared_.gamma_cut.value())
+        else if (transition.energy >= gamma_cutoff_)
         {
             // Sampled a radiative transition: create a fluorescence photon
             CELER_ASSERT(count < secondaries_.size());
