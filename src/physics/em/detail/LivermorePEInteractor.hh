@@ -87,6 +87,10 @@ class LivermorePEInteractor
 
     //// HELPER FUNCTIONS ////
 
+    // Sample the atomic subshel
+    template<class Engine>
+    inline CELER_FUNCTION SubshellId sample_subshell(Engine& rng) const;
+
     // Sample the direction of the emitted photoelectron
     template<class Engine>
     inline CELER_FUNCTION Real3 sample_direction(Engine& rng) const;
