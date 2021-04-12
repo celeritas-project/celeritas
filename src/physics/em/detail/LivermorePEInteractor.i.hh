@@ -102,8 +102,8 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     // Construct interaction for change to primary (incident) particle
     MevEnergy binding_energy;
     {
-        const LivermoreElement& el     = shared_.xs_data.elements[el_id_];
-        const auto&             shells = shared_.xs_data.shells[el.shells];
+        const LivermoreElement& el     = shared_.xs.elements[el_id_];
+        const auto&             shells = shared_.xs.shells[el.shells];
         binding_energy                 = shells[shell_id.get()].binding_energy;
     }
 
@@ -157,8 +157,8 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 template<class Engine>
 CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) const
 {
-    const LivermoreElement& el       = shared_.xs_data.elements[el_id_];
-    const auto&             shells   = shared_.xs_data.shells[el.shells];
+    const LivermoreElement& el       = shared_.xs.elements[el_id_];
+    const auto&             shells   = shared_.xs.shells[el.shells];
     size_type               shell_id = 0;
 
     // Skip shells with too-high binding energy
@@ -187,8 +187,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
             CELER_ASSERT(inc_energy_ > shells[shell_id].binding_energy);
 
             // Use the tabulated subshell cross sections
-            GenericXsCalculator calc_xs(shells[shell_id].xs_data,
-                                        shared_.xs_data.reals);
+            GenericXsCalculator calc_xs(shells[shell_id].xs, shared_.xs.reals);
             xs += inv_cube_energy * calc_xs(inc_energy_.value());
 
             if (xs >= cutoff)
@@ -206,7 +205,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
 
             // clang-format off
             const auto& shell = shells[shell_id];
-            const auto& param = shared_.xs_data.reals[
+            const auto& param = shared_.xs.reals[
                 inc_energy_ < el.thresh_hi ? shell.param_lo
                                             : shell.param_hi];
 
