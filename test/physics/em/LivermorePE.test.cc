@@ -287,7 +287,7 @@ TEST_F(LivermorePETest, stress_test)
     // PRINT_EXPECTED(avg_engine_samples);
     // PRINT_EXPECTED(avg_num_secondaries);
     // PRINT_EXPECTED(avg_cosine);
-    PRINT_EXPECTED(avg_energy);
+    // PRINT_EXPECTED(avg_energy);
 
     // Gold values
     const double expected_avg_engine_samples[]
@@ -305,10 +305,10 @@ TEST_F(LivermorePETest, stress_test)
     EXPECT_VEC_SOFT_EQ(expected_avg_cosine, expected_avg_cosine);
 
     const double expected_avg_energy[] = {7.287875885011e-05,
-                                          0.006704114382321,
-                                          0.9967032321416,
-                                          9.996700879509,
-                                          999.9967031335};
+                                          0.006708485731503,
+                                          0.9967066970311,
+                                          9.996704339284,
+                                          999.9967069717};
     EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);
 }
 
