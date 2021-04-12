@@ -92,11 +92,11 @@ class PhysicsTrackView
     inline CELER_FUNCTION ValueGridId value_grid(ValueGridType table,
                                                  ParticleProcessId) const;
 
-    // Whether to use integral approach to sample interaction probability
-    inline CELER_FUNCTION bool use_integral(ParticleProcessId ppid) const;
+    // Whether to use integral approach to sample the discrete interaction
+    inline CELER_FUNCTION bool use_integral_xs(ParticleProcessId ppid) const;
 
     // Energy corresponding to the maximum cross section for the material
-    inline CELER_FUNCTION real_type energy_max(ParticleProcessId ppid) const;
+    inline CELER_FUNCTION real_type energy_max_xs(ParticleProcessId ppid) const;
 
     // Calculate macroscopic cross section for the process
     inline CELER_FUNCTION real_type calc_xs(ParticleProcessId ppid,

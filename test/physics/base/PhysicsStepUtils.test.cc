@@ -296,7 +296,7 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
                                                      "electron",
                                                      MevEnergy{inc_energy[i]});
             ParticleProcessId ppid{0};
-            EXPECT_TRUE(phys.use_integral(ppid));
+            EXPECT_TRUE(phys.use_integral_xs(ppid));
             auto grid_id = phys.value_grid(ValueGridType::macro_xs, ppid);
             CELER_ASSERT(grid_id);
 

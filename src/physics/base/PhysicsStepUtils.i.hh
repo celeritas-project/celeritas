@@ -10,6 +10,7 @@
 #include "base/Algorithms.hh"
 #include "base/NumericLimits.hh"
 #include "base/Range.hh"
+#include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "physics/grid/EnergyLossCalculator.hh"
 #include "physics/grid/InverseRangeCalculator.hh"
@@ -233,7 +234,7 @@ select_process_and_model(const ParticleTrackView& particle,
         {
             // Determine if the discrete interaction occurs for energy loss
             // processes
-            if (physics.use_integral(ppid))
+            if (physics.use_integral_xs(ppid))
             {
                 // This is an energy loss process that was sampled for a
                 // discrete interaction, so it will have macro xs tables
@@ -248,7 +249,8 @@ select_process_and_model(const ParticleTrackView& particle,
 
                 // The discrete interaction occurs with probability \f$
                 // \sigma(E_1) / \sigma_{\max} \f$
-                if (xs < generate_canonical(rng) * physics.per_process_xs(ppid))
+                if (!BernoulliDistribution(xs / physics.per_process_xs(ppid))(
+                        rng))
                     return {};
             }
             // Select the model and return; See doc above for details.

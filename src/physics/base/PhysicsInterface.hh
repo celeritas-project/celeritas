@@ -60,16 +60,35 @@ struct ModelGroup
  * It is allowable for this to be "false" (i.e. no materials assigned)
  * indicating that the value table doesn't apply in the context -- for
  * example, an empty ValueTable macro_xs means that the process doesn't have a
- * discrete interaction. Only macro_xs ValueTables will have energy_max
- * assigned, and only for processes that also have an energy_loss ValueTable.
+ * discrete interaction.
  */
 struct ValueTable
 {
-    ItemRange<ValueGridId> material;   //!< Value grid by material index
-    ItemRange<real_type>   energy_max; //!< Energy of the largest xs [material]
+    ItemRange<ValueGridId> material; //!< Value grid by material index
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process with both energy loss and macroscopic cross section tables.
+ *
+ * This is needed for the integral approach for correctly sampling the discrete
+ * interaction length after a particle loses energy along a step. An \c
+ * EnergyLossProcess is stored for each particle-process. This will be "false"
+ * (i.e. no energy_max assigned) if particle process does not have both dE/dx
+ * and macro xs tables or if \c use_integral_xs is false.
+ */
+struct EnergyLossProcess
+{
+    ItemRange<real_type> energy_max_xs; //!< Energy of the largest xs [mat]
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !energy_max_xs.empty();
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -81,12 +100,15 @@ struct ValueTable
  * of the table (hard-coded) corresponds to ValueGridType; the second index is
  * a ParticleProcessId. So the cross sections for ParticleProcessId{2} would
  * be \code tables[ValueGridType::macro_xs][2] \endcode. This
- * awkward access is encapsulated by the PhysicsTrackView.
+ * awkward access is encapsulated by the PhysicsTrackView. \c energy_loss will
+ * only be assigned if the integral approach is used and the particle has
+ * continuous-discrete processes.
  */
 struct ProcessGroup
 {
     ItemRange<ProcessId> processes; //!< Processes that apply [ppid]
-    ValueGridArray<ItemRange<ValueTable>> tables; //!< [vgt][ppid]
+    ValueGridArray<ItemRange<ValueTable>> tables;      //!< [vgt][ppid]
+    ItemRange<EnergyLossProcess>          energy_loss; //!< [ppid]
     ItemRange<ModelGroup> models; //!< Model applicability [ppid]
 
     //! True if assigned and valid
@@ -177,6 +199,7 @@ struct PhysicsParamsData
     Items<ValueGridId>          value_grid_ids;
     Items<ProcessId>            process_ids;
     Items<ValueTable>           value_tables;
+    Items<EnergyLossProcess>    energy_loss;
     Items<ModelGroup>           model_groups;
     ParticleItems<ProcessGroup> process_groups;
 
@@ -212,6 +235,7 @@ struct PhysicsParamsData
         value_grid_ids = other.value_grid_ids;
         process_ids    = other.process_ids;
         value_tables   = other.value_tables;
+        energy_loss    = other.energy_loss;
         model_groups   = other.model_groups;
         process_groups = other.process_groups;
 

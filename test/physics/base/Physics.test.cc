@@ -327,7 +327,7 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
             = this->make_track_view("celeriton", MaterialId{2});
         auto ppid = this->find_ppid(phys, "scattering");
         ASSERT_TRUE(ppid);
-        EXPECT_FALSE(phys.use_integral(ppid));
+        EXPECT_FALSE(phys.use_integral_xs(ppid));
         auto id = phys.value_grid(ValueGridType::macro_xs, ppid);
         ASSERT_TRUE(id);
         EXPECT_SOFT_EQ(0.1, phys.calc_xs(ppid, id, MevEnergy{1.0}));
@@ -339,9 +339,9 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
             = this->make_track_view("electron", MaterialId{2});
         auto ppid = this->find_ppid(phys, "barks");
         ASSERT_TRUE(ppid);
-        EXPECT_TRUE(phys.use_integral(ppid));
+        EXPECT_TRUE(phys.use_integral_xs(ppid));
         EXPECT_SOFT_EQ(0.8, phys.energy_fraction());
-        EXPECT_SOFT_EQ(0.1, phys.energy_max(ppid));
+        EXPECT_SOFT_EQ(0.1, phys.energy_max_xs(ppid));
         auto id = phys.value_grid(ValueGridType::macro_xs, ppid);
         ASSERT_TRUE(id);
         for (real_type energy : {0.001, 0.01, 0.1, 0.11, 10.0})

@@ -8,7 +8,6 @@
 #include "PhysicsParams.hh"
 
 #include <algorithm>
-#include <cmath>
 #include <map>
 #include <tuple>
 #include "base/Assert.hh"
@@ -19,6 +18,7 @@
 #include "physics/em/EPlusGGModel.hh"
 #include "physics/em/LivermorePEModel.hh"
 #include "physics/grid/ValueGridInserter.hh"
+#include "physics/grid/XsCalculator.hh"
 #include "physics/material/MaterialParams.hh"
 
 namespace celeritas
@@ -273,6 +273,7 @@ void PhysicsParams::build_xs(const Options&        opts,
 
     ValueGridInserter insert_grid(&data->reals, &data->value_grids);
     auto              value_tables   = make_builder(&data->value_tables);
+    auto              energy_loss    = make_builder(&data->energy_loss);
     auto              value_grid_ids = make_builder(&data->value_grid_ids);
     auto              build_grid
         = [insert_grid](const UPGridBuilder& builder) -> ValueGridId {
@@ -299,6 +300,9 @@ void PhysicsParams::build_xs(const Options&        opts,
             vec.resize(processes.size());
         }
 
+        // Processes with dE/dx and macro xs tables
+        std::vector<EnergyLossProcess> temp_energy_loss(processes.size());
+
         // Loop over per-particle processes
         for (auto pp_idx : range(processes.size()))
         {
@@ -318,8 +322,10 @@ void PhysicsParams::build_xs(const Options&        opts,
                 vec.resize(mats.size());
             }
 
+            // Energy of maximum cross section for each material
+            std::vector<real_type> energy_max_xs;
+
             // Loop over materials
-            std::vector<real_type> energy_max;
             for (auto mat_id : range(MaterialId{mats.size()}))
             {
                 applic.material = mat_id;
@@ -345,33 +351,31 @@ void PhysicsParams::build_xs(const Options&        opts,
                 // the energy of the largest cross section for this material
                 auto grid_id
                     = temp_grid_ids[ValueGridType::macro_xs][mat_id.get()];
-                if (opts.use_integral && grid_id
+                if (opts.use_integral_xs && grid_id
                     && temp_grid_ids[ValueGridType::energy_loss][mat_id.get()])
                 {
                     // Allocate storage for the energies if we haven't already
-                    energy_max.resize(mats.size());
+                    energy_max_xs.resize(mats.size());
 
-                    auto              grid_data = data->value_grids[grid_id];
-                    const UniformGrid loge_grid(grid_data.log_energy);
+                    const auto&        grid_data = data->value_grids[grid_id];
+                    auto               data_ref  = make_const_ref(*data);
+                    const UniformGrid  loge_grid(grid_data.log_energy);
+                    const XsCalculator calc_xs(grid_data, data_ref.reals);
 
                     // Find the energy of the largest cross section
                     real_type xs_max = 0;
                     real_type e_max  = 0;
                     for (auto i : range(loge_grid.size()))
                     {
-                        real_type energy = std::exp(loge_grid[i]);
-                        real_type xs     = data->reals[grid_data.value[i]];
-                        if (i >= grid_data.prime_index)
-                            xs /= energy;
-
+                        real_type xs = calc_xs[i];
                         if (xs > xs_max)
                         {
                             xs_max = xs;
-                            e_max  = energy;
+                            e_max  = std::exp(loge_grid[i]);
                         }
                     }
                     CELER_ASSERT(e_max > 0);
-                    energy_max[mat_id.get()] = e_max;
+                    energy_max_xs[mat_id.get()] = e_max;
                 }
             }
 
@@ -394,16 +398,21 @@ void PhysicsParams::build_xs(const Options&        opts,
                 temp_table.material    = value_grid_ids.insert_back(
                     temp_grid_ids[vgt].begin(), temp_grid_ids[vgt].end());
                 CELER_ASSERT(temp_table.material.size() == mats.size());
+            }
 
-                // Store the energies of the maximum cross sections
-                if (!energy_max.empty() && vgt == ValueGridType::macro_xs)
-                {
-                    temp_table.energy_max = make_builder(&data->reals)
-                                                .insert_back(energy_max.begin(),
-                                                             energy_max.end());
-                }
+            // Store the energies of the maximum cross sections
+            if (!energy_max_xs.empty())
+            {
+                temp_energy_loss[pp_idx].energy_max_xs
+                    = make_builder(&data->reals)
+                          .insert_back(energy_max_xs.begin(),
+                                       energy_max_xs.end());
             }
         }
+
+        // Construct energy loss process data
+        process_group.energy_loss = energy_loss.insert_back(
+            temp_energy_loss.begin(), temp_energy_loss.end());
 
         // Construct value tables
         for (auto vgt : range(ValueGridType::size_))

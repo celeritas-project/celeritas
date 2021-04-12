@@ -227,35 +227,34 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
  *
  * See section 7.4 of the Geant4 Physics Reference (release 10.6) for details.
  */
-CELER_FUNCTION bool PhysicsTrackView::use_integral(ParticleProcessId ppid) const
+CELER_FUNCTION bool
+PhysicsTrackView::use_integral_xs(ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    return this->energy_max(ppid) > 0;
+    return this->energy_max_xs(ppid) > 0;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Energy corresponding to the maximum cross section for the material.
  *
- * If for this particle process the macro_xs \c ValueTable is "true" and \c
- * energy_max is assigned, the process also has energy loss tables and the
- * integral approach is being used. If \c energy_max[material] is nonzero,
- * those tables are present for this material.
+ * If the \c EnergyLossProcess is "true", the integral approach is used and
+ * that process has both energy loss and macro xs tables. If \c
+ * energy_max_xs[material] is nonzero, both of those tables are present for
+ * this material.
  */
-CELER_FUNCTION real_type PhysicsTrackView::energy_max(ParticleProcessId ppid) const
+CELER_FUNCTION real_type
+PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    ValueTableId table_id
-        = this->process_group().tables[ValueGridType::macro_xs][ppid.get()];
 
-    CELER_ASSERT(table_id);
-    const ValueTable& table = params_.value_tables[table_id];
-
-    real_type result = 0;
-    if (table && !table.energy_max.empty())
+    real_type                result = 0;
+    const EnergyLossProcess& process
+        = params_.energy_loss[this->process_group().energy_loss[ppid.get()]];
+    if (process)
     {
-        CELER_ASSERT(material_ < table.energy_max.size());
-        result = params_.reals[table.energy_max[material_.get()]];
+        CELER_ASSERT(material_ < process.energy_max_xs.size());
+        result = params_.reals[process.energy_max_xs[material_.get()]];
     }
     return result;
 }
@@ -277,15 +276,15 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
 {
     auto calc_xs = this->make_calculator<XsCalculator>(grid_id);
 
-    // Check if the integral approach is used (true if \c energy_max > 0). If
-    // so, an estimate of the maximum cross section over the step is used as
+    // Check if the integral approach is used (true if \c energy_max_xs > 0).
+    // If so, an estimate of the maximum cross section over the step is used as
     // the macro xs for this process
-    real_type energy_max = this->energy_max(ppid);
-    if (energy_max > 0)
+    real_type energy_max_xs = this->energy_max_xs(ppid);
+    if (energy_max_xs > 0)
     {
         real_type energy_xi = energy.value() * this->energy_fraction();
-        if (energy_max >= energy_xi && energy_max < energy.value())
-            return calc_xs(MevEnergy{energy_max});
+        if (energy_max_xs >= energy_xi && energy_max_xs < energy.value())
+            return calc_xs(MevEnergy{energy_max_xs});
         return max(calc_xs(energy), calc_xs(MevEnergy{energy_xi}));
     }
 

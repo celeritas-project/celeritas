@@ -79,6 +79,23 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the cross section at the given index.
+ */
+CELER_FUNCTION real_type XsCalculator::operator[](size_type index) const
+{
+    const UniformGrid loge_grid(data_.log_energy);
+    real_type         energy = std::exp(loge_grid[index]);
+    real_type         result = this->get(index);
+
+    if (index >= data_.prime_index)
+    {
+        result /= energy;
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the raw cross section data at a particular index.
  */
 CELER_FUNCTION real_type XsCalculator::get(size_type index) const
