@@ -27,14 +27,14 @@ namespace detail
 /*!
  * Electron subshell data.
  *
- * - The binding energy of consecutive shells is always decreasing.
- * - Param lo/hi have fixed size of 6 (TODO: could make these Arrays)
+ * The binding energy of consecutive shells is always decreasing.
  */
 struct LivermoreSubshell
 {
     using EnergyUnits = units::Mev;
     using XsUnits     = units::Barn;
     using Energy      = Quantity<EnergyUnits>;
+    using Real6       = Array<real_type, 6>;
 
     // Binding energy of the electron
     Energy binding_energy;
@@ -44,14 +44,12 @@ struct LivermoreSubshell
 
     // Fit parameters for the integrated subshell photoionization cross
     // sections in the two different energy ranges (used above 5 keV)
-    ItemRange<real_type> param_lo;
-    ItemRange<real_type> param_hi;
+    Array<Real6, 2> param;
 
     //! True if assigned and valid
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return binding_energy > celeritas::zero_quantity() && xs
-               && param_lo.size() == 6 && param_hi.size() == 6;
+        return binding_energy > celeritas::zero_quantity() && xs;
     }
 };
 
@@ -79,8 +77,8 @@ struct LivermoreElement
 
     // Energy threshold for using the parameterized subshell cross sections in
     // the lower and upper energy range
-    Energy thresh_lo;
-    Energy thresh_hi;
+    Energy thresh_lo; //!< Use tabulated XS below this energy
+    Energy thresh_hi; //!< Use lower parameterization below, upper above
 
     //! True if assigned and valid
     explicit inline CELER_FUNCTION operator bool() const

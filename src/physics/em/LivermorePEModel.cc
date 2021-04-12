@@ -164,10 +164,13 @@ void LivermorePEModel::append_element(const ImportLivermorePE& inp,
         shells[i].xs.value_interp = Interp::linear;
 
         // Subshell cross section fit parameters
-        shells[i].param_lo = reals.insert_back(inp.shells[i].param_lo.begin(),
-                                               inp.shells[i].param_lo.end());
-        shells[i].param_hi = reals.insert_back(inp.shells[i].param_hi.begin(),
-                                               inp.shells[i].param_hi.end());
+        std::copy(inp.shells[i].param_lo.begin(),
+                  inp.shells[i].param_lo.end(),
+                  shells[i].param[0].begin());
+        std::copy(inp.shells[i].param_hi.begin(),
+                  inp.shells[i].param_hi.end(),
+                  shells[i].param[1].begin());
+
         CELER_ASSERT(shells[i]);
     }
     el.shells

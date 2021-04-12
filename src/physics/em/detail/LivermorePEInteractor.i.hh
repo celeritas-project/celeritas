@@ -184,8 +184,6 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
         const real_type inv_cube_energy = ipow<3>(inv_energy_);
         for (; shell_id < shell_end; ++shell_id)
         {
-            CELER_ASSERT(inc_energy_ > shells[shell_id].binding_energy);
-
             // Use the tabulated subshell cross sections
             GenericXsCalculator calc_xs(shells[shell_id].xs, shared_.xs.reals);
             xs += inv_cube_energy * calc_xs(inc_energy_.value());
@@ -198,21 +196,19 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
     }
     else
     {
+        // Low/high index on params
+        const int pidx = inc_energy_ < el.thresh_hi ? 0 : 1;
+
         // Invert discrete CDF using a linear search
         for (; shell_id < shell_end; ++shell_id)
         {
-            CELER_ASSERT(inc_energy_ > shells[shell_id].binding_energy);
-
-            // clang-format off
-            const auto& shell = shells[shell_id];
-            const auto& param = shared_.xs.reals[
-                inc_energy_ < el.thresh_hi ? shell.param_lo
-                                            : shell.param_hi];
+            const auto& param = shells[shell_id].param[pidx];
 
             // Calculate the *cumulative* subshell cross section (this plus all
             // below) from the fit parameters and energy as
             // \sigma(E) = a_1 / E + a_2 / E^2 + a_3 / E^3
             //             + a_4 / E^4 + a_5 / E^5 + a_6 / E^6.
+            // clang-format off
             real_type xs
                 =   inv_energy_ * (param[0] + inv_energy_ * (param[1]
                   + inv_energy_ * (param[2] + inv_energy_ * (param[3]

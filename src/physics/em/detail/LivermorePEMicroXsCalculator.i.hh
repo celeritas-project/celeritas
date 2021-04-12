@@ -45,10 +45,7 @@ real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
     {
         // Fit parameters from the final shell are used to calculate the cross
         // section integrated over all subshells
-        const auto& shell = shells.back();
-        const auto& param = energy >= el.thresh_hi
-                                ? shared_.xs.reals[shell.param_hi]
-                                : shared_.xs.reals[shell.param_lo];
+        const auto& param = shells.back().param[energy < el.thresh_hi ? 0 : 1];
 
         // Use the parameterization of the integrated subshell cross sections
         // clang-format off
