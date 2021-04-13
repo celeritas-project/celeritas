@@ -194,3 +194,41 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Utility: single-track geometry debugging
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
+  # Since the demo kernel links against VecGeom, which requires CUDA separable
+  # compilation, it cannot be linked directly into an executable.
+  add_library(geo_check_cuda
+    geo-check/GCheckRunner.cc
+    geo-check/GCheckKernel.cc
+    geo-check/GCheckKernel.cu
+  )
+  set_target_properties(geo_check_cuda PROPERTIES
+    LINKER_LANGUAGE CUDA
+    CUDA_SEPARABLE_COMPILATION ON
+    POSITION_INDEPENDENT_CODE ON
+  )
+  target_link_libraries(geo_check_cuda
+    PRIVATE
+    celeritas
+    VecGeom::vecgeomcuda
+    VecGeom::vecgeomcuda_static
+    nlohmann_json::nlohmann_json
+  )
+
+  # Add the executable
+  add_executable(geo-check
+    geo-check/geo-check.cc
+  )
+  target_link_libraries(geo-check
+    celeritas
+    VecGeom::vecgeom
+    geo_check_cuda
+    nlohmann_json::nlohmann_json
+  )
+
+endif()
+
+#-----------------------------------------------------------------------------#
