@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "GeoParams.hh"
 
-#include <VecGeom/gdml/Frontend.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/GeoManager.h>
 #include <VecGeom/volumes/PlacedVolume.h>
@@ -26,6 +25,8 @@
 #if CELERITAS_USE_ROOT && defined(VECGEOM_ROOT)
 #    include "TGeoManager.h"
 #    include "VecGeom/management/RootGeoManager.h"
+#else
+#    include <VecGeom/gdml/Frontend.h>
 #endif
 
 namespace celeritas
@@ -49,7 +50,8 @@ GeoParams::GeoParams(const char* gdml_filename)
         CELER_LOG(info) << "VecGeom parsing: Loading from GDML at "
                         << gdml_filename;
         constexpr bool validate_xml_schema = false;
-        vgdml::Frontend::Load(gdml_filename, validate_xml_schema);
+	real_type mm_scale = 1.0;    // indirectly sets default VecGeom units
+        vgdml::Frontend::Load(gdml_filename, validate_xml_schema, mm_scale);
 #endif
     }
 
