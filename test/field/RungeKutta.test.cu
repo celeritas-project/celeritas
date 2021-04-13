@@ -51,9 +51,6 @@ __global__ void rk4_test_kernel(FieldTestParams param,
     y.pos = {param.radius, 0.0, tid.get() * 1.0e-6};
     y.mom = {0.0, param.momentum_y, param.momentum_z};
 
-    // The rhs of the equation and a temporary array
-    OdeState dydx;
-
     // Test parameters and the sub-step size
     real_type hstep       = 2.0 * constants::pi * param.radius / param.nsteps;
     real_type total_error = 0;
@@ -63,9 +60,8 @@ __global__ void rk4_test_kernel(FieldTestParams param,
         // Travel hstep for nsteps times in the field
         for (CELER_MAYBE_UNUSED int i : celeritas::range(param.nsteps))
         {
-            dydx                    = equation(y);
-            RungeKuttaResult result = rk4(hstep, y, dydx);
-            y                       = result.end_state;
+            StepperResult result = rk4(hstep, y);
+            y                    = result.end_state;
             total_error += truncation_error(hstep, 0.001, y, result.err_state);
         }
     }
