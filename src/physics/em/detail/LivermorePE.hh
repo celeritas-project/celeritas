@@ -83,7 +83,9 @@ struct LivermoreElement
     //! True if assigned and valid
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return xs_lo && xs_hi && !shells.empty() && thresh_lo <= thresh_hi;
+        // Note: xs_lo is not present for elements with only one subshell, so
+        // it's valid for xs_lo to be unassigned.
+        return xs_hi && !shells.empty() && thresh_lo <= thresh_hi;
     }
 };
 

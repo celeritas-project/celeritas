@@ -64,6 +64,7 @@ real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
     }
     else
     {
+        CELER_ASSERT(el.xs_lo);
         // Use tabulated cross sections below K-shell energy
         GenericXsCalculator calc_xs(el.xs_lo, shared_.xs.reals);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
