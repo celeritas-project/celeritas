@@ -11,40 +11,10 @@
 #    include <memory>
 #endif
 #include <VecGeom/navigation/NavigationState.h>
+#include <VecGeom/navigation/NavStatePool.h>
 #include "base/Assert.hh"
 #include "base/OpaqueId.hh"
 #include "base/Types.hh"
-
-//---------------------------------------------------------------------------//
-/* VECGEOM FORWARD DECLARATIONS
- *
- * CUDA declarations aren't reachable from C++ host-compiled code, and the
- * reverse, so we must fudge by forward-declaring here as though
- * NavigationState is an untemplated class, not a type alias, for each unused
- * memspace.
- */
-namespace vecgeom
-{
-#ifndef __NVCC__
-inline
-#endif
-    namespace cxx
-{
-class NavStatePool;
-} // namespace cxx
-} // namespace vecgeom
-namespace vecgeom
-{
-#ifdef __NVCC__
-namespace cxx
-#else
-namespace cuda
-#endif
-{
-class NavigationState;
-}
-} // namespace vecgeom
-//---------------------------------------------------------------------------//
 
 namespace celeritas
 {
@@ -117,6 +87,8 @@ struct VGNavCollection<Ownership::reference, MemSpace::host>
 
 //---------------------------------------------------------------------------//
 // DEVICE MEMSPACE
+
+#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Delete a VecGeom pool.
@@ -130,7 +102,6 @@ struct NavStatePoolDeleter
     void operator()(arg_type) const;
 };
 
-#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Manage a pool of device-side geometry states.
