@@ -26,7 +26,7 @@ RayleighInteractor::RayleighInteractor(const RayleighNativeRef& shared,
                                        ElementId                el_id)
 
     : shared_(shared)
-    , inc_energy_(particle.energy().value())
+    , inc_energy_(particle.energy())
     , inc_direction_(direction)
     , element_id_(el_id)
 {
@@ -47,6 +47,7 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
     // Construct interaction for change to primary (incident) particle
     Interaction result;
     result.action = Action::scattered;
+    result.energy = inc_energy_;
 
     SampleInput input = this->evaluate_weight_and_prob();
 
