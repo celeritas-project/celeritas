@@ -38,7 +38,6 @@ CELER_FUNCTION auto CutoffView::energy(ParticleId particle) const -> Energy
 CELER_FUNCTION real_type CutoffView::range(ParticleId particle) const
 {
     CutoffId id{params_.num_materials * particle.get() + material_.get()};
-    CELER_ASSERT(id < params_.cutoffs.size());
     return params_.cutoffs[id].range;
 }
 
