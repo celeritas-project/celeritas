@@ -38,7 +38,7 @@ class FieldDriver
     CELER_FUNCTION real_type operator()(real_type step, OdeState* state);
 
     // An adaptive step size control from G4MagIntegratorDriver
-    // TODO: move this method to private after all tests are done
+    // Move this to private after all tests with non-uniform field are done
     CELER_FUNCTION real_type accurate_advance(real_type step,
                                               OdeState* state,
                                               real_type hinitial);
