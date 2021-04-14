@@ -42,20 +42,18 @@ real_type FieldDriver::operator()(real_type step, OdeState* state)
     real_type step_taken = output.step_taken;
 
     // Evaluate the relative error
-    real_type ratio = output.value / (shared_.epsilon_step * step_taken);
+    real_type rel_error = output.value / (shared_.epsilon_step * step_taken);
 
-    if (ratio < 1)
-    {
-        // Accept this accuracy and update the current state
-        *state = output.state;
-    }
-    else
+    if (rel_error > 1)
     {
         // Advance more accurately with a newly proposed step
-        real_type next_step = this->new_step_size(step, ratio);
+        real_type next_step = this->new_step_size(step, rel_error);
         step_taken
             = this->accurate_advance(step_taken, &output.state, next_step);
     }
+
+    // Accept this accuracy and update the current state
+    *state = output.state;
 
     return step_taken;
 }
