@@ -44,6 +44,11 @@ TEST_F(XsCalculatorTest, simple)
     EXPECT_SOFT_EQ(1e5 - 1e-6, calc(Energy{1e5 - 1e-6}));
     EXPECT_SOFT_EQ(1e5, calc(Energy{1e5}));
 
+    // Test access by index
+    EXPECT_SOFT_EQ(1.0, calc[0]);
+    EXPECT_SOFT_EQ(1e2, calc[2]);
+    EXPECT_SOFT_EQ(1e5, calc[5]);
+
     // Test between grid points
     EXPECT_SOFT_EQ(5, calc(Energy{5}));
 
@@ -66,6 +71,11 @@ TEST_F(XsCalculatorTest, scaled_lowest)
     EXPECT_SOFT_EQ(1, calc(Energy{1e2}));
     EXPECT_SOFT_EQ(1, calc(Energy{1e4 - 1e-6}));
     EXPECT_SOFT_EQ(1, calc(Energy{1e4}));
+
+    // Test access by index
+    EXPECT_SOFT_EQ(1, calc[0]);
+    EXPECT_SOFT_EQ(1, calc[2]);
+    EXPECT_SOFT_EQ(1, calc[5]);
 
     // Test between grid points
     EXPECT_SOFT_EQ(1, calc(Energy{0.2}));
@@ -100,6 +110,11 @@ TEST_F(XsCalculatorTest, scaled_middle)
     EXPECT_SOFT_EQ(3, calc(Energy{1e4 - 1e-6}));
     EXPECT_SOFT_EQ(3, calc(Energy{1e4}));
 
+    // Test access by index
+    EXPECT_SOFT_EQ(3, calc[0]);
+    EXPECT_SOFT_EQ(3, calc[2]);
+    EXPECT_SOFT_EQ(3, calc[5]);
+
     // Test between grid points
     EXPECT_SOFT_EQ(3, calc(Energy{0.2}));
     EXPECT_SOFT_EQ(3, calc(Energy{5}));
@@ -121,6 +136,11 @@ TEST_F(XsCalculatorTest, scaled_highest)
     EXPECT_SOFT_EQ(1, calc(Energy{1}));
     EXPECT_SOFT_EQ(10, calc(Energy{10}));
     EXPECT_SOFT_EQ(2.0, calc(Energy{90}));
+
+    // Test access by index
+    EXPECT_SOFT_EQ(1, calc[0]);
+    EXPECT_SOFT_EQ(10, calc[1]);
+    EXPECT_SOFT_EQ(1, calc[2]);
 
     // Final point and higher are scaled by 1/E
     EXPECT_SOFT_EQ(1, calc(Energy{100}));

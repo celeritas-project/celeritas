@@ -43,6 +43,7 @@ class MockProcess : public celeritas::Process
     using Applicability    = celeritas::Applicability;
     using ModelIdGenerator = celeritas::ModelIdGenerator;
     using VecApplicability = std::vector<Applicability>;
+    using VecMicroXs       = std::vector<BarnMicroXs>;
     using SPConstMaterials = std::shared_ptr<const celeritas::MaterialParams>;
     using ModelCallback    = std::function<void(celeritas::ModelId)>;
     //!@}
@@ -53,7 +54,7 @@ class MockProcess : public celeritas::Process
         std::string      label;
         VecApplicability applic;        //!< Applicablity per model
         ModelCallback    interact;      //!< MockModel::interact callback
-        BarnMicroXs      xs{};          //!< Constant per atom [bn]
+        VecMicroXs       xs;            //!< Constant per atom [bn]
         real_type        energy_loss{}; //!< Constant per atom [MeV/cm / cm^-3]
     };
 
