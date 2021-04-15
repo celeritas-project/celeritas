@@ -42,7 +42,7 @@ real_type FieldDriver::operator()(real_type step, OdeState* state)
     real_type step_taken = output.step_taken;
 
     // Evaluate the relative error
-    real_type rel_error = output.value / (shared_.epsilon_step * step_taken);
+    real_type rel_error = output.error / (shared_.epsilon_step * step_taken);
 
     if (rel_error > 1)
     {
@@ -85,10 +85,10 @@ FieldDriver::find_next_chord(real_type step, const OdeState& state)
         real_type dchord
             = distance_chord(state, result.mid_state, result.end_state);
 
-        if (dchord <= shared_.delta_chord + rel_tolerance())
+        if (dchord <= (shared_.delta_chord + FieldDriver::rel_tolerance()))
         {
             converged    = true;
-            output.value = truncation_error(
+            output.error = truncation_error(
                 step, shared_.epsilon_rel_max, state, result.err_state);
         }
         else
@@ -99,6 +99,7 @@ FieldDriver::find_next_chord(real_type step, const OdeState& state)
         }
     } while (!converged && (--remaining_steps > 0));
 
+    // TODO: loop check and handle rare cases if happen
     CELER_ASSERT(converged);
 
     // Update new position and momentum
@@ -123,7 +124,8 @@ CELER_FUNCTION real_type FieldDriver::accurate_advance(real_type step,
     // Set an initial proposed step and evaluate the minimum threshold
     real_type end_curve_length = step;
 
-    real_type h = ((hinitial > rel_tolerance() * step) && (hinitial < step))
+    real_type h = ((hinitial > FieldDriver::rel_tolerance() * step)
+                   && (hinitial < step))
                       ? hinitial
                       : step;
     real_type h_threshold = shared_.epsilon_step * step;
@@ -148,7 +150,7 @@ CELER_FUNCTION real_type FieldDriver::accurate_advance(real_type step,
         }
         else
         {
-            h = std::fmax(output.value, shared_.minimum_step);
+            h = std::fmax(output.next_step, shared_.minimum_step);
             if (curve_length + h > end_curve_length)
             {
                 h = end_curve_length - curve_length;
@@ -157,6 +159,7 @@ CELER_FUNCTION real_type FieldDriver::accurate_advance(real_type step,
         *state = output.state;
     } while (!succeeded && --remaining_steps > 0);
 
+    // TODO: loop check and handle rare cases if happen
     CELER_ASSERT(succeeded);
 
     return curve_length;
@@ -192,7 +195,7 @@ FieldDriver::integrate_step(real_type step, const OdeState& state)
 
         // Compute a proposed new step
         CELER_ASSERT(output.step_taken != 0);
-        output.value
+        output.next_step
             = this->new_step_size(step, dyerr / (step * shared_.epsilon_step));
     }
 
@@ -244,10 +247,10 @@ FieldDriver::one_good_step(real_type step, const OdeState& state)
     // Update state, step taken by this trial and the next predicted step
     output.state      = result.end_state;
     output.step_taken = step;
-    output.value      = (errmax2 > ipow<2>(shared_.errcon))
-                       ? shared_.safety * step
-                             * std::pow(errmax2, half() * shared_.pgrow)
-                       : shared_.max_stepping_increase * step;
+    output.next_step  = (errmax2 > ipow<2>(shared_.errcon))
+                           ? shared_.safety * step
+                                 * std::pow(errmax2, half() * shared_.pgrow)
+                           : shared_.max_stepping_increase * step;
 
     return output;
 }
@@ -257,11 +260,12 @@ FieldDriver::one_good_step(real_type step, const OdeState& state)
  *  Estimate the new predicted step size based on the error estimate
  */
 CELER_FUNCTION
-real_type FieldDriver::new_step_size(real_type step, real_type error) const
+real_type FieldDriver::new_step_size(real_type step, real_type rel_error) const
 {
-    CELER_ASSERT(error > 0);
-    real_type scale_factor = (error > 1) ? std::pow(error, shared_.pshrink)
-                                         : std::pow(error, shared_.pgrow);
+    CELER_ASSERT(rel_error > 0);
+    real_type scale_factor = (rel_error > 1)
+                                 ? std::pow(rel_error, shared_.pshrink)
+                                 : std::pow(rel_error, shared_.pgrow);
     return shared_.safety * step * scale_factor;
 }
 
