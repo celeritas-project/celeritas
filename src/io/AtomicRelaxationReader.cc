@@ -58,7 +58,7 @@ AtomicRelaxationReader::AtomicRelaxationReader(const char* fluor_path,
  * Read the data for the given element.
  */
 AtomicRelaxationReader::result_type
-AtomicRelaxationReader::operator()(int atomic_number) const
+AtomicRelaxationReader::operator()(AtomicNumber atomic_number) const
 {
     CELER_EXPECT(atomic_number > 0 && atomic_number < 101);
 
@@ -85,9 +85,9 @@ AtomicRelaxationReader::operator()(int atomic_number) const
                        << "failed to open '" << filename
                        << "' (should contain fluorescence data)");
 
-        int       des    = 0;
-        real_type energy = 0.;
-        real_type prob   = 0.;
+        int    des    = 0;
+        double energy = 0;
+        double prob   = 0;
 
         // Get the designator for the first section of shell data
         infile >> des >> des >> des;
@@ -131,10 +131,10 @@ AtomicRelaxationReader::operator()(int atomic_number) const
                        << "failed to open '" << filename
                        << "' (should contain Auger transition data)");
 
-        int       des       = 0;
-        int       auger_des = 0;
-        real_type energy    = 0.;
-        real_type prob      = 0.;
+        int    des       = 0;
+        int    auger_des = 0;
+        double energy    = 0;
+        double prob      = 0;
 
         // Get the designator for the first section of shell data
         infile >> des >> des >> des >> des;
@@ -169,7 +169,7 @@ AtomicRelaxationReader::operator()(int atomic_number) const
     // radiative and non-radiative transitions for a given subshell is 1
     for (auto& shell : result.shells)
     {
-        real_type norm = 0.;
+        double norm = 0;
         for (const auto& transition : shell.fluor)
             norm += transition.probability;
         for (const auto& transition : shell.auger)

@@ -266,9 +266,9 @@ TEST_F(RootImporterTest, import_cutoffs)
     {
         for (const auto matid : range(MaterialId{materials.size()}))
         {
-            CutoffView cutoff_view(cutoffs.host_pointers(), pid, matid);
-            energies.push_back(cutoff_view.energy().value());
-            ranges.push_back(cutoff_view.range());
+            CutoffView cutoff_view(cutoffs.host_pointers(), matid);
+            energies.push_back(cutoff_view.energy(pid).value());
+            ranges.push_back(cutoff_view.range(pid));
         }
     }
 

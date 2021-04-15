@@ -48,6 +48,9 @@ class XsCalculator
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
+    // Get the cross section at the given index
+    inline CELER_FUNCTION real_type operator[](size_type index) const;
+
   private:
     const XsGridData& data_;
     const Values&     reals_;

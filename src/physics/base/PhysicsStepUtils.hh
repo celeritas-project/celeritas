@@ -31,6 +31,9 @@ struct ProcessIdModelId
 {
     ParticleProcessId ppid;
     ModelId           model;
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const { return ppid && model; }
 };
 
 template<class Engine>

@@ -147,8 +147,8 @@ TEST_F(MollerBhabhaInteractorTest, basic)
                                   {1e5, {3, 7, -6}}};
     // clang-format on
 
-    CutoffView cutoff_view(
-        this->cutoff_params()->host_pointers(), ParticleId{0}, MaterialId{0});
+    CutoffView cutoff_view(this->cutoff_params()->host_pointers(),
+                           MaterialId{0});
 
     for (const SampleInit& init : samples)
     {
@@ -245,10 +245,11 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     cutoff_inp.materials = this->material_params();
     cutoff_inp.particles = this->particle_params();
     cutoff_inp.cutoffs.insert({pdg::electron(), material_cutoffs});
+    cutoff_inp.cutoffs.insert({pdg::positron(), material_cutoffs});
     this->set_cutoff_params(cutoff_inp);
 
-    CutoffView cutoff_view(
-        this->cutoff_params()->host_pointers(), ParticleId{0}, MaterialId{0});
+    CutoffView cutoff_view(this->cutoff_params()->host_pointers(),
+                           MaterialId{0});
 
     for (const SampleInit& init : samples)
     {
@@ -312,7 +313,8 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     for (const auto secondary_energy : m_results.sec_e)
     {
         // Verify if secondary is above the cutoff threshold
-        EXPECT_TRUE(secondary_energy > cutoff_view.energy().value());
+        EXPECT_TRUE(secondary_energy
+                    > cutoff_view.energy(ParticleId{0}).value());
     }
 
     //// Bhabha
@@ -324,7 +326,8 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     for (const auto secondary_energy : b_results.sec_e)
     {
         // Verify if secondary is above the cutoff threshold
-        EXPECT_TRUE(secondary_energy > cutoff_view.energy().value());
+        EXPECT_TRUE(secondary_energy
+                    > cutoff_view.energy(ParticleId{1}).value());
     }
 }
 
@@ -334,8 +337,8 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
     const int           num_samples = 1e4;
     std::vector<double> avg_engine_samples;
 
-    CutoffView cutoff_view(
-        this->cutoff_params()->host_pointers(), ParticleId{0}, MaterialId{0});
+    CutoffView cutoff_view(this->cutoff_params()->host_pointers(),
+                           MaterialId{0});
 
     // Moller's max energy fraction is 0.5, which leads to E_K > 2e-3
     // Bhabha's max energy fraction is 1.0, which leads to E_K > 1e-3

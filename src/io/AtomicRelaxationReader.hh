@@ -8,7 +8,7 @@
 #pragma once
 
 #include <string>
-#include "physics/em/AtomicRelaxationParams.hh"
+#include "ImportAtomicRelaxation.hh"
 
 namespace celeritas
 {
@@ -21,7 +21,8 @@ class AtomicRelaxationReader
   public:
     //!@{
     //! Type aliases
-    using result_type = AtomicRelaxationParams::ElementInput;
+    using AtomicNumber = int;
+    using result_type  = ImportAtomicRelaxation;
     //!@}
 
   public:
@@ -33,7 +34,7 @@ class AtomicRelaxationReader
                                     const char* auger_path);
 
     // Read the data for the given element
-    result_type operator()(int atomic_number) const;
+    result_type operator()(AtomicNumber atomic_number) const;
 
   private:
     // Directory containing the EADL radiative transition data

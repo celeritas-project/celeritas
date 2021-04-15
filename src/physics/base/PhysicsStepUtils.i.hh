@@ -10,12 +10,13 @@
 #include "base/Algorithms.hh"
 #include "base/NumericLimits.hh"
 #include "base/Range.hh"
+#include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "physics/grid/EnergyLossCalculator.hh"
 #include "physics/grid/InverseRangeCalculator.hh"
 #include "physics/grid/RangeCalculator.hh"
-#include "physics/grid/XsCalculator.hh"
 #include "physics/grid/ValueGridInterface.hh"
+#include "physics/grid/XsCalculator.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -55,8 +56,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
             // Calculate macroscopic cross section for this process, then
             // accumulate it into the total cross section and save the cross
             // section for later.
-            auto calc_xs = physics.make_calculator<XsCalculator>(grid_id);
-            process_xs   = calc_xs(particle.energy());
+            process_xs = physics.calc_xs(ppid, grid_id, particle.energy());
             total_macro_xs += process_xs;
         }
         physics.per_process_xs(ppid) = process_xs;
@@ -108,7 +108,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
  *
  * Both Celeritas and Geant4 approximate the range limit as the minimum range
  * over all processes, rather than the range as a result from integrating all
- * energy loss processes over the allowed energy range. This is usuallly not
+ * energy loss processes over the allowed energy range. This is usually not
  * a problem in practice because the range will get automatically decreased by
  * \c range_to_step , and the above range calculation neglects energy loss by
  * discrete processes.
@@ -206,30 +206,11 @@ CELER_FUNCTION ParticleTrackView::Energy
  *   determine the interacting process ID.
  * - From the process ID and (post-slowing-down) particle energy, we obtain the
  *   applicable model ID.
- *
- * Does the energy change between the time the per_process_xs was
- * calculated and now?  Does the energy enters in the calculation
- * of the cross-section? What happens to the cross section per
- * process if there no model covering that energy range?
- * See
- * https://github.com/celeritas-project/celeritas/pull/165#issuecomment-790214691
- * for some discussion, including this:
- *
- * Look up the model for the selected process at the reduced
- * energy E'. If there's not one -- i.e. the along-step energy
- * loss causes us to go below the lower threshold for the selected
- * process -- we could simply zero out the cross section for that
- * process and jump back up to the step above (resampling
- * available processes). If we did the cutoff step correctly then
- * there should be at least one process with a valid model.
- *
- * but
- *
- * Some of the glue pieces (cutoff testing, at rest) aren't yet in
- * place, and I think for the moment we can skip the "resample if
- * below process energy threshold" since I don't think there are
- * any processes that have thresholds (aside from gamma, which has
- * no continuous energy loss processes).
+ * - For energy loss (continuous-discrete) processes, the post-step energy will
+ *   be different from the pre-step energy, so the assumption that the cross
+ *   section is constant along the step is no longer valid. Use the "integral
+ *   approach" to sample the discrete interaction from the correct probability
+ *   distribution (section 7.4 of the Geant4 Physics Reference release 10.6).
  */
 template<class Engine>
 CELER_FUNCTION ProcessIdModelId
@@ -244,17 +225,36 @@ select_process_and_model(const ParticleTrackView& particle,
 
     auto      total_macro_xs = physics.macro_xs();
     real_type prob           = generate_canonical(rng) * total_macro_xs;
-    real_type accum          = 0.0;
+    real_type accum          = 0;
 
     for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
     {
         accum += physics.per_process_xs(ppid);
         if (accum >= prob)
         {
-            // Select the model and return; See doc above for
-            // details.
-            auto find_model = physics.make_model_finder(ppid);
+            // Determine if the discrete interaction occurs for energy loss
+            // processes
+            if (physics.use_integral_xs(ppid))
+            {
+                // This is an energy loss process that was sampled for a
+                // discrete interaction, so it will have macro xs tables
+                auto grid_id
+                    = physics.value_grid(ValueGridType::macro_xs, ppid);
+                CELER_ASSERT(grid_id);
 
+                // Recalculate the cross section at the post-step energy \f$
+                // E_1 \f$
+                auto calc_xs = physics.make_calculator<XsCalculator>(grid_id);
+                real_type xs = calc_xs(particle.energy());
+
+                // The discrete interaction occurs with probability \f$
+                // \sigma(E_1) / \sigma_{\max} \f$
+                if (!BernoulliDistribution(xs / physics.per_process_xs(ppid))(
+                        rng))
+                    return {};
+            }
+            // Select the model and return; See doc above for details.
+            auto find_model = physics.make_model_finder(ppid);
             return ProcessIdModelId{ppid, find_model(particle.energy())};
         }
     }

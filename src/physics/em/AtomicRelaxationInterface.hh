@@ -64,8 +64,6 @@ struct AtomicRelaxParamsPointers
     Span<const AtomicRelaxElement> elements;
     ParticleId                     electron_id;
     ParticleId                     gamma_id;
-    units::MevEnergy               electron_cut; //!< Production thresholds
-    units::MevEnergy               gamma_cut;
 
     //! Check whether the interface is assigned.
     explicit inline CELER_FUNCTION operator bool() const

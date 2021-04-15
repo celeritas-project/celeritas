@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "MockProcess.hh"
 
+#include <algorithm>
 #include "MockModel.hh"
 #include "physics/material/MaterialView.hh"
 
@@ -21,7 +22,11 @@ MockProcess::MockProcess(Input data) : data_(std::move(data))
     CELER_EXPECT(!data_.label.empty());
     CELER_EXPECT(!data_.applic.empty());
     CELER_EXPECT(data_.interact);
-    CELER_EXPECT(data_.xs >= celeritas::zero_quantity());
+    CELER_EXPECT(
+        data_.xs.empty()
+        || std::all_of(data_.xs.begin(), data_.xs.end(), [](BarnMicroXs x) {
+               return x > celeritas::zero_quantity();
+           }));
     CELER_EXPECT(data_.energy_loss >= 0);
 }
 
@@ -49,12 +54,14 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
     real_type    numdens = mat.number_density();
 
     StepLimitBuilders builders;
-    if (data_.xs > zero_quantity())
+    if (!data_.xs.empty())
     {
-        real_type xs = unit_cast(data_.xs) * numdens;
+        VecReal xs_grid;
+        for (auto xs : data_.xs)
+            xs_grid.push_back(unit_cast(xs) * numdens);
         builders[ValueGridType::macro_xs]
             = std::make_unique<ValueGridLogBuilder>(
-                range.lower.value(), range.upper.value(), VecReal{xs, xs});
+                range.lower.value(), range.upper.value(), xs_grid);
     }
     if (data_.energy_loss > 0)
     {

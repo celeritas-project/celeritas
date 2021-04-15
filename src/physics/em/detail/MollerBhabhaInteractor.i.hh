@@ -35,7 +35,7 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     , inc_energy_(particle.energy().value())
     , inc_momentum_(particle.momentum().value())
     , inc_direction_(inc_direction)
-    , secondary_energy_cutoff_(cutoffs.energy().value())
+    , secondary_energy_cutoff_(cutoffs.energy(particle.particle_id()).value())
     , allocate_(allocate)
     , inc_particle_is_electron_(particle.particle_id() == shared_.electron_id)
 {
