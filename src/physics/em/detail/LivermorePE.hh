@@ -27,7 +27,9 @@ namespace detail
 /*!
  * Electron subshell data.
  *
- * The binding energy of consecutive shells is always decreasing.
+ * The binding energy of consecutive shells is *not* always decreasing.
+ * However, it is guaranteed to be less than or equal to the parent element's
+ * \c thresh_lo value.
  */
 struct LivermoreSubshell
 {

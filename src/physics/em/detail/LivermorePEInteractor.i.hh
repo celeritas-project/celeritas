@@ -92,19 +92,18 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     // If the binding energy of the sampled shell is greater than the incident
     // photon energy, no secondaries are produced and the energy is deposited
     // locally.
-    if (!shell_id)
+    if (CELER_UNLIKELY(!shell_id))
     {
         Interaction result       = Interaction::from_absorption();
         result.energy_deposition = inc_energy_;
         return result;
     }
 
-    // Construct interaction for change to primary (incident) particle
     MevEnergy binding_energy;
     {
-        const LivermoreElement& el     = shared_.xs.elements[el_id_];
-        const auto&             shells = shared_.xs.shells[el.shells];
-        binding_energy                 = shells[shell_id.get()].binding_energy;
+        const auto& el     = shared_.xs.elements[el_id_];
+        const auto& shells = shared_.xs.shells[el.shells];
+        binding_energy     = shells[shell_id.get()].binding_energy;
     }
 
     // Outgoing secondary is an electron
@@ -123,6 +122,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
         electron.direction = this->sample_direction(rng);
     }
 
+    // Construct interaction for change to primary (incident) particle
     Interaction result = Interaction::from_absorption();
     if (relaxation)
     {
@@ -161,31 +161,24 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
     const auto&             shells   = shared_.xs.shells[el.shells];
     size_type               shell_id = 0;
 
-    // Skip shells with too-high binding energy
-    while (shell_id != shells.size()
-           && inc_energy_ < shells[shell_id].binding_energy)
-    {
-        ++shell_id;
-    }
-
-    if (CELER_UNLIKELY(shell_id == shells.size()))
-    {
-        // All shells are below incident energy (should this only happen when
-        // the model is erroneously selected?)
-        return {};
-    }
-
-    const size_type shell_end = shells.size() - 1;
     const real_type cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
     if (inc_energy_ < el.thresh_lo)
     {
         // Accumulate discrete PDF for tabulated shell cross sections
         real_type       xs              = 0;
         const real_type inv_cube_energy = ipow<3>(inv_energy_);
-        for (; shell_id < shell_end; ++shell_id)
+        for (; shell_id < shells.size(); ++shell_id)
         {
+            const auto& shell = shells[shell_id];
+            if (inc_energy_ < shell.binding_energy)
+            {
+                // No chance of interaction because binding energy is higher
+                // than incident
+                continue;
+            }
+
             // Use the tabulated subshell cross sections
-            GenericXsCalculator calc_xs(shells[shell_id].xs, shared_.xs.reals);
+            GenericXsCalculator calc_xs(shell.xs, shared_.xs.reals);
             xs += inv_cube_energy * calc_xs(inc_energy_.value());
 
             if (xs >= cutoff)
@@ -193,11 +186,19 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
                 break;
             }
         }
+
+        if (CELER_UNLIKELY(shell_id == shells.size()))
+        {
+            // All shells are below incident energy (should this only happen
+            // when the model is erroneously selected?)
+            return {};
+        }
     }
     else
     {
         // Low/high index on params
         const int pidx = inc_energy_ < el.thresh_hi ? 0 : 1;
+        const size_type shell_end = shells.size() - 1;
 
         // Invert discrete CDF using a linear search
         for (; shell_id < shell_end; ++shell_id)
@@ -222,7 +223,6 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
         }
     }
 
-    CELER_ENSURE(shells[shell_end].binding_energy <= inc_energy_);
     return SubshellId{shell_id};
 }
 

@@ -125,6 +125,7 @@ void LivermorePEModel::append_element(const ImportLivermorePE& inp,
         {
             CELER_EXPECT(shell.param_lo.size() == 6);
             CELER_EXPECT(shell.param_hi.size() == 6);
+            CELER_EXPECT(shell.binding_energy <= inp.thresh_lo);
         }
     }
 
