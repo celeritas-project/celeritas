@@ -124,6 +124,10 @@ CELER_FUNCTION real_type FieldDriver::accurate_advance(real_type step,
     // Set an initial proposed step and evaluate the minimum threshold
     real_type end_curve_length = step;
 
+    // Use a pre-defined initial step size if it is smaller than the input
+    // step length and larger than the permillion fraction of the step length.
+    // Otherwise, use the input step length for the first trial.
+    // TODO: review whether this approach is an efficient bootstrapping.
     real_type h = ((hinitial > FieldDriver::ppm() * step) && (hinitial < step))
                       ? hinitial
                       : step;
