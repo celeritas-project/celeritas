@@ -115,12 +115,6 @@ void LivermorePEModel::append_element(const ImportLivermorePE& inp,
     if (CELERITAS_DEBUG)
     {
         CELER_EXPECT(inp.thresh_lo <= inp.thresh_hi);
-        for (auto i : range<size_type>(1, inp.shells.size()))
-        {
-            // Check that binding energy is decreasinig
-            CELER_EXPECT(inp.shells[i - 1].binding_energy
-                         > inp.shells[i].binding_energy);
-        }
         for (const auto& shell : inp.shells)
         {
             CELER_EXPECT(shell.param_lo.size() == 6);

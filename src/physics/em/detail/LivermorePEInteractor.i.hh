@@ -191,8 +191,8 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
 
         if (CELER_UNLIKELY(shell_id == shells.size()))
         {
-            // All shells are below incident energy (should this only happen
-            // when the model is erroneously selected?)
+            // All shells are above incident energy (this can happen due to
+            // a constant cross section below the lowest binding energy)
             return {};
         }
     }
