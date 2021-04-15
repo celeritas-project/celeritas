@@ -48,8 +48,12 @@ class FieldDriver
     struct FieldOutput
     {
         real_type step_taken; //!< Step length taken
-        real_type value;      //!< A helper variable
         OdeState  state;      //!< OdeState
+        union
+        {
+            real_type error;     //!< Stepper error
+            real_type next_step; //!< Proposed next step size
+        };
     };
 
     // Find the next acceptable chord of with the miss-distance
@@ -64,7 +68,7 @@ class FieldDriver
     CELER_FUNCTION auto one_good_step(real_type step, const OdeState& state)
         -> FieldOutput;
 
-    // Evaluate the next proposed step for a give step and associated error
+    // Propose a next step size from a given step size and associated error
     CELER_FUNCTION real_type new_step_size(real_type step,
                                            real_type error) const;
 
