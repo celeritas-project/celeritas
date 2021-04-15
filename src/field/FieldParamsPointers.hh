@@ -9,6 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "base/Units.hh"
 
 namespace celeritas
 {
@@ -19,41 +20,41 @@ namespace celeritas
  */
 struct FieldParamsPointers
 {
-    //! the minimum length of the field step = 1.0e-5 [mm]
-    real_type minimum_step;
+    //! the minimum length of the field step
+    real_type minimum_step = 1.0e-5 * units::millimeter;
 
-    //! the closest miss distrance = 0.25 [mm]
-    real_type delta_chord;
+    //! the closest miss distrance
+    real_type delta_chord = 0.25 * units::millimeter;
 
-    //! accuracy of intersection of the boundary crossing  = 1.0e-4 [mm]
-    real_type delta_intersection;
+    //! accuracy of intersection of the boundary crossing
+    real_type delta_intersection = 1.0e-4 * units::millimeter;
 
-    //! the relative error scale on the step length = 1.0e-5
-    real_type epsilon_step;
+    //! the relative error scale on the step length
+    real_type epsilon_step = 1.0e-5;
 
-    //! the maximum of the error ratio = 1.0e-3
-    real_type epsilon_rel_max;
+    //! the maximum of the error ratio
+    real_type epsilon_rel_max = 1.0e-3;
 
-    //! the truncation error tolerance = 1.0e-4
-    real_type errcon;
+    //! the truncation error tolerance
+    real_type errcon = 1.0e-4;
 
-    //! pgrow (the exponent to increase a stepsiz) = -0.20
-    real_type pgrow;
+    //! pgrow (the exponent to increase a stepsiz)
+    real_type pgrow = -0.20;
 
-    //! pshrink (the exponent to decrease a stepsiz) = -0.25
-    real_type pshrink;
+    //! pshrink (the exponent to decrease a stepsiz)
+    real_type pshrink = -0.25;
 
-    //! safety (a scale factor for the predicted step size) = 0.9
-    real_type safety;
+    //! safety (a scale factor for the predicted step size)
+    real_type safety = 0.9;
 
-    //! the maximum scale to increase a step size = 5
-    real_type max_stepping_increase;
+    //! the maximum scale to increase a step size
+    real_type max_stepping_increase = 5;
 
-    //! the maximum scale factor to decrease a step size = 0.1
-    real_type max_stepping_decrease;
+    //! the maximum scale factor to decrease a step size
+    real_type max_stepping_decrease = 0.1;
 
-    //! the maximum number of steps (or trials) = 100
-    size_type max_nsteps;
+    //! the maximum number of steps (or trials)
+    size_type max_nsteps = 100;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
