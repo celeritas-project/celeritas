@@ -27,11 +27,13 @@ LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
                                              const Scratch&           scratch,
                                              ElementId                el_id,
                                              const ParticleTrackView& particle,
+                                             const CutoffView&        cutoffs,
                                              const Real3& inc_direction,
                                              StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , scratch_(scratch)
     , el_id_(el_id)
+    , cutoffs_(cutoffs)
     , inc_direction_(inc_direction)
     , inc_energy_(particle.energy().value())
     , allocate_(allocate)
@@ -161,7 +163,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
         // Sample secondaries from atomic relaxation, into all but the initial
         // secondary position
         AtomicRelaxation sample_relaxation = relaxation.build_distribution(
-            SubshellId{shell_id}, secondaries.subspan(1), vacancies);
+            cutoffs_, SubshellId{shell_id}, secondaries.subspan(1), vacancies);
 
         auto outgoing = sample_relaxation(rng);
         secondaries   = {secondaries.data(), 1 + outgoing.count};

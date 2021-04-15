@@ -9,7 +9,10 @@
 
 #include <unordered_map>
 #include <vector>
+#include "base/Algorithms.hh"
 #include "base/DeviceVector.hh"
+#include "io/ImportAtomicRelaxation.hh"
+#include "physics/base/CutoffParams.hh"
 #include "AtomicRelaxationInterface.hh"
 
 namespace celeritas
@@ -23,39 +26,19 @@ class AtomicRelaxationParams
   public:
     //@{
     //! Type aliases
-    using MevEnergy = units::MevEnergy;
+    using MevEnergy        = units::MevEnergy;
+    using SPConstCutoffs   = std::shared_ptr<const CutoffParams>;
+    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
+    using SPConstParticles = std::shared_ptr<const ParticleParams>;
     //@}
-
-    struct TransitionInput
-    {
-        int       initial_shell; //!< Originating shell designator
-        int       auger_shell;   //!< Auger shell designator
-        real_type probability;
-        real_type energy;
-    };
-
-    struct SubshellInput
-    {
-        int                          designator;
-        std::vector<TransitionInput> fluor;
-        std::vector<TransitionInput> auger;
-    };
-
-    struct ElementInput
-    {
-        std::vector<SubshellInput> shells;
-    };
 
     struct Input
     {
-        using EnergyUnits = units::Mev;
-
-        std::vector<ElementInput> elements;
-        ParticleId                electron_id{};
-        ParticleId                gamma_id{};
-        MevEnergy electron_cut{0};    //!< Production threshold for electrons
-        MevEnergy gamma_cut{0};       //!< Production threshold for photons
+        SPConstCutoffs   cutoffs;
+        SPConstMaterials materials;
+        SPConstParticles particles;
         bool is_auger_enabled{false}; //!< Whether to produce Auger electrons
+        std::vector<ImportAtomicRelaxation> elements;
     };
 
   public:
@@ -72,8 +55,6 @@ class AtomicRelaxationParams
     //// HOST DATA ////
 
     bool                                is_auger_enabled_;
-    MevEnergy                           electron_cut_;
-    MevEnergy                           gamma_cut_;
     ParticleId                          electron_id_;
     ParticleId                          gamma_id_;
     std::unordered_map<int, SubshellId> des_to_id_;
@@ -89,10 +70,13 @@ class AtomicRelaxationParams
     DeviceVector<AtomicRelaxTransition> device_transitions_;
 
     // HELPER FUNCTIONS
-    void                      append_element(const ElementInput& inp);
-    Span<AtomicRelaxSubshell> extend_shells(const ElementInput& inp);
+    void append_element(const ImportAtomicRelaxation& inp,
+                        MevEnergy                     electron_cutoff,
+                        MevEnergy                     gamma_cutoff);
+
+    Span<AtomicRelaxSubshell> extend_shells(const ImportAtomicRelaxation& inp);
     Span<AtomicRelaxTransition>
-    extend_transitions(const std::vector<TransitionInput>& transitions);
+    extend_transitions(const std::vector<ImportAtomicTransition>& transitions);
 };
 
 //---------------------------------------------------------------------------//
