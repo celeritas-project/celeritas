@@ -56,22 +56,22 @@ struct FieldParamsPointers
     //! the maximum number of steps (or trials)
     size_type max_nsteps = 100;
 
-    //! Check whether the data is assigned
+    //! Check whether data are assigned appropriately
     explicit inline CELER_FUNCTION operator bool() const
     {
         // clang-format off
-        return    minimum_step
-               && delta_chord 
-               && delta_intersection 
-               && epsilon_step 
-               && epsilon_rel_max 
-               && errcon 
-               && pgrow 
-               && pshrink 
-               && safety 
-               && max_stepping_increase
-               && max_stepping_decrease 
-               && max_nsteps;
+      return      (minimum_step > 0)
+	       && (delta_chord > 0) 
+	       && (delta_intersection > 0) 
+	       && (epsilon_step > 0 && epsilon_step < 1)
+	       && (epsilon_rel_max > 0) 
+	       && (errcon > 0) 
+	       && (pgrow < 0) 
+	       && (pshrink < 0) 
+	       && (safety > 0 && safety < 1) 
+	       && (max_stepping_increase > 1)
+	       && (max_stepping_decrease > 0 && max_stepping_decrease < 1)
+	       && (max_nsteps > 0);
         // clang-format on
     }
 };
