@@ -35,13 +35,13 @@ class FieldDriver
                 RungeKuttaStepper<MagFieldEquation>& stepper);
 
     // For a given trial step, advance by a sub_step within a tolerance error
-    CELER_FUNCTION real_type operator()(real_type step, OdeState* state);
+    inline CELER_FUNCTION real_type operator()(real_type step, OdeState* state);
 
     // An adaptive step size control from G4MagIntegratorDriver
     // Move this to private after all tests with non-uniform field are done
-    CELER_FUNCTION real_type accurate_advance(real_type step,
-                                              OdeState* state,
-                                              real_type hinitial);
+    inline CELER_FUNCTION real_type accurate_advance(real_type step,
+                                                     OdeState* state,
+                                                     real_type hinitial);
 
   private:
     // A helper output for private member functions
@@ -57,20 +57,20 @@ class FieldDriver
     };
 
     // Find the next acceptable chord of with the miss-distance
-    CELER_FUNCTION auto find_next_chord(real_type step, const OdeState& state)
-        -> FieldOutput;
+    inline CELER_FUNCTION auto
+    find_next_chord(real_type step, const OdeState& state) -> FieldOutput;
 
     // Advance for a given step and  evaluate the next predicted step.
-    CELER_FUNCTION auto integrate_step(real_type step, const OdeState& state)
-        -> FieldOutput;
+    inline CELER_FUNCTION auto
+    integrate_step(real_type step, const OdeState& state) -> FieldOutput;
 
     // Advance within the truncated error and estimate a good next step size
-    CELER_FUNCTION auto one_good_step(real_type step, const OdeState& state)
-        -> FieldOutput;
+    inline CELER_FUNCTION auto
+    one_good_step(real_type step, const OdeState& state) -> FieldOutput;
 
     // Propose a next step size from a given step size and associated error
-    CELER_FUNCTION real_type new_step_size(real_type step,
-                                           real_type error) const;
+    inline CELER_FUNCTION real_type new_step_size(real_type step,
+                                                  real_type error) const;
 
     // >>> COMMON PROPERTIES
 
