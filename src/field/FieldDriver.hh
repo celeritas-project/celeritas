@@ -21,10 +21,9 @@ namespace celeritas
 /*!
  * Brief class description.
  *
- *  This is a driver to control the quality of the field integration stepper
- *  and provides the integration with a given field stepper
+ *  Integrate with and control the quality of the field integration stepper.
  *
- * \note This class is based on G4ChordFinder and G4MagIntegratorDriver
+ * \note This class is based on G4ChordFinder and G4MagIntegratorDriver.
  */
 class FieldDriver
 {
