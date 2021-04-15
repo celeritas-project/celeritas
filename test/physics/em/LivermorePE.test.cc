@@ -237,6 +237,9 @@ TEST_F(LivermorePETest, stress_test)
 {
     const int           num_samples = 8192;
     std::vector<double> avg_engine_samples;
+    std::vector<double> avg_num_secondaries;
+    std::vector<double> avg_cosine;
+    std::vector<double> avg_energy;
 
     // Sampled element
     ElementId el_id{0};
@@ -251,9 +254,11 @@ TEST_F(LivermorePETest, stress_test)
 
         RandomEngine&           rng_engine            = this->rng();
         RandomEngine::size_type num_particles_sampled = 0;
+        RandomEngine::size_type num_secondaries       = 0;
+        double                  tot_cosine            = 0;
+        double                  tot_energy            = 0;
 
-        // Loop over several incident directions (shouldn't affect anything
-        // substantial, but scattering near Z axis loses precision)
+        // Loop over several incident directions
         for (const Real3& inc_dir :
              {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
         {
@@ -274,21 +279,53 @@ TEST_F(LivermorePETest, stress_test)
             for (int i = 0; i < num_samples; ++i)
             {
                 Interaction result = interact(rng_engine);
-                SCOPED_TRACE(result);
+                // SCOPED_TRACE(result);
                 this->sanity_check(result);
+                for (const auto& sec : result.secondaries)
+                {
+                    tot_cosine
+                        += celeritas::dot_product(inc_dir, sec.direction);
+                    tot_energy += sec.energy.value();
+                }
+                num_secondaries += result.secondaries.size();
             }
             EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
         avg_engine_samples.push_back(double(rng_engine.count())
                                      / double(num_particles_sampled));
+        avg_num_secondaries.push_back(double(num_secondaries)
+                                      / double(num_particles_sampled));
+        avg_cosine.push_back(tot_cosine / double(num_secondaries));
+        avg_energy.push_back(tot_energy / double(num_secondaries));
     }
 
     // PRINT_EXPECTED(avg_engine_samples);
-    // Gold values for average number of calls to RNG
+    // PRINT_EXPECTED(avg_num_secondaries);
+    // PRINT_EXPECTED(avg_cosine);
+    // PRINT_EXPECTED(avg_energy);
+
+    // Gold values
     const double expected_avg_engine_samples[]
         = {15.99755859375, 16.09204101562, 13.79919433594, 8.590209960938, 2};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+
+    const double expected_avg_num_secondaries[] = {1, 1, 1, 1, 1};
+    EXPECT_VEC_SOFT_EQ(expected_avg_num_secondaries, avg_num_secondaries);
+
+    const double expected_avg_cosine[] = {0.0181237765392,
+                                          0.1848443587223,
+                                          1.030717821907,
+                                          1.169482513617,
+                                          1.183012701892};
+    EXPECT_VEC_SOFT_EQ(expected_avg_cosine, expected_avg_cosine);
+
+    const double expected_avg_energy[] = {7.287875885011e-05,
+                                          0.006708485731503,
+                                          0.9967066970311,
+                                          9.996704339284,
+                                          999.9967069717};
+    EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);
 }
 
 TEST_F(LivermorePETest, distributions_all)

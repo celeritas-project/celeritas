@@ -88,58 +88,24 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Sample the shell from which the photoelectron is emitted
-    real_type cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
-    real_type xs               = 0;
-    const LivermoreElement& el = shared_.xs_data.elements[el_id_];
-    const auto&             shells = shared_.xs_data.shells[el.shells];
-    SubshellId::size_type   shell_id;
-    for (shell_id = 0; shell_id < shells.size() - 1; ++shell_id)
-    {
-        const auto& shell = shells[shell_id];
-        if (inc_energy_ > shell.binding_energy)
-        {
-            if (inc_energy_ < el.thresh_lo)
-            {
-                // Use the tabulated subshell cross sections
-                GenericXsCalculator calc_xs(shell.xs, shared_.xs_data.reals);
-                xs += ipow<3>(inv_energy_) * calc_xs(inc_energy_.value());
-            }
-            else
-            {
-                // Use parameterized integrated subshell cross sections
-                const auto& param = inc_energy_ >= el.thresh_hi
-                                        ? shared_.xs_data.reals[shell.param_hi]
-                                        : shared_.xs_data.reals[shell.param_lo];
-
-                // Calculate the subshell cross section from the fit parameters
-                // and energy as \sigma(E) = a_1 / E + a_2 / E^2 + a_3 / E^3 +
-                // a_4 / E^4 + a_5 / E^5 + a_6 / E^6.
-                // clang-format off
-                xs = inv_energy_ * (param[0] + inv_energy_ * (param[1]
-                   + inv_energy_ * (param[2] + inv_energy_ * (param[3]
-                   + inv_energy_ * (param[4] + inv_energy_ * param[5])))));
-                // clang-format on
-            }
-
-            if (xs >= cutoff)
-            {
-                break;
-            }
-        }
-    }
-
-    // Construct interaction for change to primary (incident) particle
-    Interaction result = Interaction::from_absorption();
+    // Sample atomic subshell
+    SubshellId shell_id = this->sample_subshell(rng);
 
     // If the binding energy of the sampled shell is greater than the incident
     // photon energy, no secondaries are produced and the energy is deposited
     // locally.
-    MevEnergy binding_energy = shells[shell_id].binding_energy;
-    if (binding_energy > inc_energy_)
+    if (CELER_UNLIKELY(!shell_id))
     {
+        Interaction result       = Interaction::from_absorption();
         result.energy_deposition = inc_energy_;
         return result;
+    }
+
+    MevEnergy binding_energy;
+    {
+        const auto& el     = shared_.xs.elements[el_id_];
+        const auto& shells = shared_.xs.shells[el.shells];
+        binding_energy     = shells[shell_id.get()].binding_energy;
     }
 
     // Outgoing secondary is an electron
@@ -158,12 +124,14 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
         electron.direction = this->sample_direction(rng);
     }
 
+    // Construct interaction for change to primary (incident) particle
+    Interaction result = Interaction::from_absorption();
     if (relaxation)
     {
         // Sample secondaries from atomic relaxation, into all but the initial
         // secondary position
         AtomicRelaxation sample_relaxation = relaxation.build_distribution(
-            cutoffs_, SubshellId{shell_id}, secondaries.subspan(1), vacancies);
+            cutoffs_, shell_id, secondaries.subspan(1), vacancies);
 
         auto outgoing = sample_relaxation(rng);
         secondaries   = {secondaries.data(), 1 + outgoing.count};
@@ -182,6 +150,82 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 
     CELER_ENSURE(result.energy_deposition.value() >= 0);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample the shell from which the photoelectron is emitted.
+ */
+template<class Engine>
+CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) const
+{
+    const LivermoreElement& el       = shared_.xs.elements[el_id_];
+    const auto&             shells   = shared_.xs.shells[el.shells];
+    size_type               shell_id = 0;
+
+    const real_type cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
+    if (inc_energy_ < el.thresh_lo)
+    {
+        // Accumulate discrete PDF for tabulated shell cross sections
+        real_type       xs              = 0;
+        const real_type inv_cube_energy = ipow<3>(inv_energy_);
+        for (; shell_id < shells.size(); ++shell_id)
+        {
+            const auto& shell = shells[shell_id];
+            if (inc_energy_ < shell.binding_energy)
+            {
+                // No chance of interaction because binding energy is higher
+                // than incident
+                continue;
+            }
+
+            // Use the tabulated subshell cross sections
+            GenericXsCalculator calc_xs(shell.xs, shared_.xs.reals);
+            xs += inv_cube_energy * calc_xs(inc_energy_.value());
+
+            if (xs >= cutoff)
+            {
+                break;
+            }
+        }
+
+        if (CELER_UNLIKELY(shell_id == shells.size()))
+        {
+            // All shells are above incident energy (this can happen due to
+            // a constant cross section below the lowest binding energy)
+            return {};
+        }
+    }
+    else
+    {
+        // Low/high index on params
+        const int pidx = inc_energy_ < el.thresh_hi ? 0 : 1;
+        const size_type shell_end = shells.size() - 1;
+
+        // Invert discrete CDF using a linear search
+        for (; shell_id < shell_end; ++shell_id)
+        {
+            const auto& param = shells[shell_id].param[pidx];
+
+            // Calculate the *cumulative* subshell cross section (this plus all
+            // below) from the fit parameters and energy as
+            // \sigma(E) = a_1 / E + a_2 / E^2 + a_3 / E^3
+            //             + a_4 / E^4 + a_5 / E^5 + a_6 / E^6.
+            // clang-format off
+            real_type xs
+                =   inv_energy_ * (param[0] + inv_energy_ * (param[1]
+                  + inv_energy_ * (param[2] + inv_energy_ * (param[3]
+                  + inv_energy_ * (param[4] + inv_energy_ *  param[5])))));
+            // clang-format on
+
+            if (xs >= cutoff)
+            {
+                break;
+            }
+        }
+    }
+
+    return SubshellId{shell_id};
 }
 
 //---------------------------------------------------------------------------//

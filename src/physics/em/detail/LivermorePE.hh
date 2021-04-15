@@ -26,12 +26,17 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Electron subshell data.
+ *
+ * The binding energy of consecutive shells is *not* always decreasing.
+ * However, it is guaranteed to be less than or equal to the parent element's
+ * \c thresh_lo value.
  */
 struct LivermoreSubshell
 {
     using EnergyUnits = units::Mev;
     using XsUnits     = units::Barn;
     using Energy      = Quantity<EnergyUnits>;
+    using Real6       = Array<real_type, 6>;
 
     // Binding energy of the electron
     Energy binding_energy;
@@ -41,8 +46,13 @@ struct LivermoreSubshell
 
     // Fit parameters for the integrated subshell photoionization cross
     // sections in the two different energy ranges (used above 5 keV)
-    ItemRange<real_type> param_lo;
-    ItemRange<real_type> param_hi;
+    Array<Real6, 2> param;
+
+    //! True if assigned and valid
+    explicit inline CELER_FUNCTION operator bool() const
+    {
+        return binding_energy > celeritas::zero_quantity() && xs;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -69,8 +79,16 @@ struct LivermoreElement
 
     // Energy threshold for using the parameterized subshell cross sections in
     // the lower and upper energy range
-    Energy thresh_lo;
-    Energy thresh_hi;
+    Energy thresh_lo; //!< Use tabulated XS below this energy
+    Energy thresh_hi; //!< Use lower parameterization below, upper above
+
+    //! True if assigned and valid
+    explicit inline CELER_FUNCTION operator bool() const
+    {
+        // Note: xs_lo is not present for elements with only one subshell, so
+        // it's valid for xs_lo to be unassigned.
+        return xs_hi && !shells.empty() && thresh_lo <= thresh_hi;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -147,7 +165,7 @@ struct LivermorePEData
     real_type inv_electron_mass;
 
     //! Livermore EPICS2014 photoelectric data
-    LivermorePEXsData<W, M> xs_data;
+    LivermorePEXsData<W, M> xs;
 
     //! EADL transition data used for atomic relaxation
     AtomicRelaxParamsPointers atomic_relaxation;
@@ -157,7 +175,7 @@ struct LivermorePEData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && inv_electron_mass > 0 && xs_data;
+        return ids && inv_electron_mass > 0 && xs;
     }
 
     //! Assign from another set of data
@@ -167,7 +185,7 @@ struct LivermorePEData
         CELER_EXPECT(other);
         ids               = other.ids;
         inv_electron_mass = other.inv_electron_mass;
-        xs_data           = other.xs_data;
+        xs                = other.xs;
         atomic_relaxation = other.atomic_relaxation;
         return *this;
     }

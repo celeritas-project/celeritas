@@ -31,8 +31,8 @@ CELER_FUNCTION
 real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
 {
     CELER_EXPECT(el_id);
-    const LivermoreElement& el     = shared_.xs_data.elements[el_id];
-    const auto&             shells = shared_.xs_data.shells[el.shells];
+    const LivermoreElement& el     = shared_.xs.elements[el_id];
+    const auto&             shells = shared_.xs.shells[el.shells];
 
     // In Geant4, if the incident gamma energy is below the lowest binding
     // energy, it is set to the binding energy so that the photoelectric cross
@@ -45,10 +45,7 @@ real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
     {
         // Fit parameters from the final shell are used to calculate the cross
         // section integrated over all subshells
-        const auto& shell = shells.back();
-        const auto& param = energy >= el.thresh_hi
-                                ? shared_.xs_data.reals[shell.param_hi]
-                                : shared_.xs_data.reals[shell.param_lo];
+        const auto& param = shells.back().param[energy < el.thresh_hi ? 0 : 1];
 
         // Use the parameterization of the integrated subshell cross sections
         // clang-format off
@@ -62,13 +59,14 @@ real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
     {
         // Use tabulated cross sections above K-shell energy but below energy
         // limit for parameterization
-        GenericXsCalculator calc_xs(el.xs_hi, shared_.xs_data.reals);
+        GenericXsCalculator calc_xs(el.xs_hi, shared_.xs.reals);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     else
     {
+        CELER_ASSERT(el.xs_lo);
         // Use tabulated cross sections below K-shell energy
-        GenericXsCalculator calc_xs(el.xs_lo, shared_.xs_data.reals);
+        GenericXsCalculator calc_xs(el.xs_lo, shared_.xs.reals);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     return result;
