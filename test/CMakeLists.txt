@@ -248,14 +248,7 @@ endif()
 celeritas_setup_tests(SERIAL PREFIX field)
 
 celeritas_cudaoptional_test(field/RungeKutta)
-
-if(CELERITAS_USE_CUDA)
-  add_library(celeritas_field_test field/FieldDriver.test.cu)
-  target_link_libraries(celeritas_field_test PRIVATE celeritas)
-  list(APPEND CELERITASTEST_LINK_LIBRARIES celeritas_field_test)
-endif()
-
-celeritas_add_test(field/FieldDriver.test.cc GPU)
+celeritas_cudaoptional_test(field/FieldDriver)
 
 #-----------------------------------------------------------------------------#
 
