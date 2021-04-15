@@ -47,14 +47,13 @@ accurate_advance_test(const celeritas::FieldParamsPointers& fd_ptr,
                       FieldTestParams                       tp);
 
 #if !CELERITAS_USE_CUDA
-inline driver_test(const celeritas::FieldParamsPointers& fd_ptr,
-                   FieldTestParams                       tp)
+inline driver_test(const celeritas::FieldParamsPointers&, FieldTestParams)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }
 
-inline accurate_advance_test(const celeritas::FieldParamsPointers& fd_ptr,
-                             FieldTestParams                       tp)
+inline accurate_advance_test(const celeritas::FieldParamsPointers&,
+                             FieldTestParams)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }
