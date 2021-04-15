@@ -76,7 +76,7 @@ class FieldDriver
 
     static CELER_CONSTEXPR_FUNCTION real_type half() { return 0.5; }
 
-    static CELER_CONSTEXPR_FUNCTION real_type rel_tolerance() { return 1e-6; }
+    static CELER_CONSTEXPR_FUNCTION real_type tolerance() { return 1e-6; }
 
   private:
     // Shared constant properties

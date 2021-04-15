@@ -85,7 +85,7 @@ FieldDriver::find_next_chord(real_type step, const OdeState& state)
         real_type dchord
             = distance_chord(state, result.mid_state, result.end_state);
 
-        if (dchord <= (shared_.delta_chord + FieldDriver::rel_tolerance()))
+        if (dchord <= (shared_.delta_chord + FieldDriver::tolerance()))
         {
             converged    = true;
             output.error = truncation_error(
@@ -124,10 +124,10 @@ CELER_FUNCTION real_type FieldDriver::accurate_advance(real_type step,
     // Set an initial proposed step and evaluate the minimum threshold
     real_type end_curve_length = step;
 
-    real_type h = ((hinitial > FieldDriver::rel_tolerance() * step)
-                   && (hinitial < step))
-                      ? hinitial
-                      : step;
+    real_type h
+        = ((hinitial > FieldDriver::tolerance() * step) && (hinitial < step))
+              ? hinitial
+              : step;
     real_type h_threshold = shared_.epsilon_step * step;
 
     // Output with the next good step
