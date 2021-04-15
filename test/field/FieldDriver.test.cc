@@ -36,20 +36,6 @@ class FieldDriverTest : public Test
   protected:
     void SetUp() override
     {
-        // Set values of FieldParamsPointers;
-        field_params.minimum_step          = 1.0e-5 * units::millimeter;
-        field_params.delta_chord           = 0.25 * units::millimeter;
-        field_params.delta_intersection    = 1.0e-4 * units::millimeter;
-        field_params.epsilon_step          = 1.0e-5;
-        field_params.epsilon_rel_max       = 1.0e-3;
-        field_params.errcon                = 1.0e-4;
-        field_params.pgrow                 = -0.20;
-        field_params.pshrink               = -0.25;
-        field_params.safety                = 0.9;
-        field_params.max_stepping_increase = 5;
-        field_params.max_stepping_decrease = 0.1;
-        field_params.max_nsteps            = 100;
-
         // Input parameters of an electron in a uniform magnetic field
         test_params.nstates     = 128 * 512;
         test_params.nsteps      = 100;
