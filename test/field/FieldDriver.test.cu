@@ -197,8 +197,8 @@ OneGoodStepOutput accurate_advance_test(const FieldParamsPointers& fd_pointers,
     thrust::device_vector<double> length(test_params.nstates, 0.0);
 
     // Run kernel
-    celeritas::KernelParamCalculator calc_launch_params(driver_test_kernel,
-                                                        "driver_test");
+    celeritas::KernelParamCalculator calc_launch_params(
+        accurate_advance_kernel, "accurate_advance_test");
     auto params = calc_launch_params(test_params.nstates);
 
     accurate_advance_kernel<<<params.grid_size, params.block_size>>>(
