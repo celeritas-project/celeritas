@@ -37,9 +37,9 @@ class FieldDriverTest : public Test
     void SetUp() override
     {
         // Set values of FieldParamsPointers;
-        field_params.minimum_step          = 1.0e-5;
-        field_params.delta_chord           = 0.25;
-        field_params.delta_intersection    = 1.0e-4;
+        field_params.minimum_step          = 1.0e-5 * units::millimeter;
+        field_params.delta_chord           = 0.25 * units::millimeter;
+        field_params.delta_intersection    = 1.0e-4 * units::millimeter;
         field_params.epsilon_step          = 1.0e-5;
         field_params.epsilon_rel_max       = 1.0e-3;
         field_params.errcon                = 1.0e-4;
@@ -55,8 +55,8 @@ class FieldDriverTest : public Test
         test_params.nsteps      = 100;
         test_params.revolutions = 10;
         test_params.field_value = 1.0 * units::tesla;
-        test_params.radius      = 3.8085386036;
-        test_params.delta_z     = 6.7003310629;
+        test_params.radius      = 3.8085386036 * units::centimeter;
+        test_params.delta_z     = 6.7003310629 * units::centimeter;
         test_params.energy      = 10.9181415106;
         test_params.momentum_y  = 10.9610028286;
         test_params.momentum_z  = 3.1969591583;
