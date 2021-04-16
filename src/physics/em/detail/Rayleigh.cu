@@ -58,7 +58,8 @@ __global__ void rayleigh_interact_kernel(const RayleighDeviceRef     rayleigh,
 
     RngEngine rng(model.states.rng, tid);
 
-    // Sample an element
+    // Assume only a single element in the material, for now
+    CELER_ASSERT(material.material_view().num_elements() == 1);
     ElementId el_id{0};
 
     // Do the interaction
