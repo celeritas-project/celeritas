@@ -45,6 +45,10 @@ class SequenceEngine
     inline static SequenceEngine
     from_reals(celeritas::Span<const double> values);
 
+    // Nearly reproduce the given stream of reals with generate_canonical
+    inline static SequenceEngine
+    from_reals(std::initializer_list<double> values);
+
     // Construct from a sequence of integers (the sequence to reproduce)
     explicit inline SequenceEngine(VecResult values);
 

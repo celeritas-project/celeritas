@@ -26,7 +26,7 @@ class PdfSelectorTest : public celeritas::Test
 
 SequenceEngine make_rng(double select_val)
 {
-    return SequenceEngine::from_reals({&select_val, 1});
+    return SequenceEngine::from_reals({select_val});
 }
 
 //---------------------------------------------------------------------------//

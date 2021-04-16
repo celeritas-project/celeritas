@@ -50,6 +50,15 @@ SequenceEngine SequenceEngine::from_reals(celeritas::Span<const double> values)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a sequence to nearly reproduce the given stream of reals.
+ */
+SequenceEngine SequenceEngine::from_reals(std::initializer_list<double> values)
+{
+    return SequenceEngine::from_reals({values.begin(), values.end()});
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from a sequence of integers (the sequence to reproduce).
  */
 SequenceEngine::SequenceEngine(VecResult values)
