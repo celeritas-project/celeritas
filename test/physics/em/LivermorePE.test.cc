@@ -17,7 +17,7 @@
 #include "base/Range.hh"
 #include "comm/Device.hh"
 #include "io/AtomicRelaxationReader.hh"
-#include "io/detail//ImportPhysicsTable.hh"
+#include "io/ImportPhysicsTable.hh"
 #include "io/LivermorePEReader.hh"
 #include "physics/base/Units.hh"
 #include "physics/em/AtomicRelaxationParams.hh"

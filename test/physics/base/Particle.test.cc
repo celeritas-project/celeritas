@@ -96,8 +96,7 @@ class ParticleImportTest : public celeritas::Test
     {
         root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
         RootImporter import_from_root(root_filename_.c_str());
-        data_ = import_from_root("geant4_data", "ImportData");
-        ;
+        data_ = import_from_root();
     }
     std::string root_filename_;
     ImportData  data_;
@@ -123,7 +122,6 @@ TEST_F(ParticleImportTest, TEST_IF_CELERITAS_USE_ROOT(import_particle))
         loaded_pdgs.push_back(particles->id_to_pdg(particle_id).get());
     }
 
-    // Particle ordering is the same as in the ROOT file
     // clang-format off
     const std::string expected_loaded_names[] = {"gamma", "e-", "e+", "mu-",
         "mu+", "pi+", "pi-", "kaon+", "kaon-", "proton", "anti_proton",

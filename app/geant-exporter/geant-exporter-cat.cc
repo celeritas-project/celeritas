@@ -20,7 +20,7 @@
 #include "physics/material/MaterialParams.hh"
 #include "io/RootImporter.hh"
 #include "io/ImportData.hh"
-#include "io/detail/GdmlGeometryMap.hh"
+#include "io/GdmlGeometryMap.hh"
 
 using namespace celeritas;
 using std::cout;
@@ -316,7 +316,7 @@ int main(int argc, char* argv[])
     try
     {
         RootImporter import(argv[1]);
-        data = import("geant4_data", "ImportData");
+        data = import();
     }
     catch (const DebugError& e)
     {
@@ -329,7 +329,7 @@ int main(int argc, char* argv[])
 
     print_particles(*ParticleParams::from_import(data));
     print_processes(data.processes, *ParticleParams::from_import(data));
-    print_geometry(data.geometry, *ParticleParams::from_import(data));
+    // print_geometry(data.geometry, *ParticleParams::from_import(data));
 
     return EXIT_SUCCESS;
 }

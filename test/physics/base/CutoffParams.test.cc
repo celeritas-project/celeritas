@@ -164,7 +164,7 @@ class CutoffParamsImportTest : public celeritas::Test
     {
         root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
         RootImporter import_from_root(root_filename_.c_str());
-        data_ = import_from_root("geant4_data", "ImportData");
+        data_ = import_from_root();
         ;
     }
     std::string root_filename_;
@@ -175,7 +175,7 @@ TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
 {
     const auto particles = ParticleParams::from_import(data_);
     const auto materials = MaterialParams::from_import(data_);
-    const auto cutoffs   = CutoffParams::from_import(data_);
+    const auto cutoffs = CutoffParams::from_import(data_, particles, materials);
 
     std::vector<double> energies, ranges;
 

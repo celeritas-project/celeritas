@@ -19,28 +19,28 @@ namespace celeritas
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<CutoffParams> CutoffParams::from_import(const ImportData& data)
+std::shared_ptr<CutoffParams>
+CutoffParams::from_import(const ImportData& data,
+                          SPConstParticles  particle_params,
+                          SPConstMaterials  material_params)
 {
     CELER_EXPECT(data);
+    CELER_EXPECT(particle_params);
+    CELER_EXPECT(material_params);
 
     CutoffParams::Input input;
-    input.particles = ParticleParams::from_import(data);
-    input.materials = MaterialParams::from_import(data);
-
-    CELER_ENSURE(input.particles);
-    CELER_ENSURE(input.materials);
+    input.particles = std::move(particle_params);
+    input.materials = std::move(material_params);
 
     for (const auto pid : range(ParticleId{input.particles->size()}))
     {
         CutoffParams::MaterialCutoffs m_cutoffs;
 
-        const auto  pdg            = input.particles->id_to_pdg(pid);
-        const auto& matid_material = data.geometry.matid_to_material_map();
+        const auto pdg = input.particles->id_to_pdg(pid);
 
-        for (auto matid : range(MaterialId{input.materials->size()}))
+        for (const auto& material : data.materials)
         {
-            const auto& material = matid_material.find(matid.get())->second;
-            const auto& iter     = material.pdg_cutoffs.find(pdg.get());
+            const auto& iter = material.pdg_cutoffs.find(pdg.get());
 
             ParticleCutoff p_cutoff;
             if (iter != material.pdg_cutoffs.end())
@@ -60,8 +60,7 @@ std::shared_ptr<CutoffParams> CutoffParams::from_import(const ImportData& data)
         input.cutoffs.insert({pdg, m_cutoffs});
     }
 
-    CutoffParams cutoffs(input);
-    return std::make_shared<CutoffParams>(std::move(cutoffs));
+    return std::make_shared<CutoffParams>(input);
 }
 
 //---------------------------------------------------------------------------//

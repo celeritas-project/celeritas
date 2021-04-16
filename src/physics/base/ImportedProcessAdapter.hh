@@ -13,7 +13,7 @@
 #include <vector>
 #include "base/OpaqueId.hh"
 #include "base/Span.hh"
-#include "io/detail/ImportProcess.hh"
+#include "io/ImportProcess.hh"
 #include "Process.hh"
 #include "PDGNumber.hh"
 
@@ -30,14 +30,15 @@ class ImportedProcesses
   public:
     //!@{
     //! Type aliases
-    using ImportProcessId = OpaqueId<ImportProcess>;
-    using key_type        = std::pair<PDGNumber, ImportProcessClass>;
+    using ImportProcessId  = OpaqueId<ImportProcess>;
+    using key_type         = std::pair<PDGNumber, ImportProcessClass>;
+    using SPConstParticles = std::shared_ptr<const ParticleParams>;
     //!@}
 
   public:
     // Construct with imported data
     static std::shared_ptr<ImportedProcesses>
-    from_import(const ImportData& data);
+    from_import(const ImportData& data, SPConstParticles particle_params);
 
     // Construct with imported tables
     explicit ImportedProcesses(std::vector<ImportProcess> io);

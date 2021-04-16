@@ -8,11 +8,11 @@
 #pragma once
 
 #include <vector>
-#include "detail/ImportParticle.hh"
-#include "detail/ImportElement.hh"
-#include "detail/ImportMaterial.hh"
-#include "detail/ImportProcess.hh"
-#include "detail/GdmlGeometryMap.hh"
+#include "ImportParticle.hh"
+#include "ImportElement.hh"
+#include "ImportMaterial.hh"
+#include "ImportProcess.hh"
+#include "GdmlGeometryMap.hh"
 
 namespace celeritas
 {
@@ -38,12 +38,12 @@ struct ImportData
     std::vector<ImportElement>  elements;
     std::vector<ImportMaterial> materials;
     std::vector<ImportProcess>  processes;
-    GdmlGeometryMap             geometry;
+    std::vector<ImportVolume>   volumes;
 
     explicit operator bool() const
     {
         return !particles.empty() && !elements.empty() && !materials.empty()
-               && !processes.empty() && geometry;
+               && !processes.empty() && !volumes.empty();
     }
 };
 

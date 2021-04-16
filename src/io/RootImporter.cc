@@ -20,8 +20,7 @@
 #include "base/Range.hh"
 #include "comm/Logger.hh"
 #include "physics/base/Units.hh"
-#include "detail/ImportParticle.hh"
-#include "ImportData.hh"
+#include "ImportParticle.hh"
 
 namespace celeritas
 {
@@ -44,25 +43,39 @@ RootImporter::~RootImporter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Load data from the ROOT input file by providing the tree and branch names.
+ * Load data from the ROOT input file.
  */
-ImportData
-RootImporter::operator()(const char* tree_name, const char* branch_name)
+ImportData RootImporter::operator()()
 {
-    CELER_EXPECT(tree_name);
-    CELER_EXPECT(branch_name);
-
-    std::unique_ptr<TTree> tree_data(root_input_->Get<TTree>(tree_name));
+    std::unique_ptr<TTree> tree_data(root_input_->Get<TTree>(tree_name()));
     CELER_ASSERT(tree_data);
     CELER_ASSERT(tree_data->GetEntries() == 1);
 
     ImportData  import_data;
     ImportData* import_data_ptr = &import_data;
-    int err_code = tree_data->SetBranchAddress(branch_name, &import_data_ptr);
+    int err_code = tree_data->SetBranchAddress(branch_name(), &import_data_ptr);
     CELER_ASSERT(err_code >= 0);
     tree_data->GetEntry(0);
 
     return import_data;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Hardcoded ROOT TTree name, consistent with \e app/geant-exporter.
+ */
+const char* RootImporter::tree_name()
+{
+    return "geant4_data";
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Hardcoded ROOT TBranch name, consistent with \e app/geant-exporter.
+ */
+const char* RootImporter::branch_name()
+{
+    return "ImportData";
 }
 
 //---------------------------------------------------------------------------//

@@ -32,6 +32,27 @@ enum class ImportMaterialState
 
 //---------------------------------------------------------------------------//
 /*!
+ * Store particle production cut.
+ */
+struct ImportProductionCut
+{
+    double energy; //!< [MeV]
+    double range;  //!< [cm]
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store elemental composition of a given material.
+ */
+struct ImportMatElemComponent
+{
+    unsigned int element_id;    //!< Index of element in ImportElement
+    double       mass_fraction; //!< [g/cm^3]
+    double       number_fraction;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store data of a given material and its elements.
  *
  * The data is exported via the \e app/geant-exporter. For further expanding
@@ -45,19 +66,6 @@ enum class ImportMaterialState
  */
 struct ImportMaterial
 {
-    struct ImportProductionCut
-    {
-        double energy; //!< [MeV]
-        double range;  //!< [cm]
-    };
-
-    struct ImportMatElemComponent
-    {
-        unsigned int element_id;    //!< Index of element in ImportElement
-        double       mass_fraction; //!< [g/cm^3]
-        double       number_fraction;
-    };
-
     unsigned int                        material_id;
     std::string                         name;
     ImportMaterialState                 state;
@@ -67,7 +75,7 @@ struct ImportMaterial
     double                              number_density;     //!< [1/cm^3]
     double                              radiation_length;   //!< [cm]
     double                              nuclear_int_length; //!< [cm]
-    std::map<int, ImportProductionCut>  pdg_cutoffs;
+    std::map<int, ImportProductionCut>  pdg_cutoffs;        //!< Cutoff per PDG
     std::vector<ImportMatElemComponent> elements;
 };
 

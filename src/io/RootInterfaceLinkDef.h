@@ -15,8 +15,8 @@
 #pragma link C++ class celeritas::ImportPhysicsVector+;
 #pragma link C++ class celeritas::GdmlGeometryMap+;
 #pragma link C++ class celeritas::ImportMaterial+;
-#pragma link C++ class celeritas::ImportMaterial::ImportProductionCut+;
-#pragma link C++ class celeritas::ImportMaterial::ImportMatElemComponent+;
+#pragma link C++ class celeritas::ImportProductionCut+;
+#pragma link C++ class celeritas::ImportMatElemComponent+;
 #pragma link C++ class celeritas::ImportElement+;
 #pragma link C++ class celeritas::ImportVolume+;
 #pragma link C++ class celeritas::ImportData+;

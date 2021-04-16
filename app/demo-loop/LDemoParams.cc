@@ -29,8 +29,7 @@ LDemoParams load_params(const LDemoArgs& args)
     LDemoParams result;
 
     // Load data from ROOT file
-    const auto data = RootImporter(args.physics_filename.c_str())(
-        "geant4_data", "ImportData");
+    const auto data = RootImporter(args.physics_filename.c_str())();
 
     // Load geometry
     {

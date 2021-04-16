@@ -30,8 +30,7 @@ class GeoMaterialTest : public celeritas_test::GeoTestBase
         // Load ROOT file
         std::string root_file
             = this->test_data_path("io", "geant-exporter-data.root");
-        const auto data
-            = RootImporter(root_file.c_str())("geant4_data", "ImportData");
+        const auto data = RootImporter(root_file.c_str())();
 
         // Set up shared material data
         material_ = std::move(MaterialParams::from_import(data));

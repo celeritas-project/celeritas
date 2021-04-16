@@ -14,6 +14,34 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Constuct from imported data.
+ */
+GdmlGeometryMap::GdmlGeometryMap(ImportData& data)
+{
+    CELER_EXPECT(data);
+
+    // Create element map
+    for (const auto& element : data.elements)
+    {
+        this->add_element(element.element_id, element);
+    }
+
+    // Create material map
+    for (const auto& material : data.materials)
+    {
+        this->add_material(material.material_id, material);
+    }
+
+    // Create volume maps
+    for (const auto& volume : data.volumes)
+    {
+        this->add_volume(volume.volume_id, volume);
+        this->link_volume_material(volume.volume_id, volume.material_id);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return the \c mat_id of a given \c vol_id .
  */
 mat_id GdmlGeometryMap::get_matid(vol_id volume_id) const
@@ -111,7 +139,7 @@ const std::map<vol_id, mat_id>& GdmlGeometryMap::volid_to_matid_map() const
 }
 
 //---------------------------------------------------------------------------//
-// WRITE
+// WRITE (PRIVATE)
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//

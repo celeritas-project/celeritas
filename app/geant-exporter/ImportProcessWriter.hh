@@ -12,7 +12,7 @@
 #include <vector>
 #include <memory>
 
-#include "io/detail/ImportProcess.hh"
+#include "io/ImportProcess.hh"
 
 using celeritas::ImportProcess;
 
@@ -38,24 +38,29 @@ enum class TableSelection
 /*!
  * Simplify the convoluted mechanism to store Geant4 process, model, and XS
  * table data for each available particle. It is expected to be used within a
- * Geant4 particle and process loops. After all processes have been stored, a
- * vector<ImportProcess> can be retrieved:
+ * Geant4 particle and process loops. Operator() returns a given process. If
+ * said process was already imported in a previous loop, it will return an
+ * empty object. These empty object should be removed at the end of the loop:
  *
  * \code
- *  ImportProcessWriter process_writer(TableSelection::all);
+ *  std::vector<ImportProcess> processes;
+ *  ImportProcessWriter import(TableSelection::all);
  *
- *  G4ParticleTable::G4PTblDicIterator& particle_iterator;
- *  while (particle_iterator())
+ *  G4ParticleTable::G4PTblDicIterator& particle_iterator
+ *      = *(G4ParticleTable::GetParticleTable()->GetIterator());
+ *  particle_iterator.reset();
+ *
+ *  while (const auto* g4_particle_def = particle_iterator.value())
  *  {
  *      const G4ProcessVector& process_list
  *            = *g4_particle_def.GetProcessManager()->GetProcessList();
  *
  *      for (int j; j < process_list.size(); j++)
  *      {
- *          process_writer(g4_particle_def, *process_list[j]);
+ *          processes.push_back(import(g4_particle_def, *process_list[j]));
  *      }
  *  }
- *  std::vector<ImportProcess> processes = process_writer.get();
+ *  import.remove_empty(processes);
  * \endcode
  */
 class ImportProcessWriter
@@ -69,11 +74,11 @@ class ImportProcessWriter
 
     // Write the physics tables from a given particle and physics process
     // Expected to be called within a G4ParticleTable iterator loop
-    void operator()(const G4ParticleDefinition& particle,
-                    const G4VProcess&           process);
+    ImportProcess operator()(const G4ParticleDefinition& particle,
+                             const G4VProcess&           process);
 
-    // Fetch the full list of physics processes created using operator()
-    std::vector<ImportProcess> get() { return processes_; }
+    // Remove any empty processes returned by operator()
+    void remove_empty(std::vector<ImportProcess>& processes);
 
   private:
     // Loop over EM processes and store them in processes_
@@ -91,14 +96,11 @@ class ImportProcessWriter
                    celeritas::ImportTableType table_type);
 
   private:
-    // Stored process data
-    std::vector<ImportProcess> processes_;
-
     // Whether to write tables that aren't used by physics
     TableSelection which_tables_;
 
-    // Temporary processs data for writing processes_
-    celeritas::ImportProcess process_;
+    // Temporary processs data returned by operator()
+    ImportProcess process_;
 
     // Keep track of processes and tables already written
     struct PrevProcess

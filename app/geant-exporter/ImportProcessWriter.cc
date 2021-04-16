@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
+#include <algorithm>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -24,9 +25,9 @@
 #include <G4ProcessType.hh>
 #include <G4Material.hh>
 
-#include "io/detail/ImportProcess.hh"
-#include "io/detail/ImportPhysicsTable.hh"
-#include "io/detail/ImportPhysicsVector.hh"
+#include "io/ImportProcess.hh"
+#include "io/ImportPhysicsTable.hh"
+#include "io/ImportPhysicsVector.hh"
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/TypeDemangler.hh"
@@ -232,10 +233,15 @@ ImportProcessWriter::~ImportProcessWriter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Add physics tables to this->processes_ from a given particle and process.
+ * Add physics tables to this->process_ from a given particle and process and
+ * return it. If the process was already returned, operator() will return an
+ * empty object.
+ *
+ * The user should erase such cases afterwards using \c remove_empty(...) .
  */
-void ImportProcessWriter::operator()(const G4ParticleDefinition& particle,
-                                     const G4VProcess&           process)
+ImportProcess
+ImportProcessWriter::operator()(const G4ParticleDefinition& particle,
+                                const G4VProcess&           process)
 {
     // Check for duplicate processes
     auto iter_ok = written_processes_.insert({&process, {&particle}});
@@ -247,7 +253,7 @@ void ImportProcessWriter::operator()(const G4ParticleDefinition& particle,
                            << ") for particle " << particle.GetParticleName()
                            << ": duplicate of particle "
                            << prev.particle->GetParticleName();
-        return;
+        return {};
     }
     CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
                      << "' for particle " << particle.GetParticleName() << " ("
@@ -284,7 +290,20 @@ void ImportProcessWriter::operator()(const G4ParticleDefinition& particle,
                          << ProcessTypeDemangler()(process) << ")";
     }
 
-    processes_.push_back(process_);
+    return process_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Remove any empty ImportProcess returned by operator().
+ */
+void ImportProcessWriter::remove_empty(std::vector<ImportProcess>& processes)
+{
+    processes.erase(
+        std::remove_if(processes.begin(),
+                       processes.end(),
+                       [](ImportProcess& ip) { return ip ? false : true; }),
+        processes.end());
 }
 
 //---------------------------------------------------------------------------//

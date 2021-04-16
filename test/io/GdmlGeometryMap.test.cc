@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file GdmlGeometryMap.test.cc
 //---------------------------------------------------------------------------//
-#include "io/detail/GdmlGeometryMap.hh"
+#include "io/GdmlGeometryMap.hh"
 #include "io/RootImporter.hh"
 #include "io/ImportData.hh"
 
@@ -24,8 +24,7 @@ class GdmlGeometryMapTest : public celeritas::Test
     {
         root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
         RootImporter import_from_root(root_filename_.c_str());
-        data_ = import_from_root("geant4_data", "ImportData");
-        ;
+        data_ = import_from_root();
     }
     std::string root_filename_;
     ImportData  data_;
@@ -37,17 +36,18 @@ class GdmlGeometryMapTest : public celeritas::Test
 
 TEST_F(GdmlGeometryMapTest, import_geometry)
 {
-    const auto map = data_.geometry.volid_to_matid_map();
+    GdmlGeometryMap geometry(data_);
+    const auto      map = geometry.volid_to_matid_map();
     EXPECT_EQ(map.size(), 5);
 
     // Fetch a given ImportVolume provided a vol_id
     vol_id       volid  = 0;
-    ImportVolume volume = data_.geometry.get_volume(volid);
+    ImportVolume volume = geometry.get_volume(volid);
     EXPECT_EQ(volume.name, "box");
 
     // Fetch respective mat_id and ImportMaterial from the given vol_id
-    mat_id         matid    = data_.geometry.get_matid(volid);
-    ImportMaterial material = data_.geometry.get_material(matid);
+    mat_id         matid    = geometry.get_matid(volid);
+    ImportMaterial material = geometry.get_material(matid);
 
     // Test material
     EXPECT_EQ(1, matid);
@@ -74,7 +74,7 @@ TEST_F(GdmlGeometryMapTest, import_geometry)
     int i = 0;
     for (auto& elem_comp : material.elements)
     {
-        auto element = data_.geometry.get_element(elem_comp.element_id);
+        auto element = geometry.get_element(elem_comp.element_id);
 
         EXPECT_EQ(elements_name[i], element.name);
         EXPECT_EQ(atomic_number[i], element.atomic_number);

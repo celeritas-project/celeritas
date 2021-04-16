@@ -8,7 +8,7 @@
 #include "io/RootImporter.hh"
 
 #include <algorithm>
-#include "io/detail/ImportPhysicsTable.hh"
+#include "io/ImportPhysicsTable.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/material/MaterialView.hh"
@@ -41,7 +41,7 @@ class RootImporterTest : public celeritas::Test
         root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
 
         RootImporter import_from_root(root_filename_.c_str());
-        data_ = import_from_root("geant4_data", "ImportData");
+        data_ = import_from_root();
     }
 
     std::string root_filename_;
@@ -154,6 +154,7 @@ TEST_F(RootImporterTest, processes)
 }
 
 //---------------------------------------------------------------------------//
+#if 0
 TEST_F(RootImporterTest, geometry)
 {
     const auto map = data_.geometry.volid_to_matid_map();
@@ -202,6 +203,7 @@ TEST_F(RootImporterTest, geometry)
         i++;
     }
 }
+#endif
 
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, material_cutoffs)

@@ -12,13 +12,14 @@
 
 #include "ImportMaterial.hh"
 #include "ImportVolume.hh"
+#include "ImportData.hh"
 #include "GdmlGeometryMapTypes.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Store material, element, and volume information.
+ * Helper class to easily manipulate material, element, and volume information.
  *
  * - The \c mat_id maps materials in the global material map. It also
  *   represents the position of said material in the \c ImportPhysicsTable
@@ -27,9 +28,6 @@ namespace celeritas
  * - The \c vol_id maps volumes in the global volume map.
  * - \c vol_id and \c mat_id pairs are also mapped, such that from a \c vol_id
  *   one can fully retrieve all material and element information.
- * 
- * This data is exported via the \e geant-exporter in
- * \c geant-exporter.cc:store_geometry(...) .
  *
  * \sa ImportData
  */
@@ -42,6 +40,9 @@ class GdmlGeometryMap
     //!@}
 
   public:
+    // Construct with imported data
+    GdmlGeometryMap(ImportData& data);
+
     //// READ ////
 
     // Find material id given volume id
@@ -56,6 +57,13 @@ class GdmlGeometryMap
     // Return the size of the largest material element list
     auto max_num_elements() const -> size_type;
 
+    // Boolean operator for assertion macros
+    explicit operator bool() const
+    {
+        return !matid_to_material_.empty() && !volid_to_volume_.empty()
+               && !elemid_to_element_.empty() && !volid_to_matid_.empty();
+    }
+
     // Return a reference to matid_to_material map
     const std::map<mat_id, ImportMaterial>& matid_to_material_map() const;
     // Return a reference to volid_to_volume_ map
@@ -65,7 +73,8 @@ class GdmlGeometryMap
     // Return a reference to volid_to_matid_ map
     const std::map<vol_id, mat_id>& volid_to_matid_map() const;
 
-    //// WRITE (only used by geant-exporter app) ////
+  private:
+    //// WRITE ////
 
     // Add pair <mat_id, material> to the map
     void add_material(mat_id id, const ImportMaterial& material);
@@ -75,13 +84,6 @@ class GdmlGeometryMap
     void add_element(elem_id id, const ImportElement& element);
     // Add pair <vol_id, mat_id> to the map
     void link_volume_material(vol_id volid, mat_id matid);
-
-    // Boolean operator for assertion macros
-    explicit operator bool() const
-    {
-        return !matid_to_material_.empty() && !volid_to_volume_.empty()
-               && !elemid_to_element_.empty() && !volid_to_matid_.empty();
-    }
 
   private:
     // Global maps

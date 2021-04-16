@@ -241,8 +241,7 @@ class MaterialParamsImportTest : public celeritas::Test
     {
         root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
         RootImporter import_from_root(root_filename_.c_str());
-        data_ = import_from_root("geant4_data", "ImportData");
-        ;
+        data_ = import_from_root();
     }
     std::string root_filename_;
     ImportData  data_;

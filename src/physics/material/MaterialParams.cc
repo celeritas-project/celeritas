@@ -59,27 +59,26 @@ MaterialParams::from_import(const ImportData& data)
     MaterialParams::Input input;
 
     // Populate input.elements
-    for (const auto& elem_key : data.geometry.elemid_to_element_map())
+    for (const auto& element : data.elements)
     {
         MaterialParams::ElementInput element_params;
-        element_params.atomic_number = elem_key.second.atomic_number;
-        element_params.atomic_mass
-            = units::AmuMass{elem_key.second.atomic_mass};
-        element_params.name = elem_key.second.name;
+        element_params.atomic_number = element.atomic_number;
+        element_params.atomic_mass   = units::AmuMass{element.atomic_mass};
+        element_params.name          = element.name;
 
         input.elements.push_back(element_params);
     }
 
     // Populate input.materials
-    for (const auto& mat_key : data.geometry.matid_to_material_map())
+    for (const auto& material : data.materials)
     {
         MaterialParams::MaterialInput material_params;
-        material_params.name           = mat_key.second.name;
-        material_params.temperature    = mat_key.second.temperature;
-        material_params.number_density = mat_key.second.number_density;
-        material_params.matter_state   = to_matter_state(mat_key.second.state);
+        material_params.name           = material.name;
+        material_params.temperature    = material.temperature;
+        material_params.number_density = material.number_density;
+        material_params.matter_state   = to_matter_state(material.state);
 
-        for (const auto& elem_comp : mat_key.second.elements)
+        for (const auto& elem_comp : material.elements)
         {
             ElementId elem_def_id{elem_comp.element_id};
 

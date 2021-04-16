@@ -20,13 +20,15 @@ namespace celeritas
  * Construct with imported data.
  */
 std::shared_ptr<ImportedProcesses>
-ImportedProcesses::from_import(const ImportData& data)
+ImportedProcesses::from_import(const ImportData& data,
+                               SPConstParticles  particle_params)
 {
     CELER_EXPECT(data);
+    CELER_EXPECT(particle_params);
 
     // Sort processes based on particle def IDs, process types, etc.
     auto processes = data.processes;
-    auto particles = ParticleParams::from_import(data);
+    auto particles = std::move(particle_params);
 
     auto to_process_key = [&particles](const ImportProcess& ip) {
         return std::make_tuple(particles->find(PDGNumber{ip.particle_pdg}),

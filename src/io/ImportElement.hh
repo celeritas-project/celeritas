@@ -29,6 +29,7 @@ namespace celeritas
  */
 struct ImportElement
 {
+    unsigned int element_id;
     std::string  name;
     unsigned int atomic_number;
     double       atomic_mass;           //!< [atomic mass unit]

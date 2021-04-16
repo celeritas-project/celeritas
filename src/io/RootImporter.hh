@@ -17,14 +17,14 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/material/MaterialParams.hh"
+#include "ImportData.hh"
+
 
 // ROOT
 class TFile;
 
 namespace celeritas
 {
-struct ImportData;
-
 //---------------------------------------------------------------------------//
 /*!
  * RootImporter loads particle, element, material, process, and volume
@@ -39,7 +39,7 @@ struct ImportData;
  *
  * \code
  *  RootImporter import("/path/to/root_file.root");
- *  const auto data            = import("tree", "import_data_branch");
+ *  const auto data            = import();
  *  const auto particle_params = ParticleParams::from_import(data);
  *  const auto material_params = MaterialParams::from_import(data);
  *  const auto cutoff_params   = CutoffParams::from_import(data);
@@ -55,11 +55,15 @@ class RootImporter
     // Release ROOT file on exit
     ~RootImporter();
 
-    // Load data from the ROOT file
-    ImportData operator()(const char* tree_name, const char* branch_name);
+    // Load data from the ROOT files
+    ImportData operator()();
 
   private:
     std::unique_ptr<TFile> root_input_;
+    // ROOT TTree name
+    static const char* tree_name();
+    // ROOT TBranch name
+    static const char* branch_name();
 };
 
 //---------------------------------------------------------------------------//
