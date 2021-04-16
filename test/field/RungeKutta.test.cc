@@ -83,7 +83,6 @@ TEST_F(RungeKuttaTest, host)
         y.mom = {0.0, param.momentum_y, param.momentum_z};
 
         OdeState expected_y = y;
-        OdeState dydx;
 
         // Try the stepper by hstep for (num_revolutions * num_steps) times
         real_type total_err2 = 0;
@@ -93,9 +92,8 @@ TEST_F(RungeKuttaTest, host)
             expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
             for (CELER_MAYBE_UNUSED int j : celeritas::range(param.nsteps))
             {
-                dydx                    = equation(y);
-                RungeKuttaResult result = rk4(hstep, y, dydx);
-                y                       = result.end_state;
+                StepperResult result = rk4(hstep, y);
+                y                    = result.end_state;
                 total_err2
                     += truncation_error(hstep, 0.001, y, result.err_state);
             }

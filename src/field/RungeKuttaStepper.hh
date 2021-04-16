@@ -32,7 +32,7 @@ class RungeKuttaStepper
   public:
     //!@{
     //! Type aliases
-    using Result = RungeKuttaResult;
+    using Result = StepperResult;
     //!@}
 
   public:
@@ -41,9 +41,8 @@ class RungeKuttaStepper
     RungeKuttaStepper(const FieldEquation_T& eq) : equation_(eq) {}
 
     // Adaptive step size control
-    CELER_FUNCTION auto operator()(real_type       step,
-                                   const OdeState& beg_state,
-                                   const OdeState& beg_slope) -> Result;
+    CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
+        -> Result;
 
   private:
     // Return the final state by the 4th order Runge-Kutta method

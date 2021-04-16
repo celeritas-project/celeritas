@@ -248,6 +248,7 @@ endif()
 celeritas_setup_tests(SERIAL PREFIX field)
 
 celeritas_cudaoptional_test(field/RungeKutta)
+celeritas_cudaoptional_test(field/FieldDriver)
 
 #-----------------------------------------------------------------------------#
 

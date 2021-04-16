@@ -24,9 +24,9 @@ struct OdeState
 
 //---------------------------------------------------------------------------//
 /*!
- * The result of the operator RungeKuttaStepper
+ * The result of the integration stepper
  */
-struct RungeKuttaResult
+struct StepperResult
 {
     OdeState end_state; //!< OdeState at the end
     OdeState mid_state; //!< OdeState at the middle
