@@ -47,6 +47,8 @@ namespace celeritas
  * identical to the units returned by `calc_micro_xs`. The macroscopic cross
  * section units (micro times \c mat.number_density() ) will be 1/cm if and
  * only if calc_micro units are cm^2.
+ *
+ * \todo Refactor to use Selector.
  */
 class ElementSelector
 {

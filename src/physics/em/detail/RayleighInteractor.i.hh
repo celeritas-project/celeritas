@@ -10,6 +10,7 @@
 #include "base/Algorithms.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "random/distributions/IsotropicDistribution.hh"
+#include "random/Selector.hh"
 
 namespace celeritas
 {
@@ -59,15 +60,10 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 
     do
     {
-        unsigned int index = 0;
         // Sample index from input.prob
-        {
-            real_type u = generate_canonical(rng);
-            if (u > input.prob[0])
-            {
-                index = (u <= input.prob[0] + input.prob[1]) ? 1 : 2;
-            }
-        }
+        const unsigned int index = celeritas::make_selector(
+            [&input](unsigned int i) { return input.prob[i]; },
+            input.prob.size())(rng);
 
         real_type w = input.weight[index];
         real_type n = pn[index];

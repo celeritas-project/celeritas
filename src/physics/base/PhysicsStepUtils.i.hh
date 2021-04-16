@@ -12,6 +12,7 @@
 #include "base/Range.hh"
 #include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/GenerateCanonical.hh"
+#include "random/Selector.hh"
 #include "physics/grid/EnergyLossCalculator.hh"
 #include "physics/grid/InverseRangeCalculator.hh"
 #include "physics/grid/RangeCalculator.hh"
@@ -222,47 +223,36 @@ select_process_and_model(const ParticleTrackView& particle,
     CELER_EXPECT(physics.interaction_mfp() <= 0);
 
     // Sample ParticleProcessId from physics.per_process_xs()
+    ParticleProcessId ppid = celeritas::make_selector(
+        [&physics](ParticleProcessId ppid) {
+            return physics.per_process_xs(ppid);
+        },
+        ParticleProcessId{physics.num_particle_processes()},
+        physics.macro_xs())(rng);
 
-    auto      total_macro_xs = physics.macro_xs();
-    real_type prob           = generate_canonical(rng) * total_macro_xs;
-    real_type accum          = 0;
-
-    for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
+    // Determine if the discrete interaction occurs for energy loss
+    // processes
+    if (physics.use_integral_xs(ppid))
     {
-        accum += physics.per_process_xs(ppid);
-        if (accum >= prob)
-        {
-            // Determine if the discrete interaction occurs for energy loss
-            // processes
-            if (physics.use_integral_xs(ppid))
-            {
-                // This is an energy loss process that was sampled for a
-                // discrete interaction, so it will have macro xs tables
-                auto grid_id
-                    = physics.value_grid(ValueGridType::macro_xs, ppid);
-                CELER_ASSERT(grid_id);
+        // This is an energy loss process that was sampled for a
+        // discrete interaction, so it will have macro xs tables
+        auto grid_id = physics.value_grid(ValueGridType::macro_xs, ppid);
+        CELER_ASSERT(grid_id);
 
-                // Recalculate the cross section at the post-step energy \f$
-                // E_1 \f$
-                auto calc_xs = physics.make_calculator<XsCalculator>(grid_id);
-                real_type xs = calc_xs(particle.energy());
+        // Recalculate the cross section at the post-step energy \f$
+        // E_1 \f$
+        auto      calc_xs = physics.make_calculator<XsCalculator>(grid_id);
+        real_type xs      = calc_xs(particle.energy());
 
-                // The discrete interaction occurs with probability \f$
-                // \sigma(E_1) / \sigma_{\max} \f$
-                if (!BernoulliDistribution(xs / physics.per_process_xs(ppid))(
-                        rng))
-                    return {};
-            }
-            // Select the model and return; See doc above for details.
-            auto find_model = physics.make_model_finder(ppid);
-            return ProcessIdModelId{ppid, find_model(particle.energy())};
-        }
+        // The discrete interaction occurs with probability \f$
+        // \sigma(E_1) / \sigma_{\max} \f$
+        if (!BernoulliDistribution(xs / physics.per_process_xs(ppid))(rng))
+            return {};
     }
-    // Since total_macro_xs is supposed to be the sum of the cross section
-    // and the random number should be between 0 and 1, we can't get here.
-    CELER_ASSERT_UNREACHABLE();
 
-    return {};
+    // Select the model and return; See doc above for details.
+    auto find_model = physics.make_model_finder(ppid);
+    return ProcessIdModelId{ppid, find_model(particle.energy())};
 }
 
 //---------------------------------------------------------------------------//
