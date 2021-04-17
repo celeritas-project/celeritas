@@ -139,7 +139,7 @@ struct VGNavCollection<Ownership::value, MemSpace::device>
 template<>
 struct VGNavCollection<Ownership::reference, MemSpace::device>
 {
-    using NavState = vecgeom::cuda::NavigationState;
+    using NavState = vecgeom::NavigationState;
 
     void*     ptr       = nullptr;
     int       max_depth = 0;
@@ -170,15 +170,9 @@ CELER_FUNCTION auto VGNavCollection<Ownership::reference, MemSpace::device>::at(
     CELER_EXPECT(this->ptr);
     CELER_EXPECT(thread < this->size);
     CELER_EXPECT(max_depth_param == this->max_depth);
-#ifdef __NVCC__
-    // This code only compiles when run through CUDA so it must be escaped.
-    char* result = reinterpret_cast<char*>(this->ptr);
-    result += NavState::SizeOfInstanceAlignAware(max_depth_param)
-              * thread.get();
-    return *reinterpret_cast<NavState*>(result);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
+
+    vecgeom::NavStatePoolView poolView(reinterpret_cast<char*>(this->ptr), this->max_depth);
+    return *poolView[thread.get()];
 }
 
 //---------------------------------------------------------------------------//
