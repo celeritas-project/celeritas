@@ -15,6 +15,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Sample from a uniform distribution.
+ *
+ * This distribution is defined between two arbitrary real numbers \em a and
+ * \em b , and has a flat PDF between the two values. It *is* allowable for the
+ * two numbers to have reversed order.
  */
 template<class RealType = ::celeritas::real_type>
 class UniformRealDistribution
@@ -27,9 +31,13 @@ class UniformRealDistribution
     //!@}
 
   public:
-    // Constructor
+    // Construct on [0, 1)
+    inline CELER_FUNCTION
+    UniformRealDistribution();
+
+    // Construct on an arbitrary interval
     explicit inline CELER_FUNCTION
-    UniformRealDistribution(real_type a = 0, real_type b = 1);
+    UniformRealDistribution(real_type a, real_type b = 1);
 
     // Sample a random number according to the distribution
     template<class Generator>

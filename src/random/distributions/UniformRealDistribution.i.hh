@@ -13,7 +13,18 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with defaults.
+ * Construct on the interval [0, 1).
+ */
+template<class RealType>
+CELER_FUNCTION
+UniformRealDistribution<RealType>::UniformRealDistribution()
+    : UniformRealDistribution(0)
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct on the interval [a, b).
  */
 template<class RealType>
 CELER_FUNCTION
