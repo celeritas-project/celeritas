@@ -8,8 +8,8 @@
 
 #include "base/ArrayUtils.hh"
 #include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/GenerateCanonical.hh"
 #include "random/distributions/IsotropicDistribution.hh"
+#include "random/distributions/ReciprocalDistribution.hh"
 
 namespace celeritas
 {
@@ -77,18 +77,17 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         const real_type     sqgrate = std::sqrt(tau / tau2) * half;
 
         // Evaluate limits of the energy sampling
-        const real_type epsilmin     = half - sqgrate;
-        const real_type epsilmax     = half + sqgrate;
-        const real_type log_epsilqot = std::log(epsilmax / epsilmin);
+        ReciprocalDistribution<real_type> sample_eps(half - sqgrate,
+                                                     half + sqgrate);
 
         // Sample the energy rate of the created gammas
         real_type epsil;
         do
         {
-            epsil = epsilmin * std::exp(log_epsilqot * generate_canonical(rng));
+            epsil = sample_eps(rng);
         } while (BernoulliDistribution(1 - epsil
                                        + (2 * (tau + 1) * epsil - 1)
-                                             / (epsil * tau2 * tau2))(rng));
+                                             / (epsil * ipow<2>(tau2)))(rng));
 
         // Scattered Gamma angles
         const real_type cost = (epsil * tau2 - 1)

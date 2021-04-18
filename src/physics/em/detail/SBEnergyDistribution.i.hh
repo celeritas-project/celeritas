@@ -10,6 +10,7 @@
 #include "base/Algorithms.hh"
 #include "physics/grid/TwodGridCalculator.hh"
 #include "random/distributions/BernoulliDistribution.hh"
+#include "random/distributions/ReciprocalDistribution.hh"
 
 namespace celeritas
 {
@@ -32,7 +33,7 @@ SBEnergyDistribution::SBEnergyDistribution(const SBData& data,
     , calc_xs_{this->make_xs_calc(data.differential_xs, element)}
     , inv_max_xs_{1 / this->calc_max_xs(data.differential_xs, element)}
     , dens_corr_(density_correction.value())
-    , sample_log_exit_efrac_{this->make_lee_sampler(min_gamma_energy.value())}
+    , sample_exit_esq_{this->make_esq_sampler(min_gamma_energy.value())}
 {
     CELER_EXPECT(inc_energy > min_gamma_energy);
 }
@@ -53,7 +54,7 @@ CELER_FUNCTION auto SBEnergyDistribution::operator()(Engine& rng) -> Energy
     do
     {
         // Sample scaled energy and subtract correction factor
-        real_type esq = std::exp(sample_log_exit_efrac_(rng)) - dens_corr_;
+        real_type esq = sample_exit_esq_(rng) - dens_corr_;
         CELER_ASSERT(esq >= 0);
         exit_energy = std::sqrt(esq);
 
@@ -126,15 +127,15 @@ CELER_FUNCTION real_type SBEnergyDistribution::calc_max_xs(
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a sampler for scaled log exiting energy.
+ * Construct a sampler for scaled exiting energy.
  */
 CELER_FUNCTION auto
-SBEnergyDistribution::make_lee_sampler(real_type min_gamma_energy) const
-    -> UniformSampler
+SBEnergyDistribution::make_esq_sampler(real_type min_gamma_energy) const
+    -> ReciprocalSampler
 {
     CELER_EXPECT(min_gamma_energy > 0);
-    return UniformSampler(std::log(ipow<2>(min_gamma_energy) + dens_corr_),
-                          std::log(ipow<2>(inc_energy_) + dens_corr_));
+    return ReciprocalSampler(ipow<2>(min_gamma_energy) + dens_corr_,
+                             ipow<2>(inc_energy_) + dens_corr_);
 }
 
 //---------------------------------------------------------------------------//
