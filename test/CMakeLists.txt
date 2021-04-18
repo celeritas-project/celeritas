@@ -219,6 +219,7 @@ celeritas_add_test(random/distributions/BernoulliDistribution.test.cc)
 celeritas_add_test(random/distributions/ExponentialDistribution.test.cc)
 celeritas_add_test(random/distributions/IsotropicDistribution.test.cc)
 celeritas_add_test(random/distributions/RadialDistribution.test.cc)
+celeritas_add_test(random/distributions/ReciprocalDistribution.test.cc)
 celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 
 # Note: this test should compile fine without CUDA but currently doesn't have
