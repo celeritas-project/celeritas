@@ -144,8 +144,8 @@ void store_physics_tables(TFile* root_file, G4ParticleTable* particle_table)
         const G4ParticleDefinition& g4_particle_def
             = *(particle_iterator.value());
 
-        celeritas::PDGNumber pdg(g4_particle_def.GetPDGEncoding());
-        if (pdg.get() == 0)
+        celeritas::PDGNumber pdg{g4_particle_def.GetPDGEncoding()};
+        if (!pdg)
         {
             // Skip "dummy" particles: generic ion and geantino
             continue;
