@@ -11,6 +11,7 @@
 #include "geometry/GeoMaterialView.hh"
 #include "io/RootImporter.hh"
 #include "io/ImportData.hh"
+#include "io/GdmlGeometryMap.hh"
 
 #include "GeoTestBase.hh"
 #include "celeritas_test.hh"
@@ -41,7 +42,11 @@ class GeoMaterialTest : public celeritas_test::GeoTestBase
         input.materials = material_;
         input.volume_to_mat
             = std::vector<MaterialId>(input.geometry->num_volumes());
-        for (const auto& kv : data.geometry.volid_to_matid_map())
+
+        // Load imported geometry helper class
+        GdmlGeometryMap geometry(data);
+
+        for (const auto& kv : geometry.volid_to_matid_map())
         {
             CELER_ASSERT(kv.first < input.volume_to_mat.size());
             CELER_ASSERT(kv.second < input.materials->num_materials());

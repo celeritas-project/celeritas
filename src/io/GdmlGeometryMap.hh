@@ -42,7 +42,7 @@ class GdmlGeometryMap
 
   public:
     // Construct with imported data
-    explicit GdmlGeometryMap(ImportData& data);
+    explicit GdmlGeometryMap(const ImportData& data);
 
     // Find material id given a volume id
     mat_id get_matid(vol_id volume_id) const;

@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Constuct from imported data.
  */
-GdmlGeometryMap::GdmlGeometryMap(ImportData& data)
+GdmlGeometryMap::GdmlGeometryMap(const ImportData& data)
 {
     CELER_EXPECT(data);
 
