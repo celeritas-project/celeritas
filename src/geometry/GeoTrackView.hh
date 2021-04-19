@@ -70,10 +70,15 @@ class GeoTrackView
     //! State accessors
     CELER_FUNCTION const Real3& pos() const { return pos_; }
     CELER_FUNCTION const Real3& dir() const { return dir_; }
-    CELER_FUNCTION real_type    next_step() const
+    CELER_FUNCTION real_type next_step() const
     {
         CELER_ASSERT(!dirty_);
         return next_step_;
+    }
+    CELER_FUNCTION vecgeom::NavigationState& vgnext() const { return vgnext_; }
+    CELER_FUNCTION vecgeom::NavigationState& vgstate() const
+    {
+        return vgstate_;
     }
     //!@}
 
