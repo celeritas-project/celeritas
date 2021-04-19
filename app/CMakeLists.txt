@@ -186,7 +186,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # DEMO: full physics loop
 #-----------------------------------------------------------------------------#
-if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
+
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom AND CELERITAS_USE_ROOT)
   set(_cuda_src)
   if(CELERITAS_USE_CUDA)
     set(_cuda_src
@@ -197,19 +198,17 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     demo-loop/LDemoIO.cc
     demo-loop/LDemoParams.cc
     demo-loop/LDemoRun.cc
-    demo-loop/demo-loop.cc
     ${_cuda_src}
   )
 
-  if(CELERITAS_USE_CUDA)
-    celeritas_link_vecgeom_cuda(celeritas_demo_loop)
-  endif()
   target_link_libraries(celeritas_demo_loop
     PRIVATE
     celeritas
     nlohmann_json::nlohmann_json
-    Celeritas::ROOT
   )
+  if(CELERITAS_USE_CUDA)
+    celeritas_link_vecgeom_cuda(celeritas_demo_loop)
+  endif()
 
   # Add the executable
   add_executable(demo-loop
@@ -217,11 +216,32 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   )
   target_link_libraries(demo-loop
     celeritas
+    Celeritas::ROOT
     VecGeom::vecgeom
     celeritas_demo_loop
     nlohmann_json::nlohmann_json
   )
 
+  # TODO: update input files and enable test
+  if(CELERITAS_BUILD_TESTS)
+    set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
+    set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/geant-exporter/data/four-steel-slabs.gdml")
+    set(_root_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/data/physics-data.root")
+    add_test(NAME "app/demo-loop"
+      COMMAND "$<TARGET_FILE:Python::Interpreter>"
+      "${_driver}" "${_gdml_inp}" "${_root_inp}"
+    )
+    set(_env
+      "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
+      "CELER_DISABLE_PARALLEL=1"
+    )
+    set_tests_properties("app/demo-loop" PROPERTIES
+      ENVIRONMENT "${_env}"
+      RESOURCE_LOCK gpu
+      REQUIRED_FILES "${_driver};${_gdml_inp};${_root_inp}"
+      DISABLED true
+    )
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

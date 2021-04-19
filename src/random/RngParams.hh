@@ -24,6 +24,8 @@ class RngParams
     //!@{
     //! References to constructed data
     using HostRef = RngParamsData<Ownership::const_reference, MemSpace::host>;
+    using DeviceRef
+        = RngParamsData<Ownership::const_reference, MemSpace::device>;
     //!@}
 
   public:
@@ -33,8 +35,12 @@ class RngParams
     //! Access RNG properties for constructing RNG state
     const HostRef& host_pointers() const { return host_ref_; }
 
+    //! Access data on device
+    const DeviceRef& device_pointers() const { return device_ref_; }
+
   private:
-    HostRef host_ref_;
+    HostRef   host_ref_;
+    DeviceRef device_ref_;
 };
 
 //---------------------------------------------------------------------------//

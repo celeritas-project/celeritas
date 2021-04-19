@@ -26,9 +26,7 @@ StateStore::StateStore(const Input& inp) : interactions_(inp.num_tracks)
     rng_params.seed = inp.host_seed;
     resize(&rng_states_, make_const_ref(rng_params), inp.num_tracks);
 
-    SimParamsData<Ownership::value, MemSpace::host> sim_params;
-    resize(&sim_states_, make_const_ref(sim_params), inp.num_tracks);
-
+    resize(&sim_states_, inp.num_tracks);
     resize(&geo_states_, inp.geo->host_pointers(), inp.num_tracks);
 
     CELER_ENSURE(inp.num_tracks == this->size());

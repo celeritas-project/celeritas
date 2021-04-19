@@ -14,10 +14,22 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 void pre_step(const ParamsDeviceRef&, const StateDeviceRef&);
+void along_and_post_step(const ParamsDeviceRef&, const StateDeviceRef&);
+void process_interactions(const ParamsDeviceRef&, const StateDeviceRef&);
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_CUDA
 inline void pre_step(const ParamsDeviceRef&, const StateDeviceRef&)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+
+inline void along_and_post_step(const ParamsDeviceRef&, const StateDeviceRef&)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+
+inline void process_interactions(const ParamsDeviceRef&, const StateDeviceRef&)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

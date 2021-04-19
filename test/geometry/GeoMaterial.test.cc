@@ -72,6 +72,6 @@ TEST_F(GeoMaterialTest, host)
     for (auto i : range(geo.num_volumes()))
     {
         GeoMaterialView geo_mat_view(geo_mat_->host_pointers(), VolumeId{i});
-        EXPECT_EQ(MaterialId{expected_mat_id[i]}, geo_mat_view.material());
+        EXPECT_EQ(MaterialId{expected_mat_id[i]}, geo_mat_view.material_id());
     }
 }

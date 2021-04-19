@@ -30,7 +30,7 @@ class GeoMaterialView
     GeoMaterialView(const GeoMaterialPointers& params, VolumeId volume);
 
     //! Return material
-    CELER_FORCEINLINE_FUNCTION MaterialId material() const { return mat_; }
+    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const { return mat_; }
 
   private:
     MaterialId mat_;

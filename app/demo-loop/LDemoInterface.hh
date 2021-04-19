@@ -17,6 +17,7 @@
 #include "physics/base/Secondary.hh"
 #include "physics/material/MaterialInterface.hh"
 #include "random/RngInterface.hh"
+#include "sim/SimInterface.hh"
 
 namespace demo_loop
 {
@@ -32,7 +33,6 @@ struct ControlOptions
 {
     using real_type = celeritas::real_type;
 
-    unsigned int rng_seed            = 20210318u;
     real_type secondary_stack_factor = 3; // Secondary storage per state size
 
     //! True if all options are valid
@@ -46,11 +46,11 @@ struct ParamsData
 {
     celeritas::GeoParamsData<W, M>         geometry;
     celeritas::GeoMaterialParamsData<W, M> geo_mats;
-
-    celeritas::MaterialParamsData<W, M> materials;
-    celeritas::ParticleParamsData<W, M> particles;
-    celeritas::CutoffParamsData<W, M>   cutoffs;
-    celeritas::PhysicsParamsData<W, M>  physics;
+    celeritas::MaterialParamsData<W, M>    materials;
+    celeritas::ParticleParamsData<W, M>    particles;
+    celeritas::CutoffParamsData<W, M>      cutoffs;
+    celeritas::PhysicsParamsData<W, M>     physics;
+    celeritas::RngParamsData<W, M>         rng;
 
     ControlOptions control;
 
@@ -72,6 +72,7 @@ struct ParamsData
         particles = other.particles;
         cutoffs   = other.cutoffs;
         physics   = other.physics;
+        rng       = other.rng;
         return *this;
     }
 };
@@ -81,23 +82,24 @@ struct ParamsData
 template<Ownership W, MemSpace M>
 struct StateData
 {
+    template<class T>
+    using Items     = celeritas::StateCollection<T, W, M>;
     using real_type = celeritas::real_type;
 
-    // TODO: geometry state (this is a placeholdder)
-    int geometry = 0;
-
+    celeritas::GeoStateData<W, M>      geometry;
     celeritas::MaterialStateData<W, M> materials;
     celeritas::ParticleStateData<W, M> particles;
     celeritas::PhysicsStateData<W, M>  physics;
     celeritas::RngStateData<W, M>      rng;
+    celeritas::SimStateData<W, M>      sim;
 
     // Stacks
     celeritas::StackAllocatorData<celeritas::Secondary, W, M> secondaries;
 
     // Raw data
-    celeritas::Collection<real_type, W, M>              step_length;
-    celeritas::Collection<real_type, W, M>              energy_deposition;
-    celeritas::Collection<celeritas::Interaction, W, M> interactions;
+    Items<real_type>              step_length;
+    Items<real_type>              energy_deposition;
+    Items<celeritas::Interaction> interactions;
 
     //! Number of state elements
     CELER_FUNCTION celeritas::size_type size() const
@@ -108,7 +110,7 @@ struct StateData
     //! True if all params are assigned
     explicit operator bool() const
     {
-        return geometry && materials && particles && physics && rng
+        return geometry && materials && particles && physics && rng && sim
                && secondaries && !step_length.empty()
                && !energy_deposition.empty() && !interactions.empty();
     }
@@ -123,6 +125,7 @@ struct StateData
         particles         = other.particles;
         physics           = other.physics;
         rng               = other.rng;
+        sim               = other.sim;
         secondaries       = other.secondaries;
         step_length       = other.step_length;
         energy_deposition = other.energy_deposition;
@@ -152,7 +155,8 @@ resize(StateData<Ownership::value, M>*                               data,
     resize(&data->materials, params.materials, size);
     resize(&data->particles, params.particles, size);
     resize(&data->physics, params.physics, size);
-    CELER_NOT_IMPLEMENTED("TODO: resize remaining states");
+    resize(&data->rng, params.rng, size);
+    resize(&data->sim, size);
 
     auto sec_size = static_cast<celeritas::size_type>(
         size * params.control.secondary_stack_factor);

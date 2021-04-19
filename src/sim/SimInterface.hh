@@ -21,26 +21,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Static properties of the simulation.
- *
- * There is no persistent data needed on device or at runtime: the params are
- * only used for construction.
- */
-template<Ownership W, MemSpace M>
-struct SimParamsData
-{
-    /* no data on device */
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    SimParamsData& operator=(const SimParamsData<W2, M2>&)
-    {
-        return *this;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Simulation state of a track.
  */
 struct SimTrackState
@@ -93,9 +73,7 @@ struct SimStateData
  * Resize simulation states and set \c alive to be false.
  */
 template<MemSpace M>
-void resize(SimStateData<Ownership::value, M>* data,
-            const SimParamsData<Ownership::const_reference, MemSpace::host>&,
-            size_type size)
+void resize(SimStateData<Ownership::value, M>* data, size_type size)
 {
     CELER_EXPECT(size > 0);
     make_builder(&data->state).resize(size);

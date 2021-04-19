@@ -69,11 +69,11 @@ CELER_FUNCTION bool SimTrackView::alive() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Modifier for whether the track is alive.
+ * Set whether the track is alive.
  */
-CELER_FUNCTION bool& SimTrackView::alive()
+CELER_FUNCTION void SimTrackView::alive(bool is_alive)
 {
-    return states_.state[thread_].alive;
+    states_.state[thread_].alive = is_alive;
 }
 
 //---------------------------------------------------------------------------//

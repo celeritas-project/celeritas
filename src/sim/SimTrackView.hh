@@ -48,8 +48,8 @@ class SimTrackView
     // Whether the track is alive
     CELER_FORCEINLINE_FUNCTION bool alive() const;
 
-    // Modifier for whether the track is alive
-    CELER_FORCEINLINE_FUNCTION bool& alive();
+    // Set whether the track is alive
+    CELER_FORCEINLINE_FUNCTION void alive(bool);
 
   private:
     const SimStateRef& states_;
