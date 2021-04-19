@@ -254,7 +254,10 @@ if(CELERITAS_USE_VecGeom)
     celeritas_link_vecgeom_cuda(CeleritasPropagatorTest)
   endif()
   target_link_libraries(CeleritasPropagatorTest
-    PRIVATE Celeritas::Test Celeritas::Core VecGeom::vecgeom
+    PRIVATE 
+    celeritas
+    VecGeom::vecgeom
+    VecGeom::vecgeomcuda_static
   )
 
 endif()
