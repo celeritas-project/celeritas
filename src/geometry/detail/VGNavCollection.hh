@@ -141,9 +141,7 @@ struct VGNavCollection<Ownership::reference, MemSpace::device>
 {
     using NavState = vecgeom::NavigationState;
 
-    void*     ptr       = nullptr;
-    int       max_depth = 0;
-    size_type size      = 0;
+    vecgeom::NavStatePoolView pool_view = {nullptr, 0, 0};
 
     // Assign from device value
     void operator=(VGNavCollection<Ownership::value, MemSpace::device>& other);
@@ -153,7 +151,7 @@ struct VGNavCollection<Ownership::reference, MemSpace::device>
     //! True if the collection is assigned/valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return ptr && size > 0 && max_depth > 0;
+        return pool_view.IsValid();
     }
 };
 
@@ -167,13 +165,13 @@ struct VGNavCollection<Ownership::reference, MemSpace::device>
 CELER_FUNCTION auto VGNavCollection<Ownership::reference, MemSpace::device>::at(
     int max_depth_param, ThreadId thread) const -> NavState&
 {
-    CELER_EXPECT(this->ptr);
-    CELER_EXPECT(thread < this->size);
-    CELER_EXPECT(max_depth_param == this->max_depth);
+    CELER_EXPECT(this->pool_view.IsValid());
+    CELER_EXPECT(thread < this->pool_view.Capacity());
+    CELER_EXPECT(max_depth_param == this->pool_view.Depth());
 
-    vecgeom::NavStatePoolView poolView(reinterpret_cast<char*>(this->ptr), this->max_depth);
-    return *poolView[thread.get()];
+    return *const_cast<NavState*>((this->pool_view)[thread.get()]);
 }
+
 
 //---------------------------------------------------------------------------//
 } // namespace detail
