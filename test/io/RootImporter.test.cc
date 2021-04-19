@@ -82,6 +82,130 @@ TEST_F(RootImporterTest, particles)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(RootImporterTest, elements)
+{
+    const auto elements = data_.elements;
+    EXPECT_EQ(4, elements.size());
+
+    std::vector<std::string> names;
+    std::vector<elem_id>     ids;
+    std::vector<int>         atomic_numbers;
+    std::vector<double>      atomic_masses, rad_lenghts_tsai, coulomb_factors;
+
+    for (const auto& element : elements)
+    {
+        names.push_back(element.name);
+        ids.push_back(element.element_id);
+        atomic_masses.push_back(element.atomic_mass);
+        atomic_numbers.push_back(element.atomic_number);
+        coulomb_factors.push_back(element.coulomb_factor);
+        rad_lenghts_tsai.push_back(element.radiation_length_tsai);
+    }
+
+    // clang-format off
+    const std::string  expected_names[]          = {"Fe", "Cr", "Ni", "H"};
+    const unsigned int expected_ids[]            = {0, 1, 2, 3};
+    const int          expected_atomic_numbers[] = {26, 24, 28, 1};
+    const double       expected_atomic_masses[]  = {55.845110798, 51.996130137,
+        58.6933251009, 1.007940752665}; // [AMU]
+    const double expected_coulomb_factors[] = {0.04197339849163,
+        0.03592322294658, 0.04844802666907, 6.400838295295e-05};
+    const double expected_rad_lenghts_tsai[] = {1.073632177106e-41,
+        9.256561295161e-42, 1.231638535009e-41, 4.253575226044e-44};
+    // clang-format on
+
+    EXPECT_VEC_EQ(expected_names, names);
+    EXPECT_VEC_EQ(expected_ids, ids);
+    EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
+    EXPECT_VEC_SOFT_EQ(expected_atomic_masses, atomic_masses);
+    EXPECT_VEC_SOFT_EQ(expected_coulomb_factors, coulomb_factors);
+    EXPECT_VEC_SOFT_EQ(expected_rad_lenghts_tsai, rad_lenghts_tsai);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(RootImporterTest, materials)
+{
+    const auto materials = data_.materials;
+    EXPECT_EQ(2, materials.size());
+
+    std::vector<std::string> names;
+    std::vector<mat_id>      material_ids;
+    std::vector<int>         states;
+    std::vector<int>         pdgs;
+    std::vector<double>      cutoff_energies, cutoff_ranges;
+    std::vector<double> el_comps_ids, el_comps_mass_frac, el_comps_num_fracs;
+    std::vector<double> densities, num_densities, e_densities, temperatures,
+        rad_lengths, nuc_int_lenghts;
+
+    for (const auto material : materials)
+    {
+        names.push_back(material.name);
+        material_ids.push_back(material.material_id);
+        states.push_back((int)material.state);
+        densities.push_back(material.density);
+        e_densities.push_back(material.electron_density);
+        num_densities.push_back(material.number_density);
+        nuc_int_lenghts.push_back(material.nuclear_int_length);
+        rad_lengths.push_back(material.radiation_length);
+        temperatures.push_back(material.temperature);
+
+        for (const auto key : material.pdg_cutoffs)
+        {
+            pdgs.push_back(key.first);
+            cutoff_energies.push_back(key.second.energy);
+            cutoff_ranges.push_back(key.second.range);
+        }
+
+        for (const auto el_comp : material.elements)
+        {
+            el_comps_ids.push_back(el_comp.element_id);
+            el_comps_mass_frac.push_back(el_comp.mass_fraction);
+            el_comps_num_fracs.push_back(el_comp.number_fraction);
+        }
+    }
+
+    // clang-format off
+    const std::string expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
+    const unsigned int expected_material_ids[] = {0, 1};
+    const int          expected_states[]       = {3, 1};
+    const int    expected_pdgs[] = {-11, 11, 22, 2212, -11, 11, 22, 2212};
+    const double expected_cutoff_energies[] = {0.00099, 0.00099, 0.00099, 0.07,
+        0.9260901525621, 0.9706947116044, 0.01733444524846, 0.07};
+    const double expected_cutoff_ranges[]
+        = {0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07};
+    const double expected_densities[] = {1e-25, 8};
+    const double expected_e_densities[]
+        = {0.05974697167543, 2.244432022882e+24};
+    const double expected_num_densities[]
+        = {0.05974697167543, 8.699348925899e+22};
+    const double expected_nuc_int_lenghts[]
+        = {3.500000280825e+26, 16.67805709739};
+    const double expected_rad_lengths[] = {6.304350904227e+26, 1.738067064483};
+    const double expected_temperatures[] = {2.73, 293.15};
+    const double expected_el_comps_ids[] = {3, 0, 1, 2};
+    const double expected_el_comps_mass_frac[]
+        = {1, 0.7462128746215, 0.1690010443115, 0.08478608106695};
+    const double expected_el_comps_num_fracs[] = {1, 0.74, 0.18, 0.08};
+    // clang-format on
+
+    EXPECT_VEC_EQ(expected_names, names);
+    EXPECT_VEC_EQ(expected_material_ids, material_ids);
+    EXPECT_VEC_EQ(expected_states, states);
+    EXPECT_VEC_EQ(expected_pdgs, pdgs);
+    EXPECT_VEC_SOFT_EQ(expected_cutoff_energies, cutoff_energies);
+    EXPECT_VEC_SOFT_EQ(expected_cutoff_ranges, cutoff_ranges);
+    EXPECT_VEC_SOFT_EQ(expected_densities, densities);
+    EXPECT_VEC_SOFT_EQ(expected_e_densities, e_densities);
+    EXPECT_VEC_SOFT_EQ(expected_num_densities, num_densities);
+    EXPECT_VEC_SOFT_EQ(expected_nuc_int_lenghts, nuc_int_lenghts);
+    EXPECT_VEC_SOFT_EQ(expected_rad_lengths, rad_lengths);
+    EXPECT_VEC_SOFT_EQ(expected_temperatures, temperatures);
+    EXPECT_VEC_SOFT_EQ(expected_el_comps_ids, el_comps_ids);
+    EXPECT_VEC_SOFT_EQ(expected_el_comps_mass_frac, el_comps_mass_frac);
+    EXPECT_VEC_SOFT_EQ(expected_el_comps_num_fracs, el_comps_num_fracs);
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, processes)
 {
     const auto processes = data_.processes;
@@ -154,87 +278,32 @@ TEST_F(RootImporterTest, processes)
 }
 
 //---------------------------------------------------------------------------//
-#if 0
-TEST_F(RootImporterTest, geometry)
+TEST_F(RootImporterTest, volumes)
 {
-    const auto map = data_.geometry.volid_to_matid_map();
-    EXPECT_EQ(5, map.size());
+    const auto volumes = data_.volumes;
+    EXPECT_EQ(5, volumes.size());
 
-    // Fetch a given ImportVolume provided a vol_id
-    vol_id       volid  = 0;
-    ImportVolume volume = data_.geometry.get_volume(volid);
-    EXPECT_EQ(volume.name, "box");
+    std::vector<vol_id>      volume_ids;
+    std::vector<mat_id>      material_ids;
+    std::vector<std::string> names, solids;
 
-    // Fetch respective mat_id and ImportMaterial from the given vol_id
-    mat_id         matid    = data_.geometry.get_matid(volid);
-    ImportMaterial material = data_.geometry.get_material(matid);
-
-    // Test material
-    EXPECT_EQ(1, matid);
-    EXPECT_EQ("G4_STAINLESS-STEEL", material.name);
-    EXPECT_EQ(ImportMaterialState::solid, material.state);
-    EXPECT_SOFT_EQ(293.15, material.temperature); // [K]
-    EXPECT_SOFT_EQ(8, material.density);          // [g/cm^3]
-    EXPECT_SOFT_EQ(2.2444320228819809e+24,
-                   material.electron_density); // [1/cm^3]
-    EXPECT_SOFT_EQ(8.6993489258991514e+22, material.number_density); // [1/cm^3]
-    EXPECT_SOFT_EQ(1.738067064482842, material.radiation_length);    // [cm]
-    EXPECT_SOFT_EQ(16.678057097389537, material.nuclear_int_length); // [cm]
-    EXPECT_EQ(3, material.elements.size());
-
-    // Test elements within material
-    static const int array_size                = 3;
-    std::string      elements_name[array_size] = {"Fe", "Cr", "Ni"};
-    unsigned int     atomic_number[array_size] = {26, 24, 28};
-    real_type        fraction[array_size]
-        = {0.74621287462152097, 0.16900104431152499, 0.0847860810669534};
-    real_type atomic_mass[array_size]
-        = {55.845110798, 51.996130136999994, 58.693325100900005}; // [AMU]
-
-    int i = 0;
-    for (auto& elem_comp : material.elements)
+    for (const auto& volume : volumes)
     {
-        auto element = data_.geometry.get_element(elem_comp.element_id);
-
-        EXPECT_EQ(elements_name[i], element.name);
-        EXPECT_EQ(atomic_number[i], element.atomic_number);
-        EXPECT_SOFT_EQ(atomic_mass[i], element.atomic_mass);
-        EXPECT_SOFT_EQ(fraction[i], elem_comp.mass_fraction);
-        i++;
-    }
-}
-#endif
-
-//---------------------------------------------------------------------------//
-TEST_F(RootImporterTest, material_cutoffs)
-{
-    const auto materials = data_.materials;
-    EXPECT_EQ(2, materials.size());
-
-    std::vector<int>    pdgs;
-    std::vector<double> energies, ranges;
-
-    for (const auto material : materials)
-    {
-        for (const auto key : material.pdg_cutoffs)
-        {
-            pdgs.push_back(key.first);
-            energies.push_back(key.second.energy);
-            ranges.push_back(key.second.range);
-        }
+        volume_ids.push_back(volume.volume_id);
+        material_ids.push_back(volume.material_id);
+        names.push_back(volume.name);
+        solids.push_back(volume.solid_name);
     }
 
-    // clang-format off
-    const int expected_pdgs[] = {-11, 11, 22, 2212, -11, 11, 22, 2212};
+    const unsigned int expected_volume_ids[]   = {4, 0, 1, 2, 3};
+    const unsigned int expected_material_ids[] = {0, 1, 1, 1, 1};
+    const std::string  expected_names[]
+        = {"World", "box", "boxReplica", "boxReplica", "boxReplica"};
+    const std::string expected_solids[]
+        = {"World", "box", "boxReplica", "boxReplica2", "boxReplica3"};
 
-    const double expected_energies[] = {0.00099, 0.00099, 0.00099, 0.07,
-    0.9260901525621, 0.9706947116044, 0.01733444524846, 0.07};
-
-    const double expected_ranges[] = {0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07,
-    0.07};
-    // clang-format on
-
-    EXPECT_VEC_EQ(expected_pdgs, pdgs);
-    EXPECT_VEC_SOFT_EQ(expected_energies, energies);
-    EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
+    EXPECT_VEC_EQ(expected_volume_ids, volume_ids);
+    EXPECT_VEC_EQ(expected_material_ids, material_ids);
+    EXPECT_VEC_EQ(expected_names, names);
+    EXPECT_VEC_EQ(expected_solids, solids);
 }
