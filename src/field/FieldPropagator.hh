@@ -21,11 +21,8 @@ namespace celeritas
 /*!
  * Brief class description.
  *
- *  This is a high level interface of propagating a particle in a magnetic
- *  field.  It utilises a magnetic field driver based on an adaptive step
- *  control and an ODE solver (stepper) to track a charged particle until
- *  it travels along a curved trajectory for a given step length within a
- *  required accuracy or intersects with a new volume (geometry limited step).
+ *  This is a high level interface of propagating a charged particle in a
+ *  magnetic field.
  *
  * \note This follows similar methods as in Geant4's G4PropagatorInField class.
  */

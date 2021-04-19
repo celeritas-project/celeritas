@@ -25,7 +25,11 @@ FieldPropagator::FieldPropagator(const FieldParamsPointers& shared,
 
 //---------------------------------------------------------------------------//
 /*!
- * Propagation in a field
+ * Propagate a charged particle in a magnetic field and update the field
+ * state. It utilises a magnetic field driver based on an adaptive step
+ * control to track a charged particle until it travels along a curved
+ * trajectory for a given step length within a required accuracy or intersects
+ * with a new volume (geometry limited step).
  */
 CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView* view)
 {
