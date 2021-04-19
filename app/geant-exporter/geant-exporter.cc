@@ -44,7 +44,7 @@
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
-#include "ImportProcessWriter.hh"
+#include "ImportProcessConverter.hh"
 #include "GeantLoggerAdapter.hh"
 #include "GeantExceptionHandler.hh"
 
@@ -124,7 +124,7 @@ void store_physics_processes(ImportData* data)
     CELER_LOG(status) << "Exporting physics tables";
 
     // Start table writer
-    ImportProcessWriter process_writer(TableSelection::minimal);
+    ImportProcessConverter process_writer(TableSelection::minimal);
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -191,7 +191,7 @@ void loop_volumes(ImportData* data, const G4LogicalVolume& logical_volume)
     data->volumes.push_back(volume);
 
     // Recursive: repeat for every daughter volume, if there are any
-    for (auto i : celeritas::range(logical_volume.GetNoDaughters()))
+    for (const auto i : celeritas::range(logical_volume.GetNoDaughters()))
     {
         loop_volumes(data, *logical_volume.GetDaughter(i)->GetLogicalVolume());
     }
@@ -432,8 +432,7 @@ int main(int argc, char* argv[])
     CELER_LOG(info) << "Created ROOT output file '" << root_output_filename
                     << "'";
 
-    TTree tree_data("geant4_data", "geant4_data");
-
+    TTree      tree_data("geant4_data", "geant4_data");
     ImportData import_data;
     TBranch*   branch = tree_data.Branch("ImportData", &import_data);
     CELER_ASSERT(branch);

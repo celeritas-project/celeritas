@@ -19,7 +19,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class to easily manipulate material, element, and volume information.
+ * Helper class to easily retrieve and manipulate imported material, element,
+ * and volume information.
  *
  * - The \c mat_id maps materials in the global material map. It also
  *   represents the position of said material in the \c ImportPhysicsTable
@@ -41,18 +42,25 @@ class GdmlGeometryMap
 
   public:
     // Construct with imported data
-    GdmlGeometryMap(ImportData& data);
+    explicit GdmlGeometryMap(ImportData& data);
 
-    //// READ ////
-
-    // Find material id given volume id
+    // Find material id given a volume id
     mat_id get_matid(vol_id volume_id) const;
-    // Find ImportVolume given volume id
+    // Find ImportVolume given a volume id
     const ImportVolume& get_volume(vol_id volume_id) const;
     // Find ImportMaterial given a material id
     const ImportMaterial& get_material(mat_id material_id) const;
-    // Find ImportElement given element id
+    // Find ImportElement given an element id
     const ImportElement& get_element(elem_id element_id) const;
+
+    // Return a reference to matid_to_material map
+    const std::map<mat_id, ImportMaterial>& matid_to_material_map() const;
+    // Return a reference to volid_to_volume_ map
+    const std::map<vol_id, ImportVolume>& volid_to_volume_map() const;
+    // Return a reference to elemid_to_element_ map
+    const std::map<elem_id, ImportElement>& elemid_to_element_map() const;
+    // Return a reference to volid_to_matid_ map
+    const std::map<vol_id, mat_id>& volid_to_matid_map() const;
 
     // Return the size of the largest material element list
     auto max_num_elements() const -> size_type;
@@ -64,25 +72,14 @@ class GdmlGeometryMap
                && !elemid_to_element_.empty() && !volid_to_matid_.empty();
     }
 
-    // Return a reference to matid_to_material map
-    const std::map<mat_id, ImportMaterial>& matid_to_material_map() const;
-    // Return a reference to volid_to_volume_ map
-    const std::map<vol_id, ImportVolume>& volid_to_volume_map() const;
-    // Return a reference to elemid_to_element_ map
-    const std::map<elem_id, ImportElement>& elemid_to_element_map() const;
-    // Return a reference to volid_to_matid_ map
-    const std::map<vol_id, mat_id>& volid_to_matid_map() const;
-
   private:
-    //// WRITE ////
-
-    // Add pair <mat_id, material> to the map
+    // Add pair<mat_id, material> to the map
     void add_material(mat_id id, const ImportMaterial& material);
-    // Add pair <vol_id, volume> to the map
+    // Add pair<vol_id, volume> to the map
     void add_volume(vol_id id, const ImportVolume& volume);
-    // Add pair <elem_id, element> to the map
+    // Add pair<elem_id, element> to the map
     void add_element(elem_id id, const ImportElement& element);
-    // Add pair <vol_id, mat_id> to the map
+    // Add pair<vol_id, mat_id> to the map
     void link_volume_material(vol_id volid, mat_id matid);
 
   private:
@@ -90,8 +87,7 @@ class GdmlGeometryMap
     std::map<mat_id, ImportMaterial> matid_to_material_;
     std::map<vol_id, ImportVolume>   volid_to_volume_;
     std::map<elem_id, ImportElement> elemid_to_element_;
-    // Link between volume and material
-    std::map<vol_id, mat_id> volid_to_matid_;
+    std::map<vol_id, mat_id>         volid_to_matid_;
 };
 
 //---------------------------------------------------------------------------//

@@ -62,24 +62,29 @@ TEST_F(GdmlGeometryMapTest, import_geometry)
     EXPECT_SOFT_EQ(16.678057097389537, material.nuclear_int_length); // [cm]
     EXPECT_EQ(3, material.elements.size());
 
-    // Test elements within material
-    static const int array_size                = 3;
-    std::string      elements_name[array_size] = {"Fe", "Cr", "Ni"};
-    int              atomic_number[array_size] = {26, 24, 28};
-    real_type        fraction[array_size]
-        = {0.74621287462152097, 0.16900104431152499, 0.0847860810669534};
-    real_type atomic_mass[array_size]
-        = {55.845110798, 51.996130136999994, 58.693325100900005}; // [AMU]
+    // Test elements within material;
+    std::vector<std::string> names;
+    std::vector<int>         atomic_numbers;
+    std::vector<double>      number_fractions;
+    std::vector<double>      atomic_masses;
 
-    int i = 0;
     for (auto& elem_comp : material.elements)
     {
         auto element = geometry.get_element(elem_comp.element_id);
-
-        EXPECT_EQ(elements_name[i], element.name);
-        EXPECT_EQ(atomic_number[i], element.atomic_number);
-        EXPECT_SOFT_EQ(atomic_mass[i], element.atomic_mass);
-        EXPECT_SOFT_EQ(fraction[i], elem_comp.mass_fraction);
-        i++;
+        names.push_back(element.name);
+        atomic_numbers.push_back(element.atomic_number);
+        number_fractions.push_back(elem_comp.number_fraction);
+        atomic_masses.push_back(element.atomic_mass);
     }
+
+    const std::string expected_names[]            = {"Fe", "Cr", "Ni"};
+    const int         expected_atomic_numbers[]   = {26, 24, 28};
+    const double      expected_number_fractions[] = {0.74, 0.18, 0.08};
+    const double      expected_atomic_masses[]
+        = {55.845110798, 51.996130137, 58.6933251009};
+
+    EXPECT_VEC_EQ(expected_names, names);
+    EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
+    EXPECT_VEC_SOFT_EQ(expected_number_fractions, number_fractions);
+    EXPECT_VEC_SOFT_EQ(expected_atomic_masses, atomic_masses);
 }

@@ -53,7 +53,7 @@ mat_id GdmlGeometryMap::get_matid(vol_id volume_id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the ImportVolume associated with the \c vol_id .
+ * Return the \c ImportVolume associated with the \c vol_id .
  */
 const ImportVolume& GdmlGeometryMap::get_volume(vol_id volume_id) const
 {
@@ -64,7 +64,7 @@ const ImportVolume& GdmlGeometryMap::get_volume(vol_id volume_id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the ImportMaterial associated with the \c mat_id .
+ * Return the \c ImportMaterial associated with the \c mat_id .
  */
 const ImportMaterial& GdmlGeometryMap::get_material(mat_id material_id) const
 {
@@ -74,7 +74,7 @@ const ImportMaterial& GdmlGeometryMap::get_material(mat_id material_id) const
 }
 //---------------------------------------------------------------------------//
 /*!
- * Return the ImportElement associated with the \c elem_id .
+ * Return the \c ImportElement associated with the \c elem_id .
  */
 const ImportElement& GdmlGeometryMap::get_element(elem_id element_id) const
 {
@@ -101,7 +101,7 @@ auto GdmlGeometryMap::max_num_elements() const -> size_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a reference to private member \c matid_to_material_ .
+ * Return reference to private member \c matid_to_material_ .
  */
 const std::map<mat_id, ImportMaterial>&
 GdmlGeometryMap::matid_to_material_map() const
@@ -111,7 +111,7 @@ GdmlGeometryMap::matid_to_material_map() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a reference to private member \c volid_to_volume_ .
+ * Return reference to private member \c volid_to_volume_ .
  */
 const std::map<vol_id, ImportVolume>&
 GdmlGeometryMap::volid_to_volume_map() const
@@ -121,7 +121,7 @@ GdmlGeometryMap::volid_to_volume_map() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a reference to private member \c elemid_to_element_ .
+ * Return reference to private member \c elemid_to_element_ .
  */
 const std::map<elem_id, ImportElement>&
 GdmlGeometryMap::elemid_to_element_map() const
@@ -131,7 +131,7 @@ GdmlGeometryMap::elemid_to_element_map() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a reference to private member \c volid_to_matid_ .
+ * Return reference to private member \c volid_to_matid_ .
  */
 const std::map<vol_id, mat_id>& GdmlGeometryMap::volid_to_matid_map() const
 {
@@ -158,7 +158,8 @@ void GdmlGeometryMap::add_material(mat_id id, const ImportMaterial& material)
  */
 void GdmlGeometryMap::add_volume(vol_id id, const ImportVolume& volume)
 {
-    volid_to_volume_.insert({id, volume});
+    auto result = volid_to_volume_.insert({id, volume});
+    CELER_ASSERT(result.second);
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -166,7 +167,8 @@ void GdmlGeometryMap::add_volume(vol_id id, const ImportVolume& volume)
  */
 void GdmlGeometryMap::add_element(elem_id id, const ImportElement& element)
 {
-    elemid_to_element_.insert({id, element});
+    auto result = elemid_to_element_.insert({id, element});
+    CELER_ASSERT(result.second);
 }
 
 //---------------------------------------------------------------------------//
@@ -176,7 +178,8 @@ void GdmlGeometryMap::add_element(elem_id id, const ImportElement& element)
  */
 void GdmlGeometryMap::link_volume_material(vol_id volid, mat_id matid)
 {
-    volid_to_matid_.insert({volid, matid});
+    auto result = volid_to_matid_.insert({volid, matid});
+    CELER_ASSERT(result.second);
 }
 
 //---------------------------------------------------------------------------//

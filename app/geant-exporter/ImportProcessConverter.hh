@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImportProcessWriter.hh
+//! \file ImportProcessConverter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -30,21 +30,24 @@ namespace geant_exporter
 {
 enum class TableSelection
 {
-    minimal,
+    minimal, //!< Store only lambda, dedx, and range
     all
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Simplify the convoluted mechanism to store Geant4 process, model, and XS
- * table data for each available particle. It is expected to be used within a
- * Geant4 particle and process loops. Operator() returns a given process. If
- * said process was already imported in a previous loop, it will return an
- * empty object. These empty object should be removed at the end of the loop:
+ * table data.
+ *
+ * \c Operator() is expected to be used while looping over Geant4 particle and
+ * process lists, and it returns a populated \c ImportProcess object. If said
+ * process was already imported during a previous loop, it will return an
+ * empty object. Any empty object should be removed at the end of the loop
+ * using \c remove_empty(...) .
  *
  * \code
  *  std::vector<ImportProcess> processes;
- *  ImportProcessWriter import(TableSelection::all);
+ *  ImportProcessConverter import(TableSelection::all);
  *
  *  G4ParticleTable::G4PTblDicIterator& particle_iterator
  *      = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -63,17 +66,16 @@ enum class TableSelection
  *  import.remove_empty(processes);
  * \endcode
  */
-class ImportProcessWriter
+class ImportProcessConverter
 {
   public:
     // Construct with selected list of tables
-    ImportProcessWriter(TableSelection which_tables);
+    ImportProcessConverter(TableSelection which_tables);
 
     // Default destructor
-    ~ImportProcessWriter();
+    ~ImportProcessConverter();
 
-    // Write the physics tables from a given particle and physics process
-    // Expected to be called within a G4ParticleTable iterator loop
+    // Return ImportProcess for a given particle and physics process
     ImportProcess operator()(const G4ParticleDefinition& particle,
                              const G4VProcess&           process);
 
@@ -107,12 +109,14 @@ class ImportProcessWriter
     {
         const G4ParticleDefinition* particle;
     };
+
     struct PrevTable
     {
         int                           particle_pdg;
         celeritas::ImportProcessClass process_class;
         celeritas::ImportTableType    table_type;
     };
+
     std::unordered_map<const G4VProcess*, PrevProcess>   written_processes_;
     std::unordered_map<const G4PhysicsTable*, PrevTable> written_tables_;
 };

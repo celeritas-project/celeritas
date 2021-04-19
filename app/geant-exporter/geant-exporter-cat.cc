@@ -327,9 +327,12 @@ int main(int argc, char* argv[])
 
     CELER_LOG(info) << "Successfully loaded ROOT file '" << argv[1] << "'";
 
-    print_particles(*ParticleParams::from_import(data));
-    print_processes(data.processes, *ParticleParams::from_import(data));
-    // print_geometry(data.geometry, *ParticleParams::from_import(data));
+    GdmlGeometryMap geometry(data);
+    const auto      particle_params = ParticleParams::from_import(data);
+
+    print_particles(*particle_params);
+    print_processes(data.processes, *particle_params);
+    print_geometry(geometry, *particle_params);
 
     return EXIT_SUCCESS;
 }

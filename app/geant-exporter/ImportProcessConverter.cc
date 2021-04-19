@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImportProcessWriter.cc
+//! \file ImportProcessConverter.cc
 //---------------------------------------------------------------------------//
-#include "ImportProcessWriter.hh"
+#include "ImportProcessConverter.hh"
 
 #include <fstream>
 #include <string>
@@ -220,7 +220,7 @@ double units_to_scaling(ImportUnits units)
 /*!
  * Construct with a selected list of tables.
  */
-ImportProcessWriter::ImportProcessWriter(TableSelection which_tables)
+ImportProcessConverter::ImportProcessConverter(TableSelection which_tables)
     : which_tables_(which_tables)
 {
 }
@@ -229,7 +229,7 @@ ImportProcessWriter::ImportProcessWriter(TableSelection which_tables)
 /*!
  * Default destructor.
  */
-ImportProcessWriter::~ImportProcessWriter() = default;
+ImportProcessConverter::~ImportProcessConverter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -240,8 +240,8 @@ ImportProcessWriter::~ImportProcessWriter() = default;
  * The user should erase such cases afterwards using \c remove_empty(...) .
  */
 ImportProcess
-ImportProcessWriter::operator()(const G4ParticleDefinition& particle,
-                                const G4VProcess&           process)
+ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
+                                   const G4VProcess&           process)
 {
     // Check for duplicate processes
     auto iter_ok = written_processes_.insert({&process, {&particle}});
@@ -297,7 +297,7 @@ ImportProcessWriter::operator()(const G4ParticleDefinition& particle,
 /*!
  * Remove any empty ImportProcess returned by operator().
  */
-void ImportProcessWriter::remove_empty(std::vector<ImportProcess>& processes)
+void ImportProcessConverter::remove_empty(std::vector<ImportProcess>& processes)
 {
     processes.erase(
         std::remove_if(processes.begin(),
@@ -310,7 +310,7 @@ void ImportProcessWriter::remove_empty(std::vector<ImportProcess>& processes)
 /*!
  * Store EM XS tables to this->process_.
  */
-void ImportProcessWriter::store_em_tables(const G4VEmProcess& process)
+void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 {
     for (auto i : celeritas::range(process.GetNumberOfModels()))
     {
@@ -327,7 +327,7 @@ void ImportProcessWriter::store_em_tables(const G4VEmProcess& process)
 /*!
  * Store energy loss XS tables to this->process_.
  */
-void ImportProcessWriter::store_energy_loss_tables(
+void ImportProcessConverter::store_energy_loss_tables(
     const G4VEnergyLossProcess& process)
 {
     for (auto i : celeritas::range(process.NumberOfModels()))
@@ -368,7 +368,7 @@ void ImportProcessWriter::store_energy_loss_tables(
  * Whereas other EM processes combine the model tables into a single process
  * table, MSC keeps them independent.
  */
-void ImportProcessWriter::store_multiple_scattering_tables(
+void ImportProcessConverter::store_multiple_scattering_tables(
     const G4VMultipleScattering& process)
 {
     // TODO: Figure out a method to get the number of models. Max is 4.
@@ -388,8 +388,8 @@ void ImportProcessWriter::store_multiple_scattering_tables(
 /*!
  * Write data from a Geant4 physics table if available.
  */
-void ImportProcessWriter::add_table(const G4PhysicsTable* g4table,
-                                    ImportTableType       table_type)
+void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
+                                       ImportTableType       table_type)
 {
     if (!g4table)
     {
