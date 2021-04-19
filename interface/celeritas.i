@@ -96,7 +96,7 @@ class GdmlGeometryMap;
 %rename(units_to_string) to_cstring(ImportUnits);
 %rename(vector_type_to_string) to_cstring(ImportPhysicsVectorType);
 %rename(process_type_to_string) to_cstring(ImportProcessType);
-%rename(proces_class_to_string) to_cstring(ImportProcessClass);
+%rename(process_class_to_string) to_cstring(ImportProcessClass);
 %rename(model_to_string) to_cstring(ImportModelClass);
 
 %rename(xs_lo) ImportTableType::lambda;
@@ -111,7 +111,7 @@ class GdmlGeometryMap;
 %template(VecImportPhysicsTable) std::vector<celeritas::ImportPhysicsTable>;
 %include "io/ImportProcess.hh"
 
-%template(VecImportProcesss) std::vector<celeritas::ImportProcess>;
+%template(VecImportProcess) std::vector<celeritas::ImportProcess>;
 %rename(RootImportResult) celeritas::RootImporter::result_type;
 %include "io/RootImporter.hh"
 
@@ -123,5 +123,16 @@ class GdmlGeometryMap;
 
 %include "io/ImportSBTable.hh"
 %include "io/SeltzerBergerReader.hh"
+
+//---------------------------------------------------------------------------//
+
+%{
+#include "io/LivermorePEReader.hh"
+%}
+
+%include "io/ImportLivermorePE.hh"
+%template(VecImportLivermoreSubshell) std::vector<celeritas::ImportLivermoreSubshell>;
+
+%include "io/LivermorePEReader.hh"
 
 // vim: set ft=lex ts=2 sw=2 sts=2 :

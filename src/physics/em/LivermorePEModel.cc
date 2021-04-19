@@ -44,13 +44,13 @@ LivermorePEModel::LivermorePEModel(ModelId               id,
         = 1 / particles.get(host_data.ids.electron).mass().value();
 
     // Load Livermore cross section data
-    make_builder(&host_data.xs_data.elements).reserve(materials.num_elements());
+    make_builder(&host_data.xs.elements).reserve(materials.num_elements());
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();
-        this->append_element(load_data(z), &host_data.xs_data);
+        this->append_element(load_data(z), &host_data.xs);
     }
-    CELER_ASSERT(host_data.xs_data.elements.size() == materials.num_elements());
+    CELER_ASSERT(host_data.xs.elements.size() == materials.num_elements());
 
     // Add atomic relaxation data
     if (atomic_relaxation)
@@ -109,11 +109,21 @@ ModelId LivermorePEModel::model_id() const
  * Construct cross section data for a single element.
  */
 void LivermorePEModel::append_element(const ImportLivermorePE& inp,
-                                      HostXsData*              xs_data) const
+                                      HostXsData*              xs) const
 {
     CELER_EXPECT(!inp.shells.empty());
+    if (CELERITAS_DEBUG)
+    {
+        CELER_EXPECT(inp.thresh_lo <= inp.thresh_hi);
+        for (const auto& shell : inp.shells)
+        {
+            CELER_EXPECT(shell.param_lo.size() == 6);
+            CELER_EXPECT(shell.param_hi.size() == 6);
+            CELER_EXPECT(shell.binding_energy <= inp.thresh_lo);
+        }
+    }
 
-    auto reals = make_builder(&xs_data->reals);
+    auto reals = make_builder(&xs->reals);
 
     detail::LivermoreElement el;
 
@@ -149,16 +159,21 @@ void LivermorePEModel::append_element(const ImportLivermorePE& inp,
         shells[i].xs.value_interp = Interp::linear;
 
         // Subshell cross section fit parameters
-        shells[i].param_lo = reals.insert_back(inp.shells[i].param_lo.begin(),
-                                               inp.shells[i].param_lo.end());
-        shells[i].param_hi = reals.insert_back(inp.shells[i].param_hi.begin(),
-                                               inp.shells[i].param_hi.end());
+        std::copy(inp.shells[i].param_lo.begin(),
+                  inp.shells[i].param_lo.end(),
+                  shells[i].param[0].begin());
+        std::copy(inp.shells[i].param_hi.begin(),
+                  inp.shells[i].param_hi.end(),
+                  shells[i].param[1].begin());
+
+        CELER_ASSERT(shells[i]);
     }
-    el.shells = make_builder(&xs_data->shells)
-                    .insert_back(shells.begin(), shells.end());
+    el.shells
+        = make_builder(&xs->shells).insert_back(shells.begin(), shells.end());
 
     // Add the elemental data
-    make_builder(&xs_data->elements).push_back(el);
+    CELER_ASSERT(el);
+    make_builder(&xs->elements).push_back(el);
 
     CELER_ENSURE(el.shells.size() == inp.shells.size());
 }

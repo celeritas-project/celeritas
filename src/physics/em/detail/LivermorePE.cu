@@ -47,6 +47,7 @@ livermore_pe_interact_kernel(const LivermorePEDeviceRef        pe,
                              particle.particle_id(),
                              material.material_id(),
                              tid);
+    CutoffView        cutoffs(ptrs.params.cutoffs, material.material_id());
 
     // This interaction only applies if the Livermore PE model was selected
     if (physics.model_id() != pe.ids.model)
@@ -66,6 +67,7 @@ livermore_pe_interact_kernel(const LivermorePEDeviceRef        pe,
                                    scratch,
                                    el_id,
                                    particle,
+                                   cutoffs,
                                    ptrs.states.direction[tid.get()],
                                    allocate_secondaries);
 

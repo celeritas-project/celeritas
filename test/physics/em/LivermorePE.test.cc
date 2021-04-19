@@ -94,6 +94,12 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
         this->set_material_params(mi);
         this->set_material("K");
 
+        // Set cutoffs (no cuts)
+        CutoffParams::Input ci;
+        ci.materials = this->material_params();
+        ci.particles = this->particle_params();
+        this->set_cutoff_params(ci);
+
         // Set Livermore photoelectric data
         std::string       data_path = this->test_data_path("physics/em", "");
         LivermorePEReader read_element_data(data_path.c_str());
@@ -105,8 +111,9 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
         AtomicRelaxationReader read_transition_data(data_path.c_str(),
                                                     data_path.c_str());
         relax_inp_.elements.push_back(read_transition_data(19));
-        relax_inp_.electron_id = particles.find(pdg::electron());
-        relax_inp_.gamma_id    = particles.find(pdg::gamma());
+        relax_inp_.cutoffs   = this->cutoff_params();
+        relax_inp_.materials = this->material_params();
+        relax_inp_.particles = this->particle_params();
 
         // Set default particle to incident 1 keV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{0.001});
@@ -173,11 +180,15 @@ TEST_F(LivermorePETest, basic)
     // Sampled element
     ElementId el_id{0};
 
+    // Production cuts
+    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+
     // Create the interactor
     LivermorePEInteractor interact(model_->host_pointers(),
                                    scratch_,
                                    el_id,
                                    this->particle_track(),
+                                   cutoffs,
                                    this->direction(),
                                    this->secondary_allocator());
 
@@ -226,8 +237,15 @@ TEST_F(LivermorePETest, stress_test)
 {
     const int           num_samples = 8192;
     std::vector<double> avg_engine_samples;
+    std::vector<double> avg_num_secondaries;
+    std::vector<double> avg_cosine;
+    std::vector<double> avg_energy;
 
+    // Sampled element
     ElementId el_id{0};
+
+    // Production cuts
+    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     for (double inc_e : {0.0001, 0.01, 1.0, 10.0, 1000.0})
     {
@@ -236,9 +254,11 @@ TEST_F(LivermorePETest, stress_test)
 
         RandomEngine&           rng_engine            = this->rng();
         RandomEngine::size_type num_particles_sampled = 0;
+        RandomEngine::size_type num_secondaries       = 0;
+        double                  tot_cosine            = 0;
+        double                  tot_energy            = 0;
 
-        // Loop over several incident directions (shouldn't affect anything
-        // substantial, but scattering near Z axis loses precision)
+        // Loop over several incident directions
         for (const Real3& inc_dir :
              {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
         {
@@ -251,6 +271,7 @@ TEST_F(LivermorePETest, stress_test)
                                            scratch_,
                                            el_id,
                                            this->particle_track(),
+                                           cutoffs,
                                            this->direction(),
                                            this->secondary_allocator());
 
@@ -258,21 +279,53 @@ TEST_F(LivermorePETest, stress_test)
             for (int i = 0; i < num_samples; ++i)
             {
                 Interaction result = interact(rng_engine);
-                SCOPED_TRACE(result);
+                // SCOPED_TRACE(result);
                 this->sanity_check(result);
+                for (const auto& sec : result.secondaries)
+                {
+                    tot_cosine
+                        += celeritas::dot_product(inc_dir, sec.direction);
+                    tot_energy += sec.energy.value();
+                }
+                num_secondaries += result.secondaries.size();
             }
             EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
         avg_engine_samples.push_back(double(rng_engine.count())
                                      / double(num_particles_sampled));
+        avg_num_secondaries.push_back(double(num_secondaries)
+                                      / double(num_particles_sampled));
+        avg_cosine.push_back(tot_cosine / double(num_secondaries));
+        avg_energy.push_back(tot_energy / double(num_secondaries));
     }
 
     // PRINT_EXPECTED(avg_engine_samples);
-    // Gold values for average number of calls to RNG
+    // PRINT_EXPECTED(avg_num_secondaries);
+    // PRINT_EXPECTED(avg_cosine);
+    // PRINT_EXPECTED(avg_energy);
+
+    // Gold values
     const double expected_avg_engine_samples[]
         = {15.99755859375, 16.09204101562, 13.79919433594, 8.590209960938, 2};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+
+    const double expected_avg_num_secondaries[] = {1, 1, 1, 1, 1};
+    EXPECT_VEC_SOFT_EQ(expected_avg_num_secondaries, avg_num_secondaries);
+
+    const double expected_avg_cosine[] = {0.0181237765392,
+                                          0.1848443587223,
+                                          1.030717821907,
+                                          1.169482513617,
+                                          1.183012701892};
+    EXPECT_VEC_SOFT_EQ(expected_avg_cosine, expected_avg_cosine);
+
+    const double expected_avg_energy[] = {7.287875885011e-05,
+                                          0.006708485731503,
+                                          0.9967066970311,
+                                          9.996704339284,
+                                          999.9967069717};
+    EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);
 }
 
 TEST_F(LivermorePETest, distributions_all)
@@ -285,6 +338,9 @@ TEST_F(LivermorePETest, distributions_all)
 
     // Sampled element
     ElementId el_id{0};
+
+    // Production cuts
+    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     // Add atomic relaxation data
     auto pointers               = model_->host_pointers();
@@ -309,6 +365,7 @@ TEST_F(LivermorePETest, distributions_all)
                                    scratch_,
                                    el_id,
                                    this->particle_track(),
+                                   cutoffs,
                                    this->direction(),
                                    this->secondary_allocator());
 
@@ -379,6 +436,9 @@ TEST_F(LivermorePETest, distributions_radiative)
     // Sampled element
     ElementId el_id{0};
 
+    // Production cuts
+    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+
     // Add atomic relaxation data
     relax_inp_.is_auger_enabled = false;
     set_relaxation_params(relax_inp_);
@@ -403,6 +463,7 @@ TEST_F(LivermorePETest, distributions_radiative)
                                    scratch_,
                                    el_id,
                                    this->particle_track(),
+                                   cutoffs,
                                    this->direction(),
                                    this->secondary_allocator());
 
@@ -551,14 +612,26 @@ TEST_F(LivermorePETest, max_secondaries)
     }
     {
         relax_inp_.is_auger_enabled = true;
-        relax_inp_.electron_cut     = MevEnergy{1.e-3};
-        relax_inp_.gamma_cut        = MevEnergy{1.e-3};
-        set_relaxation_params(relax_inp_);
+        CutoffParams::Input ci;
+        ci.materials = this->material_params();
+        ci.particles = this->particle_params();
+
+        // Test 1 keV electron/photon cutoff
+        ci.cutoffs[pdg::electron()] = {{MevEnergy{1.e-3}, 0}};
+        ci.cutoffs[pdg::gamma()]    = {{MevEnergy{1.e-3}, 0}};
+        this->set_cutoff_params(ci);
+
+        relax_inp_.cutoffs = this->cutoff_params();
+        this->set_relaxation_params(relax_inp_);
         EXPECT_EQ(1, relax_params_->host_pointers().elements[0].max_secondary);
 
-        relax_inp_.electron_cut = MevEnergy{1.e-4};
-        relax_inp_.gamma_cut    = MevEnergy{1.e-4};
-        set_relaxation_params(relax_inp_);
+        // Test 0.1 keV electron/photon cutoff
+        ci.cutoffs[pdg::electron()] = {{MevEnergy{1.e-4}, 0}};
+        ci.cutoffs[pdg::gamma()]    = {{MevEnergy{1.e-4}, 0}};
+        this->set_cutoff_params(ci);
+
+        relax_inp_.cutoffs = this->cutoff_params();
+        this->set_relaxation_params(relax_inp_);
         EXPECT_EQ(3, relax_params_->host_pointers().elements[0].max_secondary);
     }
 }

@@ -26,13 +26,14 @@ RayleighInteractor::RayleighInteractor(const RayleighNativeRef& shared,
                                        ElementId                el_id)
 
     : shared_(shared)
-    , inc_energy_(particle.energy().value())
+    , inc_energy_(particle.energy())
     , inc_direction_(direction)
     , element_id_(el_id)
 {
     CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
                  && inc_energy_ <= this->max_incident_energy());
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
+    CELER_EXPECT(element_id_ < shared_.params.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -43,20 +44,15 @@ RayleighInteractor::RayleighInteractor(const RayleighNativeRef& shared,
 template<class Engine>
 CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 {
-    real_type energy = inc_energy_.value();
-
     // Construct interaction for change to primary (incident) particle
     Interaction result;
     result.action = Action::scattered;
-    result.energy = units::MevEnergy{inc_energy_.value()};
+    result.energy = inc_energy_;
 
-    // Sample direction for a given atomic number: G4RayleighAngularGenerator
-    ItemIdT item_id = ItemIdT{element_id_.get()};
+    SampleInput input = this->evaluate_weight_and_prob();
 
-    SampleInput input = this->evaluate_weight_and_prob(energy, item_id);
-
-    Real3 pb = shared_.params[item_id].b;
-    Real3 pn = shared_.params[item_id].n;
+    const Real3& pb = shared_.params[element_id_].b;
+    const Real3& pn = shared_.params[element_id_].n;
 
     constexpr real_type half = 0.5;
     real_type           cost;
@@ -106,17 +102,15 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 }
 
 CELER_FUNCTION
-auto RayleighInteractor::evaluate_weight_and_prob(real_type      energy,
-                                                  const ItemIdT& item_id) const
-    -> SampleInput
+auto RayleighInteractor::evaluate_weight_and_prob() const -> SampleInput
 {
+    const Real3& a = shared_.params[element_id_].a;
+    const Real3& b = shared_.params[element_id_].b;
+    const Real3& n = shared_.params[element_id_].n;
+
     SampleInput input;
-
-    Real3 a = shared_.params[item_id].a;
-    Real3 b = shared_.params[item_id].b;
-    Real3 n = shared_.params[item_id].n;
-
-    input.factor = ipow<2>(energy * RayleighInteractor::hc_factor());
+    input.factor = ipow<2>(units::centimeter * unit_cast(inc_energy_)
+                           / (constants::c_light * constants::h_planck));
 
     Real3 x = b;
     axpy(input.factor, b, &x);

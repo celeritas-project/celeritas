@@ -72,19 +72,43 @@ struct ValueTable
 
 //---------------------------------------------------------------------------//
 /*!
+ * Process with both energy loss and macroscopic cross section tables.
+ *
+ * This is needed for the integral approach for correctly sampling the discrete
+ * interaction length after a particle loses energy along a step. An \c
+ * EnergyLossProcess is stored for each particle-process. This will be "false"
+ * (i.e. no energy_max assigned) if particle process does not have both dE/dx
+ * and macro xs tables or if \c use_integral_xs is false.
+ */
+struct EnergyLossProcess
+{
+    ItemRange<real_type> energy_max_xs; //!< Energy of the largest xs [mat]
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !energy_max_xs.empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Processes for a single particle type.
  *
  * Each index should be accessed with type ParticleProcessId. The "tables" are
  * a fixed-size number of ItemRange references to ValueTables. The first index
  * of the table (hard-coded) corresponds to ValueGridType; the second index is
  * a ParticleProcessId. So the cross sections for ParticleProcessId{2} would
- * be \code tables[size_type(ValueGridType::macro_xs)][2] \endcode. This
- * awkward access is encapsulated by the PhysicsTrackView.
+ * be \code tables[ValueGridType::macro_xs][2] \endcode. This
+ * awkward access is encapsulated by the PhysicsTrackView. \c energy_loss will
+ * only be assigned if the integral approach is used and the particle has
+ * continuous-discrete processes.
  */
 struct ProcessGroup
 {
     ItemRange<ProcessId> processes; //!< Processes that apply [ppid]
-    ValueGridArray<ItemRange<ValueTable>> tables; //!< [vgt][ppid]
+    ValueGridArray<ItemRange<ValueTable>> tables;      //!< [vgt][ppid]
+    ItemRange<EnergyLossProcess>          energy_loss; //!< [ppid]
     ItemRange<ModelGroup> models; //!< Model applicability [ppid]
 
     //! True if assigned and valid
@@ -175,6 +199,7 @@ struct PhysicsParamsData
     Items<ValueGridId>          value_grid_ids;
     Items<ProcessId>            process_ids;
     Items<ValueTable>           value_tables;
+    Items<EnergyLossProcess>    energy_loss;
     Items<ModelGroup>           model_groups;
     ParticleItems<ProcessGroup> process_groups;
 
@@ -185,6 +210,7 @@ struct PhysicsParamsData
     // User-configurable constants
     real_type scaling_min_range{}; //!< rho [cm]
     real_type scaling_fraction{};  //!< alpha [unitless]
+    real_type energy_fraction{};   //!< xi [unitless]
     real_type linear_loss_limit{}; //!< For scaled range calculation
 
     //// METHODS ////
@@ -194,7 +220,7 @@ struct PhysicsParamsData
     {
         return !process_groups.empty() && max_particle_processes
                && scaling_min_range > 0 && scaling_fraction > 0
-               && linear_loss_limit > 0;
+               && energy_fraction > 0 && linear_loss_limit > 0;
     }
 
     //! Assign from another set of data
@@ -209,6 +235,7 @@ struct PhysicsParamsData
         value_grid_ids = other.value_grid_ids;
         process_ids    = other.process_ids;
         value_tables   = other.value_tables;
+        energy_loss    = other.energy_loss;
         model_groups   = other.model_groups;
         process_groups = other.process_groups;
 
@@ -217,6 +244,7 @@ struct PhysicsParamsData
 
         scaling_min_range = other.scaling_min_range;
         scaling_fraction  = other.scaling_fraction;
+        energy_fraction   = other.energy_fraction;
         linear_loss_limit = other.linear_loss_limit;
 
         return *this;

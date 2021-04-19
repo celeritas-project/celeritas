@@ -10,6 +10,7 @@
 #include "base/Algorithms.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/CutoffView.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "base/StackAllocator.hh"
@@ -60,6 +61,7 @@ class LivermorePEInteractor
                           const Scratch&             scratch,
                           ElementId                  el_id,
                           const ParticleTrackView&   particle,
+                          const CutoffView&          cutoffs,
                           const Real3&               inc_direction,
                           StackAllocator<Secondary>& allocate);
 
@@ -74,6 +76,8 @@ class LivermorePEInteractor
     const Scratch& scratch_;
     // Index in MaterialParams elements
     ElementId el_id_;
+    // Production thresholds
+    const CutoffView& cutoffs_;
     // Incident direction
     const Real3& inc_direction_;
     // Incident gamma energy
@@ -86,6 +90,10 @@ class LivermorePEInteractor
     real_type inv_energy_;
 
     //// HELPER FUNCTIONS ////
+
+    // Sample the atomic subshel
+    template<class Engine>
+    inline CELER_FUNCTION SubshellId sample_subshell(Engine& rng) const;
 
     // Sample the direction of the emitted photoelectron
     template<class Engine>

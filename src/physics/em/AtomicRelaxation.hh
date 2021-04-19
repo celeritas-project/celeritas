@@ -9,6 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/CutoffView.hh"
 #include "physics/base/Units.hh"
 #include "random/distributions/IsotropicDistribution.hh"
 #include "AtomicRelaxationInterface.hh"
@@ -41,6 +42,7 @@ class AtomicRelaxation
     // Construct with shared and state data
     inline CELER_FUNCTION
     AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
+                     const CutoffView&                cutoffs,
                      ElementId                        el_id,
                      SubshellId                       shell_id,
                      Span<Secondary>                  secondaries,
@@ -53,6 +55,10 @@ class AtomicRelaxation
   private:
     // Shared EADL atomic relaxation data
     const AtomicRelaxParamsPointers& shared_;
+    // Photon production threshold [MeV]
+    real_type gamma_cutoff_;
+    // Electron production threshold [MeV]
+    real_type electron_cutoff_;
     // Index in MaterialParams elements
     ElementId el_id_;
     // Shell ID of the initial vacancy

@@ -11,7 +11,6 @@
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/PhotoelectricProcess.hh"
 #include "physics/em/EIonizationProcess.hh"
-#include "io/LivermorePEReader.hh"
 #include "io/RootImporter.hh"
 #include "io/ImportData.hh"
 #include "celeritas_test.hh"

@@ -68,9 +68,10 @@ class AtomicRelaxationHelper
 
     // Create the sampling distribution from sampled shell and allocated mem
     inline CELER_FUNCTION AtomicRelaxation
-    build_distribution(SubshellId       shell_id,
-                       Span<Secondary>  secondaries,
-                       Span<SubshellId> vacancies) const;
+    build_distribution(const CutoffView& cutoffs,
+                       SubshellId        shell_id,
+                       Span<Secondary>   secondaries,
+                       Span<SubshellId>  vacancies) const;
 
   private:
     // Shared EADL atomic relaxation data

@@ -6,8 +6,8 @@
 //! \file FieldUtils.i.hh
 //---------------------------------------------------------------------------//
 
+#include "base/Algorithms.hh"
 #include "base/ArrayUtils.hh"
-#include <cmath>
 
 namespace celeritas
 {
@@ -22,7 +22,8 @@ void axpy(real_type a, const OdeState& x, OdeState* y)
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the stepper truncation error: max(pos_error^2, scale*mom_error^2)
+ * Evaluate the stepper truncation error square:
+ * \f$ \Delta = max (\delta_{pos}^{2}, \epsilon \delta_{mom}^{2}) \f$
  */
 CELER_FUNCTION real_type truncation_error(real_type       step,
                                           real_type       eps_rel_max,
@@ -37,7 +38,7 @@ CELER_FUNCTION real_type truncation_error(real_type       step,
     real_type errvel2 = dot_product(err_state.mom, err_state.mom);
 
     // Scale relative to a required tolerance
-    CELER_ASSERT(errpos2 > 0.0);
+    CELER_ASSERT(errpos2 >= 0.0);
     CELER_ASSERT(magvel2 > 0.0);
 
     errpos2 /= (eps_pos * eps_pos);
@@ -49,22 +50,24 @@ CELER_FUNCTION real_type truncation_error(real_type       step,
 
 //---------------------------------------------------------------------------//
 /*!
- * Closest distance between the chord (from beg_state.pos to end_state.pos)
- * and the mid-state
+ * Closest distance between the segmentfrom beg.pos (\em A) to end.pos(\em B)
+ * and the mid.pos (\em M):
+ * \f[
+ *   d = |\vec{AM}| \sin(\theta) = \frac{\vec{AM} \times \vec{AB}}{|\vec{AB}|}
+ * \f]
  */
 CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
                                         const OdeState& mid_state,
                                         const OdeState& end_state)
 {
-    Real3 beg_side{0, 0, 0};
-    Real3 end_side{0, 0, 0};
-    axpy(-1.0, beg_state.pos, &beg_side);
-    axpy(-1.0, end_state.pos, &end_side);
+    Real3 beg_mid = mid_state.pos;
+    Real3 beg_end = end_state.pos;
 
-    real_type beg_dist2 = dot_product(mid_state.pos, beg_side);
-    real_type end_dist2 = dot_product(mid_state.pos, end_side);
+    axpy(-1.0, beg_state.pos, &beg_mid);
+    axpy(-1.0, beg_state.pos, &beg_end);
 
-    return std::sqrt(beg_dist2 * end_dist2 / (beg_dist2 + end_dist2));
+    Real3 cross = cross_product(beg_end, beg_mid);
+    return std::sqrt(dot_product(cross, cross) / dot_product(beg_end, beg_end));
 }
 
 //---------------------------------------------------------------------------//

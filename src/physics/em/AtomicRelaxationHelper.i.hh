@@ -58,14 +58,16 @@ CELER_FUNCTION size_type AtomicRelaxationHelper::max_vacancies() const
  * Create the sampling distribution.
  */
 CELER_FUNCTION AtomicRelaxation
-AtomicRelaxationHelper::build_distribution(SubshellId       shell_id,
-                                           Span<Secondary>  secondaries,
-                                           Span<SubshellId> vacancies) const
+AtomicRelaxationHelper::build_distribution(const CutoffView& cutoffs,
+                                           SubshellId        shell_id,
+                                           Span<Secondary>   secondaries,
+                                           Span<SubshellId>  vacancies) const
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(secondaries.size() == this->max_secondaries());
     CELER_EXPECT(vacancies.size() == this->max_vacancies());
-    return AtomicRelaxation{shared_, el_id_, shell_id, secondaries, vacancies};
+    return AtomicRelaxation{
+        shared_, cutoffs, el_id_, shell_id, secondaries, vacancies};
 }
 
 //---------------------------------------------------------------------------//

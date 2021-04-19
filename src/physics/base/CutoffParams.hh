@@ -15,6 +15,7 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "CutoffInterface.hh"
+#include "CutoffView.hh"
 
 namespace celeritas
 {
@@ -73,6 +74,9 @@ class CutoffParams
     // Construct with cutoff input data
     explicit CutoffParams(const Input& input);
 
+    // Access cutoffs on host
+    inline CutoffView get(MaterialId material) const;
+
     //! Access cutoff data on the host
     const HostRef& host_pointers() const { return data_.host(); }
 
@@ -84,6 +88,18 @@ class CutoffParams
     CollectionMirror<CutoffParamsData> data_;
     using HostValue = CutoffParamsData<Ownership::value, MemSpace::host>;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Access cutoffs on host.
+ */
+CutoffView CutoffParams::get(MaterialId material) const
+{
+    CELER_EXPECT(material < this->host_pointers().num_materials);
+    return CutoffView(this->host_pointers(), material);
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

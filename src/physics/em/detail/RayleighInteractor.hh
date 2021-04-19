@@ -82,9 +82,7 @@ class RayleighInteractor
     };
 
     //! Evaluate weights and probabilities for the angular sampling algorithm
-    CELER_FUNCTION auto
-    evaluate_weight_and_prob(real_type energy, const ItemIdT& id) const
-        -> SampleInput;
+    CELER_FUNCTION auto evaluate_weight_and_prob() const -> SampleInput;
 
   private:
     // Shared constant physics properties

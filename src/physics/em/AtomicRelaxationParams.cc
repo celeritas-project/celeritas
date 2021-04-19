@@ -29,12 +29,13 @@ namespace celeritas
  */
 AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     : is_auger_enabled_(inp.is_auger_enabled)
-    , electron_cut_(inp.electron_cut)
-    , gamma_cut_(inp.gamma_cut)
-    , electron_id_(inp.electron_id)
-    , gamma_id_(inp.gamma_id)
+    , electron_id_(inp.particles->find(pdg::electron()))
+    , gamma_id_(inp.particles->find(pdg::gamma()))
 {
-    CELER_EXPECT(!inp.elements.empty());
+    CELER_EXPECT(inp.cutoffs);
+    CELER_EXPECT(inp.materials);
+    CELER_EXPECT(inp.particles);
+    CELER_EXPECT(inp.elements.size() == inp.materials->num_elements());
     CELER_EXPECT(electron_id_);
     CELER_EXPECT(gamma_id_);
 
@@ -58,10 +59,33 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     host_shells_.reserve(ss_size);
     host_transitions_.reserve(tr_size);
 
-    // Build elements
-    for (const auto& el : inp.elements)
+    // Find the minimum electron and photon cutoff energy for each element over
+    // all materials. This is used to calculate the maximum number of
+    // secondaries that could be created in atomic relaxation for each element.
+    size_type              num_elements = inp.materials->num_elements();
+    std::vector<MevEnergy> min_ecut(num_elements, max_quantity());
+    std::vector<MevEnergy> min_gcut(num_elements, max_quantity());
+    for (auto mat_id : range(MaterialId{inp.materials->num_materials()}))
     {
-        this->append_element(el);
+        // Electron and photon energy cutoffs for this material
+        auto cutoffs = inp.cutoffs->get(mat_id);
+        auto ecut    = cutoffs.energy(electron_id_);
+        auto gcut    = cutoffs.energy(gamma_id_);
+
+        auto material = inp.materials->get(mat_id);
+        for (auto comp_id : range(ElementComponentId{material.num_elements()}))
+        {
+            auto el_idx      = material.element_id(comp_id).get();
+            min_ecut[el_idx] = min(min_ecut[el_idx], ecut);
+            min_gcut[el_idx] = min(min_gcut[el_idx], gcut);
+        }
+    }
+
+    // Build elements
+    for (auto el_idx : range(num_elements))
+    {
+        this->append_element(
+            inp.elements[el_idx], min_ecut[el_idx], min_gcut[el_idx]);
     }
 
     if (celeritas::device())
@@ -111,8 +135,6 @@ AtomicRelaxParamsPointers AtomicRelaxationParams::host_pointers() const
     result.elements     = make_span(host_elements_);
     result.electron_id  = electron_id_;
     result.gamma_id     = gamma_id_;
-    result.electron_cut = electron_cut_;
-    result.gamma_cut    = gamma_cut_;
 
     CELER_ENSURE(result);
     return result;
@@ -130,8 +152,6 @@ AtomicRelaxParamsPointers AtomicRelaxationParams::device_pointers() const
     result.elements     = device_elements_.device_pointers();
     result.electron_id  = electron_id_;
     result.gamma_id     = gamma_id_;
-    result.electron_cut = electron_cut_;
-    result.gamma_cut    = gamma_cut_;
 
     CELER_ENSURE(result);
     return result;
@@ -143,7 +163,9 @@ AtomicRelaxParamsPointers AtomicRelaxationParams::device_pointers() const
 /*!
  * Convert an element input to a AtomicRelaxElement and store.
  */
-void AtomicRelaxationParams::append_element(const ElementInput& inp)
+void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
+                                            MevEnergy electron_cutoff,
+                                            MevEnergy gamma_cutoff)
 {
     AtomicRelaxElement result;
 
@@ -153,7 +175,7 @@ void AtomicRelaxationParams::append_element(const ElementInput& inp)
     // Calculate the maximum possible number of secondaries that could be
     // created in atomic relaxation.
     result.max_secondary
-        = detail::calc_max_secondaries(result, electron_cut_, gamma_cut_);
+        = detail::calc_max_secondaries(result, electron_cutoff, gamma_cutoff);
 
     // Maximum size of the stack used to store unprocessed vacancy subshell
     // IDs. For radiative transitions, there is only ever one vacancy waiting
@@ -170,7 +192,7 @@ void AtomicRelaxationParams::append_element(const ElementInput& inp)
  * Process and store electron subshells to the internal list.
  */
 Span<AtomicRelaxSubshell>
-AtomicRelaxationParams::extend_shells(const ElementInput& inp)
+AtomicRelaxationParams::extend_shells(const ImportAtomicRelaxation& inp)
 {
     CELER_EXPECT(host_shells_.size() + inp.shells.size()
                  <= host_shells_.capacity());
@@ -224,7 +246,7 @@ AtomicRelaxationParams::extend_shells(const ElementInput& inp)
  * Process and store transition data to the internal list.
  */
 Span<AtomicRelaxTransition> AtomicRelaxationParams::extend_transitions(
-    const std::vector<TransitionInput>& transitions)
+    const std::vector<ImportAtomicTransition>& transitions)
 {
     CELER_EXPECT(host_transitions_.size() + transitions.size()
                  <= host_transitions_.capacity());

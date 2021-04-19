@@ -35,7 +35,7 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     , inc_energy_(particle.energy().value())
     , inc_momentum_(particle.momentum().value())
     , inc_direction_(inc_direction)
-    , secondary_energy_cutoff_(cutoffs.energy().value())
+    , secondary_energy_cutoff_(cutoffs.energy(particle.particle_id()).value())
     , allocate_(allocate)
     , inc_particle_is_electron_(particle.particle_id() == shared_.electron_id)
 {
@@ -93,9 +93,8 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     const real_type secondary_energy = epsilon * inc_energy_;
 
     // Same equation as in ParticleTrackView::momentum_sq()
-    const real_type secondary_momentum
-        = std::sqrt(secondary_energy
-                    * (secondary_energy + 2.0 * shared_.electron_mass_c_sq));
+    const real_type secondary_momentum = std::sqrt(
+        secondary_energy * (secondary_energy + 2 * shared_.electron_mass_c_sq));
 
     const real_type total_energy = inc_energy_ + shared_.electron_mass_c_sq;
 
@@ -104,8 +103,8 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         = secondary_energy * (total_energy + shared_.electron_mass_c_sq)
           / (secondary_momentum * inc_momentum_);
 
-    secondary_cos_theta = min(secondary_cos_theta, 1.0);
-    CELER_ASSERT(secondary_cos_theta >= -1.0 && secondary_cos_theta <= 1.0);
+    secondary_cos_theta = celeritas::min<real_type>(secondary_cos_theta, 1);
+    CELER_ASSERT(secondary_cos_theta >= -1 && secondary_cos_theta <= 1);
 
     // Sample phi isotropically
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);

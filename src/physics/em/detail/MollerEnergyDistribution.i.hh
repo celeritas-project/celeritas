@@ -64,13 +64,13 @@ CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
 CELER_FUNCTION real_type
 MollerEnergyDistribution::calc_g_fraction(real_type epsilon)
 {
-    const real_type two_gamma_term  = (2.0 * gamma_ - 1.0) / ipow<2>(gamma_);
-    const real_type complement_frac = 1.0 - epsilon;
+    const real_type two_gamma_term  = (2 * gamma_ - 1) / ipow<2>(gamma_);
+    const real_type complement_frac = 1 - epsilon;
 
-    return 1.0 - two_gamma_term * epsilon
+    return 1 - two_gamma_term * epsilon
            + ipow<2>(epsilon)
-                 * (1.0 - two_gamma_term
-                    + (1.0 - two_gamma_term * complement_frac)
+                 * (1 - two_gamma_term
+                    + (1 - two_gamma_term * complement_frac)
                           / ipow<2>(complement_frac));
 }
 //---------------------------------------------------------------------------//

@@ -10,18 +10,35 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct view from host/device for the given particle and material ids.
+ * Construct view from host/device for the given material id.
  */
-CELER_FUNCTION CutoffView::CutoffView(const CutoffPointers& params,
-                                      ParticleId            particle,
-                                      MaterialId            material)
+CELER_FUNCTION
+CutoffView::CutoffView(const CutoffPointers& params, MaterialId material)
+    : params_(params), material_(material)
 {
-    CELER_EXPECT(particle < params.num_particles);
-    CELER_EXPECT(material < params.num_materials);
-    using CutoffId = OpaqueId<ParticleCutoff>;
-    CutoffId cutoff_id{params.num_materials * particle.get() + material.get()};
+    CELER_EXPECT(params_);
+    CELER_EXPECT(material_ < params_.num_materials);
+}
 
-    cutoff_ = params.cutoffs[cutoff_id];
+//---------------------------------------------------------------------------//
+/*!
+ * Return energy cutoff value.
+ */
+CELER_FUNCTION auto CutoffView::energy(ParticleId particle) const -> Energy
+{
+    CutoffId id{params_.num_materials * particle.get() + material_.get()};
+    CELER_ASSERT(id < params_.cutoffs.size());
+    return params_.cutoffs[id].energy;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return range cutoff value.
+ */
+CELER_FUNCTION real_type CutoffView::range(ParticleId particle) const
+{
+    CutoffId id{params_.num_materials * particle.get() + material_.get()};
+    return params_.cutoffs[id].range;
 }
 
 //---------------------------------------------------------------------------//
