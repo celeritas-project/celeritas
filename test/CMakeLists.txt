@@ -243,5 +243,20 @@ celeritas_setup_tests(SERIAL PREFIX field)
 celeritas_cudaoptional_test(field/RungeKutta)
 celeritas_cudaoptional_test(field/FieldDriver)
 
+if(CELERITAS_USE_VecGeom)
+  celeritas_setup_tests(SERIAL PREFIX field
+    LINK_LIBRARIES CeleritasPropagatorTest VecGeom::vecgeom
+  )
+  celeritas_add_test(field/FieldPropagator.test.cc GPU)
+
+  if(CELERITAS_USE_CUDA)
+    add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu)
+    celeritas_link_vecgeom_cuda(CeleritasPropagatorTest)
+  endif()
+  target_link_libraries(CeleritasPropagatorTest
+    PRIVATE Celeritas::Test Celeritas::Core VecGeom::vecgeom
+  )
+
+endif()
 #-----------------------------------------------------------------------------#
 
