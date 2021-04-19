@@ -251,14 +251,19 @@ if(CELERITAS_USE_VecGeom)
 
   if(CELERITAS_USE_CUDA)
     add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu)
-    celeritas_link_vecgeom_cuda(CeleritasPropagatorTest)
+    target_link_libraries(CeleritasPropagatorTest
+      PRIVATE 
+      celeritas
+      VecGeom::vecgeomcuda
+      VecGeom::vecgeomcuda_static
+    )
+    set_target_properties(CeleritasPropagatorTest PROPERTIES
+      LINKER_LANGUAGE CUDA
+      CUDA_SEPARABLE_COMPILATION ON
+      POSITION_INDEPENDENT_CODE ON
+    )
+    list(APPEND CELERITASTEST_LINK_LIBRARIES CeleritasPropagatorTest)
   endif()
-  target_link_libraries(CeleritasPropagatorTest
-    PRIVATE 
-    celeritas
-    VecGeom::vecgeom
-    VecGeom::vecgeomcuda_static
-  )
 
 endif()
 #-----------------------------------------------------------------------------#
