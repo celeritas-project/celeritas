@@ -61,7 +61,7 @@ inline int PDGNumber::get() const
 //! Test equality
 inline constexpr bool operator==(PDGNumber lhs, PDGNumber rhs)
 {
-    return lhs.unchecked_get() == rhs.get();
+    return lhs.unchecked_get() == rhs.unchecked_get();
 }
 
 //! Test inequality
@@ -73,7 +73,7 @@ inline constexpr bool operator!=(PDGNumber lhs, PDGNumber rhs)
 //! Allow less-than comparison for sorting
 inline constexpr bool operator<(PDGNumber lhs, PDGNumber rhs)
 {
-    return lhs.unchecked_get() < rhs.get();
+    return lhs.unchecked_get() < rhs.unchecked_get();
 }
 
 //---------------------------------------------------------------------------//
