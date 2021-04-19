@@ -8,6 +8,7 @@
 #include "RootImporter.hh"
 
 #include "base/Assert.hh"
+#include "ImportData.hh"
 
 // We're not linking against ROOT: declare a TFile so that its null-op
 // destructor can be called by the unique_ptr destructor.
@@ -17,9 +18,6 @@ class TFile
 
 namespace celeritas
 {
-struct ImportData
-{
-};
 //---------------------------------------------------------------------------//
 RootImporter::RootImporter(const char*)
 {
@@ -28,7 +26,7 @@ RootImporter::RootImporter(const char*)
 
 RootImporter::~RootImporter() = default;
 
-auto RootImporter::operator()(const char*, const char*)
+auto RootImporter::operator()()
     -> ImportData
 {
     CELER_ASSERT_UNREACHABLE();
