@@ -54,7 +54,7 @@ CELER_FUNCTION ElementComponentId ElementSelector::operator()(Engine& rng) const
     for (; i != imax; ++i)
     {
         accum_xs += elements_[i].fraction * elemental_xs_[i];
-        if (accum_xs >= 0)
+        if (accum_xs > 0)
             break;
     }
     return ElementComponentId{i};

@@ -37,6 +37,10 @@ namespace celeritas
  * \endcode
  */
 
+//! Publicly expose traits for countable (OpaqueId, enum, init) type T
+template<class T>
+using RangeIter = detail::range_iter<T>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Proxy container for iterating over a range of integral values.

@@ -11,6 +11,7 @@
 #include <random>
 #include "celeritas_test.hh"
 #include "base/Range.hh"
+#include "random/SequenceEngine.hh"
 #include "physics/material/MaterialParams.hh"
 
 using namespace celeritas;
@@ -161,6 +162,20 @@ TEST_F(ElementSelectorTest, everything_even)
     // Proportional to micro_xs (equal number density)
     const int expected_tally[] = {1032, 2014, 2971, 3983};
     EXPECT_VEC_EQ(expected_tally, tally);
+
+    // Test with sequence engine
+    {
+        auto seq_rng = celeritas_test::SequenceEngine::from_reals(
+            {0.0, 0.099, 0.101, 0.3, 0.499, 0.999999});
+        std::vector<int> selection;
+        while (seq_rng.count() < seq_rng.max_count())
+        {
+            auto el_id = select_el(seq_rng);
+            selection.push_back(el_id.unchecked_get());
+        }
+        const int expected_selection[] = {0, 0, 1, 2, 2, 3};
+        EXPECT_VEC_EQ(expected_selection, selection);
+    }
 }
 
 //! Number densities scaled to 1/xs so equiprobable
@@ -187,6 +202,26 @@ TEST_F(ElementSelectorTest, everything_weighted)
     // Equiprobable
     const int expected_tally[] = {2574, 2395, 2589, 2442};
     EXPECT_VEC_EQ(expected_tally, tally);
+}
+
+//! Many zero cross sections
+TEST_F(ElementSelectorTest, even_zero_xs)
+{
+    MaterialView material(host_mats, mats->find("everything_even"));
+    auto         calc_xs
+        = [](ElementId el) -> real_type { return (el.get() % 2 ? 1 : 0); };
+    ElementSelector select_el(material, calc_xs, make_span(storage));
+
+    auto seq_rng = celeritas_test::SequenceEngine::from_reals(
+        {0.0, 0.01, 0.49, 0.5, 0.51});
+    std::vector<int> selection;
+    while (seq_rng.count() < seq_rng.max_count())
+    {
+        auto el_id = select_el(seq_rng);
+        selection.push_back(el_id.unchecked_get());
+    }
+    const int expected_selection[] = {1, 1, 1, 3, 3};
+    EXPECT_VEC_EQ(expected_selection, selection);
 }
 
 //! Example of using a more complex/functional cross section functor

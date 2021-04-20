@@ -218,15 +218,15 @@ celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
 
 celeritas_setup_tests(SERIAL PREFIX random)
 
+celeritas_cudaoptional_test(random/RngEngine)
+celeritas_add_test(random/Selector.test.cc)
+
 celeritas_add_test(random/distributions/BernoulliDistribution.test.cc)
 celeritas_add_test(random/distributions/ExponentialDistribution.test.cc)
 celeritas_add_test(random/distributions/IsotropicDistribution.test.cc)
 celeritas_add_test(random/distributions/RadialDistribution.test.cc)
 celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 
-# Note: this test should compile fine without CUDA but currently doesn't have
-# any # tests that run because the RngEngine is CUDA-only.
-celeritas_cudaoptional_test(random/RngEngine ${_needs_cuda})
 
 #-----------------------------------------------------------------------------#
 # Sim
