@@ -38,9 +38,6 @@ class FieldTrackView
     inline CELER_FUNCTION FieldTrackView(const GeoTrackView&      gt_view,
                                          const ParticleTrackView& pt_view);
 
-    // Copy Construct
-    inline CELER_FUNCTION FieldTrackView(const FieldTrackView& other) = default;
-
     //@{
     //! Accessors
     CELER_FUNCTION bool on_boundary() const { return on_boundary_; }
@@ -51,12 +48,24 @@ class FieldTrackView
     //@}
 
     //@{
-    //! Modifiers via non-const references
-    CELER_FUNCTION bool& on_boundary() { return on_boundary_; }
-    CELER_FUNCTION real_type& step() { return step_; }
-    CELER_FUNCTION OdeState& state() { return state_; }
-    CELER_FUNCTION real_type& safety() { return safety_; }
-    CELER_FUNCTION Real3& origin() { return origin_; }
+    //! Setters
+    CELER_FUNCTION void on_boundary(bool on_boundary)
+    {
+        on_boundary_ = on_boundary;
+    }
+    CELER_FUNCTION void step(real_type step)
+    {
+        CELER_EXPECT(step >= 0);
+        step_ = step;
+    }
+    CELER_FUNCTION void state(const OdeState& state) { state_ = state; }
+
+    CELER_FUNCTION void safety(real_type safety)
+    {
+        CELER_EXPECT(safety >= 0);
+        safety_ = safety;
+    }
+    CELER_FUNCTION void origin(const Real3& origin) { origin_ = origin; }
     //@}
 
     /// STATIC PROPERTIES
