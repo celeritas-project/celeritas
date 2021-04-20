@@ -33,7 +33,7 @@ FieldPropagator::FieldPropagator(const FieldParamsPointers& shared,
  */
 CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView* view)
 {
-    CELER_ASSERT(view->charge().value() != 0);
+    CELER_ASSERT(view && view->charge() != zero_quantity());
 
     real_type step = view->step();
 
@@ -44,9 +44,9 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView* view)
     }
 
     // Initial parameters and states for the field integration
-    real_type      step_taken = 0;
-    OdeState       end_state  = view->state();
-    IntersectionIO intersect;
+    real_type    step_taken = 0;
+    OdeState     end_state  = view->state();
+    Intersection intersect;
 
     do
     {
@@ -57,31 +57,32 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView* view)
         real_type sub_step = driver_(step_left, &end_state);
 
         // Check whether this sub-step cross a volume boundary
-        view->on_boundary() = intersect.status;
+        view->on_boundary(intersect.intersected);
         this->check_intersection(
             view, beg_state.pos, end_state.pos, &intersect);
 
         // If it is a geometry limited step, find the intersection point
-        if (intersect.status)
+        if (intersect.intersected)
         {
             intersect.scale *= sub_step;
             end_state = this->locate_intersection(view, beg_state, &intersect);
 
             // Update states for field and navigation
-            sub_step            = intersect.step;
-            end_state.pos       = intersect.pos;
-            view->on_boundary() = intersect.status;
+            sub_step      = intersect.step;
+            end_state.pos = intersect.pos;
+            view->on_boundary(intersect.intersected);
             view->update_vgstates();
         }
 
         // Add sub-step until there is no remaining step length
         step_taken += sub_step;
 
-    } while (!intersect.status && (step_taken + shared_.minimum_step) < step);
+    } while (!intersect.intersected
+             && (step_taken + shared_.minimum_step) < step);
 
     // Update the field track view
-    view->state() = end_state;
-    view->step()  = step_taken;
+    view->state(end_state);
+    view->step(step_taken);
 
     return step_taken;
 }
@@ -93,15 +94,15 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView* view)
  */
 CELER_FUNCTION
 void FieldPropagator::check_intersection(FieldTrackView* view,
-                                         const Real3     bed_pos,
+                                         const Real3     beg_pos,
                                          const Real3     end_pos,
-                                         IntersectionIO* intersect)
+                                         Intersection*   intersect)
 {
-    intersect->status = false;
+    intersect->intersected = false;
 
     Real3 chord = end_pos;
-    axpy(real_type(-1.0), bed_pos, &chord);
-    Real3 shift = bed_pos;
+    axpy(real_type(-1.0), beg_pos, &chord);
+    Real3 shift = beg_pos;
     axpy(real_type(-1.0), view->origin(), &shift);
 
     real_type length = norm(chord);
@@ -122,23 +123,23 @@ void FieldPropagator::check_intersection(FieldTrackView* view,
     if (length < safety)
     {
         // Guaranteed inside the current volume and updat the safety
-        view->safety() = safety;
+        view->safety(safety);
     }
     else
     {
         // Check whether the linear step length to the next boundary is
         // smaller than the segment to the final position
-        real_type linear_step = view->linear_propagator(bed_pos, dir, length);
+        real_type linear_step = view->linear_propagator(beg_pos, dir, length);
 
-        intersect->status = (linear_step < length);
+        intersect->intersected = (linear_step < length);
 
         intersect->scale = linear_step / length;
-        view->origin()   = bed_pos;
+        view->origin(beg_pos);
 
         // If intersect, estimate the candidate intersection point
-        if (intersect->status)
+        if (intersect->intersected)
         {
-            intersect->pos = bed_pos;
+            intersect->pos = beg_pos;
             axpy(linear_step, dir, &(intersect->pos));
         }
 
@@ -155,11 +156,11 @@ void FieldPropagator::check_intersection(FieldTrackView* view,
  */
 CELER_FUNCTION
 OdeState FieldPropagator::locate_intersection(FieldTrackView* view,
-                                              const OdeState  bed_state,
-                                              IntersectionIO* intersect)
+                                              const OdeState& bed_state,
+                                              Intersection*   intersect)
 {
-    intersect->status = false;
-    Real3 beg_pos     = bed_state.pos;
+    intersect->intersected = false;
+    Real3 beg_pos          = bed_state.pos;
 
     OdeState     end_state;
     unsigned int remaining_steps = shared_.max_nsteps;
@@ -176,9 +177,9 @@ OdeState FieldPropagator::locate_intersection(FieldTrackView* view,
         Real3 delta = end_state.pos;
         axpy(real_type(-1.0), intersect->pos, &delta);
 
-        intersect->status = (norm(delta) < shared_.delta_intersection);
+        intersect->intersected = (norm(delta) < shared_.delta_intersection);
 
-        if (!intersect->status)
+        if (!intersect->intersected)
         {
             // Estimate a new trial step with the updated position of end_state
             real_type trial_step = intersect->step;
@@ -186,10 +187,10 @@ OdeState FieldPropagator::locate_intersection(FieldTrackView* view,
 
             intersect->step = trial_step * intersect->scale;
         }
-    } while (!intersect->status && --remaining_steps > 0);
+    } while (!intersect->intersected && --remaining_steps > 0);
 
     // TODO: loop check and handle rare cases if happen
-    CELER_ASSERT(intersect->status);
+    CELER_ASSERT(intersect->intersected);
 
     return end_state;
 }
