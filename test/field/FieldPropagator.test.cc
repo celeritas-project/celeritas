@@ -71,7 +71,7 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         {
             for (CELER_MAYBE_UNUSED int j : celeritas::range(test.nsteps))
             {
-                field_view.step()    = step;
+                field_view.step(step);
                 real_type step_taken = propagator(&field_view);
                 EXPECT_DOUBLE_EQ(step_taken, step);
                 total_length += step_taken;
@@ -129,7 +129,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         {
             for (CELER_MAYBE_UNUSED auto k : celeritas::range(test.nsteps))
             {
-                field_view.step() = step;
+                field_view.step(step);
                 total_length += propagator(&field_view);
 
                 if (field_view.on_boundary())

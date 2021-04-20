@@ -75,7 +75,7 @@ __global__ void fp_test_kernel(const int                 size,
     {
         for (CELER_MAYBE_UNUSED int j : celeritas::range(test.nsteps))
         {
-            field_view.step() = hstep;
+            field_view.step(hstep);
             curved_length += propagator(&field_view);
         }
     }
@@ -144,7 +144,7 @@ __global__ void bc_test_kernel(const int                 size,
     {
         for (CELER_MAYBE_UNUSED int i : celeritas::range(test.nsteps))
         {
-            field_view.step() = hstep;
+            field_view.step(hstep);
             curved_length += propagator(&field_view);
 
             if (field_view.on_boundary())
