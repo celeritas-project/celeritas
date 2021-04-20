@@ -38,10 +38,10 @@ class FieldPropagator
 
   private:
     // A helper input/output for private member functions
-    struct IntersectionIO
+    struct Intersection
     {
-        bool  status{false}; //!< Status of intersection
-        Real3 pos{0, 0, 0};  //!< Intersection point on a volme boundary
+        bool  intersected{false}; //!< Status of intersection
+        Real3 pos{0, 0, 0};       //!< Intersection point on a volme boundary
         union
         {
             real_type step{0}; //!< Linear step length to the first boundary
@@ -53,13 +53,12 @@ class FieldPropagator
     inline CELER_FUNCTION void check_intersection(FieldTrackView* view,
                                                   const Real3     beg_pos,
                                                   const Real3     end_pos,
-                                                  IntersectionIO* intersect);
+                                                  Intersection*   intersect);
 
     // Find the intersection point if any boundary is crossed
-    inline CELER_FUNCTION OdeState
-                          locate_intersection(FieldTrackView* view,
-                                              const OdeState  beg_state,
-                                              IntersectionIO* intersect);
+    inline CELER_FUNCTION OdeState locate_intersection(FieldTrackView* view,
+                                                       const OdeState& beg_state,
+                                                       Intersection* intersect);
 
     // >>> COMMON PROPERTIES
 
