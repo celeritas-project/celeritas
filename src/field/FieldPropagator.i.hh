@@ -94,8 +94,8 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView* view)
  */
 CELER_FUNCTION
 void FieldPropagator::check_intersection(FieldTrackView* view,
-                                         const Real3     beg_pos,
-                                         const Real3     end_pos,
+                                         const Real3&    beg_pos,
+                                         const Real3&    end_pos,
                                          Intersection*   intersect)
 {
     intersect->intersected = false;

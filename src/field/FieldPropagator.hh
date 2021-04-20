@@ -51,8 +51,8 @@ class FieldPropagator
 
     // Check whether the final state is crossed any boundary of volumes
     inline CELER_FUNCTION void check_intersection(FieldTrackView* view,
-                                                  const Real3     beg_pos,
-                                                  const Real3     end_pos,
+                                                  const Real3&    beg_pos,
+                                                  const Real3&    end_pos,
                                                   Intersection*   intersect);
 
     // Find the intersection point if any boundary is crossed
