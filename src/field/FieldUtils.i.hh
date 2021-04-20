@@ -67,7 +67,7 @@ CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
     axpy(-1.0, beg_state.pos, &beg_end);
 
     Real3 cross = cross_product(beg_end, beg_mid);
-    return norm(cross) / dot_product(beg_end, beg_end);
+    return std::sqrt(dot_product(cross, cross) / dot_product(beg_end, beg_end));
 }
 
 //---------------------------------------------------------------------------//
