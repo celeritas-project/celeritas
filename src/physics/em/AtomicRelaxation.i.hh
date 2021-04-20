@@ -74,23 +74,17 @@ AtomicRelaxation::operator()(Engine& rng)
         if (!vacancy_id)
             continue;
 
-        // Sample a transition
+        // Sample a transition (TODO: refactor to use Selector but with
+        // "remainder")
         const AtomicRelaxSubshell& shell
             = shared_.elements[el_id_.get()].shells[vacancy_id.get()];
-        real_type prob = generate_canonical(rng);
-        size_type i;
-        for (i = 0; i < shell.transitions.size(); ++i)
-        {
-            if ((prob -= shell.transitions[i].probability) <= 0)
-                break;
-        }
+        const TransitionId trans_id = this->sample_transition(shell, rng);
 
-        // If no transition was sampled, continue to the next vacancy
-        if (prob > 0.)
+        if (!trans_id)
             continue;
 
         // Push the new vacancies onto the stack and create the secondary
-        const AtomicRelaxTransition& transition = shell.transitions[i];
+        const auto& transition = shell.transitions[trans_id.get()];
         vacancies.push(transition.initial_shell);
         if (transition.auger_shell)
         {
@@ -124,6 +118,30 @@ AtomicRelaxation::operator()(Engine& rng)
     result.count  = count;
     result.energy = sum_energy;
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample an atomic transition.
+ *
+ * TODO: refactor to use a Selector-like algorithm that allows a "remainder"
+ * that indicates "not sampled".
+ */
+template<class Engine>
+inline CELER_FUNCTION auto
+AtomicRelaxation::sample_transition(const AtomicRelaxSubshell& shell,
+                                    Engine& rng) -> TransitionId
+{
+    real_type accum = -generate_canonical(rng);
+    for (size_type i = 0; i < shell.transitions.size(); ++i)
+    {
+        accum += shell.transitions[i].probability;
+        if (accum > 0)
+            return TransitionId{i};
+    }
+
+    // No transition was sampled: skip to the next vacancy
+    return {};
 }
 
 //---------------------------------------------------------------------------//

@@ -167,6 +167,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
     if (inc_energy_ < el.thresh_lo)
     {
         // Accumulate discrete PDF for tabulated shell cross sections
+        // TODO: use Selector-with-remainder
         real_type       xs              = 0;
         const real_type inv_cube_energy = ipow<3>(inv_energy_);
         for (; shell_id < shells.size(); ++shell_id)
@@ -183,7 +184,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
             GenericXsCalculator calc_xs(shell.xs, shared_.xs.reals);
             xs += inv_cube_energy * calc_xs(inc_energy_.value());
 
-            if (xs >= cutoff)
+            if (xs > cutoff)
             {
                 break;
             }
@@ -198,11 +199,13 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
     }
     else
     {
+        // Invert discrete CDF using a linear search. TODO: we could implement
+        // an algorithm to encapsulate and later accelerate it.
+
         // Low/high index on params
-        const int pidx = inc_energy_ < el.thresh_hi ? 0 : 1;
+        const int       pidx      = inc_energy_ < el.thresh_hi ? 0 : 1;
         const size_type shell_end = shells.size() - 1;
 
-        // Invert discrete CDF using a linear search
         for (; shell_id < shell_end; ++shell_id)
         {
             const auto& param = shells[shell_id].param[pidx];
@@ -218,7 +221,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
                   + inv_energy_ * (param[4] + inv_energy_ *  param[5])))));
             // clang-format on
 
-            if (xs >= cutoff)
+            if (xs > cutoff)
             {
                 break;
             }

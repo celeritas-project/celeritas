@@ -69,6 +69,13 @@ class AtomicRelaxation
     Span<SubshellId> vacancies_;
     // Angular distribution of secondaries
     IsotropicDistribution<real_type> sample_direction_;
+
+  private:
+    using TransitionId = OpaqueId<AtomicRelaxTransition>;
+
+    template<class Engine>
+    inline CELER_FUNCTION TransitionId
+    sample_transition(const AtomicRelaxSubshell& shell, Engine& rng);
 };
 
 //---------------------------------------------------------------------------//

@@ -44,6 +44,12 @@ struct RangeTypeTraits
         v += i;
         return v;
     }
+    static CELER_FORCEINLINE_FUNCTION value_type decrement(value_type   v,
+                                                           counter_type i)
+    {
+        v -= i;
+        return v;
+    }
 };
 
 template<class T, class Enable = void>
@@ -90,6 +96,13 @@ struct RangeTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type>
         temp += i;
         return to_value(temp);
     }
+    static CELER_FORCEINLINE_FUNCTION value_type decrement(value_type   v,
+                                                           counter_type i)
+    {
+        counter_type temp = to_counter(v);
+        temp -= i;
+        return to_value(temp);
+    }
 };
 
 //! Specialization for Opaque ID
@@ -119,6 +132,13 @@ struct RangeTypeTraits<OpaqueId<I, T>, void>
     {
         counter_type temp = to_counter(v);
         temp += i;
+        return to_value(temp);
+    }
+    static CELER_FORCEINLINE_FUNCTION value_type decrement(value_type   v,
+                                                           counter_type i)
+    {
+        counter_type temp = to_counter(v);
+        temp -= i;
         return to_value(temp);
     }
 };
@@ -170,6 +190,24 @@ class range_iter : public std::iterator<std::input_iterator_tag, T>
     CELER_FORCEINLINE_FUNCTION range_iter operator+(counter_type inc) const
     {
         return {TraitsT::increment(value_, inc)};
+    }
+
+    CELER_FORCEINLINE_FUNCTION range_iter& operator--()
+    {
+        value_ = TraitsT::decrement(value_, 1);
+        return *this;
+    }
+
+    CELER_FORCEINLINE_FUNCTION range_iter operator--(int)
+    {
+        auto copy = *this;
+        value_    = TraitsT::decrement(value_, 1);
+        return copy;
+    }
+
+    CELER_FORCEINLINE_FUNCTION range_iter operator-(counter_type inc) const
+    {
+        return {TraitsT::decrement(value_, inc)};
     }
 
     CELER_FORCEINLINE_FUNCTION bool operator==(range_iter const& other) const
