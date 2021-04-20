@@ -37,7 +37,6 @@
 #include "comm/ScopedMpiInit.hh"
 #include "io/ImportParticle.hh"
 #include "io/ImportPhysicsTable.hh"
-#include "io/GdmlGeometryMap.hh"
 #include "io/ImportData.hh"
 #include "physics/base/PDGNumber.hh"
 
@@ -50,8 +49,6 @@
 
 using namespace geant_exporter;
 namespace celer_pdg = celeritas::pdg;
-using celeritas::elem_id;
-using celeritas::GdmlGeometryMap;
 using celeritas::ImportData;
 using celeritas::ImportElement;
 using celeritas::ImportMatElemComponent;
@@ -60,8 +57,6 @@ using celeritas::ImportMaterialState;
 using celeritas::ImportParticle;
 using celeritas::ImportProductionCut;
 using celeritas::ImportVolume;
-using celeritas::mat_id;
-using celeritas::vol_id;
 using std::cout;
 using std::endl;
 
@@ -256,17 +251,15 @@ void store_geometry(ImportData*                  data,
     {
         CELER_ASSERT(g4element);
 
-        elem_id elid = g4element->GetIndex();
-
+        // Add element to ImportData
         ImportElement element;
-        element.element_id            = elid;
+        element.element_id            = g4element->GetIndex();
         element.name                  = g4element->GetName();
         element.atomic_number         = g4element->GetZ();
         element.atomic_mass           = g4element->GetAtomicMassAmu();
         element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
         element.coulomb_factor        = g4element->GetfCoulomb();
-
-        // Add element to ImportData
+        
         data->elements.push_back(element);
     }
 
@@ -359,7 +352,7 @@ void store_geometry(ImportData*                  data,
 /*!
  * This application exports particle information, process, model, XS physics
  * tables, material, and volume information constructed by the physics list
- * loaded by the GDMLgeometry.
+ * loaded by the GDML geometry.
  *
  * The data is stored into a ROOT file as an \c ImportData struct.
  */

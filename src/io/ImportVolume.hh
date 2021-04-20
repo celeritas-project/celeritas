@@ -16,8 +16,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Store data for each geometry volume.
- *
- * \sa GdmlGeometryMap
  */
 struct ImportVolume
 {

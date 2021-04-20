@@ -91,7 +91,6 @@ class MaterialParams;
 
 namespace celeritas
 {
-class GdmlGeometryMap;
 %rename(table_type_to_string) to_cstring(ImportTableType);
 %rename(units_to_string) to_cstring(ImportUnits);
 %rename(vector_type_to_string) to_cstring(ImportPhysicsVectorType);

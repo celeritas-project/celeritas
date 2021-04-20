@@ -20,7 +20,6 @@
 #include "physics/material/MaterialParams.hh"
 #include "io/RootImporter.hh"
 #include "io/ImportData.hh"
-#include "io/GdmlGeometryMap.hh"
 
 using namespace celeritas;
 using std::cout;
@@ -160,14 +159,11 @@ void print_processes(const std::vector<ImportProcess>& processes,
  *
  * TODO: add a print_materials to use material params directly.
  */
-void print_geometry(const GdmlGeometryMap& geometry,
-                    const ParticleParams&  particles)
+void print_geometry(const ImportData& data, const ParticleParams& particles)
 {
     //// PRINT ELEMENT LIST ////
 
-    const auto& element_map = geometry.elemid_to_element_map();
-
-    CELER_LOG(info) << "Loaded " << element_map.size() << " elements";
+    CELER_LOG(info) << "Loaded " << data.elements.size() << " elements";
     cout << R"gfm(# GDML properties
 
 ## Elements
@@ -176,12 +172,11 @@ void print_geometry(const GdmlGeometryMap& geometry,
 | ---------- | ---- | ------------- | ---------- |
 )gfm";
 
-    for (const auto& el_key : element_map)
+    for (const auto& element : data.elements)
     {
-        const auto& element = geometry.get_element(el_key.first);
         // clang-format off
         cout << "| "
-             << setw(10) << std::left << el_key.first << " | "
+             << setw(10) << std::left << element.element_id << " | "
              << setw(4) << element.name << " | "
              << setw(13) << element.atomic_number << " | "
              << setw(10) << element.atomic_mass << " |\n";
@@ -191,9 +186,7 @@ void print_geometry(const GdmlGeometryMap& geometry,
 
     //// PRINT MATERIAL LIST ///
 
-    const auto& material_map = geometry.matid_to_material_map();
-
-    CELER_LOG(info) << "Loaded " << material_map.size() << " materials";
+    CELER_LOG(info) << "Loaded " << data.materials.size() << " materials";
     cout << R"gfm(
 ## Materials
 
@@ -201,18 +194,18 @@ void print_geometry(const GdmlGeometryMap& geometry,
 | ----------- | ------------------------------- | ------------------------------- |
 )gfm";
 
-    for (const auto& mat_key : material_map)
+    for (const auto& material : data.materials)
     {
-        const auto& material = geometry.get_material(mat_key.first);
-        cout << "| " << setw(11) << mat_key.first << " | " << setw(31)
+        cout << "| " << setw(11) << material.material_id << " | " << setw(31)
              << material.name << " | " << setw(31)
-             << to_string(join(
-                    material.elements.begin(),
-                    material.elements.end(),
-                    ", ",
-                    [&geometry](const auto& element) {
-                        return geometry.get_element(element.element_id).name;
-                    }))
+             << to_string(join(material.elements.begin(),
+                               material.elements.end(),
+                               ", ",
+                               [&](const auto& mat_el_comp) {
+                                   const auto& element = get_import_element(
+                                       data, mat_el_comp.element_id);
+                                   return element.name;
+                               }))
              << " |\n";
     }
     cout << endl;
@@ -234,11 +227,10 @@ void print_geometry(const GdmlGeometryMap& geometry,
         pdg_label.insert({pdg, label});
     }
 
-    for (const auto& mat_key : material_map)
+    for (const auto& material : data.materials)
     {
-        const auto& material      = geometry.get_material(mat_key.first);
-        bool        is_first_line = true;
-        for (const auto& cutoff_key : mat_key.second.pdg_cutoffs)
+        bool is_first_line = true;
+        for (const auto& cutoff_key : material.pdg_cutoffs)
         {
             const std::string label = pdg_label.find(cutoff_key.first)->second;
             const std::string str_cuts
@@ -247,9 +239,9 @@ void print_geometry(const GdmlGeometryMap& geometry,
 
             if (is_first_line)
             {
-                cout << "| " << setw(11) << mat_key.first << " | " << setw(31)
-                     << material.name << " | " << setw(31) << str_cuts
-                     << " |\n";
+                cout << "| " << setw(11) << material.material_id << " | "
+                     << setw(31) << material.name << " | " << setw(31)
+                     << str_cuts << " |\n";
                 is_first_line = false;
             }
             else
@@ -263,9 +255,7 @@ void print_geometry(const GdmlGeometryMap& geometry,
 
     //// PRINT VOLUME AND MATERIAL LIST ////
 
-    const auto& volume_material_map = geometry.volid_to_matid_map();
-
-    CELER_LOG(info) << "Loaded " << volume_material_map.size() << " volumes";
+    CELER_LOG(info) << "Loaded " << data.volumes.size() << " volumes";
     cout << R"gfm(
 ## Volumes
 
@@ -273,17 +263,14 @@ void print_geometry(const GdmlGeometryMap& geometry,
 | --------- | ----------- | ------------------------------------ | --------------------------- |
 )gfm";
 
-    for (const auto& key_value : volume_material_map)
+    for (const auto& volume : data.volumes)
     {
-        auto volid    = key_value.first;
-        auto matid    = key_value.second;
-        auto volume   = geometry.get_volume(volid);
-        auto material = geometry.get_material(matid);
+        const auto& material = get_import_material(data, volume.material_id);
 
         // clang-format off
         cout << "| "
-             << setw(9) << std::left << volid << " | "
-             << setw(11) << matid << " | "
+             << setw(9) << std::left << volume.volume_id << " | "
+             << setw(11) << volume.material_id << " | "
              << setw(36) << volume.solid_name << " | "
              << setw(27) << material.name << " |\n";
         // clang-format on
@@ -327,12 +314,11 @@ int main(int argc, char* argv[])
 
     CELER_LOG(info) << "Successfully loaded ROOT file '" << argv[1] << "'";
 
-    GdmlGeometryMap geometry(data);
-    const auto      particle_params = ParticleParams::from_import(data);
+    const auto particle_params = ParticleParams::from_import(data);
 
     print_particles(*particle_params);
     print_processes(data.processes, *particle_params);
-    print_geometry(geometry, *particle_params);
+    print_geometry(data, *particle_params);
 
     return EXIT_SUCCESS;
 }

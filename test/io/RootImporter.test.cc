@@ -87,10 +87,10 @@ TEST_F(RootImporterTest, elements)
     const auto elements = data_.elements;
     EXPECT_EQ(4, elements.size());
 
-    std::vector<std::string> names;
-    std::vector<elem_id>     ids;
-    std::vector<int>         atomic_numbers;
-    std::vector<double>      atomic_masses, rad_lenghts_tsai, coulomb_factors;
+    std::vector<std::string>  names;
+    std::vector<unsigned int> ids;
+    std::vector<int>          atomic_numbers;
+    std::vector<double>       atomic_masses, rad_lenghts_tsai, coulomb_factors;
 
     for (const auto& element : elements)
     {
@@ -128,11 +128,11 @@ TEST_F(RootImporterTest, materials)
     const auto materials = data_.materials;
     EXPECT_EQ(2, materials.size());
 
-    std::vector<std::string> names;
-    std::vector<mat_id>      material_ids;
-    std::vector<int>         states;
-    std::vector<int>         pdgs;
-    std::vector<double>      cutoff_energies, cutoff_ranges;
+    std::vector<std::string>  names;
+    std::vector<unsigned int> material_ids;
+    std::vector<int>          states;
+    std::vector<int>          pdgs;
+    std::vector<double>       cutoff_energies, cutoff_ranges;
     std::vector<double> el_comps_ids, el_comps_mass_frac, el_comps_num_fracs;
     std::vector<double> densities, num_densities, e_densities, temperatures,
         rad_lengths, nuc_int_lenghts;
@@ -283,9 +283,9 @@ TEST_F(RootImporterTest, volumes)
     const auto volumes = data_.volumes;
     EXPECT_EQ(5, volumes.size());
 
-    std::vector<vol_id>      volume_ids;
-    std::vector<mat_id>      material_ids;
-    std::vector<std::string> names, solids;
+    std::vector<unsigned int> volume_ids;
+    std::vector<unsigned int> material_ids;
+    std::vector<std::string>  names, solids;
 
     for (const auto& volume : volumes)
     {

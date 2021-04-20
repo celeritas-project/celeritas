@@ -25,7 +25,6 @@ namespace celeritas
  * Units are defined at export time in the aforementioned function.
  *
  * \sa ImportData
- * \sa GdmlGeometryMap
  */
 struct ImportElement
 {

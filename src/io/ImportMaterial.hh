@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "ImportElement.hh"
-#include "GdmlGeometryMapTypes.hh"
 #include "base/Types.hh"
 
 namespace celeritas
@@ -62,7 +61,6 @@ struct ImportMatElemComponent
  * Units are defined at export time in the aforementioned function.
  *
  * \sa ImportData
- * \sa GdmlGeometryMap
  */
 struct ImportMaterial
 {

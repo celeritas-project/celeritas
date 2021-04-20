@@ -13,7 +13,6 @@
 #pragma link C++ class celeritas::ImportProcess+;
 #pragma link C++ class celeritas::ImportPhysicsTable+;
 #pragma link C++ class celeritas::ImportPhysicsVector+;
-#pragma link C++ class celeritas::GdmlGeometryMap+;
 #pragma link C++ class celeritas::ImportMaterial+;
 #pragma link C++ class celeritas::ImportProductionCut+;
 #pragma link C++ class celeritas::ImportMatElemComponent+;

@@ -12,7 +12,7 @@
 #include "ImportElement.hh"
 #include "ImportMaterial.hh"
 #include "ImportProcess.hh"
-#include "GdmlGeometryMap.hh"
+#include "ImportVolume.hh"
 
 namespace celeritas
 {
@@ -29,7 +29,6 @@ namespace celeritas
  * \sa ImportElement
  * \sa ImportMaterial
  * \sa ImportProcess
- * \sa GdmlGeometryMap
  * \sa RootImporter
  */
 struct ImportData
@@ -46,6 +45,18 @@ struct ImportData
                && !processes.empty() && !volumes.empty();
     }
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Return an ImportElement object provided an ImportData and element_id
+const ImportElement
+get_import_element(const ImportData& data, unsigned int element_id);
+
+// Return an ImportMaterial object provided an ImportData and material_id
+const ImportMaterial
+get_import_material(const ImportData& data, unsigned int material_id);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
