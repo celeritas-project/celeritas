@@ -22,7 +22,17 @@ namespace celeritas
  * Brief class description.
  *
  *  This is a high level interface of propagating a charged particle in a
- *  magnetic field.
+ *  magnetic field. For a given initial state (position, momentum), it
+ *  propagates a charged particle along a curved trajectory up to an
+ *  interaction length proposed by a chosen physics process for the step,
+ *  possibly integrating sub-steps by an adaptive step control with a required
+ *  accuracy of tracking in a magnetiic field and updates the final state
+ *  (position, momentum) along with the step actually taken.  If the final
+ *  position is outside the current volume, it returns a geometry limited
+ *  step and the state at the intersection between the curve trajectory and
+ *  the first volume boundary using an iterative step control method within a
+ *  tolerance error imposed on the closest distance between two positions by
+ *  the field stepper and the linear projection to the volume boundary.
  *
  * \note This follows similar methods as in Geant4's G4PropagatorInField class.
  */
