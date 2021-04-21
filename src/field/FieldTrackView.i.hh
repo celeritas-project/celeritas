@@ -10,7 +10,10 @@
 
 namespace celeritas
 {
-// Construct from GeoTrackView and ParticleTrackView
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from GeoTrackView and ParticleTrackView
+ */
 CELER_FUNCTION
 FieldTrackView::FieldTrackView(const GeoTrackView&      geo_view,
                                const ParticleTrackView& particle_view)
@@ -30,7 +33,7 @@ FieldTrackView::FieldTrackView(const GeoTrackView&      geo_view,
 }
 
 //---------------------------------------------------------------------------//
-/*
+/*!
  * vecgeom VNavigator associated with the current navigation state
  */
 CELER_FUNCTION real_type FieldTrackView::linear_propagator(Real3     pos,
