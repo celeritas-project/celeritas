@@ -7,14 +7,74 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/OpaqueId.hh"
+#include <cstddef>
+#include <iostream>
+#include <functional>
+#include "base/Assert.hh"
+
+#ifdef __CUDA_ARCH__
+#    warning "This file should not be included by device code"
+#endif
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Type-safe particle identifier.
+ *
+ * PDG-coded numbers should generally not be treated like numbers, so this
+ * prevents unintentional arithmetic and conversion.
+ *
+ * PDG numbers should only be used in host setup code (they should be converted
+ * to ParticleId for use during runtime) so these functions have fewer
+ * decorators.
+ */
+class PDGNumber
+{
+  public:
+    //! Construct with an invalid/unassigned value of zero
+    explicit constexpr PDGNumber() = default;
 
-//! Opaque type used for PDG particle definition codes (can be negative!)
-using PDGNumber = OpaqueId<struct PDG, int>;
+    //! Construct with the PDG value
+    explicit constexpr PDGNumber(int val) : value_(val) {}
+
+    //! True if value is nonzero
+    explicit constexpr operator bool() const { return value_ != 0; }
+
+    //! Get the PDG value
+    constexpr int unchecked_get() const { return value_; }
+
+    //! Get the PDG value
+    inline int get() const;
+
+  private:
+    int value_{0};
+};
+
+//! Get the PDG value
+inline int PDGNumber::get() const
+{
+    CELER_ENSURE(*this);
+    return value_;
+}
+
+//! Test equality
+inline constexpr bool operator==(PDGNumber lhs, PDGNumber rhs)
+{
+    return lhs.unchecked_get() == rhs.unchecked_get();
+}
+
+//! Test inequality
+inline constexpr bool operator!=(PDGNumber lhs, PDGNumber rhs)
+{
+    return !(lhs == rhs);
+}
+
+//! Allow less-than comparison for sorting
+inline constexpr bool operator<(PDGNumber lhs, PDGNumber rhs)
+{
+    return lhs.unchecked_get() < rhs.unchecked_get();
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -61,3 +121,23 @@ CELER_DEFINE_PDGNUMBER(anti_triton, -1000010030)
 //---------------------------------------------------------------------------//
 } // namespace pdg
 } // namespace celeritas
+
+//---------------------------------------------------------------------------//
+// STD::HASH SPECIALIZATION FOR HOST CODE
+//---------------------------------------------------------------------------//
+//! \cond
+namespace std
+{
+//! Specialization for std::hash for unordered storage.
+template<>
+struct hash<celeritas::PDGNumber>
+{
+    using argument_type = celeritas::PDGNumber;
+    using result_type   = std::size_t;
+    result_type operator()(const argument_type& pdg) const noexcept
+    {
+        return std::hash<int>()(pdg.unchecked_get());
+    }
+};
+} // namespace std
+//! \endcond
