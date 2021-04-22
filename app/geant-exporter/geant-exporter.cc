@@ -382,7 +382,7 @@ std::vector<ImportProcess> store_processes()
         }
     }
     // Remove empty processes returned by operator()
-    process_writer.remove_empty(processes);
+    process_writer.remove_empty(&processes);
     CELER_LOG(info) << "Added " << processes.size() << " processes";
     return processes;
 }

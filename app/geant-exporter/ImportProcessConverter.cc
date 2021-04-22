@@ -297,12 +297,12 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 /*!
  * Remove all empty \c ImportProcess returned by \c operator() .
  */
-void ImportProcessConverter::remove_empty(std::vector<ImportProcess>& processes)
+void ImportProcessConverter::remove_empty(std::vector<ImportProcess>* processes)
 {
-    processes.erase(std::remove_if(processes.begin(),
-                                   processes.end(),
-                                   [](ImportProcess& ip) { return !ip; }),
-                    processes.end());
+    processes->erase(std::remove_if(processes->begin(),
+                                    processes->end(),
+                                    [](ImportProcess& ip) { return !ip; }),
+                     processes->end());
 }
 
 //---------------------------------------------------------------------------//

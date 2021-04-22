@@ -57,7 +57,7 @@ enum class TableSelection
  *  {
  *      const G4ParticleDefinition& g4_particle_def
  *          = *(particle_iterator.value());
- *      const G4ProcessVector& *process_list = 
+ *      const G4ProcessVector& *process_list =
  *          *g4_particle_def.GetProcessManager()->GetProcessList();
  *
  *      for (int j; j < process_list.size(); j++)
@@ -82,7 +82,7 @@ class ImportProcessConverter
                              const G4VProcess&           process);
 
     // Remove any empty processes returned by operator()
-    void remove_empty(std::vector<ImportProcess>& processes);
+    static void remove_empty(std::vector<ImportProcess>* processes);
 
   private:
     // Loop over EM processes and store them in processes_
