@@ -51,7 +51,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Safely switch from G4PhysicsVectorType to ImportPhysicsVectorType.
+ * Safely switch from \c G4PhysicsVectorType to \c ImportPhysicsVectorType .
  * [See G4PhysicsVectorType.hh]
  */
 ImportProcessType to_import_process_type(G4ProcessType g4_process_type)
@@ -97,22 +97,22 @@ ImportProcessClass to_import_process_class(const G4VProcess& process)
     static const std::unordered_map<std::string, ImportProcessClass> process_map
         = {
             // clang-format off
-        {"ionIoni",        ImportProcessClass::ion_ioni},
-        {"msc",            ImportProcessClass::msc},
-        {"hIoni",          ImportProcessClass::h_ioni},
-        {"hBrems",         ImportProcessClass::h_brems},
-        {"hPairProd",      ImportProcessClass::h_pair_prod},
-        {"CoulombScat",    ImportProcessClass::coulomb_scat},
-        {"eIoni",          ImportProcessClass::e_ioni},
-        {"eBrem",          ImportProcessClass::e_brem},
-        {"phot",           ImportProcessClass::photoelectric},
-        {"compt",          ImportProcessClass::compton},
-        {"conv",           ImportProcessClass::conversion},
-        {"Rayl",           ImportProcessClass::rayleigh},
-        {"annihil",        ImportProcessClass::annihilation},
-        {"muIoni",         ImportProcessClass::mu_ioni},
-        {"muBrems",        ImportProcessClass::mu_brems},
-        {"muPairProd",     ImportProcessClass::mu_pair_prod},
+            {"ionIoni",        ImportProcessClass::ion_ioni},
+            {"msc",            ImportProcessClass::msc},
+            {"hIoni",          ImportProcessClass::h_ioni},
+            {"hBrems",         ImportProcessClass::h_brems},
+            {"hPairProd",      ImportProcessClass::h_pair_prod},
+            {"CoulombScat",    ImportProcessClass::coulomb_scat},
+            {"eIoni",          ImportProcessClass::e_ioni},
+            {"eBrem",          ImportProcessClass::e_brem},
+            {"phot",           ImportProcessClass::photoelectric},
+            {"compt",          ImportProcessClass::compton},
+            {"conv",           ImportProcessClass::conversion},
+            {"Rayl",           ImportProcessClass::rayleigh},
+            {"annihil",        ImportProcessClass::annihilation},
+            {"muIoni",         ImportProcessClass::mu_ioni},
+            {"muBrems",        ImportProcessClass::mu_brems},
+            {"muPairProd",     ImportProcessClass::mu_pair_prod},
             // clang-format on
         };
     auto iter = process_map.find(process.GetProcessName());
@@ -167,7 +167,7 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
 
 //---------------------------------------------------------------------------//
 /*!
- * Safely switch from G4PhysicsVectorType to ImportPhysicsVectorType.
+ * Safely switch from \c G4PhysicsVectorType to \c ImportPhysicsVectorType .
  * [See G4PhysicsVectorType.hh]
  */
 ImportPhysicsVectorType
@@ -234,7 +234,7 @@ ImportProcessConverter::~ImportProcessConverter() = default;
 //---------------------------------------------------------------------------//
 /*!
  * Add physics tables to this->process_ from a given particle and process and
- * return it. If the process was already returned, operator() will return an
+ * return it. If the process was already returned, \c operator() will return an
  * empty object.
  *
  * The user should erase such cases afterwards using \c remove_empty(...) .
@@ -295,15 +295,14 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 
 //---------------------------------------------------------------------------//
 /*!
- * Remove any empty ImportProcess returned by operator().
+ * Remove all empty \c ImportProcess returned by \c operator() .
  */
 void ImportProcessConverter::remove_empty(std::vector<ImportProcess>& processes)
 {
-    processes.erase(
-        std::remove_if(processes.begin(),
-                       processes.end(),
-                       [](ImportProcess& ip) { return ip ? false : true; }),
-        processes.end());
+    processes.erase(std::remove_if(processes.begin(),
+                                   processes.end(),
+                                   [](ImportProcess& ip) { return !ip; }),
+                    processes.end());
 }
 
 //---------------------------------------------------------------------------//

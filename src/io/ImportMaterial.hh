@@ -64,7 +64,6 @@ struct ImportMatElemComponent
  */
 struct ImportMaterial
 {
-    unsigned int                        material_id;
     std::string                         name;
     ImportMaterialState                 state;
     double                              temperature;        //!< [K]

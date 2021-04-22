@@ -53,8 +53,9 @@ enum class TableSelection
  *      = *(G4ParticleTable::GetParticleTable()->GetIterator());
  *  particle_iterator.reset();
  *
- *  while (const auto* g4_particle_def = particle_iterator.value())
+ *  while (particle_iterator())
  *  {
+ *      const auto* g4_particle_def = particle_iterator.value();
  *      const G4ProcessVector& process_list
  *            = *g4_particle_def.GetProcessManager()->GetProcessList();
  *
@@ -101,7 +102,7 @@ class ImportProcessConverter
     // Whether to write tables that aren't used by physics
     TableSelection which_tables_;
 
-    // Temporary processs data returned by operator()
+    // Temporary process data returned by operator()
     ImportProcess process_;
 
     // Keep track of processes and tables already written

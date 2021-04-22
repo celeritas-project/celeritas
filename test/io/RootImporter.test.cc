@@ -88,14 +88,12 @@ TEST_F(RootImporterTest, elements)
     EXPECT_EQ(4, elements.size());
 
     std::vector<std::string>  names;
-    std::vector<unsigned int> ids;
     std::vector<int>          atomic_numbers;
     std::vector<double>       atomic_masses, rad_lenghts_tsai, coulomb_factors;
 
     for (const auto& element : elements)
     {
         names.push_back(element.name);
-        ids.push_back(element.element_id);
         atomic_masses.push_back(element.atomic_mass);
         atomic_numbers.push_back(element.atomic_number);
         coulomb_factors.push_back(element.coulomb_factor);
@@ -104,7 +102,6 @@ TEST_F(RootImporterTest, elements)
 
     // clang-format off
     const std::string  expected_names[]          = {"Fe", "Cr", "Ni", "H"};
-    const unsigned int expected_ids[]            = {0, 1, 2, 3};
     const int          expected_atomic_numbers[] = {26, 24, 28, 1};
     const double       expected_atomic_masses[]  = {55.845110798, 51.996130137,
         58.6933251009, 1.007940752665}; // [AMU]
@@ -115,7 +112,6 @@ TEST_F(RootImporterTest, elements)
     // clang-format on
 
     EXPECT_VEC_EQ(expected_names, names);
-    EXPECT_VEC_EQ(expected_ids, ids);
     EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
     EXPECT_VEC_SOFT_EQ(expected_atomic_masses, atomic_masses);
     EXPECT_VEC_SOFT_EQ(expected_coulomb_factors, coulomb_factors);
@@ -129,7 +125,6 @@ TEST_F(RootImporterTest, materials)
     EXPECT_EQ(2, materials.size());
 
     std::vector<std::string>  names;
-    std::vector<unsigned int> material_ids;
     std::vector<int>          states;
     std::vector<int>          pdgs;
     std::vector<double>       cutoff_energies, cutoff_ranges;
@@ -140,7 +135,6 @@ TEST_F(RootImporterTest, materials)
     for (const auto material : materials)
     {
         names.push_back(material.name);
-        material_ids.push_back(material.material_id);
         states.push_back((int)material.state);
         densities.push_back(material.density);
         e_densities.push_back(material.electron_density);
@@ -165,9 +159,8 @@ TEST_F(RootImporterTest, materials)
     }
 
     // clang-format off
-    const std::string expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
-    const unsigned int expected_material_ids[] = {0, 1};
-    const int          expected_states[]       = {3, 1};
+    const std::string expected_names[]  = {"G4_Galactic", "G4_STAINLESS-STEEL"};
+    const int         expected_states[] = {3, 1};
     const int    expected_pdgs[] = {-11, 11, 22, 2212, -11, 11, 22, 2212};
     const double expected_cutoff_energies[] = {0.00099, 0.00099, 0.00099, 0.07,
         0.9260901525621, 0.9706947116044, 0.01733444524846, 0.07};
@@ -189,7 +182,6 @@ TEST_F(RootImporterTest, materials)
     // clang-format on
 
     EXPECT_VEC_EQ(expected_names, names);
-    EXPECT_VEC_EQ(expected_material_ids, material_ids);
     EXPECT_VEC_EQ(expected_states, states);
     EXPECT_VEC_EQ(expected_pdgs, pdgs);
     EXPECT_VEC_SOFT_EQ(expected_cutoff_energies, cutoff_energies);
@@ -283,26 +275,22 @@ TEST_F(RootImporterTest, volumes)
     const auto volumes = data_.volumes;
     EXPECT_EQ(5, volumes.size());
 
-    std::vector<unsigned int> volume_ids;
     std::vector<unsigned int> material_ids;
     std::vector<std::string>  names, solids;
 
     for (const auto& volume : volumes)
     {
-        volume_ids.push_back(volume.volume_id);
         material_ids.push_back(volume.material_id);
         names.push_back(volume.name);
         solids.push_back(volume.solid_name);
     }
 
-    const unsigned int expected_volume_ids[]   = {4, 0, 1, 2, 3};
-    const unsigned int expected_material_ids[] = {0, 1, 1, 1, 1};
+    const unsigned int expected_material_ids[] = {1, 1, 1, 1, 0};
     const std::string  expected_names[]
-        = {"World", "box", "boxReplica", "boxReplica", "boxReplica"};
+        = {"box", "boxReplica", "boxReplica", "boxReplica", "World"};
     const std::string expected_solids[]
-        = {"World", "box", "boxReplica", "boxReplica2", "boxReplica3"};
+        = {"box", "boxReplica", "boxReplica2", "boxReplica3", "World"};
 
-    EXPECT_VEC_EQ(expected_volume_ids, volume_ids);
     EXPECT_VEC_EQ(expected_material_ids, material_ids);
     EXPECT_VEC_EQ(expected_names, names);
     EXPECT_VEC_EQ(expected_solids, solids);

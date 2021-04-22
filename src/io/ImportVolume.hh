@@ -15,11 +15,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Store data for each geometry volume.
+ * Store data for each volume.
  */
 struct ImportVolume
 {
-    unsigned int volume_id;
     unsigned int material_id;
     std::string  name;
     std::string  solid_name;

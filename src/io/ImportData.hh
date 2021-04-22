@@ -25,10 +25,14 @@ namespace celeritas
  * single TTree entry, which will be read by \c RootImporter to load the data
  * into Celeritas.
  *
+ * Each entity's id is defined by its vector position. An \c ImportElement with
+ * id = 3 is stored at \c elements.at(3) . Same for materials and volumes.
+ *
  * \sa ImportParticle
  * \sa ImportElement
  * \sa ImportMaterial
  * \sa ImportProcess
+ * \sa ImportVolume
  * \sa RootImporter
  */
 struct ImportData
@@ -45,18 +49,6 @@ struct ImportData
                && !processes.empty() && !volumes.empty();
     }
 };
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-
-// Return an ImportElement object provided an ImportData and element_id
-const ImportElement
-get_import_element(const ImportData& data, unsigned int element_id);
-
-// Return an ImportMaterial object provided an ImportData and material_id
-const ImportMaterial
-get_import_material(const ImportData& data, unsigned int material_id);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
