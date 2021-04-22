@@ -172,22 +172,24 @@ std::vector<ImportParticle> store_particles()
 
     while (particle_iterator())
     {
-        G4ParticleDefinition* g4_particle_def = particle_iterator.value();
+        const G4ParticleDefinition& g4_particle_def
+            = *(particle_iterator.value());
 
-        if (g4_particle_def->GetPDGEncoding() == 0)
+        celeritas::PDGNumber pdg{g4_particle_def.GetPDGEncoding()};
+        if (!pdg)
         {
             // Skip "dummy" particles: generic ion and geantino
             continue;
         }
 
         ImportParticle particle;
-        particle.name      = g4_particle_def->GetParticleName();
-        particle.pdg       = g4_particle_def->GetPDGEncoding();
-        particle.mass      = g4_particle_def->GetPDGMass();
-        particle.charge    = g4_particle_def->GetPDGCharge();
-        particle.spin      = g4_particle_def->GetPDGSpin();
-        particle.lifetime  = g4_particle_def->GetPDGLifeTime();
-        particle.is_stable = g4_particle_def->GetPDGStable();
+        particle.name      = g4_particle_def.GetParticleName();
+        particle.pdg       = g4_particle_def.GetPDGEncoding();
+        particle.mass      = g4_particle_def.GetPDGMass();
+        particle.charge    = g4_particle_def.GetPDGCharge();
+        particle.spin      = g4_particle_def.GetPDGSpin();
+        particle.lifetime  = g4_particle_def.GetPDGLifeTime();
+        particle.is_stable = g4_particle_def.GetPDGStable();
 
         if (!particle.is_stable)
         {
@@ -196,7 +198,7 @@ std::vector<ImportParticle> store_particles()
         }
 
         particles.push_back(particle);
-        CELER_LOG(debug) << "Added " << g4_particle_def->GetParticleName();
+        CELER_LOG(debug) << "Added " << g4_particle_def.GetParticleName();
     }
     CELER_LOG(info) << "Added " << particles.size() << " particles";
     return particles;
@@ -349,11 +351,12 @@ std::vector<ImportProcess> store_processes()
             = *(particle_iterator.value());
 
         celeritas::PDGNumber pdg(g4_particle_def.GetPDGEncoding());
-        if (pdg.get() == 0)
+        if (!pdg)
         {
             // Skip "dummy" particles: generic ion and geantino
             continue;
         }
+
         // XXX To reduce ROOT file data size in repo, only export processes for
         // electron/positron/gamma for now. Extend this later.
         if (!(pdg == celer_pdg::electron() || pdg == celer_pdg::positron()

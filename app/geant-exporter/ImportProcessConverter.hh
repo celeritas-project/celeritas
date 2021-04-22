@@ -55,9 +55,10 @@ enum class TableSelection
  *
  *  while (particle_iterator())
  *  {
- *      const auto* g4_particle_def = particle_iterator.value();
- *      const G4ProcessVector& process_list
- *            = *g4_particle_def.GetProcessManager()->GetProcessList();
+ *      const G4ParticleDefinition& g4_particle_def
+ *          = *(particle_iterator.value());
+ *      const G4ProcessVector& *process_list = 
+ *          *g4_particle_def.GetProcessManager()->GetProcessList();
  *
  *      for (int j; j < process_list.size(); j++)
  *      {

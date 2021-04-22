@@ -79,7 +79,6 @@ ParticleParams::ParticleParams(const Input& input)
     for (const auto& particle : input)
     {
         CELER_EXPECT(!particle.name.empty());
-        CELER_EXPECT(particle.pdg_code);
         CELER_EXPECT(particle.mass >= zero_quantity());
         CELER_EXPECT(particle.decay_constant >= 0);
 
