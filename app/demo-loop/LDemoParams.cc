@@ -52,10 +52,11 @@ LDemoParams load_params(const LDemoArgs& args)
             = std::vector<MaterialId>(input.geometry->num_volumes());
 
         CELER_ASSERT(input.volume_to_mat.size() == data.volumes.size());
-        for (const auto& volume : data.volumes)
+
+        for (const auto volume_id : range(data.volumes.size()))
         {
-            input.volume_to_mat[volume.volume_id]
-                = MaterialId{volume.material_id};
+            const auto& volume             = data.volumes.at(volume_id);
+            input.volume_to_mat[volume_id] = MaterialId{volume.material_id};
         }
         result.geo_mat = std::make_shared<GeoMaterialParams>(std::move(input));
     }

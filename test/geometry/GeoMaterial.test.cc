@@ -45,10 +45,10 @@ class GeoMaterialTest : public celeritas_test::GeoTestBase
         CELER_ASSERT(data.volumes.size() == input.volume_to_mat.size());
         CELER_ASSERT(data.materials.size() == input.materials->num_materials());
 
-        for (const auto& volume : data.volumes)
+        for (const auto volume_id : range(data.volumes.size()))
         {
-            input.volume_to_mat[volume.volume_id]
-                = MaterialId{volume.material_id};
+            const auto& volume             = data.volumes.at(volume_id);
+            input.volume_to_mat[volume_id] = MaterialId{volume.material_id};
         }
         geo_mat_ = std::make_shared<GeoMaterialParams>(std::move(input));
     }
