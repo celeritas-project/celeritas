@@ -109,31 +109,14 @@ int to_pdg(const G4ProductionCutsIndex& index)
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the largest \c logical_volume.GetInstanceID() by recursively looping
- * over all existing volumes. The \e InstanceID is the volume ID.
- *
- * Function called by \c store_volumes(...) .
- */
-void get_max_instance_id(G4LogicalVolume& logical_volume, int& max_instance_id)
-{
-    max_instance_id = std::max(max_instance_id, logical_volume.GetInstanceID());
-
-    // Recursively search for the max instance id
-    for (const auto i : celeritas::range(logical_volume.GetNoDaughters()))
-    {
-        get_max_instance_id(*logical_volume.GetDaughter(i)->GetLogicalVolume(),
-                            max_instance_id);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Store all logical volumes by recursively looping over them.
  *
+ * Using a map ensures that volumes are both ordered by volume id and not
+ * duplicated.
  * Function called by \c store_volumes(...) .
  */
-void loop_volumes(std::vector<ImportVolume>& volumes,
-                  const G4LogicalVolume&     logical_volume)
+void loop_volumes(std::map<unsigned int, ImportVolume>& volids_volumes,
+                  const G4LogicalVolume&                logical_volume)
 {
     // Add volume to vector
     ImportVolume volume;
@@ -141,13 +124,13 @@ void loop_volumes(std::vector<ImportVolume>& volumes,
     volume.name        = logical_volume.GetName();
     volume.solid_name  = logical_volume.GetSolid()->GetName();
 
-    // Volume position represents the volume id
-    volumes[logical_volume.GetInstanceID()] = volume;
+    // Store volume into the map
+    volids_volumes.insert({logical_volume.GetInstanceID(), volume});
 
     // Recursive: repeat for every daughter volume, if there are any
     for (const auto i : celeritas::range(logical_volume.GetNoDaughters()))
     {
-        loop_volumes(volumes,
+        loop_volumes(volids_volumes,
                      *logical_volume.GetDaughter(i)->GetLogicalVolume());
     }
 }
@@ -323,6 +306,8 @@ std::vector<ImportMaterial> store_materials()
             material.elements.push_back(elem_comp);
         }
         // Add material to vector
+        const unsigned int material_id = g4material_cuts_couple->GetIndex();
+        CELER_ASSERT(material_id < materials.size());
         materials[g4material_cuts_couple->GetIndex()] = material;
     }
 
@@ -395,14 +380,17 @@ std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
 {
     CELER_LOG(status) << "Exporting volumes";
 
-    std::vector<ImportVolume> volumes;
+    std::vector<ImportVolume>            volumes;
+    std::map<unsigned int, ImportVolume> volids_volumes;
 
-    int max_instance_id;
-    get_max_instance_id(*world_volume->GetLogicalVolume(), max_instance_id);
-    volumes.resize(max_instance_id + 1);
+    // Recursive loop over all logical volumes to populate map<volid, volume>
+    loop_volumes(volids_volumes, *world_volume->GetLogicalVolume());
 
-    // Recursive loop over all logical volumes to populate vector<ImportVolume>
-    loop_volumes(volumes, *world_volume->GetLogicalVolume());
+    // Populate vector<ImportVolume>
+    for (const auto& key : volids_volumes)
+    {
+        volumes.push_back(key.second);
+    }
 
     CELER_LOG(info) << "Added " << volumes.size() << " volumes";
     return volumes;
