@@ -118,13 +118,12 @@ int to_pdg(const G4ProductionCutsIndex& index)
 void loop_volumes(std::map<unsigned int, ImportVolume>& volids_volumes,
                   const G4LogicalVolume&                logical_volume)
 {
-    // Add volume to vector
+    // Add volume to the map
     ImportVolume volume;
     volume.material_id = logical_volume.GetMaterialCutsCouple()->GetIndex();
     volume.name        = logical_volume.GetName();
     volume.solid_name  = logical_volume.GetSolid()->GetName();
 
-    // Store volume into the map
     volids_volumes.insert({logical_volume.GetInstanceID(), volume});
 
     // Recursive: repeat for every daughter volume, if there are any
@@ -227,18 +226,18 @@ std::vector<ImportMaterial> store_materials()
 {
     CELER_LOG(status) << "Exporting materials";
 
-    const auto g4production_cuts_table
-        = G4ProductionCutsTable::GetProductionCutsTable();
+    const auto& g4production_cuts_table
+        = *G4ProductionCutsTable::GetProductionCutsTable();
 
     std::vector<ImportMaterial> materials;
-    materials.resize(g4production_cuts_table->GetTableSize());
+    materials.resize(g4production_cuts_table.GetTableSize());
 
     // Loop over material data
-    for (int i : celeritas::range(g4production_cuts_table->GetTableSize()))
+    for (int i : celeritas::range(g4production_cuts_table.GetTableSize()))
     {
         // Fetch material, element, and production cuts lists
         const auto& g4material_cuts_couple
-            = g4production_cuts_table->GetMaterialCutsCouple(i);
+            = g4production_cuts_table.GetMaterialCutsCouple(i);
         const auto& g4material  = g4material_cuts_couple->GetMaterial();
         const auto& g4elements  = g4material->GetElementVector();
         const auto& g4prod_cuts = g4material_cuts_couple->GetProductionCuts();
@@ -362,12 +361,14 @@ std::vector<ImportProcess> store_processes()
                 continue;
             }
 
-            processes.push_back(
-                process_writer(g4_particle_def, *process_list[j]));
+            if (ImportProcess process
+                = process_writer(g4_particle_def, *process_list[j]))
+            {
+                // Not an empty process, so it was not added in a previous loop
+                processes.push_back(process);
+            }
         }
     }
-    // Remove empty processes returned by operator()
-    process_writer.remove_empty(&processes);
     CELER_LOG(info) << "Added " << processes.size() << " processes";
     return processes;
 }
@@ -389,6 +390,7 @@ std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
     // Populate vector<ImportVolume>
     for (const auto& key : volids_volumes)
     {
+        CELER_ASSERT(key.first == volumes.size());
         volumes.push_back(key.second);
     }
 

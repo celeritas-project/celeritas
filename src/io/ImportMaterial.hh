@@ -52,13 +52,7 @@ struct ImportMatElemComponent
 
 //---------------------------------------------------------------------------//
 /*!
- * Store data of a given material and its elements.
- *
- * The data is exported via the \e app/geant-exporter. For further expanding
- * this struct, add the appropriate variables here and fetch the new values in
- * \c geant-exporter.cc:store_geometry(...) .
- *
- * Units are defined at export time in the aforementioned function.
+ * Store material data.
  *
  * \sa ImportData
  */

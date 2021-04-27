@@ -42,8 +42,9 @@ enum class TableSelection
  * \c Operator() is expected to be used while looping over Geant4 particle and
  * process lists, and it returns a populated \c ImportProcess object. If said
  * process was already imported during a previous loop, it will return an
- * empty object. Any empty object should be removed at the end of the loop
- * using \c remove_empty(...) .
+ * empty object. \c ImportProcess has an operator bool to check if said object
+ * is not empty before adding it to the \c vector<ImportProcess> member of
+ * \c ImportData .
  *
  * \code
  *  std::vector<ImportProcess> processes;
@@ -62,10 +63,13 @@ enum class TableSelection
  *
  *      for (int j; j < process_list.size(); j++)
  *      {
- *          processes.push_back(import(g4_particle_def, *process_list[j]));
+ *          if (ImportProcess process
+ *                  = process_writer(g4_particle_def, *process_list[j]))
+ *          {
+ *              processes.push_back(process);
+ *          }
  *      }
  *  }
- *  import.remove_empty(processes);
  * \endcode
  */
 class ImportProcessConverter
@@ -80,9 +84,6 @@ class ImportProcessConverter
     // Return ImportProcess for a given particle and physics process
     ImportProcess operator()(const G4ParticleDefinition& particle,
                              const G4VProcess&           process);
-
-    // Remove any empty processes returned by operator()
-    static void remove_empty(std::vector<ImportProcess>* processes);
 
   private:
     // Loop over EM processes and store them in processes_

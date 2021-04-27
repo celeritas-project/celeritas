@@ -18,12 +18,6 @@ namespace celeritas
 /*!
  * Store element data.
  *
- * The data is exported via the \e app/geant-exporter. For further expanding
- * this struct, add the aproppriate variables here and fetch the new values in
- * \c geant-exporter.cc:store_geometry(...).
- *
- * Units are defined at export time in the aforementioned function.
- *
  * \sa ImportData
  */
 struct ImportElement

@@ -295,18 +295,6 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 
 //---------------------------------------------------------------------------//
 /*!
- * Remove all empty \c ImportProcess returned by \c operator() .
- */
-void ImportProcessConverter::remove_empty(std::vector<ImportProcess>* processes)
-{
-    processes->erase(std::remove_if(processes->begin(),
-                                    processes->end(),
-                                    [](ImportProcess& ip) { return !ip; }),
-                     processes->end());
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Store EM XS tables to this->process_.
  */
 void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)

@@ -96,7 +96,9 @@ enum class ImportModelClass
 
 //---------------------------------------------------------------------------//
 /*!
- * Data from a physics process.
+ * Store physics process data.
+ *
+ * \sa ImportData
  */
 struct ImportProcess
 {
