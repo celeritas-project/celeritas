@@ -70,12 +70,15 @@ TEST_F(ValueGridBuilderTest, xs_grid)
         entries.push_back(Builder_t::from_geant(
             lambda_energy, lambda, lambda_prim_energy, lambda_prim));
     }
+    {
+        entries.push_back(make_shared<Builder_t>(1e-4, 1, 1e8, VecReal(55)));
+    }
 
     // Build
     this->build(entries);
 
     // Test results using the physics calculator
-    ASSERT_EQ(2, grid_storage.size());
+    ASSERT_EQ(3, grid_storage.size());
     {
         XsCalculator calc_xs(grid_storage[XsIndex{0}], real_ref);
         EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));
