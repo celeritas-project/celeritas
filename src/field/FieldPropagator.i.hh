@@ -110,15 +110,15 @@ void FieldPropagator::check_intersection(FieldTrackView* view,
     real_type length = norm(chord);
     CELER_ASSERT(length > 0);
 
-    Real3 dir = chord;
-    normalize_direction(&dir);
-
     view->update_safety(beg_pos);
 
     if (length > view->safety())
     {
         // Check whether the linear step length to the next boundary is
         // smaller than the segment to the final position
+        Real3 dir = chord;
+        normalize_direction(&dir);
+
         real_type linear_step = view->compute_step(beg_pos, dir);
 
         intersect->intersected = (linear_step <= length);
