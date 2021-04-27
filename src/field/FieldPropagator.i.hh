@@ -75,6 +75,7 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView* view)
 
             Real3 dir = end_state.pos;
             axpy(real_type(-1.0), beg_state.pos, &dir);
+            normalize_direction(&dir);
             view->linear_propagator(beg_state.pos, dir);
         }
 
@@ -167,9 +168,8 @@ OdeState FieldPropagator::locate_intersection(FieldTrackView* view,
             // Estimate a new trial step with the updated position of end_state
             real_type trial_step = intersect->step;
 
-            Real3 chord = end_state.pos;
-            axpy(real_type(-1.0), beg_pos, &chord);
-            Real3 dir = chord;
+            Real3 dir = end_state.pos;
+            axpy(real_type(-1.0), beg_pos, &dir);
             normalize_direction(&dir);
             real_type linear_step = view->compute_step(beg_pos, dir);
 
