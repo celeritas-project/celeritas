@@ -365,7 +365,7 @@ std::vector<ImportProcess> store_processes()
                 = process_writer(g4_particle_def, *process_list[j]))
             {
                 // Not an empty process, so it was not added in a previous loop
-                processes.push_back(process);
+                processes.push_back(std::move(process));
             }
         }
     }
