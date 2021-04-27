@@ -19,9 +19,8 @@ FieldTrackView::FieldTrackView(const GeoTrackView&      geo_view,
                                const ParticleTrackView& particle_view)
     : on_boundary_(false)
     , charge_(particle_view.charge())
-    , step_(geo_view.next_step())
+    , step_(0)
     , safety_(0)
-    , origin_{0, 0, 0}
     , vgstate_(geo_view.vgstate())
     , vgnext_(geo_view.vgnext())
 {
@@ -30,33 +29,52 @@ FieldTrackView::FieldTrackView(const GeoTrackView&      geo_view,
 
     navigator_ = vgstate_.Top()->GetLogicalVolume()->GetNavigator();
     CELER_ASSERT(navigator_);
+
+    // Initialize safety at the current position
+    this->update_safety(state_.pos);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * vecgeom VNavigator associated with the current navigation state
+ * Update the estimated safety at a given position
  */
-CELER_FUNCTION real_type FieldTrackView::linear_propagator(Real3     pos,
-                                                           Real3     dir,
-                                                           real_type step)
+CELER_FUNCTION void FieldTrackView::update_safety(Real3 pos)
+{
+    safety_ = navigator_->GetSafetyEstimator()->ComputeSafety(
+        detail::to_vector(pos), vgstate_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compute the linear step length to the next boundary from a given position
+ * and a direction, and update the safety without updating vegeom states
+ */
+CELER_FUNCTION real_type FieldTrackView::compute_step(Real3 pos, Real3 dir)
 {
     CELER_ASSERT(navigator_);
-    return navigator_->ComputeStepAndSafetyAndPropagatedState(
-        detail::to_vector(pos),
-        detail::to_vector(dir),
-        step,
-        vgstate_,
-        vgnext_,
-        true,
-        safety_);
+    return navigator_->ComputeStepAndSafety(detail::to_vector(pos),
+                                            detail::to_vector(dir),
+                                            vecgeom::kInfLength,
+                                            vgstate_,
+                                            true,
+                                            safety_,
+                                            false);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Update vecgeom states for a geometry limited step
+ * Propagate states to the next boundary from a given position and a direction
+ * and update satety for a geometry limited step
  */
-CELER_FUNCTION void FieldTrackView::update_vgstates()
+CELER_FUNCTION void FieldTrackView::linear_propagator(Real3 pos, Real3 dir)
 {
+    navigator_->ComputeStepAndPropagatedState(detail::to_vector(pos),
+                                              detail::to_vector(dir),
+                                              vecgeom::kInfLength,
+                                              vgstate_,
+                                              vgnext_);
+
+    safety_  = 0;
     vgstate_ = vgnext_;
     vgstate_.SetBoundaryState(true);
     vgnext_.Clear();

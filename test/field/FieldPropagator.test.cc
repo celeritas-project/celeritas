@@ -141,9 +141,9 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
             }
         }
         // Check stepper results with boundary crossings
-        EXPECT_SOFT_NEAR(field_view.state().pos[0], -0.13456435, test.epsilon);
-        EXPECT_SOFT_NEAR(field_view.state().mom[1], -0.40744716, test.epsilon);
-        EXPECT_SOFT_NEAR(total_length, 221.33987374, test.epsilon);
+        EXPECT_SOFT_NEAR(field_view.state().pos[0], -0.13151242, test.epsilon);
+        EXPECT_SOFT_NEAR(field_view.state().mom[1], -0.39413998, test.epsilon);
+        EXPECT_SOFT_NEAR(total_length, 221.48171708, test.epsilon);
     }
 }
 
@@ -226,9 +226,9 @@ TEST_F(FieldPropagatorDeviceTest, boundary_crossing_device)
     // Check stepper results
     for (unsigned int i = 0; i < output.pos.size(); ++i)
     {
-        EXPECT_SOFT_NEAR(output.pos[i], -0.13456435, test.epsilon);
-        EXPECT_SOFT_NEAR(output.mom[i], -0.40744716, test.epsilon);
-        EXPECT_SOFT_NEAR(output.step[i], 221.33987374, test.epsilon);
+        EXPECT_SOFT_NEAR(output.pos[i], -0.13151242, test.epsilon);
+        EXPECT_SOFT_NEAR(output.mom[i], -0.39413998, test.epsilon);
+        EXPECT_SOFT_NEAR(output.step[i], 221.48171708, test.epsilon);
     }
 }
 

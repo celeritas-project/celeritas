@@ -58,20 +58,24 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView* view)
 
         // Check whether this sub-step cross a volume boundary
         view->on_boundary(intersect.intersected);
+
         this->check_intersection(
             view, beg_state.pos, end_state.pos, &intersect);
 
         // If it is a geometry limited step, find the intersection point
         if (intersect.intersected)
         {
-            intersect.scale *= sub_step;
+            intersect.step = sub_step * intersect.scale;
             end_state = this->locate_intersection(view, beg_state, &intersect);
+            sub_step  = intersect.step;
+            end_state.pos = intersect.pos;
 
             // Update states for field and navigation
-            sub_step      = intersect.step;
-            end_state.pos = intersect.pos;
             view->on_boundary(intersect.intersected);
-            view->update_vgstates();
+
+            Real3 dir = end_state.pos;
+            axpy(real_type(-1.0), beg_state.pos, &dir);
+            view->linear_propagator(beg_state.pos, dir);
         }
 
         // Add sub-step until there is no remaining step length
@@ -102,39 +106,23 @@ void FieldPropagator::check_intersection(FieldTrackView* view,
 
     Real3 chord = end_pos;
     axpy(real_type(-1.0), beg_pos, &chord);
-    Real3 shift = beg_pos;
-    axpy(real_type(-1.0), view->origin(), &shift);
 
     real_type length = norm(chord);
     CELER_ASSERT(length > 0);
 
-    real_type safety = 0;
-
-    real_type shift_mag = norm(shift);
-
-    if (shift_mag < view->safety())
-    {
-        safety = view->safety() - shift_mag;
-    }
-
     Real3 dir = chord;
     normalize_direction(&dir);
 
-    if (length < safety)
-    {
-        // Guaranteed inside the current volume and updat the safety
-        view->safety(safety);
-    }
-    else
+    view->update_safety(beg_pos);
+
+    if (length > view->safety())
     {
         // Check whether the linear step length to the next boundary is
         // smaller than the segment to the final position
-        real_type linear_step = view->linear_propagator(beg_pos, dir, length);
+        real_type linear_step = view->compute_step(beg_pos, dir);
 
-        intersect->intersected = (linear_step < length);
-
-        intersect->scale = linear_step / length;
-        view->origin(beg_pos);
+        intersect->intersected = (linear_step <= length);
+        intersect->scale       = linear_step / length;
 
         // If intersect, estimate the candidate intersection point
         if (intersect->intersected)
@@ -142,10 +130,6 @@ void FieldPropagator::check_intersection(FieldTrackView* view,
             intersect->pos = beg_pos;
             axpy(linear_step, dir, &(intersect->pos));
         }
-
-        // Adjust the intersect scale in the case that it is unity
-        if (intersect->scale == 1)
-            intersect->scale *= FieldPropagator::scale_factor();
     }
 }
 
@@ -156,21 +140,20 @@ void FieldPropagator::check_intersection(FieldTrackView* view,
  */
 CELER_FUNCTION
 OdeState FieldPropagator::locate_intersection(FieldTrackView* view,
-                                              const OdeState& bed_state,
+                                              const OdeState& beg_state,
                                               Intersection*   intersect)
 {
     intersect->intersected = false;
-    Real3 beg_pos          = bed_state.pos;
+    Real3 beg_pos          = beg_state.pos;
 
     OdeState     end_state;
     unsigned int remaining_steps = shared_.max_nsteps;
 
     do
     {
-        end_state = bed_state;
+        end_state = beg_state;
 
         real_type step = driver_(intersect->step, &end_state);
-
         CELER_ASSERT(step == intersect->step);
 
         // Check whether end_state point is outside the current volume
@@ -183,9 +166,18 @@ OdeState FieldPropagator::locate_intersection(FieldTrackView* view,
         {
             // Estimate a new trial step with the updated position of end_state
             real_type trial_step = intersect->step;
-            this->check_intersection(view, beg_pos, end_state.pos, intersect);
 
-            intersect->step = trial_step * intersect->scale;
+            Real3 chord = end_state.pos;
+            axpy(real_type(-1.0), beg_pos, &chord);
+            Real3 dir = chord;
+            normalize_direction(&dir);
+            real_type linear_step = view->compute_step(beg_pos, dir);
+
+            intersect->scale = (linear_step / intersect->step);
+            intersect->step  = trial_step * intersect->scale;
+
+            intersect->pos = beg_pos;
+            axpy(linear_step, dir, &intersect->pos);
         }
     } while (!intersect->intersected && --remaining_steps > 0);
 

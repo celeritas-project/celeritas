@@ -44,7 +44,6 @@ class FieldTrackView
     CELER_FUNCTION real_type step() const { return step_; }
     CELER_FUNCTION const OdeState& state() const { return state_; }
     CELER_FUNCTION real_type safety() const { return safety_; }
-    CELER_FUNCTION Real3 origin() const { return origin_; }
     //@}
 
     //@{
@@ -65,7 +64,6 @@ class FieldTrackView
         CELER_EXPECT(safety >= 0);
         safety_ = safety;
     }
-    CELER_FUNCTION void origin(const Real3& origin) { origin_ = origin; }
     //@}
 
     /// STATIC PROPERTIES
@@ -73,15 +71,16 @@ class FieldTrackView
     // Charge [elemental charge e+]
     CELER_FUNCTION units::ElementaryCharge charge() const { return charge_; };
 
-    /// DERIVED PROPERTIES (indirection)
+    /// HELPER METHODS
 
-    // Linear propagation for a given step and update states and safety
-    CELER_FUNCTION real_type linear_propagator(Real3     pos,
-                                               Real3     dir,
-                                               real_type step);
+    // Update the safety at a given position
+    CELER_FUNCTION void update_safety(Real3 pos);
 
-    // Update navigation and field states after a geometry limited step
-    CELER_FUNCTION void update_vgstates();
+    // Compute the linear step to the next boundary without updating states
+    CELER_FUNCTION real_type compute_step(Real3 pos, Real3 dir);
+
+    // Propagate vecgeom states to the next boundary and reset the safety
+    CELER_FUNCTION void linear_propagator(Real3 pos, Real3 dir);
 
   private:
     //@{
@@ -91,7 +90,6 @@ class FieldTrackView
     real_type               step_;        //!< step length
     OdeState                state_;       //!< position and momentum
     real_type               safety_;      //!< current safety
-    Real3                   origin_;      //!< origin of safety
     NaviState&              vgstate_;     //!< vecgeom navigation state
     NaviState&              vgnext_;      //!< vecgeom next navigation state
     const Navigator*        navigator_;   //!< vecgeom navigator
