@@ -6,9 +6,6 @@
 //! \file FieldPropagator.i.hh
 //---------------------------------------------------------------------------//
 
-#include "geometry/detail/VGCompatibility.hh"
-#include <VecGeom/navigation/NavigationState.h>
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -53,10 +50,10 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView* view)
         OdeState  beg_state = end_state;
         real_type step_left = step - step_taken;
 
-        // Advance within the tolerence error for the remaining step length
+        // Advance within the tolerance error for the remaining step length
         real_type sub_step = driver_(step_left, &end_state);
 
-        // Check whether this sub-step cross a volume boundary
+        // Check whether this sub-step intersects with a volume boundary
         view->on_boundary(intersect.intersected);
 
         this->check_intersection(
@@ -95,7 +92,7 @@ CELER_FUNCTION real_type FieldPropagator::operator()(FieldTrackView* view)
 //---------------------------------------------------------------------------//
 /*!
  * Check whether the final position of the field integration for a given step
- * is inside the current volume or is crossed any boundary of adjacent volumes.
+ * is inside the current volume or beyond any boundary of adjacent volumes.
  */
 CELER_FUNCTION
 void FieldPropagator::check_intersection(FieldTrackView* view,
@@ -125,7 +122,7 @@ void FieldPropagator::check_intersection(FieldTrackView* view,
         intersect->intersected = (linear_step <= length);
         intersect->scale       = linear_step / length;
 
-        // If intersect, estimate the candidate intersection point
+        // If intersects, estimate the candidate intersection point
         if (intersect->intersected)
         {
             intersect->pos = beg_pos;
@@ -157,7 +154,8 @@ OdeState FieldPropagator::locate_intersection(FieldTrackView* view,
         real_type step = driver_(intersect->step, &end_state);
         CELER_ASSERT(step == intersect->step);
 
-        // Check whether end_state point is outside the current volume
+        // Check whether end_state point is within an acceptable tolerance
+        // from the proposed intersect position on a boundary
         Real3 delta = end_state.pos;
         axpy(real_type(-1.0), intersect->pos, &delta);
 
