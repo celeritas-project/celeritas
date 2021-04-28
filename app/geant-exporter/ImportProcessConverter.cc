@@ -3,13 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantPhysicsTableWriter.cc
+//! \file ImportProcessConverter.cc
 //---------------------------------------------------------------------------//
-#include "GeantPhysicsTableWriter.hh"
+#include "ImportProcessConverter.hh"
 
 #include <fstream>
 #include <string>
-#include <unordered_map>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -42,8 +41,6 @@ using celeritas::ImportProcessType;
 using celeritas::ImportTableType;
 using celeritas::ImportUnits;
 using celeritas::PDGNumber;
-using celeritas::real_type;
-
 using ProcessTypeDemangler = celeritas::TypeDemangler<G4VProcess>;
 
 namespace geant_exporter
@@ -52,7 +49,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Safely switch from G4PhysicsVectorType to ImportPhysicsVectorType.
+ * Safely switch from \c G4PhysicsVectorType to \c ImportPhysicsVectorType .
  * [See G4PhysicsVectorType.hh]
  */
 ImportProcessType to_import_process_type(G4ProcessType g4_process_type)
@@ -98,22 +95,22 @@ ImportProcessClass to_import_process_class(const G4VProcess& process)
     static const std::unordered_map<std::string, ImportProcessClass> process_map
         = {
             // clang-format off
-        {"ionIoni",        ImportProcessClass::ion_ioni},
-        {"msc",            ImportProcessClass::msc},
-        {"hIoni",          ImportProcessClass::h_ioni},
-        {"hBrems",         ImportProcessClass::h_brems},
-        {"hPairProd",      ImportProcessClass::h_pair_prod},
-        {"CoulombScat",    ImportProcessClass::coulomb_scat},
-        {"eIoni",          ImportProcessClass::e_ioni},
-        {"eBrem",          ImportProcessClass::e_brem},
-        {"phot",           ImportProcessClass::photoelectric},
-        {"compt",          ImportProcessClass::compton},
-        {"conv",           ImportProcessClass::conversion},
-        {"Rayl",           ImportProcessClass::rayleigh},
-        {"annihil",        ImportProcessClass::annihilation},
-        {"muIoni",         ImportProcessClass::mu_ioni},
-        {"muBrems",        ImportProcessClass::mu_brems},
-        {"muPairProd",     ImportProcessClass::mu_pair_prod},
+            {"ionIoni",        ImportProcessClass::ion_ioni},
+            {"msc",            ImportProcessClass::msc},
+            {"hIoni",          ImportProcessClass::h_ioni},
+            {"hBrems",         ImportProcessClass::h_brems},
+            {"hPairProd",      ImportProcessClass::h_pair_prod},
+            {"CoulombScat",    ImportProcessClass::coulomb_scat},
+            {"eIoni",          ImportProcessClass::e_ioni},
+            {"eBrem",          ImportProcessClass::e_brem},
+            {"phot",           ImportProcessClass::photoelectric},
+            {"compt",          ImportProcessClass::compton},
+            {"conv",           ImportProcessClass::conversion},
+            {"Rayl",           ImportProcessClass::rayleigh},
+            {"annihil",        ImportProcessClass::annihilation},
+            {"muIoni",         ImportProcessClass::mu_ioni},
+            {"muBrems",        ImportProcessClass::mu_brems},
+            {"muPairProd",     ImportProcessClass::mu_pair_prod},
             // clang-format on
         };
     auto iter = process_map.find(process.GetProcessName());
@@ -168,7 +165,7 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
 
 //---------------------------------------------------------------------------//
 /*!
- * Safely switch from G4PhysicsVectorType to ImportPhysicsVectorType.
+ * Safely switch from \c G4PhysicsVectorType to \c ImportPhysicsVectorType .
  * [See G4PhysicsVectorType.hh]
  */
 ImportPhysicsVectorType
@@ -195,7 +192,7 @@ to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
 /*!
  * Get a multiplicative geant-natural-units constant to convert the units.
  */
-real_type units_to_scaling(ImportUnits units)
+double units_to_scaling(ImportUnits units)
 {
     switch (units)
     {
@@ -219,41 +216,30 @@ real_type units_to_scaling(ImportUnits units)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with existing TFile reference
+ * Construct with a selected list of tables.
  */
-GeantPhysicsTableWriter::GeantPhysicsTableWriter(TFile*         root_file,
-                                                 TableSelection which_tables)
-    : root_file_(root_file), which_tables_(which_tables)
+ImportProcessConverter::ImportProcessConverter(TableSelection which_tables)
+    : which_tables_(which_tables)
 {
-    CELER_EXPECT(root_file);
-    this->tree_process_ = std::make_unique<TTree>("processes", "processes");
-    auto* tbranch       = tree_process_->Branch("ImportProcess", &process_);
-    CELER_ENSURE(tbranch);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Write the tables on destruction.
+ * Default destructor.
  */
-GeantPhysicsTableWriter::~GeantPhysicsTableWriter()
-{
-    try
-    {
-        int err_code = root_file_->Write();
-        CELER_ENSURE(err_code >= 0);
-    }
-    catch (const std::exception& e)
-    {
-        CELER_LOG(error) << "Failed to write physics tables: " << e.what();
-    }
-}
+ImportProcessConverter::~ImportProcessConverter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Add physics tables to the ROOT file from given process and particle.
+ * Add physics tables to this->process_ from a given particle and process and
+ * return it. If the process was already returned, \c operator() will return an
+ * empty object.
+ *
+ * The user should erase such cases afterwards using \c remove_empty(...) .
  */
-void GeantPhysicsTableWriter::operator()(const G4ParticleDefinition& particle,
-                                         const G4VProcess&           process)
+ImportProcess
+ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
+                                   const G4VProcess&           process)
 {
     // Check for duplicate processes
     auto iter_ok = written_processes_.insert({&process, {&particle}});
@@ -265,7 +251,7 @@ void GeantPhysicsTableWriter::operator()(const G4ParticleDefinition& particle,
                            << ") for particle " << particle.GetParticleName()
                            << ": duplicate of particle "
                            << prev.particle->GetParticleName();
-        return;
+        return {};
     }
     CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
                      << "' for particle " << particle.GetParticleName() << " ("
@@ -281,19 +267,19 @@ void GeantPhysicsTableWriter::operator()(const G4ParticleDefinition& particle,
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
     {
         // G4VEmProcess tables
-        this->fill_em_tables(*em_process);
+        this->store_em_tables(*em_process);
     }
     else if (const auto* energy_loss
              = dynamic_cast<const G4VEnergyLossProcess*>(&process))
     {
         // G4VEnergyLossProcess tables
-        this->fill_energy_loss_tables(*energy_loss);
+        this->store_energy_loss_tables(*energy_loss);
     }
     else if (const auto* multiple_scattering
              = dynamic_cast<const G4VMultipleScattering*>(&process))
     {
         // G4VMultipleScattering tables
-        this->fill_multiple_scattering_tables(*multiple_scattering);
+        this->store_multiple_scattering_tables(*multiple_scattering);
     }
     else
     {
@@ -302,14 +288,14 @@ void GeantPhysicsTableWriter::operator()(const G4ParticleDefinition& particle,
                          << ProcessTypeDemangler()(process) << ")";
     }
 
-    tree_process_->Fill();
+    return process_;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Write EM process tables to the TTree.
+ * Store EM XS tables to this->process_.
  */
-void GeantPhysicsTableWriter::fill_em_tables(const G4VEmProcess& process)
+void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 {
     for (auto i : celeritas::range(process.GetNumberOfModels()))
     {
@@ -324,9 +310,9 @@ void GeantPhysicsTableWriter::fill_em_tables(const G4VEmProcess& process)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write energy loss tables to the TTree.
+ * Store energy loss XS tables to this->process_.
  */
-void GeantPhysicsTableWriter::fill_energy_loss_tables(
+void ImportProcessConverter::store_energy_loss_tables(
     const G4VEnergyLossProcess& process)
 {
     for (auto i : celeritas::range(process.NumberOfModels()))
@@ -345,7 +331,7 @@ void GeantPhysicsTableWriter::fill_energy_loss_tables(
         this->add_table(process.InverseRangeTable(),
                         ImportTableType::inverse_range);
 
-        // None of these tables appear to be used in geant4.
+        // None of these tables appear to be used in Geant4
         this->add_table(process.DEDXTableForSubsec(),
                         ImportTableType::dedx_subsec);
         this->add_table(process.DEDXunRestrictedTable(),
@@ -362,12 +348,12 @@ void GeantPhysicsTableWriter::fill_energy_loss_tables(
 
 //---------------------------------------------------------------------------//
 /*!
- * Write multiple scattering tables to the TTree.
+ * Store multiple scattering XS tables to this->process_.
  *
  * Whereas other EM processes combine the model tables into a single process
  * table, MSC keeps them independent.
  */
-void GeantPhysicsTableWriter::fill_multiple_scattering_tables(
+void ImportProcessConverter::store_multiple_scattering_tables(
     const G4VMultipleScattering& process)
 {
     // TODO: Figure out a method to get the number of models. Max is 4.
@@ -385,13 +371,10 @@ void GeantPhysicsTableWriter::fill_multiple_scattering_tables(
 
 //---------------------------------------------------------------------------//
 /*!
- * Write data from a geant4 physics table if available.
- *
- * It finishes writing the remaining elements of this->process_ and fills the
- * "tables" TTree.
+ * Write data from a Geant4 physics table if available.
  */
-void GeantPhysicsTableWriter::add_table(const G4PhysicsTable* g4table,
-                                        ImportTableType       table_type)
+void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
+                                       ImportTableType       table_type)
 {
     if (!g4table)
     {
@@ -453,8 +436,8 @@ void GeantPhysicsTableWriter::add_table(const G4PhysicsTable* g4table,
     };
 
     // Convert units
-    real_type x_scaling = units_to_scaling(table.x_units);
-    real_type y_scaling = units_to_scaling(table.y_units);
+    double x_scaling = units_to_scaling(table.x_units);
+    double y_scaling = units_to_scaling(table.y_units);
 
     // Save physics vectors
     for (const auto* g4vector : *g4table)

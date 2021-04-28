@@ -16,9 +16,84 @@
 #include "base/SoftEqual.hh"
 #include "base/SpanRemapper.hh"
 #include "comm/Logger.hh"
+#include "io/ImportData.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Safely switch between MatterState [MaterialParams.hh] and
+ * ImportMaterialState [ImportMaterial.hh].
+ */
+MatterState to_matter_state(const ImportMaterialState state)
+{
+    switch (state)
+    {
+        case ImportMaterialState::not_defined:
+            return MatterState::unspecified;
+        case ImportMaterialState::solid:
+            return MatterState::solid;
+        case ImportMaterialState::liquid:
+            return MatterState::liquid;
+        case ImportMaterialState::gas:
+            return MatterState::gas;
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+} // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with imported data.
+ */
+std::shared_ptr<MaterialParams>
+MaterialParams::from_import(const ImportData& data)
+{
+    CELER_EXPECT(data);
+
+    // Create MaterialParams input for its constructor
+    MaterialParams::Input input;
+
+    // Populate input.elements
+    for (const auto& element : data.elements)
+    {
+        MaterialParams::ElementInput element_params;
+        element_params.atomic_number = element.atomic_number;
+        element_params.atomic_mass   = units::AmuMass{element.atomic_mass};
+        element_params.name          = element.name;
+
+        input.elements.push_back(element_params);
+    }
+
+    // Populate input.materials
+    for (const auto& material : data.materials)
+    {
+        MaterialParams::MaterialInput material_params;
+        material_params.name           = material.name;
+        material_params.temperature    = material.temperature;
+        material_params.number_density = material.number_density;
+        material_params.matter_state   = to_matter_state(material.state);
+
+        for (const auto& elem_comp : material.elements)
+        {
+            ElementId elem_def_id{elem_comp.element_id};
+
+            // Populate MaterialParams number fractions
+            material_params.elements_fractions.push_back(
+                {elem_def_id, elem_comp.number_fraction});
+        }
+        input.materials.push_back(material_params);
+    }
+
+    // Construct MaterialParams and return it as a shared_ptr
+    MaterialParams materials(input);
+    return std::make_shared<MaterialParams>(std::move(materials));
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a vector of material definitions.

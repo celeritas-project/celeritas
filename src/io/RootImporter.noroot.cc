@@ -8,6 +8,7 @@
 #include "RootImporter.hh"
 
 #include "base/Assert.hh"
+#include "ImportData.hh"
 
 // We're not linking against ROOT: declare a TFile so that its null-op
 // destructor can be called by the unique_ptr destructor.
@@ -25,7 +26,8 @@ RootImporter::RootImporter(const char*)
 
 RootImporter::~RootImporter() = default;
 
-auto RootImporter::operator()() -> result_type
+auto RootImporter::operator()()
+    -> ImportData
 {
     CELER_ASSERT_UNREACHABLE();
 }

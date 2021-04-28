@@ -41,19 +41,16 @@ enum class ImportTableType
 enum class ImportUnits
 {
     none,       //!< Unitless
-    mev,        //!< Energy (MeV)
-    mev_per_cm, //!< Energy loss (MeV / cm)
-    cm,         //!< Range (cm)
-    cm_inv,     //!< Macroscopic xs (1/cm)
-    cm_mev_inv, //!< Macroscopic xs divided by energy (1/cm-MeV)
+    mev,        //!< Energy [MeV]
+    mev_per_cm, //!< Energy loss [MeV/cm]
+    cm,         //!< Range [cm]
+    cm_inv,     //!< Macroscopic xs [1/cm]
+    cm_mev_inv, //!< Macroscopic xs divided by energy [1/cm-MeV]
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Imported physics table.
- *
- * The geant-exporter app stores Geant4 physics tables into a ROOT file, while
- * the RootImporter class is responsible for loading said data into memory.
  */
 struct ImportPhysicsTable
 {

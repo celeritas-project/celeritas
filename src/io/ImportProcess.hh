@@ -96,7 +96,9 @@ enum class ImportModelClass
 
 //---------------------------------------------------------------------------//
 /*!
- * Data from a physics process.
+ * Store physics process data.
+ *
+ * \sa ImportData
  */
 struct ImportProcess
 {
@@ -105,6 +107,13 @@ struct ImportProcess
     ImportProcessClass              process_class;
     std::vector<ImportModelClass>   models;
     std::vector<ImportPhysicsTable> tables;
+
+    explicit operator bool() const
+    {
+        return process_type != ImportProcessType::not_defined
+               && process_class != ImportProcessClass::unknown
+               && !models.empty() && !tables.empty();
+    }
 };
 
 //---------------------------------------------------------------------------//

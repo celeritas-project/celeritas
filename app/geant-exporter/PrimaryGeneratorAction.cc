@@ -15,22 +15,20 @@ namespace geant_exporter
 {
 //---------------------------------------------------------------------------//
 /*!
- * Constructor creates a working particle gun for the Geant4 minimal run
+ * Construct a particle gun for the minimal simulation run.
  */
 PrimaryGeneratorAction::PrimaryGeneratorAction()
     : G4VUserPrimaryGeneratorAction(), particle_gun_(nullptr)
 {
-    // Creating the particle gun
-    G4int number_of_particles = 1;
-    particle_gun_ = std::make_unique<G4ParticleGun>(number_of_particles);
-
-    // Selecting the particle
+    // Select particle type
     G4ParticleDefinition* particle;
     particle = G4ParticleTable::GetParticleTable()->FindParticle("e-");
     CELER_ASSERT(particle);
 
-    // Setting up the particle gun
+    // Create and set up particle gun
+    const int     number_of_particles = 1;
     G4ThreeVector pos(0, 0, 0);
+    particle_gun_ = std::make_unique<G4ParticleGun>(number_of_particles);
     particle_gun_->SetParticleDefinition(particle);
     particle_gun_->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
     particle_gun_->SetParticleEnergy(10 * GeV);
@@ -38,11 +36,14 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Default destructor.
+ */
 PrimaryGeneratorAction::~PrimaryGeneratorAction() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct source particles at the beginning of each event.
+ * Generate primary particle at the beginning of each event.
  */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {

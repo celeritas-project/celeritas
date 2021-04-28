@@ -18,21 +18,15 @@ namespace celeritas
 /*!
  * Store element data.
  *
- * Used by ImportMaterial and GdmlGeometryMap.
- *
- * The data is exported via the app/geant-exporter. For further expanding this
- * struct, add the aproppriate variables here and fetch the new values in
- * \c app/geant-exporter.cc : store_geometry(...).
- *
- * Units are defined at export time in the aforementioned function.
+ * \sa ImportData
  */
 struct ImportElement
 {
-    std::string name;
-    int         atomic_number;
-    real_type   atomic_mass;           // [atomic mass unit]
-    real_type   radiation_length_tsai; // [g/cm^2]
-    real_type   coulomb_factor;
+    std::string  name;
+    unsigned int atomic_number;
+    double       atomic_mass;           //!< [atomic mass unit]
+    double       radiation_length_tsai; //!< [g/cm^2]
+    double       coulomb_factor;
 };
 
 //---------------------------------------------------------------------------//

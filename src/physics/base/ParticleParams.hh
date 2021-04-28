@@ -18,6 +18,8 @@
 
 namespace celeritas
 {
+struct ImportData;
+
 //---------------------------------------------------------------------------//
 /*!
  * Data management for Standard Model particle classifications.
@@ -61,6 +63,9 @@ class ParticleParams
     using Input = std::vector<ParticleInput>;
 
   public:
+    // Construct with imported data
+    static std::shared_ptr<ParticleParams> from_import(const ImportData& data);
+
     // Construct with a vector of particle definitions
     explicit ParticleParams(const Input& defs);
 

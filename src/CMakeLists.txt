@@ -47,7 +47,6 @@ list(APPEND SOURCES
   comm/ScopedMpiInit.cc
   comm/detail/LoggerMessage.cc
   geometry/detail/ScopedTimeAndRedirect.cc
-  io/GdmlGeometryMap.cc
   io/ImportProcess.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
@@ -197,7 +196,6 @@ if(CELERITAS_USE_ROOT)
   include(${ROOT_USE_FILE})
 
   root_generate_dictionary(CeleritasRootInterface
-    io/GdmlGeometryMap.hh
     io/ImportElement.hh
     io/ImportMaterial.hh
     io/ImportParticle.hh
@@ -205,6 +203,7 @@ if(CELERITAS_USE_ROOT)
     io/ImportPhysicsVector.hh
     io/ImportProcess.hh
     io/ImportVolume.hh
+    io/ImportData.hh
     io/RootImporter.hh
     MODULE celeritas_root
     LINKDEF io/RootInterfaceLinkDef.h

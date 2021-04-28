@@ -15,8 +15,11 @@
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "physics/base/ParticleInterface.hh"
+#include "physics/base/ParticleParams.hh"
+#include "physics/base/CutoffParams.hh"
+#include "physics/material/MaterialParams.hh"
 #include "io/RootImporter.hh"
-#include "io/GdmlGeometryMap.hh"
+#include "io/ImportData.hh"
 
 using namespace celeritas;
 using std::cout;
@@ -32,7 +35,8 @@ void print_particles(const ParticleParams& particles)
 {
     CELER_LOG(info) << "Loaded " << particles.size() << " particles";
 
-    cout << R"gfm(# Particles
+    cout << R"gfm(
+# Particles
 
 | Name              | PDG Code    | Mass [MeV] | Charge [e] | Decay [1/s] |
 | ----------------- | ----------- | ---------- | ---------- | ----------- |
@@ -57,7 +61,118 @@ void print_particles(const ParticleParams& particles)
 
 //---------------------------------------------------------------------------//
 /*!
- * Print physics properties.
+ * Print element properties.
+ *
+ * TODO: Use element params directly.
+ */
+void print_elements(std::vector<ImportElement>& elements)
+{
+    CELER_LOG(info) << "Loaded " << elements.size() << " elements";
+    cout << R"gfm(
+# Elements
+
+| Element ID | Name | Atomic number | Mass (AMU) |
+| ---------- | ---- | ------------- | ---------- |
+)gfm";
+
+    for (unsigned int element_id : range(elements.size()))
+    {
+        const auto& element = elements.at(element_id);
+        // clang-format off
+        cout << "| "
+             << setw(10) << std::left << element_id << " | "
+             << setw(4) << element.name << " | "
+             << setw(13) << element.atomic_number << " | "
+             << setw(10) << element.atomic_mass << " |\n";
+        // clang-format on
+    }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print material properties.
+ *
+ * TODO: Use material and cutoff params directly.
+ */
+void print_materials(std::vector<ImportMaterial>& materials,
+                     std::vector<ImportElement>&  elements,
+                     const ParticleParams&        particles)
+{
+    CELER_LOG(info) << "Loaded " << materials.size() << " materials";
+    cout << R"gfm(
+# Materials
+
+| Material ID | Name                            | Composition                     |
+| ----------- | ------------------------------- | ------------------------------- |
+)gfm";
+
+    for (unsigned int material_id : range(materials.size()))
+    {
+        const auto& material = materials.at(material_id);
+
+        cout << "| " << setw(11) << material_id << " | " << setw(31)
+             << material.name << " | " << setw(31)
+             << to_string(
+                    join(material.elements.begin(),
+                         material.elements.end(),
+                         ", ",
+                         [&](const auto& mat_el_comp) {
+                             return elements.at(mat_el_comp.element_id).name;
+                         }))
+             << " |\n";
+    }
+    cout << endl;
+
+    //// PRINT CUTOFF LIST ///
+
+    cout << R"gfm(
+## Cutoffs per material
+
+| Material ID | Name                            | Cutoffs [MeV, cm]               |
+| ----------- | ------------------------------- | ------------------------------- |
+)gfm";
+
+    std::map<int, std::string> pdg_label;
+    for (auto particle_id : range(ParticleId{particles.size()}))
+    {
+        const int   pdg   = particles.id_to_pdg(particle_id).get();
+        const auto& label = particles.id_to_label(particle_id);
+        pdg_label.insert({pdg, label});
+    }
+
+    for (unsigned int material_id : range(materials.size()))
+    {
+        bool        is_first_line = true;
+        const auto& material      = materials.at(material_id);
+
+        for (const auto& cutoff_key : material.pdg_cutoffs)
+        {
+            const std::string label = pdg_label.find(cutoff_key.first)->second;
+            const std::string str_cuts
+                = label + ": " + std::to_string(cutoff_key.second.energy)
+                  + ", " + std::to_string(cutoff_key.second.range);
+
+            if (is_first_line)
+            {
+                cout << "| " << setw(11) << material_id << " | " << setw(31)
+                     << material.name << " | " << setw(31) << str_cuts
+                     << " |\n";
+                is_first_line = false;
+            }
+            else
+            {
+                cout << "|             |                                 | "
+                     << setw(31) << str_cuts << " |\n";
+            }
+        }
+    }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print process information.
  */
 void print_process(const ImportProcess& proc, const ParticleParams& particles)
 {
@@ -106,7 +221,7 @@ void print_process(const ImportProcess& proc, const ParticleParams& particles)
 
 //---------------------------------------------------------------------------//
 /*!
- * Print physics properties.
+ * Print stored data for all available processes.
  */
 void print_processes(const std::vector<ImportProcess>& processes,
                      const ParticleParams&             particles)
@@ -114,8 +229,9 @@ void print_processes(const std::vector<ImportProcess>& processes,
     CELER_LOG(info) << "Loaded " << processes.size() << " processes";
 
     // Print summary
-    cout << "# Processes\n"
-         << R"gfm(
+    cout << R"gfm(
+# Processes
+
 | Process        | Particle      | Models                    | Tables                   |
 | -------------- | ------------- | ------------------------- | ------------------------ |
 )gfm";
@@ -140,7 +256,7 @@ void print_processes(const std::vector<ImportProcess>& processes,
                                }))
              << " |\n";
     }
-    cout << "|\n\n";
+    cout << endl;
 
     // Print details
     for (const ImportProcess& proc : processes)
@@ -148,136 +264,32 @@ void print_processes(const std::vector<ImportProcess>& processes,
         print_process(proc, particles);
     }
 }
-
 //---------------------------------------------------------------------------//
 /*!
- * Print GDML properties.
+ * Print volume properties.
  *
- * TODO: add a print_materials to use material params directly.
+ * TODO: Use a volume params directly when avaliable.
  */
-void print_geometry(const GdmlGeometryMap& geometry,
-                    const ParticleParams&  particles)
+void print_volumes(std::vector<ImportVolume>&   volumes,
+                   std::vector<ImportMaterial>& materials)
 {
-    //// PRINT ELEMENT LIST ////
-
-    const auto& element_map = geometry.elemid_to_element_map();
-
-    CELER_LOG(info) << "Loaded " << element_map.size() << " elements";
-    cout << R"gfm(# GDML properties
-
-## Elements
-
-| Element ID | Name | Atomic number | Mass (AMU) |
-| ---------- | ---- | ------------- | ---------- |
-)gfm";
-
-    for (const auto& el_key : element_map)
-    {
-        const auto& element = geometry.get_element(el_key.first);
-        // clang-format off
-        cout << "| "
-             << setw(10) << std::left << el_key.first << " | "
-             << setw(4) << element.name << " | "
-             << setw(13) << element.atomic_number << " | "
-             << setw(10) << element.atomic_mass << " |\n";
-        // clang-format on
-    }
-    cout << endl;
-
-    //// PRINT MATERIAL LIST ///
-
-    const auto& material_map = geometry.matid_to_material_map();
-
-    CELER_LOG(info) << "Loaded " << material_map.size() << " materials";
+    CELER_LOG(info) << "Loaded " << volumes.size() << " volumes";
     cout << R"gfm(
-## Materials
-
-| Material ID | Name                            | Composition                     |
-| ----------- | ------------------------------- | ------------------------------- |
-)gfm";
-
-    for (const auto& mat_key : material_map)
-    {
-        const auto& material = geometry.get_material(mat_key.first);
-        cout << "| " << setw(11) << mat_key.first << " | " << setw(31)
-             << material.name << " | " << setw(31)
-             << to_string(join(material.elements_fractions.begin(),
-                               material.elements_fractions.end(),
-                               ", ",
-                               [&geometry](const auto& key) {
-                                   return geometry.get_element(key.first).name;
-                               }))
-             << " |\n";
-    }
-    cout << endl;
-
-    //// PRINT CUTOFF LIST ///
-
-    cout << R"gfm(
-## Cutoffs per material
-
-| Material ID | Name                            | Cutoffs [MeV, cm]               |
-| ----------- | ------------------------------- | ------------------------------- |
-)gfm";
-
-    std::map<int, std::string> pdg_label;
-    for (auto particle_id : range(ParticleId{particles.size()}))
-    {
-        const int   pdg   = particles.id_to_pdg(particle_id).get();
-        const auto& label = particles.id_to_label(particle_id);
-        pdg_label.insert({pdg, label});
-    }
-
-    for (const auto& mat_key : material_map)
-    {
-        const auto& material      = geometry.get_material(mat_key.first);
-        bool        is_first_line = true;
-        for (const auto& cutoff_key : mat_key.second.pdg_cutoff)
-        {
-            const std::string label = pdg_label.find(cutoff_key.first)->second;
-            const std::string str_cuts
-                = label + ": " + std::to_string(cutoff_key.second.energy)
-                  + ", " + std::to_string(cutoff_key.second.range);
-
-            if (is_first_line)
-            {
-                cout << "| " << setw(11) << mat_key.first << " | " << setw(31)
-                     << material.name << " | " << setw(31) << str_cuts
-                     << " |\n";
-                is_first_line = false;
-            }
-            else
-            {
-                cout << "|             |                                 | "
-                     << setw(31) << str_cuts << " |\n";
-            }
-        }
-    }
-    cout << endl;
-
-    //// PRINT VOLUME AND MATERIAL LIST ////
-
-    const auto& volume_material_map = geometry.volid_to_matid_map();
-
-    CELER_LOG(info) << "Loaded " << volume_material_map.size() << " volumes";
-    cout << R"gfm(
-## Volumes
+# Volumes
 
 | Volume ID | Material ID | Solid Name                           | Material Name               |
 | --------- | ----------- | ------------------------------------ | --------------------------- |
 )gfm";
 
-    for (const auto& key_value : volume_material_map)
+    for (unsigned int volume_id : range(volumes.size()))
     {
-        auto volid    = key_value.first;
-        auto matid    = key_value.second;
-        auto volume   = geometry.get_volume(volid);
-        auto material = geometry.get_material(matid);
+        const auto& volume   = volumes.at(volume_id);
+        const auto& material = materials.at(volume.material_id);
 
         // clang-format off
         cout << "| "
-             << setw(9) << std::left << volid << " | "
-             << setw(11) << matid << " | "
+             << setw(9) << std::left << volume_id << " | "
+             << setw(11) << volume.material_id << " | "
              << setw(36) << volume.solid_name << " | "
              << setw(27) << material.name << " |\n";
         // clang-format on
@@ -306,7 +318,7 @@ int main(int argc, char* argv[])
         return 2;
     }
 
-    RootImporter::result_type data;
+    ImportData data;
     try
     {
         RootImporter import(argv[1]);
@@ -321,9 +333,13 @@ int main(int argc, char* argv[])
 
     CELER_LOG(info) << "Successfully loaded ROOT file '" << argv[1] << "'";
 
-    print_particles(*data.particle_params);
-    print_processes(data.processes, *data.particle_params);
-    print_geometry(*data.geometry, *data.particle_params);
+    const auto particle_params = ParticleParams::from_import(data);
+
+    print_particles(*particle_params);
+    print_elements(data.elements);
+    print_materials(data.materials, data.elements, *particle_params);
+    print_processes(data.processes, *particle_params);
+    print_volumes(data.volumes, data.materials);
 
     return EXIT_SUCCESS;
 }

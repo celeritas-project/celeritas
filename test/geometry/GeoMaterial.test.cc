@@ -10,6 +10,7 @@
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoMaterialView.hh"
 #include "io/RootImporter.hh"
+#include "io/ImportData.hh"
 
 #include "GeoTestBase.hh"
 #include "celeritas_test.hh"
@@ -22,17 +23,17 @@ using namespace celeritas;
 
 class GeoMaterialTest : public celeritas_test::GeoTestBase
 {
-    std::string filename() const override { return "slabsGeometry.gdml"; }
+    std::string filename() const override { return "four-steel-slabs.gdml"; }
 
     void SetUp() override
     {
         // Load ROOT file
         std::string root_file
             = this->test_data_path("io", "geant-exporter-data.root");
-        auto loaded = RootImporter(root_file.c_str())();
+        const auto data = RootImporter(root_file.c_str())();
 
         // Set up shared material data
-        material_ = std::move(loaded.material_params);
+        material_ = std::move(MaterialParams::from_import(data));
 
         // Create geometry/material coupling
         GeoMaterialParams::Input input;
@@ -40,11 +41,14 @@ class GeoMaterialTest : public celeritas_test::GeoTestBase
         input.materials = material_;
         input.volume_to_mat
             = std::vector<MaterialId>(input.geometry->num_volumes());
-        for (const auto& kv : loaded.geometry->volid_to_matid_map())
+
+        CELER_ASSERT(data.volumes.size() == input.volume_to_mat.size());
+        CELER_ASSERT(data.materials.size() == input.materials->num_materials());
+
+        for (const auto volume_id : range(data.volumes.size()))
         {
-            CELER_ASSERT(kv.first < input.volume_to_mat.size());
-            CELER_ASSERT(kv.second < input.materials->num_materials());
-            input.volume_to_mat[kv.first] = MaterialId{kv.second};
+            const auto& volume             = data.volumes.at(volume_id);
+            input.volume_to_mat[volume_id] = MaterialId{volume.material_id};
         }
         geo_mat_ = std::make_shared<GeoMaterialParams>(std::move(input));
     }

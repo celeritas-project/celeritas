@@ -16,18 +16,22 @@
 #include "physics/material/Types.hh"
 #include "physics/material/detail/Utils.hh"
 #include "base/Range.hh"
+#include "io/RootImporter.hh"
+#include "io/ImportData.hh"
 
 #include "celeritas_test.hh"
 
 using celeritas::CutoffParams;
 using celeritas::CutoffView;
 using celeritas::ElementId;
+using celeritas::ImportData;
 using celeritas::MaterialId;
 using celeritas::MaterialParams;
 using celeritas::MatterState;
 using celeritas::ParticleId;
 using celeritas::ParticleParams;
 using celeritas::range;
+using celeritas::RootImporter;
 using celeritas::units::AmuMass;
 using celeritas::units::MevEnergy;
 
@@ -117,7 +121,6 @@ TEST_F(CutoffParamsTest, empty_cutoffs)
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
 }
 
-//---------------------------------------------------------------------------//
 TEST_F(CutoffParamsTest, electron_cutoffs)
 {
     CutoffParams::Input           input;
@@ -145,6 +148,56 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
 
     const double expected_energies[] = {0.2, 0, 0.4, 0, 0, 0};
     const double expected_ranges[]   = {0.1, 0, 0.3, 0, 0, 0};
+
+    EXPECT_VEC_SOFT_EQ(expected_energies, energies);
+    EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
+}
+
+//---------------------------------------------------------------------------//
+// IMPORT CUTOFF DATA TEST
+//---------------------------------------------------------------------------//
+
+class CutoffParamsImportTest : public celeritas::Test
+{
+  protected:
+    void SetUp() override
+    {
+        root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
+        RootImporter import_from_root(root_filename_.c_str());
+        data_ = import_from_root();
+        ;
+    }
+    std::string root_filename_;
+    ImportData  data_;
+};
+
+TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
+{
+    const auto particles = ParticleParams::from_import(data_);
+    const auto materials = MaterialParams::from_import(data_);
+    const auto cutoffs = CutoffParams::from_import(data_, particles, materials);
+
+    std::vector<double> energies, ranges;
+
+    for (const auto pid : range(ParticleId{particles->size()}))
+    {
+        for (const auto matid : range(MaterialId{materials->size()}))
+        {
+            CutoffView cutoff_view(cutoffs->host_pointers(), matid);
+            energies.push_back(cutoff_view.energy(pid).value());
+            ranges.push_back(cutoff_view.range(pid));
+        }
+    }
+
+    // clang-format off
+    const double expected_energies[] = {0.00099, 0.0173344452484621, 0.00099,
+        0.970694711604435, 0.00099, 0.926090152562135, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0};
+    const double expected_ranges[] = {0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0};
+    // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);

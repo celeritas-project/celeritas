@@ -7,11 +7,44 @@
 //---------------------------------------------------------------------------//
 #include "ImportedProcessAdapter.hh"
 
+#include <algorithm>
+
 #include "base/Range.hh"
 #include "physics/base/ParticleParams.hh"
+#include "io/ImportData.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with imported data.
+ */
+std::shared_ptr<ImportedProcesses>
+ImportedProcesses::from_import(const ImportData& data,
+                               SPConstParticles  particle_params)
+{
+    CELER_EXPECT(data);
+    CELER_EXPECT(particle_params);
+
+    // Sort processes based on particle def IDs, process types, etc.
+    auto processes = data.processes;
+    auto particles = std::move(particle_params);
+
+    auto to_process_key = [&particles](const ImportProcess& ip) {
+        return std::make_tuple(particles->find(PDGNumber{ip.particle_pdg}),
+                               ip.process_class);
+    };
+
+    std::sort(processes.begin(),
+              processes.end(),
+              [&to_process_key](const ImportProcess& left,
+                                const ImportProcess& right) {
+                  return to_process_key(left) < to_process_key(right);
+              });
+
+    return std::make_shared<ImportedProcesses>(std::move(processes));
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with imported tabular data.

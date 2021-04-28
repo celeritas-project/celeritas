@@ -12,6 +12,7 @@
 #include "physics/em/PhotoelectricProcess.hh"
 #include "physics/em/EIonizationProcess.hh"
 #include "io/RootImporter.hh"
+#include "io/ImportData.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas;
@@ -33,9 +34,10 @@ class ImportedProcessesTest : public celeritas::Test
         RootImporter import_from_root(
             this->test_data_path("io", "geant-exporter-data.root").c_str());
 
-        auto data  = import_from_root();
-        particles_ = std::move(data.particle_params);
-        materials_ = std::move(data.material_params);
+        auto data = import_from_root();
+
+        particles_ = std::move(ParticleParams::from_import(data));
+        materials_ = std::move(MaterialParams::from_import(data));
         processes_
             = std::make_shared<ImportedProcesses>(std::move(data.processes));
 

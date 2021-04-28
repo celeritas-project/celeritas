@@ -15,18 +15,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Store data for each volume.
+ * Store volume data.
  *
- * Used by the GdmlGeometryMap class.
- *
- * The reason for this (currently absurdly simple) struct instead of just
- * keeping tab of volume and solid names directly in the GdmlGeometryMap, is
- * to easily import more information in the future.
+ * \sa ImportData
  */
 struct ImportVolume
 {
-    std::string name;
-    std::string solid_name;
+    unsigned int material_id;
+    std::string  name;
+    std::string  solid_name;
 };
 
 //---------------------------------------------------------------------------//

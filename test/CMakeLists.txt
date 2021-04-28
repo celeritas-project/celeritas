@@ -167,8 +167,10 @@ target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
 
 celeritas_setup_tests(SERIAL PREFIX physics/base
   LINK_LIBRARIES CeleritasPhysicsTest)
-celeritas_add_test(physics/base/CutoffParams.test.cc)
-celeritas_cudaoptional_test(physics/base/Particle)
+celeritas_add_test(physics/base/CutoffParams.test.cc
+  LINK_LIBRARIES Celeritas::ROOT)
+celeritas_cudaoptional_test(physics/base/Particle 
+  LINK_LIBRARIES Celeritas::ROOT)
 celeritas_cudaoptional_test(physics/base/Physics)
 celeritas_add_test(physics/base/PhysicsStepUtils.test.cc)
 
@@ -189,7 +191,8 @@ celeritas_add_test(physics/grid/XsCalculator.test.cc)
 celeritas_setup_tests(SERIAL PREFIX physics/material
   LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_add_test(physics/material/ElementSelector.test.cc)
-celeritas_cudaoptional_test(physics/material/Material)
+celeritas_cudaoptional_test(physics/material/Material
+  LINK_LIBRARIES Celeritas::ROOT)
 
 #-------------------------------------#
 # Physics (EM)

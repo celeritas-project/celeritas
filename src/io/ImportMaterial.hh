@@ -8,10 +8,10 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include <vector>
 
 #include "ImportElement.hh"
-#include "GdmlGeometryMapTypes.hh"
 #include "base/Types.hh"
 
 namespace celeritas
@@ -31,37 +31,43 @@ enum class ImportMaterialState
 
 //---------------------------------------------------------------------------//
 /*!
- * Store data of a given material and its elements.
+ * Store particle production cut.
+ */
+struct ImportProductionCut
+{
+    double energy; //!< [MeV]
+    double range;  //!< [cm]
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store elemental composition of a given material.
+ */
+struct ImportMatElemComponent
+{
+    unsigned int element_id;    //!< Index of element in ImportElement
+    double       mass_fraction; //!< [g/cm^3]
+    double       number_fraction;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store material data.
  *
- * Used by the GdmlGeometryMap class.
- *
- * The data is exported via the app/geant-exporter. For further expanding
- * this struct, add the appropriate variables here and fetch the new values in
- * \c app/geant-exporter.cc:store_geometry(...) .
- *
- * Units are defined at export time in the aforementioned function.
- *
- * \sa RootImporter
+ * \sa ImportData
  */
 struct ImportMaterial
 {
-    struct ProductionCut
-    {
-        real_type energy; // [MeV]
-        real_type range;  // [cm]
-    };
-
-    std::string                  name;
-    ImportMaterialState          state;
-    real_type                    temperature;            // [K]
-    real_type                    density;                // [g/cm^3]
-    real_type                    electron_density;       // [1/cm^3]
-    real_type                    number_density;         // [1/cm^3]
-    real_type                    radiation_length;       // [cm]
-    real_type                    nuclear_int_length;     // [cm]
-    std::map<int, ProductionCut> pdg_cutoff;             // [MeV, cm]
-    std::map<elem_id, real_type> elements_fractions;     // Mass fractions
-    std::map<elem_id, real_type> elements_num_fractions; // Number fractions
+    std::string                         name;
+    ImportMaterialState                 state;
+    double                              temperature;        //!< [K]
+    double                              density;            //!< [g/cm^3]
+    double                              electron_density;   //!< [1/cm^3]
+    double                              number_density;     //!< [1/cm^3]
+    double                              radiation_length;   //!< [cm]
+    double                              nuclear_int_length; //!< [cm]
+    std::map<int, ImportProductionCut>  pdg_cutoffs;        //!< Cutoff per PDG
+    std::vector<ImportMatElemComponent> elements;
 };
 
 //---------------------------------------------------------------------------//

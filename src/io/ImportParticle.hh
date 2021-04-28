@@ -16,17 +16,16 @@ namespace celeritas
 /*!
  * Store particle data.
  *
- * ImportParticle objects are stored into a ROOT file by the app/geant-exporter
- * and retrieved by the RootImporter class.
+ * \sa ImportData
  */
 struct ImportParticle
 {
     std::string name;
     int         pdg;
-    real_type   mass; // [MeV]
-    real_type   charge;
-    real_type   spin;
-    real_type   lifetime; // [s]
+    double      mass;     //!< [MeV]
+    double      charge;   //!< [Multiple of electron charge]
+    double      spin;     //!< [Multiple of \hbar]
+    double      lifetime; //!< [s]
     bool        is_stable;
 };
 
