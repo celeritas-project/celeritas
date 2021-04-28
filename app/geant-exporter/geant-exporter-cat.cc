@@ -148,7 +148,11 @@ void print_materials(std::vector<ImportMaterial>& materials,
 
         for (const auto& cutoff_key : material.pdg_cutoffs)
         {
-            const std::string label = pdg_label.find(cutoff_key.first)->second;
+            auto iter = pdg_label.find(cutoff_key.first);
+            if (iter == pdg_label.end())
+                continue;
+
+            const std::string label = iter->second;
             const std::string str_cuts
                 = label + ": " + std::to_string(cutoff_key.second.energy)
                   + ", " + std::to_string(cutoff_key.second.range);
