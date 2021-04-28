@@ -22,12 +22,12 @@ esac
  
 case $CONFIG in 
   bionic-minimal)
-    BASE_TAG=ubuntu:bionic-20210222
+    BASE_TAG=ubuntu:bionic-20210428
     VECGEOM=
     ;;
   focal-cuda11)
     BASE_TAG=nvidia/cuda:11.1-devel-ubuntu20.04
-    VECGEOM=v1.1.12
+    VECGEOM=v1.1.13
     ;;
   *)
     echo "Invalid configure type: $1"
@@ -38,9 +38,9 @@ esac
 docker tag ${BASE_TAG} base-${CONFIG}
 
 docker build -t dev-${CONFIG} \
- --build-arg CONFIG=${CONFIG} \
- --build-arg SPACK_VERSION=${SPACK_VERSION} \
- dev
+  --build-arg CONFIG=${CONFIG} \
+  --build-arg SPACK_VERSION=${SPACK_VERSION} \
+  dev
 
 docker build -t ci-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \

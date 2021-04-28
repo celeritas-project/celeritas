@@ -89,9 +89,7 @@ void VGNavCollection<Ownership::reference, MemSpace::device>::operator=(
     VGNavCollection<Ownership::value, MemSpace::device>& other)
 {
     CELER_ASSERT(other);
-    ptr       = other.ptr;
-    max_depth = other.max_depth;
-    size      = other.size;
+    pool_view = vecgeom::NavStatePoolView{(char*)other.ptr, other.max_depth, (int)other.size};
 }
 
 //---------------------------------------------------------------------------//

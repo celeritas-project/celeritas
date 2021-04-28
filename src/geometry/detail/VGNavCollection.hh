@@ -11,40 +11,10 @@
 #    include <memory>
 #endif
 #include <VecGeom/navigation/NavigationState.h>
+#include <VecGeom/navigation/NavStatePool.h>
 #include "base/Assert.hh"
 #include "base/OpaqueId.hh"
 #include "base/Types.hh"
-
-//---------------------------------------------------------------------------//
-/* VECGEOM FORWARD DECLARATIONS
- *
- * CUDA declarations aren't reachable from C++ host-compiled code, and the
- * reverse, so we must fudge by forward-declaring here as though
- * NavigationState is an untemplated class, not a type alias, for each unused
- * memspace.
- */
-namespace vecgeom
-{
-#ifndef __NVCC__
-inline
-#endif
-    namespace cxx
-{
-class NavStatePool;
-} // namespace cxx
-} // namespace vecgeom
-namespace vecgeom
-{
-#ifdef __NVCC__
-namespace cxx
-#else
-namespace cuda
-#endif
-{
-class NavigationState;
-}
-} // namespace vecgeom
-//---------------------------------------------------------------------------//
 
 namespace celeritas
 {
@@ -117,6 +87,8 @@ struct VGNavCollection<Ownership::reference, MemSpace::host>
 
 //---------------------------------------------------------------------------//
 // DEVICE MEMSPACE
+
+#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Delete a VecGeom pool.
@@ -130,7 +102,6 @@ struct NavStatePoolDeleter
     void operator()(arg_type) const;
 };
 
-#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Manage a pool of device-side geometry states.
@@ -168,11 +139,9 @@ struct VGNavCollection<Ownership::value, MemSpace::device>
 template<>
 struct VGNavCollection<Ownership::reference, MemSpace::device>
 {
-    using NavState = vecgeom::cuda::NavigationState;
+    using NavState = vecgeom::NavigationState;
 
-    void*     ptr       = nullptr;
-    int       max_depth = 0;
-    size_type size      = 0;
+    vecgeom::NavStatePoolView pool_view = {nullptr, 0, 0};
 
     // Assign from device value
     void operator=(VGNavCollection<Ownership::value, MemSpace::device>& other);
@@ -182,7 +151,7 @@ struct VGNavCollection<Ownership::reference, MemSpace::device>
     //! True if the collection is assigned/valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return ptr && size > 0 && max_depth > 0;
+        return pool_view.IsValid();
     }
 };
 
@@ -196,19 +165,13 @@ struct VGNavCollection<Ownership::reference, MemSpace::device>
 CELER_FUNCTION auto VGNavCollection<Ownership::reference, MemSpace::device>::at(
     int max_depth_param, ThreadId thread) const -> NavState&
 {
-    CELER_EXPECT(this->ptr);
-    CELER_EXPECT(thread < this->size);
-    CELER_EXPECT(max_depth_param == this->max_depth);
-#ifdef __NVCC__
-    // This code only compiles when run through CUDA so it must be escaped.
-    char* result = reinterpret_cast<char*>(this->ptr);
-    result += NavState::SizeOfInstanceAlignAware(max_depth_param)
-              * thread.get();
-    return *reinterpret_cast<NavState*>(result);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
+    CELER_EXPECT(this->pool_view.IsValid());
+    CELER_EXPECT(thread < this->pool_view.Capacity());
+    CELER_EXPECT(max_depth_param == this->pool_view.Depth());
+
+    return *const_cast<NavState*>((this->pool_view)[thread.get()]);
 }
+
 
 //---------------------------------------------------------------------------//
 } // namespace detail
