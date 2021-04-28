@@ -8,7 +8,7 @@
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
 #include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/GenerateCanonical.hh"
+#include "random/distributions/ReciprocalDistribution.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -56,15 +56,15 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     // Value of epsilon corresponding to minimum photon energy
     const real_type inc_energy_per_mecsq = inc_energy_.value()
                                            * shared_.inv_electron_mass;
-    const real_type epsilon_0     = 1 / (1 + 2 * inc_energy_per_mecsq);
-    const real_type log_epsilon_0 = std::log(epsilon_0);
-    constexpr real_type half          = 0.5;
+    const real_type epsilon_0 = 1 / (1 + 2 * inc_energy_per_mecsq);
 
-    // Probability of alpha_1 to choose f1 (sample epsilon)
-    BernoulliDistribution choose_f1(-log_epsilon_0,
-                                    half * (1 - epsilon_0 * epsilon_0));
-    // Sample square of f_2(\eps) \propto \eps on [\eps_0, 1]
-    UniformRealDistribution<real_type> sample_f2_sq(epsilon_0 * epsilon_0, 1);
+    // Probability of alpha_1 to choose f_1 (sample epsilon)
+    BernoulliDistribution choose_f1(-std::log(epsilon_0),
+                                    real_type(0.5) * (1 - ipow<2>(epsilon_0)));
+    // Sample f_1(\eps) \propto 1/\eps on [\eps_0, 1]
+    ReciprocalDistribution<real_type> sample_f1(epsilon_0);
+    // Sample square of f_2(\eps^2) \propto 1 on [\eps_0^2, 1]
+    UniformRealDistribution<real_type> sample_f2_sq(ipow<2>(epsilon_0), 1);
 
     // Rejection loop: sample epsilon (energy change) and direction change
     real_type epsilon;
@@ -79,7 +79,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
         {
             // Sample f_1(\eps) \propto 1/\eps on [\eps_0, 1]
             // => \eps \gets \eps_0^\xi = \exp(\xi \log \eps_0)
-            epsilon    = std::exp(log_epsilon_0 * generate_canonical(rng));
+            epsilon    = sample_f1(rng);
             epsilon_sq = epsilon * epsilon;
         }
         else

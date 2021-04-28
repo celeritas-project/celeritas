@@ -1,9 +1,9 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UniformRealDistribution.hh
+//! \file ReciprocalDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,14 +14,21 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample from a uniform distribution.
+ * Reciprocal or log-uniform distribution.
  *
- * This distribution is defined between two arbitrary real numbers \em a and
- * \em b , and has a flat PDF between the two values. It *is* allowable for the
- * two numbers to have reversed order.
+ * This distribution is defined on a positive range \f$ [a, b) \f$ and has the
+ * normalized PDF:
+ * \f[
+   f(x; a, b) = \frac{1}{x (\ln b - \ln a)} \quad \mathrm{for} a \le x < b
+   \f]
+ * which integrated into a CDF and inverted gives a sample:
+ * \f[
+  x = a \left( \frac{b}{a} \right)^{\xi}
+    = a \exp\!\left(\xi \log \frac{b}{a} \right)
+   \f]
  */
 template<class RealType = ::celeritas::real_type>
-class UniformRealDistribution
+class ReciprocalDistribution
 {
   public:
     //!@{
@@ -31,32 +38,24 @@ class UniformRealDistribution
     //!@}
 
   public:
-    // Construct on [0, 1)
-    inline CELER_FUNCTION
-    UniformRealDistribution();
+    // Construct on an the interval [a, 1]
+    explicit inline CELER_FUNCTION
+    ReciprocalDistribution(real_type a);
 
     // Construct on an arbitrary interval
-    explicit inline CELER_FUNCTION
-    UniformRealDistribution(real_type a, real_type b = 1);
+    inline CELER_FUNCTION
+    ReciprocalDistribution(real_type a, real_type b);
 
     // Sample a random number according to the distribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
-    //// ACCESSORS ////
-
-    //! Get the lower bound of the distribution
-    CELER_FUNCTION real_type a() const { return a_; }
-
-    //! Get the upper bound of the distribution
-    CELER_FUNCTION real_type b() const { return delta_ + a_; }
-
   private:
     RealType a_;
-    RealType delta_;
+    RealType logratio_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "UniformRealDistribution.i.hh"
+#include "ReciprocalDistribution.i.hh"

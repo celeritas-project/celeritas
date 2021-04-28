@@ -9,7 +9,7 @@
 
 #include "physics/base/Units.hh"
 #include "physics/grid/TwodSubgridCalculator.hh"
-#include "random/distributions/UniformRealDistribution.hh"
+#include "random/distributions/ReciprocalDistribution.hh"
 #include "SeltzerBerger.hh"
 
 namespace celeritas
@@ -113,14 +113,14 @@ class SBEnergyDistribution
 
     using SBTables
         = SeltzerBergerTableData<Ownership::const_reference, MemSpace::native>;
-    using UniformSampler = UniformRealDistribution<>;
+    using ReciprocalSampler = ReciprocalDistribution<real_type>;
 
     const real_type             inc_energy_;
     const TwodSubgridCalculator calc_xs_;
     const real_type             inv_max_xs_;
 
     const real_type dens_corr_;
-    UniformSampler  sample_log_exit_efrac_;
+    ReciprocalSampler sample_exit_esq_;
 
     //// CONSTRUCTION HELPER FUNCTIONS ////
 
@@ -130,8 +130,8 @@ class SBEnergyDistribution
     inline CELER_FUNCTION real_type calc_max_xs(const SBTables&,
                                                 ElementId element) const;
 
-    inline CELER_FUNCTION UniformSampler
-    make_lee_sampler(real_type min_gamma_energy) const;
+    inline CELER_FUNCTION ReciprocalSampler
+    make_esq_sampler(real_type min_gamma_energy) const;
 };
 
 //---------------------------------------------------------------------------//
