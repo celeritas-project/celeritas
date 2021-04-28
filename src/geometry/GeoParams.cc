@@ -87,8 +87,6 @@ GeoParams::~GeoParams()
     if (device_ref_)
     {
         CELER_LOG(debug) << "Clearing VecGeom GPU data";
-        // NOTE: if the following line fails to compile, you need to update
-        // VecGeom to at least 1.1.12 (or after 2021FEB17)
         vecgeom::CudaManager::Instance().Clear();
     }
 #endif

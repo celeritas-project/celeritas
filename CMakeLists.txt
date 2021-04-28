@@ -133,7 +133,7 @@ if(CELERITAS_USE_SWIG_Python)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  celeritas_find_package_config(VecGeom REQUIRED)
+  celeritas_find_package_config(VecGeom 1.1.13 REQUIRED)
 
   if((CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
       OR (NOT CELERITAS_USE_CUDA AND VecGeom_CUDA_FOUND))
