@@ -9,11 +9,11 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "geometry/GeoTrackView.hh"
+#include "physics/base/ParticleTrackView.hh"
 
-#include "field/FieldTrackView.hh"
-#include "field/FieldParamsPointers.hh"
-#include "field/FieldInterface.hh"
 #include "field/FieldDriver.hh"
+#include "field/FieldInterface.hh"
 
 namespace celeritas
 {
@@ -39,12 +39,22 @@ namespace celeritas
 class FieldPropagator
 {
   public:
+    // Output results
+    struct result_type
+    {
+        real_type distance;    //!< Distance traveled
+        OdeState  state;       //!< Final position and momemtum
+        bool      on_boundary; //!< Flag for the geometry limited step
+    };
+
+  public:
     // Construct with shared parameters and the field driver
-    inline CELER_FUNCTION
-    FieldPropagator(const FieldParamsPointers& shared, FieldDriver& driver);
+    inline CELER_FUNCTION FieldPropagator(GeoTrackView&            track,
+                                          const ParticleTrackView& particle,
+                                          FieldDriver&             driver);
 
     // Propagation in a field
-    inline CELER_FUNCTION real_type operator()(FieldTrackView* view);
+    inline CELER_FUNCTION result_type operator()(real_type step);
 
   private:
     // A helper input/output for private member functions
@@ -60,27 +70,18 @@ class FieldPropagator
     };
 
     // Check whether the final state is crossed any boundary of volumes
-    inline CELER_FUNCTION void check_intersection(FieldTrackView* view,
-                                                  const Real3&    beg_pos,
-                                                  const Real3&    end_pos,
-                                                  Intersection*   intersect);
+    inline CELER_FUNCTION void query_intersection(const Real3&  beg_pos,
+                                                  const Real3&  end_pos,
+                                                  Intersection* intersect);
 
     // Find the intersection point if any boundary is crossed
-    inline CELER_FUNCTION OdeState locate_intersection(FieldTrackView* view,
-                                                       const OdeState& beg_state,
-                                                       Intersection* intersect);
-
-    // >>> COMMON PROPERTIES
-
-    // A scale adjustment factor when IntersectionIO::scale is unity
-    static CELER_CONSTEXPR_FUNCTION real_type scale_factor() { return 1.01; }
+    inline CELER_FUNCTION OdeState find_intersection(const OdeState& beg_state,
+                                                     Intersection* intersect);
 
   private:
-    // Shared field parameters
-    const FieldParamsPointers& shared_;
-
-    // Field driver
-    FieldDriver& driver_;
+    GeoTrackView& track_;
+    FieldDriver&  driver_;
+    OdeState      state_;
 };
 
 //---------------------------------------------------------------------------//

@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "FieldTestParams.hh"
 #include "FieldPropagator.test.hh"
-#include "field/FieldTrackView.hh"
 #include "field/FieldParamsPointers.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
@@ -48,42 +47,42 @@ __global__ void fp_test_kernel(const int                 size,
         return;
 
     // Initialize GeoTrackView and ParticleTrackView
-    GeoTrackView geo_view(shared, state, tid);
-    geo_view = start[tid.get()];
-    if (!geo_view.is_outside())
-        geo_view.find_next_step();
+    GeoTrackView geo_track(shared, state, tid);
+    geo_track = start[tid.get()];
+    if (!geo_track.is_outside())
+        geo_track.find_next_step();
 
-    ParticleTrackView track_view(particle_params, particle_states, tid);
-    track_view = init_track[tid.get()];
-
-    // Construct FieldTrackView
-    FieldTrackView field_view(geo_view, track_view);
+    ParticleTrackView particle_track(particle_params, particle_states, tid);
+    particle_track = init_track[tid.get()];
 
     // Construct the RK stepper adnd propagator in a field
-    MagField                            field({0, 0, test.field_value});
-    MagFieldEquation                    equation(field, field_view.charge());
+    MagField         field({0, 0, test.field_value});
+    MagFieldEquation equation(field, units::ElementaryCharge{-1});
     RungeKuttaStepper<MagFieldEquation> rk4(equation);
-    FieldDriver                         driver(field_params, rk4);
-    FieldPropagator                     propagator(field_params, driver);
+
+    FieldDriver     driver(field_params, rk4);
+    FieldPropagator propagator(geo_track, particle_track, driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
 
     real_type curved_length = 0;
 
+    FieldPropagator::result_type result;
+
     for (CELER_MAYBE_UNUSED int i : celeritas::range(test.revolutions))
     {
         for (CELER_MAYBE_UNUSED int j : celeritas::range(test.nsteps))
         {
-            field_view.step(hstep);
-            curved_length += propagator(&field_view);
+            result = propagator(hstep);
+            curved_length += result.distance;
         }
     }
 
     // output
     step[tid.get()] = curved_length;
-    pos[tid.get()]  = field_view.state().pos[0];
-    mom[tid.get()]  = field_view.state().mom[1];
+    pos[tid.get()]  = result.state.pos[0];
+    mom[tid.get()]  = result.state.mom[1];
 }
 
 __global__ void bc_test_kernel(const int                 size,
@@ -104,24 +103,21 @@ __global__ void bc_test_kernel(const int                 size,
         return;
 
     // Initialize GeoTrackView and ParticleTrackView
-    GeoTrackView geo_view(shared, state, tid);
-    geo_view = start[tid.get()];
-    if (!geo_view.is_outside())
-        geo_view.find_next_step();
+    GeoTrackView geo_track(shared, state, tid);
+    geo_track = start[tid.get()];
+    if (!geo_track.is_outside())
+        geo_track.find_next_step();
 
-    // Initialize particle
-    ParticleTrackView track_view(particle_params, particle_states, tid);
-    track_view = init_track[tid.get()];
+    ParticleTrackView particle_track(particle_params, particle_states, tid);
+    particle_track = init_track[tid.get()];
 
-    // Construct FieldTrackView
-    FieldTrackView field_view(geo_view, track_view);
-
-    // Construct the RK stepper adnd propagator in a field
-    MagField                            field({0, 0, test.field_value});
-    MagFieldEquation                    equation(field, field_view.charge());
+    // Construct the RK stepper and propagator in a field
+    MagField         field({0, 0, test.field_value});
+    MagFieldEquation equation(field, units::ElementaryCharge{-1});
     RungeKuttaStepper<MagFieldEquation> rk4(equation);
-    FieldDriver                         driver(field_params, rk4);
-    FieldPropagator                     propagator(field_params, driver);
+
+    FieldDriver     driver(field_params, rk4);
+    FieldPropagator propagator(geo_track, particle_track, driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -138,26 +134,27 @@ __global__ void bc_test_kernel(const int                 size,
     // clang-format on
 
     real_type delta = celeritas::numeric_limits<real_type>::max();
-    ;
+
+    FieldPropagator::result_type result;
 
     for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
     {
         for (CELER_MAYBE_UNUSED int i : celeritas::range(test.nsteps))
         {
-            field_view.step(hstep);
-            curved_length += propagator(&field_view);
+            result = propagator(hstep);
+            curved_length += result.distance;
 
-            if (field_view.on_boundary())
+            if (result.on_boundary)
             {
                 icross++;
                 int j = (icross - 1) % num_boundary;
-                delta = expected_y[j] - field_view.state().pos[1];
+                delta = expected_y[j] - result.state.pos[1];
                 if (delta != 0)
                 {
-                    printf("Intersection Finding Failed: ");
+                    printf("Intersection Finding Failed on GPU: ");
                     printf("Expected = %f Actual = %f\n",
                            expected_y[j],
-                           field_view.state().pos[1]);
+                           result.state.pos[1]);
                 }
             }
         }
@@ -165,8 +162,8 @@ __global__ void bc_test_kernel(const int                 size,
 
     // output
     step[tid.get()] = curved_length;
-    pos[tid.get()]  = field_view.state().pos[0];
-    mom[tid.get()]  = field_view.state().mom[1];
+    pos[tid.get()]  = result.state.pos[0];
+    mom[tid.get()]  = result.state.mom[1];
 }
 
 //---------------------------------------------------------------------------//

@@ -32,9 +32,9 @@ class FieldPropagatorHostTest : public FieldTestBase
 TEST_F(FieldPropagatorHostTest, field_propagator_host)
 {
     // Construct GeoTrackView and ParticleTrackView
-    GeoTrackView geo_view = GeoTrackView(
+    GeoTrackView geo_track = GeoTrackView(
         this->geo_params->host_pointers(), geo_state.ref(), ThreadId(0));
-    ParticleTrackView track_view(
+    ParticleTrackView particle_track(
         particle_params->host_pointers(), state_ref, ThreadId(0));
 
     // Construct FieldPropagator
@@ -42,12 +42,11 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
     MagFieldEquation equation(field, units::ElementaryCharge{-1});
     RungeKuttaStepper<MagFieldEquation> rk4(equation);
     FieldDriver                         driver(field_params, rk4);
-    FieldPropagator                     propagator(field_params, driver);
 
     // Test parameters and the sub-step size
     double step = (2.0 * constants::pi * test.radius) / test.nsteps;
 
-    track_view = Initializer_t{ParticleId{0}, MevEnergy{test.energy}};
+    particle_track = Initializer_t{ParticleId{0}, MevEnergy{test.energy}};
     OdeState beg_state;
     beg_state.mom                   = {0, test.momentum_y, 0};
     real_type expected_total_length = 2 * constants::pi * test.radius
@@ -56,31 +55,32 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
     for (unsigned int i : celeritas::range(test.nstates))
     {
         // Initial state and the expected state after each revolution
-        geo_view      = {{test.radius, -10, i * 1.0e-6}, {0, 1, 0}};
+        geo_track     = {{test.radius, -10, i * 1.0e-6}, {0, 1, 0}};
         beg_state.pos = {test.radius, -10, i * 1.0e-6};
 
         // Check GeoTrackView
-        geo_view.find_next_step();
-        EXPECT_SOFT_EQ(5.5, geo_view.next_step());
+        geo_track.find_next_step();
+        EXPECT_SOFT_EQ(5.5, geo_track.next_step());
 
-        // Construct FieldTrackView
-        FieldTrackView field_view(geo_view, track_view);
-        real_type      total_length = 0;
+        // Construct FieldPropagator
+        FieldPropagator propagator(geo_track, particle_track, driver);
+
+        real_type                    total_length = 0;
+        FieldPropagator::result_type result;
 
         for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
         {
             for (CELER_MAYBE_UNUSED int j : celeritas::range(test.nsteps))
             {
-                field_view.step(step);
-                real_type step_taken = propagator(&field_view);
-                EXPECT_DOUBLE_EQ(step_taken, step);
-                total_length += step_taken;
+                result = propagator(step);
+                EXPECT_DOUBLE_EQ(result.distance, step);
+                total_length += result.distance;
             }
         }
 
         // Check input after num_revolutions
-        EXPECT_VEC_NEAR(beg_state.pos, field_view.state().pos, test.epsilon);
-        EXPECT_VEC_NEAR(beg_state.mom, field_view.state().mom, test.epsilon);
+        EXPECT_VEC_NEAR(beg_state.pos, result.state.pos, test.epsilon);
+        EXPECT_VEC_NEAR(beg_state.mom, result.state.mom, test.epsilon);
         EXPECT_SOFT_NEAR(total_length, expected_total_length, test.epsilon);
     }
 }
@@ -88,9 +88,9 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
 TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
 {
     // Construct GeoTrackView and ParticleTrackView
-    GeoTrackView geo_view = GeoTrackView(
+    GeoTrackView geo_track = GeoTrackView(
         this->geo_params->host_pointers(), geo_state.ref(), ThreadId(0));
-    ParticleTrackView track_view(
+    ParticleTrackView particle_track(
         particle_params->host_pointers(), state_ref, ThreadId(0));
 
     // Construct FieldDriver
@@ -98,8 +98,6 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
     MagFieldEquation equation(field, units::ElementaryCharge{-1});
     RungeKuttaStepper<MagFieldEquation> rk4(equation);
     FieldDriver                         driver(field_params, rk4);
-
-    FieldPropagator propagator(field_params, driver);
 
     const int num_boundary = 16;
 
@@ -114,35 +112,39 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
 
     for (auto i : celeritas::range(test.nstates))
     {
-        // Construct FieldTrackView
-        geo_view   = {{test.radius, 0, i * 1.0e-6}, {0, 1, 0}};
-        track_view = Initializer_t{ParticleId{0}, MevEnergy{test.energy}};
+        // Initialize GeoTrackView and ParticleTrackView
+        geo_track      = {{test.radius, 0, i * 1.0e-6}, {0, 1, 0}};
+        particle_track = Initializer_t{ParticleId{0}, MevEnergy{test.energy}};
 
-        geo_view.find_next_step();
-        EXPECT_SOFT_EQ(0.5, geo_view.next_step());
+        geo_track.find_next_step();
+        EXPECT_SOFT_EQ(0.5, geo_track.next_step());
 
-        FieldTrackView field_view(geo_view, track_view);
-        int            icross = 0;
+        // Construct FieldPropagator
+        FieldPropagator propagator(geo_track, particle_track, driver);
 
-        real_type total_length = 0;
+        int                          icross       = 0;
+        real_type                    total_length = 0;
+        FieldPropagator::result_type result;
+
         for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
         {
             for (CELER_MAYBE_UNUSED auto k : celeritas::range(test.nsteps))
             {
-                field_view.step(step);
-                total_length += propagator(&field_view);
+                result = propagator(step);
+                total_length += result.distance;
 
-                if (field_view.on_boundary())
+                if (result.on_boundary)
                 {
                     icross++;
                     int j = (icross - 1) % num_boundary;
-                    EXPECT_DOUBLE_EQ(expected_y[j], field_view.state().pos[1]);
+                    EXPECT_DOUBLE_EQ(expected_y[j], result.state.pos[1]);
                 }
             }
         }
+
         // Check stepper results with boundary crossings
-        EXPECT_SOFT_NEAR(field_view.state().pos[0], -0.13151242, test.epsilon);
-        EXPECT_SOFT_NEAR(field_view.state().mom[1], -0.39413998, test.epsilon);
+        EXPECT_SOFT_NEAR(result.state.pos[0], -0.13151242, test.epsilon);
+        EXPECT_SOFT_NEAR(result.state.mom[1], -0.39413998, test.epsilon);
         EXPECT_SOFT_NEAR(total_length, 221.48171708, test.epsilon);
     }
 }
