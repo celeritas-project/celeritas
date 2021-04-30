@@ -77,6 +77,21 @@ class FieldDriver
 
     static CELER_CONSTEXPR_FUNCTION real_type ppm() { return 1e-6; }
 
+  public:
+    // >>> AUXILIARY INTERFACE
+
+    inline CELER_FUNCTION real_type minimum_step()
+    {
+        return shared_.minimum_step;
+    }
+
+    inline CELER_FUNCTION real_type max_nsteps() { return shared_.max_nsteps; }
+
+    inline CELER_FUNCTION real_type delta_intersection()
+    {
+        return shared_.delta_intersection;
+    }
+
   private:
     // Shared constant properties
     const FieldParamsPointers& shared_;
