@@ -133,6 +133,20 @@ class GeoTrackView
   public:
     //! Get a reference to the current volume
     inline CELER_FUNCTION const Volume& volume() const;
+
+    //!@{
+    //! Helper methods
+    // Find the safety to the closest geometric boundary
+    inline CELER_FUNCTION real_type find_safety(Real3 pos) const;
+
+    // Find the distance to the next geometric boundary and update the safety
+    inline CELER_FUNCTION real_type compute_step(Real3      pos,
+                                                 Real3      dir,
+                                                 real_type* safety) const;
+
+    // Propagate to the next volume and update the vgstate
+    inline CELER_FUNCTION void propagate_state(Real3 pos, Real3 dir) const;
+    //!@}
 };
 
 //---------------------------------------------------------------------------//
