@@ -111,7 +111,7 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Access a subset of the data as a Span.
+ * Access all of the data as a Span.
  */
 template<class T, Ownership W, MemSpace M, class I>
 CELER_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT) -> SpanT
@@ -121,7 +121,7 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT) -> SpanT
 
 //---------------------------------------------------------------------------//
 /*!
- * Access a subset of the data as a Span (const).
+ * Access all of the data as a Span (const).
  */
 template<class T, Ownership W, MemSpace M, class I>
 CELER_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT) const

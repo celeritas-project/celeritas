@@ -16,42 +16,44 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Simulation properties for a single track.
- *
- * Manage the simulation state.
  */
 class SimTrackView
 {
   public:
     //!@{
     //! Type aliases
-    using Initializer_t = SimTrackState;
+    using SimStateRef   = SimStateData<Ownership::reference, MemSpace::native>;
+    using Initializer_t = SimTrackInitializer;
     //!@}
 
   public:
     // Construct with view to state and persistent data
     inline CELER_FUNCTION
-    SimTrackView(const SimStatePointers& state, ThreadId thread);
+    SimTrackView(const SimStateRef& states, ThreadId thread);
 
     // Initialize the sim state
     inline CELER_FUNCTION SimTrackView& operator=(const Initializer_t& other);
 
     //// DYNAMIC PROPERTIES ////
 
-    //!@{
-    //! State accessors
-    CELER_FUNCTION TrackId track_id() const { return state_.track_id; }
-    CELER_FUNCTION TrackId parent_id() const { return state_.parent_id; }
-    CELER_FUNCTION EventId event_id() const { return state_.event_id; }
-    CELER_FUNCTION bool    alive() const { return state_.alive; }
-    //!@}
+    // Unique track identifier
+    CELER_FORCEINLINE_FUNCTION TrackId track_id() const;
 
-    //!@{
-    //! State modifiers via non-const references
-    CELER_FUNCTION bool& alive() { return state_.alive; }
-    //!@}
+    // Track ID of parent
+    CELER_FORCEINLINE_FUNCTION TrackId parent_id() const;
+
+    // Event ID
+    CELER_FORCEINLINE_FUNCTION EventId event_id() const;
+
+    // Whether the track is alive
+    CELER_FORCEINLINE_FUNCTION bool alive() const;
+
+    // Modifier for whether the track is alive
+    CELER_FORCEINLINE_FUNCTION bool& alive();
 
   private:
-    SimTrackState& state_;
+    const SimStateRef& states_;
+    const ThreadId     thread_;
 };
 
 //---------------------------------------------------------------------------//

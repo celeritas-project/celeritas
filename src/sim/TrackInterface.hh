@@ -53,8 +53,8 @@ struct StatePointers
     DeviceRef<ParticleStateData> particle;
     DeviceRef<RngStateData>      rng;
     DeviceRef<GeoStateData>      geo;
+    DeviceRef<SimStateData>      sim;
 
-    SimStatePointers  sim;
     Span<Interaction> interactions;
 
     //! Whether the data are assigned

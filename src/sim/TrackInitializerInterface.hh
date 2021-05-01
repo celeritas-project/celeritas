@@ -23,7 +23,7 @@ namespace celeritas
  */
 struct TrackInitializer
 {
-    SimTrackState       sim;
+    SimTrackInitializer      sim;
     GeoTrackInitializer      geo;
     ParticleTrackInitializer particle;
 };
