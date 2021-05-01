@@ -6,21 +6,27 @@ requirements of LHC-HL upgrade.
 
 # Installation and development
 
-This project requires third-party libraries (TPLs) to build a fully-featured
-code. However, some of these requirements can be omitted to enable testing on
-personal machines with fewer available components.
+This project requires external dependencies to build with full functionality.
+However, any combination of these requirements can be omitted to enable
+limited development on personal machines with fewer available components.
 
-- ROOT: for I/O
-- an MPI implementation (such as OpenMPI): for shared memory parallelism
-- VecGeom: on-device navigation of GDML or ROOT-defined detector geometry
-- CUDA: on-device computation.
+- [CUDA](https://developer.nvidia.com/cuda-toolkit): on-device computation
+- an MPI implementation (such as [Open MPI](https://www.open-mpi.org)): shared-memory parallelism
+- [https://root.cern](ROOT): I/O
+- [https://github.com/nlohmann/json](nljson): simple text-based I/O for
+  diagnostics and program setup
+- [https://gitlab.cern.ch/VecGeom/VecGeom](VecGeom): on-device navigation of GDML-defined detector geometry
+- [https://geant4.web.cern.ch/support/download](Geant4): preprocessing physics data for a problem input
+- [https://geant4.web.cern.ch/support/download](G4EMLOW): EM physics model data
+- [http://hepmc.web.cern.ch/hepmc/](HepMC3): Event input
+- [http://swig.org](SWIG): limited set of Python wrappers for analyzing input
+  data
 
-Development/testing requirements:
+Build/test dependencies are:
 
-- CMake (build system)
-- [Git-LFS](https://git-lfs.github.com) (large test files, binary
-  documentation)
-- LLVM/Clang (formatting enforcement)
+- [CMake](https://cmake.org): build system
+- [clang-format](https://clang.llvm.org/docs/ClangFormat.html): formatting enforcement
+- [GoogleTest](https://github.com/google/googletest): test harness
 
 ## Installing with Spack
 
@@ -74,12 +80,20 @@ cmake  \
 Run `scripts/dev/install-commit-hooks.sh` to install a git post-commit hook
 that will amend each commit with clang-format updates if necessary.
 
-## More details
+## Contributing
 
 See the [development wiki page
 ](https://github.com/celeritas-project/celeritas/wiki/Development) for
 guidelines and best practices for code in the project.
 
-The [code design page](https://github.com/celeritas-project/celeritas/wiki/Code-design) outlines the basic physics design philosophy and classes.
+The [code design
+page](https://github.com/celeritas-project/celeritas/wiki/Code-design) outlines
+the basic physics design philosophy and classes, and [the layout of some
+algorithms and
+classes](https://github.com/celeritas-project/celeritas-docs/tree/master/graphs)
+are available on the `celeritas-docs` repo.
 
-Some [codebase images and graphs](https://github.com/celeritas-project/celeritas-docs/tree/master/graphs) are available on the `celeritas-docs` repo.
+All submissions to the Celeritas project are automatically licensed under the
+terms of [the project copyright](COPYRIGHT) as formalized by the [GitHub
+terms of service](https://docs.github.com/en/github/site-policy/github-terms-of-service#6-contributions-under-repository-license).
+
