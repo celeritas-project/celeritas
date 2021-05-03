@@ -28,7 +28,7 @@ namespace celeritas
  *
  * The state store is designed to be usable only from host code. Because C++
  * code in .cu files is still processed by the device compilation phase, this
- * restricts its use to .cc files currently. The embededd collection references
+ * restricts its use to .cc files currently. The embedded collection references
  * can be passed to CUDA kernels, of course. This restriction is designed to
  * reduce propagation of C++ management classes into kernel compilation to
  * improve performance of NVCC build times, and not due to a fundamental
