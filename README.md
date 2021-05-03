@@ -12,14 +12,14 @@ limited development on personal machines with fewer available components.
 
 - [CUDA](https://developer.nvidia.com/cuda-toolkit): on-device computation
 - an MPI implementation (such as [Open MPI](https://www.open-mpi.org)): shared-memory parallelism
-- [https://root.cern](ROOT): I/O
-- [https://github.com/nlohmann/json](nljson): simple text-based I/O for
+- [ROOT](https://root.cern): I/O
+- [nljson](https://github.com/nlohmann/json): simple text-based I/O for
   diagnostics and program setup
-- [https://gitlab.cern.ch/VecGeom/VecGeom](VecGeom): on-device navigation of GDML-defined detector geometry
-- [https://geant4.web.cern.ch/support/download](Geant4): preprocessing physics data for a problem input
-- [https://geant4.web.cern.ch/support/download](G4EMLOW): EM physics model data
-- [http://hepmc.web.cern.ch/hepmc/](HepMC3): Event input
-- [http://swig.org](SWIG): limited set of Python wrappers for analyzing input
+- [VecGeom](https://gitlab.cern.ch/VecGeom/VecGeom): on-device navigation of GDML-defined detector geometry
+- [Geant4](https://geant4.web.cern.ch/support/download): preprocessing physics data for a problem input
+- [G4EMLOW](https://geant4.web.cern.ch/support/download): EM physics model data
+- [HepMC3](http://hepmc.web.cern.ch/hepmc/): Event input
+- [SWIG](http://swig.org): limited set of Python wrappers for analyzing input
   data
 
 Build/test dependencies are:
@@ -82,8 +82,8 @@ that will amend each commit with clang-format updates if necessary.
 
 ## Contributing
 
-See the [development wiki page
-](https://github.com/celeritas-project/celeritas/wiki/Development) for
+See the [development wiki
+page](https://github.com/celeritas-project/celeritas/wiki/Development) for
 guidelines and best practices for code in the project.
 
 The [code design
@@ -94,6 +94,6 @@ classes](https://github.com/celeritas-project/celeritas-docs/tree/master/graphs)
 are available on the `celeritas-docs` repo.
 
 All submissions to the Celeritas project are automatically licensed under the
-terms of [the project copyright](COPYRIGHT) as formalized by the [GitHub
-terms of service](https://docs.github.com/en/github/site-policy/github-terms-of-service#6-contributions-under-repository-license).
+terms of [the project copyright](COPYRIGHT) as formalized by the [GitHub terms
+of service](https://docs.github.com/en/github/site-policy/github-terms-of-service#6-contributions-under-repository-license).
 
