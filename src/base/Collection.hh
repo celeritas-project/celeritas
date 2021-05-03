@@ -151,6 +151,9 @@ struct AllItems
  * we always want to build host code in C++ files for development ease and to
  * allow testing when CUDA is disabled.)
  *
+ * To avoid propagating C++ library headers into CUDA kernels, "value"
+ * collections are unable to compile when \c __CUDA_ARCH__ is defined.
+ *
  * \todo It would be easy to specialize the traits for the const_reference
  * ownership so that for device primitive data types (int, double) we access
  * via __ldg -- speeding up everywhere in the code without any invasive
