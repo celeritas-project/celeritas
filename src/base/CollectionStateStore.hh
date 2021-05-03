@@ -26,6 +26,14 @@ namespace celeritas
  * size() accessor. It must also define a free function "resize" that takes
  * a value state and (optionally) Params host pointers.
  *
+ * The state store is designed to be usable only from host code. Because C++
+ * code in .cu files is still processed by the device compilation phase, this
+ * restricts its use to .cc files currently. The embededd collection references
+ * can be passed to CUDA kernels, of course. This restriction is designed to
+ * reduce propagation of C++ management classes into kernel compilation to
+ * improve performance of NVCC build times, and not due to a fundamental
+ * capability restriction.
+ *
  * \code
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
         *particle_params, num_tracks);
@@ -50,6 +58,11 @@ class CollectionStateStore
     template<class Params>
     CollectionStateStore(const Params& p, size_type size)
     {
+#ifdef __CUDA_ARCH__
+        static_assert(sizeof(Params) == 0,
+                      "Collection state store is not designed for CUDA device "
+                      "compilation phase");
+#endif
         CELER_EXPECT(size > 0);
         resize(&val_, p.host_pointers(), size);
 
