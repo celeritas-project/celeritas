@@ -186,15 +186,15 @@ template<class T, MemSpace M>
 struct CollectionStorage<T, Ownership::value, M>
 {
     static_assert(sizeof(T) == 0,
-                  "Value collections cannot be used from the NVCC devic e "
+                  "Value collections cannot be used from the NVCC device "
                   "compilation phase");
 };
 
 template<MemSpace M>
 struct CollectionAssigner<Ownership::value, M>
 {
-    static_assert(false,
-                  "Collections cannot be assigned from the NVCC devic e "
+    static_assert(static_cast<int>(M) == -1,
+                  "Collections cannot be assigned from the NVCC device "
                   "compilation phase");
 };
 
