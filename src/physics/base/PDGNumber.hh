@@ -11,11 +11,6 @@
 #include <iostream>
 #include <functional>
 #include "base/Assert.hh"
-#include "base/Macros.hh"
-
-#if CELER_SHIELD_DEVICE
-#    warning "This file should not be included by device code"
-#endif
 
 namespace celeritas
 {

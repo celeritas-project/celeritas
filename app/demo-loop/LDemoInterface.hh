@@ -135,7 +135,7 @@ using ParamsDeviceRef
     = ParamsData<Ownership::const_reference, MemSpace::device>;
 using StateDeviceRef = StateData<Ownership::reference, MemSpace::device>;
 
-#if !CELER_SHIELD_DEVICE
+#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Resize particles states in host code.

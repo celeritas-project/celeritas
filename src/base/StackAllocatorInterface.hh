@@ -8,13 +8,10 @@
 #pragma once
 
 #include "Collection.hh"
-#include "Macros.hh"
-#include "Types.hh"
-
-#if !CELER_SHIELD_DEVICE
 #    include "CollectionAlgorithms.hh"
 #    include "CollectionBuilder.hh"
-#endif
+#include "Macros.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -48,7 +45,6 @@ struct StackAllocatorData
     }
 };
 
-#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Resize a stack allocator in host code.
@@ -62,7 +58,6 @@ resize(StackAllocatorData<T, Ownership::value, M>* data, size_type capacity)
     make_builder(&data->size).resize(1);
     celeritas::fill(size_type(0), &data->size);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

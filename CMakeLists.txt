@@ -18,7 +18,6 @@ endif()
 
 include(GNUInstallDirs)
 include(CeleritasUtils)
-include(CMakeDependentOption)
 
 #----------------------------------------------------------------------------#
 # OPTIONS
@@ -75,11 +74,6 @@ if(NOT CMAKE_BUILD_TYPE AND (CMAKE_GENERATOR STREQUAL "Ninja"
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
     "Build type set to default by Celeritas CMakeLists" FORCE)
 endif()
-
-cmake_dependent_option(CELERITAS_SHIELD_DEVICE
-  "Hide host-only includes from NVCC device compilation phase"
-  ON
-  "CELERITAS_USE_CUDA" OFF)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS OFF)

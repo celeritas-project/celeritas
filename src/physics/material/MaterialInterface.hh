@@ -8,13 +8,10 @@
 #pragma once
 
 #include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "Types.hh"
-
-#if !CELER_SHIELD_DEVICE
-#    include "base/CollectionBuilder.hh"
-#endif
 
 namespace celeritas
 {
@@ -176,7 +173,6 @@ struct MaterialStateData
     }
 };
 
-#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Resize a material state in host code.
@@ -192,7 +188,6 @@ inline void resize(
     make_builder(&data->element_scratch)
         .resize(size * params.max_element_components);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

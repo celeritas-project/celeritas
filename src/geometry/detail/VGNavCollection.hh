@@ -7,9 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#if !CELER_SHIELD_DEVICE
-#    include <memory>
-#endif
+#include <memory>
 #include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/navigation/NavStatePool.h>
 #include "base/Assert.hh"
@@ -42,7 +40,6 @@ struct VGNavCollection<Ownership::reference, MemSpace::host>;
 template<>
 struct VGNavCollection<Ownership::reference, MemSpace::device>;
 
-#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 // HOST MEMSPACE
 //---------------------------------------------------------------------------//
@@ -83,12 +80,9 @@ struct VGNavCollection<Ownership::reference, MemSpace::host>
     //! True if the collection is assigned/valiid
     explicit operator bool() const { return static_cast<bool>(ptr); }
 };
-#endif
 
 //---------------------------------------------------------------------------//
 // DEVICE MEMSPACE
-
-#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Delete a VecGeom pool.
@@ -126,7 +120,6 @@ struct VGNavCollection<Ownership::value, MemSpace::device>
     //! True if the collection is assigned/valid
     explicit CELER_FUNCTION operator bool() const { return ptr; }
 };
-#endif
 
 //---------------------------------------------------------------------------//
 /*!

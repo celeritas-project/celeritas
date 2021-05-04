@@ -11,10 +11,11 @@
 
 #include "celeritas_config.h"
 #include "Macros.hh"
-#if !CELER_SHIELD_DEVICE
-#    include <sstream>
+
 #    include <stdexcept>
 #    include <string>
+#ifndef __CUDA_ARCH__
+#    include <sstream>
 #endif
 
 //---------------------------------------------------------------------------//
@@ -275,15 +276,11 @@ enum class DebugErrorType
                                        const char* file,
                                        int         line);
 
-#if !CELER_SHIELD_DEVICE
 // Construct and throw a RuntimeError.
 [[noreturn]] void throw_runtime_error(std::string msg,
                                       const char* condition,
                                       const char* file,
                                       int         line);
-#endif
-
-#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 // TYPES
 //---------------------------------------------------------------------------//
@@ -309,8 +306,6 @@ class RuntimeError : public std::runtime_error
     explicit RuntimeError(const char* msg);
     explicit RuntimeError(const std::string& msg);
 };
-
-#endif //__CUDA_ARCH__
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

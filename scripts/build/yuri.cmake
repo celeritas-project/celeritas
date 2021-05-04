@@ -11,7 +11,7 @@ set_cache_var(CELERITAS_GIT_SUBMODULE BOOL OFF)
 set_cache_var(CELERITAS_USE_MPI BOOL ON)
 set_cache_var(CELERITAS_USE_ROOT BOOL ON)
 set_cache_var(CELERITAS_USE_SWIG_Python BOOL ON)
-set_cache_var(CELERITAS_USE_VecGeom BOOL ON)
+set_cache_var(CELERITAS_USE_VecGeom BOOL OFF)
 
 # Build options
 set_cache_var(BUILD_SHARED_LIBS BOOL ON)

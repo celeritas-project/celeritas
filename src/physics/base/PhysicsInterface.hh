@@ -9,16 +9,13 @@
 
 #include "base/Array.hh"
 #include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
 #include "Types.hh"
 #include "physics/em/detail/LivermorePE.hh"
 #include "physics/em/detail/EPlusGG.hh"
 #include "physics/grid/ValueGridInterface.hh"
 #include "physics/grid/XsGridInterface.hh"
 #include "physics/material/Types.hh"
-
-#if !CELER_SHIELD_DEVICE
-#    include "base/CollectionBuilder.hh"
-#endif
 
 namespace celeritas
 {
@@ -325,7 +322,6 @@ struct PhysicsStateData
     }
 };
 
-#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Resize the state in host code.
@@ -342,7 +338,6 @@ inline void resize(
     make_builder(&state->per_process_xs)
         .resize(size * params.max_particle_processes);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

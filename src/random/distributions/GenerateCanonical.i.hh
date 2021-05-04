@@ -6,13 +6,10 @@
 //! \file GenerateCanonical.i.hh
 //---------------------------------------------------------------------------//
 
-#if !CELER_SHIELD_DEVICE
-#    include <random>
-#endif
+#include <random>
 
 namespace celeritas
 {
-#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Generate random numbers in [0, 1).
@@ -26,7 +23,6 @@ auto GenerateCanonical<Generator, RealType>::operator()(Generator& rng)
     using limits_t = std::numeric_limits<result_type>;
     return std::generate_canonical<result_type, limits_t::digits>(rng);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 /*!
