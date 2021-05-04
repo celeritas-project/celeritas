@@ -4,6 +4,15 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
+if(CELERITAS_BUILD_TESTS)
+  # Set environment variables from Geant4-exported configuration
+  set(_geant_test_env)
+  foreach(_ds IN LISTS Geant4_DATASETS)
+    list(APPEND _geant_test_env
+      "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}")
+  endforeach()
+endif()
+
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
   # Exporter
   add_executable(geant-exporter geant-exporter/geant-exporter.cc
@@ -40,13 +49,6 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
       COMMAND "$<TARGET_FILE:geant-exporter>"
       "${_geant_test_inp}" "test-data.root"
     )
-
-    # Set environment variables from Geant4-exported configuration
-    set(_geant_test_env)
-    foreach(_ds IN LISTS Geant4_DATASETS)
-      list(APPEND _geant_test_env
-        "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}")
-    endforeach()
     set_tests_properties("app/geant-exporter" PROPERTIES
       ENVIRONMENT "${_geant_test_env}"
       REQUIRED_FILES "${_geant_test_inp}"
@@ -186,6 +188,7 @@ endif()
 #-----------------------------------------------------------------------------#
 # DEMO: full physics loop
 #-----------------------------------------------------------------------------#
+
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   set(_cuda_src)
   if(CELERITAS_USE_CUDA)
@@ -197,19 +200,17 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     demo-loop/LDemoIO.cc
     demo-loop/LDemoParams.cc
     demo-loop/LDemoRun.cc
-    demo-loop/demo-loop.cc
     ${_cuda_src}
   )
 
-  if(CELERITAS_USE_CUDA)
-    celeritas_link_vecgeom_cuda(celeritas_demo_loop)
-  endif()
   target_link_libraries(celeritas_demo_loop
     PRIVATE
     celeritas
     nlohmann_json::nlohmann_json
-    Celeritas::ROOT
   )
+  if(CELERITAS_USE_CUDA)
+    celeritas_link_vecgeom_cuda(celeritas_demo_loop)
+  endif()
 
   # Add the executable
   add_executable(demo-loop
@@ -217,11 +218,32 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   )
   target_link_libraries(demo-loop
     celeritas
+    Celeritas::ROOT
     VecGeom::vecgeom
     celeritas_demo_loop
     nlohmann_json::nlohmann_json
   )
 
+  # TODO: update input files and enable test
+  if(CELERITAS_BUILD_TESTS)
+    set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
+    set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/geant-exporter/data/four-steel-slabs.gdml")
+    set(_root_inp "${PROJECT_SOURCE_DIR}/test/io/data/geant-exporter-data.root")
+    add_test(NAME "app/demo-loop"
+      COMMAND "$<TARGET_FILE:Python::Interpreter>"
+      "${_driver}" "${_gdml_inp}" "${_root_inp}"
+    )
+    set(_env
+      "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
+      "CELER_DISABLE_PARALLEL=1"
+    )
+    set_tests_properties("app/demo-loop" PROPERTIES
+      ENVIRONMENT "${_env};${_geant_test_env}"
+      RESOURCE_LOCK gpu
+      REQUIRED_FILES "${_driver};${_gdml_inp};${_root_inp}"
+      DISABLED true
+    )
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

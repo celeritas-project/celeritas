@@ -200,7 +200,7 @@ class Collection
     Collection& operator=(Collection&& other) = default;
     //!@}
 
-    // Assign from another collectio
+    // Assign from another collection
     template<Ownership W2, MemSpace M2>
     inline Collection& operator=(const Collection<T, W2, M2, I>& other);
 

@@ -58,7 +58,7 @@ LDemoParams load_params(const LDemoArgs& args)
             const auto& volume             = data.volumes.at(volume_id);
             input.volume_to_mat[volume_id] = MaterialId{volume.material_id};
         }
-        result.geo_mat = std::make_shared<GeoMaterialParams>(std::move(input));
+        result.geo_mats = std::make_shared<GeoMaterialParams>(std::move(input));
     }
 
     // Construct particle params
@@ -69,7 +69,9 @@ LDemoParams load_params(const LDemoArgs& args)
     // Construct cutoffs
     {
         CutoffParams::Input input;
-        result.cutoffs = std::make_shared<CutoffParams>(std::move(input));
+        input.materials = result.materials;
+        input.particles = result.particles;
+        result.cutoffs  = std::make_shared<CutoffParams>(std::move(input));
     }
 
     // Load physics: create individual processes with make_shared
@@ -78,13 +80,20 @@ LDemoParams load_params(const LDemoArgs& args)
         input.particles = result.particles;
         input.materials = result.materials;
 
+        // TODO: add remaining processes
         auto process_data
             = std::make_shared<ImportedProcesses>(std::move(data.processes));
         input.processes.push_back(
             std::make_shared<ComptonProcess>(result.particles, process_data));
-        CELER_NOT_IMPLEMENTED("TODO: add remaining processes");
+        input.processes.push_back(std::make_shared<EIonizationProcess>(
+            result.particles, process_data));
 
         result.physics = std::make_shared<PhysicsParams>(std::move(input));
+    }
+
+    // Construct RNG params
+    {
+        result.rng = std::make_shared<RngParams>(args.seed);
     }
 
     CELER_ENSURE(result);

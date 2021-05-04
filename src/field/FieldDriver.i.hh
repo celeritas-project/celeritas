@@ -248,9 +248,9 @@ FieldDriver::one_good_step(real_type step, const OdeState& state)
     output.state      = result.end_state;
     output.step_taken = step;
     output.next_step  = (errmax2 > ipow<2>(shared_.errcon))
-                            ? shared_.safety * step
+                           ? shared_.safety * step
                                  * std::pow(errmax2, half() * shared_.pgrow)
-                            : shared_.max_stepping_increase * step;
+                           : shared_.max_stepping_increase * step;
 
     return output;
 }

@@ -176,9 +176,15 @@ auto ValueGridXsBuilder::build(ValueGridInserter insert) const -> ValueGridId
     auto log_energy
         = UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size());
 
-    // Find and check prime energy index
+    // Find and check prime energy index. Due to floating-point roundoff,
+    // \c log_eprime might not be *exactly* on a grid point, and it's possible
+    // the index below that of the correct grid point will be returned instead.
+    // Check and correct for this.
     UniformGrid grid{log_energy};
     auto        prime_index = grid.find(log_eprime_);
+    if (soft_equal(grid[prime_index + 1], log_eprime_))
+        ++prime_index;
+    CELER_ASSERT(prime_index + 1 < xs_.size());
     CELER_ASSERT(soft_equal(grid[prime_index], log_eprime_));
 
     return insert(

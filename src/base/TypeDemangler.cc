@@ -30,7 +30,7 @@ std::string demangled_typeid_name(const char* typeid_name)
 
     // Free the returned memory
     std::free(demangled);
-#else // __GNUG__
+#else  // __GNUG__
     std::string result(typeid_name);
 #endif // __GNUG__
 

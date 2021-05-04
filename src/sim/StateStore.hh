@@ -10,7 +10,7 @@
 #include "base/DeviceVector.hh"
 #include "geometry/GeoParams.hh"
 #include "random/RngInterface.hh"
-#include "SimStateStore.hh"
+#include "SimInterface.hh"
 #include "TrackInterface.hh"
 
 namespace celeritas
@@ -53,8 +53,8 @@ class StateStore
     DeviceVal<ParticleStateData> particle_states_;
     DeviceVal<RngStateData>      rng_states_;
     DeviceVal<GeoStateData>      geo_states_;
+    DeviceVal<SimStateData>      sim_states_;
 
-    SimStateStore             sim_states_;
     DeviceVector<Interaction> interactions_;
 };
 

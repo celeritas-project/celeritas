@@ -42,7 +42,7 @@ __global__ void interact_kernel(StatePointers              states,
             // Kill the selected tracks
             if (!input.alive[thread_id.get()])
             {
-                sim.alive() = false;
+                sim.alive(false);
             }
         }
         else

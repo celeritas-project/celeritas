@@ -8,6 +8,7 @@
 #include "SimStateInit.hh"
 
 #include "base/Assert.hh"
+#include "../SimTrackView.hh"
 
 namespace celeritas
 {
@@ -17,9 +18,20 @@ namespace detail
 /*!
  * Initialize the sim states on device.
  */
-void sim_state_init_device(const SimStatePointers&)
+void sim_state_init(const SimStateData<Ownership::reference, MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the sim states on host.
+ */
+void sim_state_init(
+    const SimStateData<Ownership::reference, MemSpace::host>& data)
+{
+    for (auto id : range(ThreadId{data.size()}))
+        data.state[id] = SimTrackView::Initializer_t{};
 }
 
 //---------------------------------------------------------------------------//

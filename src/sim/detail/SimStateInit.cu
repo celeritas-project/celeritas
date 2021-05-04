@@ -23,7 +23,8 @@ namespace
 /*!
  * Initialize the sim states on device (setting 'alive' to false).
  */
-__global__ void sim_init_kernel(const SimStatePointers state)
+__global__ void
+sim_init_kernel(SimStateData<Ownership::reference, MemSpace::device> const state)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < state.size())
@@ -41,14 +42,26 @@ __global__ void sim_init_kernel(const SimStatePointers state)
 /*!
  * Initialize the sim states on device.
  */
-void sim_state_init_device(const SimStatePointers& device_ptrs)
+void sim_state_init(
+    const SimStateData<Ownership::reference, MemSpace::device>& data)
 {
     // Launch kernel to build sim states on device
     static const celeritas::KernelParamCalculator calc_launch_params(
         sim_init_kernel, "sim_init");
-    auto params = calc_launch_params(device_ptrs.size());
-    sim_init_kernel<<<params.grid_size, params.block_size>>>(device_ptrs);
+    auto params = calc_launch_params(data.size());
+    sim_init_kernel<<<params.grid_size, params.block_size>>>(data);
     CELER_CUDA_CHECK_ERROR();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the sim states on host.
+ */
+void sim_state_init(
+    const SimStateData<Ownership::reference, MemSpace::host>& data)
+{
+    for (auto id : range(ThreadId{data.size()}))
+        data.state[id] = SimTrackView::Initializer_t{};
 }
 
 //---------------------------------------------------------------------------//

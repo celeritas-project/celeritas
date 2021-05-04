@@ -8,15 +8,23 @@
 #pragma once
 
 #include "base/Span.hh"
-#include "../SimInterface.hh"
 
 namespace celeritas
 {
+template<Ownership W, MemSpace M>
+struct SimStateData;
+
 namespace detail
 {
 //---------------------------------------------------------------------------//
 // Initialize the sim state on device
-void sim_state_init_device(const SimStatePointers& device_ptrs);
+void sim_state_init(
+    const SimStateData<Ownership::reference, MemSpace::device>& data);
+
+//---------------------------------------------------------------------------//
+// Initialize the sim state on host
+void sim_state_init(
+    const SimStateData<Ownership::reference, MemSpace::host>& data);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

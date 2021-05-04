@@ -16,8 +16,7 @@ namespace celeritas
 /*!
  * Construct with the track state storage objects.
  */
-StateStore::StateStore(const Input& inp)
-    : sim_states_(SimStateStore(inp.num_tracks)), interactions_(inp.num_tracks)
+StateStore::StateStore(const Input& inp) : interactions_(inp.num_tracks)
 {
     CELER_EXPECT(inp.geo);
     make_builder(&particle_states_.state).resize(inp.num_tracks);
@@ -27,6 +26,7 @@ StateStore::StateStore(const Input& inp)
     rng_params.seed = inp.host_seed;
     resize(&rng_states_, make_const_ref(rng_params), inp.num_tracks);
 
+    resize(&sim_states_, inp.num_tracks);
     resize(&geo_states_, inp.geo->host_pointers(), inp.num_tracks);
 
     CELER_ENSURE(inp.num_tracks == this->size());
@@ -42,7 +42,7 @@ StatePointers StateStore::device_pointers()
     result.particle     = particle_states_;
     result.rng          = rng_states_;
     result.geo          = geo_states_;
-    result.sim          = sim_states_.device_pointers();
+    result.sim          = sim_states_;
     result.interactions = interactions_.device_pointers();
     CELER_ENSURE(result);
     return result;
