@@ -60,6 +60,7 @@ CELER_FUNCTION real_type propagate(GeoTrackView&           geo,
         LinearPropagator propagate(&geo);
         auto             geo_step = propagate(step);
         step                      = geo_step.distance;
+        // TODO: check whether the volume/material have changed
     }
     return step;
 }
