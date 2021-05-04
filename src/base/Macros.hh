@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
+
 /*!
  * \def CELER_FUNCTION
  *
@@ -44,6 +46,22 @@
  * NVCC, can be evaluated at compile time, and should be forcibly inlined.
  */
 #define CELER_CONSTEXPR_FUNCTION constexpr CELER_FORCEINLINE_FUNCTION
+
+/*!
+ * \def CELER_SHIELD_DEVICE
+ *
+ * True/false macro definition for hiding host-code-only includes from the
+ * __device__ build phase. This macro can substantially improve NVCC build
+ * times by preventing the compiler from having to read and write large chunks
+ * of the standard library to the .cpp1.ii device compilation phase. However,
+ * enabling the option will prevent the use of management classes such as
+ * CollectionBuilder from working in .cu files.
+ */
+#if defined(__CUDA_ARCH__) && CELERITAS_SHIELD_DEVICE
+#    define CELER_SHIELD_DEVICE 1
+#else
+#    define CELER_SHIELD_DEVICE 0
+#endif
 
 /*!
  * \def CELER_UNLIKELY(condition)

@@ -17,5 +17,6 @@
 #cmakedefine01 CELERITAS_USE_VECGEOM
 
 #cmakedefine01 CELERITAS_DEBUG
+#cmakedefine01 CELERITAS_SHIELD_DEVICE
 
 #endif /* celeritas_config_h */
