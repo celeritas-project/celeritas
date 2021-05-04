@@ -32,8 +32,7 @@ class UniformRealDistribution
 
   public:
     // Construct on [0, 1)
-    inline CELER_FUNCTION
-    UniformRealDistribution();
+    inline CELER_FUNCTION UniformRealDistribution();
 
     // Construct on an arbitrary interval
     explicit inline CELER_FUNCTION

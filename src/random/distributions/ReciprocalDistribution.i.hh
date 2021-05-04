@@ -40,7 +40,7 @@ template<class RealType>
 CELER_FUNCTION
 ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a,
                                                          real_type b)
-    : a_(a), logratio_(std::log((1/a) * b))
+    : a_(a), logratio_(std::log((1 / a) * b))
 {
     CELER_EXPECT(a > 0);
     CELER_EXPECT(b > 0);

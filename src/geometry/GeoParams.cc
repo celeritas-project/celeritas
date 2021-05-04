@@ -44,7 +44,7 @@ GeoParams::GeoParams(const char* gdml_filename)
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
     }
 
-    num_volumes_ = vecgeom::VPlacedVolume::GetIdCount();
+    num_volumes_           = vecgeom::VPlacedVolume::GetIdCount();
     host_ref_.world_volume = vecgeom::GeoManager::Instance().GetWorld();
     host_ref_.max_depth    = vecgeom::GeoManager::Instance().getMaxDepth();
 

@@ -12,10 +12,6 @@
 #include <functional>
 #include "base/Assert.hh"
 
-#ifdef __CUDA_ARCH__
-#    warning "This file should not be included by device code"
-#endif
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

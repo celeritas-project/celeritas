@@ -8,13 +8,10 @@
 #pragma once
 
 #include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "Types.hh"
-
-#ifndef __CUDA_ARCH__
-#    include "base/CollectionBuilder.hh"
-#endif
 
 namespace celeritas
 {
@@ -176,7 +173,6 @@ struct MaterialStateData
     }
 };
 
-#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Resize a material state in host code.
@@ -192,7 +188,6 @@ inline void resize(
     make_builder(&data->element_scratch)
         .resize(size * params.max_element_components);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

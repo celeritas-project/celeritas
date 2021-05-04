@@ -36,8 +36,8 @@ struct numeric_limits<float>
     }
     static float infinity() { return std::numeric_limits<float>::infinity(); }
 #else
-    static CELER_FUNCTION float  quiet_NaN() { return CUDART_NAN_F; }
-    static CELER_FUNCTION float  infinity() { return CUDART_INF_F; }
+    static CELER_FUNCTION float quiet_NaN() { return CUDART_NAN_F; }
+    static CELER_FUNCTION float infinity() { return CUDART_INF_F; }
 #endif
 };
 

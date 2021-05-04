@@ -39,12 +39,10 @@ class ReciprocalDistribution
 
   public:
     // Construct on an the interval [a, 1]
-    explicit inline CELER_FUNCTION
-    ReciprocalDistribution(real_type a);
+    explicit inline CELER_FUNCTION ReciprocalDistribution(real_type a);
 
     // Construct on an arbitrary interval
-    inline CELER_FUNCTION
-    ReciprocalDistribution(real_type a, real_type b);
+    inline CELER_FUNCTION ReciprocalDistribution(real_type a, real_type b);
 
     // Sample a random number according to the distribution
     template<class Generator>

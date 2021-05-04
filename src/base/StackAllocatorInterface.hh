@@ -8,13 +8,10 @@
 #pragma once
 
 #include "Collection.hh"
+#include "CollectionAlgorithms.hh"
+#include "CollectionBuilder.hh"
 #include "Macros.hh"
 #include "Types.hh"
-
-#ifndef __CUDA_ARCH__
-#    include "CollectionAlgorithms.hh"
-#    include "CollectionBuilder.hh"
-#endif
 
 namespace celeritas
 {
@@ -48,7 +45,6 @@ struct StackAllocatorData
     }
 };
 
-#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Resize a stack allocator in host code.
@@ -62,7 +58,6 @@ resize(StackAllocatorData<T, Ownership::value, M>* data, size_type capacity)
     make_builder(&data->size).resize(1);
     celeritas::fill(size_type(0), &data->size);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

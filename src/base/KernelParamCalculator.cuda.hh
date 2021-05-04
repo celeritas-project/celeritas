@@ -13,10 +13,8 @@
 #include "Macros.hh"
 #include "OpaqueId.hh"
 #include "Types.hh"
-#ifndef __CUDA_ARCH__
-#    include "comm/Device.hh"
-#    include "comm/KernelDiagnostics.hh"
-#endif
+#include "comm/Device.hh"
+#include "comm/KernelDiagnostics.hh"
 
 namespace celeritas
 {
@@ -92,8 +90,6 @@ CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
 #endif
 }
 
-#ifndef __CUDA_ARCH__
-// Hide host-side Device and KernelDiagnostsics from device build
 //---------------------------------------------------------------------------//
 /*!
  * Construct for the given global kernel F.
@@ -118,7 +114,6 @@ KernelParamCalculator::KernelParamCalculator(F           kernel_func,
     CELER_EXPECT(block_size % celeritas::device().warp_size() == 0);
     id_ = celeritas::kernel_diagnostics().insert(kernel_func, name, block_size);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
