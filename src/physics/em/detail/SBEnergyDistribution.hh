@@ -119,7 +119,7 @@ class SBEnergyDistribution
     const TwodSubgridCalculator calc_xs_;
     const real_type             inv_max_xs_;
 
-    const real_type dens_corr_;
+    const real_type   dens_corr_;
     ReciprocalSampler sample_exit_esq_;
 
     //// CONSTRUCTION HELPER FUNCTIONS ////

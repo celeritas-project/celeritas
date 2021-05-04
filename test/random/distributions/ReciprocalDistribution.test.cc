@@ -32,8 +32,8 @@ TEST_F(ReciprocalDistributionTest, bin)
 {
     int num_samples = 10000;
 
-    double   min = 0.1;
-    double   max = 0.9;
+    double min = 0.1;
+    double max = 0.9;
 
     ReciprocalDistribution<double> sample_recip{min, max};
 

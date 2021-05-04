@@ -7,10 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#ifndef __CUDA_ARCH__
-#    include <cstddef>
-#    include <functional>
-#endif
+#include <cstddef>
+#include <functional>
 #include "Assert.hh"
 #include "Macros.hh"
 #include "Types.hh"
@@ -129,7 +127,6 @@ using ThreadId = OpaqueId<struct Thread>;
 // STD::HASH SPECIALIZATION FOR HOST CODE
 //---------------------------------------------------------------------------//
 //! \cond
-#ifndef __CUDA_ARCH__
 namespace std
 {
 //! Specialization for std::hash for unordered storage.
@@ -144,5 +141,4 @@ struct hash<celeritas::OpaqueId<V, S>>
     }
 };
 } // namespace std
-#endif // __CUDA_ARCH__
 //! \endcond

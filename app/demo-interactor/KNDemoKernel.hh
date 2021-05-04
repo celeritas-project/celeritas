@@ -40,7 +40,7 @@ struct TableData
     using Items = celeritas::Collection<T, W, M>;
 
     Items<celeritas::real_type> reals;
-    celeritas::XsGridData      xs;
+    celeritas::XsGridData       xs;
 
     //// MEMBER FUNCTIONS ////
 
@@ -104,12 +104,12 @@ struct StateData
     using SecondaryAllocatorData
         = celeritas::StackAllocatorData<celeritas::Secondary, W, M>;
 
-    celeritas::ParticleStateData<W, M>    particle;
+    celeritas::ParticleStateData<W, M>                              particle;
     celeritas::RngStateData<Ownership::reference, MemSpace::device> rng;
-    celeritas::Span<celeritas::Real3>     position;
-    celeritas::Span<celeritas::Real3>     direction;
-    celeritas::Span<celeritas::real_type> time;
-    celeritas::Span<bool>                 alive;
+    celeritas::Span<celeritas::Real3>                               position;
+    celeritas::Span<celeritas::Real3>                               direction;
+    celeritas::Span<celeritas::real_type>                           time;
+    celeritas::Span<bool>                                           alive;
 
     SecondaryAllocatorData  secondaries;
     DetectorStateData<W, M> detector;

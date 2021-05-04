@@ -138,7 +138,8 @@ CELER_FUNCTION real_type ParticleTrackView::decay_constant() const
  *
  * the speed can be simplified to
  * \f[
- * v = c \sqrt{1 - \left( \frac{mc^2}{K + mc^2} \right)^2} = c \sqrt{1 - \gamma^{-2}}
+ * v = c \sqrt{1 - \left( \frac{mc^2}{K + mc^2} \right)^2}
+ *   = c \sqrt{1 - \gamma^{-2}}
  * \f]
  *
  * where \f$ \gamma \f$ is the Lorentz factor (see below).

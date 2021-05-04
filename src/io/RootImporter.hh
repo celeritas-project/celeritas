@@ -19,7 +19,6 @@
 #include "physics/material/MaterialParams.hh"
 #include "ImportData.hh"
 
-
 // ROOT
 class TFile;
 

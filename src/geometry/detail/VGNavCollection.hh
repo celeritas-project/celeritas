@@ -7,9 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#ifndef __CUDA_ARCH__
-#    include <memory>
-#endif
+#include <memory>
 #include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/navigation/NavStatePool.h>
 #include "base/Assert.hh"
@@ -42,7 +40,6 @@ struct VGNavCollection<Ownership::reference, MemSpace::host>;
 template<>
 struct VGNavCollection<Ownership::reference, MemSpace::device>;
 
-#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 // HOST MEMSPACE
 //---------------------------------------------------------------------------//
@@ -83,12 +80,9 @@ struct VGNavCollection<Ownership::reference, MemSpace::host>
     //! True if the collection is assigned/valiid
     explicit operator bool() const { return static_cast<bool>(ptr); }
 };
-#endif
 
 //---------------------------------------------------------------------------//
 // DEVICE MEMSPACE
-
-#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Delete a VecGeom pool.
@@ -117,16 +111,15 @@ struct VGNavCollection<Ownership::value, MemSpace::device>
         = std::unique_ptr<vecgeom::cxx::NavStatePool, NavStatePoolDeleter>;
 
     UPNavStatePool pool;
-    void*          ptr  = nullptr;
+    void*          ptr       = nullptr;
     int            max_depth = 0;
-    size_type      size = 0;
+    size_type      size      = 0;
 
     // Resize based on geometry params and state size
     void resize(int max_depth, size_type size);
     //! True if the collection is assigned/valid
     explicit CELER_FUNCTION operator bool() const { return ptr; }
 };
-#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -171,7 +164,6 @@ CELER_FUNCTION auto VGNavCollection<Ownership::reference, MemSpace::device>::at(
 
     return *const_cast<NavState*>((this->pool_view)[thread.get()]);
 }
-
 
 //---------------------------------------------------------------------------//
 } // namespace detail

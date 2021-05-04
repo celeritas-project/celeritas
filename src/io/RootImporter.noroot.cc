@@ -26,8 +26,7 @@ RootImporter::RootImporter(const char*)
 
 RootImporter::~RootImporter() = default;
 
-auto RootImporter::operator()()
-    -> ImportData
+auto RootImporter::operator()() -> ImportData
 {
     CELER_ASSERT_UNREACHABLE();
 }

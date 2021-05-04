@@ -9,14 +9,11 @@
 
 #include "base/Array.hh"
 #include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "detail/VGNavCollection.hh"
 #include "detail/VGTraits.hh"
-
-#ifndef __CUDA_ARCH__
-#    include "base/CollectionBuilder.hh"
-#endif
 
 namespace celeritas
 {
@@ -25,18 +22,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Pointers to persistent data used by VecGeom implementation.
- *
- * If the GeoParamsPointers is constructed by \c VGHost::host_pointers, it
- * points to a \c vecgeom::cxx::VPlacedVolume . If built by \c
- * VGDevice::device_pointers, it points to a \c vecgeom::cuda::VPlacedVolume .
- *
- * Note that because of VecGeom default namespaces triggered by the presence of
- * the \c __NVCC__ macro, this data structure actually has different types
- * <em>depending on what compiler is active</em>. Since the \c GeoTrackView
- * implementation is designed to work with both CPU and GPU (depending on
- * \c __CUDA_ARCH__ and whether the code is on device, rather than the \c
- * __NVCC__ compiler) we can't simply declare this pointer to be in the \c cuda
- * or \c cxx explicit namespaces.
  */
 template<Ownership W, MemSpace M>
 struct GeoParamsData
@@ -80,14 +65,7 @@ struct GeoTrackInitializer
 
 //---------------------------------------------------------------------------//
 /*!
- * View to a vector of VecGeom state information.
- *
- * This "view" is expected to be an argument to a geometry-related kernel
- * launch. It contains pointers to host-managed data.
- *
- * The \c vgstate and \c vgnext arguments must be the result of
- * vecgeom::NavStateContainer::GetGPUPointer; and they are only meaningful with
- * the corresponding \c vgmaxdepth, the result of \c GeoManager::getMaxDepth .
+ * Interface for VecGeom state information.
  */
 template<Ownership W, MemSpace M>
 struct GeoStateData
@@ -137,7 +115,6 @@ struct GeoStateData
     }
 };
 
-#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Resize particle states in host code.
@@ -160,7 +137,6 @@ void resize(
 
     CELER_ENSURE(data);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

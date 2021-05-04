@@ -73,8 +73,8 @@ CELER_FUNCTION Interaction Interaction::from_absorption()
 /*!
  * Construct an interaction for edge cases where there is no state change.
  */
-CELER_FUNCTION Interaction Interaction::from_unchanged(
-    units::MevEnergy energy, const Real3& direction)
+CELER_FUNCTION Interaction Interaction::from_unchanged(units::MevEnergy energy,
+                                                       const Real3& direction)
 {
     CELER_EXPECT(energy.value() > 0);
     CELER_EXPECT(is_soft_unit_vector(direction, SoftEqual<real_type>()));

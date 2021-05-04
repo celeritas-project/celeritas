@@ -8,13 +8,10 @@
 #pragma once
 
 #include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
 #include "Types.hh"
 #include "Units.hh"
-
-#ifndef __CUDA_ARCH__
-#    include "base/CollectionBuilder.hh"
-#endif
 
 namespace celeritas
 {
@@ -146,7 +143,6 @@ struct ParticleStateData
     }
 };
 
-#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Resize particle states in host code.
@@ -160,7 +156,6 @@ resize(ParticleStateData<Ownership::value, M>* data,
     CELER_EXPECT(size > 0);
     make_builder(&data->state).resize(size);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

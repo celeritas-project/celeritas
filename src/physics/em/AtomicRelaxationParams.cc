@@ -132,9 +132,9 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
 AtomicRelaxParamsPointers AtomicRelaxationParams::host_pointers() const
 {
     AtomicRelaxParamsPointers result;
-    result.elements     = make_span(host_elements_);
-    result.electron_id  = electron_id_;
-    result.gamma_id     = gamma_id_;
+    result.elements    = make_span(host_elements_);
+    result.electron_id = electron_id_;
+    result.gamma_id    = gamma_id_;
 
     CELER_ENSURE(result);
     return result;
@@ -149,9 +149,9 @@ AtomicRelaxParamsPointers AtomicRelaxationParams::device_pointers() const
     CELER_EXPECT(celeritas::device());
 
     AtomicRelaxParamsPointers result;
-    result.elements     = device_elements_.device_pointers();
-    result.electron_id  = electron_id_;
-    result.gamma_id     = gamma_id_;
+    result.elements    = device_elements_.device_pointers();
+    result.electron_id = electron_id_;
+    result.gamma_id    = gamma_id_;
 
     CELER_ENSURE(result);
     return result;
