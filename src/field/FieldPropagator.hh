@@ -42,14 +42,13 @@ class FieldPropagator
     // Output results
     struct result_type
     {
-        real_type distance;    //!< Distance traveled
-        OdeState  state;       //!< Final position and momemtum
+        real_type distance;    //!< Curved distance traveled
         bool      on_boundary; //!< Flag for the geometry limited step
     };
 
   public:
     // Construct with shared parameters and the field driver
-    inline CELER_FUNCTION FieldPropagator(GeoTrackView&            track,
+    inline CELER_FUNCTION FieldPropagator(GeoTrackView*            track,
                                           const ParticleTrackView& particle,
                                           FieldDriver&             driver);
 
@@ -79,7 +78,7 @@ class FieldPropagator
                                                      Intersection* intersect);
 
   private:
-    GeoTrackView& track_;
+    GeoTrackView* track_;
     FieldDriver&  driver_;
     OdeState      state_;
 };

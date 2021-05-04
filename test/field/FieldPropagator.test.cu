@@ -39,7 +39,7 @@ __global__ void fp_test_kernel(const int                 size,
                                FieldTestParams           test,
                                const ParticleTrackState* init_track,
                                double*                   pos,
-                               double*                   mom,
+                               double*                   dir,
                                double*                   step)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
@@ -61,7 +61,7 @@ __global__ void fp_test_kernel(const int                 size,
     RungeKuttaStepper<MagFieldEquation> rk4(equation);
 
     FieldDriver     driver(field_params, rk4);
-    FieldPropagator propagator(geo_track, particle_track, driver);
+    FieldPropagator propagator(&geo_track, particle_track, driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -81,8 +81,8 @@ __global__ void fp_test_kernel(const int                 size,
 
     // output
     step[tid.get()] = curved_length;
-    pos[tid.get()]  = result.state.pos[0];
-    mom[tid.get()]  = result.state.mom[1];
+    pos[tid.get()]  = geo_track.pos()[0];
+    dir[tid.get()]  = geo_track.dir()[1];
 }
 
 __global__ void bc_test_kernel(const int                 size,
@@ -95,7 +95,7 @@ __global__ void bc_test_kernel(const int                 size,
                                FieldTestParams           test,
                                const ParticleTrackState* init_track,
                                double*                   pos,
-                               double*                   mom,
+                               double*                   dir,
                                double*                   step)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
@@ -117,7 +117,7 @@ __global__ void bc_test_kernel(const int                 size,
     RungeKuttaStepper<MagFieldEquation> rk4(equation);
 
     FieldDriver     driver(field_params, rk4);
-    FieldPropagator propagator(geo_track, particle_track, driver);
+    FieldPropagator propagator(&geo_track, particle_track, driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -148,13 +148,13 @@ __global__ void bc_test_kernel(const int                 size,
             {
                 icross++;
                 int j = (icross - 1) % num_boundary;
-                delta = expected_y[j] - result.state.pos[1];
+                delta = expected_y[j] - geo_track.pos()[1];
                 if (delta != 0)
                 {
                     printf("Intersection Finding Failed on GPU: ");
                     printf("Expected = %f Actual = %f\n",
                            expected_y[j],
-                           result.state.pos[1]);
+                           geo_track.pos()[1]);
                 }
             }
         }
@@ -162,8 +162,10 @@ __global__ void bc_test_kernel(const int                 size,
 
     // output
     step[tid.get()] = curved_length;
-    pos[tid.get()]  = result.state.pos[0];
-    mom[tid.get()]  = result.state.mom[1];
+    pos[tid.get()]  = geo_track.pos()[0];
+    Real3 final_dir = geo_track.dir();
+    normalize_direction(&final_dir);
+    dir[tid.get()] = final_dir[1];
 }
 
 //---------------------------------------------------------------------------//
@@ -184,7 +186,7 @@ FPTestOutput fp_test(FPTestInput input)
     // Output data for kernel
     thrust::device_vector<double> step(input.init_geo.size(), -1.0);
     thrust::device_vector<double> pos(input.init_geo.size(), -1.0);
-    thrust::device_vector<double> mom(input.init_geo.size(), -1.0);
+    thrust::device_vector<double> dir(input.init_geo.size(), -1.0);
 
     // Run kernel
     celeritas::KernelParamCalculator calc_launch_params(fp_test_kernel,
@@ -202,7 +204,7 @@ FPTestOutput fp_test(FPTestInput input)
         input.test,
         raw_pointer_cast(in_track.data()),
         raw_pointer_cast(pos.data()),
-        raw_pointer_cast(mom.data()),
+        raw_pointer_cast(dir.data()),
         raw_pointer_cast(step.data()));
     CELER_CUDA_CHECK_ERROR();
     CELER_CUDA_CALL(cudaDeviceSynchronize());
@@ -216,8 +218,8 @@ FPTestOutput fp_test(FPTestInput input)
     result.pos.resize(pos.size());
     thrust::copy(pos.begin(), pos.end(), result.pos.begin());
 
-    result.mom.resize(mom.size());
-    thrust::copy(mom.begin(), mom.end(), result.mom.begin());
+    result.dir.resize(dir.size());
+    thrust::copy(dir.begin(), dir.end(), result.dir.begin());
 
     return result;
 }
@@ -238,7 +240,7 @@ FPTestOutput bc_test(FPTestInput input)
     // Output data for kernel
     thrust::device_vector<double> step(input.init_geo.size(), -1.0);
     thrust::device_vector<double> pos(input.init_geo.size(), -1.0);
-    thrust::device_vector<double> mom(input.init_geo.size(), -1.0);
+    thrust::device_vector<double> dir(input.init_geo.size(), -1.0);
 
     // Run kernel
     celeritas::KernelParamCalculator calc_launch_params(bc_test_kernel,
@@ -256,7 +258,7 @@ FPTestOutput bc_test(FPTestInput input)
         input.test,
         raw_pointer_cast(in_track.data()),
         raw_pointer_cast(pos.data()),
-        raw_pointer_cast(mom.data()),
+        raw_pointer_cast(dir.data()),
         raw_pointer_cast(step.data()));
     CELER_CUDA_CHECK_ERROR();
     CELER_CUDA_CALL(cudaDeviceSynchronize());
@@ -270,8 +272,8 @@ FPTestOutput bc_test(FPTestInput input)
     result.pos.resize(pos.size());
     thrust::copy(pos.begin(), pos.end(), result.pos.begin());
 
-    result.mom.resize(mom.size());
-    thrust::copy(mom.begin(), mom.end(), result.mom.begin());
+    result.dir.resize(dir.size());
+    thrust::copy(dir.begin(), dir.end(), result.dir.begin());
 
     return result;
 }

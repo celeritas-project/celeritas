@@ -56,7 +56,7 @@ struct FPTestOutput
 {
     std::vector<double> step;
     std::vector<double> pos;
-    std::vector<double> mom;
+    std::vector<double> dir;
 };
 
 //---------------------------------------------------------------------------//

@@ -63,7 +63,7 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         EXPECT_SOFT_EQ(5.5, geo_track.next_step());
 
         // Construct FieldPropagator
-        FieldPropagator propagator(geo_track, particle_track, driver);
+        FieldPropagator propagator(&geo_track, particle_track, driver);
 
         real_type                    total_length = 0;
         FieldPropagator::result_type result;
@@ -79,8 +79,10 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         }
 
         // Check input after num_revolutions
-        EXPECT_VEC_NEAR(beg_state.pos, result.state.pos, test.epsilon);
-        EXPECT_VEC_NEAR(beg_state.mom, result.state.mom, test.epsilon);
+        EXPECT_VEC_NEAR(beg_state.pos, geo_track.pos(), test.epsilon);
+        Real3 final_dir = beg_state.mom;
+        normalize_direction(&final_dir);
+        EXPECT_VEC_NEAR(final_dir, geo_track.dir(), test.epsilon);
         EXPECT_SOFT_NEAR(total_length, expected_total_length, test.epsilon);
     }
 }
@@ -120,7 +122,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         EXPECT_SOFT_EQ(0.5, geo_track.next_step());
 
         // Construct FieldPropagator
-        FieldPropagator propagator(geo_track, particle_track, driver);
+        FieldPropagator propagator(&geo_track, particle_track, driver);
 
         int                          icross       = 0;
         real_type                    total_length = 0;
@@ -137,14 +139,14 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
                 {
                     icross++;
                     int j = (icross - 1) % num_boundary;
-                    EXPECT_DOUBLE_EQ(expected_y[j], result.state.pos[1]);
+                    EXPECT_DOUBLE_EQ(expected_y[j], geo_track.pos()[1]);
                 }
             }
         }
 
         // Check stepper results with boundary crossings
-        EXPECT_SOFT_NEAR(result.state.pos[0], -0.13151242, test.epsilon);
-        EXPECT_SOFT_NEAR(result.state.mom[1], -0.39413998, test.epsilon);
+        EXPECT_SOFT_NEAR(geo_track.pos()[0], -0.13151242, test.epsilon);
+        EXPECT_SOFT_NEAR(geo_track.dir()[1], -0.03452005, test.epsilon);
         EXPECT_SOFT_NEAR(total_length, 221.48171708, test.epsilon);
     }
 }
@@ -192,7 +194,7 @@ TEST_F(FieldPropagatorDeviceTest, field_propagator_device)
     for (unsigned int i = 0; i < output.pos.size(); ++i)
     {
         EXPECT_SOFT_NEAR(output.pos[i], test.radius, test.epsilon);
-        EXPECT_SOFT_NEAR(output.mom[i], test.momentum_y, test.epsilon);
+        EXPECT_SOFT_NEAR(output.dir[i], 1.0, test.epsilon);
         EXPECT_SOFT_NEAR(output.step[i], step_length, test.epsilon);
     }
 }
@@ -229,7 +231,7 @@ TEST_F(FieldPropagatorDeviceTest, boundary_crossing_device)
     for (unsigned int i = 0; i < output.pos.size(); ++i)
     {
         EXPECT_SOFT_NEAR(output.pos[i], -0.13151242, test.epsilon);
-        EXPECT_SOFT_NEAR(output.mom[i], -0.39413998, test.epsilon);
+        EXPECT_SOFT_NEAR(output.dir[i], -0.03452005, test.epsilon);
         EXPECT_SOFT_NEAR(output.step[i], 221.48171708, test.epsilon);
     }
 }

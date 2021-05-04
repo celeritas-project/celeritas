@@ -13,15 +13,19 @@ namespace celeritas
  * Construct with shared field parameters and the field driver.
  */
 CELER_FUNCTION
-FieldPropagator::FieldPropagator(GeoTrackView&            track,
+FieldPropagator::FieldPropagator(GeoTrackView*            track,
                                  const ParticleTrackView& particle,
                                  FieldDriver&             driver)
     : track_(track), driver_(driver)
 {
     CELER_ASSERT(particle.charge() != zero_quantity());
 
-    state_.pos = track.pos();
-    axpy(particle.momentum().value(), track.dir(), &state_.mom);
+    state_.pos = track->pos();
+
+    for (size_type i = 0; i != 3; ++i)
+    {
+        state_.mom[i] = particle.momentum().value() * track->dir()[i];
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -49,7 +53,6 @@ CELER_FUNCTION auto FieldPropagator::operator()(real_type step) -> result_type
 
     do
     {
-      //        OdeState  beg_state = end_state;
         OdeState  beg_state = state_;
         real_type step_left = step - step_taken;
 
@@ -64,16 +67,15 @@ CELER_FUNCTION auto FieldPropagator::operator()(real_type step) -> result_type
         if (intersect.intersected)
         {
             intersect.step = sub_step * intersect.scale;
-            state_      = this->find_intersection(beg_state, &intersect);
-            sub_step    = intersect.step;
-            state_.pos  = intersect.pos;
-
+            state_         = this->find_intersection(beg_state, &intersect);
+            sub_step       = intersect.step;
+            state_.pos     = intersect.pos;
             result.on_boundary = intersect.intersected;
 
-            Real3 dir = state_.pos;
-            axpy(real_type(-1.0), beg_state.pos, &dir);
-            normalize_direction(&dir);
-            track_.propagate_state(beg_state.pos, dir);
+            Real3 intersect_dir = state_.pos;
+            axpy(real_type(-1.0), beg_state.pos, &intersect_dir);
+            normalize_direction(&intersect_dir);
+            track_->propagate_state(beg_state.pos, intersect_dir);
         }
 
         // Add sub-step until there is no remaining step length
@@ -82,8 +84,13 @@ CELER_FUNCTION auto FieldPropagator::operator()(real_type step) -> result_type
     } while (!intersect.intersected
              && (step_taken + driver_.minimum_step()) < step);
 
-    result.state    = state_;
     result.distance = step_taken;
+
+    // Update GeoTrackView and return result
+    Real3 dir = state_.mom;
+    normalize_direction(&dir);
+    track_->set_dir(dir);
+    track_->set_pos(state_.pos);
 
     return result;
 }
@@ -106,7 +113,7 @@ void FieldPropagator::query_intersection(const Real3&  beg_pos,
     real_type length = norm(chord);
     CELER_ASSERT(length > 0);
 
-    real_type safety = track_.find_safety(beg_pos);
+    real_type safety = track_->find_safety(beg_pos);
     if (length > safety)
     {
         // Check whether the linear step length to the next boundary is
@@ -114,7 +121,7 @@ void FieldPropagator::query_intersection(const Real3&  beg_pos,
         Real3 dir = chord;
         normalize_direction(&dir);
 
-        real_type linear_step = track_.compute_step(beg_pos, dir, &safety);
+        real_type linear_step = track_->compute_step(beg_pos, dir, &safety);
 
         intersect->intersected = (linear_step <= length);
         intersect->scale       = linear_step / length;
@@ -166,7 +173,7 @@ OdeState FieldPropagator::find_intersection(const OdeState& beg_state,
             axpy(real_type(-1.0), beg_pos, &dir);
             normalize_direction(&dir);
             real_type safety      = 0;
-            real_type linear_step = track_.compute_step(beg_pos, dir, &safety);
+            real_type linear_step = track_->compute_step(beg_pos, dir, &safety);
 
             intersect->scale = (linear_step / intersect->step);
             intersect->step  = trial_step * intersect->scale;
