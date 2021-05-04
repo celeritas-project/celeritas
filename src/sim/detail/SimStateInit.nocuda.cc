@@ -18,8 +18,7 @@ namespace detail
 /*!
  * Initialize the sim states on device.
  */
-void sim_state_init(
-    const SimStateData<Ownership::reference, MemSpace::device>& data)
+void sim_state_init(const SimStateData<Ownership::reference, MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
