@@ -12,7 +12,7 @@
 #include "Types.hh"
 #include "Units.hh"
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 #    include "base/CollectionBuilder.hh"
 #endif
 
@@ -146,7 +146,7 @@ struct ParticleStateData
     }
 };
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Resize particle states in host code.

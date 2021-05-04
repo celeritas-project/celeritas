@@ -11,7 +11,7 @@
 
 #include "celeritas_config.h"
 #include "Macros.hh"
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 #    include <sstream>
 #    include <stdexcept>
 #    include <string>
@@ -275,7 +275,7 @@ enum class DebugErrorType
                                        const char* file,
                                        int         line);
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 // Construct and throw a RuntimeError.
 [[noreturn]] void throw_runtime_error(std::string msg,
                                       const char* condition,
@@ -283,7 +283,7 @@ enum class DebugErrorType
                                       int         line);
 #endif
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 // TYPES
 //---------------------------------------------------------------------------//

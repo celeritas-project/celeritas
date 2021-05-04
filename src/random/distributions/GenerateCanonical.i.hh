@@ -6,13 +6,13 @@
 //! \file GenerateCanonical.i.hh
 //---------------------------------------------------------------------------//
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 #    include <random>
 #endif
 
 namespace celeritas
 {
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Generate random numbers in [0, 1).

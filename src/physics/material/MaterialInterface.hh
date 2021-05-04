@@ -12,7 +12,7 @@
 #include "physics/base/Units.hh"
 #include "Types.hh"
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 #    include "base/CollectionBuilder.hh"
 #endif
 
@@ -176,7 +176,7 @@ struct MaterialStateData
     }
 };
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Resize a material state in host code.

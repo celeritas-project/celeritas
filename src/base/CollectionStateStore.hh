@@ -58,7 +58,7 @@ class CollectionStateStore
     template<class Params>
     CollectionStateStore(const Params& p, size_type size)
     {
-#ifdef __CUDA_ARCH__
+#if CELER_SHIELD_DEVICE
         static_assert(sizeof(Params) == 0,
                       "Collection state store is not designed for CUDA device "
                       "compilation phase");

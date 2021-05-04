@@ -11,8 +11,9 @@
 #include <iostream>
 #include <functional>
 #include "base/Assert.hh"
+#include "base/Macros.hh"
 
-#ifdef __CUDA_ARCH__
+#if CELER_SHIELD_DEVICE
 #    warning "This file should not be included by device code"
 #endif
 

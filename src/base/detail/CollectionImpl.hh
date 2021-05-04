@@ -10,7 +10,7 @@
 #include "base/Span.hh"
 #include "base/Types.hh"
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 #    include <vector>
 #    include "base/Assert.hh"
 #    include "base/DeviceVector.hh"
@@ -127,7 +127,7 @@ struct CollectionStorageValidator<Ownership::value>
     }
 };
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 //! Storage implementation for managed host data
 template<class T>

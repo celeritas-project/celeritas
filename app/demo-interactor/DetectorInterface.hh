@@ -13,7 +13,7 @@
 #include "physics/grid/UniformGridInterface.hh"
 #include "physics/base/Units.hh"
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 #    include "base/CollectionBuilder.hh"
 #endif
 
@@ -79,7 +79,7 @@ struct DetectorStateData
     }
 };
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Allocate components and capacity for the detector.

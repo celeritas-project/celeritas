@@ -16,7 +16,7 @@
 #include "physics/grid/XsGridInterface.hh"
 #include "physics/material/Types.hh"
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 #    include "base/CollectionBuilder.hh"
 #endif
 
@@ -325,7 +325,7 @@ struct PhysicsStateData
     }
 };
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Resize the state in host code.

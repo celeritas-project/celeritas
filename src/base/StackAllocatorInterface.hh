@@ -11,7 +11,7 @@
 #include "Macros.hh"
 #include "Types.hh"
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 #    include "CollectionAlgorithms.hh"
 #    include "CollectionBuilder.hh"
 #endif
@@ -48,7 +48,7 @@ struct StackAllocatorData
     }
 };
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Resize a stack allocator in host code.

@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 #    include <memory>
 #endif
 #include <VecGeom/navigation/NavigationState.h>
@@ -42,7 +42,7 @@ struct VGNavCollection<Ownership::reference, MemSpace::host>;
 template<>
 struct VGNavCollection<Ownership::reference, MemSpace::device>;
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 // HOST MEMSPACE
 //---------------------------------------------------------------------------//
@@ -88,7 +88,7 @@ struct VGNavCollection<Ownership::reference, MemSpace::host>
 //---------------------------------------------------------------------------//
 // DEVICE MEMSPACE
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Delete a VecGeom pool.

@@ -13,7 +13,7 @@
 #include "Macros.hh"
 #include "OpaqueId.hh"
 #include "Types.hh"
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 #    include "comm/Device.hh"
 #    include "comm/KernelDiagnostics.hh"
 #endif
@@ -92,7 +92,7 @@ CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
 #endif
 }
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 // Hide host-side Device and KernelDiagnostsics from device build
 //---------------------------------------------------------------------------//
 /*!

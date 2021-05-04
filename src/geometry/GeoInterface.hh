@@ -14,7 +14,7 @@
 #include "detail/VGNavCollection.hh"
 #include "detail/VGTraits.hh"
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 #    include "base/CollectionBuilder.hh"
 #endif
 
@@ -137,7 +137,7 @@ struct GeoStateData
     }
 };
 
-#ifndef __CUDA_ARCH__
+#if !CELER_SHIELD_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Resize particle states in host code.
