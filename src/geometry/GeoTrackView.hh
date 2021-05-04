@@ -75,11 +75,6 @@ class GeoTrackView
         CELER_ASSERT(!dirty_);
         return next_step_;
     }
-    CELER_FUNCTION vecgeom::NavigationState& vgnext() const { return vgnext_; }
-    CELER_FUNCTION vecgeom::NavigationState& vgstate() const
-    {
-        return vgstate_;
-    }
     //!@}
 
     //!@{
