@@ -243,19 +243,19 @@ class CollectionTest : public celeritas::Test
 
         // Test references helpers
         {
-            using celeritas::make_ref;
             using celeritas::make_const_ref;
+            using celeritas::make_ref;
 
             auto host_cref = make_const_ref(host_data);
             EXPECT_TRUE((std::is_same<decltype(host_cref),
-                                     MockParamsData<Ownership::const_reference,
-                                                    MemSpace::host>>::value));
+                                      MockParamsData<Ownership::const_reference,
+                                                     MemSpace::host>>::value));
 
             const auto& host_value_const = host_data;
             auto        host_cref2       = make_const_ref(host_value_const);
             EXPECT_TRUE((std::is_same<decltype(host_cref2),
-                                     MockParamsData<Ownership::const_reference,
-                                                    MemSpace::host>>::value));
+                                      MockParamsData<Ownership::const_reference,
+                                                     MemSpace::host>>::value));
         }
 
         // Create references and copy to device if enabled
@@ -266,7 +266,8 @@ class CollectionTest : public celeritas::Test
 };
 
 template<MemSpace M>
-inline void resize(MockStateData<Ownership::value, M>* data, celeritas::size_type size)
+inline void
+resize(MockStateData<Ownership::value, M>* data, celeritas::size_type size)
 {
     CELER_EXPECT(size > 0);
     make_builder(&data->matid).resize(size);
@@ -280,7 +281,7 @@ TEST_F(CollectionTest, host)
 {
     MockStateData<Ownership::value, MemSpace::host> host_state;
     resize(&host_state, 1);
-    auto host_state_ref = celeritas::make_ref(host_state);
+    auto host_state_ref               = celeritas::make_ref(host_state);
     host_state_ref.matid[ThreadId{0}] = MockMaterialId{1};
 
     // Create view

@@ -8,8 +8,8 @@
 #pragma once
 
 #include "Collection.hh"
-#    include "CollectionAlgorithms.hh"
-#    include "CollectionBuilder.hh"
+#include "CollectionAlgorithms.hh"
+#include "CollectionBuilder.hh"
 #include "Macros.hh"
 #include "Types.hh"
 

@@ -37,8 +37,7 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
 {
     CELER_EXPECT(energy > zero_quantity());
     CELER_EXPECT(energy.value() < inc_energy_);
-    real_type delta = cutoff_invbeta_
-                      - this->calc_invbeta(energy.value());
+    real_type delta = cutoff_invbeta_ - this->calc_invbeta(energy.value());
     return std::exp(alpha_z_ * delta);
 }
 

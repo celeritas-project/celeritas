@@ -38,11 +38,10 @@ class RayleighInteractor
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    RayleighInteractor(const RayleighNativeRef& shared,
-                       const ParticleTrackView& particle,
-                       const Real3&             inc_direction,
-                       ElementId                element_id);
+    inline CELER_FUNCTION RayleighInteractor(const RayleighNativeRef& shared,
+                                             const ParticleTrackView& particle,
+                                             const Real3& inc_direction,
+                                             ElementId    element_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>

@@ -60,8 +60,7 @@ class RayleighModel final : public Model
     CollectionMirror<detail::RayleighGroup> group_;
 
   private:
-    using HostValue
-        = detail::RayleighGroup<Ownership::value, MemSpace::host>;
+    using HostValue = detail::RayleighGroup<Ownership::value, MemSpace::host>;
     void build_data(HostValue* group, const MaterialParams& materials);
 };
 

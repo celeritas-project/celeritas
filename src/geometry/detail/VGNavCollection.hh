@@ -111,9 +111,9 @@ struct VGNavCollection<Ownership::value, MemSpace::device>
         = std::unique_ptr<vecgeom::cxx::NavStatePool, NavStatePoolDeleter>;
 
     UPNavStatePool pool;
-    void*          ptr  = nullptr;
+    void*          ptr       = nullptr;
     int            max_depth = 0;
-    size_type      size = 0;
+    size_type      size      = 0;
 
     // Resize based on geometry params and state size
     void resize(int max_depth, size_type size);
@@ -164,7 +164,6 @@ CELER_FUNCTION auto VGNavCollection<Ownership::reference, MemSpace::device>::at(
 
     return *const_cast<NavState*>((this->pool_view)[thread.get()]);
 }
-
 
 //---------------------------------------------------------------------------//
 } // namespace detail

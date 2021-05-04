@@ -12,8 +12,8 @@
 #include "celeritas_config.h"
 #include "Macros.hh"
 
-#    include <stdexcept>
-#    include <string>
+#include <stdexcept>
+#include <string>
 #ifndef __CUDA_ARCH__
 #    include <sstream>
 #endif

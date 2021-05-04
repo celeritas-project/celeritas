@@ -13,8 +13,8 @@
 #include "Macros.hh"
 #include "OpaqueId.hh"
 #include "Types.hh"
-#    include "comm/Device.hh"
-#    include "comm/KernelDiagnostics.hh"
+#include "comm/Device.hh"
+#include "comm/KernelDiagnostics.hh"
 
 namespace celeritas
 {
