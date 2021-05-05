@@ -38,10 +38,10 @@ struct FieldParamsPointers
     //! the truncation error tolerance
     real_type errcon = 1.0e-4;
 
-    //! pgrow (the exponent to increase a stepsiz)
+    //! pgrow (the exponent to increase a step size)
     real_type pgrow = -0.20;
 
-    //! pshrink (the exponent to decrease a stepsiz)
+    //! pshrink (the exponent to decrease a step size)
     real_type pshrink = -0.25;
 
     //! safety (a scale factor for the predicted step size)
@@ -60,15 +60,15 @@ struct FieldParamsPointers
     explicit inline CELER_FUNCTION operator bool() const
     {
         // clang-format off
-      return      (minimum_step > 0)
-	       && (delta_chord > 0) 
-	       && (delta_intersection > 0) 
+      return  (minimum_step > 0)
+	       && (delta_chord > 0)
+	       && (delta_intersection > 0)
 	       && (epsilon_step > 0 && epsilon_step < 1)
-	       && (epsilon_rel_max > 0) 
-	       && (errcon > 0) 
-	       && (pgrow < 0) 
-	       && (pshrink < 0) 
-	       && (safety > 0 && safety < 1) 
+	       && (epsilon_rel_max > 0)
+	       && (errcon > 0)
+	       && (pgrow < 0)
+	       && (pshrink < 0)
+	       && (safety > 0 && safety < 1)
 	       && (max_stepping_increase > 1)
 	       && (max_stepping_decrease > 0 && max_stepping_decrease < 1)
 	       && (max_nsteps > 0);

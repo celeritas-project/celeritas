@@ -19,9 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- *  Integrate with and control the quality of the field integration stepper.
+ * Integrate with and control the quality of the field integration stepper.
  *
  * \note This class is based on G4ChordFinder and G4MagIntegratorDriver.
  */
@@ -71,16 +69,16 @@ class FieldDriver
     inline CELER_FUNCTION real_type new_step_size(real_type step,
                                                   real_type error) const;
 
-    // >>> COMMON PROPERTIES
+    //// COMMON PROPERTIES ////
 
     static CELER_CONSTEXPR_FUNCTION real_type half() { return 0.5; }
 
     static CELER_CONSTEXPR_FUNCTION real_type ppm() { return 1e-6; }
 
   public:
-    // >>> AUXILIARY INTERFACE
+    //// AUXILIARY INTERFACE ////
 
-    inline CELER_FUNCTION real_type minimum_step()
+    inline CELER_FUNCTION real_type minimum_step() const
     {
         return shared_.minimum_step;
     }

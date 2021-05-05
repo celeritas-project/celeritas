@@ -17,7 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * The MagFieldEquation evaluates the righ hand side of the Lorentz equation
+ * The MagFieldEquation evaluates the right hand side of the Lorentz equation
  * for a given magnetic field value.
  */
 class MagFieldEquation

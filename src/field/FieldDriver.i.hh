@@ -24,7 +24,8 @@ FieldDriver::FieldDriver(const FieldParamsPointers&           shared,
 
 //---------------------------------------------------------------------------//
 /*!
- * Adaptive step control based on G4ChordFinder and G4MagIntegratorDriver:
+ * Adaptive step control based on G4ChordFinder and G4MagIntegratorDriver.
+ *
  * For a given trial step, advance by a sub-step within a required tolerance
  * and update the current state (position and momentum).  For an efficient
  * adaptive integration, the proposed chord of which the miss-distance (the
@@ -110,10 +111,11 @@ FieldDriver::find_next_chord(real_type step, const OdeState& state)
 
 //---------------------------------------------------------------------------//
 /*!
- * Accurate_advance for an adaptive step control: Perform an adaptive step
- * integration for a proposed step or a series of sub-steps within a required
- * tolerance until the the accumulated curved path is equal to the input step
- * length.
+ * Accurate_advance for an adaptive step control.
+ *
+ * Perform an adaptive step integration for a proposed step or a series of
+ * sub-steps within a required tolerance until the the accumulated curved path
+ * is equal to the input step length.
  */
 CELER_FUNCTION real_type FieldDriver::accurate_advance(real_type step,
                                                        OdeState* state,
@@ -167,8 +169,9 @@ CELER_FUNCTION real_type FieldDriver::accurate_advance(real_type step,
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper function for accurate_advance: advance for a given step and
- * evaluate the next predicted step.
+ * Advance for a given step and evaluate the next predicted step.
+ *
+ * Helper function for accurate_advance.
  */
 CELER_FUNCTION auto
 FieldDriver::integrate_step(real_type step, const OdeState& state)
@@ -257,7 +260,7 @@ FieldDriver::one_good_step(real_type step, const OdeState& state)
 
 //---------------------------------------------------------------------------//
 /*!
- *  Estimate the new predicted step size based on the error estimate
+ * Estimate the new predicted step size based on the error estimate.
  */
 CELER_FUNCTION
 real_type FieldDriver::new_step_size(real_type step, real_type rel_error) const

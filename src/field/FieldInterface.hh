@@ -15,7 +15,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * A utility array of the equation of motion based on \ref celeritas::Array
+ * A utility array of the equation of motion based on \ref celeritas::Array .
  */
 struct OdeState
 {
@@ -27,7 +27,7 @@ struct OdeState
 
 //---------------------------------------------------------------------------//
 /*!
- * The result of the integration stepper
+ * The result of the integration stepper.
  */
 struct StepperResult
 {
