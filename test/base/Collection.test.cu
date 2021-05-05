@@ -67,6 +67,8 @@ __global__ void col_cuda_test_kernel(
 //! Run on device and return results
 void col_cuda_test(CTestInput input)
 {
+    CELER_VALIDATE(input.states.size() > 0, << "Expected more states");
+
     static const celeritas::KernelParamCalculator calc_launch_params(
         col_cuda_test_kernel, "col_cuda_test");
     auto params = calc_launch_params(input.states.size());
