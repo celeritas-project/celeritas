@@ -132,7 +132,7 @@ TEST_F(RootImporterTest, materials)
     std::vector<double> densities, num_densities, e_densities, temperatures,
         rad_lengths, nuc_int_lenghts;
 
-    for (const auto material : materials)
+    for (const auto& material : materials)
     {
         names.push_back(material.name);
         states.push_back((int)material.state);
@@ -143,14 +143,14 @@ TEST_F(RootImporterTest, materials)
         rad_lengths.push_back(material.radiation_length);
         temperatures.push_back(material.temperature);
 
-        for (const auto key : material.pdg_cutoffs)
+        for (const auto& key : material.pdg_cutoffs)
         {
             pdgs.push_back(key.first);
             cutoff_energies.push_back(key.second.energy);
             cutoff_ranges.push_back(key.second.range);
         }
 
-        for (const auto el_comp : material.elements)
+        for (const auto& el_comp : material.elements)
         {
             el_comps_ids.push_back(el_comp.element_id);
             el_comps_mass_frac.push_back(el_comp.mass_fraction);
