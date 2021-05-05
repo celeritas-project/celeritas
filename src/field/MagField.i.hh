@@ -12,14 +12,14 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a uniform magnetic field
+ * Construct from a uniform magnetic field.
  */
 CELER_FUNCTION
 MagField::MagField(const Real3& value) : value_(value) {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a magnetic field value at a given position
+ * Return a magnetic field value at a given position.
  */
 CELER_FUNCTION Real3 MagField::operator()() const
 {

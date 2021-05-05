@@ -27,7 +27,7 @@ MagFieldEquation::MagFieldEquation(const MagField&         field,
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the right hand side of the Lorentz equation
+ * Evaluate the right hand side of the Lorentz equation.
  *
  * \f[
     m \frac{d^2 \vec{x}}{d t^2} = (q/c)(\vec{v} \times  \vec{B})

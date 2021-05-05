@@ -13,7 +13,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Adaptive step size control
+ * Adaptive step size control.
  *
  * For a magnetic field equation \em f along a charged particle trajectory
  * with state \em y, which includes position and momentum but may also include
@@ -65,7 +65,7 @@ RungeKuttaStepper<T>::operator()(real_type step, const OdeState& beg_state)
 
 //---------------------------------------------------------------------------//
 /*!
- * The classical RungeKuttaStepper stepper (the 4th order)
+ * The classical RungeKuttaStepper stepper (the 4th order).
  */
 template<class T>
 CELER_FUNCTION auto

@@ -12,7 +12,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// Perform y <- ax + y for OdeState
+/*!
+ * Perform y <- ax + y for OdeState.
+ */
 CELER_FUNCTION
 void axpy(real_type a, const OdeState& x, OdeState* y)
 {

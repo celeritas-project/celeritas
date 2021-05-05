@@ -104,6 +104,30 @@ celeritas_setup_tests(PREFIX comm)
 celeritas_add_test(comm/Communicator.test.cc)
 celeritas_add_test(comm/Logger.test.cc)
 
+
+#-----------------------------------------------------------------------------#
+# Field
+
+celeritas_setup_tests(SERIAL PREFIX field)
+
+celeritas_cudaoptional_test(field/RungeKutta)
+celeritas_cudaoptional_test(field/FieldDriver)
+
+if(CELERITAS_USE_VecGeom)
+  if(CELERITAS_USE_CUDA)
+    add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu)
+    target_link_libraries(CeleritasPropagatorTest
+      PRIVATE celeritas
+    )
+    list(APPEND CELERITASTEST_LINK_LIBRARIES CeleritasPropagatorTest)
+    celeritas_link_vecgeom_cuda(CeleritasPropagatorTest)
+    set(_CeleritasPropagatorTest CeleritasPropagatorTest)
+  endif()
+
+  celeritas_add_test(field/FieldPropagator.test.cc GPU
+    LINK_LIBRARIES VecGeom::vecgeom ${_CeleritasPropagatorTest})
+endif()
+
 #-----------------------------------------------------------------------------#
 # Geometry
 
@@ -238,14 +262,4 @@ if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     SOURCES sim/TrackInitializerStore.test.cu
     LINK_LIBRARIES VecGeom::vecgeom)
 endif()
-
-#-----------------------------------------------------------------------------#
-# Field
-
-celeritas_setup_tests(SERIAL PREFIX field)
-
-celeritas_cudaoptional_test(field/RungeKutta)
-celeritas_cudaoptional_test(field/FieldDriver)
-
-#-----------------------------------------------------------------------------#
 

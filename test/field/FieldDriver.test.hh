@@ -7,16 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
 #include "FieldTestParams.hh"
 #include "field/FieldParamsPointers.hh"
-#include <vector>
 
 namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
 //! Output results
 struct FITestOutput

@@ -195,4 +195,61 @@ CELER_FUNCTION const vecgeom::VPlacedVolume& GeoTrackView::volume() const
     return *vol_ptr;
 }
 
+//---------------------------------------------------------------------------//
+// HELPER METHODS
+//---------------------------------------------------------------------------//
+//! Find the safety to the closest geometric boundary.
+CELER_FUNCTION real_type GeoTrackView::find_safety(Real3 pos) const
+{
+    const vecgeom::VNavigator* navigator
+        = this->volume().GetLogicalVolume()->GetNavigator();
+    CELER_ASSERT(navigator);
+
+    return navigator->GetSafetyEstimator()->ComputeSafety(
+        detail::to_vector(pos), vgstate_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the distance to the next geometric boundary from a given position and
+ * to a direction and update the safety without updating the vegeom state
+ */
+CELER_FUNCTION real_type GeoTrackView::compute_step(Real3      pos,
+                                                    Real3      dir,
+                                                    real_type* safety) const
+{
+    const vecgeom::VNavigator* navigator
+        = this->volume().GetLogicalVolume()->GetNavigator();
+    CELER_ASSERT(navigator);
+
+    return navigator->ComputeStepAndSafety(detail::to_vector(pos),
+                                           detail::to_vector(dir),
+                                           vecgeom::kInfLength,
+                                           vgstate_,
+                                           true,
+                                           *safety,
+                                           false);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Propagate to the next geometric boundary from a given position and
+ * to a direction and update the vgstate
+ */
+CELER_FUNCTION void GeoTrackView::propagate_state(Real3 pos, Real3 dir) const
+{
+    const vecgeom::VNavigator* navigator
+        = this->volume().GetLogicalVolume()->GetNavigator();
+    CELER_ASSERT(navigator);
+
+    navigator->ComputeStepAndPropagatedState(detail::to_vector(pos),
+                                             detail::to_vector(dir),
+                                             vecgeom::kInfLength,
+                                             vgstate_,
+                                             vgnext_);
+
+    vgstate_ = vgnext_;
+    vgstate_.SetBoundaryState(true);
+    vgnext_.Clear();
+}
 } // namespace celeritas
