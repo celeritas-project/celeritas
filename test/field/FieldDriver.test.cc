@@ -19,10 +19,7 @@
 #include "base/Constants.hh"
 
 #include "celeritas_test.hh"
-
-#ifdef CELERITAS_USE_CUDA
-#    include "FieldDriver.test.hh"
-#endif
+#include "FieldDriver.test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -43,9 +40,9 @@ class FieldDriverTest : public Test
         test_params.field_value = 1.0 * units::tesla;
         test_params.radius      = 3.8085386036 * units::centimeter;
         test_params.delta_z     = 6.7003310629 * units::centimeter;
-        test_params.energy      = 10.9181415106;
-        test_params.momentum_y  = 10.9610028286;
-        test_params.momentum_z  = 3.1969591583;
+        test_params.energy      = 10.9181415106; // MeV
+        test_params.momentum_y  = 10.9610028286; // MeV/c
+        test_params.momentum_z  = 3.1969591583;  // MeV/c
         test_params.epsilon     = 1.0e-5;
     }
 
@@ -156,7 +153,6 @@ TEST_F(FieldDriverTest, accurate_advance_host)
     }
 }
 
-#if CELERITAS_USE_CUDA
 //---------------------------------------------------------------------------//
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
@@ -208,6 +204,3 @@ TEST_F(FieldDriverDeviceTest, TEST_IF_CELERITAS_CUDA(accurate_advance_device))
             output.length[i], circumference * test_params.revolutions, delta);
     }
 }
-
-//---------------------------------------------------------------------------//
-#endif
