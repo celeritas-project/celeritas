@@ -207,6 +207,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     PRIVATE
     celeritas
     nlohmann_json::nlohmann_json
+    Celeritas::ROOT
   )
   if(CELERITAS_USE_CUDA)
     celeritas_link_vecgeom_cuda(celeritas_demo_loop)
@@ -218,7 +219,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   )
   target_link_libraries(demo-loop
     celeritas
-    Celeritas::ROOT
     VecGeom::vecgeom
     celeritas_demo_loop
     nlohmann_json::nlohmann_json

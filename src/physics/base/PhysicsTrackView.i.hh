@@ -266,7 +266,7 @@ PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
  * If this is an energy loss process, this returns the estimate of the maximum
  * cross section over the step. If the energy of the global maximum of the
  * cross section (calculated at initialization) is in the interval \f$ [\xi
- * E_0, E_0) \f$, where \f$ \E_0 \f$ is the pre-step energy and \f$ \xi \f$ is
+ * E_0, E_0) \f$, where \f$ E_0 \f$ is the pre-step energy and \f$ \xi \f$ is
  * \c energy_fraction, \f$ \sigma_{\max} \f$ is set to the global maximum.
  * Otherwise, \f$ \sigma_{\max} = \max( \sigma(E_0), \sigma(\xi E_0) ) \f$.
  */
