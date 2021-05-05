@@ -85,9 +85,12 @@ class FieldDriver
         return shared_.minimum_step;
     }
 
-    inline CELER_FUNCTION real_type max_nsteps() { return shared_.max_nsteps; }
+    inline CELER_FUNCTION real_type max_nsteps() const
+    {
+        return shared_.max_nsteps;
+    }
 
-    inline CELER_FUNCTION real_type delta_intersection()
+    inline CELER_FUNCTION real_type delta_intersection() const
     {
         return shared_.delta_intersection;
     }
