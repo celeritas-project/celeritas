@@ -33,7 +33,7 @@ class GeoMaterialTest : public celeritas_test::GeoTestBase
         const auto data = RootImporter(root_file.c_str())();
 
         // Set up shared material data
-        material_ = std::move(MaterialParams::from_import(data));
+        material_ = MaterialParams::from_import(data);
 
         // Create geometry/material coupling
         GeoMaterialParams::Input input;

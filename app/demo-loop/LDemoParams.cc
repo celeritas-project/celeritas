@@ -39,7 +39,7 @@ LDemoParams load_params(const LDemoArgs& args)
 
     // Load materials
     {
-        result.materials = std::move(MaterialParams::from_import(data));
+        result.materials = MaterialParams::from_import(data);
     }
 
     // Create geometry/material coupling
@@ -63,7 +63,7 @@ LDemoParams load_params(const LDemoArgs& args)
 
     // Construct particle params
     {
-        result.particles = std::move(ParticleParams::from_import(data));
+        result.particles = ParticleParams::from_import(data);
     }
 
     // Construct cutoffs

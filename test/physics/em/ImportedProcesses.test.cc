@@ -36,8 +36,8 @@ class ImportedProcessesTest : public celeritas::Test
 
         auto data = import_from_root();
 
-        particles_ = std::move(ParticleParams::from_import(data));
-        materials_ = std::move(MaterialParams::from_import(data));
+        particles_ = ParticleParams::from_import(data);
+        materials_ = MaterialParams::from_import(data);
         processes_
             = std::make_shared<ImportedProcesses>(std::move(data.processes));
 
