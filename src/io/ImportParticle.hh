@@ -24,7 +24,7 @@ struct ImportParticle
     int         pdg;
     double      mass;     //!< [MeV]
     double      charge;   //!< [Multiple of electron charge]
-    double      spin;     //!< [Multiple of \hbar]
+    double      spin;     //!< [Multiple of hbar]
     double      lifetime; //!< [s]
     bool        is_stable;
 };
