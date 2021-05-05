@@ -106,11 +106,25 @@ namespace celeritas
 %template(VecImportPhysicsVector) std::vector<celeritas::ImportPhysicsVector>;
 
 %include "io/ImportPhysicsTable.hh"
-
 %template(VecImportPhysicsTable) std::vector<celeritas::ImportPhysicsTable>;
-%include "io/ImportProcess.hh"
 
+%include "io/ImportProcess.hh"
 %template(VecImportProcess) std::vector<celeritas::ImportProcess>;
+
+%include "io/ImportParticle.hh"
+%template(VecImportParticle) std::vector<celeritas::ImportParticle>;
+
+%include "io/ImportElement.hh"
+%template(VecImportElement) std::vector<celeritas::ImportElement>;
+
+%include "io/ImportMaterial.hh"
+%template(VecImportMaterial) std::vector<celeritas::ImportMaterial>;
+
+%include "io/ImportVolume.hh"
+%template(VecImportVolume) std::vector<celeritas::ImportVolume>;
+
+%include "io/ImportData.hh"
+
 %rename(RootImportResult) celeritas::RootImporter::result_type;
 %include "io/RootImporter.hh"
 
