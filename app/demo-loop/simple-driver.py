@@ -7,7 +7,7 @@
 """
 import json
 import subprocess
-from os import environ
+from os import environ, path
 from sys import exit, argv
 
 try:
@@ -17,7 +17,7 @@ except TypeError:
     exit(2)
 
 geant_exp_exe = environ.get('CELERITAS_GEANT_EXPORTER_EXE', './geant-exporter')
-physics_filename = geometry_filename + ".root"
+physics_filename = path.basename(geometry_filename) + ".root"
 
 result_ge = subprocess.run([geant_exp_exe,
                             geometry_filename,
@@ -26,7 +26,6 @@ result_ge = subprocess.run([geant_exp_exe,
 if result_ge.returncode:
     print("fatal: geant-exporter failed with error", result_ge.returncode)
     exit(result_ge.returncode)
-
 
 inp = {
     'run': {
@@ -38,6 +37,8 @@ inp = {
         'max_steps': 128
     }
 }
+
+exe = environ.get('CELERITAS_DEMO_EXE', './demo-loop')
 
 print("Input:")
 with open(f'{exe}.inp.json', 'w') as f:

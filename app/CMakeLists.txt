@@ -227,11 +227,10 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   # TODO: update input files and enable test
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
-    set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/geant-exporter/data/four-steel-slabs.gdml")
-    set(_root_inp "${PROJECT_SOURCE_DIR}/test/io/data/geant-exporter-data.root")
+    set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple_cms.gdml")
     add_test(NAME "app/demo-loop"
       COMMAND "$<TARGET_FILE:Python::Interpreter>"
-      "${_driver}" "${_gdml_inp}" "${_root_inp}"
+      "${_driver}" "${_gdml_inp}"
     )
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
@@ -241,8 +240,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     set_tests_properties("app/demo-loop" PROPERTIES
       ENVIRONMENT "${_env};${_geant_test_env}"
       RESOURCE_LOCK gpu
-      REQUIRED_FILES "${_driver};${_gdml_inp};${_root_inp}"
-      # DISABLED true
+      REQUIRED_FILES "${_driver};${_gdml_inp}"
+      DISABLED true
     )
   endif()
 endif()
