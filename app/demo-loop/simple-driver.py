@@ -7,15 +7,25 @@
 """
 import json
 import subprocess
-from os import environ
+from os import environ, path
 from sys import exit, argv
 
 try:
     geometry_filename = argv[1]
-    (physics_filename,) = argv[2:]
 except TypeError:
-    print("usage: {} inp.gdml inp.root".format(sys.argv[0]))
+    print("usage: {} inp.gdml".format(sys.argv[0]))
     exit(2)
+
+geant_exp_exe = environ.get('CELERITAS_GEANT_EXPORTER_EXE', './geant-exporter')
+physics_filename = path.basename(geometry_filename) + ".root"
+
+result_ge = subprocess.run([geant_exp_exe,
+                            geometry_filename,
+                            physics_filename])
+
+if result_ge.returncode:
+    print("fatal: geant-exporter failed with error", result_ge.returncode)
+    exit(result_ge.returncode)
 
 inp = {
     'run': {
