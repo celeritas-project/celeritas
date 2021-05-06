@@ -38,7 +38,7 @@ class GeoParamsHostTest : public GeoTestBase
 TEST_F(GeoParamsHostTest, accessors)
 {
     const auto& geom = *this->geo_params();
-    EXPECT_EQ(11, geom.num_volumes());
+    EXPECT_EQ(4, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
 
     EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}));
@@ -86,13 +86,13 @@ TEST_F(GeoTrackViewHostTest, from_outside)
     geo.find_next_step();
     EXPECT_SOFT_EQ(1, geo.next_step());
     geo.move_next_step();
-    EXPECT_EQ(VolumeId{9}, geo.volume_id()); // Shape1 -> Envelope
+    EXPECT_EQ(VolumeId{2}, geo.volume_id()); // Shape1 -> Envelope
     EXPECT_FALSE(geo.is_outside());
 
     geo.find_next_step();
     EXPECT_SOFT_EQ(1, geo.next_step());
     geo.move_next_step();
-    EXPECT_EQ(VolumeId{10}, geo.volume_id()); // Shape1 -> Envelope
+    EXPECT_EQ(VolumeId{3}, geo.volume_id()); // Shape1 -> Envelope
     EXPECT_FALSE(geo.is_outside());
 }
 
@@ -103,11 +103,11 @@ TEST_F(GeoTrackViewHostTest, from_outside_edge)
     EXPECT_TRUE(geo.is_outside());
 
     geo.move_next_step();
-    EXPECT_EQ(VolumeId{10}, geo.volume_id()); // World
+    EXPECT_EQ(VolumeId{3}, geo.volume_id()); // World
     geo.find_next_step();
     EXPECT_SOFT_EQ(7., geo.next_step());
     geo.move_next_step();
-    EXPECT_EQ(VolumeId{3}, geo.volume_id()); // World -> Envelope
+    EXPECT_EQ(VolumeId{2}, geo.volume_id()); // World -> Envelope
 }
 
 TEST_F(GeoTrackViewHostTest, inside)
@@ -164,8 +164,8 @@ TEST_F(GEO_DEVICE_TEST, all)
 
     // clang-format off
     static const int expected_ids[] = {
-        1, 2,10, 1, 5,10, 1, 4,10, 1, 8,10,
-        1, 3,10, 1, 7,10, 1, 6,10, 1, 9,10};
+        1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3,
+        1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3};
 
     static const double expected_distances[]
         = {5, 1, 1, 5, 1, 1, 5, 1, 1, 5, 1, 1,

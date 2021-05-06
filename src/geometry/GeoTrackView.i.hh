@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include <VecGeom/navigation/GlobalLocator.h>
 #include <VecGeom/navigation/VNavigator.h>
+#include <VecGeom/volumes/PlacedVolume.h>
 #include "base/ArrayUtils.hh"
 #include "detail/VGCompatibility.hh"
 
@@ -87,8 +88,7 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
 //! Find the distance to the next geometric boundary.
 CELER_FUNCTION void GeoTrackView::find_next_step()
 {
-    const vecgeom::VNavigator* navigator
-        = this->volume().GetLogicalVolume()->GetNavigator();
+    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
     CELER_ASSERT(navigator);
 
     next_step_
@@ -188,11 +188,11 @@ CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 // PRIVATE CLASS FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Get a reference to the current volume, or to world volume if outside
-CELER_FUNCTION const vecgeom::VPlacedVolume& GeoTrackView::volume() const
+CELER_FUNCTION const vecgeom::LogicalVolume& GeoTrackView::volume() const
 {
-    const vecgeom::VPlacedVolume* vol_ptr = vgstate_.Top();
-    CELER_ENSURE(vol_ptr);
-    return *vol_ptr;
+    const vecgeom::VPlacedVolume* physvol_ptr = vgstate_.Top();
+    CELER_ENSURE(physvol_ptr);
+    return *physvol_ptr->GetLogicalVolume();
 }
 
 //---------------------------------------------------------------------------//
@@ -201,8 +201,7 @@ CELER_FUNCTION const vecgeom::VPlacedVolume& GeoTrackView::volume() const
 //! Find the safety to the closest geometric boundary.
 CELER_FUNCTION real_type GeoTrackView::find_safety(Real3 pos) const
 {
-    const vecgeom::VNavigator* navigator
-        = this->volume().GetLogicalVolume()->GetNavigator();
+    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
     CELER_ASSERT(navigator);
 
     return navigator->GetSafetyEstimator()->ComputeSafety(
@@ -218,8 +217,7 @@ CELER_FUNCTION real_type GeoTrackView::compute_step(Real3      pos,
                                                     Real3      dir,
                                                     real_type* safety) const
 {
-    const vecgeom::VNavigator* navigator
-        = this->volume().GetLogicalVolume()->GetNavigator();
+    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
     CELER_ASSERT(navigator);
 
     return navigator->ComputeStepAndSafety(detail::to_vector(pos),
@@ -238,8 +236,7 @@ CELER_FUNCTION real_type GeoTrackView::compute_step(Real3      pos,
  */
 CELER_FUNCTION void GeoTrackView::propagate_state(Real3 pos, Real3 dir) const
 {
-    const vecgeom::VNavigator* navigator
-        = this->volume().GetLogicalVolume()->GetNavigator();
+    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
     CELER_ASSERT(navigator);
 
     navigator->ComputeStepAndPropagatedState(detail::to_vector(pos),
