@@ -10,6 +10,8 @@
 #include "physics/base/Model.hh"
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/PhotoelectricProcess.hh"
+#include "physics/em/RayleighProcess.hh"
+#include "physics/em/EPlusAnnihilationProcess.hh"
 #include "physics/em/EIonizationProcess.hh"
 #include "io/RootImporter.hh"
 #include "io/ImportData.hh"
@@ -125,6 +127,32 @@ TEST_F(ImportedProcessesTest, photoelectric)
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
     EXPECT_EQ("Livermore photoelectric", models.front()->label());
+    auto all_applic = models.front()->applicability();
+    ASSERT_EQ(1, all_applic.size());
+    Applicability applic = *all_applic.begin();
+
+    // Test step limits
+    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    {
+        applic.material = mat_id;
+        auto builders   = process->step_limits(applic);
+        EXPECT_TRUE(builders[VGT::macro_xs]);
+        EXPECT_FALSE(builders[VGT::energy_loss]);
+        EXPECT_FALSE(builders[VGT::range]);
+    }
+}
+
+TEST_F(ImportedProcessesTest, rayleigh)
+{
+    // Create Rayleigh scattering process
+    auto process = std::make_shared<RayleighProcess>(
+        particles_, materials_, processes_);
+
+    // Test model
+    auto models = process->build_models(ModelIdGenerator{});
+    ASSERT_EQ(1, models.size());
+    ASSERT_TRUE(models.front());
+    EXPECT_EQ("Rayleigh Scattering", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
