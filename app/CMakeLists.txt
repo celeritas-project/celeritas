@@ -235,13 +235,14 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     )
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
+      "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:geant-exporter>"
       "CELER_DISABLE_PARALLEL=1"
     )
     set_tests_properties("app/demo-loop" PROPERTIES
       ENVIRONMENT "${_env};${_geant_test_env}"
       RESOURCE_LOCK gpu
       REQUIRED_FILES "${_driver};${_gdml_inp};${_root_inp}"
-      DISABLED true
+      # DISABLED true
     )
   endif()
 endif()
