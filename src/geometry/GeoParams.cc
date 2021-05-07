@@ -44,9 +44,7 @@ GeoParams::GeoParams(const char* gdml_filename)
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
     }
 
-    std::vector<vecgeom::LogicalVolume*> temp;
-    vecgeom::GeoManager::Instance().GetAllLogicalVolumes(temp);
-    num_volumes_ = temp.size();
+    num_volumes_ = vecgeom::GeoManager::Instance().GetRegisteredVolumesCount();
 
     host_ref_.world_volume = vecgeom::GeoManager::Instance().GetWorld();
     host_ref_.max_depth    = vecgeom::GeoManager::Instance().getMaxDepth();
@@ -119,8 +117,9 @@ auto GeoParams::label_to_id(const std::string& label) const -> VolumeId
     const auto* vol
         = vecgeom::GeoManager::Instance().FindLogicalVolume(label.c_str());
     CELER_ASSERT(vol);
-    CELER_ASSERT(vol->id() < num_volumes_);
-    return VolumeId{vol->id()};
+    unsigned int volid = (unsigned int)vol->id();
+    CELER_ASSERT(volid < num_volumes_);
+    return VolumeId{volid};
 }
 
 //---------------------------------------------------------------------------//
