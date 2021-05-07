@@ -73,54 +73,62 @@ class GeoTrackViewHostTest : public GeoTestBase
 
 TEST_F(GeoTrackViewHostTest, from_outside)
 {
+    const auto& geom = *this->geo_params();
+
     GeoTrackView geo = this->make_geo_track_view();
     geo              = {{-10, -10, -10}, {1, 0, 0}};
-    EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape2 center
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2");
 
     geo.find_next_step();
     EXPECT_SOFT_EQ(5, geo.next_step());
-    geo.move_next_step();
+    geo.move_next_step(); // Shape2 -> Shape1
     EXPECT_SOFT_EQ(-5, geo.pos()[0]);
-    EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape2 -> Shape1
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
 
     geo.find_next_step();
     EXPECT_SOFT_EQ(1, geo.next_step());
-    geo.move_next_step();
-    EXPECT_EQ(VolumeId{2}, geo.volume_id()); // Shape1 -> Envelope
+    geo.move_next_step(); // Shape1 -> Envelope
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
     EXPECT_FALSE(geo.is_outside());
 
     geo.find_next_step();
     EXPECT_SOFT_EQ(1, geo.next_step());
-    geo.move_next_step();
-    EXPECT_EQ(VolumeId{3}, geo.volume_id()); // Shape1 -> Envelope
+    geo.move_next_step(); // Envelope -> World
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
+
     EXPECT_FALSE(geo.is_outside());
 }
 
 TEST_F(GeoTrackViewHostTest, from_outside_edge)
 {
+    const auto& geom = *this->geo_params();
+
     GeoTrackView geo = this->make_geo_track_view();
     geo              = {{-24, 6.5, 6.5}, {1, 0, 0}};
     EXPECT_TRUE(geo.is_outside());
 
-    geo.move_next_step();
-    EXPECT_EQ(VolumeId{3}, geo.volume_id()); // World
+    geo.move_next_step(); // outside -> World
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
+
     geo.find_next_step();
     EXPECT_SOFT_EQ(7., geo.next_step());
-    geo.move_next_step();
-    EXPECT_EQ(VolumeId{2}, geo.volume_id()); // World -> Envelope
+    geo.move_next_step(); // World -> Envelope
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
 }
 
 TEST_F(GeoTrackViewHostTest, inside)
 {
+    const auto& geom = *this->geo_params();
+
     GeoTrackView geo = this->make_geo_track_view();
     geo              = {{-10, 10, 10}, {0, -1, 0}};
-    EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape1 center
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2"); // Another Shape2
 
     geo.find_next_step();
     EXPECT_SOFT_EQ(5.0, geo.next_step());
-    geo.move_next_step();
+    geo.move_next_step(); // Shape2 -> Shape1
     EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
-    EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1 -> Shape2
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
     EXPECT_FALSE(geo.is_outside());
 
     geo.find_next_step();
