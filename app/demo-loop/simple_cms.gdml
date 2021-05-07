@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <isotope N="28" Z="14" name="Si280x7fac9903aff0">
+      <atom unit="g/mole" value="27.9769"/>
+    </isotope>
+    <isotope N="29" Z="14" name="Si290x7fac9903b030">
+      <atom unit="g/mole" value="28.9765"/>
+    </isotope>
+    <isotope N="30" Z="14" name="Si300x7fac9903b5d0">
+      <atom unit="g/mole" value="29.9738"/>
+    </isotope>
+    <element name="Si0x7fac9903b650">
+      <fraction n="0.922296077703922" ref="Si280x7fac9903aff0"/>
+      <fraction n="0.0468319531680468" ref="Si290x7fac9903b030"/>
+      <fraction n="0.0308719691280309" ref="Si300x7fac9903b5d0"/>
+    </element>
+    <material name="G4_Si0x7fac9903b4d0" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="173"/>
+      <D unit="g/cm3" value="2.33"/>
+      <fraction n="1" ref="Si0x7fac9903b650"/>
+    </material>
+    <isotope N="204" Z="82" name="Pb2040x7fac9903b9c0">
+      <atom unit="g/mole" value="203.973"/>
+    </isotope>
+    <isotope N="206" Z="82" name="Pb2060x7fac9903bdb0">
+      <atom unit="g/mole" value="205.974"/>
+    </isotope>
+    <isotope N="207" Z="82" name="Pb2070x7fac9903bdf0">
+      <atom unit="g/mole" value="206.976"/>
+    </isotope>
+    <isotope N="208" Z="82" name="Pb2080x7fac9903be50">
+      <atom unit="g/mole" value="207.977"/>
+    </isotope>
+    <element name="Pb0x7fac9903bf10">
+      <fraction n="0.014" ref="Pb2040x7fac9903b9c0"/>
+      <fraction n="0.241" ref="Pb2060x7fac9903bdb0"/>
+      <fraction n="0.221" ref="Pb2070x7fac9903bdf0"/>
+      <fraction n="0.524" ref="Pb2080x7fac9903be50"/>
+    </element>
+    <material name="G4_Pb0x7fac9903bcb0" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="823"/>
+      <D unit="g/cm3" value="11.35"/>
+      <fraction n="1" ref="Pb0x7fac9903bf10"/>
+    </material>
+    <isotope N="12" Z="6" name="C120x7fac9903c310">
+      <atom unit="g/mole" value="12"/>
+    </isotope>
+    <isotope N="13" Z="6" name="C130x7fac9903c940">
+      <atom unit="g/mole" value="13.0034"/>
+    </isotope>
+    <element name="C0x7fac9903c980">
+      <fraction n="0.9893" ref="C120x7fac9903c310"/>
+      <fraction n="0.0107" ref="C130x7fac9903c940"/>
+    </element>
+    <material name="G4_C0x7fac9903c840" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="81"/>
+      <D unit="g/cm3" value="2"/>
+      <fraction n="1" ref="C0x7fac9903c980"/>
+    </material>
+    <isotope N="46" Z="22" name="Ti460x7fac9903cc20">
+      <atom unit="g/mole" value="45.9526"/>
+    </isotope>
+    <isotope N="47" Z="22" name="Ti470x7fac9903cc60">
+      <atom unit="g/mole" value="46.9518"/>
+    </isotope>
+    <isotope N="48" Z="22" name="Ti480x7fac9903d1f0">
+      <atom unit="g/mole" value="47.9479"/>
+    </isotope>
+    <isotope N="49" Z="22" name="Ti490x7fac9903d230">
+      <atom unit="g/mole" value="48.9479"/>
+    </isotope>
+    <isotope N="50" Z="22" name="Ti500x7fac9903d270">
+      <atom unit="g/mole" value="49.9448"/>
+    </isotope>
+    <element name="Ti0x7fac9903d2f0">
+      <fraction n="0.0825" ref="Ti460x7fac9903cc20"/>
+      <fraction n="0.0744" ref="Ti470x7fac9903cc60"/>
+      <fraction n="0.7372" ref="Ti480x7fac9903d1f0"/>
+      <fraction n="0.0541" ref="Ti490x7fac9903d230"/>
+      <fraction n="0.0518" ref="Ti500x7fac9903d270"/>
+    </element>
+    <material name="G4_Ti0x7fac9903d0f0" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="233"/>
+      <D unit="g/cm3" value="4.54"/>
+      <fraction n="1" ref="Ti0x7fac9903d2f0"/>
+    </material>
+    <isotope N="54" Z="26" name="Fe540x7fac9903da50">
+      <atom unit="g/mole" value="53.9396"/>
+    </isotope>
+    <isotope N="56" Z="26" name="Fe560x7fac9903d6e0">
+      <atom unit="g/mole" value="55.9349"/>
+    </isotope>
+    <isotope N="57" Z="26" name="Fe570x7fac9903be90">
+      <atom unit="g/mole" value="56.9354"/>
+    </isotope>
+    <isotope N="58" Z="26" name="Fe580x7fac9903db90">
+      <atom unit="g/mole" value="57.9333"/>
+    </isotope>
+    <element name="Fe0x7fac9903dbd0">
+      <fraction n="0.05845" ref="Fe540x7fac9903da50"/>
+      <fraction n="0.91754" ref="Fe560x7fac9903d6e0"/>
+      <fraction n="0.02119" ref="Fe570x7fac9903be90"/>
+      <fraction n="0.00282" ref="Fe580x7fac9903db90"/>
+    </element>
+    <material name="G4_Fe0x7fac9903d950" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="286"/>
+      <D unit="g/cm3" value="7.874"/>
+      <fraction n="1" ref="Fe0x7fac9903dbd0"/>
+    </material>
+    <isotope N="1" Z="1" name="H10x7fac9903a770">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H20x7fac9903aa60">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="H0x7fac9903aaa0">
+      <fraction n="0.999885" ref="H10x7fac9903a770"/>
+      <fraction n="0.000115" ref="H20x7fac9903aa60"/>
+    </element>
+    <material name="G4_Galactic0x7fac9903a960" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="H0x7fac9903aaa0"/>
+    </material>
+  </materials>
+
+  <solids>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="silicon_tracker0x7fac9903e610" rmax="1249.9999999999" rmin="300" startphi="0" z="14000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="crystal_em_calorimeter0x7fac9903e710" rmax="1749.9999999999" rmin="1250" startphi="0" z="14000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="hadron_calorimeter0x7fac9903e810" rmax="2749.9999999999" rmin="1750" startphi="0" z="14000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="superconducting_solenoid0x7fac9903e910" rmax="3749.9999999999" rmin="2750" startphi="0" z="14000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="iron_muon_chambers0x7fac9903ea10" rmax="7000" rmin="3750" startphi="0" z="14000"/>
+    <box lunit="mm" name="world_box0x7fac9903e280" x="20000" y="20000" z="40000"/>
+  </solids>
+
+  <structure>
+    <volume name="si_tracker_lv0x7fac9903eed0">
+      <materialref ref="G4_Si0x7fac9903b4d0"/>
+      <solidref ref="silicon_tracker0x7fac9903e610"/>
+    </volume>
+    <volume name="em_calorimeter_lv0x7fac9903efa0">
+      <materialref ref="G4_Pb0x7fac9903bcb0"/>
+      <solidref ref="crystal_em_calorimeter0x7fac9903e710"/>
+    </volume>
+    <volume name="had_calorimeter_lv0x7fac9903f070">
+      <materialref ref="G4_C0x7fac9903c840"/>
+      <solidref ref="hadron_calorimeter0x7fac9903e810"/>
+    </volume>
+    <volume name="sc_solenoid_lv0x7fac9903f140">
+      <materialref ref="G4_Ti0x7fac9903d0f0"/>
+      <solidref ref="superconducting_solenoid0x7fac9903e910"/>
+    </volume>
+    <volume name="iron_muon_chambers_lv0x7fac9903f210">
+      <materialref ref="G4_Fe0x7fac9903d950"/>
+      <solidref ref="iron_muon_chambers0x7fac9903ea10"/>
+    </volume>
+    <volume name="world_lv0x7fac9903eb10">
+      <materialref ref="G4_Galactic0x7fac9903a960"/>
+      <solidref ref="world_box0x7fac9903e280"/>
+      <physvol name="si_tracker_pv0x7fac9903f650">
+        <volumeref ref="si_tracker_lv0x7fac9903eed0"/>
+      </physvol>
+      <physvol name="em_calorimeter_pv0x7fac9903f6a0">
+        <volumeref ref="em_calorimeter_lv0x7fac9903efa0"/>
+      </physvol>
+      <physvol name="had_calorimeter_pv0x7fac9903f710">
+        <volumeref ref="had_calorimeter_lv0x7fac9903f070"/>
+      </physvol>
+      <physvol name="sc_solenoid_pv0x7fac9903f7a0">
+        <volumeref ref="sc_solenoid_lv0x7fac9903f140"/>
+      </physvol>
+      <physvol name="iron_muon_chambers_pv0x7fac9903f810">
+        <volumeref ref="iron_muon_chambers_lv0x7fac9903f210"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world_lv0x7fac9903eb10"/>
+  </setup>
+
+</gdml>
