@@ -189,7 +189,7 @@ endif()
 # DEMO: full physics loop
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   set(_cuda_src)
   if(CELERITAS_USE_CUDA)
     set(_cuda_src
@@ -225,7 +225,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
   )
 
   # TODO: update input files and enable test
-  if(CELERITAS_BUILD_TESTS)
+  if(CELERITAS_BUILD_TESTS AND CELERITAS_USE_Geant4)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple_cms.gdml")
     add_test(NAME "app/demo-loop"
