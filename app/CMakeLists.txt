@@ -189,7 +189,7 @@ endif()
 # DEMO: full physics loop
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
   set(_cuda_src)
   if(CELERITAS_USE_CUDA)
     set(_cuda_src
