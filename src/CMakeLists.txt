@@ -150,16 +150,13 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
-add_library(celeritas ${SOURCES})
+cuda_add_library(celeritas ${SOURCES} SHARED)
 add_library(Celeritas::Core ALIAS celeritas)
 
 target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
 )
-if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
-  celeritas_link_vecgeom_cuda(celeritas)
-endif()
 
 target_include_directories(celeritas
   PUBLIC
@@ -167,6 +164,10 @@ target_include_directories(celeritas
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+
+if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
+  celeritas_link_vecgeom_cuda(celeritas)
+endif()
 
 install(TARGETS celeritas
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

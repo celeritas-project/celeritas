@@ -43,15 +43,41 @@ macro(celeritas_find_package_config _package)
 endmacro()
 
 function(celeritas_link_vecgeom_cuda target)
-  set_target_properties(${target} PROPERTIES
-    LINKER_LANGUAGE CUDA
-    CUDA_SEPARABLE_COMPILATION ON
-  )
+
+#  set_target_properties(${target} PROPERTIES
+#    LINKER_LANGUAGE CUDA
+#    CUDA_SEPARABLE_COMPILATION ON
+#  )
+
+  # Note: the repeat (target name, location) below is due the author of  cuda_add_library_depend
+  # not knowing how to automatically go from the target to the real file from a generator expression in add_custom_command
+  get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
+  cuda_add_library_depend(${target} VecGeom::vecgeom VecGeom::vecgeomcuda_static ${vecgeom_static_target_location})
   target_link_libraries(${target}
     PRIVATE
+    VecGeom::vecgeom
     VecGeom::vecgeomcuda
     VecGeom::vecgeomcuda_static
   )
+  target_link_libraries(${target}_static
+    VecGeom::vecgeom
+    VecGeom::vecgeomcuda_static
+    ${PRIVATE_DEPS}
+  )
+  SET_TARGET_PROPERTIES(${target}_static PROPERTIES LINKER_LANGUAGE CXX)
+
+  GET_TARGET_PROPERTY(target_include_directories ${target} INCLUDE_DIRECTORIES )
+  SET_TARGET_PROPERTIES(${target}_static PROPERTIES INCLUDE_DIRECTORIES "${target_include_directories}" )
+
+  GET_TARGET_PROPERTY(target_interface_include_directories ${target} INTERFACE_INCLUDE_DIRECTORIES )
+  SET_TARGET_PROPERTIES(${target}_static PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${target_interface_include_directories}")
+
+  GET_TARGET_PROPERTY(target_LINK_LIBRARIES ${target} LINK_LIBRARIES )
+  GET_TARGET_PROPERTY(target_INTERFACE_LINK_LIBRARIES ${target} INTERFACE_LINK_LIBRARIES )
+  SET_TARGET_PROPERTIES(${target}_static PROPERTIES LINK_LIBRARIES "${target_LINK_LIBRARIES}" INTERFACE_LINK_LIBRARIES "${target_INTERFACE_LINK_LIBRARIES}")
+
+  target_compile_options(${target}_static PRIVATE "-fPIC")
+
 endfunction()
 
 #-----------------------------------------------------------------------------#

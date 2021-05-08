@@ -115,7 +115,7 @@ celeritas_cudaoptional_test(field/FieldDriver)
 
 if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_CUDA)
-    add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu)
+    cuda_add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu SHARED)
     target_link_libraries(CeleritasPropagatorTest
       PRIVATE celeritas
     )
@@ -147,12 +147,17 @@ if(CELERITAS_USE_VecGeom)
       geometry/LinearPropagator.test.cu
     )
   endif()
-  add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES})
+  cuda_add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES} SHARED)
   target_link_libraries(CeleritasVecgeomTest
     PRIVATE Celeritas::Test Celeritas::Core VecGeom::vecgeom
   )
   if(CELERITAS_USE_CUDA)
     celeritas_link_vecgeom_cuda(CeleritasVecgeomTest)
+
+    # Note: the repeat (target name, location) below is due the author of  cuda_add_library_depend
+    # not knowing how to automatically go from the target to the real file from a generator expression in add_custom_command
+    get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
+    cuda_add_library_depend(CeleritasVecgeomTest celeritas_static ../src/libceleritas_static.a VecGeom::vecgeomcuda_static ${vecgeom_static_target_location})
   endif()
 
   celeritas_setup_tests(SERIAL PREFIX geometry

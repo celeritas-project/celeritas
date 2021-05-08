@@ -93,8 +93,13 @@ if(CELERITAS_USE_CUDA)
   enable_language(CUDA)
   set(CMAKE_CUDA_STANDARD 14)
   set(CMAKE_CUDA_EXTENSIONS OFF)
+  set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
+  set(CUDA_SEPARABLE_COMPILATION ON)
 
   find_package(CUDAToolkit REQUIRED QUIET)
+  # Needed for the custom FindCUDA routines.
+  # In particular this passes -arch= ...
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${CMAKE_CUDA_FLAGS})
 endif()
 
 if(CELERITAS_USE_Geant4)
