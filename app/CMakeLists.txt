@@ -143,7 +143,7 @@ endif()
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   # Since the demo kernel links against VecGeom, which requires CUDA separable
   # compilation, it cannot be linked directly into an executable.
-  cuda_add_library(celeritas_demo_rasterizer
+  celeritas_add_library(celeritas_demo_rasterizer
     demo-rasterizer/RDemoRunner.cc
     demo-rasterizer/RDemoKernel.cu
     demo-rasterizer/ImageIO.cc
@@ -203,7 +203,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
       demo-loop/LDemoKernel.cu
     )
   endif()
-  cuda_add_library(celeritas_demo_loop
+  celeritas_add_library(celeritas_demo_loop
     demo-loop/LDemoIO.cc
     demo-loop/LDemoParams.cc
     demo-loop/LDemoRun.cc

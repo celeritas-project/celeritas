@@ -42,6 +42,14 @@ macro(celeritas_find_package_config _package)
   find_package_handle_standard_args(${_package} CONFIG_MODE)
 endmacro()
 
+macro(celeritas_add_library)
+  if(CELERITAS_USE_CUDA)
+     cuda_add_library(${ARGV})
+  else()
+     add_library(${ARGV})
+  endif()
+endmacro()
+
 function(celeritas_link_vecgeom_cuda target)
 
 #  set_target_properties(${target} PROPERTIES

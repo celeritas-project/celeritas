@@ -115,7 +115,7 @@ celeritas_cudaoptional_test(field/FieldDriver)
 
 if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_CUDA)
-    cuda_add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu SHARED)
+    celeritas_add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu SHARED)
     target_link_libraries(CeleritasPropagatorTest
       PRIVATE celeritas
     )
@@ -147,7 +147,7 @@ if(CELERITAS_USE_VecGeom)
       geometry/LinearPropagator.test.cu
     )
   endif()
-  cuda_add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES} SHARED)
+  celeritas_add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES} SHARED)
   target_link_libraries(CeleritasVecgeomTest
     PRIVATE Celeritas::Test Celeritas::Core VecGeom::vecgeom
   )
