@@ -225,7 +225,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   )
 
   # TODO: update input files and enable test
-  if(CELERITAS_BUILD_TESTS)
+  if(CELERITAS_BUILD_TESTS AND CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple_cms.gdml")
     add_test(NAME "app/demo-loop"
