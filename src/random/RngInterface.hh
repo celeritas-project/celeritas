@@ -147,5 +147,14 @@ void resize(
     const RngParamsData<Ownership::const_reference, MemSpace::host>& params,
     size_type                                                        size);
 
+// Not-implemented resize of host data
+inline void
+resize(RngStateData<Ownership::value, MemSpace::host>*,
+       const RngParamsData<Ownership::const_reference, MemSpace::host>&,
+       size_type)
+{
+    CELER_NOT_IMPLEMENTED("Host RNG state");
+}
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas

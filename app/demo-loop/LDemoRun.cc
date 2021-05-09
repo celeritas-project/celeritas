@@ -75,34 +75,31 @@ build_params_refs(const LDemoParams& p)
  *
  * For now, just launch *all* the models.
  */
-void launch_models(LDemoParams const     host_params,
-                   ParamsDeviceRef const params,
-                   StateDeviceRef const  states)
+template<MemSpace M>
+void launch_models(LDemoParams const& host_params,
+                   ParamsData<Ownership::const_reference, M> const& params,
+                   StateData<Ownership::reference, M> const&        states)
 {
-    CELER_NOT_IMPLEMENTED("TODO: add remaining processes");
-    // TODO: for this to work on host, we'll need to template
-    // ModelInterface on MemSpace and overload the `interact`
-    // method on Model to work with device pointers.
-
-    // Create ModelInteractPointers
-    ModelInteractRefs<MemSpace::device> pointers;
-    pointers.params.particle = params.particles;
-    pointers.params.material = params.materials;
-    pointers.params.physics  = params.physics;
-    pointers.states.particle = states.particles;
-    pointers.states.material = states.materials;
-    pointers.states.physics  = states.physics;
-    pointers.states.rng      = states.rng;
-    pointers.states.direction    = states.geometry.dir;
-    pointers.states.secondaries  = states.secondaries;
-    pointers.states.interactions = states.interactions;
-    CELER_ASSERT(pointers);
+    // TODO: these *should* be able to be persistent across steps, rather than
+    // recreated at every step.
+    ModelInteractRefs<M> refs;
+    refs.params.particle     = params.particles;
+    refs.params.material     = params.materials;
+    refs.params.physics      = params.physics;
+    refs.states.particle     = states.particles;
+    refs.states.material     = states.materials;
+    refs.states.physics      = states.physics;
+    refs.states.rng          = states.rng;
+    refs.states.direction    = states.geometry.dir;
+    refs.states.secondaries  = states.secondaries;
+    refs.states.interactions = states.interactions;
+    CELER_ASSERT(refs);
 
     // Loop over physics models IDs and invoke `interact`
     for (auto model_id : range(ModelId{host_params.physics->num_models()}))
     {
         const Model& model = host_params.physics->model(model_id);
-        model.interact(pointers);
+        model.interact(refs);
     }
 }
 
@@ -139,6 +136,30 @@ LDemoResult run_gpu(LDemoArgs args)
         launch_models(params, params_ref, states_ref);
         demo_loop::process_interactions(params_ref, states_ref);
         // TODO: Create primaries from secondaries
+    }
+}
+
+//---------------------------------------------------------------------------//
+LDemoResult run_cpu(LDemoArgs args)
+{
+    CELER_EXPECT(args);
+
+    // Load all the problem data
+    LDemoParams params     = load_params(args);
+    auto        params_ref = build_params_refs<MemSpace::host>(params);
+
+    StateData<Ownership::value, MemSpace::host> state_storage;
+    resize(&state_storage, build_params_refs<MemSpace::host>(params), 1);
+    auto states_ref = make_ref(state_storage);
+
+    CELER_NOT_IMPLEMENTED("TODO: CPU stepping loop");
+
+    // TODO: Initialize fixed number of primaries (isotropic samples?)
+
+    bool any_alive = false;
+    while (any_alive)
+    {
+        launch_models(params, params_ref, states_ref);
     }
 }
 
