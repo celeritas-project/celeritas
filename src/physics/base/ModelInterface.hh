@@ -24,17 +24,24 @@ namespace celeritas
 /*!
  * Shared parameters needed when interacting with a model.
  */
-struct ModelInteractParams
+template<MemSpace M>
+struct ModelInteractParamsRefs
 {
+    //// TYPES ////
+
     template<template<Ownership, MemSpace> class P>
-    using DeviceCRef = P<Ownership::const_reference, MemSpace::device>;
+    using ParamsCRef = P<Ownership::const_reference, M>;
 
-    DeviceCRef<ParticleParamsData> particle;
-    DeviceCRef<MaterialParamsData> material;
-    DeviceCRef<PhysicsParamsData>  physics;
-    DeviceCRef<CutoffParamsData>   cutoffs;
+    //// DATA ////
 
-    //! True if valid
+    ParamsCRef<ParticleParamsData> particle;
+    ParamsCRef<MaterialParamsData> material;
+    ParamsCRef<PhysicsParamsData>  physics;
+    ParamsCRef<CutoffParamsData>   cutoffs;
+
+    //// METHODS ////
+
+    //! True if assigned
     CELER_FUNCTION operator bool() const
     {
         return physics && particle && material && cutoffs;
@@ -43,27 +50,49 @@ struct ModelInteractParams
 
 //---------------------------------------------------------------------------//
 /*!
- * Per-track states needed when interacting with a model.
+ * Mutable state data needed when interacting with a model.
  *
- * \todo The use of a Span<Real3> violates encapsulation; ideally we could use
- * a GeoStatePointers or directly pass the geo state store.
- * \todo Template on memory space, use Collection for direction (?).
+ * \todo The use of a StateItems<Real3> violates encapsulation; ideally we
+ * could use a GeoStateData but then we'd have to include vecgeom...
  */
-struct ModelInteractState
+template<MemSpace M>
+struct ModelInteractStateRefs
 {
+    //// TYPES ////
+
     template<template<Ownership, MemSpace> class S>
-    using DeviceRef = S<Ownership::reference, MemSpace::device>;
+    using StateRef = S<Ownership::reference, M>;
+    template<class T>
+    using StateItems = celeritas::StateCollection<T, Ownership::reference, M>;
+    template<class T>
+    using AllocatorRef = StackAllocatorData<T, Ownership::reference, M>;
 
-    DeviceRef<ParticleStateData> particle;
-    DeviceRef<MaterialStateData> material;
-    DeviceRef<PhysicsStateData>  physics;
-    DeviceRef<RngStateData>      rng;
-    Span<const Real3>            direction;
+    //// DATA ////
 
-    //! True if valid
+    StateRef<ParticleStateData> particle;
+    StateRef<MaterialStateData> material;
+    StateRef<PhysicsStateData>  physics;
+    StateRef<RngStateData>      rng;
+
+    StateItems<Real3>       direction;
+    StateItems<Interaction> interactions;
+
+    AllocatorRef<Secondary> secondaries;
+
+    //// METHODS ////
+
+    //! True if assigned
     CELER_FUNCTION operator bool() const
     {
-        return particle && material && physics && !direction.empty() && rng;
+        // clang-format off
+        return particle
+               && material.size() == particle.size()
+               && physics.size() == particle.size()
+               && direction.size() == particle.size()
+               && rng.size() == particle.size()
+               && interactions.size() == particle.size()
+               && secondaries;
+        // clang-format on
     }
 
     //! Number of particle tracks
@@ -76,26 +105,16 @@ struct ModelInteractState
 
 //---------------------------------------------------------------------------//
 /*!
- * Input and output device data to a generic Model::interact call.
- *
- * \todo Template on memory space, use Collection for interaction result.
+ * All data needed to interact with a model.
  */
-struct ModelInteractPointers
+template<MemSpace M>
+struct ModelInteractRefs
 {
-    using SecondaryAllocatorData
-        = StackAllocatorData<Secondary, Ownership::reference, MemSpace::device>;
+    ModelInteractParamsRefs<M> params;
+    ModelInteractStateRefs<M>  states;
 
-    ModelInteractParams    params;
-    ModelInteractState     states;
-    SecondaryAllocatorData secondaries;
-    Span<Interaction>      result;
-
-    //! True if valid
-    CELER_FUNCTION operator bool() const
-    {
-        return params && states && secondaries
-               && result.size() == states.size();
-    }
+    //! True if assigned
+    CELER_FUNCTION operator bool() const { return params && states; }
 };
 
 //---------------------------------------------------------------------------//

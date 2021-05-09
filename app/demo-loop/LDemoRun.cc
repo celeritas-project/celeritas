@@ -85,7 +85,7 @@ void launch_models(LDemoParams const     host_params,
     // method on Model to work with device pointers.
 
     // Create ModelInteractPointers
-    ModelInteractPointers pointers;
+    ModelInteractRefs<MemSpace::device> pointers;
     pointers.params.particle = params.particles;
     pointers.params.material = params.materials;
     pointers.params.physics  = params.physics;
@@ -93,10 +93,9 @@ void launch_models(LDemoParams const     host_params,
     pointers.states.material = states.materials;
     pointers.states.physics  = states.physics;
     pointers.states.rng      = states.rng;
-    // TODO: direction
-    pointers.secondaries = states.secondaries;
-    pointers.result
-        = states.interactions[AllItems<Interaction, MemSpace::device>{}];
+    pointers.states.direction    = states.geometry.dir;
+    pointers.states.secondaries  = states.secondaries;
+    pointers.states.interactions = states.interactions;
     CELER_ASSERT(pointers);
 
     // Loop over physics models IDs and invoke `interact`

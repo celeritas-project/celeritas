@@ -54,7 +54,7 @@ auto BetheHeitlerModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void BetheHeitlerModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractPointers& pointers) const
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
     detail::bethe_heitler_interact(interface_, pointers);

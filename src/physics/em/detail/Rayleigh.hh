@@ -15,7 +15,8 @@
 
 namespace celeritas
 {
-struct ModelInteractPointers;
+template<MemSpace M>
+struct ModelInteractRefs;
 
 namespace detail
 {
@@ -96,8 +97,8 @@ using RayleighNativeRef
 //---------------------------------------------------------------------------//
 
 // Launch the Livermore photoelectric interaction
-void rayleigh_interact(const RayleighDeviceRef&     pointers,
-                       const ModelInteractPointers& model);
+void rayleigh_interact(const RayleighDeviceRef&                   pointers,
+                       const ModelInteractRefs<MemSpace::device>& model);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

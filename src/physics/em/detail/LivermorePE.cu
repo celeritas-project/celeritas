@@ -31,29 +31,31 @@ namespace
  * Interact using the Livermore photoelectric model on applicable tracks.
  */
 __global__ void
-livermore_pe_interact_kernel(const LivermorePEDeviceRef        pe,
-                             const RelaxationScratchDeviceRef& scratch,
-                             const ModelInteractPointers       ptrs)
+livermore_pe_interact_kernel(const LivermorePEDeviceRef                pe,
+                             const RelaxationScratchDeviceRef&         scratch,
+                             const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= ptrs.states.size())
+    if (!(tid < model.states.size()))
         return;
 
-    StackAllocator<Secondary> allocate_secondaries(ptrs.secondaries);
-    ParticleTrackView particle(ptrs.params.particle, ptrs.states.particle, tid);
-    MaterialTrackView material(ptrs.params.material, ptrs.states.material, tid);
-    PhysicsTrackView  physics(ptrs.params.physics,
-                             ptrs.states.physics,
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
+    ParticleTrackView         particle(
+        model.params.particle, model.states.particle, tid);
+    MaterialTrackView material(
+        model.params.material, model.states.material, tid);
+    PhysicsTrackView physics(model.params.physics,
+                             model.states.physics,
                              particle.particle_id(),
                              material.material_id(),
                              tid);
-    CutoffView        cutoffs(ptrs.params.cutoffs, material.material_id());
+    CutoffView       cutoffs(model.params.cutoffs, material.material_id());
 
     // This interaction only applies if the Livermore PE model was selected
     if (physics.model_id() != pe.ids.model)
         return;
 
-    RngEngine rng(ptrs.states.rng, tid);
+    RngEngine rng(model.states.rng, tid);
 
     // Sample an element
     ElementSelector select_el(
@@ -68,11 +70,11 @@ livermore_pe_interact_kernel(const LivermorePEDeviceRef        pe,
                                    el_id,
                                    particle,
                                    cutoffs,
-                                   ptrs.states.direction[tid.get()],
+                                   model.states.direction[tid],
                                    allocate_secondaries);
 
-    ptrs.result[tid.get()] = interact(rng);
-    CELER_ENSURE(ptrs.result[tid.get()]);
+    model.states.interactions[tid] = interact(rng);
+    CELER_ENSURE(model.states.interactions[tid]);
 }
 
 } // namespace
@@ -83,9 +85,9 @@ livermore_pe_interact_kernel(const LivermorePEDeviceRef        pe,
 /*!
  * Launch the Livermore photoelectric interaction.
  */
-void livermore_pe_interact(const LivermorePEDeviceRef&       pe,
-                           const RelaxationScratchDeviceRef& scratch,
-                           const ModelInteractPointers&      model)
+void livermore_pe_interact(const LivermorePEDeviceRef&                pe,
+                           const RelaxationScratchDeviceRef&          scratch,
+                           const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(pe);
     CELER_EXPECT(model);

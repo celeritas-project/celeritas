@@ -16,7 +16,9 @@
 
 namespace celeritas
 {
-struct ModelInteractPointers;
+template<MemSpace M>
+struct ModelInteractRefs;
+
 //---------------------------------------------------------------------------//
 /*!
  * Abstract base class representing a physics model.
@@ -48,6 +50,8 @@ class Model
     //@{
     //! Type aliases
     using SetApplicability = std::set<Applicability>;
+    using HostInteractRefs   = ModelInteractRefs<MemSpace::host>;
+    using DeviceInteractRefs = ModelInteractRefs<MemSpace::device>;
     //@}
 
   public:
@@ -57,8 +61,11 @@ class Model
     //! Get the applicable particle type and energy ranges of the model
     virtual SetApplicability applicability() const = 0;
 
-    //! Apply the interaction kernel for this model to all applicable tracks
-    virtual void interact(const ModelInteractPointers&) const = 0;
+    //! Apply the interaction kernel to host data (TODO)
+    virtual void interact(const HostInteractRefs&) const;
+
+    //! Apply the interaction kernel to device data
+    virtual void interact(const DeviceInteractRefs&) const = 0;
 
     //! ID of the model (should be stored by constructor)
     virtual ModelId model_id() const = 0;

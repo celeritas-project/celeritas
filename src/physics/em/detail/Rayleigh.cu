@@ -31,12 +31,13 @@ namespace
 /*!
  * Interact using the Rayleigh model on applicable tracks.
  */
-__global__ void rayleigh_interact_kernel(const RayleighDeviceRef     rayleigh,
-                                         const ModelInteractPointers model)
+__global__ void
+rayleigh_interact_kernel(const RayleighDeviceRef                   rayleigh,
+                         const ModelInteractRefs<MemSpace::device> model)
 {
     // Get the thread id
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= model.states.size())
+    if (!(tid < model.states.size()))
         return;
 
     // Get views to Particle, and Physics
@@ -64,10 +65,10 @@ __global__ void rayleigh_interact_kernel(const RayleighDeviceRef     rayleigh,
 
     // Do the interaction
     RayleighInteractor interact(
-        rayleigh, particle, model.states.direction[tid.get()], el_id);
+        rayleigh, particle, model.states.direction[tid], el_id);
 
-    model.result[tid.get()] = interact(rng);
-    CELER_ENSURE(model.result[tid.get()]);
+    model.states.interactions[tid] = interact(rng);
+    CELER_ENSURE(model.states.interactions[tid]);
 }
 
 } // namespace
@@ -78,8 +79,8 @@ __global__ void rayleigh_interact_kernel(const RayleighDeviceRef     rayleigh,
 /*!
  * Launch the Rayleigh interaction.
  */
-void rayleigh_interact(const RayleighDeviceRef&     rayleigh,
-                       const ModelInteractPointers& model)
+void rayleigh_interact(const RayleighDeviceRef&                   rayleigh,
+                       const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(rayleigh);
     CELER_EXPECT(model);
