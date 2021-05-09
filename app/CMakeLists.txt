@@ -148,7 +148,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     demo-rasterizer/RDemoKernel.cu
     demo-rasterizer/ImageIO.cc
     demo-rasterizer/ImageStore.cc
-    SHARED
   )
   target_link_libraries(celeritas_demo_rasterizer
     PRIVATE
@@ -156,12 +155,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
       nlohmann_json::nlohmann_json
   )
 
-  celeritas_link_vecgeom_cuda(celeritas_demo_rasterizer)
-
-  # Note: the repeat (target name, location) below is due the author of  cuda_add_library_depend
-  # not knowing how to automatically go from the target to the real file from a generator expression in add_custom_command
-  get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
-  cuda_add_library_depend(celeritas_demo_rasterizer celeritas_static ../src/libceleritas_static.a VecGeom::vecgeomcuda_static ${vecgeom_static_target_location})
+  celeritas_link_vecgeom_cuda_dep(celeritas_demo_rasterizer)
 
   # Add the executable
   add_executable(demo-rasterizer
@@ -208,7 +202,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     demo-loop/LDemoParams.cc
     demo-loop/LDemoRun.cc
     ${_cuda_src}
-    SHARED
   )
 
   target_link_libraries(celeritas_demo_loop
@@ -222,12 +215,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   endif()
 
   if(CELERITAS_USE_CUDA)
-    celeritas_link_vecgeom_cuda(celeritas_demo_loop)
-
-    # Note: the repeat (target name, location) below is due the author of  cuda_add_library_depend
-    # not knowing how to automatically go from the target to the real file from a generator expression in add_custom_command
-    get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
-    cuda_add_library_depend(celeritas_demo_loop celeritas_static ../src/libceleritas_static.a VecGeom::vecgeomcuda_static ${vecgeom_static_target_location})
+    celeritas_link_vecgeom_cuda_dep(celeritas_demo_loop)
   endif()
 
   # Add the executable

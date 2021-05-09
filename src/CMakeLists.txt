@@ -150,7 +150,7 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
-celeritas_add_library(celeritas ${SOURCES} SHARED)
+celeritas_add_library(celeritas ${SOURCES})
 add_library(Celeritas::Core ALIAS celeritas)
 
 target_link_libraries(celeritas
