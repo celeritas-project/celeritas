@@ -7,8 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "EPlusAnnihilationProcess.hh"
 
+#include <memory>
 #include <utility>
 #include "EPlusGGModel.hh"
+#include "physics/grid/ValueGridBuilder.hh"
 
 namespace celeritas
 {
@@ -21,6 +23,7 @@ EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles)
     , positron_id_(particles_->find(pdg::positron()))
 {
     CELER_EXPECT(particles_);
+    CELER_ENSURE(positron_id_);
 }
 
 //---------------------------------------------------------------------------//
@@ -42,10 +45,10 @@ auto EPlusAnnihilationProcess::step_limits(Applicability range) const
 {
     CELER_EXPECT(range.particle == positron_id_);
 
-    // Not implemented
-    CELER_ASSERT_UNREACHABLE();
+    StepLimitBuilders builders;
+    builders[ValueGridType::macro_xs] = std::make_unique<ValueGridOTFBuilder>();
 
-    return {};
+    return builders;
 }
 
 //---------------------------------------------------------------------------//

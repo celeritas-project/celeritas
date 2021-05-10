@@ -175,7 +175,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
         {
             CELER_LOG(warning)
                 << "No processes are defined for particle '"
-                << particles.id_to_label(ParticleId{particle_idx});
+                << particles.id_to_label(ParticleId{particle_idx}) << '\'';
             continue;
         }
         data->max_particle_processes = std::max<ProcessId::size_type>(
