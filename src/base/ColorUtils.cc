@@ -18,18 +18,27 @@ namespace
 {
 bool determine_use_color(FILE* stream)
 {
-    int fn = fileno(stream);
-    if (!isatty(fn))
-        return false;
+    if (const char* color = std::getenv("GTEST_COLOR"))
+    {
+        if (std::strcmp("0", color) != 0)
+        {
+            // GTEST_COLOR environment is given and is not the string "0"
+            return true;
+        }
+    }
 
-    const char* term = std::getenv("TERM");
-    if (!term)
-        return false;
-
-    if (strstr("xterm", term) == nullptr)
-        return true;
-
-    // Other checks here? ...
+    if (isatty(fileno(stream)))
+    {
+        // Given stream says it's a "terminal" i.e. user-facing
+        if (const char* term = std::getenv("TERM"))
+        {
+            if (std::strstr("xterm", term) == nullptr)
+            {
+                // 'xterm' is in the TERM type, so assume it uses colors
+                return true;
+            }
+        }
+    }
 
     return false;
 }
@@ -37,7 +46,7 @@ bool determine_use_color(FILE* stream)
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether colors are enabled (currently read-only)
+ * Whether colors are enabled (currently read-only).
  */
 bool use_color()
 {
