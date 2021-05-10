@@ -84,7 +84,7 @@ class RayleighInteractor
     //// HELPER FUNCTIONS ////
 
     //! Evaluate weights and probabilities for the angular sampling algorithm
-    CELER_FUNCTION auto evaluate_weight_and_prob() const -> SampleInput;
+    inline CELER_FUNCTION auto evaluate_weight_and_prob() const -> SampleInput;
 };
 
 //---------------------------------------------------------------------------//

@@ -36,13 +36,13 @@ class RungeKuttaStepper
     //!@}
 
   public:
-    // Construct with the equation of motion
+    //! Construct with the equation of motion
     CELER_FUNCTION
     RungeKuttaStepper(const FieldEquation_T& eq) : equation_(eq) {}
 
     // Adaptive step size control
-    CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
-        -> Result;
+    inline CELER_FUNCTION auto
+    operator()(real_type step, const OdeState& beg_state) -> Result;
 
   private:
     //// DATA ////
@@ -53,9 +53,10 @@ class RungeKuttaStepper
     //// HELPER FUNCTIONS ////
 
     // Return the final state by the 4th order Runge-Kutta method
-    CELER_FUNCTION auto do_step(real_type       step,
-                                const OdeState& beg_state,
-                                const OdeState& end_slope) const -> OdeState;
+    inline CELER_FUNCTION auto do_step(real_type       step,
+                                       const OdeState& beg_state,
+                                       const OdeState& end_slope) const
+        -> OdeState;
 };
 
 //---------------------------------------------------------------------------//
