@@ -45,14 +45,17 @@ class RungeKuttaStepper
         -> Result;
 
   private:
+    //// DATA ////
+
+    // Equation of motion
+    const FieldEquation_T& equation_;
+
+    //// HELPER FUNCTIONS ////
+
     // Return the final state by the 4th order Runge-Kutta method
     CELER_FUNCTION auto do_step(real_type       step,
                                 const OdeState& beg_state,
                                 const OdeState& end_slope) const -> OdeState;
-
-  private:
-    // Equation of the motion
-    const FieldEquation_T& equation_;
 };
 
 //---------------------------------------------------------------------------//

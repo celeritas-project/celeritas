@@ -47,21 +47,20 @@ class RayleighInteractor
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
-    //// COMMON PROPERTIES ////
-
-    //! Minimum incident energy for this model to be valid: 10 * eV
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
-    {
-        return units::MevEnergy{1.0e-5};
-    }
-
-    //! Maximum incident energy for this model to be valid: 1 * GeV
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_incident_energy()
-    {
-        return units::MevEnergy{1.0e+3};
-    }
-
   private:
+    //// DATA ////
+
+    // Shared constant physics properties
+    const RayleighNativeRef& shared_;
+    // Incident gamma energy
+    const units::MevEnergy inc_energy_;
+    // Incident direction
+    const Real3& inc_direction_;
+    // Id of element
+    ElementId element_id_;
+
+    //// CONSTANTS ////
+
     //! cm/hc in the MeV energy unit
     static CELER_CONSTEXPR_FUNCTION real_type hc_factor()
     {
@@ -72,6 +71,8 @@ class RayleighInteractor
     //! A point where the functional form of the form factor fit changes
     static CELER_CONSTEXPR_FUNCTION real_type fit_slice() { return 0.02; }
 
+    //// HELPER TYPES ////
+
     //! Intermediate data for sampling input
     struct SampleInput
     {
@@ -80,18 +81,10 @@ class RayleighInteractor
         Real3     prob{0, 0, 0};
     };
 
+    //// HELPER FUNCTIONS ////
+
     //! Evaluate weights and probabilities for the angular sampling algorithm
     CELER_FUNCTION auto evaluate_weight_and_prob() const -> SampleInput;
-
-  private:
-    // Shared constant physics properties
-    const RayleighNativeRef& shared_;
-    // Incident gamma energy
-    const units::MevEnergy inc_energy_;
-    // Incident direction
-    const Real3& inc_direction_;
-    // Id of element
-    ElementId element_id_;
 };
 
 //---------------------------------------------------------------------------//
