@@ -60,7 +60,7 @@ auto RayleighModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void RayleighModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractPointers& group) const
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& group) const
 {
 #if CELERITAS_USE_CUDA
     detail::rayleigh_interact(this->device_group(), group);

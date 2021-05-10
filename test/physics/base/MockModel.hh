@@ -25,7 +25,6 @@ class MockModel final : public celeritas::Model
     //!@{
     //! Type aliases
     using Applicability         = celeritas::Applicability;
-    using ModelInteractPointers = celeritas::ModelInteractPointers;
     using ModelId               = celeritas::ModelId;
     using ModelCallback         = std::function<void(ModelId)>;
     //!@}
@@ -33,7 +32,7 @@ class MockModel final : public celeritas::Model
   public:
     MockModel(ModelId id, Applicability applic, ModelCallback cb);
     SetApplicability applicability() const final;
-    void             interact(const ModelInteractPointers&) const final;
+    void             interact(const DeviceInteractRefs&) const final;
     ModelId          model_id() const final { return id_; }
     std::string      label() const final;
 

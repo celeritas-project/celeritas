@@ -85,7 +85,7 @@ auto LivermorePEModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void LivermorePEModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractPointers& pointers) const
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
     detail::livermore_pe_interact(

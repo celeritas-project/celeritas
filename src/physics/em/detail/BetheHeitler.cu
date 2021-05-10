@@ -29,24 +29,27 @@ namespace
 /*!
  * Interact using the Bethe-Heitler model on applicable tracks.
  */
-__global__ void bethe_heitler_interact_kernel(const BetheHeitlerPointers  bh,
-                                              const ModelInteractPointers ptrs)
+__global__ void
+bethe_heitler_interact_kernel(const BetheHeitlerPointers                bh,
+                              const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= ptrs.states.size())
+    if (!(tid < model.states.size()))
         return;
 
-    StackAllocator<Secondary> allocate_secondaries(ptrs.secondaries);
-    ParticleTrackView particle(ptrs.params.particle, ptrs.states.particle, tid);
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
+    ParticleTrackView         particle(
+        model.params.particle, model.states.particle, tid);
 
     // Setup for ElementView access
-    MaterialTrackView material(ptrs.params.material, ptrs.states.material, tid);
+    MaterialTrackView material(
+        model.params.material, model.states.material, tid);
     // Cache the associated MaterialView as function calls to MaterialTrackView
     // are expensive
     MaterialView material_view = material.material_view();
 
-    PhysicsTrackView physics(ptrs.params.physics,
-                             ptrs.states.physics,
+    PhysicsTrackView physics(model.params.physics,
+                             model.states.physics,
                              particle.particle_id(),
                              material.material_id(),
                              tid);
@@ -60,13 +63,13 @@ __global__ void bethe_heitler_interact_kernel(const BetheHeitlerPointers  bh,
     BetheHeitlerInteractor interact(
         bh,
         particle,
-        ptrs.states.direction[tid.get()],
+        model.states.direction[tid],
         allocate_secondaries,
         material_view.element_view(celeritas::ElementComponentId{0}));
 
-    RngEngine rng(ptrs.states.rng, tid);
-    ptrs.result[tid.get()] = interact(rng);
-    CELER_ENSURE(ptrs.result[tid.get()]);
+    RngEngine rng(model.states.rng, tid);
+    model.states.interactions[tid] = interact(rng);
+    CELER_ENSURE(model.states.interactions[tid]);
 }
 
 } // namespace
@@ -77,8 +80,8 @@ __global__ void bethe_heitler_interact_kernel(const BetheHeitlerPointers  bh,
 /*!
  * Launch the Bethe-Heitler interaction.
  */
-void bethe_heitler_interact(const BetheHeitlerPointers&  bh,
-                            const ModelInteractPointers& model)
+void bethe_heitler_interact(const BetheHeitlerPointers&                bh,
+                            const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(bh);
     CELER_EXPECT(model);

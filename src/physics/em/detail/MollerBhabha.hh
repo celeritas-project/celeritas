@@ -14,7 +14,8 @@
 
 namespace celeritas
 {
-struct ModelInteractPointers;
+template<MemSpace M>
+struct ModelInteractRefs;
 
 namespace detail
 {
@@ -56,8 +57,9 @@ struct MollerBhabhaPointers
 //---------------------------------------------------------------------------//
 
 // Launch Moller-Bhabha interaction
-void moller_bhabha_interact(const MollerBhabhaPointers&  device_pointers,
-                            const ModelInteractPointers& interaction);
+void moller_bhabha_interact(
+    const MollerBhabhaPointers&                device_pointers,
+    const ModelInteractRefs<MemSpace::device>& interaction);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

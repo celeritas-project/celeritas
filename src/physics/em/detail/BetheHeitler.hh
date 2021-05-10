@@ -13,7 +13,8 @@
 
 namespace celeritas
 {
-struct ModelInteractPointers;
+template<MemSpace M>
+struct ModelInteractRefs;
 
 namespace detail
 {
@@ -48,8 +49,9 @@ struct BetheHeitlerPointers
 //---------------------------------------------------------------------------//
 
 // Launch the Bethe-Heitler interaction
-void bethe_heitler_interact(const BetheHeitlerPointers&  device_pointers,
-                            const ModelInteractPointers& interaction);
+void bethe_heitler_interact(
+    const BetheHeitlerPointers&                device_pointers,
+    const ModelInteractRefs<MemSpace::device>& interaction);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

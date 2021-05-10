@@ -14,4 +14,13 @@ namespace celeritas
 Model::~Model() = default;
 
 //---------------------------------------------------------------------------//
+/*!
+ * Default to "not implemented" host interaction.
+ */
+void Model::interact(const HostInteractRefs&) const
+{
+    CELER_NOT_IMPLEMENTED("host interactions");
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

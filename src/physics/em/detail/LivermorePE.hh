@@ -19,7 +19,8 @@
 
 namespace celeritas
 {
-struct ModelInteractPointers;
+template<MemSpace M>
+struct ModelInteractRefs;
 
 namespace detail
 {
@@ -229,9 +230,9 @@ using RelaxationScratchDeviceRef
 //---------------------------------------------------------------------------//
 
 // Launch the Livermore photoelectric interaction
-void livermore_pe_interact(const LivermorePEDeviceRef&       pe,
-                           const RelaxationScratchDeviceRef& scratch,
-                           const ModelInteractPointers&      model);
+void livermore_pe_interact(const LivermorePEDeviceRef&                pe,
+                           const RelaxationScratchDeviceRef&          scratch,
+                           const ModelInteractRefs<MemSpace::device>& model);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

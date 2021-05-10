@@ -16,7 +16,8 @@
 
 namespace celeritas
 {
-struct ModelInteractPointers;
+template<MemSpace M>
+struct ModelInteractRefs;
 
 namespace detail
 {
@@ -161,8 +162,9 @@ using SeltzerBergerHostRef
 //---------------------------------------------------------------------------//
 
 // Launch the Seltzer-Berger interaction
-void seltzer_berger_interact(const SeltzerBergerDeviceRef& device_pointers,
-                             const ModelInteractPointers&  interaction);
+void seltzer_berger_interact(
+    const SeltzerBergerDeviceRef&              device_pointers,
+    const ModelInteractRefs<MemSpace::device>& interaction);
 
 //---------------------------------------------------------------------------//
 } // namespace detail
