@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/DeviceVector.hh"
+#include "base/CollectionBuilder.hh"
 #include "ParamStore.hh"
 #include "StateStore.hh"
 #include "TrackInitializerInterface.hh"
@@ -28,13 +28,13 @@ class TrackInitializerStore
                                    std::vector<Primary> primaries);
 
     // Get a view to the managed data
-    TrackInitializerPointers device_pointers();
+    TrackInitializerDeviceRef device_pointers() { return make_ref(data_); }
 
     //! Number of track initializers
-    size_type size() const { return initializers_.size(); }
+    size_type size() const { return data_.initializers.size(); }
 
     //! Number of empty track slots on device
-    size_type num_vacancies() const { return vacancies_.size(); }
+    size_type num_vacancies() const { return data_.vacancies.size(); }
 
     //! Number of primary particles left to be initialized on device
     size_type num_primaries() const { return primaries_.size(); }
@@ -49,23 +49,11 @@ class TrackInitializerStore
     void initialize_tracks(StateStore* states, ParamStore* params);
 
   private:
-    // Track initializers created from primaries or secondaries
-    DeviceVector<TrackInitializer> initializers_;
-
-    // Thread ID of the secondary's parent
-    DeviceVector<size_type> parent_;
-
-    // Index of empty slots in track vector
-    DeviceVector<size_type> vacancies_;
-
-    // Number of surviving secondaries produced in each interaction
-    DeviceVector<size_type> secondary_counts_;
-
-    // Track ID counter for each event
-    DeviceVector<TrackId::size_type> track_counter_;
-
     // Host-side primary particles
     std::vector<Primary> primaries_;
+
+    // Device-side storage
+    TrackInitializerData<Ownership::value, MemSpace::device> data_;
 };
 
 //---------------------------------------------------------------------------//

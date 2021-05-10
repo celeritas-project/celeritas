@@ -26,27 +26,27 @@ CELER_CONSTEXPR_FUNCTION size_type flag_id()
 
 //---------------------------------------------------------------------------//
 // Initialize the track states on device.
-void init_tracks(const StatePointers&            states,
-                 const ParamPointers&            params,
-                 const TrackInitializerPointers& inits);
+void init_tracks(const StatePointers&             states,
+                 const ParamPointers&             params,
+                 const TrackInitializerDeviceRef& inits);
 
 //---------------------------------------------------------------------------//
 // Identify which tracks are still alive and count the number of secondaries
 // that survived cutoffs for each interaction.
-void locate_alive(const StatePointers&            states,
-                  const ParamPointers&            params,
-                  const TrackInitializerPointers& inits);
+void locate_alive(const StatePointers&             states,
+                  const ParamPointers&             params,
+                  const TrackInitializerDeviceRef& inits);
 
 //---------------------------------------------------------------------------//
 // Create track initializers on device from primary particles
-void process_primaries(Span<const Primary>             primaries,
-                       const TrackInitializerPointers& inits);
+void process_primaries(Span<const Primary>              primaries,
+                       const TrackInitializerDeviceRef& inits);
 
 //---------------------------------------------------------------------------//
 // Create track initializers on device from secondary particles.
-void process_secondaries(const StatePointers&     states,
-                         const ParamPointers&     params,
-                         TrackInitializerPointers inits);
+void process_secondaries(const StatePointers&             states,
+                         const ParamPointers&             params,
+                         const TrackInitializerDeviceRef& inits);
 
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive

@@ -115,11 +115,11 @@ std::vector<unsigned int> tracks_test(StatePointers states);
 //---------------------------------------------------------------------------//
 //! Launch a kernel to get the track IDs of the track initializers created from
 //! primaries or secondaries
-std::vector<unsigned int> initializers_test(TrackInitializerPointers inits);
+std::vector<unsigned int> initializers_test(TrackInitializerDeviceRef inits);
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to get the indices of the vacant slots in the track vector
-std::vector<size_type> vacancies_test(TrackInitializerPointers inits);
+std::vector<size_type> vacancies_test(TrackInitializerDeviceRef inits);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test
