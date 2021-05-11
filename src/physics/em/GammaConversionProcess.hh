@@ -9,13 +9,14 @@
 
 #include "physics/base/Process.hh"
 
+#include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/base/ParticleParams.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Annihiliation process for photons.
+ * Conversion of gammas to electrons and positrons.
  */
 class GammaConversionProcess : public Process
 {
@@ -23,24 +24,26 @@ class GammaConversionProcess : public Process
     //!@{
     //! Type aliases
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
+    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
     //!@}
 
   public:
     // Construct from particle data
-    explicit GammaConversionProcess(SPConstParticles particles);
+    GammaConversionProcess(SPConstParticles particles,
+                           SPConstImported  process_data);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;
 
     // Get the interaction cross sections for the given energy range
-    StepLimitBuilders step_limits(Applicability range) const final;
+    StepLimitBuilders step_limits(Applicability applic) const final;
 
     // Name of the process
     std::string label() const final;
 
   private:
     SPConstParticles particles_;
-    ParticleId       positron_id_;
+    ImportedProcessAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//

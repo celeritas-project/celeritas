@@ -9,10 +9,11 @@
 
 #include "physics/base/Model.hh"
 #include "physics/em/ComptonProcess.hh"
+#include "physics/em/EIonizationProcess.hh"
+#include "physics/em/EPlusAnnihilationProcess.hh"
+#include "physics/em/GammaConversionProcess.hh"
 #include "physics/em/PhotoelectricProcess.hh"
 #include "physics/em/RayleighProcess.hh"
-#include "physics/em/EPlusAnnihilationProcess.hh"
-#include "physics/em/EIonizationProcess.hh"
 #include "io/RootImporter.hh"
 #include "io/ImportData.hh"
 #include "celeritas_test.hh"
@@ -81,7 +82,7 @@ TEST_F(ImportedProcessesTest, compton)
     }
 }
 
-TEST_F(ImportedProcessesTest, eionization)
+TEST_F(ImportedProcessesTest, e_ionization)
 {
     // Create photoelectric process
     auto process = std::make_shared<EIonizationProcess>(particles_, processes_);
@@ -105,6 +106,59 @@ TEST_F(ImportedProcessesTest, eionization)
             EXPECT_TRUE(builders[VGT::energy_loss]);
             EXPECT_TRUE(builders[VGT::range]);
         }
+    }
+}
+
+TEST_F(ImportedProcessesTest, eplus_annihilation)
+{
+    // Create photoelectric process
+    auto process = std::make_shared<EPlusAnnihilationProcess>(particles_);
+
+    // Test model
+    auto models = process->build_models(ModelIdGenerator{});
+    ASSERT_EQ(1, models.size());
+    ASSERT_TRUE(models.front());
+    EXPECT_EQ("Positron annihilation (2g)", models.front()->label());
+    auto all_applic = models.front()->applicability();
+    ASSERT_EQ(2, all_applic.size());
+
+    // Test step limits
+    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    {
+        for (auto applic : all_applic)
+        {
+            applic.material = mat_id;
+            auto builders   = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::macro_xs]);
+            EXPECT_FALSE(builders[VGT::energy_loss]);
+            EXPECT_FALSE(builders[VGT::range]);
+        }
+    }
+}
+
+TEST_F(ImportedProcessesTest, gamma_conversion)
+{
+    // Create photoelectric process
+    auto process
+        = std::make_shared<GammaConversionProcess>(particles_, processes_);
+
+    // Test model
+    auto models = process->build_models(ModelIdGenerator{});
+    ASSERT_EQ(1, models.size());
+    ASSERT_TRUE(models.front());
+    EXPECT_EQ("Bethe-Heitler", models.front()->label());
+    auto all_applic = models.front()->applicability();
+    ASSERT_EQ(1, all_applic.size());
+    Applicability applic = *all_applic.begin();
+
+    // Test step limits
+    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    {
+        applic.material = mat_id;
+        auto builders   = process->step_limits(applic);
+        EXPECT_TRUE(builders[VGT::macro_xs]);
+        EXPECT_FALSE(builders[VGT::energy_loss]);
+        EXPECT_FALSE(builders[VGT::range]);
     }
 }
 

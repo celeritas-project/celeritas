@@ -238,27 +238,3 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
         = {18.375, 23.125, 22.75, 23.3125, 22.5625};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
-
-// TODO: Test all models for a given process?
-TEST_F(BetheHeitlerInteractorTest, model)
-{
-    GammaConversionProcess process(this->particle_params());
-    ModelIdGenerator       next_id;
-
-    // Construct the models associated with gamma annihilation
-    auto models = process.build_models(next_id);
-    EXPECT_EQ(1, models.size());
-
-    auto bh = models.front();
-    EXPECT_EQ(ModelId{0}, bh->model_id());
-
-    // Get the particle types and energy ranges this model applies to
-    auto set_applic = bh->applicability();
-    EXPECT_EQ(1, set_applic.size());
-
-    auto applic = *set_applic.begin();
-    EXPECT_EQ(MaterialId{}, applic.material);
-    EXPECT_EQ(ParticleId{2}, applic.particle);
-    EXPECT_EQ(celeritas::units::MevEnergy{1.5}, applic.lower);
-    EXPECT_EQ(celeritas::units::MevEnergy{1e5}, applic.upper);
-}

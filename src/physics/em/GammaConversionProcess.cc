@@ -14,11 +14,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from host data.
+ * Construct from particles and imported Geant data.
  */
-GammaConversionProcess::GammaConversionProcess(SPConstParticles particles)
+GammaConversionProcess::GammaConversionProcess(SPConstParticles particles,
+                                               SPConstImported  process_data)
     : particles_(std::move(particles))
-    , positron_id_(particles_->find(pdg::positron()))
+    , imported_(process_data,
+                particles_,
+                ImportProcessClass::conversion,
+                {pdg::gamma()})
 {
     CELER_EXPECT(particles_);
 }
@@ -37,14 +41,10 @@ auto GammaConversionProcess::build_models(ModelIdGenerator next_id) const
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto GammaConversionProcess::step_limits(Applicability range) const
+auto GammaConversionProcess::step_limits(Applicability applic) const
     -> StepLimitBuilders
 {
-    CELER_EXPECT(range.particle == particles_->find(pdg::gamma()));
-
-    // TODO
-    StepLimitBuilders builders;
-    return builders;
+    return imported_.step_limits(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

@@ -17,6 +17,7 @@
 namespace celeritas
 {
 class ValueGridInserter;
+
 //---------------------------------------------------------------------------//
 /*!
  * Helper class for constructing on-device physics data for a single material.
@@ -154,6 +155,24 @@ class ValueGridGenericBuilder final : public ValueGridBuilder
     VecReal value_;
     Interp  grid_interp_;
     Interp  value_interp_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Special cases for indicating *only* on-the-fly cross sections.
+ *
+ * Currently this should be thrown just for processes and models specified in
+ * \c HardwiredModels as needed for EPlusAnnihilationProcess, which has *only*
+ * on-the-fly cross section calculation.
+ *
+ * This class is needed so that the process has at least one "builder"; but it
+ * always returns an invalid ValueGridId.
+ */
+class ValueGridOTFBuilder final : public ValueGridBuilder
+{
+  public:
+    // Don't construct anything
+    ValueGridId build(ValueGridInserter) const final;
 };
 
 //---------------------------------------------------------------------------//
