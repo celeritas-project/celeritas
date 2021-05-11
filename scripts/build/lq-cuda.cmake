@@ -35,7 +35,7 @@ set_cache_var(CMAKE_BUILD_TYPE STRING "Debug")
 
 # Enable color diagnostics when using Ninja
 set_cache_var(CMAKE_CXX_FLAGS STRING
-  "-Wall -Wextra -pedantic -fdiagnostics-color=always")
-#  "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always")
+  " -fdiagnostics-color=always")
+#  " -fdiagnostics-color=always")
 set_cache_var(CMAKE_CUDA_FLAGS STRING
   "-Werror all-warnings ${CMAKE_CUDA_FLAGS}")

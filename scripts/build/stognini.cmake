@@ -19,4 +19,4 @@ set_cache_var(CMAKE_BUILD_TYPE STRING "Debug")
 set_cache_var(CMAKE_SWIG_CXX_FLAGS STRING
   "-Wno-deprecated-declarations")
 #set_cache_var(CMAKE_CXX_FLAGS STRING
-#  "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always")
+#  " -fdiagnostics-color=always")

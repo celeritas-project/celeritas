@@ -35,7 +35,7 @@ set_cache_var(MPI_CXX_SKIP_MPICXX BOOL TRUE)
 
 # Enable color diagnostics when using Ninja
 set_cache_var(CMAKE_CXX_FLAGS STRING
-  "-Wall -Wextra -pedantic -fdiagnostics-color=always")
-#  "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always")
+  " -fdiagnostics-color=always")
+#  " -fdiagnostics-color=always")
 set_cache_var(CMAKE_CUDA_FLAGS STRING
   "-Werror all-warnings ${CMAKE_CUDA_FLAGS}")

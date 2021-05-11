@@ -19,7 +19,7 @@ mkdir ${BUILD_DIR} 2>/dev/null \
 cd ${BUILD_DIR}
 
 set -x
-export CXXFLAGS="-Wall -Wextra -pedantic -Werror"
+export CXXFLAGS=""
 
 # git -C ${SOURCE_DIR} fetch -f --tags
 

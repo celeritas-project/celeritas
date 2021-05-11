@@ -30,7 +30,7 @@ set_cache_var(CMAKE_CUDA_FLAGS_DEBUG STRING "-g -G")
 set_cache_var(CELERITAS_DEBUG BOOL ON)
 set_cache_var(CMAKE_BUILD_TYPE STRING "Debug")
 set_cache_var(CMAKE_CXX_FLAGS STRING
-  "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always")
+  " -fdiagnostics-color=always")
 
 # MPI flags
 set_cache_var(MPI_CXX_SKIP_MPICXX BOOL TRUE)
