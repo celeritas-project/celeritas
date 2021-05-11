@@ -102,7 +102,7 @@ if(CELERITAS_USE_CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
   # Needed for the custom FindCUDA routines.
   # In particular this passes -arch= ...
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${CMAKE_CUDA_FLAGS})
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${CMAKE_CUDA_FLAGS} --generate-code=arch=compute_70,code=[compute_70,sm_70] -std=c++14)
 endif()
 
 if(CELERITAS_USE_Geant4)
