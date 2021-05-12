@@ -148,8 +148,6 @@ if(CELERITAS_USE_VecGeom)
       sim/detail/InitializeTracks.nocuda.cc
     )
   endif()
-else()
-  message(FATAL_ERROR "VecGeom is temporarily required for building Celeritas")
 endif()
 
 celeritas_add_library(celeritas ${SOURCES})

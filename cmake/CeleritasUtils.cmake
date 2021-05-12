@@ -198,36 +198,47 @@ function(celeritas_cuda_add_library target)
 #    CUDA_SEPARABLE_COMPILATION ON
 #    CUDA_RUNTIME_LIBRARY Shared
 #  )
-
-  target_link_libraries(${target}_cuda
-    PRIVATE VecGeom::vecgeom
-  )
-#  target_link_libraries(${target}
-#    PRIVATE VecGeom::vecgeomcuda_static
-#  )
+  if (CELERITAS_USE_VecGeom)
+    target_link_libraries(${target}_cuda
+      PRIVATE VecGeom::vecgeom
+    )
+  #  target_link_libraries(${target}
+  #    PRIVATE VecGeom::vecgeomcuda_static
+  #  )
+    target_link_libraries(${target}_final
+      PRIVATE VecGeom::vecgeom
+    )
+    target_link_libraries(${target}_final
+    #  PRIVATE VecGeom::vecgeomcuda_static
+      PRIVATE VecGeom::vecgeomcuda
+    )
+  endif()
   target_link_libraries(${target}_final
-    PRIVATE VecGeom::vecgeom
-  )
-  target_link_libraries(${target}_final
-  #  PRIVATE VecGeom::vecgeomcuda_static
-    PRIVATE VecGeom::vecgeomcuda
     PUBLIC ${target}_cuda
   )
 
-  get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
+
   target_link_options(${target}_final
     PRIVATE
-    $<DEVICE_LINK:${vecgeom_static_target_location}>
     $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
     $<DEVICE_LINK:$<TARGET_FILE:${target}_static>>
   )
+  if (CELERITAS_USE_VecGeom)
+    get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
+    target_link_options(${target}_final
+      PRIVATE
+      $<DEVICE_LINK:${vecgeom_static_target_location}>
+    )
+  endif()
 
-  target_link_libraries(${target}_objects
-    PRIVATE VecGeom::vecgeom
-  )
-  target_link_libraries(${target}_objects
-    PRIVATE VecGeom::vecgeomcuda_static
-  )
+  if (CELERITAS_USE_VecGeom)
+    target_link_libraries(${target}_objects
+      PRIVATE VecGeom::vecgeom
+    )
+    target_link_libraries(${target}_objects
+      PRIVATE VecGeom::vecgeomcuda_static
+    )
+  endif()
 
   #cuda_add_library_depend(${target} VecGeom::vecgeom VecGeom::vecgeomcuda_static ${vecgeom_static_target_location})
   #cuda_add_library_depend(${target}_static VecGeom::vecgeom VecGeom::vecgeomcuda_static ${vecgeom_static_target_location})
