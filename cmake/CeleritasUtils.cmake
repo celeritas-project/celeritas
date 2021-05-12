@@ -83,13 +83,6 @@ return()
     PROPERTIES LINKER_LANGUAGE CXX
   )
 
-  #get_target_property(target_include_directories ${target}
-  #  INCLUDE_DIRECTORIES
-  #)
-  #set_target_properties(${target}_static PROPERTIES
-  #  INCLUDE_DIRECTORIES "${target_include_directories}"
-  #)
-
   get_target_property(target_interface_include_directories ${target}
     INTERFACE_INCLUDE_DIRECTORIES
   )
@@ -111,11 +104,6 @@ return()
   )
 endif()
 
-  #target_link_libraries(celeritas_final
-  #  VecGeom::vecgeom
-  #  VecGeom::vecgeomcuda
-  #  VecGeom::vecgeomcuda_static
-  #)
 endfunction()
 
 function(celeritas_cuda_add_library target)
@@ -152,32 +140,20 @@ function(celeritas_cuda_add_library target)
     # CUDA_RESOLVE_DEVICE_SYMBOLS ON # Default for shared library
   )
 
-  #target_link_options(${target}_final PRIVATE --really)
-
-#  set_target_properties(${target} PROPERTIES
-#    LINKER_LANGUAGE CUDA
-#    CUDA_SEPARABLE_COMPILATION ON
-#    CUDA_RUNTIME_LIBRARY Shared
-#  )
   if (CELERITAS_USE_VecGeom)
     target_link_libraries(${target}_cuda
       PRIVATE VecGeom::vecgeom
     )
-  #  target_link_libraries(${target}
-  #    PRIVATE VecGeom::vecgeomcuda_static
-  #  )
     target_link_libraries(${target}_final
       PRIVATE VecGeom::vecgeom
     )
     target_link_libraries(${target}_final
-    #  PRIVATE VecGeom::vecgeomcuda_static
       PRIVATE VecGeom::vecgeomcuda
     )
   endif()
   target_link_libraries(${target}_final
     PUBLIC ${target}_cuda
   )
-
 
   target_link_options(${target}_final
     PRIVATE
@@ -200,9 +176,6 @@ function(celeritas_cuda_add_library target)
       PRIVATE VecGeom::vecgeomcuda_static
     )
   endif()
-
-  #cuda_add_library_depend(${target} VecGeom::vecgeom VecGeom::vecgeomcuda_static ${vecgeom_static_target_location})
-  #cuda_add_library_depend(${target}_static VecGeom::vecgeom VecGeom::vecgeomcuda_static ${vecgeom_static_target_location})
 
   add_dependencies(${target}_final ${target}_cuda)
   add_dependencies(${target}_final ${target}_objects)

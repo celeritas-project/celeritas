@@ -151,7 +151,6 @@ if(CELERITAS_USE_VecGeom)
   endif()
   celeritas_add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES})
   target_link_libraries(CeleritasVecgeomTest_final
-#    PRIVATE Celeritas::Test celeritas_static celeritas_cuda VecGeom::vecgeom
      PRIVATE Celeritas::Test celeritas_cuda VecGeom::vecgeom
      PUBLIC celeritas_cuda
   )
@@ -274,7 +273,6 @@ if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   celeritas_add_test(sim/TrackInitializerStore.test.cc GPU
     SOURCES sim/TrackInitializerStore.test.cu
     LINK_LIBRARIES celeritas_cuda VecGeom::vecgeomcuda VecGeom::vgdml)
-#    LINK_LIBRARIES VecGeom::vecgeom celeritas_static celeritas_cuda VecGeom::vecgeomcuda_static VecGeom::vgdml)
   get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
   target_link_options(sim_TrackInitializerStore
     PRIVATE
