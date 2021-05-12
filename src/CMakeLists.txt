@@ -81,6 +81,8 @@ list(APPEND SOURCES
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
   random/RngInterface.cc
+  sim/TrackInitInterface.cc
+  sim/TrackInitParams.cc
 )
 
 if(CELERITAS_USE_CUDA)
@@ -136,7 +138,7 @@ if(CELERITAS_USE_VecGeom)
     geometry/detail/VGNavCollection.cc
     sim/ParamStore.cc
     sim/StateStore.cc
-    sim/TrackInitializerStore.cc
+    sim/TrackInitUtils.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
   if(CELERITAS_USE_CUDA)

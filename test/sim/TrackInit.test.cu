@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitializerStore.test.cu
+//! \file TrackInit.test.cu
 //---------------------------------------------------------------------------//
-#include "TrackInitializerStore.test.hh"
+#include "TrackInit.test.hh"
 
 #include <thrust/copy.h>
 #include <thrust/device_vector.h>
@@ -64,7 +64,7 @@ __global__ void tracks_test_kernel(StatePointers states, unsigned int* output)
 }
 
 __global__ void
-initializers_test_kernel(TrackInitializerDeviceRef inits, unsigned int* output)
+initializers_test_kernel(TrackInitStateDeviceRef inits, unsigned int* output)
 {
     auto thread_id = celeritas::KernelParamCalculator::thread_id();
     if (thread_id < inits.initializers.size())
@@ -75,7 +75,7 @@ initializers_test_kernel(TrackInitializerDeviceRef inits, unsigned int* output)
 }
 
 __global__ void
-vacancies_test_kernel(TrackInitializerDeviceRef inits, size_type* output)
+vacancies_test_kernel(TrackInitStateDeviceRef inits, size_type* output)
 {
     auto thread_id = celeritas::KernelParamCalculator::thread_id();
     if (thread_id < inits.vacancies.size())
@@ -127,7 +127,7 @@ std::vector<unsigned int> tracks_test(StatePointers states)
     return host_output;
 }
 
-std::vector<unsigned int> initializers_test(TrackInitializerDeviceRef inits)
+std::vector<unsigned int> initializers_test(TrackInitStateDeviceRef inits)
 {
     // Allocate memory for results
     std::vector<unsigned int> host_output(inits.initializers.size());
@@ -151,7 +151,7 @@ std::vector<unsigned int> initializers_test(TrackInitializerDeviceRef inits)
     return host_output;
 }
 
-std::vector<size_type> vacancies_test(TrackInitializerDeviceRef inits)
+std::vector<size_type> vacancies_test(TrackInitStateDeviceRef inits)
 {
     // Allocate memory for results
     std::vector<size_type> host_output(inits.vacancies.size());

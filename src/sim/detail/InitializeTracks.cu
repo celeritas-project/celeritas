@@ -43,10 +43,10 @@ struct IsEqual
  * from either primary particles or secondaries. The new tracks are inserted
  * into empty slots (vacancies) in the track vector.
  */
-__global__ void init_tracks_kernel(const StatePointers             states,
-                                   const ParamPointers             params,
-                                   const TrackInitializerDeviceRef inits,
-                                   size_type num_vacancies)
+__global__ void init_tracks_kernel(const ParamPointers           params,
+                                   const StatePointers           states,
+                                   const TrackInitStateDeviceRef inits,
+                                   size_type                     num_vacancies)
 {
     auto tid = KernelParamCalculator::thread_id().get();
     if (!(tid < num_vacancies))
@@ -101,9 +101,9 @@ __global__ void init_tracks_kernel(const StatePointers             states,
  * that survived cutoffs for each interaction. If the track is dead and
  * produced secondaries, fill the empty track slot with one of the secondaries.
  */
-__global__ void locate_alive_kernel(const StatePointers             states,
-                                    const ParamPointers             params,
-                                    const TrackInitializerDeviceRef inits)
+__global__ void locate_alive_kernel(const ParamPointers           params,
+                                    const StatePointers           states,
+                                    const TrackInitStateDeviceRef inits)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
@@ -175,7 +175,7 @@ __global__ void locate_alive_kernel(const StatePointers             states,
  * Create track initializers on device from primary particles.
  */
 __global__ void process_primaries_kernel(const Span<const Primary> primaries,
-                                         const TrackInitializerDeviceRef inits)
+                                         const TrackInitStateDeviceRef inits)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < primaries.size()))
@@ -200,10 +200,9 @@ __global__ void process_primaries_kernel(const Span<const Primary> primaries,
 /*!
  * Create track initializers on device from secondary particles.
  */
-__global__ void
-process_secondaries_kernel(const StatePointers             states,
-                           const ParamPointers             params,
-                           const TrackInitializerDeviceRef inits)
+__global__ void process_secondaries_kernel(const ParamPointers params,
+                                           const StatePointers states,
+                                           const TrackInitStateDeviceRef inits)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
@@ -260,9 +259,9 @@ process_secondaries_kernel(const StatePointers             states,
 /*!
  * Initialize the track states on device.
  */
-void init_tracks(const StatePointers&             states,
-                 const ParamPointers&             params,
-                 const TrackInitializerDeviceRef& inits)
+void init_tracks(const ParamPointers&           params,
+                 const StatePointers&           states,
+                 const TrackInitStateDeviceRef& inits)
 {
     // Number of vacancies, limited by the initializer size
     auto num_vacancies
@@ -273,7 +272,7 @@ void init_tracks(const StatePointers&             states,
         init_tracks_kernel, "init_tracks");
     auto lparams = calc_launch_params(num_vacancies);
     init_tracks_kernel<<<lparams.grid_size, lparams.block_size>>>(
-        states, params, inits, num_vacancies);
+        params, states, inits, num_vacancies);
     CELER_CUDA_CHECK_ERROR();
 }
 
@@ -282,15 +281,15 @@ void init_tracks(const StatePointers&             states,
  * Find empty slots in the vector of tracks and count the number of secondaries
  * that survived cutoffs for each interaction.
  */
-void locate_alive(const StatePointers&             states,
-                  const ParamPointers&             params,
-                  const TrackInitializerDeviceRef& inits)
+void locate_alive(const ParamPointers&           params,
+                  const StatePointers&           states,
+                  const TrackInitStateDeviceRef& inits)
 {
     static const celeritas::KernelParamCalculator calc_launch_params(
         locate_alive_kernel, "locate_alive");
     auto lparams = calc_launch_params(states.size());
     locate_alive_kernel<<<lparams.grid_size, lparams.block_size>>>(
-        states, params, inits);
+        params, states, inits);
     CELER_CUDA_CHECK_ERROR();
 }
 
@@ -298,8 +297,8 @@ void locate_alive(const StatePointers&             states,
 /*!
  * Create track initializers from primary particles.
  */
-void process_primaries(Span<const Primary>              primaries,
-                       const TrackInitializerDeviceRef& inits)
+void process_primaries(Span<const Primary>            primaries,
+                       const TrackInitStateDeviceRef& inits)
 {
     CELER_EXPECT(primaries.size() <= inits.initializers.size());
 
@@ -315,9 +314,9 @@ void process_primaries(Span<const Primary>              primaries,
 /*!
  * Create track initializers from secondary particles.
  */
-void process_secondaries(const StatePointers&             states,
-                         const ParamPointers&             params,
-                         const TrackInitializerDeviceRef& inits)
+void process_secondaries(const ParamPointers&           params,
+                         const StatePointers&           states,
+                         const TrackInitStateDeviceRef& inits)
 {
     CELER_EXPECT(states.size() <= inits.secondary_counts.size());
     CELER_EXPECT(states.size() <= states.interactions.size());
@@ -326,7 +325,7 @@ void process_secondaries(const StatePointers&             states,
         process_secondaries_kernel, "process_secondaries");
     auto lparams = calc_launch_params(states.size());
     process_secondaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
-        states, params, inits);
+        params, states, inits);
     CELER_CUDA_CHECK_ERROR();
 }
 

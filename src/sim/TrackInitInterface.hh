@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitializerInterface.hh
+//! \file TrackInitInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,6 +17,64 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Static track initializer data.
+ *
+ * There is no persistent data needed on device or at runtime: the params are
+ * only used for construction.
+ */
+template<Ownership W, MemSpace M>
+struct TrackInitParamsData;
+
+template<Ownership W>
+struct TrackInitParamsData<W, MemSpace::device>
+{
+    /* no data on device */
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    TrackInitParamsData& operator=(const TrackInitParamsData<W2, M2>&)
+    {
+        return *this;
+    }
+};
+
+template<Ownership W>
+struct TrackInitParamsData<W, MemSpace::host>
+{
+    //// TYPES ////
+
+    template<class T>
+    using Items = Collection<T, W, MemSpace::host>;
+
+    //// DATA ////
+
+    Items<Primary> primaries;
+
+    size_type storage_factor = 3; //!< Initializer/parent storage per tracks
+
+    //// METHODS ////
+
+    //! Whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !primaries.empty() && storage_factor > 0;
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    TrackInitParamsData& operator=(const TrackInitParamsData<W2, M2>& other)
+    {
+        primaries      = other.primaries;
+        storage_factor = other.storage_factor;
+        return *this;
+    }
+};
+
+using TrackInitParamsHostRef
+    = TrackInitParamsData<Ownership::const_reference, MemSpace::host>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Lightweight version of a track used to initialize new tracks from primaries
@@ -99,7 +157,7 @@ struct ResizableData
  * Storage for data used to initialize new tracks.
  */
 template<Ownership W, MemSpace M>
-struct TrackInitializerData
+struct TrackInitStateData
 {
     //// TYPES ////
 
@@ -118,6 +176,8 @@ struct TrackInitializerData
     StateItems<size_type>            secondary_counts;
     EventItems<TrackId::size_type>   track_counters;
 
+    size_type num_primaries{}; //!< Number of uninitialized primaries
+
     //// METHODS ////
 
     //! Whether the data are assigned
@@ -129,7 +189,7 @@ struct TrackInitializerData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    TrackInitializerData& operator=(TrackInitializerData<W2, M2>& other)
+    TrackInitStateData& operator=(TrackInitStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         initializers     = other.initializers;
@@ -137,12 +197,29 @@ struct TrackInitializerData
         vacancies        = other.vacancies;
         secondary_counts = other.secondary_counts;
         track_counters   = other.track_counters;
+        num_primaries    = other.num_primaries;
         return *this;
     }
 };
 
-using TrackInitializerDeviceRef
-    = TrackInitializerData<Ownership::reference, MemSpace::device>;
+using TrackInitStateDeviceRef
+    = TrackInitStateData<Ownership::reference, MemSpace::device>;
+using TrackInitStateDeviceVal
+    = TrackInitStateData<Ownership::value, MemSpace::device>;
+
+//---------------------------------------------------------------------------//
+// Resize and initialize track initializer data on device.
+void resize(
+    TrackInitStateData<Ownership::value, MemSpace::device>*,
+    const TrackInitParamsData<Ownership::const_reference, MemSpace::host>&,
+    size_type);
+
+//---------------------------------------------------------------------------//
+// Resize and initialize track initializer data on host (not implemented).
+void resize(
+    TrackInitStateData<Ownership::value, MemSpace::host>*,
+    const TrackInitParamsData<Ownership::const_reference, MemSpace::host>&,
+    size_type);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

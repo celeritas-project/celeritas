@@ -3,58 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitializerStore.cc
+//! \file TrackInitUtils.cc
 //---------------------------------------------------------------------------//
-#include "TrackInitializerStore.hh"
+#include "TrackInitUtils.hh"
 
 #include <numeric>
+#include "base/Algorithms.hh"
 #include "detail/InitializeTracks.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct with the number of tracks and the maximum number of elements to
- * allocate on device.
- */
-TrackInitializerStore::TrackInitializerStore(size_type            num_tracks,
-                                             size_type            capacity,
-                                             std::vector<Primary> primaries)
-    : primaries_(primaries)
-{
-    // Allocate device data
-    make_builder(&data_.initializers.storage).resize(capacity);
-    make_builder(&data_.parents.storage).resize(capacity);
-    make_builder(&data_.secondary_counts).resize(num_tracks);
-
-    // Start with an empty vector of track initializers and parent thread IDs
-    data_.initializers.resize(0);
-    data_.parents.resize(0);
-
-    // Initialize vacancies to mark all track slots as initially empty
-    StateCollection<size_type, Ownership::value, MemSpace::host> vacancies;
-    make_builder(&vacancies).resize(num_tracks);
-    for (auto i : range(ThreadId{num_tracks}))
-        vacancies[i] = i.get();
-    data_.vacancies.storage = vacancies;
-    data_.vacancies.resize(num_tracks);
-
-    // Initialize the track counter for each event as the number of primary
-    // particles in that event
-    Collection<TrackId::size_type, Ownership::value, MemSpace::host, EventId>
-        track_counters;
-    for (const auto& primary : primaries_)
-    {
-        const auto event_id = primary.event_id;
-        if (!(event_id < track_counters.size()))
-        {
-            make_builder(&track_counters).resize(event_id.get() + 1);
-        }
-        ++track_counters[event_id];
-    }
-    data_.track_counters = track_counters;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Create track initializers on device from primary particles.
@@ -64,25 +22,28 @@ TrackInitializerStore::TrackInitializerStore(size_type            num_tracks,
  * been initialized on device or the size of the available storage in the track
  * initializer vector, whichever is smaller).
  */
-void TrackInitializerStore::extend_from_primaries()
+void extend_from_primaries(const TrackInitParamsHostRef& params,
+                           TrackInitStateDeviceVal*      data)
 {
+    CELER_EXPECT(data);
+    CELER_EXPECT(params);
+
     // Number of primaries to copy to device
-    auto count = std::min<size_type>(
-        data_.initializers.capacity() - data_.initializers.size(),
-        primaries_.size());
+    auto count = min(data->initializers.capacity() - data->initializers.size(),
+                     data->num_primaries);
     if (count)
     {
-        data_.initializers.resize(data_.initializers.size() + count);
+        data->initializers.resize(data->initializers.size() + count);
 
         // Allocate memory on device and copy primaries
         DeviceVector<Primary> primaries(count);
-        primaries.copy_to_device(
-            {primaries_.data() + primaries_.size() - count, count});
-        primaries_.resize(primaries_.size() - count);
+        primaries.copy_to_device(params.primaries[ItemRange<Primary>(
+            ItemId<Primary>(data->num_primaries - count),
+            ItemId<Primary>(data->num_primaries))]);
+        data->num_primaries -= count;
 
         // Launch a kernel to create track initializers from primaries
-        detail::process_primaries(primaries.device_pointers(),
-                                  this->device_pointers());
+        detail::process_primaries(primaries.device_pointers(), make_ref(*data));
     }
 }
 
@@ -143,35 +104,37 @@ void TrackInitializerStore::extend_from_primaries()
 
    \endverbatim
  */
-void TrackInitializerStore::extend_from_secondaries(StateStore* states,
-                                                    ParamStore* params)
+void extend_from_secondaries(const ParamStore&        params,
+                             StateStore*              states,
+                             TrackInitStateDeviceVal* data)
 {
-    CELER_EXPECT(states && params);
+    CELER_EXPECT(states);
+    CELER_EXPECT(data);
+
     // Resize the vector of vacancies to be equal to the number of tracks
-    data_.vacancies.resize(states->size());
+    data->vacancies.resize(states->size());
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
-    detail::locate_alive(states->device_pointers(),
-                         params->device_pointers(),
-                         this->device_pointers());
+    detail::locate_alive(
+        params.device_pointers(), states->device_pointers(), make_ref(*data));
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
-    size_type num_vac = detail::remove_if_alive(data_.vacancies.pointers());
-    data_.vacancies.resize(num_vac);
+    size_type num_vac = detail::remove_if_alive(data->vacancies.pointers());
+    data->vacancies.resize(num_vac);
 
     // Sum the total number secondaries produced in all interactions
     // TODO: if we don't have space for all the secondaries, we will need to
     // buffer the current track initializers to create room
     size_type num_secondaries = detail::reduce_counts(
-        data_.secondary_counts[AllItems<size_type, MemSpace::device>{}]);
-    CELER_VALIDATE(num_secondaries + data_.initializers.size()
-                       <= data_.initializers.capacity(),
-                   << "insufficient capacity (" << data_.initializers.capacity()
+        data->secondary_counts[AllItems<size_type, MemSpace::device>{}]);
+    CELER_VALIDATE(num_secondaries + data->initializers.size()
+                       <= data->initializers.capacity(),
+                   << "insufficient capacity (" << data->initializers.capacity()
                    << ") for track initializers (created " << num_secondaries
                    << " new secondaries for a total capacity requirement of "
-                   << num_secondaries + data_.initializers.size() << ")");
+                   << num_secondaries + data->initializers.size() << ")");
 
     // The exclusive prefix sum of the number of secondaries produced by each
     // track is used to get the start index in the vector of track initializers
@@ -179,14 +142,13 @@ void TrackInitializerStore::extend_from_secondaries(StateStore* states,
     // initializers from all surviving secondaries produced in its
     // interaction.
     detail::exclusive_scan_counts(
-        data_.secondary_counts[AllItems<size_type, MemSpace::device>{}]);
+        data->secondary_counts[AllItems<size_type, MemSpace::device>{}]);
 
     // Launch a kernel to create track initializers from secondaries
-    data_.parents.resize(num_secondaries);
-    data_.initializers.resize(data_.initializers.size() + num_secondaries);
-    detail::process_secondaries(states->device_pointers(),
-                                params->device_pointers(),
-                                this->device_pointers());
+    data->parents.resize(num_secondaries);
+    data->initializers.resize(data->initializers.size() + num_secondaries);
+    detail::process_secondaries(
+        params.device_pointers(), states->device_pointers(), make_ref(*data));
 }
 
 //---------------------------------------------------------------------------//
@@ -198,22 +160,25 @@ void TrackInitializerStore::extend_from_secondaries(StateStore* states,
  * If there are more empty slots than new secondaries, they will be filled by
  * any track initializers remaining from previous steps using the position.
  */
-void TrackInitializerStore::initialize_tracks(StateStore* states,
-                                              ParamStore* params)
+void initialize_tracks(const ParamStore&        params,
+                       StateStore*              states,
+                       TrackInitStateDeviceVal* data)
 {
-    CELER_EXPECT(states && params);
+    CELER_EXPECT(states);
+    CELER_EXPECT(data);
+
     // The number of new tracks to initialize is the smaller of the number of
     // empty slots in the track vector and the number of track initializers
     size_type num_tracks
-        = std::min(data_.vacancies.size(), data_.initializers.size());
+        = std::min(data->vacancies.size(), data->initializers.size());
     if (num_tracks > 0)
     {
         // Launch a kernel to initialize tracks on device
-        detail::init_tracks(states->device_pointers(),
-                            params->device_pointers(),
-                            this->device_pointers());
-        data_.initializers.resize(data_.initializers.size() - num_tracks);
-        data_.vacancies.resize(data_.vacancies.size() - num_tracks);
+        detail::init_tracks(params.device_pointers(),
+                            states->device_pointers(),
+                            make_ref(*data));
+        data->initializers.resize(data->initializers.size() - num_tracks);
+        data->vacancies.resize(data->vacancies.size() - num_tracks);
     }
 }
 

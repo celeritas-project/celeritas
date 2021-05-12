@@ -36,6 +36,9 @@ class StateStore
     };
 
   public:
+    // Default constructor
+    StateStore() = default;
+
     // Construct with the track state input
     explicit StateStore(const Input& inp);
 

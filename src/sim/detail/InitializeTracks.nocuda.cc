@@ -16,26 +16,26 @@ namespace detail
 //---------------------------------------------------------------------------//
 void init_tracks(const StatePointers&,
                  const ParamPointers&,
-                 const TrackInitializerPointers&)
+                 const TrackInitStateDeviceRef&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 
 void locate_alive(const StatePointers&,
                   const ParamPointers&,
-                  const TrackInitializerPointers&)
+                  const TrackInitStateDeviceRef&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 
-void process_primaries(Span<const Primary>, const TrackInitializerPointers&)
+void process_primaries(Span<const Primary>, const TrackInitStateDeviceRef&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 
 void process_secondaries(const StatePointers&,
                          const ParamPointers&,
-                         TrackInitializerPointers)
+                         const TrackInitStateDeviceRef&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

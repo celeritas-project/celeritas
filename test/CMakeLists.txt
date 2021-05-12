@@ -258,8 +258,8 @@ celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX sim)
 if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
-  celeritas_add_test(sim/TrackInitializerStore.test.cc GPU
-    SOURCES sim/TrackInitializerStore.test.cu
+  celeritas_add_test(sim/TrackInit.test.cc GPU
+    SOURCES sim/TrackInit.test.cu
     LINK_LIBRARIES VecGeom::vecgeom)
 endif()
 

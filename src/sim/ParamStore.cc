@@ -31,7 +31,7 @@ ParamStore::ParamStore(SPConstGeo      geo,
 /*!
  * Get a view to the managed data.
  */
-ParamPointers ParamStore::device_pointers()
+ParamPointers ParamStore::device_pointers() const
 {
     ParamPointers result;
     result.geo      = geo_params_->device_pointers();

@@ -36,7 +36,7 @@ class ParamStore
     ParamStore(SPConstGeo geo, SPConstMaterial mat, SPConstParticle particle);
 
     // Get a view to the managed data
-    ParamPointers device_pointers();
+    ParamPointers device_pointers() const;
 
   private:
     SPConstGeo      geo_params_;
