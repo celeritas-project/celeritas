@@ -312,12 +312,28 @@ function(celeritas_add_test SOURCE_FILE)
       CUDA_SEPARABLE_COMPILATION ON
       CUDA_RUNTIME_LIBRARY Shared
     )
+
+    string(FIND "${SOURCE_FILE} ${PARSE_SOURCES}" .cu iscudalinked)
+    if (iscudalinked LESS 0 AND BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
+      set(LOCAL_CELERITAS_HAS_FINAL false)
+      foreach(lib ${CELERITASTEST_LINK_LIBRARIES} ${PARSE_LINK_LIBRARIES})
+        get_target_property(libtype ${lib} CELERITAS_CUDA_LIBRARY_TYPE)
+        #message(WARNING "For ${lib} found ${libtype}")
+        if ("${libtype}" STREQUAL "Final")
+          set(LOCAL_CELERITAS_HAS_FINAL true)
+          break()
+        endif()
+      endforeach()
+      if (NOT LOCAL_CELERITAS_HAS_FINAL)
+        target_link_libraries(${_TARGET} celeritas_final)
+      endif()
+    endif()
+
     target_link_libraries(${_TARGET}
       Celeritas::Test # celeritas_cuda
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
     )
-
     if(PARSE_ADD_DEPENDENCIES OR CELERITASTEST_ADD_DEPENDENCIES)
       # Add additional dependencies
       add_dependencies(${_TARGET} ${PARSE_ADD_DEPENDENCIES}
