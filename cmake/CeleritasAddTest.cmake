@@ -308,8 +308,12 @@ function(celeritas_add_test SOURCE_FILE)
 
     # Create an executable and link libraries against it
     add_executable(${_TARGET} "${SOURCE_FILE}" ${PARSE_SOURCES})
+    set_target_properties(${_TARGET} PROPERTIES
+      CUDA_SEPARABLE_COMPILATION ON
+      CUDA_RUNTIME_LIBRARY Shared
+    )
     target_link_libraries(${_TARGET}
-      Celeritas::Test Celeritas::Core
+      Celeritas::Test # celeritas_cuda
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
     )

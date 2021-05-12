@@ -42,16 +42,135 @@ macro(celeritas_find_package_config _package)
   find_package_handle_standard_args(${_package} CONFIG_MODE)
 endmacro()
 
+macro(celeritas_add_library)
+  if(CELERITAS_USE_CUDA)
+    if(BUILD_SHARED_LIBS)
+      celeritas_cuda_add_library(${ARGV})
+    else()
+      add_library(${ARGV})
+    endif()
+else()
+     add_library(${ARGV})
+  endif()
+endmacro()
+
 function(celeritas_link_vecgeom_cuda target)
-  set_target_properties(${target} PROPERTIES
-    LINKER_LANGUAGE CUDA
-    CUDA_SEPARABLE_COMPILATION ON
-  )
+return()
+
+#  Readd when using
+  #set_target_properties(${target} PROPERTIES
+  #  LINKER_LANGUAGE CUDA
+  #  CUDA_SEPARABLE_COMPILATION ON
+  #)
+
+  # Note: the repeat (target name, location) below is due the author of  cuda_add_library_depend
+  # not knowing how to automatically go from the target to the real file from a generator expression in add_custom_command
+  get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
+  cuda_add_library_depend(${target} VecGeom::vecgeom VecGeom::vecgeomcuda_static ${vecgeom_static_target_location})
   target_link_libraries(${target}
     PRIVATE
+    VecGeom::vecgeom
     VecGeom::vecgeomcuda
     VecGeom::vecgeomcuda_static
   )
+  if(BUILD_SHARED_LIBS)
+  target_link_libraries(${target}_static
+    VecGeom::vecgeom
+    VecGeom::vecgeomcuda_static
+    ${PRIVATE_DEPS}
+  )
+  set_target_properties(${target}_static
+    PROPERTIES LINKER_LANGUAGE CXX
+  )
+
+  get_target_property(target_interface_include_directories ${target}
+    INTERFACE_INCLUDE_DIRECTORIES
+  )
+  set_target_properties(${target}_static PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${target_interface_include_directories}")
+
+  get_target_property(target_LINK_LIBRARIES ${target}
+    LINK_LIBRARIES
+  )
+  get_target_property(target_INTERFACE_LINK_LIBRARIES ${target}
+    INTERFACE_LINK_LIBRARIES )
+  set_target_properties(${target}_static PROPERTIES
+    LINK_LIBRARIES "${target_LINK_LIBRARIES}"
+    INTERFACE_LINK_LIBRARIES "${target_INTERFACE_LINK_LIBRARIES}"
+  )
+
+  set_target_properties(${target}_static PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+  )
+endif()
+
 endfunction()
 
+function(celeritas_cuda_add_library target)
+  list(SUBLIST ARGV 1 -1 NEWARGV)
+  add_library(${target}_objects OBJECT ${NEWARGV})
+  add_library(${target}_static STATIC $<TARGET_OBJECTS:${target}_objects>)
+  add_library(${target}_cuda SHARED $<TARGET_OBJECTS:${target}_objects>)
+  add_library(${target}_final SHARED ../src/base/dummy.cu)
+
+  set_target_properties(${target}_objects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    CUDA_SEPARABLE_COMPILATION ON
+    CUDA_RUNTIME_LIBRARY Shared
+  )
+
+  set_target_properties(${target}_cuda PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    CUDA_SEPARABLE_COMPILATION ON # We really don't want nvlink called.
+    CUDA_RUNTIME_LIBRARY Shared
+    CUDA_RESOLVE_DEVICE_SYMBOLS OFF # We really don't want nvlink called.
+  )
+
+  set_target_properties(${target}_static PROPERTIES
+    LINKER_LANGUAGE CUDA
+    CUDA_SEPARABLE_COMPILATION ON
+    CUDA_RUNTIME_LIBRARY Shared
+    # CUDA_RESOLVE_DEVICE_SYMBOLS OFF # Default for static library
+  )
+
+  set_target_properties(${target}_final PROPERTIES
+    LINKER_LANGUAGE CUDA
+    CUDA_SEPARABLE_COMPILATION ON
+    CUDA_RUNTIME_LIBRARY Shared
+    # CUDA_RESOLVE_DEVICE_SYMBOLS ON # Default for shared library
+  )
+
+  target_link_libraries(${target}_cuda
+    PRIVATE VecGeom::vecgeom
+  )
+  target_link_libraries(${target}_final
+    PRIVATE VecGeom::vecgeom
+  )
+  target_link_libraries(${target}_final
+    PRIVATE VecGeom::vecgeomcuda
+    PUBLIC ${target}_cuda
+  )
+
+  get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
+  target_link_options(${target}_final
+    PRIVATE
+    $<DEVICE_LINK:${vecgeom_static_target_location}>
+    $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
+    $<DEVICE_LINK:$<TARGET_FILE:${target}_static>>
+  )
+
+  target_link_libraries(${target}_objects
+    PRIVATE VecGeom::vecgeom
+  )
+  target_link_libraries(${target}_objects
+    PRIVATE VecGeom::vecgeomcuda_static
+  )
+
+  add_dependencies(${target}_final ${target}_cuda)
+  add_dependencies(${target}_final ${target}_objects)
+  add_dependencies(${target}_final ${target}_static)
+
+  add_library(${target} ALIAS ${target}_final)
+
+endfunction()
 #-----------------------------------------------------------------------------#

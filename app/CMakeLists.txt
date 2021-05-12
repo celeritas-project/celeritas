@@ -143,18 +143,27 @@ endif()
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   # Since the demo kernel links against VecGeom, which requires CUDA separable
   # compilation, it cannot be linked directly into an executable.
-  add_library(celeritas_demo_rasterizer
+  celeritas_add_library(celeritas_demo_rasterizer
     demo-rasterizer/RDemoRunner.cc
     demo-rasterizer/RDemoKernel.cu
     demo-rasterizer/ImageIO.cc
     demo-rasterizer/ImageStore.cc
   )
-  target_link_libraries(celeritas_demo_rasterizer
+  target_link_libraries(celeritas_demo_rasterizer_final
     PRIVATE
-      celeritas
+      Celeritas::Core
       nlohmann_json::nlohmann_json
   )
-  celeritas_link_vecgeom_cuda(celeritas_demo_rasterizer)
+
+  target_link_libraries(celeritas_demo_rasterizer_objects
+    PRIVATE
+      Celeritas::Core
+      nlohmann_json::nlohmann_json
+  )
+  target_link_options(celeritas_demo_rasterizer_final
+     PRIVATE $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
+  )
+  celeritas_link_vecgeom_cuda(celeritas_demo_rasterizer_final)
 
   # Add the executable
   add_executable(demo-rasterizer
@@ -196,21 +205,34 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
       demo-loop/LDemoKernel.cu
     )
   endif()
-  add_library(celeritas_demo_loop
+  celeritas_add_library(celeritas_demo_loop
     demo-loop/LDemoIO.cc
     demo-loop/LDemoParams.cc
     demo-loop/LDemoRun.cc
     ${_cuda_src}
   )
 
-  target_link_libraries(celeritas_demo_loop
+  target_link_libraries(celeritas_demo_loop_final
     PRIVATE
-    celeritas
+    Celeritas::Core
+    nlohmann_json::nlohmann_json
+    Celeritas::ROOT
+  )
+  target_link_options(celeritas_demo_loop_final
+     PRIVATE $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
+  )
+  target_link_libraries(celeritas_demo_loop_objects
+    PRIVATE
+    Celeritas::Core
     nlohmann_json::nlohmann_json
     Celeritas::ROOT
   )
   if(CELERITAS_USE_CUDA)
     celeritas_link_vecgeom_cuda(celeritas_demo_loop)
+  endif()
+
+  if(CELERITAS_USE_CUDA)
+    celeritas_link_vecgeom_cuda(celeritas_demo_loop_final)
   endif()
 
   # Add the executable

@@ -21,7 +21,7 @@ list(APPEND CELER_SOURCES
 
 add_library(CeleritasTest ${CELER_SOURCES})
 add_library(Celeritas::Test ALIAS CeleritasTest)
-target_link_libraries(CeleritasTest PRIVATE celeritas PUBLIC GTest::GTest)
+target_link_libraries(CeleritasTest PRIVATE celeritas_cuda PUBLIC GTest::GTest)
 
 target_include_directories(CeleritasTest
   PUBLIC
@@ -67,42 +67,41 @@ endif()
 # Gtest additions
 celeritas_setup_tests(SERIAL PREFIX gtest/detail)
 
-celeritas_add_test(gtest/detail/test/Macros.test.cc)
+celeritas_add_test(gtest/detail/test/Macros.test.cc LINK_LIBRARIES celeritas_final)
 
 #-----------------------------------------------------------------------------#
 # Base
 
 celeritas_setup_tests(SERIAL PREFIX base)
 
-celeritas_add_test(base/Algorithms.test.cc)
-celeritas_add_test(base/Array.test.cc)
-celeritas_add_test(base/ArrayUtils.test.cc)
-celeritas_add_test(base/Constants.test.cc)
-celeritas_add_test(base/DeviceAllocation.test.cc GPU)
-celeritas_add_test(base/DeviceVector.test.cc GPU)
-celeritas_add_test(base/Join.test.cc)
-celeritas_add_test(base/OpaqueId.test.cc)
-celeritas_add_test(base/Quantity.test.cc)
-celeritas_add_test(base/ScopedStreamRedirect.test.cc)
-celeritas_add_test(base/SoftEqual.test.cc)
-celeritas_add_test(base/Span.test.cc)
-celeritas_add_test(base/SpanRemapper.test.cc)
-celeritas_add_test(base/Stopwatch.test.cc)
-celeritas_add_test(base/TypeDemangler.test.cc)
-celeritas_add_test(base/VectorUtils.test.cc)
+celeritas_add_test(base/Algorithms.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/Array.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/ArrayUtils.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/Constants.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/DeviceAllocation.test.cc GPU LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/DeviceVector.test.cc GPU LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/Join.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/OpaqueId.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/Quantity.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/ScopedStreamRedirect.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/SoftEqual.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/Span.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/SpanRemapper.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/Stopwatch.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/TypeDemangler.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(base/VectorUtils.test.cc LINK_LIBRARIES celeritas_final)
 
-celeritas_cudaoptional_test(base/Collection)
-celeritas_cudaoptional_test(base/NumericLimits)
-celeritas_cudaoptional_test(base/Range)
-celeritas_cudaoptional_test(base/StackAllocator)
+celeritas_cudaoptional_test(base/Collection LINK_LIBRARIES celeritas_final)
+celeritas_cudaoptional_test(base/NumericLimits LINK_LIBRARIES celeritas_final)
+celeritas_cudaoptional_test(base/Range LINK_LIBRARIES celeritas_final)
 
 #-----------------------------------------------------------------------------#
 # Comm
 
 celeritas_setup_tests(PREFIX comm)
 
-celeritas_add_test(comm/Communicator.test.cc)
-celeritas_add_test(comm/Logger.test.cc)
+celeritas_add_test(comm/Communicator.test.cc LINK_LIBRARIES celeritas_final )
+celeritas_add_test(comm/Logger.test.cc LINK_LIBRARIES celeritas_final)
 
 
 #-----------------------------------------------------------------------------#
@@ -110,13 +109,16 @@ celeritas_add_test(comm/Logger.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX field)
 
-celeritas_cudaoptional_test(field/RungeKutta)
-celeritas_cudaoptional_test(field/FieldDriver)
+celeritas_cudaoptional_test(field/RungeKutta LINK_LIBRARIES celeritas_final)
+celeritas_cudaoptional_test(field/FieldDriver LINK_LIBRARIES celeritas_final)
 
 if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_CUDA)
-    add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu)
-    target_link_libraries(CeleritasPropagatorTest
+    celeritas_add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu)
+    target_link_libraries(CeleritasPropagatorTest_final
+      PUBLIC celeritas
+    )
+    target_link_libraries(CeleritasPropagatorTest_objects
       PRIVATE celeritas
     )
     list(APPEND CELERITASTEST_LINK_LIBRARIES CeleritasPropagatorTest)
@@ -147,12 +149,22 @@ if(CELERITAS_USE_VecGeom)
       geometry/LinearPropagator.test.cu
     )
   endif()
-  add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES})
-  target_link_libraries(CeleritasVecgeomTest
-    PRIVATE Celeritas::Test Celeritas::Core VecGeom::vecgeom
+  celeritas_add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES})
+  target_link_libraries(CeleritasVecgeomTest_final
+     PRIVATE Celeritas::Test celeritas_cuda VecGeom::vecgeom
+     PUBLIC celeritas_cuda
+  )
+
+  target_link_options(CeleritasVecgeomTest_final
+     PRIVATE $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
+  )
+  #print_target_properties(CeleritasVecgeomTest_final)
+  #print_target_properties(celeritas_final)
+  target_link_libraries(CeleritasVecgeomTest_objects
+    PRIVATE Celeritas::Test celeritas_cuda VecGeom::vecgeom
   )
   if(CELERITAS_USE_CUDA)
-    celeritas_link_vecgeom_cuda(CeleritasVecgeomTest)
+    celeritas_link_vecgeom_cuda(CeleritasVecgeomTest_final)
   endif()
 
   celeritas_setup_tests(SERIAL PREFIX geometry
@@ -170,9 +182,9 @@ endif()
 celeritas_setup_tests(SERIAL PREFIX io)
 
 celeritas_add_test(io/RootImporter.test.cc ${_needs_root}
-  LINK_LIBRARIES Celeritas::ROOT)
-celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc})
-celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
+  LINK_LIBRARIES celeritas_final Celeritas::ROOT)
+celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc} LINK_LIBRARIES celeritas_final)
+celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4} LINK_LIBRARIES celeritas_final)
 
 #-----------------------------------------------------------------------------#
 # Physics
@@ -190,33 +202,33 @@ add_library(CeleritasPhysicsTest
 target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
 
 celeritas_setup_tests(SERIAL PREFIX physics/base
-  LINK_LIBRARIES CeleritasPhysicsTest)
+   LINK_LIBRARIES celeritas_final CeleritasPhysicsTest)
 celeritas_add_test(physics/base/CutoffParams.test.cc
-  LINK_LIBRARIES Celeritas::ROOT)
-celeritas_cudaoptional_test(physics/base/Particle
-  LINK_LIBRARIES Celeritas::ROOT)
+   LINK_LIBRARIES celeritas_final Celeritas::ROOT)
+celeritas_cudaoptional_test(physics/base/Particle 
+   LINK_LIBRARIES celeritas_final Celeritas::ROOT)
 celeritas_cudaoptional_test(physics/base/Physics)
 celeritas_add_test(physics/base/PhysicsStepUtils.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX physics/grid
-  LINK_LIBRARIES CeleritasPhysicsTest)
-celeritas_add_test(physics/grid/GenericXsCalculator.test.cc)
-celeritas_add_test(physics/grid/GridIdFinder.test.cc)
-celeritas_add_test(physics/grid/Interpolator.test.cc)
-celeritas_add_test(physics/grid/InverseRangeCalculator.test.cc)
-celeritas_add_test(physics/grid/NonuniformGrid.test.cc)
-celeritas_add_test(physics/grid/RangeCalculator.test.cc)
-celeritas_add_test(physics/grid/TwodGridCalculator.test.cc)
-celeritas_add_test(physics/grid/UniformGrid.test.cc)
-celeritas_add_test(physics/grid/ValueGridBuilder.test.cc)
-celeritas_add_test(physics/grid/ValueGridInserter.test.cc)
-celeritas_add_test(physics/grid/XsCalculator.test.cc)
+   LINK_LIBRARIES celeritas_final CeleritasPhysicsTest)
+celeritas_add_test(physics/grid/GenericXsCalculator.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/grid/GridIdFinder.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/grid/Interpolator.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/grid/InverseRangeCalculator.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/grid/NonuniformGrid.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/grid/RangeCalculator.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/grid/TwodGridCalculator.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/grid/UniformGrid.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/grid/ValueGridBuilder.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/grid/ValueGridInserter.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/grid/XsCalculator.test.cc LINK_LIBRARIES celeritas_final)
 
 celeritas_setup_tests(SERIAL PREFIX physics/material
-  LINK_LIBRARIES CeleritasPhysicsTest)
-celeritas_add_test(physics/material/ElementSelector.test.cc)
+   LINK_LIBRARIES celeritas_final CeleritasPhysicsTest)
+celeritas_add_test(physics/material/ElementSelector.test.cc LINK_LIBRARIES celeritas_final)
 celeritas_cudaoptional_test(physics/material/Material
-  LINK_LIBRARIES Celeritas::ROOT)
+   LINK_LIBRARIES celeritas_final Celeritas::ROOT)
 
 #-------------------------------------#
 # Physics (EM)
@@ -224,33 +236,33 @@ celeritas_cudaoptional_test(physics/material/Material
 celeritas_setup_tests(SERIAL PREFIX physics/em
   LINK_LIBRARIES CeleritasPhysicsTest)
 
-celeritas_add_test(physics/em/BetheHeitler.test.cc)
-celeritas_add_test(physics/em/EPlusGG.test.cc)
-celeritas_add_test(physics/em/KleinNishina.test.cc)
-celeritas_add_test(physics/em/LivermorePE.test.cc)
-celeritas_add_test(physics/em/MollerBhabha.test.cc)
-celeritas_add_test(physics/em/Rayleigh.test.cc)
-celeritas_add_test(physics/em/SeltzerBerger.test.cc)
+celeritas_add_test(physics/em/BetheHeitler.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/em/EPlusGG.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/em/KleinNishina.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/em/LivermorePE.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/em/MollerBhabha.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/em/Rayleigh.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(physics/em/SeltzerBerger.test.cc LINK_LIBRARIES celeritas_final)
 
 celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
   ${_optional_geant4}
   GPU # TODO: delete when device pointers are no longer directly accessed
-  LINK_LIBRARIES Celeritas::ROOT)
+  LINK_LIBRARIES Celeritas::ROOT celeritas_final)
 
 #-----------------------------------------------------------------------------#
 # Random
 
 celeritas_setup_tests(SERIAL PREFIX random)
 
-celeritas_cudaoptional_test(random/RngEngine)
-celeritas_add_test(random/Selector.test.cc)
+celeritas_cudaoptional_test(random/RngEngine LINK_LIBRARIES celeritas_final)
+celeritas_add_test(random/Selector.test.cc LINK_LIBRARIES celeritas_final)
 
-celeritas_add_test(random/distributions/BernoulliDistribution.test.cc)
-celeritas_add_test(random/distributions/ExponentialDistribution.test.cc)
-celeritas_add_test(random/distributions/IsotropicDistribution.test.cc)
-celeritas_add_test(random/distributions/RadialDistribution.test.cc)
-celeritas_add_test(random/distributions/ReciprocalDistribution.test.cc)
-celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
+celeritas_add_test(random/distributions/BernoulliDistribution.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(random/distributions/ExponentialDistribution.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(random/distributions/IsotropicDistribution.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(random/distributions/RadialDistribution.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(random/distributions/ReciprocalDistribution.test.cc LINK_LIBRARIES celeritas_final)
+celeritas_add_test(random/distributions/UniformRealDistribution.test.cc LINK_LIBRARIES celeritas_final)
 
 
 #-----------------------------------------------------------------------------#
@@ -260,6 +272,13 @@ celeritas_setup_tests(SERIAL PREFIX sim)
 if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   celeritas_add_test(sim/TrackInitializerStore.test.cc GPU
     SOURCES sim/TrackInitializerStore.test.cu
-    LINK_LIBRARIES VecGeom::vecgeom)
+    LINK_LIBRARIES celeritas_cuda VecGeom::vecgeomcuda VecGeom::vgdml)
+  get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
+  target_link_options(sim_TrackInitializerStore
+    PRIVATE
+    $<DEVICE_LINK:${vecgeom_static_target_location}>
+    $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
+    #$<DEVICE_LINK:$<TARGET_FILE:${target}_static>>
+  )
 endif()
 
