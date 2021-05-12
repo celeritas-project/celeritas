@@ -173,6 +173,7 @@ if(CELERITAS_USE_VecGeom)
 
   celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
     LINK_LIBRARIES Celeritas::ROOT)
+  #print_target_properties(CeleritasVecgeomTest)
   celeritas_add_test(geometry/Geo.test.cc GPU)
   celeritas_add_test(geometry/LinearPropagator.test.cc GPU)
 endif()

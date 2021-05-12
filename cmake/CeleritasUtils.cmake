@@ -54,6 +54,39 @@ else()
   endif()
 endmacro()
 
+## https://stackoverflow.com/questions/32183975/how-to-print-all-the-properties-of-a-target-in-cmake/56738858#56738858
+## https://stackoverflow.com/a/56738858/3743145
+
+## Get all properties that cmake supports
+execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
+## Convert command output into a CMake list
+STRING(REGEX REPLACE ";" "\\\\;" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
+STRING(REGEX REPLACE "\n" ";" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
+
+list(REMOVE_DUPLICATES CMAKE_PROPERTY_LIST)
+function(print_target_properties tgt)
+    if(NOT TARGET ${tgt})
+      message("There is no target named '${tgt}'")
+      return()
+    endif()
+
+    foreach (prop ${CMAKE_PROPERTY_LIST})
+        # Fix https://stackoverflow.com/questions/32197663/how-can-i-remove-the-the-location-property-may-not-be-read-from-target-error-i
+        IF(prop STREQUAL "LOCATION" OR prop MATCHES "^LOCATION_" OR prop MATCHES "_LOCATION$")
+          CONTINUE()
+        ENDIF()
+
+        #MESSAGE("I got:" ${prop})
+
+        string(REPLACE "<CONFIG>" "${CMAKE_BUILD_TYPE}" prop ${prop})
+        get_target_property(propval ${tgt} ${prop})
+        if (propval)
+            get_target_property(propval ${tgt} ${prop})
+            message ("${tgt} ${prop} = ${propval}")
+        endif()
+    endforeach(prop)
+endfunction(print_target_properties)
+
 function(celeritas_link_vecgeom_cuda target)
 return()
 
@@ -111,11 +144,17 @@ return()
   )
 endif()
 
+  #get_target_property(output celeritas INCLUDE_DIRECTORIES)
+  #message(WARNING "celeritas includes: ${output}")
+  #print_target_properties(celeritas)
+  #print_target_properties(celeritas_static)
   #target_link_libraries(celeritas_final
   #  VecGeom::vecgeom
   #  VecGeom::vecgeomcuda
   #  VecGeom::vecgeomcuda_static
   #)
+  #print_target_properties(${target})
+  #print_target_properties(${target}_static)
 endfunction()
 
 function(celeritas_cuda_add_library target)
@@ -198,6 +237,11 @@ function(celeritas_cuda_add_library target)
   add_dependencies(${target}_final ${target}_static)
 
   add_library(${target} ALIAS ${target}_final)
+
+
+  #print_target_properties(${target}_final)
+  #print_target_properties(${target}_static)
+  #print_target_properties(${target}_objects)
 
 endfunction()
 #-----------------------------------------------------------------------------#
