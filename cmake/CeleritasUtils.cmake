@@ -213,7 +213,6 @@ function(celeritas_add_library target)
   endif()
 
   add_dependencies(${target}_final ${target}_cuda)
-  add_dependencies(${target}_final ${target}_objects)
   add_dependencies(${target}_final ${target}_static)
 
   add_library(${target} ALIAS ${target}_final)
