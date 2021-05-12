@@ -127,6 +127,16 @@ function(celeritas_add_library target)
   add_library(${target}_objects OBJECT ${NEWARGV})
   add_library(${target}_static STATIC $<TARGET_OBJECTS:${target}_objects>)
   add_library(${target}_cuda SHARED $<TARGET_OBJECTS:${target}_objects>)
+  # We need to use a dummy file as a library (per cmake) needs to contains
+  # at least one source file.  The real content of the library will be
+  # the cmake_device_link.o resulting from the execution of `nvcc -dlink`
+  # Also non-cuda related test, for example `gtest_detail_Macros`,
+  # will need to be linked again libceleritas_final while a library
+  # that the detends on and that uses Celeritas::Core (for example
+  # libCeleritasTest.so) will need to be linked against `libceleritas_cuda`.
+  # If both the `_cuda` and `_final` contains the `.o` files we would
+  # then have duplicated symbols (Here the symptoms will a crash
+  # during the cuda library initialization rather than a link error).
   add_library(${target}_final SHARED ../src/base/dummy.cu)
 
   set_target_properties(${target}_objects PROPERTIES
