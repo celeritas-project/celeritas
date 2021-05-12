@@ -151,60 +151,91 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 celeritas_add_library(celeritas ${SOURCES})
-add_library(Celeritas::Core ALIAS celeritas_final)
+if(BUILD_SHARED_LIBS)
+  add_library(Celeritas::Core ALIAS celeritas_final)
+else()
+  add_library(Celeritas::Core ALIAS celeritas)
+endif()
 
-target_link_libraries(celeritas_objects
-  PRIVATE ${PRIVATE_DEPS}
-  PUBLIC ${PUBLIC_DEPS}
-)
+if(BUILD_SHARED_LIBS)
+  target_link_libraries(celeritas_objects
+    PRIVATE ${PRIVATE_DEPS}
+    PUBLIC ${PUBLIC_DEPS}
+  )
 
-target_link_libraries(celeritas_cuda
-  PRIVATE ${PRIVATE_DEPS}
-  PUBLIC ${PUBLIC_DEPS}
-)
+  target_link_libraries(celeritas_cuda
+    PRIVATE ${PRIVATE_DEPS}
+    PUBLIC ${PUBLIC_DEPS}
+  )
 
-target_link_libraries(celeritas_final
-  PRIVATE ${PRIVATE_DEPS}
-  PUBLIC ${PUBLIC_DEPS}
-)
+  target_link_libraries(celeritas_final
+    PRIVATE ${PRIVATE_DEPS}
+    PUBLIC ${PUBLIC_DEPS}
+  )
 
-target_include_directories(celeritas_objects
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
+  target_include_directories(celeritas_objects
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
 
-target_include_directories(celeritas_static
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
+  target_include_directories(celeritas_static
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
 
-target_include_directories(celeritas_cuda
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
+  target_include_directories(celeritas_cuda
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
 
-target_include_directories(celeritas_final
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
+  target_include_directories(celeritas_final
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
+else()
+  target_link_libraries(celeritas
+    PRIVATE ${PRIVATE_DEPS}
+    PUBLIC ${PUBLIC_DEPS}
+  )
+  target_include_directories(celeritas
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
+endif()
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
   celeritas_link_vecgeom_cuda(celeritas)
 endif()
 
-# TODO: need to install more.
-install(TARGETS celeritas_final
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+if(BUILD_SHARED_LIBS)
+  install(TARGETS celeritas_cuda
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+  install(TARGETS celeritas_static
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+  install(TARGETS celeritas_final
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+else()
+  install(TARGETS celeritas
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+endif()
 
 install(FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/celeritas_version.h"
