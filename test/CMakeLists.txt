@@ -94,6 +94,7 @@ celeritas_add_test(base/VectorUtils.test.cc LINK_LIBRARIES celeritas_final)
 celeritas_cudaoptional_test(base/Collection LINK_LIBRARIES celeritas_final)
 celeritas_cudaoptional_test(base/NumericLimits LINK_LIBRARIES celeritas_final)
 celeritas_cudaoptional_test(base/Range LINK_LIBRARIES celeritas_final)
+celeritas_cudaoptional_test(base/StackAllocator LINK_LIBRARIES celeritas_final)
 
 #-----------------------------------------------------------------------------#
 # Comm
