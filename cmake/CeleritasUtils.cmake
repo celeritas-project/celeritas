@@ -201,9 +201,6 @@ function(celeritas_add_library target)
       PRIVATE
       $<DEVICE_LINK:${vecgeom_static_target_location}>
     )
-  endif()
-
-  if (CELERITAS_USE_VecGeom)
     target_link_libraries(${target}_objects
       PRIVATE VecGeom::vecgeom
     )
