@@ -148,6 +148,21 @@ if(CELERITAS_USE_VecGeom)
   if(NOT VecGeom_GDML_FOUND)
     message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
   endif()
+
+  set_target_properties(VecGeom::vecgeom PROPERTIES
+    CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+    CELERITAS_CUDA_SHARED_LIBRARY VecGeom::vecgeomcuda
+    CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
+  )
+  set_target_properties(VecGeom::vecgeomcuda PROPERTIES
+    CELERITAS_CUDA_LIBRARY_TYPE Shared
+    CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+  )
+  set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
+    CELERITAS_CUDA_LIBRARY_TYPE Static
+    CELERITAS_CUDA_SHARED_LIBRARY VecGeom::vecgeomcuda
+    CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
+  )
 endif()
 
 if(CELERITAS_BUILD_TESTS AND CELERITAS_BUILD_DEMOS)

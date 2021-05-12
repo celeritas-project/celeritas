@@ -94,6 +94,24 @@ endif()
 
 endfunction()
 
+
+define_property(TARGET PROPERTY CELERITAS_CUDA_LIBRARY_TYPE
+  BRIEF_DOCS "Indicate the type of cuda library (STATIC and SHARED for nvlink usage, FINAL for linking into not cuda library/executable"
+  FULL_DOCS "Indicate the type of cuda library (STATIC and SHARED for nvlink usage, FINAL for linking into not cuda library/executable"
+)
+define_property(TARGET PROPERTY CELERITAS_CUDA_FINAL_LIBRARY
+  BRIEF_DOCS "Name of the final library corresponding to this cuda library"
+  FULL_DOCS "Name of the final library corresponding to this cuda library"
+)
+define_property(TARGET PROPERTY CELERITAS_CUDA_STATIC_LIBRARY
+  BRIEF_DOCS "Name of the static library corresponding to this cuda library"
+  FULL_DOCS "Name of the static library corresponding to this cuda library"
+)
+define_property(TARGET PROPERTY CELERITAS_CUDA_MIDDLE_LIBRARY
+  BRIEF_DOCS "Name of the shared (without nvlink step) library corresponding to this cuda library"
+  FULL_DOCS "Name of the shared (without nvlink step) library corresponding to this cuda library"
+)
+
 function(celeritas_add_library target)
   if(NOT BUILD_SHARED_LIBS OR NOT CELERITAS_USE_CUDA)
     list(SUBLIST ARGV 1 -1 NEWARGV)
@@ -103,7 +121,9 @@ function(celeritas_add_library target)
     add_library(${target}_static ALIAS ${target})
     return()
   endif()
+
   list(SUBLIST ARGV 1 -1 NEWARGV)
+
   add_library(${target}_objects OBJECT ${NEWARGV})
   add_library(${target}_static STATIC $<TARGET_OBJECTS:${target}_objects>)
   add_library(${target}_cuda SHARED $<TARGET_OBJECTS:${target}_objects>)
@@ -120,6 +140,9 @@ function(celeritas_add_library target)
     CUDA_SEPARABLE_COMPILATION ON # We really don't want nvlink called.
     CUDA_RUNTIME_LIBRARY Shared
     CUDA_RESOLVE_DEVICE_SYMBOLS OFF # We really don't want nvlink called.
+    CELERITAS_CUDA_LIBRARY_TYPE Shared
+    CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
+    CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
   )
 
   set_target_properties(${target}_static PROPERTIES
@@ -127,6 +150,9 @@ function(celeritas_add_library target)
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_RUNTIME_LIBRARY Shared
     # CUDA_RESOLVE_DEVICE_SYMBOLS OFF # Default for static library
+    CELERITAS_CUDA_LIBRARY_TYPE Static
+    CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
+    CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
   )
 
   set_target_properties(${target}_final PROPERTIES
@@ -134,6 +160,9 @@ function(celeritas_add_library target)
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_RUNTIME_LIBRARY Shared
     # CUDA_RESOLVE_DEVICE_SYMBOLS ON # Default for shared library
+    CELERITAS_CUDA_LIBRARY_TYPE Final
+    CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
+    CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
   )
 
   if (CELERITAS_USE_VecGeom)
