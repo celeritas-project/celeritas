@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitUtils.hh"
 
-#include <numeric>
 #include "base/Algorithms.hh"
 #include "detail/InitializeTracks.hh"
 
@@ -25,8 +24,8 @@ namespace celeritas
 void extend_from_primaries(const TrackInitParamsHostRef& params,
                            TrackInitStateDeviceVal*      data)
 {
-    CELER_EXPECT(data);
     CELER_EXPECT(params);
+    CELER_EXPECT(*data);
 
     // Number of primaries to copy to device
     auto count = min(data->initializers.capacity() - data->initializers.size(),
@@ -104,20 +103,20 @@ void extend_from_primaries(const TrackInitParamsHostRef& params,
 
    \endverbatim
  */
-void extend_from_secondaries(const ParamStore&        params,
-                             StateStore*              states,
+void extend_from_secondaries(const ParamsDeviceRef&   params,
+                             const StateDeviceRef&    states,
                              TrackInitStateDeviceVal* data)
 {
+    CELER_EXPECT(params);
     CELER_EXPECT(states);
-    CELER_EXPECT(data);
+    CELER_EXPECT(*data);
 
     // Resize the vector of vacancies to be equal to the number of tracks
-    data->vacancies.resize(states->size());
+    data->vacancies.resize(states.size());
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
-    detail::locate_alive(
-        params.device_pointers(), states->device_pointers(), make_ref(*data));
+    detail::locate_alive(params, states, make_ref(*data));
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
@@ -147,8 +146,7 @@ void extend_from_secondaries(const ParamStore&        params,
     // Launch a kernel to create track initializers from secondaries
     data->parents.resize(num_secondaries);
     data->initializers.resize(data->initializers.size() + num_secondaries);
-    detail::process_secondaries(
-        params.device_pointers(), states->device_pointers(), make_ref(*data));
+    detail::process_secondaries(params, states, make_ref(*data));
 }
 
 //---------------------------------------------------------------------------//
@@ -160,12 +158,13 @@ void extend_from_secondaries(const ParamStore&        params,
  * If there are more empty slots than new secondaries, they will be filled by
  * any track initializers remaining from previous steps using the position.
  */
-void initialize_tracks(const ParamStore&        params,
-                       StateStore*              states,
+void initialize_tracks(const ParamsDeviceRef&   params,
+                       const StateDeviceRef&    states,
                        TrackInitStateDeviceVal* data)
 {
+    CELER_EXPECT(params);
     CELER_EXPECT(states);
-    CELER_EXPECT(data);
+    CELER_EXPECT(*data);
 
     // The number of new tracks to initialize is the smaller of the number of
     // empty slots in the track vector and the number of track initializers
@@ -174,9 +173,7 @@ void initialize_tracks(const ParamStore&        params,
     if (num_tracks > 0)
     {
         // Launch a kernel to initialize tracks on device
-        detail::init_tracks(params.device_pointers(),
-                            states->device_pointers(),
-                            make_ref(*data));
+        detail::init_tracks(params, states, make_ref(*data));
         data->initializers.resize(data->initializers.size() - num_tracks);
         data->vacancies.resize(data->vacancies.size() - num_tracks);
     }

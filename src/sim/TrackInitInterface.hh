@@ -21,8 +21,10 @@ namespace celeritas
 /*!
  * Static track initializer data.
  *
- * There is no persistent data needed on device or at runtime: the params are
- * only used for construction.
+ * There is no persistent data needed on device. Primaries are copied to device
+ * only when they are needed to initialize new tracks and are not stored on
+ * device. \c storage_factor is only used at construction to allocate memory
+ * for track initializers and parent track IDs.
  */
 template<Ownership W, MemSpace M>
 struct TrackInitParamsData;
@@ -31,6 +33,8 @@ template<Ownership W>
 struct TrackInitParamsData<W, MemSpace::device>
 {
     /* no data on device */
+
+    //// METHODS ////
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -50,8 +54,7 @@ struct TrackInitParamsData<W, MemSpace::host>
 
     //// DATA ////
 
-    Items<Primary> primaries;
-
+    Items<Primary> primaries;          //!< Primary partiicles
     size_type storage_factor = 3; //!< Initializer/parent storage per tracks
 
     //// METHODS ////
@@ -154,7 +157,22 @@ struct ResizableData
 
 //---------------------------------------------------------------------------//
 /*!
- * Storage for data used to initialize new tracks.
+ * Storage for dynamic data used to initialize new tracks.
+ *
+ * Not all of this is technically "state" data, though it is all mutable and in
+ * most cases accessed by \c ThreadId. Specifically, \c initializers, \c
+ * parents, and \c vacancies are all resizable, and \c track_counters has size
+ * \c num_events.
+ * - \c initializers stores the data for primaries and secondaries waiting to
+ *   be turned into new tracks and can be any size up to \c storage_factor * \c
+ *   num_tracks.
+ * - \c parents is the \c ThreadId of the parent tracks of the initializers.
+ * - \c vacancies stores the indices of the threads of tracks that have been
+ *   killed; the size will be <= the number of tracks.
+ * - \c track_counters stores the total number of particles that have been
+ *   created per event.
+ * - \c secondary_counts stores the number of secondaries created by each track
+ *   (and is the only true state data).
  */
 template<Ownership W, MemSpace M>
 struct TrackInitStateData
@@ -215,7 +233,7 @@ void resize(
     size_type);
 
 //---------------------------------------------------------------------------//
-// Resize and initialize track initializer data on host (not implemented).
+// Resize and initialize track initializer data on host.
 void resize(
     TrackInitStateData<Ownership::value, MemSpace::host>*,
     const TrackInitParamsData<Ownership::const_reference, MemSpace::host>&,

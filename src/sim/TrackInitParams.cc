@@ -20,12 +20,13 @@ TrackInitParams::TrackInitParams(const Input& inp)
     CELER_EXPECT(!inp.primaries.empty());
     CELER_EXPECT(inp.storage_factor > 0);
 
-    make_builder(&data_.primaries)
+    make_builder(&host_value_.primaries)
         .insert_back(inp.primaries.begin(), inp.primaries.end());
-    data_.storage_factor = inp.storage_factor;
-    host_ref_            = data_;
+    host_value_.storage_factor = inp.storage_factor;
+    host_ref_                  = host_value_;
 
-    CELER_ENSURE(data_);
+    CELER_ENSURE(host_value_);
+    CELER_ENSURE(host_ref_);
 }
 
 //---------------------------------------------------------------------------//

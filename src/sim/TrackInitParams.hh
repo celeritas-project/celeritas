@@ -13,7 +13,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Manage primary particles.
+ * Manage persistent track initializer data.
+ *
+ * Primary particles are stored on the host and only copied to device when they
+ * are needed to initialize new tracks.
  */
 class TrackInitParams
 {
@@ -22,8 +25,6 @@ class TrackInitParams
     //! References to constructed data
     using HostRef
         = TrackInitParamsData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = TrackInitParamsData<Ownership::const_reference, MemSpace::device>;
     //!@}
 
     //! Track initializer construction arguments
@@ -40,15 +41,11 @@ class TrackInitParams
     //! Access primaries for contructing track initializer states
     const HostRef& host_pointers() const { return host_ref_; }
 
-    //! Access data on device
-    const DeviceRef& device_pointers() const { return device_ref_; }
-
   private:
     using HostValue = TrackInitParamsData<Ownership::value, MemSpace::host>;
 
-    HostValue data_;
+    HostValue host_value_;
     HostRef   host_ref_;
-    DeviceRef device_ref_;
 };
 
 //---------------------------------------------------------------------------//

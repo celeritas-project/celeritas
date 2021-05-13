@@ -26,15 +26,15 @@ CELER_CONSTEXPR_FUNCTION size_type flag_id()
 
 //---------------------------------------------------------------------------//
 // Initialize the track states on device.
-void init_tracks(const ParamPointers&           params,
-                 const StatePointers&           states,
+void init_tracks(const ParamsDeviceRef&         params,
+                 const StateDeviceRef&          states,
                  const TrackInitStateDeviceRef& inits);
 
 //---------------------------------------------------------------------------//
 // Identify which tracks are still alive and count the number of secondaries
 // that survived cutoffs for each interaction.
-void locate_alive(const ParamPointers&           params,
-                  const StatePointers&           states,
+void locate_alive(const ParamsDeviceRef&         params,
+                  const StateDeviceRef&          states,
                   const TrackInitStateDeviceRef& inits);
 
 //---------------------------------------------------------------------------//
@@ -44,8 +44,8 @@ void process_primaries(Span<const Primary>            primaries,
 
 //---------------------------------------------------------------------------//
 // Create track initializers on device from secondary particles.
-void process_secondaries(const ParamPointers&           params,
-                         const StatePointers&           states,
+void process_secondaries(const ParamsDeviceRef&         params,
+                         const StateDeviceRef&          states,
                          const TrackInitStateDeviceRef& inits);
 
 //---------------------------------------------------------------------------//

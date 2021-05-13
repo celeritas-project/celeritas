@@ -14,8 +14,9 @@
 #include "geometry/GeoParams.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
+#include "random/RngParams.hh"
+#include "sim/TrackInitParams.hh"
 #include "sim/TrackInterface.hh"
-#include "sim/StateStore.hh"
 #include "TrackInit.test.hh"
 
 namespace celeritas_test
@@ -68,18 +69,16 @@ class TrackInitTest : public celeritas::Test
                             MatterState::gas,
                             {{ElementId{0}, 1.0}},
                             "H2"}}};
-        auto material_params
-            = std::make_shared<MaterialParams>(std::move(mats));
+        material_params = std::make_shared<MaterialParams>(std::move(mats));
 
-        auto particle_params = std::make_shared<ParticleParams>(
+        particle_params = std::make_shared<ParticleParams>(
             ParticleParams::Input{{"gamma",
                                    pdg::gamma(),
                                    zero_quantity(),
                                    zero_quantity(),
                                    ParticleDef::stable_decay_constant()}});
 
-        // Set the shared problem data
-        params = ParamStore(geo_params, material_params, particle_params);
+        rng_params = std::make_shared<RngParams>(12345);
     }
 
     // Create primary particles
@@ -98,32 +97,58 @@ class TrackInitTest : public celeritas::Test
         return result;
     }
 
-    // Create track initializer data
-    void build_track_init(size_type num_primaries,
-                          size_type storage_factor,
-                          size_type num_tracks)
+    // Create shared problem data
+    void build_params(size_type num_primaries, size_type storage_factor)
     {
-        // Construct persistent data
+        // Construct persistent track initializer data
         TrackInitParams::Input inp{generate_primaries(num_primaries),
                                    storage_factor};
         init_params = std::make_shared<TrackInitParams>(std::move(inp));
 
-        // Allocate state data
-        resize(&init_states, init_params->host_pointers(), num_tracks);
+        params.geometry  = geo_params->device_pointers();
+        params.materials = material_params->device_pointers();
+        params.particles = particle_params->device_pointers();
+        params.rng       = rng_params->device_pointers();
+        CELER_ENSURE(params);
+    }
 
-        // Allocate storage on device
-        states = StateStore({num_tracks, geo_params, 12345u});
+    // Create mutable state data
+    void build_states(size_type num_tracks, size_type storage_factor)
+    {
+        CELER_EXPECT(params);
+        CELER_EXPECT(init_params);
+
+        // Allocate storage for secondaries on device
         secondaries
             = CollectionStateStore<SecondaryAllocatorData, MemSpace::device>(
                 num_tracks * storage_factor);
+
+        ParamsData<Ownership::const_reference, MemSpace::host> host_params;
+        host_params.geometry  = geo_params->host_pointers();
+        host_params.materials = material_params->host_pointers();
+        host_params.particles = particle_params->host_pointers();
+        host_params.rng       = rng_params->host_pointers();
+        CELER_ASSERT(host_params);
+
+        // Allocate state data
+        resize(&init, init_params->host_pointers(), num_tracks);
+        resize(&device_states, host_params, num_tracks);
+        states = device_states;
+        CELER_ENSURE(states);
     }
 
-    ParamStore                                                     params;
-    StateStore                                                     states;
-    std::shared_ptr<GeoParams>                                     geo_params;
-    std::shared_ptr<TrackInitParams>                               init_params;
-    TrackInitStateDeviceVal                                        init_states;
+    std::shared_ptr<GeoParams>       geo_params;
+    std::shared_ptr<ParticleParams>  particle_params;
+    std::shared_ptr<MaterialParams>  material_params;
+    std::shared_ptr<RngParams>       rng_params;
+    std::shared_ptr<TrackInitParams> init_params;
+
     CollectionStateStore<SecondaryAllocatorData, MemSpace::device> secondaries;
+    StateData<Ownership::value, MemSpace::device> device_states;
+
+    ParamsDeviceRef         params;
+    StateDeviceRef          states;
+    TrackInitStateDeviceVal init;
 };
 
 //---------------------------------------------------------------------------//
@@ -136,27 +161,28 @@ TEST_F(TrackInitTest, run)
     const size_type num_tracks     = 10;
     const size_type storage_factor = 10;
 
-    build_track_init(num_primaries, storage_factor, num_tracks);
+    build_params(num_primaries, storage_factor);
+    build_states(num_tracks, storage_factor);
 
     // Check that all of the track slots were marked as empty
     ITTestOutput output, expected;
-    output.vacancy   = vacancies_test(make_ref(init_states));
+    output.vacancy   = vacancies_test(make_ref(init));
     expected.vacancy = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     EXPECT_VEC_EQ(expected.vacancy, output.vacancy);
 
     // Create track initializers on device from primary particles
-    extend_from_primaries(init_params->host_pointers(), &init_states);
+    extend_from_primaries(init_params->host_pointers(), &init);
 
     // Check the track IDs of the track initializers created from primaries
-    output.initializer_id   = initializers_test(make_ref(init_states));
+    output.initializer_id   = initializers_test(make_ref(init));
     expected.initializer_id = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
     EXPECT_VEC_EQ(expected.initializer_id, output.initializer_id);
 
     // Initialize the primary tracks on device
-    initialize_tracks(params, &states, &init_states);
+    initialize_tracks(params, states, &init);
 
     // Check the IDs of the initialized tracks
-    output.track_id   = tracks_test(states.device_pointers());
+    output.track_id   = tracks_test(states);
     expected.track_id = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
     EXPECT_VEC_EQ(expected.track_id, output.track_id);
 
@@ -167,33 +193,32 @@ TEST_F(TrackInitTest, run)
     ITTestInput            input(alloc, alive);
 
     // Launch kernel to process interactions
-    interact(
-        states.device_pointers(), secondaries.ref(), input.device_pointers());
+    interact(states, secondaries.ref(), input.device_pointers());
 
     // Launch a kernel to create track initializers from secondaries
-    extend_from_secondaries(params, &states, &init_states);
+    extend_from_secondaries(params, states, &init);
 
     // Check the vacancies
-    output.vacancy   = vacancies_test(make_ref(init_states));
+    output.vacancy   = vacancies_test(make_ref(init));
     expected.vacancy = {2, 6};
     EXPECT_VEC_EQ(expected.vacancy, output.vacancy);
 
     // Check the track IDs of the track initializers created from secondaries
     // Output is sorted as TrackInitializerStore does not calculate IDs
     // deterministically
-    output.initializer_id = initializers_test(make_ref(init_states));
+    output.initializer_id = initializers_test(make_ref(init));
     std::sort(std::begin(output.initializer_id),
               std::end(output.initializer_id));
     expected.initializer_id = {0, 1, 15, 16, 17};
     EXPECT_VEC_EQ(expected.initializer_id, output.initializer_id);
 
     // Initialize secondaries on device
-    initialize_tracks(params, &states, &init_states);
+    initialize_tracks(params, states, &init);
 
     // Check the track IDs of the initialized tracks
     // Output is sorted as TrackInitializerStore does not calculate IDs
     // deterministically
-    output.track_id   = tracks_test(states.device_pointers());
+    output.track_id   = tracks_test(states);
     expected.track_id = {12, 3, 16, 5, 13, 7, 17, 9, 14, 11};
     std::sort(std::begin(output.track_id), std::end(output.track_id));
     std::sort(std::begin(expected.track_id), std::end(expected.track_id));
@@ -207,7 +232,8 @@ TEST_F(TrackInitTest, primaries)
     const size_type storage_factor = 2;
     size_type       capacity       = num_tracks * storage_factor;
 
-    build_track_init(num_primaries, storage_factor, num_tracks);
+    build_params(num_primaries, storage_factor);
+    build_states(num_tracks, storage_factor);
 
     // Kill all the tracks in each interaction and don't produce secondaries
     std::vector<size_type> alloc(num_tracks, 0);
@@ -216,37 +242,35 @@ TEST_F(TrackInitTest, primaries)
 
     for (auto i = num_primaries; i > 0; i -= capacity)
     {
-        EXPECT_EQ(init_states.num_primaries, i);
+        EXPECT_EQ(init.num_primaries, i);
 
         // Create track initializers on device from primary particles
-        extend_from_primaries(init_params->host_pointers(), &init_states);
+        extend_from_primaries(init_params->host_pointers(), &init);
 
         for (auto j = capacity; j > 0; j -= num_tracks)
         {
-            EXPECT_EQ(init_states.initializers.size(), j);
+            EXPECT_EQ(init.initializers.size(), j);
 
             // Initialize tracks on device
-            initialize_tracks(params, &states, &init_states);
+            initialize_tracks(params, states, &init);
 
             // Launch kernel that will kill all trackss
-            interact(states.device_pointers(),
-                     secondaries.ref(),
-                     input.device_pointers());
+            interact(states, secondaries.ref(), input.device_pointers());
 
             // Launch a kernel to create track initializers from secondaries
-            extend_from_secondaries(params, &states, &init_states);
+            extend_from_secondaries(params, states, &init);
         }
     }
 
     // Check the final track IDs
     ITTestOutput output, expected;
-    output.track_id = tracks_test(states.device_pointers());
+    output.track_id = tracks_test(states);
     expected.track_id.resize(num_tracks);
     std::iota(expected.track_id.begin(), expected.track_id.end(), 0);
     EXPECT_VEC_EQ(expected.track_id, output.track_id);
 
-    EXPECT_EQ(init_states.num_primaries, 0);
-    EXPECT_EQ(init_states.initializers.size(), 0);
+    EXPECT_EQ(init.num_primaries, 0);
+    EXPECT_EQ(init.initializers.size(), 0);
 }
 
 TEST_F(TrackInitTest, secondaries)
@@ -255,7 +279,8 @@ TEST_F(TrackInitTest, secondaries)
     const size_type num_tracks     = 512;
     const size_type storage_factor = 2;
 
-    build_track_init(num_primaries, storage_factor, num_tracks);
+    build_params(num_primaries, storage_factor);
+    build_states(num_tracks, storage_factor);
 
     // Allocate input device data (number of secondaries to produce for each
     // track and whether the track survives the interaction)
@@ -270,22 +295,20 @@ TEST_F(TrackInitTest, secondaries)
     ITTestInput input(alloc, alive);
 
     // Create track initializers on device from primary particles
-    extend_from_primaries(init_params->host_pointers(), &init_states);
-    EXPECT_EQ(init_states.num_primaries, 0);
-    EXPECT_EQ(init_states.initializers.size(), num_primaries);
+    extend_from_primaries(init_params->host_pointers(), &init);
+    EXPECT_EQ(init.num_primaries, 0);
+    EXPECT_EQ(init.initializers.size(), num_primaries);
 
-    while (init_states.initializers.size())
+    while (init.initializers.size() > 0)
     {
         // Initialize the primary tracks on device
-        initialize_tracks(params, &states, &init_states);
+        initialize_tracks(params, states, &init);
 
         // Launch kernel to process interactions
-        interact(states.device_pointers(),
-                 secondaries.ref(),
-                 input.device_pointers());
+        interact(states, secondaries.ref(), input.device_pointers());
 
         // Launch a kernel to create track initializers from secondaries
-        extend_from_secondaries(params, &states, &init_states);
+        extend_from_secondaries(params, states, &init);
     }
 }
 

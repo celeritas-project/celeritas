@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "ParamStore.hh"
-#include "StateStore.hh"
-#include "TrackInitParams.hh"
+#include "sim/TrackInitInterface.hh"
+#include "sim/TrackInterface.hh"
 
 namespace celeritas
 {
@@ -21,13 +20,13 @@ void extend_from_primaries(const TrackInitParamsHostRef& params,
                            TrackInitStateDeviceVal*      data);
 
 // Create track initializers on device from secondary particles.
-void extend_from_secondaries(const ParamStore&        params,
-                             StateStore*              states,
+void extend_from_secondaries(const ParamsDeviceRef&   params,
+                             const StateDeviceRef&    states,
                              TrackInitStateDeviceVal* data);
 
 // Initialize track states on device.
-void initialize_tracks(const ParamStore&        params,
-                       StateStore*              states,
+void initialize_tracks(const ParamsDeviceRef&   params,
+                       const StateDeviceRef&    states,
                        TrackInitStateDeviceVal* data);
 
 //---------------------------------------------------------------------------//

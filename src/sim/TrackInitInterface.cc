@@ -36,7 +36,7 @@ void resize(
     data->initializers.resize(0);
     data->parents.resize(0);
 
-    // Initialize vacancies to mark all track slots as initially empty
+    // Initialize vacancies to mark all track slots as empty
     StateCollection<size_type, Ownership::value, MemSpace::host> vacancies;
     make_builder(&vacancies).resize(size);
     for (auto i : range(ThreadId{size}))
@@ -63,7 +63,7 @@ void resize(
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize and initialize track initializer data on host (not implemented).
+ * Resize and initialize track initializer data on host.
  */
 void resize(
     TrackInitStateData<Ownership::value, MemSpace::host>*,

@@ -104,13 +104,13 @@ using SecondaryAllocatorPointers
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to produce secondaries and apply cutoffs
-void interact(StatePointers              states,
+void interact(StateDeviceRef             states,
               SecondaryAllocatorPointers secondaries,
               ITTestInputPointers        input);
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to get the track IDs of the initialized tracks
-std::vector<unsigned int> tracks_test(StatePointers states);
+std::vector<unsigned int> tracks_test(StateDeviceRef states);
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to get the track IDs of the track initializers created from
