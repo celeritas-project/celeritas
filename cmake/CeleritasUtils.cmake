@@ -155,6 +155,7 @@ function(celeritas_add_library target)
     CUDA_RESOLVE_DEVICE_SYMBOLS OFF # We really don't want nvlink called.
     CELERITAS_CUDA_LIBRARY_TYPE Shared
     CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
+    CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
     CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
   )
 
@@ -166,6 +167,7 @@ function(celeritas_add_library target)
     CELERITAS_CUDA_LIBRARY_TYPE Static
     CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
     CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
+    CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
   )
 
   set_target_properties(${target}_final PROPERTIES
@@ -174,6 +176,7 @@ function(celeritas_add_library target)
     CUDA_RUNTIME_LIBRARY Shared
     # CUDA_RESOLVE_DEVICE_SYMBOLS ON # Default for shared library
     CELERITAS_CUDA_LIBRARY_TYPE Final
+    CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
     CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
     CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
   )

@@ -151,16 +151,19 @@ if(CELERITAS_USE_VecGeom)
 
   set_target_properties(VecGeom::vecgeom PROPERTIES
     CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-    CELERITAS_CUDA_SHARED_LIBRARY VecGeom::vecgeomcuda
+    CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
     CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
   )
   set_target_properties(VecGeom::vecgeomcuda PROPERTIES
     CELERITAS_CUDA_LIBRARY_TYPE Shared
     CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+    CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
+    CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
   )
   set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
     CELERITAS_CUDA_LIBRARY_TYPE Static
-    CELERITAS_CUDA_SHARED_LIBRARY VecGeom::vecgeomcuda
+    CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+    CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
     CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
   )
 endif()
