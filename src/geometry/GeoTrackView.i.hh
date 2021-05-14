@@ -181,8 +181,7 @@ CELER_FUNCTION void GeoTrackView::move_next_volume()
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {
     CELER_EXPECT(!dirty_);
-    return (this->is_outside() ? VolumeId{}
-                               : VolumeId{(unsigned int)this->volume().id()});
+    return (this->is_outside() ? VolumeId{} : VolumeId{this->volume().id()});
 }
 
 //---------------------------------------------------------------------------//

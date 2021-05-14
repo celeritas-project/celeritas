@@ -117,9 +117,8 @@ auto GeoParams::label_to_id(const std::string& label) const -> VolumeId
     const auto* vol
         = vecgeom::GeoManager::Instance().FindLogicalVolume(label.c_str());
     CELER_ASSERT(vol);
-    unsigned int volid = (unsigned int)vol->id();
-    CELER_ASSERT(volid < num_volumes_);
-    return VolumeId{volid};
+    CELER_ASSERT(vol->id() < num_volumes_);
+    return VolumeId{vol->id()};
 }
 
 //---------------------------------------------------------------------------//
