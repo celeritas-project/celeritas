@@ -221,4 +221,126 @@ function(celeritas_add_library target)
   add_library(${target} ALIAS ${target}_final)
 
 endfunction()
+
+# Return TRUE if 'lib' depends/uses directly or indirectly the library `potentialdepend`
+function(celeritas_depends_on OUTVARNAME lib potentialdepend)
+  set(${OUTVARNAME} FALSE PARENT_SCOPE)
+  if(TARGET ${lib} AND TARGET ${potentialdepend})
+    get_target_property(lib_link_libraries ${lib} LINK_LIBRARIES)
+    foreach(linklib ${lib_link_libraries})
+      if(${linklib} STREQUAL ${potentialdepend})
+        set(${OUTVARNAME} TRUE PARENT_SCOPE)
+        return()
+      endif()
+      celeritas_depends_on(${OUTVARNAME} ${linklib} ${potentialdepend})
+      if(${OUTVARNAME})
+        set(${OUTVARNAME} ${${OUTVARNAME}} PARENT_SCOPE)
+        return()
+      endif()
+    endforeach()
+  endif()
+endfunction()
+
+function(celeritas_strip_alias OUTVAR target)
+  get_target_property(_target_alias ${target} ALIASED_TARGET)
+  if(TARGET ${_target_alias})
+    set(target ${_target_alias})
+  endif()
+  set(${OUTVAR} ${target} PARENT_SCOPE)
+endfunction()
+
+function(celeritas_target_link_libraries target)
+  if(NOT BUILD_SHARED_LIBS OR NOT CELERITAS_USE_CUDA)
+    target_link_libraries(${ARGV})
+  else()
+    CELERITAS_STRIP_ALIAS(target ${target})
+
+    get_target_property(_target_sources ${target} SOURCES)
+    string(FIND "${_target_sources}" .cu iscudalinked)
+
+    if (iscudalinked GREATER_EQUAL 0)
+      get_target_property(_targettype ${target} CELERITAS_CUDA_LIBRARY_TYPE)
+      if(NOT _targettype)
+        set(_target_final ${target})
+        set(_target_middle ${target})
+      else()
+        get_target_property(_target_final ${target} CELERITAS_CUDA_FINAL_LIBRARY)
+        get_target_property(_target_middle ${target} CELERITAS_CUDA_MIDDLE_LIBRARY)
+      endif()
+    endif()
+
+    target_link_libraries(${_target_middle} ${ARGN})
+
+    get_target_property(_target_interface_link_libraries ${_target_middle} INTERFACE_LINK_LIBRARIES)
+    set(_target_interface_link_libraries_new)
+    foreach(_lib ${_target_interface_link_libraries})
+      celeritas_strip_alias(_lib ${_lib})
+      get_target_property(_libtype ${_lib} CELERITAS_CUDA_LIBRARY_TYPE)
+      if ("${_libtype}" STREQUAL "Final")
+         get_target_property(_lib ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
+      endif()
+      list(APPEND _target_interface_link_libraries_new ${_lib})
+    endforeach()
+
+    get_target_property(_target_link_libraries ${_target_middle} LINK_LIBRARIES)
+    set(_target_link_libraries_new)
+    foreach(_lib ${_target_link_libraries})
+      celeritas_strip_alias(_lib ${_lib})
+
+      get_target_property(_libfinal ${_lib} CELERITAS_CUDA_FINAL_LIBRARY)
+      get_target_property(_libstatic ${_lib} CELERITAS_CUDA_STATIC_LIBRARY)
+      get_target_property(_libmid ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
+
+      if(NOT TARGET ${_libmid})
+        set(_libmid ${_lib})
+      endif()
+
+      if (iscudalinked GREATER_EQUAL 0 AND TARGET ${_libstatic})
+        target_link_options(${_target_final}
+          PRIVATE
+          $<DEVICE_LINK:$<TARGET_FILE:${_libstatic}>>
+        )
+      endif()
+      list(APPEND _target_link_libraries_new ${_libmid})
+    endforeach()
+
+    if(_target_interface_link_libraries_new)
+      set_target_properties(${_target_middle} PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${_target_interface_link_libraries_new}"
+      )
+    endif()
+
+    if (_target_link_libraries_new)
+      set_target_properties(${_target_middle} PROPERTIES
+        LINK_LIBRARIES "${_target_link_libraries_new}"
+      )
+    endif()
+  endif()
+
+endfunction()
+
+function(CELERITAS_CUDA_GATHER_DEPENDENCIES outlist target)
+  if(TARGET ${target})
+    celeritas_strip_alias(target ${target})
+    get_target_property(_target_link_libraries ${target} LINK_LIBRARIES)
+    if(_target_link_libraries)
+      #message(WARNING "The link list for ${target} is ${_target_link_libraries}")
+      foreach(_lib ${_target_link_libraries})
+        celeritas_strip_alias(_lib ${_lib})
+        get_target_property(_libmid ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
+        if(TARGET ${_libmid})
+          list(APPEND ${outlist} ${_libmid})
+          # and recurse
+          CELERITAS_CUDA_GATHER_DEPENDENCIES(_midlist ${_lib})
+          #message(WARNING "The link mid list for ${target} for ${_lib} is ${_midlist}")
+          list(APPEND ${outlist} ${_midlist})
+        endif()
+      endforeach()
+    endif()
+    list(REMOVE_DUPLICATES ${outlist})
+    set(${outlist} ${${outlist}} PARENT_SCOPE)
+  endif()
+endfunction()
+
+
 #-----------------------------------------------------------------------------#
