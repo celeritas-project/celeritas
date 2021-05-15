@@ -152,6 +152,7 @@ resize(StateData<Ownership::value, M>*                               data,
     CELER_EXPECT(data);
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
+    resize(&data->geometry, params.geometry, size);
     resize(&data->materials, params.materials, size);
     resize(&data->particles, params.particles, size);
     resize(&data->physics, params.physics, size);
