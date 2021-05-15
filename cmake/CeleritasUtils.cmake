@@ -80,11 +80,11 @@ return()
   get_target_property(target_LINK_LIBRARIES ${target}
     LINK_LIBRARIES
   )
-  get_target_property(target_INTERFACE_LINK_LIBRARIES ${target}
+  get_target_property(_target_interface_link_libraries ${target}
     INTERFACE_LINK_LIBRARIES )
   set_target_properties(${target}_static PROPERTIES
     LINK_LIBRARIES "${target_LINK_LIBRARIES}"
-    INTERFACE_LINK_LIBRARIES "${target_INTERFACE_LINK_LIBRARIES}"
+    INTERFACE_LINK_LIBRARIES "${_target_interface_link_libraries}"
   )
 
   set_target_properties(${target}_static PROPERTIES
@@ -124,7 +124,7 @@ function(celeritas_add_library target)
   endif()
 
   # We could check whether this library contains CUDA code or not.
-  # get_target_property(target_sources ${target} SOURCES)
+  # get_target_property(_target_sources ${target} SOURCES)
   # string(FIND "${SOURCE_FILE} ${PARSE_SOURCES}" .cu iscudalinked)
 
   add_library(${target}_objects OBJECT ${NEWARGV})
