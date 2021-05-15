@@ -99,7 +99,6 @@ using ParamsDeviceRef
     = ParamsData<Ownership::const_reference, MemSpace::device>;
 using StateDeviceRef = StateData<Ownership::reference, MemSpace::device>;
 
-#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Resize states in host code.
@@ -120,7 +119,6 @@ resize(StateData<Ownership::value, M>*                               data,
     resize(&data->sim, size);
     resize(&data->interactions, size);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

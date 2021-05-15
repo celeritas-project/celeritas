@@ -25,6 +25,10 @@ CELER_CONSTEXPR_FUNCTION size_type flag_id()
 }
 
 //---------------------------------------------------------------------------//
+// Get the thread ID of the last element
+inline CELER_FUNCTION ThreadId from_back(size_type size, ThreadId cur_thread);
+
+//---------------------------------------------------------------------------//
 // Initialize the track states on device.
 void init_tracks(const ParamsDeviceRef&         params,
                  const StateDeviceRef&          states,
@@ -59,6 +63,18 @@ size_type reduce_counts(Span<size_type> counts);
 //---------------------------------------------------------------------------//
 // Calculate the exclusive prefix sum of the number of surviving secondaries
 void exclusive_scan_counts(Span<size_type> counts);
+
+//---------------------------------------------------------------------------//
+// INLINE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get the thread ID of the last element.
+ */
+CELER_FUNCTION ThreadId from_back(size_type size, ThreadId cur_thread)
+{
+    CELER_EXPECT(cur_thread.get() + 1 <= size);
+    return ThreadId{size - cur_thread.get() - 1};
+}
 
 //---------------------------------------------------------------------------//
 } // namespace detail

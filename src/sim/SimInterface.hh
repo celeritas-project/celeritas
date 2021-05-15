@@ -8,14 +8,12 @@
 #pragma once
 
 #include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "detail/SimStateInit.hh"
 #include "Types.hh"
 
-#ifndef __CUDA_ARCH__
-#    include "base/CollectionBuilder.hh"
-#endif
 
 namespace celeritas
 {
@@ -67,7 +65,6 @@ struct SimStateData
     }
 };
 
-#ifndef __CUDA_ARCH__
 //---------------------------------------------------------------------------//
 /*!
  * Resize simulation states and set \c alive to be false.
@@ -79,7 +76,6 @@ void resize(SimStateData<Ownership::value, M>* data, size_type size)
     make_builder(&data->state).resize(size);
     detail::sim_state_init(make_ref(*data));
 }
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

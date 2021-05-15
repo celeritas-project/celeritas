@@ -54,8 +54,8 @@ struct TrackInitParamsData<W, MemSpace::host>
 
     //// DATA ////
 
-    Items<Primary> primaries;          //!< Primary partiicles
-    size_type storage_factor = 3; //!< Initializer/parent storage per tracks
+    Items<Primary> primaries;     //!< Primary particles
+    size_type storage_factor = 3; //!< Initializer/parent storage per track
 
     //// METHODS ////
 

@@ -57,11 +57,10 @@ __global__ void init_tracks_kernel(const ParamsDeviceRef         params,
     // most recently added and therefore the ones that still might have a
     // parent they can copy the geometry state from.
     const TrackInitializer& init
-        = inits.initializers[ThreadId(inits.initializers.size() - tid.get() - 1)];
+        = inits.initializers[from_back(inits.initializers.size(), tid)];
 
     // Thread ID of vacant track where the new track will be initialized
-    ThreadId vac_id(
-        inits.vacancies[ThreadId(inits.vacancies.size() - tid.get() - 1)]);
+    ThreadId vac_id(inits.vacancies[from_back(inits.vacancies.size(), tid)]);
 
     // Initialize the simulation state
     {
@@ -83,7 +82,7 @@ __global__ void init_tracks_kernel(const ParamsDeviceRef         params,
             // Copy the geometry state from the parent for improved
             // performance
             ThreadId parent_id
-                = inits.parents[ThreadId(inits.parents.size() - tid.get() - 1)];
+                = inits.parents[from_back(inits.parents.size(), tid)];
             GeoTrackView parent(params.geometry, states.geometry, parent_id);
             geo = {parent, init.geo.dir};
         }

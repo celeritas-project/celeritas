@@ -25,7 +25,7 @@ void extend_from_primaries(const TrackInitParamsHostRef& params,
                            TrackInitStateDeviceVal*      data)
 {
     CELER_EXPECT(params);
-    CELER_EXPECT(*data);
+    CELER_EXPECT(data && *data);
 
     // Number of primaries to copy to device
     auto count = min(data->initializers.capacity() - data->initializers.size(),
@@ -109,7 +109,7 @@ void extend_from_secondaries(const ParamsDeviceRef&   params,
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
-    CELER_EXPECT(*data);
+    CELER_EXPECT(data && *data);
 
     // Resize the vector of vacancies to be equal to the number of tracks
     data->vacancies.resize(states.size());
@@ -164,7 +164,7 @@ void initialize_tracks(const ParamsDeviceRef&   params,
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
-    CELER_EXPECT(*data);
+    CELER_EXPECT(data && *data);
 
     // The number of new tracks to initialize is the smaller of the number of
     // empty slots in the track vector and the number of track initializers
