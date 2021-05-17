@@ -203,37 +203,17 @@ function(celeritas_add_library target)
     CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
   )
 
-  if (CELERITAS_USE_VecGeom)
-    target_link_libraries(${target}_cuda
-      PRIVATE VecGeom::vecgeom
-    )
-    target_link_libraries(${target}_final
-      PRIVATE VecGeom::vecgeom
-    )
-    target_link_libraries(${target}_final
-      PRIVATE VecGeom::vecgeomcuda
-    )
-  endif()
   target_link_libraries(${target}_final
     PUBLIC ${target}_cuda
   )
 
   target_link_options(${target}_final
     PRIVATE
-    $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
     $<DEVICE_LINK:$<TARGET_FILE:${target}_static>>
   )
   if (CELERITAS_USE_VecGeom)
-    get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
-    target_link_options(${target}_final
-      PRIVATE
-      $<DEVICE_LINK:${vecgeom_static_target_location}>
-    )
     target_link_libraries(${target}_objects
       PRIVATE VecGeom::vecgeom
-    )
-    target_link_libraries(${target}_objects
-      PRIVATE VecGeom::vecgeomcuda_static
     )
   endif()
 
@@ -263,6 +243,8 @@ function(celeritas_depends_on OUTVARNAME lib potentialdepend)
   endif()
 endfunction()
 
+
+
 function(celeritas_strip_alias OUTVAR target)
   if(TARGET ${target})
     get_target_property(_target_alias ${target} ALIASED_TARGET)
@@ -272,6 +254,7 @@ function(celeritas_strip_alias OUTVAR target)
   endif()
   set(${OUTVAR} ${target} PARENT_SCOPE)
 endfunction()
+
 
 # Return the most derived "separatable cuda" library the target depends on.
 # If two or more cuda library are independent, we return both and the calling executable

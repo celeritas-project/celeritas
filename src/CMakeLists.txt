@@ -180,13 +180,6 @@ if(BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   )
 
-  target_include_directories(celeritas_static
-    PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  )
-
   target_include_directories(celeritas_cuda
     PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -194,12 +187,6 @@ if(BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   )
 
-  target_include_directories(celeritas_final
-    PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  )
 else()
   target_link_libraries(celeritas
     PRIVATE ${PRIVATE_DEPS}
