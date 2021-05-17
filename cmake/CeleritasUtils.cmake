@@ -141,21 +141,15 @@ function(celeritas_lib_contains_cuda OUTPUT_VARIABLE target)
 endfunction()
 
 function(celeritas_add_library target)
-  list(SUBLIST ARGV 1 -1 NEWARGV)
 
   celeritas_sources_contains_cuda(_contains_cuda ${ARGN})
 
   if(NOT BUILD_SHARED_LIBS OR NOT CELERITAS_USE_CUDA OR NOT _contains_cuda)
-    add_library(${target} ${NEWARGV})
+    add_library(${target} ${ARGN})
     return()
   endif()
 
-  celeritas_sources_contains_cuda(_contains_cuda ${ARGN})
-  # We could check whether this library contains CUDA code or not.
-  # get_target_property(_target_sources ${target} SOURCES)
-  # string(FIND "${SOURCE_FILE} ${PARSE_SOURCES}" .cu iscudalinked)
-
-  add_library(${target}_objects OBJECT ${NEWARGV})
+  add_library(${target}_objects OBJECT ${ARGN})
   add_library(${target}_static STATIC $<TARGET_OBJECTS:${target}_objects>)
   add_library(${target}_cuda SHARED $<TARGET_OBJECTS:${target}_objects>)
   # We need to use a dummy file as a library (per cmake) needs to contains
