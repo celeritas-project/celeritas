@@ -146,9 +146,6 @@ function(celeritas_add_library target)
 
   if(NOT BUILD_SHARED_LIBS OR NOT CELERITAS_USE_CUDA OR NOT _contains_cuda)
     add_library(${target} ${NEWARGV})
-    add_library(${target}_final ALIAS ${target})
-    add_library(${target}_cuda ALIAS ${target})
-    add_library(${target}_static ALIAS ${target})
     return()
   endif()
 
