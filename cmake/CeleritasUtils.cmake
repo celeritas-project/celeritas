@@ -331,15 +331,17 @@ function(celeritas_target_link_libraries target)
     target_link_libraries(${_target_middle} ${ARGN})
 
     get_target_property(_target_interface_link_libraries ${_target_middle} INTERFACE_LINK_LIBRARIES)
-    set(_target_interface_link_libraries_new)
-    foreach(_lib ${_target_interface_link_libraries})
-      celeritas_strip_alias(_lib ${_lib})
-      get_target_property(_libtype ${_lib} CELERITAS_CUDA_LIBRARY_TYPE)
-      if ("${_libtype}" STREQUAL "Final")
-         get_target_property(_lib ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
-      endif()
-      list(APPEND _target_interface_link_libraries_new ${_lib})
-    endforeach()
+    if(_target_interface_link_libraries)
+      set(_target_interface_link_libraries_new)
+      foreach(_lib ${_target_interface_link_libraries})
+        celeritas_strip_alias(_lib ${_lib})
+        get_target_property(_libtype ${_lib} CELERITAS_CUDA_LIBRARY_TYPE)
+        if ("${_libtype}" STREQUAL "Final")
+          get_target_property(_lib ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
+        endif()
+        list(APPEND _target_interface_link_libraries_new ${_lib})
+      endforeach()
+    endif()
 
     if(_target_interface_link_libraries_new)
       set_target_properties(${_target_middle} PROPERTIES
@@ -348,31 +350,36 @@ function(celeritas_target_link_libraries target)
     endif()
 
     get_target_property(_target_link_libraries ${_target_middle} LINK_LIBRARIES)
-    set(_target_link_libraries_new)
-    foreach(_lib ${_target_link_libraries})
-      celeritas_strip_alias(_lib ${_lib})
-      get_target_property(_libtype ${_lib} CELERITAS_CUDA_LIBRARY_TYPE)
-      if ("${_libtype}" STREQUAL "Final")
-         get_target_property(_lib ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
-      endif()
-      list(APPEND _target_link_libraries_new ${_libmid})
-    endforeach()
-
-    foreach(_lib ${_target_link_libraries})
-      get_target_property(_libstatic ${_lib} CELERITAS_CUDA_STATIC_LIBRARY)
-
-      if (iscudalinked GREATER_EQUAL 0 AND TARGET ${_libstatic})
-        target_link_options(${_target_final}
-          PRIVATE
-          $<DEVICE_LINK:$<TARGET_FILE:${_libstatic}>>
+    if(_target_link_libraries)
+      set(_target_link_libraries_new)
+      foreach(_lib ${_target_link_libraries})
+        celeritas_strip_alias(_lib ${_lib})
+        get_target_property(_libmid ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
+        if(_libmid)
+          list(APPEND _target_link_libraries_new ${_libmid})
+        else()
+          list(APPEND _target_link_libraries_new ${_lib})
+        endif()
+      endforeach()
+      if (_target_link_libraries_new)
+        set_target_properties(${_target_middle} PROPERTIES
+          LINK_LIBRARIES "${_target_link_libraries_new}"
         )
       endif()
-    endforeach()
+    endif()
 
-    if (_target_link_libraries_new)
-      set_target_properties(${_target_middle} PROPERTIES
-        LINK_LIBRARIES "${_target_link_libraries_new}"
-      )
+    if(_contains_cuda)
+      CELERITAS_CUDA_GATHER_DEPENDENCIES(_flat_target_link_libraries ${_target_middle})
+      foreach(_lib ${_flat_target_link_libraries})
+        get_target_property(_libstatic ${_lib} CELERITAS_CUDA_STATIC_LIBRARY)
+
+        if(TARGET ${_libstatic})
+          target_link_options(${_target_final}
+            PRIVATE
+            $<DEVICE_LINK:$<TARGET_FILE:${_libstatic}>>
+          )
+        endif()
+      endforeach()
     endif()
   endif()
 
