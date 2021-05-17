@@ -328,6 +328,9 @@ function(celeritas_find_final_library OUTLIST flat_dependency_list)
   set(${OUTLIST} ${_final_result} PARENT_SCOPE)
 endfunction()
 
+# Replacement for target_link_libraries that is aware of
+# the 3 libraries (static, middle, final) libraries needed
+# for a separatable CUDA library
 function(celeritas_target_link_libraries target)
   if(NOT BUILD_SHARED_LIBS OR NOT CELERITAS_USE_CUDA)
     target_link_libraries(${ARGV})
