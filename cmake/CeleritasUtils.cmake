@@ -43,6 +43,7 @@ macro(celeritas_find_package_config _package)
 endmacro()
 
 function(celeritas_link_vecgeom_cuda target)
+celeritas_target_link_libraries(${target} PRIVATE VecGeom::vecgeom)
 return()
 
 #  Readd when using
