@@ -349,6 +349,7 @@ function(celeritas_target_link_libraries target)
       endif()
     endif()
 
+    # Set now to let taraget_link_libraries do the argument parsing
     target_link_libraries(${_target_middle} ${ARGN})
 
     get_target_property(_target_interface_link_libraries ${_target_middle} INTERFACE_LINK_LIBRARIES)
@@ -362,18 +363,25 @@ function(celeritas_target_link_libraries target)
       list(APPEND _target_interface_link_libraries_new ${_lib})
     endforeach()
 
+    if(_target_interface_link_libraries_new)
+      set_target_properties(${_target_middle} PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${_target_interface_link_libraries_new}"
+      )
+    endif()
+
     get_target_property(_target_link_libraries ${_target_middle} LINK_LIBRARIES)
     set(_target_link_libraries_new)
     foreach(_lib ${_target_link_libraries})
       celeritas_strip_alias(_lib ${_lib})
-
-      get_target_property(_libfinal ${_lib} CELERITAS_CUDA_FINAL_LIBRARY)
-      get_target_property(_libstatic ${_lib} CELERITAS_CUDA_STATIC_LIBRARY)
-      get_target_property(_libmid ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
-
-      if(NOT TARGET ${_libmid})
-        set(_libmid ${_lib})
+      get_target_property(_libtype ${_lib} CELERITAS_CUDA_LIBRARY_TYPE)
+      if ("${_libtype}" STREQUAL "Final")
+         get_target_property(_lib ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
       endif()
+      list(APPEND _target_link_libraries_new ${_libmid})
+    endforeach()
+
+    foreach(_lib ${_target_link_libraries})
+      get_target_property(_libstatic ${_lib} CELERITAS_CUDA_STATIC_LIBRARY)
 
       if (iscudalinked GREATER_EQUAL 0 AND TARGET ${_libstatic})
         target_link_options(${_target_final}
@@ -381,14 +389,7 @@ function(celeritas_target_link_libraries target)
           $<DEVICE_LINK:$<TARGET_FILE:${_libstatic}>>
         )
       endif()
-      list(APPEND _target_link_libraries_new ${_libmid})
     endforeach()
-
-    if(_target_interface_link_libraries_new)
-      set_target_properties(${_target_middle} PROPERTIES
-        INTERFACE_LINK_LIBRARIES "${_target_interface_link_libraries_new}"
-      )
-    endif()
 
     if (_target_link_libraries_new)
       set_target_properties(${_target_middle} PROPERTIES
