@@ -25,7 +25,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
     geant-exporter/GeantExceptionHandler.cc
     geant-exporter/GeantLoggerAdapter.cc
   )
-  target_link_libraries(geant-exporter
+  celeritas_target_link_libraries(geant-exporter
     Celeritas::Core
     Celeritas::ROOT
     ROOT::Core
@@ -36,7 +36,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
 
   # Reader
   add_executable(geant-exporter-cat geant-exporter/geant-exporter-cat.cc)
-  target_link_libraries(geant-exporter-cat
+  celeritas_target_link_libraries(geant-exporter-cat
     Celeritas::Core
     Celeritas::ROOT
   )
@@ -78,7 +78,7 @@ if(CELERITAS_BUILD_DEMOS)
     demo-interactor/KNDemoIO.cc
     demo-interactor/XsGridParams.cc
   )
-  target_link_libraries(celeritas_demo_interactor PUBLIC
+  celeritas_target_link_libraries(celeritas_demo_interactor PUBLIC
     celeritas
     nlohmann_json::nlohmann_json
   )
@@ -90,7 +90,7 @@ if(CELERITAS_BUILD_DEMOS)
       demo-interactor/KNDemoKernel.cu
       demo-interactor/KNDemoKernel.thrust.cu
     )
-    target_link_libraries(demo-interactor celeritas_demo_interactor)
+    celeritas_target_link_libraries(demo-interactor celeritas_demo_interactor)
 
     if(CELERITAS_BUILD_TESTS)
       set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py")
@@ -114,7 +114,7 @@ if(CELERITAS_BUILD_DEMOS)
     demo-interactor/host-demo-interactor.cc
     demo-interactor/HostKNDemoRunner.cc
   )
-  target_link_libraries(host-demo-interactor
+  celeritas_target_link_libraries(host-demo-interactor
     celeritas
     celeritas_demo_interactor
   )
@@ -149,13 +149,13 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     demo-rasterizer/ImageIO.cc
     demo-rasterizer/ImageStore.cc
   )
-  target_link_libraries(celeritas_demo_rasterizer_final
+  celeritas_target_link_libraries(celeritas_demo_rasterizer_final
     PRIVATE
       Celeritas::Core
       nlohmann_json::nlohmann_json
   )
 
-  target_link_libraries(celeritas_demo_rasterizer_objects
+  celeritas_target_link_libraries(celeritas_demo_rasterizer_objects
     PRIVATE
       Celeritas::Core
       nlohmann_json::nlohmann_json
@@ -169,7 +169,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   add_executable(demo-rasterizer
     demo-rasterizer/demo-rasterizer.cc
   )
-  target_link_libraries(demo-rasterizer
+  celeritas_target_link_libraries(demo-rasterizer
     celeritas
     VecGeom::vecgeom
     celeritas_demo_rasterizer
@@ -212,7 +212,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     ${_cuda_src}
   )
 
-  target_link_libraries(celeritas_demo_loop_final
+  celeritas_target_link_libraries(celeritas_demo_loop_final
     PRIVATE
     Celeritas::Core
     nlohmann_json::nlohmann_json
@@ -221,7 +221,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   target_link_options(celeritas_demo_loop_final
      PRIVATE $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
   )
-  target_link_libraries(celeritas_demo_loop_objects
+  celeritas_target_link_libraries(celeritas_demo_loop_objects
     PRIVATE
     Celeritas::Core
     nlohmann_json::nlohmann_json
@@ -239,7 +239,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   add_executable(demo-loop
     demo-loop/demo-loop.cc
   )
-  target_link_libraries(demo-loop
+  celeritas_target_link_libraries(demo-loop
     celeritas
     VecGeom::vecgeom
     celeritas_demo_loop

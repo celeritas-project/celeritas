@@ -21,7 +21,7 @@ list(APPEND CELER_SOURCES
 
 add_library(CeleritasTest ${CELER_SOURCES})
 add_library(Celeritas::Test ALIAS CeleritasTest)
-target_link_libraries(CeleritasTest PRIVATE celeritas_cuda PUBLIC GTest::GTest)
+celeritas_target_link_libraries(CeleritasTest PRIVATE celeritas_cuda PUBLIC GTest::GTest)
 
 target_include_directories(CeleritasTest
   PUBLIC
@@ -116,10 +116,10 @@ celeritas_cudaoptional_test(field/FieldDriver)
 if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_CUDA)
     celeritas_add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu)
-    target_link_libraries(CeleritasPropagatorTest_final
+    celeritas_target_link_libraries(CeleritasPropagatorTest_final
       PUBLIC celeritas
     )
-    target_link_libraries(CeleritasPropagatorTest_objects
+    celeritas_target_link_libraries(CeleritasPropagatorTest_objects
       PRIVATE celeritas
     )
     list(APPEND CELERITASTEST_LINK_LIBRARIES CeleritasPropagatorTest)
@@ -151,7 +151,7 @@ if(CELERITAS_USE_VecGeom)
     )
   endif()
   celeritas_add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES})
-  target_link_libraries(CeleritasVecgeomTest_final
+  celeritas_target_link_libraries(CeleritasVecgeomTest_final
      PRIVATE Celeritas::Test celeritas_cuda VecGeom::vecgeom
      PUBLIC celeritas_cuda
   )
@@ -159,7 +159,7 @@ if(CELERITAS_USE_VecGeom)
   target_link_options(CeleritasVecgeomTest_final
      PRIVATE $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
   )
-  target_link_libraries(CeleritasVecgeomTest_objects
+  celeritas_target_link_libraries(CeleritasVecgeomTest_objects
     PRIVATE Celeritas::Test celeritas_cuda VecGeom::vecgeom
   )
   if(CELERITAS_USE_CUDA)
@@ -198,7 +198,7 @@ add_library(CeleritasPhysicsTest
   physics/grid/CalculatorTestBase.cc
 )
 
-target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
+celeritas_target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
 
 celeritas_setup_tests(SERIAL PREFIX physics/base
   LINK_LIBRARIES CeleritasPhysicsTest)

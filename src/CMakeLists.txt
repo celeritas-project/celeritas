@@ -158,17 +158,17 @@ else()
 endif()
 
 if(BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
-  target_link_libraries(celeritas_objects
+  celeritas_target_link_libraries(celeritas_objects
     PRIVATE ${PRIVATE_DEPS}
     PUBLIC ${PUBLIC_DEPS}
   )
 
-  target_link_libraries(celeritas_cuda
+  celeritas_target_link_libraries(celeritas_cuda
     PRIVATE ${PRIVATE_DEPS}
     PUBLIC ${PUBLIC_DEPS}
   )
 
-  target_link_libraries(celeritas_final
+  celeritas_target_link_libraries(celeritas_final
     PRIVATE ${PRIVATE_DEPS}
     PUBLIC ${PUBLIC_DEPS}
   )
@@ -191,7 +191,7 @@ if(BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
   )
 
 else()
-  target_link_libraries(celeritas
+  celeritas_target_link_libraries(celeritas
     PRIVATE ${PRIVATE_DEPS}
     PUBLIC ${PUBLIC_DEPS}
   )
@@ -271,7 +271,7 @@ if(CELERITAS_USE_ROOT)
     ${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx
     io/RootImporter.cc
   )
-  target_link_libraries(celeritas_root
+  celeritas_target_link_libraries(celeritas_root
     PRIVATE celeritas_cuda ROOT::Core ROOT::Tree
   )
 else()
@@ -279,7 +279,7 @@ else()
   add_library(celeritas_root
     io/RootImporter.noroot.cc
   )
-  target_link_libraries(celeritas_root PRIVATE celeritas)
+  celeritas_target_link_libraries(celeritas_root PRIVATE celeritas)
 endif()
 
 add_library(Celeritas::ROOT ALIAS celeritas_root)

@@ -326,15 +326,15 @@ function(celeritas_add_test SOURCE_FILE)
         endforeach()
         if (NOT LOCAL_CELERITAS_HAS_FINAL)
           #message(WARNING "For ${_TARGET} adding celeritas_final")
-          target_link_libraries(${_TARGET} celeritas_final)
+          celeritas_target_link_libraries(${_TARGET} celeritas_final)
         endif()
       else()
-        target_link_libraries(${_TARGET} celeritas_cuda)
+        celeritas_target_link_libraries(${_TARGET} celeritas_cuda)
         target_link_options(${_TARGET}
           PRIVATE $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
         )
         if(CELERITAS_USE_VecGeom)
-          target_link_libraries(${_TARGET} VecGeom::vecgeomcuda)
+          celeritas_target_link_libraries(${_TARGET} VecGeom::vecgeomcuda)
           get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
           target_link_options(${_TARGET}
             PRIVATE
@@ -343,10 +343,10 @@ function(celeritas_add_test SOURCE_FILE)
         endif()
       endif()
     else()
-      target_link_libraries(${_TARGET} Celeritas::Core)
+      celeritas_target_link_libraries(${_TARGET} Celeritas::Core)
     endif()
 
-    target_link_libraries(${_TARGET}
+    celeritas_target_link_libraries(${_TARGET}
       Celeritas::Test # celeritas_cuda
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
