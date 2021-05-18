@@ -263,6 +263,29 @@ function(celeritas_strip_alias OUTVAR target)
 endfunction()
 
 
+function(celeritas_use_middle_lib_in_property target property)
+  get_target_property(_target_libs ${target} ${property})
+
+  set(_new_values)
+  foreach(_lib ${_target_libs})
+    set(_newlib ${_lib})
+    if(TARGET ${_lib})
+      celeritas_strip_alias(_lib ${_lib})
+      get_target_property(_libmid ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
+      if(_libmid)
+        set(_newlib ${_libmid})
+      endif()
+    endif()
+    list(APPEND _new_values ${_newlib})
+  endforeach()
+
+  if(_new_values)
+    set_target_properties(${target} PROPERTIES
+      ${property} "${_new_values}"
+    )
+  endif()
+endfunction()
+
 # Return the most derived "separatable cuda" library the target depends on.
 # If two or more cuda library are independent, we return both and the calling executable
 # should be linked with nvcc -dlink.
@@ -351,30 +374,9 @@ function(celeritas_target_link_libraries target)
       endforeach()
     endif()
 
-    if(_target_interface_link_libraries_new)
-      set_target_properties(${_target_middle} PROPERTIES
-        INTERFACE_LINK_LIBRARIES "${_target_interface_link_libraries_new}"
-      )
-    endif()
+    celeritas_use_middle_lib_in_property(${_target_middle} INTERFACE_LINK_LIBRARIES)
+    celeritas_use_middle_lib_in_property(${_target_middle} LINK_LIBRARIES)
 
-    get_target_property(_target_link_libraries ${_target_middle} LINK_LIBRARIES)
-    if(_target_link_libraries)
-      set(_target_link_libraries_new)
-      foreach(_lib ${_target_link_libraries})
-        celeritas_strip_alias(_lib ${_lib})
-        get_target_property(_libmid ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
-        if(_libmid)
-          list(APPEND _target_link_libraries_new ${_libmid})
-        else()
-          list(APPEND _target_link_libraries_new ${_lib})
-        endif()
-      endforeach()
-      if (_target_link_libraries_new)
-        set_target_properties(${_target_middle} PROPERTIES
-          LINK_LIBRARIES "${_target_link_libraries_new}"
-        )
-      endif()
-    endif()
 
     if(_contains_cuda)
       CELERITAS_CUDA_GATHER_DEPENDENCIES(_flat_target_link_libraries ${_target_middle})
