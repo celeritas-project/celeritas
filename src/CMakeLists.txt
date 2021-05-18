@@ -166,33 +166,12 @@ celeritas_target_link_libraries(celeritas
   PUBLIC ${PUBLIC_DEPS}
 )
 
-if(BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
-
-  # We need to set it both on the object library and the
-  # main shared library because it seems that the property
-  # set on the object library are not passing transitively.
-  target_include_directories(celeritas_objects
-    PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  )
-
-  target_include_directories(celeritas_cuda
-    PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  )
-
-else()
-  target_include_directories(celeritas
-    PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  )
-endif()
+celeritas_target_include_directories(celeritas
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
   celeritas_target_link_libraries(celeritas PRIVATE VecGeom::vecgeom)

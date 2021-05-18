@@ -58,6 +58,20 @@ CMake utility functions for Celeritas.
   Usage requirements from linked library targets will be propagated. Usage requirements
   of a target's dependencies affect compilation of its own sources.
 
+
+.. command:: celeritas_target_include_directories
+  Add include directories to a target.
+
+  Specifies include directories to use when compiling a given target. The named <target> must
+  have been created by a command such as add_executable() or add_library()
+  and can be used with an ALIAS target.   See target_include_directorie for additional detail.
+
+    ::
+
+  target_include_directories(<target> [SYSTEM] [AFTER|BEFORE]
+    <INTERFACE|PUBLIC|PRIVATE> [items1...]
+    [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+
 #]=======================================================================]
 include(FindPackageHandleStandardArgs)
 
@@ -225,6 +239,36 @@ function(celeritas_add_library target)
   add_dependencies(${target}_final ${target}_static)
 
   add_library(${target} ALIAS ${target}_cuda)
+
+endfunction()
+
+# Replacement for target_include_directories that is aware of
+# the 3 libraries (static, middle, final) libraries needed
+# for a separatable CUDA library
+function(celeritas_target_include_directories target)
+  if(NOT BUILD_SHARED_LIBS OR NOT CELERITAS_USE_CUDA)
+    target_include_directories(${ARGV})
+  else()
+
+    celeritas_strip_alias(target ${target})
+    celeritas_lib_contains_cuda(_contains_cuda ${target})
+
+    if (_contains_cuda)
+      get_target_property(_targettype ${target} CELERITAS_CUDA_LIBRARY_TYPE)
+      if(_targettype)
+        get_target_property(_target_middle ${target} CELERITAS_CUDA_MIDDLE_LIBRARY)
+        get_target_property(_target_object ${target} CELERITAS_CUDA_OBJECT_LIBRARY)
+      endif()
+    endif()
+    if(_target_object)
+      target_include_directories(${_target_object} ${ARGN})
+    endif()
+    if(_target_middle)
+      target_include_directories(${_target_middle} ${ARGN})
+    else()
+      target_include_directories(${ARGV})
+    endif()
+  endif()
 
 endfunction()
 
