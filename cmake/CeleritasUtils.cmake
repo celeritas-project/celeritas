@@ -33,10 +33,10 @@ CMake utility functions for Celeritas.
 
   To support separatable CUDA code, the following 4 targets will be contruscted:
 
- A object library used to compile the source code and share the result with the static and shared library
- A static library used as input to nvcc -dlink
- A shared “intermediary” library containing all the .o files but NO nvcc -dlink result
- A shared “final” library containing the result of nvcc -dlink and linked against the above mentioned shared library.
+ - A object library used to compile the source code and share the result with the static and shared library
+ - A static library used as input to nvcc -dlink
+ - A shared “intermediary” library containing all the .o files but NO nvcc -dlink result
+ - A shared “final” library containing the result of nvcc -dlink and linked against the above mentioned shared library.
 
  An executable need to load exactly one result of nvcc -dlink (Whose input needs to be
  the .o files from all the “cuda” library it uses/depends-on. So if the executable has cuda code,
@@ -245,7 +245,7 @@ function(celeritas_add_library target)
 endfunction()
 
 # Replacement for target_include_directories that is aware of
-# the 3 libraries (static, middle, final) libraries needed
+# the 4 libraries (objects, static, middle, final) libraries needed
 # for a separatable CUDA library
 function(celeritas_target_include_directories target)
   if(NOT BUILD_SHARED_LIBS OR NOT CELERITAS_USE_CUDA)
