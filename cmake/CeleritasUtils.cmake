@@ -371,7 +371,7 @@ function(celeritas_target_link_libraries target)
     celeritas_use_middle_lib_in_property(${_target_object} LINK_LIBRARIES)
 
     if(_contains_cuda)
-      CELERITAS_CUDA_GATHER_DEPENDENCIES(_flat_target_link_libraries ${_target_middle})
+      celeritas_cuda_gather_dependencies(_flat_target_link_libraries ${_target_middle})
       foreach(_lib ${_flat_target_link_libraries})
         get_target_property(_libstatic ${_lib} CELERITAS_CUDA_STATIC_LIBRARY)
 
@@ -387,7 +387,7 @@ function(celeritas_target_link_libraries target)
 
 endfunction()
 
-function(CELERITAS_CUDA_GATHER_DEPENDENCIES outlist target)
+function(celeritas_cuda_gather_dependencies outlist target)
   if(TARGET ${target})
     celeritas_strip_alias(target ${target})
     get_target_property(_target_link_libraries ${target} LINK_LIBRARIES)
@@ -399,7 +399,7 @@ function(CELERITAS_CUDA_GATHER_DEPENDENCIES outlist target)
         if(TARGET ${_libmid})
           list(APPEND ${outlist} ${_libmid})
           # and recurse
-          CELERITAS_CUDA_GATHER_DEPENDENCIES(_midlist ${_lib})
+          celeritas_cuda_gather_dependencies(_midlist ${_lib})
           #message(WARNING "The link mid list for ${target} for ${_lib} is ${_midlist}")
           list(APPEND ${outlist} ${_midlist})
         endif()
