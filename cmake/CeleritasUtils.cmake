@@ -130,6 +130,15 @@ function(celeritas_lib_contains_cuda OUTPUT_VARIABLE target)
 endfunction()
 
 #
+# Generate an empty .cu file to transform the library to a CUDA library
+#
+function(celeritas_generate_empty_cu_file emptyfilenamevar target)
+  set(_stub "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${target}_emptyfile.cu")
+  file(WRITE "${_stub}" "/* intentionally empty. */")
+  set(${emptyfilenamevar} ${_stub} PARENT_SCOPE)
+endfunction()
+
+#
 # celeritas_add_library
 #
 # Add a library taking into account whether it contains
@@ -158,7 +167,8 @@ function(celeritas_add_library target)
   # If both the `_cuda` and `_final` contains the `.o` files we would
   # then have duplicated symbols (Here the symptoms will a crash
   # during the cuda library initialization rather than a link error).
-  add_library(${target}_final SHARED ../src/base/dummy.cu)
+  celeritas_generate_empty_cu_file(_emptyfilename ${target})
+  add_library(${target}_final SHARED ${_emptyfilename})
 
   set_target_properties(${target}_objects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
@@ -376,7 +386,8 @@ function(celeritas_target_link_libraries target)
       elseif(${_final_count} GREATER 1)
         # turn into CUDA executable.
         set(_contains_cuda TRUE)
-        target_sources(${target} PRIVATE ../src/base/dummy.cu)
+        celeritas_generate_empty_cu_file(_emptyfilename ${target})
+        target_sources(${target} PRIVATE ${_emptyfilename})
       endif()
       # nothing to do if there is no final library (i.e. no use of CUDA at all?)
     endif()
