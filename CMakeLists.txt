@@ -19,9 +19,6 @@ endif()
 include(GNUInstallDirs)
 include(CeleritasUtils)
 
-#debug statement: please remove before merge.
-set(CUDA_VERBOSE_BUILD ON)
-
 #----------------------------------------------------------------------------#
 # OPTIONS
 #----------------------------------------------------------------------------#
