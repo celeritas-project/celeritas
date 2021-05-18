@@ -274,6 +274,38 @@ function(celeritas_target_include_directories target)
 
 endfunction()
 
+#
+# Replacement for the install function that is aware of the 3 libraries
+# (static, middle, final) libraries needed for a separatable CUDA library
+#
+function(celeritas_install subcommand firstarg)
+  if(NOT ${subcommand} STREQUAL "TARGETS" OR NOT TARGET ${firstarg})
+    install(${ARGV})
+  endif()
+  set(_targets ${firstarg})
+  list(POP_FRONT ARGN _next)
+  while(TARGET ${_next})
+    list(APPEND _targets ${_next})
+    list(POP_FRONT ${ARGN} _next)
+  endwhile()
+  # At this point all targets are in ${_targets} and ${_next} is the first non target and ${ARGN} is the rest.
+  foreach(_toinstall ${_targets})
+    get_target_property(_lib_target_type ${_toinstall} TYPE)
+    if(NOT ${_lib_target_type} STREQUAL "INTERFACE_LIBRARY")
+      get_target_property(_targettype ${_toinstall} CELERITAS_CUDA_LIBRARY_TYPE)
+      if(_targettype)
+        get_target_property(_target_final ${_toinstall} CELERITAS_CUDA_FINAL_LIBRARY)
+        get_target_property(_target_middle ${_toinstall} CELERITAS_CUDA_MIDDLE_LIBRARY)
+        get_target_property(_target_static ${_toinstall} CELERITAS_CUDA_STATIC_LIBRARY)
+        set(_toinstall ${_target_final} ${_target_middle} ${_target_static})
+      endif()
+    endif()
+    foreach(_subtarget ${_toinstall})
+      install(TARGETS ${_subtarget} ${_next} ${ARGN})
+    endforeach()
+  endforeach()
+endfunction()
+
 # Return TRUE if 'lib' depends/uses directly or indirectly the library `potentialdepend`
 function(celeritas_depends_on OUTVARNAME lib potentialdepend)
   set(${OUTVARNAME} FALSE PARENT_SCOPE)
