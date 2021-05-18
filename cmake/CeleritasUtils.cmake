@@ -218,11 +218,6 @@ function(celeritas_add_library target)
     PRIVATE
     $<DEVICE_LINK:$<TARGET_FILE:${target}_static>>
   )
-  if (CELERITAS_USE_VecGeom)
-    target_link_libraries(${target}_objects
-      PRIVATE VecGeom::vecgeom
-    )
-  endif()
 
   add_dependencies(${target}_final ${target}_cuda)
   add_dependencies(${target}_final ${target}_static)
