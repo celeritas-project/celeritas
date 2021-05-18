@@ -21,7 +21,7 @@ list(APPEND CELER_SOURCES
 
 add_library(CeleritasTest ${CELER_SOURCES})
 add_library(Celeritas::Test ALIAS CeleritasTest)
-celeritas_target_link_libraries(CeleritasTest PRIVATE celeritas_cuda PUBLIC GTest::GTest)
+celeritas_target_link_libraries(CeleritasTest PRIVATE celeritas PUBLIC GTest::GTest)
 
 target_include_directories(CeleritasTest
   PUBLIC
@@ -116,19 +116,15 @@ celeritas_cudaoptional_test(field/FieldDriver)
 if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_CUDA)
     celeritas_add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu)
-    celeritas_target_link_libraries(CeleritasPropagatorTest_final
-      PUBLIC celeritas
-    )
-    celeritas_target_link_libraries(CeleritasPropagatorTest_objects
-      PRIVATE celeritas
+    celeritas_target_link_libraries(CeleritasPropagatorTest
+      PRIVATE celeritas VecGeom::vecgeom
     )
     list(APPEND CELERITASTEST_LINK_LIBRARIES CeleritasPropagatorTest)
-    celeritas_link_vecgeom_cuda(CeleritasPropagatorTest)
     set(_CeleritasPropagatorTest CeleritasPropagatorTest)
   endif()
 
   celeritas_add_test(field/FieldPropagator.test.cc GPU
-   LINK_LIBRARIES VecGeom::vecgeom ${_CeleritasPropagatorTest})
+    LINK_LIBRARIES Celeritas::Core VecGeom::vecgeom ${_CeleritasPropagatorTest})
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -151,23 +147,13 @@ if(CELERITAS_USE_VecGeom)
     )
   endif()
   celeritas_add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES})
-  celeritas_target_link_libraries(CeleritasVecgeomTest_final
-     PRIVATE Celeritas::Test celeritas_cuda VecGeom::vecgeom
-     PUBLIC celeritas_cuda
+  celeritas_target_link_libraries(CeleritasVecgeomTest
+    PRIVATE Celeritas::Test VecGeom::vecgeom
+    PUBLIC Celeritas::Core
   )
-
-  target_link_options(CeleritasVecgeomTest_final
-     PRIVATE $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
-  )
-  celeritas_target_link_libraries(CeleritasVecgeomTest_objects
-    PRIVATE Celeritas::Test celeritas_cuda VecGeom::vecgeom
-  )
-  if(CELERITAS_USE_CUDA)
-    celeritas_link_vecgeom_cuda(CeleritasVecgeomTest_final)
-  endif()
 
   celeritas_setup_tests(SERIAL PREFIX geometry
-   LINK_LIBRARIES CeleritasVecgeomTest VecGeom::vecgeom)
+    LINK_LIBRARIES CeleritasVecgeomTest VecGeom::vecgeom)
 
   celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
     LINK_LIBRARIES Celeritas::ROOT)
@@ -246,7 +232,7 @@ celeritas_add_test(physics/em/SeltzerBerger.test.cc)
 celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
   ${_optional_geant4}
   GPU # TODO: delete when device pointers are no longer directly accessed
-  LINK_LIBRARIES Celeritas::ROOT celeritas_final)
+  LINK_LIBRARIES Celeritas::ROOT)
 
 #-----------------------------------------------------------------------------#
 # Random
@@ -271,6 +257,6 @@ celeritas_setup_tests(SERIAL PREFIX sim)
 if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   celeritas_add_test(sim/TrackInitializerStore.test.cc GPU
     SOURCES sim/TrackInitializerStore.test.cu
-    LINK_LIBRARIES celeritas_cuda VecGeom::vecgeomcuda VecGeom::vgdml)
+    LINK_LIBRARIES Celeritas::Core VecGeom::vecgeom)
 endif()
 
