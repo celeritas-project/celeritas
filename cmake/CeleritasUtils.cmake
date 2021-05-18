@@ -360,15 +360,15 @@ function(celeritas_target_link_libraries target)
 
     # Set now to let taraget_link_libraries do the argument parsing
     target_link_libraries(${_target_middle} ${ARGN})
-    if(_target_object)
-      target_link_libraries(${_target_object} ${ARGN})
-    endif()
 
     celeritas_use_middle_lib_in_property(${_target_middle} INTERFACE_LINK_LIBRARIES)
     celeritas_use_middle_lib_in_property(${_target_middle} LINK_LIBRARIES)
 
-    celeritas_use_middle_lib_in_property(${_target_object} INTERFACE_LINK_LIBRARIES)
-    celeritas_use_middle_lib_in_property(${_target_object} LINK_LIBRARIES)
+    if(_target_object)
+      target_link_libraries(${_target_object} ${ARGN})
+      celeritas_use_middle_lib_in_property(${_target_object} INTERFACE_LINK_LIBRARIES)
+      celeritas_use_middle_lib_in_property(${_target_object} LINK_LIBRARIES)
+    endif()
 
     get_target_property(_target_type ${target} TYPE)
     if(${_target_type} STREQUAL "EXECUTABLE")
