@@ -134,9 +134,9 @@ if(CELERITAS_USE_VecGeom)
     geometry/GeoMaterialParams.cc
     geometry/GeoParams.cc
     geometry/detail/VGNavCollection.cc
-    sim/ParamStore.cc
-    sim/StateStore.cc
-    sim/TrackInitializerStore.cc
+    sim/TrackInitInterface.cc
+    sim/TrackInitParams.cc
+    sim/TrackInitUtils.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml)
   # This needs to be public because its might be needed

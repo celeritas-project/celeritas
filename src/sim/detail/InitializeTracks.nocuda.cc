@@ -14,28 +14,28 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-void init_tracks(const StatePointers&,
-                 const ParamPointers&,
-                 const TrackInitializerPointers&)
+void init_tracks(const ParamsDeviceRef&,
+                 const StateDeviceRef&,
+                 const TrackInitStateDeviceRef&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 
-void locate_alive(const StatePointers&,
-                  const ParamPointers&,
-                  const TrackInitializerPointers&)
+void locate_alive(const ParamsDeviceRef&,
+                  const StateDeviceRef&,
+                  const TrackInitStateDeviceRef&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 
-void process_primaries(Span<const Primary>, const TrackInitializerPointers&)
+void process_primaries(Span<const Primary>, const TrackInitStateDeviceRef&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 
-void process_secondaries(const StatePointers&,
-                         const ParamPointers&,
-                         TrackInitializerPointers)
+void process_secondaries(const ParamsDeviceRef&,
+                         const StateDeviceRef&,
+                         const TrackInitStateDeviceRef&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
