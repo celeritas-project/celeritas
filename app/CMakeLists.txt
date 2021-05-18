@@ -208,28 +208,18 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     demo-loop/LDemoRun.cc
     ${_cuda_src}
   )
-
-  celeritas_target_link_libraries(celeritas_demo_loop_final
+  celeritas_target_link_libraries(celeritas_demo_loop
     PRIVATE
     Celeritas::Core
     nlohmann_json::nlohmann_json
     Celeritas::ROOT
   )
-  target_link_options(celeritas_demo_loop_final
-     PRIVATE $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
-  )
-  celeritas_target_link_libraries(celeritas_demo_loop_objects
-    PRIVATE
-    Celeritas::Core
-    nlohmann_json::nlohmann_json
-    Celeritas::ROOT
-  )
-  if(CELERITAS_USE_CUDA)
-    celeritas_link_vecgeom_cuda(celeritas_demo_loop)
-  endif()
 
   if(CELERITAS_USE_CUDA)
-    celeritas_link_vecgeom_cuda(celeritas_demo_loop_final)
+    celeritas_target_link_libraries(celeritas_demo_loop
+      PRIVATE
+      VecGeom::vecgeom
+    )
   endif()
 
   # Add the executable
