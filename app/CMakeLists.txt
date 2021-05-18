@@ -159,11 +159,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     PRIVATE
       Celeritas::Core
       nlohmann_json::nlohmann_json
+      VecGeom::vecgeom
   )
-  target_link_options(celeritas_demo_rasterizer_final
-     PRIVATE $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
-  )
-  celeritas_link_vecgeom_cuda(celeritas_demo_rasterizer_final)
 
   # Add the executable
   add_executable(demo-rasterizer
