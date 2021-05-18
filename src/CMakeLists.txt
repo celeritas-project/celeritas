@@ -138,7 +138,11 @@ if(CELERITAS_USE_VecGeom)
     sim/StateStore.cc
     sim/TrackInitializerStore.cc
   )
-  list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
+  list(APPEND PRIVATE_DEPS VecGeom::vgdml)
+  # This needs to be public because its might be needed
+  # to resolve the symbol generate by the `nvcc -dlink` of
+  # one of the executable.
+  list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
   if(CELERITAS_USE_CUDA)
     list(APPEND SOURCES
       sim/detail/InitializeTracks.cu
