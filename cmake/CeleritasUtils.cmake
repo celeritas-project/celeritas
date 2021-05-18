@@ -360,23 +360,15 @@ function(celeritas_target_link_libraries target)
 
     # Set now to let taraget_link_libraries do the argument parsing
     target_link_libraries(${_target_middle} ${ARGN})
-
-    get_target_property(_target_interface_link_libraries ${_target_middle} INTERFACE_LINK_LIBRARIES)
-    if(_target_interface_link_libraries)
-      set(_target_interface_link_libraries_new)
-      foreach(_lib ${_target_interface_link_libraries})
-        celeritas_strip_alias(_lib ${_lib})
-        get_target_property(_libtype ${_lib} CELERITAS_CUDA_LIBRARY_TYPE)
-        if ("${_libtype}" STREQUAL "Final")
-          get_target_property(_lib ${_lib} CELERITAS_CUDA_MIDDLE_LIBRARY)
-        endif()
-        list(APPEND _target_interface_link_libraries_new ${_lib})
-      endforeach()
+    if(_target_object)
+      target_link_libraries(${_target_object} ${ARGN})
     endif()
 
     celeritas_use_middle_lib_in_property(${_target_middle} INTERFACE_LINK_LIBRARIES)
     celeritas_use_middle_lib_in_property(${_target_middle} LINK_LIBRARIES)
 
+    celeritas_use_middle_lib_in_property(${_target_object} INTERFACE_LINK_LIBRARIES)
+    celeritas_use_middle_lib_in_property(${_target_object} LINK_LIBRARIES)
 
     if(_contains_cuda)
       CELERITAS_CUDA_GATHER_DEPENDENCIES(_flat_target_link_libraries ${_target_middle})
