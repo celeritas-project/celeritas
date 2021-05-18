@@ -370,6 +370,29 @@ function(celeritas_target_link_libraries target)
     celeritas_use_middle_lib_in_property(${_target_object} INTERFACE_LINK_LIBRARIES)
     celeritas_use_middle_lib_in_property(${_target_object} LINK_LIBRARIES)
 
+    get_target_property(_target_type ${target} TYPE)
+    if(${_target_type} STREQUAL "EXECUTABLE")
+      celeritas_cuda_gather_dependencies(_alldependencies ${target})
+      celeritas_find_final_library(_finallibs "${_alldependencies}")
+      list(LENGTH _finallibs _final_count)
+      if(_contains_cuda)
+        if(${_final_count} GREATER 0)
+          # If there is at least one final library this means that we
+          # have somewhere some "separable" nvcc compilations
+          set_target_properties(${target} PROPERTIES
+            CUDA_SEPARABLE_COMPILATION ON
+          )
+        endif()
+      elseif(${_final_count} EQUAL 1)
+        target_link_libraries(${target} ${_finallibs})
+      elseif(${_final_count} GREATER 1)
+        # turn into CUDA executable.
+        set(_contains_cuda TRUE)
+        target_sources(${target} PRIVATE ../src/base/dummy.cu)
+      endif()
+      # nothing to do if there is no final library (i.e. no use of CUDA at all?)
+    endif()
+
     if(_contains_cuda)
       celeritas_cuda_gather_dependencies(_flat_target_link_libraries ${_target_middle})
       foreach(_lib ${_flat_target_link_libraries})
