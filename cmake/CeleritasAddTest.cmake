@@ -314,40 +314,13 @@ function(celeritas_add_test SOURCE_FILE)
     )
 
     if (BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
-      string(FIND "${SOURCE_FILE} ${PARSE_SOURCES}" .cu iscudalinked)
-      if (iscudalinked LESS 0)
-        set(LOCAL_CELERITAS_HAS_FINAL false)
-        foreach(lib ${CELERITASTEST_LINK_LIBRARIES} ${PARSE_LINK_LIBRARIES})
-          get_target_property(libtype ${lib} CELERITAS_CUDA_LIBRARY_TYPE)
-          if ("${libtype}" STREQUAL "Final")
-            set(LOCAL_CELERITAS_HAS_FINAL TRUE)
-            break()
-          endif()
-        endforeach()
-        if (NOT LOCAL_CELERITAS_HAS_FINAL)
-          #message(WARNING "For ${_TARGET} adding celeritas_final")
-          celeritas_target_link_libraries(${_TARGET} celeritas_final)
-        endif()
-      else()
-        celeritas_target_link_libraries(${_TARGET} celeritas_cuda)
-        target_link_options(${_TARGET}
-          PRIVATE $<DEVICE_LINK:$<TARGET_FILE:celeritas_static>>
-        )
-        if(CELERITAS_USE_VecGeom)
-          celeritas_target_link_libraries(${_TARGET} VecGeom::vecgeomcuda)
-          get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
-          target_link_options(${_TARGET}
-            PRIVATE
-            $<DEVICE_LINK:${vecgeom_static_target_location}>
-          )
-        endif()
-      endif()
+      celeritas_target_link_libraries(${_TARGET} Celeritas::Core VecGeom::vecgeom)
     else()
       celeritas_target_link_libraries(${_TARGET} Celeritas::Core)
     endif()
 
     celeritas_target_link_libraries(${_TARGET}
-      Celeritas::Test # celeritas_cuda
+      Celeritas::Test
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
     )
