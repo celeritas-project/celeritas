@@ -161,21 +161,12 @@ else()
   add_library(Celeritas::Core ALIAS celeritas)
 endif()
 
+celeritas_target_link_libraries(celeritas
+  PRIVATE ${PRIVATE_DEPS}
+  PUBLIC ${PUBLIC_DEPS}
+)
+
 if(BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
-  celeritas_target_link_libraries(celeritas_objects
-    PRIVATE ${PRIVATE_DEPS}
-    PUBLIC ${PUBLIC_DEPS}
-  )
-
-  celeritas_target_link_libraries(celeritas_cuda
-    PRIVATE ${PRIVATE_DEPS}
-    PUBLIC ${PUBLIC_DEPS}
-  )
-
-  celeritas_target_link_libraries(celeritas_final
-    PRIVATE ${PRIVATE_DEPS}
-    PUBLIC ${PUBLIC_DEPS}
-  )
 
   # We need to set it both on the object library and the
   # main shared library because it seems that the property
@@ -195,10 +186,6 @@ if(BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
   )
 
 else()
-  celeritas_target_link_libraries(celeritas
-    PRIVATE ${PRIVATE_DEPS}
-    PUBLIC ${PUBLIC_DEPS}
-  )
   target_include_directories(celeritas
     PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -208,7 +195,7 @@ else()
 endif()
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
-  celeritas_link_vecgeom_cuda(celeritas)
+  celeritas_target_link_libraries(celeritas PRIVATE VecGeom::vecgeom)
 endif()
 
 if(BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
