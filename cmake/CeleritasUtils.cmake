@@ -112,6 +112,10 @@ define_property(TARGET PROPERTY CELERITAS_CUDA_MIDDLE_LIBRARY
   BRIEF_DOCS "Name of the shared (without nvlink step) library corresponding to this cuda library"
   FULL_DOCS "Name of the shared (without nvlink step) library corresponding to this cuda library"
 )
+define_property(TARGET PROPERTY CELERITAS_CUDA_OBJECT_LIBRARY
+  BRIEF_DOCS "Name of the object (without nvlink step) library corresponding to this cuda library"
+  FULL_DOCS "Name of the object (without nvlink step) library corresponding to this cuda library"
+)
 
 function(celeritas_sources_contains_cuda OUTPUT_VARIABLE)
   set(_contains_cuda FALSE)
@@ -179,6 +183,7 @@ function(celeritas_add_library target)
     CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
     CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
     CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
+    CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
   )
 
   set_target_properties(${target}_static PROPERTIES
@@ -190,6 +195,7 @@ function(celeritas_add_library target)
     CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
     CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
     CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
+    CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
   )
 
   set_target_properties(${target}_final PROPERTIES
@@ -201,6 +207,7 @@ function(celeritas_add_library target)
     CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
     CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
     CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
+    CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
   )
 
   target_link_libraries(${target}_final
@@ -324,6 +331,7 @@ function(celeritas_target_link_libraries target)
       if(_targettype)
         get_target_property(_target_final ${target} CELERITAS_CUDA_FINAL_LIBRARY)
         get_target_property(_target_middle ${target} CELERITAS_CUDA_MIDDLE_LIBRARY)
+        get_target_property(_target_object ${target} CELERITAS_CUDA_OBJECT_LIBRARY)
       endif()
     endif()
 
