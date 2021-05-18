@@ -148,7 +148,9 @@ endfunction()
 #
 function(celeritas_generate_empty_cu_file emptyfilenamevar target)
   set(_stub "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${target}_emptyfile.cu")
-  file(WRITE "${_stub}" "/* intentionally empty. */")
+  if(NOT EXISTS ${_stub})
+    file(WRITE "${_stub}" "/* intentionally empty. */")
+  endif()
   set(${emptyfilenamevar} ${_stub} PARENT_SCOPE)
 endfunction()
 
