@@ -26,13 +26,9 @@ CMake utility functions for Celeritas.
   Once upstream packages are updated, this can be replaced by ``find_package``.
 
 
-.. command:: celeritas_link_vecgeom_cuda
 
-  Link the given target privately against VecGeom with CUDA support.
 
-  ::
 
-    celeritas_link_vecgeom_cuda(<target>)
 
 #]=======================================================================]
 include(FindPackageHandleStandardArgs)
@@ -41,60 +37,6 @@ macro(celeritas_find_package_config _package)
   find_package(${_package} CONFIG ${ARGN})
   find_package_handle_standard_args(${_package} CONFIG_MODE)
 endmacro()
-
-function(celeritas_link_vecgeom_cuda target)
-celeritas_target_link_libraries(${target} PRIVATE VecGeom::vecgeom)
-return()
-
-#  Readd when using
-  #set_target_properties(${target} PROPERTIES
-  #  LINKER_LANGUAGE CUDA
-  #  CUDA_SEPARABLE_COMPILATION ON
-  #)
-
-  # Note: the repeat (target name, location) below is due the author of  cuda_add_library_depend
-  # not knowing how to automatically go from the target to the real file from a generator expression in add_custom_command
-  get_property(vecgeom_static_target_location TARGET VecGeom::vecgeomcuda_static PROPERTY LOCATION)
-  cuda_add_library_depend(${target} VecGeom::vecgeom VecGeom::vecgeomcuda_static ${vecgeom_static_target_location})
-  target_link_libraries(${target}
-    PRIVATE
-    VecGeom::vecgeom
-    VecGeom::vecgeomcuda
-    VecGeom::vecgeomcuda_static
-  )
-  if(BUILD_SHARED_LIBS)
-  target_link_libraries(${target}_static
-    VecGeom::vecgeom
-    VecGeom::vecgeomcuda_static
-    ${PRIVATE_DEPS}
-  )
-  set_target_properties(${target}_static
-    PROPERTIES LINKER_LANGUAGE CXX
-  )
-
-  get_target_property(target_interface_include_directories ${target}
-    INTERFACE_INCLUDE_DIRECTORIES
-  )
-  set_target_properties(${target}_static PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${target_interface_include_directories}")
-
-  get_target_property(target_LINK_LIBRARIES ${target}
-    LINK_LIBRARIES
-  )
-  get_target_property(_target_interface_link_libraries ${target}
-    INTERFACE_LINK_LIBRARIES )
-  set_target_properties(${target}_static PROPERTIES
-    LINK_LIBRARIES "${target_LINK_LIBRARIES}"
-    INTERFACE_LINK_LIBRARIES "${_target_interface_link_libraries}"
-  )
-
-  set_target_properties(${target}_static PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-  )
-endif()
-
-endfunction()
-
 
 define_property(TARGET PROPERTY CELERITAS_CUDA_LIBRARY_TYPE
   BRIEF_DOCS "Indicate the type of cuda library (STATIC and SHARED for nvlink usage, FINAL for linking into not cuda library/executable"
