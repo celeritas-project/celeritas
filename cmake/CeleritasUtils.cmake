@@ -116,10 +116,17 @@ endfunction()
 #
 function(celeritas_lib_contains_cuda OUTPUT_VARIABLE target)
   celeritas_strip_alias(target ${target})
-  get_target_property(_target_sources ${target} SOURCES)
 
-  celeritas_sources_contains_cuda(_contains_cuda ${_target_sources})
-  set(${OUTPUT_VARIABLE} ${_contains_cuda} PARENT_SCOPE)
+  get_target_property(_targettype ${target} CELERITAS_CUDA_LIBRARY_TYPE)
+  if(_targettype)
+    # The target is one of the components of a library with CUDA separatable code,
+    # no need to check the source files.
+    set(${OUTPUT_VARIABLE} TRUE PARENT_SCOPE)
+  else()
+    get_target_property(_target_sources ${target} SOURCES)
+    celeritas_sources_contains_cuda(_contains_cuda ${_target_sources})
+    set(${OUTPUT_VARIABLE} ${_contains_cuda} PARENT_SCOPE)
+  endif()
 endfunction()
 
 #
@@ -207,7 +214,7 @@ function(celeritas_add_library target)
   add_dependencies(${target}_final ${target}_cuda)
   add_dependencies(${target}_final ${target}_static)
 
-  add_library(${target} ALIAS ${target}_final)
+  add_library(${target} ALIAS ${target}_cuda)
 
 endfunction()
 
