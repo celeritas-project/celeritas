@@ -53,7 +53,7 @@ function(celeritas_swig_python_module target module_source)
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   )
-  target_link_libraries(${target} PRIVATE Python::Module)
+  celeritas_target_link_libraries(${target} PRIVATE Python::Module)
   if(CMAKE_SWIG_CXX_FLAGS)
     target_compile_options(${target} PRIVATE "${CMAKE_SWIG_CXX_FLAGS}")
   endif()
@@ -74,4 +74,4 @@ endfunction()
 
 celeritas_swig_python_module(CeleritasPython celeritas.i)
 add_library(Celeritas::Python ALIAS CeleritasPython)
-target_link_libraries(CeleritasPython PRIVATE Celeritas::Core Celeritas::ROOT)
+celeritas_target_link_libraries(CeleritasPython PRIVATE Celeritas::Core Celeritas::ROOT)

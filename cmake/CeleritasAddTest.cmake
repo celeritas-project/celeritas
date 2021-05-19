@@ -308,12 +308,14 @@ function(celeritas_add_test SOURCE_FILE)
 
     # Create an executable and link libraries against it
     add_executable(${_TARGET} "${SOURCE_FILE}" ${PARSE_SOURCES})
-    target_link_libraries(${_TARGET}
-      Celeritas::Test Celeritas::Core
+
+    celeritas_target_link_libraries(${_TARGET} Celeritas::Core)
+
+    celeritas_target_link_libraries(${_TARGET}
+      Celeritas::Test
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
     )
-
     if(PARSE_ADD_DEPENDENCIES OR CELERITASTEST_ADD_DEPENDENCIES)
       # Add additional dependencies
       add_dependencies(${_TARGET} ${PARSE_ADD_DEPENDENCIES}
@@ -350,7 +352,7 @@ function(celeritas_add_test SOURCE_FILE)
     list(APPEND _COMMON_PROPS TIMEOUT ${PARSE_TIMEOUT})
   endif()
   if(PARSE_DISABLE)
-    list(APPEND _COMMON_PROPS DISABLED True)
+    list(APPEND _COMMON_PROPS DISABLED TRUE)
   endif()
   if(_CELERITASTEST_IS_GTEST OR _CELERITASTEST_IS_PYTHON)
     list(APPEND _COMMON_PROPS
