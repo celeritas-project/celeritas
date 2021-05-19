@@ -175,10 +175,6 @@ celeritas_target_include_directories(celeritas
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
-  celeritas_target_link_libraries(celeritas PRIVATE VecGeom::vecgeom)
-endif()
-
 celeritas_install(TARGETS celeritas
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
