@@ -310,10 +310,6 @@ function(celeritas_add_test SOURCE_FILE)
     add_executable(${_TARGET} "${SOURCE_FILE}" ${PARSE_SOURCES})
 
     celeritas_target_link_libraries(${_TARGET} Celeritas::Core)
-    if (CELERITAS_USE_VecGeom)
-      celeritas_target_link_libraries(${_TARGET} VecGeom::vecgeom)
-    endif()
-
 
     celeritas_target_link_libraries(${_TARGET}
       Celeritas::Test
