@@ -155,13 +155,7 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 celeritas_add_library(celeritas ${SOURCES})
-# We can not yet simplify this because cmake says
-# "cannot create ALIAS target "Celeritas::Core" because target "celeritas" is itself an ALIAS."
-if(BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
-  add_library(Celeritas::Core ALIAS celeritas_cuda)
-else()
-  add_library(Celeritas::Core ALIAS celeritas)
-endif()
+add_library(Celeritas::Core ALIAS celeritas)
 
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}

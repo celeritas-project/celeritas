@@ -163,6 +163,7 @@ endfunction()
 #
 function(celeritas_add_library target)
 
+  set(_midsuf "")
   celeritas_sources_contains_cuda(_contains_cuda ${ARGN})
 
   if(NOT BUILD_SHARED_LIBS OR NOT CELERITAS_USE_CUDA OR NOT _contains_cuda)
@@ -172,15 +173,15 @@ function(celeritas_add_library target)
 
   add_library(${target}_objects OBJECT ${ARGN})
   add_library(${target}_static STATIC $<TARGET_OBJECTS:${target}_objects>)
-  add_library(${target}_cuda SHARED $<TARGET_OBJECTS:${target}_objects>)
+  add_library(${target}${_midsuf} SHARED $<TARGET_OBJECTS:${target}_objects>)
   # We need to use a dummy file as a library (per cmake) needs to contains
   # at least one source file.  The real content of the library will be
   # the cmake_device_link.o resulting from the execution of `nvcc -dlink`
   # Also non-cuda related test, for example `gtest_detail_Macros`,
   # will need to be linked again libceleritas_final while a library
   # that the detends on and that uses Celeritas::Core (for example
-  # libCeleritasTest.so) will need to be linked against `libceleritas_cuda`.
-  # If both the `_cuda` and `_final` contains the `.o` files we would
+  # libCeleritasTest.so) will need to be linked against `libceleritas${_midsuf}`.
+  # If both the `${_midsuf}` and `_final` contains the `.o` files we would
   # then have duplicated symbols (Here the symptoms will a crash
   # during the cuda library initialization rather than a link error).
   celeritas_generate_empty_cu_file(_emptyfilename ${target})
@@ -192,14 +193,14 @@ function(celeritas_add_library target)
     CUDA_RUNTIME_LIBRARY Shared
   )
 
-  set_target_properties(${target}_cuda PROPERTIES
+  set_target_properties(${target}${_midsuf} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     CUDA_SEPARABLE_COMPILATION ON # We really don't want nvlink called.
     CUDA_RUNTIME_LIBRARY Shared
     CUDA_RESOLVE_DEVICE_SYMBOLS OFF # We really don't want nvlink called.
     CELERITAS_CUDA_LIBRARY_TYPE Shared
     CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
-    CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
+    CELERITAS_CUDA_MIDDLE_LIBRARY ${target}${_midsuf}
     CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
     CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
   )
@@ -211,7 +212,7 @@ function(celeritas_add_library target)
     # CUDA_RESOLVE_DEVICE_SYMBOLS OFF # Default for static library
     CELERITAS_CUDA_LIBRARY_TYPE Static
     CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
-    CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
+    CELERITAS_CUDA_MIDDLE_LIBRARY ${target}${_midsuf}
     CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
     CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
   )
@@ -224,12 +225,12 @@ function(celeritas_add_library target)
     CELERITAS_CUDA_LIBRARY_TYPE Final
     CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
     CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
-    CELERITAS_CUDA_MIDDLE_LIBRARY ${target}_cuda
+    CELERITAS_CUDA_MIDDLE_LIBRARY ${target}${_midsuf}
     CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
   )
 
   target_link_libraries(${target}_final
-    PUBLIC ${target}_cuda
+    PUBLIC ${target}${_midsuf}
   )
 
   target_link_options(${target}_final
@@ -237,11 +238,12 @@ function(celeritas_add_library target)
     $<DEVICE_LINK:$<TARGET_FILE:${target}_static>>
   )
 
-  add_dependencies(${target}_final ${target}_cuda)
+  add_dependencies(${target}_final ${target}${_midsuf})
   add_dependencies(${target}_final ${target}_static)
 
-  add_library(${target} ALIAS ${target}_cuda)
-
+  if(_midsuf)
+    add_library(${target} ALIAS ${target}${_midsuf})
+  endif()
 endfunction()
 
 # Replacement for target_include_directories that is aware of
