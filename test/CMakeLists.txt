@@ -131,12 +131,6 @@ endif()
 # Geometry
 
 if(CELERITAS_USE_VecGeom)
-  # See https://github.com/celeritas-project/celeritas/pull/10 for a
-  # discussion of the failures from trying to directly build an executable
-  # from code with CUDA separable compilation. This extra test library is
-  # necessary. Furthermore, celeritas must be linked *before* vecgeom. Using
-  # PUBLIC library linkage with Celeritas causes headaches in this respect --
-  # that's why CeleritasTest and this library use PRIVATE.
   set(CELER_VGTEST_SOURCES
     geometry/GeoTestBase.cc
   )
