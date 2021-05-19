@@ -525,7 +525,6 @@ function(celeritas_cuda_gather_dependencies outlist target)
           endif()
           # and recurse
           celeritas_cuda_gather_dependencies(_midlist ${_lib})
-          #message(WARNING "The link mid list for ${target} for ${_lib} is ${_midlist}")
           list(APPEND ${outlist} ${_midlist})
         endforeach()
       endif()

@@ -313,10 +313,9 @@ function(celeritas_add_test SOURCE_FILE)
       CUDA_RUNTIME_LIBRARY Shared
     )
 
+    celeritas_target_link_libraries(${_TARGET} Celeritas::Core)
     if (CELERITAS_USE_VecGeom)
-      celeritas_target_link_libraries(${_TARGET} Celeritas::Core VecGeom::vecgeom)
-    else()
-      celeritas_target_link_libraries(${_TARGET} Celeritas::Core)
+      celeritas_target_link_libraries(${_TARGET} VecGeom::vecgeom)
     endif()
 
 

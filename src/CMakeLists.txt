@@ -155,8 +155,10 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 celeritas_add_library(celeritas ${SOURCES})
+# We can not yet simplify this because cmake says
+# "cannot create ALIAS target "Celeritas::Core" because target "celeritas" is itself an ALIAS."
 if(BUILD_SHARED_LIBS AND CELERITAS_USE_CUDA)
-  add_library(Celeritas::Core ALIAS celeritas_final)
+  add_library(Celeritas::Core ALIAS celeritas_cuda)
 else()
   add_library(Celeritas::Core ALIAS celeritas)
 endif()
@@ -227,7 +229,7 @@ if(CELERITAS_USE_ROOT)
     io/RootImporter.cc
   )
   celeritas_target_link_libraries(celeritas_root
-    PRIVATE celeritas_cuda ROOT::Core ROOT::Tree
+    PRIVATE celeritas ROOT::Core ROOT::Tree
   )
 else()
   # ROOT is disabled: add an importer that
