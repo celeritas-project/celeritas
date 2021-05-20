@@ -315,7 +315,7 @@ function(celeritas_add_test SOURCE_FILE)
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
       Celeritas::Test
-      Celertias::Core
+      Celeritas::Core
     )
 
     if(PARSE_ADD_DEPENDENCIES OR CELERITASTEST_ADD_DEPENDENCIES)
