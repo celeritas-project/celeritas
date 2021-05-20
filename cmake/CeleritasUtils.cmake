@@ -213,6 +213,9 @@ function(celeritas_add_library target)
   add_library(${target}_final ${_lib_requested_type}  ${_emptyfilename} )
 
   set_target_properties(${target}_objects PROPERTIES
+    # This probably should be left to the user to set.
+    # In celeritas this is needed for the shared build
+    # and for the static build with ROOT enabled.
     POSITION_INDEPENDENT_CODE ON
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_RUNTIME_LIBRARY ${_cudaruntime_requested_type}

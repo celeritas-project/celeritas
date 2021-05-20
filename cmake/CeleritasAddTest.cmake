@@ -315,9 +315,8 @@ function(celeritas_add_test SOURCE_FILE)
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
       Celeritas::Test
+      Celertias::Core
     )
-
-    celeritas_target_link_libraries(${_TARGET} Celeritas::Core)
 
     if(PARSE_ADD_DEPENDENCIES OR CELERITASTEST_ADD_DEPENDENCIES)
       # Add additional dependencies
