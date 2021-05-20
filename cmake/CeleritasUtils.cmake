@@ -192,7 +192,9 @@ function(celeritas_add_library target)
     set(_cudaruntime_requested_type "Static")
     set(_staticsuf "")
   endif()
-  # Do we need to do anything if the type is MODULE?
+  if(_ADDLIB_PARSE_MODULE) # If we are here _contains_cuda is true
+    message(FATAL_ERROR "celeritas_add_library does not support MODULE library containing CUDA code")
+  endif()
 
   add_library(${target}_objects OBJECT ${ARGN})
   if(_staticsuf)
