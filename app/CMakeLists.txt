@@ -149,13 +149,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     demo-rasterizer/ImageIO.cc
     demo-rasterizer/ImageStore.cc
   )
-  celeritas_target_link_libraries(celeritas_demo_rasterizer_final
-    PRIVATE
-      Celeritas::Core
-      nlohmann_json::nlohmann_json
-  )
-
-  celeritas_target_link_libraries(celeritas_demo_rasterizer_objects
+  celeritas_target_link_libraries(celeritas_demo_rasterizer
     PRIVATE
       Celeritas::Core
       nlohmann_json::nlohmann_json
@@ -226,10 +220,11 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   add_executable(demo-loop
     demo-loop/demo-loop.cc
   )
+  # Note: for static linking the library order is relevant.
   celeritas_target_link_libraries(demo-loop
+    celeritas_demo_loop
     celeritas
     VecGeom::vecgeom
-    celeritas_demo_loop
     nlohmann_json::nlohmann_json
   )
 
