@@ -47,7 +47,7 @@ CMake utility functions for Celeritas.
 
   ::
 
-    celeritas_link_vecgeom_cuda(<name> [STATIC | SHARED | MODULE]
+    celeritas_add_library(<name> [STATIC | SHARED | MODULE]
             [EXCLUDE_FROM_ALL]
             [<source>...])
 
@@ -164,16 +164,43 @@ endfunction()
 function(celeritas_add_library target)
 
   set(_midsuf "")
+  set(_staticsuf "_static")
   celeritas_sources_contains_cuda(_contains_cuda ${ARGN})
 
-  if(NOT BUILD_SHARED_LIBS OR NOT CELERITAS_USE_CUDA OR NOT _contains_cuda)
+  # Whether we need the special code or not is actually dependent on information
+  # we don't have ... yet
+  # - whether the user request CUDA_SEPARABLE_COMPILATION
+  # - whether the library depends on a library with CUDA_SEPARABLE_COMPILATION code.
+  # I.e. this should really be done at generation time.
+  # So in the meantime we use CELERITAS_USE_VecGeom as a proxy.
+
+  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA OR NOT _contains_cuda)
     add_library(${target} ${ARGN})
     return()
   endif()
 
+  cmake_parse_arguments(_ADDLIB_PARSE
+    "STATIC;SHARED;MODULE"
+    ""
+    ""
+    ${ARGN}
+  )
+  set(_lib_requested_type "SHARED")
+  set(_cudaruntime_requested_type "Shared")
+  if((NOT BUILD_SHARED_LIBS AND NOT _ADDLIB_PARSE_SHARED) OR _ADDLIB_PARSE_STATIC)
+    set(_lib_requested_type "STATIC")
+    set(_cudaruntime_requested_type "Static")
+    set(_staticsuf "")
+  endif()
+  if(_ADDLIB_PARSE_MODULE) # If we are here _contains_cuda is true
+    message(FATAL_ERROR "celeritas_add_library does not support MODULE library containing CUDA code")
+  endif()
+
   add_library(${target}_objects OBJECT ${ARGN})
-  add_library(${target}_static STATIC $<TARGET_OBJECTS:${target}_objects>)
-  add_library(${target}${_midsuf} SHARED $<TARGET_OBJECTS:${target}_objects>)
+  if(_staticsuf)
+    add_library(${target}${_staticsuf} STATIC $<TARGET_OBJECTS:${target}_objects>)
+  endif()
+  add_library(${target}${_midsuf} ${_lib_requested_type} $<TARGET_OBJECTS:${target}_objects>)
   # We need to use a dummy file as a library (per cmake) needs to contains
   # at least one source file.  The real content of the library will be
   # the cmake_device_link.o resulting from the execution of `nvcc -dlink`
@@ -185,46 +212,52 @@ function(celeritas_add_library target)
   # then have duplicated symbols (Here the symptoms will a crash
   # during the cuda library initialization rather than a link error).
   celeritas_generate_empty_cu_file(_emptyfilename ${target})
-  add_library(${target}_final SHARED ${_emptyfilename})
+  add_library(${target}_final ${_lib_requested_type}  ${_emptyfilename} )
 
   set_target_properties(${target}_objects PROPERTIES
+    # This probably should be left to the user to set.
+    # In celeritas this is needed for the shared build
+    # and for the static build with ROOT enabled.
     POSITION_INDEPENDENT_CODE ON
     CUDA_SEPARABLE_COMPILATION ON
-    CUDA_RUNTIME_LIBRARY Shared
+    CUDA_RUNTIME_LIBRARY ${_cudaruntime_requested_type}
   )
 
   set_target_properties(${target}${_midsuf} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
-    CUDA_SEPARABLE_COMPILATION ON # We really don't want nvlink called.
-    CUDA_RUNTIME_LIBRARY Shared
+    CUDA_SEPARABLE_COMPILATION ON
+    CUDA_RUNTIME_LIBRARY ${_cudaruntime_requested_type}
     CUDA_RESOLVE_DEVICE_SYMBOLS OFF # We really don't want nvlink called.
     CELERITAS_CUDA_LIBRARY_TYPE Shared
     CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
     CELERITAS_CUDA_MIDDLE_LIBRARY ${target}${_midsuf}
-    CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
+    CELERITAS_CUDA_STATIC_LIBRARY ${target}${_staticsuf}
     CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
   )
 
-  set_target_properties(${target}_static PROPERTIES
-    LINKER_LANGUAGE CUDA
-    CUDA_SEPARABLE_COMPILATION ON
-    CUDA_RUNTIME_LIBRARY Shared
-    # CUDA_RESOLVE_DEVICE_SYMBOLS OFF # Default for static library
-    CELERITAS_CUDA_LIBRARY_TYPE Static
-    CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
-    CELERITAS_CUDA_MIDDLE_LIBRARY ${target}${_midsuf}
-    CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
-    CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
-  )
+  if(_staticsuf)
+    set_target_properties(${target}${_staticsuf} PROPERTIES
+      LINKER_LANGUAGE CUDA
+      CUDA_SEPARABLE_COMPILATION ON
+      CUDA_RUNTIME_LIBRARY ${_cudaruntime_requested_type}
+      # CUDA_RESOLVE_DEVICE_SYMBOLS OFF # Default for static library
+      CELERITAS_CUDA_LIBRARY_TYPE Static
+      CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
+      CELERITAS_CUDA_MIDDLE_LIBRARY ${target}${_midsuf}
+      CELERITAS_CUDA_STATIC_LIBRARY ${target}${_staticsuf}
+      CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
+    )
+  endif()
 
   set_target_properties(${target}_final PROPERTIES
     LINKER_LANGUAGE CUDA
+    CUDA_RESOLVE_DEVICE_SYMBOLS ON
     CUDA_SEPARABLE_COMPILATION ON
-    CUDA_RUNTIME_LIBRARY Shared
+    CUDA_RUNTIME_LIBRARY ${_cudaruntime_requested_type}
     # CUDA_RESOLVE_DEVICE_SYMBOLS ON # Default for shared library
     CELERITAS_CUDA_LIBRARY_TYPE Final
     CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
-    CELERITAS_CUDA_STATIC_LIBRARY ${target}_static
+    CELERITAS_CUDA_STATIC_LIBRARY ${target}${_staticsuf}
     CELERITAS_CUDA_MIDDLE_LIBRARY ${target}${_midsuf}
     CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
   )
@@ -235,11 +268,11 @@ function(celeritas_add_library target)
 
   target_link_options(${target}_final
     PRIVATE
-    $<DEVICE_LINK:$<TARGET_FILE:${target}_static>>
+    $<DEVICE_LINK:$<TARGET_FILE:${target}${_staticsuf}>>
   )
 
   add_dependencies(${target}_final ${target}${_midsuf})
-  add_dependencies(${target}_final ${target}_static)
+  add_dependencies(${target}_final ${target}${_staticsuf})
 
   if(_midsuf)
     add_library(${target} ALIAS ${target}${_midsuf})
@@ -250,7 +283,7 @@ endfunction()
 # the 4 libraries (objects, static, middle, final) libraries needed
 # for a separatable CUDA library
 function(celeritas_target_include_directories target)
-  if(NOT BUILD_SHARED_LIBS OR NOT CELERITAS_USE_CUDA)
+  if(NOT CELERITAS_USE_CUDA)
     target_include_directories(${ARGV})
   else()
 
@@ -434,7 +467,7 @@ endfunction()
 # the 3 libraries (static, middle, final) libraries needed
 # for a separatable CUDA library
 function(celeritas_target_link_libraries target)
-  if(NOT BUILD_SHARED_LIBS OR NOT CELERITAS_USE_CUDA)
+  if(NOT CELERITAS_USE_CUDA)
     target_link_libraries(${ARGV})
   else()
     celeritas_strip_alias(target ${target})
@@ -478,7 +511,23 @@ function(celeritas_target_link_libraries target)
           )
         endif()
       elseif(${_final_count} EQUAL 1)
-        target_link_libraries(${target} ${_finallibs})
+        set_target_properties(${target} PROPERTIES
+          # If cmake detects that a library depends/uses a static library
+          # linked with CUDA, it will turn CUDA_RESOLVE_DEVICE_SYMBOLS ON
+          # leading to a call to nvlink.  If we let this through (at least
+          # in case of Celeritas) we would need to add the DEVICE_LINK options
+          # also on non cuda libraries (that we detect depends on a cuda library).
+          # Note: we might be able to move this to celeritas_target_link_libraries
+          CUDA_RESOLVE_DEVICE_SYMBOLS OFF
+        )
+        get_target_property(_final_target_type ${target} TYPE)
+        if(${_final_target_type} STREQUAL "STATIC_LIBRARY")
+          # for static libraries we need to list the libraries a second time (to resolve symbol from the final library)
+          get_target_property(_current_link_libraries ${target} LINK_LIBRARIES)
+          set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_current_link_libraries} ${_finallibs} ${_current_link_libraries} )
+        else()
+          target_link_libraries(${target} ${_finallibs})
+        endif()
       elseif(${_final_count} GREATER 1)
         # turn into CUDA executable.
         set(_contains_cuda TRUE)
@@ -502,6 +551,16 @@ function(celeritas_target_link_libraries target)
           endif()
         endif()
       endforeach()
+    else() # We could restrict to the case where the dependent is a static library ... maybe
+      set_target_properties(${target} PROPERTIES
+        # If cmake detects that a library depends/uses a static library
+        # linked with CUDA, it will turn CUDA_RESOLVE_DEVICE_SYMBOLS ON
+        # leading to a call to nvlink.  If we let this through (at least
+        # in case of Celeritas) we would need to add the DEVICE_LINK options
+        # also on non cuda libraries (that we detect depends on a cuda library).
+        # Note: we might be able to move this to celeritas_target_link_libraries
+        CUDA_RESOLVE_DEVICE_SYMBOLS OFF
+      )
     endif()
   endif()
 
@@ -521,7 +580,9 @@ function(celeritas_cuda_gather_dependencies outlist target)
         #message(WARNING "The link list for ${target} is ${_target_link_libraries}")
         foreach(_lib ${_target_link_libraries})
           celeritas_strip_alias(_lib ${_lib})
-          celeritas_get_library_middle_target(_libmid ${_lib})
+          if(TARGET ${_lib})
+            celeritas_get_library_middle_target(_libmid ${_lib})
+          endif()
           if(TARGET ${_libmid})
             list(APPEND ${outlist} ${_libmid})
           endif()

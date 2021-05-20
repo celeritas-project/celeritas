@@ -309,13 +309,15 @@ function(celeritas_add_test SOURCE_FILE)
     # Create an executable and link libraries against it
     add_executable(${_TARGET} "${SOURCE_FILE}" ${PARSE_SOURCES})
 
-    celeritas_target_link_libraries(${_TARGET} Celeritas::Core)
+    # Note: for static linking the library order is relevant.
 
     celeritas_target_link_libraries(${_TARGET}
-      Celeritas::Test
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
+      Celeritas::Test
+      Celeritas::Core
     )
+
     if(PARSE_ADD_DEPENDENCIES OR CELERITASTEST_ADD_DEPENDENCIES)
       # Add additional dependencies
       add_dependencies(${_TARGET} ${PARSE_ADD_DEPENDENCIES}
