@@ -60,7 +60,8 @@ __global__ void seltzer_berger_interact_kernel(
 
     // Cache the associated MaterialView as function calls to MaterialTrackView
     // are expensive
-    MaterialView material_view = material.material_view();
+    MaterialView    material_view = material.material_view();
+    const ElementId element_id{0};
 
     // Assume only a single element in the material, for now
     CELER_ASSERT(material_view.num_elements() == 1);
@@ -69,7 +70,8 @@ __global__ void seltzer_berger_interact_kernel(
                                      interaction.states.direction[tid],
                                      cutoffs,
                                      allocate_secondaries,
-                                     material_view);
+                                     material_view,
+                                     element_id);
 
     RngEngine rng(interaction.states.rng, tid);
     interaction.states.interactions[tid] = interact(rng);

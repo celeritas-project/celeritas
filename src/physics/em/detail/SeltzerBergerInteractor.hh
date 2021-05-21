@@ -47,7 +47,8 @@ class SeltzerBergerInteractor
                             const Real3&                  inc_direction,
                             const CutoffView&             cutoffs,
                             StackAllocator<Secondary>&    allocate,
-                            const MaterialView&           material);
+                            const MaterialView&           material,
+                            const ElementId&              element_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -75,9 +76,8 @@ class SeltzerBergerInteractor
     StackAllocator<Secondary>& allocate_;
     // Material in which interaction occurs
     const MaterialView& material_;
-
-    // Minimum energy for this interaction
-    real_type energy_val_min_;
+    // Element in which interaction occurs
+    const ElementId& element_id_;
 };
 
 //---------------------------------------------------------------------------//

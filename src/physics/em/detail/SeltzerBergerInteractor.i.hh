@@ -18,9 +18,10 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with shared and state data.
+ * Construct with shared/device and state data.
  *
- * The incident gamma energy must be at least twice the electron rest mass.
+ * The incident particle must be within the model's valid energy range. this
+ * must be handled in code *before* the interactor is constructed.
  */
 SeltzerBergerInteractor::SeltzerBergerInteractor(
     const SeltzerBergerDeviceRef& device_pointers,
@@ -28,7 +29,8 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
     const Real3&                  inc_direction,
     const CutoffView&             cutoffs,
     StackAllocator<Secondary>&    allocate,
-    const MaterialView&           material)
+    const MaterialView&           material,
+    const ElementId&              element_id)
     : device_pointers_(device_pointers)
     , particle_id_(particle.particle_id())
     , inc_energy_(particle.energy())
@@ -37,14 +39,10 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
     , cutoffs_(cutoffs)
     , allocate_(allocate)
     , material_(material)
+    , element_id_(element_id)
 {
     CELER_EXPECT(particle_id_ == device_pointers_.ids.electron
                  || particle_id_ == device_pointers_.ids.positron);
-    // Check energy range is applicable for this model
-    energy_val_min_
-        = celeritas::min(cutoffs_.energy(device_pointers_.ids.gamma).value(),
-                         inc_energy_.value());
-    CELER_ENSURE(energy_val_min_ < inc_energy_.value());
 }
 
 //---------------------------------------------------------------------------//
@@ -56,6 +54,15 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
 {
+    // Check if secondary can be produced. If not, this interaction cannot
+    // happen and the incident particle must undergo an energy loss process
+    // instead.
+    if (cutoffs_.energy(device_pointers_.ids.gamma).value()
+        > inc_energy_.value())
+    {
+        return Interaction::from_unchanged(inc_energy_, inc_direction_);
+    }
+
     // Allocate space for the bremss photon
     Secondary* gamma_secondary = this->allocate_(1);
     if (gamma_secondary == nullptr)
@@ -76,7 +83,7 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     SBEnergyDistribution sample_gamma_energy{
         device_pointers_,
         inc_energy_,
-        ElementId{0},
+        element_id_,
         EnergySq{density_correction},
         cutoffs_.energy(device_pointers_.ids.gamma)};
     Energy gamma_exit_energy = sample_gamma_energy(rng);
@@ -89,8 +96,8 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
             material_.element_view(ElementComponentId{0}),
             cutoffs_.energy(device_pointers_.ids.gamma),
             inc_energy_);
-        xs_scale_factor   = scale_xs(gamma_exit_energy);
-        gamma_exit_energy = Energy{gamma_exit_energy.value()};
+        /// TODO: integrate XSCorrector into energy distribution sampler
+        /// For now, just keep gamma energy unmodified (i.e. do nothing).
     }
 
     // Construct interaction for change to parent (incoming) particle
