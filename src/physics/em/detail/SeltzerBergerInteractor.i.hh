@@ -65,8 +65,8 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     }
 
     // Density correction
-    const auto migdal = 4.0 * constants::pi * constants::r_electron
-                        * ipow<2>(constants::lambdabar_electron);
+    constexpr auto migdal = 4 * constants::pi * constants::r_electron
+                            * ipow<2>(constants::lambdabar_electron);
     real_type density_factor   = material_.electron_density() * migdal;
     real_type total_energy_val = inc_energy_.value()
                                  + device_pointers_.electron_mass;
