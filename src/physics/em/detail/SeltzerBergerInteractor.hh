@@ -31,9 +31,13 @@ namespace detail
  */
 class SeltzerBergerInteractor
 {
+  public:
+    //!@{
+    //! Type aliases
     using Energy   = units::MevEnergy;
     using EnergySq = SBEnergyDistribution::EnergySq;
     using Momentum = units::MevMomentum;
+    //!@}
 
   public:
     //! Construct sampler from shared and state data
@@ -74,8 +78,6 @@ class SeltzerBergerInteractor
 
     // Minimum energy for this interaction
     real_type energy_val_min_;
-    // Maximum energy for this interaction
-    real_type energy_val_max_;
 };
 
 //---------------------------------------------------------------------------//

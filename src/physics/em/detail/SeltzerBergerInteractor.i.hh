@@ -72,7 +72,7 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
                                  + device_pointers_.electron_mass;
     real_type density_correction = density_factor * ipow<2>(total_energy_val);
 
-    // Outgoing photon energy sampler
+    // Outgoing photon secondary energy sampler
     SBEnergyDistribution sample_gamma_energy{
         device_pointers_,
         inc_energy_,
@@ -89,8 +89,8 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
             material_.element_view(ElementComponentId{0}),
             cutoffs_.energy(device_pointers_.ids.gamma),
             inc_energy_);
-        gamma_exit_energy
-            = Energy{gamma_exit_energy.value() * scale_xs(gamma_exit_energy)};
+        xs_scale_factor   = scale_xs(gamma_exit_energy);
+        gamma_exit_energy = Energy{gamma_exit_energy.value()};
     }
 
     // Construct interaction for change to parent (incoming) particle
