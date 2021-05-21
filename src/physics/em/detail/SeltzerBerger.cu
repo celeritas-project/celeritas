@@ -45,9 +45,6 @@ __global__ void seltzer_berger_interact_kernel(
     // Setup for ElementView access
     MaterialTrackView material(
         interaction.params.material, interaction.states.material, tid);
-    // Cache the associated MaterialView as function calls to MaterialTrackView
-    // are expensive
-    MaterialView material_view = material.material_view();
 
     PhysicsTrackView physics(interaction.params.physics,
                              interaction.states.physics,
@@ -60,6 +57,10 @@ __global__ void seltzer_berger_interact_kernel(
         return;
 
     CutoffView cutoffs(interaction.params.cutoffs, material.material_id());
+
+    // Cache the associated MaterialView as function calls to MaterialTrackView
+    // are expensive
+    MaterialView material_view = material.material_view();
 
     // Assume only a single element in the material, for now
     CELER_ASSERT(material_view.num_elements() == 1);
