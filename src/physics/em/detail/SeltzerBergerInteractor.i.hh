@@ -8,8 +8,7 @@
 
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/GenerateCanonical.hh"
+#include "TsaiUrbanDistribution.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -112,7 +111,9 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     // Sample exiting gamma direction
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
     real_type                          phi = sample_phi(rng);
-    real_type cost = this->sample_cos_theta(inc_energy_, rng);
+    TsaiUrbanDistribution              sample_gamma_angle(
+        gamma_exit_energy, units::MevMass{1 / device_pointers_.electron_mass});
+    real_type cost = sample_gamma_angle(rng);
     gamma_secondary[0].direction
         = rotate(from_spherical(cost, phi), inc_direction_);
 

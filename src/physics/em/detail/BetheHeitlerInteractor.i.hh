@@ -8,6 +8,7 @@
 
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
+#include "TsaiUrbanDistribution.hh"
 #include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "random/distributions/UniformRealDistribution.hh"
@@ -149,32 +150,18 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     real_type                          phi = sample_phi(rng);
 
     // Electron
-    real_type cost = this->sample_cos_theta(secondaries[0].energy.value(), rng);
+    TsaiUrbanDistribution sample_electron_angle(
+        secondaries[0].energy, units::MevMass{shared_.inv_electron_mass});
+    real_type cost = sample_electron_angle(rng);
     secondaries[0].direction
         = rotate(from_spherical(cost, phi), inc_direction_);
     // Positron
-    cost = this->sample_cos_theta(secondaries[1].energy.value(), rng);
+    TsaiUrbanDistribution sample_positron_angle(
+        secondaries[0].energy, units::MevMass{shared_.inv_electron_mass});
+    cost = sample_positron_angle(rng);
     secondaries[1].direction
         = rotate(from_spherical(cost, phi + constants::pi), inc_direction_);
     return result;
-}
-
-template<class Engine>
-CELER_FUNCTION real_type
-BetheHeitlerInteractor::sample_cos_theta(real_type kinetic_energy, Engine& rng)
-{
-    real_type umax = 2 * (1 + kinetic_energy * shared_.inv_electron_mass);
-    real_type u;
-    do
-    {
-        real_type uu
-            = -std::log(generate_canonical(rng) * generate_canonical(rng));
-        u = uu
-            * (BernoulliDistribution(0.25)(rng) ? real_type(1.6)
-                                                : real_type(1.6 / 3));
-    } while (u > umax);
-
-    return 1 - 2 * ipow<2>(u / umax);
 }
 
 CELER_FUNCTION real_type
