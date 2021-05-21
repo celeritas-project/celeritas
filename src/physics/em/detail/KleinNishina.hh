@@ -13,7 +13,8 @@
 
 namespace celeritas
 {
-struct ModelInteractPointers;
+template<MemSpace M>
+struct ModelInteractRefs;
 
 namespace detail
 {
@@ -45,8 +46,9 @@ struct KleinNishinaPointers
 //---------------------------------------------------------------------------//
 
 // Launch the KN interaction
-void klein_nishina_interact(const KleinNishinaPointers&  device_pointers,
-                            const ModelInteractPointers& interaction);
+void klein_nishina_interact(
+    const KleinNishinaPointers&                device_pointers,
+    const ModelInteractRefs<MemSpace::device>& interaction);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

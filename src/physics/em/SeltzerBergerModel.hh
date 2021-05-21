@@ -64,7 +64,7 @@ class SeltzerBergerModel final : public Model
     SetApplicability applicability() const final;
 
     // Apply the interaction kernel
-    void interact(const ModelInteractPointers&) const final;
+    void interact(const DeviceInteractRefs&) const final;
 
     // ID of the model
     ModelId model_id() const final;

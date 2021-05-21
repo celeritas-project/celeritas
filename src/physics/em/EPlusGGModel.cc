@@ -24,8 +24,7 @@ EPlusGGModel::EPlusGGModel(ModelId id, const ParticleParams& particles)
     interface_.gamma_id    = particles.find(pdg::gamma());
 
     CELER_VALIDATE(interface_.positron_id && interface_.gamma_id,
-                   << "missing electron, positron and/or gamma particles "
-                      "(required for "
+                   << "missing positron and/or gamma particles (required for "
                    << this->label() << ")");
     interface_.electron_mass
         = particles.get(interface_.positron_id).mass().value();
@@ -56,7 +55,7 @@ auto EPlusGGModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void EPlusGGModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractPointers& pointers) const
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
     detail::eplusgg_interact(interface_, pointers);

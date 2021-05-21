@@ -130,3 +130,15 @@ TEST_F(DeviceAllocationTest, TEST_IF_CELERITAS_CUDA(device))
         EXPECT_EQ(orig_ptr, other.device_pointers().data());
     }
 }
+
+TEST_F(DeviceAllocationTest, TEST_IF_CELERITAS_CUDA(empty))
+{
+    DeviceAllocation alloc{0};
+    EXPECT_TRUE(alloc.empty());
+    EXPECT_EQ(0, alloc.size());
+    EXPECT_EQ(nullptr, alloc.device_pointers().data());
+
+    std::vector<Byte> newdata(alloc.size());
+    alloc.copy_to_device(celeritas::make_span(newdata));
+    alloc.copy_to_host(celeritas::make_span(newdata));
+}

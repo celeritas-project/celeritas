@@ -298,4 +298,15 @@ auto ValueGridGenericBuilder::build(ValueGridInserter insert) const
 }
 
 //---------------------------------------------------------------------------//
+// ON-THE-FLY
+//---------------------------------------------------------------------------//
+/*!
+ * Always return an 'invalid' ID.
+ */
+auto ValueGridOTFBuilder::build(ValueGridInserter) const -> ValueGridId
+{
+    return {};
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -28,16 +28,17 @@ namespace
 /*!
  * Interact using the EPlusGG model on applicable tracks.
  */
-__global__ void eplusgg_interact_kernel(const EPlusGGPointers       epgg,
-                                        const ModelInteractPointers model)
+__global__ void
+eplusgg_interact_kernel(const EPlusGGPointers                     epgg,
+                        const ModelInteractRefs<MemSpace::device> model)
 {
     // Get the thread id
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= model.states.size())
+    if (!(tid < model.states.size()))
         return;
 
     // Get views to this Secondary, Particle, and Physics
-    StackAllocator<Secondary> allocate_secondaries(model.secondaries);
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
     ParticleTrackView         particle(
         model.params.particle, model.states.particle, tid);
     PhysicsTrackView physics(model.params.physics,
@@ -52,11 +53,11 @@ __global__ void eplusgg_interact_kernel(const EPlusGGPointers       epgg,
 
     // Do the interaction
     EPlusGGInteractor interact(
-        epgg, particle, model.states.direction[tid.get()], allocate_secondaries);
+        epgg, particle, model.states.direction[tid], allocate_secondaries);
     RngEngine rng(model.states.rng, tid);
-    model.result[tid.get()] = interact(rng);
+    model.states.interactions[tid] = interact(rng);
 
-    CELER_ENSURE(model.result[tid.get()]);
+    CELER_ENSURE(model.states.interactions[tid]);
 }
 
 } // namespace
@@ -67,8 +68,8 @@ __global__ void eplusgg_interact_kernel(const EPlusGGPointers       epgg,
 /*!
  * Launch the EPlusGG interaction.
  */
-void eplusgg_interact(const EPlusGGPointers&       eplusgg,
-                      const ModelInteractPointers& model)
+void eplusgg_interact(const EPlusGGPointers&                     eplusgg,
+                      const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(eplusgg);
     CELER_EXPECT(model);

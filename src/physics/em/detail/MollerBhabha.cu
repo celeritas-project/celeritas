@@ -30,25 +30,28 @@ namespace
 /*!
  * Interact using the Moller-Bhabha model on applicable tracks.
  */
-__global__ void moller_bhabha_interact_kernel(const MollerBhabhaPointers  mb,
-                                              const ModelInteractPointers ptrs)
+__global__ void
+moller_bhabha_interact_kernel(const MollerBhabhaPointers                mb,
+                              const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= ptrs.states.size())
+    if (!(tid < model.states.size()))
         return;
 
-    StackAllocator<Secondary> allocate_secondaries(ptrs.secondaries);
-    ParticleTrackView particle(ptrs.params.particle, ptrs.states.particle, tid);
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
+    ParticleTrackView         particle(
+        model.params.particle, model.states.particle, tid);
 
-    MaterialTrackView material(ptrs.params.material, ptrs.states.material, tid);
+    MaterialTrackView material(
+        model.params.material, model.states.material, tid);
 
-    PhysicsTrackView physics(ptrs.params.physics,
-                             ptrs.states.physics,
+    PhysicsTrackView physics(model.params.physics,
+                             model.states.physics,
                              particle.particle_id(),
                              material.material_id(),
                              tid);
 
-    CutoffView cutoff(ptrs.params.cutoffs, material.material_id());
+    CutoffView cutoff(model.params.cutoffs, material.material_id());
 
     // This interaction only applies if the MB model was selected
     if (physics.model_id() != mb.model_id)
@@ -56,15 +59,12 @@ __global__ void moller_bhabha_interact_kernel(const MollerBhabhaPointers  mb,
         return;
     }
 
-    MollerBhabhaInteractor interact(mb,
-                                    particle,
-                                    cutoff,
-                                    ptrs.states.direction[tid.get()],
-                                    allocate_secondaries);
+    MollerBhabhaInteractor interact(
+        mb, particle, cutoff, model.states.direction[tid], allocate_secondaries);
 
-    RngEngine rng(ptrs.states.rng, tid);
-    ptrs.result[tid.get()] = interact(rng);
-    CELER_ENSURE(ptrs.result[tid.get()]);
+    RngEngine rng(model.states.rng, tid);
+    model.states.interactions[tid] = interact(rng);
+    CELER_ENSURE(model.states.interactions[tid]);
 }
 
 } // namespace
@@ -75,8 +75,8 @@ __global__ void moller_bhabha_interact_kernel(const MollerBhabhaPointers  mb,
 /*!
  * Launch the MB interaction.
  */
-void moller_bhabha_interact(const MollerBhabhaPointers&  mb,
-                            const ModelInteractPointers& model)
+void moller_bhabha_interact(const MollerBhabhaPointers&                mb,
+                            const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(mb);
     CELER_EXPECT(model);

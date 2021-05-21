@@ -28,18 +28,20 @@ namespace
 /*!
  * Interact using the Klein-Nishina model on applicable tracks.
  */
-__global__ void klein_nishina_interact_kernel(const KleinNishinaPointers  kn,
-                                              const ModelInteractPointers ptrs)
+__global__ void
+klein_nishina_interact_kernel(const KleinNishinaPointers                kn,
+                              const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= ptrs.states.size())
+    if (!(tid < model.states.size()))
         return;
 
-    StackAllocator<Secondary> allocate_secondaries(ptrs.secondaries);
-    ParticleTrackView particle(ptrs.params.particle, ptrs.states.particle, tid);
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
+    ParticleTrackView         particle(
+        model.params.particle, model.states.particle, tid);
 
-    PhysicsTrackView physics(ptrs.params.physics,
-                             ptrs.states.physics,
+    PhysicsTrackView physics(model.params.physics,
+                             model.states.physics,
                              particle.particle_id(),
                              MaterialId{},
                              tid);
@@ -49,11 +51,11 @@ __global__ void klein_nishina_interact_kernel(const KleinNishinaPointers  kn,
         return;
 
     KleinNishinaInteractor interact(
-        kn, particle, ptrs.states.direction[tid.get()], allocate_secondaries);
+        kn, particle, model.states.direction[tid], allocate_secondaries);
 
-    RngEngine rng(ptrs.states.rng, tid);
-    ptrs.result[tid.get()] = interact(rng);
-    CELER_ENSURE(ptrs.result[tid.get()]);
+    RngEngine rng(model.states.rng, tid);
+    model.states.interactions[tid] = interact(rng);
+    CELER_ENSURE(model.states.interactions[tid]);
 }
 
 } // namespace
@@ -64,8 +66,8 @@ __global__ void klein_nishina_interact_kernel(const KleinNishinaPointers  kn,
 /*!
  * Launch the KN interaction.
  */
-void klein_nishina_interact(const KleinNishinaPointers&  kn,
-                            const ModelInteractPointers& model)
+void klein_nishina_interact(const KleinNishinaPointers&                kn,
+                            const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(kn);
     CELER_EXPECT(model);

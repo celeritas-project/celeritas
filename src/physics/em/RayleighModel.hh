@@ -40,8 +40,8 @@ class RayleighModel final : public Model
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
 
-    // Apply the interaction kernel
-    void interact(const ModelInteractPointers&) const final;
+    // Apply the interaction kernel to device data
+    void interact(const DeviceInteractRefs&) const final;
 
     // ID of the model
     ModelId model_id() const final;

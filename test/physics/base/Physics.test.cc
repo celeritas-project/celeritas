@@ -14,6 +14,7 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/grid/RangeCalculator.hh"
 #include "physics/grid/XsCalculator.hh"
+#include "physics/em/EPlusAnnihilationProcess.hh"
 
 #include "PhysicsTestBase.hh"
 #include "Physics.test.hh"
@@ -470,4 +471,99 @@ TEST_F(PHYS_DEVICE_TEST, all)
     // clang-format on
     PRINT_EXPECTED(step_host);
     EXPECT_VEC_SOFT_EQ(expected_step_host, step_host);
+}
+
+//---------------------------------------------------------------------------//
+// TEST POSITRON ANNIHILATION
+//---------------------------------------------------------------------------//
+
+class EPlusAnnihilationTest : public PhysicsTestBase
+{
+  public:
+    SPConstMaterials build_materials() const override;
+    SPConstParticles build_particles() const override;
+    SPConstPhysics   build_physics() const override;
+};
+
+//---------------------------------------------------------------------------//
+auto EPlusAnnihilationTest::build_materials() const -> SPConstMaterials
+{
+    using namespace celeritas::units;
+    using namespace celeritas::constants;
+
+    MaterialParams::Input mi;
+    mi.elements  = {{19, AmuMass{39.0983}, "K"}};
+    mi.materials = {{1e-5 * na_avogadro,
+                     293.,
+                     MatterState::solid,
+                     {{ElementId{0}, 1.0}},
+                     "K"}};
+
+    return std::make_shared<MaterialParams>(std::move(mi));
+}
+
+//---------------------------------------------------------------------------//
+auto EPlusAnnihilationTest::build_particles() const -> SPConstParticles
+{
+    using namespace celeritas::units;
+    namespace pdg = celeritas::pdg;
+
+    constexpr auto zero   = celeritas::zero_quantity();
+    constexpr auto stable = celeritas::ParticleDef::stable_decay_constant();
+
+    return std::make_shared<ParticleParams>(
+        ParticleParams::Input{{"positron",
+                               pdg::positron(),
+                               MevMass{0.5109989461},
+                               ElementaryCharge{1},
+                               stable},
+                              {"gamma", pdg::gamma(), zero, zero, stable}});
+}
+
+//---------------------------------------------------------------------------//
+auto EPlusAnnihilationTest::build_physics() const -> SPConstPhysics
+{
+    PhysicsParams::Input physics_inp;
+    physics_inp.materials = this->materials();
+    physics_inp.particles = this->particles();
+    physics_inp.options   = this->build_physics_options();
+
+    physics_inp.processes.push_back(
+        std::make_shared<EPlusAnnihilationProcess>(physics_inp.particles));
+    return std::make_shared<PhysicsParams>(std::move(physics_inp));
+}
+
+TEST_F(EPlusAnnihilationTest, accessors)
+{
+    const PhysicsParams& p = *this->physics();
+
+    EXPECT_EQ(1, p.num_processes());
+    EXPECT_EQ(1, p.num_models());
+    EXPECT_EQ(1, p.max_particle_processes());
+}
+
+TEST_F(EPlusAnnihilationTest, host_track_view)
+{
+    CollectionStateStore<PhysicsStateData, MemSpace::host> state{
+        *this->physics(), 1};
+    PhysicsParamsData<Ownership::const_reference, MemSpace::host> params_ref{
+        this->physics()->host_pointers()};
+
+    const auto pid = this->particles()->find("positron");
+    ASSERT_TRUE(pid);
+    const ParticleProcessId ppid{0};
+    const MaterialId        matid{0};
+
+    PhysicsTrackView phys(params_ref, state.ref(), pid, matid, ThreadId{0});
+    phys = PhysicsTrackInitializer{};
+
+    // e+ annihilation should have nonzero "inline" cross section for all
+    // energies
+    EXPECT_EQ(ModelId{0}, phys.hardwired_model(ppid, MevEnergy{0.1234}));
+    EXPECT_EQ(ModelId{0}, phys.hardwired_model(ppid, MevEnergy{0}));
+
+    // Check cross section
+    MaterialView material_view = this->materials()->get(MaterialId{0});
+    EXPECT_SOFT_EQ(5.1172452607412999e-05,
+                   phys.calc_xs_otf(ModelId{0}, material_view, MevEnergy{0.1}));
 }

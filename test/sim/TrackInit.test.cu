@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitializerStore.test.cu
+//! \file TrackInit.test.cu
 //---------------------------------------------------------------------------//
-#include "TrackInitializerStore.test.hh"
+#include "TrackInit.test.hh"
 
 #include <thrust/copy.h>
 #include <thrust/device_vector.h>
@@ -19,7 +19,7 @@ using namespace celeritas;
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void interact_kernel(StatePointers              states,
+__global__ void interact_kernel(StateDeviceRef             states,
                                 SecondaryAllocatorPointers secondaries,
                                 ITTestInputPointers        input)
 {
@@ -37,7 +37,7 @@ __global__ void interact_kernel(StatePointers              states,
             Interactor                interact(allocate_secondaries,
                                 input.alloc_size[thread_id.get()],
                                 input.alive[thread_id.get()]);
-            states.interactions[thread_id.get()] = interact();
+            states.interactions[thread_id] = interact();
 
             // Kill the selected tracks
             if (!input.alive[thread_id.get()])
@@ -47,13 +47,12 @@ __global__ void interact_kernel(StatePointers              states,
         }
         else
         {
-            states.interactions[thread_id.get()]
-                = Interaction::from_absorption();
+            states.interactions[thread_id] = Interaction::from_absorption();
         }
     }
 }
 
-__global__ void tracks_test_kernel(StatePointers states, unsigned int* output)
+__global__ void tracks_test_kernel(StateDeviceRef states, unsigned int* output)
 {
     auto thread_id = celeritas::KernelParamCalculator::thread_id();
     if (thread_id < states.size())
@@ -64,23 +63,23 @@ __global__ void tracks_test_kernel(StatePointers states, unsigned int* output)
 }
 
 __global__ void
-initializers_test_kernel(TrackInitializerPointers inits, unsigned int* output)
+initializers_test_kernel(TrackInitStateDeviceRef inits, unsigned int* output)
 {
     auto thread_id = celeritas::KernelParamCalculator::thread_id();
     if (thread_id < inits.initializers.size())
     {
-        TrackInitializer& init  = inits.initializers[thread_id.get()];
+        TrackInitializer& init  = inits.initializers[thread_id];
         output[thread_id.get()] = init.sim.track_id.get();
     }
 }
 
 __global__ void
-vacancies_test_kernel(TrackInitializerPointers inits, size_type* output)
+vacancies_test_kernel(TrackInitStateDeviceRef inits, size_type* output)
 {
     auto thread_id = celeritas::KernelParamCalculator::thread_id();
     if (thread_id < inits.vacancies.size())
     {
-        output[thread_id.get()] = inits.vacancies[thread_id.get()];
+        output[thread_id.get()] = inits.vacancies[thread_id];
     }
 }
 
@@ -88,7 +87,7 @@ vacancies_test_kernel(TrackInitializerPointers inits, size_type* output)
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 
-void interact(StatePointers              states,
+void interact(StateDeviceRef             states,
               SecondaryAllocatorPointers secondaries,
               ITTestInputPointers        input)
 {
@@ -103,7 +102,7 @@ void interact(StatePointers              states,
     CELER_CUDA_CHECK_ERROR();
 }
 
-std::vector<unsigned int> tracks_test(StatePointers states)
+std::vector<unsigned int> tracks_test(StateDeviceRef states)
 {
     // Allocate memory for results
     std::vector<unsigned int> host_output(states.size());
@@ -127,7 +126,7 @@ std::vector<unsigned int> tracks_test(StatePointers states)
     return host_output;
 }
 
-std::vector<unsigned int> initializers_test(TrackInitializerPointers inits)
+std::vector<unsigned int> initializers_test(TrackInitStateDeviceRef inits)
 {
     // Allocate memory for results
     std::vector<unsigned int> host_output(inits.initializers.size());
@@ -151,7 +150,7 @@ std::vector<unsigned int> initializers_test(TrackInitializerPointers inits)
     return host_output;
 }
 
-std::vector<size_type> vacancies_test(TrackInitializerPointers inits)
+std::vector<size_type> vacancies_test(TrackInitStateDeviceRef inits)
 {
     // Allocate memory for results
     std::vector<size_type> host_output(inits.vacancies.size());

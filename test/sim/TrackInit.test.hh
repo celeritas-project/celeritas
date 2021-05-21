@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitializerStore.test.hh
+//! \file TrackInit.test.hh
 //---------------------------------------------------------------------------//
 #include "base/DeviceVector.hh"
 #include "physics/base/Interaction.hh"
@@ -11,7 +11,7 @@
 #include "physics/base/Secondary.hh"
 #include "sim/SimTrackView.hh"
 #include "sim/TrackInterface.hh"
-#include "sim/TrackInitializerInterface.hh"
+#include "sim/TrackInitInterface.hh"
 #include <vector>
 
 namespace celeritas_test
@@ -104,22 +104,22 @@ using SecondaryAllocatorPointers
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to produce secondaries and apply cutoffs
-void interact(StatePointers              states,
+void interact(StateDeviceRef             states,
               SecondaryAllocatorPointers secondaries,
               ITTestInputPointers        input);
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to get the track IDs of the initialized tracks
-std::vector<unsigned int> tracks_test(StatePointers states);
+std::vector<unsigned int> tracks_test(StateDeviceRef states);
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to get the track IDs of the track initializers created from
 //! primaries or secondaries
-std::vector<unsigned int> initializers_test(TrackInitializerPointers inits);
+std::vector<unsigned int> initializers_test(TrackInitStateDeviceRef inits);
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to get the indices of the vacant slots in the track vector
-std::vector<size_type> vacancies_test(TrackInitializerPointers inits);
+std::vector<size_type> vacancies_test(TrackInitStateDeviceRef inits);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

@@ -90,7 +90,7 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void SeltzerBergerModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractPointers& pointers) const
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
     CELER_NOT_IMPLEMENTED("detail::seltzer_berger_interact");

@@ -13,7 +13,8 @@
 
 namespace celeritas
 {
-struct ModelInteractPointers;
+template<MemSpace M>
+struct ModelInteractRefs;
 
 namespace detail
 {
@@ -45,8 +46,8 @@ struct EPlusGGPointers
 //---------------------------------------------------------------------------//
 
 // Launch the EPlusGG interaction
-void eplusgg_interact(const EPlusGGPointers&       eplusgg,
-                      const ModelInteractPointers& model);
+void eplusgg_interact(const EPlusGGPointers&                     eplusgg,
+                      const ModelInteractRefs<MemSpace::device>& model);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

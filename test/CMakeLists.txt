@@ -21,7 +21,7 @@ list(APPEND CELER_SOURCES
 
 add_library(CeleritasTest ${CELER_SOURCES})
 add_library(Celeritas::Test ALIAS CeleritasTest)
-target_link_libraries(CeleritasTest PRIVATE celeritas PUBLIC GTest::GTest)
+celeritas_target_link_libraries(CeleritasTest PRIVATE celeritas PUBLIC GTest::GTest)
 
 target_include_directories(CeleritasTest
   PUBLIC
@@ -115,29 +115,22 @@ celeritas_cudaoptional_test(field/FieldDriver)
 
 if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_CUDA)
-    add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu)
-    target_link_libraries(CeleritasPropagatorTest
-      PRIVATE celeritas
+    celeritas_add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu)
+    celeritas_target_link_libraries(CeleritasPropagatorTest
+      PRIVATE celeritas VecGeom::vecgeom
     )
     list(APPEND CELERITASTEST_LINK_LIBRARIES CeleritasPropagatorTest)
-    celeritas_link_vecgeom_cuda(CeleritasPropagatorTest)
     set(_CeleritasPropagatorTest CeleritasPropagatorTest)
   endif()
 
   celeritas_add_test(field/FieldPropagator.test.cc GPU
-    LINK_LIBRARIES VecGeom::vecgeom ${_CeleritasPropagatorTest})
+    LINK_LIBRARIES Celeritas::Core VecGeom::vecgeom ${_CeleritasPropagatorTest})
 endif()
 
 #-----------------------------------------------------------------------------#
 # Geometry
 
 if(CELERITAS_USE_VecGeom)
-  # See https://github.com/celeritas-project/celeritas/pull/10 for a
-  # discussion of the failures from trying to directly build an executable
-  # from code with CUDA separable compilation. This extra test library is
-  # necessary. Furthermore, celeritas must be linked *before* vecgeom. Using
-  # PUBLIC library linkage with Celeritas causes headaches in this respect --
-  # that's why CeleritasTest and this library use PRIVATE.
   set(CELER_VGTEST_SOURCES
     geometry/GeoTestBase.cc
   )
@@ -147,13 +140,11 @@ if(CELERITAS_USE_VecGeom)
       geometry/LinearPropagator.test.cu
     )
   endif()
-  add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES})
-  target_link_libraries(CeleritasVecgeomTest
-    PRIVATE Celeritas::Test Celeritas::Core VecGeom::vecgeom
+  celeritas_add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES})
+  celeritas_target_link_libraries(CeleritasVecgeomTest
+    PRIVATE Celeritas::Test VecGeom::vecgeom
+    PUBLIC Celeritas::Core
   )
-  if(CELERITAS_USE_CUDA)
-    celeritas_link_vecgeom_cuda(CeleritasVecgeomTest)
-  endif()
 
   celeritas_setup_tests(SERIAL PREFIX geometry
     LINK_LIBRARIES CeleritasVecgeomTest VecGeom::vecgeom)
@@ -187,13 +178,13 @@ add_library(CeleritasPhysicsTest
   physics/grid/CalculatorTestBase.cc
 )
 
-target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
+celeritas_target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
 
 celeritas_setup_tests(SERIAL PREFIX physics/base
   LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_add_test(physics/base/CutoffParams.test.cc
   LINK_LIBRARIES Celeritas::ROOT)
-celeritas_cudaoptional_test(physics/base/Particle 
+celeritas_cudaoptional_test(physics/base/Particle
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_cudaoptional_test(physics/base/Physics)
 celeritas_add_test(physics/base/PhysicsStepUtils.test.cc)
@@ -258,8 +249,8 @@ celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX sim)
 if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
-  celeritas_add_test(sim/TrackInitializerStore.test.cc GPU
-    SOURCES sim/TrackInitializerStore.test.cu
+  celeritas_add_test(sim/TrackInit.test.cc GPU
+    SOURCES sim/TrackInit.test.cu
     LINK_LIBRARIES VecGeom::vecgeom)
 endif()
 

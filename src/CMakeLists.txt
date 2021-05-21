@@ -134,11 +134,15 @@ if(CELERITAS_USE_VecGeom)
     geometry/GeoMaterialParams.cc
     geometry/GeoParams.cc
     geometry/detail/VGNavCollection.cc
-    sim/ParamStore.cc
-    sim/StateStore.cc
-    sim/TrackInitializerStore.cc
+    sim/TrackInitInterface.cc
+    sim/TrackInitParams.cc
+    sim/TrackInitUtils.cc
   )
-  list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
+  list(APPEND PRIVATE_DEPS VecGeom::vgdml)
+  # This needs to be public because its might be needed
+  # to resolve the symbol generate by the `nvcc -dlink` of
+  # one of the executable.
+  list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
   if(CELERITAS_USE_CUDA)
     list(APPEND SOURCES
       sim/detail/InitializeTracks.cu
@@ -150,25 +154,22 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
-add_library(celeritas ${SOURCES})
+celeritas_add_library(celeritas ${SOURCES})
 add_library(Celeritas::Core ALIAS celeritas)
 
-target_link_libraries(celeritas
+celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
 )
-if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
-  celeritas_link_vecgeom_cuda(celeritas)
-endif()
 
-target_include_directories(celeritas
+celeritas_target_include_directories(celeritas
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-install(TARGETS celeritas
+celeritas_install(TARGETS celeritas
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
@@ -217,7 +218,7 @@ if(CELERITAS_USE_ROOT)
     ${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx
     io/RootImporter.cc
   )
-  target_link_libraries(celeritas_root
+  celeritas_target_link_libraries(celeritas_root
     PRIVATE celeritas ROOT::Core ROOT::Tree
   )
 else()
@@ -225,7 +226,7 @@ else()
   add_library(celeritas_root
     io/RootImporter.noroot.cc
   )
-  target_link_libraries(celeritas_root PRIVATE celeritas)
+  celeritas_target_link_libraries(celeritas_root PRIVATE celeritas)
 endif()
 
 add_library(Celeritas::ROOT ALIAS celeritas_root)
