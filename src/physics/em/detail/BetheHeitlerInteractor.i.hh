@@ -157,7 +157,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         = rotate(from_spherical(cost, phi), inc_direction_);
     // Positron
     TsaiUrbanDistribution sample_positron_angle(
-        secondaries[0].energy, units::MevMass{shared_.inv_electron_mass});
+        secondaries[1].energy, units::MevMass{shared_.inv_electron_mass});
     cost = sample_positron_angle(rng);
     secondaries[1].direction
         = rotate(from_spherical(cost, phi + constants::pi), inc_direction_);
