@@ -26,8 +26,20 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Seltzer-Berger model for ...
+ * Seltzer-Berger model for electron and positron bremsstrahlung processes.
  *
+ * Given an incoming electron or positron of sufficient energy (as per
+ * CutOffView), this class provides the energy loss of these particles due to
+ * radiation of photons in the field of a nucleus. This model improves accuracy
+ * using cross sections based on interpolation of published tables from Seltzer
+ * and Berger given in Nucl. Instr. and Meth. in Phys. Research B, 12(1):95–134
+ * (1985) and Atomic Data and Nuclear Data Tables, 35():345 (1986). The cross
+ * sections are obtained from SBEnergyDistribution and are appropriately scaled
+ * in the case of positrons via SBPositronXsCorrector (to be done).
+ *
+ * \note This interactor performs an analogous sampling as in Geant4's
+ * G4SeltzerBergerModel, documented in 10.2.1 of the Geant Physics Reference
+ * (release 10.6). The implementation is based on Geant4 10.4.3.
  */
 class SeltzerBergerInteractor
 {
@@ -40,7 +52,7 @@ class SeltzerBergerInteractor
     //!@}
 
   public:
-    //! Construct sampler from shared and state data
+    //! Construct sampler from device/shared and state data
     inline CELER_FUNCTION
     SeltzerBergerInteractor(const SeltzerBergerDeviceRef& device_pointers,
                             const ParticleTrackView&      particle,
@@ -55,12 +67,7 @@ class SeltzerBergerInteractor
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
   private:
-    // Bremsstrahlung gamma direction sampler from G4ModifiedTsai
-    template<class Engine>
-    inline CELER_FUNCTION real_type sample_cos_theta(Energy  kinetic_energy,
-                                                     Engine& rng);
-
-    // Device-side references
+    // Device (host CPU or GPU device) references
     const SeltzerBergerDeviceRef& device_pointers_;
     // Type of particle
     const ParticleId particle_id_;

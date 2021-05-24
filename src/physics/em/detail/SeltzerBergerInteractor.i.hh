@@ -108,7 +108,8 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     result.secondaries             = {gamma_secondary, 1};
     gamma_secondary[0].particle_id = device_pointers_.ids.gamma;
 
-    // Sample exiting gamma direction
+    // Generate exiting gamma direction from isotropic azimuthal
+    // angle and TsaiUrbanDistribution for polar angle
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
     real_type                          phi = sample_phi(rng);
     TsaiUrbanDistribution              sample_gamma_angle(
@@ -127,25 +128,6 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     }
 
     return result;
-}
-
-template<class Engine>
-CELER_FUNCTION real_type SeltzerBergerInteractor::sample_cos_theta(
-    const Energy kinetic_energy, Engine& rng)
-{
-    real_type umax
-        = 2.0 * (1.0 + kinetic_energy.value() / device_pointers_.electron_mass);
-    real_type u;
-    do
-    {
-        u = -std::log(generate_canonical(rng) * generate_canonical(rng));
-        if (0.25 > generate_canonical(rng))
-            u /= 0.625;
-        else
-            u /= 1.875;
-    } while (u > umax);
-
-    return 1.0 - 2.0 * ipow<2>(u / umax);
 }
 
 //---------------------------------------------------------------------------//
