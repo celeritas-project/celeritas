@@ -155,7 +155,8 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 celeritas_add_library(celeritas ${SOURCES})
-add_library(Celeritas::Core ALIAS celeritas)
+celeritas_strip_alias(celeritas_target celeritas)
+add_library(Celeritas::Core ALIAS ${celeritas_target})
 
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}

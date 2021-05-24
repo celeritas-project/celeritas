@@ -187,17 +187,19 @@ function(celeritas_add_library target)
   )
   set(_lib_requested_type "SHARED")
   set(_cudaruntime_requested_type "Shared")
+  set(__static_build FALSE)
   if((NOT BUILD_SHARED_LIBS AND NOT _ADDLIB_PARSE_SHARED) OR _ADDLIB_PARSE_STATIC)
     set(_lib_requested_type "STATIC")
     set(_cudaruntime_requested_type "Static")
-    set(_staticsuf "")
+    set(_staticsuf "${_midsuf}")
+    set(__static_build TRUE)
   endif()
   if(_ADDLIB_PARSE_MODULE) # If we are here _contains_cuda is true
     message(FATAL_ERROR "celeritas_add_library does not support MODULE library containing CUDA code")
   endif()
 
   add_library(${target}_objects OBJECT ${ARGN})
-  if(_staticsuf)
+  if(NOT __static_build)
     add_library(${target}${_staticsuf} STATIC $<TARGET_OBJECTS:${target}_objects>)
   endif()
   add_library(${target}${_midsuf} ${_lib_requested_type} $<TARGET_OBJECTS:${target}_objects>)
@@ -235,7 +237,7 @@ function(celeritas_add_library target)
     CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
   )
 
-  if(_staticsuf)
+  if(NOT _static_build)
     set_target_properties(${target}${_staticsuf} PROPERTIES
       LINKER_LANGUAGE CUDA
       CUDA_SEPARABLE_COMPILATION ON
