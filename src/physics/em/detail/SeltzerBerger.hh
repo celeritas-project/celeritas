@@ -156,6 +156,8 @@ using SeltzerBergerDeviceRef
     = SeltzerBergerData<Ownership::const_reference, MemSpace::device>;
 using SeltzerBergerHostRef
     = SeltzerBergerData<Ownership::const_reference, MemSpace::host>;
+using SeltzerBergerNativeRef
+    = SeltzerBergerData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
 // KERNEL LAUNCHERS
@@ -163,7 +165,7 @@ using SeltzerBergerHostRef
 
 // Launch the Seltzer-Berger interaction
 void seltzer_berger_interact(
-    const SeltzerBergerDeviceRef&              device_pointers,
+    const SeltzerBergerNativeRef&              shared,
     const ModelInteractRefs<MemSpace::device>& interaction);
 
 //---------------------------------------------------------------------------//

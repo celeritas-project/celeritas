@@ -55,7 +55,7 @@ class SeltzerBergerInteractor
   public:
     //! Construct sampler from device/shared and state data
     inline CELER_FUNCTION
-    SeltzerBergerInteractor(const SeltzerBergerDeviceRef& device_pointers,
+    SeltzerBergerInteractor(const SeltzerBergerNativeRef& shared,
                             const ParticleTrackView&      particle,
                             const Real3&                  inc_direction,
                             const CutoffView&             cutoffs,
@@ -69,7 +69,7 @@ class SeltzerBergerInteractor
 
   private:
     // Device (host CPU or GPU device) references
-    const SeltzerBergerDeviceRef& device_pointers_;
+    const SeltzerBergerNativeRef& shared_;
     // Type of particle
     const ParticleId particle_id_;
     // Incident particle energy
