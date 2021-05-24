@@ -5,9 +5,12 @@
 //---------------------------------------------------------------------------//
 //! \file SeltzerBerger.test.cc
 //---------------------------------------------------------------------------//
+#include "physics/em/detail/SeltzerBergerInteractor.hh"
 #include "physics/em/detail/SBPositronXsCorrector.hh"
 #include "physics/em/detail/SBEnergyDistribution.hh"
 #include "physics/em/SeltzerBergerModel.hh"
+#include "physics/material/MaterialView.hh"
+#include "physics/material/MaterialTrackView.hh"
 
 #include "celeritas_test.hh"
 #include "gtest/Main.hh"
@@ -15,6 +18,7 @@
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "io/SeltzerBergerReader.hh"
+#include "physics/base/CutoffView.hh"
 #include "physics/base/Units.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
@@ -25,6 +29,7 @@ using celeritas::SeltzerBergerModel;
 using celeritas::SeltzerBergerReader;
 using celeritas::detail::SBEnergyDistribution;
 using celeritas::detail::SBPositronXsCorrector;
+using celeritas::detail::SeltzerBergerInteractor;
 using celeritas::units::AmuMass;
 using celeritas::units::MevMass;
 namespace constants = celeritas::constants;
@@ -64,6 +69,15 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
               ElementaryCharge{1},
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
+        const auto& particles   = *this->particle_params();
+        pointers_.ids.electron  = particles.find(pdg::electron());
+        pointers_.ids.positron  = particles.find(pdg::positron());
+        pointers_.ids.gamma     = particles.find(pdg::gamma());
+        pointers_.electron_mass = 0.5109989461;
+
+        // Set default particle to incident 1 MeV photon
+        this->set_inc_particle(pdg::electron(), MevEnergy{10.0});
+        this->set_inc_direction({0, 0, 1});
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
@@ -82,10 +96,18 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         std::string         data_path = this->test_data_path("physics/em", "");
         SeltzerBergerReader read_element_data(data_path.c_str());
 
-        model_ = std::make_shared<SeltzerBergerModel>(ModelId{0},
+        // Construct SeltzerBergerModel and set host pointers
+        model_    = std::make_shared<SeltzerBergerModel>(ModelId{0},
                                                       *this->particle_params(),
                                                       *this->material_params(),
                                                       read_element_data);
+        pointers_ = model_->host_pointers();
+
+        // Set cutoffs (no cuts)
+        CutoffParams::Input ci;
+        ci.materials = this->material_params();
+        ci.particles = this->particle_params();
+        this->set_cutoff_params(ci);
     }
 
     EnergySq density_correction(MaterialId matid, Energy e) const
@@ -109,7 +131,8 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<SeltzerBergerModel> model_;
+    std::shared_ptr<SeltzerBergerModel>       model_;
+    celeritas::detail::SeltzerBergerNativeRef pointers_;
 };
 
 //---------------------------------------------------------------------------//
@@ -214,4 +237,53 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
     EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
     EXPECT_VEC_SOFT_EQ(expected_avg_exit_frac, avg_exit_frac);
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+}
+
+TEST_F(SeltzerBergerTest, basic)
+{
+    using celeritas::CutoffView;
+    using celeritas::MaterialView;
+    // Reserve 2 secondaries, one for each sample
+    const int num_samples = 2;
+    this->resize_secondaries(num_samples);
+
+    // Sampled element
+    const ElementId element{0};
+
+    // Production cuts
+
+    CutoffView          cutoff_view(this->cutoff_params()->host_pointers(),
+                           MaterialId{0});
+    const MaterialView& material_view = this->material_track().material_view();
+
+    // Create the interactor
+    SeltzerBergerInteractor interact(model_->host_pointers(),
+                                     this->particle_track(),
+                                     this->direction(),
+                                     cutoff_view,
+                                     this->secondary_allocator(),
+                                     material_view,
+                                     element);
+    RandomEngine&           rng_engine = this->rng();
+
+    // Produce two samples from the original/incident photon
+    std::vector<double> angles;
+    std::vector<double> energies;
+
+    // Loop number of samples
+    for (int i : celeritas::range(num_samples))
+    {
+        Interaction result = interact(rng_engine);
+        SCOPED_TRACE(result);
+        this->sanity_check(result);
+
+        EXPECT_EQ(result.secondaries.data(),
+                  this->secondary_allocator().get().data()
+                      + result.secondaries.size() * i);
+
+        angles.push_back(
+            celeritas::dot_product(result.secondaries.front().direction,
+                                   result.secondaries.back().direction));
+        energies.push_back(result.secondaries[0].energy.value());
+    }
 }
