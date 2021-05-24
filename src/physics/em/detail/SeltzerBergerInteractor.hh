@@ -16,6 +16,7 @@
 #include "base/StackAllocator.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
+#include "physics/material/MaterialView.hh"
 #include "SeltzerBerger.hh"
 #include "SBEnergyDistribution.hh"
 #include "SBPositronXsCorrector.hh"
@@ -75,10 +76,10 @@ class SeltzerBergerInteractor
     const Energy inc_energy_;
     // Incident particle direction
     const Momentum inc_momentum_;
-    // Interactor thresholds
-    const CutoffView& cutoffs_;
     // Incident particle direction
     const Real3& inc_direction_;
+    // Interactor thresholds
+    const CutoffView& cutoffs_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
     // Material in which interaction occurs
