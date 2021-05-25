@@ -35,7 +35,7 @@ TEST_F(TsaiUrbanDistributionTest, bin)
     using namespace celeritas::constants;
     using namespace celeritas::units;
 
-    std::vector<float> angles;
+    std::vector<double> angles;
     // Loop over various electron energies (converted to MeVEnergy)
     for (double inc_e : {1.0, 10.0, 20.0, 50.0, 100.0})
     {
@@ -45,10 +45,10 @@ TEST_F(TsaiUrbanDistributionTest, bin)
         angles.push_back(angle);
     }
 
-    const float expected_angles[] = {0.3245577893213,
-                                     -0.02649751911085,
-                                     0.6002972458021,
-                                     0.9822511633688,
-                                     0.1573926944923};
-    EXPECT_VEC_EQ(expected_angles, angles);
+    const double expected_angles[] = {0.3245577893213,
+                                      -0.02649751911085,
+                                      0.6002972458021,
+                                      0.9822511633688,
+                                      0.1573926944923};
+    EXPECT_VEC_SOFT_EQ(expected_angles, angles);
 }
