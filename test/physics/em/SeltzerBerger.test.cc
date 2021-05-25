@@ -104,10 +104,13 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         pointers_ = model_->host_pointers();
 
         // Set cutoffs
-        CutoffParams::Input ci;
-        ci.materials = this->material_params();
-        ci.particles = this->particle_params();
-        this->set_cutoff_params(ci);
+        CutoffParams::Input           input;
+        CutoffParams::MaterialCutoffs material_cutoffs;
+        material_cutoffs.push_back({MevEnergy{0.01}, 0.1234});
+        input.materials = this->material_params();
+        input.particles = this->particle_params();
+        input.cutoffs.insert({pdg::gamma(), material_cutoffs});
+        this->set_cutoff_params(input);
     }
 
     EnergySq density_correction(MaterialId matid, Energy e) const
@@ -280,9 +283,86 @@ TEST_F(SeltzerBergerTest, basic)
                   this->secondary_allocator().get().data()
                       + result.secondaries.size() * i);
 
-        angles.push_back(
-            celeritas::dot_product(result.secondaries.front().direction,
-                                   result.secondaries.back().direction));
+        angles.push_back(celeritas::dot_product(
+            result.direction, result.secondaries.front().direction));
         energies.push_back(result.secondaries[0].energy.value());
     }
+
+    // EXPECT_EQ(2 * num_samples, this->secondary_allocator().get().size());
+
+    // // Note: these are "gold" values based on the host RNG.
+    // const double expected_energy1[]
+    //     = {16.57248532448, 99.25227118843, 24.00633179151, 95.23685783041};
+    // const double expected_energy2[]
+    //     = {83.42751467552, 0.7477288115688, 75.99366820849, 4.763142169585};
+    // const double expected_angle[]
+    //     = {0.9999694782475, 0.9111977209393, 0.9997556894823,
+    //     0.9921593039016};
+
+    // EXPECT_VEC_SOFT_EQ(expected_energy1, energy1);
+    // EXPECT_VEC_SOFT_EQ(expected_energy2, energy2);
+    // EXPECT_VEC_SOFT_EQ(expected_angle, angle);
+
+    // // Next sample should fail because we're out of secondary buffer space
+    // {
+    //     Interaction result = interact(rng_engine);
+    //     EXPECT_EQ(0, result.secondaries.size());
+    //     EXPECT_EQ(celeritas::Action::failed, result.action);
+    // }
 }
+
+// TEST_F(SeltzerBergerTest, stress_test)
+// {
+//     const unsigned int  num_samples = 8;
+//     std::vector<double> avg_engine_samples;
+
+//     // Loop over a set of incident gamma energies
+//     for (double inc_e : {1.5, 5.0, 10.0, 50.0, 100.0})
+//     {
+//         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
+//         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
+
+//         RandomEngine&           rng_engine            = this->rng();
+//         RandomEngine::size_type num_particles_sampled = 0;
+
+//         // Loop over several incident directions
+//         for (const Real3& inc_dir :
+//              {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1,
+//              1}})
+//         {
+//             SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
+//             this->set_inc_direction(inc_dir);
+//             this->resize_secondaries(2 * num_samples);
+
+//             // Get the ElementView
+//             const celeritas::ElementView element(
+//                 this->material_track().material_view().element_view(
+//                     celeritas::ElementComponentId{0}));
+
+//             // Create interactor
+//             BetheHeitlerInteractor interact(pointers_,
+//                                             this->particle_track(),
+//                                             this->direction(),
+//                                             this->secondary_allocator(),
+//                                             element);
+
+//             // Loop over many particles
+//             for (unsigned int i = 0; i < num_samples; ++i)
+//             {
+//                 Interaction result = interact(rng_engine);
+//                 SCOPED_TRACE(result);
+//                 this->sanity_check(result);
+//             }
+//             EXPECT_EQ(2 * num_samples,
+//                       this->secondary_allocator().get().size());
+//             num_particles_sampled += num_samples;
+//         }
+//         avg_engine_samples.push_back(double(rng_engine.count())
+//                                      / double(num_particles_sampled));
+//     }
+
+//     // Gold values for average number of calls to RNG
+//     const double expected_avg_engine_samples[]
+//         = {18.375, 23.125, 22.75, 23.3125, 22.5625};
+//     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+// }
