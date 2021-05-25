@@ -8,7 +8,10 @@
 #pragma once
 
 #include "base/Assert.hh"
-#include "LDemoInterface.hh"
+#include "sim/TrackInterface.hh"
+
+using celeritas::ParamsDeviceRef;
+using celeritas::StateDeviceRef;
 
 namespace demo_loop
 {

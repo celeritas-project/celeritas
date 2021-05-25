@@ -12,7 +12,10 @@
 #include "celeritas_test.hh"
 #include "base/CollectionStateStore.hh"
 #include "geometry/GeoParams.hh"
+#include "geometry/GeoMaterialParams.hh"
+#include "physics/base/CutoffParams.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/PhysicsParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "random/RngParams.hh"
 #include "sim/TrackInitParams.hh"
@@ -22,9 +25,6 @@
 namespace celeritas_test
 {
 using namespace celeritas;
-
-template<Ownership W, MemSpace M>
-using SecondaryAllocatorData = celeritas::StackAllocatorData<Secondary, W, M>;
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -59,33 +59,63 @@ class TrackInitTest : public celeritas::Test
         // Set up shared geometry data
         std::string test_file
             = celeritas::Test::test_data_path("geometry", "twoBoxes.gdml");
-        geo_params = std::make_shared<GeoParams>(test_file.c_str());
+        geometry        = std::make_shared<GeoParams>(test_file.c_str());
+        params.geometry = geometry->device_pointers();
 
         // Set up shared material data
-        MaterialParams::Input mats;
-        mats.elements  = {{{1, units::AmuMass{1.008}, "H"}}};
-        mats.materials = {{{1e-5 * constants::na_avogadro,
-                            100.0,
-                            MatterState::gas,
-                            {{ElementId{0}, 1.0}},
-                            "H2"}}};
-        material_params = std::make_shared<MaterialParams>(std::move(mats));
+        materials = std::make_shared<MaterialParams>(
+            MaterialParams::Input{{{1, units::AmuMass{1.008}, "H"}},
+                                  {{1e-5 * constants::na_avogadro,
+                                    100.0,
+                                    MatterState::gas,
+                                    {{ElementId{0}, 1.0}},
+                                    "H2"}}});
+        params.materials = materials->device_pointers();
 
-        particle_params = std::make_shared<ParticleParams>(
+        // Set up dummy geometry/material coupling data
+        geo_mats = std::make_shared<GeoMaterialParams>(GeoMaterialParams::Input{
+            geometry,
+            materials,
+            std::vector<MaterialId>(geometry->num_volumes(), MaterialId{0})});
+        params.geo_mats = geo_mats->device_pointers();
+
+        // Set up shared particle data
+        particles = std::make_shared<ParticleParams>(
             ParticleParams::Input{{"gamma",
                                    pdg::gamma(),
                                    zero_quantity(),
                                    zero_quantity(),
                                    ParticleDef::stable_decay_constant()}});
+        params.particles = particles->device_pointers();
 
-        rng_params = std::make_shared<RngParams>(12345);
+        // Set up empty cutoff data
+        cutoffs = std::make_shared<CutoffParams>(
+            CutoffParams::Input{particles, materials, {}});
+        params.cutoffs = cutoffs->device_pointers();
+
+        // Set up shared RNG data
+        rng        = std::make_shared<RngParams>(12345);
+        params.rng = rng->device_pointers();
+
+        // Add dummy physics data
+        PhysicsParamsData<Ownership::value, MemSpace::host> host_physics;
+        resize(&host_physics.process_groups, 1);
+        host_physics.max_particle_processes = 1;
+        host_physics.scaling_min_range      = 1;
+        host_physics.scaling_fraction       = 0.2;
+        host_physics.energy_fraction        = 0.8;
+        host_physics.linear_loss_limit      = 0.01;
+        physics = CollectionMirror<PhysicsParamsData>{std::move(host_physics)};
+        params.physics = physics.device();
+
+        CELER_ENSURE(params);
     }
 
     // Create primary particles
     std::vector<Primary> generate_primaries(size_type num_primaries)
     {
         std::vector<Primary> result;
-        for (unsigned int i = 0; i < num_primaries; ++i)
+        for (auto i : range(num_primaries))
         {
             result.push_back({ParticleId{0},
                               units::MevEnergy{1. + i},
@@ -97,54 +127,39 @@ class TrackInitTest : public celeritas::Test
         return result;
     }
 
-    // Create shared problem data
-    void build_params(size_type num_primaries, size_type storage_factor)
-    {
-        // Construct persistent track initializer data
-        TrackInitParams::Input inp{generate_primaries(num_primaries),
-                                   storage_factor};
-        init_params = std::make_shared<TrackInitParams>(std::move(inp));
-
-        params.geometry  = geo_params->device_pointers();
-        params.materials = material_params->device_pointers();
-        params.particles = particle_params->device_pointers();
-        params.rng       = rng_params->device_pointers();
-        CELER_ENSURE(params);
-    }
-
     // Create mutable state data
     void build_states(size_type num_tracks, size_type storage_factor)
     {
         CELER_EXPECT(params);
-        CELER_EXPECT(init_params);
-
-        // Allocate storage for secondaries on device
-        secondaries
-            = CollectionStateStore<SecondaryAllocatorData, MemSpace::device>(
-                num_tracks * storage_factor);
+        CELER_EXPECT(track_inits);
 
         ParamsData<Ownership::const_reference, MemSpace::host> host_params;
-        host_params.geometry  = geo_params->host_pointers();
-        host_params.materials = material_params->host_pointers();
-        host_params.particles = particle_params->host_pointers();
-        host_params.rng       = rng_params->host_pointers();
+        host_params.geometry  = geometry->host_pointers();
+        host_params.geo_mats  = geo_mats->host_pointers();
+        host_params.materials = materials->host_pointers();
+        host_params.particles = particles->host_pointers();
+        host_params.cutoffs   = cutoffs->host_pointers();
+        host_params.physics   = physics.host();
+        host_params.rng       = rng->host_pointers();
+        host_params.control.secondary_stack_factor = storage_factor;
         CELER_ASSERT(host_params);
 
         // Allocate state data
-        resize(&init, init_params->host_pointers(), num_tracks);
-        resize(&device_states, host_params, num_tracks);
-        states = device_states;
+        resize(&init, track_inits->host_pointers(), num_tracks);
+        resize(&states_val, host_params, num_tracks);
+        states = states_val;
         CELER_ENSURE(states);
     }
 
-    std::shared_ptr<GeoParams>       geo_params;
-    std::shared_ptr<ParticleParams>  particle_params;
-    std::shared_ptr<MaterialParams>  material_params;
-    std::shared_ptr<RngParams>       rng_params;
-    std::shared_ptr<TrackInitParams> init_params;
-
-    CollectionStateStore<SecondaryAllocatorData, MemSpace::device> secondaries;
-    StateData<Ownership::value, MemSpace::device> device_states;
+    std::shared_ptr<GeoParams>                    geometry;
+    std::shared_ptr<GeoMaterialParams>            geo_mats;
+    std::shared_ptr<ParticleParams>               particles;
+    std::shared_ptr<MaterialParams>               materials;
+    std::shared_ptr<CutoffParams>                 cutoffs;
+    std::shared_ptr<RngParams>                    rng;
+    std::shared_ptr<TrackInitParams>              track_inits;
+    CollectionMirror<PhysicsParamsData>           physics;
+    StateData<Ownership::value, MemSpace::device> states_val;
 
     ParamsDeviceRef         params;
     StateDeviceRef          states;
@@ -161,7 +176,10 @@ TEST_F(TrackInitTest, run)
     const size_type num_tracks     = 10;
     const size_type storage_factor = 10;
 
-    build_params(num_primaries, storage_factor);
+    // Construct persistent track initializer data
+    track_inits = std::make_shared<TrackInitParams>(TrackInitParams::Input{
+        generate_primaries(num_primaries), storage_factor});
+
     build_states(num_tracks, storage_factor);
 
     // Check that all of the track slots were marked as empty
@@ -171,7 +189,7 @@ TEST_F(TrackInitTest, run)
     EXPECT_VEC_EQ(expected.vacancy, output.vacancy);
 
     // Create track initializers on device from primary particles
-    extend_from_primaries(init_params->host_pointers(), &init);
+    extend_from_primaries(track_inits->host_pointers(), &init);
 
     // Check the track IDs of the track initializers created from primaries
     output.initializer_id   = initializers_test(make_ref(init));
@@ -193,7 +211,7 @@ TEST_F(TrackInitTest, run)
     ITTestInput            input(alloc, alive);
 
     // Launch kernel to process interactions
-    interact(states, secondaries.ref(), input.device_pointers());
+    interact(states, input.device_pointers());
 
     // Launch a kernel to create track initializers from secondaries
     extend_from_secondaries(params, states, &init);
@@ -232,7 +250,10 @@ TEST_F(TrackInitTest, primaries)
     const size_type storage_factor = 2;
     size_type       capacity       = num_tracks * storage_factor;
 
-    build_params(num_primaries, storage_factor);
+    // Construct persistent track initializer data
+    track_inits = std::make_shared<TrackInitParams>(TrackInitParams::Input{
+        generate_primaries(num_primaries), storage_factor});
+
     build_states(num_tracks, storage_factor);
 
     // Kill all the tracks in each interaction and don't produce secondaries
@@ -245,7 +266,7 @@ TEST_F(TrackInitTest, primaries)
         EXPECT_EQ(init.num_primaries, i);
 
         // Create track initializers on device from primary particles
-        extend_from_primaries(init_params->host_pointers(), &init);
+        extend_from_primaries(track_inits->host_pointers(), &init);
 
         for (auto j = capacity; j > 0; j -= num_tracks)
         {
@@ -255,7 +276,7 @@ TEST_F(TrackInitTest, primaries)
             initialize_tracks(params, states, &init);
 
             // Launch kernel that will kill all trackss
-            interact(states, secondaries.ref(), input.device_pointers());
+            interact(states, input.device_pointers());
 
             // Launch a kernel to create track initializers from secondaries
             extend_from_secondaries(params, states, &init);
@@ -279,7 +300,10 @@ TEST_F(TrackInitTest, secondaries)
     const size_type num_tracks     = 512;
     const size_type storage_factor = 2;
 
-    build_params(num_primaries, storage_factor);
+    // Construct persistent track initializer data
+    track_inits = std::make_shared<TrackInitParams>(TrackInitParams::Input{
+        generate_primaries(num_primaries), storage_factor});
+
     build_states(num_tracks, storage_factor);
 
     // Allocate input device data (number of secondaries to produce for each
@@ -295,7 +319,7 @@ TEST_F(TrackInitTest, secondaries)
     ITTestInput input(alloc, alive);
 
     // Create track initializers on device from primary particles
-    extend_from_primaries(init_params->host_pointers(), &init);
+    extend_from_primaries(track_inits->host_pointers(), &init);
     EXPECT_EQ(init.num_primaries, 0);
     EXPECT_EQ(init.initializers.size(), num_primaries);
 
@@ -305,7 +329,7 @@ TEST_F(TrackInitTest, secondaries)
         initialize_tracks(params, states, &init);
 
         // Launch kernel to process interactions
-        interact(states, secondaries.ref(), input.device_pointers());
+        interact(states, input.device_pointers());
 
         // Launch a kernel to create track initializers from secondaries
         extend_from_secondaries(params, states, &init);

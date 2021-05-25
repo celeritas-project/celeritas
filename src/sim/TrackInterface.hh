@@ -7,10 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
+#include "base/StackAllocatorInterface.hh"
 #include "geometry/GeoInterface.hh"
+#include "geometry/GeoMaterialInterface.hh"
+#include "physics/base/CutoffInterface.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleInterface.hh"
+#include "physics/base/PhysicsInterface.hh"
+#include "physics/base/Secondary.hh"
 #include "physics/material/MaterialInterface.hh"
 #include "random/RngInterface.hh"
 #include "SimInterface.hh"
@@ -19,23 +23,38 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Parameters for controlling state sizes etc.
+ */
+struct ControlOptions
+{
+    real_type secondary_stack_factor = 3; // Secondary storage per state size
+
+    //! True if all options are valid
+    explicit operator bool() const { return secondary_stack_factor > 0; }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Immutable problem data.
- *
- * TODO: unify TrackInterface with the demo-loop LDemoInterface (of which this
- * is currently a subset).
  */
 template<Ownership W, MemSpace M>
 struct ParamsData
 {
-    GeoParamsData<W, M>      geometry;
-    MaterialParamsData<W, M> materials;
-    ParticleParamsData<W, M> particles;
-    RngParamsData<W, M>      rng;
+    GeoParamsData<W, M>         geometry;
+    GeoMaterialParamsData<W, M> geo_mats;
+    MaterialParamsData<W, M>    materials;
+    ParticleParamsData<W, M>    particles;
+    CutoffParamsData<W, M>      cutoffs;
+    PhysicsParamsData<W, M>     physics;
+    RngParamsData<W, M>         rng;
+
+    ControlOptions control;
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && materials && particles;
+        return geometry && geo_mats && materials && particles && cutoffs
+               && physics && control;
     }
 
     //! Assign from another set of data
@@ -44,8 +63,11 @@ struct ParamsData
     {
         CELER_EXPECT(other);
         geometry  = other.geometry;
+        geo_mats  = other.geo_mats;
         materials = other.materials;
         particles = other.particles;
+        cutoffs   = other.cutoffs;
+        physics   = other.physics;
         rng       = other.rng;
         return *this;
     }
@@ -62,23 +84,29 @@ struct StateData
     using Items = StateCollection<T, W, M>;
 
     GeoStateData<W, M>      geometry;
+    MaterialStateData<W, M> materials;
     ParticleStateData<W, M> particles;
+    PhysicsStateData<W, M>  physics;
     RngStateData<W, M>      rng;
     SimStateData<W, M>      sim;
 
-    // Raw data
-    Items<celeritas::Interaction> interactions;
+    // Stacks
+    StackAllocatorData<Secondary, W, M> secondaries;
 
-    //! Number of tracks
-    CELER_FUNCTION celeritas::size_type size() const
-    {
-        return particles.size();
-    }
+    // Raw data
+    Items<real_type>   step_length;
+    Items<real_type>   energy_deposition;
+    Items<Interaction> interactions;
+
+    //! Number of state elements
+    CELER_FUNCTION size_type size() const { return particles.size(); }
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && particles && rng && sim && !interactions.empty();
+        return geometry && materials && particles && physics && rng && sim
+               && secondaries && !step_length.empty()
+               && !energy_deposition.empty() && !interactions.empty();
     }
 
     //! Assign from another set of data
@@ -86,11 +114,16 @@ struct StateData
     StateData& operator=(StateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        geometry     = other.geometry;
-        particles    = other.particles;
-        rng          = other.rng;
-        sim          = other.sim;
-        interactions = other.interactions;
+        geometry          = other.geometry;
+        materials         = other.materials;
+        particles         = other.particles;
+        physics           = other.physics;
+        rng               = other.rng;
+        sim               = other.sim;
+        secondaries       = other.secondaries;
+        step_length       = other.step_length;
+        energy_deposition = other.energy_deposition;
+        interactions      = other.interactions;
         return *this;
     }
 };
@@ -112,11 +145,19 @@ resize(StateData<Ownership::value, M>*                               data,
     CELER_EXPECT(data);
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
-
     resize(&data->geometry, params.geometry, size);
+    resize(&data->materials, params.materials, size);
     resize(&data->particles, params.particles, size);
+    resize(&data->physics, params.physics, size);
     resize(&data->rng, params.rng, size);
     resize(&data->sim, size);
+
+    auto sec_size
+        = static_cast<size_type>(size * params.control.secondary_stack_factor);
+    resize(&data->secondaries, sec_size);
+
+    resize(&data->step_length, size);
+    resize(&data->energy_deposition, size);
     resize(&data->interactions, size);
 }
 

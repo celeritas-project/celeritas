@@ -10,8 +10,8 @@
 #include "base/CollectionStateStore.hh"
 #include "comm/Logger.hh"
 #include "physics/base/ModelInterface.hh"
+#include "sim/TrackInterface.hh"
 #include "LDemoParams.hh"
-#include "LDemoInterface.hh"
 #include "LDemoKernel.hh"
 
 using namespace celeritas;

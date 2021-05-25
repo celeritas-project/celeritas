@@ -104,9 +104,7 @@ using SecondaryAllocatorPointers
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to produce secondaries and apply cutoffs
-void interact(StateDeviceRef             states,
-              SecondaryAllocatorPointers secondaries,
-              ITTestInputPointers        input);
+void interact(StateDeviceRef states, ITTestInputPointers input);
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to get the track IDs of the initialized tracks
