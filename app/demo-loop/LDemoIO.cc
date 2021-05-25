@@ -16,9 +16,8 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
 {
     j = nlohmann::json{{"geometry_filename", v.geometry_filename},
                        {"physics_filename", v.physics_filename},
-                       {"energy", v.energy},
+                       {"hepmc3_filename", v.hepmc3_filename},
                        {"seed", v.seed},
-                       {"num_tracks", v.num_tracks},
                        {"max_steps", v.max_steps}};
 }
 
@@ -26,9 +25,8 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
 {
     j.at("geometry_filename").get_to(v.geometry_filename);
     j.at("physics_filename").get_to(v.physics_filename);
-    j.at("energy").get_to(v.energy);
+    j.at("hepmc3_filename").get_to(v.hepmc3_filename);
     j.at("seed").get_to(v.seed);
-    j.at("num_tracks").get_to(v.num_tracks);
     j.at("max_steps").get_to(v.max_steps);
 }
 
