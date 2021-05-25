@@ -37,6 +37,12 @@ namespace detail
 class BetheHeitlerInteractor
 {
   public:
+    //!@{
+    //! Type aliases
+    using MevMass = units::MevMass;
+    //!@}
+
+  public:
     //! Construct sampler from shared and state data
     inline CELER_FUNCTION
     BetheHeitlerInteractor(const BetheHeitlerPointers& shared,

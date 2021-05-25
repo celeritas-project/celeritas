@@ -121,13 +121,14 @@ struct SeltzerBergerIds
 template<Ownership W, MemSpace M>
 struct SeltzerBergerData
 {
+    using MevMass = units::MevMass;
     //// MEMBER DATA ////
 
     //! IDs in a separate struct for readability/easier copying
     SeltzerBergerIds ids;
 
-    //! Electron mass [MevMass]
-    real_type electron_mass;
+    //! Electron mass [MeV / c^2]
+    MevMass electron_mass;
 
     // Differential cross section storage
     SeltzerBergerTableData<W, M> differential_xs;
@@ -137,7 +138,7 @@ struct SeltzerBergerData
     //! Whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > 0 && differential_xs;
+        return ids && electron_mass.value() > 0 && differential_xs;
     }
 
     //! Assign from another set of data

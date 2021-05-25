@@ -72,8 +72,9 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     // Density correction
     constexpr auto migdal = 4 * constants::pi * constants::r_electron
                             * ipow<2>(constants::lambdabar_electron);
-    real_type density_factor     = material_.electron_density() * migdal;
-    real_type total_energy_val   = inc_energy_.value() + shared_.electron_mass;
+    real_type density_factor   = material_.electron_density() * migdal;
+    real_type total_energy_val = inc_energy_.value()
+                                 + shared_.electron_mass.value();
     real_type density_correction = density_factor * ipow<2>(total_energy_val);
 
     // Outgoing photon secondary energy sampler
@@ -89,7 +90,7 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     if (particle_id_ == shared_.ids.positron)
     {
         SBPositronXsCorrector scale_xs(
-            units::MevMass{shared_.electron_mass},
+            shared_.electron_mass,
             material_.element_view(ElementComponentId{0}),
             cutoffs_.energy(shared_.ids.gamma),
             inc_energy_);
@@ -110,9 +111,9 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     // angle and TsaiUrbanDistribution for polar angle
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
     real_type                          phi = sample_phi(rng);
-    TsaiUrbanDistribution              sample_gamma_angle(
-        gamma_exit_energy, units::MevMass{1 / shared_.electron_mass});
-    real_type cost = sample_gamma_angle(rng);
+    TsaiUrbanDistribution sample_gamma_angle(gamma_secondary->energy,
+                                             shared_.electron_mass);
+    real_type             cost = sample_gamma_angle(rng);
     gamma_secondary[0].direction
         = rotate(from_spherical(cost, phi), inc_direction_);
 

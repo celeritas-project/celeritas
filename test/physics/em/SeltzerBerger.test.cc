@@ -73,7 +73,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         pointers_.ids.electron  = particles.find(pdg::electron());
         pointers_.ids.positron  = particles.find(pdg::positron());
         pointers_.ids.gamma     = particles.find(pdg::gamma());
-        pointers_.electron_mass = 0.5109989461;
+        pointers_.electron_mass = particles.get(pointers_.ids.electron).mass();
 
         // Set default particle to incident 1 MeV photon
         this->set_inc_particle(pdg::electron(), MevEnergy{10.0});
@@ -103,7 +103,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
                                                       read_element_data);
         pointers_ = model_->host_pointers();
 
-        // Set cutoffs (no cuts)
+        // Set cutoffs
         CutoffParams::Input ci;
         ci.materials = this->material_params();
         ci.particles = this->particle_params();
@@ -243,6 +243,7 @@ TEST_F(SeltzerBergerTest, basic)
 {
     using celeritas::CutoffView;
     using celeritas::MaterialView;
+
     // Reserve 2 secondaries, one for each sample
     const int num_samples = 2;
     this->resize_secondaries(num_samples);
@@ -251,16 +252,14 @@ TEST_F(SeltzerBergerTest, basic)
     const ElementId element{0};
 
     // Production cuts
-
-    CutoffView          cutoff_view(this->cutoff_params()->host_pointers(),
-                           MaterialId{0});
+    auto                cutoffs = this->cutoff_params()->get(MaterialId{0});
     const MaterialView& material_view = this->material_track().material_view();
 
     // Create the interactor
     SeltzerBergerInteractor interact(model_->host_pointers(),
                                      this->particle_track(),
                                      this->direction(),
-                                     cutoff_view,
+                                     cutoffs,
                                      this->secondary_allocator(),
                                      material_view,
                                      element);

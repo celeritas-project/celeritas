@@ -151,13 +151,13 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 
     // Electron
     TsaiUrbanDistribution sample_electron_angle(
-        secondaries[0].energy, units::MevMass{shared_.inv_electron_mass});
+        secondaries[0].energy, MevMass{1 / shared_.inv_electron_mass});
     real_type cost = sample_electron_angle(rng);
     secondaries[0].direction
         = rotate(from_spherical(cost, phi), inc_direction_);
     // Positron
     TsaiUrbanDistribution sample_positron_angle(
-        secondaries[1].energy, units::MevMass{shared_.inv_electron_mass});
+        secondaries[1].energy, MevMass{1 / shared_.inv_electron_mass});
     cost = sample_positron_angle(rng);
     secondaries[1].direction
         = rotate(from_spherical(cost, phi + constants::pi), inc_direction_);
