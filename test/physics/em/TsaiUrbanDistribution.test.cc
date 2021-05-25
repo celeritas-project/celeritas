@@ -35,20 +35,21 @@ TEST_F(TsaiUrbanDistributionTest, bin)
     using namespace celeritas::constants;
     using namespace celeritas::units;
 
+    MevMass             electron_mass = MevMass{0.5109989461};
     std::vector<double> angles;
-    // Loop over various electron energies (converted to MeVEnergy)
-    for (double inc_e : {1.0, 10.0, 20.0, 50.0, 100.0})
+
+    // Loop over various electron energies(converted to MevEnergy)
+    for (double inc_e : {0.1, 1.0, 10.0, 50.0, 100.0})
     {
-        TsaiUrbanDistribution sample_angle(MevEnergy{inc_e},
-                                           MevMass{electron_mass});
+        TsaiUrbanDistribution sample_angle(MevEnergy{inc_e}, electron_mass);
         double                angle = sample_angle(rng);
         angles.push_back(angle);
     }
 
-    const double expected_angles[] = {0.3245577893213,
-                                      -0.02649751911085,
-                                      0.6002972458021,
-                                      0.9822511633688,
-                                      0.1573926944923};
+    const double expected_angles[] = {0.527559321801249,
+                                      0.882599596355283,
+                                      0.999055310334017,
+                                      0.999998183489194,
+                                      0.999978220994207};
     EXPECT_VEC_SOFT_EQ(expected_angles, angles);
 }

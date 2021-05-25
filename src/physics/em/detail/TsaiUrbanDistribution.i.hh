@@ -19,9 +19,10 @@ namespace detail
  * Construct from input data.
  */
 CELER_FUNCTION
-TsaiUrbanDistribution::TsaiUrbanDistribution(Energy energy, Mass mass)
-    : energy_(energy), mass_(mass)
+TsaiUrbanDistribution::TsaiUrbanDistribution(MevEnergy energy, MevMass mass)
 {
+    // MevMass{}.value() [MeV]
+    umax_ = 2 * (1 + energy.value() / mass.value());
 }
 
 //---------------------------------------------------------------------------//
@@ -31,7 +32,6 @@ TsaiUrbanDistribution::TsaiUrbanDistribution(Energy energy, Mass mass)
 template<class Engine>
 CELER_FUNCTION real_type TsaiUrbanDistribution::operator()(Engine& rng)
 {
-    real_type umax = 2 * (1 + energy_.value() * mass_.value());
     real_type u;
     do
     {
@@ -40,9 +40,9 @@ CELER_FUNCTION real_type TsaiUrbanDistribution::operator()(Engine& rng)
         u = uu
             * (BernoulliDistribution(0.25)(rng) ? real_type(1.6)
                                                 : real_type(1.6 / 3));
-    } while (u > umax);
+    } while (u > umax_);
 
-    return 1 - 2 * ipow<2>(u / umax);
+    return 1 - 2 * ipow<2>(u / umax_);
 }
 //---------------------------------------------------------------------------//
 } // namespace detail
