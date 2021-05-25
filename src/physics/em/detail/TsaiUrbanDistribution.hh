@@ -35,9 +35,13 @@ namespace detail
  */
 class TsaiUrbanDistribution
 {
+  public:
+    //!@{
+    //! Type aliases
     using Energy      = units::MevEnergy;
     using Mass        = units::MevMass;
     using result_type = real_type;
+    //!@}
 
   public:
     // Construct with defaults
