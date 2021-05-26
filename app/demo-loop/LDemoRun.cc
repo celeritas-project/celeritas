@@ -122,7 +122,7 @@ LDemoResult run_gpu(LDemoArgs args)
     // TODO: allocate correct size from LDemoParams
     resize(&state_storage,
            build_params_refs<MemSpace::host>(params),
-           size_type{1});
+           args.max_num_tracks);
     StateDeviceRef states_ref = make_ref(state_storage);
 
     CELER_NOT_IMPLEMENTED("TODO: stepping loop");
