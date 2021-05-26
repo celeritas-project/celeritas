@@ -232,9 +232,10 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   if(CELERITAS_BUILD_TESTS AND CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple_cms.gdml")
+    set(_hepmc3_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/input.hepmc3")
     add_test(NAME "app/demo-loop"
       COMMAND "$<TARGET_FILE:Python::Interpreter>"
-      "${_driver}" "${_gdml_inp}"
+      "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}"
     )
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
@@ -244,7 +245,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     set_tests_properties("app/demo-loop" PROPERTIES
       ENVIRONMENT "${_env};${_geant_test_env}"
       RESOURCE_LOCK gpu
-      REQUIRED_FILES "${_driver};${_gdml_inp}"
+      REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
       DISABLED true
     )
   endif()
