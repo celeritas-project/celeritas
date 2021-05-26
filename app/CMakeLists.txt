@@ -246,7 +246,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
       ENVIRONMENT "${_env};${_geant_test_env}"
       RESOURCE_LOCK gpu
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
-      DISABLED true
     )
   endif()
 endif()

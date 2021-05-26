@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "LDemoKernel.hh"
 
+#include <thrust/device_ptr.h>
+#include <thrust/transform_reduce.h>
 #include "base/KernelParamCalculator.cuda.hh"
+#include "base/StackAllocator.hh"
 #include "physics/base/CutoffView.hh"
 #include "random/RngEngine.hh"
 #include "sim/SimTrackView.hh"
@@ -23,6 +26,18 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the track is alive.
+ */
+struct alive
+{
+    __device__ size_type operator()(const SimTrackState& sim) const
+    {
+        return sim.alive ? 1 : 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Sample mean free path and calculate physics step limits.
  */
 __global__ void
@@ -32,10 +47,14 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     if (tid.get() >= states.size())
         return;
 
+    SimTrackView sim(states.sim, tid);
+    if (!sim.alive())
+        return;
+
+    ParticleTrackView particle(params.particles, states.particles, tid);
     GeoTrackView      geo(params.geometry, states.geometry, tid);
     GeoMaterialView   geo_mat(params.geo_mats, geo.volume_id());
     MaterialTrackView mat(params.materials, states.materials, tid);
-    ParticleTrackView particle(params.particles, states.particles, tid);
     PhysicsTrackView  phys(params.physics,
                           states.physics,
                           particle.particle_id(),
@@ -44,7 +63,7 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     RngEngine         rng(states.rng, ThreadId(tid));
 
     // Sample mfp and calculate minimum step (interaction or step-limited)
-    demo_loop::calc_step_limits(geo, geo_mat, mat, particle, phys, rng);
+    demo_loop::calc_step_limits(mat, particle, phys, sim, rng);
 }
 
 //---------------------------------------------------------------------------//
@@ -59,9 +78,13 @@ __global__ void along_and_post_step_kernel(ParamsDeviceRef const params,
     if (tid.get() >= states.size())
         return;
 
+    SimTrackView sim(states.sim, tid);
+    if (!sim.alive())
+        return;
+
+    ParticleTrackView particle(params.particles, states.particles, tid);
     GeoTrackView      geo(params.geometry, states.geometry, tid);
     GeoMaterialView   geo_mat(params.geo_mats, geo.volume_id());
-    ParticleTrackView particle(params.particles, states.particles, tid);
     PhysicsTrackView  phys(params.physics,
                           states.physics,
                           particle.particle_id(),
@@ -75,6 +98,18 @@ __global__ void along_and_post_step_kernel(ParamsDeviceRef const params,
     // Calculate energy loss over the step length
     auto eloss = calc_energy_loss(particle, phys, step);
     states.energy_deposition[tid] += eloss.value();
+
+    // The particle entered a new volume before reaching the interaction
+    if (step < phys.step_length())
+    {
+        states.interactions[tid]
+            = Interaction::from_boundary(particle.energy(), geo.dir());
+    }
+
+    // TODO: is this right??
+    // Kill the track if it's outside the valid geometry region
+    if (geo.is_outside())
+        sim.alive(false);
 
     // Select the model for the discrete process
     demo_loop::select_discrete_model(particle, phys, rng, step, eloss);
@@ -91,10 +126,19 @@ __global__ void process_interactions_kernel(ParamsDeviceRef const params,
     if (tid.get() >= states.size())
         return;
 
+    SimTrackView sim(states.sim, tid);
+    if (!sim.alive())
+        return;
+
+    ParticleTrackView particle(params.particles, states.particles, tid);
     GeoTrackView      geo(params.geometry, states.geometry, tid);
     MaterialTrackView mat(params.materials, states.materials, tid);
-    ParticleTrackView particle(params.particles, states.particles, tid);
-    SimTrackView      sim(states.sim, tid);
+    GeoMaterialView   geo_mat(params.geo_mats, geo.volume_id());
+    PhysicsTrackView  phys(params.physics,
+                          states.physics,
+                          particle.particle_id(),
+                          geo_mat.material_id(),
+                          tid);
     CutoffView        cutoffs(params.cutoffs, mat.material_id());
 
     // Update the track state from the interaction
@@ -103,7 +147,8 @@ __global__ void process_interactions_kernel(ParamsDeviceRef const params,
     {
         sim.alive(false);
     }
-    else if (!action_unchanged(result.action))
+    else if (!action_unchanged(result.action)
+             && !action_crossed_boundary(result.action))
     {
         particle.energy(result.energy);
         geo.set_dir(result.direction);
@@ -121,6 +166,26 @@ __global__ void process_interactions_kernel(ParamsDeviceRef const params,
             states.energy_deposition[tid] += secondary.energy.value();
             secondary = {};
         }
+    }
+
+    // Reset the physics state if a discrete interaction occured
+    if (phys.model_id())
+        phys = {};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear secondaries.
+ */
+__global__ void
+cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
+{
+    auto tid = celeritas::KernelParamCalculator::thread_id();
+    StackAllocator<Secondary> allocate_secondaries(states.secondaries);
+
+    if (tid.get() == 0)
+    {
+        allocate_secondaries.clear();
     }
 }
 
@@ -167,6 +232,30 @@ void process_interactions(const ParamsDeviceRef& params,
                           const StateDeviceRef&  states)
 {
     CDL_LAUNCH_KERNEL(process_interactions, states.size(), params, states);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the number of active tracks.
+ */
+size_type reduce_alive(const StateDeviceRef& states)
+{
+    auto sim_states = states.sim.state[AllItems<SimTrackState>{}].data();
+    return thrust::transform_reduce(
+        thrust::device_pointer_cast(sim_states),
+        thrust::device_pointer_cast(sim_states) + states.size(),
+        alive(),
+        0,
+        thrust::plus<size_type>());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear secondaries.
+ */
+void cleanup(const ParamsDeviceRef& params, const StateDeviceRef& states)
+{
+    CDL_LAUNCH_KERNEL(cleanup, 1, params, states);
 }
 
 //---------------------------------------------------------------------------//

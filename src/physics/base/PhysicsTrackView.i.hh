@@ -6,6 +6,7 @@
 //! \file PhysicsTrackView.i.hh
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
+#include "base/SoftEqual.hh"
 #include "physics/em/EPlusGGMacroXsCalculator.hh"
 #include "physics/em/LivermorePEMacroXsCalculator.hh"
 #include "physics/grid/XsCalculator.hh"
@@ -55,8 +56,8 @@ PhysicsTrackView::operator=(const Initializer_t&)
  */
 CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type count)
 {
-    CELER_EXPECT(count > 0);
-    this->state().interaction_mfp = count;
+    CELER_EXPECT(count >= 0 || soft_equal<real_type>(0, count));
+    this->state().interaction_mfp = clamp_to_nonneg(count);
 }
 
 //---------------------------------------------------------------------------//
@@ -65,7 +66,7 @@ CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type count)
  */
 CELER_FUNCTION void PhysicsTrackView::step_length(real_type distance)
 {
-    CELER_EXPECT(distance > 0);
+    CELER_EXPECT(distance >= 0);
     this->state().step_length = distance;
 }
 
@@ -75,7 +76,7 @@ CELER_FUNCTION void PhysicsTrackView::step_length(real_type distance)
  */
 CELER_FUNCTION void PhysicsTrackView::macro_xs(real_type inv_distance)
 {
-    CELER_EXPECT(inv_distance > 0);
+    CELER_EXPECT(inv_distance >= 0);
     this->state().macro_xs = inv_distance;
 }
 
@@ -341,12 +342,11 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
  */
 CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 {
-    CELER_EXPECT(range > 0);
-
     const real_type rho = params_.scaling_min_range;
     if (range < rho)
         return range;
 
+    CELER_ASSERT(range > 0);
     const real_type alpha = params_.scaling_fraction;
     range = alpha * range + rho * (1 - alpha) * (2 - rho / range);
     CELER_ENSURE(range > 0);

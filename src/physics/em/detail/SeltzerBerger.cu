@@ -15,6 +15,7 @@
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/material/MaterialTrackView.hh"
 #include "random/RngEngine.hh"
+#include "sim/SimTrackView.hh"
 #include "SeltzerBergerInteractor.hh"
 
 namespace celeritas
@@ -49,9 +50,10 @@ __global__ void seltzer_berger_interact_kernel(
                              particle.particle_id(),
                              material.material_id(),
                              tid);
+    SimTrackView     sim(interaction.states.sim, tid);
 
     // This interaction only applies if the Seltzer-Berger model was selected
-    if (physics.model_id() != device_pointers.ids.model)
+    if (physics.model_id() != device_pointers.ids.model || !sim.alive())
         return;
 
     // Assume only a single element in the material, for now

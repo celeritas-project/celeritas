@@ -16,6 +16,7 @@
 #include "physics/material/MaterialTrackView.hh"
 #include "physics/base/CutoffView.hh"
 #include "base/StackAllocator.hh"
+#include "sim/SimTrackView.hh"
 #include "MollerBhabhaInteractor.hh"
 
 namespace celeritas
@@ -51,10 +52,11 @@ moller_bhabha_interact_kernel(const MollerBhabhaPointers                mb,
                              material.material_id(),
                              tid);
 
-    CutoffView cutoff(model.params.cutoffs, material.material_id());
+    CutoffView   cutoff(model.params.cutoffs, material.material_id());
+    SimTrackView sim(model.states.sim, tid);
 
     // This interaction only applies if the MB model was selected
-    if (physics.model_id() != mb.model_id)
+    if (physics.model_id() != mb.model_id || !sim.alive())
     {
         return;
     }

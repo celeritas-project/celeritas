@@ -35,7 +35,8 @@ inp = {
         'hepmc3_filename': hepmc3_filename,
         'seed': 12345,
         'max_num_tracks': 128 * 32,
-        'max_steps': 128
+        'max_steps': 128,
+        'storage_factor': 3
     }
 }
 

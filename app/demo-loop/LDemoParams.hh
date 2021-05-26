@@ -14,6 +14,7 @@
 #include "physics/base/PhysicsParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "random/RngParams.hh"
+#include "sim/TrackInitParams.hh"
 
 namespace demo_loop
 {
@@ -38,11 +39,14 @@ struct LDemoParams
     // Random
     std::shared_ptr<const celeritas::RngParams> rng;
 
+    // Simulation
+    std::shared_ptr<const celeritas::TrackInitParams> track_inits;
+
     //! True if all params are assigned
     explicit operator bool() const
     {
         return geometry && materials && geo_mats && particles && cutoffs
-               && physics && rng;
+               && physics && rng && track_inits;
     }
 };
 

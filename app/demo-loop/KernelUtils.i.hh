@@ -18,11 +18,10 @@ namespace demo_loop
  * Sample mean free path and calculate physics step limits.
  */
 template<class Rng>
-CELER_FUNCTION void calc_step_limits(const GeoTrackView&      geo,
-                                     const GeoMaterialView&   geo_mat,
-                                     const MaterialTrackView& mat,
+CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
                                      const ParticleTrackView& particle,
                                      PhysicsTrackView&        phys,
+                                     SimTrackView&            sim,
                                      Rng&                     rng)
 {
     // Sample mean free path
@@ -32,17 +31,23 @@ CELER_FUNCTION void calc_step_limits(const GeoTrackView&      geo,
         phys.interaction_mfp(sample_exponential(rng));
     }
 
-    // Calculate physics step limits
+    // Calculate physics step limits and total macro xs
+    real_type step = calc_tabulated_physics_step(mat, particle, phys);
     if (particle.is_stopped())
     {
-        // Set the interaction length to zero for stopped particles
-        phys.step_length(0);
+        if (phys.macro_xs() == 0)
+        {
+            // If the particle is stopped and cannot undergo a discrete
+            // interaction, kill it
+            sim.alive(false);
+            return;
+        }
+        // Set the interaction length and mfp to zero for active stopped
+        // particles
+        step = 0;
+        phys.interaction_mfp(0);
     }
-    else
-    {
-        real_type step = calc_tabulated_physics_step(mat, particle, phys);
-        phys.step_length(step);
-    }
+    phys.step_length(step);
 }
 
 //---------------------------------------------------------------------------//
@@ -60,7 +65,7 @@ CELER_FUNCTION real_type propagate(GeoTrackView&           geo,
         LinearPropagator propagate(&geo);
         auto             geo_step = propagate(step);
         step                      = geo_step.distance;
-        // TODO: check whether the volume/material have changed
+        // TODO: check whether the volume/material have changed?
     }
     return step;
 }
@@ -76,30 +81,19 @@ CELER_FUNCTION void select_discrete_model(ParticleTrackView&        particle,
                                           real_type                 step,
                                           ParticleTrackView::Energy eloss)
 {
-    ModelId model{};
-    if (eloss == particle.energy() && !particle.is_stopped())
-    {
-        // If the particle lost all of its energy (and had energy before the
-        // start of the step), the discrete process won't be applied
-        particle.energy(zero_quantity());
-        phys.interaction_mfp(-1);
-        phys.step_length(-1);
-    }
-    else
-    {
-        // Reduce the energy, path length, and remaining mean free path
-        particle.energy(ParticleTrackView::Energy{particle.energy().value()
-                                                  - eloss.value()});
-        phys.step_length(phys.step_length() - step);
-        phys.interaction_mfp(phys.interaction_mfp() - step * phys.macro_xs());
+    // Reduce the energy, path length, and remaining mean free path
+    particle.energy(
+        ParticleTrackView::Energy{particle.energy().value() - eloss.value()});
+    phys.step_length(phys.step_length() - step);
+    phys.interaction_mfp(phys.interaction_mfp() - step * phys.macro_xs());
 
-        // Reached the interaction point: sample the process and determine the
-        // corresponding model
-        if (phys.interaction_mfp() <= 0)
-        {
-            auto ppid_mid = select_process_and_model(particle, phys, rng);
-            model         = ppid_mid.model;
-        }
+    // Reached the interaction point: sample the process and determine the
+    // corresponding model
+    ModelId model{};
+    if (phys.interaction_mfp() <= 0)
+    {
+        auto ppid_mid = select_process_and_model(particle, phys, rng);
+        model         = ppid_mid.model;
     }
     phys.model_id(model);
 }

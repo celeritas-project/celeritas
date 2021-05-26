@@ -21,11 +21,10 @@ namespace demo_loop
 // INLINE HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 template<class Rng>
-inline CELER_FUNCTION void calc_step_limits(const GeoTrackView&      geo,
-                                            const GeoMaterialView&   geo_mat,
-                                            const MaterialTrackView& mat,
+inline CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
                                             const ParticleTrackView& particle,
                                             PhysicsTrackView&        phys,
+                                            SimTrackView&            sim,
                                             Rng&                     rng);
 
 inline CELER_FUNCTION real_type propagate(GeoTrackView&           geo,

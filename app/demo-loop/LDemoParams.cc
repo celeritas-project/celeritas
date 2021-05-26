@@ -8,15 +8,17 @@
 #include "LDemoParams.hh"
 
 #include "comm/Logger.hh"
-#include "io/RootImporter.hh"
+#include "io/EventReader.hh"
 #include "io/ImportData.hh"
 #include "io/EventReader.hh"
+#include "io/RootImporter.hh"
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/EIonizationProcess.hh"
 #include "physics/em/EPlusAnnihilationProcess.hh"
 #include "physics/em/GammaConversionProcess.hh"
 #include "physics/em/PhotoelectricProcess.hh"
+#include "physics/em/RayleighProcess.hh"
 #include "LDemoIO.hh"
 
 using namespace celeritas;
@@ -86,6 +88,14 @@ LDemoParams load_params(const LDemoArgs& args)
             = std::make_shared<ImportedProcesses>(std::move(data.processes));
         input.processes.push_back(
             std::make_shared<ComptonProcess>(result.particles, process_data));
+        input.processes.push_back(std::make_shared<PhotoelectricProcess>(
+            result.particles, result.materials, process_data));
+        input.processes.push_back(std::make_shared<RayleighProcess>(
+            result.particles, result.materials, process_data));
+        input.processes.push_back(std::make_shared<GammaConversionProcess>(
+            result.particles, process_data));
+        input.processes.push_back(
+            std::make_shared<EPlusAnnihilationProcess>(result.particles));
         input.processes.push_back(std::make_shared<EIonizationProcess>(
             result.particles, process_data));
 
@@ -95,9 +105,10 @@ LDemoParams load_params(const LDemoArgs& args)
     // Load track initialization data
     {
         EventReader read_event(args.hepmc3_filename.c_str(), result.particles);
-        const auto  primaries = read_event();
-
-        // TODO: Initialize TrackInitParams
+        TrackInitParams::Input input;
+        input.primaries      = read_event();
+        input.storage_factor = args.storage_factor;
+        result.track_inits   = std::make_shared<TrackInitParams>(input);
     }
 
     // Construct RNG params

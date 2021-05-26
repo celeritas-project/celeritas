@@ -71,6 +71,12 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
     }
     physics.macro_xs(total_macro_xs);
 
+    real_type interaction_length = inf;
+    if (total_macro_xs > 0)
+    {
+        interaction_length = physics.interaction_mfp() / total_macro_xs;
+    }
+
     if (min_range != inf)
     {
         // One or more range limiters applied: scale range limit according to
@@ -79,7 +85,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
     }
 
     // Update step length with discrete interaction
-    return min(min_range, physics.interaction_mfp() / total_macro_xs);
+    return min(min_range, interaction_length);
 }
 
 //---------------------------------------------------------------------------//
@@ -178,7 +184,7 @@ CELER_FUNCTION ParticleTrackView::Energy
                 auto calc_range
                     = physics.make_calculator<RangeCalculator>(grid_id);
                 real_type remaining_range = calc_range(pre_step_energy) - step;
-                CELER_ASSERT(remaining_range > 0);
+                CELER_ASSERT(remaining_range >= 0);
 
                 // Calculate energy along the range curve corresponding to the
                 // actual step taken: this gives the exact energy loss over the
@@ -190,7 +196,7 @@ CELER_FUNCTION ParticleTrackView::Energy
             }
         }
         CELER_ASSERT(eloss > 0);
-        CELER_ASSERT(eloss < pre_step_energy.value());
+        CELER_ASSERT(eloss <= pre_step_energy.value());
     }
 
     CELER_ENSURE(eloss <= pre_step_energy.value());
@@ -221,6 +227,9 @@ select_process_and_model(const ParticleTrackView& particle,
 {
     // Nonzero MFP to interaction -- no interaction model
     CELER_EXPECT(physics.interaction_mfp() <= 0);
+
+    if (physics.macro_xs() == 0)
+        return {};
 
     // Sample ParticleProcessId from physics.per_process_xs()
     ParticleProcessId ppid = celeritas::make_selector(

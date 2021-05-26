@@ -10,6 +10,7 @@
 #include "base/CollectionStateStore.hh"
 #include "comm/Logger.hh"
 #include "physics/base/ModelInterface.hh"
+#include "sim/TrackInitUtils.hh"
 #include "sim/TrackInterface.hh"
 #include "LDemoParams.hh"
 #include "LDemoKernel.hh"
@@ -58,13 +59,14 @@ ParamsData<Ownership::const_reference, M>
 build_params_refs(const LDemoParams& p)
 {
     ParamsData<Ownership::const_reference, M> ref;
-    ref.geometry  = get_pointers<M>(*p.geometry);
-    ref.materials = get_pointers<M>(*p.materials);
-    ref.geo_mats  = get_pointers<M>(*p.geo_mats);
-    ref.cutoffs   = get_pointers<M>(*p.cutoffs);
-    ref.particles = get_pointers<M>(*p.particles);
-    ref.physics   = get_pointers<M>(*p.physics);
-    ref.rng       = get_pointers<M>(*p.rng);
+    ref.geometry    = get_pointers<M>(*p.geometry);
+    ref.materials   = get_pointers<M>(*p.materials);
+    ref.geo_mats    = get_pointers<M>(*p.geo_mats);
+    ref.cutoffs     = get_pointers<M>(*p.cutoffs);
+    ref.particles   = get_pointers<M>(*p.particles);
+    ref.physics     = get_pointers<M>(*p.physics);
+    ref.rng         = get_pointers<M>(*p.rng);
+    ref.track_inits = get_pointers<M>(*p.track_inits);
     CELER_ENSURE(ref);
     return ref;
 }
@@ -86,10 +88,12 @@ void launch_models(LDemoParams const& host_params,
     refs.params.particle     = params.particles;
     refs.params.material     = params.materials;
     refs.params.physics      = params.physics;
+    refs.params.cutoffs      = params.cutoffs;
     refs.states.particle     = states.particles;
     refs.states.material     = states.materials;
     refs.states.physics      = states.physics;
     refs.states.rng          = states.rng;
+    refs.states.sim          = states.sim;
     refs.states.direction    = states.geometry.dir;
     refs.states.secondaries  = states.secondaries;
     refs.states.interactions = states.interactions;
@@ -114,28 +118,61 @@ LDemoResult run_gpu(LDemoArgs args)
     // Load all the problem data
     LDemoParams params = load_params(args);
 
-    // Create param interfaces (TODO unify with sim/TrackInterface)
+    // Create param interfaces
     ParamsDeviceRef params_ref = build_params_refs<MemSpace::device>(params);
 
     // Create states (TODO state store?)
     StateData<Ownership::value, MemSpace::device> state_storage;
-    // TODO: allocate correct size from LDemoParams
     resize(&state_storage,
            build_params_refs<MemSpace::host>(params),
            args.max_num_tracks);
     StateDeviceRef states_ref = make_ref(state_storage);
 
-    CELER_NOT_IMPLEMENTED("TODO: stepping loop");
+    // Copy primaries to device and create track initializers
+    // TODO: for now this assumes we can initialize all primaries at once, but
+    // we should also handle the case where we have more primaries than trackss
+    CELER_ASSERT(params.track_inits->host_pointers().primaries.size()
+                 <= state_storage.track_inits.initializers.capacity());
+    extend_from_primaries(params.track_inits->host_pointers(),
+                          &state_storage.track_inits);
+    size_type num_alive = params.track_inits->host_pointers().primaries.size();
 
-    bool any_alive = true;
-    while (any_alive)
+    while (state_storage.track_inits.initializers.size() > 0 || num_alive > 0)
     {
+        std::cout << "num initializers: "
+                  << state_storage.track_inits.initializers.size()
+                  << std::endl;
+        std::cout
+            << "num tracks: "
+            << args.max_num_tracks - state_storage.track_inits.vacancies.size()
+            << std::endl;
+        std::cout << "num alive: " << num_alive << "\n" << std::endl;
+
+        // Create new tracks from primaries or secondaries
+        initialize_tracks(params_ref, states_ref, &state_storage.track_inits);
+
         demo_loop::pre_step(params_ref, states_ref);
         demo_loop::along_and_post_step(params_ref, states_ref);
+
+        // Launch the interaction kernels for all applicable models
         launch_models(params, params_ref, states_ref);
+
+        // Postprocess secondaries and interaction results
         demo_loop::process_interactions(params_ref, states_ref);
-        // TODO: Create primaries from secondaries
+
+        // Create track initializers from secondaries
+        extend_from_secondaries(
+            params_ref, states_ref, &state_storage.track_inits);
+
+        // Get the number of active tracks
+        num_alive = demo_loop::reduce_alive(states_ref);
+
+        // Clear the secondaries
+        demo_loop::cleanup(params_ref, states_ref);
     }
+
+    // TODO: return result
+    return LDemoResult{};
 }
 
 //---------------------------------------------------------------------------//
