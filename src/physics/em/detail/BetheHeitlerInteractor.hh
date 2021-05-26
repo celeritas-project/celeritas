@@ -37,6 +37,12 @@ namespace detail
 class BetheHeitlerInteractor
 {
   public:
+    //!@{
+    //! Type aliases
+    using MevMass = units::MevMass;
+    //!@}
+
+  public:
     //! Construct sampler from shared and state data
     inline CELER_FUNCTION
     BetheHeitlerInteractor(const BetheHeitlerPointers& shared,
@@ -75,13 +81,6 @@ class BetheHeitlerInteractor
 
     // Gamma energy divided by electron mass * csquared
     const BetheHeitlerPointers& shared_;
-
-    // Sample outgoing particles directions.
-    // Based on the G4ModifiedTsai sampler, a simplified sampler that does not
-    // require exact momentum conservation (due to neglecting nucleus recoil).
-    template<class Engine>
-    inline CELER_FUNCTION real_type sample_cos_theta(real_type kinetic_energy,
-                                                     Engine&   rng);
 
     // Incident gamma energy
     const units::MevEnergy inc_energy_;

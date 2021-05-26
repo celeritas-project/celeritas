@@ -121,13 +121,14 @@ struct SeltzerBergerIds
 template<Ownership W, MemSpace M>
 struct SeltzerBergerData
 {
+    using MevMass = units::MevMass;
     //// MEMBER DATA ////
 
     //! IDs in a separate struct for readability/easier copying
     SeltzerBergerIds ids;
 
-    //! Electron mass [MevMass]
-    real_type electron_mass;
+    //! Electron mass [MeV / c^2]
+    MevMass electron_mass;
 
     // Differential cross section storage
     SeltzerBergerTableData<W, M> differential_xs;
@@ -137,7 +138,7 @@ struct SeltzerBergerData
     //! Whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > 0 && differential_xs;
+        return ids && electron_mass.value() > 0 && differential_xs;
     }
 
     //! Assign from another set of data
@@ -156,6 +157,8 @@ using SeltzerBergerDeviceRef
     = SeltzerBergerData<Ownership::const_reference, MemSpace::device>;
 using SeltzerBergerHostRef
     = SeltzerBergerData<Ownership::const_reference, MemSpace::host>;
+using SeltzerBergerNativeRef
+    = SeltzerBergerData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
 // KERNEL LAUNCHERS
@@ -163,7 +166,7 @@ using SeltzerBergerHostRef
 
 // Launch the Seltzer-Berger interaction
 void seltzer_berger_interact(
-    const SeltzerBergerDeviceRef&              device_pointers,
+    const SeltzerBergerNativeRef&              shared,
     const ModelInteractRefs<MemSpace::device>& interaction);
 
 //---------------------------------------------------------------------------//

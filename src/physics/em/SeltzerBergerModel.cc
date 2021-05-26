@@ -44,8 +44,7 @@ SeltzerBergerModel::SeltzerBergerModel(ModelId               id,
                    << this->label() << ")");
 
     // Save particle properties
-    host_data.electron_mass
-        = particles.get(host_data.ids.electron).mass().value();
+    host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
     // Load differential cross sections
     make_builder(&host_data.differential_xs.elements)

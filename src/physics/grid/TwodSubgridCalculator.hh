@@ -32,9 +32,9 @@ class TwodSubgridCalculator
 
   public:
     // Construct with grid data, backend values, and lower X data.
-    inline TwodSubgridCalculator(const TwodGridData& grid,
-                                 const Values&       storage,
-                                 InterpT             x_loc);
+    inline CELER_FUNCTION TwodSubgridCalculator(const TwodGridData& grid,
+                                                const Values&       storage,
+                                                InterpT             x_loc);
 
     // Calculate the value at the given y coordinate
     inline CELER_FUNCTION real_type operator()(real_type y) const;
