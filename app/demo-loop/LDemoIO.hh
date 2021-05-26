@@ -24,10 +24,7 @@ struct LDemoArgs
     // Problem definition
     std::string geometry_filename; //!< Path to GDML file
     std::string physics_filename;  //!< Path to ROOT exported Geant4 data
-    std::string hepmc3_filename;   //!< Path to hepmc3 event data
-
-    // Source definition (TODO: specify particle type, distribution, ...?)
-    // double energy{}; //!< use hepmc3 input?
+    std::string hepmc3_filename;   //!< Path to Hepmc3 event data
 
     // Control
     unsigned int seed{};

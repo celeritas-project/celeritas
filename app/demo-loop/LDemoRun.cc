@@ -118,7 +118,7 @@ LDemoResult run_gpu(LDemoArgs args)
     // Create param interfaces (TODO unify with sim/TrackInterface)
     ParamsDeviceRef params_ref = build_params_refs<MemSpace::device>(params);
 
-    // TODO: Initialize fixed number of primaries (isotropic samples?)
+    // Initialize primaries from hepmc3 input file
     EventReader read_event(args.hepmc3_filename.c_str(), params.particles);
     const auto  primaries = read_event();
 
@@ -151,10 +151,9 @@ LDemoResult run_cpu(LDemoArgs args)
     LDemoParams params     = load_params(args);
     auto        params_ref = build_params_refs<MemSpace::host>(params);
 
-    // TODO: Initialize fixed number of primaries (isotropic samples?)
+    // Initialize primaries from hepmc3 input file
     EventReader read_event(args.hepmc3_filename.c_str(), params.particles);
     const auto  primaries = read_event();
-
 
     StateData<Ownership::value, MemSpace::host> state_storage;
     resize(&state_storage, build_params_refs<MemSpace::host>(params), 1);
