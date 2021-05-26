@@ -10,7 +10,6 @@
 #include "base/CollectionStateStore.hh"
 #include "comm/Logger.hh"
 #include "physics/base/ModelInterface.hh"
-#include "io/EventReader.hh"
 #include "LDemoParams.hh"
 #include "LDemoInterface.hh"
 #include "LDemoKernel.hh"
@@ -118,15 +117,12 @@ LDemoResult run_gpu(LDemoArgs args)
     // Create param interfaces (TODO unify with sim/TrackInterface)
     ParamsDeviceRef params_ref = build_params_refs<MemSpace::device>(params);
 
-    // Initialize primaries from hepmc3 input file
-    EventReader read_event(args.hepmc3_filename.c_str(), params.particles);
-    const auto  primaries = read_event();
-
     // Create states (TODO state store?)
     StateData<Ownership::value, MemSpace::device> state_storage;
+    // TODO: allocate correct size from LDemoParams
     resize(&state_storage,
            build_params_refs<MemSpace::host>(params),
-           primaries.size());
+           size_type{1});
     StateDeviceRef states_ref = make_ref(state_storage);
 
     CELER_NOT_IMPLEMENTED("TODO: stepping loop");
@@ -150,10 +146,6 @@ LDemoResult run_cpu(LDemoArgs args)
     // Load all the problem data
     LDemoParams params     = load_params(args);
     auto        params_ref = build_params_refs<MemSpace::host>(params);
-
-    // Initialize primaries from hepmc3 input file
-    EventReader read_event(args.hepmc3_filename.c_str(), params.particles);
-    const auto  primaries = read_event();
 
     StateData<Ownership::value, MemSpace::host> state_storage;
     resize(&state_storage, build_params_refs<MemSpace::host>(params), 1);
