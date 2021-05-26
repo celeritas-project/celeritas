@@ -114,19 +114,18 @@ LDemoResult run_gpu(LDemoArgs args)
     // Load all the problem data
     LDemoParams params = load_params(args);
 
-    // Create param interfaces (TODO unify with sim/TrackInterface )
+    // Create param interfaces (TODO unify with sim/TrackInterface)
     ParamsDeviceRef params_ref = build_params_refs<MemSpace::device>(params);
 
     // Create states (TODO state store?)
     StateData<Ownership::value, MemSpace::device> state_storage;
+    // TODO: allocate correct size from LDemoParams
     resize(&state_storage,
            build_params_refs<MemSpace::host>(params),
-           args.num_tracks);
+           args.max_num_tracks);
     StateDeviceRef states_ref = make_ref(state_storage);
 
     CELER_NOT_IMPLEMENTED("TODO: stepping loop");
-
-    // TODO: Initialize fixed number of primaries (isotropic samples?)
 
     bool any_alive = true;
     while (any_alive)
@@ -153,8 +152,6 @@ LDemoResult run_cpu(LDemoArgs args)
     auto states_ref = make_ref(state_storage);
 
     CELER_NOT_IMPLEMENTED("TODO: CPU stepping loop");
-
-    // TODO: Initialize fixed number of primaries (isotropic samples?)
 
     bool any_alive = false;
     while (any_alive)

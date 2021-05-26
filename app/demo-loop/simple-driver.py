@@ -12,8 +12,9 @@ from sys import exit, argv
 
 try:
     geometry_filename = argv[1]
+    hepmc3_filename = argv[2]
 except TypeError:
-    print("usage: {} inp.gdml".format(sys.argv[0]))
+    print("usage: {} inp.gdml inp.hepmc3".format(sys.argv[0]))
     exit(2)
 
 geant_exp_exe = environ.get('CELERITAS_GEANT_EXPORTER_EXE', './geant-exporter')
@@ -31,9 +32,9 @@ inp = {
     'run': {
         'geometry_filename': geometry_filename,
         'physics_filename': physics_filename,
+        'hepmc3_filename': hepmc3_filename,
         'seed': 12345,
-        'energy': 10, # MeV
-        'num_tracks': 128 * 32,
+        'max_num_tracks': 128 * 32,
         'max_steps': 128
     }
 }

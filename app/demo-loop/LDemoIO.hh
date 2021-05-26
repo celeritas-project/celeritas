@@ -24,20 +24,19 @@ struct LDemoArgs
     // Problem definition
     std::string geometry_filename; //!< Path to GDML file
     std::string physics_filename;  //!< Path to ROOT exported Geant4 data
-
-    // Source definition (TODO: specify particle type, distribution, ...?)
-    double energy{}; //!< use hepmc3 input?
+    std::string hepmc3_filename;   //!< Path to Hepmc3 event data
 
     // Control
     unsigned int seed{};
-    size_type    num_tracks{};
+    size_type    max_num_tracks{};
     size_type    max_steps{};
 
     //! Whether the run arguments are valid
     explicit operator bool() const
     {
         return !geometry_filename.empty() && !physics_filename.empty()
-               && energy > 0 && num_tracks > 0 && max_steps > 0;
+               && !hepmc3_filename.empty() && max_num_tracks > 0
+               && max_steps > 0;
     }
 };
 
