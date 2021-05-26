@@ -62,8 +62,8 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     }
 
     // Allocate space for the bremss photon
-    Secondary* gamma_secondary = this->allocate_(1);
-    if (gamma_secondary == nullptr)
+    Secondary* secondaries = this->allocate_(1);
+    if (secondaries == nullptr)
     {
         // Failed to allocate space for the secondary
         return Interaction::from_failure();
@@ -103,28 +103,29 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     result.action = Action::spawned;
     result.energy
         = units::MevEnergy{inc_energy_.value() - gamma_exit_energy.value()};
-    result.direction               = inc_direction_;
-    result.secondaries             = {gamma_secondary, 1};
-    gamma_secondary[0].particle_id = shared_.ids.gamma;
+    result.direction           = inc_direction_;
+    result.secondaries         = {secondaries, 1};
+    secondaries[0].particle_id = shared_.ids.gamma;
+    secondaries[0].energy      = gamma_exit_energy;
 
     // Generate exiting gamma direction from isotropic azimuthal
     // angle and TsaiUrbanDistribution for polar angle
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    real_type                          phi = sample_phi(rng);
-    TsaiUrbanDistribution sample_gamma_angle(gamma_secondary->energy,
+    TsaiUrbanDistribution sample_gamma_angle(secondaries[0].energy,
                                              shared_.electron_mass);
     real_type             cost = sample_gamma_angle(rng);
-    gamma_secondary[0].direction
-        = rotate(from_spherical(cost, phi), inc_direction_);
+    secondaries[0].direction
+        = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
 
     // Update parent particle direction
     for (unsigned int i : range(3))
     {
         real_type inc_momentum_i   = inc_momentum_.value() * inc_direction_[i];
         real_type gamma_momentum_i = result.secondaries[0].energy.value()
-                                     * gamma_secondary[0].direction[i];
-        result.secondaries[0].direction[i] = inc_momentum_i - gamma_momentum_i;
+                                     * result.secondaries[0].direction[i];
+        result.direction[i] = inc_momentum_i - gamma_momentum_i;
     }
+    normalize_direction(&result.direction);
 
     return result;
 }
