@@ -222,6 +222,7 @@ celeritas_add_test(physics/em/LivermorePE.test.cc)
 celeritas_add_test(physics/em/MollerBhabha.test.cc)
 celeritas_add_test(physics/em/Rayleigh.test.cc)
 celeritas_add_test(physics/em/SeltzerBerger.test.cc)
+celeritas_add_test(physics/em/TsaiUrbanDistribution.test.cc)
 
 celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
   ${_optional_geant4}

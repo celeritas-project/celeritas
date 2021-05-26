@@ -93,6 +93,7 @@ if(CELERITAS_USE_CUDA)
     physics/em/detail/MollerBhabha.cu
     physics/em/detail/LivermorePE.cu
     physics/em/detail/Rayleigh.cu
+    physics/em/detail/SeltzerBerger.cu
     random/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
   )
