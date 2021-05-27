@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <VecGeom/volumes/PlacedVolume.h>
+#include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/navigation/NavigationState.h>
 
 #include "base/Macros.hh"
@@ -103,7 +103,7 @@ class GeoTrackView
   private:
     //!@{
     //! Type aliases
-    using Volume   = vecgeom::VPlacedVolume;
+    using Volume   = vecgeom::LogicalVolume;
     using NavState = vecgeom::NavigationState;
     //!@}
 
