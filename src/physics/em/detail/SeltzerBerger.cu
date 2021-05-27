@@ -9,12 +9,12 @@
 
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "random/RngEngine.hh"
+#include "base/StackAllocator.hh"
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "base/StackAllocator.hh"
 #include "physics/material/MaterialTrackView.hh"
+#include "random/RngEngine.hh"
 #include "SeltzerBergerInteractor.hh"
 
 namespace celeritas
@@ -37,8 +37,6 @@ __global__ void seltzer_berger_interact_kernel(
     if (!(tid < interaction.states.size()))
         return;
 
-    StackAllocator<Secondary> allocate_secondaries(
-        interaction.states.secondaries);
     ParticleTrackView particle(
         interaction.params.particle, interaction.states.particle, tid);
 
@@ -56,15 +54,14 @@ __global__ void seltzer_berger_interact_kernel(
     if (physics.model_id() != device_pointers.ids.model)
         return;
 
-    CutoffView cutoffs(interaction.params.cutoffs, material.material_id());
-
-    // Cache the associated MaterialView as function calls to MaterialTrackView
-    // are expensive
+    // Assume only a single element in the material, for now
     MaterialView    material_view = material.material_view();
+    CELER_ASSERT(material_view.num_elements() == 1);
     const ElementId element_id{0};
 
-    // Assume only a single element in the material, for now
-    CELER_ASSERT(material_view.num_elements() == 1);
+    CutoffView cutoffs(interaction.params.cutoffs, material.material_id());
+    StackAllocator<Secondary> allocate_secondaries(
+        interaction.states.secondaries);
     SeltzerBergerInteractor interact(device_pointers,
                                      particle,
                                      interaction.states.direction[tid],

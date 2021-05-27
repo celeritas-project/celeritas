@@ -8,8 +8,10 @@
 
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
-#include "TsaiUrbanDistribution.hh"
 #include "random/distributions/UniformRealDistribution.hh"
+#include "SBEnergyDistribution.hh"
+#include "SBPositronXsCorrector.hh"
+#include "TsaiUrbanDistribution.hh"
 
 namespace celeritas
 {
@@ -78,6 +80,7 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     real_type density_correction = density_factor * ipow<2>(total_energy_val);
 
     // Outgoing photon secondary energy sampler
+    using EnergySq = SBEnergyDistribution::EnergySq;
     SBEnergyDistribution sample_gamma_energy(
         shared_,
         inc_energy_,

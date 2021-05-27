@@ -8,18 +8,16 @@
 #pragma once
 
 #include "base/Macros.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Secondary.hh"
-#include "base/StackAllocator.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
 #include "SeltzerBerger.hh"
-#include "SBEnergyDistribution.hh"
-#include "SBPositronXsCorrector.hh"
 
 namespace celeritas
 {
@@ -48,7 +46,6 @@ class SeltzerBergerInteractor
     //!@{
     //! Type aliases
     using Energy   = units::MevEnergy;
-    using EnergySq = SBEnergyDistribution::EnergySq;
     using Momentum = units::MevMomentum;
     //!@}
 
