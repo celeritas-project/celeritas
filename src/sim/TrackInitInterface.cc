@@ -46,17 +46,19 @@ void resize(
 
     // Initialize the track counter for each event as the number of primary
     // particles in that event
-    Collection<TrackId::size_type, Ownership::value, MemSpace::host, EventId>
-        track_counters;
+    std::vector<size_type> counters;
     for (const auto& p : params.primaries[AllItems<Primary, MemSpace::host>{}])
     {
-        const auto event_id = p.event_id;
-        if (!(event_id < track_counters.size()))
+        const auto event_id = p.event_id.get();
+        if (!(event_id < counters.size()))
         {
-            make_builder(&track_counters).resize(event_id.get() + 1);
+            counters.resize(event_id + 1);
         }
-        ++track_counters[event_id];
+        ++counters[event_id];
     }
+    Collection<TrackId::size_type, Ownership::value, MemSpace::host, EventId>
+        track_counters;
+    make_builder(&track_counters).insert_back(counters.begin(), counters.end());
     data->track_counters = track_counters;
     data->num_primaries  = params.primaries.size();
 }
