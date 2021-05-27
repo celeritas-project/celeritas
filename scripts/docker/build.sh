@@ -27,7 +27,7 @@ case $CONFIG in
     ;;
   focal-cuda11)
     BASE_TAG=nvidia/cuda:11.1-devel-ubuntu20.04
-    VECGEOM=v1.1.13
+    VECGEOM=v1.1.15
     ;;
   *)
     echo "Invalid configure type: $1"
