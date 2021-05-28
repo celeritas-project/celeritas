@@ -98,7 +98,7 @@ ImportProcessClass to_import_process_class(const G4VProcess& process)
             {"ionIoni",        ImportProcessClass::ion_ioni},
             {"msc",            ImportProcessClass::msc},
             {"hIoni",          ImportProcessClass::h_ioni},
-            {"hBrems",         ImportProcessClass::h_brems},
+            {"hBrem",          ImportProcessClass::h_brem},
             {"hPairProd",      ImportProcessClass::h_pair_prod},
             {"CoulombScat",    ImportProcessClass::coulomb_scat},
             {"eIoni",          ImportProcessClass::e_ioni},
@@ -109,7 +109,7 @@ ImportProcessClass to_import_process_class(const G4VProcess& process)
             {"Rayl",           ImportProcessClass::rayleigh},
             {"annihil",        ImportProcessClass::annihilation},
             {"muIoni",         ImportProcessClass::mu_ioni},
-            {"muBrems",        ImportProcessClass::mu_brems},
+            {"muBrem",         ImportProcessClass::mu_brem},
             {"muPairProd",     ImportProcessClass::mu_pair_prod},
             // clang-format on
         };
