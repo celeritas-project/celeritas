@@ -48,7 +48,7 @@ enum class ImportProcessClass
     ion_ioni,
     msc,
     h_ioni,
-    h_brems,
+    h_brem,
     h_pair_prod,
     coulomb_scat,
     e_ioni,
@@ -59,7 +59,7 @@ enum class ImportProcessClass
     rayleigh,
     annihilation,
     mu_ioni,
-    mu_brems,
+    mu_brem,
     mu_pair_prod,
 };
 
