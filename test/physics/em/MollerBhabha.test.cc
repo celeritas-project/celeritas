@@ -182,16 +182,16 @@ TEST_F(MollerBhabhaInteractorTest, basic)
     //// Moller
     // Gold values based on the host rng. Energies are in MeV
     const double expected_m_inc_exit_cost[]
-        = {0.9990710950036, 0.9999968062506, 0.9999999977305, 0.9999999999999};
+        = {0.9981497250995, 0.999993612333, 0.999999995461, 0.9999999999998};
     const double expected_m_inc_exit_e[]
-        = {0.9963327387486, 9.999311167986, 999.9955541884, 99999.99764067};
+        = {0.9927116916645, 9.998622388005, 999.9911084469, 99999.99528134};
     const double expected_m_inc_edep[] = {0, 0, 0, 0};
     const double expected_m_sec_cost[] = {
-        0.08502731668653, 0.02724680064857, 0.06584605679517, 0.04799224699288};
-    const double expected_m_sec_e[] = {0.003667261251426,
-                                       0.0006888320140567,
-                                       0.004445811636576,
-                                       0.002359332577641};
+        0.1196563201983, 0.03851909820188, 0.09291901073767, 0.06779325842364};
+    const double expected_m_sec_e[] = {0.007288308335526,
+                                       0.001377611995461,
+                                       0.008891553104294,
+                                       0.004718664979811};
 
     //// Bhabha
     // Gold values based on the host rng. Energies are in MeV
@@ -389,16 +389,16 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
     }
 
     // Gold values for average number of calls to rng
-    const double expected_avg_engine_samples[] = {26.5173,
-                                                  13.2599,
-                                                  9.5235,
-                                                  9.2094,
-                                                  9.1797,
-                                                  564.0179,
-                                                  8.731,
-                                                  7.1778,
-                                                  7.0214,
-                                                  7.0005};
+    const double expected_avg_engine_samples[] = {20.8046,
+                                                  13.2538,
+                                                  9.5695,
+                                                  9.2121,
+                                                  9.1693,
+                                                  564.0656,
+                                                  8.7123,
+                                                  7.1706,
+                                                  7.0299,
+                                                  7.0079};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

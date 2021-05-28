@@ -42,8 +42,9 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     CELER_EXPECT(particle.particle_id() == shared_.electron_id
                  || particle.particle_id() == shared_.positron_id);
 
-    secondary_energy_cutoff_
-        = max(secondary_energy_cutoff_, shared_.min_valid_energy());
+    secondary_energy_cutoff_ = celeritas::max(
+        secondary_energy_cutoff_,
+        (inc_particle_is_electron_ ? 2 : 1) * shared_.min_valid_energy());
 }
 
 //---------------------------------------------------------------------------//
@@ -56,9 +57,7 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 {
-    if ((2 * secondary_energy_cutoff_ >= inc_energy_
-         && inc_particle_is_electron_)
-        || (secondary_energy_cutoff_ >= inc_energy_))
+    if (secondary_energy_cutoff_ >= inc_energy_)
     {
         // The secondary should not be emitted. This interaction cannot happen
         // and the incident particle must undergo an energy loss process.
