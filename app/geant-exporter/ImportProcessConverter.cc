@@ -98,7 +98,7 @@ ImportProcessClass to_import_process_class(const G4VProcess& process)
             {"ionIoni",        ImportProcessClass::ion_ioni},
             {"msc",            ImportProcessClass::msc},
             {"hIoni",          ImportProcessClass::h_ioni},
-            {"hBrems",          ImportProcessClass::h_brem},
+            {"hBrems",         ImportProcessClass::h_brem},
             {"hPairProd",      ImportProcessClass::h_pair_prod},
             {"CoulombScat",    ImportProcessClass::coulomb_scat},
             {"eIoni",          ImportProcessClass::e_ioni},
@@ -109,7 +109,7 @@ ImportProcessClass to_import_process_class(const G4VProcess& process)
             {"Rayl",           ImportProcessClass::rayleigh},
             {"annihil",        ImportProcessClass::annihilation},
             {"muIoni",         ImportProcessClass::mu_ioni},
-            {"muBrem",         ImportProcessClass::mu_brem},
+            {"muBrems",        ImportProcessClass::mu_brem},
             {"muPairProd",     ImportProcessClass::mu_pair_prod},
             // clang-format on
         };
@@ -136,7 +136,7 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
         {"UrbanMsc",            ImportModelClass::urban_msc},
         {"ICRU73QO",            ImportModelClass::icru_73_qo},
         {"WentzelVIUni",        ImportModelClass::wentzel_VI_uni},
-        {"hBrems",               ImportModelClass::h_brem},
+        {"hBrems",              ImportModelClass::h_brem},
         {"hPairProd",           ImportModelClass::h_pair_prod},
         {"eCoulombScattering",  ImportModelClass::e_coulomb_scattering},
         {"Bragg",               ImportModelClass::bragg},
@@ -149,7 +149,7 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
         {"BetheHeitlerLPM",     ImportModelClass::bethe_heitler_lpm},
         {"LivermoreRayleigh",   ImportModelClass::livermore_rayleigh},
         {"MuBetheBloch",        ImportModelClass::mu_bethe_bloch},
-        {"MuBrem",              ImportModelClass::mu_brem},
+        {"MuBrems",             ImportModelClass::mu_brem},
         {"muPairProd",          ImportModelClass::mu_pair_prod},
         // clang-format on
     };
