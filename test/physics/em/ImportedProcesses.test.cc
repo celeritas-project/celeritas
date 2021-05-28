@@ -226,8 +226,8 @@ TEST_F(ImportedProcessesTest, bremsstrahlung)
         applic.material = mat_id;
         auto builders   = process->step_limits(applic);
         EXPECT_TRUE(builders[VGT::macro_xs]);
-        EXPECT_FALSE(builders[VGT::energy_loss]);
-        EXPECT_FALSE(builders[VGT::range]);
+        EXPECT_TRUE(builders[VGT::energy_loss]);
+        EXPECT_TRUE(builders[VGT::range]);
     }
 }
 
