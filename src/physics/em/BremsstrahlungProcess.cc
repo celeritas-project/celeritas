@@ -59,7 +59,7 @@ auto BremsstrahlungProcess::step_limits(Applicability applic) const
  */
 std::string BremsstrahlungProcess::label() const
 {
-    return "Bremsstrahlung process";
+    return "Bremsstrahlung";
 }
 
 //---------------------------------------------------------------------------//
