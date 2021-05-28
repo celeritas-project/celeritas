@@ -182,16 +182,16 @@ TEST_F(MollerBhabhaInteractorTest, basic)
     //// Moller
     // Gold values based on the host rng. Energies are in MeV
     const double expected_m_inc_exit_cost[]
-        = {0.9981497250995, 0.999993612333, 0.999999995461, 0.9999999999998};
+        = {0.9990710950036, 0.9999968062506, 0.9999999977305, 0.9999999999999};
     const double expected_m_inc_exit_e[]
-        = {0.9927116916645, 9.998622388005, 999.9911084469, 99999.99528134};
+        = {0.9963327387486, 9.999311167986, 999.9955541884, 99999.99764067};
     const double expected_m_inc_edep[] = {0, 0, 0, 0};
     const double expected_m_sec_cost[] = {
-        0.1196563201983, 0.03851909820188, 0.09291901073767, 0.06779325842364};
-    const double expected_m_sec_e[] = {0.007288308335526,
-                                       0.001377611995461,
-                                       0.008891553104294,
-                                       0.004718664979811};
+        0.08502731668653, 0.02724680064857, 0.06584605679517, 0.04799224699288};
+    const double expected_m_sec_e[] = {0.003667261251426,
+                                       0.0006888320140567,
+                                       0.004445811636576,
+                                       0.002359332577641};
 
     //// Bhabha
     // Gold values based on the host rng. Energies are in MeV
@@ -285,14 +285,14 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     //// Moller
     // Gold values based on the host rng. Energies are in MeV
     const double expected_m_inc_exit_cost[]
-        = {0.9784675127353, 0.9997401875592, 0.9999953862586, 0.9999999997589};
+        = {0.9867839018457, 0.9998679545527, 0.9999976849582, 0.9999999998794};
     const double expected_m_inc_exit_e[]
-        = {6.75726441249, 95.11275692125, 991.0427997072, 99995.28168559};
+        = {7.747030287179, 97.45544686297, 995.4854043205, 99997.64075507};
     const double expected_m_inc_edep[] = {0, 0, 0, 0};
     const double expected_m_sec_cost[]
-        = {0.9154612855963, 0.91405872098, 0.9478947756541, 0.9066254320384};
+        = {0.8707717566471, 0.8489644755061, 0.9034620598411, 0.8353155270718};
     const double expected_m_sec_e[]
-        = {3.24273558751, 4.887243078746, 8.957200292789, 4.718314414109};
+        = {2.252969712821, 2.54455313703, 4.514595679524, 2.359244932953};
 
     //// Bhabha
     // Gold values based on the host rng. Energies are in MeV
@@ -387,17 +387,18 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
                                          / double(num_particles_sampled));
         }
     }
+
     // Gold values for average number of calls to rng
-    const double expected_avg_engine_samples[] = {20.8046,
-                                                  13.2538,
-                                                  9.5695,
-                                                  9.2121,
-                                                  9.1693,
-                                                  564.0656,
-                                                  8.7123,
-                                                  7.1706,
-                                                  7.0299,
-                                                  7.0079};
+    const double expected_avg_engine_samples[] = {26.5173,
+                                                  13.2599,
+                                                  9.5235,
+                                                  9.2094,
+                                                  9.1797,
+                                                  564.0179,
+                                                  8.731,
+                                                  7.1778,
+                                                  7.0214,
+                                                  7.0005};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
