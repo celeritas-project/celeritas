@@ -25,7 +25,7 @@ MollerEnergyDistribution::MollerEnergyDistribution(real_type electron_mass_c_sq,
                                                    real_type inc_energy)
     : inc_energy_(inc_energy)
     , total_energy_(inc_energy + electron_mass_c_sq)
-    , min_energy_fraction_(0.5 * min_valid_energy / inc_energy)
+    , min_energy_fraction_(min_valid_energy / inc_energy)
     , gamma_(total_energy_ / electron_mass_c_sq)
 {
     CELER_EXPECT(electron_mass_c_sq > 0 && inc_energy_ > 0);
