@@ -56,6 +56,23 @@ class BetheHeitlerInteractor
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
   private:
+    //// DATA ////
+
+    // Gamma energy divided by electron mass * csquared
+    const BetheHeitlerPointers& shared_;
+    // Incident gamma energy
+    const units::MevEnergy inc_energy_;
+    // Incident direction
+    const Real3& inc_direction_;
+    // Allocate space for a secondary particle
+    StackAllocator<Secondary>& allocate_;
+    // Element properties for calculating screening functions and variables
+    const ElementView& element_;
+    // Cached minimum epsilon, m_e*c^2/E_gamma; kinematical limit for Y -> e+e-
+    real_type epsilon0_;
+
+    //// HELPER FUNCTIONS ////
+
     // Calculates the screening variable, \$f \delta \eta \$f, which is a
     // function of \$f \epsilon \$f. This is a measure of the "impact
     // parameter" of the incident photon.
@@ -78,24 +95,6 @@ class BetheHeitlerInteractor
     // Auxiliary screening function, Phi_2, for the "composition+rejection"
     // technique for sampling.
     inline CELER_FUNCTION real_type screening_phi2_aux(real_type delta) const;
-
-    // Gamma energy divided by electron mass * csquared
-    const BetheHeitlerPointers& shared_;
-
-    // Incident gamma energy
-    const units::MevEnergy inc_energy_;
-
-    // Incident direction
-    const Real3& inc_direction_;
-
-    // Allocate space for a secondary particle
-    StackAllocator<Secondary>& allocate_;
-
-    // Element properties for calculating screening functions and variables
-    const ElementView& element_;
-
-    // Cached minimum epsilon, m_e*c^2/E_gamma; kinematical limit for Y -> e+e-
-    real_type epsilon0_;
 };
 
 //---------------------------------------------------------------------------//
