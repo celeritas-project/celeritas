@@ -58,7 +58,7 @@ class SeltzerBergerInteractor
                             const CutoffView&             cutoffs,
                             StackAllocator<Secondary>&    allocate,
                             const MaterialView&           material,
-                            const ElementId&              element_id);
+                            const ElementComponentId&     elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -67,14 +67,14 @@ class SeltzerBergerInteractor
   private:
     // Device (host CPU or GPU device) references
     const SeltzerBergerNativeRef& shared_;
-    // Type of particle
-    const ParticleId particle_id_;
     // Incident particle energy
     const Energy inc_energy_;
     // Incident particle direction
     const Momentum inc_momentum_;
     // Incident particle direction
     const Real3& inc_direction_;
+    // Incident particle flag for selecting XS correction factor
+    const bool inc_particle_is_electron_;
     // Interactor thresholds
     const CutoffView& cutoffs_;
     // Allocate space for a secondary particle
@@ -82,7 +82,7 @@ class SeltzerBergerInteractor
     // Material in which interaction occurs
     const MaterialView& material_;
     // Element in which interaction occurs
-    const ElementId& element_id_;
+    const ElementComponentId& elcomp_id_;
 };
 
 //---------------------------------------------------------------------------//

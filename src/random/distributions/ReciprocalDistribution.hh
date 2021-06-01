@@ -46,7 +46,7 @@ class ReciprocalDistribution
 
     // Sample a random number according to the distribution
     template<class Generator>
-    inline CELER_FUNCTION result_type operator()(Generator& rng);
+    inline CELER_FUNCTION result_type operator()(Generator& rng) const;
 
   private:
     RealType a_;

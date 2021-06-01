@@ -57,7 +57,7 @@ __global__ void seltzer_berger_interact_kernel(
     // Assume only a single element in the material, for now
     MaterialView    material_view = material.material_view();
     CELER_ASSERT(material_view.num_elements() == 1);
-    const ElementId element_id{0};
+    const ElementComponentId selected_element{0};
 
     CutoffView cutoffs(interaction.params.cutoffs, material.material_id());
     StackAllocator<Secondary> allocate_secondaries(
@@ -68,7 +68,7 @@ __global__ void seltzer_berger_interact_kernel(
                                      cutoffs,
                                      allocate_secondaries,
                                      material_view,
-                                     element_id);
+                                     selected_element);
 
     RngEngine rng(interaction.states.rng, tid);
     interaction.states.interactions[tid] = interact(rng);
