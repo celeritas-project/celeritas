@@ -26,18 +26,6 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 /*!
- * Whether the track is alive.
- */
-struct alive
-{
-    __device__ size_type operator()(const SimTrackState& sim) const
-    {
-        return sim.alive ? 1 : 0;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Sample mean free path and calculate physics step limits.
  */
 __global__ void
@@ -232,21 +220,6 @@ void process_interactions(const ParamsDeviceRef& params,
                           const StateDeviceRef&  states)
 {
     CDL_LAUNCH_KERNEL(process_interactions, states.size(), params, states);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the number of active tracks.
- */
-size_type reduce_alive(const StateDeviceRef& states)
-{
-    auto sim_states = states.sim.state[AllItems<SimTrackState>{}].data();
-    return thrust::transform_reduce(
-        thrust::device_pointer_cast(sim_states),
-        thrust::device_pointer_cast(sim_states) + states.size(),
-        alive(),
-        0,
-        thrust::plus<size_type>());
 }
 
 //---------------------------------------------------------------------------//

@@ -19,8 +19,7 @@ namespace demo_loop
 void pre_step(const ParamsDeviceRef&, const StateDeviceRef&);
 void along_and_post_step(const ParamsDeviceRef&, const StateDeviceRef&);
 void process_interactions(const ParamsDeviceRef&, const StateDeviceRef&);
-celeritas::size_type reduce_alive(const StateDeviceRef&);
-void                 cleanup(const ParamsDeviceRef&, const StateDeviceRef&);
+void cleanup(const ParamsDeviceRef&, const StateDeviceRef&);
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_CUDA
@@ -35,11 +34,6 @@ inline void along_and_post_step(const ParamsDeviceRef&, const StateDeviceRef&)
 }
 
 inline void process_interactions(const ParamsDeviceRef&, const StateDeviceRef&)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
-
-inline size_type reduce_alive(const StateDeviceRef&)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

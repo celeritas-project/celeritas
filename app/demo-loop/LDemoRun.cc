@@ -135,18 +135,15 @@ LDemoResult run_gpu(LDemoArgs args)
                  <= state_storage.track_inits.initializers.capacity());
     extend_from_primaries(params.track_inits->host_pointers(),
                           &state_storage.track_inits);
-    size_type num_alive = params.track_inits->host_pointers().primaries.size();
 
-    while (state_storage.track_inits.initializers.size() > 0 || num_alive > 0)
+    size_type num_alive       = 0;
+    size_type num_inits       = state_storage.track_inits.initializers.size();
+    size_type remaining_steps = args.max_steps;
+
+    while (num_alive > 0 || num_inits > 0)
     {
-        std::cout << "num initializers: "
-                  << state_storage.track_inits.initializers.size()
-                  << std::endl;
-        std::cout
-            << "num tracks: "
-            << args.max_num_tracks - state_storage.track_inits.vacancies.size()
-            << std::endl;
-        std::cout << "num alive: " << num_alive << "\n" << std::endl;
+        std::cout << "alive: " << num_alive << std::endl;
+        std::cout << "inits: " << num_inits << "\n" << std::endl;
 
         // Create new tracks from primaries or secondaries
         initialize_tracks(params_ref, states_ref, &state_storage.track_inits);
@@ -160,15 +157,23 @@ LDemoResult run_gpu(LDemoArgs args)
         // Postprocess secondaries and interaction results
         demo_loop::process_interactions(params_ref, states_ref);
 
-        // Create track initializers from secondaries
+        // Create track initializers from surviving secondaries
         extend_from_secondaries(
             params_ref, states_ref, &state_storage.track_inits);
 
-        // Get the number of active tracks
-        num_alive = demo_loop::reduce_alive(states_ref);
-
-        // Clear the secondaries
+        // Clear secondaries
         demo_loop::cleanup(params_ref, states_ref);
+
+        // Get the number of track initializers and active tracks
+        num_alive = args.max_num_tracks
+                    - state_storage.track_inits.vacancies.size();
+        num_inits = state_storage.track_inits.initializers.size();
+
+        if (--remaining_steps == 0)
+        {
+            // Exceeded step count
+            break;
+        }
     }
 
     // TODO: return result
