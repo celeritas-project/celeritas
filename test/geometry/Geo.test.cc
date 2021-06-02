@@ -38,7 +38,7 @@ class GeoParamsHostTest : public GeoTestBase
 TEST_F(GeoParamsHostTest, accessors)
 {
     const auto& geom = *this->geo_params();
-    EXPECT_EQ(11, geom.num_volumes());
+    EXPECT_EQ(4, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
 
     EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}));
@@ -73,54 +73,62 @@ class GeoTrackViewHostTest : public GeoTestBase
 
 TEST_F(GeoTrackViewHostTest, from_outside)
 {
+    const auto& geom = *this->geo_params();
+
     GeoTrackView geo = this->make_geo_track_view();
     geo              = {{-10, -10, -10}, {1, 0, 0}};
-    EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape2 center
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2");
 
     geo.find_next_step();
     EXPECT_SOFT_EQ(5, geo.next_step());
-    geo.move_next_step();
+    geo.move_next_step(); // Shape2 -> Shape1
     EXPECT_SOFT_EQ(-5, geo.pos()[0]);
-    EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape2 -> Shape1
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
 
     geo.find_next_step();
     EXPECT_SOFT_EQ(1, geo.next_step());
-    geo.move_next_step();
-    EXPECT_EQ(VolumeId{9}, geo.volume_id()); // Shape1 -> Envelope
+    geo.move_next_step(); // Shape1 -> Envelope
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
     EXPECT_FALSE(geo.is_outside());
 
     geo.find_next_step();
     EXPECT_SOFT_EQ(1, geo.next_step());
-    geo.move_next_step();
-    EXPECT_EQ(VolumeId{10}, geo.volume_id()); // Shape1 -> Envelope
+    geo.move_next_step(); // Envelope -> World
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
+
     EXPECT_FALSE(geo.is_outside());
 }
 
 TEST_F(GeoTrackViewHostTest, from_outside_edge)
 {
+    const auto& geom = *this->geo_params();
+
     GeoTrackView geo = this->make_geo_track_view();
     geo              = {{-24, 6.5, 6.5}, {1, 0, 0}};
     EXPECT_TRUE(geo.is_outside());
 
-    geo.move_next_step();
-    EXPECT_EQ(VolumeId{10}, geo.volume_id()); // World
+    geo.move_next_step(); // outside -> World
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
+
     geo.find_next_step();
     EXPECT_SOFT_EQ(7., geo.next_step());
-    geo.move_next_step();
-    EXPECT_EQ(VolumeId{3}, geo.volume_id()); // World -> Envelope
+    geo.move_next_step(); // World -> Envelope
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
 }
 
 TEST_F(GeoTrackViewHostTest, inside)
 {
+    const auto& geom = *this->geo_params();
+
     GeoTrackView geo = this->make_geo_track_view();
     geo              = {{-10, 10, 10}, {0, -1, 0}};
-    EXPECT_EQ(VolumeId{0}, geo.volume_id()); // Shape1 center
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2"); // Another Shape2
 
     geo.find_next_step();
     EXPECT_SOFT_EQ(5.0, geo.next_step());
-    geo.move_next_step();
+    geo.move_next_step(); // Shape2 -> Shape1
     EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
-    EXPECT_EQ(VolumeId{1}, geo.volume_id()); // Shape1 -> Shape2
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
     EXPECT_FALSE(geo.is_outside());
 
     geo.find_next_step();
@@ -164,8 +172,8 @@ TEST_F(GEO_DEVICE_TEST, all)
 
     // clang-format off
     static const int expected_ids[] = {
-        1, 2,10, 1, 5,10, 1, 4,10, 1, 8,10,
-        1, 3,10, 1, 7,10, 1, 6,10, 1, 9,10};
+        1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3,
+        1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3};
 
     static const double expected_distances[]
         = {5, 1, 1, 5, 1, 1, 5, 1, 1, 5, 1, 1,

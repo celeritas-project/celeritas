@@ -64,10 +64,14 @@ class SBPositronXsCorrector
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
   private:
+    //// DATA ////
+
     const real_type positron_mass_;
     const real_type alpha_z_;
     const real_type inc_energy_;
     const real_type cutoff_invbeta_;
+
+    //// HELPER FUNCTIONS ////
 
     inline CELER_FUNCTION real_type calc_invbeta(real_type gamma_energy) const;
 };

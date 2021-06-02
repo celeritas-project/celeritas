@@ -34,6 +34,8 @@ class MollerEnergyDistribution
     inline CELER_FUNCTION real_type operator()(Engine& rng);
 
   private:
+    //// DATA ////
+
     // Electron incident energy [MeV]
     real_type inc_energy_;
     // Total energy of the incident particle [MeV]
@@ -43,7 +45,8 @@ class MollerEnergyDistribution
     // Sampling parameter
     real_type gamma_;
 
-  private:
+    //// HELPER FUNCTIONS ////
+
     // Helper function for calculating rejection function g
     inline CELER_FUNCTION real_type calc_g_fraction(real_type epsilon);
     // Maximum energy fraction transferred to free electron [MeV]

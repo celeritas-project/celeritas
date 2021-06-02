@@ -10,6 +10,7 @@
 #include "comm/Logger.hh"
 #include "io/RootImporter.hh"
 #include "io/ImportData.hh"
+#include "io/EventReader.hh"
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/EIonizationProcess.hh"
@@ -89,6 +90,14 @@ LDemoParams load_params(const LDemoArgs& args)
             result.particles, process_data));
 
         result.physics = std::make_shared<PhysicsParams>(std::move(input));
+    }
+
+    // Load track initialization data
+    {
+        EventReader read_event(args.hepmc3_filename.c_str(), result.particles);
+        const auto  primaries = read_event();
+
+        // TODO: Initialize TrackInitParams
     }
 
     // Construct RNG params

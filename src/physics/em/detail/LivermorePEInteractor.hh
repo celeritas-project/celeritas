@@ -70,6 +70,8 @@ class LivermorePEInteractor
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
   private:
+    //// DATA ////
+
     // Shared constant physics properties
     const LivermorePEPointers& shared_;
     // Shared scratch space
