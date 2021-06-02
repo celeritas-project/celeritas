@@ -66,7 +66,7 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         FieldPropagator<UniformMagField, MagFieldEquation> propagator(
             &geo_track, particle_track, driver);
 
-        real_type                    total_length = 0;
+        real_type total_length = 0;
         FieldPropagator<UniformMagField, MagFieldEquation>::result_type result;
 
         for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
@@ -126,8 +126,8 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         FieldPropagator<UniformMagField, MagFieldEquation> propagator(
             &geo_track, particle_track, driver);
 
-        int                          icross       = 0;
-        real_type                    total_length = 0;
+        int       icross       = 0;
+        real_type total_length = 0;
         FieldPropagator<UniformMagField, MagFieldEquation>::result_type result;
 
         for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))

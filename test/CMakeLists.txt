@@ -128,6 +128,27 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Field - User field
+
+set(CELER_USERFIELD_SOURCES
+  field/detail/MagFieldMap.cc
+  field/detail/CMSFieldMapReader.cc
+)
+if(CELERITAS_USE_CUDA)
+  list(APPEND CELER_USERFIELD_SOURCES
+    field/UserField.test.cu
+  )
+endif()
+celeritas_add_library(CeleritasUserFieldTest ${CELER_USERFIELD_SOURCES})
+celeritas_target_link_libraries(CeleritasUserFieldTest
+  PUBLIC Celeritas::Core
+)
+
+celeritas_setup_tests(SERIAL PREFIX fieldmap
+  LINK_LIBRARIES CeleritasUserFieldTest)
+celeritas_add_test(field/UserField.test.cc GPU)
+
+#-----------------------------------------------------------------------------#
 # Geometry
 
 if(CELERITAS_USE_VecGeom)
