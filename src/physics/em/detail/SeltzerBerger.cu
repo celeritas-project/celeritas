@@ -55,7 +55,7 @@ __global__ void seltzer_berger_interact_kernel(
         return;
 
     // Assume only a single element in the material, for now
-    MaterialView    material_view = material.material_view();
+    MaterialView material_view = material.material_view();
     CELER_ASSERT(material_view.num_elements() == 1);
     const ElementComponentId selected_element{0};
 

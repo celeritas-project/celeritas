@@ -38,7 +38,7 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
     , inc_momentum_(particle.momentum())
     , inc_direction_(inc_direction)
     , inc_particle_is_electron_(particle.particle_id() == shared_.ids.electron)
-    , cutoffs_(cutoffs)
+    , gamma_cutoff_(cutoffs_.energy(shared_.ids.gamma))
     , allocate_(allocate)
     , material_(material)
     , elcomp_id_(elcomp_id)
@@ -56,11 +56,10 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
 {
-    const Energy gamma_cutoff = cutoffs_.energy(shared_.ids.gamma);
     // Check if secondary can be produced. If not, this interaction cannot
     // happen and the incident particle must undergo an energy loss process
     // instead.
-    if (gamma_cutoff > inc_energy_)
+    if (gamma_cutoff_ > inc_energy_)
     {
         return Interaction::from_unchanged(inc_energy_, inc_direction_);
     }
@@ -91,7 +90,7 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
             inc_energy_,
             material_.element_id(elcomp_id_),
             SBEnergyDistHelper::EnergySq{density_correction},
-            gamma_cutoff);
+            gamma_cutoff_);
 
         if (inc_particle_is_electron_)
         {
@@ -105,8 +104,8 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
             SBEnergyDistribution<SBPositronXsCorrector> sample_gamma_energy(
                 sb_helper,
                 {shared_.electron_mass,
-                 material_.element_view(ElementComponentId{0}),
-                 gamma_cutoff,
+                 material_.element_view(elcomp_id_),
+                 gamma_cutoff_,
                  inc_energy_});
             gamma_exit_energy = sample_gamma_energy(rng);
         }

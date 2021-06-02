@@ -75,8 +75,8 @@ class SeltzerBergerInteractor
     const Real3& inc_direction_;
     // Incident particle flag for selecting XS correction factor
     const bool inc_particle_is_electron_;
-    // Interactor thresholds
-    const CutoffView& cutoffs_;
+    // Production cutoff for gammas
+    const Energy gamma_cutoff_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
     // Material in which interaction occurs

@@ -56,7 +56,6 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
     return exit_energy;
 }
 
-
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

@@ -87,7 +87,7 @@ class SBEnergyDistHelper
     const MaxXs                 max_xs_;
 
     const real_type         inv_inc_energy_;
-    const real_type   dens_corr_;
+    const real_type         dens_corr_;
     const ReciprocalSampler sample_exit_esq_;
 
     //// CONSTRUCTION HELPER FUNCTIONS ////
