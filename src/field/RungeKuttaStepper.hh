@@ -26,7 +26,7 @@ namespace celeritas
  * Numerical Recipes in C, The Art of Scientific Computing, Sec. 16.2,
  * Adaptive Stepsize Control for Runge-Kutta.
  */
-template<class FieldEquation_T>
+template<class FieldT, template<class> class EquationT>
 class RungeKuttaStepper
 {
   public:
@@ -36,27 +36,23 @@ class RungeKuttaStepper
     //!@}
 
   public:
-    //! Construct with the equation of motion
+    // Construct with the equation of motion
     CELER_FUNCTION
-    RungeKuttaStepper(const FieldEquation_T& eq) : equation_(eq) {}
+    RungeKuttaStepper(const EquationT<FieldT>& eq) : equation_(eq) {}
 
     // Adaptive step size control
-    inline CELER_FUNCTION auto
-    operator()(real_type step, const OdeState& beg_state) -> Result;
+    CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
+        -> Result;
 
   private:
-    //// DATA ////
-
-    // Equation of motion
-    const FieldEquation_T& equation_;
-
-    //// HELPER FUNCTIONS ////
-
     // Return the final state by the 4th order Runge-Kutta method
-    inline CELER_FUNCTION auto do_step(real_type       step,
-                                       const OdeState& beg_state,
-                                       const OdeState& end_slope) const
-        -> OdeState;
+    CELER_FUNCTION auto do_step(real_type       step,
+                                const OdeState& beg_state,
+                                const OdeState& end_slope) const -> OdeState;
+
+  private:
+    // Equation of the motion
+    const EquationT<FieldT>& equation_;
 };
 
 //---------------------------------------------------------------------------//

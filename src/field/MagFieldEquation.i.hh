@@ -5,7 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file MagFieldEquation.i.hh
 //---------------------------------------------------------------------------//
-#include "MagField.hh"
 
 #include "base/Constants.hh"
 #include <cmath>
@@ -16,9 +15,10 @@ namespace celeritas
 /*!
  * Construct with a constant magnetic field.
  */
+template<class FieldT>
 CELER_FUNCTION
-MagFieldEquation::MagFieldEquation(const MagField&         field,
-                                   units::ElementaryCharge charge)
+MagFieldEquation<FieldT>::MagFieldEquation(const FieldT&           field,
+                                           units::ElementaryCharge charge)
     : field_(field), charge_(charge)
 {
     // The (Lorentz) coefficent in ElementaryCharge and MevMomentum
@@ -37,11 +37,12 @@ MagFieldEquation::MagFieldEquation(const MagField&         field,
     \frac{d\vec{y}}{ds} = (q/pc)(\vec{y} \times \vec{B})
    \f]
  */
-CELER_FUNCTION
-auto MagFieldEquation::operator()(const OdeState& y) const -> OdeState
+template<class FieldT>
+CELER_FUNCTION auto MagFieldEquation<FieldT>::
+                    operator()(const OdeState& y) const -> OdeState
 {
     // Get a magnetic field value at a given position
-    Real3 mag_vec = field_();
+    Real3 mag_vec = field_(y.pos);
 
     real_type momentum_mag2 = dot_product(y.mom, y.mom);
     CELER_ASSERT(momentum_mag2 > 0.0);
