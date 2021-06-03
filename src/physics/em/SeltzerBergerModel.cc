@@ -74,8 +74,8 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
 
     Applicability electron_applic;
     electron_applic.particle = this->host_pointers().ids.electron;
-    electron_applic.lower    = units::MevEnergy{10e-4};
-    electron_applic.upper    = units::MevEnergy{10e8};
+    electron_applic.lower    = units::MevEnergy{1e-4};
+    electron_applic.upper    = units::MevEnergy{1e8};
 
     Applicability positron_applic = electron_applic;
     positron_applic.particle      = this->host_pointers().ids.positron;
