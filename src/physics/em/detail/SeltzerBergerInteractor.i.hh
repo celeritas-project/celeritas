@@ -38,7 +38,7 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
     , inc_momentum_(particle.momentum())
     , inc_direction_(inc_direction)
     , inc_particle_is_electron_(particle.particle_id() == shared_.ids.electron)
-    , gamma_cutoff_(cutoffs_.energy(shared_.ids.gamma))
+    , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
     , allocate_(allocate)
     , material_(material)
     , elcomp_id_(elcomp_id)
