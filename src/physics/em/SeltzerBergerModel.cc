@@ -69,14 +69,13 @@ SeltzerBergerModel::SeltzerBergerModel(ModelId               id,
  */
 auto SeltzerBergerModel::applicability() const -> SetApplicability
 {
-    // TODO: these energy ranges need to be the intersection of SB table data
-    // and available cross sections.
-    CELER_NOT_IMPLEMENTED("SeltzerBergerModel::applicability");
+    // TODO: Do we need to load applicabilities, e.g. lower and upper, from
+    // tables?
 
     Applicability electron_applic;
     electron_applic.particle = this->host_pointers().ids.electron;
-    electron_applic.lower    = units::MevEnergy{1};
-    electron_applic.upper    = units::MevEnergy{1e5};
+    electron_applic.lower    = units::MevEnergy{10e-4};
+    electron_applic.upper    = units::MevEnergy{10e8};
 
     Applicability positron_applic = electron_applic;
     positron_applic.particle      = this->host_pointers().ids.positron;
@@ -92,7 +91,7 @@ void SeltzerBergerModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
-    CELER_NOT_IMPLEMENTED("detail::seltzer_berger_interact");
+    detail::seltzer_berger_interact(this->device_pointers(), pointers);
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
