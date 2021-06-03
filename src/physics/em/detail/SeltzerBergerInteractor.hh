@@ -8,18 +8,16 @@
 #pragma once
 
 #include "base/Macros.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Secondary.hh"
-#include "base/StackAllocator.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
 #include "SeltzerBerger.hh"
-#include "SBEnergyDistribution.hh"
-#include "SBPositronXsCorrector.hh"
 
 namespace celeritas
 {
@@ -48,7 +46,6 @@ class SeltzerBergerInteractor
     //!@{
     //! Type aliases
     using Energy   = units::MevEnergy;
-    using EnergySq = SBEnergyDistribution::EnergySq;
     using Momentum = units::MevMomentum;
     //!@}
 
@@ -61,7 +58,7 @@ class SeltzerBergerInteractor
                             const CutoffView&             cutoffs,
                             StackAllocator<Secondary>&    allocate,
                             const MaterialView&           material,
-                            const ElementId&              element_id);
+                            const ElementComponentId&     elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -70,22 +67,22 @@ class SeltzerBergerInteractor
   private:
     // Device (host CPU or GPU device) references
     const SeltzerBergerNativeRef& shared_;
-    // Type of particle
-    const ParticleId particle_id_;
     // Incident particle energy
     const Energy inc_energy_;
     // Incident particle direction
     const Momentum inc_momentum_;
     // Incident particle direction
     const Real3& inc_direction_;
-    // Interactor thresholds
-    const CutoffView& cutoffs_;
+    // Incident particle flag for selecting XS correction factor
+    const bool inc_particle_is_electron_;
+    // Production cutoff for gammas
+    const Energy gamma_cutoff_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
     // Material in which interaction occurs
     const MaterialView& material_;
     // Element in which interaction occurs
-    const ElementId& element_id_;
+    const ElementComponentId elcomp_id_;
 };
 
 //---------------------------------------------------------------------------//
