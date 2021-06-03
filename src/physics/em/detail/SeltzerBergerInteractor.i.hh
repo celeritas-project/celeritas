@@ -61,7 +61,7 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
         return Interaction::from_unchanged(inc_energy_, inc_direction_);
     }
 
-    // Allocate space for the bremss photon
+    // Allocate space for the brems photon
     Secondary* secondaries = this->allocate_(1);
     if (secondaries == nullptr)
     {

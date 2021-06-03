@@ -24,7 +24,7 @@ BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
     , materials_(std::move(materials))
     , imported_(process_data,
                 particles_,
-                ImportProcessClass::e_brem,
+                ImportProcessClass::e_brems,
                 {pdg::electron(), pdg::positron()})
 {
     CELER_EXPECT(particles_);
