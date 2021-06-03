@@ -15,9 +15,15 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load a user-defined CMS magnetic field map.
+ * Load the CMS magnetic field map.
  *
- * XXX TODO: decribe field map
+ * The CMS magnetic field map (cmsExp.mag.3_8T) is extracted from the CMS
+ * software (CMSSW) and stores r-z components of magnetic field values of
+ * the CMS detector at the cm-unit grid point in the range of r[0:900] and
+ * z[-1600:1600]. The format of input is CMSFieldMapInput where idx_r and
+ * idx_z are indices of the 2-dimensional array[idx_z][idx_r], respectively.
+ * The map is used only for the purpose of a standalone simulation with the
+ * CMS detector geometry and is not a part of CMSSW.
  *
  */
 class CMSFieldMapReader
@@ -30,9 +36,9 @@ class CMSFieldMapReader
     // Input format
     struct CMSFieldMapInput
     {
-        int                     iz;
-        int                     ir;
-        detail::FieldMapElement value;
+        int                     idx_z; //! [-1600:1600]
+        int                     idx_r; //! [0:900]
+        detail::FieldMapElement value; //! z and r components of the field
     };
 
   public:

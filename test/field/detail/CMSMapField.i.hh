@@ -19,20 +19,14 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with the volume-based magnetic field map excerpted from CMSSW.
- *
- * Values of the CMS magnetic field were stored at the r-z grid point in the
- * unit length (i.e., units::cm) in the r-z
- * [-offset_z:offset_z][0]
- * detail::FieldMapInput from
- *
+ * Construct with the shared magnetic field map data (FieldMapGroup).
  */
 CELER_FUNCTION
 CMSMapField::CMSMapField(const FieldMapRef& shared) : shared_(shared) {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a magnetic field value at a given position.
+ * Retrieve the magnetic field value for the given position.
  */
 CELER_FUNCTION Real3 CMSMapField::operator()(Real3 pos) const
 {

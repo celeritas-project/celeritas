@@ -20,8 +20,8 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct the reader using the CMS_FIELD_MAP environment variable to get
- * the volume-based magnetic field map data.
+ * Construct the reader using an environment variable to get the volume-based
+ * CMS magnetic field map data.
  */
 CMSFieldMapReader::CMSFieldMapReader()
 {
@@ -31,21 +31,21 @@ CMSFieldMapReader::CMSFieldMapReader()
 
 //---------------------------------------------------------------------------//
 /*!
- * Read the CMS volume-based magnetic field map data
+ * Read the CMS volume-based magnetic field map data.
  */
 CMSFieldMapReader::result_type CMSFieldMapReader::operator()() const
 {
     result_type result;
-
-    std::ifstream ifile_(file_name_,
-                         std::ios::in | std::ios::binary | std::ios::ate);
 
     // Set field map parameters
     result.params.num_grid_r = 900 + 1;
     result.params.num_grid_z = 2 * 1600 + 1;
     result.params.offset_z   = real_type{1600};
 
-    // Store field map value
+    // Store field values from the map file
+    std::ifstream ifile_(file_name_,
+                         std::ios::in | std::ios::binary | std::ios::ate);
+
     if (ifile_.is_open())
     {
         CMSFieldMapInput        fd;

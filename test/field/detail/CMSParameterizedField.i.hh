@@ -16,7 +16,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate field value at a given position
+ * Evaluate the magnetic field at the given position inside the CMS tracker.
  */
 CELER_FUNCTION
 Real3 CMSParameterizedField::operator()(Real3 pos)
@@ -36,7 +36,10 @@ Real3 CMSParameterizedField::operator()(Real3 pos)
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the field value at a given (r, z)
+ * Evaluate the magnetic field value at the given (r, z) position based on
+ * the parameterized function.
+ *
+ * TODO: simplify and optimize
  */
 CELER_FUNCTION
 Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z)
@@ -89,20 +92,20 @@ Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z)
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the field parameterization function and its 3 derivatives
+ * Evaluate the parameterization function and its 3 derivatives.
  */
 CELER_FUNCTION
 CMSParameterizedField::Real4
-CMSParameterizedField::evaluate_parameters(real_type u)
+CMSParameterizedField::evaluate_parameters(real_type x)
 {
-    real_type a = 1.0 / (1.0 + u * u);
+    real_type a = 1.0 / (1.0 + x * x);
     real_type b = std::sqrt(a);
 
     Real4 ff;
-    ff[0] = u * b;
+    ff[0] = x * b;
     ff[1] = a * b;
-    ff[2] = -3.0 * u * a * ff[1];
-    ff[3] = a * ff[2] * ((1.0 / u) - 4.0 * u);
+    ff[2] = -3.0 * x * a * ff[1];
+    ff[3] = a * ff[2] * ((1.0 / x) - 4.0 * x);
 
     return ff;
 }

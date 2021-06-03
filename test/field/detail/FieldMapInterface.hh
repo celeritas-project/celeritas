@@ -38,8 +38,8 @@ struct FieldMapElement
 
 //---------------------------------------------------------------------------//
 /*!
- * FieldMap data: vector of size [num_grid_z*num_grid_r] which stores data for
- * the equivalent 2-dimensional RZ-array[num_grid_z][num_grid_r] and
+ * FieldMap data: vector of size [num_grid_z*num_grid_r] which stores data
+ * for the equivalent 2-dimensional RZ-array[num_grid_z][num_grid_r] and
  * associated parameters
  */
 struct FieldMapData
@@ -71,14 +71,14 @@ struct FieldMapGroup
         return !fieldmap.empty();
     }
 
-    inline CELER_FUNCTION bool valid(size_type iz, size_type ir) const
+    inline CELER_FUNCTION bool valid(size_type idx_z, size_type idx_r) const
     {
-        return (iz < params.num_grid_z && ir < params.num_grid_r);
+        return (idx_z < params.num_grid_z && idx_r < params.num_grid_r);
     }
 
-    inline CELER_FUNCTION ItemId<size_type> id(int iz, int ir) const
+    inline CELER_FUNCTION ItemId<size_type> id(int idx_z, int idx_r) const
     {
-        return ElementId(iz * params.num_grid_r + ir);
+        return ElementId(idx_z * params.num_grid_r + idx_r);
     }
 
     //! Assign from another set of data

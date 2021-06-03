@@ -17,8 +17,6 @@
 #include "detail/CMSMapField.hh"
 #include "detail/CMSParameterizedField.hh"
 
-#include "random/distributions/UniformRealDistribution.hh"
-
 using celeritas::detail::CMSMapField;
 using celeritas::detail::CMSParameterizedField;
 using celeritas::detail::MagFieldMap;

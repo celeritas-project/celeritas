@@ -23,11 +23,11 @@ class CMSMapField
     using FieldMapRef = detail::FieldMapNativeRef;
 
   public:
-    // Construct with the CMS FieldMap
+    // Construct with the shared map data (FieldMapGroup)
     CELER_FUNCTION
     CMSMapField(const FieldMapRef& shared);
 
-    // Evaluate the magnetic field for the given position
+    // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
     inline Real3 operator()(Real3 pos) const;
 

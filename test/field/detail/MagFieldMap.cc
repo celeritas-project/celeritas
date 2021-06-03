@@ -16,7 +16,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a user-defined map
+ * Construct from a user-defined field map.
  */
 MagFieldMap::MagFieldMap(ReadMap load_map)
 {
@@ -32,7 +32,7 @@ MagFieldMap::MagFieldMap(ReadMap load_map)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert input map to a MagFieldMap and store.
+ * Convert an input map to a MagFieldMap and store to FieldMapGroup.
  */
 void MagFieldMap::build_data(ReadMap load_map, HostValue* group)
 {

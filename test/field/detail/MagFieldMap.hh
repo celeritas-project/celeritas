@@ -32,10 +32,10 @@ class MagFieldMap
     // Construct with a magnetic field map
     MagFieldMap(ReadMap load_map);
 
-    //! Access field map pointers on the host
+    //! Access field map data on the host
     const HostRef& host_group() const { return group_.host(); }
 
-    //! Access Rayleigh pointers on the device
+    //! Access field map data on the device
     const DeviceRef& device_group() const { return group_.device(); }
 
   private:
