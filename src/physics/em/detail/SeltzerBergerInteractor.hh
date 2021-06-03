@@ -82,7 +82,7 @@ class SeltzerBergerInteractor
     // Material in which interaction occurs
     const MaterialView& material_;
     // Element in which interaction occurs
-    const ElementComponentId& elcomp_id_;
+    const ElementComponentId elcomp_id_;
 };
 
 //---------------------------------------------------------------------------//
