@@ -68,7 +68,7 @@ command looks like:
 cmake  \
   -D CELERITAS_USE_CUDA=ON \
   -D CELERITAS_USE_MPI=OFF \
-  -D CELERITAS_USE_VECGEOM=ON \
+  -D CELERITAS_USE_VecGeom=ON \
   -D CMAKE_BUILD_TYPE="RelWithDebInfo" \
   -D CMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Werror" \
   -D CMAKE_CUDA_FLAGS="-arch=sm_80" \
