@@ -54,14 +54,14 @@ fieldmap_test(UserFieldTestParams, celeritas::detail::FieldMapDeviceRef group)
 #endif
 
 //---------------------------------------------------------------------------//
-  //! Run on device and return results
+//! Run on device and return results
 UserFieldTestOutput parameterized_field_test(UserFieldTestParams test_param);
 
 #if !CELERITAS_USE_CUDA
 inline UserFieldTestOutput parameterized_field_test(UserFieldTestParams)
-  {
+{
     CELER_NOT_CONFIGURED("CUDA");
-  }
+}
 #endif
 
 //---------------------------------------------------------------------------//
