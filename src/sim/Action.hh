@@ -63,18 +63,8 @@ inline CELER_FUNCTION bool action_killed(Action a)
  */
 inline CELER_FUNCTION bool action_unchanged(Action a)
 {
-    CELER_EXPECT(int(a) < int(Action::end_killed_));
-    return int(a) == int(Action::unchanged);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the particle entered a new volume.
- */
-inline CELER_FUNCTION bool action_crossed_boundary(Action a)
-{
-    CELER_EXPECT(int(a) < int(Action::end_killed_));
-    return int(a) == int(Action::entered_volume);
+    return a == Action::unchanged || a == Action::entered_volume
+           || a == Action::spawned;
 }
 
 //---------------------------------------------------------------------------//

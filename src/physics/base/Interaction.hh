@@ -39,10 +39,6 @@ struct Interaction
     static inline CELER_FUNCTION Interaction
     from_unchanged(units::MevEnergy energy, const Real3& direction);
 
-    // Return an interaction representing a boundary crossing
-    static inline CELER_FUNCTION Interaction
-    from_boundary(units::MevEnergy energy, const Real3& direction);
-
     // Whether the interaction succeeded
     explicit inline CELER_FUNCTION operator bool() const;
 };
@@ -85,20 +81,6 @@ CELER_FUNCTION Interaction Interaction::from_unchanged(units::MevEnergy energy,
 
     Interaction result;
     result.action    = Action::unchanged;
-    result.energy    = energy;
-    result.direction = direction;
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct an interaction for a boundary crossing.
- */
-CELER_FUNCTION Interaction Interaction::from_boundary(units::MevEnergy energy,
-                                                      const Real3& direction)
-{
-    Interaction result;
-    result.action    = Action::entered_volume;
     result.energy    = energy;
     result.direction = direction;
     return result;

@@ -83,21 +83,25 @@ __global__ void along_and_post_step_kernel(ParamsDeviceRef const params,
     // Move particle and determine the actual distance traveled
     real_type step = demo_loop::propagate(geo, phys);
 
-    // Calculate energy loss over the step length
-    auto eloss = calc_energy_loss(particle, phys, step);
-    states.energy_deposition[tid] += eloss.value();
-
     // The particle entered a new volume before reaching the interaction
     if (step < phys.step_length())
     {
-        states.interactions[tid]
-            = Interaction::from_boundary(particle.energy(), geo.dir());
+        Interaction& result = states.interactions[tid];
+        result.energy       = particle.energy();
+        result.direction    = geo.dir();
+        result.action       = Action::entered_volume;
     }
 
-    // TODO: is this right??
     // Kill the track if it's outside the valid geometry region
     if (geo.is_outside())
+    {
+        states.interactions[tid].action = Action::escaped;
         sim.alive(false);
+    }
+
+    // Calculate energy loss over the step length
+    auto eloss = calc_energy_loss(particle, phys, step);
+    states.energy_deposition[tid] += eloss.value();
 
     // Select the model for the discrete process
     demo_loop::select_discrete_model(particle, phys, rng, step, eloss);
@@ -130,13 +134,14 @@ __global__ void process_interactions_kernel(ParamsDeviceRef const params,
     CutoffView        cutoffs(params.cutoffs, mat.material_id());
 
     // Update the track state from the interaction
+    // TODO: handle recoverable errors
     const Interaction& result = states.interactions[tid];
+    CELER_ASSERT(result);
     if (action_killed(result.action))
     {
         sim.alive(false);
     }
-    else if (!action_unchanged(result.action)
-             && !action_crossed_boundary(result.action))
+    else if (!action_unchanged(result.action))
     {
         particle.energy(result.energy);
         geo.set_dir(result.direction);
@@ -158,7 +163,9 @@ __global__ void process_interactions_kernel(ParamsDeviceRef const params,
 
     // Reset the physics state if a discrete interaction occured
     if (phys.model_id())
+    {
         phys = {};
+    }
 }
 
 //---------------------------------------------------------------------------//

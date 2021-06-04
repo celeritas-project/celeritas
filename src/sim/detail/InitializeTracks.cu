@@ -100,6 +100,14 @@ __global__ void init_tracks_kernel(const ParamsDeviceRef         params,
             params.physics, states.physics, ParticleId{}, MaterialId{}, vac_id);
         phys = {};
     }
+
+    // Interaction representing creation of a new track
+    {
+        Interaction& result = states.interactions[vac_id];
+        result.action       = Action::spawned;
+        result.energy       = init.particle.energy;
+        result.direction    = init.geo.dir;
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -56,8 +56,8 @@ PhysicsTrackView::operator=(const Initializer_t&)
  */
 CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type count)
 {
-    CELER_EXPECT(count >= 0 || soft_equal<real_type>(0, count));
-    this->state().interaction_mfp = clamp_to_nonneg(count);
+    CELER_EXPECT(count > 0 || soft_zero(count));
+    this->state().interaction_mfp = soft_zero(count) ? 0 : count;
 }
 
 //---------------------------------------------------------------------------//
