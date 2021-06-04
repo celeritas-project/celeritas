@@ -25,8 +25,8 @@ namespace detail
  */
 CMSFieldMapReader::CMSFieldMapReader()
 {
-    file_name_ = std::getenv("CMS_FIELD_MAP");
-    CELER_VALIDATE(file_name_, << "CMS_FIELD_MAP is not defined");
+    file_name_ = std::getenv("USER_FIELD_MAP");
+    CELER_VALIDATE(file_name_, << "USER_FIELD_MAP is not defined");
 }
 
 //---------------------------------------------------------------------------//

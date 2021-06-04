@@ -3,13 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UserField.test.cu
+//! \file UserMapField.test.cu
 //---------------------------------------------------------------------------//
 #include "UserField.test.hh"
 #include "detail/MagFieldMap.hh"
 #include "detail/FieldMapInterface.hh"
 #include "detail/CMSMapField.hh"
-#include "detail/CMSParameterizedField.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
 #include <thrust/device_vector.h>
@@ -71,69 +70,6 @@ fieldmap_test(UserFieldTestParams test_param, detail::FieldMapDeviceRef group)
     fieldmap_test_kernel<<<params.grid_size, params.block_size>>>(
         test_param,
         group,
-        raw_pointer_cast(value_x.data()),
-        raw_pointer_cast(value_y.data()),
-        raw_pointer_cast(value_z.data()));
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
-
-    // Copy result back to CPU
-    UserFieldTestOutput result;
-
-    result.value_x.resize(value_x.size());
-    thrust::copy(value_x.begin(), value_x.end(), result.value_x.begin());
-
-    result.value_y.resize(value_y.size());
-    thrust::copy(value_y.begin(), value_y.end(), result.value_y.begin());
-
-    result.value_z.resize(value_z.size());
-    thrust::copy(value_z.begin(), value_z.end(), result.value_z.begin());
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-// KERNELS
-//---------------------------------------------------------------------------//
-
-__global__ void parameterized_field_test_kernel(UserFieldTestParams param,
-                                                real_type*          value_x,
-                                                real_type*          value_y,
-                                                real_type*          value_z)
-{
-    auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= param.nsamples)
-        return;
-
-    detail::CMSParameterizedField field;
-    Real3                         pos{tid.get() * param.delta_r,
-              tid.get() * param.delta_r,
-              tid.get() * param.delta_z};
-    Real3                         value = field(pos);
-
-    // Output for verification
-    value_x[tid.get()] = value[0];
-    value_y[tid.get()] = value[1];
-    value_z[tid.get()] = value[2];
-}
-
-//---------------------------------------------------------------------------//
-// TESTING INTERFACE
-//---------------------------------------------------------------------------//
-//! Run on device and return results
-UserFieldTestOutput parameterized_field_test(UserFieldTestParams test_param)
-{
-    // Output data for kernel
-    thrust::device_vector<real_type> value_x(test_param.nsamples, 0.0);
-    thrust::device_vector<real_type> value_y(test_param.nsamples, 0.0);
-    thrust::device_vector<real_type> value_z(test_param.nsamples, 0.0);
-
-    // Run kernel
-    celeritas::KernelParamCalculator calc_launch_params(
-        parameterized_field_test_kernel, "parameterized_field_test");
-    auto params = calc_launch_params(test_param.nsamples);
-
-    parameterized_field_test_kernel<<<params.grid_size, params.block_size>>>(
-        test_param,
         raw_pointer_cast(value_x.data()),
         raw_pointer_cast(value_y.data()),
         raw_pointer_cast(value_z.data()));

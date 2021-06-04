@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldMap.test.hh
+//! \file UserField.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -54,14 +54,14 @@ fieldmap_test(UserFieldTestParams, celeritas::detail::FieldMapDeviceRef group)
 #endif
 
 //---------------------------------------------------------------------------//
-//! Run on device and return results
+  //! Run on device and return results
 UserFieldTestOutput parameterized_field_test(UserFieldTestParams test_param);
 
 #if !CELERITAS_USE_CUDA
 inline UserFieldTestOutput parameterized_field_test(UserFieldTestParams)
-{
+  {
     CELER_NOT_CONFIGURED("CUDA");
-}
+  }
 #endif
 
 //---------------------------------------------------------------------------//
