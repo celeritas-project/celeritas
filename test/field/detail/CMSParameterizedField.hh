@@ -17,11 +17,11 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the value of magnetic field based on a parameterized function in
- * the tracker region of the CMS detector
- *
- * This code is experted from CMSSW and only used for the purpose of the
- * magnetic field tests.
+ * Evaluate the value of magnetic field using a parameterized function in the
+ * tracker volume of the CMS detector. The implementation is based on the
+ * TkBfield class of CMSSW (the TOSCA computation version 1103l),
+ * https://cmssdt.cern.ch/lxr/source/MagneticField/ParametrizedEngine/src/
+ * and used for testing the charged particle propagation in a magnetic field.
  */
 class CMSParameterizedField
 {

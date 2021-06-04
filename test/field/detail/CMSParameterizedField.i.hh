@@ -17,6 +17,8 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate the magnetic field at the given position inside the CMS tracker.
+ * The parameterization is valid only for r < 1.15m and |z| < 2.80m when used
+ * with the CMS detector geometry.
  */
 CELER_FUNCTION
 Real3 CMSParameterizedField::operator()(Real3 pos)
@@ -55,15 +57,16 @@ Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z)
                               1.77436};
 
     real_type ap2   = 4 * prm[0] * prm[0] / (prm[1] * prm[1]);
-    real_type hb0   = 0.5 * prm[2] * std::sqrt(1.0 + ap2);
+    real_type hb0   = real_type(0.5) * prm[2] * std::sqrt(1 + ap2);
     real_type hlova = 1 / std::sqrt(ap2);
     real_type ainv  = 2 * hlova / prm[1];
     real_type coeff = 1 / (prm[8] * prm[8]);
 
-    // convert to m (cms magnetic field parameterization)
+    // Convert to m (cms magnetic field parameterization)
     r *= 0.01;
     z *= 0.01;
-    z -= prm[3]; // max Bz point is shifted in z
+    // The max Bz point is shifted in z
+    z -= prm[3];
 
     real_type az    = std::abs(z);
     real_type zainv = z * ainv;
@@ -73,7 +76,7 @@ Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z)
     Real4 fu = this->evaluate_parameters(u);
     Real4 gv = this->evaluate_parameters(v);
 
-    real_type rat  = 0.5 * r * ainv;
+    real_type rat  = real_type(0.5) * r * ainv;
     real_type rat2 = rat * rat;
 
     Real3 bw;
@@ -98,14 +101,14 @@ CELER_FUNCTION
 CMSParameterizedField::Real4
 CMSParameterizedField::evaluate_parameters(real_type x)
 {
-    real_type a = 1.0 / (1.0 + x * x);
+    real_type a = 1 / (1 + x * x);
     real_type b = std::sqrt(a);
 
     Real4 ff;
     ff[0] = x * b;
     ff[1] = a * b;
-    ff[2] = -3.0 * x * a * ff[1];
-    ff[3] = a * ff[2] * ((1.0 / x) - 4.0 * x);
+    ff[2] = -3 * x * a * ff[1];
+    ff[3] = a * ff[2] * ((1 / x) - 4 * x);
 
     return ff;
 }
