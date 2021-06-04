@@ -81,11 +81,14 @@ CELER_FUNCTION void select_discrete_model(ParticleTrackView&        particle,
                                           real_type                 step,
                                           ParticleTrackView::Energy eloss)
 {
-    // Reduce the energy, path length, and remaining mean free path
+    // Reduce the energy and path length
     particle.energy(
         ParticleTrackView::Energy{particle.energy().value() - eloss.value()});
     phys.step_length(phys.step_length() - step);
-    phys.interaction_mfp(phys.interaction_mfp() - step * phys.macro_xs());
+
+    // Reduce the remaining mean free path
+    real_type mfp = phys.interaction_mfp() - step * phys.macro_xs();
+    phys.interaction_mfp(soft_zero(mfp) ? 0 : mfp);
 
     // Reached the interaction point: sample the process and determine the
     // corresponding model

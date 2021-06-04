@@ -261,7 +261,10 @@ select_process_and_model(const ParticleTrackView& particle,
 
     // Select the model and return; See doc above for details.
     auto find_model = physics.make_model_finder(ppid);
-    return ProcessIdModelId{ppid, find_model(particle.energy())};
+    auto model_id   = find_model(particle.energy());
+
+    CELER_ENSURE(model_id);
+    return ProcessIdModelId{ppid, model_id};
 }
 
 //---------------------------------------------------------------------------//

@@ -41,7 +41,7 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
     photon_applic.particle = interface_.gamma_id;
-    photon_applic.lower    = units::MevEnergy{0.01};
+    photon_applic.lower    = zero_quantity();
     photon_applic.upper    = max_quantity();
 
     return {photon_applic};

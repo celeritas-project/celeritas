@@ -6,7 +6,6 @@
 //! \file PhysicsTrackView.i.hh
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
-#include "base/SoftEqual.hh"
 #include "physics/em/EPlusGGMacroXsCalculator.hh"
 #include "physics/em/LivermorePEMacroXsCalculator.hh"
 #include "physics/grid/XsCalculator.hh"
@@ -56,8 +55,8 @@ PhysicsTrackView::operator=(const Initializer_t&)
  */
 CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type count)
 {
-    CELER_EXPECT(count > 0 || soft_zero(count));
-    this->state().interaction_mfp = soft_zero(count) ? 0 : count;
+    CELER_EXPECT(count >= 0);
+    this->state().interaction_mfp = count;
 }
 
 //---------------------------------------------------------------------------//

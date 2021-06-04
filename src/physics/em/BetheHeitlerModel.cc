@@ -43,7 +43,7 @@ auto BetheHeitlerModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
     photon_applic.particle = interface_.gamma_id;
-    photon_applic.lower    = units::MevEnergy{1.5};
+    photon_applic.lower    = zero_quantity();
     photon_applic.upper    = units::MevEnergy{1e5};
 
     return {photon_applic};
