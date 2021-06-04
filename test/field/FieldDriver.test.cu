@@ -49,15 +49,6 @@ __global__ void driver_test_kernel(const FieldParamsPointers pointers,
     RungeKuttaStepper<UniformMagField, MagFieldEquation> rk4(equation);
     FieldDriver<UniformMagField, MagFieldEquation>       driver(pointers, rk4);
 
-    /*
-        UniformMagField  field({0, 0, test_params.field_value});
-        MagFieldEquation<UniformMagField> eq(field,
-       units::ElementaryCharge{-1}); RungeKuttaStepper<UniformMagField,
-       MagFieldEquation> rk4(eq); FieldDriver<UniformMagField,
-       MagFieldEquation> driver(pointers, rk4);
-    */
-    //    FieldDriver                         driver(pointers, rk4);
-
     // Test parameters and the sub-step size
     real_type hstep = 2 * constants::pi * test_params.radius
                       / test_params.nsteps;
@@ -133,7 +124,6 @@ __global__ void accurate_advance_kernel(const FieldParamsPointers pointers,
             total_curved_length
                 += driver.accurate_advance(hstep, &y_accurate, 0.001);
         }
-        // Check the total error
     }
 
     // output for validation

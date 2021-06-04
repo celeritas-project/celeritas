@@ -113,7 +113,6 @@ TEST_F(FieldDriverTest, accurate_advance_host)
     MagFieldEquation<UniformMagField> eq(field, units::ElementaryCharge{-1});
     RungeKuttaStepper<UniformMagField, MagFieldEquation> rk4(eq);
     FieldDriver<UniformMagField, MagFieldEquation> driver(field_params, rk4);
-    //    FieldDriver                         driver(field_params, rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;

@@ -119,7 +119,7 @@ TEST_F(UserFieldDeviceTest, TEST_IF_CELERITAS_CUDA(device_map_field))
 {
     // Run kernel for the magnetic field with a mapped field
     this->device_group_ = this->map_->device_group();
-    ;
+
     auto output = fieldmap_test(this->test_param_, this->device_group_);
 
     for (unsigned int i : celeritas::range(this->test_param_.nsamples))
