@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "LDemoKernel.hh"
 
-#include <thrust/device_ptr.h>
-#include <thrust/transform_reduce.h>
 #include "base/KernelParamCalculator.cuda.hh"
 #include "base/StackAllocator.hh"
 #include "physics/base/CutoffView.hh"
@@ -80,31 +78,14 @@ __global__ void along_and_post_step_kernel(ParamsDeviceRef const params,
                           tid);
     RngEngine         rng(states.rng, ThreadId(tid));
 
-    // Move particle and determine the actual distance traveled
-    real_type step = demo_loop::propagate(geo, phys);
-
-    // The particle entered a new volume before reaching the interaction
-    if (step < phys.step_length())
-    {
-        Interaction& result = states.interactions[tid];
-        result.energy       = particle.energy();
-        result.direction    = geo.dir();
-        result.action       = Action::entered_volume;
-    }
-
-    // Kill the track if it's outside the valid geometry region
-    if (geo.is_outside())
-    {
-        states.interactions[tid].action = Action::escaped;
-        sim.alive(false);
-    }
-
-    // Calculate energy loss over the step length
-    auto eloss = calc_energy_loss(particle, phys, step);
-    states.energy_deposition[tid] += eloss.value();
-
-    // Select the model for the discrete process
-    demo_loop::select_discrete_model(particle, phys, rng, step, eloss);
+    // Propagate, calculate energy loss, and select model
+    demo_loop::move_and_select_model(geo,
+                                     particle,
+                                     phys,
+                                     sim,
+                                     rng,
+                                     &states.energy_deposition[tid],
+                                     &states.interactions[tid]);
 }
 
 //---------------------------------------------------------------------------//
@@ -133,39 +114,14 @@ __global__ void process_interactions_kernel(ParamsDeviceRef const params,
                           tid);
     CutoffView        cutoffs(params.cutoffs, mat.material_id());
 
-    // Update the track state from the interaction
-    // TODO: handle recoverable errors
-    const Interaction& result = states.interactions[tid];
-    CELER_ASSERT(result);
-    if (action_killed(result.action))
-    {
-        sim.alive(false);
-    }
-    else if (!action_unchanged(result.action))
-    {
-        particle.energy(result.energy);
-        geo.set_dir(result.direction);
-    }
-
-    // Deposit energy from interaction
-    states.energy_deposition[tid] += result.energy_deposition.value();
-
-    // Kill secondaries with energy below the production threshold and deposit
-    // their energy
-    for (auto& secondary : result.secondaries)
-    {
-        if (secondary.energy < cutoffs.energy(secondary.particle_id))
-        {
-            states.energy_deposition[tid] += secondary.energy.value();
-            secondary = {};
-        }
-    }
-
-    // Reset the physics state if a discrete interaction occured
-    if (phys.model_id())
-    {
-        phys = {};
-    }
+    // Apply cutoffs and interaction change
+    demo_loop::post_process(cutoffs,
+                            geo,
+                            particle,
+                            phys,
+                            sim,
+                            &states.energy_deposition[tid],
+                            states.interactions[tid]);
 }
 
 //---------------------------------------------------------------------------//

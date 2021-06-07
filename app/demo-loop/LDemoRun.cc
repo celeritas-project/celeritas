@@ -142,11 +142,6 @@ LDemoResult run_gpu(LDemoArgs args)
 
     while (num_alive > 0 || num_inits > 0)
     {
-        std::cout << "(" << args.max_steps - remaining_steps << ")"
-                  << std::endl;
-        std::cout << "alive: " << num_alive << std::endl;
-        std::cout << "inits: " << num_inits << "\n" << std::endl;
-
         // Create new tracks from primaries or secondaries
         initialize_tracks(params_ref, states_ref, &state_storage.track_inits);
 

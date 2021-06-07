@@ -52,53 +52,112 @@ CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
 
 //---------------------------------------------------------------------------//
 /*!
- * Propagate up to the step length or next boundary.
+ * Propagate up to the step length or next boundary, calculate the energy loss
+ * over the step, and select the model for the discrete interaction.
  */
-CELER_FUNCTION real_type propagate(GeoTrackView&           geo,
-                                   const PhysicsTrackView& phys)
+template<class Rng>
+CELER_FUNCTION void move_and_select_model(GeoTrackView&      geo,
+                                          ParticleTrackView& particle,
+                                          PhysicsTrackView&  phys,
+                                          SimTrackView&      sim,
+                                          Rng&               rng,
+                                          real_type*         edep,
+                                          Interaction*       result)
 {
     // Actual distance, limited by along-step length or geometry
     real_type step = phys.step_length();
     if (step > 0)
     {
+        // Store the current volume
+        auto pre_step_volume = geo.volume_id();
+
         // Propagate up to the step length or next boundary
         LinearPropagator propagate(&geo);
         auto             geo_step = propagate(step);
         step                      = geo_step.distance;
-        // TODO: check whether the volume/material have changed?
-    }
-    return step;
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Select the model for the discrete interaction.
- */
-template<class Rng>
-CELER_FUNCTION void select_discrete_model(ParticleTrackView&        particle,
-                                          PhysicsTrackView&         phys,
-                                          Rng&                      rng,
-                                          real_type                 step,
-                                          ParticleTrackView::Energy eloss)
-{
-    // Reduce the energy and path length
+        // Particle entered a new volume before reaching the interaction point
+        if (geo_step.volume != pre_step_volume)
+        {
+            result->energy    = particle.energy();
+            result->direction = geo.dir();
+            result->action    = Action::entered_volume;
+        }
+    }
+    phys.step_length(phys.step_length() - step);
+
+    // Kill the track if it's outside the valid geometry region
+    if (geo.is_outside())
+    {
+        result->action = Action::escaped;
+        sim.alive(false);
+    }
+
+    // Calculate energy loss over the step length
+    auto eloss = calc_energy_loss(particle, phys, step);
+    *edep += eloss.value();
     particle.energy(
         ParticleTrackView::Energy{particle.energy().value() - eloss.value()});
-    phys.step_length(phys.step_length() - step);
 
     // Reduce the remaining mean free path
     real_type mfp = phys.interaction_mfp() - step * phys.macro_xs();
     phys.interaction_mfp(soft_zero(mfp) ? 0 : mfp);
 
-    // Reached the interaction point: sample the process and determine the
-    // corresponding model
     ModelId model{};
     if (phys.interaction_mfp() <= 0)
     {
+        // Reached the interaction point: sample the process and determine the
+        // corresponding model
         auto ppid_mid = select_process_and_model(particle, phys, rng);
         model         = ppid_mid.model;
     }
     phys.model_id(model);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply secondary cutoffs and process interaction change.
+ */
+CELER_FUNCTION void post_process(const CutoffView&  cutoffs,
+                                 GeoTrackView&      geo,
+                                 ParticleTrackView& particle,
+                                 PhysicsTrackView&  phys,
+                                 SimTrackView&      sim,
+                                 real_type*         edep,
+                                 const Interaction& result)
+{
+    // Update the track state from the interaction
+    // TODO: handle recoverable errors
+    CELER_ASSERT(result);
+    if (action_killed(result.action))
+    {
+        sim.alive(false);
+    }
+    else if (!action_unchanged(result.action))
+    {
+        particle.energy(result.energy);
+        geo.set_dir(result.direction);
+    }
+
+    // Deposit energy from interaction
+    *edep += result.energy_deposition.value();
+
+    // Kill secondaries with energy below the production threshold and deposit
+    // their energy
+    for (auto& secondary : result.secondaries)
+    {
+        if (secondary.energy < cutoffs.energy(secondary.particle_id))
+        {
+            *edep += secondary.energy.value();
+            secondary = {};
+        }
+    }
+
+    // Reset the physics state if a discrete interaction occured
+    if (phys.model_id())
+    {
+        phys = {};
+    }
 }
 
 //---------------------------------------------------------------------------//
