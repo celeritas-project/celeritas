@@ -61,6 +61,7 @@ list(APPEND SOURCES
   physics/base/Process.cc
   physics/em/AtomicRelaxationParams.cc
   physics/em/BetheHeitlerModel.cc
+  physics/em/BremsstrahlungProcess.cc
   physics/em/ComptonProcess.cc
   physics/em/PhotoelectricProcess.cc
   physics/em/LivermorePEModel.cc

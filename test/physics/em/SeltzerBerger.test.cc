@@ -9,8 +9,6 @@
 #include "physics/em/detail/SBPositronXsCorrector.hh"
 #include "physics/em/detail/SBEnergyDistribution.hh"
 #include "physics/em/SeltzerBergerModel.hh"
-#include "physics/material/MaterialView.hh"
-#include "physics/material/MaterialTrackView.hh"
 
 #include "celeritas_test.hh"
 #include "gtest/Main.hh"
@@ -20,9 +18,13 @@
 #include "io/SeltzerBergerReader.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/Units.hh"
+#include "physics/em/BremsstrahlungProcess.hh"
+#include "physics/material/MaterialView.hh"
+#include "physics/material/MaterialTrackView.hh"
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
+using celeritas::BremsstrahlungProcess;
 using celeritas::ElementComponentId;
 using celeritas::ElementId;
 using celeritas::ElementView;

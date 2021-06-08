@@ -70,7 +70,7 @@ class SeltzerBergerModel final : public Model
     ModelId model_id() const final;
 
     //! Name of the model, for user interaction
-    std::string label() const final { return "Seltzer-Berger"; }
+    std::string label() const final { return "Seltzer-Berger bremsstrahlung"; }
 
     //! Access SB data on the host
     const HostRef& host_pointers() const { return data_.host(); }

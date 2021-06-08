@@ -51,7 +51,7 @@ const char* to_cstring(ImportProcessClass value)
                                           "h_pair_prod",
                                           "coulomb_scat",
                                           "e_ioni",
-                                          "e_brem",
+                                          "e_brems",
                                           "photoelectric",
                                           "compton",
                                           "conversion",
@@ -77,11 +77,11 @@ const char* to_cstring(ImportModelClass value)
     static const char* const strings[]
         = {"unknown",        "bragg_ion",         "bethe_bloch",
            "urban_msc",      "icru_73_qo",        "wentzel_VI_uni",
-           "h_brem",         "h_pair_prod",       "e_coulomb_scattering",
-           "bragg",          "moller_bhabha",     "e_brem_sb",
-           "e_brem_lpm",     "e_plus_to_gg",      "livermore_photoelectric",
+           "h_brems",        "h_pair_prod",       "e_coulomb_scattering",
+           "bragg",          "moller_bhabha",     "e_brems_sb",
+           "e_brems_lpm",    "e_plus_to_gg",      "livermore_photoelectric",
            "klein_nishina",  "bethe_heitler_lpm", "livermore_rayleigh",
-           "mu_bethe_bloch", "mu_brem",           "mu_pair_prod"};
+           "mu_bethe_bloch", "mu_brems",          "mu_pair_prod"};
     CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
                  < sizeof(strings));
     return strings[static_cast<unsigned int>(value)];
