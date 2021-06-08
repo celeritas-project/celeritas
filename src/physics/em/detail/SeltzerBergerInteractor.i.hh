@@ -8,8 +8,11 @@
 
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
-#include "TsaiUrbanDistribution.hh"
 #include "random/distributions/UniformRealDistribution.hh"
+#include "SBEnergyDistHelper.hh"
+#include "SBEnergyDistribution.hh"
+#include "SBPositronXsCorrector.hh"
+#include "TsaiUrbanDistribution.hh"
 
 namespace celeritas
 {
@@ -29,19 +32,19 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
     const CutoffView&             cutoffs,
     StackAllocator<Secondary>&    allocate,
     const MaterialView&           material,
-    const ElementId&              element_id)
+    const ElementComponentId&     elcomp_id)
     : shared_(shared)
-    , particle_id_(particle.particle_id())
     , inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())
     , inc_direction_(inc_direction)
-    , cutoffs_(cutoffs)
+    , inc_particle_is_electron_(particle.particle_id() == shared_.ids.electron)
+    , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
     , allocate_(allocate)
     , material_(material)
-    , element_id_(element_id)
+    , elcomp_id_(elcomp_id)
 {
-    CELER_EXPECT(particle_id_ == shared_.ids.electron
-                 || particle_id_ == shared_.ids.positron);
+    CELER_EXPECT(particle.particle_id() == shared_.ids.electron
+                 || particle.particle_id() == shared_.ids.positron);
 }
 
 //---------------------------------------------------------------------------//
@@ -56,7 +59,7 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     // Check if secondary can be produced. If not, this interaction cannot
     // happen and the incident particle must undergo an energy loss process
     // instead.
-    if (cutoffs_.energy(shared_.ids.gamma).value() > inc_energy_.value())
+    if (gamma_cutoff_ > inc_energy_)
     {
         return Interaction::from_unchanged(inc_energy_, inc_direction_);
     }
@@ -78,24 +81,34 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     real_type density_correction = density_factor * ipow<2>(total_energy_val);
 
     // Outgoing photon secondary energy sampler
-    SBEnergyDistribution sample_gamma_energy(
-        shared_,
-        inc_energy_,
-        element_id_,
-        EnergySq{density_correction},
-        cutoffs_.energy(shared_.ids.gamma));
-    Energy gamma_exit_energy = sample_gamma_energy(rng);
-
-    // Cross-section scaling for positrons
-    if (particle_id_ == shared_.ids.positron)
+    Energy gamma_exit_energy;
     {
-        SBPositronXsCorrector scale_xs(
-            shared_.electron_mass,
-            material_.element_view(ElementComponentId{0}),
-            cutoffs_.energy(shared_.ids.gamma),
-            inc_energy_);
-        /// TODO: integrate XSCorrector into energy distribution sampler
-        /// For now, just keep gamma energy unmodified (i.e. do nothing).
+        // Helper class preprocesses cross section bounds and calculates
+        // distribution
+        SBEnergyDistHelper sb_helper(
+            shared_,
+            inc_energy_,
+            material_.element_id(elcomp_id_),
+            SBEnergyDistHelper::EnergySq{density_correction},
+            gamma_cutoff_);
+
+        if (inc_particle_is_electron_)
+        {
+            // Rejection sample without modifying cross section
+            SBEnergyDistribution<SBElectronXsCorrector> sample_gamma_energy(
+                sb_helper, {});
+            gamma_exit_energy = sample_gamma_energy(rng);
+        }
+        else
+        {
+            SBEnergyDistribution<SBPositronXsCorrector> sample_gamma_energy(
+                sb_helper,
+                {shared_.electron_mass,
+                 material_.element_view(elcomp_id_),
+                 gamma_cutoff_,
+                 inc_energy_});
+            gamma_exit_energy = sample_gamma_energy(rng);
+        }
     }
 
     // Construct interaction for change to parent (incoming) particle

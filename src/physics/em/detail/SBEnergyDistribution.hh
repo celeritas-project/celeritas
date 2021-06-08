@@ -9,13 +9,23 @@
 
 #include "physics/base/Units.hh"
 #include "physics/grid/TwodSubgridCalculator.hh"
-#include "random/distributions/ReciprocalDistribution.hh"
 #include "SeltzerBerger.hh"
+#include "SBEnergyDistHelper.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Default scaling for SB cross sections.
+ */
+struct SBElectronXsCorrector
+{
+    //! No cross section scaling for any exiting energy
+    CELER_FUNCTION real_type operator()(units::MevEnergy) const { return 1; }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Sample exiting photon energy from Bremsstrahlung.
@@ -76,11 +86,13 @@ namespace detail
  \kappa_\mathrm{min}]) - d_\rho E^2}
  * \f]
  *
- * \todo Add a template parameter for a cross section scaling, which will be an
- * identity function (always returning 1) for electrons but is
- * SBPositronXsScaling for positrons. Use it to adjust max_xs on construction
- * and modify the sampled xs during iteration.
+ * Most of the mechanics of the sampling are in the template-free
+ * \c SBEnergyDistHelper, which is passed as a construction argument to this
+ * sampler. The separate class exists here to minimize duplication of templated
+ * code, which is required to provide for an on-the-fly correction of the cross
+ * section sampling.
  */
+template<class XSCorrector>
 class SBEnergyDistribution
 {
   public:
@@ -94,44 +106,17 @@ class SBEnergyDistribution
 
   public:
     // Construct from data
-    inline CELER_FUNCTION SBEnergyDistribution(const SBData& data,
-                                               Energy        inc_energy,
-                                               ElementId     element,
-                                               EnergySq density_correction,
-                                               Energy   min_gamma_energy);
+    inline CELER_FUNCTION SBEnergyDistribution(const SBEnergyDistHelper& helper,
+                                               XSCorrector scale_xs);
 
     template<class Engine>
     inline CELER_FUNCTION Energy operator()(Engine& rng);
 
-    //// DEBUG FUNCTIONALITY ////
-
-    //! Maximum cross section calculated for rejection
-    real_type max_xs() const { return 1 / inv_max_xs_; }
-
   private:
     //// IMPLEMENTATION DATA ////
-
-    using SBTables
-        = SeltzerBergerTableData<Ownership::const_reference, MemSpace::native>;
-    using ReciprocalSampler = ReciprocalDistribution<real_type>;
-
-    const real_type             inc_energy_;
-    const TwodSubgridCalculator calc_xs_;
-    const real_type             inv_max_xs_;
-
-    const real_type   dens_corr_;
-    ReciprocalSampler sample_exit_esq_;
-
-    //// CONSTRUCTION HELPER FUNCTIONS ////
-
-    inline CELER_FUNCTION TwodSubgridCalculator
-    make_xs_calc(const SBTables&, ElementId element) const;
-
-    inline CELER_FUNCTION real_type calc_max_xs(const SBTables&,
-                                                ElementId element) const;
-
-    inline CELER_FUNCTION ReciprocalSampler
-    make_esq_sampler(real_type min_gamma_energy) const;
+    const SBEnergyDistHelper& helper_;
+    const real_type           inv_max_xs_;
+    XSCorrector               scale_xs_;
 };
 
 //---------------------------------------------------------------------------//

@@ -40,7 +40,36 @@ class FieldDriver
                                                      OdeState* state,
                                                      real_type hinitial);
 
+    //// AUXILIARY INTERFACE ////
+
+    CELER_FUNCTION real_type minimum_step() const
+    {
+        return shared_.minimum_step;
+    }
+
+    CELER_FUNCTION real_type max_nsteps() const { return shared_.max_nsteps; }
+
+    CELER_FUNCTION real_type delta_intersection() const
+    {
+        return shared_.delta_intersection;
+    }
+
   private:
+    //// DATA ////
+
+    // Shared constant properties
+    const FieldParamsPointers& shared_;
+    // Stepper for this field driver
+    RungeKuttaStepper<MagFieldEquation>& stepper_;
+
+    //// CONSTANTS ////
+
+    static CELER_CONSTEXPR_FUNCTION real_type half() { return 0.5; }
+
+    static CELER_CONSTEXPR_FUNCTION real_type ppm() { return 1e-6; }
+
+    //// HELPER TYPES ////
+
     // A helper output for private member functions
     struct FieldOutput
     {
@@ -52,6 +81,8 @@ class FieldDriver
             real_type next_step; //!< Proposed next step size
         };
     };
+
+    //// HELPER FUNCTIONS ////
 
     // Find the next acceptable chord of with the miss-distance
     inline CELER_FUNCTION auto
@@ -68,37 +99,6 @@ class FieldDriver
     // Propose a next step size from a given step size and associated error
     inline CELER_FUNCTION real_type new_step_size(real_type step,
                                                   real_type error) const;
-
-    //// COMMON PROPERTIES ////
-
-    static CELER_CONSTEXPR_FUNCTION real_type half() { return 0.5; }
-
-    static CELER_CONSTEXPR_FUNCTION real_type ppm() { return 1e-6; }
-
-  public:
-    //// AUXILIARY INTERFACE ////
-
-    inline CELER_FUNCTION real_type minimum_step() const
-    {
-        return shared_.minimum_step;
-    }
-
-    inline CELER_FUNCTION real_type max_nsteps() const
-    {
-        return shared_.max_nsteps;
-    }
-
-    inline CELER_FUNCTION real_type delta_intersection() const
-    {
-        return shared_.delta_intersection;
-    }
-
-  private:
-    // Shared constant properties
-    const FieldParamsPointers& shared_;
-
-    // Stepper for this field driver
-    RungeKuttaStepper<MagFieldEquation>& stepper_;
 };
 
 //---------------------------------------------------------------------------//

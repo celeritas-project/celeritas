@@ -53,7 +53,8 @@ ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a,
 template<class RealType>
 template<class Generator>
 CELER_FUNCTION auto
-ReciprocalDistribution<RealType>::operator()(Generator& rng) -> result_type
+ReciprocalDistribution<RealType>::operator()(Generator& rng) const
+    -> result_type
 {
     return a_ * std::exp(logratio_ * generate_canonical<RealType>(rng));
 }

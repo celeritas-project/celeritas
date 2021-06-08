@@ -34,6 +34,8 @@ class BhabhaEnergyDistribution
     inline CELER_FUNCTION real_type operator()(Engine& rng);
 
   private:
+    //// DATA ////
+
     // Electron incident energy [MeV]
     real_type inc_energy_;
     // Total energy of the incident particle [MeV]
@@ -43,15 +45,18 @@ class BhabhaEnergyDistribution
     // Sampling parameter
     real_type gamma_;
 
-  private:
+    //// HELPER FUNCTIONS ////
+
     // Helper function for calculating rejection function g
     inline CELER_FUNCTION real_type calc_g_fraction(real_type epsilon_min,
                                                     real_type epsilon_max);
+
     // Maximum energy fraction transferred to free electron [MeV]
     static CELER_CONSTEXPR_FUNCTION real_type max_energy_fraction()
     {
         return 1;
     }
+
 }; // namespace BhabhaEnergyDistribution
 
 //---------------------------------------------------------------------------//

@@ -31,8 +31,6 @@ RayleighInteractor::RayleighInteractor(const RayleighNativeRef& shared,
     , inc_direction_(direction)
     , element_id_(el_id)
 {
-    CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
-                 && inc_energy_ <= this->max_incident_energy());
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
     CELER_EXPECT(element_id_ < shared_.params.size());
 }

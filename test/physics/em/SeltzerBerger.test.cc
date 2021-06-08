@@ -25,10 +25,13 @@
 #include "../InteractionIO.hh"
 
 using celeritas::BremsstrahlungProcess;
+using celeritas::ElementComponentId;
 using celeritas::ElementId;
 using celeritas::ElementView;
 using celeritas::SeltzerBergerModel;
 using celeritas::SeltzerBergerReader;
+using celeritas::detail::SBElectronXsCorrector;
+using celeritas::detail::SBEnergyDistHelper;
 using celeritas::detail::SBEnergyDistribution;
 using celeritas::detail::SBPositronXsCorrector;
 using celeritas::detail::SeltzerBergerInteractor;
@@ -38,7 +41,7 @@ namespace constants = celeritas::constants;
 namespace pdg       = celeritas::pdg;
 
 using Energy   = celeritas::units::MevEnergy;
-using EnergySq = SBEnergyDistribution::EnergySq;
+using EnergySq = SBEnergyDistHelper::EnergySq;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -195,29 +198,13 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
 
     const int           num_samples = 8192;
     std::vector<double> max_xs;
+    std::vector<double> max_xs_energy;
     std::vector<double> avg_exit_frac;
     std::vector<double> avg_engine_samples;
 
-    // Note: the first point has a very low cross section compared to
-    // ionization so won't be encountered in practice. The differential cross
-    // section distribution is much flatter there, so there should be lower
-    // rejection. The second point is where the maximum of the differential SB
-    // data switches between a high-exit-energy peak and a low-exit-energy
-    // peak, which should result in a higher rejection rate. The remaining
-    // points are arbitrary.
-    for (real_type inc_energy : {0.001, 0.0045, 0.567, 7.89, 89.0, 901.})
-    {
-        SBEnergyDistribution sample_energy(
-            model_->host_pointers(),
-            Energy{inc_energy},
-            ElementId{0},
-            this->density_correction(MaterialId{0}, Energy{inc_energy}),
-            gamma_cutoff);
-        max_xs.push_back(sample_energy.max_xs());
-        double total_exit_energy = 0;
-
-        // Loop over many particles
-        RandomEngine& rng_engine = this->rng();
+    auto sample_many = [&](real_type inc_energy, auto& sample_energy) {
+        double        total_exit_energy = 0;
+        RandomEngine& rng_engine        = this->rng();
         for (int i = 0; i < num_samples; ++i)
         {
             Energy exit_gamma = sample_energy(rng_engine);
@@ -228,18 +215,84 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
 
         avg_exit_frac.push_back(total_exit_energy / (num_samples * inc_energy));
         avg_engine_samples.push_back(double(rng_engine.count()) / num_samples);
+    };
+
+    // Note: the first point has a very low cross section compared to
+    // ionization so won't be encountered in practice. The differential cross
+    // section distribution is much flatter there, so there should be lower
+    // rejection. The second point is where the maximum of the differential SB
+    // data switches between a high-exit-energy peak and a low-exit-energy
+    // peak, which should result in a higher rejection rate. The remaining
+    // points are arbitrary.
+    for (real_type inc_energy : {0.001, 0.0045, 0.567, 7.89, 89.0, 901.})
+    {
+        SBEnergyDistHelper edist_helper(
+            model_->host_pointers(),
+            Energy{inc_energy},
+            ElementId{0},
+            this->density_correction(MaterialId{0}, Energy{inc_energy}),
+            gamma_cutoff);
+        max_xs.push_back(edist_helper.max_xs().value());
+        max_xs_energy.push_back(edist_helper.max_xs_energy().value());
+
+        SBEnergyDistribution<SBElectronXsCorrector> sample_energy(edist_helper,
+                                                                  {});
+        // Loop over many particles
+        sample_many(inc_energy, sample_energy);
+    }
+
+    {
+        real_type inc_energy = 7.89;
+
+        SBEnergyDistHelper edist_helper(
+            model_->host_pointers(),
+            Energy{inc_energy},
+            ElementId{0},
+            this->density_correction(MaterialId{0}, Energy{inc_energy}),
+            gamma_cutoff);
+
+        // Sample with a "correction" that's constant, which shouldn't change
+        // sampling efficiency or expected value correction
+        {
+            auto scale_xs = [](Energy) { return 2.0; };
+            SBEnergyDistribution<decltype(scale_xs)> sample_energy(
+                edist_helper, scale_xs);
+
+            // Loop over many particles
+            sample_many(inc_energy, sample_energy);
+        }
+
+        // Sample with the positron XS correction
+        {
+            const ParticleParams& pp = *this->particle_params();
+
+            SBEnergyDistribution<SBPositronXsCorrector> sample_energy(
+                edist_helper,
+                {pp.get(pp.find(pdg::positron())).mass(),
+                 this->material_params()->get(ElementId{0}),
+                 gamma_cutoff,
+                 Energy{inc_energy}});
+
+            // Loop over many particles
+            sample_many(inc_energy, sample_energy);
+        }
     }
 
     // clang-format off
     const double expected_max_xs[] = {2.866525852195, 4.72696244794,
         12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
+    const double expected_max_xs_energy[] = {0.001, 0.002718394312008,
+        5.67e-13, 7.89e-12, 8.9e-11, 9.01e-10};
     const double expected_avg_exit_frac[] = {0.9491159324044, 0.4974867596411,
-        0.08235370866815, 0.0719988569368, 0.08780979490539, 0.1003040929175};
+        0.08235370866815, 0.0719988569368, 0.08780979490539, 0.1003040929175,
+        0.0728392571092988, 0.0693741457539784};
     const double expected_avg_engine_samples[] = {4.0791015625, 4.06005859375,
-        5.13916015625, 4.71923828125, 4.48486328125, 4.40869140625};
+        5.13916015625, 4.71923828125, 4.48486328125, 4.40869140625,
+        4.728515625, 4.7353515625};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
+    EXPECT_VEC_SOFT_EQ(expected_max_xs_energy, max_xs_energy);
     EXPECT_VEC_SOFT_EQ(expected_avg_exit_frac, avg_exit_frac);
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
@@ -252,12 +305,9 @@ TEST_F(SeltzerBergerTest, basic)
     const int num_samples = 4;
     this->resize_secondaries(num_samples);
 
-    // Sampled element
-    const ElementId element{0};
-
     // Production cuts
-    auto                cutoffs = this->cutoff_params()->get(MaterialId{0});
-    const MaterialView& material_view = this->material_track().material_view();
+    auto material_view = this->material_track().material_view();
+    auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
     SeltzerBergerInteractor interact(model_->host_pointers(),
@@ -266,7 +316,7 @@ TEST_F(SeltzerBergerTest, basic)
                                      cutoffs,
                                      this->secondary_allocator(),
                                      material_view,
-                                     element);
+                                     ElementComponentId{0});
     RandomEngine&           rng_engine = this->rng();
 
     // Produce two samples from the original/incident photon
@@ -319,9 +369,9 @@ TEST_F(SeltzerBergerTest, stress_test)
     const int           num_samples = 1e4;
     std::vector<double> avg_engine_samples;
 
-    // Production cuts
-    auto                cutoffs = this->cutoff_params()->get(MaterialId{0});
-    const MaterialView& material_view = this->material_track().material_view();
+    // Views
+    auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
+    auto material_view = this->material_track().material_view();
 
     // Loop over a set of incident gamma energies
     for (auto particle : {pdg::electron(), pdg::positron()})
@@ -340,12 +390,8 @@ TEST_F(SeltzerBergerTest, stress_test)
                                          Real3{1e-9, 0, 1},
                                          Real3{1, 1, 1}})
             {
-                SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
                 this->set_inc_direction(inc_dir);
                 this->resize_secondaries(num_samples);
-
-                // Sampled element
-                const ElementId element{0};
 
                 // Create interactor
                 this->set_inc_particle(particle, MevEnergy{inc_e});
@@ -355,13 +401,12 @@ TEST_F(SeltzerBergerTest, stress_test)
                                                  cutoffs,
                                                  this->secondary_allocator(),
                                                  material_view,
-                                                 element);
+                                                 ElementComponentId{0});
 
                 // Loop over many particles
                 for (unsigned int i = 0; i < num_samples; ++i)
                 {
                     Interaction result = interact(rng_engine);
-                    SCOPED_TRACE(result);
                     this->sanity_check(result);
                 }
                 EXPECT_EQ(num_samples,
@@ -379,10 +424,10 @@ TEST_F(SeltzerBergerTest, stress_test)
                                                   13.8325,
                                                   13.2383,
                                                   13.02995,
-                                                  15.029,
-                                                  14.18235,
-                                                  13.82015,
-                                                  13.23295,
-                                                  13.0292};
+                                                  15.05335,
+                                                  14.18465,
+                                                  13.81935,
+                                                  13.2331,
+                                                  13.02855};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
