@@ -8,6 +8,7 @@
 #include "physics/base/ImportedProcessAdapter.hh"
 
 #include "physics/base/Model.hh"
+#include "physics/em/BremsstrahlungProcess.hh"
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/EIonizationProcess.hh"
 #include "physics/em/EPlusAnnihilationProcess.hh"
@@ -59,7 +60,7 @@ class ImportedProcessesTest : public celeritas::Test
 
 TEST_F(ImportedProcessesTest, compton)
 {
-    // Create photoelectric process
+    // Create Compton process
     auto process = std::make_shared<ComptonProcess>(particles_, processes_);
 
     // Test model
@@ -84,7 +85,7 @@ TEST_F(ImportedProcessesTest, compton)
 
 TEST_F(ImportedProcessesTest, e_ionization)
 {
-    // Create photoelectric process
+    // Create electron ionization process
     auto process = std::make_shared<EIonizationProcess>(particles_, processes_);
 
     // Test model
@@ -111,7 +112,7 @@ TEST_F(ImportedProcessesTest, e_ionization)
 
 TEST_F(ImportedProcessesTest, eplus_annihilation)
 {
-    // Create photoelectric process
+    // Create positron annihilation process
     auto process = std::make_shared<EPlusAnnihilationProcess>(particles_);
 
     // Test model
@@ -138,7 +139,7 @@ TEST_F(ImportedProcessesTest, eplus_annihilation)
 
 TEST_F(ImportedProcessesTest, gamma_conversion)
 {
-    // Create photoelectric process
+    // Create gamma conversion process
     auto process
         = std::make_shared<GammaConversionProcess>(particles_, processes_);
 
@@ -192,6 +193,40 @@ TEST_F(ImportedProcessesTest, photoelectric)
         auto builders   = process->step_limits(applic);
         EXPECT_TRUE(builders[VGT::macro_xs]);
         EXPECT_FALSE(builders[VGT::energy_loss]);
+        EXPECT_FALSE(builders[VGT::range]);
+    }
+}
+
+TEST_F(ImportedProcessesTest, bremsstrahlung)
+{
+    // Create bremsstrahlung process (requires Geant4 environment variables)
+    std::shared_ptr<BremsstrahlungProcess> process;
+    try
+    {
+        process = std::make_shared<BremsstrahlungProcess>(
+            particles_, materials_, processes_);
+    }
+    catch (const RuntimeError& e)
+    {
+        SKIP("Failed to create process: " << e.what());
+    }
+
+    // Test model
+    auto models = process->build_models(ModelIdGenerator{});
+    ASSERT_EQ(1, models.size());
+    ASSERT_TRUE(models.front());
+    EXPECT_EQ("Seltzer-Berger bremsstrahlung", models.front()->label());
+    auto all_applic = models.front()->applicability();
+    ASSERT_EQ(2, all_applic.size());
+    Applicability applic = *all_applic.begin();
+
+    // Test step limits
+    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    {
+        applic.material = mat_id;
+        auto builders   = process->step_limits(applic);
+        EXPECT_TRUE(builders[VGT::macro_xs]);
+        EXPECT_TRUE(builders[VGT::energy_loss]);
         EXPECT_FALSE(builders[VGT::range]);
     }
 }

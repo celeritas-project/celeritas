@@ -166,7 +166,7 @@ using SeltzerBergerNativeRef
 
 // Launch the Seltzer-Berger interaction
 void seltzer_berger_interact(
-    const SeltzerBergerNativeRef&              shared,
+    const SeltzerBergerDeviceRef&              shared,
     const ModelInteractRefs<MemSpace::device>& interaction);
 
 //---------------------------------------------------------------------------//
