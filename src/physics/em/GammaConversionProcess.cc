@@ -49,6 +49,15 @@ auto GammaConversionProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Type of process.
+ */
+ProcessType GammaConversionProcess::type() const
+{
+    return ProcessType::electromagnetic;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Name of the process.
  */
 std::string GammaConversionProcess::label() const

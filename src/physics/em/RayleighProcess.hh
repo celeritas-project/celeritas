@@ -41,6 +41,9 @@ class RayleighProcess : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability range) const final;
 
+    //! Type of process
+    ProcessType type() const final;
+
     // Name of the process
     std::string label() const final;
 

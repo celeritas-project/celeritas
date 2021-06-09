@@ -149,13 +149,13 @@ CELER_FUNCTION ParticleTrackView::Energy
 
     // Calculate the sum of energy loss rate over all processes.
     real_type total_eloss_rate = 0;
-    for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
+    if (auto ppid = physics.eloss_ppid())
     {
         if (auto grid_id = physics.value_grid(VGT::energy_loss, ppid))
         {
             auto calc_eloss_rate
                 = physics.make_calculator<EnergyLossCalculator>(grid_id);
-            total_eloss_rate += calc_eloss_rate(pre_step_energy);
+            total_eloss_rate = calc_eloss_rate(pre_step_energy);
         }
     }
 
@@ -169,8 +169,7 @@ CELER_FUNCTION ParticleTrackView::Energy
         // the integral of 1/loss to back-calculate the actual energy loss
         // along the curve given the actual step.
         eloss = 0;
-        for (auto ppid :
-             range(ParticleProcessId{physics.num_particle_processes()}))
+        if (auto ppid = physics.eloss_ppid())
         {
             if (auto grid_id = physics.value_grid(VGT::range, ppid))
             {
@@ -185,8 +184,8 @@ CELER_FUNCTION ParticleTrackView::Energy
                 // step due to this process.
                 auto calc_energy
                     = physics.make_calculator<InverseRangeCalculator>(grid_id);
-                eloss += (pre_step_energy.value()
-                          - calc_energy(remaining_range).value());
+                eloss = (pre_step_energy.value()
+                         - calc_energy(remaining_range).value());
             }
         }
         CELER_ASSERT(eloss > 0);

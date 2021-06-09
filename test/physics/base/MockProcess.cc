@@ -83,6 +83,12 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
 }
 
 //---------------------------------------------------------------------------//
+ProcessType MockProcess::type() const
+{
+    return data_.type;
+}
+
+//---------------------------------------------------------------------------//
 std::string MockProcess::label() const
 {
     return data_.label;

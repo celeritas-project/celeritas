@@ -55,6 +55,15 @@ auto BremsstrahlungProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Type of process.
+ */
+ProcessType BremsstrahlungProcess::type() const
+{
+    return ProcessType::energy_loss;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Name of the process.
  */
 std::string BremsstrahlungProcess::label() const

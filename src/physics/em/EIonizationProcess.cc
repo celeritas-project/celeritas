@@ -48,6 +48,15 @@ auto EIonizationProcess::step_limits(Applicability applicability) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Type of process.
+ */
+ProcessType EIonizationProcess::type() const
+{
+    return ProcessType::energy_loss;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Name of the process.
  */
 std::string EIonizationProcess::label() const

@@ -21,6 +21,17 @@ class Model;
 
 //---------------------------------------------------------------------------//
 /*!
+ * Type of physics process.
+ */
+enum class ProcessType
+{
+    electromagnetic, //!< Discrete EM process
+    energy_loss,     //!< Continuous-discrete EM process
+    multiple_scattering
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * An interface/factory method for creating models.
  *
  * Currently processes pull their data from Geant4 which combines multiple
@@ -59,6 +70,9 @@ class Process
 
     //! Get the interaction cross sections for the given energy range
     virtual StepLimitBuilders step_limits(Applicability range) const = 0;
+
+    //! Type of process
+    virtual ProcessType type() const = 0;
 
     //! Name of the process
     virtual std::string label() const = 0;

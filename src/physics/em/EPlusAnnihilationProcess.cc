@@ -53,6 +53,15 @@ auto EPlusAnnihilationProcess::step_limits(Applicability range) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Type of process.
+ */
+ProcessType EPlusAnnihilationProcess::type() const
+{
+    return ProcessType::electromagnetic;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Name of the process.
  */
 std::string EPlusAnnihilationProcess::label() const
