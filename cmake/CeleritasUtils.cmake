@@ -550,6 +550,7 @@ function(celeritas_target_link_libraries target)
               PRIVATE
               $<DEVICE_LINK:$<TARGET_FILE:${_libstatic}>>
             )
+          add_dependencies(${_target_final} ${_libstatic})
           endif()
         endif()
       endforeach()
