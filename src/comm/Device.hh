@@ -88,6 +88,9 @@ void activate_device(Device&& device);
 // Print device info
 std::ostream& operator<<(std::ostream&, const Device&);
 
+// Increase CUDA stack size
+void set_cuda_stack_size(int limit);
+
 //---------------------------------------------------------------------------//
 // INLINE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//

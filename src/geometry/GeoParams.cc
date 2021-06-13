@@ -122,20 +122,4 @@ auto GeoParams::label_to_id(const std::string& label) const -> VolumeId
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Increase CUDA stack size to enable complex geometries.
- *
- * For the cms2018.gdml detector geometry, the default stack size is too small,
- * and a limit of 32768 is recommended.
- *
- * \todo Move to Device.hh/cc
- */
-void GeoParams::set_cuda_stack_size(int limit)
-{
-    CELER_EXPECT(limit > 0);
-    CELER_EXPECT(celeritas::device());
-    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
-}
-
-//---------------------------------------------------------------------------//
 } // namespace celeritas

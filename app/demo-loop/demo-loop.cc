@@ -41,6 +41,11 @@ void run(std::istream& is)
     // Read input options
     auto inp = nlohmann::json::parse(is);
 
+    if (inp.count("cuda_stack_size"))
+    {
+        celeritas::set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
+    }
+
     // For now, only do a single run
     auto run_args = inp.at("run").get<LDemoArgs>();
     CELER_EXPECT(run_args);
