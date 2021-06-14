@@ -13,6 +13,7 @@
 #include "io/EventReader.hh"
 #include "io/RootImporter.hh"
 #include "physics/base/ImportedProcessAdapter.hh"
+#include "physics/em/BremsstrahlungProcess.hh"
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/EIonizationProcess.hh"
 #include "physics/em/EPlusAnnihilationProcess.hh"
