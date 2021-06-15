@@ -113,7 +113,7 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
 
     // Construct interaction for change to parent (incoming) particle
     Interaction result;
-    result.action = Action::spawned;
+    result.action = Action::scattered;
     result.energy
         = units::MevEnergy{inc_energy_.value() - gamma_exit_energy.value()};
     result.direction           = inc_direction_;
