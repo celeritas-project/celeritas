@@ -253,9 +253,11 @@ select_process_and_model(const ParticleTrackView& particle,
         auto      calc_xs = physics.make_calculator<XsCalculator>(grid_id);
         real_type xs      = calc_xs(particle.energy());
 
-        // The discrete interaction occurs with probability \f$
-        // \sigma(E_1) / \sigma_{\max} \f$
-        if (!BernoulliDistribution(xs / physics.per_process_xs(ppid))(rng))
+        // The discrete interaction occurs with probability \f$ \sigma(E_1) /
+        // \sigma_{\max} \f$. Note that it's possible for \f$ \sigma(E_1) \f$
+        // to be larger than the estimate of the maximum cross section over the
+        // step \f$ \sigma_{\max} \f$.
+        if (generate_canonical(rng) > xs / physics.per_process_xs(ppid))
             return {};
     }
 

@@ -72,10 +72,8 @@ LDemoParams load_params(const LDemoArgs& args)
 
     // Construct cutoffs
     {
-        CutoffParams::Input input;
-        input.materials = result.materials;
-        input.particles = result.particles;
-        result.cutoffs  = std::make_shared<CutoffParams>(std::move(input));
+        result.cutoffs = CutoffParams::from_import(
+            data, result.particles, result.materials);
     }
 
     // Load physics: create individual processes with make_shared
@@ -84,7 +82,6 @@ LDemoParams load_params(const LDemoArgs& args)
         input.particles = result.particles;
         input.materials = result.materials;
 
-        // TODO: add remaining processes
         auto process_data
             = std::make_shared<ImportedProcesses>(std::move(data.processes));
         input.processes.push_back(
@@ -99,6 +96,8 @@ LDemoParams load_params(const LDemoArgs& args)
             std::make_shared<EPlusAnnihilationProcess>(result.particles));
         input.processes.push_back(std::make_shared<EIonizationProcess>(
             result.particles, process_data));
+        input.processes.push_back(std::make_shared<BremsstrahlungProcess>(
+            result.particles, result.materials, process_data));
 
         result.physics = std::make_shared<PhysicsParams>(std::move(input));
     }

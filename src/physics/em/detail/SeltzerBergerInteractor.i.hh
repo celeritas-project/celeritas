@@ -45,6 +45,7 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
+    CELER_EXPECT(gamma_cutoff_.value() > 0);
 }
 
 //---------------------------------------------------------------------------//

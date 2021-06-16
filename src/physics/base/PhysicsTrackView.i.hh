@@ -268,7 +268,10 @@ PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
  * cross section (calculated at initialization) is in the interval \f$ [\xi
  * E_0, E_0) \f$, where \f$ E_0 \f$ is the pre-step energy and \f$ \xi \f$ is
  * \c energy_fraction, \f$ \sigma_{\max} \f$ is set to the global maximum.
- * Otherwise, \f$ \sigma_{\max} = \max( \sigma(E_0), \sigma(\xi E_0) ) \f$.
+ * Otherwise, \f$ \sigma_{\max} = \max( \sigma(E_0), \sigma(\xi E_0) ) \f$. If
+ * the cross section is not monotonic in the interval [\xi E_0, E_0) and the
+ * interval does not contain the global maximum, the post-step cross section
+ * \f$ \sigma(E_1) \f$ may be larger than \f$ \sigma_{\max} \f$.
  */
 CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
                                                    ValueGridId       grid_id,
