@@ -265,6 +265,7 @@ celeritas_add_test(random/distributions/RadialDistribution.test.cc)
 celeritas_add_test(random/distributions/ReciprocalDistribution.test.cc)
 celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 
+celeritas_cudaoptional_test(random/curand/CurandPerformance)
 
 #-----------------------------------------------------------------------------#
 # Sim
