@@ -166,7 +166,7 @@ TEST_F(RootImporterTest, materials)
         0.9260901525621, 0.9706947116044, 0.01733444524846, 0.07};
     const double expected_cutoff_ranges[]
         = {0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07};
-    const double expected_densities[] = {1e-25, 7.99999926599853};
+    const double expected_densities[] = {1e-25, 8};
     const double expected_e_densities[]
         = {0.05974697167543, 2.244432022882e+24};
     const double expected_num_densities[]
