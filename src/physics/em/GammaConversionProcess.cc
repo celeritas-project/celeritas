@@ -53,7 +53,7 @@ auto GammaConversionProcess::step_limits(Applicability applic) const
  */
 ProcessType GammaConversionProcess::type() const
 {
-    return ProcessType::electromagnetic;
+    return ProcessType::electromagnetic_discrete;
 }
 
 //---------------------------------------------------------------------------//

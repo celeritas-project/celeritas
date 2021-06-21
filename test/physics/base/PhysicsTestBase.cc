@@ -98,7 +98,7 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
     inp.interact  = this->make_model_callback();
     {
         inp.label       = "scattering";
-        inp.type        = ProcessType::electromagnetic;
+        inp.type        = ProcessType::electromagnetic_discrete;
         inp.applic      = {make_applicability("gamma", 1e-6, 100),
                       make_applicability("celeriton", 1, 100)};
         inp.xs          = {Barn{1.0}, Barn{1.0}};
@@ -107,7 +107,7 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
     }
     {
         inp.label       = "absorption";
-        inp.type        = ProcessType::electromagnetic;
+        inp.type        = ProcessType::electromagnetic_discrete;
         inp.applic      = {make_applicability("gamma", 1e-6, 100)};
         inp.xs          = {Barn{2.0}, Barn{2.0}};
         inp.energy_loss = {};
@@ -116,7 +116,7 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
     {
         // Three different models for the single process
         inp.label       = "purrs";
-        inp.type        = ProcessType::energy_loss;
+        inp.type        = ProcessType::electromagnetic_dedx;
         inp.applic      = {make_applicability("celeriton", 1e-3, 1),
                       make_applicability("celeriton", 1, 10),
                       make_applicability("celeriton", 10, 100)};
@@ -127,7 +127,7 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
     {
         // Two models for anti-celeriton
         inp.label       = "hisses";
-        inp.type        = ProcessType::energy_loss;
+        inp.type        = ProcessType::electromagnetic_dedx;
         inp.applic      = {make_applicability("anti-celeriton", 1e-3, 1),
                       make_applicability("anti-celeriton", 1, 100)};
         inp.xs          = {Barn{4.0}, Barn{4.0}};
@@ -136,7 +136,7 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
     }
     {
         inp.label       = "meows";
-        inp.type        = ProcessType::energy_loss;
+        inp.type        = ProcessType::electromagnetic_dedx;
         inp.applic      = {make_applicability("celeriton", 1e-3, 10),
                       make_applicability("anti-celeriton", 1e-3, 10)};
         inp.xs          = {Barn{5.0}, Barn{5.0}};
@@ -146,7 +146,7 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
     {
         // Energy-dependent cross section
         inp.label       = "barks";
-        inp.type        = ProcessType::energy_loss;
+        inp.type        = ProcessType::electromagnetic_dedx;
         inp.applic      = {make_applicability("electron", 1e-3, 10)};
         inp.xs          = {Barn{6.0}, Barn{12.0}, Barn{6.0}};
         inp.energy_loss = 0.5 * 1e-20;

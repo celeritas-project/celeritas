@@ -52,7 +52,7 @@ auto EIonizationProcess::step_limits(Applicability applicability) const
  */
 ProcessType EIonizationProcess::type() const
 {
-    return ProcessType::energy_loss;
+    return ProcessType::electromagnetic_dedx;
 }
 
 //---------------------------------------------------------------------------//

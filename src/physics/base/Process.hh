@@ -25,9 +25,9 @@ class Model;
  */
 enum class ProcessType
 {
-    electromagnetic, //!< Discrete EM process
-    energy_loss,     //!< Continuous-discrete EM process
-    multiple_scattering
+    electromagnetic_discrete, //!< Discrete EM process
+    electromagnetic_dedx,     //!< Continuous-discrete EM process
+    electromagnetic_msc       //!> Multiple scattering
 };
 
 //---------------------------------------------------------------------------//

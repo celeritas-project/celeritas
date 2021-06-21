@@ -54,7 +54,7 @@ auto RayleighProcess::step_limits(Applicability applic) const
  */
 ProcessType RayleighProcess::type() const
 {
-    return ProcessType::electromagnetic;
+    return ProcessType::electromagnetic_discrete;
 }
 
 //---------------------------------------------------------------------------//

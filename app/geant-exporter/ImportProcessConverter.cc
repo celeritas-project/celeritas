@@ -234,8 +234,6 @@ ImportProcessConverter::~ImportProcessConverter() = default;
  * Add physics tables to this->process_ from a given particle and process and
  * return it. If the process was already returned, \c operator() will return an
  * empty object.
- *
- * The user should erase such cases afterwards using \c remove_empty(...) .
  */
 ImportProcess
 ImportProcessConverter::operator()(const G4ParticleDefinition& particle,

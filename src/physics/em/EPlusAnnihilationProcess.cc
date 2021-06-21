@@ -57,7 +57,7 @@ auto EPlusAnnihilationProcess::step_limits(Applicability range) const
  */
 ProcessType EPlusAnnihilationProcess::type() const
 {
-    return ProcessType::electromagnetic;
+    return ProcessType::electromagnetic_discrete;
 }
 
 //---------------------------------------------------------------------------//

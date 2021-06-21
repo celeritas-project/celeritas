@@ -353,7 +353,7 @@ void PhysicsParams::build_xs(const Options&        opts,
                 // of the largest cross section for this material
                 auto grid_id
                     = temp_grid_ids[ValueGridType::macro_xs][mat_id.get()];
-                if (proc.type() == ProcessType::energy_loss
+                if (proc.type() == ProcessType::electromagnetic_dedx
                     && opts.use_integral_xs && grid_id)
                 {
                     // Allocate storage for the energies if we haven't already

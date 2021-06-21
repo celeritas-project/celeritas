@@ -91,7 +91,7 @@ auto PhotoelectricProcess::step_limits(Applicability applic) const
  */
 ProcessType PhotoelectricProcess::type() const
 {
-    return ProcessType::electromagnetic;
+    return ProcessType::electromagnetic_discrete;
 }
 
 //---------------------------------------------------------------------------//

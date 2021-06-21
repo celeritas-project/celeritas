@@ -59,7 +59,7 @@ auto BremsstrahlungProcess::step_limits(Applicability applic) const
  */
 ProcessType BremsstrahlungProcess::type() const
 {
-    return ProcessType::energy_loss;
+    return ProcessType::electromagnetic_dedx;
 }
 
 //---------------------------------------------------------------------------//

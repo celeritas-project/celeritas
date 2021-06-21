@@ -50,7 +50,7 @@ auto ComptonProcess::step_limits(Applicability applic) const
  */
 ProcessType ComptonProcess::type() const
 {
-    return ProcessType::electromagnetic;
+    return ProcessType::electromagnetic_discrete;
 }
 
 //---------------------------------------------------------------------------//
