@@ -60,6 +60,7 @@ list(APPEND SOURCES
   physics/base/PhysicsParams.cc
   physics/base/Process.cc
   physics/em/AtomicRelaxationParams.cc
+  physics/em/BetheBlochModel.cc
   physics/em/BetheHeitlerModel.cc
   physics/em/BremsstrahlungProcess.cc
   physics/em/ComptonProcess.cc
@@ -88,6 +89,7 @@ if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
     base/KernelParamCalculator.cuda.cc
     base/detail/Filler.cu
+    physics/em/detail/BetheBloch.cu
     physics/em/detail/BetheHeitler.cu
     physics/em/detail/EPlusGG.cu
     physics/em/detail/KleinNishina.cu
