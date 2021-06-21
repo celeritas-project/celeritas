@@ -27,7 +27,7 @@ enum class ProcessType
 {
     electromagnetic_discrete, //!< Discrete EM process
     electromagnetic_dedx,     //!< Continuous-discrete EM process
-    electromagnetic_msc       //!> Multiple scattering
+    electromagnetic_msc       //!< Multiple scattering
 };
 
 //---------------------------------------------------------------------------//
