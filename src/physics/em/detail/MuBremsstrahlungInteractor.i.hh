@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheBlochInteractor.i.hh
+//! \file MuBremsstrahlungInteractor.i.hh
 //---------------------------------------------------------------------------//
 
 #include "base/ArrayUtils.hh"
@@ -18,17 +18,17 @@ namespace detail
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION BetheBlochInteractor::BetheBlochInteractor(
-    const BetheBlochInteractorPointers& shared,
-    const ParticleTrackView&            particle,
-    const Real3&                        inc_direction,
-    StackAllocator<Secondary>&          allocate,
-    MaterialView&                       material)
+CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
+    const MuBremsstrahlungInteractorPointers& shared,
+    const ParticleTrackView&                  particle,
+    const Real3&                              inc_direction,
+    StackAllocator<Secondary>&                allocate,
+    ElementView&                              element)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)
     , allocate_(allocate)
-    , material_(material)
+    , element_(element)
     , inc_mass_(particle.mass().value())
 {
     CELER_EXPECT(inc_energy_ >= this->min_incident_energy()
@@ -39,10 +39,10 @@ CELER_FUNCTION BetheBlochInteractor::BetheBlochInteractor(
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample using the Bethe-Bloch model.
+ * Sample using the Muon Bremsstrahlung model.
  */
 template<class Engine>
-CELER_FUNCTION Interaction BetheBlochInteractor::operator()(Engine& rng)
+CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
 {
     // Allocate space for gamma
     Secondary* secondaries = this->allocate_(1); 
@@ -56,9 +56,7 @@ CELER_FUNCTION Interaction BetheBlochInteractor::operator()(Engine& rng)
     
     real_type tmin = min(kinetic_energy, this->min_incident_energy().value());
 
-    ElementView element = material_.element_view(celeritas::ElementComponentId{0});
-
-    real_type func1 = tmin * this->differential_cross_section(tmin, element);
+    real_type func1 = tmin * this->differential_cross_section(tmin);
 
     real_type ln_epsilon, epsilon;
     real_type func2;
@@ -71,7 +69,7 @@ CELER_FUNCTION Interaction BetheBlochInteractor::operator()(Engine& rng)
     {
         ln_epsilon = xmin + p(rng) * xmax;
         epsilon = std::exp(ln_epsilon);
-        func2 = epsilon * this->differential_cross_section(epsilon, element);
+        func2 = epsilon * this->differential_cross_section(epsilon);
     } while(func2 < func1 * p(rng));
 
     real_type gamma_energy = epsilon;
@@ -82,8 +80,8 @@ CELER_FUNCTION Interaction BetheBlochInteractor::operator()(Engine& rng)
     real_type cost = this->sample_cos_theta(gamma_energy, rng);
     Real3 gamma_dir = rotate(from_spherical(cost, phi(rng)), inc_direction_);
 
-    real_type tot_momentum = std::sqrt(gamma_energy *
-                                    (gamma_energy + 2.0 * inc_mass_.value()));
+    real_type tot_momentum = std::sqrt(kinetic_energy *
+                                    (kinetic_energy + 2 * inc_mass_.value()));
     Real3 inc_direction;
     for (int i = 0; i < 3; i++)
     {
@@ -109,8 +107,8 @@ CELER_FUNCTION Interaction BetheBlochInteractor::operator()(Engine& rng)
 
 template<class Engine>
 CELER_FUNCTION real_type
-BetheBlochInteractor::sample_cos_theta(real_type gamma_energy,
-                                       Engine& rng)
+MuBremsstrahlungInteractor::sample_cos_theta(real_type gamma_energy,
+                                             Engine& rng)
 {
     real_type mass = inc_mass_.value();
     real_type gam  = 1.0 + inc_energy_.value() / mass;
@@ -124,8 +122,7 @@ BetheBlochInteractor::sample_cos_theta(real_type gamma_energy,
 }
 
 CELER_FUNCTION real_type
-BetheBlochInteractor::differential_cross_section(real_type gamma_energy,
-                                                 ElementView element)
+MuBremsstrahlungInteractor::differential_cross_section(real_type gamma_energy)
 {
 
     real_type dxsection = 0.0;
@@ -136,13 +133,13 @@ BetheBlochInteractor::differential_cross_section(real_type gamma_energy,
         return dxsection;
     }
 
-    int Z = element.atomic_number();
-    real_type A = element.atomic_mass().value();
+    int Z = element_.atomic_number();
+    real_type A = element_.atomic_mass().value();
     real_type mass = inc_mass_.value();
-    real_type sqrte = 1.648721271;
+    real_type sqrte = std::sqrt(constants::euler);
     real_type E = mass + ep_max;
     real_type v = gamma_energy / E;
-    real_type delta = ipow<2>(mass) * v / (2.0 * E - gamma_energy);
+    real_type delta = 0.5 * ipow<2>(mass) * v / (E - gamma_energy);
 
     real_type dn, dnstar, b, b1;
     dn = 1.54 * std::pow(A,0.27);
@@ -161,31 +158,23 @@ BetheBlochInteractor::differential_cross_section(real_type gamma_energy,
     }
 
     real_type phi_n;
-    real_type Z13 = 1.0 / element.cbrt_z();
-    real_type electron_m = constants::electron_mass;
+    real_type Z13 = 1.0 / element_.cbrt_z();
+    real_type electron_m = shared_.electron_mass.value();
 
-    phi_n = std::log(b * Z13 * (mass + delta * (dnstar * sqrte - 2.0))
-                     / (dnstar * (electron_m + delta * sqrte* b * Z13)));
-
-    if (phi_n < 0)
-    {
-        phi_n = 0.0;
-    }
+    phi_n = clamp_to_nonneg(
+        std::log(b * Z13 * (mass + delta * (dnstar * sqrte - 2.0))
+                      / (dnstar * (electron_m + delta * sqrte* b * Z13))));
 
     real_type phi_e = 0.0;
-    real_type Z23 = 1 / Z * Z13;
-    real_type ep_max1 = E / (1.0 + 0.5 * ipow<2>(mass) / electron_m * E);
+    real_type Z23 = ipow<2>(Z13);
+    real_type ep_max1 = E / (1.0 + 0.5 * ipow<2>(mass) / (electron_m * E));
 
     if (gamma_energy < ep_max1)
     {
-        phi_e = std::log(b1 * Z23 * mass / (1.0 + delta * mass
+        phi_e = clamp_to_nonneg(
+            std::log(b1 * Z23 * mass / ((1.0 + delta * mass
                          / (ipow<2>(electron_m) * sqrte))
-                         * (electron_m + delta * sqrte * b1 * Z23));
-
-        if (phi_e < 0.0)
-        {
-            phi_e = 0.0;
-        }
+                         * (electron_m + delta * sqrte * b1 * Z23))));
     }
 
     real_type alpha = constants::alpha_fine_structure;

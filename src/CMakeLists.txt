@@ -60,7 +60,6 @@ list(APPEND SOURCES
   physics/base/PhysicsParams.cc
   physics/base/Process.cc
   physics/em/AtomicRelaxationParams.cc
-  physics/em/BetheBlochModel.cc
   physics/em/BetheHeitlerModel.cc
   physics/em/BremsstrahlungProcess.cc
   physics/em/ComptonProcess.cc
@@ -72,6 +71,7 @@ list(APPEND SOURCES
   physics/em/GammaConversionProcess.cc
   physics/em/KleinNishinaModel.cc
   physics/em/MollerBhabhaModel.cc
+  physics/em/MuBremsstrahlungModel.cc
   physics/em/RayleighModel.cc
   physics/em/RayleighProcess.cc
   physics/em/detail/Rayleigh.cc
@@ -89,11 +89,11 @@ if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
     base/KernelParamCalculator.cuda.cc
     base/detail/Filler.cu
-    physics/em/detail/BetheBloch.cu
     physics/em/detail/BetheHeitler.cu
     physics/em/detail/EPlusGG.cu
     physics/em/detail/KleinNishina.cu
     physics/em/detail/MollerBhabha.cu
+    physics/em/detail/MuBremsstrahlung.cu
     physics/em/detail/LivermorePE.cu
     physics/em/detail/Rayleigh.cu
     physics/em/detail/SeltzerBerger.cu

@@ -215,12 +215,12 @@ celeritas_cudaoptional_test(physics/material/Material
 celeritas_setup_tests(SERIAL PREFIX physics/em
   LINK_LIBRARIES CeleritasPhysicsTest)
 
-celeritas_add_test(physics/em/BetheBloch.test.cc)
 celeritas_add_test(physics/em/BetheHeitler.test.cc)
 celeritas_add_test(physics/em/EPlusGG.test.cc)
 celeritas_add_test(physics/em/KleinNishina.test.cc)
 celeritas_add_test(physics/em/LivermorePE.test.cc)
 celeritas_add_test(physics/em/MollerBhabha.test.cc)
+celeritas_add_test(physics/em/MuBremsstrahlung.test.cc)
 celeritas_add_test(physics/em/Rayleigh.test.cc)
 celeritas_add_test(physics/em/SeltzerBerger.test.cc)
 celeritas_add_test(physics/em/TsaiUrbanDistribution.test.cc)

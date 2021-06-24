@@ -49,6 +49,7 @@ namespace constants
 //!@{
 //! Mathemetical constant
 constexpr real_type pi = 3.14159265358979323846; // truncated
+constexpr real_type euler = 2.71828182845904523536;
 //!@}
 
 //!@{

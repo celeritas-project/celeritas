@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheBloch.cu
+//! \file MuBremsstrahlung.cu
 //---------------------------------------------------------------------------//
-#include "BetheBloch.hh"
+#include "MuBremsstrahlung.hh"
 
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
@@ -15,7 +15,7 @@
 #include "physics/base/PhysicsTrackView.hh"
 #include "base/StackAllocator.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "BetheBlochInteractor.hh"
+#include "MuBremsstrahlungInteractor.hh"
 
 namespace celeritas
 {
@@ -27,20 +27,23 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 /*!
- * Interact using the Bethe-Bloch model on applicable tracks.
+ * Interact using the Muon Bremsstrahlung model on applicable tracks.
  */
-__global__ void bethe_bloch_interact_kernel(const BetheBlochInteractorPointers  bb,
-                                              const ModelInteractRefs<MemSpace::device> model)
+__global__ void mu_bremsstrahlung_interact_kernel(
+    const MuBremsstrahlungInteractorPointers  mb,
+    const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= model.states.size())
         return;
 
     StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
-    ParticleTrackView particle(model.params.particle, model.states.particle, tid);
+    ParticleTrackView         particle(
+        model.params.particle, model.states.particle, tid);
 
     // Setup for MaterialView access
-    MaterialTrackView material(model.params.material, model.states.material, tid);
+    MaterialTrackView material(
+        model.params.material, model.states.material, tid);
     // Cache the associated MaterialView as function calls to MaterialTrackView
     // are expensive
     MaterialView material_view = material.material_view();
@@ -51,16 +54,18 @@ __global__ void bethe_bloch_interact_kernel(const BetheBlochInteractorPointers  
                              material.material_id(),
                              tid);
 
-    // This interaction only applies if the Bethe-Bloch model was selected
-    if (physics.model_id() != bb.model_id)
+    // This interaction only applies if the Muon Bremsstrahlung model was
+    // selected
+    if (physics.model_id() != mb.model_id)
         return;
 
-    BetheBlochInteractor interact(
-        bb,
-        particle,
-        model.states.direction[tid],
-        allocate_secondaries,
-        material_view);
+    ElementView element
+        = material_view.element_view(celeritas::ElementComponentId{0});
+    MuBremsstrahlungInteractor interact(mb,
+                                        particle,
+                                        model.states.direction[tid],
+                                        allocate_secondaries,
+                                        element);
 
     RngEngine rng(model.states.rng, tid);
     model.states.interactions[tid] = interact(rng);
@@ -73,19 +78,19 @@ __global__ void bethe_bloch_interact_kernel(const BetheBlochInteractorPointers  
 // LAUNCHERS
 //---------------------------------------------------------------------------//
 /*!
- * Launch the Bethe-Bloch interaction.
+ * Launch the Muon Bremsstrahlung interaction.
  */
-void bethe_bloch_interact(const BetheBlochInteractorPointers&  bb,
-                          const ModelInteractRefs<MemSpace::device>& model)
+void mu_bremsstrahlung_interact(const MuBremsstrahlungInteractorPointers& mb,
+                                const ModelInteractRefs<MemSpace::device>& model)
 {
-    CELER_EXPECT(bb);
+    CELER_EXPECT(mb);
     CELER_EXPECT(model);
 
     static const KernelParamCalculator calc_kernel_params(
-        bethe_bloch_interact_kernel, "bethe_bloch_interact");
+        mu_bremsstrahlung_interact_kernel, "mu_bremsstrahlung_interact");
     auto params = calc_kernel_params(model.states.size());
-    bethe_bloch_interact_kernel<<<params.grid_size, params.block_size>>>(
-        bb, model);
+    mu_bremsstrahlung_interact_kernel<<<params.grid_size, params.block_size>>>(
+        mb, model);
     CELER_CUDA_CHECK_ERROR();
 }
 

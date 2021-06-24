@@ -3,25 +3,25 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheBlochModel.hh
+//! \file MuBremsstrahlungModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
-#include "detail/BetheBloch.hh"
+#include "detail/MuBremsstrahlung.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up and launch the Bethe-Bloch model interaction.
+ * Set up and launch the Muon Bremsstrahlung model interaction.
  */
-class BetheBlochModel final : public Model
+class MuBremsstrahlungModel final : public Model
 {
   public:
     // Construct from model ID and other necessary data
-    BetheBlochModel(ModelId id, const ParticleParams& particles);
+    MuBremsstrahlungModel(ModelId id, const ParticleParams& particles);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -33,10 +33,10 @@ class BetheBlochModel final : public Model
     ModelId model_id() const final;
 
     //! Name of the model, for user interaction
-    std::string label() const final { return "Bethe-Bloch"; }
+    std::string label() const final { return "Muon Bremsstrahlung"; }
 
   private:
-    detail::BetheBlochInteractorPointers interface_;
+    detail::MuBremsstrahlungInteractorPointers interface_;
 };
 
 //---------------------------------------------------------------------------//

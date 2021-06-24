@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheBlochModel.cc
+//! \file MuBremsstrahlungModel.cc
 //---------------------------------------------------------------------------//
-#include "BetheBlochModel.hh"
+#include "MuBremsstrahlungModel.hh"
 
 #include "base/Assert.hh"
 #include "physics/base/PDGNumber.hh"
@@ -16,8 +16,8 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-BetheBlochModel::BetheBlochModel(ModelId               id,
-                                 const ParticleParams& particles)
+MuBremsstrahlungModel::MuBremsstrahlungModel(ModelId               id,
+                                             const ParticleParams& particles)
 {
     CELER_EXPECT(id);
     interface_.model_id    = id;
@@ -30,6 +30,9 @@ BetheBlochModel::BetheBlochModel(ModelId               id,
                    << "missing muon and/or gamma particles "
                       "(required for "
                    << this->label() << ")");
+
+    interface_.electron_mass = 
+                        particles.get(particles.find(pdg::electron())).mass();
     CELER_ENSURE(interface_);
 }
 
@@ -37,7 +40,7 @@ BetheBlochModel::BetheBlochModel(ModelId               id,
 /*!
  * Particle types and energy ranges that this model applies to.
  */
-auto BetheBlochModel::applicability() const -> SetApplicability
+auto MuBremsstrahlungModel::applicability() const -> SetApplicability
 {
     Applicability mu_minus_applic, mu_plus_applic;
 
@@ -56,11 +59,11 @@ auto BetheBlochModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void BetheBlochModel::interact(
+void MuBremsstrahlungModel::interact(
     CELER_MAYBE_UNUSED const  ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
-    detail::bethe_bloch_interact(interface_, pointers);
+    detail::mu_bremsstrahlung_interact(interface_, pointers);
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
@@ -70,7 +73,7 @@ void BetheBlochModel::interact(
 /*!
  * Get the model ID for this model.
  */
-ModelId BetheBlochModel::model_id() const
+ModelId MuBremsstrahlungModel::model_id() const
 {
     return interface_.model_id;
 }

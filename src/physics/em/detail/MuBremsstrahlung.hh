@@ -3,13 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheBloch.hh
+//! \file MuBremsstrahlung.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Types.hh"
+#include "physics/base/Units.hh"
 
 namespace celeritas
 {
@@ -22,7 +23,7 @@ namespace detail
 /*!
  * Device data for creating an interactor.
  */
-struct BetheBlochInteractorPointers
+struct MuBremsstrahlungInteractorPointers
 {
     //! Model ID
     ModelId model_id;
@@ -32,6 +33,8 @@ struct BetheBlochInteractorPointers
     ParticleId mu_minus_id;
     //! ID of a muon
     ParticleId mu_plus_id;
+    //! Electron mass [MeV / c^2]
+    units::MevMass electron_mass;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
@@ -44,9 +47,10 @@ struct BetheBlochInteractorPointers
 // KERNEL LAUNCHERS
 //---------------------------------------------------------------------------//
 
-// Launch the Bethe-Bloch interaction
-void bethe_bloch_interact(const BetheBlochInteractorPointers&  device_pointers,
-                          const ModelInteractRefs<MemSpace::device>& interaction);
+// Launch the Muon Bremsstrahlung interaction
+void mu_bremsstrahlung_interact(
+    const MuBremsstrahlungInteractorPointers&  device_pointers,
+    const ModelInteractRefs<MemSpace::device>& interaction);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

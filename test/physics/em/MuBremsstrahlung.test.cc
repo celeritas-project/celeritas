@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheBlochInteractor.test.cc
+//! \file MuBremsstrahlungInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/BetheBlochInteractor.hh"
+#include "physics/em/detail/MuBremsstrahlungInteractor.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/MaterialTrackView.hh"
 
@@ -16,7 +16,7 @@
 #include "../InteractorHostTestBase.hh"
 #include "../InteractionIO.hh"
 
-using celeritas::detail::BetheBlochInteractor;
+using celeritas::detail::MuBremsstrahlungInteractor;
 namespace constants = celeritas::constants;
 namespace pdg = celeritas::pdg;
 
@@ -24,7 +24,7 @@ namespace pdg = celeritas::pdg;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class BetheBlochInteractorTest : public celeritas_test::InteractorHostTestBase
+class MuBremsstrahlungInteractorTest : public celeritas_test::InteractorHostTestBase
 {
     using Base = celeritas_test::InteractorHostTestBase;
 
@@ -99,28 +99,30 @@ class BetheBlochInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::BetheBlochInteractorPointers pointers_;
+    celeritas::detail::MuBremsstrahlungInteractorPointers pointers_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(BetheBlochInteractorTest, basic) 
+TEST_F(MuBremsstrahlungInteractorTest, basic) 
 {
     // Reserve 4 secondaries
     int num_samples = 4;
     this->resize_secondaries(num_samples);
 
-    celeritas::MaterialView material(this->material_track().material_view());
+    celeritas::ElementView element(
+        this->material_track().material_view().element_view(
+            celeritas::ElementComponentId{0}));
 
     // Create the interactor
-    BetheBlochInteractor interact(pointers_,
-                                  this->particle_track(),
-                                  this->direction(),
-                                  this->secondary_allocator(),
-                                  material);
-    RandomEngine&        rng_engine = this->rng();
+    MuBremsstrahlungInteractor interact(pointers_,
+                                        this->particle_track(),
+                                        this->direction(),
+                                        this->secondary_allocator(),
+                                        element);
+    RandomEngine&              rng_engine = this->rng();
 
     std::vector<double> energy;
     std::vector<double> costheta;
@@ -144,9 +146,9 @@ TEST_F(BetheBlochInteractorTest, basic)
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy[]
-        = {0.464171387946823, 1.35757434211254, 0.395861773321663, 0.402316969315623};
+        = {0.464171387946823, 1.35757434211254, 97.8248574675714, 0.395861773321663};
     const double expected_costheta[]
-        = {0.208486999483953, 0.973057233391456, 0.951990890015611, 0.534206360248793};
+        = {0.208486999483953, 0.973057233391456,  0.759021403295951, 0.951990890015611};
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_costheta, costheta);
@@ -160,7 +162,7 @@ TEST_F(BetheBlochInteractorTest, basic)
 }
 
 
-TEST_F(BetheBlochInteractorTest, stress_test)
+TEST_F(MuBremsstrahlungInteractorTest, stress_test)
 {
     const unsigned int num_samples = 8;
     std::vector<double> avg_engine_samples;
@@ -183,14 +185,16 @@ TEST_F(BetheBlochInteractorTest, stress_test)
                 this->set_inc_direction(inc_dir);
                 this->resize_secondaries(num_samples);
 
-                celeritas::MaterialView material(this->material_track().material_view());
+                celeritas::ElementView element(
+                    this->material_track().material_view().element_view(
+                        celeritas::ElementComponentId{0}));
 
                 // Create interactor
-                BetheBlochInteractor interact(pointers_,
-                                                this->particle_track(),
-                                                this->direction(),
-                                                this->secondary_allocator(),
-                                                material);
+                MuBremsstrahlungInteractor interact(pointers_,
+                                                    this->particle_track(),
+                                                    this->direction(),
+                                                    this->secondary_allocator(),
+                                                    element);
 
                 for (unsigned int i = 0; i < num_samples; i++)
                 {
@@ -208,8 +212,7 @@ TEST_F(BetheBlochInteractorTest, stress_test)
     
     // Gold values for average number of calls to RNG
     const double expected_avg_engine_samples[]
-                                    = {8.875, 8.5, 9.5, 12.375, 12.375,
-                                       9.625, 10, 10.75, 12.5, 11.5};
+                                    = {8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 } 

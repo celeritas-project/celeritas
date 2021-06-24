@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheBlochInteractor.hh
+//! \file MuBremsstrahlungInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,8 +15,7 @@
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
-#include "physics/material/MaterialView.hh"
-#include "BetheBloch.hh"
+#include "MuBremsstrahlung.hh"
 
 namespace celeritas
 {
@@ -30,16 +29,16 @@ namespace detail
  * G4MuBremsstrahlungModel class, as documented in section 11.2 
  * of the Geant4 Physics Reference (release 10.6).
  */
-class BetheBlochInteractor
+class MuBremsstrahlungInteractor
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    BetheBlochInteractor(const BetheBlochInteractorPointers& shared,
-                         const ParticleTrackView&            particle,
-                         const Real3&                        inc_direction,
-                         StackAllocator<Secondary>&          allocate,
-                         MaterialView&                       material);
+    inline CELER_FUNCTION MuBremsstrahlungInteractor(
+        const MuBremsstrahlungInteractorPointers& shared,
+        const ParticleTrackView&                  particle,
+        const Real3&                              inc_direction,
+        StackAllocator<Secondary>&                allocate,
+        ElementView&                              element);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -64,19 +63,18 @@ class BetheBlochInteractor
     CELER_FUNCTION real_type sample_cos_theta(real_type gamma_energy, 
                                               Engine& rng);
 
-    CELER_FUNCTION real_type differential_cross_section(real_type gamma_enrgy, 
-                                                        ElementView element);
+    CELER_FUNCTION real_type differential_cross_section(real_type gamma_enrgy);
 
     // Shared constant physics properties
-    const BetheBlochInteractorPointers& shared_;
+    const MuBremsstrahlungInteractorPointers& shared_;
     // Incident muon energy
     const units::MevEnergy inc_energy_;
     // Incident direction
     const Real3& inc_direction_;
     // Allocate space for one or more secondary particles
     StackAllocator<Secondary>& allocate_;
-    // Material properties
-    const MaterialView& material_;
+    // Element properties
+    const ElementView& element_;
     // Incident muon mass
     const units::MevMass inc_mass_;
 };
@@ -85,5 +83,5 @@ class BetheBlochInteractor
 } // namespace detail
 } // namespace celeritas
 
-#include "BetheBlochInteractor.i.hh"
+#include "MuBremsstrahlungInteractor.i.hh"
 
