@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "CMSParameterizedField.hh"
 
+#include "base/Algorithms.hh"
 #include "base/Units.hh"
-#include <math.h>
+#include <cmath>
 
 namespace celeritas
 {
@@ -25,7 +26,7 @@ Real3 CMSParameterizedField::operator()(const Real3& pos)
 {
     Real3 value{0., 0., 0.};
 
-    real_type r    = std::sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
+    real_type r    = std::sqrt(ipow<2>(pos[0]) + ipow<2>(pos[1]));
     Real3     bw   = this->evaluate_field(r, pos[2]);
     real_type rinv = (r > 0) ? 1 / r : 0;
 
@@ -56,15 +57,15 @@ Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z)
                               2.12500,
                               1.77436};
 
-    real_type ap2   = 4 * prm[0] * prm[0] / (prm[1] * prm[1]);
+    real_type ap2   = 4 * ipow<2>(prm[0] / prm[1]);
     real_type hb0   = real_type(0.5) * prm[2] * std::sqrt(1 + ap2);
     real_type hlova = 1 / std::sqrt(ap2);
     real_type ainv  = 2 * hlova / prm[1];
-    real_type coeff = 1 / (prm[8] * prm[8]);
+    real_type coeff = 1 / ipow<2>(prm[8]);
 
     // Convert to m (cms magnetic field parameterization)
-    r *= 0.01;
-    z *= 0.01;
+    r *= 1 / units::meter;
+    z *= 1 / units::meter;
     // The max Bz point is shifted in z
     z -= prm[3];
 
@@ -77,16 +78,16 @@ Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z)
     Real4 gv = this->evaluate_parameters(v);
 
     real_type rat  = real_type(0.5) * r * ainv;
-    real_type rat2 = rat * rat;
+    real_type rat2 = ipow<2>(rat);
 
     Real3 bw;
     bw[0] = hb0 * rat * (fu[1] - gv[1] - (fu[3] - gv[3]) * rat2 * 0.5);
     bw[1] = 0;
     bw[2] = hb0 * (fu[0] + gv[0] - (fu[2] + gv[2]) * rat2);
-    real_type corBr = prm[4] * r * z * (az - prm[5]) * (az - prm[5]);
+    real_type corBr = prm[4] * r * z * ipow<2>(az - prm[5]);
     real_type corBz = -prm[6]
-                      * (exp(-(z - prm[7]) * (z - prm[7]) * coeff)
-                         + exp(-(z + prm[7]) * (z + prm[7]) * coeff));
+                      * (std::exp(-ipow<2>(z - prm[7]) * coeff)
+                         + std::exp(-ipow<2>(z + prm[7]) * coeff));
     bw[0] += corBr;
     bw[2] += corBz;
 
@@ -101,7 +102,7 @@ CELER_FUNCTION
 CMSParameterizedField::Real4
 CMSParameterizedField::evaluate_parameters(real_type x)
 {
-    real_type a = 1 / (1 + x * x);
+    real_type a = 1 / (1 + ipow<2>(x));
     real_type b = std::sqrt(a);
 
     Real4 ff;
