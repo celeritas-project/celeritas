@@ -8,7 +8,6 @@
 
 #include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
-//#include "field/MagField.hh"
 #include "field/MagFieldEquation.hh"
 
 #include "base/Range.hh"
