@@ -36,7 +36,7 @@ class CMSParameterizedField
 
     // Return the magnetic field for the given position
     CELER_FUNCTION
-    inline Real3 operator()(Real3 pos);
+    inline Real3 operator()(const Real3& pos);
 
   private:
     // Evaluate the magnetic field for the given r and z

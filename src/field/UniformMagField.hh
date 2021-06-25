@@ -25,7 +25,10 @@ class UniformMagField
 
     // Return a const magnetic field value
     CELER_FUNCTION
-    Real3 operator()(CELER_MAYBE_UNUSED Real3 pos) const { return value_; }
+    Real3 operator()(CELER_MAYBE_UNUSED const Real3& pos) const
+    {
+        return value_;
+    }
 
   private:
     Real3 value_;

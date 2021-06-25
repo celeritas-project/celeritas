@@ -21,7 +21,7 @@ namespace detail
  * with the CMS detector geometry.
  */
 CELER_FUNCTION
-Real3 CMSParameterizedField::operator()(Real3 pos)
+Real3 CMSParameterizedField::operator()(const Real3& pos)
 {
     Real3 value{0., 0., 0.};
 
