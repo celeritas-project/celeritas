@@ -226,7 +226,11 @@ TEST_F(ImportedProcessesTest, bremsstrahlung)
         applic.material = mat_id;
         auto builders   = process->step_limits(applic);
         EXPECT_TRUE(builders[VGT::macro_xs]);
-        EXPECT_TRUE(builders[VGT::energy_loss]);
+
+        // Only the ionization process has energy loss and range tables. It's
+        // de/dx table is the sum of the ionization and bremsstrahlung energy
+        // loss, and the range table is calculated from the summed de/dx.
+        EXPECT_FALSE(builders[VGT::energy_loss]);
         EXPECT_FALSE(builders[VGT::range]);
     }
 }

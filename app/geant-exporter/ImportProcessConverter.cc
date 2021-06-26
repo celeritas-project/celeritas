@@ -234,8 +234,6 @@ ImportProcessConverter::~ImportProcessConverter() = default;
  * Add physics tables to this->process_ from a given particle and process and
  * return it. If the process was already returned, \c operator() will return an
  * empty object.
- *
- * The user should erase such cases afterwards using \c remove_empty(...) .
  */
 ImportProcess
 ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
@@ -321,8 +319,15 @@ void ImportProcessConverter::store_energy_loss_tables(
             to_import_model(process.GetModelByIndex(i)->GetName()));
     }
 
-    this->add_table(process.DEDXTable(), ImportTableType::dedx);
-    this->add_table(process.RangeTableForLoss(), ImportTableType::range);
+    if (process.IsIonisationProcess())
+    {
+        // The de/dx and range tables created by summing the contribution from
+        // each energy loss process are stored in the "ionization process"
+        // (which might be ionization or might be another arbitrary energy loss
+        // process if there is no ionization in the problem).
+        this->add_table(process.DEDXTable(), ImportTableType::dedx);
+        this->add_table(process.RangeTableForLoss(), ImportTableType::range);
+    }
     this->add_table(process.LambdaTable(), ImportTableType::lambda);
 
     if (which_tables_ > TableSelection::minimal)
@@ -332,11 +337,21 @@ void ImportProcessConverter::store_energy_loss_tables(
                         ImportTableType::inverse_range);
 
         // None of these tables appear to be used in Geant4
+        if (process.IsIonisationProcess())
+        {
+            // The "ionization table" is just the per-process de/dx table for
+            // ionization
+            this->add_table(process.IonisationTable(),
+                            ImportTableType::dedx_process);
+        }
+        else
+        {
+            this->add_table(process.DEDXTable(), ImportTableType::dedx_process);
+        }
         this->add_table(process.DEDXTableForSubsec(),
                         ImportTableType::dedx_subsec);
         this->add_table(process.DEDXunRestrictedTable(),
                         ImportTableType::dedx_unrestricted);
-        this->add_table(process.IonisationTable(), ImportTableType::ionization);
         this->add_table(process.IonisationTableForSubsec(),
                         ImportTableType::ionization_subsec);
         this->add_table(process.CSDARangeTable(), ImportTableType::csda_range);
@@ -407,6 +422,7 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
     switch (table_type)
     {
         case ImportTableType::dedx:
+        case ImportTableType::dedx_process:
         case ImportTableType::dedx_subsec:
         case ImportTableType::dedx_unrestricted:
         case ImportTableType::ionization:

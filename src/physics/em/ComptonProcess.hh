@@ -37,6 +37,9 @@ class ComptonProcess : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability applic) const final;
 
+    //! Type of process
+    ProcessType type() const final;
+
     // Name of the process
     std::string label() const final;
 

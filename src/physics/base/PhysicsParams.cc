@@ -274,7 +274,7 @@ void PhysicsParams::build_xs(const Options&        opts,
 
     ValueGridInserter insert_grid(&data->reals, &data->value_grids);
     auto              value_tables   = make_builder(&data->value_tables);
-    auto              energy_loss    = make_builder(&data->energy_loss);
+    auto              integral_xs    = make_builder(&data->integral_xs);
     auto              value_grid_ids = make_builder(&data->value_grid_ids);
     auto              build_grid
         = [insert_grid](const UPGridBuilder& builder) -> ValueGridId {
@@ -302,10 +302,11 @@ void PhysicsParams::build_xs(const Options&        opts,
         }
 
         // Processes with dE/dx and macro xs tables
-        std::vector<EnergyLossProcess> temp_energy_loss(processes.size());
+        std::vector<IntegralXsProcess> temp_integral_xs(processes.size());
 
         // Loop over per-particle processes
-        for (auto pp_idx : range(processes.size()))
+        for (auto pp_idx :
+             range(ParticleProcessId::size_type(processes.size())))
         {
             // Get energy bounds for this process
             Span<const real_type> energy_grid
@@ -348,12 +349,12 @@ void PhysicsParams::build_xs(const Options&        opts,
                         = build_grid(builders[vgt]);
                 }
 
-                // If this process has both dE/dx and xs tables, find and store
-                // the energy of the largest cross section for this material
+                // If this is an energy loss process, find and store the energy
+                // of the largest cross section for this material
                 auto grid_id
                     = temp_grid_ids[ValueGridType::macro_xs][mat_id.get()];
-                if (opts.use_integral_xs && grid_id
-                    && temp_grid_ids[ValueGridType::energy_loss][mat_id.get()])
+                if (proc.type() == ProcessType::electromagnetic_dedx
+                    && opts.use_integral_xs && grid_id)
                 {
                     // Allocate storage for the energies if we haven't already
                     energy_max_xs.resize(mats.size());
@@ -377,6 +378,17 @@ void PhysicsParams::build_xs(const Options&        opts,
                     }
                     CELER_ASSERT(e_max > 0);
                     energy_max_xs[mat_id.get()] = e_max;
+                }
+
+                // Index of the energy loss process that stores the de/dx and
+                // range tables
+                if (temp_grid_ids[ValueGridType::energy_loss][mat_id.get()]
+                    && temp_grid_ids[ValueGridType::range][mat_id.get()])
+                {
+                    // Only one particle-process should have energy loss tables
+                    CELER_ASSERT(!process_group.eloss_ppid
+                                 || pp_idx == process_group.eloss_ppid.get());
+                    process_group.eloss_ppid = ParticleProcessId{pp_idx};
                 }
             }
 
@@ -404,7 +416,7 @@ void PhysicsParams::build_xs(const Options&        opts,
             // Store the energies of the maximum cross sections
             if (!energy_max_xs.empty())
             {
-                temp_energy_loss[pp_idx].energy_max_xs
+                temp_integral_xs[pp_idx].energy_max_xs
                     = make_builder(&data->reals)
                           .insert_back(energy_max_xs.begin(),
                                        energy_max_xs.end());
@@ -412,8 +424,8 @@ void PhysicsParams::build_xs(const Options&        opts,
         }
 
         // Construct energy loss process data
-        process_group.energy_loss = energy_loss.insert_back(
-            temp_energy_loss.begin(), temp_energy_loss.end());
+        process_group.integral_xs = integral_xs.insert_back(
+            temp_integral_xs.begin(), temp_integral_xs.end());
 
         // Construct value tables
         for (auto vgt : range(ValueGridType::size_))

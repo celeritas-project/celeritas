@@ -46,6 +46,15 @@ auto ComptonProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Type of process.
+ */
+ProcessType ComptonProcess::type() const
+{
+    return ProcessType::electromagnetic_discrete;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Name of the process.
  */
 std::string ComptonProcess::label() const

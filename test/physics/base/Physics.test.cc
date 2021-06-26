@@ -259,9 +259,9 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
     // because there aren't any slowing down/range limiters.
     const int expected_grid_ids[]
         = {0,  -1, -1, 3,  -1, -1, 1,  -1, -1, 4,  -1, -1, 2,  -1, -1, 5,
-           -1, -1, 6,  -1, -1, 9,  10, 11, 18, 19, 20, 7,  -1, -1, 12, 13,
-           14, 21, 22, 23, 8,  -1, -1, 15, 16, 17, 24, 25, 26, 27, 28, 29,
-           36, 37, 38, 30, 31, 32, 39, 40, 41, 33, 34, 35, 42, 43, 44};
+           -1, -1, 6,  -1, -1, 9,  10, 11, 18, -1, -1, 7,  -1, -1, 12, 13,
+           14, 19, -1, -1, 8,  -1, -1, 15, 16, 17, 20, -1, -1, 21, 22, 23,
+           30, -1, -1, 24, 25, 26, 31, -1, -1, 27, 28, 29, 32, -1, -1};
     EXPECT_VEC_EQ(expected_grid_ids, grid_ids);
 }
 
@@ -301,9 +301,9 @@ TEST_F(PhysicsTrackViewHostTest, calc_range)
     {
         const PhysicsTrackView phys
             = this->make_track_view(particle, MaterialId{0});
-        auto meow_ppid = this->find_ppid(phys, "meows");
-        ASSERT_TRUE(meow_ppid);
-        auto id = phys.value_grid(ValueGridType::range, meow_ppid);
+        auto ppid = phys.eloss_ppid();
+        ASSERT_TRUE(ppid);
+        auto id = phys.value_grid(ValueGridType::range, ppid);
         ASSERT_TRUE(id);
         auto calc_range = phys.make_calculator<RangeCalculator>(id);
         for (real_type energy : {0.01, 1.0, 1e2})
@@ -313,9 +313,18 @@ TEST_F(PhysicsTrackViewHostTest, calc_range)
         }
     }
 
-    const double expected_range[] = {0.025, 2.5, 25, 0.025, 2.5, 25};
-    const double expected_step[]
-        = {0.025, 0.6568, 5.15968, 0.025, 0.6568, 5.15968};
+    const double expected_range[] = {0.01666666666667,
+                                     1.666666666667,
+                                     166.6666666667,
+                                     0.01428571428571,
+                                     1.428571428571,
+                                     142.8571428571};
+    const double expected_step[]  = {0.01666666666667,
+                                    0.4885333333333,
+                                    33.49328533333,
+                                    0.01428571428571,
+                                    0.4401142857143,
+                                    28.73137257143};
     EXPECT_VEC_SOFT_EQ(expected_range, range);
     EXPECT_VEC_SOFT_EQ(expected_step, step);
 }
@@ -388,11 +397,11 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
                                     166.6666666667,
                                     166.6666666667,
                                     inf,
-                                    2.5e-05,
-                                    0.00025,
-                                    0.178,
-                                    0.6568,
-                                    0.6568};
+                                    1.428571428571e-05,
+                                    0.0001428571428571,
+                                    0.1325714285714,
+                                    3.016582857143,
+                                    3.016582857143};
     EXPECT_VEC_SOFT_EQ(expected_step, step);
 }
 
@@ -462,14 +471,15 @@ TEST_F(PHYS_DEVICE_TEST, all)
     step.copy_to_host(make_span(step_host));
     // clang-format off
     const double expected_step_host[] = {
-        1666.666666667, 0.00025, 0.00025, 1666.666666667, 0.0025,
-        0.0025, 1666.666666667, 0.6568, 0.6568, 1666.666666667,
-        5.15968, 5.15968, inf, 5.15968, 5.15968,
-        1.666666666667, 2.5e-07, 2.5e-07, 1.666666666667, 2.5e-06,
-        2.5e-06, 1.666666666667, 0.0025, 0.0025, 1.666666666667,
-        0.025, 0.025, inf, 0.025, 0.025};
+        1666.666666667, 0.0001666666666667, 0.0001428571428571, 1666.666666667,
+        0.001666666666667, 0.001428571428571, 1666.666666667, 0.4885333333333,
+        0.4401142857143, 1666.666666667, 33.49328533333, 28.73137257143, inf,
+        33.49328533333, 28.73137257143, 1.666666666667, 1.666666666667e-07,
+        1.428571428571e-07, 1.666666666667, 1.666666666667e-06,
+        1.428571428571e-06, 1.666666666667, 0.001666666666667,
+        0.001428571428571, 1.666666666667, 0.1453333333333, 0.1325714285714,
+        inf, 0.1453333333333, 0.1325714285714};
     // clang-format on
-    PRINT_EXPECTED(step_host);
     EXPECT_VEC_SOFT_EQ(expected_step_host, step_host);
 }
 

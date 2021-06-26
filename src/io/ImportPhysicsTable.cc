@@ -19,6 +19,7 @@ const char* to_cstring(ImportTableType value)
 {
     static const char* const strings[] = {
         "dedx",
+        "dedx_process",
         "dedx_subsec",
         "dedx_unrestricted",
         "ionization",

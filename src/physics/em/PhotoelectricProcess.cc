@@ -87,6 +87,15 @@ auto PhotoelectricProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Type of process.
+ */
+ProcessType PhotoelectricProcess::type() const
+{
+    return ProcessType::electromagnetic_discrete;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Name of the process.
  */
 std::string PhotoelectricProcess::label() const

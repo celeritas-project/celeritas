@@ -69,15 +69,15 @@ struct ValueTable
 
 //---------------------------------------------------------------------------//
 /*!
- * Process with both energy loss and macroscopic cross section tables.
+ * Energy loss process that uses MC integration to sample interaction length.
  *
  * This is needed for the integral approach for correctly sampling the discrete
  * interaction length after a particle loses energy along a step. An \c
- * EnergyLossProcess is stored for each particle-process. This will be "false"
- * (i.e. no energy_max assigned) if particle process does not have both dE/dx
- * and macro xs tables or if \c use_integral_xs is false.
+ * IntegralXsProcess is stored for each particle-process. This will be "false"
+ * (i.e. no energy_max assigned) if the process is not continuous-discrete or
+ * if \c use_integral_xs is false.
  */
-struct EnergyLossProcess
+struct IntegralXsProcess
 {
     ItemRange<real_type> energy_max_xs; //!< Energy of the largest xs [mat]
 
@@ -97,7 +97,7 @@ struct EnergyLossProcess
  * of the table (hard-coded) corresponds to ValueGridType; the second index is
  * a ParticleProcessId. So the cross sections for ParticleProcessId{2} would
  * be \code tables[ValueGridType::macro_xs][2] \endcode. This
- * awkward access is encapsulated by the PhysicsTrackView. \c energy_loss will
+ * awkward access is encapsulated by the PhysicsTrackView. \c integral_xs will
  * only be assigned if the integral approach is used and the particle has
  * continuous-discrete processes.
  */
@@ -105,8 +105,9 @@ struct ProcessGroup
 {
     ItemRange<ProcessId> processes; //!< Processes that apply [ppid]
     ValueGridArray<ItemRange<ValueTable>> tables;      //!< [vgt][ppid]
-    ItemRange<EnergyLossProcess>          energy_loss; //!< [ppid]
-    ItemRange<ModelGroup> models; //!< Model applicability [ppid]
+    ItemRange<IntegralXsProcess>          integral_xs; //!< [ppid]
+    ItemRange<ModelGroup> models;   //!< Model applicability [ppid]
+    ParticleProcessId eloss_ppid{}; //!< Process with de/dx and range tables
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -196,7 +197,7 @@ struct PhysicsParamsData
     Items<ValueGridId>          value_grid_ids;
     Items<ProcessId>            process_ids;
     Items<ValueTable>           value_tables;
-    Items<EnergyLossProcess>    energy_loss;
+    Items<IntegralXsProcess>    integral_xs;
     Items<ModelGroup>           model_groups;
     ParticleItems<ProcessGroup> process_groups;
 
@@ -232,7 +233,7 @@ struct PhysicsParamsData
         value_grid_ids = other.value_grid_ids;
         process_ids    = other.process_ids;
         value_tables   = other.value_tables;
-        energy_loss    = other.energy_loss;
+        integral_xs    = other.integral_xs;
         model_groups   = other.model_groups;
         process_groups = other.process_groups;
 
