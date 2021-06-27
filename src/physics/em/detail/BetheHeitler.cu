@@ -15,7 +15,6 @@
 #include "physics/base/PhysicsTrackView.hh"
 #include "base/StackAllocator.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "sim/SimTrackView.hh"
 #include "BetheHeitlerInteractor.hh"
 
 namespace celeritas
@@ -54,10 +53,9 @@ bethe_heitler_interact_kernel(const BetheHeitlerPointers                bh,
                              particle.particle_id(),
                              material.material_id(),
                              tid);
-    SimTrackView     sim(model.states.sim, tid);
 
     // This interaction only applies if the Bethe-Heitler model was selected
-    if (physics.model_id() != bh.model_id || !sim.alive())
+    if (physics.model_id() != bh.model_id)
         return;
 
     // Assume only a single element in the material, for now

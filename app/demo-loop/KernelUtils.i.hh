@@ -79,9 +79,8 @@ CELER_FUNCTION void move_and_select_model(GeoTrackView&      geo,
         // Particle entered a new volume before reaching the interaction point
         if (geo_step.volume != pre_step_volume)
         {
-            result->energy    = particle.energy();
-            result->direction = geo.dir();
-            result->action    = Action::entered_volume;
+            *result = Interaction::from_unchanged(particle.energy(), geo.dir());
+            result->action = Action::entered_volume;
         }
     }
     phys.step_length(phys.step_length() - step);

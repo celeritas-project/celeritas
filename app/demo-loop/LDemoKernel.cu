@@ -66,7 +66,13 @@ __global__ void along_and_post_step_kernel(ParamsDeviceRef const params,
 
     SimTrackView sim(states.sim, tid);
     if (!sim.alive())
+    {
+        // Clear the model ID so inactive tracks will exit the interaction
+        // kernels
+        PhysicsTrackView phys(params.physics, states.physics, {}, {}, tid);
+        phys.model_id({});
         return;
+    }
 
     ParticleTrackView particle(params.particles, states.particles, tid);
     GeoTrackView      geo(params.geometry, states.geometry, tid);

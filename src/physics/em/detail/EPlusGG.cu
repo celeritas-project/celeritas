@@ -14,7 +14,6 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "base/StackAllocator.hh"
-#include "sim/SimTrackView.hh"
 #include "EPlusGGInteractor.hh"
 
 namespace celeritas
@@ -47,10 +46,9 @@ eplusgg_interact_kernel(const EPlusGGPointers                     epgg,
                              particle.particle_id(),
                              MaterialId{},
                              tid);
-    SimTrackView     sim(model.states.sim, tid);
 
     // This interaction only applies if the EPlusGG model was selected
-    if (physics.model_id() != epgg.model_id || !sim.alive())
+    if (physics.model_id() != epgg.model_id)
         return;
 
     // Do the interaction

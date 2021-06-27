@@ -344,11 +344,11 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
  */
 CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 {
+    CELER_ASSERT(range >= 0);
     const real_type rho = params_.scaling_min_range;
     if (range < rho)
         return range;
 
-    CELER_ASSERT(range > 0);
     const real_type alpha = params_.scaling_fraction;
     range = alpha * range + rho * (1 - alpha) * (2 - rho / range);
     CELER_ENSURE(range > 0);

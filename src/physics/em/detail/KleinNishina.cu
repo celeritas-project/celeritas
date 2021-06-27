@@ -14,7 +14,6 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "base/StackAllocator.hh"
-#include "sim/SimTrackView.hh"
 #include "KleinNishinaInteractor.hh"
 
 namespace celeritas
@@ -46,10 +45,9 @@ klein_nishina_interact_kernel(const KleinNishinaPointers                kn,
                              particle.particle_id(),
                              MaterialId{},
                              tid);
-    SimTrackView     sim(model.states.sim, tid);
 
     // This interaction only applies if the KN model was selected
-    if (physics.model_id() != kn.model_id || !sim.alive())
+    if (physics.model_id() != kn.model_id)
         return;
 
     KleinNishinaInteractor interact(

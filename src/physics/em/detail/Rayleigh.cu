@@ -17,7 +17,6 @@
 #include "physics/material/ElementView.hh"
 #include "physics/material/ElementSelector.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "sim/SimTrackView.hh"
 #include "RayleighInteractor.hh"
 
 namespace celeritas
@@ -53,10 +52,9 @@ rayleigh_interact_kernel(const RayleighDeviceRef                   rayleigh,
                              particle.particle_id(),
                              material.material_id(),
                              tid);
-    SimTrackView     sim(model.states.sim, tid);
 
     // This interaction only applies if the Rayleigh model was selected
-    if (physics.model_id() != rayleigh.model_id || !sim.alive())
+    if (physics.model_id() != rayleigh.model_id)
         return;
 
     RngEngine rng(model.states.rng, tid);

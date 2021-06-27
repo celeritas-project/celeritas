@@ -15,7 +15,6 @@
 #include "base/StackAllocator.hh"
 #include "physics/material/ElementSelector.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "sim/SimTrackView.hh"
 #include "LivermorePEInteractor.hh"
 #include "LivermorePEMicroXsCalculator.hh"
 
@@ -51,10 +50,9 @@ livermore_pe_interact_kernel(const LivermorePEDeviceRef                pe,
                              material.material_id(),
                              tid);
     CutoffView       cutoffs(model.params.cutoffs, material.material_id());
-    SimTrackView     sim(model.states.sim, tid);
 
     // This interaction only applies if the Livermore PE model was selected
-    if (physics.model_id() != pe.ids.model || !sim.alive())
+    if (physics.model_id() != pe.ids.model)
         return;
 
     RngEngine rng(model.states.rng, tid);

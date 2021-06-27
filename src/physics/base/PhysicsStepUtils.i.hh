@@ -71,12 +71,6 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
     }
     physics.macro_xs(total_macro_xs);
 
-    real_type interaction_length = inf;
-    if (total_macro_xs > 0)
-    {
-        interaction_length = physics.interaction_mfp() / total_macro_xs;
-    }
-
     if (min_range != inf)
     {
         // One or more range limiters applied: scale range limit according to
@@ -85,7 +79,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
     }
 
     // Update step length with discrete interaction
-    return min(min_range, interaction_length);
+    return min(min_range, physics.interaction_mfp() / total_macro_xs);
 }
 
 //---------------------------------------------------------------------------//
@@ -220,16 +214,11 @@ CELER_FUNCTION ParticleTrackView::Energy
  *   distribution (section 7.4 of the Geant4 Physics Reference release 10.6).
  */
 template<class Engine>
-CELER_FUNCTION ProcessIdModelId
-select_process_and_model(const ParticleTrackView& particle,
-                         const PhysicsTrackView&  physics,
-                         Engine&                  rng)
+CELER_FUNCTION ProcessIdModelId select_process_and_model(
+    const ParticleTrackView& particle, PhysicsTrackView& physics, Engine& rng)
 {
     // Nonzero MFP to interaction -- no interaction model
     CELER_EXPECT(physics.interaction_mfp() <= 0);
-
-    if (physics.macro_xs() == 0)
-        return {};
 
     // Sample ParticleProcessId from physics.per_process_xs()
     ParticleProcessId ppid = celeritas::make_selector(
@@ -258,7 +247,12 @@ select_process_and_model(const ParticleTrackView& particle,
         // to be larger than the estimate of the maximum cross section over the
         // step \f$ \sigma_{\max} \f$.
         if (generate_canonical(rng) > xs / physics.per_process_xs(ppid))
+        {
+            // No interaction occurs; reset the physics state and continue
+            // tracking
+            physics = {};
             return {};
+        }
     }
 
     // Select the model and return; See doc above for details.
