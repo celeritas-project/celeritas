@@ -45,12 +45,12 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
     Applicability mu_minus_applic, mu_plus_applic;
 
     mu_minus_applic.particle = interface_.mu_minus_id;
-    mu_minus_applic.lower    = units::MevEnergy{0.2};
-    mu_minus_applic.upper    = units::MevEnergy{1e3};
+    mu_minus_applic.lower    = interface_.min_incident_energy();
+    mu_minus_applic.upper    = interface_.max_incident_energy();
 
     mu_plus_applic.particle = interface_.mu_plus_id;
-    mu_plus_applic.lower    = units::MevEnergy{0.2};
-    mu_plus_applic.upper    = units::MevEnergy{1e3};
+    mu_plus_applic.lower    = mu_minus_applic.lower;
+    mu_plus_applic.upper    = mu_minus_applic.upper;
 
     return {mu_minus_applic, mu_plus_applic};
 }

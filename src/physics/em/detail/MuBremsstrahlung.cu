@@ -59,13 +59,14 @@ __global__ void mu_bremsstrahlung_interact_kernel(
     if (physics.model_id() != mb.model_id)
         return;
 
-    ElementView element
-        = material_view.element_view(celeritas::ElementComponentId{0});
+    // TODO: sample an element. For now assume one element per material
+    const ElementComponentId   elcomp_id{0};
     MuBremsstrahlungInteractor interact(mb,
                                         particle,
                                         model.states.direction[tid],
                                         allocate_secondaries,
-                                        element);
+                                        material_view,
+                                        elcomp_id);
 
     RngEngine rng(model.states.rng, tid);
     model.states.interactions[tid] = interact(rng);

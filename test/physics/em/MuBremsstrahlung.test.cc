@@ -47,11 +47,17 @@ class MuBremsstrahlungInteractorTest : public celeritas_test::InteractorHostTest
               MevMass{105.6583745},
               ElementaryCharge{1},
               stable},
-             {"gamma", pdg::gamma(), zero, zero, stable}});
-        const auto& params    = this->particle_params();
-        pointers_.mu_minus_id = params->find(pdg::mu_minus());
-        pointers_.mu_plus_id  = params->find(pdg::mu_plus());
-        pointers_.gamma_id    = params->find(pdg::gamma());
+             {"gamma", pdg::gamma(), zero, zero, stable},
+             {"electron",
+              pdg::electron(),
+              MevMass{0.5109989461},
+              ElementaryCharge{-1},
+              stable}});
+        const auto& params      = this->particle_params();
+        pointers_.mu_minus_id   = params->find(pdg::mu_minus());
+        pointers_.mu_plus_id    = params->find(pdg::mu_plus());
+        pointers_.gamma_id      = params->find(pdg::gamma());
+        pointers_.electron_mass = params->get(params->find(pdg::electron())).mass();
 
         MaterialParams::Input inp;
         inp.elements  = {{29, AmuMass{63.546}, "Cu"}};
@@ -65,8 +71,8 @@ class MuBremsstrahlungInteractorTest : public celeritas_test::InteractorHostTest
         this->set_material_params(inp);
         this->set_material("Cu");
 
-        // Set default particle to muon with energy of 100 MeV
-        this->set_inc_particle(pdg::mu_minus(), MevEnergy{100});
+        // Set default particle to muon with energy of 1100 MeV
+        this->set_inc_particle(pdg::mu_minus(), MevEnergy{1100});
         this->set_inc_direction({0, 0, 1});
     }
 
@@ -112,16 +118,15 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     int num_samples = 4;
     this->resize_secondaries(num_samples);
 
-    celeritas::ElementView element(
-        this->material_track().material_view().element_view(
-            celeritas::ElementComponentId{0}));
+    auto material = this->material_track().material_view();
 
     // Create the interactor
     MuBremsstrahlungInteractor interact(pointers_,
                                         this->particle_track(),
                                         this->direction(),
                                         this->secondary_allocator(),
-                                        element);
+                                        material,
+                                        celeritas::ElementComponentId{0});
     RandomEngine&              rng_engine = this->rng();
 
     std::vector<double> energy;
@@ -146,9 +151,9 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy[]
-        = {0.464171387946823, 1.35757434211254, 97.8248574675714, 0.395861773321663};
+        = {1012.99606184083, 1029.80705246907, 1010.52595539471, 1010.77666768483};
     const double expected_costheta[]
-        = {0.208486999483953, 0.973057233391456,  0.759021403295951, 0.951990890015611};
+        = {0.968418002240112, 0.999212413725981, 0.998550042495312, 0.983614606590488};
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_costheta, costheta);
@@ -164,12 +169,12 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
 
 TEST_F(MuBremsstrahlungInteractorTest, stress_test)
 {
-    const unsigned int num_samples = 8;
+    const unsigned int num_samples = 1e4;
     std::vector<double> avg_engine_samples;
 
     for (auto particle : {pdg::mu_minus(), pdg::mu_plus()})
     {
-        for (double inc_e : {1.5, 5.0, 10.0, 50.0, 100.0})
+        for (double inc_e : {1.5e4, 5e4, 10e4, 50e4, 100e4})
         {
             SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
             this->set_inc_particle(particle, MevEnergy{inc_e});
@@ -185,21 +190,20 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
                 this->set_inc_direction(inc_dir);
                 this->resize_secondaries(num_samples);
 
-                celeritas::ElementView element(
-                    this->material_track().material_view().element_view(
-                        celeritas::ElementComponentId{0}));
+                auto material = this->material_track().material_view();
 
                 // Create interactor
                 MuBremsstrahlungInteractor interact(pointers_,
                                                     this->particle_track(),
                                                     this->direction(),
                                                     this->secondary_allocator(),
-                                                    element);
+                                                    material,
+                                                    celeritas::ElementComponentId{0});
 
                 for (unsigned int i = 0; i < num_samples; i++)
                 {
                     Interaction result = interact(rng_engine);
-                    SCOPED_TRACE(result);
+                    //SCOPED_TRACE(result);
                     this->sanity_check(result);
                 }
                 EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
@@ -212,7 +216,8 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
     
     // Gold values for average number of calls to RNG
     const double expected_avg_engine_samples[]
-                                    = {8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+                                    = {10.4316, 9.7148, 9.2378, 8.6495, 8.5108,
+                                       10.4121, 9.7221, 9.2726, 8.6439, 8.5178};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 } 

@@ -15,6 +15,7 @@
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
+#include "physics/material/MaterialView.hh"
 #include "MuBremsstrahlung.hh"
 
 namespace celeritas
@@ -38,32 +39,20 @@ class MuBremsstrahlungInteractor
         const ParticleTrackView&                  particle,
         const Real3&                              inc_direction,
         StackAllocator<Secondary>&                allocate,
-        ElementView&                              element);
+        const MaterialView&                       material,
+        ElementComponentId                        elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
-    //// COMMON PROPERTIES ////
-
-    //! Minimum incident energy for this model to be valid
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
-    {
-        return units::MevEnergy{0.2}; 
-    }
-
-    //! Maximum incident energy for this model to be valid
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_incident_energy()
-    {
-        return units::MevEnergy{1000};
-    }
-
   private:
     template<class Engine>
-    CELER_FUNCTION real_type sample_cos_theta(real_type gamma_energy, 
-                                              Engine& rng);
+    inline CELER_FUNCTION real_type 
+    sample_cos_theta(real_type gamma_energy, Engine& rng) const;
 
-    CELER_FUNCTION real_type differential_cross_section(real_type gamma_enrgy);
+    inline CELER_FUNCTION real_type 
+    differential_cross_section(real_type gamma_energy) const;
 
     // Shared constant physics properties
     const MuBremsstrahlungInteractorPointers& shared_;
@@ -74,7 +63,7 @@ class MuBremsstrahlungInteractor
     // Allocate space for one or more secondary particles
     StackAllocator<Secondary>& allocate_;
     // Element properties
-    const ElementView& element_;
+    const ElementView element_;
     // Incident muon mass
     const units::MevMass inc_mass_;
 };
