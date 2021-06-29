@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
 #include "FieldMapInterface.hh"
 
 namespace celeritas
@@ -36,21 +37,27 @@ class CMSFieldMapReader
     // Input format
     struct CMSFieldMapInput
     {
-        int                     idx_z; //! [-1600:1600]
-        int                     idx_r; //! [0:900]
+        int                     idx_z; //! index of z grid
+        int                     idx_r; //! index of r grid
         detail::FieldMapElement value; //! z and r components of the field
     };
 
   public:
     // Construct the reader using the environment variable
-    CMSFieldMapReader();
+    explicit CMSFieldMapReader(const FieldMapParameters& params);
+
+    // Construct the reader using the path of the map file
+    explicit CMSFieldMapReader(const FieldMapParameters& params,
+                               std::string               file_name);
 
     // Read the volume-based CMS magnetic field map
     result_type operator()() const;
 
   private:
+    // Shared parameters for a user defined magnetic field map
+    const FieldMapParameters& params_;
     // File name containing the magnetic field map
-    char* file_name_;
+    std::string file_name_;
 };
 
 //---------------------------------------------------------------------------//
