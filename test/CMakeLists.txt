@@ -132,25 +132,23 @@ endif()
 
 celeritas_cudaoptional_test(field/UserParamField)
 
-if(DEFINED ENV{USER_FIELD_MAP}) 
-  set(CELER_USERFIELD_SOURCES
-    field/detail/MagFieldMap.cc
-    field/detail/CMSFieldMapReader.cc
+set(CELER_USERFIELD_SOURCES
+  field/detail/MagFieldMap.cc
+  field/detail/CMSFieldMapReader.cc
+)
+if(CELERITAS_USE_CUDA)
+  list(APPEND CELER_USERFIELD_SOURCES
+    field/UserMapField.test.cu
   )
-  if(CELERITAS_USE_CUDA)
-    list(APPEND CELER_USERFIELD_SOURCES
-      field/UserMapField.test.cu
-    )
-  endif()
-  celeritas_add_library(CeleritasUserFieldTest ${CELER_USERFIELD_SOURCES})
-  celeritas_target_link_libraries(CeleritasUserFieldTest
-    PUBLIC Celeritas::Core
-  )
-
-  celeritas_setup_tests(SERIAL PREFIX fieldmap
-    LINK_LIBRARIES CeleritasUserFieldTest)
-  celeritas_add_test(field/UserMapField.test.cc GPU)
 endif()
+celeritas_add_library(CeleritasUserFieldTest ${CELER_USERFIELD_SOURCES})
+celeritas_target_link_libraries(CeleritasUserFieldTest
+  PUBLIC Celeritas::Core
+)
+
+celeritas_setup_tests(SERIAL PREFIX fieldmap
+  LINK_LIBRARIES CeleritasUserFieldTest)
+celeritas_add_test(field/UserMapField.test.cc GPU)
 
 #-----------------------------------------------------------------------------#
 # Geometry
