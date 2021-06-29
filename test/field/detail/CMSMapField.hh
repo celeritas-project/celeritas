@@ -25,11 +25,11 @@ class CMSMapField
   public:
     // Construct with the shared map data (FieldMapGroup)
     CELER_FUNCTION
-    CMSMapField(const FieldMapRef& shared);
+    explicit CMSMapField(const FieldMapRef& shared);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
-    inline Real3 operator()(Real3 pos) const;
+    inline Real3 operator()(const Real3& pos) const;
 
   private:
     // Shared constant field map
