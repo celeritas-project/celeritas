@@ -32,7 +32,17 @@ class UserMapFieldTest : public Test
     void SetUp() override
     {
         // Construct MagFieldMap and set the host data group
-        MagFieldMap::ReadMap load_map = detail::CMSFieldMapReader();
+        std::string test_file
+            = celeritas::Test::test_data_path("field", "cmsFieldMap.tiny");
+
+        detail::FieldMapParameters params;
+        params.delta_grid = units::meter;
+        params.num_grid_r = 9 + 1;           //! [0:9]
+        params.num_grid_z = 2 * 16 + 1;      //! [-16:16]
+        params.offset_z   = real_type{1600}; //! 16 meters
+
+        MagFieldMap::ReadMap load_map
+            = detail::CMSFieldMapReader(params, test_file);
 
         map_   = std::make_shared<MagFieldMap>(load_map);
         group_ = map_->host_group();
@@ -44,13 +54,13 @@ class UserMapFieldTest : public Test
     }
 
     const Real3 expected_by_map[8] = {{-0.000000, -0.000000, 3811.202288},
-                                      {0.609459, 0.609459, 3810.327053},
-                                      {2.458195, 2.458195, 3807.409525},
-                                      {5.463859, 5.463859, 3802.511454},
-                                      {9.587717, 9.587717, 3795.731544},
-                                      {14.834614, 14.834614, 3787.198544},
-                                      {21.253048, 21.253048, 3777.061939},
-                                      {27.302565, 27.302565, 3765.115023}};
+                                      {-0.0475228, -0.0475228, 3806.21},
+                                      {-0.0950456, -0.0950456, 3801.22},
+                                      {-0.1425684, -0.1425684, 3796.23},
+                                      {9.49396, 9.49396, 3791.24},
+                                      {11.86745, 11.86745, 3775.99},
+                                      {14.241, 14.241, 3771.88},
+                                      {16.6149, 16.6149, 3757.2}};
 
   protected:
     UserFieldTestParams                  test_param_;
