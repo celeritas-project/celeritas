@@ -14,7 +14,7 @@
 #include "field/FieldDriver.hh"
 #include "field/FieldParamsPointers.hh"
 #include "field/RungeKuttaStepper.hh"
-#include "field/MagField.hh"
+#include "field/UniformMagField.hh"
 #include "field/MagFieldEquation.hh"
 
 #include "base/Range.hh"
@@ -43,10 +43,11 @@ __global__ void driver_test_kernel(const FieldParamsPointers pointers,
         return;
 
     // Construct the driver
-    MagField         field({0, 0, test_params.field_value});
-    MagFieldEquation equation(field, units::ElementaryCharge{-1});
-    RungeKuttaStepper<MagFieldEquation> rk4(equation);
-    FieldDriver                         driver(pointers, rk4);
+    UniformMagField                   field({0, 0, test_params.field_value});
+    MagFieldEquation<UniformMagField> equation(field,
+                                               units::ElementaryCharge{-1});
+    RungeKuttaStepper<UniformMagField, MagFieldEquation> rk4(equation);
+    FieldDriver<UniformMagField, MagFieldEquation>       driver(pointers, rk4);
 
     // Test parameters and the sub-step size
     real_type hstep = 2 * constants::pi * test_params.radius
@@ -92,10 +93,11 @@ __global__ void accurate_advance_kernel(const FieldParamsPointers pointers,
         return;
 
     // Construct the driver
-    MagField         field({0, 0, test_params.field_value});
-    MagFieldEquation equation(field, units::ElementaryCharge{-1});
-    RungeKuttaStepper<MagFieldEquation> rk4(equation);
-    FieldDriver                         driver(pointers, rk4);
+    UniformMagField                   field({0, 0, test_params.field_value});
+    MagFieldEquation<UniformMagField> equation(field,
+                                               units::ElementaryCharge{-1});
+    RungeKuttaStepper<UniformMagField, MagFieldEquation> rk4(equation);
+    FieldDriver<UniformMagField, MagFieldEquation>       driver(pointers, rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
@@ -122,7 +124,6 @@ __global__ void accurate_advance_kernel(const FieldParamsPointers pointers,
             total_curved_length
                 += driver.accurate_advance(hstep, &y_accurate, 0.001);
         }
-        // Check the total error
     }
 
     // output for validation
