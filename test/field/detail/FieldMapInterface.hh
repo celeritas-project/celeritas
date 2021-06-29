@@ -23,6 +23,7 @@ struct FieldMapParameters
 {
     size_type num_grid_r;
     size_type num_grid_z;
+    real_type delta_grid;
     real_type offset_z;
 };
 
