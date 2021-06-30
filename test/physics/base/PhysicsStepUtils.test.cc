@@ -198,6 +198,18 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         EXPECT_SOFT_EQ(
             9.99, celeritas::calc_energy_loss(particle, phys, step).value());
     }
+    {
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{0}, &particle, "electron", MevEnergy{1e-3});
+        const real_type eloss_rate = 0.5;
+
+        // Low energy particle which loses all its energy over the step will
+        // call inverse lookup. Remaining range will be zero and eloss will be
+        // equal to the pre-step energy.
+        const real_type step = particle.energy().value() / eloss_rate;
+        EXPECT_SOFT_EQ(
+            1e-3, celeritas::calc_energy_loss(particle, phys, step).value());
+    }
 }
 
 TEST_F(PhysicsStepUtilsTest, select_process_and_model)
@@ -303,7 +315,6 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
             // Get the estimate of the maximum cross section over the step
             real_type xs_max = phys.calc_xs(ppid, grid_id, particle.energy());
             phys.per_process_xs(ppid) = xs_max;
-            phys.macro_xs(xs_max);
 
             // Set the post-step energy
             particle.energy(MevEnergy{scaled_energy[i]});
@@ -311,6 +322,9 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
             unsigned int count = 0;
             for (unsigned int j = 0; j < num_samples; ++j)
             {
+                phys.interaction_mfp(0);
+                phys.macro_xs(xs_max);
+
                 if (select_process_and_model(particle, phys, this->rng()))
                     ++count;
             }
