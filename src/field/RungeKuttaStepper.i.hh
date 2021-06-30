@@ -33,10 +33,9 @@ namespace celeritas
  *  \Delta = y_2 - y_1, y(x+h) = y_2 + \frac{\Delta}{15} + \mathrm{O}(h^{6})
  * \f]
  */
-template<class T>
-CELER_FUNCTION auto
-RungeKuttaStepper<T>::operator()(real_type step, const OdeState& beg_state)
-    -> Result
+template<class F, template<class> class E>
+CELER_FUNCTION auto RungeKuttaStepper<F, E>::
+                    operator()(real_type step, const OdeState& beg_state) -> Result
 {
     using celeritas::axpy;
     real_type           half_step               = step / real_type(2);
@@ -67,11 +66,11 @@ RungeKuttaStepper<T>::operator()(real_type step, const OdeState& beg_state)
 /*!
  * The classical RungeKuttaStepper stepper (the 4th order).
  */
-template<class T>
+template<class F, template<class> class E>
 CELER_FUNCTION auto
-RungeKuttaStepper<T>::do_step(real_type       step,
-                              const OdeState& beg_state,
-                              const OdeState& beg_slope) const -> OdeState
+RungeKuttaStepper<F, E>::do_step(real_type       step,
+                                 const OdeState& beg_state,
+                                 const OdeState& beg_slope) const -> OdeState
 {
     using celeritas::axpy;
     real_type           half_step = step / real_type(2);

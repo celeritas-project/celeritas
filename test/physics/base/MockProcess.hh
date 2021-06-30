@@ -42,6 +42,7 @@ class MockProcess : public celeritas::Process
     using BarnMicroXs      = celeritas::Quantity<celeritas::units::Barn>;
     using Applicability    = celeritas::Applicability;
     using ModelIdGenerator = celeritas::ModelIdGenerator;
+    using ProcessType      = celeritas::ProcessType;
     using VecApplicability = std::vector<Applicability>;
     using VecMicroXs       = std::vector<BarnMicroXs>;
     using SPConstMaterials = std::shared_ptr<const celeritas::MaterialParams>;
@@ -51,6 +52,7 @@ class MockProcess : public celeritas::Process
     struct Input
     {
         SPConstMaterials materials;
+        ProcessType      type;
         std::string      label;
         VecApplicability applic;        //!< Applicablity per model
         ModelCallback    interact;      //!< MockModel::interact callback
@@ -63,6 +65,7 @@ class MockProcess : public celeritas::Process
 
     VecModel          build_models(ModelIdGenerator next_id) const final;
     StepLimitBuilders step_limits(Applicability range) const final;
+    ProcessType       type() const final;
     std::string       label() const final;
 
   private:

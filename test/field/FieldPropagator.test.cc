@@ -11,7 +11,7 @@
 #    include "FieldPropagator.test.hh"
 #endif
 
-#include "field/MagField.hh"
+#include "field/UniformMagField.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/RungeKuttaStepper.hh"
 #include "field/FieldDriver.hh"
@@ -38,10 +38,10 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         particle_params->host_pointers(), state_ref, ThreadId(0));
 
     // Construct FieldPropagator
-    MagField         field({0, 0, test.field_value});
-    MagFieldEquation equation(field, units::ElementaryCharge{-1});
-    RungeKuttaStepper<MagFieldEquation> rk4(equation);
-    FieldDriver                         driver(field_params, rk4);
+    UniformMagField                   field({0, 0, test.field_value});
+    MagFieldEquation<UniformMagField> eq(field, units::ElementaryCharge{-1});
+    RungeKuttaStepper<UniformMagField, MagFieldEquation> rk4(eq);
+    FieldDriver<UniformMagField, MagFieldEquation> driver(field_params, rk4);
 
     // Test parameters and the sub-step size
     double step = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -63,10 +63,11 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         EXPECT_SOFT_EQ(5.5, geo_track.next_step());
 
         // Construct FieldPropagator
-        FieldPropagator propagator(&geo_track, particle_track, driver);
+        FieldPropagator<UniformMagField, MagFieldEquation> propagator(
+            &geo_track, particle_track, driver);
 
-        real_type                    total_length = 0;
-        FieldPropagator::result_type result;
+        real_type total_length = 0;
+        FieldPropagator<UniformMagField, MagFieldEquation>::result_type result;
 
         for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
         {
@@ -96,10 +97,10 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         particle_params->host_pointers(), state_ref, ThreadId(0));
 
     // Construct FieldDriver
-    MagField         field({0, 0, test.field_value});
-    MagFieldEquation equation(field, units::ElementaryCharge{-1});
-    RungeKuttaStepper<MagFieldEquation> rk4(equation);
-    FieldDriver                         driver(field_params, rk4);
+    UniformMagField                   field({0, 0, test.field_value});
+    MagFieldEquation<UniformMagField> eq(field, units::ElementaryCharge{-1});
+    RungeKuttaStepper<UniformMagField, MagFieldEquation> rk4(eq);
+    FieldDriver<UniformMagField, MagFieldEquation> driver(field_params, rk4);
 
     const int num_boundary = 16;
 
@@ -122,11 +123,12 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         EXPECT_SOFT_EQ(0.5, geo_track.next_step());
 
         // Construct FieldPropagator
-        FieldPropagator propagator(&geo_track, particle_track, driver);
+        FieldPropagator<UniformMagField, MagFieldEquation> propagator(
+            &geo_track, particle_track, driver);
 
-        int                          icross       = 0;
-        real_type                    total_length = 0;
-        FieldPropagator::result_type result;
+        int       icross       = 0;
+        real_type total_length = 0;
+        FieldPropagator<UniformMagField, MagFieldEquation>::result_type result;
 
         for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
         {

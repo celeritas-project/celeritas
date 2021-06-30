@@ -1,9 +1,9 @@
-//---------------------------------*-CUDA-*----------------------------------//
+//----------------------------------*-C++-*----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MagField.hh
+//! \file UniformMagField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,23 +14,25 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * The MagField evaluates the magnetic field value at a given position.
+ * Evaluate magnetic field based on a parameterized function
  */
-class MagField
+class UniformMagField
 {
   public:
-    // Construct from a uniform field
-    explicit inline CELER_FUNCTION MagField(const Real3& value);
+    // Construct the reader and locate the data using the environment variable
+    CELER_FUNCTION
+    explicit UniformMagField(Real3 value) : value_(value) {}
 
-    // Return a magnetic field value at a given position
-    inline CELER_FUNCTION Real3 operator()() const;
+    // Return a const magnetic field value
+    CELER_FUNCTION
+    Real3 operator()(CELER_MAYBE_UNUSED const Real3& pos) const
+    {
+        return value_;
+    }
 
   private:
-    // Shared/persistent field data
     Real3 value_;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-#include "MagField.i.hh"

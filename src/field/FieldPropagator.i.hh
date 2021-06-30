@@ -12,10 +12,11 @@ namespace celeritas
 /*!
  * Construct with shared field parameters and the field driver.
  */
+template<class F, template<class> class E>
 CELER_FUNCTION
-FieldPropagator::FieldPropagator(GeoTrackView*            track,
-                                 const ParticleTrackView& particle,
-                                 FieldDriver&             driver)
+FieldPropagator<F, E>::FieldPropagator(GeoTrackView*            track,
+                                       const ParticleTrackView& particle,
+                                       FieldDriver<F, E>&       driver)
     : track_(track), driver_(driver)
 {
     CELER_ASSERT(particle.charge() != zero_quantity());
@@ -38,7 +39,9 @@ FieldPropagator::FieldPropagator(GeoTrackView*            track,
  * trajectory for a given step length within a required accuracy or intersects
  * with a new volume (geometry limited step).
  */
-CELER_FUNCTION auto FieldPropagator::operator()(real_type step) -> result_type
+template<class F, template<class> class E>
+CELER_FUNCTION auto FieldPropagator<F, E>::operator()(real_type step)
+    -> result_type
 {
     result_type result;
 
@@ -102,10 +105,11 @@ CELER_FUNCTION auto FieldPropagator::operator()(real_type step) -> result_type
  * Check whether the final position of the field integration for a given step
  * is inside the current volume or beyond any boundary of adjacent volumes.
  */
-CELER_FUNCTION
-void FieldPropagator::query_intersection(const Real3&  beg_pos,
-                                         const Real3&  end_pos,
-                                         Intersection* intersect)
+template<class F, template<class> class E>
+CELER_FUNCTION void
+FieldPropagator<F, E>::query_intersection(const Real3&  beg_pos,
+                                          const Real3&  end_pos,
+                                          Intersection* intersect)
 {
     intersect->intersected = false;
 
@@ -142,9 +146,9 @@ void FieldPropagator::query_intersection(const Real3&  beg_pos,
  * Find the intersection point within a required accuracy using an iterative
  * method and return the final state by the field driver.
  */
-CELER_FUNCTION
-OdeState FieldPropagator::find_intersection(const OdeState& beg_state,
-                                            Intersection*   intersect)
+template<class F, template<class> class E>
+CELER_FUNCTION OdeState FieldPropagator<F, E>::find_intersection(
+    const OdeState& beg_state, Intersection* intersect)
 {
     intersect->intersected = false;
     Real3 beg_pos          = beg_state.pos;

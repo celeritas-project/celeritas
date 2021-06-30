@@ -238,7 +238,7 @@ PhysicsTrackView::use_integral_xs(ParticleProcessId ppid) const
 /*!
  * Energy corresponding to the maximum cross section for the material.
  *
- * If the \c EnergyLossProcess is "true", the integral approach is used and
+ * If the \c IntegralXsProcess is "true", the integral approach is used and
  * that process has both energy loss and macro xs tables. If \c
  * energy_max_xs[material] is nonzero, both of those tables are present for
  * this material.
@@ -249,8 +249,8 @@ PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
     CELER_EXPECT(ppid < this->num_particle_processes());
 
     real_type                result = 0;
-    const EnergyLossProcess& process
-        = params_.energy_loss[this->process_group().energy_loss[ppid.get()]];
+    const IntegralXsProcess& process
+        = params_.integral_xs[this->process_group().integral_xs[ppid.get()]];
     if (process)
     {
         CELER_ASSERT(material_ < process.energy_max_xs.size());
@@ -313,6 +313,15 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
     }
     // Not a hardwired process
     return {};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Particle-process ID of the process with the de/dx and range tables.
+ */
+CELER_FUNCTION ParticleProcessId PhysicsTrackView::eloss_ppid() const
+{
+    return this->process_group().eloss_ppid;
 }
 
 //---------------------------------------------------------------------------//

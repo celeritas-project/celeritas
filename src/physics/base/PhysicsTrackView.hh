@@ -107,6 +107,9 @@ class PhysicsTrackView
     inline CELER_FUNCTION ModelId hardwired_model(ParticleProcessId ppid,
                                                   MevEnergy energy) const;
 
+    // Particle-process ID of the process with the de/dx and range tables
+    inline CELER_FUNCTION ParticleProcessId eloss_ppid() const;
+
     // Models that apply to the given process ID
     inline CELER_FUNCTION
         ModelFinder make_model_finder(ParticleProcessId) const;

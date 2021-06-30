@@ -123,14 +123,14 @@ TEST_F(PhysicsStepUtilsTest, calc_tabulated_physics_step)
         // Increase the distance to interaction so range limits the step length
         phys.interaction_mfp(1);
         step = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(0.6568, step);
+        EXPECT_SOFT_EQ(0.48853333333333326, step);
     }
     {
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-2});
         real_type step
             = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(2.5e-3, step);
+        EXPECT_SOFT_EQ(0.0016666666666666663, step);
     }
     {
         PhysicsTrackView phys = this->init_track(&material,
@@ -146,7 +146,7 @@ TEST_F(PhysicsStepUtilsTest, calc_tabulated_physics_step)
         // Increase the distance to interaction so range limits the step length
         phys.interaction_mfp(1);
         step = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(2.5e-5, step);
+        EXPECT_SOFT_EQ(1.4285714285714282e-5, step);
     }
     {
         PhysicsTrackView phys = this->init_track(&material,
@@ -156,7 +156,7 @@ TEST_F(PhysicsStepUtilsTest, calc_tabulated_physics_step)
                                                  MevEnergy{10});
         real_type        step
             = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(2.5e-2, step);
+        EXPECT_SOFT_EQ(0.014285714285714284, step);
     }
 }
 
@@ -245,7 +245,7 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
 
         real_type step
             = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(0.6568, step);
+        EXPECT_SOFT_EQ(0.48853333333333326, step);
 
         // Testing cheat.
         PhysicsTrackView::PhysicsStatePointers state_shortcut(phys_state.ref());
