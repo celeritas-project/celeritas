@@ -65,25 +65,27 @@ class CurandTest : public celeritas::Test
 //---------------------------------------------------------------------------//
 // HOST TESTS
 //---------------------------------------------------------------------------//
-TEST_F(CurandTest, TEST_IF_CELERITAS_CUDA(curand_xorwow_host))
+#if CELERITAS_USE_CUDA
+TEST_F(CurandTest, curand_xorwow_host)
 {
     // XORWOW (default) generator
     this->check_mean_host<curandState>();
 }
 
-TEST_F(CurandTest, TEST_IF_CELERITAS_CUDA(curand_mrg32k3a_host))
+TEST_F(CurandTest, curand_mrg32k3a_host)
 {
     // MRG32k3a generator
     this->check_mean_host<curandStateMRG32k3a>();
 }
 
-TEST_F(CurandTest, TEST_IF_CELERITAS_CUDA(curand_philox4_32_10_host))
+TEST_F(CurandTest, curand_philox4_32_10_host)
 {
     // Philox4_32_10 generator
     this->check_mean_host<curandStatePhilox4_32_10_t>();
 }
+#endif
 
-TEST_F(CurandTest, TEST_IF_CELERITAS_CUDA(std_mt19937_host))
+TEST_F(CurandTest, std_mt19937_host)
 {
     // Mersenne Twister generator
     auto rng = DiagnosticRngEngine<std::mt19937>();
@@ -107,6 +109,7 @@ TEST_F(CurandTest, TEST_IF_CELERITAS_CUDA(std_mt19937_host))
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
 
+#if CELERITAS_USE_CUDA
 class CurandDeviceTest : public CurandTest
 {
     void SetUp() override
@@ -136,30 +139,31 @@ class CurandDeviceTest : public CurandTest
     }
 };
 
-TEST_F(CurandDeviceTest, TEST_IF_CELERITAS_CUDA(curand_xorwow_device))
+TEST_F(CurandDeviceTest, curand_xorwow_device)
 {
     // XORWOW (default) generator
     auto output = curand_test<curandState>(test_params);
     this->check_mean_device(output);
 }
 
-TEST_F(CurandDeviceTest, TEST_IF_CELERITAS_CUDA(curand_mrg32k3a_device))
+TEST_F(CurandDeviceTest, curand_mrg32k3a_device)
 {
     // MRG32k3a generator
     auto output = curand_test<curandStateMRG32k3a>(test_params);
     this->check_mean_device(output);
 }
 
-TEST_F(CurandDeviceTest, TEST_IF_CELERITAS_CUDA(curand_philox4_32_10_t_device))
+TEST_F(CurandDeviceTest, curand_philox4_32_10_t_device)
 {
     // Philox4_32_10 generator
     auto output = curand_test<curandStatePhilox4_32_10_t>(test_params);
     this->check_mean_device(output);
 }
 
-TEST_F(CurandDeviceTest, TEST_IF_CELERITAS_CUDA(curand_mtgp32_device))
+TEST_F(CurandDeviceTest, curand_mtgp32_device)
 {
     // MTGP32-11213 (Mersenne Twister RNG for the GPU)
     auto output = curand_test<curandStateMtgp32>(test_params);
     this->check_mean_device(output);
 }
+#endif

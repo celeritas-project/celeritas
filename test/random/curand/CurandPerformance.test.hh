@@ -40,13 +40,5 @@ struct TestOutput
 template<class T>
 TestOutput curand_test(TestParams params);
 
-#if !CELERITAS_USE_CUDA
-template<class T>
-inline TestOutput curand_test(TestParams)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
-#endif
-
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test
