@@ -30,8 +30,8 @@ namespace
  * Interact using the Seltzer-Berger model on applicable tracks.
  */
 __global__ void seltzer_berger_interact_kernel(
-    const SeltzerBergerDeviceRef&              device_pointers,
-    const ModelInteractRefs<MemSpace::device>& interaction)
+    const SeltzerBergerDeviceRef              device_pointers,
+    const ModelInteractRefs<MemSpace::device> interaction)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < interaction.states.size()))

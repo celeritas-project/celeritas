@@ -30,13 +30,14 @@ struct LDemoArgs
     unsigned int seed{};
     size_type    max_num_tracks{};
     size_type    max_steps{};
+    size_type    storage_factor{};
 
     //! Whether the run arguments are valid
     explicit operator bool() const
     {
         return !geometry_filename.empty() && !physics_filename.empty()
                && !hepmc3_filename.empty() && max_num_tracks > 0
-               && max_steps > 0;
+               && max_steps > 0 && storage_factor > 0;
     }
 };
 

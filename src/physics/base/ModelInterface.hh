@@ -13,6 +13,7 @@
 #include "random/RngInterface.hh"
 #include "physics/material/MaterialInterface.hh"
 #include "physics/base/CutoffInterface.hh"
+#include "sim/SimInterface.hh"
 #include "Secondary.hh"
 #include "ParticleInterface.hh"
 #include "Interaction.hh"
@@ -73,6 +74,7 @@ struct ModelInteractStateRefs
     StateRef<MaterialStateData> material;
     StateRef<PhysicsStateData>  physics;
     StateRef<RngStateData>      rng;
+    StateRef<SimStateData>      sim;
 
     StateItems<Real3>       direction;
     StateItems<Interaction> interactions;
@@ -90,6 +92,7 @@ struct ModelInteractStateRefs
                && physics.size() == particle.size()
                && direction.size() == particle.size()
                && rng.size() == particle.size()
+               && sim.size() == particle.size()
                && interactions.size() == particle.size()
                && secondaries;
         // clang-format on

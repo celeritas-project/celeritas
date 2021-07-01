@@ -176,7 +176,6 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             CELER_LOG(warning)
                 << "No processes are defined for particle '"
                 << particles.id_to_label(ParticleId{particle_idx}) << '\'';
-            continue;
         }
         data->max_particle_processes = std::max<ProcessId::size_type>(
             data->max_particle_processes, process_to_models.size());
@@ -232,8 +231,12 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
                                                    temp_processes.end());
         pgroup.models    = model_groups.insert_back(temp_model_groups.begin(),
                                                  temp_model_groups.end());
+
+        // It's ok to have particles defined in the problem that do not have
+        // any processes (if they are ever created, they will just be
+        // transported until they exit the geometry).
         // NOTE: data tables will be assigned later
-        CELER_ASSERT(pgroup);
+        CELER_ASSERT(process_to_models.empty() || pgroup);
         process_groups.push_back(pgroup);
     }
 

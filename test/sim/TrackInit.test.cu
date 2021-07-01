@@ -19,9 +19,8 @@ using namespace celeritas;
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void interact_kernel(StateDeviceRef             states,
-                                SecondaryAllocatorPointers secondaries,
-                                ITTestInputPointers        input)
+__global__ void
+interact_kernel(StateDeviceRef states, ITTestInputPointers input)
 {
     auto thread_id = celeritas::KernelParamCalculator::thread_id();
     if (thread_id < states.size())
@@ -33,7 +32,7 @@ __global__ void interact_kernel(StateDeviceRef             states,
         if (sim.alive())
         {
             // Allow the particle to interact and create secondaries
-            StackAllocator<Secondary> allocate_secondaries(secondaries);
+            StackAllocator<Secondary> allocate_secondaries(states.secondaries);
             Interactor                interact(allocate_secondaries,
                                 input.alloc_size[thread_id.get()],
                                 input.alive[thread_id.get()]);
@@ -87,9 +86,7 @@ vacancies_test_kernel(TrackInitStateDeviceRef inits, size_type* output)
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 
-void interact(StateDeviceRef             states,
-              SecondaryAllocatorPointers secondaries,
-              ITTestInputPointers        input)
+void interact(StateDeviceRef states, ITTestInputPointers input)
 {
     CELER_EXPECT(states.size() > 0);
     CELER_EXPECT(states.size() == input.alloc_size.size());
@@ -97,8 +94,7 @@ void interact(StateDeviceRef             states,
     static const KernelParamCalculator calc_launch_params(interact_kernel,
                                                           "interact");
     auto lparams = calc_launch_params(states.size());
-    interact_kernel<<<lparams.grid_size, lparams.block_size>>>(
-        states, secondaries, input);
+    interact_kernel<<<lparams.grid_size, lparams.block_size>>>(states, input);
     CELER_CUDA_CHECK_ERROR();
 }
 

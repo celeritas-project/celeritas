@@ -37,10 +37,8 @@ struct ProcessIdModelId
 };
 
 template<class Engine>
-inline CELER_FUNCTION ProcessIdModelId
-select_process_and_model(const ParticleTrackView& particle,
-                         const PhysicsTrackView&  physics,
-                         Engine&                  rng);
+inline CELER_FUNCTION ProcessIdModelId select_process_and_model(
+    const ParticleTrackView& particle, PhysicsTrackView& physics, Engine& rng);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

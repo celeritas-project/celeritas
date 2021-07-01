@@ -8,9 +8,10 @@
 #include "LDemoParams.hh"
 
 #include "comm/Logger.hh"
-#include "io/RootImporter.hh"
+#include "io/EventReader.hh"
 #include "io/ImportData.hh"
 #include "io/EventReader.hh"
+#include "io/RootImporter.hh"
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/em/BremsstrahlungProcess.hh"
 #include "physics/em/ComptonProcess.hh"
@@ -18,6 +19,7 @@
 #include "physics/em/EPlusAnnihilationProcess.hh"
 #include "physics/em/GammaConversionProcess.hh"
 #include "physics/em/PhotoelectricProcess.hh"
+#include "physics/em/RayleighProcess.hh"
 #include "LDemoIO.hh"
 
 using namespace celeritas;
@@ -70,10 +72,8 @@ LDemoParams load_params(const LDemoArgs& args)
 
     // Construct cutoffs
     {
-        CutoffParams::Input input;
-        input.materials = result.materials;
-        input.particles = result.particles;
-        result.cutoffs  = std::make_shared<CutoffParams>(std::move(input));
+        result.cutoffs = CutoffParams::from_import(
+            data, result.particles, result.materials);
     }
 
     // Load physics: create individual processes with make_shared
@@ -82,13 +82,22 @@ LDemoParams load_params(const LDemoArgs& args)
         input.particles = result.particles;
         input.materials = result.materials;
 
-        // TODO: add remaining processes
         auto process_data
             = std::make_shared<ImportedProcesses>(std::move(data.processes));
         input.processes.push_back(
             std::make_shared<ComptonProcess>(result.particles, process_data));
+        input.processes.push_back(std::make_shared<PhotoelectricProcess>(
+            result.particles, result.materials, process_data));
+        input.processes.push_back(std::make_shared<RayleighProcess>(
+            result.particles, result.materials, process_data));
+        input.processes.push_back(std::make_shared<GammaConversionProcess>(
+            result.particles, process_data));
+        input.processes.push_back(
+            std::make_shared<EPlusAnnihilationProcess>(result.particles));
         input.processes.push_back(std::make_shared<EIonizationProcess>(
             result.particles, process_data));
+        input.processes.push_back(std::make_shared<BremsstrahlungProcess>(
+            result.particles, result.materials, process_data));
 
         result.physics = std::make_shared<PhysicsParams>(std::move(input));
     }
@@ -96,9 +105,10 @@ LDemoParams load_params(const LDemoArgs& args)
     // Load track initialization data
     {
         EventReader read_event(args.hepmc3_filename.c_str(), result.particles);
-        const auto  primaries = read_event();
-
-        // TODO: Initialize TrackInitParams
+        TrackInitParams::Input input;
+        input.primaries      = read_event();
+        input.storage_factor = args.storage_factor;
+        result.track_inits   = std::make_shared<TrackInitParams>(input);
     }
 
     // Construct RNG params

@@ -33,6 +33,7 @@ CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
     , allocate_(allocate)
 {
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
+    CELER_EXPECT(inc_energy_.value() > 0);
 }
 
 //---------------------------------------------------------------------------//

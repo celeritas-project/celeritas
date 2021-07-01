@@ -49,7 +49,7 @@ auto RayleighModel::applicability() const -> SetApplicability
 {
     Applicability rayleigh_scattering;
     rayleigh_scattering.particle = this->host_group().gamma_id;
-    rayleigh_scattering.lower    = units::MevEnergy{1e-5};
+    rayleigh_scattering.lower    = zero_quantity();
     rayleigh_scattering.upper    = units::MevEnergy{1e+8};
 
     return {rayleigh_scattering};

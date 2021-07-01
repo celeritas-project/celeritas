@@ -59,12 +59,12 @@ inline CELER_FUNCTION bool action_killed(Action a)
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the given action does not alters the particle's state.
+ * Whether the given action does not alter the particle's state.
  */
 inline CELER_FUNCTION bool action_unchanged(Action a)
 {
-    CELER_EXPECT(int(a) < int(Action::end_killed_));
-    return int(a) == int(Action::unchanged);
+    return a == Action::unchanged || a == Action::entered_volume
+           || a == Action::spawned;
 }
 
 //---------------------------------------------------------------------------//

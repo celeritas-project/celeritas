@@ -32,7 +32,7 @@ namespace
  */
 __global__ void
 livermore_pe_interact_kernel(const LivermorePEDeviceRef                pe,
-                             const RelaxationScratchDeviceRef&         scratch,
+                             const RelaxationScratchDeviceRef          scratch,
                              const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();

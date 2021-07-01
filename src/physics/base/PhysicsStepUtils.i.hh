@@ -177,7 +177,7 @@ CELER_FUNCTION ParticleTrackView::Energy
                 auto calc_range
                     = physics.make_calculator<RangeCalculator>(grid_id);
                 real_type remaining_range = calc_range(pre_step_energy) - step;
-                CELER_ASSERT(remaining_range > 0);
+                CELER_ASSERT(remaining_range >= 0);
 
                 // Calculate energy along the range curve corresponding to the
                 // actual step taken: this gives the exact energy loss over the
@@ -189,7 +189,7 @@ CELER_FUNCTION ParticleTrackView::Energy
             }
         }
         CELER_ASSERT(eloss > 0);
-        CELER_ASSERT(eloss < pre_step_energy.value());
+        CELER_ASSERT(eloss <= pre_step_energy.value());
     }
 
     CELER_ENSURE(eloss <= pre_step_energy.value());
@@ -213,10 +213,8 @@ CELER_FUNCTION ParticleTrackView::Energy
  *   distribution (section 7.4 of the Geant4 Physics Reference release 10.6).
  */
 template<class Engine>
-CELER_FUNCTION ProcessIdModelId
-select_process_and_model(const ParticleTrackView& particle,
-                         const PhysicsTrackView&  physics,
-                         Engine&                  rng)
+CELER_FUNCTION ProcessIdModelId select_process_and_model(
+    const ParticleTrackView& particle, PhysicsTrackView& physics, Engine& rng)
 {
     // Nonzero MFP to interaction -- no interaction model
     CELER_EXPECT(physics.interaction_mfp() <= 0);
@@ -243,15 +241,25 @@ select_process_and_model(const ParticleTrackView& particle,
         auto      calc_xs = physics.make_calculator<XsCalculator>(grid_id);
         real_type xs      = calc_xs(particle.energy());
 
-        // The discrete interaction occurs with probability \f$
-        // \sigma(E_1) / \sigma_{\max} \f$
-        if (!BernoulliDistribution(xs / physics.per_process_xs(ppid))(rng))
+        // The discrete interaction occurs with probability \f$ \sigma(E_1) /
+        // \sigma_{\max} \f$. Note that it's possible for \f$ \sigma(E_1) \f$
+        // to be larger than the estimate of the maximum cross section over the
+        // step \f$ \sigma_{\max} \f$.
+        if (generate_canonical(rng) > xs / physics.per_process_xs(ppid))
+        {
+            // No interaction occurs; reset the physics state and continue
+            // tracking
+            physics = {};
             return {};
+        }
     }
 
     // Select the model and return; See doc above for details.
     auto find_model = physics.make_model_finder(ppid);
-    return ProcessIdModelId{ppid, find_model(particle.energy())};
+    auto model_id   = find_model(particle.energy());
+
+    CELER_ENSURE(model_id);
+    return ProcessIdModelId{ppid, model_id};
 }
 
 //---------------------------------------------------------------------------//
