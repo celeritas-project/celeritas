@@ -66,6 +66,8 @@ class MuBremsstrahlungInteractor
     const ElementView element_;
     // Incident muon mass
     const units::MevMass inc_mass_;
+    // Incident momentum
+    const units::MevMomentum inc_momentum_; 
 };
 
 //---------------------------------------------------------------------------//

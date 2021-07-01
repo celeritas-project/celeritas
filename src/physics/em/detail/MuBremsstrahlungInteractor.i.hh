@@ -10,6 +10,8 @@
 #include "base/Constants.hh"
 #include "base/Range.hh"
 #include "random/distributions/UniformRealDistribution.hh"
+#include "random/distributions/ReciprocalDistribution.hh"
+#include "random/distributions/BernoulliDistribution.hh"
 
 namespace celeritas
 {
@@ -32,6 +34,7 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     , allocate_(allocate)
     , element_(material.element_view(elcomp_id))
     , inc_mass_(particle.mass().value())
+    , inc_momentum_(particle.momentum())
 {
     CELER_EXPECT(inc_energy_ >= shared_.min_incident_energy()
                  && inc_energy_ <= shared_.max_incident_energy());
@@ -58,19 +61,16 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
             = min(inc_energy_.value(), shared_.min_incident_energy().value());
     const real_type func_1 = min_inc_kinetic_energy 
                 * this->differential_cross_section(min_inc_kinetic_energy);
-    const real_type x_min = std::log(min_inc_kinetic_energy);
-    const real_type x_max = std::log(inc_energy_.value() 
-                                        / min_inc_kinetic_energy);
                                         
-    real_type ln_epsilon, epsilon, func_2;
-    UniformRealDistribution<real_type> p;
+    ReciprocalDistribution<real_type> 
+            sample_epsilon(min_inc_kinetic_energy, inc_energy_.value());
 
-    do
-    {
-        ln_epsilon = x_min + p(rng) * x_max;
-        epsilon    = std::exp(ln_epsilon);
-        func_2     = epsilon * this->differential_cross_section(epsilon);
-    } while(func_2 < func_1 * p(rng));
+    real_type epsilon;
+    do  
+    { 
+        epsilon = sample_epsilon(rng);
+    } while (!BernoulliDistribution(
+        epsilon * this->differential_cross_section(epsilon) / func_1)(rng));
 
     // Sample secondary direction.
     UniformRealDistribution<real_type> phi(0, 2 * constants::pi);
@@ -78,12 +78,10 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     real_type cost  = this->sample_cos_theta(epsilon, rng);
     Real3 gamma_dir = rotate(from_spherical(cost, phi(rng)), inc_direction_);
 
-    const real_type tot_momentum = std::sqrt(inc_energy_.value() *
-                                (inc_energy_.value() + 2 * inc_mass_.value()));
     Real3 inc_direction;
     for (int i : range(3))
     {
-        inc_direction[i] = tot_momentum * inc_direction_[i]
+        inc_direction[i] = inc_momentum_.value() * inc_direction_[i]
                                         - epsilon * gamma_dir[i];
     }
     normalize_direction(&inc_direction);
