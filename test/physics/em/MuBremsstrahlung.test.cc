@@ -18,13 +18,14 @@
 
 using celeritas::detail::MuBremsstrahlungInteractor;
 namespace constants = celeritas::constants;
-namespace pdg = celeritas::pdg;
+namespace pdg       = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MuBremsstrahlungInteractorTest : public celeritas_test::InteractorHostTestBase
+class MuBremsstrahlungInteractorTest
+    : public celeritas_test::InteractorHostTestBase
 {
     using Base = celeritas_test::InteractorHostTestBase;
 
@@ -36,28 +37,28 @@ class MuBremsstrahlungInteractorTest : public celeritas_test::InteractorHostTest
         constexpr auto zero   = celeritas::zero_quantity();
         constexpr auto stable = ParticleDef::stable_decay_constant();
 
-        Base::set_particle_params(
-            {{"mu_minus",
-              pdg::mu_minus(),
-              MevMass{105.6583745},
-              ElementaryCharge{-1},
-              stable},
-              {"mu_plus",
-              pdg::mu_plus(),
-              MevMass{105.6583745},
-              ElementaryCharge{1},
-              stable},
-             {"gamma", pdg::gamma(), zero, zero, stable},
-             {"electron",
-              pdg::electron(),
-              MevMass{0.5109989461},
-              ElementaryCharge{-1},
-              stable}});
-        const auto& params      = this->particle_params();
-        pointers_.mu_minus_id   = params->find(pdg::mu_minus());
-        pointers_.mu_plus_id    = params->find(pdg::mu_plus());
-        pointers_.gamma_id      = params->find(pdg::gamma());
-        pointers_.electron_mass = params->get(params->find(pdg::electron())).mass();
+        Base::set_particle_params({{"mu_minus",
+                                    pdg::mu_minus(),
+                                    MevMass{105.6583745},
+                                    ElementaryCharge{-1},
+                                    stable},
+                                   {"mu_plus",
+                                    pdg::mu_plus(),
+                                    MevMass{105.6583745},
+                                    ElementaryCharge{1},
+                                    stable},
+                                   {"gamma", pdg::gamma(), zero, zero, stable},
+                                   {"electron",
+                                    pdg::electron(),
+                                    MevMass{0.5109989461},
+                                    ElementaryCharge{-1},
+                                    stable}});
+        const auto& params    = this->particle_params();
+        pointers_.mu_minus_id = params->find(pdg::mu_minus());
+        pointers_.mu_plus_id  = params->find(pdg::mu_plus());
+        pointers_.gamma_id    = params->find(pdg::gamma());
+        pointers_.electron_mass
+            = params->get(params->find(pdg::electron())).mass();
 
         MaterialParams::Input inp;
         inp.elements  = {{29, AmuMass{63.546}, "Cu"}};
@@ -112,7 +113,7 @@ class MuBremsstrahlungInteractorTest : public celeritas_test::InteractorHostTest
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(MuBremsstrahlungInteractorTest, basic) 
+TEST_F(MuBremsstrahlungInteractorTest, basic)
 {
     // Reserve 4 secondaries
     int num_samples = 4;
@@ -150,10 +151,12 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    const double expected_energy[]
-        = {1012.99606184083, 1029.80705246907, 1010.52595539471, 1010.77666768483};
-    const double expected_costheta[]
-        = {0.968418002240112, 0.999212413725981, 0.998550042495312, 0.983614606590488};
+    const double expected_energy[] = {
+        1012.99606184083, 1029.80705246907, 1010.52595539471, 1010.77666768483};
+    const double expected_costheta[] = {0.968418002240112,
+                                        0.999212413725981,
+                                        0.998550042495312,
+                                        0.983614606590488};
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_costheta, costheta);
@@ -166,10 +169,9 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     }
 }
 
-
 TEST_F(MuBremsstrahlungInteractorTest, stress_test)
 {
-    const unsigned int num_samples = 1e4;
+    const unsigned int  num_samples = 1e4;
     std::vector<double> avg_engine_samples;
 
     for (auto particle : {pdg::mu_minus(), pdg::mu_plus()})
@@ -180,11 +182,13 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
             this->set_inc_particle(particle, MevEnergy{inc_e});
 
             RandomEngine&           rng_engine            = this->rng();
-            RandomEngine::size_type num_particles_sampled = 0; 
+            RandomEngine::size_type num_particles_sampled = 0;
 
-            // Loop over several incident directions 
-            for (const Real3& inc_dir :
-                {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
+            // Loop over several incident directions
+            for (const Real3& inc_dir : {Real3{0, 0, 1},
+                                         Real3{1, 0, 0},
+                                         Real3{1e-9, 0, 1},
+                                         Real3{1, 1, 1}})
             {
                 SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
                 this->set_inc_direction(inc_dir);
@@ -193,31 +197,40 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
                 auto material = this->material_track().material_view();
 
                 // Create interactor
-                MuBremsstrahlungInteractor interact(pointers_,
-                                                    this->particle_track(),
-                                                    this->direction(),
-                                                    this->secondary_allocator(),
-                                                    material,
-                                                    celeritas::ElementComponentId{0});
+                MuBremsstrahlungInteractor interact(
+                    pointers_,
+                    this->particle_track(),
+                    this->direction(),
+                    this->secondary_allocator(),
+                    material,
+                    celeritas::ElementComponentId{0});
 
                 for (unsigned int i = 0; i < num_samples; i++)
                 {
                     Interaction result = interact(rng_engine);
-                    //SCOPED_TRACE(result);
+                    // SCOPED_TRACE(result);
                     this->sanity_check(result);
                 }
-                EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
+                EXPECT_EQ(num_samples,
+                          this->secondary_allocator().get().size());
                 num_particles_sampled += num_samples;
             }
             avg_engine_samples.push_back(double(rng_engine.count())
-                                        / double(num_particles_sampled));   
-        }   
+                                         / double(num_particles_sampled));
+        }
     }
-    
+
     // Gold values for average number of calls to RNG
-    const double expected_avg_engine_samples[]
-                                    = {10.4316, 9.7148, 9.2378, 8.6495, 8.5108,
-                                       10.4121, 9.7221, 9.2726, 8.6439, 8.5178};
+    const double expected_avg_engine_samples[] = {10.4316,
+                                                  9.7148,
+                                                  9.2378,
+                                                  8.6495,
+                                                  8.5108,
+                                                  10.4121,
+                                                  9.7221,
+                                                  9.2726,
+                                                  8.6439,
+                                                  8.5178};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
-} 
+}

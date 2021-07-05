@@ -27,20 +27,20 @@ namespace detail
  * Muon bremsstrahlung.
  *
  * \note This performs the same sampling routine as in Geant4's
- * G4MuBremsstrahlungModel class, as documented in section 11.2 
+ * G4MuBremsstrahlungModel class, as documented in section 11.2
  * of the Geant4 Physics Reference (release 10.6).
  */
 class MuBremsstrahlungInteractor
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION MuBremsstrahlungInteractor(
-        const MuBremsstrahlungInteractorPointers& shared,
-        const ParticleTrackView&                  particle,
-        const Real3&                              inc_direction,
-        StackAllocator<Secondary>&                allocate,
-        const MaterialView&                       material,
-        ElementComponentId                        elcomp_id);
+    inline CELER_FUNCTION
+    MuBremsstrahlungInteractor(const MuBremsstrahlungInteractorPointers& shared,
+                               const ParticleTrackView&   particle,
+                               const Real3&               inc_direction,
+                               StackAllocator<Secondary>& allocate,
+                               const MaterialView&        material,
+                               ElementComponentId         elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -48,10 +48,10 @@ class MuBremsstrahlungInteractor
 
   private:
     template<class Engine>
-    inline CELER_FUNCTION real_type 
-    sample_cos_theta(real_type gamma_energy, Engine& rng) const;
+    inline CELER_FUNCTION real_type sample_cos_theta(real_type gamma_energy,
+                                                     Engine&   rng) const;
 
-    inline CELER_FUNCTION real_type 
+    inline CELER_FUNCTION real_type
     differential_cross_section(real_type gamma_energy) const;
 
     // Shared constant physics properties
@@ -67,7 +67,7 @@ class MuBremsstrahlungInteractor
     // Incident muon mass
     const units::MevMass inc_mass_;
     // Incident momentum
-    const units::MevMomentum inc_momentum_; 
+    const units::MevMomentum inc_momentum_;
 };
 
 //---------------------------------------------------------------------------//

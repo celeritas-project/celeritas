@@ -25,14 +25,14 @@ MuBremsstrahlungModel::MuBremsstrahlungModel(ModelId               id,
     interface_.mu_minus_id = particles.find(pdg::mu_minus());
     interface_.mu_plus_id  = particles.find(pdg::mu_plus());
 
-    CELER_VALIDATE(interface_.gamma_id && interface_.mu_minus_id
-                   && interface_.mu_plus_id,
-                   << "missing muon and/or gamma particles "
-                      "(required for "
-                   << this->label() << ")");
+    CELER_VALIDATE(
+        interface_.gamma_id && interface_.mu_minus_id && interface_.mu_plus_id,
+        << "missing muon and/or gamma particles "
+           "(required for "
+        << this->label() << ")");
 
-    interface_.electron_mass = 
-                        particles.get(particles.find(pdg::electron())).mass();
+    interface_.electron_mass
+        = particles.get(particles.find(pdg::electron())).mass();
     CELER_ENSURE(interface_);
 }
 
@@ -60,7 +60,7 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void MuBremsstrahlungModel::interact(
-    CELER_MAYBE_UNUSED const  ModelInteractRefs<MemSpace::device>& pointers) const
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
     detail::mu_bremsstrahlung_interact(interface_, pointers);
