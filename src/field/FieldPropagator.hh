@@ -35,7 +35,7 @@ namespace celeritas
  *
  * \note This follows similar methods as in Geant4's G4PropagatorInField class.
  */
-template<class FieldT, template<class> class EquationT>
+template<class DriverT>
 class FieldPropagator
 {
   public:
@@ -48,10 +48,9 @@ class FieldPropagator
 
   public:
     // Construct with shared parameters and the field driver
-    inline CELER_FUNCTION
-    FieldPropagator(GeoTrackView*                   track,
-                    const ParticleTrackView&        particle,
-                    FieldDriver<FieldT, EquationT>& driver);
+    inline CELER_FUNCTION FieldPropagator(GeoTrackView*            track,
+                                          const ParticleTrackView& particle,
+                                          DriverT&                 driver);
 
     // Propagation in a field
     inline CELER_FUNCTION result_type operator()(real_type step);
@@ -79,9 +78,9 @@ class FieldPropagator
                                                      Intersection* intersect);
 
   private:
-    GeoTrackView*                   track_;
-    FieldDriver<FieldT, EquationT>& driver_;
-    OdeState                        state_;
+    GeoTrackView* track_;
+    DriverT&      driver_;
+    OdeState      state_;
 };
 
 //---------------------------------------------------------------------------//
