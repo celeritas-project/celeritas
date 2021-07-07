@@ -11,9 +11,9 @@
 #include <thrust/device_vector.h>
 
 #include "field/UniformMagField.hh"
-//#include "field/MagField.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/RungeKuttaStepper.hh"
+#include "field/MagFieldTraits.hh"
 #include "field/FieldInterface.hh"
 
 #include "base/Range.hh"
@@ -43,10 +43,10 @@ __global__ void rk4_test_kernel(FieldTestParams param,
         return;
 
     // Construct the Runge-Kutta stepper
-    UniformMagField                   field({0, 0, param.field_value});
-    MagFieldEquation<UniformMagField> equation(field,
-                                               units::ElementaryCharge{-1});
-    RungeKuttaStepper<UniformMagField, MagFieldEquation> rk4(equation);
+    UniformMagField field({0, 0, param.field_value});
+    using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
+    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
+    RKTraits::Stepper_t  rk4(equation);
 
     // Initial state and the epected state after revolutions
     OdeState y;
