@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "FieldDriver.test.hh"
 #include "FieldTestParams.hh"
+#include "detail/MagTestTraits.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
 #include <thrust/device_vector.h>
@@ -16,7 +17,6 @@
 #include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
 #include "field/MagFieldEquation.hh"
-#include "field/MagFieldTraits.hh"
 
 #include "base/Range.hh"
 #include "base/Types.hh"
@@ -45,7 +45,7 @@ __global__ void driver_test_kernel(const FieldParamsPointers pointers,
 
     // Construct the driver
     UniformMagField field({0, 0, test_params.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
+    using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(pointers, rk4);
@@ -95,7 +95,7 @@ __global__ void accurate_advance_kernel(const FieldParamsPointers pointers,
 
     // Construct the driver
     UniformMagField field({0, 0, test_params.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
+    using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(pointers, rk4);
