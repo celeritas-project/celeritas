@@ -6,7 +6,7 @@
 //! \file RungeKutta.test.cu
 //---------------------------------------------------------------------------//
 #include "RungeKutta.test.hh"
-#include "detail/MagFieldTraits.hh"
+#include "detail/MagTestTraits.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
 #include <thrust/device_vector.h>
