@@ -14,9 +14,10 @@ namespace celeritas
 /*!
  * Construct with shared data and the stepper.
  */
-template<class F, template<class> class E>
-CELER_FUNCTION FieldDriver<F, E>::FieldDriver(const FieldParamsPointers& shared,
-                                              RungeKuttaStepper<F, E>& stepper)
+template<class StepperT>
+CELER_FUNCTION
+FieldDriver<StepperT>::FieldDriver(const FieldParamsPointers& shared,
+                                   StepperT&                  stepper)
     : shared_(shared), stepper_(stepper)
 {
     CELER_ENSURE(shared_);
@@ -34,8 +35,8 @@ CELER_FUNCTION FieldDriver<F, E>::FieldDriver(const FieldParamsPointers& shared,
  * within a reference accuracy. Otherwise, the more accurate step integration
  * (advance_accurate) will be performed.
  */
-template<class F, template<class> class E>
-CELER_FUNCTION real_type FieldDriver<F, E>::
+template<class StepperT>
+CELER_FUNCTION real_type FieldDriver<StepperT>::
                          operator()(real_type step, OdeState* state)
 {
     // Output with a step control error
@@ -65,9 +66,9 @@ CELER_FUNCTION real_type FieldDriver<F, E>::
  * Find the next acceptable chord of which the miss-distance is smaller than
  * a given reference (delta_chord) and evaluate the associated error.
  */
-template<class F, template<class> class E>
+template<class StepperT>
 CELER_FUNCTION auto
-FieldDriver<F, E>::find_next_chord(real_type step, const OdeState& state)
+FieldDriver<StepperT>::find_next_chord(real_type step, const OdeState& state)
     -> FieldOutput
 {
     // Output with a step control error
@@ -119,10 +120,9 @@ FieldDriver<F, E>::find_next_chord(real_type step, const OdeState& state)
  * sub-steps within a required tolerance until the the accumulated curved path
  * is equal to the input step length.
  */
-template<class F, template<class> class E>
-CELER_FUNCTION real_type FieldDriver<F, E>::accurate_advance(real_type step,
-                                                             OdeState* state,
-                                                             real_type hinitial)
+template<class StepperT>
+CELER_FUNCTION real_type FieldDriver<StepperT>::accurate_advance(
+    real_type step, OdeState* state, real_type hinitial)
 {
     CELER_ASSERT(step > 0);
 
@@ -176,9 +176,9 @@ CELER_FUNCTION real_type FieldDriver<F, E>::accurate_advance(real_type step,
  *
  * Helper function for accurate_advance.
  */
-template<class F, template<class> class E>
+template<class StepperT>
 CELER_FUNCTION auto
-FieldDriver<F, E>::integrate_step(real_type step, const OdeState& state)
+FieldDriver<StepperT>::integrate_step(real_type step, const OdeState& state)
     -> FieldOutput
 {
     // Output with a next proposed step
@@ -214,9 +214,9 @@ FieldDriver<F, E>::integrate_step(real_type step, const OdeState& state)
  * Advance within a relative truncation error and estimate a good step size
  * for the next integration.
  */
-template<class F, template<class> class E>
+template<class StepperT>
 CELER_FUNCTION auto
-FieldDriver<F, E>::one_good_step(real_type step, const OdeState& state)
+FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state)
     -> FieldOutput
 {
     // Output with a proposed next step
@@ -267,9 +267,9 @@ FieldDriver<F, E>::one_good_step(real_type step, const OdeState& state)
 /*!
  * Estimate the new predicted step size based on the error estimate.
  */
-template<class F, template<class> class E>
+template<class StepperT>
 CELER_FUNCTION real_type
-               FieldDriver<F, E>::new_step_size(real_type step, real_type rel_error) const
+               FieldDriver<StepperT>::new_step_size(real_type step, real_type rel_error) const
 {
     CELER_ASSERT(rel_error > 0);
     real_type scale_factor

@@ -23,14 +23,13 @@ namespace celeritas
  *
  * \note This class is based on G4ChordFinder and G4MagIntegratorDriver.
  */
-template<class FieldT, template<class> class EquationT>
+template<class StepperT>
 class FieldDriver
 {
   public:
     // Construct with shared data and the stepper
     inline CELER_FUNCTION
-    FieldDriver(const FieldParamsPointers&            shared,
-                RungeKuttaStepper<FieldT, EquationT>& stepper);
+    FieldDriver(const FieldParamsPointers& shared, StepperT& stepper);
 
     // For a given trial step, advance by a sub_step within a tolerance error
     inline CELER_FUNCTION real_type operator()(real_type step, OdeState* state);
@@ -99,7 +98,7 @@ class FieldDriver
     const FieldParamsPointers& shared_;
 
     // Stepper for this field driver
-    RungeKuttaStepper<FieldT, EquationT>& stepper_;
+    StepperT& stepper_;
 };
 
 //---------------------------------------------------------------------------//

@@ -18,6 +18,7 @@
 #include "field/RungeKuttaStepper.hh"
 #include "field/FieldDriver.hh"
 #include "field/FieldPropagator.hh"
+#include "field/MagFieldTraits.hh"
 
 #include <thrust/device_vector.h>
 
@@ -56,19 +57,19 @@ __global__ void fp_test_kernel(const int                 size,
     particle_track = init_track[tid.get()];
 
     // Construct the RK stepper adnd propagator in a field
-    UniformMagField                   field({0, 0, test.field_value});
-    MagFieldEquation<UniformMagField> eq(field, units::ElementaryCharge{-1});
-    RungeKuttaStepper<UniformMagField, MagFieldEquation> rk4(eq);
-    FieldDriver<UniformMagField, MagFieldEquation> driver(field_params, rk4);
-    FieldPropagator<UniformMagField, MagFieldEquation> propagator(
-        &geo_track, particle_track, driver);
+    UniformMagField field({0, 0, test.field_value});
+    using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
+    RKTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
+    RKTraits::Stepper_t    rk4(equation);
+    RKTraits::Driver_t     driver(field_params, rk4);
+    RKTraits::Propagator_t propagator(&geo_track, particle_track, driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
 
     real_type curved_length = 0;
 
-    FieldPropagator<UniformMagField, MagFieldEquation>::result_type result;
+    RKTraits::Propagator_t::result_type result;
 
     for (CELER_MAYBE_UNUSED int i : celeritas::range(test.revolutions))
     {
@@ -112,12 +113,12 @@ __global__ void bc_test_kernel(const int                 size,
     particle_track = init_track[tid.get()];
 
     // Construct the RK stepper and propagator in a field
-    UniformMagField                   field({0, 0, test.field_value});
-    MagFieldEquation<UniformMagField> eq(field, units::ElementaryCharge{-1});
-    RungeKuttaStepper<UniformMagField, MagFieldEquation> rk4(eq);
-    FieldDriver<UniformMagField, MagFieldEquation> driver(field_params, rk4);
-    FieldPropagator<UniformMagField, MagFieldEquation> propagator(
-        &geo_track, particle_track, driver);
+    UniformMagField field({0, 0, test.field_value});
+    using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
+    RKTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
+    RKTraits::Stepper_t    rk4(equation);
+    RKTraits::Driver_t     driver(field_params, rk4);
+    RKTraits::Propagator_t propagator(&geo_track, particle_track, driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -135,7 +136,7 @@ __global__ void bc_test_kernel(const int                 size,
 
     real_type delta = celeritas::numeric_limits<real_type>::max();
 
-    FieldPropagator<UniformMagField, MagFieldEquation>::result_type result;
+    RKTraits::Propagator_t::result_type result;
 
     for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
     {

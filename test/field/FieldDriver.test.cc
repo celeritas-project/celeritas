@@ -20,6 +20,7 @@
 
 #include "celeritas_test.hh"
 #include "FieldDriver.test.hh"
+#include "detail/MagTestTraits.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -61,10 +62,11 @@ class FieldDriverTest : public Test
 TEST_F(FieldDriverTest, field_driver_host)
 {
     // Construct FieldDriver
-    UniformMagField                   field({0, 0, test_params.field_value});
-    MagFieldEquation<UniformMagField> eq(field, units::ElementaryCharge{-1});
-    RungeKuttaStepper<UniformMagField, MagFieldEquation> rk4(eq);
-    FieldDriver<UniformMagField, MagFieldEquation> driver(field_params, rk4);
+    UniformMagField field({0, 0, test_params.field_value});
+    using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
+    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
+    RKTraits::Stepper_t  rk4(equation);
+    RKTraits::Driver_t   driver(field_params, rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
@@ -109,10 +111,11 @@ TEST_F(FieldDriverTest, field_driver_host)
 TEST_F(FieldDriverTest, accurate_advance_host)
 {
     // Construct FieldDriver
-    UniformMagField                   field({0, 0, test_params.field_value});
-    MagFieldEquation<UniformMagField> eq(field, units::ElementaryCharge{-1});
-    RungeKuttaStepper<UniformMagField, MagFieldEquation> rk4(eq);
-    FieldDriver<UniformMagField, MagFieldEquation> driver(field_params, rk4);
+    UniformMagField field({0, 0, test_params.field_value});
+    using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
+    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
+    RKTraits::Stepper_t  rk4(equation);
+    RKTraits::Driver_t   driver(field_params, rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
