@@ -26,6 +26,10 @@ namespace detail
 /*!
  * Muon bremsstrahlung.
  *
+ * This is a model for the Bremsstrahlung process for muons. Given an incident
+ * muon, the class computes the change to the incident muon direction and
+ * energy, and it adds a single secondary gamma to the secondary stack.
+ *
  * \note This performs the same sampling routine as in Geant4's
  * G4MuBremsstrahlungModel class, as documented in section 11.2
  * of the Geant4 Physics Reference (release 10.6).
@@ -56,18 +60,14 @@ class MuBremsstrahlungInteractor
 
     // Shared constant physics properties
     const MuBremsstrahlungInteractorPointers& shared_;
-    // Incident muon energy
-    const units::MevEnergy inc_energy_;
     // Incident direction
     const Real3& inc_direction_;
     // Allocate space for one or more secondary particles
     StackAllocator<Secondary>& allocate_;
     // Element properties
     const ElementView element_;
-    // Incident muon mass
-    const units::MevMass inc_mass_;
-    // Incident momentum
-    const units::MevMomentum inc_momentum_;
+    // Incident particle
+    const ParticleTrackView& particle_;
 };
 
 //---------------------------------------------------------------------------//
