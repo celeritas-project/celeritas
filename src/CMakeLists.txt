@@ -71,6 +71,7 @@ list(APPEND SOURCES
   physics/em/GammaConversionProcess.cc
   physics/em/KleinNishinaModel.cc
   physics/em/MollerBhabhaModel.cc
+  physics/em/MuBremsstrahlungModel.cc
   physics/em/RayleighModel.cc
   physics/em/RayleighProcess.cc
   physics/em/detail/Rayleigh.cc
@@ -92,6 +93,7 @@ if(CELERITAS_USE_CUDA)
     physics/em/detail/EPlusGG.cu
     physics/em/detail/KleinNishina.cu
     physics/em/detail/MollerBhabha.cu
+    physics/em/detail/MuBremsstrahlung.cu
     physics/em/detail/LivermorePE.cu
     physics/em/detail/Rayleigh.cu
     physics/em/detail/SeltzerBerger.cu
