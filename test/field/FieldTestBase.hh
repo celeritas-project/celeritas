@@ -75,7 +75,7 @@ class FieldTestBase : public celeritas::Test
         state_ref = state_value;
 
         // Set values of FieldParamsPointers;
-        field_params.delta_intersection = 1.0e-3 * units::millimeter;
+        field_params.delta_intersection = 1.0e-4 * units::millimeter;
 
         // Input parameters of an electron in a uniform magnetic field
         test.nstates     = 128;
