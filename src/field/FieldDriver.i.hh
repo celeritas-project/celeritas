@@ -74,15 +74,13 @@ FieldDriver<StepperT>::find_next_chord(real_type step, const OdeState& state)
     // Output with a step control error
     FieldOutput output;
 
-    // Try with the proposed step
-    output.step_taken = step;
-
     bool          succeeded       = false;
     unsigned int  remaining_steps = shared_.max_nsteps;
     StepperResult result;
 
     do
     {
+        // Try with the proposed step
         result = stepper_(step, state);
 
         // Check whether the distance to the chord is small than the reference
@@ -98,16 +96,16 @@ FieldDriver<StepperT>::find_next_chord(real_type step, const OdeState& state)
         else
         {
             // Estimate a new trial chord with a relative scale
-            output.step_taken
-                *= std::fmax(std::sqrt(shared_.delta_chord / dchord), half());
+            step *= std::fmax(std::sqrt(shared_.delta_chord / dchord), half());
         }
     } while (!succeeded && (--remaining_steps > 0));
 
     // TODO: loop check and handle rare cases if happen
     CELER_ASSERT(succeeded);
 
-    // Update new position and momentum
-    output.state = result.end_state;
+    // Update step, position and momentum
+    output.step_taken = step;
+    output.state      = result.end_state;
 
     return output;
 }
