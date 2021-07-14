@@ -3,28 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file NormalDistribution.i.hh
+//! \file GammaDistribution.i.hh
 //---------------------------------------------------------------------------//
 
 #include <cmath>
 #include "base/Assert.hh"
 #include "base/Algorithms.hh"
 #include "base/Constants.hh"
-#include "GenerateCanonical.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with mean and standard deviation.
+ * Construct from the shape and scale parameters.
  */
 template<class RealType>
 CELER_FUNCTION
-NormalDistribution<RealType>::NormalDistribution(real_type mean,
-                                                 real_type stddev)
-    : mean_(mean), stddev_(stddev), spare_(0), has_spare_(false)
+GammaDistribution<RealType>::GammaDistribution(real_type alpha, real_type beta)
+    : alpha_(alpha)
+    , beta_(beta)
+    , alpha_p_(alpha < 1 ? alpha + 1 : alpha)
+    , d_(alpha_p_ - real_type(1) / 3)
+    , c_(1 / std::sqrt(9 * d_))
 {
-    CELER_EXPECT(stddev > 0);
+    CELER_EXPECT(alpha_ > 0);
+    CELER_EXPECT(beta_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -33,20 +36,27 @@ NormalDistribution<RealType>::NormalDistribution(real_type mean,
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto NormalDistribution<RealType>::operator()(Generator& rng)
+CELER_FUNCTION auto GammaDistribution<RealType>::operator()(Generator& rng)
     -> result_type
 {
-    if (has_spare_)
+    real_type u, v, z;
+    do
     {
-        has_spare_ = false;
-        return spare_ * stddev_ + mean_;
-    }
+        do
+        {
+            z = sample_normal_(rng);
+            v = 1 + c_ * z;
+        } while (v <= 0);
+        v = ipow<3>(v);
+        u = generate_canonical(rng);
+    } while (u > 1 - real_type(0.0331) * ipow<4>(z)
+             && std::log(u) > real_type(0.5) * ipow<2>(z)
+                                  + d_ * (1 - v + std::log(v)));
 
-    real_type theta = 2 * constants::pi * generate_canonical(rng);
-    real_type r     = std::sqrt(-2 * std::log(generate_canonical(rng)));
-    spare_          = r * std::cos(theta);
-    has_spare_      = true;
-    return r * std::sin(theta) * stddev_ + mean_;
+    result_type result = d_ * v * beta_;
+    if (alpha_ != alpha_p_)
+        result *= std::pow(generate_canonical(rng), 1 / alpha_);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

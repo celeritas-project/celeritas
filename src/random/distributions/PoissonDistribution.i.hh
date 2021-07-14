@@ -10,7 +10,6 @@
 #include "base/Assert.hh"
 #include "base/Algorithms.hh"
 #include "base/Constants.hh"
-#include "GenerateCanonical.hh"
 
 namespace celeritas
 {

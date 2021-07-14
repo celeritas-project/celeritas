@@ -264,6 +264,7 @@ celeritas_add_test(random/Selector.test.cc)
 
 celeritas_add_test(random/distributions/BernoulliDistribution.test.cc)
 celeritas_add_test(random/distributions/ExponentialDistribution.test.cc)
+celeritas_add_test(random/distributions/GammaDistribution.test.cc)
 celeritas_add_test(random/distributions/IsotropicDistribution.test.cc)
 celeritas_add_test(random/distributions/NormalDistribution.test.cc)
 celeritas_add_test(random/distributions/PoissonDistribution.test.cc)

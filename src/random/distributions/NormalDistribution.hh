@@ -18,7 +18,7 @@ namespace celeritas
  *
  * This uses the Box-Muller transform to generate pairs of independent,
  * normally distributed random numbers, returning them one at a time. Two
- * random numbers uniformly distributed on [0, 1] can be mapped to two
+ * random numbers uniformly distributed on [0, 1] are mapped to two
  * independent, standard, normally distributed samples using the relations:
  * \f[
   x_1 = \sqrt{-2 \ln \xi_1} \cos(2 \pi \xi_2)
@@ -36,22 +36,19 @@ class NormalDistribution
     //!@}
 
   public:
-    // Construct with N(0, 1)
-    inline CELER_FUNCTION NormalDistribution();
-
-    // Construct with arbitrary mean and standard deviation
+    // Construct with mean and standard deviation
     explicit inline CELER_FUNCTION
-    NormalDistribution(real_type mean, real_type stddev = 1);
+    NormalDistribution(real_type mean = 0, real_type stddev = 1);
 
     // Sample a random number according to the distribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
   private:
-    real_type mean_;
-    real_type stddev_;
-    real_type spare_;
-    bool      has_spare_;
+    const real_type mean_;
+    const real_type stddev_;
+    real_type       spare_;
+    bool            has_spare_;
 };
 
 //---------------------------------------------------------------------------//
