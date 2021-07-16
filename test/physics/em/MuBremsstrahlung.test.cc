@@ -221,16 +221,16 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
     }
 
     // Gold values for average number of calls to RNG
-    const double expected_avg_engine_samples[] = {10.4504,
-                                                  9.723,
-                                                  9.2422,
-                                                  8.651,
-                                                  8.5121,
-                                                  10.4281,
-                                                  9.7302,
-                                                  9.2739,
-                                                  8.6447,
-                                                  8.5193};
+    const double expected_avg_engine_samples[] = {10.4316,
+                                                  9.7148,
+                                                  9.2378,
+                                                  8.6495,
+                                                  8.5108,
+                                                  10.4121,
+                                                  9.7221,
+                                                  9.2726,
+                                                  8.6439,
+                                                  8.5178};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

@@ -154,7 +154,7 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
     }
     else
     {
-        d_n_prime = d_n / std::pow(d_n, 1 / atomic_number);
+        d_n_prime = std::pow(d_n, 1 - real_type(1) / atomic_number);
         b         = 183;
         b1        = 1429;
     }
