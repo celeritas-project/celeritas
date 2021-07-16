@@ -84,6 +84,15 @@ class MaterialView
     // Radiation length for high-energy electron Bremsstrahlung [cm]
     inline CELER_FUNCTION real_type radiation_length() const;
 
+    // Mean excitation energy [MeV]
+    inline CELER_FUNCTION units::MevEnergy mean_exc_energy() const;
+
+    // Log mean excitation energy
+    inline CELER_FUNCTION units::LogMevEnergy log_mean_exc_energy() const;
+
+    // Energy loss fluctuation model parameters
+    inline CELER_FUNCTION const FluctuationParams& fluctuation_params() const;
+
   private:
     const MaterialParamsPointers& params_;
     MaterialId                    material_;

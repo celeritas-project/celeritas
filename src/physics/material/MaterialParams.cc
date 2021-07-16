@@ -11,6 +11,7 @@
 #include <cmath>
 #include <numeric>
 #include "detail/Utils.hh"
+#include "base/Algorithms.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
@@ -282,6 +283,23 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
                      * constants::atomic_mass;
     result.electron_density = result.number_density * avg_z;
     result.rad_length       = 1 / (rad_coeff * result.density);
+
+    // TODO: read from Geant4 or calculate
+    result.mean_exc_energy = units::MevEnergy{1e-5 * avg_z};
+    result.log_mean_exc_energy
+        = units::LogMevEnergy{std::log(result.mean_exc_energy.value())};
+
+    // Calculate the parameters for the energy loss fluctuation model
+    FluctuationParams fp;
+    fp.osc_strength[1]       = avg_z > 2 ? 2 / avg_z : 0;
+    fp.osc_strength[0]       = 1 - fp.osc_strength[1];
+    fp.binding_energy[1]     = units::MevEnergy{1e-5}.value() * ipow<2>(avg_z);
+    fp.log_binding_energy[1] = std::log(fp.binding_energy[1]);
+    fp.log_binding_energy[0] = (std::log(result.mean_exc_energy.value())
+                                - fp.osc_strength[1] * fp.log_binding_energy[1])
+                               / fp.osc_strength[0];
+    fp.binding_energy[0] = std::exp(fp.log_binding_energy[0]);
+    result.fluct         = fp;
 
     // Add to host vector
     make_builder(&host_data->materials).push_back(result);

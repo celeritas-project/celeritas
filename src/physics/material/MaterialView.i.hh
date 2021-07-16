@@ -123,6 +123,33 @@ CELER_FUNCTION real_type MaterialView::radiation_length() const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Mean excitation energy [MeV].
+ */
+CELER_FUNCTION units::MevEnergy MaterialView::mean_exc_energy() const
+{
+    return this->material_def().mean_exc_energy;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Log mean excitation energy.
+ */
+CELER_FUNCTION units::LogMevEnergy MaterialView::log_mean_exc_energy() const
+{
+    return this->material_def().log_mean_exc_energy;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Energy loss fluctuation model parameters.
+ */
+CELER_FUNCTION const FluctuationParams& MaterialView::fluctuation_params() const
+{
+    return this->material_def().fluct;
+}
+
+//---------------------------------------------------------------------------//
 // PRIVATE METHODS
 //---------------------------------------------------------------------------//
 /*!

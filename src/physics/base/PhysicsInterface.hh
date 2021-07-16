@@ -206,10 +206,11 @@ struct PhysicsParamsData
     ProcessId::size_type  max_particle_processes{};
 
     // User-configurable constants
-    real_type scaling_min_range{}; //!< rho [cm]
-    real_type scaling_fraction{};  //!< alpha [unitless]
-    real_type energy_fraction{};   //!< xi [unitless]
-    real_type linear_loss_limit{}; //!< For scaled range calculation
+    real_type scaling_min_range{};  //!< rho [cm]
+    real_type scaling_fraction{};   //!< alpha [unitless]
+    real_type energy_fraction{};    //!< xi [unitless]
+    real_type linear_loss_limit{};  //!< For scaled range calculation
+    bool      enable_eloss_fluct{}; //!< Enable energy loss fluctuations
 
     //// METHODS ////
 
@@ -240,10 +241,11 @@ struct PhysicsParamsData
         hardwired              = other.hardwired;
         max_particle_processes = other.max_particle_processes;
 
-        scaling_min_range = other.scaling_min_range;
-        scaling_fraction  = other.scaling_fraction;
-        energy_fraction   = other.energy_fraction;
-        linear_loss_limit = other.linear_loss_limit;
+        scaling_min_range  = other.scaling_min_range;
+        scaling_fraction   = other.scaling_fraction;
+        energy_fraction    = other.energy_fraction;
+        linear_loss_limit  = other.linear_loss_limit;
+        enable_eloss_fluct = other.enable_eloss_fluct;
 
         return *this;
     }

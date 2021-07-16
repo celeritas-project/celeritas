@@ -58,6 +58,19 @@ struct MatElementComponent
 
 //---------------------------------------------------------------------------//
 /*!
+ * Material-dependent parameters used in the energy loss fluctuation model.
+ */
+struct FluctuationParams
+{
+    using Real2 = Array<real_type, 2>;
+
+    Real2 osc_strength;       //!< Oscillator strength f_i
+    Real2 binding_energy;     //!< Binding energy E_i [MeV]
+    Real2 log_binding_energy; //!< log E_i
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Fundamental (static) properties of a material.
  *
  * Multiple material definitions are allowed to reuse a single element
@@ -74,9 +87,12 @@ struct MaterialDef
 
     // COMPUTED PROPERTIES
 
-    real_type density;          //!< Density [g/cm^3]
-    real_type electron_density; //!< Electron number density [1/cm^3]
-    real_type rad_length;       //!< Radiation length [cm]
+    real_type           density;          //!< Density [g/cm^3]
+    real_type           electron_density; //!< Electron number density [1/cm^3]
+    real_type           rad_length;       //!< Radiation length [cm]
+    units::MevEnergy    mean_exc_energy;  //!< Mean excitation energy [MeV]
+    units::LogMevEnergy log_mean_exc_energy; //!< Log mean excitation energy
+    FluctuationParams   fluct; //!< Energy loss fluctuation model parameters
 };
 
 //---------------------------------------------------------------------------//

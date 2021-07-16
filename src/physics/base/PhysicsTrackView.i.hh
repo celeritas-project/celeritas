@@ -387,6 +387,15 @@ CELER_FUNCTION real_type PhysicsTrackView::energy_fraction() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether to simulate energy loss fluctuations.
+ */
+CELER_FUNCTION bool PhysicsTrackView::add_fluctuations() const
+{
+    return params_.enable_eloss_fluct;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate macroscopic cross section on the fly.
  */
 CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(

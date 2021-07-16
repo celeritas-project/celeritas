@@ -125,6 +125,9 @@ class PhysicsTrackView
     // Energy scaling fraction used to estimate maximum xs over the step
     inline CELER_FUNCTION real_type energy_fraction() const;
 
+    // Whether to simulate energy loss fluctuations
+    inline CELER_FUNCTION bool add_fluctuations() const;
+
     // Calculate macroscopic cross section on the fly for the given model
     inline CELER_FUNCTION real_type calc_xs_otf(ModelId             model,
                                                 const MaterialView& material,

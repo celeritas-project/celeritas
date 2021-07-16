@@ -116,10 +116,11 @@ void PhysicsParams::build_options(const Options& opts, HostValue* data) const
     CELER_VALIDATE(opts.linear_loss_limit >= 0 && opts.linear_loss_limit <= 1,
                    << "invalid linear_loss_limit=" << opts.linear_loss_limit
                    << " (should be be within 0 <= limit <= 1)");
-    data->scaling_min_range = opts.min_range;
-    data->scaling_fraction  = opts.max_step_over_range;
-    data->energy_fraction   = opts.min_eprime_over_e;
-    data->linear_loss_limit = opts.linear_loss_limit;
+    data->scaling_min_range  = opts.min_range;
+    data->scaling_fraction   = opts.max_step_over_range;
+    data->energy_fraction    = opts.min_eprime_over_e;
+    data->linear_loss_limit  = opts.linear_loss_limit;
+    data->enable_eloss_fluct = opts.enable_eloss_fluct;
 }
 
 //---------------------------------------------------------------------------//

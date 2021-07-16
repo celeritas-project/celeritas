@@ -207,6 +207,7 @@ celeritas_setup_tests(SERIAL PREFIX physics/base
   LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_add_test(physics/base/CutoffParams.test.cc
   LINK_LIBRARIES Celeritas::ROOT)
+celeritas_add_test(physics/base/EnergyLossDistribution.test.cc)
 celeritas_cudaoptional_test(physics/base/Particle
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_cudaoptional_test(physics/base/Physics)
