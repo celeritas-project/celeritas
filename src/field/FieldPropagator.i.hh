@@ -163,6 +163,16 @@ CELER_FUNCTION OdeState FieldPropagator<DriverT>::find_intersection(
         real_type step = driver_(intersect->step, &end_state);
         CELER_ASSERT(step == intersect->step);
 
+        // Update the intersect candidate point
+        Real3 dir = end_state.pos;
+        axpy(real_type(-1.0), beg_pos, &dir);
+        normalize_direction(&dir);
+
+        real_type safety      = 0;
+        real_type linear_step = track_->compute_step(beg_pos, dir, &safety);
+        intersect->pos        = beg_pos;
+        axpy(linear_step, dir, &intersect->pos);
+
         // Check whether end_state point is within an acceptable tolerance
         // from the proposed intersect position on a boundary
         Real3 delta = end_state.pos;
@@ -175,17 +185,13 @@ CELER_FUNCTION OdeState FieldPropagator<DriverT>::find_intersection(
             // Estimate a new trial step with the updated position of end_state
             real_type trial_step = intersect->step;
 
-            Real3 dir = end_state.pos;
-            axpy(real_type(-1.0), beg_pos, &dir);
-            normalize_direction(&dir);
-            real_type safety      = 0;
-            real_type linear_step = track_->compute_step(beg_pos, dir, &safety);
+            Real3 chord = end_state.pos;
+            axpy(real_type(-1.0), beg_pos, &chord);
+            real_type length = norm(chord);
+            CELER_ASSERT(length > 0);
 
-            intersect->scale = (linear_step / intersect->step);
+            intersect->scale = (linear_step / length);
             intersect->step  = trial_step * intersect->scale;
-
-            intersect->pos = beg_pos;
-            axpy(linear_step, dir, &intersect->pos);
         }
     } while (!intersect->intersected && --remaining_steps > 0);
 

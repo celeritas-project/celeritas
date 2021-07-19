@@ -22,7 +22,7 @@ namespace detail
  * with the CMS detector geometry.
  */
 CELER_FUNCTION
-Real3 CMSParameterizedField::operator()(const Real3& pos)
+Real3 CMSParameterizedField::operator()(const Real3& pos) const
 {
     Real3 value{0., 0., 0.};
 
@@ -45,7 +45,7 @@ Real3 CMSParameterizedField::operator()(const Real3& pos)
  * TODO: simplify and optimize
  */
 CELER_FUNCTION
-Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z)
+Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z) const
 {
     const real_type prm[9] = {4.24326,
                               15.0201,
@@ -100,7 +100,7 @@ Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z)
  */
 CELER_FUNCTION
 CMSParameterizedField::Real4
-CMSParameterizedField::evaluate_parameters(real_type x)
+CMSParameterizedField::evaluate_parameters(real_type x) const
 {
     real_type a = 1 / (1 + ipow<2>(x));
     real_type b = std::sqrt(a);
