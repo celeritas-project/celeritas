@@ -82,7 +82,7 @@ class Device
 // Global active device (default is inactive/false)
 const Device& device();
 
-// Activate the devie
+// Activate the device
 void activate_device(Device&& device);
 
 // Print device info

@@ -30,8 +30,8 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
  * for the use cases needed by Celeritas (and, as a bonus, it will be
  * device-compatible).
  *
- * Notably, only a subset of the functions (those having to with size) are \c
- * constexpr. This is to allow debug assertions.
+ * Notably, only a subset of the functions (those having to do with size) are
+ * \c constexpr. This is to allow debug assertions.
  */
 template<class T, std::size_t Extent = dynamic_extent>
 class Span
