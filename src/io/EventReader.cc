@@ -8,7 +8,6 @@
 #include "EventReader.hh"
 
 #include "base/ArrayUtils.hh"
-#include "base/ScopedStreamRedirect.hh"
 #include "comm/Logger.hh"
 #include "physics/base/Units.hh"
 #include "HepMC3/GenEvent.h"
@@ -25,17 +24,11 @@ EventReader::EventReader(const char* filename, SPConstParticles params)
 {
     CELER_EXPECT(params_);
 
-    // Turn off/capture HepMC3 diagnostic output that pollutes our own output
+    // Turn off HepMC3 diagnostic output that pollutes our own output
     HepMC3::Setup::set_debug_level(-1);
-    ScopedStreamRedirect silenced(&std::cout);
 
     // Determine the input file format and construct the appropriate reader
     input_file_ = HepMC3::deduce_reader(filename);
-    std::string output = silenced.str();
-    if (!output.empty())
-    {
-        CELER_LOG(diagnostic) << "HepMC3 said: " << output;
-    }
     CELER_ENSURE(input_file_);
 }
 
