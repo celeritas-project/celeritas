@@ -31,7 +31,11 @@ EventReader::EventReader(const char* filename, SPConstParticles params)
 
     // Determine the input file format and construct the appropriate reader
     input_file_ = HepMC3::deduce_reader(filename);
-    CELER_LOG(diagnostic) << "HepMC3 said: " << silenced.str();
+    std::string output = silenced.str();
+    if (!output.empty())
+    {
+        CELER_LOG(diagnostic) << "HepMC3 said: " << output;
+    }
     CELER_ENSURE(input_file_);
 }
 
