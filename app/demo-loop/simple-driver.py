@@ -14,7 +14,7 @@ try:
     geometry_filename = argv[1]
     hepmc3_filename = argv[2]
 except TypeError:
-    print("usage: {} inp.gdml inp.hepmc3".format(sys.argv[0]))
+    print("usage: {} inp.gdml inp.hepmc3".format(argv[0]))
     exit(2)
 
 geant_exp_exe = environ.get('CELERITAS_GEANT_EXPORTER_EXE', './geant-exporter')
