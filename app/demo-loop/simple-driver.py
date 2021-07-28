@@ -13,7 +13,7 @@ from sys import exit, argv
 try:
     geometry_filename = argv[1]
     hepmc3_filename = argv[2]
-except TypeError:
+except (IndexError, TypeError):
     print("usage: {} inp.gdml inp.hepmc3".format(argv[0]))
     exit(2)
 
@@ -36,7 +36,7 @@ inp = {
         'seed': 12345,
         'max_num_tracks': 128 * 32,
         'max_steps': 128,
-        'storage_factor': 3
+        'storage_factor': 10
     }
 }
 
