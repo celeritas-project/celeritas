@@ -248,7 +248,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     )
     if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_ROOT OR NOT CELERITAS_USE_HepMC3)
       set_tests_properties("app/demo-loop" PROPERTIES
-        DISABLED false
+        DISABLED true
       )
     endif()
   endif()
