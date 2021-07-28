@@ -228,8 +228,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     nlohmann_json::nlohmann_json
   )
 
-  # TODO: update input files and enable test
-  if(CELERITAS_BUILD_TESTS AND CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
+  if (CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple_cms.gdml")
     set(_hepmc3_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/input.hepmc3")
@@ -246,8 +245,12 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
       ENVIRONMENT "${_env};${_geant_test_env}"
       RESOURCE_LOCK gpu
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
-      DISABLED true
     )
+    if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_ROOT OR NOT CELERITAS_USE_HepMC3)
+      set_tests_properties("app/demo-loop" PROPERTIES
+        DISABLED false
+      )
+    endif()
   endif()
 endif()
 
