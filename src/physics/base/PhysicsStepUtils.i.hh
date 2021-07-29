@@ -13,6 +13,7 @@
 #include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "random/Selector.hh"
+#include "physics/base/EnergyLossDistribution.hh"
 #include "physics/grid/EnergyLossCalculator.hh"
 #include "physics/grid/InverseRangeCalculator.hh"
 #include "physics/grid/RangeCalculator.hh"
@@ -134,10 +135,14 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
  * of energy loss curve, e.g. through spline-based interpolation or log-log
  * interpolation.
  */
+template<class Engine>
 CELER_FUNCTION ParticleTrackView::Energy
-               calc_energy_loss(const ParticleTrackView& particle,
+               calc_energy_loss(const MaterialView&      material,
+                                const CutoffView&        cutoffs,
+                                const ParticleTrackView& particle,
                                 const PhysicsTrackView&  physics,
-                                real_type                step)
+                                real_type                step,
+                                Engine&                  rng)
 {
     CELER_EXPECT(step >= 0);
     static_assert(ParticleTrackView::Energy::unit_type::value()
@@ -190,6 +195,19 @@ CELER_FUNCTION ParticleTrackView::Energy
         }
         CELER_ASSERT(eloss > 0);
         CELER_ASSERT(eloss <= pre_step_energy.value());
+    }
+
+    // Add energy loss fluctuations
+    if (eloss > 0 && eloss < pre_step_energy.value()
+        && physics.add_fluctuations())
+    {
+        EnergyLossDistribution sample_loss(
+            material,
+            particle,
+            cutoffs.energy(particle.particle_id()),
+            units::MevEnergy{eloss},
+            step);
+        eloss = min(sample_loss(rng).value(), pre_step_energy.value());
     }
 
     CELER_ENSURE(eloss <= pre_step_energy.value());

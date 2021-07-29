@@ -9,6 +9,7 @@
 
 #include "base/CollectionStateStore.hh"
 #include "random/DiagnosticRngEngine.hh"
+#include "physics/base/CutoffParams.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "celeritas_test.hh"
@@ -166,13 +167,22 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         this->materials()->host_pointers(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
         this->particles()->host_pointers(), par_state.ref(), ThreadId{0});
+    MaterialView mat_view(this->materials()->host_pointers(), MaterialId{0});
+
+    // Construct empty cutoff params. If the cutoff energy is zero, no
+    // fluctuations will be added to the mean loss
+    CutoffParams::Input cutoff_input{this->particles(), this->materials(), {}};
+    CutoffParams        cutoff_params(cutoff_input);
+    CutoffView          cutoffs(cutoff_params.host_pointers(), MaterialId{0});
 
     {
         // Long step, but gamma means no energy loss
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
-        EXPECT_SOFT_EQ(
-            0, celeritas::calc_energy_loss(particle, phys, 1e4).value());
+        EXPECT_SOFT_EQ(0,
+                       celeritas::calc_energy_loss(
+                           mat_view, cutoffs, particle, phys, 1e4, this->rng())
+                           .value());
     }
     {
         PhysicsTrackView phys = this->init_track(
@@ -180,23 +190,28 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         const real_type eloss_rate = 0.2 + 0.4;
 
         // Tiny step: should still be linear loss (single process)
-        EXPECT_SOFT_EQ(
-            eloss_rate * 1e-6,
-            celeritas::calc_energy_loss(particle, phys, 1e-6).value());
+        EXPECT_SOFT_EQ(eloss_rate * 1e-6,
+                       celeritas::calc_energy_loss(
+                           mat_view, cutoffs, particle, phys, 1e-6, this->rng())
+                           .value());
 
         // Long step (lose half energy) will call inverse lookup. The correct
         // answer (if range table construction was done over energy loss)
         // should be half since the slowing down rate is constant over all
         real_type step = 0.5 * particle.energy().value() / eloss_rate;
-        EXPECT_SOFT_EQ(
-            5, celeritas::calc_energy_loss(particle, phys, step).value());
+        EXPECT_SOFT_EQ(5,
+                       celeritas::calc_energy_loss(
+                           mat_view, cutoffs, particle, phys, step, this->rng())
+                           .value());
 
         // Long step (lose half energy) will call inverse lookup. The correct
         // answer (if range table construction was done over energy loss)
         // should be half since the slowing down rate is constant over all
         step = 0.999 * particle.energy().value() / eloss_rate;
-        EXPECT_SOFT_EQ(
-            9.99, celeritas::calc_energy_loss(particle, phys, step).value());
+        EXPECT_SOFT_EQ(9.99,
+                       celeritas::calc_energy_loss(
+                           mat_view, cutoffs, particle, phys, step, this->rng())
+                           .value());
     }
     {
         PhysicsTrackView phys = this->init_track(
@@ -207,8 +222,10 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
         const real_type step = particle.energy().value() / eloss_rate;
-        EXPECT_SOFT_EQ(
-            1e-3, celeritas::calc_energy_loss(particle, phys, step).value());
+        EXPECT_SOFT_EQ(1e-3,
+                       celeritas::calc_energy_loss(
+                           mat_view, cutoffs, particle, phys, step, this->rng())
+                           .value());
     }
 }
 

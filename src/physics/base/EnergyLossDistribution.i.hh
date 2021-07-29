@@ -41,8 +41,8 @@ EnergyLossDistribution::EnergyLossDistribution(const MaterialView& material,
     , gamma_sq_(ipow<2>(gamma_))
     , beta_sq_(1 - (1 / gamma_sq_))
 {
-    CELER_EXPECT(mean_loss_ >= 0);
-    CELER_EXPECT(step_length_ >= 0);
+    CELER_EXPECT(mean_loss_ > 0);
+    CELER_EXPECT(step_length_ > 0);
 }
 
 //---------------------------------------------------------------------------//

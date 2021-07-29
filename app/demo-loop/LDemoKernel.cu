@@ -82,10 +82,15 @@ __global__ void along_and_post_step_kernel(ParamsDeviceRef const params,
                           particle.particle_id(),
                           geo_mat.material_id(),
                           tid);
+    MaterialTrackView mat(params.materials, states.materials, tid);
+    MaterialView      mat_view = mat.material_view();
+    CutoffView        cutoffs(params.cutoffs, mat.material_id());
     RngEngine         rng(states.rng, ThreadId(tid));
 
     // Propagate, calculate energy loss, and select model
-    demo_loop::move_and_select_model(geo,
+    demo_loop::move_and_select_model(mat_view,
+                                     cutoffs,
+                                     geo,
                                      particle,
                                      phys,
                                      sim,
