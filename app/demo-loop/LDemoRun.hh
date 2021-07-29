@@ -13,6 +13,7 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 LDemoResult run_gpu(LDemoArgs args);
+LDemoResult run_cpu(LDemoArgs args);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_loop

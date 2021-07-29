@@ -228,6 +228,16 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     nlohmann_json::nlohmann_json
   )
 
+  add_executable(demo-loop-cpu
+    demo-loop/demo-loop-cpu.cc
+  )
+  celeritas_target_link_libraries(demo-loop-cpu
+    celeritas_demo_loop
+    celeritas
+    VecGeom::vecgeom
+    nlohmann_json::nlohmann_json
+  )
+
   if (CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple_cms.gdml")
@@ -251,6 +261,25 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_ROOT OR NOT CELERITAS_USE_HepMC3
        OR CMAKE_BUILD_TYPE STREQUAL "Debug")
       set_tests_properties("app/demo-loop" PROPERTIES
+        DISABLED true
+      )
+    endif()
+
+    add_test(NAME "app/demo-loop-cpu"
+      COMMAND "$<TARGET_FILE:Python::Interpreter>"
+      "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}"
+    )
+    set(_env
+      "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop-cpu>"
+      "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:geant-exporter>"
+      "CELER_DISABLE_PARALLEL=1"
+    )
+    set_tests_properties("app/demo-loop-cpu" PROPERTIES
+      ENVIRONMENT "${_env};${_geant_test_env}"
+      REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
+    )
+    if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_ROOT OR NOT CELERITAS_USE_HepMC3)
+      set_tests_properties("app/demo-loop-cpu" PROPERTIES
         DISABLED true
       )
     endif()
