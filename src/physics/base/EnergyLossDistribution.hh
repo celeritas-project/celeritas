@@ -9,6 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/CutoffView.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/MaterialView.hh"
@@ -58,7 +59,8 @@ class EnergyLossDistribution
     inline CELER_FUNCTION
     EnergyLossDistribution(const MaterialView&      material,
                            const ParticleTrackView& particle,
-                           MevEnergy                cutoff_energy,
+                           const CutoffView&        cutoffs,
+                           ParticleId               electron_id,
                            MevEnergy                mean_loss,
                            real_type                step_length);
 
@@ -71,8 +73,6 @@ class EnergyLossDistribution
 
     // Shared properties of the current material
     const MaterialView& material_;
-    // Production cutoff of the incident particle
-    const real_type cutoff_energy_;
     // Average energy loss calculated from the tables
     const real_type mean_loss_;
     // Distance over which the incident particle lost the energy
@@ -87,6 +87,10 @@ class EnergyLossDistribution
     const real_type gamma_sq_;
     // Square of the ratio of the particle velocity to the speed of light
     const real_type beta_sq_;
+    // Maximum possible energy transfer to an electron in a single collision
+    const real_type max_energy_transfer_;
+    // Smaller of the delta ray production cut and maximum energy transfer
+    const real_type max_energy_;
 
     //// CONSTANTS ////
 

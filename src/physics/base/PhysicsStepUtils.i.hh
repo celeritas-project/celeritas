@@ -197,16 +197,16 @@ CELER_FUNCTION ParticleTrackView::Energy
         CELER_ASSERT(eloss <= pre_step_energy.value());
     }
 
-    // Add energy loss fluctuations
+    // Add energy loss fluctuations if this is the "energy loss" process
     if (eloss > 0 && eloss < pre_step_energy.value()
         && physics.add_fluctuations())
     {
-        EnergyLossDistribution sample_loss(
-            material,
-            particle,
-            cutoffs.energy(particle.particle_id()),
-            units::MevEnergy{eloss},
-            step);
+        EnergyLossDistribution sample_loss(material,
+                                           particle,
+                                           cutoffs,
+                                           ParticleId{0}, // TODO: electron ID
+                                           units::MevEnergy{eloss},
+                                           step);
         eloss = min(sample_loss(rng).value(), pre_step_energy.value());
     }
 

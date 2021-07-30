@@ -15,23 +15,15 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct from material, incident particle, and mean energy loss.
- *
- * TODO: Make sure cutoff_energy is set correctly. Section 7.3.1 of the physics
- * reference manual describes the cutoff_energy \f$ T_c \f$ as the cut kinetic
- * energy of delta electrons. In Geant4, it looks like cutoff_energy is the
- * smaller of the production cut and the maximum secondary energy of the
- * incident particle. By default the maximum secondary energy is the incident
- * particle energy, but it depends on the model (e.g. for Moller-Bhabha it is
- * inc_energy for positrons and 0.5 * inc_energy for electrons).
  */
 CELER_FUNCTION
 EnergyLossDistribution::EnergyLossDistribution(const MaterialView& material,
                                                const ParticleTrackView& particle,
-                                               MevEnergy cutoff_energy,
-                                               MevEnergy mean_loss,
-                                               real_type step_length)
+                                               const CutoffView& cutoffs,
+                                               ParticleId        electron_id,
+                                               MevEnergy         mean_loss,
+                                               real_type         step_length)
     : material_(material)
-    , cutoff_energy_(min(cutoff_energy.value(), particle.energy().value()))
     , mean_loss_(mean_loss.value())
     , step_length_(step_length)
     , mass_ratio_(EnergyLossDistribution::electron_mass()
@@ -40,6 +32,14 @@ EnergyLossDistribution::EnergyLossDistribution(const MaterialView& material,
     , gamma_(particle.lorentz_factor())
     , gamma_sq_(ipow<2>(gamma_))
     , beta_sq_(1 - (1 / gamma_sq_))
+    , max_energy_transfer_(
+          particle.particle_id() == electron_id
+              ? particle.energy().value() * real_type(0.5)
+              : 2 * EnergyLossDistribution::electron_mass() * beta_sq_
+                    * gamma_sq_
+                    / (1 + mass_ratio_ * (2 * gamma_ + mass_ratio_)))
+    , max_energy_(
+          min(cutoffs.energy(electron_id).value(), max_energy_transfer_))
 {
     CELER_EXPECT(mean_loss_ > 0);
     CELER_EXPECT(step_length_ > 0);
@@ -55,8 +55,7 @@ CELER_FUNCTION auto EnergyLossDistribution::operator()(Engine& rng) const
 {
     // Small step or low density material
     if (mean_loss_ < EnergyLossDistribution::min_valid_energy().value()
-        || cutoff_energy_
-               <= EnergyLossDistribution::ionization_energy().value())
+        || max_energy_ <= EnergyLossDistribution::ionization_energy().value())
     {
         return MevEnergy{mean_loss_};
     }
@@ -64,16 +63,14 @@ CELER_FUNCTION auto EnergyLossDistribution::operator()(Engine& rng) const
     // The Gaussian approximation is valid for heavy particles and in the
     // regime \f$ \kappa > 10 \f$. Fluctuations of the unrestricted energy loss
     // follow a Gaussian distribution if \f$ \Delta E > \kappa T_{max} \f$,
-    // where \f$ T_{max} \f$ is the maximum energy transfer (defined in PHYS332
-    // section 2). For fluctuations of the \em restricted energy loss, the
-    // condition is modified to \f$ \Delta E > \kappa T_{c} \f$ and \f$ T_{max}
-    // \le 2 T_c \f$, where \f$ T_c \f$ is the delta ray cutoff energy (PRM Eq.
-    // 7.6 and 7.7).
+    // where \f$ T_{max} \f$ is the maximum energy transfer (PHYS332 section
+    // 2). For fluctuations of the \em restricted energy loss, the condition is
+    // modified to \f$ \Delta E > \kappa T_{c} \f$ and \f$ T_{max} \le 2 T_c
+    // \f$, where \f$ T_c \f$ is the delta ray cutoff energy (PRM Eq. 7.6 and
+    // 7.7).
     if (mass_ratio_ < 1
-        && mean_loss_ >= EnergyLossDistribution::min_kappa() * cutoff_energy_
-        && 2 * EnergyLossDistribution::electron_mass() * beta_sq_ * gamma_sq_
-                   / (1 + mass_ratio_ * (2 * gamma_ + mass_ratio_))
-               <= 2 * cutoff_energy_)
+        && mean_loss_ >= EnergyLossDistribution::min_kappa() * max_energy_
+        && max_energy_transfer_ <= 2 * max_energy_)
     {
         // Approximate straggling function as a Gaussian distribution
         return MevEnergy{this->sample_gaussian(rng)};
@@ -101,7 +98,7 @@ CELER_FUNCTION real_type EnergyLossDistribution::sample_gaussian(Engine& rng) co
     const real_type stddev = std::sqrt(
         2 * constants::pi * ipow<2>(constants::r_electron)
         * EnergyLossDistribution::electron_mass()
-        * material_.electron_density() * ipow<2>(charge_) * cutoff_energy_
+        * material_.electron_density() * ipow<2>(charge_) * max_energy_
         * step_length_ * (1 / beta_sq_ - real_type(0.5)));
 
     // Thick target case: sample energy loss from a Gaussian distribution
@@ -117,7 +114,6 @@ CELER_FUNCTION real_type EnergyLossDistribution::sample_gaussian(Engine& rng) co
         return result;
     }
     // Sample energy loss from a gamma distribution
-    // TODO: why is this done?
     const real_type k = ipow<2>(mean_loss_ / stddev);
     return GammaDistribution<real_type>(k, k)(rng);
 }
@@ -159,25 +155,24 @@ CELER_FUNCTION real_type EnergyLossDistribution::sample_urban(Engine& rng) const
     // correction algorithm is discussed (though not in much detail) in PRM
     // section 7.3.3
 
-    const real_type loss_scaling
-        = min(1 + MevEnergy{5e-4}.value() / cutoff_energy_, real_type(1.5));
+    const real_type loss_scaling = min(1 + 5e-4 / max_energy_, real_type(1.5));
     const real_type mean_loss = mean_loss_ / loss_scaling;
 
     // Calculate the excitation macroscopic cross sections and apply the width
     // correction
     Real2 xs_exc{0, 0};
-    if (cutoff_energy_ > material_.mean_exc_energy().value())
+    if (max_energy_ > material_.mean_excitation_energy().value())
     {
         // Common term in the numerator and denominator of PRM Eq. 7.10
         const real_type w = std::log(2 * EnergyLossDistribution::electron_mass()
                                      * beta_sq_ * gamma_sq_)
                             - beta_sq_;
-        if (w > material_.log_mean_exc_energy().value())
+        if (w > material_.log_mean_excitation_energy().value())
         {
             real_type c = mean_loss * (1 - EnergyLossDistribution::rate());
             if (w > params.log_binding_energy[1])
             {
-                c /= (w - material_.log_mean_exc_energy().value());
+                c /= (w - material_.log_mean_excitation_energy().value());
                 for (int i : range(2))
                 {
                     // Excitation macroscopic cross section (PRM Eq. 7.10)
@@ -207,13 +202,11 @@ CELER_FUNCTION real_type EnergyLossDistribution::sample_urban(Engine& rng) const
         }
     }
 
+    // Calculate the ionization macroscopic cross section (PRM Eq. 7.11)
     constexpr real_type e_0
         = EnergyLossDistribution::ionization_energy().value();
-
-    // Calculate the ionization macroscopic cross section (PRM Eq. 7.11)
-    real_type xs_ion
-        = mean_loss * (cutoff_energy_ - e_0)
-          / (cutoff_energy_ * e_0 * std::log(cutoff_energy_ / e_0));
+    real_type xs_ion = mean_loss * (max_energy_ - e_0)
+                       / (max_energy_ * e_0 * std::log(max_energy_ / e_0));
     if (xs_exc[0] + xs_exc[1] > 0)
     {
         // The contribution from excitation is nonzero, so scale the ionization
@@ -288,7 +281,7 @@ EnergyLossDistribution::sample_ionization_loss(real_type xs, Engine& rng) const
 
     constexpr real_type e_0
         = EnergyLossDistribution::ionization_energy().value();
-    const real_type energy_ratio = cutoff_energy_ / e_0;
+    const real_type energy_ratio = max_energy_ / e_0;
 
     // Parameter that determines the upper limit of the energy interval in
     // which the fast simulation is used
@@ -333,7 +326,7 @@ EnergyLossDistribution::sample_ionization_loss(real_type xs, Engine& rng) const
 
         // Add the contribution from ionizations in the energy interval in
         // which the energy loss is sampled for each collision (Eq. 20)
-        const real_type w = (cutoff_energy_ - alpha * e_0) / cutoff_energy_;
+        const real_type w = (max_energy_ - alpha * e_0) / max_energy_;
         for (CELER_MAYBE_UNUSED int i : range(n))
         {
             result += alpha * e_0 / (1 - w * generate_canonical(rng));

@@ -107,5 +107,33 @@ real_type calc_mass_rad_coeff(const ElementDef& el)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the mean excitation energy of an element (MeV).
+ *
+ * The mean excitation energy for all elements are the ICRU recommended values
+ * from "Stopping powers for electrons and positrons", ICRU Report 37 (1984).
+ *
+ * TODO: in Geant4, the mean excitation energies for certain compounds are
+ * stored rather than calculated as the average over elements.
+ */
+units::MevEnergy get_mean_excitation_energy(int atomic_number)
+{
+    // Mean excitation energy for Z=1-98 [eV]
+    static const double mean_excitation_energy[] = {
+        19.2,  41.8,  40.0,  63.7,  76.0,  81.0,  82.0,  95.0,  115.0, 137.0,
+        149.0, 156.0, 166.0, 173.0, 173.0, 180.0, 174.0, 188.0, 190.0, 191.0,
+        216.0, 233.0, 245.0, 257.0, 272.0, 286.0, 297.0, 311.0, 322.0, 330.0,
+        334.0, 350.0, 347.0, 348.0, 343.0, 352.0, 363.0, 366.0, 379.0, 393.0,
+        417.0, 424.0, 428.0, 441.0, 449.0, 470.0, 470.0, 469.0, 488.0, 488.0,
+        487.0, 485.0, 491.0, 482.0, 488.0, 491.0, 501.0, 523.0, 535.0, 546.0,
+        560.0, 574.0, 580.0, 591.0, 614.0, 628.0, 650.0, 658.0, 674.0, 684.0,
+        694.0, 705.0, 718.0, 727.0, 736.0, 746.0, 757.0, 790.0, 790.0, 800.0,
+        810.0, 823.0, 823.0, 830.0, 825.0, 794.0, 827.0, 826.0, 841.0, 847.0,
+        878.0, 890.0, 902.0, 921.0, 934.0, 939.0, 952.0, 966.0};
+
+    return units::MevEnergy{1e-6 * mean_excitation_energy[atomic_number - 1]};
+}
+
+//---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

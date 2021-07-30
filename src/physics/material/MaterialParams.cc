@@ -266,9 +266,10 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
      *
      * NOTE: Electron density calculation may need to be updated for solids.
      */
-    real_type avg_amu_mass = 0;
-    real_type avg_z        = 0;
-    real_type rad_coeff    = 0;
+    real_type avg_amu_mass        = 0;
+    real_type avg_z               = 0;
+    real_type rad_coeff           = 0;
+    real_type log_mean_exc_energy = 0;
     for (const MatElementComponent& comp :
          host_data->elcomponents[result.elements])
     {
@@ -278,28 +279,34 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
         avg_amu_mass += comp.fraction * el.atomic_mass.value();
         avg_z += comp.fraction * el.atomic_number;
         rad_coeff += comp.fraction * el.mass_radiation_coeff;
+        log_mean_exc_energy
+            += comp.fraction * el.atomic_number
+               * std::log(
+                   detail::get_mean_excitation_energy(el.atomic_number).value());
     }
     result.density = result.number_density * avg_amu_mass
                      * constants::atomic_mass;
     result.electron_density = result.number_density * avg_z;
     result.rad_length       = 1 / (rad_coeff * result.density);
+    log_mean_exc_energy     = avg_z > 0 ? log_mean_exc_energy / avg_z
+                                    : -numeric_limits<real_type>::infinity();
+    result.log_mean_exc_energy = units::LogMevEnergy{log_mean_exc_energy};
+    result.mean_exc_energy = units::MevEnergy{std::exp(log_mean_exc_energy)};
 
-    // TODO: read from Geant4 or calculate
-    result.mean_exc_energy = units::MevEnergy{1e-5 * avg_z};
-    result.log_mean_exc_energy
-        = units::LogMevEnergy{std::log(result.mean_exc_energy.value())};
-
-    // Calculate the parameters for the energy loss fluctuation model
-    FluctuationParams fp;
-    fp.osc_strength[1]       = avg_z > 2 ? 2 / avg_z : 0;
-    fp.osc_strength[0]       = 1 - fp.osc_strength[1];
-    fp.binding_energy[1]     = units::MevEnergy{1e-5}.value() * ipow<2>(avg_z);
-    fp.log_binding_energy[1] = std::log(fp.binding_energy[1]);
-    fp.log_binding_energy[0] = (std::log(result.mean_exc_energy.value())
-                                - fp.osc_strength[1] * fp.log_binding_energy[1])
-                               / fp.osc_strength[0];
-    fp.binding_energy[0] = std::exp(fp.log_binding_energy[0]);
-    result.fluct         = fp;
+    // Calculate the parameters for the energy loss fluctuation model (see
+    // Geant3 PHYS332 section 2.4 and physics reference manual section 7.3.2)
+    result.fluct.osc_strength[1]   = avg_z > 2 ? 2 / avg_z : 0;
+    result.fluct.osc_strength[0]   = 1 - result.fluct.osc_strength[1];
+    result.fluct.binding_energy[1] = 1e-5 * ipow<2>(avg_z);
+    result.fluct.binding_energy[0]
+        = std::pow(result.mean_exc_energy.value()
+                       / std::pow(result.fluct.binding_energy[1],
+                                  result.fluct.osc_strength[1]),
+                   1 / result.fluct.osc_strength[0]);
+    result.fluct.log_binding_energy[1]
+        = std::log(result.fluct.binding_energy[1]);
+    result.fluct.log_binding_energy[0]
+        = std::log(result.fluct.binding_energy[0]);
 
     // Add to host vector
     make_builder(&host_data->materials).push_back(result);

@@ -126,7 +126,7 @@ CELER_FUNCTION real_type MaterialView::radiation_length() const
 /*!
  * Mean excitation energy [MeV].
  */
-CELER_FUNCTION units::MevEnergy MaterialView::mean_exc_energy() const
+CELER_FUNCTION units::MevEnergy MaterialView::mean_excitation_energy() const
 {
     return this->material_def().mean_exc_energy;
 }
@@ -135,7 +135,8 @@ CELER_FUNCTION units::MevEnergy MaterialView::mean_exc_energy() const
 /*!
  * Log mean excitation energy.
  */
-CELER_FUNCTION units::LogMevEnergy MaterialView::log_mean_exc_energy() const
+CELER_FUNCTION units::LogMevEnergy
+               MaterialView::log_mean_excitation_energy() const
 {
     return this->material_def().log_mean_exc_energy;
 }

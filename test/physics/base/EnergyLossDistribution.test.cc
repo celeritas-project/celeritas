@@ -9,6 +9,7 @@
 
 #include "base/CollectionStateStore.hh"
 #include "random/DiagnosticRngEngine.hh"
+#include "physics/base/CutoffParams.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "celeritas_test.hh"
@@ -62,10 +63,19 @@ class EnergyLossDistributionTest : public celeritas::Test
 
         // Construct particle state for a single host thread
         particle_state = ParticleStateStore(*particles, 1);
+
+        // Construct shared cutoff params
+        CutoffParams::Input cut_inp{
+            particles,
+            materials,
+            {{pdg::electron(), {{MevEnergy{1e-3}, 0}}},
+             {pdg::mu_minus(), {{MevEnergy{1e-3}, 0}}}}};
+        cutoffs = std::make_shared<CutoffParams>(std::move(cut_inp));
     }
 
     std::shared_ptr<MaterialParams>   materials;
     std::shared_ptr<ParticleParams>   particles;
+    std::shared_ptr<CutoffParams>     cutoffs;
     ParticleStateStore                particle_state;
     DiagnosticRngEngine<std::mt19937> rng;
 };
@@ -80,20 +90,20 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         particles->host_pointers(), particle_state.ref(), ThreadId{0});
     particle = {ParticleId{1}, MevEnergy{1e-2}};
     MaterialView material(materials->host_pointers(), MaterialId{0});
-    MevEnergy    cutoff_energy{0.001};
+    CutoffView   cutoff(cutoffs->host_pointers(), MaterialId{0});
     MevEnergy    mean_loss{0.1};
 
     int                 num_samples = 5000;
     std::vector<double> counts(20);
-    double              upper = 0.3;
+    double              upper = 0.4;
     double              lower = 0.0;
     double              width = (upper - lower) / counts.size();
 
     // Larger step samples from gamma distribution, smaller step from Gaussian
-    for (double step : {1e-2, 1e-4})
+    for (double step : {5e-2, 5e-4})
     {
         EnergyLossDistribution sample_loss(
-            material, particle, cutoff_energy, mean_loss, step);
+            material, particle, cutoff, ParticleId{0}, mean_loss, step);
         for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
         {
             auto bin = size_type((sample_loss(rng).value() - lower) / width);
@@ -101,9 +111,9 @@ TEST_F(EnergyLossDistributionTest, gaussian)
             counts[bin]++;
         }
     }
-    const double expected_counts[] = {4652, 244, 287, 381, 571, 762, 826,
-                                      744,  631, 448, 261, 121, 54,  15,
-                                      0,    1,   1,   0,   0,   1};
+    const double expected_counts[] = {4713, 330, 487, 833, 1050, 1062, 787,
+                                      482,  185, 64,  3,   1,    1,    1,
+                                      0,    1,   0,   0,   0,    0};
     EXPECT_VEC_SOFT_EQ(expected_counts, counts);
     EXPECT_EQ(60410, rng.count());
 }
@@ -114,7 +124,7 @@ TEST_F(EnergyLossDistributionTest, urban)
         particles->host_pointers(), particle_state.ref(), ThreadId{0});
     particle = {ParticleId{0}, MevEnergy{100}};
     MaterialView material(materials->host_pointers(), MaterialId{0});
-    MevEnergy    cutoff_energy{0.001};
+    CutoffView   cutoff(cutoffs->host_pointers(), MaterialId{0});
     MevEnergy    mean_loss{0.01};
     double       step = 0.01;
 
@@ -126,7 +136,7 @@ TEST_F(EnergyLossDistributionTest, urban)
     double              sum   = 0;
 
     EnergyLossDistribution sample_loss(
-        material, particle, cutoff_energy, mean_loss, step);
+        material, particle, cutoff, ParticleId{0}, mean_loss, step);
     for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
     {
         auto loss = sample_loss(rng).value();
@@ -135,10 +145,10 @@ TEST_F(EnergyLossDistributionTest, urban)
         counts[bin]++;
         sum += loss;
     }
-    const double expected_counts[] = {0,    0,   13,  232, 1155, 2359, 2628,
-                                      1866, 910, 378, 196, 129,  81,   36,
-                                      7,    9,   1,   0,   0,    0};
+    const double expected_counts[] = {0,    0,   15,  223, 1174, 2398, 2656,
+                                      1835, 884, 394, 160, 125,  77,   31,
+                                      17,   8,   3,   0,   0,    0};
     EXPECT_VEC_SOFT_EQ(expected_counts, counts);
-    EXPECT_SOFT_NEAR(mean_loss.value(), sum / num_samples, 1e-3);
-    EXPECT_EQ(554606, rng.count());
+    EXPECT_SOFT_EQ(0.0099757788696892211, sum / num_samples);
+    EXPECT_EQ(551188, rng.count());
 }
