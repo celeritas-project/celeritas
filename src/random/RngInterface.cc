@@ -62,15 +62,17 @@ void resize(
     std::uniform_int_distribution<ull_int> sample_uniform_int;
 
     // Create seeds in host memory
-    detail::RngInitData<Ownership::value, MemSpace::host> inits_host;
-    make_builder(&inits_host.seeds).resize(size);
-    for (RngInit& init : inits_host.seeds[AllItems<RngInit>{}])
+    StateCollection<RngInit, Ownership::value, MemSpace::host> host_seeds;
+    make_builder(&host_seeds).resize(size);
+    for (RngInit& init : host_seeds[AllItems<RngInit>{}])
     {
         init.seed = sample_uniform_int(host_rng);
     }
 
     // Resize state data and assign
     make_builder(&state->rng).resize(size);
+    detail::RngInitData<Ownership::value, MemSpace::host> inits_host;
+    inits_host.seeds = host_seeds;
     detail::rng_state_init(make_ref(*state), make_const_ref(inits_host));
 }
 
