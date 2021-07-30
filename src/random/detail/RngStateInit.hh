@@ -42,10 +42,14 @@ struct RngInitData
 };
 
 //---------------------------------------------------------------------------//
-// Initialize the RNG state on device
+// Initialize the RNG state on host/device
 void rng_state_init(
     const RngStateData<Ownership::reference, MemSpace::device>&      rng,
     const RngInitData<Ownership::const_reference, MemSpace::device>& seeds);
+
+void rng_state_init(
+    const RngStateData<Ownership::reference, MemSpace::host>&      rng,
+    const RngInitData<Ownership::const_reference, MemSpace::host>& seeds);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

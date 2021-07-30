@@ -87,7 +87,7 @@ struct RngThreadState<MemSpace::device>
 template<>
 struct RngThreadState<MemSpace::host>
 {
-    // TODO: std::shared_ptr<std::mt19937> rng; ?
+    curandState_t state;
 };
 
 //---------------------------------------------------------------------------//
@@ -99,6 +99,12 @@ struct RngInitializer;
 
 template<>
 struct RngInitializer<MemSpace::device>
+{
+    ull_int seed;
+};
+
+template<>
+struct RngInitializer<MemSpace::host>
 {
     ull_int seed;
 };
@@ -131,6 +137,7 @@ struct RngStateData
     template<Ownership W2, MemSpace M2>
     RngStateData& operator=(RngStateData<W2, M2>& other)
     {
+        // TODO: Revisit this static_assert if host is using curand
         static_assert(M == M2,
                       "RNG state cannot be transferred between host and "
                       "device because they use separate RNG types");
@@ -148,13 +155,9 @@ void resize(
     size_type                                                        size);
 
 // Not-implemented resize of host data
-inline void
-resize(RngStateData<Ownership::value, MemSpace::host>*,
-       const RngParamsData<Ownership::const_reference, MemSpace::host>&,
-       size_type)
-{
-    CELER_NOT_IMPLEMENTED("Host RNG state");
-}
+void resize(RngStateData<Ownership::value, MemSpace::host>*,
+            const RngParamsData<Ownership::const_reference, MemSpace::host>&,
+            size_type);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

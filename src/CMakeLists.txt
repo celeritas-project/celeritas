@@ -83,6 +83,7 @@ list(APPEND SOURCES
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
   random/RngInterface.cc
+  random/detail/RngStateInit.cc
 )
 
 if(CELERITAS_USE_CUDA)

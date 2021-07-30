@@ -48,5 +48,31 @@ void resize(
     detail::rng_state_init(make_ref(*state), make_const_ref(inits_device));
 }
 
+void resize(
+    RngStateData<Ownership::value, MemSpace::host>*                  state,
+    const RngParamsData<Ownership::const_reference, MemSpace::host>& params,
+    size_type                                                        size)
+{
+    CELER_EXPECT(size > 0);
+
+    using RngInit = RngInitializer<MemSpace::host>;
+
+    // Host-side RNG for creating seeds
+    std::mt19937                           host_rng(params.seed);
+    std::uniform_int_distribution<ull_int> sample_uniform_int;
+
+    // Create seeds in host memory
+    detail::RngInitData<Ownership::value, MemSpace::host> inits_host;
+    make_builder(&inits_host.seeds).resize(size);
+    for (RngInit& init : inits_host.seeds[AllItems<RngInit>{}])
+    {
+        init.seed = sample_uniform_int(host_rng);
+    }
+
+    // Resize state data and assign
+    make_builder(&state->rng).resize(size);
+    detail::rng_state_init(make_ref(*state), make_const_ref(inits_host));
+}
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas
