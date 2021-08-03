@@ -11,7 +11,12 @@
 #include <string>
 #include <vector>
 
-#include <G4RunManager.hh>
+#if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
+#    include <G4RunManager.hh>
+#else
+#    include <G4RunManagerFactory.hh>
+#endif
+
 #include <G4UImanager.hh>
 #include <FTFP_BERT.hh>
 #include <G4VModularPhysicsList.hh>
@@ -433,7 +438,17 @@ int main(int argc, char* argv[])
     // Constructing the run manager resets the global log/exception handlers,
     // so it must be done first. The stupid version banner cannot be
     // suppressed.
-    G4RunManager          run_manager;
+    std::unique_ptr<G4RunManager> run_manager;
+
+#if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
+    // Use Geant4 v10 Run Manager implementation
+    run_manager.reset(new G4RunManager());
+#else
+    // Use Geant4 v11 Run Manager Factory
+    run_manager.reset(
+        G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
+#endif
+
     GeantLoggerAdapter    scoped_logger;
     GeantExceptionHandler scoped_exception_handler;
 
@@ -442,7 +457,7 @@ int main(int argc, char* argv[])
     auto detector = std::make_unique<DetectorConstruction>(gdml_input_filename);
     // Get world_volume for store_geometry() before releasing detector ptr
     auto world_phys_volume = detector->get_world_volume();
-    run_manager.SetUserInitialization(detector.release());
+    run_manager->SetUserInitialization(detector.release());
 
     //// Load the physics list ////
 
@@ -458,13 +473,13 @@ int main(int argc, char* argv[])
     // Full Physics
     // auto physics_list = std::make_unique<FTFP_BERT>();
 
-    run_manager.SetUserInitialization(physics_list.release());
+    run_manager->SetUserInitialization(physics_list.release());
 
     //// Minimal run to generate the physics tables ////
     auto action_initialization = std::make_unique<ActionInitialization>();
-    run_manager.SetUserInitialization(action_initialization.release());
+    run_manager->SetUserInitialization(action_initialization.release());
     G4UImanager::GetUIpointer()->ApplyCommand("/run/initialize");
-    run_manager.BeamOn(1);
+    run_manager->BeamOn(1);
 
     //// Export data ////
 
