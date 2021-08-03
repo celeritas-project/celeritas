@@ -7,11 +7,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Span.hh"
-#include "random/RngInterface.hh"
+#include "base/Collection.hh"
 
 namespace celeritas
 {
+// Forward declarations to avoid circular header dependency
+template<MemSpace M>
+struct RngInitializer;
+template<Ownership W, MemSpace M>
+struct RngStateData;
+
 namespace detail
 {
 //---------------------------------------------------------------------------//

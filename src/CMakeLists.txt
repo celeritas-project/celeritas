@@ -82,7 +82,6 @@ list(APPEND SOURCES
   physics/grid/ValueGridInterface.cc
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
-  random/RngInterface.cc
   random/detail/RngStateInit.cc
 )
 
