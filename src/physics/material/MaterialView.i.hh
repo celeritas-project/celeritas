@@ -142,15 +142,6 @@ CELER_FUNCTION units::LogMevEnergy
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Energy loss fluctuation model parameters.
- */
-CELER_FUNCTION const FluctuationParams& MaterialView::fluctuation_params() const
-{
-    return this->material_def().fluct;
-}
-
-//---------------------------------------------------------------------------//
 // PRIVATE METHODS
 //---------------------------------------------------------------------------//
 /*!

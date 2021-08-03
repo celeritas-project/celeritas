@@ -163,13 +163,8 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(3.5393292693170424, mat.radiation_length());
         EXPECT_SOFT_EQ(400.00760709482647e-6,
                        mat.mean_excitation_energy().value());
-
-        // Energy loss fluctuation model parameters
-        const auto& fluct = mat.fluctuation_params();
-        EXPECT_SOFT_EQ(0.9375, fluct.osc_strength[0]);
-        EXPECT_SOFT_EQ(0.0625, fluct.osc_strength[1]);
-        EXPECT_SOFT_EQ(0.3222449623855699e-3, fluct.binding_energy[0]);
-        EXPECT_SOFT_EQ(10.24e-3, fluct.binding_energy[1]);
+        EXPECT_SOFT_EQ(std::log(400.00760709482647e-6),
+                       mat.log_mean_excitation_energy().value());
 
         // Test element view
         auto els = mat.elements();
@@ -193,13 +188,6 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(-std::numeric_limits<real_type>::infinity(),
                        mat.log_mean_excitation_energy().value());
 
-        // Energy loss fluctuation model parameters
-        const auto& fluct = mat.fluctuation_params();
-        EXPECT_SOFT_EQ(1, fluct.osc_strength[0]);
-        EXPECT_SOFT_EQ(0, fluct.osc_strength[1]);
-        EXPECT_SOFT_EQ(0, fluct.binding_energy[0]);
-        EXPECT_SOFT_EQ(0, fluct.binding_energy[1]);
-
         // Test element view
         auto els = mat.elements();
         ASSERT_EQ(0, els.size());
@@ -214,13 +202,8 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.electron_density());
         EXPECT_SOFT_EQ(350729.99844063615, mat.radiation_length());
         EXPECT_SOFT_EQ(19.2e-6, mat.mean_excitation_energy().value());
-
-        // Energy loss fluctuation model parameters
-        const auto& fluct = mat.fluctuation_params();
-        EXPECT_SOFT_EQ(1, fluct.osc_strength[0]);
-        EXPECT_SOFT_EQ(0, fluct.osc_strength[1]);
-        EXPECT_SOFT_EQ(19.2e-6, fluct.binding_energy[0]);
-        EXPECT_SOFT_EQ(10e-6, fluct.binding_energy[1]);
+        EXPECT_SOFT_EQ(std::log(19.2e-6),
+                       mat.log_mean_excitation_energy().value());
 
         // Test element view
         auto els = mat.elements();
@@ -236,13 +219,8 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(1.072e+20, mat.electron_density());
         EXPECT_SOFT_EQ(351367.47504673258, mat.radiation_length());
         EXPECT_SOFT_EQ(19.2e-6, mat.mean_excitation_energy().value());
-
-        // Energy loss fluctuation model parameters
-        const auto& fluct = mat.fluctuation_params();
-        EXPECT_SOFT_EQ(1, fluct.osc_strength[0]);
-        EXPECT_SOFT_EQ(0, fluct.osc_strength[1]);
-        EXPECT_SOFT_EQ(19.2e-6, fluct.binding_energy[0]);
-        EXPECT_SOFT_EQ(10e-6, fluct.binding_energy[1]);
+        EXPECT_SOFT_EQ(std::log(19.2e-6),
+                       mat.log_mean_excitation_energy().value());
 
         // Test element view
         auto els = mat.elements();

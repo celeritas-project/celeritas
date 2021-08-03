@@ -25,8 +25,8 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
 
 template<class Engine>
 inline CELER_FUNCTION ParticleTrackView::Energy
-                      calc_energy_loss(const MaterialView&      material,
-                                       const CutoffView&        cutoffs,
+                      calc_energy_loss(const CutoffView&        cutoffs,
+                                       const MaterialTrackView& material,
                                        const ParticleTrackView& particle,
                                        const PhysicsTrackView&  physics,
                                        real_type                step_length,

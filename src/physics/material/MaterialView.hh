@@ -91,9 +91,6 @@ class MaterialView
     inline CELER_FUNCTION units::LogMevEnergy
                           log_mean_excitation_energy() const;
 
-    // Energy loss fluctuation model parameters
-    inline CELER_FUNCTION const FluctuationParams& fluctuation_params() const;
-
   private:
     const MaterialParamsPointers& params_;
     MaterialId                    material_;

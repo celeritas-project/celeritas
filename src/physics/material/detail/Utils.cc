@@ -113,8 +113,8 @@ real_type calc_mass_rad_coeff(const ElementDef& el)
  * The mean excitation energy for all elements are the ICRU recommended values
  * from "Stopping powers for electrons and positrons", ICRU Report 37 (1984).
  *
- * TODO: in Geant4, the mean excitation energies for certain compounds are
- * stored rather than calculated as the average over elements.
+ * TODO: in Geant4, the mean excitation energies for many compounds are stored
+ * rather than calculated as the average over elements.
  */
 units::MevEnergy get_mean_excitation_energy(int atomic_number)
 {

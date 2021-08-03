@@ -28,15 +28,15 @@ inline CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
                                             Rng&                     rng);
 
 template<class Rng>
-inline CELER_FUNCTION void move_and_select_model(const MaterialView& mat,
-                                                 const CutoffView&   cutoffs,
-                                                 GeoTrackView&       geo,
-                                                 ParticleTrackView&  particle,
-                                                 PhysicsTrackView&   phys,
-                                                 SimTrackView&       sim,
-                                                 Rng&                rng,
-                                                 real_type*          edep,
-                                                 Interaction*        result);
+inline CELER_FUNCTION void move_and_select_model(const CutoffView& cutoffs,
+                                                 const MaterialTrackView& mat,
+                                                 GeoTrackView&            geo,
+                                                 ParticleTrackView& particle,
+                                                 PhysicsTrackView&  phys,
+                                                 SimTrackView&      sim,
+                                                 Rng&               rng,
+                                                 real_type*         edep,
+                                                 Interaction*       result);
 
 inline CELER_FUNCTION void post_process(const CutoffView&  cutoffs,
                                         GeoTrackView&      geo,

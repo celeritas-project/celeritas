@@ -167,7 +167,6 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         this->materials()->host_pointers(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
         this->particles()->host_pointers(), par_state.ref(), ThreadId{0});
-    MaterialView mat_view(this->materials()->host_pointers(), MaterialId{0});
 
     // Construct empty cutoff params. If the cutoff energy is zero, no
     // fluctuations will be added to the mean loss
@@ -181,7 +180,7 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
             &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
         EXPECT_SOFT_EQ(0,
                        celeritas::calc_energy_loss(
-                           mat_view, cutoffs, particle, phys, 1e4, this->rng())
+                           cutoffs, material, particle, phys, 1e4, this->rng())
                            .value());
     }
     {
@@ -192,7 +191,7 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         // Tiny step: should still be linear loss (single process)
         EXPECT_SOFT_EQ(eloss_rate * 1e-6,
                        celeritas::calc_energy_loss(
-                           mat_view, cutoffs, particle, phys, 1e-6, this->rng())
+                           cutoffs, material, particle, phys, 1e-6, this->rng())
                            .value());
 
         // Long step (lose half energy) will call inverse lookup. The correct
@@ -201,7 +200,7 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         real_type step = 0.5 * particle.energy().value() / eloss_rate;
         EXPECT_SOFT_EQ(5,
                        celeritas::calc_energy_loss(
-                           mat_view, cutoffs, particle, phys, step, this->rng())
+                           cutoffs, material, particle, phys, step, this->rng())
                            .value());
 
         // Long step (lose half energy) will call inverse lookup. The correct
@@ -210,7 +209,7 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         step = 0.999 * particle.energy().value() / eloss_rate;
         EXPECT_SOFT_EQ(9.99,
                        celeritas::calc_energy_loss(
-                           mat_view, cutoffs, particle, phys, step, this->rng())
+                           cutoffs, material, particle, phys, step, this->rng())
                            .value());
     }
     {
@@ -224,7 +223,7 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         const real_type step = particle.energy().value() / eloss_rate;
         EXPECT_SOFT_EQ(1e-3,
                        celeritas::calc_energy_loss(
-                           mat_view, cutoffs, particle, phys, step, this->rng())
+                           cutoffs, material, particle, phys, step, this->rng())
                            .value());
     }
 }

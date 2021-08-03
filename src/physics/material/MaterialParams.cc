@@ -293,21 +293,6 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
     result.log_mean_exc_energy = units::LogMevEnergy{log_mean_exc_energy};
     result.mean_exc_energy = units::MevEnergy{std::exp(log_mean_exc_energy)};
 
-    // Calculate the parameters for the energy loss fluctuation model (see
-    // Geant3 PHYS332 section 2.4 and physics reference manual section 7.3.2)
-    result.fluct.osc_strength[1]   = avg_z > 2 ? 2 / avg_z : 0;
-    result.fluct.osc_strength[0]   = 1 - result.fluct.osc_strength[1];
-    result.fluct.binding_energy[1] = 1e-5 * ipow<2>(avg_z);
-    result.fluct.binding_energy[0]
-        = std::pow(result.mean_exc_energy.value()
-                       / std::pow(result.fluct.binding_energy[1],
-                                  result.fluct.osc_strength[1]),
-                   1 / result.fluct.osc_strength[0]);
-    result.fluct.log_binding_energy[1]
-        = std::log(result.fluct.binding_energy[1]);
-    result.fluct.log_binding_energy[0]
-        = std::log(result.fluct.binding_energy[0]);
-
     // Add to host vector
     make_builder(&host_data->materials).push_back(result);
     matnames_.push_back(mat_name);

@@ -31,6 +31,8 @@ class PhysicsTrackView
     //!@{
     //! Type aliases
     using Initializer_t = PhysicsTrackInitializer;
+    using FluctuationPointers
+        = FluctuationData<Ownership::const_reference, MemSpace::native>;
     using PhysicsParamsPointers
         = PhysicsParamsData<Ownership::const_reference, MemSpace::native>;
     using PhysicsStatePointers
@@ -126,7 +128,10 @@ class PhysicsTrackView
     inline CELER_FUNCTION real_type energy_fraction() const;
 
     // Whether to simulate energy loss fluctuations
-    inline CELER_FUNCTION bool add_fluctuations() const;
+    inline CELER_FUNCTION bool add_fluctuation() const;
+
+    // Energy loss fluctuation model parameters
+    inline CELER_FUNCTION FluctuationPointers fluctuation() const;
 
     // Calculate macroscopic cross section on the fly for the given model
     inline CELER_FUNCTION real_type calc_xs_otf(ModelId             model,

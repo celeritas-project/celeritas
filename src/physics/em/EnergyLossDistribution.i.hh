@@ -14,32 +14,32 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from material, incident particle, and mean energy loss.
+ * Construct from model parameters, incident particle, and mean energy loss.
  */
 CELER_FUNCTION
-EnergyLossDistribution::EnergyLossDistribution(const MaterialView& material,
-                                               const ParticleTrackView& particle,
-                                               const CutoffView& cutoffs,
-                                               ParticleId        electron_id,
-                                               MevEnergy         mean_loss,
-                                               real_type         step_length)
-    : material_(material)
+EnergyLossDistribution::EnergyLossDistribution(
+    const FluctuationPointers& shared,
+    const CutoffView&          cutoffs,
+    const MaterialTrackView&   material,
+    const ParticleTrackView&   particle,
+    MevEnergy                  mean_loss,
+    real_type                  step_length)
+    : shared_(shared)
+    , material_(material)
     , mean_loss_(mean_loss.value())
     , step_length_(step_length)
-    , mass_ratio_(EnergyLossDistribution::electron_mass()
-                  / particle.mass().value())
-    , charge_(particle.charge().value())
+    , mass_ratio_(shared_.electron_mass / particle.mass().value())
+    , charge_sq_(ipow<2>(particle.charge().value()))
     , gamma_(particle.lorentz_factor())
     , gamma_sq_(ipow<2>(gamma_))
     , beta_sq_(1 - (1 / gamma_sq_))
     , max_energy_transfer_(
-          particle.particle_id() == electron_id
+          particle.particle_id() == shared_.electron_id
               ? particle.energy().value() * real_type(0.5)
-              : 2 * EnergyLossDistribution::electron_mass() * beta_sq_
-                    * gamma_sq_
+              : 2 * shared_.electron_mass * beta_sq_ * gamma_sq_
                     / (1 + mass_ratio_ * (2 * gamma_ + mass_ratio_)))
-    , max_energy_(
-          min(cutoffs.energy(electron_id).value(), max_energy_transfer_))
+    , max_energy_(min(cutoffs.energy(shared_.electron_id).value(),
+                      max_energy_transfer_))
 {
     CELER_EXPECT(mean_loss_ > 0);
     CELER_EXPECT(step_length_ > 0);
@@ -66,8 +66,7 @@ CELER_FUNCTION auto EnergyLossDistribution::operator()(Engine& rng) const
     // where \f$ T_{max} \f$ is the maximum energy transfer (PHYS332 section
     // 2). For fluctuations of the \em restricted energy loss, the condition is
     // modified to \f$ \Delta E > \kappa T_{c} \f$ and \f$ T_{max} \le 2 T_c
-    // \f$, where \f$ T_c \f$ is the delta ray cutoff energy (PRM Eq. 7.6 and
-    // 7.7).
+    // \f$, where \f$ T_c \f$ is the delta ray cutoff energy (PRM Eq. 7.6-7.7).
     if (mass_ratio_ < 1
         && mean_loss_ >= EnergyLossDistribution::min_kappa() * max_energy_
         && max_energy_transfer_ <= 2 * max_energy_)
@@ -83,11 +82,11 @@ CELER_FUNCTION auto EnergyLossDistribution::operator()(Engine& rng) const
 /*!
  * Gaussian model of energy loss fluctuations.
  *
- * When the incident particle loses all or most of its energy in the absorber,
- * the total energy transfer is a result of many small energy losses from a
- * large number of collisions, and the energy loss fluctuations can be
- * described by a Gaussian distribution. See section 7.3.1 of the Geant4
- * Physics Reference Manual and GEANT3 PHYS332 section 2.3.
+ * In a thick absorber, the total energy transfer is a result of many small
+ * energy losses from a large number of collisions. The central limit theorem
+ * applies, and the energy loss fluctuations can be described by a Gaussian
+ * distribution. See section 7.3.1 of the Geant4 Physics Reference Manual and
+ * GEANT3 PHYS332 section 2.3.
  */
 template<class Engine>
 CELER_FUNCTION real_type EnergyLossDistribution::sample_gaussian(Engine& rng) const
@@ -97,11 +96,11 @@ CELER_FUNCTION real_type EnergyLossDistribution::sample_gaussian(Engine& rng) co
     // standard deviation
     const real_type stddev = std::sqrt(
         2 * constants::pi * ipow<2>(constants::r_electron)
-        * EnergyLossDistribution::electron_mass()
-        * material_.electron_density() * ipow<2>(charge_) * max_energy_
-        * step_length_ * (1 / beta_sq_ - real_type(0.5)));
+        * shared_.electron_mass * material_.material_view().electron_density()
+        * charge_sq_ * max_energy_ * step_length_
+        * (1 / beta_sq_ - real_type(0.5)));
 
-    // Thick target case: sample energy loss from a Gaussian distribution
+    // Sample energy loss from a Gaussian distribution
     if (mean_loss_ >= 2 * stddev)
     {
         real_type                     result;
@@ -144,8 +143,9 @@ CELER_FUNCTION real_type EnergyLossDistribution::sample_gaussian(Engine& rng) co
 template<class Engine>
 CELER_FUNCTION real_type EnergyLossDistribution::sample_urban(Engine& rng) const
 {
-    // Fluctuation model parameters
-    const auto& params         = material_.fluctuation_params();
+    // Material-dependent data
+    const auto  mat            = material_.material_view();
+    const auto& params         = shared_.params[material_.material_id()];
     auto        binding_energy = params.binding_energy;
 
     // Width correction: the FWHM of the energy loss distribution in thin
@@ -156,38 +156,40 @@ CELER_FUNCTION real_type EnergyLossDistribution::sample_urban(Engine& rng) const
     // section 7.3.3
 
     const real_type loss_scaling = min(1 + 5e-4 / max_energy_, real_type(1.5));
-    const real_type mean_loss = mean_loss_ / loss_scaling;
+    const real_type mean_loss    = mean_loss_ / loss_scaling;
 
     // Calculate the excitation macroscopic cross sections and apply the width
     // correction
     Real2 xs_exc{0, 0};
-    if (max_energy_ > material_.mean_excitation_energy().value())
+    if (max_energy_ > mat.mean_excitation_energy().value())
     {
         // Common term in the numerator and denominator of PRM Eq. 7.10
-        const real_type w = std::log(2 * EnergyLossDistribution::electron_mass()
-                                     * beta_sq_ * gamma_sq_)
-                            - beta_sq_;
-        if (w > material_.log_mean_excitation_energy().value())
+        const real_type w
+            = std::log(2 * shared_.electron_mass * beta_sq_ * gamma_sq_)
+              - beta_sq_;
+        if (w > mat.log_mean_excitation_energy().value())
         {
-            real_type c = mean_loss * (1 - EnergyLossDistribution::rate());
             if (w > params.log_binding_energy[1])
             {
-                c /= (w - material_.log_mean_excitation_energy().value());
+                const real_type c
+                    = mean_loss * (1 - EnergyLossDistribution::rate())
+                      / (w - mat.log_mean_excitation_energy().value());
                 for (int i : range(2))
                 {
                     // Excitation macroscopic cross section (PRM Eq. 7.10)
-                    xs_exc[i] = c * params.osc_strength[i]
+                    xs_exc[i] = c * params.oscillator_strength[i]
                                 * (w - params.log_binding_energy[i])
                                 / params.binding_energy[i];
                 }
             }
             else
             {
-                xs_exc[0] = c / params.binding_energy[0];
+                xs_exc[0] = mean_loss * (1 - EnergyLossDistribution::rate())
+                            / params.binding_energy[0];
             }
 
-            // Scale the binding energy and macroscopic cross section (i.e.
-            // mean number of excitations)
+            // Scale the binding energy and macroscopic cross section (i.e.,
+            // the mean number of excitations)
             real_type scaling = 4;
             if (xs_exc[0] < EnergyLossDistribution::exc_thresh())
             {

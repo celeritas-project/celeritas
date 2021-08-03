@@ -207,7 +207,6 @@ celeritas_setup_tests(SERIAL PREFIX physics/base
   LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_add_test(physics/base/CutoffParams.test.cc
   LINK_LIBRARIES Celeritas::ROOT)
-celeritas_add_test(physics/base/EnergyLossDistribution.test.cc)
 celeritas_cudaoptional_test(physics/base/Particle
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_cudaoptional_test(physics/base/Physics)
@@ -240,6 +239,7 @@ celeritas_setup_tests(SERIAL PREFIX physics/em
   LINK_LIBRARIES CeleritasPhysicsTest)
 
 celeritas_add_test(physics/em/BetheHeitler.test.cc)
+celeritas_add_test(physics/em/EnergyLossDistribution.test.cc)
 celeritas_add_test(physics/em/EPlusGG.test.cc)
 celeritas_add_test(physics/em/KleinNishina.test.cc)
 celeritas_add_test(physics/em/LivermorePE.test.cc)

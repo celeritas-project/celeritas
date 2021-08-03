@@ -13,7 +13,7 @@
 #include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "random/Selector.hh"
-#include "physics/base/EnergyLossDistribution.hh"
+#include "physics/em/EnergyLossDistribution.hh"
 #include "physics/grid/EnergyLossCalculator.hh"
 #include "physics/grid/InverseRangeCalculator.hh"
 #include "physics/grid/RangeCalculator.hh"
@@ -137,8 +137,8 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
  */
 template<class Engine>
 CELER_FUNCTION ParticleTrackView::Energy
-               calc_energy_loss(const MaterialView&      material,
-                                const CutoffView&        cutoffs,
+               calc_energy_loss(const CutoffView&        cutoffs,
+                                const MaterialTrackView& material,
                                 const ParticleTrackView& particle,
                                 const PhysicsTrackView&  physics,
                                 real_type                step,
@@ -199,12 +199,12 @@ CELER_FUNCTION ParticleTrackView::Energy
 
     // Add energy loss fluctuations if this is the "energy loss" process
     if (eloss > 0 && eloss < pre_step_energy.value()
-        && physics.add_fluctuations())
+        && physics.add_fluctuation())
     {
-        EnergyLossDistribution sample_loss(material,
-                                           particle,
+        EnergyLossDistribution sample_loss(physics.fluctuation(),
                                            cutoffs,
-                                           ParticleId{0}, // TODO: electron ID
+                                           material,
+                                           particle,
                                            units::MevEnergy{eloss},
                                            step);
         eloss = min(sample_loss(rng).value(), pre_step_energy.value());
