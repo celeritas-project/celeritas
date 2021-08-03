@@ -316,7 +316,13 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
  */
 void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 {
+#if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
+    // Geant4 v10
+    for (auto i : celeritas::range(process.GetNumberOfModels()))
+#else
+    // Geant4 v11
     for (auto i : celeritas::range(process.NumberOfModels()))
+#endif
     {
         process_.models.push_back(
             to_import_model(process.GetModelByIndex(i)->GetName()));
