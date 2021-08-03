@@ -22,6 +22,7 @@
 #include <G4PhysicsVectorType.hh>
 #include <G4ProcessType.hh>
 #include <G4Material.hh>
+#include <G4Version.hh>
 
 #include "io/ImportProcess.hh"
 #include "io/ImportPhysicsTable.hh"
