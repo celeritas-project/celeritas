@@ -222,8 +222,12 @@ struct TrackInitStateData
 
 using TrackInitStateDeviceRef
     = TrackInitStateData<Ownership::reference, MemSpace::device>;
+using TrackInitStateHostRef
+    = TrackInitStateData<Ownership::reference, MemSpace::host>;
 using TrackInitStateDeviceVal
     = TrackInitStateData<Ownership::value, MemSpace::device>;
+using TrackInitStateHostVal
+    = TrackInitStateData<Ownership::value, MemSpace::host>;
 
 //---------------------------------------------------------------------------//
 // Resize and initialize track initializer data.

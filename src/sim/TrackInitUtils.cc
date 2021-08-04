@@ -46,6 +46,30 @@ void extend_from_primaries(const TrackInitParamsHostRef& params,
     }
 }
 
+void extend_from_primaries(const TrackInitParamsHostRef& params,
+                           TrackInitStateHostVal*        data)
+{
+    CELER_EXPECT(params);
+    CELER_EXPECT(data && *data);
+
+    // Number of primaries to copy to device
+    auto count = min(data->initializers.capacity() - data->initializers.size(),
+                     data->num_primaries);
+    if (count)
+    {
+        data->initializers.resize(data->initializers.size() + count);
+
+        // Allocate memory on device and copy primaries
+        auto primaries = params.primaries[ItemRange<Primary>(
+            ItemId<Primary>(data->num_primaries - count),
+            ItemId<Primary>(data->num_primaries))];
+        data->num_primaries -= count;
+
+        // Launch a kernel to create track initializers from primaries
+        detail::process_primaries(primaries, make_ref(*data));
+    }
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Create track initializers on device from secondary particles.

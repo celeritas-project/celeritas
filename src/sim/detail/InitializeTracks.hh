@@ -46,6 +46,9 @@ void locate_alive(const ParamsDeviceRef&         params,
 void process_primaries(Span<const Primary>            primaries,
                        const TrackInitStateDeviceRef& inits);
 
+void process_primaries(Span<const Primary>          primaries,
+                       const TrackInitStateHostRef& inits);
+
 //---------------------------------------------------------------------------//
 // Create track initializers on device from secondary particles.
 void process_secondaries(const ParamsDeviceRef&         params,

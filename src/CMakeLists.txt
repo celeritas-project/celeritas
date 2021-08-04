@@ -140,6 +140,7 @@ if(CELERITAS_USE_VecGeom)
     geometry/detail/VGNavCollection.cc
     sim/TrackInitParams.cc
     sim/TrackInitUtils.cc
+    sim/detail/InitializeTracks.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml)
   # This needs to be public because its might be needed

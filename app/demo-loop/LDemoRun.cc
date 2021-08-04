@@ -190,6 +190,11 @@ LDemoResult run_cpu(LDemoArgs args)
     resize(&state_storage, build_params_refs<MemSpace::host>(params), 1);
     auto states_ref = make_ref(state_storage);
 
+    CELER_ASSERT(params.track_inits->host_pointers().primaries.size()
+                 <= state_storage.track_inits.initializers.capacity());
+    extend_from_primaries(params.track_inits->host_pointers(),
+                          &state_storage.track_inits);
+
     CELER_NOT_IMPLEMENTED("TODO: CPU stepping loop");
 
     bool any_alive = false;
