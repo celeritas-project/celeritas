@@ -34,6 +34,10 @@ void init_tracks(const ParamsDeviceRef&         params,
                  const StateDeviceRef&          states,
                  const TrackInitStateDeviceRef& inits);
 
+void init_tracks(const ParamsHostRef&         params,
+                 const StateHostRef&          states,
+                 const TrackInitStateHostRef& inits);
+
 //---------------------------------------------------------------------------//
 // Identify which tracks are still alive and count the number of secondaries
 // that survived cutoffs for each interaction.

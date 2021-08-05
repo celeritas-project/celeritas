@@ -174,34 +174,4 @@ void extend_from_secondaries(const ParamsDeviceRef&   params,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Initialize track states on device.
- *
- * Tracks created from secondaries produced in this step will have the geometry
- * state copied over from the parent instead of initialized from the position.
- * If there are more empty slots than new secondaries, they will be filled by
- * any track initializers remaining from previous steps using the position.
- */
-void initialize_tracks(const ParamsDeviceRef&   params,
-                       const StateDeviceRef&    states,
-                       TrackInitStateDeviceVal* data)
-{
-    CELER_EXPECT(params);
-    CELER_EXPECT(states);
-    CELER_EXPECT(data && *data);
-
-    // The number of new tracks to initialize is the smaller of the number of
-    // empty slots in the track vector and the number of track initializers
-    size_type num_tracks
-        = std::min(data->vacancies.size(), data->initializers.size());
-    if (num_tracks > 0)
-    {
-        // Launch a kernel to initialize tracks on device
-        detail::init_tracks(params, states, make_ref(*data));
-        data->initializers.resize(data->initializers.size() - num_tracks);
-        data->vacancies.resize(data->vacancies.size() - num_tracks);
-    }
-}
-
-//---------------------------------------------------------------------------//
 } // namespace celeritas

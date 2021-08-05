@@ -195,13 +195,45 @@ LDemoResult run_cpu(LDemoArgs args)
     extend_from_primaries(params.track_inits->host_pointers(),
                           &state_storage.track_inits);
 
-    CELER_NOT_IMPLEMENTED("TODO: CPU stepping loop");
+    size_type num_alive       = 0;
+    size_type num_inits       = state_storage.track_inits.initializers.size();
+    size_type remaining_steps = args.max_steps;
 
-    bool any_alive = false;
-    while (any_alive)
+    while (num_alive > 0 || num_inits > 0)
     {
-        launch_models(params, params_ref, states_ref);
+        // Create new tracks from primaries or secondaries
+        initialize_tracks(params_ref, states_ref, &state_storage.track_inits);
+
+        // demo_loop::pre_step(params_ref, states_ref);
+        // demo_loop::along_and_post_step(params_ref, states_ref);
+
+        // // Launch the interaction kernels for all applicable models
+        // launch_models(params, params_ref, states_ref);
+
+        // // Postprocess secondaries and interaction results
+        // demo_loop::process_interactions(params_ref, states_ref);
+
+        // // Create track initializers from surviving secondaries
+        // extend_from_secondaries(
+        //     params_ref, states_ref, &state_storage.track_inits);
+
+        // // Clear secondaries
+        // demo_loop::cleanup(params_ref, states_ref);
+
+        // Get the number of track initializers and active tracks
+        num_alive = args.max_num_tracks
+                    - state_storage.track_inits.vacancies.size();
+        num_inits = state_storage.track_inits.initializers.size();
+
+        if (--remaining_steps == 0)
+        {
+            // Exceeded step count
+            break;
+        }
     }
+
+    // TODO: return result
+    return LDemoResult{};
 }
 
 //---------------------------------------------------------------------------//
