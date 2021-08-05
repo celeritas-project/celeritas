@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "InitializeTracks.hh"
 
+#include "base/Atomics.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
 #include "geometry/GeoMaterialView.hh"
@@ -124,6 +125,138 @@ void init_tracks(const ParamsHostRef&         params,
         {
             states.interactions[vac_id].action = Action::spawned;
         }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find empty slots in the track vector and count the number of secondaries
+ * that survived cutoffs for each interaction. If the track is dead and
+ * produced secondaries, fill the empty track slot with one of the secondaries.
+ */
+void locate_alive(const ParamsHostRef&         params,
+                  const StateHostRef&          states,
+                  const TrackInitStateHostRef& inits)
+{
+    for (auto tid : range(ThreadId{states.size()}))
+    {
+        // Index of the secondary to copy to the parent track if vacant
+        size_type secondary_idx = flag_id();
+
+        // Count how many secondaries survived cutoffs for each track
+        inits.secondary_counts[tid] = 0;
+        Interaction& result         = states.interactions[tid];
+        for (auto i : range(result.secondaries.size()))
+        {
+            if (result.secondaries[i])
+            {
+                if (secondary_idx == flag_id())
+                {
+                    secondary_idx = i;
+                }
+                ++inits.secondary_counts[tid];
+            }
+        }
+
+        SimTrackView sim(states.sim, tid);
+        if (sim.alive())
+        {
+            // The track is alive: mark this track slot as occupied
+            inits.vacancies[tid] = flag_id();
+        }
+        else if (secondary_idx != flag_id())
+        {
+            // The track was killed and it produced secondaries: fill the empty
+            // track slot with the first secondary and mark as occupied
+
+            // Calculate the track ID of the secondary
+            // TODO: This is nondeterministic; we need to calculate the track
+            // ID in a reproducible way.
+            CELER_ASSERT(sim.event_id() < inits.track_counters.size());
+            TrackId::size_type track_id
+                = atomic_add(&inits.track_counters[sim.event_id()], 1u);
+
+            // Initialize the simulation state
+            sim = {TrackId{track_id}, sim.track_id(), sim.event_id(), true};
+
+            // Initialize the particle state from the secondary
+            Secondary&        secondary = result.secondaries[secondary_idx];
+            ParticleTrackView particle(params.particles, states.particles, tid);
+            particle = {secondary.particle_id, secondary.energy};
+
+            // Keep the parent's geometry state but get the direction from the
+            // secondary. The material state will be the same as the parent's.
+            GeoTrackView geo(params.geometry, states.geometry, tid);
+            geo = {geo, secondary.direction};
+
+            // Initialize the physics state
+            PhysicsTrackView phys(params.physics, states.physics, {}, {}, tid);
+            phys = {};
+
+            // Mark the secondary as processed and the track as active
+            --inits.secondary_counts[tid];
+            secondary            = Secondary{};
+            inits.vacancies[tid] = flag_id();
+        }
+        else
+        {
+            // The track was killed and did not produce secondaries: store the
+            // index so it can be used later to initialize a new track
+            inits.vacancies[tid] = tid.get();
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create track initializers on device from secondary particles.
+ */
+void process_secondaries(const ParamsHostRef&         params,
+                         const StateHostRef&          states,
+                         const TrackInitStateHostRef& inits)
+{
+    for (auto tid : range(ThreadId{states.size()}))
+    {
+        // Construct the state accessors
+        GeoTrackView geo(params.geometry, states.geometry, tid);
+        SimTrackView sim(states.sim, tid);
+
+        // Offset in the vector of track initializers
+        size_type offset_id = inits.secondary_counts[tid];
+
+        Interaction& result = states.interactions[tid];
+        for (const auto& secondary : result.secondaries)
+        {
+            if (secondary)
+            {
+                // The secondary survived cutoffs: convert to a track
+                CELER_ASSERT(offset_id < inits.parents.size());
+                TrackInitializer& init = inits.initializers[ThreadId(
+                    inits.initializers.size() - inits.parents.size() + offset_id)];
+
+                // Store the thread ID of the secondary's parent
+                inits.parents[ThreadId{offset_id++}] = tid;
+
+                // Calculate the track ID of the secondary
+                // TODO: This is nondeterministic; we need to calculate the
+                // track ID in a reproducible way.
+                CELER_ASSERT(sim.event_id() < inits.track_counters.size());
+                TrackId::size_type track_id
+                    = atomic_add(&inits.track_counters[sim.event_id()], 1u);
+
+                // Construct a track initializer from a secondary
+                init.sim.track_id         = TrackId{track_id};
+                init.sim.parent_id        = sim.track_id();
+                init.sim.event_id         = sim.event_id();
+                init.sim.alive            = true;
+                init.geo.pos              = geo.pos();
+                init.geo.dir              = secondary.direction;
+                init.particle.particle_id = secondary.particle_id;
+                init.particle.energy      = secondary.energy;
+            }
+        }
+        // Clear the interaction
+        result = Interaction::from_processed();
     }
 }
 

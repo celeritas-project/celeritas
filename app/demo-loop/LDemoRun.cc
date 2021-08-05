@@ -213,9 +213,9 @@ LDemoResult run_cpu(LDemoArgs args)
         // Postprocess secondaries and interaction results
         demo_loop::process_interactions(params_ref, states_ref);
 
-        // // Create track initializers from surviving secondaries
-        // extend_from_secondaries(
-        //     params_ref, states_ref, &state_storage.track_inits);
+        // Create track initializers from surviving secondaries
+        extend_from_secondaries(
+            params_ref, states_ref, &state_storage.track_inits);
 
         // // Clear secondaries
         // demo_loop::cleanup(params_ref, states_ref);

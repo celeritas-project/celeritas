@@ -45,6 +45,10 @@ void locate_alive(const ParamsDeviceRef&         params,
                   const StateDeviceRef&          states,
                   const TrackInitStateDeviceRef& inits);
 
+void locate_alive(const ParamsHostRef&         params,
+                  const StateHostRef&          states,
+                  const TrackInitStateHostRef& inits);
+
 //---------------------------------------------------------------------------//
 // Create track initializers on device from primary particles
 void process_primaries(Span<const Primary>            primaries,
@@ -58,6 +62,10 @@ void process_primaries(Span<const Primary>          primaries,
 void process_secondaries(const ParamsDeviceRef&         params,
                          const StateDeviceRef&          states,
                          const TrackInitStateDeviceRef& inits);
+
+void process_secondaries(const ParamsHostRef&         params,
+                         const StateHostRef&          states,
+                         const TrackInitStateHostRef& inits);
 
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive
