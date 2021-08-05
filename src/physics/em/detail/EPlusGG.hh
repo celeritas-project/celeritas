@@ -49,6 +49,9 @@ struct EPlusGGPointers
 void eplusgg_interact(const EPlusGGPointers&                     eplusgg,
                       const ModelInteractRefs<MemSpace::device>& model);
 
+void eplusgg_interact(const EPlusGGPointers&                   eplusgg,
+                      const ModelInteractRefs<MemSpace::host>& model);
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

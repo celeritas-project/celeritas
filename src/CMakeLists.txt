@@ -75,9 +75,12 @@ list(APPEND SOURCES
   physics/em/RayleighModel.cc
   physics/em/RayleighProcess.cc
   physics/em/detail/BetheHeitler.cc
+  physics/em/detail/EPlusGG.cc
   physics/em/detail/KleinNishina.cc
   physics/em/detail/LivermorePE.cc
+  physics/em/detail/MollerBhabha.cc
   physics/em/detail/Rayleigh.cc
+  physics/em/detail/SeltzerBerger.cc
   physics/em/SeltzerBergerModel.cc
   physics/em/detail/Utils.cc
   physics/grid/ValueGridBuilder.cc

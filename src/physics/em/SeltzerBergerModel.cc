@@ -97,6 +97,12 @@ void SeltzerBergerModel::interact(
 #endif
 }
 
+void SeltzerBergerModel::interact(
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
+{
+    detail::seltzer_berger_interact(this->host_pointers(), pointers);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

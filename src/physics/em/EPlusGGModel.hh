@@ -27,7 +27,10 @@ class EPlusGGModel final : public Model
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
 
-    // Apply the interaction kernel
+    // Apply the interaction kernel on host
+    void interact(const HostInteractRefs&) const final;
+
+    // Apply the interaction kernel on device
     void interact(const DeviceInteractRefs&) const final;
 
     // ID of the model

@@ -61,6 +61,9 @@ void moller_bhabha_interact(
     const MollerBhabhaPointers&                device_pointers,
     const ModelInteractRefs<MemSpace::device>& interaction);
 
+void moller_bhabha_interact(const MollerBhabhaPointers& device_pointers,
+                            const ModelInteractRefs<MemSpace::host>& interaction);
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

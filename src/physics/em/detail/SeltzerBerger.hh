@@ -169,6 +169,10 @@ void seltzer_berger_interact(
     const SeltzerBergerDeviceRef&              shared,
     const ModelInteractRefs<MemSpace::device>& interaction);
 
+void seltzer_berger_interact(
+    const SeltzerBergerHostRef&              shared,
+    const ModelInteractRefs<MemSpace::host>& interaction);
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

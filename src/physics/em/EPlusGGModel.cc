@@ -64,6 +64,12 @@ void EPlusGGModel::interact(
 #endif
 }
 
+void EPlusGGModel::interact(
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
+{
+    detail::eplusgg_interact(interface_, pointers);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

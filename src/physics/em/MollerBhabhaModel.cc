@@ -49,7 +49,7 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
     // sampling loops.
     electron_applic.particle = interface_.electron_id;
     electron_applic.lower    = zero_quantity();
-    electron_applic.upper = units::MevEnergy{interface_.max_valid_energy()};
+    electron_applic.upper    = units::MevEnergy{interface_.max_valid_energy()};
 
     positron_applic.particle = interface_.positron_id;
     positron_applic.lower    = zero_quantity();
@@ -70,6 +70,12 @@ void MollerBhabhaModel::interact(
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
+}
+
+void MollerBhabhaModel::interact(
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
+{
+    detail::moller_bhabha_interact(interface_, pointers);
 }
 
 //---------------------------------------------------------------------------//

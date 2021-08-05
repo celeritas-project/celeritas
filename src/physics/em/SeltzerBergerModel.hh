@@ -63,6 +63,9 @@ class SeltzerBergerModel final : public Model
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
 
+    // Apply the interaction kernel on device
+    void interact(const HostInteractRefs&) const final;
+
     // Apply the interaction kernel
     void interact(const DeviceInteractRefs&) const final;
 
