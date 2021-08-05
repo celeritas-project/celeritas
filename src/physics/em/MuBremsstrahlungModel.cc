@@ -69,6 +69,12 @@ void MuBremsstrahlungModel::interact(
 #endif
 }
 
+void MuBremsstrahlungModel::interact(
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
+{
+    detail::mu_bremsstrahlung_interact(interface_, pointers);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.
@@ -80,4 +86,3 @@ ModelId MuBremsstrahlungModel::model_id() const
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-

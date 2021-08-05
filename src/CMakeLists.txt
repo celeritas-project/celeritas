@@ -79,6 +79,7 @@ list(APPEND SOURCES
   physics/em/detail/KleinNishina.cc
   physics/em/detail/LivermorePE.cc
   physics/em/detail/MollerBhabha.cc
+  physics/em/detail/MuBremsstrahlung.cc
   physics/em/detail/Rayleigh.cc
   physics/em/detail/SeltzerBerger.cc
   physics/em/SeltzerBergerModel.cc

@@ -65,7 +65,10 @@ void mu_bremsstrahlung_interact(
     const MuBremsstrahlungInteractorPointers&  device_pointers,
     const ModelInteractRefs<MemSpace::device>& interaction);
 
+void mu_bremsstrahlung_interact(
+    const MuBremsstrahlungInteractorPointers& device_pointers,
+    const ModelInteractRefs<MemSpace::host>&  interaction);
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas
-
