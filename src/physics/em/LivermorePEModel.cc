@@ -95,6 +95,13 @@ void LivermorePEModel::interact(
 #endif
 }
 
+void LivermorePEModel::interact(
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
+{
+    detail::livermore_pe_interact(
+        this->host_pointers(), relax_scratch_host_ref_, pointers);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

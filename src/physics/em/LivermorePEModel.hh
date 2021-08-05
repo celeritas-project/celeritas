@@ -52,7 +52,10 @@ class LivermorePEModel final : public Model
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
 
-    // Apply the interaction kernel
+    // Apply the interaction kernel on host
+    void interact(const HostInteractRefs&) const final;
+
+    // Apply the interaction kernel on device
     void interact(const DeviceInteractRefs&) const final;
 
     // ID of the model
@@ -75,7 +78,10 @@ class LivermorePEModel final : public Model
         relax_scratch_;
     detail::RelaxationScratchData<Ownership::reference, MemSpace::device>
         relax_scratch_ref_;
-
+    detail::RelaxationScratchData<Ownership::value, MemSpace::host>
+        relax_scratch_host_;
+    detail::RelaxationScratchData<Ownership::reference, MemSpace::host>
+        relax_scratch_host_ref_;
     using HostXsData
         = detail::LivermorePEXsData<Ownership::value, MemSpace::host>;
     void

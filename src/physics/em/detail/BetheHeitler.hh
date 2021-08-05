@@ -53,6 +53,9 @@ void bethe_heitler_interact(
     const BetheHeitlerPointers&                device_pointers,
     const ModelInteractRefs<MemSpace::device>& interaction);
 
+void bethe_heitler_interact(const BetheHeitlerPointers& device_pointers,
+                            const ModelInteractRefs<MemSpace::host>& interaction);
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

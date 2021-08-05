@@ -69,6 +69,12 @@ void RayleighModel::interact(
 #endif
 }
 
+void RayleighModel::interact(
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& group) const
+{
+    detail::rayleigh_interact(this->host_group(), group);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

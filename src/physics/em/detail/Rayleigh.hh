@@ -100,6 +100,9 @@ using RayleighNativeRef
 void rayleigh_interact(const RayleighDeviceRef&                   pointers,
                        const ModelInteractRefs<MemSpace::device>& model);
 
+void rayleigh_interact(const RayleighHostRef&                   pointers,
+                       const ModelInteractRefs<MemSpace::host>& model);
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

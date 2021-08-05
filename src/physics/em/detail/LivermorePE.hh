@@ -224,6 +224,8 @@ struct RelaxationScratchData
 
 using RelaxationScratchDeviceRef
     = RelaxationScratchData<Ownership::reference, MemSpace::device>;
+using RelaxationScratchHostRef
+    = RelaxationScratchData<Ownership::reference, MemSpace::host>;
 
 //---------------------------------------------------------------------------//
 // KERNEL LAUNCHERS
@@ -233,6 +235,10 @@ using RelaxationScratchDeviceRef
 void livermore_pe_interact(const LivermorePEDeviceRef&                pe,
                            const RelaxationScratchDeviceRef&          scratch,
                            const ModelInteractRefs<MemSpace::device>& model);
+
+void livermore_pe_interact(const LivermorePEHostRef&                pe,
+                           const RelaxationScratchHostRef&          scratch,
+                           const ModelInteractRefs<MemSpace::host>& model);
 
 //---------------------------------------------------------------------------//
 } // namespace detail
