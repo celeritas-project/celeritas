@@ -204,14 +204,14 @@ LDemoResult run_cpu(LDemoArgs args)
         // Create new tracks from primaries or secondaries
         initialize_tracks(params_ref, states_ref, &state_storage.track_inits);
 
-        // demo_loop::pre_step(params_ref, states_ref);
-        // demo_loop::along_and_post_step(params_ref, states_ref);
+        demo_loop::pre_step(params_ref, states_ref);
+        demo_loop::along_and_post_step(params_ref, states_ref);
 
-        // // Launch the interaction kernels for all applicable models
-        // launch_models(params, params_ref, states_ref);
+        // Launch the interaction kernels for all applicable models
+        launch_models(params, params_ref, states_ref);
 
-        // // Postprocess secondaries and interaction results
-        // demo_loop::process_interactions(params_ref, states_ref);
+        // Postprocess secondaries and interaction results
+        demo_loop::process_interactions(params_ref, states_ref);
 
         // // Create track initializers from surviving secondaries
         // extend_from_secondaries(

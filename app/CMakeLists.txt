@@ -198,6 +198,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   endif()
   celeritas_add_library(celeritas_demo_loop
     demo-loop/LDemoIO.cc
+    demo-loop/LDemoKernel.cc
     demo-loop/LDemoParams.cc
     demo-loop/LDemoRun.cc
     ${_cuda_src}
