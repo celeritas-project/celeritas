@@ -50,6 +50,9 @@ void klein_nishina_interact(
     const KleinNishinaPointers&                device_pointers,
     const ModelInteractRefs<MemSpace::device>& interaction);
 
+void klein_nishina_interact(const KleinNishinaPointers& device_pointers,
+                            const ModelInteractRefs<MemSpace::host>& interaction);
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

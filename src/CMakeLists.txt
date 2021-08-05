@@ -74,6 +74,7 @@ list(APPEND SOURCES
   physics/em/MuBremsstrahlungModel.cc
   physics/em/RayleighModel.cc
   physics/em/RayleighProcess.cc
+  physics/em/detail/KleinNishina.cc
   physics/em/detail/Rayleigh.cc
   physics/em/SeltzerBergerModel.cc
   physics/em/detail/Utils.cc

@@ -61,6 +61,12 @@ void KleinNishinaModel::interact(
 #endif
 }
 
+void KleinNishinaModel::interact(
+    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
+{
+    detail::klein_nishina_interact(interface_, pointers);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

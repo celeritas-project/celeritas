@@ -26,7 +26,10 @@ class KleinNishinaModel final : public Model
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
 
-    // Apply the interaction kernel
+    //! Apply the interaction kernel to host data
+    void interact(const HostInteractRefs&) const final;
+
+    // Apply the interaction kernel to device data
     void interact(const DeviceInteractRefs&) const final;
 
     // ID of the model
