@@ -130,4 +130,15 @@ void process_interactions(const ParamsHostRef& params,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Clear secondaries.
+ */
+void cleanup(CELER_MAYBE_UNUSED const ParamsHostRef& params,
+             const StateHostRef&                     states)
+{
+    StackAllocator<Secondary> allocate_secondaries(states.secondaries);
+    allocate_secondaries.clear();
+}
+
+//---------------------------------------------------------------------------//
 } // namespace demo_loop

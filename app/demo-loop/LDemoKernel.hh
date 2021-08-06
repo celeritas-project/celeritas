@@ -25,6 +25,7 @@ void along_and_post_step(const ParamsHostRef&, const StateHostRef&);
 void process_interactions(const ParamsDeviceRef&, const StateDeviceRef&);
 void process_interactions(const ParamsHostRef&, const StateHostRef&);
 void cleanup(const ParamsDeviceRef&, const StateDeviceRef&);
+void cleanup(const ParamsHostRef&, const StateHostRef&);
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_CUDA

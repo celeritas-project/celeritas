@@ -217,8 +217,8 @@ LDemoResult run_cpu(LDemoArgs args)
         extend_from_secondaries(
             params_ref, states_ref, &state_storage.track_inits);
 
-        // // Clear secondaries
-        // demo_loop::cleanup(params_ref, states_ref);
+        // Clear secondaries
+        demo_loop::cleanup(params_ref, states_ref);
 
         // Get the number of track initializers and active tracks
         num_alive = args.max_num_tracks
