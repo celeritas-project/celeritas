@@ -15,9 +15,11 @@
 #include "base/Atomics.hh"
 #include "base/DeviceVector.hh"
 #include "base/KernelParamCalculator.cuda.hh"
+#include "geometry/GeoMaterialView.hh"
 #include "geometry/GeoTrackView.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
+#include "physics/material/MaterialTrackView.hh"
 #include "sim/SimTrackView.hh"
 
 namespace celeritas
@@ -92,6 +94,11 @@ __global__ void init_tracks_kernel(const ParamsDeviceRef         params,
             // Initialize it from the position (more expensive)
             geo = init.geo;
         }
+
+        // Initialize the material
+        GeoMaterialView   geo_mat(params.geo_mats, geo.volume_id());
+        MaterialTrackView mat(params.materials, states.materials, tid);
+        mat = {geo_mat.material_id()};
     }
 
     // Initialize the physics state
