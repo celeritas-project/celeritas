@@ -22,7 +22,7 @@ namespace celeritas
  * \code
     ScopedStreamRedirect silenced(&std::cout);
     LoadVecGeom();
-    CELER_LOG(diagnostic) << "Vecgeom said: " << silenced.get();
+    CELER_LOG(diagnostic) << "Vecgeom said: " << silenced.str();
    \endcode
  */
 class ScopedStreamRedirect

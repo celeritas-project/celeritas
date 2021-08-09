@@ -8,6 +8,7 @@
 #include "EventReader.hh"
 
 #include "base/ArrayUtils.hh"
+#include "comm/Logger.hh"
 #include "physics/base/Units.hh"
 #include "HepMC3/GenEvent.h"
 #include "HepMC3/ReaderFactory.h"
@@ -22,6 +23,10 @@ EventReader::EventReader(const char* filename, SPConstParticles params)
     : params_(std::move(params))
 {
     CELER_EXPECT(params_);
+
+    // Turn off HepMC3 diagnostic output that pollutes our own output
+    HepMC3::Setup::set_debug_level(-1);
+
     // Determine the input file format and construct the appropriate reader
     input_file_ = HepMC3::deduce_reader(filename);
     CELER_ENSURE(input_file_);
