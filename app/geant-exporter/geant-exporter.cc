@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include <G4Version.hh>
 #if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
 #    include <G4RunManager.hh>
 #else
