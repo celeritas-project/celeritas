@@ -169,8 +169,7 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
  * Safely switch from \c G4PhysicsVectorType to \c ImportPhysicsVectorType .
  * [See G4PhysicsVectorType.hh]
  *
- * Geant4 v11 introduces a new enum list, which is included here. The Geant4
- * version numbering scheme is explained in G4Version.hh.
+ * Geant4 v11 has a different set of G4PhysicsVectorType enums.
  */
 ImportPhysicsVectorType
 to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
@@ -399,8 +398,7 @@ void ImportProcessConverter::store_energy_loss_tables(
  * Whereas other EM processes combine the model tables into a single process
  * table, MSC keeps them independent.
  *
- * Starting on Geant4 v11, G4MultipleScattering provides a \c NumberOfModels()
- * method. For details on the Geant4 version numbering, see G4Version.hh.
+ * Starting on Geant4 v11, G4MultipleScattering provides \c NumberOfModels() .
  */
 void ImportProcessConverter::store_multiple_scattering_tables(
     const G4VMultipleScattering& process)

@@ -441,10 +441,10 @@ int main(int argc, char* argv[])
     std::unique_ptr<G4RunManager> run_manager;
 
 #if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
-    // Use Geant4 v10 Run Manager implementation
+    // Use Geant4 v10 RunManager
     run_manager.reset(new G4RunManager());
 #else
-    // Use Geant4 v11 Run Manager Factory
+    // Use Geant4 v11 RunManagerFactory
     run_manager.reset(
         G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
 #endif
