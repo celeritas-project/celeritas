@@ -69,15 +69,33 @@ void process_secondaries(const ParamsHostRef&         params,
 
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive
+template<MemSpace M>
 size_type remove_if_alive(Span<size_type> vacancies);
+
+template<>
+size_type remove_if_alive<MemSpace::host>(Span<size_type> vacancies);
+template<>
+size_type remove_if_alive<MemSpace::device>(Span<size_type> vacancies);
 
 //---------------------------------------------------------------------------//
 // Sum the total number of surviving secondaries.
+template<MemSpace M>
 size_type reduce_counts(Span<size_type> counts);
+
+template<>
+size_type reduce_counts<MemSpace::host>(Span<size_type> counts);
+template<>
+size_type reduce_counts<MemSpace::device>(Span<size_type> counts);
 
 //---------------------------------------------------------------------------//
 // Calculate the exclusive prefix sum of the number of surviving secondaries
+template<MemSpace M>
 void exclusive_scan_counts(Span<size_type> counts);
+
+template<>
+void exclusive_scan_counts<MemSpace::host>(Span<size_type> counts);
+template<>
+void exclusive_scan_counts<MemSpace::device>(Span<size_type> counts);
 
 //---------------------------------------------------------------------------//
 // INLINE FUNCTIONS

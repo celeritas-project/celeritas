@@ -132,13 +132,13 @@ extend_from_secondaries(const ParamsData<Ownership::const_reference, M>& params,
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
-    size_type num_vac = detail::remove_if_alive(data->vacancies.pointers());
+    size_type num_vac = detail::remove_if_alive<M>(data->vacancies.pointers());
     data->vacancies.resize(num_vac);
 
     // Sum the total number secondaries produced in all interactions
     // TODO: if we don't have space for all the secondaries, we will need to
     // buffer the current track initializers to create room
-    size_type num_secondaries = detail::reduce_counts(
+    size_type num_secondaries = detail::reduce_counts<M>(
         data->secondary_counts[AllItems<size_type, M>{}]);
     CELER_VALIDATE(num_secondaries + data->initializers.size()
                        <= data->initializers.capacity(),
@@ -152,7 +152,7 @@ extend_from_secondaries(const ParamsData<Ownership::const_reference, M>& params,
     // for each thread. Starting at that index, each thread creates track
     // initializers from all surviving secondaries produced in its
     // interaction.
-    detail::exclusive_scan_counts(
+    detail::exclusive_scan_counts<M>(
         data->secondary_counts[AllItems<size_type, M>{}]);
 
     // Launch a kernel to create track initializers from secondaries

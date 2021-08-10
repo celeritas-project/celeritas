@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "InitializeTracks.hh"
 
+#include <numeric>
 #include "base/Atomics.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
@@ -22,6 +23,19 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+// HELPER CLASSES
+//---------------------------------------------------------------------------//
+struct IsEqual
+{
+    size_type value;
+
+    CELER_FUNCTION bool operator()(size_type x) const { return x == value; }
+};
+} // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Create track initializers on device from primary particles.
@@ -204,6 +218,54 @@ void locate_alive(const ParamsHostRef&         params,
             // index so it can be used later to initialize a new track
             inits.vacancies[tid] = tid.get();
         }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Remove all elements in the vacancy vector that were flagged as active
+ * tracks.
+ */
+template<>
+size_type remove_if_alive<MemSpace::host>(Span<size_type> vacancies)
+{
+    auto end = std::remove_if(vacancies.data(),
+                              vacancies.data() + vacancies.size(),
+                              IsEqual{flag_id()});
+
+    // New size of the vacancy vector
+    size_type result = end - vacancies.data();
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sum the total number of surviving secondaries.
+ */
+template<>
+size_type reduce_counts<MemSpace::host>(Span<size_type> counts)
+{
+    return std::accumulate(counts.begin(), counts.end(), size_type(0));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Do an exclusive scan of the number of surviving secondaries from each track.
+ *
+ * For an input array x, this calculates the exclusive prefix sum y of the
+ * array elements, i.e., \f$ y_i = \sum_{j=0}^{i-1} x_j \f$,
+ * where \f$ y_0 = 0 \f$, and stores the result in the input array.
+ */
+template<>
+void exclusive_scan_counts<MemSpace::host>(Span<size_type> counts)
+{
+    // TODO: Use std::exclusive_scan when C++17 is adopted
+    size_type acc = 0;
+    for (auto& count_i : counts)
+    {
+        size_type current = count_i;
+        count_i           = acc;
+        acc += current;
     }
 }
 
