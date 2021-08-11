@@ -59,8 +59,8 @@ class TrackInitTest : public celeritas::Test
         // Set up shared geometry data
         std::string test_file
             = celeritas::Test::test_data_path("geometry", "twoBoxes.gdml");
-        geometry            = std::make_shared<GeoParams>(test_file.c_str());
-        params.geometry     = geometry->device_pointers();
+        geometry        = std::make_shared<GeoParams>(test_file.c_str());
+        params.geometry = geometry->device_pointers();
 
         // Set up shared material data
         materials = std::make_shared<MaterialParams>(
@@ -94,8 +94,8 @@ class TrackInitTest : public celeritas::Test
         params.cutoffs = cutoffs->device_pointers();
 
         // Set up shared RNG data
-        rng            = std::make_shared<RngParams>(12345);
-        params.rng     = rng->device_pointers();
+        rng        = std::make_shared<RngParams>(12345);
+        params.rng = rng->device_pointers();
 
         // Add dummy physics data
         PhysicsParamsData<Ownership::value, MemSpace::host> host_physics;
@@ -191,7 +191,8 @@ TEST_F(TrackInitTest, run)
 
     // Create track initializers on device from primary particles
     extend_from_primaries(track_inits->host_pointers(),
-                          &device_states.track_inits);
+                          &device_states.track_inits,
+                          num_primaries);
 
     // Check the track IDs of the track initializers created from primaries
     output.init_id   = initializers_test(make_ref(device_states.track_inits));
@@ -268,7 +269,8 @@ TEST_F(TrackInitTest, primaries)
 
         // Create track initializers on device from primary particles
         extend_from_primaries(track_inits->host_pointers(),
-                              &device_states.track_inits);
+                              &device_states.track_inits,
+                              num_primaries);
 
         for (auto j = capacity; j > 0; j -= num_tracks)
         {
@@ -322,7 +324,8 @@ TEST_F(TrackInitTest, secondaries)
 
     // Create track initializers on device from primary particles
     extend_from_primaries(track_inits->host_pointers(),
-                          &device_states.track_inits);
+                          &device_states.track_inits,
+                          num_primaries);
     EXPECT_EQ(device_states.track_inits.num_primaries, 0);
     EXPECT_EQ(device_states.track_inits.initializers.size(), num_primaries);
 
