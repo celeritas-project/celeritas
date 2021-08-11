@@ -14,6 +14,7 @@
 #include "sim/TrackInterface.hh"
 #include "LDemoParams.hh"
 #include "LDemoKernel.hh"
+#include "TrackDiagnostic.hh"
 
 using namespace celeritas;
 
@@ -71,19 +72,12 @@ build_params_refs(const LDemoParams& p)
     return ref;
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Launch interaction kernels for all applicable models.
- *
- * For now, just launch *all* the models.
- */
 template<MemSpace M>
-void launch_models(LDemoParams const& host_params,
-                   ParamsData<Ownership::const_reference, M> const& params,
-                   StateData<Ownership::reference, M> const&        states)
+ModelInteractRefs<M>
+build_model_refs(LDemoParams const&                               host_params,
+                 ParamsData<Ownership::const_reference, M> const& params,
+                 StateData<Ownership::reference, M> const&        states)
 {
-    // TODO: these *should* be able to be persistent across steps, rather than
-    // recreated at every step.
     ModelInteractRefs<M> refs;
     refs.params.particle     = params.particles;
     refs.params.material     = params.materials;
@@ -97,8 +91,21 @@ void launch_models(LDemoParams const& host_params,
     refs.states.direction    = states.geometry.dir;
     refs.states.secondaries  = states.secondaries;
     refs.states.interactions = states.interactions;
-    CELER_ASSERT(refs);
+    CELER_ENSURE(refs);
+    return refs;
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Launch interaction kernels for all applicable models.
+ *
+ * For now, just launch *all* the models.
+ *
+ * Accept ModelIneractRefs rather than params and states
+ */
+template<MemSpace M>
+void launch_models(LDemoParams const& host_params, ModelInteractRefs<M> refs)
+{
     // Loop over physics models IDs and invoke `interact`
     for (auto model_id : range(ModelId{host_params.physics->num_models()}))
     {
@@ -115,6 +122,11 @@ LDemoResult run_gpu(LDemoArgs args)
 {
     CELER_EXPECT(args);
 
+    // Track diagnostics
+    TrackDiagnostic<MemSpace::device> track_diagnostic;
+
+    // Begin simulation diagnostic(s)
+
     // Load all the problem data
     LDemoParams params = load_params(args);
 
@@ -128,9 +140,14 @@ LDemoResult run_gpu(LDemoArgs args)
            args.max_num_tracks);
     StateDeviceRef states_ref = make_ref(state_storage);
 
+    // Create model interaction (params and states) references
+    ModelInteractRefs<MemSpace::device> model_refs
+        = build_model_refs(params, params_ref, states_ref);
+
     // Copy primaries to device and create track initializers
-    // TODO: for now this assumes we can initialize all primaries at once, but
-    // we should also handle the case where we have more primaries than trackss
+    // TODO: for now this assumes we can initialize all primaries at once,
+    // but we should also handle the case where we have more primaries than
+    // trackss
     CELER_ASSERT(params.track_inits->host_pointers().primaries.size()
                  <= state_storage.track_inits.initializers.capacity());
     extend_from_primaries(params.track_inits->host_pointers(),
@@ -140,16 +157,25 @@ LDemoResult run_gpu(LDemoArgs args)
     size_type num_inits       = state_storage.track_inits.initializers.size();
     size_type remaining_steps = args.max_steps;
 
+    //
+    // Begin event diagnostic(s)
+    //
+
     while (num_alive > 0 || num_inits > 0)
     {
         // Create new tracks from primaries or secondaries
         initialize_tracks(params_ref, states_ref, &state_storage.track_inits);
 
+        //
+        // Begin step diagnostic(s)
+        //
+        track_diagnostic.begin_step(states_ref);
+
         demo_loop::pre_step(params_ref, states_ref);
         demo_loop::along_and_post_step(params_ref, states_ref);
 
         // Launch the interaction kernels for all applicable models
-        launch_models(params, params_ref, states_ref);
+        launch_models(params, model_refs);
 
         // Postprocess secondaries and interaction results
         demo_loop::process_interactions(params_ref, states_ref);
@@ -164,7 +190,12 @@ LDemoResult run_gpu(LDemoArgs args)
         // Get the number of track initializers and active tracks
         num_alive = args.max_num_tracks
                     - state_storage.track_inits.vacancies.size();
+        track_diagnostic.end_step(states_ref);
         num_inits = state_storage.track_inits.initializers.size();
+
+        //
+        // End event diagnostic(s)
+        //
 
         if (--remaining_steps == 0)
         {
@@ -173,8 +204,12 @@ LDemoResult run_gpu(LDemoArgs args)
         }
     }
 
+    //
+    // End simulation diagnostic(s)
+    //
+
     // TODO: return result
-    return LDemoResult{};
+    return LDemoResult{{0}, track_diagnostic.num_alive_per_step(), {0}, 0};
 }
 
 //---------------------------------------------------------------------------//
@@ -190,12 +225,16 @@ LDemoResult run_cpu(LDemoArgs args)
     resize(&state_storage, build_params_refs<MemSpace::host>(params), 1);
     auto states_ref = make_ref(state_storage);
 
+    // Create model interaction (params and states) references
+    ModelInteractRefs<MemSpace::host> model_refs
+        = build_model_refs(params, params_ref, states_ref);
+
     CELER_NOT_IMPLEMENTED("TODO: CPU stepping loop");
 
     bool any_alive = false;
     while (any_alive)
     {
-        launch_models(params, params_ref, states_ref);
+        launch_models(params, model_refs);
     }
 }
 

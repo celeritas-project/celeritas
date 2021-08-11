@@ -9,6 +9,7 @@
 
 #include "base/Algorithms.hh"
 #include "detail/InitializeTracks.hh"
+#include "comm/Logger.hh"
 
 namespace celeritas
 {
@@ -128,11 +129,18 @@ void extend_from_secondaries(const ParamsDeviceRef&   params,
     // buffer the current track initializers to create room
     size_type num_secondaries = detail::reduce_counts(
         data->secondary_counts[AllItems<size_type, MemSpace::device>{}]);
+
+    CELER_LOG(debug)
+        << "data->initializers.capacity(): " << data->initializers.capacity()
+        << "\n"
+        << "num_secondaries: " << num_secondaries << "\n";
+
     CELER_VALIDATE(num_secondaries + data->initializers.size()
                        <= data->initializers.capacity(),
                    << "insufficient capacity (" << data->initializers.capacity()
                    << ") for track initializers (created " << num_secondaries
-                   << " new secondaries for a total capacity requirement of "
+                   << " new secondaries for a total capacity "
+                      "requirement of "
                    << num_secondaries + data->initializers.size() << ")");
 
     // The exclusive prefix sum of the number of secondaries produced by each
