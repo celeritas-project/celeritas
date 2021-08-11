@@ -17,7 +17,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // Create track initializers on device from primary particles
 void extend_from_primaries(const TrackInitParamsHostRef& params,
-                           TrackInitStateDeviceVal*      data);
+                           TrackInitStateDeviceVal*      data,
+                           size_type                     max_num_tracks);
 
 // Create track initializers on device from secondary particles.
 void extend_from_secondaries(const ParamsDeviceRef&   params,

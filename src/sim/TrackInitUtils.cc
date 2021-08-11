@@ -22,7 +22,8 @@ namespace celeritas
  * initializer vector, whichever is smaller).
  */
 void extend_from_primaries(const TrackInitParamsHostRef& params,
-                           TrackInitStateDeviceVal*      data)
+                           TrackInitStateDeviceVal*      data,
+                           size_type                     max_num_tracks)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(data && *data);
@@ -30,6 +31,7 @@ void extend_from_primaries(const TrackInitParamsHostRef& params,
     // Number of primaries to copy to device
     auto count = min(data->initializers.capacity() - data->initializers.size(),
                      data->num_primaries);
+    count      = min(count, max_num_tracks);
     if (count)
     {
         data->initializers.resize(data->initializers.size() + count);
