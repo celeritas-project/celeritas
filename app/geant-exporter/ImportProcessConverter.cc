@@ -22,7 +22,6 @@
 #include <G4PhysicsVectorType.hh>
 #include <G4ProcessType.hh>
 #include <G4Material.hh>
-#include <G4Version.hh>
 
 #include "io/ImportProcess.hh"
 #include "io/ImportPhysicsTable.hh"
@@ -32,6 +31,7 @@
 #include "base/TypeDemangler.hh"
 #include "base/Types.hh"
 #include "comm/Logger.hh"
+#include "CeleritasG4Version.hh"
 
 using celeritas::ImportModelClass;
 using celeritas::ImportPhysicsTable;
@@ -174,7 +174,6 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
 ImportPhysicsVectorType
 to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
 {
-#if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
     // Geant4 v10
     switch (g4_vector_type)
     {
@@ -183,29 +182,17 @@ to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
         case T_G4PhysicsLinearVector:
             return ImportPhysicsVectorType::linear;
         case T_G4PhysicsLogVector:
+#if CELERITAS_G4_V10
         case T_G4PhysicsLnVector:
+#endif
             return ImportPhysicsVectorType::log;
         case T_G4PhysicsFreeVector:
+#if CELERITAS_G4_V10
         case T_G4PhysicsOrderedFreeVector:
         case T_G4LPhysicsFreeVector:
-            return ImportPhysicsVectorType::free;
-    }
-
-#else
-    // Geant4 v11
-    switch (g4_vector_type)
-    {
-        case T_G4PhysicsVector:
-            return ImportPhysicsVectorType::unknown;
-        case T_G4PhysicsLinearVector:
-            return ImportPhysicsVectorType::linear;
-        case T_G4PhysicsLogVector:
-            return ImportPhysicsVectorType::log;
-        case T_G4PhysicsFreeVector:
-            return ImportPhysicsVectorType::free;
-    }
 #endif
-
+            return ImportPhysicsVectorType::free;
+    }
     CELER_ASSERT_UNREACHABLE();
 }
 
@@ -316,11 +303,9 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
  */
 void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 {
-#if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
-    // Geant4 v10
+#if CELERITAS_G4_V10
     for (auto i : celeritas::range(process.GetNumberOfModels()))
 #else
-    // Geant4 v11
     for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
@@ -336,6 +321,11 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 //---------------------------------------------------------------------------//
 /*!
  * Store energy loss XS tables to this->process_.
+ *
+ * The following XS tables do not exist in Geant4 v11.
+ * - DEDXTableForSubsec()
+ * - IonisationTableForSubsec()
+ * - SubLambdaTable()
  */
 void ImportProcessConverter::store_energy_loss_tables(
     const G4VEnergyLossProcess& process)
@@ -375,8 +365,7 @@ void ImportProcessConverter::store_energy_loss_tables(
         {
             this->add_table(process.DEDXTable(), ImportTableType::dedx_process);
         }
-#if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
-        // These tables only exist in Geant4 v10
+#if CELERITAS_G4_V10
         this->add_table(process.DEDXTableForSubsec(),
                         ImportTableType::dedx_subsec);
         this->add_table(process.IonisationTableForSubsec(),
@@ -403,7 +392,7 @@ void ImportProcessConverter::store_energy_loss_tables(
 void ImportProcessConverter::store_multiple_scattering_tables(
     const G4VMultipleScattering& process)
 {
-#if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
+#if CELERITAS_G4_V10
     for (auto i : celeritas::range(4))
 #else
     for (int i : celeritas::range(process.NumberOfModels()))

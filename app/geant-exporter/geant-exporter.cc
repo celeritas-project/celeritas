@@ -11,8 +11,8 @@
 #include <string>
 #include <vector>
 
-#include <G4Version.hh>
-#if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
+#include "CeleritasG4Version.hh"
+#if CELERITAS_G4_V10
 #    include <G4RunManager.hh>
 #else
 #    include <G4RunManagerFactory.hh>
@@ -441,11 +441,9 @@ int main(int argc, char* argv[])
     // suppressed.
     std::unique_ptr<G4RunManager> run_manager;
 
-#if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
-    // Use Geant4 v10 RunManager
-    run_manager.reset(new G4RunManager());
+#if CELERITAS_G4_V10
+    run_manager = std::make_unique<G4RunManager>();
 #else
-    // Use Geant4 v11 RunManagerFactory
     run_manager.reset(
         G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
 #endif
