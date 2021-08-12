@@ -31,6 +31,7 @@
 #include "base/TypeDemangler.hh"
 #include "base/Types.hh"
 #include "comm/Logger.hh"
+#include "CeleritasG4Version.hh"
 
 using celeritas::ImportModelClass;
 using celeritas::ImportPhysicsTable;
@@ -167,10 +168,13 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
 /*!
  * Safely switch from \c G4PhysicsVectorType to \c ImportPhysicsVectorType .
  * [See G4PhysicsVectorType.hh]
+ *
+ * Geant4 v11 has a different set of G4PhysicsVectorType enums.
  */
 ImportPhysicsVectorType
 to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
 {
+    // Geant4 v10
     switch (g4_vector_type)
     {
         case T_G4PhysicsVector:
@@ -178,11 +182,15 @@ to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
         case T_G4PhysicsLinearVector:
             return ImportPhysicsVectorType::linear;
         case T_G4PhysicsLogVector:
+#if CELERITAS_G4_V10
         case T_G4PhysicsLnVector:
+#endif
             return ImportPhysicsVectorType::log;
         case T_G4PhysicsFreeVector:
+#if CELERITAS_G4_V10
         case T_G4PhysicsOrderedFreeVector:
         case T_G4LPhysicsFreeVector:
+#endif
             return ImportPhysicsVectorType::free;
     }
     CELER_ASSERT_UNREACHABLE();
@@ -295,7 +303,11 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
  */
 void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 {
+#if CELERITAS_G4_V10
     for (auto i : celeritas::range(process.GetNumberOfModels()))
+#else
+    for (auto i : celeritas::range(process.NumberOfModels()))
+#endif
     {
         process_.models.push_back(
             to_import_model(process.GetModelByIndex(i)->GetName()));
@@ -309,6 +321,11 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 //---------------------------------------------------------------------------//
 /*!
  * Store energy loss XS tables to this->process_.
+ *
+ * The following XS tables do not exist in Geant4 v11.
+ * - DEDXTableForSubsec()
+ * - IonisationTableForSubsec()
+ * - SubLambdaTable()
  */
 void ImportProcessConverter::store_energy_loss_tables(
     const G4VEnergyLossProcess& process)
@@ -348,16 +365,18 @@ void ImportProcessConverter::store_energy_loss_tables(
         {
             this->add_table(process.DEDXTable(), ImportTableType::dedx_process);
         }
+#if CELERITAS_G4_V10
         this->add_table(process.DEDXTableForSubsec(),
                         ImportTableType::dedx_subsec);
-        this->add_table(process.DEDXunRestrictedTable(),
-                        ImportTableType::dedx_unrestricted);
         this->add_table(process.IonisationTableForSubsec(),
                         ImportTableType::ionization_subsec);
+        this->add_table(process.SubLambdaTable(), ImportTableType::sublambda);
+#endif
+        this->add_table(process.DEDXunRestrictedTable(),
+                        ImportTableType::dedx_unrestricted);
         this->add_table(process.CSDARangeTable(), ImportTableType::csda_range);
         this->add_table(process.SecondaryRangeTable(),
                         ImportTableType::secondary_range);
-        this->add_table(process.SubLambdaTable(), ImportTableType::sublambda);
     }
 }
 
@@ -367,13 +386,17 @@ void ImportProcessConverter::store_energy_loss_tables(
  *
  * Whereas other EM processes combine the model tables into a single process
  * table, MSC keeps them independent.
+ *
+ * Starting on Geant4 v11, G4MultipleScattering provides \c NumberOfModels() .
  */
 void ImportProcessConverter::store_multiple_scattering_tables(
     const G4VMultipleScattering& process)
 {
-    // TODO: Figure out a method to get the number of models. Max is 4.
-    // Other classes have a NumberOfModels(), but not G4VMultipleScattering
+#if CELERITAS_G4_V10
     for (auto i : celeritas::range(4))
+#else
+    for (int i : celeritas::range(process.NumberOfModels()))
+#endif
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
