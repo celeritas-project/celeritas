@@ -273,6 +273,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop-cpu>"
       "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:geant-exporter>"
+      "CELERITAS_MAX_NUM_TRACKS=1"
+      "CELERITAS_STORAGE_FACTOR=100"
       "CELER_DISABLE_PARALLEL=1"
     )
     set_tests_properties("app/demo-loop-cpu" PROPERTIES

@@ -28,15 +28,18 @@ if result_ge.returncode:
     print("fatal: geant-exporter failed with error", result_ge.returncode)
     exit(result_ge.returncode)
 
+max_num_tracks = environ.get('CELERITAS_MAX_NUM_TRACKS', 128 * 32)
+storage_factor = environ.get('CELERITAS_STORAGE_FACTOR', 10)
+
 inp = {
     'run': {
         'geometry_filename': geometry_filename,
         'physics_filename': physics_filename,
         'hepmc3_filename': hepmc3_filename,
         'seed': 12345,
-        'max_num_tracks': 128 * 32,
+        'max_num_tracks': int(max_num_tracks),
         'max_steps': 128,
-        'storage_factor': 10
+        'storage_factor': int(storage_factor)
     }
 }
 
