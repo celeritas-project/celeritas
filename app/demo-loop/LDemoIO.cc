@@ -20,7 +20,7 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"seed", v.seed},
                        {"max_num_tracks", v.max_num_tracks},
                        {"max_steps", v.max_steps},
-                       {"storge_factor", v.storage_factor}};
+                       {"storage_factor", v.storage_factor}};
 }
 
 void from_json(const nlohmann::json& j, LDemoArgs& v)
