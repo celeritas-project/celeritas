@@ -103,8 +103,7 @@ __global__ void init_tracks_kernel(const ParamsDeviceRef         params,
 
     // Initialize the physics state
     {
-        PhysicsTrackView phys(
-            params.physics, states.physics, ParticleId{}, MaterialId{}, vac_id);
+        PhysicsTrackView phys(params.physics, states.physics, {}, {}, vac_id);
         phys = {};
     }
 
@@ -175,9 +174,20 @@ __global__ void locate_alive_kernel(const ParamsDeviceRef         params,
         ParticleTrackView particle(params.particles, states.particles, tid);
         particle = {secondary.particle_id, secondary.energy};
 
-        // Keep the parent's geometry state
+        // Keep the parent's geometry state but get the direction from the
+        // secondary. The material state will be the same as the parent's.
         GeoTrackView geo(params.geometry, states.geometry, tid);
         geo = {geo, secondary.direction};
+
+        // Initialize the physics state
+        PhysicsTrackView phys(params.physics, states.physics, {}, {}, tid);
+        phys = {};
+
+        // Interaction representing creation of a new track
+        Interaction& result = states.interactions[tid];
+        result.action       = Action::spawned;
+        result.energy       = secondary.energy;
+        result.direction    = secondary.direction;
 
         // Mark the secondary as processed and the track as active
         --inits.secondary_counts[tid];
