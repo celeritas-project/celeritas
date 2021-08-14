@@ -118,6 +118,8 @@ real_type calc_mass_rad_coeff(const ElementDef& el)
  */
 units::MevEnergy get_mean_excitation_energy(int atomic_number)
 {
+    CELER_EXPECT(atomic_number > 0 && atomic_number < 99);
+
     // Mean excitation energy for Z=1-98 [eV]
     static const double mean_excitation_energy[] = {
         19.2,  41.8,  40.0,  63.7,  76.0,  81.0,  82.0,  95.0,  115.0, 137.0,

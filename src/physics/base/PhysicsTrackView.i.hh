@@ -398,7 +398,8 @@ CELER_FUNCTION bool PhysicsTrackView::add_fluctuation() const
 /*!
  * Energy loss fluctuation model parameters.
  */
-CELER_FUNCTION auto PhysicsTrackView::fluctuation() const -> FluctuationPointers
+CELER_FUNCTION auto PhysicsTrackView::fluctuation() const
+    -> const FluctuationPointers&
 {
     return params_.fluctuation;
 }

@@ -131,7 +131,7 @@ class PhysicsTrackView
     inline CELER_FUNCTION bool add_fluctuation() const;
 
     // Energy loss fluctuation model parameters
-    inline CELER_FUNCTION FluctuationPointers fluctuation() const;
+    inline CELER_FUNCTION const FluctuationPointers& fluctuation() const;
 
     // Calculate macroscopic cross section on the fly for the given model
     inline CELER_FUNCTION real_type calc_xs_otf(ModelId             model,
