@@ -183,12 +183,6 @@ __global__ void locate_alive_kernel(const ParamsDeviceRef         params,
         PhysicsTrackView phys(params.physics, states.physics, {}, {}, tid);
         phys = {};
 
-        // Interaction representing creation of a new track
-        Interaction& result = states.interactions[tid];
-        result.action       = Action::spawned;
-        result.energy       = secondary.energy;
-        result.direction    = secondary.direction;
-
         // Mark the secondary as processed and the track as active
         --inits.secondary_counts[tid];
         secondary            = Secondary{};
@@ -278,8 +272,9 @@ __global__ void process_secondaries_kernel(const ParamsDeviceRef params,
             init.particle.energy      = secondary.energy;
         }
     }
-    // Clear the secondaries from the interaction
-    result.secondaries = {};
+    // Clear the interaction
+    result = {};
+    result.action = Action::unchanged;
 }
 } // end namespace
 
