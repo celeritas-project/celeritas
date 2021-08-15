@@ -96,9 +96,9 @@ __global__ void init_tracks_kernel(const ParamsDeviceRef         params,
         }
 
         // Initialize the material
-        GeoMaterialView   geo_mat(params.geo_mats, geo.volume_id());
+        GeoMaterialView   geo_mat(params.geo_mats);
         MaterialTrackView mat(params.materials, states.materials, vac_id);
-        mat = {geo_mat.material_id()};
+        mat = {geo_mat.material_id(geo.volume_id())};
     }
 
     // Initialize the physics state

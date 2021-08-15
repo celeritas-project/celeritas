@@ -56,13 +56,15 @@ CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
  * over the step, and select the model for the discrete interaction.
  */
 template<class Rng>
-CELER_FUNCTION void move_and_select_model(GeoTrackView&      geo,
-                                          ParticleTrackView& particle,
-                                          PhysicsTrackView&  phys,
-                                          SimTrackView&      sim,
-                                          Rng&               rng,
-                                          real_type*         edep,
-                                          Interaction*       result)
+CELER_FUNCTION void move_and_select_model(const GeoMaterialView& geo_mat,
+                                          GeoTrackView&          geo,
+                                          MaterialTrackView&     mat,
+                                          ParticleTrackView&     particle,
+                                          PhysicsTrackView&      phys,
+                                          SimTrackView&          sim,
+                                          Rng&                   rng,
+                                          real_type*             edep,
+                                          Interaction*           result)
 {
     // Actual distance, limited by along-step length or geometry
     real_type step = phys.step_length();
@@ -79,18 +81,21 @@ CELER_FUNCTION void move_and_select_model(GeoTrackView&      geo,
         // Particle entered a new volume before reaching the interaction point
         if (geo_step.volume != pre_step_volume)
         {
-            *result = Interaction::from_unchanged(particle.energy(), geo.dir());
-            result->action = Action::entered_volume;
+            if (geo.is_outside())
+            {
+                // Kill the track if it's outside the valid geometry region
+                result->action = Action::escaped;
+                sim.alive(false);
+            }
+            else
+            {
+                // Update the material if it's inside
+                result->action = Action::entered_volume;
+                mat            = {geo_mat.material_id(geo.volume_id())};
+            }
         }
     }
     phys.step_length(phys.step_length() - step);
-
-    // Kill the track if it's outside the valid geometry region
-    if (geo.is_outside())
-    {
-        result->action = Action::escaped;
-        sim.alive(false);
-    }
 
     // Calculate energy loss over the step length
     auto eloss = calc_energy_loss(particle, phys, step);
