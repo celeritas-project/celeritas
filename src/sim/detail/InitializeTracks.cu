@@ -109,10 +109,7 @@ __global__ void init_tracks_kernel(const ParamsDeviceRef         params,
 
     // Interaction representing creation of a new track
     {
-        Interaction& result = states.interactions[vac_id];
-        result.action       = Action::spawned;
-        result.energy       = init.particle.energy;
-        result.direction    = init.geo.dir;
+        states.interactions[vac_id].action = Action::spawned;
     }
 }
 
@@ -273,8 +270,7 @@ __global__ void process_secondaries_kernel(const ParamsDeviceRef params,
         }
     }
     // Clear the interaction
-    result = {};
-    result.action = Action::unchanged;
+    result = Interaction::from_processed();
 }
 } // end namespace
 

@@ -39,6 +39,9 @@ struct Interaction
     static inline CELER_FUNCTION Interaction
     from_unchanged(units::MevEnergy energy, const Real3& direction);
 
+    // Return an interaction indicating all state changes have been applied
+    static inline CELER_FUNCTION Interaction from_processed();
+
     // Whether the interaction succeeded
     explicit inline CELER_FUNCTION operator bool() const;
 };
@@ -83,6 +86,17 @@ CELER_FUNCTION Interaction Interaction::from_unchanged(units::MevEnergy energy,
     result.action    = Action::unchanged;
     result.energy    = energy;
     result.direction = direction;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct for end of step when all interaction data has been processed.
+ */
+CELER_FUNCTION Interaction Interaction::from_processed()
+{
+    Interaction result;
+    result.action = Action::processed;
     return result;
 }
 

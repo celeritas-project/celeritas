@@ -25,6 +25,7 @@ enum class Action
     scattered, //!< Scattering interaction
     entered_volume, //!< Propagated to a new region of space
     unchanged,      //!< Edge cases where an interactor returns no change
+    processed,      //!< State change and secondaries have been processed
     // KILLING ACTIONS BELOW
     begin_killed_,
     absorbed = begin_killed_, //!< Absorbed (killed)
@@ -64,7 +65,7 @@ inline CELER_FUNCTION bool action_killed(Action a)
 inline CELER_FUNCTION bool action_unchanged(Action a)
 {
     return a == Action::unchanged || a == Action::entered_volume
-           || a == Action::spawned;
+           || a == Action::spawned || a == Action::processed;
 }
 
 //---------------------------------------------------------------------------//
