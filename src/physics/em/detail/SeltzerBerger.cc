@@ -8,7 +8,6 @@
 #include "SeltzerBerger.hh"
 
 #include "base/Assert.hh"
-#include "base/KernelParamCalculator.cuda.hh"
 #include "base/StackAllocator.hh"
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"

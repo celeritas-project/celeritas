@@ -7,14 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "LivermorePE.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
-#include "random/RngEngine.hh"
+#include "base/StackAllocator.hh"
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "base/StackAllocator.hh"
 #include "physics/material/ElementSelector.hh"
 #include "physics/material/MaterialTrackView.hh"
+#include "random/RngEngine.hh"
 #include "LivermorePEInteractor.hh"
 #include "LivermorePEMicroXsCalculator.hh"
 

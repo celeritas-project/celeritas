@@ -8,7 +8,6 @@
 #include "BetheHeitler.hh"
 
 #include "base/Assert.hh"
-#include "base/KernelParamCalculator.cuda.hh"
 #include "random/RngEngine.hh"
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"

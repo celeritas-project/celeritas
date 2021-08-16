@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "LDemoKernel.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
 #include "base/StackAllocator.hh"
 #include "physics/base/CutoffView.hh"
 #include "random/RngEngine.hh"

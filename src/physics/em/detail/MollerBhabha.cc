@@ -8,14 +8,13 @@
 #include "MollerBhabha.hh"
 
 #include "base/Assert.hh"
-#include "base/KernelParamCalculator.cuda.hh"
-#include "random/RngEngine.hh"
+#include "base/StackAllocator.hh"
+#include "physics/base/CutoffView.hh"
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "physics/base/CutoffView.hh"
-#include "base/StackAllocator.hh"
+#include "random/RngEngine.hh"
 #include "MollerBhabhaInteractor.hh"
 
 namespace celeritas
