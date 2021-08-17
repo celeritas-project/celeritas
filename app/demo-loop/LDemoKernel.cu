@@ -39,12 +39,12 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 
     ParticleTrackView particle(params.particles, states.particles, tid);
     GeoTrackView      geo(params.geometry, states.geometry, tid);
-    GeoMaterialView   geo_mat(params.geo_mats, geo.volume_id());
+    GeoMaterialView   geo_mat(params.geo_mats);
     MaterialTrackView mat(params.materials, states.materials, tid);
     PhysicsTrackView  phys(params.physics,
                           states.physics,
                           particle.particle_id(),
-                          geo_mat.material_id(),
+                          geo_mat.material_id(geo.volume_id()),
                           tid);
     RngEngine         rng(states.rng, ThreadId(tid));
 
@@ -76,16 +76,19 @@ __global__ void along_and_post_step_kernel(ParamsDeviceRef const params,
 
     ParticleTrackView particle(params.particles, states.particles, tid);
     GeoTrackView      geo(params.geometry, states.geometry, tid);
-    GeoMaterialView   geo_mat(params.geo_mats, geo.volume_id());
+    GeoMaterialView   geo_mat(params.geo_mats);
+    MaterialTrackView mat(params.materials, states.materials, tid);
     PhysicsTrackView  phys(params.physics,
                           states.physics,
                           particle.particle_id(),
-                          geo_mat.material_id(),
+                          geo_mat.material_id(geo.volume_id()),
                           tid);
     RngEngine         rng(states.rng, ThreadId(tid));
 
     // Propagate, calculate energy loss, and select model
-    demo_loop::move_and_select_model(geo,
+    demo_loop::move_and_select_model(geo_mat,
+                                     geo,
+                                     mat,
                                      particle,
                                      phys,
                                      sim,
@@ -112,11 +115,11 @@ __global__ void process_interactions_kernel(ParamsDeviceRef const params,
     ParticleTrackView particle(params.particles, states.particles, tid);
     GeoTrackView      geo(params.geometry, states.geometry, tid);
     MaterialTrackView mat(params.materials, states.materials, tid);
-    GeoMaterialView   geo_mat(params.geo_mats, geo.volume_id());
+    GeoMaterialView   geo_mat(params.geo_mats);
     PhysicsTrackView  phys(params.physics,
                           states.physics,
                           particle.particle_id(),
-                          geo_mat.material_id(),
+                          geo_mat.material_id(geo.volume_id()),
                           tid);
     CutoffView        cutoffs(params.cutoffs, mat.material_id());
 
