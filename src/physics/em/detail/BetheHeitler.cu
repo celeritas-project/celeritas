@@ -60,12 +60,13 @@ bethe_heitler_interact_kernel(const BetheHeitlerPointers                bh,
 
     // Assume only a single element in the material, for now
     CELER_ASSERT(material_view.num_elements() == 1);
-    BetheHeitlerInteractor interact(
-        bh,
-        particle,
-        model.states.direction[tid],
-        allocate_secondaries,
-        material_view.element_view(celeritas::ElementComponentId{0}));
+    ElementView element
+        = material_view.element_view(celeritas::ElementComponentId{0});
+    BetheHeitlerInteractor interact(bh,
+                                    particle,
+                                    model.states.direction[tid],
+                                    allocate_secondaries,
+                                    element);
 
     RngEngine rng(model.states.rng, tid);
     model.states.interactions[tid] = interact(rng);

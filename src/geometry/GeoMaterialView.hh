@@ -25,32 +25,39 @@ class GeoMaterialView
     //!@}
 
   public:
-    // Construct for the given particle and material ids
-    inline CELER_FUNCTION
-    GeoMaterialView(const GeoMaterialPointers& params, VolumeId volume);
+    // Construct from shared data
+    inline CELER_FUNCTION GeoMaterialView(const GeoMaterialPointers& params);
 
-    //! Return material
-    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const { return mat_; }
+    // Return material for the given volume
+    inline CELER_FUNCTION MaterialId material_id(VolumeId volume) const;
 
   private:
-    MaterialId mat_;
+    const GeoMaterialPointers& params_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from shared data and current volume.
+ * Construct from shared data.
+ */
+CELER_FUNCTION
+GeoMaterialView::GeoMaterialView(const GeoMaterialPointers& params)
+    : params_(params)
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return material for the given volume.
  *
  * Note that this will *fail* if the particle is outside -- the volume ID will
  * be false.
  */
-CELER_FUNCTION
-GeoMaterialView::GeoMaterialView(const GeoMaterialPointers& params,
-                                 VolumeId                   volume)
+CELER_FUNCTION MaterialId GeoMaterialView::material_id(VolumeId volume) const
 {
-    CELER_EXPECT(volume < params.materials.size());
-    mat_ = params.materials[volume];
+    CELER_EXPECT(volume < params_.materials.size());
+    return params_.materials[volume];
 }
 
 //---------------------------------------------------------------------------//

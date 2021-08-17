@@ -15,9 +15,11 @@
 #include "base/Atomics.hh"
 #include "base/DeviceVector.hh"
 #include "base/KernelParamCalculator.cuda.hh"
+#include "geometry/GeoMaterialView.hh"
 #include "geometry/GeoTrackView.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
+#include "physics/material/MaterialTrackView.hh"
 #include "sim/SimTrackView.hh"
 
 namespace celeritas
@@ -92,21 +94,22 @@ __global__ void init_tracks_kernel(const ParamsDeviceRef         params,
             // Initialize it from the position (more expensive)
             geo = init.geo;
         }
+
+        // Initialize the material
+        GeoMaterialView   geo_mat(params.geo_mats);
+        MaterialTrackView mat(params.materials, states.materials, vac_id);
+        mat = {geo_mat.material_id(geo.volume_id())};
     }
 
     // Initialize the physics state
     {
-        PhysicsTrackView phys(
-            params.physics, states.physics, ParticleId{}, MaterialId{}, vac_id);
+        PhysicsTrackView phys(params.physics, states.physics, {}, {}, vac_id);
         phys = {};
     }
 
     // Interaction representing creation of a new track
     {
-        Interaction& result = states.interactions[vac_id];
-        result.action       = Action::spawned;
-        result.energy       = init.particle.energy;
-        result.direction    = init.geo.dir;
+        states.interactions[vac_id].action = Action::spawned;
     }
 }
 
@@ -168,9 +171,14 @@ __global__ void locate_alive_kernel(const ParamsDeviceRef         params,
         ParticleTrackView particle(params.particles, states.particles, tid);
         particle = {secondary.particle_id, secondary.energy};
 
-        // Keep the parent's geometry state
+        // Keep the parent's geometry state but get the direction from the
+        // secondary. The material state will be the same as the parent's.
         GeoTrackView geo(params.geometry, states.geometry, tid);
         geo = {geo, secondary.direction};
+
+        // Initialize the physics state
+        PhysicsTrackView phys(params.physics, states.physics, {}, {}, tid);
+        phys = {};
 
         // Mark the secondary as processed and the track as active
         --inits.secondary_counts[tid];
@@ -261,8 +269,8 @@ __global__ void process_secondaries_kernel(const ParamsDeviceRef params,
             init.particle.energy      = secondary.energy;
         }
     }
-    // Clear the secondaries from the interaction
-    result.secondaries = {};
+    // Clear the interaction
+    result = Interaction::from_processed();
 }
 } // end namespace
 
