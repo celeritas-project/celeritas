@@ -200,7 +200,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     demo-loop/LDemoIO.cc
     demo-loop/LDemoKernel.cc
     demo-loop/LDemoParams.cc
-    demo-loop/LDemoRun.cc
     ${_cuda_src}
   )
   celeritas_target_link_libraries(celeritas_demo_loop
@@ -223,16 +222,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   )
   # Note: for static linking the library order is relevant.
   celeritas_target_link_libraries(demo-loop
-    celeritas_demo_loop
-    celeritas
-    VecGeom::vecgeom
-    nlohmann_json::nlohmann_json
-  )
-
-  add_executable(demo-loop-cpu
-    demo-loop/demo-loop-cpu.cc
-  )
-  celeritas_target_link_libraries(demo-loop-cpu
     celeritas_demo_loop
     celeritas
     VecGeom::vecgeom
@@ -271,8 +260,9 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
       "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}"
     )
     set(_env
-      "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop-cpu>"
+      "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
       "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:geant-exporter>"
+      "CELERITAS_USE_DEVICE=0"
       "CELERITAS_MAX_NUM_TRACKS=1"
       "CELERITAS_STORAGE_FACTOR=100"
       "CELER_DISABLE_PARALLEL=1"
