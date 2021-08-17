@@ -112,9 +112,11 @@ CELER_FUNCTION real_type EnergyLossDistribution::sample_gaussian(Engine& rng) co
         } while (result <= 0 || result > max_loss);
         return result;
     }
-    // Sample energy loss from a gamma distribution
+    // Sample energy loss from a gamma distribution. Note that while this
+    // appears in G4UniversalFluctuation, the Geant4 documentation does not
+    // explain why the loss is sampled from a gamma distribution in this case.
     const real_type k = ipow<2>(mean_loss_ / stddev);
-    return GammaDistribution<real_type>(k, k)(rng);
+    return GammaDistribution<real_type>(k, mean_loss_ / k)(rng);
 }
 
 //---------------------------------------------------------------------------//
@@ -313,7 +315,7 @@ EnergyLossDistribution::sample_ionization_loss(real_type xs, Engine& rng) const
         // Mean and standard deviation of the total energy loss (Eqs. 18-19)
         const real_type mean = mean_num_coll * mean_loss_coll * e_0;
         const real_type stddev
-            = std::sqrt(xs * ipow<2>(e_0) * (alpha - ipow<2>(mean_loss_coll)));
+            = e_0 * std::sqrt(xs * (alpha - ipow<2>(mean_loss_coll)));
 
         // Sample energy loss from a Gaussian distribution
         result += this->sample_fast_urban(mean, stddev, rng);

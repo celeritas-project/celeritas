@@ -117,7 +117,7 @@ TEST_F(EnergyLossDistributionTest, gaussian)
     int                 num_samples = 5000;
     std::vector<double> mean;
     std::vector<double> counts(20);
-    double              upper = 0.4;
+    double              upper = 7.0;
     double              lower = 0.0;
     double              width = (upper - lower) / counts.size();
 
@@ -137,10 +137,9 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         }
         mean.push_back(sum / num_samples);
     }
-    const double expected_counts[] = {4713, 330, 487, 833, 1050, 1062, 787,
-                                      482,  185, 64,  3,   1,    1,    1,
-                                      0,    1,   0,   0,   0,    0};
-    const double expected_mean[]   = {0.004866544614915, 0.1008228960123};
+    const double expected_counts[] = {9646, 150, 87, 35, 24, 21, 13, 9, 6, 1,
+                                      1,    2,   2,  1,  1,  0,  0,  1, 0, 0};
+    const double expected_mean[]   = {0.0952213970906181, 0.1008228960123};
     EXPECT_VEC_SOFT_EQ(expected_counts, counts);
     EXPECT_VEC_SOFT_EQ(expected_mean, mean);
     EXPECT_EQ(60410, rng.count());
