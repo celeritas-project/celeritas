@@ -9,6 +9,7 @@
 
 #include "base/Types.hh"
 #include "physics/material/MaterialTrackView.hh"
+#include "CutoffView.hh"
 #include "ParticleTrackView.hh"
 #include "PhysicsTrackView.hh"
 
@@ -22,10 +23,14 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
                             const ParticleTrackView& particle,
                             PhysicsTrackView&        physics);
 
+template<class Engine>
 inline CELER_FUNCTION ParticleTrackView::Energy
-                      calc_energy_loss(const ParticleTrackView& particle,
+                      calc_energy_loss(const CutoffView&        cutoffs,
+                                       const MaterialTrackView& material,
+                                       const ParticleTrackView& particle,
                                        const PhysicsTrackView&  physics,
-                                       real_type                step_length);
+                                       real_type                step_length,
+                                       Engine&                  rng);
 
 struct ProcessIdModelId
 {

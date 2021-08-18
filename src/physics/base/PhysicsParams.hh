@@ -50,6 +50,7 @@ class ParticleParams;
  *   over the step, so the assumption that the cross section is constant is no
  *   longer valid. Use MC integration to sample the discrete interaction length
  *   with the correct probability.
+ * - \c enable_fluctuation: enable simulation of energy loss fluctuations.
  */
 class PhysicsParams
 {
@@ -75,6 +76,7 @@ class PhysicsParams
         real_type min_eprime_over_e   = 0.8;
         real_type linear_loss_limit   = 0.01;
         bool      use_integral_xs     = true;
+        bool      enable_fluctuation  = true;
     };
 
     //! Physics parameter construction arguments
@@ -139,6 +141,10 @@ class PhysicsParams
     void     build_xs(const Options&        opts,
                       const MaterialParams& mats,
                       HostValue*            data) const;
+    void     build_fluct(const Options&        opts,
+                         const MaterialParams& mats,
+                         const ParticleParams& particles,
+                         HostValue*            data) const;
 };
 
 //---------------------------------------------------------------------------//

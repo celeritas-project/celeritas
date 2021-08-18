@@ -11,8 +11,9 @@
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
 #include "Types.hh"
-#include "physics/em/detail/LivermorePE.hh"
 #include "physics/em/detail/EPlusGG.hh"
+#include "physics/em/detail/LivermorePE.hh"
+#include "physics/em/FluctuationInterface.hh"
 #include "physics/grid/ValueGridInterface.hh"
 #include "physics/grid/XsGridInterface.hh"
 #include "physics/material/Types.hh"
@@ -203,13 +204,15 @@ struct PhysicsParamsData
 
     // Special data
     HardwiredModels<W, M> hardwired;
+    FluctuationData<W, M> fluctuation;
     ProcessId::size_type  max_particle_processes{};
 
     // User-configurable constants
-    real_type scaling_min_range{}; //!< rho [cm]
-    real_type scaling_fraction{};  //!< alpha [unitless]
-    real_type energy_fraction{};   //!< xi [unitless]
-    real_type linear_loss_limit{}; //!< For scaled range calculation
+    real_type scaling_min_range{};  //!< rho [cm]
+    real_type scaling_fraction{};   //!< alpha [unitless]
+    real_type energy_fraction{};    //!< xi [unitless]
+    real_type linear_loss_limit{};  //!< For scaled range calculation
+    bool      enable_fluctuation{}; //!< Enable energy loss fluctuations
 
     //// METHODS ////
 
@@ -218,7 +221,8 @@ struct PhysicsParamsData
     {
         return !process_groups.empty() && max_particle_processes
                && scaling_min_range > 0 && scaling_fraction > 0
-               && energy_fraction > 0 && linear_loss_limit > 0;
+               && energy_fraction > 0 && linear_loss_limit > 0
+               && enable_fluctuation == static_cast<bool>(fluctuation);
     }
 
     //! Assign from another set of data
@@ -238,12 +242,14 @@ struct PhysicsParamsData
         process_groups = other.process_groups;
 
         hardwired              = other.hardwired;
+        fluctuation            = other.fluctuation;
         max_particle_processes = other.max_particle_processes;
 
-        scaling_min_range = other.scaling_min_range;
-        scaling_fraction  = other.scaling_fraction;
-        energy_fraction   = other.energy_fraction;
-        linear_loss_limit = other.linear_loss_limit;
+        scaling_min_range  = other.scaling_min_range;
+        scaling_fraction   = other.scaling_fraction;
+        energy_fraction    = other.energy_fraction;
+        linear_loss_limit  = other.linear_loss_limit;
+        enable_fluctuation = other.enable_fluctuation;
 
         return *this;
     }

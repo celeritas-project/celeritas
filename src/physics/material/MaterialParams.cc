@@ -11,6 +11,7 @@
 #include <cmath>
 #include <numeric>
 #include "detail/Utils.hh"
+#include "base/Algorithms.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
@@ -265,9 +266,10 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
      *
      * NOTE: Electron density calculation may need to be updated for solids.
      */
-    real_type avg_amu_mass = 0;
-    real_type avg_z        = 0;
-    real_type rad_coeff    = 0;
+    real_type avg_amu_mass        = 0;
+    real_type avg_z               = 0;
+    real_type rad_coeff           = 0;
+    real_type log_mean_exc_energy = 0;
     for (const MatElementComponent& comp :
          host_data->elcomponents[result.elements])
     {
@@ -277,11 +279,19 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
         avg_amu_mass += comp.fraction * el.atomic_mass.value();
         avg_z += comp.fraction * el.atomic_number;
         rad_coeff += comp.fraction * el.mass_radiation_coeff;
+        log_mean_exc_energy
+            += comp.fraction * el.atomic_number
+               * std::log(
+                   detail::get_mean_excitation_energy(el.atomic_number).value());
     }
     result.density = result.number_density * avg_amu_mass
                      * constants::atomic_mass;
     result.electron_density = result.number_density * avg_z;
     result.rad_length       = 1 / (rad_coeff * result.density);
+    log_mean_exc_energy     = avg_z > 0 ? log_mean_exc_energy / avg_z
+                                    : -numeric_limits<real_type>::infinity();
+    result.log_mean_exc_energy = units::LogMevEnergy{log_mean_exc_energy};
+    result.mean_exc_energy = units::MevEnergy{std::exp(log_mean_exc_energy)};
 
     // Add to host vector
     make_builder(&host_data->materials).push_back(result);

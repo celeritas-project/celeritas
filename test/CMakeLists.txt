@@ -239,6 +239,7 @@ celeritas_setup_tests(SERIAL PREFIX physics/em
   LINK_LIBRARIES CeleritasPhysicsTest)
 
 celeritas_add_test(physics/em/BetheHeitler.test.cc)
+celeritas_add_test(physics/em/EnergyLossDistribution.test.cc)
 celeritas_add_test(physics/em/EPlusGG.test.cc)
 celeritas_add_test(physics/em/KleinNishina.test.cc)
 celeritas_add_test(physics/em/LivermorePE.test.cc)

@@ -28,7 +28,8 @@ inline CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
                                             Rng&                     rng);
 
 template<class Rng>
-inline CELER_FUNCTION void move_and_select_model(const GeoMaterialView& geo_mat,
+inline CELER_FUNCTION void move_and_select_model(const CutoffView& cutoffs,
+                                                 const GeoMaterialView& geo_mat,
                                                  GeoTrackView&          geo,
                                                  MaterialTrackView&     mat,
                                                  ParticleTrackView& particle,

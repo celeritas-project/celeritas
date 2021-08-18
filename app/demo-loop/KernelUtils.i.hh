@@ -56,7 +56,8 @@ CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
  * over the step, and select the model for the discrete interaction.
  */
 template<class Rng>
-CELER_FUNCTION void move_and_select_model(const GeoMaterialView& geo_mat,
+CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
+                                          const GeoMaterialView& geo_mat,
                                           GeoTrackView&          geo,
                                           MaterialTrackView&     mat,
                                           ParticleTrackView&     particle,
@@ -98,7 +99,7 @@ CELER_FUNCTION void move_and_select_model(const GeoMaterialView& geo_mat,
     phys.step_length(phys.step_length() - step);
 
     // Calculate energy loss over the step length
-    auto eloss = calc_energy_loss(particle, phys, step);
+    auto eloss = calc_energy_loss(cutoffs, mat, particle, phys, step, rng);
     *edep += eloss.value();
     particle.energy(
         ParticleTrackView::Energy{particle.energy().value() - eloss.value()});
