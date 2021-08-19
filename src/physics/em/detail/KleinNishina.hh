@@ -7,39 +7,65 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
+#include "physics/base/ModelInterface.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
+#include "random/RngEngine.hh"
+#include "KleinNishinaInteractor.hh"
 
 namespace celeritas
 {
-template<MemSpace M>
-struct ModelInteractRefs;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating a KleinNishinaInteractor.
+ * Model interactor kernel launcher
  */
-struct KleinNishinaPointers
+template<MemSpace M>
+struct KleinNishinaLauncher
 {
-    //! Model ID
-    ModelId model_id;
-
-    //! 1 / electron mass [1 / MevMass]
-    real_type inv_electron_mass;
-    //! ID of an electron
-    ParticleId electron_id;
-    //! ID of a gamma
-    ParticleId gamma_id;
-
-    //! Check whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const
+    CELER_FUNCTION KleinNishinaLauncher(const KleinNishinaPointers& pointers,
+                                        const ModelInteractRefs<M>& interaction)
+        : kn(pointers), model(interaction)
     {
-        return model_id && inv_electron_mass > 0 && electron_id && gamma_id;
     }
+
+    const KleinNishinaPointers& kn;    //!< Shared data for interactor
+    const ModelInteractRefs<M>& model; //!< State data needed to interact
+
+    //! Create track views and launch interactor
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
+
+template<MemSpace M>
+CELER_FUNCTION void KleinNishinaLauncher<M>::operator()(ThreadId tid) const
+{
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
+    ParticleTrackView         particle(
+        model.params.particle, model.states.particle, tid);
+
+    PhysicsTrackView physics(model.params.physics,
+                             model.states.physics,
+                             particle.particle_id(),
+                             MaterialId{},
+                             tid);
+
+    // This interaction only applies if the KN model was selected
+    if (physics.model_id() != kn.model_id)
+        return;
+
+    KleinNishinaInteractor interact(
+        kn, particle, model.states.direction[tid], allocate_secondaries);
+
+    RngEngine rng(model.states.rng, tid);
+    model.states.interactions[tid] = interact(rng);
+    CELER_ENSURE(model.states.interactions[tid]);
+}
 
 //---------------------------------------------------------------------------//
 // KERNEL LAUNCHERS

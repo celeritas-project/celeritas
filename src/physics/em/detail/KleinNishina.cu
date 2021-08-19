@@ -7,14 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "KleinNishina.hh"
 
-#include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "random/RngEngine.hh"
-#include "physics/base/ModelInterface.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "base/StackAllocator.hh"
-#include "KleinNishinaInteractor.hh"
 
 namespace celeritas
 {
@@ -36,26 +29,8 @@ klein_nishina_interact_kernel(const KleinNishinaPointers                kn,
     if (!(tid < model.states.size()))
         return;
 
-    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
-    ParticleTrackView         particle(
-        model.params.particle, model.states.particle, tid);
-
-    PhysicsTrackView physics(model.params.physics,
-                             model.states.physics,
-                             particle.particle_id(),
-                             MaterialId{},
-                             tid);
-
-    // This interaction only applies if the KN model was selected
-    if (physics.model_id() != kn.model_id)
-        return;
-
-    KleinNishinaInteractor interact(
-        kn, particle, model.states.direction[tid], allocate_secondaries);
-
-    RngEngine rng(model.states.rng, tid);
-    model.states.interactions[tid] = interact(rng);
-    CELER_ENSURE(model.states.interactions[tid]);
+    KleinNishinaLauncher<MemSpace::device> launch(kn, model);
+    launch(tid);
 }
 
 } // namespace
