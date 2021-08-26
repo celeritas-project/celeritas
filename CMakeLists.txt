@@ -165,10 +165,15 @@ if(CELERITAS_USE_VecGeom)
   )
 endif()
 
-if(CELERITAS_BUILD_TESTS AND CELERITAS_BUILD_DEMOS)
-  if(NOT PYTHON_FOUND)
-    find_package(Python 3.6 COMPONENTS Interpreter REQUIRED)
+if(NOT PYTHON_FOUND)
+  # Python is required to launch tests for the demo apps *and* to regenerate
+  # on-the-fly kernel launchers.
+  unset(_required)
+  if(CELERITAS_BUILD_TESTS AND CELERITAS_BUILD_DEMOS)
+    set(_required REQUIRED)
   endif()
+  find_package(Python 3.6 COMPONENTS Interpreter ${_required})
+  unset(_required)
 endif()
 
 if(CELERITAS_BUILD_DOCS)
