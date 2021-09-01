@@ -26,7 +26,7 @@ namespace detail
 /*!
  * Interact using the Muon Bremsstrahlung model on applicable tracks.
  */
-void mu_bremsstrahlung_interact(const MuBremsstrahlungInteractorPointers& mb,
+void mu_bremsstrahlung_interact(const MuBremsstrahlungPointers&          mb,
                                 const ModelInteractRefs<MemSpace::host>& model)
 {
     for (auto tid : range(ThreadId{model.states.size()}))

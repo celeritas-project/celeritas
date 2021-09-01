@@ -30,7 +30,7 @@ namespace
  * Interact using the Muon Bremsstrahlung model on applicable tracks.
  */
 __global__ void mu_bremsstrahlung_interact_kernel(
-    const MuBremsstrahlungInteractorPointers  mb,
+    const MuBremsstrahlungPointers            mb,
     const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
@@ -81,7 +81,7 @@ __global__ void mu_bremsstrahlung_interact_kernel(
 /*!
  * Launch the Muon Bremsstrahlung interaction.
  */
-void mu_bremsstrahlung_interact(const MuBremsstrahlungInteractorPointers& mb,
+void mu_bremsstrahlung_interact(const MuBremsstrahlungPointers&            mb,
                                 const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(mb);

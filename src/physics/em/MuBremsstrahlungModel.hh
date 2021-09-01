@@ -39,7 +39,7 @@ class MuBremsstrahlungModel final : public Model
     std::string label() const final { return "Muon Bremsstrahlung"; }
 
   private:
-    detail::MuBremsstrahlungInteractorPointers interface_;
+    detail::MuBremsstrahlungPointers interface_;
 };
 
 //---------------------------------------------------------------------------//

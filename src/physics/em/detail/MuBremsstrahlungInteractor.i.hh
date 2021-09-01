@@ -22,12 +22,12 @@ namespace detail
  * Construct with shared and state data.
  */
 CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
-    const MuBremsstrahlungInteractorPointers& shared,
-    const ParticleTrackView&                  particle,
-    const Real3&                              inc_direction,
-    StackAllocator<Secondary>&                allocate,
-    const MaterialView&                       material,
-    ElementComponentId                        elcomp_id)
+    const MuBremsstrahlungPointers& shared,
+    const ParticleTrackView&        particle,
+    const Real3&                    inc_direction,
+    StackAllocator<Secondary>&      allocate,
+    const MaterialView&             material,
+    ElementComponentId              elcomp_id)
     : shared_(shared)
     , inc_direction_(inc_direction)
     , allocate_(allocate)

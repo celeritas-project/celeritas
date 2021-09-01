@@ -23,7 +23,7 @@ namespace detail
 /*!
  * Device data for creating an interactor.
  */
-struct MuBremsstrahlungInteractorPointers
+struct MuBremsstrahlungPointers
 {
     //! Model ID
     ModelId model_id;
@@ -62,12 +62,12 @@ struct MuBremsstrahlungInteractorPointers
 
 // Launch the Muon Bremsstrahlung interaction
 void mu_bremsstrahlung_interact(
-    const MuBremsstrahlungInteractorPointers&  device_pointers,
+    const MuBremsstrahlungPointers&            device_pointers,
     const ModelInteractRefs<MemSpace::device>& interaction);
 
 void mu_bremsstrahlung_interact(
-    const MuBremsstrahlungInteractorPointers& device_pointers,
-    const ModelInteractRefs<MemSpace::host>&  interaction);
+    const MuBremsstrahlungPointers&          device_pointers,
+    const ModelInteractRefs<MemSpace::host>& interaction);
 
 //---------------------------------------------------------------------------//
 } // namespace detail
