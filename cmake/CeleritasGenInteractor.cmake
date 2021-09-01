@@ -28,10 +28,14 @@ Description of overall module contents goes here.
 
 set(CELERITAS_GEN_INTERACTOR
     "${PROJECT_SOURCE_DIR}/scripts/dev/gen-interactor.py"
-    INTERNAL "Path to gen-interactor.py")
+    CACHE INTERNAL "Path to gen-interactor.py")
 
-function(celeritas_gen_interactor)
-
+function(celeritas_gen_interactor class func)
+  message(STATUS "Generating interactor: ${class}")
+  execute_process(
+    COMMAND "${Python_EXECUTABLE}"
+      "${CELERITAS_GEN_INTERACTOR}" --class ${class} --func ${func}
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/src/physics/em/generated")
 endfunction()
 
 #-----------------------------------------------------------------------------#

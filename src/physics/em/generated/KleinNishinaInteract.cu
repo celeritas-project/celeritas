@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "../detail/KleinNishinaLauncher.hh"
+#include "../detail/KleinNishina.hh"
 
 using namespace celeritas::detail;
 
@@ -19,19 +19,19 @@ namespace generated
 namespace
 {
 __global__ void
-klein_nishina_interact_kernel(const KleinNishinaDeviceRef               ptrs,
+klein_nishina_interact_kernel(const detail::KleinNishinaPointers        ptrs,
                               const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
         return;
 
-    KleinNishinaLauncher<MemSpace::device> launch(ptrs, model);
+    detail::KleinNishinaLauncher<MemSpace::device> launch(ptrs, model);
     launch(tid);
 }
 } // namespace
 
-void klein_nishina_interact(const KleinNishinaDeviceRef&               ptrs,
+void klein_nishina_interact(const detail::KleinNishinaPointers&        ptrs,
                             const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(ptrs);

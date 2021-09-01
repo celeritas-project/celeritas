@@ -10,19 +10,18 @@
 #include "base/Range.hh"
 #include "base/Types.hh"
 #include "../detail/KleinNishina.hh"
-#include "../detail/KleinNishinaLauncher.hh"
 
 namespace celeritas
 {
 namespace generated
 {
-void klein_nishina_interact(const KleinNishinaHostRef&               ptrs,
+void klein_nishina_interact(const detail::KleinNishinaPointers&      ptrs,
                             const ModelInteractRefs<MemSpace::host>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);
 
-    KleinNishinaLauncher<MemSpace::host> launch(ptrs, model);
+    detail::KleinNishinaLauncher<MemSpace::host> launch(ptrs, model);
     for (auto tid : range(ThreadId{model.states.size()}))
     {
         launch(tid);

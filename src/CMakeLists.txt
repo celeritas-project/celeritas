@@ -31,6 +31,10 @@ list(APPEND SOURCES
   "${CMAKE_CURRENT_BINARY_DIR}/celeritas_version.cc"
 )
 
+# Generate model launcher code for host/device
+include(CeleritasGenInteractor)
+celeritas_gen_interactor(KleinNishina klein_nishina)
+
 # Main library
 list(APPEND SOURCES
   base/Assert.cc
@@ -76,7 +80,7 @@ list(APPEND SOURCES
   physics/em/RayleighProcess.cc
   physics/em/detail/BetheHeitler.cc
   physics/em/detail/EPlusGG.cc
-  physics/em/detail/KleinNishina.cc
+  physics/em/generated/KleinNishinaInteract.cc
   physics/em/detail/LivermorePE.cc
   physics/em/detail/MollerBhabha.cc
   physics/em/detail/MuBremsstrahlung.cc
@@ -98,7 +102,7 @@ if(CELERITAS_USE_CUDA)
     base/detail/Filler.cu
     physics/em/detail/BetheHeitler.cu
     physics/em/detail/EPlusGG.cu
-    physics/em/detail/KleinNishina.cu
+    physics/em/generated/KleinNishinaInteract.cu
     physics/em/detail/MollerBhabha.cu
     physics/em/detail/MuBremsstrahlung.cu
     physics/em/detail/LivermorePE.cu

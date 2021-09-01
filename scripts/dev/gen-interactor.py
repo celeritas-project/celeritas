@@ -35,16 +35,16 @@ namespace celeritas
 namespace generated
 {{
 void {func}_interact(
-    const {class}HostRef&,
+    const detail::{class}Pointers&,
     const ModelInteractRefs<MemSpace::host>&);
 
 void {func}_interact(
-    const {class}DeviceRef&,
+    const detail::{class}Pointers&,
     const ModelInteractRefs<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void {func}_interact(
-    const {class}DeviceRef&,
+    const detail::{class}Pointers&,
     const ModelInteractRefs<MemSpace::device>&)
 {{
     return {{}};
@@ -60,20 +60,19 @@ CC_TEMPLATE = CLIKE_TOP + """\
 #include "base/Range.hh"
 #include "base/Types.hh"
 #include "../detail/{class}.hh"
-#include "../detail/{class}Launcher.hh"
 
 namespace celeritas
 {{
 namespace generated
 {{
 void {func}_interact(
-    const {class}HostRef& ptrs,
+    const detail::{class}Pointers& ptrs,
     const ModelInteractRefs<MemSpace::host>& model)
 {{
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);
 
-    {class}Launcher<MemSpace::host> launch(ptrs, model);
+    detail::{class}Launcher<MemSpace::host> launch(ptrs, model);
     for (auto tid : range(ThreadId{{model.states.size()}}))
     {{
         launch(tid);
@@ -87,7 +86,7 @@ void {func}_interact(
 CU_TEMPLATE = CLIKE_TOP + """\
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "../detail/{class}Launcher.hh"
+#include "../detail/{class}.hh"
 
 using namespace celeritas::detail;
 
@@ -98,20 +97,20 @@ namespace generated
 namespace
 {{
 __global__ void {func}_interact_kernel(
-    const {class}DeviceRef ptrs,
+    const detail::{class}Pointers ptrs,
     const ModelInteractRefs<MemSpace::device> model)
 {{
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
         return;
 
-    {class}Launcher<MemSpace::device> launch(ptrs, model);
+    detail::{class}Launcher<MemSpace::device> launch(ptrs, model);
     launch(tid);
 }}
 }} // namespace
 
 void {func}_interact(
-    const {class}DeviceRef& ptrs,
+    const detail::{class}Pointers& ptrs,
     const ModelInteractRefs<MemSpace::device>& model)
 {{
     CELER_EXPECT(ptrs);
