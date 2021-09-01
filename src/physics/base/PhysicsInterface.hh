@@ -11,7 +11,7 @@
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
 #include "Types.hh"
-#include "physics/em/detail/EPlusGG.hh"
+#include "physics/em/detail/EPlusGGInteractor.hh"
 #include "physics/em/detail/LivermorePE.hh"
 #include "physics/em/FluctuationInterface.hh"
 #include "physics/grid/ValueGridInterface.hh"

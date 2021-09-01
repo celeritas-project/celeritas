@@ -7,50 +7,64 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
+#include "base/Assert.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "physics/base/Types.hh"
+#include "random/RngEngine.hh"
+#include "physics/base/ModelInterface.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/base/PhysicsTrackView.hh"
+#include "EPlusGGInteractor.hh"
 
 namespace celeritas
 {
-template<MemSpace M>
-struct ModelInteractRefs;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating an EPlusGGInteractor.
+ * Model interactor kernel launcher
  */
-struct EPlusGGPointers
+template<MemSpace M>
+struct EPlusGGLauncher
 {
-    //! Model ID
-    ModelId model_id;
-
-    //! electron mass [MevMass]
-    real_type electron_mass;
-    //! ID of an positron
-    ParticleId positron_id;
-    //! ID of a gamma
-    ParticleId gamma_id;
-
-    //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    CELER_FUNCTION EPlusGGLauncher(const EPlusGGPointers&      pointers,
+                                   const ModelInteractRefs<M>& interaction)
+        : epgg(pointers), model(interaction)
     {
-        return model_id && electron_mass > 0 && positron_id && gamma_id;
     }
+
+    const EPlusGGPointers&      epgg;  //!< Shared data for interactor
+    const ModelInteractRefs<M>& model; //!< State data needed to interact
+
+    //! Create track views and launch interactor
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
-//---------------------------------------------------------------------------//
-// KERNEL LAUNCHERS
-//---------------------------------------------------------------------------//
+template<MemSpace M>
+CELER_FUNCTION void EPlusGGLauncher<M>::operator()(ThreadId tid) const
+{
+    // Get views to this Secondary, Particle, and Physics
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
+    ParticleTrackView         particle(
+        model.params.particle, model.states.particle, tid);
+    PhysicsTrackView physics(model.params.physics,
+                             model.states.physics,
+                             particle.particle_id(),
+                             MaterialId{},
+                             tid);
 
-// Launch the EPlusGG interaction
-void eplusgg_interact(const EPlusGGPointers&                     eplusgg,
-                      const ModelInteractRefs<MemSpace::device>& model);
+    // This interaction only applies if the EPlusGG model was selected
+    if (physics.model_id() != epgg.model_id)
+        return;
 
-void eplusgg_interact(const EPlusGGPointers&                   eplusgg,
-                      const ModelInteractRefs<MemSpace::host>& model);
+    // Do the interaction
+    EPlusGGInteractor interact(
+        epgg, particle, model.states.direction[tid], allocate_secondaries);
+    RngEngine rng(model.states.rng, tid);
+    model.states.interactions[tid] = interact(rng);
+
+    CELER_ENSURE(model.states.interactions[tid]);
+}
 
 //---------------------------------------------------------------------------//
 } // namespace detail

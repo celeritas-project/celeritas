@@ -9,6 +9,7 @@
 
 #include "base/Assert.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/em/generated/EPlusGGInteract.hh"
 
 namespace celeritas
 {
@@ -58,7 +59,7 @@ void EPlusGGModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
-    detail::eplusgg_interact(interface_, pointers);
+    generated::eplusgg_interact(interface_, pointers);
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
@@ -67,7 +68,7 @@ void EPlusGGModel::interact(
 void EPlusGGModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
 {
-    detail::eplusgg_interact(interface_, pointers);
+    generated::eplusgg_interact(interface_, pointers);
 }
 
 //---------------------------------------------------------------------------//

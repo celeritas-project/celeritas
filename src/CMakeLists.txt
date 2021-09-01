@@ -34,6 +34,7 @@ list(APPEND SOURCES
 # Generate model launcher code for host/device
 include(CeleritasGenInteractor)
 celeritas_gen_interactor(BetheHeitler bethe_heitler)
+celeritas_gen_interactor(EPlusGG eplusgg)
 celeritas_gen_interactor(KleinNishina klein_nishina)
 
 # Main library
@@ -80,7 +81,7 @@ list(APPEND SOURCES
   physics/em/RayleighModel.cc
   physics/em/RayleighProcess.cc
   physics/em/generated/BetheHeitlerInteract.cc
-  physics/em/detail/EPlusGG.cc
+  physics/em/generated/EPlusGGInteract.cc
   physics/em/generated/KleinNishinaInteract.cc
   physics/em/detail/LivermorePE.cc
   physics/em/detail/MollerBhabha.cc
@@ -102,7 +103,7 @@ if(CELERITAS_USE_CUDA)
     base/KernelParamCalculator.cuda.cc
     base/detail/Filler.cu
     physics/em/generated/BetheHeitlerInteract.cu
-    physics/em/detail/EPlusGG.cu
+    physics/em/generated/EPlusGGInteract.cu
     physics/em/generated/KleinNishinaInteract.cu
     physics/em/detail/MollerBhabha.cu
     physics/em/detail/MuBremsstrahlung.cu
