@@ -36,6 +36,9 @@ function(celeritas_gen_interactor class func)
     COMMAND "${Python_EXECUTABLE}"
       "${CELERITAS_GEN_INTERACTOR}" --class ${class} --func ${func}
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/src/physics/em/generated")
-endfunction()
+    execute_process(
+      COMMAND clang-format -i "${class}Interact.hh" "${class}Interact.cc" "${class}Interact.cu"
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/src/physics/em/generated")
+  endfunction()
 
 #-----------------------------------------------------------------------------#
