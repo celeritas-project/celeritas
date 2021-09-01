@@ -9,7 +9,7 @@
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
-#include "detail/MollerBhabha.hh"
+#include "detail/MollerBhabhaInteractor.hh"
 
 namespace celeritas
 {

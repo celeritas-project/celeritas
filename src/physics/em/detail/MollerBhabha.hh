@@ -7,62 +7,72 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
+#include "physics/base/CutoffView.hh"
+#include "physics/base/ModelInterface.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
-#include "physics/base/Units.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "random/RngEngine.hh"
+#include "MollerBhabhaInteractor.hh"
 
 namespace celeritas
 {
-template<MemSpace M>
-struct ModelInteractRefs;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating an interactor.
+ * Model interactor kernel launcher
  */
-struct MollerBhabhaPointers
+template<MemSpace M>
+struct MollerBhabhaLauncher
 {
-    //! Model ID
-    ModelId model_id;
-
-    //! ID of an electron
-    ParticleId electron_id;
-    //! ID of a positron
-    ParticleId positron_id;
-    //! Electron mass * c^2 [MeV]
-    real_type electron_mass_c_sq;
-    //! Model's mininum energy limit [MeV]
-    static CELER_CONSTEXPR_FUNCTION real_type min_valid_energy()
+    CELER_FUNCTION MollerBhabhaLauncher(const MollerBhabhaPointers& pointers,
+                                        const ModelInteractRefs<M>& interaction)
+        : mb(pointers), model(interaction)
     {
-        return 1e-3;
-    }
-    //! Model's maximum energy limit [MeV]
-    static CELER_CONSTEXPR_FUNCTION real_type max_valid_energy()
-    {
-        return 100e6;
     }
 
-    //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return electron_id && positron_id && electron_mass_c_sq > 0;
-    }
+    const MollerBhabhaPointers& mb;    //!< Shared data for interactor
+    const ModelInteractRefs<M>& model; //!< State data needed to interact
+
+    //! Create track views and launch interactor
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
-//---------------------------------------------------------------------------//
-// KERNEL LAUNCHERS
-//---------------------------------------------------------------------------//
+template<MemSpace M>
+CELER_FUNCTION void MollerBhabhaLauncher<M>::operator()(ThreadId tid) const
+{
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
+    ParticleTrackView         particle(
+        model.params.particle, model.states.particle, tid);
 
-// Launch Moller-Bhabha interaction
-void moller_bhabha_interact(
-    const MollerBhabhaPointers&                device_pointers,
-    const ModelInteractRefs<MemSpace::device>& interaction);
+    MaterialTrackView material(
+        model.params.material, model.states.material, tid);
 
-void moller_bhabha_interact(const MollerBhabhaPointers& device_pointers,
-                            const ModelInteractRefs<MemSpace::host>& interaction);
+    PhysicsTrackView physics(model.params.physics,
+                             model.states.physics,
+                             particle.particle_id(),
+                             material.material_id(),
+                             tid);
+
+    CutoffView cutoff(model.params.cutoffs, material.material_id());
+
+    // This interaction only applies if the MB model was selected
+    if (physics.model_id() != mb.model_id)
+        return;
+
+    MollerBhabhaInteractor interact(
+        mb, particle, cutoff, model.states.direction[tid], allocate_secondaries);
+
+    RngEngine rng(model.states.rng, tid);
+    model.states.interactions[tid] = interact(rng);
+    CELER_ENSURE(model.states.interactions[tid]);
+}
 
 //---------------------------------------------------------------------------//
 } // namespace detail

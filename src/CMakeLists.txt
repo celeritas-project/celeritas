@@ -36,6 +36,7 @@ include(CeleritasGenInteractor)
 celeritas_gen_interactor(BetheHeitler bethe_heitler)
 celeritas_gen_interactor(EPlusGG eplusgg)
 celeritas_gen_interactor(KleinNishina klein_nishina)
+celeritas_gen_interactor(MollerBhabha moller_bhabha)
 
 # Main library
 list(APPEND SOURCES
@@ -84,7 +85,7 @@ list(APPEND SOURCES
   physics/em/generated/EPlusGGInteract.cc
   physics/em/generated/KleinNishinaInteract.cc
   physics/em/detail/LivermorePE.cc
-  physics/em/detail/MollerBhabha.cc
+  physics/em/generated/MollerBhabhaInteract.cc
   physics/em/detail/MuBremsstrahlung.cc
   physics/em/detail/Rayleigh.cc
   physics/em/detail/SeltzerBerger.cc
@@ -105,7 +106,7 @@ if(CELERITAS_USE_CUDA)
     physics/em/generated/BetheHeitlerInteract.cu
     physics/em/generated/EPlusGGInteract.cu
     physics/em/generated/KleinNishinaInteract.cu
-    physics/em/detail/MollerBhabha.cu
+    physics/em/generated/MollerBhabhaInteract.cu
     physics/em/detail/MuBremsstrahlung.cu
     physics/em/detail/LivermorePE.cu
     physics/em/detail/Rayleigh.cu
