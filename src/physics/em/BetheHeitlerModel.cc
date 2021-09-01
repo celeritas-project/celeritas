@@ -9,6 +9,7 @@
 
 #include "base/Assert.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/em/generated/BetheHeitlerInteract.hh"
 
 namespace celeritas
 {
@@ -57,7 +58,7 @@ void BetheHeitlerModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
-    detail::bethe_heitler_interact(interface_, pointers);
+    generated::bethe_heitler_interact(interface_, pointers);
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
@@ -66,7 +67,7 @@ void BetheHeitlerModel::interact(
 void BetheHeitlerModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
 {
-    detail::bethe_heitler_interact(interface_, pointers);
+    generated::bethe_heitler_interact(interface_, pointers);
 }
 
 //---------------------------------------------------------------------------//
