@@ -7,67 +7,81 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
+#include "physics/base/ModelInterface.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
-#include "physics/base/Units.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "random/RngEngine.hh"
+#include "MuBremsstrahlungInteractor.hh"
 
 namespace celeritas
 {
-template<MemSpace M>
-struct ModelInteractRefs;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating an interactor.
+ * Model interactor kernel launcher
  */
-struct MuBremsstrahlungPointers
+template<MemSpace M>
+struct MuBremsstrahlungLauncher
 {
-    //! Model ID
-    ModelId model_id;
-    //! ID of a gamma
-    ParticleId gamma_id;
-    //! ID of a muon
-    ParticleId mu_minus_id;
-    //! ID of a muon
-    ParticleId mu_plus_id;
-    //! Electron mass [MeV / c^2]
-    units::MevMass electron_mass;
-
-    //! Minimum incident energy for this model to be valid
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
+    CELER_FUNCTION
+    MuBremsstrahlungLauncher(const MuBremsstrahlungPointers& pointers,
+                             const ModelInteractRefs<M>&     interaction)
+        : mb(pointers), model(interaction)
     {
-        return units::MevEnergy{1e3};
     }
 
-    //! Maximum incident energy for this model to be valid
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_incident_energy()
-    {
-        return units::MevEnergy{1e7};
-    }
+    const MuBremsstrahlungPointers& mb;    //!< Shared data for interactor
+    const ModelInteractRefs<M>&     model; //!< State data needed to interact
 
-    //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return model_id && gamma_id && mu_minus_id && mu_plus_id
-               && electron_mass.value() > 0;
-    }
+    //! Create track views and launch interactor
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
-//---------------------------------------------------------------------------//
-// KERNEL LAUNCHERS
-//---------------------------------------------------------------------------//
+template<MemSpace M>
+CELER_FUNCTION void MuBremsstrahlungLauncher<M>::operator()(ThreadId tid) const
+{
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
+    ParticleTrackView         particle(
+        model.params.particle, model.states.particle, tid);
 
-// Launch the Muon Bremsstrahlung interaction
-void mu_bremsstrahlung_interact(
-    const MuBremsstrahlungPointers&            device_pointers,
-    const ModelInteractRefs<MemSpace::device>& interaction);
+    // Setup for MaterialView access
+    MaterialTrackView material(
+        model.params.material, model.states.material, tid);
+    // Cache the associated MaterialView as function calls to
+    // MaterialTrackView are expensive
+    MaterialView material_view = material.material_view();
 
-void mu_bremsstrahlung_interact(
-    const MuBremsstrahlungPointers&          device_pointers,
-    const ModelInteractRefs<MemSpace::host>& interaction);
+    PhysicsTrackView physics(model.params.physics,
+                             model.states.physics,
+                             particle.particle_id(),
+                             material.material_id(),
+                             tid);
+
+    // This interaction only applies if the Muon Bremsstrahlung model was
+    // selected
+    if (physics.model_id() != mb.model_id)
+        return;
+
+    // TODO: sample an element. For now assume one element per material
+    const ElementComponentId   elcomp_id{0};
+    MuBremsstrahlungInteractor interact(mb,
+                                        particle,
+                                        model.states.direction[tid],
+                                        allocate_secondaries,
+                                        material_view,
+                                        elcomp_id);
+
+    RngEngine rng(model.states.rng, tid);
+    model.states.interactions[tid] = interact(rng);
+    CELER_ENSURE(model.states.interactions[tid]);
+}
 
 //---------------------------------------------------------------------------//
 } // namespace detail

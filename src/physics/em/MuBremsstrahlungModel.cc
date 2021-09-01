@@ -9,6 +9,7 @@
 
 #include "base/Assert.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/em/generated/MuBremsstrahlungInteract.hh"
 
 namespace celeritas
 {
@@ -63,7 +64,7 @@ void MuBremsstrahlungModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
-    detail::mu_bremsstrahlung_interact(interface_, pointers);
+    generated::mu_bremsstrahlung_interact(interface_, pointers);
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
@@ -72,7 +73,7 @@ void MuBremsstrahlungModel::interact(
 void MuBremsstrahlungModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
 {
-    detail::mu_bremsstrahlung_interact(interface_, pointers);
+    generated::mu_bremsstrahlung_interact(interface_, pointers);
 }
 
 //---------------------------------------------------------------------------//
