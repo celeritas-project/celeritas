@@ -1,22 +1,11 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Rayleigh.cc
+//! \file RayleighData.cc
 //---------------------------------------------------------------------------//
-#include "base/Assert.hh"
-#include "base/Types.hh"
-#include "random/RngEngine.hh"
-#include "physics/base/ModelInterface.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/material/Types.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "physics/material/ElementView.hh"
-#include "physics/material/ElementSelector.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "RayleighInteractor.hh"
-#include "Rayleigh.hh"
+#include "RayleighData.hh"
 
 namespace celeritas
 {
@@ -251,49 +240,5 @@ const real_type RayleighData::angular_parameters[num_parameters][num_elements]
         // clang-format on
 };
 
-//---------------------------------------------------------------------------//
-// KERNELS
-//---------------------------------------------------------------------------//
-/*!
- * Interact using the Rayleigh model on applicable tracks.
- */
-void rayleigh_interact(const RayleighHostRef&                   rayleigh,
-                       const ModelInteractRefs<MemSpace::host>& model)
-{
-    for (auto tid : range(ThreadId{model.states.size()}))
-    {
-        // Get views to Particle, and Physics
-        ParticleTrackView particle(
-            model.params.particle, model.states.particle, tid);
-
-        MaterialTrackView material(
-            model.params.material, model.states.material, tid);
-
-        PhysicsTrackView physics(model.params.physics,
-                                 model.states.physics,
-                                 particle.particle_id(),
-                                 material.material_id(),
-                                 tid);
-
-        // This interaction only applies if the Rayleigh model was selected
-        if (physics.model_id() != rayleigh.model_id)
-            continue;
-
-        RngEngine rng(model.states.rng, tid);
-
-        // Assume only a single element in the material, for now
-        CELER_ASSERT(material.material_view().num_elements() == 1);
-        ElementId el_id{0};
-
-        // Do the interaction
-        RayleighInteractor interact(
-            rayleigh, particle, model.states.direction[tid], el_id);
-
-        model.states.interactions[tid] = interact(rng);
-        CELER_ENSURE(model.states.interactions[tid]);
-    }
-}
-
-//---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

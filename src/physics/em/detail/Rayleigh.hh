@@ -7,101 +7,75 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
+#include "base/Assert.hh"
 #include "base/Types.hh"
-#include "base/Collection.hh"
-#include "physics/base/Types.hh"
+#include "random/RngEngine.hh"
+#include "physics/base/ModelInterface.hh"
+#include "physics/base/ParticleTrackView.hh"
 #include "physics/material/Types.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "physics/material/ElementView.hh"
+#include "physics/material/ElementSelector.hh"
+#include "physics/base/PhysicsTrackView.hh"
+#include "RayleighInteractor.hh"
 
 namespace celeritas
 {
-template<MemSpace M>
-struct ModelInteractRefs;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Rayleigh angular parameters (form factor) for sampling the angular
- * distribution of coherently scattered photon
+ * Model interactor kernel launcher
  */
-struct RayleighData
+template<MemSpace M>
+struct RayleighLauncher
 {
-    static const unsigned int num_parameters = 9;
-    static const unsigned int num_elements   = 100;
-
-    static const real_type angular_parameters[num_parameters][num_elements];
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Rayleigh angular parameters to fit tabulated form factors (\em FF)
- * \f[
- *  FF(E,cos)^2 = \Sigma_{j} \frac{a_j}{[1 + b_j x]^{n}}
- * \f]
- * where \f$ x= E^{2}(1-cos\theta) \f$ and \em n is the high energy slope of
- * the form factor and \em a and \em b are free parameters to obtain the best
- * fit to the form factor. The unit for the energy (\em E) is in MeV.
- */
-struct RayleighParameters
-{
-    Real3 a;
-    Real3 b;
-    Real3 n;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Device data for creating an interactor.
- */
-template<Ownership W, MemSpace M>
-struct RayleighGroup
-{
-    //! Model ID
-    ModelId model_id;
-
-    //! ID of a gamma
-    ParticleId gamma_id;
-
-    template<class T>
-    using ElementItems = celeritas::Collection<T, W, M, ElementId>;
-    ElementItems<RayleighParameters> params;
-
-    //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    CELER_FUNCTION RayleighLauncher(const RayleighNativeRef&    pointers,
+                                    const ModelInteractRefs<M>& interaction)
+        : rayleigh(pointers), model(interaction)
     {
-        return model_id && gamma_id && !params.empty();
     }
 
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    RayleighGroup& operator=(const RayleighGroup<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        model_id = other.model_id;
-        gamma_id = other.gamma_id;
-        params   = other.params;
-        return *this;
-    }
+    const RayleighNativeRef&    rayleigh; //!< Shared data for interactor
+    const ModelInteractRefs<M>& model;    //!< State data needed to interact
+
+    //! Create track views and launch interactor
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
-using RayleighDeviceRef
-    = RayleighGroup<Ownership::const_reference, MemSpace::device>;
-using RayleighHostRef
-    = RayleighGroup<Ownership::const_reference, MemSpace::host>;
-using RayleighNativeRef
-    = RayleighGroup<Ownership::const_reference, MemSpace::native>;
+template<MemSpace M>
+CELER_FUNCTION void RayleighLauncher<M>::operator()(ThreadId tid) const
+{
+    // Get views to Particle, and Physics
+    ParticleTrackView particle(
+        model.params.particle, model.states.particle, tid);
 
-//---------------------------------------------------------------------------//
-// KERNEL LAUNCHERS
-//---------------------------------------------------------------------------//
+    MaterialTrackView material(
+        model.params.material, model.states.material, tid);
 
-// Launch the Livermore photoelectric interaction
-void rayleigh_interact(const RayleighDeviceRef&                   pointers,
-                       const ModelInteractRefs<MemSpace::device>& model);
+    PhysicsTrackView physics(model.params.physics,
+                             model.states.physics,
+                             particle.particle_id(),
+                             material.material_id(),
+                             tid);
 
-void rayleigh_interact(const RayleighHostRef&                   pointers,
-                       const ModelInteractRefs<MemSpace::host>& model);
+    // This interaction only applies if the Rayleigh model was selected
+    if (physics.model_id() != rayleigh.model_id)
+        return;
+
+    RngEngine rng(model.states.rng, tid);
+
+    // Assume only a single element in the material, for now
+    CELER_ASSERT(material.material_view().num_elements() == 1);
+    ElementId el_id{0};
+
+    // Do the interaction
+    RayleighInteractor interact(
+        rayleigh, particle, model.states.direction[tid], el_id);
+
+    model.states.interactions[tid] = interact(rng);
+    CELER_ENSURE(model.states.interactions[tid]);
+}
 
 //---------------------------------------------------------------------------//
 } // namespace detail
