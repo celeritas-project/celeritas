@@ -16,6 +16,7 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/material/MaterialParams.hh"
+#include "physics/em/generated/SeltzerBergerInteract.hh"
 
 namespace celeritas
 {
@@ -91,7 +92,7 @@ void SeltzerBergerModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
-    detail::seltzer_berger_interact(this->device_pointers(), pointers);
+    generated::seltzer_berger_interact(this->device_pointers(), pointers);
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
@@ -100,7 +101,7 @@ void SeltzerBergerModel::interact(
 void SeltzerBergerModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
 {
-    detail::seltzer_berger_interact(this->host_pointers(), pointers);
+    generated::seltzer_berger_interact(this->host_pointers(), pointers);
 }
 
 //---------------------------------------------------------------------------//

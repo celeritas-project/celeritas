@@ -7,171 +7,82 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "physics/base/Types.hh"
-#include "physics/base/Units.hh"
-#include "physics/grid/TwodGridInterface.hh"
-#include "physics/material/Types.hh"
+#include "physics/base/ModelInterface.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/base/PhysicsTrackView.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "random/RngEngine.hh"
+#include "SeltzerBergerInteractor.hh"
 
 namespace celeritas
 {
-template<MemSpace M>
-struct ModelInteractRefs;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Seltzer-Berger differential cross section tables for a single element.
- *
- * The 2D grid data is organized by log E on the x axis and fractional exiting
- * energy (0 to 1) on the y axis. The values are in millibarns, but their
- * magnitude isn't important since we always take ratios.
- *
- * \c argmax is the y index of the largest cross section at a given incident
- * energy point.
- *
- * \todo We could use way smaller integers for argmax, even i/j here, because
- * these tables are so small.
+ * Model interactor kernel launcher
  */
-struct SBElementTableData
+template<MemSpace M>
+struct SeltzerBergerLauncher
 {
-    using EnergyUnits = units::LogMev;
-    using XsUnits     = units::Millibarn;
-
-    TwodGridData         grid;   //!< Cross section grid and data
-    ItemRange<size_type> argmax; //!< Y index of the largest XS for each energy
-
-    explicit inline CELER_FUNCTION operator bool() const
+    CELER_FUNCTION
+    SeltzerBergerLauncher(const SeltzerBergerNativeRef& pointers,
+                          const ModelInteractRefs<M>&   interaction)
+        : sb(pointers), model(interaction)
     {
-        return grid && argmax.size() == grid.x.size();
     }
+
+    const SeltzerBergerNativeRef& sb;    //!< Shared data for interactor
+    const ModelInteractRefs<M>&   model; //!< State data needed to interact
+
+    //! Create track views and launch interactor
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
-//---------------------------------------------------------------------------//
-/*!
- * Bremsstrahlung differential cross section (DCS) data for SB sampling.
- *
- * The value grids are organized per element ID, and each 2D grid is:
- * - x: logarithm of the energy [MeV] of the incident charged dparticle
- * - y: ratio of exiting photon energy to incident particle energy
- * - value: differential cross section (microbarns)
- */
-template<Ownership W, MemSpace M>
-struct SeltzerBergerTableData
+template<MemSpace M>
+CELER_FUNCTION void SeltzerBergerLauncher<M>::operator()(ThreadId tid) const
 {
-    //// MEMBER FUNCTIONS ////
+    ParticleTrackView particle(
+        model.params.particle, model.states.particle, tid);
 
-    template<class T>
-    using Items = Collection<T, W, M>;
-    template<class T>
-    using ElementItems = Collection<T, W, M, ElementId>;
+    // Setup for ElementView access
+    MaterialTrackView material(
+        model.params.material, model.states.material, tid);
 
-    //// MEMBER DATA ////
+    PhysicsTrackView physics(model.params.physics,
+                             model.states.physics,
+                             particle.particle_id(),
+                             material.material_id(),
+                             tid);
 
-    Items<real_type>                 reals;
-    Items<size_type>                 sizes;
-    ElementItems<SBElementTableData> elements;
+    // This interaction only applies if the Seltzer-Berger model was
+    // selected
+    if (physics.model_id() != sb.ids.model)
+        return;
 
-    //// MEMBER FUNCTIONS ////
+    // Assume only a single element in the material, for now
+    MaterialView material_view = material.material_view();
+    CELER_ASSERT(material_view.num_elements() == 1);
+    const ElementComponentId selected_element{0};
 
-    //! Whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return !reals.empty() && !sizes.empty() && !elements.empty();
-    }
+    CutoffView cutoffs(model.params.cutoffs, material.material_id());
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
+    SeltzerBergerInteractor   interact(sb,
+                                     particle,
+                                     model.states.direction[tid],
+                                     cutoffs,
+                                     allocate_secondaries,
+                                     material_view,
+                                     selected_element);
 
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    SeltzerBergerTableData&
-    operator=(const SeltzerBergerTableData<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        reals    = other.reals;
-        sizes    = other.sizes;
-        elements = other.elements;
-        return *this;
-    }
-};
-
-//! Helper struct for making assignment easier
-struct SeltzerBergerIds
-{
-    //! Model ID
-    ModelId model;
-    //! ID of an electron
-    ParticleId electron;
-    //! ID of an positron
-    ParticleId positron;
-    //! ID of a gamma
-    ParticleId gamma;
-
-    //! Whether the IDs are assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return model && electron && positron && gamma;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Device data for sampling SeltzerBergerInteractor.
- */
-template<Ownership W, MemSpace M>
-struct SeltzerBergerData
-{
-    using MevMass = units::MevMass;
-    //// MEMBER DATA ////
-
-    //! IDs in a separate struct for readability/easier copying
-    SeltzerBergerIds ids;
-
-    //! Electron mass [MeV / c^2]
-    MevMass electron_mass;
-
-    // Differential cross section storage
-    SeltzerBergerTableData<W, M> differential_xs;
-
-    //// MEMBER FUNCTIONS ////
-
-    //! Whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return ids && electron_mass.value() > 0 && differential_xs;
-    }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    SeltzerBergerData& operator=(const SeltzerBergerData<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        ids             = other.ids;
-        electron_mass   = other.electron_mass;
-        differential_xs = other.differential_xs;
-        return *this;
-    }
-};
-
-using SeltzerBergerDeviceRef
-    = SeltzerBergerData<Ownership::const_reference, MemSpace::device>;
-using SeltzerBergerHostRef
-    = SeltzerBergerData<Ownership::const_reference, MemSpace::host>;
-using SeltzerBergerNativeRef
-    = SeltzerBergerData<Ownership::const_reference, MemSpace::native>;
-
-//---------------------------------------------------------------------------//
-// KERNEL LAUNCHERS
-//---------------------------------------------------------------------------//
-
-// Launch the Seltzer-Berger interaction
-void seltzer_berger_interact(
-    const SeltzerBergerDeviceRef&              shared,
-    const ModelInteractRefs<MemSpace::device>& interaction);
-
-void seltzer_berger_interact(
-    const SeltzerBergerHostRef&              shared,
-    const ModelInteractRefs<MemSpace::host>& interaction);
+    RngEngine rng(model.states.rng, tid);
+    model.states.interactions[tid] = interact(rng);
+    CELER_ENSURE(model.states.interactions[tid]);
+}
 
 //---------------------------------------------------------------------------//
 } // namespace detail
