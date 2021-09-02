@@ -67,6 +67,9 @@ CELER_FUNCTION void KleinNishinaLauncher<M>::operator()(ThreadId tid) const
     CELER_ENSURE(model.states.interactions[tid]);
 }
 
+using KleinNishinaDeviceRef = KleinNishinaPointers;
+using KleinNishinaHostRef   = KleinNishinaPointers;
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

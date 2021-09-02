@@ -74,6 +74,9 @@ CELER_FUNCTION void MollerBhabhaLauncher<M>::operator()(ThreadId tid) const
     CELER_ENSURE(model.states.interactions[tid]);
 }
 
+using MollerBhabhaHostRef   = MollerBhabhaPointers;
+using MollerBhabhaDeviceRef = MollerBhabhaPointers;
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

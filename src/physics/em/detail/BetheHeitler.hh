@@ -83,6 +83,9 @@ CELER_FUNCTION void BetheHeitlerLauncher<M>::operator()(ThreadId tid) const
     CELER_ENSURE(model.states.interactions[tid]);
 }
 
+using BetheHeitlerHostRef   = BetheHeitlerPointers;
+using BetheHeitlerDeviceRef = BetheHeitlerPointers;
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

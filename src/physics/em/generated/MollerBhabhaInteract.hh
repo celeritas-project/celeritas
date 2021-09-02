@@ -13,14 +13,14 @@ namespace celeritas
 {
 namespace generated
 {
-void moller_bhabha_interact(const detail::MollerBhabhaPointers&,
+void moller_bhabha_interact(const detail::MollerBhabhaHostRef&,
                             const ModelInteractRefs<MemSpace::host>&);
 
-void moller_bhabha_interact(const detail::MollerBhabhaPointers&,
+void moller_bhabha_interact(const detail::MollerBhabhaDeviceRef&,
                             const ModelInteractRefs<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
-inline void moller_bhabha_interact(const detail::MollerBhabhaPointers&,
+inline void moller_bhabha_interact(const detail::MollerBhabhaDeviceRef&,
                                    const ModelInteractRefs<MemSpace::device>&)
 {
     return {};

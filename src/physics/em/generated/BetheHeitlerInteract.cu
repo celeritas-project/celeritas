@@ -19,7 +19,7 @@ namespace generated
 namespace
 {
 __global__ void
-bethe_heitler_interact_kernel(const detail::BetheHeitlerPointers        ptrs,
+bethe_heitler_interact_kernel(const detail::BetheHeitlerDeviceRef       ptrs,
                               const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -31,7 +31,7 @@ bethe_heitler_interact_kernel(const detail::BetheHeitlerPointers        ptrs,
 }
 } // namespace
 
-void bethe_heitler_interact(const detail::BetheHeitlerPointers&        ptrs,
+void bethe_heitler_interact(const detail::BetheHeitlerDeviceRef&       ptrs,
                             const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(ptrs);

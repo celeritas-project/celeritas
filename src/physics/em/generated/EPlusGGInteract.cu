@@ -19,7 +19,7 @@ namespace generated
 namespace
 {
 __global__ void
-eplusgg_interact_kernel(const detail::EPlusGGPointers             ptrs,
+eplusgg_interact_kernel(const detail::EPlusGGDeviceRef            ptrs,
                         const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -31,7 +31,7 @@ eplusgg_interact_kernel(const detail::EPlusGGPointers             ptrs,
 }
 } // namespace
 
-void eplusgg_interact(const detail::EPlusGGPointers&             ptrs,
+void eplusgg_interact(const detail::EPlusGGDeviceRef&            ptrs,
                       const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(ptrs);

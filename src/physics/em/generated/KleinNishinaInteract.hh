@@ -13,14 +13,14 @@ namespace celeritas
 {
 namespace generated
 {
-void klein_nishina_interact(const detail::KleinNishinaPointers&,
+void klein_nishina_interact(const detail::KleinNishinaHostRef&,
                             const ModelInteractRefs<MemSpace::host>&);
 
-void klein_nishina_interact(const detail::KleinNishinaPointers&,
+void klein_nishina_interact(const detail::KleinNishinaDeviceRef&,
                             const ModelInteractRefs<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
-inline void klein_nishina_interact(const detail::KleinNishinaPointers&,
+inline void klein_nishina_interact(const detail::KleinNishinaDeviceRef&,
                                    const ModelInteractRefs<MemSpace::device>&)
 {
     return {};

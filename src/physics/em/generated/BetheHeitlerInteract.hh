@@ -13,14 +13,14 @@ namespace celeritas
 {
 namespace generated
 {
-void bethe_heitler_interact(const detail::BetheHeitlerPointers&,
+void bethe_heitler_interact(const detail::BetheHeitlerHostRef&,
                             const ModelInteractRefs<MemSpace::host>&);
 
-void bethe_heitler_interact(const detail::BetheHeitlerPointers&,
+void bethe_heitler_interact(const detail::BetheHeitlerDeviceRef&,
                             const ModelInteractRefs<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
-inline void bethe_heitler_interact(const detail::BetheHeitlerPointers&,
+inline void bethe_heitler_interact(const detail::BetheHeitlerDeviceRef&,
                                    const ModelInteractRefs<MemSpace::device>&)
 {
     return {};

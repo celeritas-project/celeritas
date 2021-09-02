@@ -13,15 +13,15 @@ namespace celeritas
 {
 namespace generated
 {
-void mu_bremsstrahlung_interact(const detail::MuBremsstrahlungPointers&,
+void mu_bremsstrahlung_interact(const detail::MuBremsstrahlungHostRef&,
                                 const ModelInteractRefs<MemSpace::host>&);
 
-void mu_bremsstrahlung_interact(const detail::MuBremsstrahlungPointers&,
+void mu_bremsstrahlung_interact(const detail::MuBremsstrahlungDeviceRef&,
                                 const ModelInteractRefs<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void
-mu_bremsstrahlung_interact(const detail::MuBremsstrahlungPointers&,
+mu_bremsstrahlung_interact(const detail::MuBremsstrahlungDeviceRef&,
                            const ModelInteractRefs<MemSpace::device>&)
 {
     return {};

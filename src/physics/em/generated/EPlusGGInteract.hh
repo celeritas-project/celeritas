@@ -13,14 +13,14 @@ namespace celeritas
 {
 namespace generated
 {
-void eplusgg_interact(const detail::EPlusGGPointers&,
+void eplusgg_interact(const detail::EPlusGGHostRef&,
                       const ModelInteractRefs<MemSpace::host>&);
 
-void eplusgg_interact(const detail::EPlusGGPointers&,
+void eplusgg_interact(const detail::EPlusGGDeviceRef&,
                       const ModelInteractRefs<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
-inline void eplusgg_interact(const detail::EPlusGGPointers&,
+inline void eplusgg_interact(const detail::EPlusGGDeviceRef&,
                              const ModelInteractRefs<MemSpace::device>&)
 {
     return {};

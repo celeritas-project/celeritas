@@ -15,7 +15,7 @@ namespace celeritas
 {
 namespace generated
 {
-void bethe_heitler_interact(const detail::BetheHeitlerPointers&      ptrs,
+void bethe_heitler_interact(const detail::BetheHeitlerHostRef&       ptrs,
                             const ModelInteractRefs<MemSpace::host>& model)
 {
     CELER_EXPECT(ptrs);

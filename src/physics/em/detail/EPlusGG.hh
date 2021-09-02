@@ -66,6 +66,9 @@ CELER_FUNCTION void EPlusGGLauncher<M>::operator()(ThreadId tid) const
     CELER_ENSURE(model.states.interactions[tid]);
 }
 
+using EPlusGGHostRef   = EPlusGGPointers;
+using EPlusGGDeviceRef = EPlusGGPointers;
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

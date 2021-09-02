@@ -35,16 +35,16 @@ namespace celeritas
 namespace generated
 {{
 void {func}_interact(
-    const detail::{class}Pointers&,
+    const detail::{class}HostRef&,
     const ModelInteractRefs<MemSpace::host>&);
 
 void {func}_interact(
-    const detail::{class}Pointers&,
+    const detail::{class}DeviceRef&,
     const ModelInteractRefs<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void {func}_interact(
-    const detail::{class}Pointers&,
+    const detail::{class}DeviceRef&,
     const ModelInteractRefs<MemSpace::device>&)
 {{
     return {{}};
@@ -66,7 +66,7 @@ namespace celeritas
 namespace generated
 {{
 void {func}_interact(
-    const detail::{class}Pointers& ptrs,
+    const detail::{class}HostRef& ptrs,
     const ModelInteractRefs<MemSpace::host>& model)
 {{
     CELER_EXPECT(ptrs);
@@ -97,7 +97,7 @@ namespace generated
 namespace
 {{
 __global__ void {func}_interact_kernel(
-    const detail::{class}Pointers ptrs,
+    const detail::{class}DeviceRef ptrs,
     const ModelInteractRefs<MemSpace::device> model)
 {{
     auto tid = KernelParamCalculator::thread_id();
@@ -110,7 +110,7 @@ __global__ void {func}_interact_kernel(
 }} // namespace
 
 void {func}_interact(
-    const detail::{class}Pointers& ptrs,
+    const detail::{class}DeviceRef& ptrs,
     const ModelInteractRefs<MemSpace::device>& model)
 {{
     CELER_EXPECT(ptrs);

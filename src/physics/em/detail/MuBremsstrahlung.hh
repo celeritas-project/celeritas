@@ -83,6 +83,9 @@ CELER_FUNCTION void MuBremsstrahlungLauncher<M>::operator()(ThreadId tid) const
     CELER_ENSURE(model.states.interactions[tid]);
 }
 
+using MuBremsstrahlungHostRef   = MuBremsstrahlungPointers;
+using MuBremsstrahlungDeviceRef = MuBremsstrahlungPointers;
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas
