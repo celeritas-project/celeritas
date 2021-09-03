@@ -174,7 +174,6 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
 ImportPhysicsVectorType
 to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
 {
-    // Geant4 v10
     switch (g4_vector_type)
     {
         case T_G4PhysicsVector:
@@ -322,7 +321,7 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 /*!
  * Store energy loss XS tables to this->process_.
  *
- * The following XS tables do not exist in Geant4 v11.
+ * The following XS tables do not exist in Geant4 v11:
  * - DEDXTableForSubsec()
  * - IonisationTableForSubsec()
  * - SubLambdaTable()

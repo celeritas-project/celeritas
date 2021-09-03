@@ -33,6 +33,12 @@
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
 
+#include <G4ElementSelector.hh>
+#include <G4EmElementSelector.hh>
+#include <G4Element.hh>
+#include <G4VEmProcess.hh>
+#include <G4ElementData.hh>
+
 #include <TFile.h>
 #include <TTree.h>
 #include <TBranch.h>
@@ -381,6 +387,125 @@ std::vector<ImportProcess> store_processes()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Test import of element XS data at startup.
+ */
+void store_elemental_xs()
+{
+    CELER_LOG(status) << "Test export of elemental XS data";
+
+    // Store element list
+    const auto g4element_table = *G4Element::GetElementTable();
+
+    std::vector<ImportElement> elements;
+    elements.resize(g4element_table.size());
+
+    // Loop over element data
+    for (const auto& g4element : g4element_table)
+    {
+        CELER_ASSERT(g4element);
+
+        // Add element to vector
+        ImportElement element;
+        element.name                  = g4element->GetName();
+        element.atomic_number         = g4element->GetZ();
+        element.atomic_mass           = g4element->GetAtomicMassAmu();
+        element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
+        element.coulomb_factor        = g4element->GetfCoulomb();
+
+        elements[g4element->GetIndex()] = element;
+    }
+
+    CELER_LOG(info) << "loaded elements: " << elements.size();
+
+    // Loop over particles and processes, initialize elemental data and such
+    G4ParticleTable::G4PTblDicIterator& particle_iterator
+        = *(G4ParticleTable::GetParticleTable()->GetIterator());
+    particle_iterator.reset();
+
+    while (particle_iterator())
+    {
+        const G4ParticleDefinition& g4_particle_def
+            = *(particle_iterator.value());
+
+        celeritas::PDGNumber pdg(g4_particle_def.GetPDGEncoding());
+        if (!pdg)
+        {
+            // Skip "dummy" particles: generic ion and geantino
+            continue;
+        }
+
+        // XXX To reduce ROOT file data size in repo, only export processes for
+        // electron/positron/gamma for now. Extend this later.
+        if (!(pdg == celer_pdg::electron() || pdg == celer_pdg::positron()
+              || pdg == celer_pdg::gamma()))
+        {
+            // Not e-, e+, or gamma
+            continue;
+        }
+
+        const G4ProcessVector& process_list
+            = *g4_particle_def.GetProcessManager()->GetProcessList();
+
+        for (auto j : celeritas::range(process_list.size()))
+        {
+            if (dynamic_cast<const G4Transportation*>(process_list[j]))
+            {
+                // Skip transportation process
+                continue;
+            }
+
+            if (const auto em_process
+                = dynamic_cast<const G4VEmProcess*>(process_list[j]))
+            {
+                for (auto j : celeritas::range(em_process->GetNumberOfModels()))
+                {
+                    const auto model      = em_process->GetModelByIndex(j);
+                    const auto model_name = model->GetName();
+                    CELER_LOG(warning) << "found " << model_name;
+
+                    const auto& g4production_cuts_table
+                        = *G4ProductionCutsTable::GetProductionCutsTable();
+
+                    for (int l = 0; l < g4production_cuts_table.GetTableSize();
+                         l++)
+                    {
+                        const auto& g4material_cuts_couple
+                            = g4production_cuts_table.GetMaterialCutsCouple(l);
+                        const auto& g4prod_cuts
+                            = g4material_cuts_couple->GetProductionCuts();
+
+                        const auto& g4_energycuts
+                            = g4production_cuts_table.GetEnergyCutsVector(l);
+
+                        CELER_LOG(info) << " ---- energycutsvector size "
+                                        << g4_energycuts->size() << " for "
+                                        << g4_particle_def.GetParticleName();
+
+                        G4DataVector g4datavec_cuts;
+                        for (int m = 0; m < g4_energycuts->size(); m++)
+                        {
+                            auto val = g4_energycuts->at(m);
+                            CELER_LOG(info) << " ------ value " << val / MeV;
+                            g4datavec_cuts.push_back(val);
+                        }
+
+                        model->InitialiseElementSelectors(&g4_particle_def,
+                                                          g4datavec_cuts);
+
+                        const auto elselvec = model->GetElementSelectors();
+                        const auto eldata   = model->GetElementData();
+
+                        // Maybe I need to follow the manual build as in
+                        // G4HepEmElectronTableBuilder::BuildElementSelector()
+                    }
+                }
+            }
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a populated \c ImportVolume vector.
  */
 std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
@@ -501,6 +626,9 @@ int main(int argc, char* argv[])
     import_data.processes = store_processes();
     import_data.volumes   = store_volumes(world_phys_volume);
     CELER_ENSURE(import_data);
+
+    //// TEST ELEMENT XS EXPORT
+    store_elemental_xs();
 
     // Write data to disk and close ROOT file
     tree_data.Fill();
