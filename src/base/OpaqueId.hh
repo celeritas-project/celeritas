@@ -28,6 +28,8 @@ namespace celeritas
 template<class ValueT, class SizeT = ::celeritas::size_type>
 class OpaqueId
 {
+    static_assert(static_cast<SizeT>(-1) > 0, "SizeT must be unsigned.");
+
   public:
     //!@{
     //! Type aliases
