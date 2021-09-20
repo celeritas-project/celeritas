@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 #include "base/Algorithms.hh"
-#include "base/DeviceVector.hh"
+#include "base/CollectionMirror.hh"
 #include "io/ImportAtomicRelaxation.hh"
 #include "physics/base/CutoffParams.hh"
 #include "AtomicRelaxationInterface.hh"
@@ -26,6 +26,9 @@ class AtomicRelaxationParams
   public:
     //@{
     //! Type aliases
+    using HostRef = AtomicRelaxData<Ownership::const_reference, MemSpace::host>;
+    using DeviceRef
+        = AtomicRelaxData<Ownership::const_reference, MemSpace::device>;
     using MevEnergy        = units::MevEnergy;
     using SPConstCutoffs   = std::shared_ptr<const CutoffParams>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
@@ -46,37 +49,24 @@ class AtomicRelaxationParams
     explicit AtomicRelaxationParams(const Input& inp);
 
     // Access EADL data on the host
-    AtomicRelaxParamsPointers host_pointers() const;
+    const HostRef& host_pointers() const { return data_.host(); }
 
     // Access EADL data on the device
-    AtomicRelaxParamsPointers device_pointers() const;
+    const DeviceRef& device_pointers() const { return data_.device(); }
 
   private:
-    //// HOST DATA ////
-
     bool                                is_auger_enabled_;
-    ParticleId                          electron_id_;
-    ParticleId                          gamma_id_;
     std::unordered_map<int, SubshellId> des_to_id_;
 
-    std::vector<AtomicRelaxElement>    host_elements_;
-    std::vector<AtomicRelaxSubshell>   host_shells_;
-    std::vector<AtomicRelaxTransition> host_transitions_;
-
-    //// DEVICE DATA ////
-
-    DeviceVector<AtomicRelaxElement>    device_elements_;
-    DeviceVector<AtomicRelaxSubshell>   device_shells_;
-    DeviceVector<AtomicRelaxTransition> device_transitions_;
+    // Host/device storage and reference
+    CollectionMirror<AtomicRelaxData> data_;
 
     // HELPER FUNCTIONS
+    using HostData = AtomicRelaxData<Ownership::value, MemSpace::host>;
     void append_element(const ImportAtomicRelaxation& inp,
+                        HostData*                     data,
                         MevEnergy                     electron_cutoff,
                         MevEnergy                     gamma_cutoff);
-
-    Span<AtomicRelaxSubshell> extend_shells(const ImportAtomicRelaxation& inp);
-    Span<AtomicRelaxTransition>
-    extend_transitions(const std::vector<ImportAtomicTransition>& transitions);
 };
 
 //---------------------------------------------------------------------------//

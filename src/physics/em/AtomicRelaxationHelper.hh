@@ -54,8 +54,7 @@ class AtomicRelaxationHelper
   public:
     // Construct with the currently interacting element
     inline CELER_FUNCTION
-    AtomicRelaxationHelper(const AtomicRelaxParamsPointers& shared,
-                           ElementId                        el_id);
+    AtomicRelaxationHelper(const AtomicRelaxPointers& shared, ElementId el_id);
 
     // Whether atomic relaxation should be applied
     explicit inline CELER_FUNCTION operator bool() const;
@@ -75,7 +74,7 @@ class AtomicRelaxationHelper
 
   private:
     // Shared EADL atomic relaxation data
-    const AtomicRelaxParamsPointers& shared_;
+    const AtomicRelaxPointers& shared_;
     // Index in MaterialParams elements
     ElementId el_id_;
 };

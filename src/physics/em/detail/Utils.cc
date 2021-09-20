@@ -17,24 +17,15 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the maximum possible number of secondaries produced in atomic
- * relaxation.
- */
-size_type calc_max_secondaries(const AtomicRelaxElement& el,
-                               units::MevEnergy          electron_cut,
-                               units::MevEnergy          gamma_cut)
-{
-    return MaxSecondariesCalculator(el, electron_cut, gamma_cut)();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct with EADL transition data and production thresholds.
  */
-MaxSecondariesCalculator::MaxSecondariesCalculator(const AtomicRelaxElement& el,
-                                                   MevEnergy electron_cut,
-                                                   MevEnergy gamma_cut)
-    : shells_(el.shells)
+MaxSecondariesCalculator::MaxSecondariesCalculator(
+    const Values&                         data,
+    const ItemRange<AtomicRelaxSubshell>& shells,
+    MevEnergy                             electron_cut,
+    MevEnergy                             gamma_cut)
+    : data_(data)
+    , shells_(data.shells[shells])
     , electron_cut_(electron_cut.value())
     , gamma_cut_(gamma_cut.value())
 {
@@ -76,7 +67,8 @@ MaxSecondariesCalculator::calc(SubshellId vacancy_shell, size_type count)
         return count + it->second;
 
     size_type sub_count = 0;
-    for (const auto& transition : shells_[vacancy_shell.get()].transitions)
+    for (const auto& transition :
+         data_.transitions[shells_[vacancy_shell.get()].transitions])
     {
         // If this is a non-radiative transition with an energy above the
         // electron production threshold, create an electron; if this is a
@@ -94,6 +86,19 @@ MaxSecondariesCalculator::calc(SubshellId vacancy_shell, size_type count)
     }
     visited_[vacancy_shell] = sub_count;
     return count + sub_count;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the maximum possible number of secondaries produced in atomic
+ * relaxation.
+ */
+size_type calc_max_secondaries(const MaxSecondariesCalculator::Values& data,
+                               const ItemRange<AtomicRelaxSubshell>&   shells,
+                               units::MevEnergy electron_cut,
+                               units::MevEnergy gamma_cut)
+{
+    return MaxSecondariesCalculator(data, shells, electron_cut, gamma_cut)();
 }
 
 //---------------------------------------------------------------------------//

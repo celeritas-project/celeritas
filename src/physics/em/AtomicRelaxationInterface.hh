@@ -7,11 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Collection.hh"
 #include "base/Macros.hh"
-#include "base/Span.hh"
 #include "base/Types.hh"
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
+#include "physics/material/Types.hh"
 
 namespace celeritas
 {
@@ -34,7 +35,7 @@ struct AtomicRelaxTransition
  */
 struct AtomicRelaxSubshell
 {
-    Span<const AtomicRelaxTransition> transitions;
+    ItemRange<AtomicRelaxTransition> transitions;
 };
 
 //---------------------------------------------------------------------------//
@@ -43,7 +44,7 @@ struct AtomicRelaxSubshell
  */
 struct AtomicRelaxElement
 {
-    Span<const AtomicRelaxSubshell> shells;
+    ItemRange<AtomicRelaxSubshell> shells;
 
     size_type max_secondary;  //!< Maximum number of secondaries possible
     size_type max_stack_size; //!< Maximum size of the subshell vacancy stack
@@ -51,26 +52,54 @@ struct AtomicRelaxElement
     //! Check whether the element is assigned (false for Z < 6).
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return !shells.empty();
+        return !shells.empty() && max_secondary > 0 && max_stack_size > 0;
     }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Access atomic relaxation data on device.
+ * Electron subshell transition data for atomic relaxation.
  */
-struct AtomicRelaxParamsPointers
+template<Ownership W, MemSpace M>
+struct AtomicRelaxData
 {
-    Span<const AtomicRelaxElement> elements;
-    ParticleId                     electron_id;
-    ParticleId                     gamma_id;
+    template<class T>
+    using Items = Collection<T, W, M>;
+    template<class T>
+    using ElementItems = Collection<T, W, M, ElementId>;
+
+    //// MEMBER DATA ////
+
+    Items<AtomicRelaxTransition>     transitions;
+    Items<AtomicRelaxSubshell>       shells;
+    ElementItems<AtomicRelaxElement> elements;
+    ParticleId                       electron_id;
+    ParticleId                       gamma_id;
+
+    //// MEMBER FUNCTIONS ////
 
     //! Check whether the interface is assigned.
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return !elements.empty() && electron_id && gamma_id;
+        return !transitions.empty() && !shells.empty() && !elements.empty()
+               && electron_id && gamma_id;
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    AtomicRelaxData& operator=(const AtomicRelaxData<W2, M2>& other)
+    {
+        transitions = other.transitions;
+        shells      = other.shells;
+        elements    = other.elements;
+        electron_id = other.electron_id;
+        gamma_id    = other.gamma_id;
+        return *this;
     }
 };
+
+using AtomicRelaxPointers
+    = AtomicRelaxData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

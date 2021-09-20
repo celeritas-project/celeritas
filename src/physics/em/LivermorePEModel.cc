@@ -58,7 +58,7 @@ LivermorePEModel::LivermorePEModel(ModelId               id,
         CELER_ASSERT(num_vacancies > 0);
         resize(&relax_scratch_.vacancies, num_vacancies);
         relax_scratch_ref_          = relax_scratch_;
-        host_data.atomic_relaxation = atomic_relaxation->device_pointers();
+        host_data.atomic_relaxation = atomic_relaxation->host_pointers();
     }
 
     // Move to mirrored data, copying to device

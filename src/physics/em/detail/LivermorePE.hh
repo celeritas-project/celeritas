@@ -169,7 +169,7 @@ struct LivermorePEData
     LivermorePEXsData<W, M> xs;
 
     //! EADL transition data used for atomic relaxation
-    AtomicRelaxParamsPointers atomic_relaxation;
+    AtomicRelaxData<W, M> atomic_relaxation;
 
     //// MEMBER FUNCTIONS ////
 

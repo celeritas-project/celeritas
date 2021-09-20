@@ -17,12 +17,6 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-// Calculate the maximum possible secondaries produced in atomic relaxation
-size_type calc_max_secondaries(const AtomicRelaxElement& el,
-                               units::MevEnergy          electron_cut,
-                               units::MevEnergy          gamma_cut);
-
-//---------------------------------------------------------------------------//
 /*!
  * Helper class for calculating the maximum possible number of secondaries
  * produced in atomic relaxation for a given element and electron/photon
@@ -34,18 +28,21 @@ class MaxSecondariesCalculator
     //!@{
     //! Type aliases
     using MevEnergy = units::MevEnergy;
+    using Values = AtomicRelaxData<Ownership::const_reference, MemSpace::host>;
     //!@}
 
   public:
     // Construct with EADL transition data and production thresholds
-    MaxSecondariesCalculator(const AtomicRelaxElement& el,
-                             MevEnergy                 electron_cut,
-                             MevEnergy                 gamma_cut);
+    MaxSecondariesCalculator(const Values&                         data,
+                             const ItemRange<AtomicRelaxSubshell>& shells,
+                             MevEnergy electron_cut,
+                             MevEnergy gamma_cut);
 
     // Calculate the maximum possible number of secondaries produced
     size_type operator()();
 
   private:
+    const Values&                             data_;
     Span<const AtomicRelaxSubshell>           shells_;
     const real_type                           electron_cut_;
     const real_type                           gamma_cut_;
@@ -55,6 +52,13 @@ class MaxSecondariesCalculator
 
     size_type calc(SubshellId vacancy_shell, size_type count);
 };
+
+//---------------------------------------------------------------------------//
+// Calculate the maximum possible secondaries produced in atomic relaxation
+size_type calc_max_secondaries(const MaxSecondariesCalculator::Values& data,
+                               const ItemRange<AtomicRelaxSubshell>&   shells,
+                               units::MevEnergy electron_cut,
+                               units::MevEnergy gamma_cut);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

@@ -13,8 +13,8 @@ namespace celeritas
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-AtomicRelaxationHelper::AtomicRelaxationHelper(
-    const AtomicRelaxParamsPointers& shared, ElementId el_id)
+AtomicRelaxationHelper::AtomicRelaxationHelper(const AtomicRelaxPointers& shared,
+                                               ElementId el_id)
     : shared_(shared), el_id_(el_id)
 {
     CELER_EXPECT(!shared_ || el_id_ < shared_.elements.size());
@@ -27,7 +27,7 @@ AtomicRelaxationHelper::AtomicRelaxationHelper(
 CELER_FUNCTION AtomicRelaxationHelper::operator bool() const
 {
     // Atomic relaxation is enabled and the element has transition data
-    return shared_ && shared_.elements[el_id_.get()];
+    return shared_ && shared_.elements[el_id_];
 }
 
 //---------------------------------------------------------------------------//
@@ -37,7 +37,7 @@ CELER_FUNCTION AtomicRelaxationHelper::operator bool() const
 CELER_FUNCTION size_type AtomicRelaxationHelper::max_secondaries() const
 {
     CELER_EXPECT(*this);
-    return shared_.elements[el_id_.get()].max_secondary;
+    return shared_.elements[el_id_].max_secondary;
 }
 
 //---------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ CELER_FUNCTION size_type AtomicRelaxationHelper::max_secondaries() const
 CELER_FUNCTION size_type AtomicRelaxationHelper::max_vacancies() const
 {
     CELER_EXPECT(*this);
-    return shared_.elements[el_id_.get()].max_stack_size;
+    return shared_.elements[el_id_].max_stack_size;
 }
 
 //---------------------------------------------------------------------------//
