@@ -13,6 +13,7 @@
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "detail/Utils.hh"
+#include "io/AtomicRelaxationReader.hh"
 
 namespace celeritas
 {
@@ -30,7 +31,6 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     CELER_EXPECT(inp.cutoffs);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.particles);
-    CELER_EXPECT(inp.elements.size() == inp.materials->num_elements());
 
     HostData host_data;
 
@@ -41,8 +41,9 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     // Find the minimum electron and photon cutoff energy for each element over
     // all materials. This is used to calculate the maximum number of
     // secondaries that could be created in atomic relaxation for each element.
-    std::vector<MevEnergy> electron_cutoff(inp.elements.size(), max_quantity());
-    std::vector<MevEnergy> gamma_cutoff(inp.elements.size(), max_quantity());
+    size_type              num_elements = inp.materials->num_elements();
+    std::vector<MevEnergy> electron_cutoff(num_elements, max_quantity());
+    std::vector<MevEnergy> gamma_cutoff(num_elements, max_quantity());
     for (auto mat_id : range(MaterialId{inp.materials->num_materials()}))
     {
         // Electron and photon energy cutoffs for this material
@@ -59,10 +60,12 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     }
 
     // Build elements
-    make_builder(&host_data.elements).reserve(inp.elements.size());
-    for (auto el_idx : range(inp.elements.size()))
+    AtomicRelaxationReader load_data;
+    make_builder(&host_data.elements).reserve(num_elements);
+    for (auto el_idx : range(num_elements))
     {
-        this->append_element(inp.elements[el_idx],
+        int z = inp.materials->get(ElementId{el_idx}).atomic_number();
+        this->append_element(load_data(z),
                              &host_data,
                              electron_cutoff[el_idx],
                              gamma_cutoff[el_idx]);

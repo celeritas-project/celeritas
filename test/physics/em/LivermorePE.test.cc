@@ -59,7 +59,6 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
   protected:
     void set_relaxation_params(AtomicRelaxationParams::Input inp)
     {
-        CELER_EXPECT(!inp.elements.empty());
         relax_params_
             = std::make_shared<AtomicRelaxationParams>(std::move(inp));
     }
@@ -110,7 +109,6 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
         // Set atomic relaxation data
         AtomicRelaxationReader read_transition_data(data_path.c_str(),
                                                     data_path.c_str());
-        relax_inp_.elements.push_back(read_transition_data(19));
         relax_inp_.cutoffs   = this->cutoff_params();
         relax_inp_.materials = this->material_params();
         relax_inp_.particles = this->particle_params();

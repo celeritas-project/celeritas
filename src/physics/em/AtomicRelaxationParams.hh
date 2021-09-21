@@ -41,7 +41,6 @@ class AtomicRelaxationParams
         SPConstMaterials materials;
         SPConstParticles particles;
         bool is_auger_enabled{false}; //!< Whether to produce Auger electrons
-        std::vector<ImportAtomicRelaxation> elements;
     };
 
   public:
