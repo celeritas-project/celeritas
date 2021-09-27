@@ -149,13 +149,10 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
     el.max_secondary = detail::calc_max_secondaries(
         make_const_ref(*data), el.shells, electron_cutoff, gamma_cutoff);
 
-    // Maximum size of the stack used to store unprocessed vacancy subshell
-    // IDs. For radiative transitions, there is only ever one vacancy waiting
-    // to be processed. For non-radiative transitions, the upper bound on the
-    // stack size is the number of shells that have transition data.
+    // Maximum size of the stack used to store unprocessed vacancy subshell IDs
     data->max_stack_size
-        = is_auger_enabled_ ? std::max(data->max_stack_size, el.shells.size())
-                            : 1;
+        = max(data->max_stack_size,
+              detail::calc_max_stack_size(make_const_ref(*data), el.shells));
 
     // Add the elemental data
     CELER_ASSERT(el);

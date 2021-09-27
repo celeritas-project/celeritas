@@ -554,11 +554,13 @@ TEST_F(LivermorePETest, macro_xs)
     EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }
 
-TEST_F(LivermorePETest, max_secondaries)
+TEST_F(LivermorePETest, utils)
 {
     using celeritas::AtomicRelaxElement;
     using celeritas::AtomicRelaxSubshell;
     using celeritas::AtomicRelaxTransition;
+    using celeritas::detail::calc_max_secondaries;
+    using celeritas::detail::calc_max_stack_size;
     using Values = celeritas::AtomicRelaxParamsData<celeritas::Ownership::value,
                                                     celeritas::MemSpace::host>;
 
@@ -567,9 +569,7 @@ TEST_F(LivermorePETest, max_secondaries)
     // radiative transitions and 2^n - 1 if there are non-radiative transitions
     // for the hypothetical worst case where for a given vacancy the
     // transitions always originate from the next subshell up
-    unsigned int num_shells        = 20;
-    unsigned int upper_bound_fluor = num_shells;
-    unsigned int upper_bound_auger = std::exp2(num_shells) - 1;
+    unsigned int num_shells = 20;
     {
         Values data;
         make_builder(&data.elements).resize(1);
@@ -589,9 +589,15 @@ TEST_F(LivermorePETest, max_secondaries)
         el.shells = make_builder(&data.shells)
                         .insert_back(shells.begin(), shells.end());
 
-        auto result = celeritas::detail::calc_max_secondaries(
+        auto max_secondaries = calc_max_secondaries(
             make_const_ref(data), el.shells, MevEnergy{0}, MevEnergy{0});
-        EXPECT_EQ(upper_bound_fluor, result);
+        EXPECT_EQ(num_shells, max_secondaries);
+
+        // If there are only radiative transitions, there will only ever be one
+        // vacancy on the stack
+        auto max_stack_size
+            = calc_max_stack_size(make_const_ref(data), el.shells);
+        EXPECT_EQ(1, max_stack_size);
     }
     {
         Values data;
@@ -618,9 +624,15 @@ TEST_F(LivermorePETest, max_secondaries)
         el.shells = make_builder(&data.shells)
                         .insert_back(shells.begin(), shells.end());
 
-        auto result = celeritas::detail::calc_max_secondaries(
+        auto max_secondaries = calc_max_secondaries(
             make_const_ref(data), el.shells, MevEnergy{0}, MevEnergy{0});
-        EXPECT_EQ(upper_bound_auger, result);
+        EXPECT_EQ(std::exp2(num_shells) - 1, max_secondaries);
+
+        // With non-radiative transitions in every shell, the maximum stack
+        // size will be the number of shells with transition data
+        auto max_stack_size
+            = calc_max_stack_size(make_const_ref(data), el.shells);
+        EXPECT_EQ(num_shells, max_stack_size);
     }
     {
         relax_inp_.is_auger_enabled = true;

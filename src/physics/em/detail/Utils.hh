@@ -55,11 +55,48 @@ class MaxSecondariesCalculator
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Helper class for calculating the maximum size the stack of unprocessed
+ * subshell vacancies can grow to for a given element while simulating the
+ * cascade of photons and electrons in atomic relaxation.
+ */
+class MaxStackSizeCalculator
+{
+  public:
+    //!@{
+    //! Type aliases
+    using Values
+        = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::host>;
+    //!@}
+
+  public:
+    // Construct with EADL transition data
+    MaxStackSizeCalculator(const Values&                         data,
+                           const ItemRange<AtomicRelaxSubshell>& shells);
+
+    // Calculate the maximum size of the stack
+    size_type operator()();
+
+  private:
+    const Values&                             data_;
+    Span<const AtomicRelaxSubshell>           shells_;
+    std::unordered_map<SubshellId, size_type> visited_;
+
+    // HELPER FUNCTIONS
+
+    size_type calc(SubshellId vacancy_shell);
+};
+
+//---------------------------------------------------------------------------//
 // Calculate the maximum possible secondaries produced in atomic relaxation
 size_type calc_max_secondaries(const MaxSecondariesCalculator::Values& data,
                                const ItemRange<AtomicRelaxSubshell>&   shells,
                                units::MevEnergy electron_cut,
                                units::MevEnergy gamma_cut);
+
+// Calculate the maximum size of the vacancy stack in atomic relaxation
+size_type calc_max_stack_size(const MaxStackSizeCalculator::Values& data,
+                              const ItemRange<AtomicRelaxSubshell>& shells);
 
 //---------------------------------------------------------------------------//
 } // namespace detail
