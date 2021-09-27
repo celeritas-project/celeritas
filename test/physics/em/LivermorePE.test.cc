@@ -16,6 +16,7 @@
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "comm/Device.hh"
+#include "io/AtomicRelaxationReader.hh"
 #include "io/ImportPhysicsTable.hh"
 #include "io/LivermorePEReader.hh"
 #include "physics/base/Units.hh"
@@ -32,6 +33,7 @@
 using celeritas::Applicability;
 using celeritas::AtomicRelaxationHelper;
 using celeritas::AtomicRelaxationParams;
+using celeritas::AtomicRelaxationReader;
 using celeritas::AtomicRelaxParamsData;
 using celeritas::AtomicRelaxStateData;
 using celeritas::ElementId;
@@ -109,9 +111,12 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
             ModelId{0}, particles, *this->material_params(), read_element_data);
 
         // Set atomic relaxation data
+        AtomicRelaxationReader read_transition_data(data_path.c_str(),
+                                                    data_path.c_str());
         relax_inp_.cutoffs   = this->cutoff_params();
         relax_inp_.materials = this->material_params();
         relax_inp_.particles = this->particle_params();
+        relax_inp_.load_data = read_transition_data;
 
         // Set default particle to incident 1 keV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{0.001});

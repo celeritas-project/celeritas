@@ -15,7 +15,6 @@
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "detail/Utils.hh"
-#include "io/AtomicRelaxationReader.hh"
 
 namespace celeritas
 {
@@ -39,6 +38,9 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     // Get particle IDs
     host_data.electron_id = inp.particles->find(pdg::electron());
     host_data.gamma_id    = inp.particles->find(pdg::gamma());
+    CELER_VALIDATE(host_data.electron_id && host_data.gamma_id,
+                   << "missing electron and/or gamma particles "
+                      "(required for atomic relaxation)");
 
     // Find the minimum electron and photon cutoff energy for each element over
     // all materials. This is used to calculate the maximum number of
@@ -62,12 +64,11 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     }
 
     // Build elements
-    AtomicRelaxationReader load_data;
     make_builder(&host_data.elements).reserve(num_elements);
     for (auto el_idx : range(num_elements))
     {
-        int z = inp.materials->get(ElementId{el_idx}).atomic_number();
-        this->append_element(load_data(z),
+        AtomicNumber z = inp.materials->get(ElementId{el_idx}).atomic_number();
+        this->append_element(inp.load_data(z),
                              &host_data,
                              electron_cutoff[el_idx],
                              gamma_cutoff[el_idx]);
@@ -89,6 +90,7 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
                                             MevEnergy electron_cutoff,
                                             MevEnergy gamma_cutoff)
 {
+    CELER_EXPECT(data);
     CELER_EXPECT(!inp.shells.empty());
     AtomicRelaxElement el;
 

@@ -29,8 +29,10 @@ class AtomicRelaxationParams
         = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::device>;
-    using MevEnergy        = units::MevEnergy;
-    using SPConstCutoffs   = std::shared_ptr<const CutoffParams>;
+    using AtomicNumber   = int;
+    using MevEnergy      = units::MevEnergy;
+    using ReadData       = std::function<ImportAtomicRelaxation(AtomicNumber)>;
+    using SPConstCutoffs = std::shared_ptr<const CutoffParams>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     //@}
@@ -40,6 +42,7 @@ class AtomicRelaxationParams
         SPConstCutoffs   cutoffs;
         SPConstMaterials materials;
         SPConstParticles particles;
+        ReadData         load_data;
         bool is_auger_enabled{false}; //!< Whether to produce Auger electrons
     };
 
@@ -54,6 +57,7 @@ class AtomicRelaxationParams
     const DeviceRef& device_pointers() const { return data_.device(); }
 
   private:
+    // Whether to simulate non-radiative transitions
     bool is_auger_enabled_;
 
     // Host/device storage and reference
