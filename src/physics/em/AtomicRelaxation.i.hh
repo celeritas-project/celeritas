@@ -55,13 +55,8 @@ AtomicRelaxation::operator()(Engine& rng)
     const auto&               shells = shared_.shells[el.shells];
     MiniStack<SubshellId>     vacancies(vacancies_);
 
-    // The sampled shell ID might be outside the available data, in which case
-    // the loop below will immediately exit with no secondaries created.
-    if (shell_id_ < shells.size())
-    {
-        // Push the vacancy created by the primary process onto a stack.
-        vacancies.push(shell_id_);
-    }
+    // Push the vacancy created by the primary process onto a stack.
+    vacancies.push(shell_id_);
 
     // Total number of secondaries
     size_type count      = 0;
@@ -73,7 +68,7 @@ AtomicRelaxation::operator()(Engine& rng)
     {
         // Pop the vacancy off the stack and check if it has transition data
         SubshellId vacancy_id = vacancies.pop();
-        if (!vacancy_id)
+        if (vacancy_id.get() >= shells.size())
             continue;
 
         // Sample a transition (TODO: refactor to use Selector but with

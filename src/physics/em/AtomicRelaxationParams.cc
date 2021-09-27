@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <set>
+#include <unordered_map>
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "detail/Utils.hh"
@@ -90,28 +92,45 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
     CELER_EXPECT(!inp.shells.empty());
     AtomicRelaxElement el;
 
-    // Create a mapping of subshell designator to index in the shells array
-    des_to_id_.clear();
-    for (SubshellId::size_type i : range(inp.shells.size()))
+    // Collect all the subshell designators for this element
+    std::set<int> designators;
+    for (const auto& shell : inp.shells)
     {
-        des_to_id_[inp.shells[i].designator] = SubshellId{i};
+        designators.insert(shell.designator);
+
+        // Check that for a given subshell vacancy EADL transition
+        // probabilities are normalized so that the sum over all radiative and
+        // non-radiative transitions is 1
+        real_type norm = 0.;
+        for (const auto& transition : shell.fluor)
+        {
+            norm += transition.probability;
+            designators.insert(transition.initial_shell);
+        }
+        for (const auto& transition : shell.auger)
+        {
+            norm += transition.probability;
+            designators.insert(transition.initial_shell);
+            designators.insert(transition.auger_shell);
+        }
+        CELER_ASSERT(soft_equal(1., norm));
     }
-    CELER_ASSERT(des_to_id_.size() == inp.shells.size());
+
+    // Create a mapping of subshell designator to index in the shells array (it
+    // is ok for an index to be greater than or equal to the size of the shells
+    // array; this just means there is no transition data for that shell)
+    std::unordered_map<int, SubshellId> des_to_id;
+    size_type                           index = 0;
+    for (auto des : designators)
+    {
+        des_to_id[des] = SubshellId{index++};
+    }
+    CELER_ASSERT(des_to_id.size() >= inp.shells.size());
 
     // Add subshell data
     std::vector<AtomicRelaxSubshell> shells(inp.shells.size());
     for (auto i : range(inp.shells.size()))
     {
-        // Check that for a given subshell vacancy EADL transition
-        // probabilities are normalized so that the sum over all radiative and
-        // non-radiative transitions is 1
-        real_type norm = 0.;
-        for (const auto& transition : inp.shells[i].fluor)
-            norm += transition.probability;
-        for (const auto& transition : inp.shells[i].auger)
-            norm += transition.probability;
-        CELER_ASSERT(soft_equal(1., norm));
-
         // Get all the transitions for this subshell
         std::vector<ImportAtomicTransition> import_transitions(
             inp.shells[i].fluor.begin(), inp.shells[i].fluor.end());
@@ -126,16 +145,16 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
         // Add transition data
         std::vector<AtomicRelaxTransition> transitions(
             import_transitions.size());
-        for (auto i : range(import_transitions.size()))
+        for (auto j : range(import_transitions.size()))
         {
             // Find the index in the shells array given the shell designator.
             // If the designator is not found, map it to an invalid value.
-            transitions[i].initial_shell
-                = des_to_id_[import_transitions[i].initial_shell];
-            transitions[i].auger_shell
-                = des_to_id_[import_transitions[i].auger_shell];
-            transitions[i].probability = import_transitions[i].probability;
-            transitions[i].energy      = import_transitions[i].energy;
+            transitions[j].initial_shell
+                = des_to_id[import_transitions[j].initial_shell];
+            transitions[j].auger_shell
+                = des_to_id[import_transitions[j].auger_shell];
+            transitions[j].probability = import_transitions[j].probability;
+            transitions[j].energy      = import_transitions[j].energy;
         }
         shells[i].transitions
             = make_builder(&data->transitions)

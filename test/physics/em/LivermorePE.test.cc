@@ -105,7 +105,6 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
         // Set Livermore photoelectric data
         std::string       data_path = this->test_data_path("physics/em", "");
         LivermorePEReader read_element_data(data_path.c_str());
-
         model_ = std::make_shared<LivermorePEModel>(
             ModelId{0}, particles, *this->material_params(), read_element_data);
 
@@ -348,7 +347,7 @@ TEST_F(LivermorePETest, distributions_all)
     // Load atomic relaxation data
     relax_inp_.is_auger_enabled = true;
     set_relaxation_params(relax_inp_);
-    EXPECT_EQ(4, relax_params_ref_.max_stack_size);
+    EXPECT_EQ(3, relax_params_ref_.max_stack_size);
 
     // Allocate scratch space for vacancy stack
     resize(&relax_states_, relax_params_ref_, 1);
@@ -629,10 +628,10 @@ TEST_F(LivermorePETest, utils)
         EXPECT_EQ(std::exp2(num_shells) - 1, max_secondaries);
 
         // With non-radiative transitions in every shell, the maximum stack
-        // size will be the number of shells with transition data
+        // size will be one more than the number of shells with transition data
         auto max_stack_size
             = calc_max_stack_size(make_const_ref(data), el.shells);
-        EXPECT_EQ(num_shells, max_stack_size);
+        EXPECT_EQ(num_shells + 1, max_stack_size);
     }
     {
         relax_inp_.is_auger_enabled = true;

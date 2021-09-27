@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <unordered_map>
 #include <vector>
 #include "base/Algorithms.hh"
 #include "base/CollectionMirror.hh"
@@ -55,8 +54,7 @@ class AtomicRelaxationParams
     const DeviceRef& device_pointers() const { return data_.device(); }
 
   private:
-    bool                                is_auger_enabled_;
-    std::unordered_map<int, SubshellId> des_to_id_;
+    bool is_auger_enabled_;
 
     // Host/device storage and reference
     CollectionMirror<AtomicRelaxParamsData> data_;

@@ -124,7 +124,7 @@ size_type MaxStackSizeCalculator::operator()()
 size_type MaxStackSizeCalculator::calc(SubshellId vacancy_shell)
 {
     // No transitions for this subshell, so this is the only shell in the stack
-    if (!vacancy_shell || vacancy_shell.get() >= shells_.size())
+    if (vacancy_shell.get() >= shells_.size())
         return 1;
 
     // Check the table to see if the maximum stack size has already been
