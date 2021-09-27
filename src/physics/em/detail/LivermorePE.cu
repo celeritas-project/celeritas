@@ -65,7 +65,7 @@ livermore_pe_interact_kernel(const LivermorePEDeviceRef                pe,
     ElementId          el_id   = material.material_view().element_id(comp_id);
 
     AtomicRelaxationHelper relaxation(
-        model.params.relaxation, model.states.relaxation, el_id_, tid);
+        model.params.relaxation, model.states.relaxation, el_id, tid);
     LivermorePEInteractor interact(pe,
                                    relaxation,
                                    el_id,
