@@ -16,7 +16,6 @@
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "comm/Device.hh"
-#include "io/AtomicRelaxationReader.hh"
 #include "io/ImportPhysicsTable.hh"
 #include "io/LivermorePEReader.hh"
 #include "physics/base/Units.hh"
@@ -31,8 +30,10 @@
 #include "../InteractionIO.hh"
 
 using celeritas::Applicability;
+using celeritas::AtomicRelaxationHelper;
 using celeritas::AtomicRelaxationParams;
-using celeritas::AtomicRelaxationReader;
+using celeritas::AtomicRelaxParamsData;
+using celeritas::AtomicRelaxStateData;
 using celeritas::ElementId;
 using celeritas::ImportPhysicsTable;
 using celeritas::ImportPhysicsVectorType;
@@ -44,6 +45,7 @@ using celeritas::MemSpace;
 using celeritas::Ownership;
 using celeritas::PhotoelectricProcess;
 using celeritas::SubshellId;
+using celeritas::ThreadId;
 using celeritas::ValueGridInserter;
 using celeritas::detail::LivermorePEInteractor;
 namespace pdg = celeritas::pdg;
@@ -61,6 +63,7 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
     {
         relax_params_
             = std::make_shared<AtomicRelaxationParams>(std::move(inp));
+        relax_params_ref_ = relax_params_->host_pointers();
     }
 
     void SetUp() override
@@ -107,8 +110,6 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
             ModelId{0}, particles, *this->material_params(), read_element_data);
 
         // Set atomic relaxation data
-        AtomicRelaxationReader read_transition_data(data_path.c_str(),
-                                                    data_path.c_str());
         relax_inp_.cutoffs   = this->cutoff_params();
         relax_inp_.materials = this->material_params();
         relax_inp_.particles = this->particle_params();
@@ -147,21 +148,20 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
         this->check_energy_conservation(interaction);
     }
 
-    void resize_vacancies(int size)
-    {
-        CELER_EXPECT(size > 0);
-        resize(&relax_store_.vacancies, size);
-        scratch_ = relax_store_;
-    }
-
   protected:
+    using RelaxParamsRef
+        = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::host>;
+    using RelaxStatesRef
+        = AtomicRelaxStateData<Ownership::reference, MemSpace::host>;
+    using RelaxStatesValue
+        = AtomicRelaxStateData<Ownership::value, MemSpace::host>;
+
     std::shared_ptr<LivermorePEModel>       model_;
     AtomicRelaxationParams::Input           relax_inp_;
     std::shared_ptr<AtomicRelaxationParams> relax_params_;
-    celeritas::detail::RelaxationScratchData<Ownership::value, MemSpace::host>
-        relax_store_;
-    celeritas::detail::RelaxationScratchData<Ownership::reference, MemSpace::host>
-        scratch_;
+    RelaxStatesValue                        relax_states_;
+    RelaxParamsRef                          relax_params_ref_;
+    RelaxStatesRef                          relax_states_ref_;
 };
 
 //---------------------------------------------------------------------------//
@@ -181,9 +181,14 @@ TEST_F(LivermorePETest, basic)
     // Production cuts
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
+    // Helper for simulating atomic relaxation
+    AtomicRelaxationHelper relaxation(
+        relax_params_ref_, relax_states_ref_, el_id, ThreadId{0});
+    EXPECT_FALSE(relaxation);
+
     // Create the interactor
     LivermorePEInteractor interact(model_->host_pointers(),
-                                   scratch_,
+                                   relaxation,
                                    el_id,
                                    this->particle_track(),
                                    cutoffs,
@@ -245,6 +250,11 @@ TEST_F(LivermorePETest, stress_test)
     // Production cuts
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
+    // Helper for simulating atomic relaxation
+    AtomicRelaxationHelper relaxation(
+        relax_params_ref_, relax_states_ref_, el_id, ThreadId{0});
+    EXPECT_FALSE(relaxation);
+
     for (double inc_e : {0.0001, 0.01, 1.0, 10.0, 1000.0})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
@@ -266,7 +276,7 @@ TEST_F(LivermorePETest, stress_test)
 
             // Create interactor
             LivermorePEInteractor interact(model_->host_pointers(),
-                                           scratch_,
+                                           relaxation,
                                            el_id,
                                            this->particle_track(),
                                            cutoffs,
@@ -297,11 +307,6 @@ TEST_F(LivermorePETest, stress_test)
         avg_cosine.push_back(tot_cosine / double(num_secondaries));
         avg_energy.push_back(tot_energy / double(num_secondaries));
     }
-
-    // PRINT_EXPECTED(avg_engine_samples);
-    // PRINT_EXPECTED(avg_num_secondaries);
-    // PRINT_EXPECTED(avg_cosine);
-    // PRINT_EXPECTED(avg_energy);
 
     // Gold values
     const double expected_avg_engine_samples[]
@@ -340,27 +345,28 @@ TEST_F(LivermorePETest, distributions_all)
     // Production cuts
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
-    // Add atomic relaxation data
-    auto pointers               = model_->host_pointers();
+    // Load atomic relaxation data
     relax_inp_.is_auger_enabled = true;
     set_relaxation_params(relax_inp_);
-    pointers.atomic_relaxation = relax_params_->host_pointers();
+    EXPECT_EQ(4, relax_params_ref_.max_stack_size);
 
-    // Allocate space to hold unprocessed vacancy stack in atomic relaxation
-    auto max_stack_size
-        = pointers.atomic_relaxation.elements[el_id].max_stack_size;
-    EXPECT_EQ(4, max_stack_size);
-    this->resize_vacancies(max_stack_size * num_samples);
+    // Allocate scratch space for vacancy stack
+    resize(&relax_states_, relax_params_ref_, 1);
+    relax_states_ref_ = relax_states_;
+    EXPECT_EQ(1, relax_states_ref_.size());
+
+    // Helper for simulating atomic relaxation
+    AtomicRelaxationHelper relaxation(
+        relax_params_ref_, relax_states_ref_, el_id, ThreadId{0});
+    EXPECT_EQ(7, relaxation.max_secondaries());
 
     // Allocate storage for secondaries (atomic relaxation + photoelectron)
-    auto max_secondary
-        = pointers.atomic_relaxation.elements[el_id].max_secondary + 1;
-    EXPECT_EQ(8, max_secondary);
-    this->resize_secondaries(max_secondary * num_samples);
+    int secondary_size = (relaxation.max_secondaries() + 1) * num_samples;
+    this->resize_secondaries(secondary_size);
 
     // Create the interactor
-    LivermorePEInteractor interact(pointers,
-                                   scratch_,
+    LivermorePEInteractor interact(model_->host_pointers(),
+                                   relaxation,
                                    el_id,
                                    this->particle_track(),
                                    cutoffs,
@@ -398,8 +404,7 @@ TEST_F(LivermorePETest, distributions_all)
             energy_to_count[secondary.energy.value()]++;
         }
     }
-    EXPECT_EQ(max_secondary * num_samples,
-              this->secondary_allocator().get().size());
+    EXPECT_EQ(secondary_size, this->secondary_allocator().get().size());
     EXPECT_EQ(2180, num_secondaries);
 
     for (const auto& it : energy_to_count)
@@ -437,28 +442,28 @@ TEST_F(LivermorePETest, distributions_radiative)
     // Production cuts
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
-    // Add atomic relaxation data
+    // Load atomic relaxation data
     relax_inp_.is_auger_enabled = false;
     set_relaxation_params(relax_inp_);
+    EXPECT_EQ(1, relax_params_ref_.max_stack_size);
 
-    auto pointers              = model_->host_pointers();
-    pointers.atomic_relaxation = relax_params_->host_pointers();
+    // Allocate scratch space for vacancy stack
+    resize(&relax_states_, relax_params_ref_, 1);
+    relax_states_ref_ = relax_states_;
+    EXPECT_EQ(1, relax_states_ref_.size());
 
-    // Allocate space to hold unprocessed vacancy stack in atomic relaxation
-    auto max_stack_size
-        = pointers.atomic_relaxation.elements[el_id].max_stack_size;
-    EXPECT_EQ(1, max_stack_size);
-    this->resize_vacancies(max_stack_size * num_samples);
+    // Helper for simulating atomic relaxation
+    AtomicRelaxationHelper relaxation(
+        relax_params_ref_, relax_states_ref_, el_id, ThreadId{0});
+    EXPECT_EQ(3, relaxation.max_secondaries());
 
     // Allocate storage for secondaries (atomic relaxation + photoelectron)
-    auto max_secondary
-        = pointers.atomic_relaxation.elements[el_id].max_secondary + 1;
-    EXPECT_EQ(4, max_secondary);
-    this->resize_secondaries(max_secondary * num_samples);
+    int secondary_size = (relaxation.max_secondaries() + 1) * num_samples;
+    this->resize_secondaries(secondary_size);
 
     // Create the interactor
-    LivermorePEInteractor interact(pointers,
-                                   scratch_,
+    LivermorePEInteractor interact(model_->host_pointers(),
+                                   relaxation,
                                    el_id,
                                    this->particle_track(),
                                    cutoffs,
@@ -485,8 +490,7 @@ TEST_F(LivermorePETest, distributions_radiative)
             energy_to_count[secondary.energy.value()]++;
         }
     }
-    EXPECT_EQ(max_secondary * num_samples,
-              this->secondary_allocator().get().size());
+    EXPECT_EQ(secondary_size, this->secondary_allocator().get().size());
     EXPECT_EQ(10007, num_secondaries);
 
     for (const auto& it : energy_to_count)
@@ -555,8 +559,8 @@ TEST_F(LivermorePETest, max_secondaries)
     using celeritas::AtomicRelaxElement;
     using celeritas::AtomicRelaxSubshell;
     using celeritas::AtomicRelaxTransition;
-    using Values = celeritas::AtomicRelaxData<celeritas::Ownership::value,
-                                              celeritas::MemSpace::host>;
+    using Values = celeritas::AtomicRelaxParamsData<celeritas::Ownership::value,
+                                                    celeritas::MemSpace::host>;
 
     // For an element with n shells of transition data, the maximum number of
     // secondaries created can be upper-bounded as n if there are only
@@ -632,7 +636,7 @@ TEST_F(LivermorePETest, max_secondaries)
         ElementId el{0};
         relax_inp_.cutoffs = this->cutoff_params();
         this->set_relaxation_params(relax_inp_);
-        EXPECT_EQ(1, relax_params_->host_pointers().elements[el].max_secondary);
+        EXPECT_EQ(1, relax_params_ref_.elements[el].max_secondary);
 
         // Test 0.1 keV electron/photon cutoff
         ci.cutoffs[pdg::electron()] = {{MevEnergy{1.e-4}, 0}};
@@ -641,6 +645,6 @@ TEST_F(LivermorePETest, max_secondaries)
 
         relax_inp_.cutoffs = this->cutoff_params();
         this->set_relaxation_params(relax_inp_);
-        EXPECT_EQ(3, relax_params_->host_pointers().elements[el].max_secondary);
+        EXPECT_EQ(3, relax_params_ref_.elements[el].max_secondary);
     }
 }

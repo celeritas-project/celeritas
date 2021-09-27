@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <map>
 #include <tuple>
+#include "base/Algorithms.hh"
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/VectorUtils.hh"

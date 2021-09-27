@@ -32,7 +32,6 @@ namespace
  */
 __global__ void
 livermore_pe_interact_kernel(const LivermorePEDeviceRef                pe,
-                             const RelaxationScratchDeviceRef          scratch,
                              const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
@@ -65,8 +64,10 @@ livermore_pe_interact_kernel(const LivermorePEDeviceRef                pe,
     ElementComponentId comp_id = select_el(rng);
     ElementId          el_id   = material.material_view().element_id(comp_id);
 
+    AtomicRelaxationHelper relaxation(
+        model.params.relaxation, model.states.relaxation, el_id_, tid);
     LivermorePEInteractor interact(pe,
-                                   scratch,
+                                   relaxation,
                                    el_id,
                                    particle,
                                    cutoffs,
@@ -86,7 +87,6 @@ livermore_pe_interact_kernel(const LivermorePEDeviceRef                pe,
  * Launch the Livermore photoelectric interaction.
  */
 void livermore_pe_interact(const LivermorePEDeviceRef&                pe,
-                           const RelaxationScratchDeviceRef&          scratch,
                            const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(pe);
@@ -96,7 +96,7 @@ void livermore_pe_interact(const LivermorePEDeviceRef&                pe,
         livermore_pe_interact_kernel, "livermore_pe_interact");
     auto params = calc_kernel_params(model.states.size());
     livermore_pe_interact_kernel<<<params.grid_size, params.block_size>>>(
-        pe, scratch, model);
+        pe, model);
     CELER_CUDA_CHECK_ERROR();
 }
 

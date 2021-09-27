@@ -26,9 +26,10 @@ class AtomicRelaxationParams
   public:
     //@{
     //! Type aliases
-    using HostRef = AtomicRelaxData<Ownership::const_reference, MemSpace::host>;
+    using HostRef
+        = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
-        = AtomicRelaxData<Ownership::const_reference, MemSpace::device>;
+        = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::device>;
     using MevEnergy        = units::MevEnergy;
     using SPConstCutoffs   = std::shared_ptr<const CutoffParams>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
@@ -58,10 +59,10 @@ class AtomicRelaxationParams
     std::unordered_map<int, SubshellId> des_to_id_;
 
     // Host/device storage and reference
-    CollectionMirror<AtomicRelaxData> data_;
+    CollectionMirror<AtomicRelaxParamsData> data_;
 
     // HELPER FUNCTIONS
-    using HostData = AtomicRelaxData<Ownership::value, MemSpace::host>;
+    using HostData = AtomicRelaxParamsData<Ownership::value, MemSpace::host>;
     void append_element(const ImportAtomicRelaxation& inp,
                         HostData*                     data,
                         MevEnergy                     electron_cutoff,

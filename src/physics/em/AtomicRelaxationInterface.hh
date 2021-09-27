@@ -8,6 +8,7 @@
 #pragma once
 
 #include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Types.hh"
@@ -45,14 +46,12 @@ struct AtomicRelaxSubshell
 struct AtomicRelaxElement
 {
     ItemRange<AtomicRelaxSubshell> shells;
-
-    size_type max_secondary;  //!< Maximum number of secondaries possible
-    size_type max_stack_size; //!< Maximum size of the subshell vacancy stack
+    size_type max_secondary; //!< Maximum number of secondaries possible
 
     //! Check whether the element is assigned (false for Z < 6).
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return !shells.empty() && max_secondary > 0 && max_stack_size > 0;
+        return !shells.empty() && max_secondary > 0;
     }
 };
 
@@ -61,7 +60,7 @@ struct AtomicRelaxElement
  * Electron subshell transition data for atomic relaxation.
  */
 template<Ownership W, MemSpace M>
-struct AtomicRelaxData
+struct AtomicRelaxParamsData
 {
     template<class T>
     using Items = Collection<T, W, M>;
@@ -75,6 +74,7 @@ struct AtomicRelaxData
     ElementItems<AtomicRelaxElement> elements;
     ParticleId                       electron_id;
     ParticleId                       gamma_id;
+    size_type                        max_stack_size{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -82,24 +82,77 @@ struct AtomicRelaxData
     explicit inline CELER_FUNCTION operator bool() const
     {
         return !transitions.empty() && !shells.empty() && !elements.empty()
-               && electron_id && gamma_id;
+               && electron_id && gamma_id && max_stack_size > 0;
     }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    AtomicRelaxData& operator=(const AtomicRelaxData<W2, M2>& other)
+    AtomicRelaxParamsData& operator=(const AtomicRelaxParamsData<W2, M2>& other)
     {
-        transitions = other.transitions;
-        shells      = other.shells;
-        elements    = other.elements;
-        electron_id = other.electron_id;
-        gamma_id    = other.gamma_id;
+        transitions    = other.transitions;
+        shells         = other.shells;
+        elements       = other.elements;
+        electron_id    = other.electron_id;
+        gamma_id       = other.gamma_id;
+        max_stack_size = other.max_stack_size;
         return *this;
     }
 };
 
-using AtomicRelaxPointers
-    = AtomicRelaxData<Ownership::const_reference, MemSpace::native>;
+using AtomicRelaxParamsPointers
+    = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::native>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Temporary data needed during interaction.
+ */
+template<Ownership W, MemSpace M>
+struct AtomicRelaxStateData
+{
+    template<class T>
+    using Items = StateCollection<T, W, M>;
+
+    //! Storage for the stack of vacancy subshell IDs
+    Items<SubshellId> scratch; // 2D array: [num states][max stack size]
+    size_type         num_states;
+
+    //! Whether the interface is assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !scratch.empty() && num_states > 0;
+    }
+
+    //! State size
+    CELER_FUNCTION size_type size() const { return num_states; }
+
+    //! Assign from another set of states
+    template<Ownership W2, MemSpace M2>
+    AtomicRelaxStateData& operator=(AtomicRelaxStateData<W2, M2>& other)
+    {
+        scratch    = other.scratch;
+        num_states = other.num_states;
+        return *this;
+    }
+};
+
+using AtomicRelaxStatePointers
+    = AtomicRelaxStateData<Ownership::reference, MemSpace::native>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Resize state data in host code.
+ */
+template<MemSpace M>
+inline void
+resize(AtomicRelaxStateData<Ownership::value, M>* data,
+       const AtomicRelaxParamsData<Ownership::const_reference, MemSpace::host>&
+                 params,
+       size_type size)
+{
+    CELER_EXPECT(size > 0);
+    make_builder(&data->scratch).resize(size * params.max_stack_size);
+    data->num_states = size;
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

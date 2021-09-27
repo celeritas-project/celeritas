@@ -40,12 +40,13 @@ class AtomicRelaxation
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION AtomicRelaxation(const AtomicRelaxPointers& shared,
-                                           const CutoffView&          cutoffs,
-                                           ElementId                  el_id,
-                                           SubshellId                 shell_id,
-                                           Span<Secondary>  secondaries,
-                                           Span<SubshellId> vacancies);
+    inline CELER_FUNCTION
+    AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
+                     const CutoffView&                cutoffs,
+                     ElementId                        el_id,
+                     SubshellId                       shell_id,
+                     Span<Secondary>                  secondaries,
+                     Span<SubshellId>                 vacancies);
 
     // Simulate atomic relaxation with an initial vacancy in the given shell ID
     template<class Engine>
@@ -53,7 +54,7 @@ class AtomicRelaxation
 
   private:
     // Shared EADL atomic relaxation data
-    const AtomicRelaxPointers& shared_;
+    const AtomicRelaxParamsPointers& shared_;
     // Photon production threshold [MeV]
     real_type gamma_cutoff_;
     // Electron production threshold [MeV]

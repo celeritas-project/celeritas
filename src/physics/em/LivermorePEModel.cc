@@ -21,9 +21,7 @@ namespace celeritas
 LivermorePEModel::LivermorePEModel(ModelId               id,
                                    const ParticleParams& particles,
                                    const MaterialParams& materials,
-                                   ReadData              load_data,
-                                   SPConstAtomicRelax    atomic_relaxation,
-                                   size_type             num_vacancies)
+                                   ReadData              load_data)
 {
     CELER_EXPECT(id);
     CELER_EXPECT(load_data);
@@ -52,15 +50,6 @@ LivermorePEModel::LivermorePEModel(ModelId               id,
     }
     CELER_ASSERT(host_data.xs.elements.size() == materials.num_elements());
 
-    // Add atomic relaxation data
-    if (atomic_relaxation)
-    {
-        CELER_ASSERT(num_vacancies > 0);
-        resize(&relax_scratch_.vacancies, num_vacancies);
-        relax_scratch_ref_          = relax_scratch_;
-        host_data.atomic_relaxation = atomic_relaxation->host_pointers();
-    }
-
     // Move to mirrored data, copying to device
     data_ = CollectionMirror<detail::LivermorePEData>{std::move(host_data)};
     CELER_ENSURE(this->data_);
@@ -88,8 +77,7 @@ void LivermorePEModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
 #if CELERITAS_USE_CUDA
-    detail::livermore_pe_interact(
-        this->device_pointers(), relax_scratch_ref_, pointers);
+    detail::livermore_pe_interact(this->device_pointers(), pointers);
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif

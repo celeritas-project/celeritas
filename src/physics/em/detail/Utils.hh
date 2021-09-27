@@ -28,7 +28,8 @@ class MaxSecondariesCalculator
     //!@{
     //! Type aliases
     using MevEnergy = units::MevEnergy;
-    using Values = AtomicRelaxData<Ownership::const_reference, MemSpace::host>;
+    using Values
+        = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::host>;
     //!@}
 
   public:

@@ -13,6 +13,7 @@
 #include "random/RngInterface.hh"
 #include "physics/material/MaterialInterface.hh"
 #include "physics/base/CutoffInterface.hh"
+#include "physics/em/AtomicRelaxationInterface.hh"
 #include "sim/SimInterface.hh"
 #include "Secondary.hh"
 #include "ParticleInterface.hh"
@@ -35,10 +36,11 @@ struct ModelInteractParamsRefs
 
     //// DATA ////
 
-    ParamsCRef<ParticleParamsData> particle;
-    ParamsCRef<MaterialParamsData> material;
-    ParamsCRef<PhysicsParamsData>  physics;
-    ParamsCRef<CutoffParamsData>   cutoffs;
+    ParamsCRef<ParticleParamsData>    particle;
+    ParamsCRef<MaterialParamsData>    material;
+    ParamsCRef<PhysicsParamsData>     physics;
+    ParamsCRef<CutoffParamsData>      cutoffs;
+    ParamsCRef<AtomicRelaxParamsData> relaxation;
 
     //// METHODS ////
 
@@ -70,11 +72,12 @@ struct ModelInteractStateRefs
 
     //// DATA ////
 
-    StateRef<ParticleStateData> particle;
-    StateRef<MaterialStateData> material;
-    StateRef<PhysicsStateData>  physics;
-    StateRef<RngStateData>      rng;
-    StateRef<SimStateData>      sim;
+    StateRef<ParticleStateData>    particle;
+    StateRef<MaterialStateData>    material;
+    StateRef<PhysicsStateData>     physics;
+    StateRef<RngStateData>         rng;
+    StateRef<SimStateData>         sim;
+    StateRef<AtomicRelaxStateData> relaxation;
 
     StateItems<Real3>       direction;
     StateItems<Interaction> interactions;

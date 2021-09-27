@@ -72,7 +72,7 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     }
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<AtomicRelaxData>{std::move(host_data)};
+    data_ = CollectionMirror<AtomicRelaxParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 
@@ -153,7 +153,9 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
     // IDs. For radiative transitions, there is only ever one vacancy waiting
     // to be processed. For non-radiative transitions, the upper bound on the
     // stack size is the number of shells that have transition data.
-    el.max_stack_size = is_auger_enabled_ ? el.shells.size() : 1;
+    data->max_stack_size
+        = is_auger_enabled_ ? std::max(data->max_stack_size, el.shells.size())
+                            : 1;
 
     // Add the elemental data
     CELER_ASSERT(el);
