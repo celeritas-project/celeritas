@@ -36,6 +36,7 @@ include(CeleritasGenInteractor)
 celeritas_gen_interactor(BetheHeitler bethe_heitler)
 celeritas_gen_interactor(EPlusGG eplusgg)
 celeritas_gen_interactor(KleinNishina klein_nishina)
+celeritas_gen_interactor(LivermorePE livermore_pe)
 celeritas_gen_interactor(MollerBhabha moller_bhabha)
 celeritas_gen_interactor(MuBremsstrahlung mu_bremsstrahlung)
 celeritas_gen_interactor(Rayleigh rayleigh)
@@ -88,7 +89,7 @@ list(APPEND SOURCES
   physics/em/generated/BetheHeitlerInteract.cc
   physics/em/generated/EPlusGGInteract.cc
   physics/em/generated/KleinNishinaInteract.cc
-  physics/em/detail/LivermorePE.cc
+  physics/em/generated/LivermorePEInteract.cc
   physics/em/generated/MollerBhabhaInteract.cc
   physics/em/generated/MuBremsstrahlungInteract.cc
   physics/em/generated/RayleighInteract.cc
@@ -110,9 +111,9 @@ if(CELERITAS_USE_CUDA)
     physics/em/generated/BetheHeitlerInteract.cu
     physics/em/generated/EPlusGGInteract.cu
     physics/em/generated/KleinNishinaInteract.cu
+    physics/em/generated/LivermorePEInteract.cu
     physics/em/generated/MollerBhabhaInteract.cu
     physics/em/generated/MuBremsstrahlungInteract.cu
-    physics/em/detail/LivermorePE.cu
     physics/em/generated/RayleighInteract.cu
     physics/em/generated/SeltzerBergerInteract.cu
     random/detail/RngStateInit.cu

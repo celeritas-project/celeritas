@@ -7,204 +7,84 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
 #include "base/Macros.hh"
-#include "base/StackAllocatorInterface.hh"
-#include "base/Span.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "physics/base/Types.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/AtomicRelaxationInterface.hh"
-#include "physics/grid/XsGridInterface.hh"
-#include "physics/material/Types.hh"
+#include "physics/base/ModelInterface.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/base/PhysicsTrackView.hh"
+#include "physics/material/ElementSelector.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "random/RngEngine.hh"
+#include "LivermorePEInteractor.hh"
 
 namespace celeritas
 {
-template<MemSpace M>
-struct ModelInteractRefs;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Electron subshell data.
- *
- * The binding energy of consecutive shells is *not* always decreasing.
- * However, it is guaranteed to be less than or equal to the parent element's
- * \c thresh_lo value.
+ * Model interactor kernel launcher
  */
-struct LivermoreSubshell
+template<MemSpace M>
+struct LivermorePELauncher
 {
-    using EnergyUnits = units::Mev;
-    using XsUnits     = units::Barn;
-    using Energy      = Quantity<EnergyUnits>;
-    using Real6       = Array<real_type, 6>;
-
-    // Binding energy of the electron
-    Energy binding_energy;
-
-    // Tabulated subshell photoionization cross section (used below 5 keV)
-    GenericGridData xs;
-
-    // Fit parameters for the integrated subshell photoionization cross
-    // sections in the two different energy ranges (used above 5 keV)
-    Array<Real6, 2> param;
-
-    //! True if assigned and valid
-    explicit inline CELER_FUNCTION operator bool() const
+    CELER_FUNCTION LivermorePELauncher(const LivermorePEPointers&  pointers,
+                                       const ModelInteractRefs<M>& interaction)
+        : pe(pointers), model(interaction)
     {
-        return binding_energy > celeritas::zero_quantity() && xs;
     }
+
+    const LivermorePEPointers&  pe;    //!< Shared data for interactor
+    const ModelInteractRefs<M>& model; //!< State data needed to interact
+
+    //! Create track views and launch interactor
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
-//---------------------------------------------------------------------------//
-/*!
- * Elemental photoelectric cross sections for the Livermore model.
- */
-struct LivermoreElement
+template<MemSpace M>
+CELER_FUNCTION void LivermorePELauncher<M>::operator()(ThreadId tid) const
 {
-    using Energy = LivermoreSubshell::Energy;
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
+    ParticleTrackView         particle(
+        model.params.particle, model.states.particle, tid);
+    MaterialTrackView material(
+        model.params.material, model.states.material, tid);
+    PhysicsTrackView physics(model.params.physics,
+                             model.states.physics,
+                             particle.particle_id(),
+                             material.material_id(),
+                             tid);
+    CutoffView       cutoffs(model.params.cutoffs, material.material_id());
 
-    // TOTAL CROSS SECTIONS
+    // This interaction only applies if the Livermore PE model was selected
+    if (physics.model_id() != pe.ids.model)
+        return;
 
-    // Total cross section below the K-shell energy. Uses linear interpolation.
-    GenericGridData xs_lo;
+    RngEngine rng(model.states.rng, tid);
 
-    // Total cross section above the K-shell energy but below the energy
-    // threshold for the parameterized cross sections. Uses spline
-    // interpolation.
-    GenericGridData xs_hi;
+    // Sample an element
+    ElementSelector select_el(
+        material.material_view(),
+        LivermorePEMicroXsCalculator{pe, particle.energy()},
+        material.element_scratch());
+    ElementComponentId comp_id = select_el(rng);
+    ElementId          el_id   = material.material_view().element_id(comp_id);
 
-    // SUBSHELL CROSS SECTIONS
+    AtomicRelaxationHelper relaxation(
+        model.params.relaxation, model.states.relaxation, el_id, tid);
+    LivermorePEInteractor interact(pe,
+                                   relaxation,
+                                   el_id,
+                                   particle,
+                                   cutoffs,
+                                   model.states.direction[tid],
+                                   allocate_secondaries);
 
-    ItemRange<LivermoreSubshell> shells;
-
-    // Energy threshold for using the parameterized subshell cross sections in
-    // the lower and upper energy range
-    Energy thresh_lo; //!< Use tabulated XS below this energy
-    Energy thresh_hi; //!< Use lower parameterization below, upper above
-
-    //! True if assigned and valid
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        // Note: xs_lo is not present for elements with only one subshell, so
-        // it's valid for xs_lo to be unassigned.
-        return xs_hi && !shells.empty() && thresh_lo <= thresh_hi;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Livermore photoelectric cross section data and binding energies.
- */
-template<Ownership W, MemSpace M>
-struct LivermorePEXsData
-{
-    template<class T>
-    using Items = Collection<T, W, M>;
-    template<class T>
-    using ElementItems = Collection<T, W, M, ElementId>;
-
-    //// MEMBER DATA ////
-
-    Items<real_type>               reals;
-    Items<LivermoreSubshell>       shells;
-    ElementItems<LivermoreElement> elements;
-
-    //// MEMBER FUNCTIONS ////
-
-    //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return !reals.empty() && !shells.empty() && !elements.empty();
-    }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    LivermorePEXsData& operator=(const LivermorePEXsData<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        reals    = other.reals;
-        shells   = other.shells;
-        elements = other.elements;
-        return *this;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Helper struct for making assignment easier
- */
-struct LivermorePEIds
-{
-    //! Model ID
-    ModelId model;
-    //! ID of an electron
-    ParticleId electron;
-    //! ID of a gamma
-    ParticleId gamma;
-
-    //! Whether the IDs are assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return model && electron && gamma;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Device data for creating a LivermorePEInteractor.
- */
-template<Ownership W, MemSpace M>
-struct LivermorePEData
-{
-    //// MEMBER DATA ////
-
-    //! IDs in a separate struct for readability/easier copying
-    LivermorePEIds ids;
-
-    //! 1 / electron mass [1 / MevMass]
-    real_type inv_electron_mass;
-
-    //! Livermore EPICS2014 photoelectric data
-    LivermorePEXsData<W, M> xs;
-
-    //// MEMBER FUNCTIONS ////
-
-    //! Check whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return ids && inv_electron_mass > 0 && xs;
-    }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    LivermorePEData& operator=(const LivermorePEData<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        ids               = other.ids;
-        inv_electron_mass = other.inv_electron_mass;
-        xs                = other.xs;
-        return *this;
-    }
-};
-
-using LivermorePEDeviceRef
-    = LivermorePEData<Ownership::const_reference, MemSpace::device>;
-using LivermorePEHostRef
-    = LivermorePEData<Ownership::const_reference, MemSpace::host>;
-using LivermorePEPointers
-    = LivermorePEData<Ownership::const_reference, MemSpace::native>;
-
-//---------------------------------------------------------------------------//
-// KERNEL LAUNCHERS
-//---------------------------------------------------------------------------//
-
-// Launch the Livermore photoelectric interaction
-void livermore_pe_interact(const LivermorePEDeviceRef&                pe,
-                           const ModelInteractRefs<MemSpace::device>& model);
-
-void livermore_pe_interact(const LivermorePEHostRef&                pe,
-                           const ModelInteractRefs<MemSpace::host>& model);
+    model.states.interactions[tid] = interact(rng);
+    CELER_ENSURE(model.states.interactions[tid]);
+}
 
 //---------------------------------------------------------------------------//
 } // namespace detail

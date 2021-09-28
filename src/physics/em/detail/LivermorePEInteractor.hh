@@ -17,7 +17,6 @@
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/em/AtomicRelaxationHelper.hh"
-#include "LivermorePE.hh"
 #include "LivermorePEMicroXsCalculator.hh"
 
 namespace celeritas
