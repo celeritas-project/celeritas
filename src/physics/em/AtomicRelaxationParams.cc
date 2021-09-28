@@ -12,6 +12,7 @@
 #include <numeric>
 #include <set>
 #include <unordered_map>
+#include <vector>
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "detail/Utils.hh"

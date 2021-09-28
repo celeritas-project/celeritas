@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
+#include <functional>
 #include "base/Algorithms.hh"
 #include "base/CollectionMirror.hh"
 #include "io/ImportAtomicRelaxation.hh"
