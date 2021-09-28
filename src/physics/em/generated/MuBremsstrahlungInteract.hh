@@ -24,7 +24,6 @@ inline void
 mu_bremsstrahlung_interact(const detail::MuBremsstrahlungDeviceRef&,
                            const ModelInteractRefs<MemSpace::device>&)
 {
-    return {};
 }
 #endif
 

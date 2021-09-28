@@ -23,7 +23,6 @@ void moller_bhabha_interact(const detail::MollerBhabhaDeviceRef&,
 inline void moller_bhabha_interact(const detail::MollerBhabhaDeviceRef&,
                                    const ModelInteractRefs<MemSpace::device>&)
 {
-    return {};
 }
 #endif
 

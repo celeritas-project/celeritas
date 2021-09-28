@@ -23,7 +23,6 @@ void rayleigh_interact(const detail::RayleighDeviceRef&,
 inline void rayleigh_interact(const detail::RayleighDeviceRef&,
                               const ModelInteractRefs<MemSpace::device>&)
 {
-    return {};
 }
 #endif
 

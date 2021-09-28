@@ -23,7 +23,6 @@ void bethe_heitler_interact(const detail::BetheHeitlerDeviceRef&,
 inline void bethe_heitler_interact(const detail::BetheHeitlerDeviceRef&,
                                    const ModelInteractRefs<MemSpace::device>&)
 {
-    return {};
 }
 #endif
 

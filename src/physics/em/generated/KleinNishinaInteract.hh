@@ -23,7 +23,6 @@ void klein_nishina_interact(const detail::KleinNishinaDeviceRef&,
 inline void klein_nishina_interact(const detail::KleinNishinaDeviceRef&,
                                    const ModelInteractRefs<MemSpace::device>&)
 {
-    return {};
 }
 #endif
 

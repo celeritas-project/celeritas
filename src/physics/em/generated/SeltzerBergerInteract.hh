@@ -23,7 +23,6 @@ void seltzer_berger_interact(const detail::SeltzerBergerDeviceRef&,
 inline void seltzer_berger_interact(const detail::SeltzerBergerDeviceRef&,
                                     const ModelInteractRefs<MemSpace::device>&)
 {
-    return {};
 }
 #endif
 

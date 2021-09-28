@@ -23,7 +23,6 @@ void eplusgg_interact(const detail::EPlusGGDeviceRef&,
 inline void eplusgg_interact(const detail::EPlusGGDeviceRef&,
                              const ModelInteractRefs<MemSpace::device>&)
 {
-    return {};
 }
 #endif
 

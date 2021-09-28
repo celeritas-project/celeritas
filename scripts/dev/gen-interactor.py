@@ -47,7 +47,6 @@ inline void {func}_interact(
     const detail::{class}DeviceRef&,
     const ModelInteractRefs<MemSpace::device>&)
 {{
-    return {{}};
 }}
 #endif
 

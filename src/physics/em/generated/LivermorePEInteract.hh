@@ -23,7 +23,6 @@ void livermore_pe_interact(const detail::LivermorePEDeviceRef&,
 inline void livermore_pe_interact(const detail::LivermorePEDeviceRef&,
                                   const ModelInteractRefs<MemSpace::device>&)
 {
-    return {};
 }
 #endif
 
