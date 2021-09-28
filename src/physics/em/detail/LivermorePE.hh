@@ -168,9 +168,6 @@ struct LivermorePEData
     //! Livermore EPICS2014 photoelectric data
     LivermorePEXsData<W, M> xs;
 
-    //! EADL transition data used for atomic relaxation
-    AtomicRelaxParamsPointers atomic_relaxation;
-
     //// MEMBER FUNCTIONS ////
 
     //! Check whether the data is assigned
@@ -187,7 +184,6 @@ struct LivermorePEData
         ids               = other.ids;
         inv_electron_mass = other.inv_electron_mass;
         xs                = other.xs;
-        atomic_relaxation = other.atomic_relaxation;
         return *this;
     }
 };
@@ -200,38 +196,11 @@ using LivermorePEPointers
     = LivermorePEData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
-/*!
- * Temporary data needed during interaction.
- */
-template<Ownership W, MemSpace M>
-struct RelaxationScratchData
-{
-    //! Storage for the stack of vacancy subshell IDs
-    StackAllocatorData<SubshellId, W, M> vacancies;
-
-    //! True if assigned
-    explicit CELER_FUNCTION operator bool() const { return bool(vacancies); }
-
-    //! Assign from another set of states
-    template<Ownership W2, MemSpace M2>
-    RelaxationScratchData& operator=(RelaxationScratchData<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        vacancies = other.vacancies;
-        return *this;
-    }
-};
-
-using RelaxationScratchDeviceRef
-    = RelaxationScratchData<Ownership::reference, MemSpace::device>;
-
-//---------------------------------------------------------------------------//
 // KERNEL LAUNCHERS
 //---------------------------------------------------------------------------//
 
 // Launch the Livermore photoelectric interaction
 void livermore_pe_interact(const LivermorePEDeviceRef&                pe,
-                           const RelaxationScratchDeviceRef&          scratch,
                            const ModelInteractRefs<MemSpace::device>& model);
 
 //---------------------------------------------------------------------------//
