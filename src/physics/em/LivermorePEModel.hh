@@ -13,7 +13,6 @@
 #include "base/CollectionMirror.hh"
 #include "io/ImportLivermorePE.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/em/AtomicRelaxationParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "detail/LivermorePE.hh"
 
@@ -22,22 +21,16 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the Livermore photoelectric model interaction.
- *
- * \todo When multiple methods that use atomic relaxation are in place, we
- * should share AtomicRelaxationParams among them, and move
- * `RelaxationScratchData` into that class, to reduce fixed-size memory
- * allocations.
  */
 class LivermorePEModel final : public Model
 {
   public:
     //!@{
-    using AtomicNumber       = int;
-    using MevEnergy          = units::MevEnergy;
-    using SPConstAtomicRelax = std::shared_ptr<const AtomicRelaxationParams>;
-    using ReadData           = std::function<ImportLivermorePE(AtomicNumber)>;
-    using HostRef            = detail::LivermorePEHostRef;
-    using DeviceRef          = detail::LivermorePEDeviceRef;
+    using AtomicNumber = int;
+    using MevEnergy    = units::MevEnergy;
+    using ReadData     = std::function<ImportLivermorePE(AtomicNumber)>;
+    using HostRef      = detail::LivermorePEHostRef;
+    using DeviceRef    = detail::LivermorePEDeviceRef;
     //!@}
 
   public:
@@ -45,9 +38,7 @@ class LivermorePEModel final : public Model
     LivermorePEModel(ModelId               id,
                      const ParticleParams& particles,
                      const MaterialParams& materials,
-                     ReadData              load_data,
-                     SPConstAtomicRelax    atomic_relaxation = nullptr,
-                     size_type             num_vacancies     = 0);
+                     ReadData              load_data);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -74,14 +65,6 @@ class LivermorePEModel final : public Model
     // Host/device storage and reference
     CollectionMirror<detail::LivermorePEData> data_;
 
-    detail::RelaxationScratchData<Ownership::value, MemSpace::device>
-        relax_scratch_;
-    detail::RelaxationScratchData<Ownership::reference, MemSpace::device>
-        relax_scratch_ref_;
-    detail::RelaxationScratchData<Ownership::value, MemSpace::host>
-        relax_scratch_host_;
-    detail::RelaxationScratchData<Ownership::reference, MemSpace::host>
-        relax_scratch_host_ref_;
     using HostXsData
         = detail::LivermorePEXsData<Ownership::value, MemSpace::host>;
     void

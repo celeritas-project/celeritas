@@ -57,19 +57,19 @@ TEST(OpaqueIdTest, operations)
 
 TEST(OpaqueIdTest, multi_int)
 {
-    using SId8     = OpaqueId<TestInstantiator, std::int_least8_t>;
+    using UId8     = OpaqueId<TestInstantiator, std::uint_least8_t>;
     using Uint32   = std::uint_least32_t;
     using limits_t = std::numeric_limits<Uint32>;
 
     // Unassigned is always out-of-range
-    EXPECT_FALSE(SId8{} < 0);
-    EXPECT_FALSE(SId8{} < Uint32(limits_t::max()));
-    EXPECT_FALSE(SId8{} < Uint32(127));
-    EXPECT_FALSE(SId8{} < Uint32(128));
-    EXPECT_FALSE(SId8{10} < Uint32(5));
+    EXPECT_FALSE(UId8{} < 0);
+    EXPECT_FALSE(UId8{} < Uint32(limits_t::max()));
+    EXPECT_FALSE(UId8{} < Uint32(255));
+    EXPECT_FALSE(UId8{} < Uint32(256));
+    EXPECT_FALSE(UId8{10} < Uint32(5));
 
     // Check 'true' conditions
-    EXPECT_TRUE(SId8{127} < Uint32(limits_t::max()));
-    EXPECT_TRUE(SId8{127} < Uint32(128));
-    EXPECT_TRUE(SId8{10} < Uint32(15));
+    EXPECT_TRUE(UId8{254} < Uint32(limits_t::max()));
+    EXPECT_TRUE(UId8{254} < Uint32(255));
+    EXPECT_TRUE(UId8{10} < Uint32(15));
 }

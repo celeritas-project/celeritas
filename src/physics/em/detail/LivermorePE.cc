@@ -28,7 +28,6 @@ namespace detail
  * Interact using the Livermore photoelectric model on applicable tracks.
  */
 void livermore_pe_interact(const LivermorePEHostRef&                pe,
-                           const RelaxationScratchHostRef&          scratch,
                            const ModelInteractRefs<MemSpace::host>& model)
 {
     for (auto tid : range(ThreadId{model.states.size()}))
@@ -60,8 +59,10 @@ void livermore_pe_interact(const LivermorePEHostRef&                pe,
         ElementComponentId comp_id = select_el(rng);
         ElementId el_id = material.material_view().element_id(comp_id);
 
+        AtomicRelaxationHelper relaxation(
+            model.params.relaxation, model.states.relaxation, el_id, tid);
         LivermorePEInteractor interact(pe,
-                                       scratch,
+                                       relaxation,
                                        el_id,
                                        particle,
                                        cutoffs,
