@@ -38,6 +38,7 @@
 #include <G4Element.hh>
 #include <G4VEmProcess.hh>
 #include <G4ElementData.hh>
+#include <G4NistManager.hh>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -49,6 +50,7 @@
 #include "comm/ScopedMpiInit.hh"
 #include "io/ImportParticle.hh"
 #include "io/ImportPhysicsTable.hh"
+#include "io/ImportPhysicsVector.hh"
 #include "io/ImportData.hh"
 #include "physics/base/PDGNumber.hh"
 
@@ -67,6 +69,7 @@ using celeritas::ImportMatElemComponent;
 using celeritas::ImportMaterial;
 using celeritas::ImportMaterialState;
 using celeritas::ImportParticle;
+using celeritas::ImportPhysicsVector;
 using celeritas::ImportProductionCut;
 using celeritas::ImportVolume;
 using std::cout;
@@ -393,29 +396,9 @@ void store_elemental_xs()
 {
     CELER_LOG(status) << "Test export of elemental XS data";
 
-    // Store element list
-    const auto g4element_table = *G4Element::GetElementTable();
-
-    std::vector<ImportElement> elements;
-    elements.resize(g4element_table.size());
-
-    // Loop over element data
-    for (const auto& g4element : g4element_table)
-    {
-        CELER_ASSERT(g4element);
-
-        // Add element to vector
-        ImportElement element;
-        element.name                  = g4element->GetName();
-        element.atomic_number         = g4element->GetZ();
-        element.atomic_mass           = g4element->GetAtomicMassAmu();
-        element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
-        element.coulomb_factor        = g4element->GetfCoulomb();
-
-        elements[g4element->GetIndex()] = element;
-    }
-
-    CELER_LOG(info) << "loaded elements: " << elements.size();
+    // load again element and material list
+    std::vector<ImportElement>  elements  = store_elements();
+    std::vector<ImportMaterial> materials = store_materials();
 
     // Loop over particles and processes, initialize elemental data and such
     G4ParticleTable::G4PTblDicIterator& particle_iterator
@@ -489,6 +472,8 @@ void store_elemental_xs()
                             g4datavec_cuts.push_back(val);
                         }
 
+                        model->Initialise(&g4_particle_def, g4datavec_cuts);
+
                         model->InitialiseElementSelectors(&g4_particle_def,
                                                           g4datavec_cuts);
 
@@ -497,6 +482,70 @@ void store_elemental_xs()
 
                         // Maybe I need to follow the manual build as in
                         // G4HepEmElectronTableBuilder::BuildElementSelector()
+
+                        const double max_energy
+                            = G4EmParameters::Instance()->MaxKinEnergy();
+                        const double min_energy
+                            = G4EmParameters::Instance()->MinKinEnergy();
+
+                        const int bins_per_decade
+                            = G4EmParameters::Instance()->NumberOfBinsPerDecade();
+                        const double inv_log_10_6 = 1.0
+                                                    / (6.0 * std::log(10.0));
+                        int num_e_bins
+                            = (int)(bins_per_decade
+                                    * std::log(max_energy / min_energy)
+                                    * inv_log_10_6);
+
+                        CELER_LOG(info)
+                            << " -------- num bins = " << num_e_bins;
+
+                        ImportPhysicsVector elphysvec;
+                        elphysvec.vector_type
+                            = celeritas::ImportPhysicsVectorType::log;
+
+                        double delta = std::log(max_energy / min_energy)
+                                       / (num_e_bins - 1.0);
+                        double log_min_e    = std::log(min_energy);
+                        double inv_le_delta = 1.0 / delta;
+
+                        // Fill energy bins
+                        elphysvec.x.push_back(min_energy);
+
+                        for (int i = 1; i < num_e_bins - 1; i++)
+                        {
+                            elphysvec.x.push_back(
+                                std::exp(log_min_e + i * delta));
+                        }
+
+                        elphysvec.x.push_back(max_energy);
+                        // --
+
+                        CELER_LOG(info) << " ---------- physvec size "
+                                        << elphysvec.x.size();
+
+                        for (const auto material : materials)
+                        {
+                            double    xs_sum    = 0;
+                            const int num_atoms = material.number_density;
+
+                            for (const auto& elcomp : material.elements)
+                            {
+                                const auto element
+                                    = elements.at(elcomp.element_id);
+
+                                double xs = model->ComputeCrossSectionPerAtom(
+                                    &g4_particle_def,
+                                    G4NistManager::Instance()->FindOrBuildElement(
+                                        element.atomic_number),
+                                    min_energy,
+                                    0,
+                                    max_energy);
+
+                                xs_sum += xs;
+                                elphysvec.y.push_back(xs_sum);
+                            }
+                        }
                     }
                 }
             }
@@ -628,7 +677,7 @@ int main(int argc, char* argv[])
     CELER_ENSURE(import_data);
 
     //// TEST ELEMENT XS EXPORT
-    store_elemental_xs();
+    // store_elemental_xs();
 
     // Write data to disk and close ROOT file
     tree_data.Fill();

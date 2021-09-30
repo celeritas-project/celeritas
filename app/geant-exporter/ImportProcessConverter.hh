@@ -11,8 +11,12 @@
 #include <vector>
 #include <memory>
 
+#include "io/ImportElement.hh"
+#include "io/ImportMaterial.hh"
 #include "io/ImportProcess.hh"
 
+using celeritas::ImportElement;
+using celeritas::ImportMaterial;
 using celeritas::ImportProcess;
 
 class TFile;
@@ -98,6 +102,12 @@ class ImportProcessConverter
     // Write the remaining elements of this->process_
     void add_table(const G4PhysicsTable*      table,
                    celeritas::ImportTableType table_type);
+
+    // ------- SCRATCH AREA -------
+    void test_elemental_xs(const std::vector<ImportElement>  elements,
+                           const std::vector<ImportMaterial> materials,
+                           const G4ParticleDefinition&       particle,
+                           const G4VProcess&                 process);
 
   private:
     // Whether to write tables that aren't used by physics
