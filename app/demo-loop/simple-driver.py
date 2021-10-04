@@ -29,9 +29,9 @@ if result_ge.returncode:
     print("fatal: geant-exporter failed with error", result_ge.returncode)
     exit(result_ge.returncode)
 
-max_num_tracks = int(environ.get('CELERITAS_MAX_NUM_TRACKS', 128 * 32))
-storage_factor = int(environ.get('CELERITAS_STORAGE_FACTOR', 10))
 use_device = bool(strtobool(environ.get('CELERITAS_USE_DEVICE', 'true')))
+storage_factor = 10 if use_device else 100
+max_num_tracks = 128*32 if use_device else 1
 
 inp = {
     'run': {
