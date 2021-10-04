@@ -15,8 +15,9 @@ namespace celeritas
 {
 namespace generated
 {
-void moller_bhabha_interact(const detail::MollerBhabhaHostRef&       ptrs,
-                            const ModelInteractRefs<MemSpace::host>& model)
+void moller_bhabha_interact(
+    const detail::MollerBhabhaHostRef& ptrs,
+    const ModelInteractRefs<MemSpace::host>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);

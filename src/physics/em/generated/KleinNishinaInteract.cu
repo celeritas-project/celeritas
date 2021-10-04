@@ -18,9 +18,9 @@ namespace generated
 {
 namespace
 {
-__global__ void
-klein_nishina_interact_kernel(const detail::KleinNishinaDeviceRef       ptrs,
-                              const ModelInteractRefs<MemSpace::device> model)
+__global__ void klein_nishina_interact_kernel(
+    const detail::KleinNishinaDeviceRef ptrs,
+    const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
@@ -31,8 +31,9 @@ klein_nishina_interact_kernel(const detail::KleinNishinaDeviceRef       ptrs,
 }
 } // namespace
 
-void klein_nishina_interact(const detail::KleinNishinaDeviceRef&       ptrs,
-                            const ModelInteractRefs<MemSpace::device>& model)
+void klein_nishina_interact(
+    const detail::KleinNishinaDeviceRef& ptrs,
+    const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);

@@ -18,9 +18,9 @@ namespace generated
 {
 namespace
 {
-__global__ void
-livermore_pe_interact_kernel(const detail::LivermorePEDeviceRef        ptrs,
-                             const ModelInteractRefs<MemSpace::device> model)
+__global__ void livermore_pe_interact_kernel(
+    const detail::LivermorePEDeviceRef ptrs,
+    const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
@@ -31,8 +31,9 @@ livermore_pe_interact_kernel(const detail::LivermorePEDeviceRef        ptrs,
 }
 } // namespace
 
-void livermore_pe_interact(const detail::LivermorePEDeviceRef&        ptrs,
-                           const ModelInteractRefs<MemSpace::device>& model)
+void livermore_pe_interact(
+    const detail::LivermorePEDeviceRef& ptrs,
+    const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);

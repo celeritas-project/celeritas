@@ -55,11 +55,7 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
 void KleinNishinaModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
-#if CELERITAS_USE_CUDA
     generated::klein_nishina_interact(interface_, pointers);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
 }
 
 void KleinNishinaModel::interact(

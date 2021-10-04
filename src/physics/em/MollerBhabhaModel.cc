@@ -66,11 +66,7 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
 void MollerBhabhaModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
-#if CELERITAS_USE_CUDA
     generated::moller_bhabha_interact(interface_, pointers);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
 }
 
 void MollerBhabhaModel::interact(

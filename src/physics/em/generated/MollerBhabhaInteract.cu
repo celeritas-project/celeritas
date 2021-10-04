@@ -18,9 +18,9 @@ namespace generated
 {
 namespace
 {
-__global__ void
-moller_bhabha_interact_kernel(const detail::MollerBhabhaDeviceRef       ptrs,
-                              const ModelInteractRefs<MemSpace::device> model)
+__global__ void moller_bhabha_interact_kernel(
+    const detail::MollerBhabhaDeviceRef ptrs,
+    const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
@@ -31,8 +31,9 @@ moller_bhabha_interact_kernel(const detail::MollerBhabhaDeviceRef       ptrs,
 }
 } // namespace
 
-void moller_bhabha_interact(const detail::MollerBhabhaDeviceRef&       ptrs,
-                            const ModelInteractRefs<MemSpace::device>& model)
+void moller_bhabha_interact(
+    const detail::MollerBhabhaDeviceRef& ptrs,
+    const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);

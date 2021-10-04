@@ -15,8 +15,9 @@ namespace celeritas
 {
 namespace generated
 {
-void klein_nishina_interact(const detail::KleinNishinaHostRef&       ptrs,
-                            const ModelInteractRefs<MemSpace::host>& model)
+void klein_nishina_interact(
+    const detail::KleinNishinaHostRef& ptrs,
+    const ModelInteractRefs<MemSpace::host>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);

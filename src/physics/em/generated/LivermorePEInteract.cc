@@ -15,8 +15,9 @@ namespace celeritas
 {
 namespace generated
 {
-void livermore_pe_interact(const detail::LivermorePEHostRef&        ptrs,
-                           const ModelInteractRefs<MemSpace::host>& model)
+void livermore_pe_interact(
+    const detail::LivermorePEHostRef& ptrs,
+    const ModelInteractRefs<MemSpace::host>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);

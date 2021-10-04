@@ -91,11 +91,7 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
 void SeltzerBergerModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
-#if CELERITAS_USE_CUDA
     generated::seltzer_berger_interact(this->device_pointers(), pointers);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
 }
 
 void SeltzerBergerModel::interact(

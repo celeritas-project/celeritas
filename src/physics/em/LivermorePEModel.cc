@@ -77,11 +77,7 @@ auto LivermorePEModel::applicability() const -> SetApplicability
 void LivermorePEModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
 {
-#if CELERITAS_USE_CUDA
     generated::livermore_pe_interact(this->device_pointers(), pointers);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
 }
 
 void LivermorePEModel::interact(

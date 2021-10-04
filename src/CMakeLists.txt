@@ -32,6 +32,8 @@ list(APPEND SOURCES
 )
 
 # Generate model launcher code for host/device
+set(GEN_SOURCES_CC)
+set(GEN_SOURCES_CU)
 include(CeleritasGenInteractor)
 celeritas_gen_interactor(BetheHeitler bethe_heitler)
 celeritas_gen_interactor(EPlusGG eplusgg)
@@ -86,14 +88,6 @@ list(APPEND SOURCES
   physics/em/RayleighModel.cc
   physics/em/RayleighProcess.cc
   physics/em/detail/RayleighData.cc
-  physics/em/generated/BetheHeitlerInteract.cc
-  physics/em/generated/EPlusGGInteract.cc
-  physics/em/generated/KleinNishinaInteract.cc
-  physics/em/generated/LivermorePEInteract.cc
-  physics/em/generated/MollerBhabhaInteract.cc
-  physics/em/generated/MuBremsstrahlungInteract.cc
-  physics/em/generated/RayleighInteract.cc
-  physics/em/generated/SeltzerBergerInteract.cc
   physics/em/SeltzerBergerModel.cc
   physics/em/detail/Utils.cc
   physics/grid/ValueGridBuilder.cc
@@ -102,22 +96,16 @@ list(APPEND SOURCES
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
   random/detail/RngStateInit.cc
+  ${GEN_SOURCES_CC}
 )
 
 if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
     base/KernelParamCalculator.cuda.cc
     base/detail/Filler.cu
-    physics/em/generated/BetheHeitlerInteract.cu
-    physics/em/generated/EPlusGGInteract.cu
-    physics/em/generated/KleinNishinaInteract.cu
-    physics/em/generated/LivermorePEInteract.cu
-    physics/em/generated/MollerBhabhaInteract.cu
-    physics/em/generated/MuBremsstrahlungInteract.cu
-    physics/em/generated/RayleighInteract.cu
-    physics/em/generated/SeltzerBergerInteract.cu
     random/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
+    ${GEN_SOURCES_CU}
   )
   # TODO: CUDA RNG is included by host code
   list(APPEND PUBLIC_DEPS CUDA::cudart)

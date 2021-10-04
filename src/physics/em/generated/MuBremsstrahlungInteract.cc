@@ -15,8 +15,9 @@ namespace celeritas
 {
 namespace generated
 {
-void mu_bremsstrahlung_interact(const detail::MuBremsstrahlungHostRef&   ptrs,
-                                const ModelInteractRefs<MemSpace::host>& model)
+void mu_bremsstrahlung_interact(
+    const detail::MuBremsstrahlungHostRef& ptrs,
+    const ModelInteractRefs<MemSpace::host>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);

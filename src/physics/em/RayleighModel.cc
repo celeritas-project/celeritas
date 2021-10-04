@@ -64,11 +64,7 @@ auto RayleighModel::applicability() const -> SetApplicability
 void RayleighModel::interact(
     CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& group) const
 {
-#if CELERITAS_USE_CUDA
     generated::rayleigh_interact(this->device_group(), group);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
 }
 
 void RayleighModel::interact(

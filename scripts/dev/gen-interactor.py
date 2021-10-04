@@ -28,6 +28,7 @@ CLIKE_TOP = '''\
 
 HH_TEMPLATE = CLIKE_TOP + """\
 #include "celeritas_config.h"
+#include "base/Assert.hh"
 #include "../detail/{class}.hh"
 
 namespace celeritas
@@ -47,6 +48,7 @@ inline void {func}_interact(
     const detail::{class}DeviceRef&,
     const ModelInteractRefs<MemSpace::device>&)
 {{
+    CELER_ASSERT_UNREACHABLE();
 }}
 #endif
 

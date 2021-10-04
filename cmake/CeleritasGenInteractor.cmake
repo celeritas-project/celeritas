@@ -36,9 +36,13 @@ function(celeritas_gen_interactor class func)
     COMMAND "${Python_EXECUTABLE}"
       "${CELERITAS_GEN_INTERACTOR}" --class ${class} --func ${func}
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/src/physics/em/generated")
-    execute_process(
-      COMMAND clang-format -i "${class}Interact.hh" "${class}Interact.cc" "${class}Interact.cu"
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/src/physics/em/generated")
-  endfunction()
+
+  # Add generated sources to parent scope variables (note CMake weirdness of
+  # having to create a local variable first)
+  set(GEN_SOURCES_CC ${GEN_SOURCES_CC} "physics/em/generated/${class}Interact.cc")
+  set(GEN_SOURCES_CC ${GEN_SOURCES_CC} PARENT_SCOPE)
+  set(GEN_SOURCES_CU ${GEN_SOURCES_CU} "physics/em/generated/${class}Interact.cu")
+  set(GEN_SOURCES_CU ${GEN_SOURCES_CU} PARENT_SCOPE)
+endfunction()
 
 #-----------------------------------------------------------------------------#

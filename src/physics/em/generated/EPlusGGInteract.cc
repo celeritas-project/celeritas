@@ -15,8 +15,9 @@ namespace celeritas
 {
 namespace generated
 {
-void eplusgg_interact(const detail::EPlusGGHostRef&            ptrs,
-                      const ModelInteractRefs<MemSpace::host>& model)
+void eplusgg_interact(
+    const detail::EPlusGGHostRef& ptrs,
+    const ModelInteractRefs<MemSpace::host>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);

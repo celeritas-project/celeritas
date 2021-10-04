@@ -15,8 +15,9 @@ namespace celeritas
 {
 namespace generated
 {
-void seltzer_berger_interact(const detail::SeltzerBergerHostRef&      ptrs,
-                             const ModelInteractRefs<MemSpace::host>& model)
+void seltzer_berger_interact(
+    const detail::SeltzerBergerHostRef& ptrs,
+    const ModelInteractRefs<MemSpace::host>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);

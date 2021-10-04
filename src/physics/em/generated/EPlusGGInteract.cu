@@ -18,9 +18,9 @@ namespace generated
 {
 namespace
 {
-__global__ void
-eplusgg_interact_kernel(const detail::EPlusGGDeviceRef            ptrs,
-                        const ModelInteractRefs<MemSpace::device> model)
+__global__ void eplusgg_interact_kernel(
+    const detail::EPlusGGDeviceRef ptrs,
+    const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
@@ -31,8 +31,9 @@ eplusgg_interact_kernel(const detail::EPlusGGDeviceRef            ptrs,
 }
 } // namespace
 
-void eplusgg_interact(const detail::EPlusGGDeviceRef&            ptrs,
-                      const ModelInteractRefs<MemSpace::device>& model)
+void eplusgg_interact(
+    const detail::EPlusGGDeviceRef& ptrs,
+    const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);
@@ -40,8 +41,8 @@ void eplusgg_interact(const detail::EPlusGGDeviceRef&            ptrs,
     static const KernelParamCalculator calc_kernel_params(
         eplusgg_interact_kernel, "eplusgg_interact");
     auto params = calc_kernel_params(model.states.size());
-    eplusgg_interact_kernel<<<params.grid_size, params.block_size>>>(ptrs,
-                                                                     model);
+    eplusgg_interact_kernel<<<params.grid_size, params.block_size>>>(
+        ptrs, model);
     CELER_CUDA_CHECK_ERROR();
 }
 

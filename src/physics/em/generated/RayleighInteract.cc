@@ -15,8 +15,9 @@ namespace celeritas
 {
 namespace generated
 {
-void rayleigh_interact(const detail::RayleighHostRef&           ptrs,
-                       const ModelInteractRefs<MemSpace::host>& model)
+void rayleigh_interact(
+    const detail::RayleighHostRef& ptrs,
+    const ModelInteractRefs<MemSpace::host>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);

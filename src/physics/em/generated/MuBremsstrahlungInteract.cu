@@ -19,7 +19,7 @@ namespace generated
 namespace
 {
 __global__ void mu_bremsstrahlung_interact_kernel(
-    const detail::MuBremsstrahlungDeviceRef   ptrs,
+    const detail::MuBremsstrahlungDeviceRef ptrs,
     const ModelInteractRefs<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -31,8 +31,9 @@ __global__ void mu_bremsstrahlung_interact_kernel(
 }
 } // namespace
 
-void mu_bremsstrahlung_interact(const detail::MuBremsstrahlungDeviceRef& ptrs,
-                                const ModelInteractRefs<MemSpace::device>& model)
+void mu_bremsstrahlung_interact(
+    const detail::MuBremsstrahlungDeviceRef& ptrs,
+    const ModelInteractRefs<MemSpace::device>& model)
 {
     CELER_EXPECT(ptrs);
     CELER_EXPECT(model);
