@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/EPlusGG.hh"
+#include "../detail/EPlusGGInterface.hh"
 
 namespace celeritas
 {

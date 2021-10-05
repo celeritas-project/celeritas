@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/MollerBhabha.hh"
+#include "../detail/MollerBhabhaInterface.hh"
 
 namespace celeritas
 {

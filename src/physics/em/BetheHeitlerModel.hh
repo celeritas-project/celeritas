@@ -9,7 +9,7 @@
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
-#include "detail/BetheHeitlerInteractor.hh"
+#include "detail/BetheHeitlerInterface.hh"
 
 namespace celeritas
 {

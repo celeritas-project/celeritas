@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EPlusGG.hh
+//! \file EPlusGGLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -65,9 +65,6 @@ CELER_FUNCTION void EPlusGGLauncher<M>::operator()(ThreadId tid) const
 
     CELER_ENSURE(model.states.interactions[tid]);
 }
-
-using EPlusGGHostRef   = EPlusGGPointers;
-using EPlusGGDeviceRef = EPlusGGPointers;
 
 //---------------------------------------------------------------------------//
 } // namespace detail

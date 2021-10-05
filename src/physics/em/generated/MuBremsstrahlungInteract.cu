@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "../detail/MuBremsstrahlung.hh"
+#include "../detail/MuBremsstrahlungLauncher.hh"
 
 using namespace celeritas::detail;
 

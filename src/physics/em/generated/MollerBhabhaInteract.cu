@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "../detail/MollerBhabha.hh"
+#include "../detail/MollerBhabhaLauncher.hh"
 
 using namespace celeritas::detail;
 

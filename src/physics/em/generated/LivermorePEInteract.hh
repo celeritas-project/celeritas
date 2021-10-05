@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/LivermorePE.hh"
+#include "../detail/LivermorePEInterface.hh"
 
 namespace celeritas
 {

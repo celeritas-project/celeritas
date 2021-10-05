@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "../detail/EPlusGG.hh"
+#include "../detail/EPlusGGLauncher.hh"
 
 using namespace celeritas::detail;
 

@@ -10,7 +10,7 @@
 #include "base/CollectionMirror.hh"
 #include "physics/base/Model.hh"
 #include "physics/material/MaterialParams.hh"
-#include "detail/RayleighInteractor.hh"
+#include "detail/RayleighInterface.hh"
 
 namespace celeritas
 {

@@ -6,7 +6,6 @@
 //! \file RayleighInteractor.test.cc
 //---------------------------------------------------------------------------//
 #include "physics/em/detail/RayleighInteractor.hh"
-#include "physics/em/detail/Rayleigh.hh"
 #include "physics/em/RayleighModel.hh"
 
 #include "physics/material/ElementView.hh"

@@ -9,7 +9,7 @@
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-#include "../detail/Rayleigh.hh"
+#include "../detail/RayleighLauncher.hh"
 
 namespace celeritas
 {

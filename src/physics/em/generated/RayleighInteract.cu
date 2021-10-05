@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "../detail/Rayleigh.hh"
+#include "../detail/RayleighLauncher.hh"
 
 using namespace celeritas::detail;
 

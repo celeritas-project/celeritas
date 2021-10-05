@@ -14,34 +14,12 @@
 #include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
+#include "KleinNishinaInterface.hh"
 
 namespace celeritas
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-/*!
- * Device data for creating a KleinNishinaInteractor.
- */
-struct KleinNishinaPointers
-{
-    //! Model ID
-    ModelId model_id;
-
-    //! 1 / electron mass [1 / MevMass]
-    real_type inv_electron_mass;
-    //! ID of an electron
-    ParticleId electron_id;
-    //! ID of a gamma
-    ParticleId gamma_id;
-
-    //! Check whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return model_id && inv_electron_mass > 0 && electron_id && gamma_id;
-    }
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Perform Compton scattering, neglecting atomic binding energy.

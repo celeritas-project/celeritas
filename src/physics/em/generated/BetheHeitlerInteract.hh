@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/BetheHeitler.hh"
+#include "../detail/BetheHeitlerInterface.hh"
 
 namespace celeritas
 {

@@ -29,7 +29,7 @@ CLIKE_TOP = '''\
 HH_TEMPLATE = CLIKE_TOP + """\
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/{class}.hh"
+#include "../detail/{class}Interface.hh"
 
 namespace celeritas
 {{
@@ -60,7 +60,7 @@ CC_TEMPLATE = CLIKE_TOP + """\
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-#include "../detail/{class}.hh"
+#include "../detail/{class}Launcher.hh"
 
 namespace celeritas
 {{
@@ -87,7 +87,7 @@ void {func}_interact(
 CU_TEMPLATE = CLIKE_TOP + """\
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "../detail/{class}.hh"
+#include "../detail/{class}Launcher.hh"
 
 using namespace celeritas::detail;
 

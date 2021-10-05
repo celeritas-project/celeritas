@@ -9,7 +9,7 @@
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
-#include "detail/MuBremsstrahlungInteractor.hh"
+#include "detail/MuBremsstrahlungInterface.hh"
 
 namespace celeritas
 {

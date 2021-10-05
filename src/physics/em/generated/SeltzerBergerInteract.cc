@@ -9,7 +9,7 @@
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-#include "../detail/SeltzerBerger.hh"
+#include "../detail/SeltzerBergerLauncher.hh"
 
 namespace celeritas
 {

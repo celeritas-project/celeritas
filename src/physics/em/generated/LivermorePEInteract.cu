@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "../detail/LivermorePE.hh"
+#include "../detail/LivermorePELauncher.hh"
 
 using namespace celeritas::detail;
 

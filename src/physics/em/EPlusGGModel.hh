@@ -9,7 +9,7 @@
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
-#include "detail/EPlusGGInteractor.hh"
+#include "detail/EPlusGGInterface.hh"
 
 namespace celeritas
 {

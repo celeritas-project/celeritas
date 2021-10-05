@@ -3,21 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Rayleigh.hh
+//! \file KleinNishinaLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Assert.hh"
+#include "base/Macros.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "random/RngEngine.hh"
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "physics/material/Types.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "physics/material/ElementView.hh"
-#include "physics/material/ElementSelector.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "RayleighInteractor.hh"
+#include "physics/base/Types.hh"
+#include "random/RngEngine.hh"
+#include "KleinNishinaInteractor.hh"
 
 namespace celeritas
 {
@@ -28,51 +27,42 @@ namespace detail
  * Model interactor kernel launcher
  */
 template<MemSpace M>
-struct RayleighLauncher
+struct KleinNishinaLauncher
 {
-    CELER_FUNCTION RayleighLauncher(const RayleighNativeRef&    pointers,
-                                    const ModelInteractRefs<M>& interaction)
-        : rayleigh(pointers), model(interaction)
+    CELER_FUNCTION KleinNishinaLauncher(const KleinNishinaPointers& pointers,
+                                        const ModelInteractRefs<M>& interaction)
+        : kn(pointers), model(interaction)
     {
     }
 
-    const RayleighNativeRef&    rayleigh; //!< Shared data for interactor
-    const ModelInteractRefs<M>& model;    //!< State data needed to interact
+    const KleinNishinaPointers& kn;    //!< Shared data for interactor
+    const ModelInteractRefs<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
 template<MemSpace M>
-CELER_FUNCTION void RayleighLauncher<M>::operator()(ThreadId tid) const
+CELER_FUNCTION void KleinNishinaLauncher<M>::operator()(ThreadId tid) const
 {
-    // Get views to Particle, and Physics
-    ParticleTrackView particle(
+    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
+    ParticleTrackView         particle(
         model.params.particle, model.states.particle, tid);
-
-    MaterialTrackView material(
-        model.params.material, model.states.material, tid);
 
     PhysicsTrackView physics(model.params.physics,
                              model.states.physics,
                              particle.particle_id(),
-                             material.material_id(),
+                             MaterialId{},
                              tid);
 
-    // This interaction only applies if the Rayleigh model was selected
-    if (physics.model_id() != rayleigh.model_id)
+    // This interaction only applies if the KN model was selected
+    if (physics.model_id() != kn.model_id)
         return;
 
+    KleinNishinaInteractor interact(
+        kn, particle, model.states.direction[tid], allocate_secondaries);
+
     RngEngine rng(model.states.rng, tid);
-
-    // Assume only a single element in the material, for now
-    CELER_ASSERT(material.material_view().num_elements() == 1);
-    ElementId el_id{0};
-
-    // Do the interaction
-    RayleighInteractor interact(
-        rayleigh, particle, model.states.direction[tid], el_id);
-
     model.states.interactions[tid] = interact(rng);
     CELER_ENSURE(model.states.interactions[tid]);
 }

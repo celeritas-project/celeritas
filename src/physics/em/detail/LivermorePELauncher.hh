@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KleinNishina.hh
+//! \file LivermorePELauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,9 +14,10 @@
 #include "physics/base/ModelInterface.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "physics/base/Types.hh"
+#include "physics/material/ElementSelector.hh"
+#include "physics/material/MaterialTrackView.hh"
 #include "random/RngEngine.hh"
-#include "KleinNishinaInteractor.hh"
+#include "LivermorePEInteractor.hh"
 
 namespace celeritas
 {
@@ -27,15 +28,15 @@ namespace detail
  * Model interactor kernel launcher
  */
 template<MemSpace M>
-struct KleinNishinaLauncher
+struct LivermorePELauncher
 {
-    CELER_FUNCTION KleinNishinaLauncher(const KleinNishinaPointers& pointers,
-                                        const ModelInteractRefs<M>& interaction)
-        : kn(pointers), model(interaction)
+    CELER_FUNCTION LivermorePELauncher(const LivermorePEPointers&  pointers,
+                                       const ModelInteractRefs<M>& interaction)
+        : pe(pointers), model(interaction)
     {
     }
 
-    const KleinNishinaPointers& kn;    //!< Shared data for interactor
+    const LivermorePEPointers&  pe;    //!< Shared data for interactor
     const ModelInteractRefs<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor
@@ -43,32 +44,47 @@ struct KleinNishinaLauncher
 };
 
 template<MemSpace M>
-CELER_FUNCTION void KleinNishinaLauncher<M>::operator()(ThreadId tid) const
+CELER_FUNCTION void LivermorePELauncher<M>::operator()(ThreadId tid) const
 {
     StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
     ParticleTrackView         particle(
         model.params.particle, model.states.particle, tid);
-
+    MaterialTrackView material(
+        model.params.material, model.states.material, tid);
     PhysicsTrackView physics(model.params.physics,
                              model.states.physics,
                              particle.particle_id(),
-                             MaterialId{},
+                             material.material_id(),
                              tid);
+    CutoffView       cutoffs(model.params.cutoffs, material.material_id());
 
-    // This interaction only applies if the KN model was selected
-    if (physics.model_id() != kn.model_id)
+    // This interaction only applies if the Livermore PE model was selected
+    if (physics.model_id() != pe.ids.model)
         return;
 
-    KleinNishinaInteractor interact(
-        kn, particle, model.states.direction[tid], allocate_secondaries);
-
     RngEngine rng(model.states.rng, tid);
+
+    // Sample an element
+    ElementSelector select_el(
+        material.material_view(),
+        LivermorePEMicroXsCalculator{pe, particle.energy()},
+        material.element_scratch());
+    ElementComponentId comp_id = select_el(rng);
+    ElementId          el_id   = material.material_view().element_id(comp_id);
+
+    AtomicRelaxationHelper relaxation(
+        model.params.relaxation, model.states.relaxation, el_id, tid);
+    LivermorePEInteractor interact(pe,
+                                   relaxation,
+                                   el_id,
+                                   particle,
+                                   cutoffs,
+                                   model.states.direction[tid],
+                                   allocate_secondaries);
+
     model.states.interactions[tid] = interact(rng);
     CELER_ENSURE(model.states.interactions[tid]);
 }
-
-using KleinNishinaDeviceRef = KleinNishinaPointers;
-using KleinNishinaHostRef   = KleinNishinaPointers;
 
 //---------------------------------------------------------------------------//
 } // namespace detail

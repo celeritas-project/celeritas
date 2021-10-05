@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "../detail/KleinNishina.hh"
+#include "../detail/KleinNishinaLauncher.hh"
 
 using namespace celeritas::detail;
 

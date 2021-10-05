@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "../detail/BetheHeitler.hh"
+#include "../detail/BetheHeitlerLauncher.hh"
 
 using namespace celeritas::detail;
 

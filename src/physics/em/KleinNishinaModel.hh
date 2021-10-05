@@ -9,7 +9,7 @@
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
-#include "detail/KleinNishinaInteractor.hh"
+#include "detail/KleinNishinaInterface.hh"
 
 namespace celeritas
 {

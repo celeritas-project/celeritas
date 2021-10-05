@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/MuBremsstrahlung.hh"
+#include "../detail/MuBremsstrahlungInterface.hh"
 
 namespace celeritas
 {

@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
-#include "../detail/SeltzerBerger.hh"
+#include "../detail/SeltzerBergerLauncher.hh"
 
 using namespace celeritas::detail;
 

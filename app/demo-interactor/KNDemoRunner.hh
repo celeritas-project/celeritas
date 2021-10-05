@@ -8,7 +8,7 @@
 #pragma once
 
 #include "physics/base/ParticleParams.hh"
-#include "physics/em/detail/KleinNishina.hh"
+#include "physics/em/detail/KleinNishinaInterface.hh"
 #include "KNDemoKernel.hh"
 #include "KNDemoIO.hh"
 #include "XsGridParams.hh"

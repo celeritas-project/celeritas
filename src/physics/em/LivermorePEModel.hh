@@ -14,7 +14,7 @@
 #include "io/ImportLivermorePE.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "detail/LivermorePEInteractor.hh"
+#include "detail/LivermorePEInterface.hh"
 
 namespace celeritas
 {

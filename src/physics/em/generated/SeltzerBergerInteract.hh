@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/SeltzerBerger.hh"
+#include "../detail/SeltzerBergerInterface.hh"
 
 namespace celeritas
 {
