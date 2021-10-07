@@ -18,8 +18,7 @@
 #include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-
-#include "MollerBhabha.hh"
+#include "MollerBhabhaInterface.hh"
 
 namespace celeritas
 {

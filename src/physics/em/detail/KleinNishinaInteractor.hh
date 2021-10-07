@@ -14,7 +14,7 @@
 #include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "KleinNishina.hh"
+#include "KleinNishinaInterface.hh"
 
 namespace celeritas
 {

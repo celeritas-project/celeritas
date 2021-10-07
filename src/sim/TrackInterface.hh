@@ -135,7 +135,9 @@ struct StateData
 
 using ParamsDeviceRef
     = ParamsData<Ownership::const_reference, MemSpace::device>;
+using ParamsHostRef  = ParamsData<Ownership::const_reference, MemSpace::host>;
 using StateDeviceRef = StateData<Ownership::reference, MemSpace::device>;
+using StateHostRef   = StateData<Ownership::reference, MemSpace::host>;
 
 //---------------------------------------------------------------------------//
 /*!

@@ -9,7 +9,6 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "MollerBhabha.hh"
 
 namespace celeritas
 {

@@ -11,7 +11,6 @@
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "physics/material/MaterialView.hh"
-#include "physics/em/detail/LivermorePE.hh"
 #include "physics/em/detail/LivermorePEMicroXsCalculator.hh"
 
 namespace celeritas

@@ -7,12 +7,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Types.hh"
 #include "LDemoIO.hh"
+
+using celeritas::MemSpace;
 
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-LDemoResult run_gpu(LDemoArgs args);
+template<MemSpace M>
+LDemoResult run_demo(LDemoArgs args);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_loop
+
+#include "LDemoRun.i.hh"

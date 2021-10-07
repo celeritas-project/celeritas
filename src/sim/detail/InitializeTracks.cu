@@ -355,7 +355,8 @@ void process_secondaries(const ParamsDeviceRef&         params,
  * Remove all elements in the vacancy vector that were flagged as active
  * tracks.
  */
-size_type remove_if_alive(Span<size_type> vacancies)
+template<>
+size_type remove_if_alive<MemSpace::device>(Span<size_type> vacancies)
 {
     thrust::device_ptr<size_type> end = thrust::remove_if(
         thrust::device_pointer_cast(vacancies.data()),
@@ -373,7 +374,8 @@ size_type remove_if_alive(Span<size_type> vacancies)
 /*!
  * Sum the total number of surviving secondaries.
  */
-size_type reduce_counts(Span<size_type> counts)
+template<>
+size_type reduce_counts<MemSpace::device>(Span<size_type> counts)
 {
     size_type result = thrust::reduce(
         thrust::device_pointer_cast(counts.data()),
@@ -393,7 +395,8 @@ size_type reduce_counts(Span<size_type> counts)
  * array elements, i.e., \f$ y_i = \sum_{j=0}^{i-1} x_j \f$,
  * where \f$ y_0 = 0 \f$, and stores the result in the input array.
  */
-void exclusive_scan_counts(Span<size_type> counts)
+template<>
+void exclusive_scan_counts<MemSpace::device>(Span<size_type> counts)
 {
     thrust::exclusive_scan(
         thrust::device_pointer_cast(counts.data()),
