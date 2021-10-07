@@ -53,13 +53,13 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void KleinNishinaModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
+    const ModelInteractRefs<MemSpace::device>& pointers) const
 {
     generated::klein_nishina_interact(interface_, pointers);
 }
 
 void KleinNishinaModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
+    const ModelInteractRefs<MemSpace::host>& pointers) const
 {
     generated::klein_nishina_interact(interface_, pointers);
 }

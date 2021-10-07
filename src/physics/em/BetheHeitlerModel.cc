@@ -55,13 +55,13 @@ auto BetheHeitlerModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void BetheHeitlerModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
+    const ModelInteractRefs<MemSpace::device>& pointers) const
 {
     generated::bethe_heitler_interact(interface_, pointers);
 }
 
 void BetheHeitlerModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
+    const ModelInteractRefs<MemSpace::host>& pointers) const
 {
     generated::bethe_heitler_interact(interface_, pointers);
 }

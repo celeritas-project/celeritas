@@ -56,13 +56,12 @@ auto EPlusGGModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void EPlusGGModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
+    const ModelInteractRefs<MemSpace::device>& pointers) const
 {
     generated::eplusgg_interact(interface_, pointers);
 }
 
-void EPlusGGModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& pointers) const
+void EPlusGGModel::interact(const ModelInteractRefs<MemSpace::host>& pointers) const
 {
     generated::eplusgg_interact(interface_, pointers);
 }

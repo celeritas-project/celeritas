@@ -61,14 +61,12 @@ auto RayleighModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void RayleighModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& group) const
+void RayleighModel::interact(const ModelInteractRefs<MemSpace::device>& group) const
 {
     generated::rayleigh_interact(this->device_group(), group);
 }
 
-void RayleighModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::host>& group) const
+void RayleighModel::interact(const ModelInteractRefs<MemSpace::host>& group) const
 {
     generated::rayleigh_interact(this->host_group(), group);
 }
