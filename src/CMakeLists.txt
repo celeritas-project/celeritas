@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
+include(CeleritasGenInteractor)
+
 #----------------------------------------------------------------------------#
 # CONFIGURE FILE
 #----------------------------------------------------------------------------#
@@ -32,17 +34,17 @@ list(APPEND SOURCES
 )
 
 # Generate model launcher code for host/device
-set(GEN_SOURCES_CC)
-set(GEN_SOURCES_CU)
-include(CeleritasGenInteractor)
-celeritas_gen_interactor(BetheHeitler bethe_heitler)
-celeritas_gen_interactor(EPlusGG eplusgg)
-celeritas_gen_interactor(KleinNishina klein_nishina)
-celeritas_gen_interactor(LivermorePE livermore_pe)
-celeritas_gen_interactor(MollerBhabha moller_bhabha)
-celeritas_gen_interactor(MuBremsstrahlung mu_bremsstrahlung)
-celeritas_gen_interactor(Rayleigh rayleigh)
-celeritas_gen_interactor(SeltzerBerger seltzer_berger)
+set(_gen_sources)
+celeritas_gen_interactor(_gen_sources "BetheHeitler" "bethe_heitler")
+celeritas_gen_interactor(_gen_sources "EPlusGG" "eplusgg")
+celeritas_gen_interactor(_gen_sources "KleinNishina" "klein_nishina")
+celeritas_gen_interactor(_gen_sources "LivermorePE" "livermore_pe")
+celeritas_gen_interactor(_gen_sources "MollerBhabha" "moller_bhabha")
+celeritas_gen_interactor(_gen_sources "MuBremsstrahlung" "mu_bremsstrahlung")
+celeritas_gen_interactor(_gen_sources "Rayleigh" "rayleigh")
+celeritas_gen_interactor(_gen_sources "SeltzerBerger" "seltzer_berger")
+message(STATUS "Added sources: ${_gen_sources}")
+list(APPEND SOURCES ${_gen_sources})
 
 # Main library
 list(APPEND SOURCES
@@ -96,7 +98,6 @@ list(APPEND SOURCES
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
   random/detail/RngStateInit.cc
-  ${GEN_SOURCES_CC}
 )
 
 if(CELERITAS_USE_CUDA)
@@ -105,7 +106,6 @@ if(CELERITAS_USE_CUDA)
     base/detail/Filler.cu
     random/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
-    ${GEN_SOURCES_CU}
   )
   # TODO: CUDA RNG is included by host code
   list(APPEND PUBLIC_DEPS CUDA::cudart)

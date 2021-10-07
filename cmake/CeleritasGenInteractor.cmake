@@ -1,28 +1,29 @@
 #----------------------------------*-CMake-*----------------------------------#
-# Copyright 2020 UT-Battelle, LLC and other Celeritas Developers.
+# Copyright 2021 UT-Battelle, LLC and other Celeritas Developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #[=======================================================================[.rst:
 
 CeleritasGenInteractor
--------------------
+----------------------
 
-Description of overall module contents goes here.
+Automatically generate headers and source files for dual CPU/GPU launching of
+interactor kernels.
 
-.. command:: my_command_name
+.. command:: celeritas_gen_interactor
 
-  Pass the given compiler-dependent warning flags to a library target::
+  Generate from the given class and function name::
 
-    my_command_name(<target>
-                    <INTERFACE|PUBLIC|PRIVATE>
-                    LANGUAGE <lang> [<lang>...]
-                    [CACHE_VARIABLE <name>])
+    celeritas_gen_interactor(<var> <class> <func>)
 
-  ``target``
-    Name of the library target.
+      ``var``
+        Variable name to append created source file names in the parent scope.
 
-  ``scope``
-    One of ``INTERFACE``, ``PUBLIC``, or ``PRIVATE``. ...
+      ``class``
+        EM physics class name (e.g. "BetheHeitler")
+
+      ``func``
+        Lower case name used in the kernel launch command.
 
 #]=======================================================================]
 
@@ -30,19 +31,28 @@ set(CELERITAS_GEN_INTERACTOR
     "${PROJECT_SOURCE_DIR}/scripts/dev/gen-interactor.py"
     CACHE INTERNAL "Path to gen-interactor.py")
 
-function(celeritas_gen_interactor class func)
-  message(STATUS "Generating interactor: ${class}")
-  execute_process(
-    COMMAND "${Python_EXECUTABLE}"
-      "${CELERITAS_GEN_INTERACTOR}" --class ${class} --func ${func}
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/src/physics/em/generated")
+function(celeritas_gen_interactor var class func)
+  set(_srcdir "${PROJECT_SOURCE_DIR}/src")
+  set(_subdir "physics/em/generated")
+  set(_basename "${_subdir}/${class}Interact")
 
-  # Add generated sources to parent scope variables (note CMake weirdness of
-  # having to create a local variable first)
-  set(GEN_SOURCES_CC ${GEN_SOURCES_CC} "physics/em/generated/${class}Interact.cc")
-  set(GEN_SOURCES_CC ${GEN_SOURCES_CC} PARENT_SCOPE)
-  set(GEN_SOURCES_CU ${GEN_SOURCES_CU} "physics/em/generated/${class}Interact.cu")
-  set(GEN_SOURCES_CU ${GEN_SOURCES_CU} PARENT_SCOPE)
+  if(PYTHON_FOUND)
+    # Regenerate files on the fly
+    add_custom_command(
+      COMMAND "${Python_EXECUTABLE}"
+        "${CELERITAS_GEN_INTERACTOR}" --class ${class} --func ${func}
+      OUTPUT "${_srcdir}/${_basename}.cc" "${_srcdir}/${_basename}.cu"
+      DEPENDS "${CELERITAS_GEN_INTERACTOR}"
+      WORKING_DIRECTORY
+        "${PROJECT_SOURCE_DIR}/src/${_subdir}"
+    )
+  endif()
+
+  set(_sources ${${var}} "${_basename}.cc")
+  if(CELERITAS_USE_CUDA)
+    list(APPEND _sources "${_basename}.cu")
+  endif()
+  set(${var} "${_sources}" PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#
