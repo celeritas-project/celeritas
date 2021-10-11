@@ -7,11 +7,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Span.hh"
-#include "random/RngInterface.hh"
+#include "base/Collection.hh"
 
 namespace celeritas
 {
+// Forward declarations to avoid circular header dependency
+template<MemSpace M>
+struct RngInitializer;
+template<Ownership W, MemSpace M>
+struct RngStateData;
+
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -42,10 +47,14 @@ struct RngInitData
 };
 
 //---------------------------------------------------------------------------//
-// Initialize the RNG state on device
+// Initialize the RNG state on host/device
 void rng_state_init(
     const RngStateData<Ownership::reference, MemSpace::device>&      rng,
     const RngInitData<Ownership::const_reference, MemSpace::device>& seeds);
+
+void rng_state_init(
+    const RngStateData<Ownership::reference, MemSpace::host>&      rng,
+    const RngInitData<Ownership::const_reference, MemSpace::host>& seeds);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
 """
+from distutils.util import strtobool
 import json
 import subprocess
 from os import environ, path
@@ -28,15 +29,20 @@ if result_ge.returncode:
     print("fatal: geant-exporter failed with error", result_ge.returncode)
     exit(result_ge.returncode)
 
+use_device = bool(strtobool(environ.get('CELERITAS_USE_DEVICE', 'true')))
+storage_factor = 10 if use_device else 100
+max_num_tracks = 128*32 if use_device else 1
+
 inp = {
     'run': {
+        'use_device': use_device,
         'geometry_filename': geometry_filename,
         'physics_filename': physics_filename,
         'hepmc3_filename': hepmc3_filename,
         'seed': 12345,
-        'max_num_tracks': 128 * 32,
+        'max_num_tracks': max_num_tracks,
         'max_steps': 128,
-        'storage_factor': 10
+        'storage_factor': storage_factor
     }
 }
 

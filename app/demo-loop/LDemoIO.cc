@@ -20,7 +20,8 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"seed", v.seed},
                        {"max_num_tracks", v.max_num_tracks},
                        {"max_steps", v.max_steps},
-                       {"storge_factor", v.storage_factor}};
+                       {"storage_factor", v.storage_factor},
+                       {"use_device", v.use_device}};
 }
 
 void from_json(const nlohmann::json& j, LDemoArgs& v)
@@ -32,6 +33,7 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("max_num_tracks").get_to(v.max_num_tracks);
     j.at("max_steps").get_to(v.max_steps);
     j.at("storage_factor").get_to(v.storage_factor);
+    j.at("use_device").get_to(v.use_device);
 }
 
 void to_json(nlohmann::json& j, const LDemoResult& v)

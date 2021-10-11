@@ -14,7 +14,7 @@
 #include "physics/base/ParticleInterface.hh"
 #include "physics/base/Secondary.hh"
 #include "base/StackAllocator.hh"
-#include "physics/em/detail/KleinNishina.hh"
+#include "physics/em/detail/KleinNishinaInterface.hh"
 #include "physics/grid/XsGridInterface.hh"
 #include "random/RngInterface.hh"
 #include "DetectorInterface.hh"

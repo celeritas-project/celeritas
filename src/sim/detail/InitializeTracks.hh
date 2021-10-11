@@ -34,6 +34,10 @@ void init_tracks(const ParamsDeviceRef&         params,
                  const StateDeviceRef&          states,
                  const TrackInitStateDeviceRef& inits);
 
+void init_tracks(const ParamsHostRef&         params,
+                 const StateHostRef&          states,
+                 const TrackInitStateHostRef& inits);
+
 //---------------------------------------------------------------------------//
 // Identify which tracks are still alive and count the number of secondaries
 // that survived cutoffs for each interaction.
@@ -41,10 +45,17 @@ void locate_alive(const ParamsDeviceRef&         params,
                   const StateDeviceRef&          states,
                   const TrackInitStateDeviceRef& inits);
 
+void locate_alive(const ParamsHostRef&         params,
+                  const StateHostRef&          states,
+                  const TrackInitStateHostRef& inits);
+
 //---------------------------------------------------------------------------//
 // Create track initializers on device from primary particles
 void process_primaries(Span<const Primary>            primaries,
                        const TrackInitStateDeviceRef& inits);
+
+void process_primaries(Span<const Primary>          primaries,
+                       const TrackInitStateHostRef& inits);
 
 //---------------------------------------------------------------------------//
 // Create track initializers on device from secondary particles.
@@ -52,17 +63,39 @@ void process_secondaries(const ParamsDeviceRef&         params,
                          const StateDeviceRef&          states,
                          const TrackInitStateDeviceRef& inits);
 
+void process_secondaries(const ParamsHostRef&         params,
+                         const StateHostRef&          states,
+                         const TrackInitStateHostRef& inits);
+
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive
+template<MemSpace M>
 size_type remove_if_alive(Span<size_type> vacancies);
+
+template<>
+size_type remove_if_alive<MemSpace::host>(Span<size_type> vacancies);
+template<>
+size_type remove_if_alive<MemSpace::device>(Span<size_type> vacancies);
 
 //---------------------------------------------------------------------------//
 // Sum the total number of surviving secondaries.
+template<MemSpace M>
 size_type reduce_counts(Span<size_type> counts);
+
+template<>
+size_type reduce_counts<MemSpace::host>(Span<size_type> counts);
+template<>
+size_type reduce_counts<MemSpace::device>(Span<size_type> counts);
 
 //---------------------------------------------------------------------------//
 // Calculate the exclusive prefix sum of the number of surviving secondaries
+template<MemSpace M>
 void exclusive_scan_counts(Span<size_type> counts);
+
+template<>
+void exclusive_scan_counts<MemSpace::host>(Span<size_type> counts);
+template<>
+void exclusive_scan_counts<MemSpace::device>(Span<size_type> counts);
 
 //---------------------------------------------------------------------------//
 // INLINE FUNCTIONS

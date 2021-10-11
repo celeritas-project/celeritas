@@ -7,6 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <random>
+#include "base/Assert.hh"
+#include "base/CollectionBuilder.hh"
+#include "comm/Device.hh"
+#include "random/detail/RngStateInit.hh"
+
 #include "celeritas_config.h"
 #if CELERITAS_USE_CUDA
 /*!
@@ -87,7 +93,7 @@ struct RngThreadState<MemSpace::device>
 template<>
 struct RngThreadState<MemSpace::host>
 {
-    // TODO: std::shared_ptr<std::mt19937> rng; ?
+    curandState_t state;
 };
 
 //---------------------------------------------------------------------------//
@@ -99,6 +105,12 @@ struct RngInitializer;
 
 template<>
 struct RngInitializer<MemSpace::device>
+{
+    ull_int seed;
+};
+
+template<>
+struct RngInitializer<MemSpace::host>
 {
     ull_int seed;
 };
@@ -131,6 +143,7 @@ struct RngStateData
     template<Ownership W2, MemSpace M2>
     RngStateData& operator=(RngStateData<W2, M2>& other)
     {
+        // TODO: Revisit this static_assert if host is using curand
         static_assert(M == M2,
                       "RNG state cannot be transferred between host and "
                       "device because they use separate RNG types");
@@ -141,20 +154,37 @@ struct RngStateData
 };
 
 //---------------------------------------------------------------------------//
-// Resize and initialize with the seed stored in params.
-void resize(
-    RngStateData<Ownership::value, MemSpace::device>*                state,
-    const RngParamsData<Ownership::const_reference, MemSpace::host>& params,
-    size_type                                                        size);
-
-// Not-implemented resize of host data
+/*!
+ * Resize and initialize with the seed stored in params.
+ */
+template<MemSpace M>
 inline void
-resize(RngStateData<Ownership::value, MemSpace::host>*,
-       const RngParamsData<Ownership::const_reference, MemSpace::host>&,
-       size_type)
+resize(RngStateData<Ownership::value, M>*                               state,
+       const RngParamsData<Ownership::const_reference, MemSpace::host>& params,
+       size_type                                                        size)
 {
-    CELER_NOT_IMPLEMENTED("Host RNG state");
+    CELER_EXPECT(size > 0);
+    CELER_EXPECT(M == MemSpace::host || celeritas::device());
+
+    using RngInit = RngInitializer<M>;
+
+    // Host-side RNG for creating seeds
+    std::mt19937                           host_rng(params.seed);
+    std::uniform_int_distribution<ull_int> sample_uniform_int;
+
+    // Create seeds for device in host memory
+    StateCollection<RngInit, Ownership::value, MemSpace::host> host_seeds;
+    make_builder(&host_seeds).resize(size);
+    for (RngInit& init : host_seeds[AllItems<RngInit>{}])
+    {
+        init.seed = sample_uniform_int(host_rng);
+    }
+
+    // Resize state data and assign
+    make_builder(&state->rng).resize(size);
+    detail::RngInitData<Ownership::value, M> init_data;
+    init_data.seeds = host_seeds;
+    detail::rng_state_init(make_ref(*state), make_const_ref(init_data));
 }
 
-//---------------------------------------------------------------------------//
 } // namespace celeritas

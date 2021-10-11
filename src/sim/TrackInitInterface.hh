@@ -222,22 +222,23 @@ struct TrackInitStateData
 
 using TrackInitStateDeviceRef
     = TrackInitStateData<Ownership::reference, MemSpace::device>;
+using TrackInitStateHostRef
+    = TrackInitStateData<Ownership::reference, MemSpace::host>;
 using TrackInitStateDeviceVal
     = TrackInitStateData<Ownership::value, MemSpace::device>;
+using TrackInitStateHostVal
+    = TrackInitStateData<Ownership::value, MemSpace::host>;
 
 //---------------------------------------------------------------------------//
-// Resize and initialize track initializer data on device.
-void resize(
-    TrackInitStateData<Ownership::value, MemSpace::device>*,
-    const TrackInitParamsData<Ownership::const_reference, MemSpace::host>&,
-    size_type);
+// Resize and initialize track initializer data.
+template<MemSpace M>
+inline void
+resize(TrackInitStateData<Ownership::value, M>*,
+       const TrackInitParamsData<Ownership::const_reference, MemSpace::host>&,
+       size_type);
 
 //---------------------------------------------------------------------------//
-// Resize and initialize track initializer data on host.
-void resize(
-    TrackInitStateData<Ownership::value, MemSpace::host>*,
-    const TrackInitParamsData<Ownership::const_reference, MemSpace::host>&,
-    size_type);
 
-//---------------------------------------------------------------------------//
 } // namespace celeritas
+
+#include "sim/TrackInitInterface.i.hh"

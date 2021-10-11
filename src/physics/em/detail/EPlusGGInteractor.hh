@@ -9,12 +9,12 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "base/StackAllocator.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "EPlusGG.hh"
+#include "EPlusGGInterface.hh"
 
 namespace celeritas
 {

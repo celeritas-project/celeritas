@@ -50,7 +50,8 @@ void run(std::istream& is)
     auto run_args = inp.at("run").get<LDemoArgs>();
     CELER_EXPECT(run_args);
 
-    auto result = run_gpu(run_args);
+    auto result = run_args.use_device ? run_demo<MemSpace::device>(run_args)
+                                      : run_demo<MemSpace::host>(run_args);
 
     nlohmann::json outp = {
         {"run", run_args},

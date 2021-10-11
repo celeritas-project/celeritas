@@ -11,6 +11,7 @@
 #include "base/CollectionBuilder.hh"
 #include "comm/Device.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/em/generated/LivermorePEInteract.hh"
 
 namespace celeritas
 {
@@ -74,13 +75,15 @@ auto LivermorePEModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void LivermorePEModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
+    const ModelInteractRefs<MemSpace::device>& pointers) const
 {
-#if CELERITAS_USE_CUDA
-    detail::livermore_pe_interact(this->device_pointers(), pointers);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
+    generated::livermore_pe_interact(this->device_pointers(), pointers);
+}
+
+void LivermorePEModel::interact(
+    const ModelInteractRefs<MemSpace::host>& pointers) const
+{
+    generated::livermore_pe_interact(this->host_pointers(), pointers);
 }
 
 //---------------------------------------------------------------------------//

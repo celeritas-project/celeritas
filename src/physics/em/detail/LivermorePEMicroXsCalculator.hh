@@ -8,11 +8,11 @@
 #pragma once
 
 #include "base/Macros.hh"
+#include "base/Quantity.hh"
 #include "base/Types.hh"
-#include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
-#include "LivermorePE.hh"
+#include "LivermorePEInterface.hh"
 
 namespace celeritas
 {

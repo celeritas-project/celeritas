@@ -10,7 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
-#include "physics/em/detail/EPlusGG.hh"
+#include "physics/em/detail/EPlusGGInteractor.hh"
 #include "physics/material/MaterialView.hh"
 
 namespace celeritas

@@ -31,6 +31,7 @@ struct LDemoArgs
     size_type    max_num_tracks{};
     size_type    max_steps{};
     size_type    storage_factor{};
+    bool         use_device{};
 
     //! Whether the run arguments are valid
     explicit operator bool() const

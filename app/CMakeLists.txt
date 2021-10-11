@@ -199,8 +199,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   endif()
   celeritas_add_library(celeritas_demo_loop
     demo-loop/LDemoIO.cc
+    demo-loop/LDemoKernel.cc
     demo-loop/LDemoParams.cc
-    demo-loop/LDemoRun.cc
     demo-loop/TrackDiagnostic.cc
     ${_cuda_src}
   )
@@ -253,6 +253,26 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_ROOT OR NOT CELERITAS_USE_HepMC3
        OR CMAKE_BUILD_TYPE STREQUAL "Debug")
       set_tests_properties("app/demo-loop" PROPERTIES
+        DISABLED true
+      )
+    endif()
+
+    add_test(NAME "app/demo-loop-cpu"
+      COMMAND "$<TARGET_FILE:Python::Interpreter>"
+      "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}"
+    )
+    set(_env
+      "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
+      "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:geant-exporter>"
+      "CELERITAS_USE_DEVICE=0"
+      "CELER_DISABLE_PARALLEL=1"
+    )
+    set_tests_properties("app/demo-loop-cpu" PROPERTIES
+      ENVIRONMENT "${_env};${_geant_test_env}"
+      REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
+    )
+    if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_ROOT OR NOT CELERITAS_USE_HepMC3)
+      set_tests_properties("app/demo-loop-cpu" PROPERTIES
         DISABLED true
       )
     endif()

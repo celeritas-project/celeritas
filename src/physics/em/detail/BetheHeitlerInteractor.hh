@@ -15,7 +15,7 @@
 #include "base/StackAllocator.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
-#include "BetheHeitler.hh"
+#include "BetheHeitlerInterface.hh"
 
 namespace celeritas
 {

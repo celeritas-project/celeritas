@@ -10,7 +10,7 @@
 #include "base/CollectionMirror.hh"
 #include "physics/base/Model.hh"
 #include "physics/material/MaterialParams.hh"
-#include "detail/Rayleigh.hh"
+#include "detail/RayleighInterface.hh"
 
 namespace celeritas
 {
@@ -39,6 +39,9 @@ class RayleighModel final : public Model
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
+
+    // Apply the interaction kernel to host data
+    void interact(const HostInteractRefs&) const final;
 
     // Apply the interaction kernel to device data
     void interact(const DeviceInteractRefs&) const final;

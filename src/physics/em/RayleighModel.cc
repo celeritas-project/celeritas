@@ -12,6 +12,8 @@
 #include "base/CollectionBuilder.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/em/detail/RayleighData.hh"
+#include "physics/em/generated/RayleighInteract.hh"
 
 namespace celeritas
 {
@@ -59,14 +61,14 @@ auto RayleighModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void RayleighModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& group) const
+void RayleighModel::interact(const ModelInteractRefs<MemSpace::device>& group) const
 {
-#if CELERITAS_USE_CUDA
-    detail::rayleigh_interact(this->device_group(), group);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
+    generated::rayleigh_interact(this->device_group(), group);
+}
+
+void RayleighModel::interact(const ModelInteractRefs<MemSpace::host>& group) const
+{
+    generated::rayleigh_interact(this->host_group(), group);
 }
 
 //---------------------------------------------------------------------------//
