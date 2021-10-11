@@ -25,7 +25,7 @@ void TrackDiagnostic<MemSpace::device>::end_step(const StateDataRef& states)
 }
 
 template<>
-void TrackDiagnostic<MemSpace::host>::end_step(const StateDataRef& states)
+void TrackDiagnostic<MemSpace::host>::end_step(const StateDataRef&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
