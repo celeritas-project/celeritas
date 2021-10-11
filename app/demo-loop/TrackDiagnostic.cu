@@ -22,10 +22,16 @@ namespace demo_loop
 // KERNELS
 //---------------------------------------------------------------------------//
 /*!
- * Sample mean free path and calculate physics step limits.
+ * Sums the number of 'alive' tracks.
+ *
+ * Host-side function using thrust and a functor (third argument) summing alive
+ * tracks on the device.
+ *
+ * Note that a simple thrust::reduce(), without specifying the execution
+ * policy, defaults to host memory and therefore causes a memory access
+ * segfault; specifying the thrust::device policy leads to compile-time errors
+ * due to incompatible arguments.
  */
-
-// __global__
 size_type
 reduce_alive(const StateData<Ownership::reference, MemSpace::device>& states)
 {

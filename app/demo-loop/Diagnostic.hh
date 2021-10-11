@@ -17,8 +17,7 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 /*!
- * Interface for on-device data access.
- *
+ * Interface for on-device data access at different stages of a simulation.
  */
 template<MemSpace M>
 class Diagnostic
@@ -33,10 +32,10 @@ class Diagnostic
     virtual void begin_event(EventId, const StateDataRef&) {}
 
     // Collect diagnostic(s) before step
-    virtual void begin_step(const StateDataRef& ) {}
+    virtual void begin_step(const StateDataRef&) {}
 
     // Collect diagnostic(s) after step
-    virtual void end_step(const StateDataRef& ) {}
+    virtual void end_step(const StateDataRef&) {}
 
     // Collect diagnostic(s) after event begins
     virtual void end_event(EventId, const StateDataRef&) {}
