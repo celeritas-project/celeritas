@@ -26,30 +26,11 @@ namespace demo_loop
  * given simulation step through a reduction on a state's tracks.
  *
  */
-
-template<MemSpace M>
-struct SumAlive
+struct alive
 {
-    using result_type = size_type;
-
-    StateData<Ownership::reference, MemSpace::device> states;
-
-    CELER_FUNCTION size_type operator()(size_type num_alive, ThreadId tid) const
+    CELER_FUNCTION size_type operator()(const SimTrackState& sim) const
     {
-        if (tid.get() >= states.size())
-            return num_alive;
-
-        SimTrackView sim(states.sim, tid);
-        if (!sim.alive())
-            return num_alive;
-
-        return num_alive + sim.alive() ? 1 : 0;
-    }
-
-    // Symmetric operator
-    CELER_FUNCTION size_type operator()(ThreadId tid, size_type num_alive) const
-    {
-        return (*this)(num_alive, tid);
+        return sim.alive ? 1 : 0;
     }
 };
 

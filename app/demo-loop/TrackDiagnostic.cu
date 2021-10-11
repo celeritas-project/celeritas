@@ -29,14 +29,14 @@ namespace demo_loop
 size_type
 reduce_alive(const StateData<Ownership::reference, MemSpace::device>& states)
 {
-    size_type result
-        = thrust::reduce(RangeIter<ThreadId>{ThreadId{0}},
-                         RangeIter<ThreadId>{ThreadId{states.size()}},
-                         size_type{0},
-                         SumAlive<MemSpace::device>{states});
-    CELER_CUDA_CHECK_ERROR();
+    auto sim_states = states.sim.state[AllItems<SimTrackState>{}].data();
 
-    return result;
+    return thrust::transform_reduce(
+        thrust::device_pointer_cast(sim_states),
+        thrust::device_pointer_cast(sim_states) + states.size(),
+        alive(),
+        0,
+        thrust::plus<size_type>());
 }
 
 //---------------------------------------------------------------------------//

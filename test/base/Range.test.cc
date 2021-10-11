@@ -70,6 +70,9 @@ TEST(RangeTest, class_interface)
     EXPECT_EQ(2, r.back());
     EXPECT_FALSE(r.empty());
 
+    EXPECT_EQ(1, r.begin()[0]);
+    EXPECT_EQ(2, r.begin()[1]);
+
     r = RangeT(5);
     EXPECT_EQ(5, r.size());
     EXPECT_EQ(0, r.front());
