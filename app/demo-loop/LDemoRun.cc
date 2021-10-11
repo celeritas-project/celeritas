@@ -74,7 +74,7 @@ build_params_refs(const LDemoParams& p)
 
 template<MemSpace M>
 ModelInteractRefs<M>
-build_model_refs(LDemoParams const&                               host_params,
+build_model_refs(LDemoParams const&                               ,
                  ParamsData<Ownership::const_reference, M> const& params,
                  StateData<Ownership::reference, M> const&        states)
 {

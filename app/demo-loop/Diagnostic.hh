@@ -33,10 +33,10 @@ class Diagnostic
     virtual void begin_event(EventId, const StateDataRef&) {}
 
     // Collect diagnostic(s) before step
-    virtual void begin_step(const StateDataRef& states) {}
+    virtual void begin_step(const StateDataRef& ) {}
 
     // Collect diagnostic(s) after step
-    virtual void end_step(const StateDataRef& states) {}
+    virtual void end_step(const StateDataRef& ) {}
 
     // Collect diagnostic(s) after event begins
     virtual void end_event(EventId, const StateDataRef&) {}
