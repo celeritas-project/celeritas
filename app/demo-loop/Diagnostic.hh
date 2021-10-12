@@ -37,7 +37,7 @@ class Diagnostic
     // Collect diagnostic(s) after step
     virtual void end_step(const StateDataRef&) {}
 
-    // Collect diagnostic(s) after event begins
+    // Collect diagnostic(s) after event ends
     virtual void end_event(EventId, const StateDataRef&) {}
 
     // Collect post-sim diagnostic(s)

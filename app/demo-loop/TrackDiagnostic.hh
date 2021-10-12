@@ -22,7 +22,7 @@ namespace demo_loop
 /*!
  * Functor to determine if the given SimTrackState is 'alive'.
  */
-struct alive
+struct OneIfAlive
 {
     CELER_FUNCTION size_type operator()(const SimTrackState& sim) const
     {
@@ -50,7 +50,7 @@ class TrackDiagnostic : public Diagnostic<M>
 
     // Return vector consisting of the number of alive tracks at each step
     // (indexed by step number).
-    inline std::vector<size_type> num_alive_per_step()
+    const std::vector<size_type>& num_alive_per_step() const
     {
         return num_alive_per_step_;
     }
@@ -64,4 +64,6 @@ class TrackDiagnostic : public Diagnostic<M>
 //---------------------------------------------------------------------------//
 size_type
 reduce_alive(const StateData<Ownership::reference, MemSpace::device>& states);
+size_type
+reduce_alive(const StateData<Ownership::reference, MemSpace::host>& states);
 } // namespace demo_loop

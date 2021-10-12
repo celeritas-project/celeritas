@@ -18,6 +18,20 @@ using namespace celeritas;
 
 namespace demo_loop
 {
+/*!
+ * Add the current step's number of alive tracks to this diagnostic.
+ */
+template<>
+void TrackDiagnostic<MemSpace::device>::end_step(const StateDataRef& states)
+{
+// Get the number of tracks in flight.
+#if CELERITAS_USE_CUDA
+    num_alive_per_step_.push_back(demo_loop::reduce_alive(states));
+#else
+    CELER_ASSERT_UNREACHABLE();
+#endif
+}
+
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
@@ -40,7 +54,7 @@ reduce_alive(const StateData<Ownership::reference, MemSpace::device>& states)
     return thrust::transform_reduce(
         thrust::device_pointer_cast(sim_states),
         thrust::device_pointer_cast(sim_states) + states.size(),
-        alive(),
+        OneIfAlive(),
         0,
         thrust::plus<size_type>());
 }
