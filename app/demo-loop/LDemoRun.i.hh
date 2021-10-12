@@ -12,6 +12,7 @@
 #include "sim/TrackInterface.hh"
 #include "LDemoParams.hh"
 #include "LDemoKernel.hh"
+#include "TrackDiagnostic.hh"
 
 using namespace celeritas;
 
@@ -114,6 +115,10 @@ LDemoResult run_demo(LDemoArgs args)
 {
     CELER_EXPECT(args);
 
+    // Diagnostics
+    // TODO: Create a vector of these objects.
+    TrackDiagnostic<M> track_diagnostic;
+
     // Load all the problem data
     LDemoParams params = load_params(args);
 
@@ -129,7 +134,7 @@ LDemoResult run_demo(LDemoArgs args)
 
     // Copy primaries to device and create track initializers
     // TODO: for now this assumes we can initialize all primaries at once, but
-    // we should also handle the case where we have more primaries than trackss
+    // we should also handle the case where we have more primaries than tracks
     CELER_ASSERT(params.track_inits->host_pointers().primaries.size()
                  <= state_storage.track_inits.initializers.capacity());
     extend_from_primaries(params.track_inits->host_pointers(),
@@ -165,6 +170,9 @@ LDemoResult run_demo(LDemoArgs args)
                     - state_storage.track_inits.vacancies.size();
         num_inits = state_storage.track_inits.initializers.size();
 
+        // End-of-step diagnostic(s)
+        track_diagnostic.end_step(states_ref);
+
         if (--remaining_steps == 0)
         {
             // Exceeded step count
@@ -173,7 +181,7 @@ LDemoResult run_demo(LDemoArgs args)
     }
 
     // TODO: return result
-    return LDemoResult{};
+    return LDemoResult{{0}, track_diagnostic.num_alive_per_step(), {0}, 0};
 }
 
 //---------------------------------------------------------------------------//

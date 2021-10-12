@@ -172,6 +172,11 @@ class range_iter : public std::iterator<std::input_iterator_tag, T>
         return &value_;
     }
 
+    CELER_FORCEINLINE_FUNCTION value_type operator[](counter_type inc) const
+    {
+        return TraitsT::increment(value_, inc);
+    }
+
     //// ARITHMETIC ////
 
     CELER_FORCEINLINE_FUNCTION range_iter& operator++()
