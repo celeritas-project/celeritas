@@ -24,12 +24,8 @@ namespace demo_loop
 template<>
 void TrackDiagnostic<MemSpace::device>::end_step(const StateDataRef& states)
 {
-// Get the number of tracks in flight.
-#if CELERITAS_USE_CUDA
+    // Get the number of tracks in flight.
     num_alive_per_step_.push_back(demo_loop::reduce_alive(states));
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
 }
 
 //---------------------------------------------------------------------------//
