@@ -24,6 +24,7 @@
 #include <G4Material.hh>
 #include <G4ProductionCutsTable.hh>
 #include <G4NistManager.hh>
+#include <G4ElementData.hh>
 
 #include "io/ImportProcess.hh"
 #include "io/ImportPhysicsTable.hh"
@@ -503,12 +504,20 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
 // SCRATCH AREA
 //---------------------------------------------------------------------------//
 
-void test_elemental_xs(const std::vector<ImportElement>  elements,
-                       const std::vector<ImportMaterial> materials,
-                       const G4ParticleDefinition&       particle,
-                       const G4VProcess&                 process)
+void ImportProcessConverter::test_elemental_xs(
+    const std::vector<ImportElement>  elements,
+    const std::vector<ImportMaterial> materials,
+    const G4ParticleDefinition&       particle,
+    const G4VProcess&                 process)
 {
     const auto em_process = dynamic_cast<const G4VEmProcess*>(&process);
+
+    if (!em_process)
+    {
+        CELER_LOG(error) << "Skip em_process cast. Not a valid pointer: "
+                         << process.GetProcessName();
+        return;
+    }
 
     for (auto j : celeritas::range(em_process->GetNumberOfModels()))
     {
@@ -525,32 +534,62 @@ void test_elemental_xs(const std::vector<ImportElement>  elements,
                 = g4production_cuts_table.GetMaterialCutsCouple(l);
             const auto& g4prod_cuts
                 = g4material_cuts_couple->GetProductionCuts();
-
             const auto& g4_energycuts
                 = g4production_cuts_table.GetEnergyCutsVector(l);
-
-            CELER_LOG(info)
-                << " ---- energycutsvector size " << g4_energycuts->size()
-                << " for " << particle.GetParticleName();
 
             G4DataVector g4datavec_cuts;
             for (int m = 0; m < g4_energycuts->size(); m++)
             {
                 auto val = g4_energycuts->at(m);
-                CELER_LOG(info) << " ------ value " << val / MeV;
+                // CELER_LOG(info) << " ------ value " << val / MeV;
                 g4datavec_cuts.push_back(val);
             }
 
-            model->Initialise(&particle, g4datavec_cuts);
+            const auto& material = materials.at(l);
 
+            model->Initialise(&particle, g4datavec_cuts);
             model->InitialiseElementSelectors(&particle, g4datavec_cuts);
 
             const auto elselvec = model->GetElementSelectors();
-            const auto eldata   = model->GetElementData();
+            CELER_LOG(info) << "elselvec size " << elselvec->size();
 
-            // Maybe I need to follow the manual build as in
-            // G4HepEmElectronTableBuilder::BuildElementSelector()
+            for (const auto& elsel : *elselvec)
+            {
+                elsel->Initialise(&particle);
+                elsel->Dump();
 
+                const auto eldata = model->GetElementData();
+
+                for (const auto& elcomp : material.elements)
+                {
+                    const auto element = elements.at(elcomp.element_id);
+                    const auto elphysvec
+                        = eldata->GetElementData(element.atomic_number);
+
+                    if (elphysvec)
+                    {
+                        CELER_LOG(info) << "elphysvec size "
+                                        << elphysvec->IsFilledVectorExist();
+                    }
+
+                    // double xs = model->ComputeCrossSectionPerAtom(
+                    //     &particle,
+                    //     G4NistManager::Instance()->FindOrBuildElement(
+                    //         element.atomic_number),
+                    //     G4EmParameters::Instance()->MaxKinEnergy(),
+                    //     0, // <<< FIX ME!!!
+                    //     G4EmParameters::Instance()->MaxKinEnergy());
+
+                    // CELER_LOG(info)
+                    //     << "xs for z " << element.atomic_number << " = " <<
+                    //     xs;
+                }
+            }
+        }
+
+#if 0
+        for (const auto& material : materials)
+        {
             const double max_energy
                 = G4EmParameters::Instance()->MaxKinEnergy();
             const double min_energy
@@ -575,22 +614,21 @@ void test_elemental_xs(const std::vector<ImportElement>  elements,
 
             // Fill energy bins
             elphysvec.x.push_back(min_energy);
-
             for (int i = 1; i < num_e_bins - 1; i++)
             {
                 elphysvec.x.push_back(std::exp(log_min_e + i * delta));
             }
-
             elphysvec.x.push_back(max_energy);
             // --
 
             CELER_LOG(info)
                 << " ---------- physvec size " << elphysvec.x.size();
 
-            for (const auto material : materials)
+            const int num_atoms = material.number_density;
+
+            for (const auto& energy : elphysvec.x)
             {
-                double    xs_sum    = 0;
-                const int num_atoms = material.number_density;
+                double xs_sum = 0;
 
                 for (const auto& elcomp : material.elements)
                 {
@@ -600,15 +638,24 @@ void test_elemental_xs(const std::vector<ImportElement>  elements,
                         &particle,
                         G4NistManager::Instance()->FindOrBuildElement(
                             element.atomic_number),
-                        min_energy,
-                        0,
-                        max_energy);
+                        energy,
+                        0, // <<< FIX ME!!!
+                        energy);
 
-                    xs_sum += xs;
+                    xs_sum += num_atoms * xs;
+
+                    // Mihali only stores up to i < elements.size() - 1. WHY?
                     elphysvec.y.push_back(xs_sum);
+                }
+
+                // Normalize XS vector
+                for (int k : celeritas::range(elphysvec.y.size()))
+                {
+                    elphysvec.y.at(k) /= xs_sum;
                 }
             }
         }
+#endif
     }
 }
 

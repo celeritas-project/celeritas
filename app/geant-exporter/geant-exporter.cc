@@ -399,6 +399,7 @@ void store_elemental_xs()
     // load again element and material list
     std::vector<ImportElement>  elements  = store_elements();
     std::vector<ImportMaterial> materials = store_materials();
+    ImportProcessConverter      process_converter(TableSelection::minimal);
 
     // Loop over particles and processes, initialize elemental data and such
     G4ParticleTable::G4PTblDicIterator& particle_iterator
@@ -437,118 +438,8 @@ void store_elemental_xs()
                 continue;
             }
 
-            if (const auto em_process
-                = dynamic_cast<const G4VEmProcess*>(process_list[j]))
-            {
-                for (auto j : celeritas::range(em_process->GetNumberOfModels()))
-                {
-                    const auto model      = em_process->GetModelByIndex(j);
-                    const auto model_name = model->GetName();
-                    CELER_LOG(warning) << "found " << model_name;
-
-                    const auto& g4production_cuts_table
-                        = *G4ProductionCutsTable::GetProductionCutsTable();
-
-                    for (int l = 0; l < g4production_cuts_table.GetTableSize();
-                         l++)
-                    {
-                        const auto& g4material_cuts_couple
-                            = g4production_cuts_table.GetMaterialCutsCouple(l);
-                        const auto& g4prod_cuts
-                            = g4material_cuts_couple->GetProductionCuts();
-
-                        const auto& g4_energycuts
-                            = g4production_cuts_table.GetEnergyCutsVector(l);
-
-                        CELER_LOG(info) << " ---- energycutsvector size "
-                                        << g4_energycuts->size() << " for "
-                                        << g4_particle_def.GetParticleName();
-
-                        G4DataVector g4datavec_cuts;
-                        for (int m = 0; m < g4_energycuts->size(); m++)
-                        {
-                            auto val = g4_energycuts->at(m);
-                            CELER_LOG(info) << " ------ value " << val / MeV;
-                            g4datavec_cuts.push_back(val);
-                        }
-
-                        model->Initialise(&g4_particle_def, g4datavec_cuts);
-
-                        model->InitialiseElementSelectors(&g4_particle_def,
-                                                          g4datavec_cuts);
-
-                        const auto elselvec = model->GetElementSelectors();
-                        const auto eldata   = model->GetElementData();
-
-                        // Maybe I need to follow the manual build as in
-                        // G4HepEmElectronTableBuilder::BuildElementSelector()
-
-                        const double max_energy
-                            = G4EmParameters::Instance()->MaxKinEnergy();
-                        const double min_energy
-                            = G4EmParameters::Instance()->MinKinEnergy();
-
-                        const int bins_per_decade
-                            = G4EmParameters::Instance()->NumberOfBinsPerDecade();
-                        const double inv_log_10_6 = 1.0
-                                                    / (6.0 * std::log(10.0));
-                        int num_e_bins
-                            = (int)(bins_per_decade
-                                    * std::log(max_energy / min_energy)
-                                    * inv_log_10_6);
-
-                        CELER_LOG(info)
-                            << " -------- num bins = " << num_e_bins;
-
-                        ImportPhysicsVector elphysvec;
-                        elphysvec.vector_type
-                            = celeritas::ImportPhysicsVectorType::log;
-
-                        double delta = std::log(max_energy / min_energy)
-                                       / (num_e_bins - 1.0);
-                        double log_min_e    = std::log(min_energy);
-                        double inv_le_delta = 1.0 / delta;
-
-                        // Fill energy bins
-                        elphysvec.x.push_back(min_energy);
-
-                        for (int i = 1; i < num_e_bins - 1; i++)
-                        {
-                            elphysvec.x.push_back(
-                                std::exp(log_min_e + i * delta));
-                        }
-
-                        elphysvec.x.push_back(max_energy);
-                        // --
-
-                        CELER_LOG(info) << " ---------- physvec size "
-                                        << elphysvec.x.size();
-
-                        for (const auto material : materials)
-                        {
-                            double    xs_sum    = 0;
-                            const int num_atoms = material.number_density;
-
-                            for (const auto& elcomp : material.elements)
-                            {
-                                const auto element
-                                    = elements.at(elcomp.element_id);
-
-                                double xs = model->ComputeCrossSectionPerAtom(
-                                    &g4_particle_def,
-                                    G4NistManager::Instance()->FindOrBuildElement(
-                                        element.atomic_number),
-                                    min_energy,
-                                    0,
-                                    max_energy);
-
-                                xs_sum += xs;
-                                elphysvec.y.push_back(xs_sum);
-                            }
-                        }
-                    }
-                }
-            }
+            process_converter.test_elemental_xs(
+                elements, materials, g4_particle_def, *process_list[j]);
         }
     }
 }
@@ -677,7 +568,7 @@ int main(int argc, char* argv[])
     CELER_ENSURE(import_data);
 
     //// TEST ELEMENT XS EXPORT
-    // store_elemental_xs();
+    store_elemental_xs();
 
     // Write data to disk and close ROOT file
     tree_data.Fill();

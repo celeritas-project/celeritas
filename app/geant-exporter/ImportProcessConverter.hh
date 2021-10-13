@@ -64,7 +64,7 @@ enum class TableSelection
  *      const G4ProcessVector& *process_list =
  *          *g4_particle_def.GetProcessManager()->GetProcessList();
  *
- *      for (int j; j < process_list.size(); j++)
+ *      for (int j = 0; j < process_list.size(); j++)
  *      {
  *          if (ImportProcess process
  *                  = process_writer(g4_particle_def, *process_list[j]))
@@ -88,6 +88,12 @@ class ImportProcessConverter
     ImportProcess operator()(const G4ParticleDefinition& particle,
                              const G4VProcess&           process);
 
+    // ------- SCRATCH AREA -------
+    void test_elemental_xs(const std::vector<ImportElement>  elements,
+                           const std::vector<ImportMaterial> materials,
+                           const G4ParticleDefinition&       particle,
+                           const G4VProcess&                 process);
+
   private:
     // Loop over EM processes and store them in processes_
     void store_em_tables(const G4VEmProcess& em_process);
@@ -102,12 +108,6 @@ class ImportProcessConverter
     // Write the remaining elements of this->process_
     void add_table(const G4PhysicsTable*      table,
                    celeritas::ImportTableType table_type);
-
-    // ------- SCRATCH AREA -------
-    void test_elemental_xs(const std::vector<ImportElement>  elements,
-                           const std::vector<ImportMaterial> materials,
-                           const G4ParticleDefinition&       particle,
-                           const G4VProcess&                 process);
 
   private:
     // Whether to write tables that aren't used by physics
