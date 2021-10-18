@@ -251,7 +251,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     # Disable test when prereqs are not available or for debug builds
     # TODO: Get test working on debug builds
     if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_ROOT OR NOT CELERITAS_USE_HepMC3
-       OR CMAKE_BUILD_TYPE STREQUAL "Debug")
+       ) # OR CMAKE_BUILD_TYPE STREQUAL "Debug")
       set_tests_properties("app/demo-loop" PROPERTIES
         DISABLED true
       )
