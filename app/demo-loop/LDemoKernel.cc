@@ -27,6 +27,9 @@ void pre_step(const ParamsHostRef& params, const StateHostRef& states)
 {
     for (auto tid : range(ThreadId{states.size()}))
     {
+        // Clear out energy deposition
+        states.energy_deposition[tid] = 0;
+
         SimTrackView sim(states.sim, tid);
         if (!sim.alive())
             continue;
@@ -44,9 +47,6 @@ void pre_step(const ParamsHostRef& params, const StateHostRef& states)
 
         // Sample mfp and calculate minimum step (interaction or step-limited)
         demo_loop::calc_step_limits(mat, particle, phys, sim, rng);
-
-        // Clear out energy deposition
-        states.energy_deposition[tid] = 0;
     }
 }
 

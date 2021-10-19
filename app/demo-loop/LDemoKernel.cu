@@ -33,6 +33,9 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     if (tid.get() >= states.size())
         return;
 
+    // Clear out energy deposition
+    states.energy_deposition[tid] = 0;
+
     SimTrackView sim(states.sim, tid);
     if (!sim.alive())
         return;
@@ -50,9 +53,6 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 
     // Sample mfp and calculate minimum step (interaction or step-limited)
     demo_loop::calc_step_limits(mat, particle, phys, sim, rng);
-
-    // Clear out energy deposition
-    states.energy_deposition[tid] = 0;
 }
 
 //---------------------------------------------------------------------------//
