@@ -50,6 +50,9 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 
     // Sample mfp and calculate minimum step (interaction or step-limited)
     demo_loop::calc_step_limits(mat, particle, phys, sim, rng);
+
+    // Clear out energy deposition
+    states.energy_deposition[tid] = 0;
 }
 
 //---------------------------------------------------------------------------//

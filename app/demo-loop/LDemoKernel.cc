@@ -44,6 +44,9 @@ void pre_step(const ParamsHostRef& params, const StateHostRef& states)
 
         // Sample mfp and calculate minimum step (interaction or step-limited)
         demo_loop::calc_step_limits(mat, particle, phys, sim, rng);
+
+        // Clear out energy deposition
+        states.energy_deposition[tid] = 0;
     }
 }
 
