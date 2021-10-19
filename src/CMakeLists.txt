@@ -61,6 +61,7 @@ list(APPEND SOURCES
   comm/ScopedMpiInit.cc
   comm/detail/LoggerMessage.cc
   geometry/detail/ScopedTimeAndRedirect.cc
+  orange/Types.cc
   io/ImportProcess.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc

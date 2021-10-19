@@ -179,6 +179,13 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 #-----------------------------------------------------------------------------#
+# ORANGE geometry
+
+celeritas_setup_tests(SERIAL PREFIX orange)
+
+celeritas_add_test(orange/surfaces/detail/QuadraticSolver.test.cc)
+
+#-----------------------------------------------------------------------------#
 # I/O (ROOT)
 
 celeritas_setup_tests(SERIAL PREFIX io)
