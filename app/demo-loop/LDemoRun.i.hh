@@ -6,12 +6,14 @@
 //! \file LDemoRun.i.hh
 //---------------------------------------------------------------------------//
 #include "base/CollectionStateStore.hh"
+#include "base/VectorUtils.hh"
 #include "comm/Logger.hh"
 #include "physics/base/ModelInterface.hh"
 #include "sim/TrackInitUtils.hh"
 #include "sim/TrackInterface.hh"
 #include "LDemoParams.hh"
 #include "LDemoKernel.hh"
+#include "EnergyDiagnostic.hh"
 #include "TrackDiagnostic.hh"
 
 using namespace celeritas;
@@ -117,7 +119,8 @@ LDemoResult run_demo(LDemoArgs args)
 
     // Diagnostics
     // TODO: Create a vector of these objects.
-    TrackDiagnostic<M> track_diagnostic;
+    TrackDiagnostic<M>  track_diagnostic;
+    EnergyDiagnostic<M> energy_diagnostic(linspace(-700.0, 700.0, 1024 + 1));
 
     // Load all the problem data
     LDemoParams params = load_params(args);
@@ -172,6 +175,7 @@ LDemoResult run_demo(LDemoArgs args)
 
         // End-of-step diagnostic(s)
         track_diagnostic.end_step(states_ref);
+        energy_diagnostic.end_step(states_ref);
 
         if (--remaining_steps == 0)
         {
@@ -181,7 +185,10 @@ LDemoResult run_demo(LDemoArgs args)
     }
 
     // TODO: return result
-    return LDemoResult{{0}, track_diagnostic.num_alive_per_step(), {0}, 0};
+    return LDemoResult{{0},
+                       track_diagnostic.num_alive_per_step(),
+                       energy_diagnostic.energy_deposition(),
+                       0};
 }
 
 //---------------------------------------------------------------------------//
