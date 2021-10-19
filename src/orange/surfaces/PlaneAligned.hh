@@ -8,7 +8,6 @@
 #pragma once
 
 #include "base/Array.hh"
-#include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Span.hh"
 #include "../Types.hh"

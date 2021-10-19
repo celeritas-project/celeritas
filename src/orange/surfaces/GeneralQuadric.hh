@@ -1,0 +1,213 @@
+//----------------------------------*-C++-*----------------------------------//
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file GeneralQuadric.hh
+//---------------------------------------------------------------------------//
+#pragma once
+
+#include "base/Array.hh"
+#include "base/ArrayUtils.hh"
+#include "base/Span.hh"
+#include "base/Types.hh"
+#include "detail/QuadraticSolver.hh"
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+/*!
+ * General quadric surface.
+ *
+ * General quadrics that cannot be simplified to other CPTE surfaces include
+ * hyperboloids and paraboloids; and non-axis-aligned cylinders, ellipsoids,
+ * and cones.
+ *
+ * \f[
+    ax^2 + by^2 + cz^2 + dxy + eyz + fzx + gx + hy + iz + j = 0
+   \f]
+ */
+class GeneralQuadric
+{
+  public:
+    //@{
+    //! Type aliases
+    using Intersections  = Array<real_type, 2>;
+    using SpanConstRealN = Span<const real_type, 10>;
+    using SpanConstReal3 = Span<const real_type, 3>;
+    //@}
+
+    //// CLASS ATTRIBUTES ////
+
+    //! Surface type identifier
+    static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type()
+    {
+        return SurfaceType::gq;
+    }
+
+    //! Storage requirements
+    static CELER_CONSTEXPR_FUNCTION size_type size()
+    {
+        return SpanConstRealN::extent;
+    }
+
+  public:
+    //// CONSTRUCTORS ////
+
+    // Construct with radius
+    explicit inline CELER_FUNCTION GeneralQuadric(const Real3& abc,
+                                                  const Real3& def,
+                                                  const Real3& ghi,
+                                                  real_type    j);
+
+    // Construct from raw data
+    explicit inline CELER_FUNCTION GeneralQuadric(SpanConstRealN);
+
+    //// ACCESSORS ////
+
+    //! Second-order terms
+    CELER_FUNCTION SpanConstReal3 second() const { return {&a_, 3}; }
+
+    //! Cross terms (xy, yz, zx)
+    CELER_FUNCTION SpanConstReal3 cross() const { return {&d_, 3}; }
+
+    //! First-order terms
+    CELER_FUNCTION SpanConstReal3 first() const { return {&g_, 3}; }
+
+    //! Zeroth-order term
+    CELER_FUNCTION real_type zeroth() const { return j_; }
+
+    //! Get a view to the data for type-deleted storage
+    CELER_FUNCTION SpanConstRealN data() const { return {&a_, 10}; }
+
+    //// CALCULATION ////
+
+    // Determine the sense of the position relative to this surface
+    inline CELER_FUNCTION SignedSense calc_sense(const Real3& pos) const;
+
+    // Determine the sense of the position relative to this surface
+    inline CELER_FUNCTION Intersections calc_intersections(
+        const Real3& pos, const Real3& dir, SurfaceState on_surface) const;
+
+    // Calculate outward normal at a position
+    inline CELER_FUNCTION Real3 calc_normal(const Real3& pos) const;
+
+  private:
+    // Second-order terms (a, b, c)
+    real_type a_, b_, c_;
+    // Second-order cross terms (d, e, f)
+    real_type d_, e_, f_;
+    // First-order terms (g, h, i)
+    real_type g_, h_, i_;
+    // Constant term
+    real_type j_;
+};
+
+//---------------------------------------------------------------------------//
+// INLINE FUNCTION DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with all coefficients.
+ */
+CELER_FUNCTION GeneralQuadric::GeneralQuadric(const Real3& abc,
+                                              const Real3& def,
+                                              const Real3& ghi,
+                                              real_type    j)
+    : a_(abc[0])
+    , b_(abc[1])
+    , c_(abc[2])
+    , d_(def[0])
+    , e_(def[1])
+    , f_(def[2])
+    , g_(ghi[0])
+    , h_(ghi[1])
+    , i_(ghi[2])
+    , j_(j)
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from raw data.
+ */
+CELER_FUNCTION GeneralQuadric::GeneralQuadric(SpanConstRealN data)
+    : a_(data[0])
+    , b_(data[1])
+    , c_(data[2])
+    , d_(data[3])
+    , e_(data[4])
+    , f_(data[5])
+    , g_(data[6])
+    , h_(data[7])
+    , i_(data[8])
+    , j_(data[9])
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Determine the sense of the position relative to this surface.
+ */
+CELER_FUNCTION SignedSense GeneralQuadric::calc_sense(const Real3& pos) const
+{
+    const real_type x = pos[0];
+    const real_type y = pos[1];
+    const real_type z = pos[2];
+
+    real_type result = (a_ * x + d_ * y + f_ * z + g_) * x
+                       + (b_ * y + e_ * z + h_) * y + (c_ * z + i_) * z + j_;
+
+    return real_to_sense(result);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Determine the sense of the position relative to this surface.
+ */
+CELER_FUNCTION auto
+GeneralQuadric::calc_intersections(const Real3& pos,
+                                   const Real3& dir,
+                                   SurfaceState on_surface) const
+    -> Intersections
+{
+    const real_type x = pos[0];
+    const real_type y = pos[1];
+    const real_type z = pos[2];
+    const real_type u = dir[0];
+    const real_type v = dir[1];
+    const real_type w = dir[2];
+
+    // Quadratic values
+    real_type a = (a_ * u + d_ * v) * u + (b_ * v + e_ * w) * v
+                  + (c_ * w + f_ * u) * w;
+    real_type half_b = real_type(0.5)
+                       * ((2 * a_ * x + d_ * y + f_ * z + g_) * u
+                          + (2 * b_ * y + d_ * x + e_ * z + h_) * v
+                          + (2 * c_ * z + +e_ * y + f_ * x + i_) * w);
+    real_type c = ((a_ * x + d_ * y + g_) * x + (b_ * y + e_ * z + h_) * y
+                   + (c_ * z + f_ * x + i_) * z + j_);
+
+    return detail::QuadraticSolver::solve_general(a, half_b, c, on_surface);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate outward normal at a position.
+ */
+CELER_FUNCTION Real3 GeneralQuadric::calc_normal(const Real3& pos) const
+{
+    const real_type x = pos[0];
+    const real_type y = pos[1];
+    const real_type z = pos[2];
+
+    Real3 norm;
+    norm[0] = 2 * a_ * x + d_ * y + f_ * z + g_;
+    norm[1] = 2 * b_ * y + d_ * x + e_ * z + h_;
+    norm[2] = 2 * c_ * z + e_ * y + f_ * x + i_;
+
+    normalize_direction(&norm);
+    return norm;
+}
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas

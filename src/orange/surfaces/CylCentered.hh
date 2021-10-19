@@ -9,7 +9,6 @@
 
 #include "base/Array.hh"
 #include "base/ArrayUtils.hh"
-#include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Span.hh"
 #include "../Types.hh"
