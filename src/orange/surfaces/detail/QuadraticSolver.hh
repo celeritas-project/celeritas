@@ -45,10 +45,8 @@ class QuadraticSolver
     static CELER_CONSTEXPR_FUNCTION real_type min_a() { return 1e-10; }
 
     // Solve when possibly along a surface (zeroish a)
-    static inline CELER_FUNCTION Intersections solve_general(real_type a,
-                                                             real_type half_b,
-                                                             real_type c,
-                                                             bool on_surface);
+    static inline CELER_FUNCTION Intersections solve_general(
+        real_type a, real_type half_b, real_type c, SurfaceState on_surface);
 
   public:
     // Construct with nonzero a, and b/2
@@ -74,22 +72,22 @@ class QuadraticSolver
  *
  * This is used for cones, simple quadrics, and general quadrics.
  */
-CELER_FUNCTION auto QuadraticSolver::solve_general(real_type a,
-                                                   real_type half_b,
-                                                   real_type c,
-                                                   bool      on_surface)
+CELER_FUNCTION auto QuadraticSolver::solve_general(real_type    a,
+                                                   real_type    half_b,
+                                                   real_type    c,
+                                                   SurfaceState on_surface)
     -> Intersections
 {
     if (std::fabs(a) >= min_a())
     {
         // Not along the surface
         QuadraticSolver solve(a, half_b);
-        return on_surface ? solve() : solve(c);
+        return on_surface == SurfaceState::on ? solve() : solve(c);
     }
     else
     {
         // Travelling parallel to the quadric's surface
-        if (!on_surface)
+        if (on_surface == SurfaceState::off)
         {
             QuadraticSolver solve(min_a(), half_b);
             return solve(c);

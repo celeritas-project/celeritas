@@ -10,6 +10,7 @@
 #include "celeritas_test.hh"
 
 using celeritas::no_intersection;
+using celeritas::SurfaceState;
 using celeritas::detail::QuadraticSolver;
 
 //---------------------------------------------------------------------------//
@@ -143,7 +144,7 @@ TEST(SolveGeneral, no_roots)
     double b_2 = 0.;    // (b/a)/2
     double c   = 10000; // c/a
 
-    auto x = QuadraticSolver::solve_general(a, b_2, c, false);
+    auto x = QuadraticSolver::solve_general(a, b_2, c, SurfaceState::off);
 
     EXPECT_SOFT_EQ(no_intersection(), x[0]);
     EXPECT_SOFT_EQ(no_intersection(), x[1]);
@@ -156,7 +157,7 @@ TEST(SolveGeneral, one_root)
     double b_2 = 2.0 / 2;
     double c   = -2000;
 
-    auto x = QuadraticSolver::solve_general(a, b_2, c, false);
+    auto x = QuadraticSolver::solve_general(a, b_2, c, SurfaceState::off);
 
     EXPECT_SOFT_EQ(no_intersection(), x[0]);
     EXPECT_SOFT_NEAR(1.0e3, x[1], 1e-7);

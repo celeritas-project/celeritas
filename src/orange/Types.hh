@@ -94,7 +94,7 @@ enum class SurfaceType : unsigned char
 
 //---------------------------------------------------------------------------//
 /*!
- * .
+ * Evaluated quadric expression allowing for distinct 'on surface' state.
  *
  * For a plane, "outside" is equivalent to
  * \f[
@@ -117,6 +117,18 @@ enum class SignedSense
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * When evaluating an intersection, whether the point is on the surface.
+ *
+ * This helps eliminate roundoff errors and other arithmetic issues.
+ */
+enum class SurfaceState : bool
+{
+    off = false,
+    on  = true
+};
+
+//---------------------------------------------------------------------------//
 // CLASSES
 //---------------------------------------------------------------------------//
 /*!
@@ -128,9 +140,9 @@ enum class SignedSense
  *
  *  Vol   | Surface | Description
  * :----: | :-----: | :-------------------------------
- *        |         | Failed to find new vol
+ *        |         | Failed to find new volume
  *   X    |         | Initialized
- *   X    |   X     | Crossed surface into new vol
+ *   X    |   X     | Crossed surface into new volume
  *        |   X     | Initialized on a surface (reject)
  */
 struct Initialization
