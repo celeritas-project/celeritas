@@ -232,7 +232,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
 
   if (CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
-    set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple_cms.gdml")
+    set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple-cms.gdml")
     set(_hepmc3_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/input.hepmc3")
     add_test(NAME "app/demo-loop"
       COMMAND "$<TARGET_FILE:Python::Interpreter>"
