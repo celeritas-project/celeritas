@@ -34,6 +34,9 @@ class Diagnostic
     // Collect diagnostic(s) before step
     virtual void begin_step(const StateDataRef&) {}
 
+    // Collect diagnostic(s) in the middle of a step
+    virtual void mid_step(const StateDataRef&) {}
+
     // Collect diagnostic(s) after step
     virtual void end_step(const StateDataRef&) {}
 

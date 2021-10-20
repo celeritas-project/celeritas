@@ -41,6 +41,7 @@ void to_json(nlohmann::json& j, const LDemoResult& v)
     j = nlohmann::json{{"time", v.time},
                        {"alive", v.alive},
                        {"edep", v.edep},
+                       {"process", v.process},
                        {"total_time", v.total_time}};
 }
 //!@}

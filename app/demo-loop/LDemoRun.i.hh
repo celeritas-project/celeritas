@@ -12,6 +12,7 @@
 #include "sim/TrackInterface.hh"
 #include "LDemoParams.hh"
 #include "LDemoKernel.hh"
+#include "ParticleProcessDiagnostic.hh"
 #include "TrackDiagnostic.hh"
 
 using namespace celeritas;
@@ -115,15 +116,17 @@ LDemoResult run_demo(LDemoArgs args)
 {
     CELER_EXPECT(args);
 
-    // Diagnostics
-    // TODO: Create a vector of these objects.
-    TrackDiagnostic<M> track_diagnostic;
-
     // Load all the problem data
     LDemoParams params = load_params(args);
 
     // Create param interfaces
     auto params_ref = build_params_refs<M>(params);
+
+    // Diagnostics
+    // TODO: Create a vector of these objects.
+    TrackDiagnostic<M>           track_diagnostic;
+    ParticleProcessDiagnostic<M> process_diagnostic(
+        params_ref, params.particles, params.physics);
 
     // Create states (TODO state store?)
     StateData<Ownership::value, M> state_storage;
@@ -151,6 +154,9 @@ LDemoResult run_demo(LDemoArgs args)
 
         demo_loop::pre_step(params_ref, states_ref);
         demo_loop::along_and_post_step(params_ref, states_ref);
+
+        // Mid-step diagnostics
+        process_diagnostic.mid_step(states_ref);
 
         // Launch the interaction kernels for all applicable models
         launch_models(params, params_ref, states_ref);
@@ -181,7 +187,11 @@ LDemoResult run_demo(LDemoArgs args)
     }
 
     // TODO: return result
-    return LDemoResult{{0}, track_diagnostic.num_alive_per_step(), {0}, 0};
+    return LDemoResult{{0},
+                       track_diagnostic.num_alive_per_step(),
+                       {0},
+                       process_diagnostic.particle_processes(),
+                       0};
 }
 
 //---------------------------------------------------------------------------//
