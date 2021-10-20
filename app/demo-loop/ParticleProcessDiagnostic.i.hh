@@ -68,18 +68,10 @@ ParticleProcessDiagnostic<M>::particle_processes() const
             size_type count = counts[celeritas::ItemId<size_type>{index}];
             if (count > 0)
             {
+                // Accumulate the result for this process
                 std::string label = process.label() + " "
                                     + particles_->id_to_label(particle_id);
-                auto it = result.find(label);
-                if (it != result.end())
-                {
-                    // Process has more than one model, so accumulate result
-                    it->second += count;
-                }
-                else
-                {
-                    result[label] = count;
-                }
+                result[label] += count;
             }
         }
     }

@@ -8,6 +8,7 @@
 #include "ParticleProcessDiagnostic.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
+#include "physics/base/PhysicsTrackView.hh"
 
 using namespace celeritas;
 
@@ -28,11 +29,14 @@ __global__ void count_particle_process_kernel(
     if (tid.get() >= states.size())
         return;
 
-    auto model_id = states.physics.state[tid].model_id;
-    if (model_id)
+    ParticleTrackView particle(params.particles, states.particles, tid);
+    PhysicsTrackView  physics(
+        params.physics, states.physics, particle.particle_id(), {}, tid);
+
+    if (physics.model_id())
     {
-        size_type index = model_id.get() * params.physics.process_groups.size()
-                          + states.particles.state[tid].particle_id.get();
+        size_type index = physics.model_id().get() * physics.num_particles()
+                          + particle.particle_id().get();
         CELER_ASSERT(index < counts.size());
         atomic_add(&counts[ItemId<size_type>(index)], 1u);
     }

@@ -136,8 +136,6 @@ LDemoResult run_demo(LDemoArgs args)
     StateData<Ownership::reference, M> states_ref = make_ref(state_storage);
 
     // Copy primaries to device and create track initializers
-    // TODO: for now this assumes we can initialize all primaries at once, but
-    // we should also handle the case where we have more primaries than tracks
     CELER_ASSERT(params.track_inits->host_pointers().primaries.size()
                  <= state_storage.track_inits.initializers.capacity());
     extend_from_primaries(params.track_inits->host_pointers(),
@@ -186,12 +184,14 @@ LDemoResult run_demo(LDemoArgs args)
         }
     }
 
-    // TODO: return result
-    return LDemoResult{{0},
-                       track_diagnostic.num_alive_per_step(),
-                       {0},
-                       process_diagnostic.particle_processes(),
-                       0};
+    // Collect results from diagnostics
+    LDemoResult result;
+    result.time       = {0};
+    result.alive      = track_diagnostic.num_alive_per_step();
+    result.edep       = {0};
+    result.process    = process_diagnostic.particle_processes();
+    result.total_time = 0;
+    return result;
 }
 
 //---------------------------------------------------------------------------//

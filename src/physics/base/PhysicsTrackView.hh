@@ -138,6 +138,9 @@ class PhysicsTrackView
                                                 const MaterialView& material,
                                                 MevEnergy energy) const;
 
+    // Number of particle types
+    inline CELER_FUNCTION size_type num_particles() const;
+
     // Construct a grid calculator from a physics table
     template<class T>
     inline CELER_FUNCTION T make_calculator(ValueGridId) const;
