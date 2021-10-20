@@ -338,7 +338,12 @@ std::vector<ImportProcess> store_processes()
     CELER_LOG(status) << "Exporting physics processes";
 
     std::vector<ImportProcess> processes;
-    ImportProcessConverter     process_writer(TableSelection::minimal);
+
+    // TODO: decide if repeating store_material(), albeit slower, is better due
+    // to simplicity, or if we should pass by reference the already created
+    // import_data.materials all the way down here
+    ImportProcessConverter process_writer(
+        TableSelection::minimal, store_materials(), store_elements());
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -399,7 +404,8 @@ void store_elemental_xs()
     // load again element and material list
     std::vector<ImportElement>  elements  = store_elements();
     std::vector<ImportMaterial> materials = store_materials();
-    ImportProcessConverter      process_converter(TableSelection::minimal);
+    ImportProcessConverter      process_converter(
+        TableSelection::minimal, materials, elements);
 
     // Loop over particles and processes, initialize elemental data and such
     G4ParticleTable::G4PTblDicIterator& particle_iterator
@@ -440,6 +446,37 @@ void store_elemental_xs()
 
             process_converter.test_elemental_xs(
                 elements, materials, g4_particle_def, *process_list[j]);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+void store_elemental_xs_with_IP(const std::vector<ImportProcess>& processes)
+{
+    CELER_LOG(info) << "TEST XS with vector ImportProcess. Size "
+                    << processes.size();
+
+    const auto process = processes.at(0);
+
+    CELER_LOG(info) << "  - tables size at 0 should show n of materials: "
+                    << process.tables.size();
+
+    for (const auto& table : process.tables)
+    {
+        CELER_LOG(info) << "   - physics vector size "
+                        << table.physics_vectors.size();
+
+        for (const auto& pvec : table.physics_vectors)
+        {
+            CELER_LOG(info) << "      - x            y (type "
+                            << (int)pvec.vector_type << ")";
+            for (int i : celeritas::range(pvec.x.size()))
+            {
+                CELER_LOG(info)
+                    << "      - " << pvec.x.at(i) << "     " << pvec.y.at(i);
+            }
+            CELER_LOG(info) << "      ---------------";
         }
     }
 }
@@ -568,7 +605,8 @@ int main(int argc, char* argv[])
     CELER_ENSURE(import_data);
 
     //// TEST ELEMENT XS EXPORT
-    store_elemental_xs();
+    // store_elemental_xs();
+    // store_elemental_xs_with_IP(import_data.processes);
 
     // Write data to disk and close ROOT file
     tree_data.Fill();

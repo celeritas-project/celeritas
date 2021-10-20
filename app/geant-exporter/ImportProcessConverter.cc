@@ -16,6 +16,7 @@
 
 #include <G4VProcess.hh>
 #include <G4VEmProcess.hh>
+#include <G4VEmModel.hh>
 #include <G4VEnergyLossProcess.hh>
 #include <G4VMultipleScattering.hh>
 #include <G4SystemOfUnits.hh>
@@ -25,6 +26,7 @@
 #include <G4ProductionCutsTable.hh>
 #include <G4NistManager.hh>
 #include <G4ElementData.hh>
+#include <G4ParticleTable.hh>
 
 #include "io/ImportProcess.hh"
 #include "io/ImportPhysicsTable.hh"
@@ -228,9 +230,14 @@ double units_to_scaling(ImportUnits units)
 /*!
  * Construct with a selected list of tables.
  */
-ImportProcessConverter::ImportProcessConverter(TableSelection which_tables)
-    : which_tables_(which_tables)
+ImportProcessConverter::ImportProcessConverter(
+    TableSelection                     which_tables,
+    const std::vector<ImportMaterial>& materials,
+    const std::vector<ImportElement>&  elements)
+    : which_tables_(which_tables), materials_(materials), elements_(elements)
 {
+    CELER_ENSURE(!materials_.empty());
+    CELER_ENSURE(!elements_.empty());
 }
 
 //---------------------------------------------------------------------------//
@@ -296,6 +303,8 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
                          << ProcessTypeDemangler()(process) << ")";
     }
 
+    this->test_elemental_xs_using_process_();
+
     return process_;
 }
 
@@ -306,13 +315,22 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 {
 #if CELERITAS_G4_V10
+    process_.element_selector_tables.resize(process.GetNumberOfModels());
+
     for (auto i : celeritas::range(process.GetNumberOfModels()))
 #else
+    process_.element_selector_tables.resize(process.NumberOfModels());
+
     for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
+        // Save model list
         process_.models.push_back(
             to_import_model(process.GetModelByIndex(i)->GetName()));
+
+        // Save cross section tables as in G4EmElementSelector
+        process_.element_selector_tables[i]
+            = this->add_element_selector(*process.GetModelByIndex(i));
     }
 
     // Save potential tables
@@ -657,6 +675,118 @@ void ImportProcessConverter::test_elemental_xs(
         }
 #endif
     }
+}
+
+void ImportProcessConverter::test_elemental_xs_using_process_()
+{
+    CELER_EXPECT(!process_.tables.empty());
+
+    CELER_LOG(info) << "FOR PROCESS " << to_cstring(process_.process_class);
+    CELER_LOG(info) << " - models size " << process_.models.size();
+    CELER_LOG(info) << " - tables size " << process_.tables.size();
+
+    for (const auto& model : process_.models)
+    {
+        CELER_LOG(info) << "   - model class " << to_cstring(model);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * TDB
+ */
+std::vector<ImportPhysicsVector>
+ImportProcessConverter::add_element_selector(G4VEmModel& model)
+{
+    std::vector<ImportPhysicsVector> physics_vectors; // One per material
+    physics_vectors.resize(materials_.size());
+
+    const G4ParticleDefinition& g4_particle_def
+        = *G4ParticleTable::GetParticleTable()->FindParticle(
+            process_.particle_pdg);
+
+    for (int i : celeritas::range(materials_.size()))
+    {
+        const auto& material = materials_.at(i);
+
+        // Set up energy grid for this material
+        ImportPhysicsVector physics_vector
+            = this->element_selector_physics_vector(model, material);
+
+        // Fill cross section values
+        for (int i : celeritas::range(physics_vector.x.size() - 1))
+        {
+            double xs_sum = 0;
+
+            for (const auto& elem_comp : material.elements)
+            {
+                const auto element = elements_.at(elem_comp.element_id);
+
+                double xs_per_atom = model.ComputeCrossSectionPerAtom(
+                    &g4_particle_def,
+                    G4NistManager::Instance()->FindOrBuildElement(
+                        element.atomic_number),
+                    physics_vector.x.at(i),
+                    material.pdg_cutoffs.find(process_.particle_pdg)
+                        ->second.energy,
+                    physics_vector.x.at(i));
+
+                xs_sum += material.number_density * xs_per_atom;
+
+                // Mihali only stores up to i < elements.size() - 1. WHY?
+                physics_vector.y.push_back(xs_sum);
+            }
+
+            // Normalize XS vector
+            for (int k : celeritas::range(physics_vector.y.size() - 1))
+            {
+                physics_vector.y.at(k) /= xs_sum;
+            }
+
+            physics_vectors.push_back(physics_vector);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set up ImportPhysicsVector type and energy grid, while leaving cross
+ * section data empty, which is filled by \c this->add_element_selector()
+ * function.
+ */
+
+ImportPhysicsVector ImportProcessConverter::element_selector_physics_vector(
+    G4VEmModel& model, const ImportMaterial& material)
+{
+    ImportPhysicsVector physics_vector;
+    physics_vector.vector_type = ImportPhysicsVectorType::log;
+
+    const double max_energy = model.HighEnergyLimit() / MeV;
+    const double min_energy
+        = material.pdg_cutoffs.find(process_.particle_pdg)->second.energy;
+
+    // Double check this value
+    const int bins_per_decade
+        = G4EmParameters::Instance()->NumberOfBinsPerDecade();
+
+    const double inv_log_10_6 = 1.0 / (6.0 * std::log(10.0));
+    const int    num_energy_bins
+        = std::max(3,
+                   (int)(bins_per_decade * std::log(max_energy / min_energy)
+                         * inv_log_10_6));
+    double delta = std::log(max_energy / min_energy) / (num_energy_bins - 1.0);
+    double log_min_e    = std::log(min_energy);
+    double inv_le_delta = 1.0 / delta;
+
+    // Fill energy bins
+    physics_vector.x.push_back(min_energy);
+    for (int i = 1; i < num_energy_bins - 1; i++)
+    {
+        physics_vector.x.push_back(std::exp(log_min_e + i * delta));
+    }
+    physics_vector.x.push_back(max_energy);
+
+    return physics_vector;
 }
 
 //---------------------------------------------------------------------------//
