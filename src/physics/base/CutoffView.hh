@@ -20,7 +20,7 @@ namespace celeritas
  *
  * \code
  * CutoffParams cutoffs(input);
- * CutoffView cutoff_view(cutoffs.host_pointers(), material_id);
+ * CutoffView cutoff_view(cutoffs.host_ref(), material_id);
  * cutoff_view.energy(particle_id);
  * cutoff_view.range(particle_id);
  * \endcode

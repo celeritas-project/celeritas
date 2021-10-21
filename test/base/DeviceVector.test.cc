@@ -49,13 +49,13 @@ TEST_F(DeviceVectorTest, all)
 
     {
         Vec_t other(128);
-        int*  orig_vec   = vec.device_pointers().data();
-        int*  orig_other = other.device_pointers().data();
+        int*  orig_vec   = vec.device_ref().data();
+        int*  orig_other = other.device_ref().data();
         swap(vec, other);
         EXPECT_EQ(512, other.size());
         EXPECT_EQ(1024, other.capacity());
-        EXPECT_EQ(orig_other, vec.device_pointers().data());
-        EXPECT_EQ(orig_vec, other.device_pointers().data());
+        EXPECT_EQ(orig_other, vec.device_ref().data());
+        EXPECT_EQ(orig_vec, other.device_ref().data());
     }
     EXPECT_EQ(128, vec.size());
     EXPECT_EQ(128, vec.capacity());
@@ -73,12 +73,12 @@ TEST_F(DeviceVectorTest, all)
 
     // Test move construction/assignment
     {
-        int*  orig_vec = vec.device_pointers().data();
+        int*  orig_vec = vec.device_ref().data();
         Vec_t other(std::move(vec));
         EXPECT_EQ(128, other.size());
         EXPECT_EQ(0, vec.size());
         EXPECT_EQ(0, vec.capacity());
-        EXPECT_EQ(orig_vec, other.device_pointers().data());
+        EXPECT_EQ(orig_vec, other.device_ref().data());
     }
 }
 

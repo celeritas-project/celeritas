@@ -151,7 +151,7 @@ class ParticleTestHost : public ParticleTest
         CELER_ASSERT(particle_params);
 
         // Construct views
-        resize(&state_value, particle_params->host_pointers(), 1);
+        resize(&state_value, particle_params->host_ref(), 1);
         state_ref = state_value;
     }
 
@@ -162,7 +162,7 @@ class ParticleTestHost : public ParticleTest
 TEST_F(ParticleTestHost, electron)
 {
     ParticleTrackView particle(
-        particle_params->host_pointers(), state_ref, ThreadId(0));
+        particle_params->host_ref(), state_ref, ThreadId(0));
     particle = Initializer_t{ParticleId{0}, MevEnergy{0.5}};
 
     EXPECT_DOUBLE_EQ(0.5, particle.energy().value());
@@ -184,7 +184,7 @@ TEST_F(ParticleTestHost, electron)
 TEST_F(ParticleTestHost, gamma)
 {
     ParticleTrackView particle(
-        particle_params->host_pointers(), state_ref, ThreadId(0));
+        particle_params->host_ref(), state_ref, ThreadId(0));
     particle = Initializer_t{ParticleId{1}, MevEnergy{10}};
 
     EXPECT_DOUBLE_EQ(0, particle.mass().value());
@@ -196,7 +196,7 @@ TEST_F(ParticleTestHost, gamma)
 TEST_F(ParticleTestHost, neutron)
 {
     ParticleTrackView particle(
-        particle_params->host_pointers(), state_ref, ThreadId(0));
+        particle_params->host_ref(), state_ref, ThreadId(0));
     particle = Initializer_t{ParticleId{2}, MevEnergy{20}};
 
     EXPECT_DOUBLE_EQ(20, particle.energy().value());
@@ -221,7 +221,7 @@ TEST_F(ParticleDeviceTest, TEST_IF_CELERITAS_CUDA(calc_props))
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
         *particle_params, input.init.size());
-    input.params = particle_params->device_pointers();
+    input.params = particle_params->device_ref();
     input.states = pstates.ref();
 
     // Run GPU test

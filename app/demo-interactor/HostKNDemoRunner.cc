@@ -73,7 +73,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Particle data
     ParticleStateData<Ownership::value, MemSpace::host> track_states;
-    resize(&track_states, pparams_->host_pointers(), 1);
+    resize(&track_states, pparams_->host_ref(), 1);
 
     // Make secondary store
     StackAllocatorData<Secondary, Ownership::value, MemSpace::host> secondaries;
@@ -87,8 +87,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Construct references
     ParamsHostRef params;
-    params.particle      = pparams_->host_pointers();
-    params.tables        = xsparams_->host_pointers();
+    params.particle      = pparams_->host_ref();
+    params.tables        = xsparams_->host_ref();
     params.kn_interactor = kn_pointers_;
     params.detector      = detector_params;
 

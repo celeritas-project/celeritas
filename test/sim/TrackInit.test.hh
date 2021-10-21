@@ -81,7 +81,7 @@ struct ITTestInput
     ITTestInput(std::vector<size_type>& host_alloc_size,
                 std::vector<char>&      host_alive);
 
-    ITTestInputData device_pointers();
+    ITTestInputData device_ref();
 
     // Number of secondaries each track will produce
     DeviceVector<size_type> alloc_size;

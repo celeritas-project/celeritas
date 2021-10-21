@@ -34,9 +34,9 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
 {
     // Construct GeoTrackView and ParticleTrackView
     GeoTrackView geo_track = GeoTrackView(
-        this->geo_params->host_pointers(), geo_state.ref(), ThreadId(0));
+        this->geo_params->host_ref(), geo_state.ref(), ThreadId(0));
     ParticleTrackView particle_track(
-        particle_params->host_pointers(), state_ref, ThreadId(0));
+        particle_params->host_ref(), state_ref, ThreadId(0));
 
     // Construct FieldPropagator
     UniformMagField field({0, 0, test.field_value});
@@ -93,9 +93,9 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
 {
     // Construct GeoTrackView and ParticleTrackView
     GeoTrackView geo_track = GeoTrackView(
-        this->geo_params->host_pointers(), geo_state.ref(), ThreadId(0));
+        this->geo_params->host_ref(), geo_state.ref(), ThreadId(0));
     ParticleTrackView particle_track(
-        particle_params->host_pointers(), state_ref, ThreadId(0));
+        particle_params->host_ref(), state_ref, ThreadId(0));
 
     // Construct FieldDriver
     UniformMagField field({0, 0, test.field_value});
@@ -176,14 +176,14 @@ TEST_F(FieldPropagatorDeviceTest, field_propagator_device)
         input.init_geo.push_back({{test.radius, -10, i * 1.0e-6}, {0, 1, 0}});
         input.init_track.push_back({ParticleId{0}, MevEnergy{test.energy}});
     }
-    input.geo_params = geo_params->device_pointers();
+    input.geo_params = geo_params->device_ref();
     GeoStateStore device_states(*geo_params, input.init_geo.size());
     input.geo_states = device_states.ref();
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
         *particle_params, input.init_track.size());
 
-    input.particle_params = particle_params->device_pointers();
+    input.particle_params = particle_params->device_ref();
     input.particle_states = pstates.ref();
 
     input.field_params = this->field_params;
@@ -214,14 +214,14 @@ TEST_F(FieldPropagatorDeviceTest, boundary_crossing_device)
         input.init_track.push_back({ParticleId{0}, MevEnergy{test.energy}});
     }
 
-    input.geo_params = geo_params->device_pointers();
+    input.geo_params = geo_params->device_ref();
     GeoStateStore device_states(*geo_params, input.init_geo.size());
     input.geo_states = device_states.ref();
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
         *particle_params, input.init_track.size());
 
-    input.particle_params = particle_params->device_pointers();
+    input.particle_params = particle_params->device_ref();
     input.particle_states = pstates.ref();
 
     input.field_params = this->field_params;

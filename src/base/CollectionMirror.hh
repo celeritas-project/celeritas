@@ -33,7 +33,7 @@ namespace celeritas
  *     using CollectionDeviceRef = FooData<Ownership::const_reference,
  *                                         MemSpace::device>;
  *
- *     const CollectionDeviceRef& device_pointers() const
+ *     const CollectionDeviceRef& device_ref() const
  *     {
  *         return data_.device();
  *     }

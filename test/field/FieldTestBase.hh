@@ -71,7 +71,7 @@ class FieldTestBase : public celeritas::Test
         particle_params = std::make_shared<ParticleParams>(std::move(defs));
 
         // Construct views
-        resize(&state_value, particle_params->host_pointers(), 1);
+        resize(&state_value, particle_params->host_ref(), 1);
         state_ref = state_value;
 
         // Set values of FieldParamsData;

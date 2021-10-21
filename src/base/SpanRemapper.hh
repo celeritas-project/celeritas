@@ -27,7 +27,7 @@ namespace celeritas
  *
  * \code
     auto remap_span = make_span_remapper(make_span(host_vec_),
-                                         device_vec_.device_pointers());
+                                         device_vec_.device_ref());
 
     // Create local vector of objects that will be copied to device (and must
     // have device pointers)

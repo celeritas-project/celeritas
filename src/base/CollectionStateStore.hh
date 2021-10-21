@@ -59,7 +59,7 @@ class CollectionStateStore
     CollectionStateStore(const Params& p, size_type size)
     {
         CELER_EXPECT(size > 0);
-        resize(&val_, p.host_pointers(), size);
+        resize(&val_, p.host_ref(), size);
 
         // Save reference
         ref_ = val_;

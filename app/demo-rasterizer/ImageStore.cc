@@ -98,7 +98,7 @@ ImageData ImageStore::device_interface()
     result.right_ax    = right_ax_;
     result.pixel_width = pixel_width_;
     result.dims        = dims_;
-    result.image       = image_.device_pointers();
+    result.image       = image_.device_ref();
 
     return result;
 }

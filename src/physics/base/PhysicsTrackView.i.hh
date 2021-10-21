@@ -333,9 +333,9 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
     -> ModelFinder
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    const ModelGroup& mg
+    const ModelData& md
         = params_.model_groups[this->process_group().models[ppid.get()]];
-    return ModelFinder(params_.reals[mg.energy], params_.model_ids[mg.model]);
+    return ModelFinder(params_.reals[md.energy], params_.model_ids[md.model]);
 }
 
 //---------------------------------------------------------------------------//
@@ -512,7 +512,7 @@ CELER_FUNCTION const PhysicsTrackState& PhysicsTrackView::state() const
 }
 
 //! Get the group of processes that apply to the particle
-CELER_FUNCTION const ProcessGroup& PhysicsTrackView::process_group() const
+CELER_FUNCTION const ProcessData& PhysicsTrackView::process_group() const
 {
     CELER_EXPECT(particle_ < params_.process_groups.size());
     return params_.process_groups[particle_];

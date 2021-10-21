@@ -74,12 +74,12 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
     // tables?
 
     Applicability electron_applic;
-    electron_applic.particle = this->host_pointers().ids.electron;
+    electron_applic.particle = this->host_ref().ids.electron;
     electron_applic.lower    = zero_quantity();
     electron_applic.upper    = units::MevEnergy{1e8};
 
     Applicability positron_applic = electron_applic;
-    positron_applic.particle      = this->host_pointers().ids.positron;
+    positron_applic.particle      = this->host_ref().ids.positron;
 
     return {electron_applic, positron_applic};
 }
@@ -91,13 +91,13 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
 void SeltzerBergerModel::interact(
     const ModelInteractRefs<MemSpace::device>& pointers) const
 {
-    generated::seltzer_berger_interact(this->device_pointers(), pointers);
+    generated::seltzer_berger_interact(this->device_ref(), pointers);
 }
 
 void SeltzerBergerModel::interact(
     const ModelInteractRefs<MemSpace::host>& pointers) const
 {
-    generated::seltzer_berger_interact(this->host_pointers(), pointers);
+    generated::seltzer_berger_interact(this->host_ref(), pointers);
 }
 
 //---------------------------------------------------------------------------//
@@ -106,7 +106,7 @@ void SeltzerBergerModel::interact(
  */
 ModelId SeltzerBergerModel::model_id() const
 {
-    return this->host_pointers().ids.model;
+    return this->host_ref().ids.model;
 }
 
 //---------------------------------------------------------------------------//

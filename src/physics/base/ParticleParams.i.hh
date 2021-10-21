@@ -59,4 +59,14 @@ ParticleId ParticleParams::find(PDGNumber pdg_code) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get particle properties in host code.
+ */
+ParticleView ParticleParams::get(ParticleId id) const
+{
+    CELER_EXPECT(id < this->host_ref().particles.size());
+    return ParticleView(this->host_ref(), id);
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

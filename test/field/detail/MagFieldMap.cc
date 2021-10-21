@@ -26,13 +26,13 @@ MagFieldMap::MagFieldMap(ReadMap load_map)
     this->build_data(load_map, &host_group);
 
     // Move to mirrored data, copying to device
-    group_ = CollectionMirror<detail::FieldMapGroup>{std::move(host_group)};
+    group_ = CollectionMirror<detail::FieldMapData>{std::move(host_group)};
     CELER_ENSURE(this->group_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert an input map to a MagFieldMap and store to FieldMapGroup.
+ * Convert an input map to a MagFieldMap and store to FieldMapData.
  */
 void MagFieldMap::build_data(ReadMap load_map, HostValue* group)
 {

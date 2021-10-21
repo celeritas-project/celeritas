@@ -75,7 +75,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         // Construct RayleighModel and set the host data group
         model_ = std::make_shared<RayleighModel>(
             ModelId{0}, particles, *this->material_params());
-        group_ = model_->host_group();
+        group_ = model_->host_ref();
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -114,7 +114,7 @@ TEST_F(RayleighInteractorTest, basic)
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
 
         // Create the interactor
-        RayleighInteractor interact(this->model_->host_group(),
+        RayleighInteractor interact(this->model_->host_ref(),
                                     this->particle_track(),
                                     this->direction(),
                                     el_id);
@@ -165,7 +165,7 @@ TEST_F(RayleighInteractorTest, stress_test)
         RandomEngine& rng_engine = this->rng();
 
         // Create the interactor
-        RayleighInteractor interact(this->model_->host_group(),
+        RayleighInteractor interact(this->model_->host_ref(),
                                     this->particle_track(),
                                     this->direction(),
                                     el_id);

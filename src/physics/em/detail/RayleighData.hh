@@ -40,7 +40,7 @@ struct RayleighParameters
  * Device data for creating an interactor.
  */
 template<Ownership W, MemSpace M>
-struct RayleighGroup
+struct RayleighData
 {
     //! Model ID
     ModelId model_id;
@@ -60,7 +60,7 @@ struct RayleighGroup
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    RayleighGroup& operator=(const RayleighGroup<W2, M2>& other)
+    RayleighData& operator=(const RayleighData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         model_id = other.model_id;
@@ -71,11 +71,11 @@ struct RayleighGroup
 };
 
 using RayleighDeviceRef
-    = RayleighGroup<Ownership::const_reference, MemSpace::device>;
+    = RayleighData<Ownership::const_reference, MemSpace::device>;
 using RayleighHostRef
-    = RayleighGroup<Ownership::const_reference, MemSpace::host>;
+    = RayleighData<Ownership::const_reference, MemSpace::host>;
 using RayleighNativeRef
-    = RayleighGroup<Ownership::const_reference, MemSpace::native>;
+    = RayleighData<Ownership::const_reference, MemSpace::native>;
 
 } // namespace detail
 } // namespace celeritas

@@ -78,10 +78,10 @@ class CutoffParams
     inline CutoffView get(MaterialId material) const;
 
     //! Access cutoff data on the host
-    const HostRef& host_pointers() const { return data_.host(); }
+    const HostRef& host_ref() const { return data_.host(); }
 
     //! Access cutoff data on the device
-    const DeviceRef& device_pointers() const { return data_.device(); }
+    const DeviceRef& device_ref() const { return data_.device(); }
 
   private:
     // Host/device storage and reference
@@ -97,8 +97,8 @@ class CutoffParams
  */
 CutoffView CutoffParams::get(MaterialId material) const
 {
-    CELER_EXPECT(material < this->host_pointers().num_materials);
-    return CutoffView(this->host_pointers(), material);
+    CELER_EXPECT(material < this->host_ref().num_materials);
+    return CutoffView(this->host_ref(), material);
 }
 
 //---------------------------------------------------------------------------//

@@ -79,7 +79,7 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
         par_init.energy = energy;
         *par            = par_init;
 
-        PhysicsTrackView phys(this->physics()->host_pointers(),
+        PhysicsTrackView phys(this->physics()->host_ref(),
                               phys_state.ref(),
                               par->particle_id(),
                               mat->material_id(),
@@ -100,9 +100,9 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
 TEST_F(PhysicsStepUtilsTest, calc_tabulated_physics_step)
 {
     MaterialTrackView material(
-        this->materials()->host_pointers(), mat_state.ref(), ThreadId{0});
+        this->materials()->host_ref(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
-        this->particles()->host_pointers(), par_state.ref(), ThreadId{0});
+        this->particles()->host_ref(), par_state.ref(), ThreadId{0});
 
     // Test a variety of energies and multiple material IDs
     {
@@ -164,15 +164,15 @@ TEST_F(PhysicsStepUtilsTest, calc_tabulated_physics_step)
 TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
 {
     MaterialTrackView material(
-        this->materials()->host_pointers(), mat_state.ref(), ThreadId{0});
+        this->materials()->host_ref(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
-        this->particles()->host_pointers(), par_state.ref(), ThreadId{0});
+        this->particles()->host_ref(), par_state.ref(), ThreadId{0});
 
     // Construct empty cutoff params. If the cutoff energy is zero, no
     // fluctuations will be added to the mean loss
     CutoffParams::Input cutoff_input{this->particles(), this->materials(), {}};
     CutoffParams        cutoff_params(cutoff_input);
-    CutoffView          cutoffs(cutoff_params.host_pointers(), MaterialId{0});
+    CutoffView          cutoffs(cutoff_params.host_ref(), MaterialId{0});
 
     {
         // Long step, but gamma means no energy loss
@@ -231,9 +231,9 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
 TEST_F(PhysicsStepUtilsTest, select_process_and_model)
 {
     MaterialTrackView material(
-        this->materials()->host_pointers(), mat_state.ref(), ThreadId{0});
+        this->materials()->host_ref(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
-        this->particles()->host_pointers(), par_state.ref(), ThreadId{0});
+        this->particles()->host_ref(), par_state.ref(), ThreadId{0});
 
     unsigned int num_samples = 0;
 

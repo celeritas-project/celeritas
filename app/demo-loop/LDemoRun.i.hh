@@ -30,10 +30,7 @@ struct ParamsGetter<P, MemSpace::host>
 {
     const P& params_;
 
-    auto operator()() const -> decltype(auto)
-    {
-        return params_.host_pointers();
-    }
+    auto operator()() const -> decltype(auto) { return params_.host_ref(); }
 };
 
 template<class P>
@@ -41,10 +38,7 @@ struct ParamsGetter<P, MemSpace::device>
 {
     const P& params_;
 
-    auto operator()() const -> decltype(auto)
-    {
-        return params_.device_pointers();
-    }
+    auto operator()() const -> decltype(auto) { return params_.device_ref(); }
 };
 
 template<MemSpace M, class P>
@@ -136,9 +130,9 @@ LDemoResult run_demo(LDemoArgs args)
     StateData<Ownership::reference, M> states_ref = make_ref(state_storage);
 
     // Copy primaries to device and create track initializers
-    CELER_ASSERT(params.track_inits->host_pointers().primaries.size()
+    CELER_ASSERT(params.track_inits->host_ref().primaries.size()
                  <= state_storage.track_inits.initializers.capacity());
-    extend_from_primaries(params.track_inits->host_pointers(),
+    extend_from_primaries(params.track_inits->host_ref(),
                           &state_storage.track_inits);
 
     size_type num_alive       = 0;

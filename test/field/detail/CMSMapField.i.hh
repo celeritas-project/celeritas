@@ -18,7 +18,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with the shared magnetic field map data (FieldMapGroup).
+ * Construct with the shared magnetic field map data (FieldMapData).
  */
 CELER_FUNCTION
 CMSMapField::CMSMapField(const FieldMapRef& shared) : shared_(shared) {}

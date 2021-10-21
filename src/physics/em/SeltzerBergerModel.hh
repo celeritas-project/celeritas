@@ -76,10 +76,10 @@ class SeltzerBergerModel final : public Model
     std::string label() const final { return "Seltzer-Berger bremsstrahlung"; }
 
     //! Access SB data on the host
-    const HostRef& host_pointers() const { return data_.host(); }
+    const HostRef& host_ref() const { return data_.host(); }
 
     //! Access SB data on the device
-    const DeviceRef& device_pointers() const { return data_.device(); }
+    const DeviceRef& device_ref() const { return data_.device(); }
 
   private:
     // Host/device storage and reference

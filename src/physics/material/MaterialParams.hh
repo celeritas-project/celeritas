@@ -96,10 +96,10 @@ class MaterialParams
     inline ElementView get(ElementId id) const;
 
     //! Access material properties on the host
-    const HostRef& host_pointers() const { return data_.host(); }
+    const HostRef& host_ref() const { return data_.host(); }
 
     //! Access material properties on the device
-    const DeviceRef& device_pointers() const { return data_.device(); }
+    const DeviceRef& device_ref() const { return data_.device(); }
 
     // Maximum number of elements in any one material
     inline ElementComponentId::size_type max_element_components() const;

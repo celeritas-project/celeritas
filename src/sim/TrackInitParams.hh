@@ -41,10 +41,10 @@ class TrackInitParams
     explicit TrackInitParams(const Input&);
 
     //! Access primaries for contructing track initializer states
-    const HostRef& host_pointers() const { return host_ref_; }
+    const HostRef& host_ref() const { return host_ref_; }
 
     //! Access data on device
-    const DeviceRef& device_pointers() const { return device_ref_; }
+    const DeviceRef& device_ref() const { return device_ref_; }
 
   private:
     using HostValue = TrackInitParamsData<Ownership::value, MemSpace::host>;

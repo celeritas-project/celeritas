@@ -51,10 +51,10 @@ class AtomicRelaxationParams
     explicit AtomicRelaxationParams(const Input& inp);
 
     // Access EADL data on the host
-    const HostRef& host_pointers() const { return data_.host(); }
+    const HostRef& host_ref() const { return data_.host(); }
 
     // Access EADL data on the device
-    const DeviceRef& device_pointers() const { return data_.device(); }
+    const DeviceRef& device_ref() const { return data_.device(); }
 
   private:
     // Whether to simulate non-radiative transitions

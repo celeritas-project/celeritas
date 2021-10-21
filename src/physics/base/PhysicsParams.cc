@@ -68,7 +68,7 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
 auto PhysicsParams::processes(ParticleId id) const -> SpanConstProcessId
 {
     CELER_EXPECT(id < this->num_processes());
-    const auto& data = this->host_pointers();
+    const auto& data = this->host_ref();
     return data.process_ids[data.process_groups[id].processes];
 }
 
@@ -170,7 +170,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
 
     process_groups.reserve(particle_models.size());
 
-    // Loop over particle IDs, set ProcessGroup
+    // Loop over particle IDs, set ProcessData
     for (auto particle_idx : range(particles.size()))
     {
         auto& process_to_models = particle_models[particle_idx];
@@ -184,7 +184,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             data->max_particle_processes, process_to_models.size());
 
         std::vector<ProcessId>  temp_processes;
-        std::vector<ModelGroup> temp_model_groups;
+        std::vector<ModelData>  temp_model_groups;
         temp_processes.reserve(process_to_models.size());
         temp_model_groups.reserve(process_to_models.size());
         for (auto& pid_models : process_to_models)
@@ -220,7 +220,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
                 temp_models.push_back(std::get<2>(r));
             }
 
-            ModelGroup mgroup;
+            ModelData mgroup;
             mgroup.energy = reals.insert_back(temp_energy_grid.begin(),
                                               temp_energy_grid.end());
             mgroup.model  = model_ids.insert_back(temp_models.begin(),
@@ -229,7 +229,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             temp_model_groups.push_back(mgroup);
         }
 
-        ProcessGroup pgroup;
+        ProcessData pgroup;
         pgroup.processes = process_ids.insert_back(temp_processes.begin(),
                                                    temp_processes.end());
         pgroup.models    = model_groups.insert_back(temp_model_groups.begin(),
@@ -253,13 +253,13 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             data->hardwired.photoelectric              = process_id;
             data->hardwired.photoelectric_table_thresh = units::MevEnergy{0.2};
             data->hardwired.livermore_pe               = ModelId{model_idx};
-            data->hardwired.livermore_pe_data = pe_model->host_pointers();
+            data->hardwired.livermore_pe_data          = pe_model->host_ref();
         }
         else if (auto* epgg_model = dynamic_cast<const EPlusGGModel*>(&model))
         {
             data->hardwired.positron_annihilation = process_id;
             data->hardwired.eplusgg               = ModelId{model_idx};
-            data->hardwired.eplusgg_params = epgg_model->device_pointers();
+            data->hardwired.eplusgg_params        = epgg_model->device_ref();
         }
     }
 
@@ -293,10 +293,10 @@ void PhysicsParams::build_xs(const Options&        opts,
         applic.particle = particle_id;
 
         // Processes for this particle
-        ProcessGroup& process_group = data->process_groups[particle_id];
+        ProcessData& process_group = data->process_groups[particle_id];
         Span<const ProcessId> processes
             = data->process_ids[process_group.processes];
-        Span<const ModelGroup> model_groups
+        Span<const ModelData> model_groups
             = data->model_groups[process_group.models];
         CELER_ASSERT(processes.size() == model_groups.size());
 

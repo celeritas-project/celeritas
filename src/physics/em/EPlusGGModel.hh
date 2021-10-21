@@ -39,7 +39,7 @@ class EPlusGGModel final : public Model
     std::string label() const final { return "Positron annihilation (2g)"; }
 
     // Access data on device
-    detail::EPlusGGData device_pointers() const { return interface_; }
+    detail::EPlusGGData device_ref() const { return interface_; }
 
   private:
     detail::EPlusGGData interface_;

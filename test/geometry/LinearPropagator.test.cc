@@ -37,7 +37,7 @@ class LinearPropagatorHostTest : public GeoTestBase
     GeoTrackView make_geo_track_view()
     {
         return GeoTrackView(
-            this->geo_params()->host_pointers(), state.ref(), ThreadId(0));
+            this->geo_params()->host_ref(), state.ref(), ThreadId(0));
     }
 
   protected:
@@ -194,7 +194,7 @@ TEST_F(LP_DEVICE_TEST, track_lines)
     StateStore device_states(*this->geo_params(), input.init.size());
 
     input.max_segments = 3;
-    input.params       = this->geo_params()->device_pointers();
+    input.params       = this->geo_params()->device_ref();
     input.state        = device_states.ref();
 
     // Run kernel

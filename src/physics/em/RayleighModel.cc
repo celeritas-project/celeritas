@@ -27,20 +27,20 @@ RayleighModel::RayleighModel(ModelId               id,
 {
     CELER_EXPECT(id);
 
-    HostValue host_group;
+    HostValue host_data;
 
-    host_group.model_id = id;
-    host_group.gamma_id = particles.find(pdg::gamma());
-    CELER_VALIDATE(host_group.gamma_id,
+    host_data.model_id = id;
+    host_data.gamma_id = particles.find(pdg::gamma());
+    CELER_VALIDATE(host_data.gamma_id,
                    << "missing gamma particles (required for " << this->label()
                    << ")");
 
-    this->build_data(&host_group, materials);
+    this->build_data(&host_data, materials);
 
     // Move to mirrored data, copying to device
-    group_ = CollectionMirror<detail::RayleighGroup>{std::move(host_group)};
+    mirror_ = CollectionMirror<detail::RayleighData>{std::move(host_data)};
 
-    CELER_ENSURE(this->group_);
+    CELER_ENSURE(this->mirror_);
 }
 
 //---------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ RayleighModel::RayleighModel(ModelId               id,
 auto RayleighModel::applicability() const -> SetApplicability
 {
     Applicability rayleigh_scattering;
-    rayleigh_scattering.particle = this->host_group().gamma_id;
+    rayleigh_scattering.particle = this->host_data().gamma_id;
     rayleigh_scattering.lower    = zero_quantity();
     rayleigh_scattering.upper    = units::MevEnergy{1e+8};
 
@@ -63,12 +63,12 @@ auto RayleighModel::applicability() const -> SetApplicability
  */
 void RayleighModel::interact(const ModelInteractRefs<MemSpace::device>& group) const
 {
-    generated::rayleigh_interact(this->device_group(), group);
+    generated::rayleigh_interact(this->device_ref(), group);
 }
 
 void RayleighModel::interact(const ModelInteractRefs<MemSpace::host>& group) const
 {
-    generated::rayleigh_interact(this->host_group(), group);
+    generated::rayleigh_interact(this->host_data(), group);
 }
 
 //---------------------------------------------------------------------------//
@@ -77,7 +77,7 @@ void RayleighModel::interact(const ModelInteractRefs<MemSpace::host>& group) con
  */
 ModelId RayleighModel::model_id() const
 {
-    return this->host_group().model_id;
+    return this->host_data().model_id;
 }
 
 //---------------------------------------------------------------------------//

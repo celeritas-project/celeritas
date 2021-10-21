@@ -26,9 +26,9 @@ class RayleighModel final : public Model
     //@{
     //! Type aliases
     using HostRef
-        = detail::RayleighGroup<Ownership::const_reference, MemSpace::host>;
+        = detail::RayleighData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
-        = detail::RayleighGroup<Ownership::const_reference, MemSpace::device>;
+        = detail::RayleighData<Ownership::const_reference, MemSpace::device>;
     //@}
 
   public:
@@ -53,21 +53,21 @@ class RayleighModel final : public Model
     std::string label() const final { return "Rayleigh Scattering"; }
 
     //! Access Rayleigh pointers on the host
-    const HostRef& host_group() const { return group_.host(); }
+    const HostRef& host_ref() const { return group_.host(); }
 
     //! Access Rayleigh pointers on the device
-    const DeviceRef& device_group() const { return group_.device(); }
+    const DeviceRef& device_ref() const { return group_.device(); }
 
   private:
     //// DATA ////
 
     // Host/device storage and reference
-    CollectionMirror<detail::RayleighGroup> group_;
+    CollectionMirror<detail::RayleighData> group_;
 
     //// TYPES ////
 
     using AtomicNumber = int;
-    using HostValue = detail::RayleighGroup<Ownership::value, MemSpace::host>;
+    using HostValue = detail::RayleighData<Ownership::value, MemSpace::host>;
     using ElScatParams = detail::RayleighParameters;
 
     //// HELPER FUNCTIONS ////

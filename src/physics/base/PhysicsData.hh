@@ -35,11 +35,11 @@ using ValueTableId = OpaqueId<struct ValueTable>;
  * Energy-dependent model IDs for a single process and particle type.
  *
  * For a given particle type, a single process should be divided into multiple
- * models as a function of energy. The ModelGroup represents this with an
+ * models as a function of energy. The ModelData represents this with an
  * energy grid, and each cell of the grid corresponding to a particular
  * ModelId.
  */
-struct ModelGroup
+struct ModelData
 {
     ItemRange<real_type> energy; //!< Energy grid bounds [MeV]
     ItemRange<ModelId>   model;  //!< Corresponding models
@@ -102,12 +102,12 @@ struct IntegralXsProcess
  * only be assigned if the integral approach is used and the particle has
  * continuous-discrete processes.
  */
-struct ProcessGroup
+struct ProcessData
 {
     ItemRange<ProcessId> processes; //!< Processes that apply [ppid]
     ValueGridArray<ItemRange<ValueTable>> tables;      //!< [vgt][ppid]
     ItemRange<IntegralXsProcess>          integral_xs; //!< [ppid]
-    ItemRange<ModelGroup> models;   //!< Model applicability [ppid]
+    ItemRange<ModelData> models;       //!< Model applicability [ppid]
     ParticleProcessId eloss_ppid{}; //!< Process with de/dx and range tables
 
     //! True if assigned and valid
@@ -199,8 +199,8 @@ struct PhysicsParamsData
     Items<ProcessId>            process_ids;
     Items<ValueTable>           value_tables;
     Items<IntegralXsProcess>    integral_xs;
-    Items<ModelGroup>           model_groups;
-    ParticleItems<ProcessGroup> process_groups;
+    Items<ModelData>            model_groups;
+    ParticleItems<ProcessData>  process_groups;
 
     // Special data
     HardwiredModels<W, M> hardwired;

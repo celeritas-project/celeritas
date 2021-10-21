@@ -66,7 +66,7 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     DeviceVector<bool>   alive(args.num_tracks);
 
     ParticleStateData<Ownership::value, MemSpace::device> track_states;
-    resize(&track_states, pparams_->host_pointers(), args.num_tracks);
+    resize(&track_states, pparams_->host_ref(), args.num_tracks);
 
     RngStateData<Ownership::value, MemSpace::device> rng_states;
     RngParamsData<Ownership::value, MemSpace::host>  rng_params;
@@ -85,8 +85,8 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
 
     // Construct pointers to device data
     ParamsDeviceRef params;
-    params.particle      = pparams_->device_pointers();
-    params.tables        = xsparams_->device_pointers();
+    params.particle      = pparams_->device_ref();
+    params.tables        = xsparams_->device_ref();
     params.kn_interactor = kn_pointers_;
     params.detector      = detector_params;
 
@@ -97,10 +97,10 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     StateDeviceRef state;
     state.particle  = track_states;
     state.rng       = rng_states;
-    state.position  = position.device_pointers();
-    state.direction = direction.device_pointers();
-    state.time      = time.device_pointers();
-    state.alive     = alive.device_pointers();
+    state.position  = position.device_ref();
+    state.direction = direction.device_ref();
+    state.time      = time.device_ref();
+    state.alive     = alive.device_ref();
 
     state.secondaries = secondaries;
     state.detector    = detector_states;
@@ -126,8 +126,8 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
         demo_interactor::cleanup(launch_params_, params, state);
 
         // Calculate and save number of living particles
-        result.alive.push_back(demo_interactor::reduce_alive(
-            launch_params_, alive.device_pointers()));
+        result.alive.push_back(
+            demo_interactor::reduce_alive(launch_params_, alive.device_ref()));
 
         if (--remaining_steps == 0)
         {

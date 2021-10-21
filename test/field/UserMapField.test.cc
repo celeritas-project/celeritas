@@ -45,7 +45,7 @@ class UserMapFieldTest : public Test
             = detail::CMSFieldMapReader(params, test_file);
 
         map_   = std::make_shared<MagFieldMap>(load_map);
-        group_ = map_->host_group();
+        group_ = map_->host_ref();
 
         // Test parameters
         test_param_.nsamples = 8;
@@ -101,7 +101,7 @@ class UserMapFieldDeviceTest : public UserMapFieldTest
 TEST_F(UserMapFieldDeviceTest, TEST_IF_CELERITAS_CUDA(device_map_field))
 {
     // Run kernel for the magnetic field with a mapped field
-    this->device_group_ = this->map_->device_group();
+    this->device_group_ = this->map_->device_ref();
 
     auto output = fieldmap_test(this->test_param_, this->device_group_);
 
