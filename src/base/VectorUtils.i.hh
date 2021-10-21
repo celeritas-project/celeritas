@@ -64,26 +64,21 @@ Span<T> move_extend(std::vector<T>&& ext, std::vector<T>* base)
 template<class T>
 std::vector<real_type> linspace(T start, T stop, size_type n)
 {
-    CELER_EXPECT(n >= 0);
+    CELER_EXPECT(n > 1);
     std::vector<real_type> result(n);
 
     // Convert input values to real_type
     real_type start_c = start;
     real_type stop_c  = stop;
 
-    if (n == 1)
+    // Build vector of evenly spaced numbers
+    real_type delta = (stop_c - start_c) / (n - 1);
+    for (auto i : range(n - 1))
     {
-        result[0] = start_c;
+        result[i] = start_c + delta * i;
     }
-    else if (n > 1)
-    {
-        real_type delta = (stop_c - start_c) / (n - 1);
-        for (auto i : range(n - 1))
-        {
-            result[i] = start_c + delta * i;
-        }
-        result[n - 1] = stop_c;
-    }
+    // Manually add last point to avoid any differences due to roundoff
+    result[n - 1] = stop_c;
     return result;
 }
 
