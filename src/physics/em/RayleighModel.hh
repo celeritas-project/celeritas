@@ -59,12 +59,21 @@ class RayleighModel final : public Model
     const DeviceRef& device_group() const { return group_.device(); }
 
   private:
+    //// DATA ////
+
     // Host/device storage and reference
     CollectionMirror<detail::RayleighGroup> group_;
 
-  private:
+    //// TYPES ////
+
+    using AtomicNumber = int;
     using HostValue = detail::RayleighGroup<Ownership::value, MemSpace::host>;
-    void build_data(HostValue* group, const MaterialParams& materials);
+    using ElScatParams = detail::RayleighParameters;
+
+    //// HELPER FUNCTIONS ////
+
+    void build_data(HostValue* host_data, const MaterialParams& materials);
+    static const ElScatParams& get_el_parameters(AtomicNumber atomic_number);
 };
 
 //---------------------------------------------------------------------------//
