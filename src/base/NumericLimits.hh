@@ -9,16 +9,19 @@
 
 #include <cfloat>
 #include <climits>
-#ifdef __CUDA_ARCH__
-#    include <math_constants.h>
-#else
-#    include <limits>
-#endif
 #include "Macros.hh"
 
 namespace celeritas
 {
+#define SCCEF_ static CELER_CONSTEXPR_FUNCTION
+
+//---------------------------------------------------------------------------//
 /*!
+ * Subset of numeric limits compatible with both host and device.
+ *
+ * \note CUDART_NAN* and \c CUDART_INF* are not constexpr in CUDA 10 at least,
+ *   so we have replaced those with compiler built-ins that work in GCC, Clang,
+ *   and MSVC.
  */
 template<class Numeric>
 struct numeric_limits;
@@ -26,61 +29,38 @@ struct numeric_limits;
 template<>
 struct numeric_limits<float>
 {
-    static CELER_CONSTEXPR_FUNCTION float epsilon() { return FLT_EPSILON; }
-    static CELER_CONSTEXPR_FUNCTION float max() { return FLT_MAX; }
-
-#ifndef __CUDA_ARCH__
-    static float quiet_NaN()
-    {
-        return std::numeric_limits<float>::quiet_NaN();
-    }
-    static float infinity() { return std::numeric_limits<float>::infinity(); }
-#else
-    static CELER_FUNCTION float  quiet_NaN() { return CUDART_NAN_F; }
-    static CELER_FUNCTION float  infinity() { return CUDART_INF_F; }
-#endif
+    SCCEF_ float epsilon() { return FLT_EPSILON; }
+    SCCEF_ float max() { return FLT_MAX; }
+    SCCEF_ float quiet_NaN() { return __builtin_nanf(""); }
+    SCCEF_ float infinity() { return __builtin_huge_valf(); }
 };
 
 template<>
 struct numeric_limits<double>
 {
-    static CELER_CONSTEXPR_FUNCTION double epsilon() { return DBL_EPSILON; }
-    static CELER_CONSTEXPR_FUNCTION double max() { return DBL_MAX; }
-
-#ifndef __CUDA_ARCH__
-    static double quiet_NaN()
-    {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    static double infinity()
-    {
-        return std::numeric_limits<double>::infinity();
-    }
-#else
-    static CELER_FUNCTION double quiet_NaN() { return CUDART_NAN; }
-    static CELER_FUNCTION double infinity() { return CUDART_INF; }
-#endif
+    SCCEF_ double epsilon() { return DBL_EPSILON; }
+    SCCEF_ double max() { return DBL_MAX; }
+    SCCEF_ double quiet_NaN() { return __builtin_nan(""); }
+    SCCEF_ double infinity() { return __builtin_huge_val(); }
 };
 
 template<>
 struct numeric_limits<unsigned int>
 {
-    static CELER_CONSTEXPR_FUNCTION unsigned int max() { return UINT_MAX; }
+    SCCEF_ unsigned int max() { return UINT_MAX; }
 };
 
 template<>
 struct numeric_limits<unsigned long>
 {
-    static CELER_CONSTEXPR_FUNCTION unsigned long max() { return ULONG_MAX; }
+    SCCEF_ unsigned long max() { return ULONG_MAX; }
 };
 
 template<>
 struct numeric_limits<unsigned long long>
 {
-    static CELER_CONSTEXPR_FUNCTION unsigned long long max()
-    {
-        return ULLONG_MAX;
-    }
+    SCCEF_ unsigned long long max() { return ULLONG_MAX; }
 };
 
+#undef SCCEF_
 } // namespace celeritas
