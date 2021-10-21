@@ -90,8 +90,8 @@ ParticleProcessLauncher<M>::ParticleProcessLauncher(const ParamsDataRef& params,
                                                     ItemsRef&           counts)
     : params_(params), states_(states), counts_(counts)
 {
-    CELER_ASSERT(params_);
-    CELER_ASSERT(states_);
+    CELER_EXPECT(params_);
+    CELER_EXPECT(states_);
 }
 
 //---------------------------------------------------------------------------//
