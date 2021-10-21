@@ -16,13 +16,13 @@ namespace celeritas
 namespace generated
 {
 void moller_bhabha_interact(
-    const detail::MollerBhabhaHostRef& ptrs,
-    const ModelInteractRefs<MemSpace::host>& model)
+    const detail::MollerBhabhaHostRef& moller_bhabha_data,
+    const ModelInteractRef<MemSpace::host>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(moller_bhabha_data);
     CELER_EXPECT(model);
 
-    detail::MollerBhabhaLauncher<MemSpace::host> launch(ptrs, model);
+    detail::MollerBhabhaLauncher<MemSpace::host> launch(moller_bhabha_data, model);
     for (auto tid : range(ThreadId{model.states.size()}))
     {
         launch(tid);

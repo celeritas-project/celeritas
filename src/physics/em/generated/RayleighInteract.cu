@@ -19,30 +19,30 @@ namespace generated
 namespace
 {
 __global__ void rayleigh_interact_kernel(
-    const detail::RayleighDeviceRef ptrs,
-    const ModelInteractRefs<MemSpace::device> model)
+    const detail::RayleighDeviceRef rayleigh_data,
+    const ModelInteractRef<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
         return;
 
-    detail::RayleighLauncher<MemSpace::device> launch(ptrs, model);
+    detail::RayleighLauncher<MemSpace::device> launch(rayleigh_data, model);
     launch(tid);
 }
 } // namespace
 
 void rayleigh_interact(
-    const detail::RayleighDeviceRef& ptrs,
-    const ModelInteractRefs<MemSpace::device>& model)
+    const detail::RayleighDeviceRef& rayleigh_data,
+    const ModelInteractRef<MemSpace::device>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(rayleigh_data);
     CELER_EXPECT(model);
 
     static const KernelParamCalculator calc_kernel_params(
         rayleigh_interact_kernel, "rayleigh_interact");
     auto params = calc_kernel_params(model.states.size());
     rayleigh_interact_kernel<<<params.grid_size, params.block_size>>>(
-        ptrs, model);
+        rayleigh_data, model);
     CELER_CUDA_CHECK_ERROR();
 }
 

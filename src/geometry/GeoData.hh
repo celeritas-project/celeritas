@@ -21,7 +21,7 @@ namespace celeritas
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
- * Data to persistent data used by VecGeom implementation.
+ * Persistent data used by VecGeom implementation.
  */
 template<Ownership W, MemSpace M>
 struct GeoParamsData

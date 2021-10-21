@@ -31,13 +31,13 @@ struct SeltzerBergerLauncher
 {
     CELER_FUNCTION
     SeltzerBergerLauncher(const SeltzerBergerNativeRef& data,
-                          const ModelInteractRefs<M>&   interaction)
+                          const ModelInteractRef<M>&    interaction)
         : sb(data), model(interaction)
     {
     }
 
     const SeltzerBergerNativeRef& sb;    //!< Shared data for interactor
-    const ModelInteractRefs<M>&   model; //!< State data needed to interact
+    const ModelInteractRef<M>&    model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;

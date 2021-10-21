@@ -18,13 +18,13 @@ using namespace celeritas;
 //! Input data
 struct MTestInput
 {
-    using MaterialParamsData
+    using MaterialParamsRef
         = MaterialParamsData<Ownership::const_reference, MemSpace::device>;
-    using MaterialStateData
+    using MaterialStateRef
         = MaterialStateData<Ownership::reference, MemSpace::device>;
 
-    MaterialParamsData              params;
-    MaterialStateData               states;
+    MaterialParamsRef               params;
+    MaterialStateRef                states;
     std::vector<MaterialTrackState> init;
 
     size_type size() const

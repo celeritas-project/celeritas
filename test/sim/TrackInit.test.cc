@@ -99,7 +99,7 @@ class TrackInitTest : public celeritas::Test
 
         // Add dummy physics data
         PhysicsParamsData<Ownership::value, MemSpace::host> host_physics;
-        resize(&host_physics.process_group, 1);
+        resize(&host_physics.process_groups, 1);
         host_physics.max_particle_processes = 1;
         host_physics.scaling_min_range      = 1;
         host_physics.scaling_fraction       = 0.2;

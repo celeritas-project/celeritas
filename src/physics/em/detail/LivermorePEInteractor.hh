@@ -56,7 +56,7 @@ class LivermorePEInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEInteractor(const LivermorePEData&        shared,
+    LivermorePEInteractor(const LivermorePERef&         shared,
                           const AtomicRelaxationHelper& relaxation,
                           ElementId                     el_id,
                           const ParticleTrackView&      particle,
@@ -72,7 +72,7 @@ class LivermorePEInteractor
     //// DATA ////
 
     // Shared constant physics properties
-    const LivermorePEData& shared_;
+    const LivermorePERef& shared_;
     // Shared scratch space
     const AtomicRelaxationHelper& relaxation_;
     // Index in MaterialParams elements

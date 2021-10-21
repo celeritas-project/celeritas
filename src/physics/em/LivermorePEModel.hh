@@ -44,10 +44,10 @@ class LivermorePEModel final : public Model
     SetApplicability applicability() const final;
 
     // Apply the interaction kernel on host
-    void interact(const HostInteractRefs&) const final;
+    void interact(const HostInteractRef&) const final;
 
     // Apply the interaction kernel on device
-    void interact(const DeviceInteractRefs&) const final;
+    void interact(const DeviceInteractRef&) const final;
 
     // ID of the model
     ModelId model_id() const final;

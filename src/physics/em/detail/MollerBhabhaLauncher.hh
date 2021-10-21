@@ -31,14 +31,14 @@ namespace detail
 template<MemSpace M>
 struct MollerBhabhaLauncher
 {
-    CELER_FUNCTION MollerBhabhaLauncher(const MollerBhabhaData&     data,
-                                        const ModelInteractRefs<M>& interaction)
+    CELER_FUNCTION MollerBhabhaLauncher(const MollerBhabhaData&    data,
+                                        const ModelInteractRef<M>& interaction)
         : mb(data), model(interaction)
     {
     }
 
     const MollerBhabhaData&     mb;    //!< Shared data for interactor
-    const ModelInteractRefs<M>& model; //!< State data needed to interact
+    const ModelInteractRef<M>&  model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;

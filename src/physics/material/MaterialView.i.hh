@@ -13,7 +13,7 @@ namespace celeritas
  * Construct from dynamic and static particle properties.
  */
 CELER_FUNCTION
-MaterialView::MaterialView(const MaterialParamsData& params, MaterialId id)
+MaterialView::MaterialView(const MaterialParamsRef& params, MaterialId id)
     : params_(params), material_(id)
 {
     CELER_EXPECT(id < params.materials.size());

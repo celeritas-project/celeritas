@@ -17,11 +17,11 @@ namespace celeritas
  * Construct from shared and static data.
  */
 CELER_FUNCTION
-PhysicsTrackView::PhysicsTrackView(const PhysicsParamsData& params,
-                                   const PhysicsStateData&  states,
-                                   ParticleId               pid,
-                                   MaterialId               mid,
-                                   ThreadId                 tid)
+PhysicsTrackView::PhysicsTrackView(const PhysicsParamsRef& params,
+                                   const PhysicsStateRef&  states,
+                                   ParticleId              pid,
+                                   MaterialId              mid,
+                                   ThreadId                tid)
     : params_(params)
     , states_(states)
     , particle_(pid)
@@ -334,7 +334,7 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
     const ModelGroup& md
-        = params_.model_datas[this->process_group().models[ppid.get()]];
+        = params_.model_groups[this->process_group().models[ppid.get()]];
     return ModelFinder(params_.reals[md.energy], params_.model_ids[md.model]);
 }
 
@@ -399,7 +399,7 @@ CELER_FUNCTION bool PhysicsTrackView::add_fluctuation() const
  * Energy loss fluctuation model parameters.
  */
 CELER_FUNCTION auto PhysicsTrackView::fluctuation() const
-    -> const FluctuationData&
+    -> const FluctuationRef&
 {
     return params_.fluctuation;
 }
@@ -442,7 +442,7 @@ CELER_FUNCTION size_type PhysicsTrackView::num_particles() const
 /*!
  * Construct a grid calculator of the given type.
  *
- * The calculator must take two arguments: a reference to XsGridData, and a
+ * The calculator must take two arguments: a reference to XsGridRef, and a
  * reference to the Values data structure.
  */
 template<class T>
@@ -514,8 +514,8 @@ CELER_FUNCTION const PhysicsTrackState& PhysicsTrackView::state() const
 //! Get the group of processes that apply to the particle
 CELER_FUNCTION const ProcessGroup& PhysicsTrackView::process_group() const
 {
-    CELER_EXPECT(particle_ < params_.process_group.size());
-    return params_.process_group[particle_];
+    CELER_EXPECT(particle_ < params_.process_groups.size());
+    return params_.process_groups[particle_];
 }
 
 //---------------------------------------------------------------------------//

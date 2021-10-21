@@ -22,13 +22,13 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void m_test_kernel(unsigned int const                   size,
-                              MTestInput::MaterialParamsData const params,
-                              MTestInput::MaterialStateData const  states,
-                              const MaterialTrackState* const      init,
-                              real_type* temperatures,
-                              real_type* rad_len,
-                              real_type* tot_z)
+__global__ void m_test_kernel(unsigned int const                  size,
+                              MTestInput::MaterialParamsRef const params,
+                              MTestInput::MaterialStateRef const  states,
+                              const MaterialTrackState* const     init,
+                              real_type*                          temperatures,
+                              real_type*                          rad_len,
+                              real_type*                          tot_z)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= size)

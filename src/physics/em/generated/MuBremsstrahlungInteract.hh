@@ -16,16 +16,16 @@ namespace generated
 {
 void mu_bremsstrahlung_interact(
     const detail::MuBremsstrahlungHostRef&,
-    const ModelInteractRefs<MemSpace::host>&);
+    const ModelInteractRef<MemSpace::host>&);
 
 void mu_bremsstrahlung_interact(
     const detail::MuBremsstrahlungDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&);
+    const ModelInteractRef<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void mu_bremsstrahlung_interact(
     const detail::MuBremsstrahlungDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&)
+    const ModelInteractRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

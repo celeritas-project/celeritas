@@ -35,14 +35,14 @@ class MaterialView
   public:
     //!@{
     //! Type aliases
-    using MaterialParamsData
+    using MaterialParamsRef
         = MaterialParamsData<Ownership::const_reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct from params and material ID
     inline CELER_FUNCTION
-    MaterialView(const MaterialParamsData& params, MaterialId id);
+    MaterialView(const MaterialParamsRef& params, MaterialId id);
 
     //// MATERIAL DATA ////
 
@@ -92,7 +92,7 @@ class MaterialView
                           log_mean_excitation_energy() const;
 
   private:
-    const MaterialParamsData&     params_;
+    const MaterialParamsRef&      params_;
     MaterialId                    material_;
 
     // HELPER FUNCTIONS

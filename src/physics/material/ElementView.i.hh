@@ -13,7 +13,7 @@ namespace celeritas
  * Construct from shared material data and global element ID.
  */
 CELER_FUNCTION
-ElementView::ElementView(const MaterialParamsData& params, ElementId el_id)
+ElementView::ElementView(const MaterialParamsRef& params, ElementId el_id)
     : def_(params.elements[el_id])
 {
     CELER_EXPECT(el_id < params.elements.size());

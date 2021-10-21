@@ -29,14 +29,14 @@ namespace detail
 template<MemSpace M>
 struct KleinNishinaLauncher
 {
-    CELER_FUNCTION KleinNishinaLauncher(const KleinNishinaData&     data,
-                                        const ModelInteractRefs<M>& interaction)
+    CELER_FUNCTION KleinNishinaLauncher(const KleinNishinaData&    data,
+                                        const ModelInteractRef<M>& interaction)
         : kn(data), model(interaction)
     {
     }
 
     const KleinNishinaData&     kn;    //!< Shared data for interactor
-    const ModelInteractRefs<M>& model; //!< State data needed to interact
+    const ModelInteractRef<M>&  model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;

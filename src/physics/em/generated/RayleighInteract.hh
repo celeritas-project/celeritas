@@ -16,16 +16,16 @@ namespace generated
 {
 void rayleigh_interact(
     const detail::RayleighHostRef&,
-    const ModelInteractRefs<MemSpace::host>&);
+    const ModelInteractRef<MemSpace::host>&);
 
 void rayleigh_interact(
     const detail::RayleighDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&);
+    const ModelInteractRef<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void rayleigh_interact(
     const detail::RayleighDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&)
+    const ModelInteractRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

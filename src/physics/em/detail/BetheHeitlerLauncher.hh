@@ -30,14 +30,14 @@ namespace detail
 template<MemSpace M>
 struct BetheHeitlerLauncher
 {
-    CELER_FUNCTION BetheHeitlerLauncher(const BetheHeitlerData&     data,
-                                        const ModelInteractRefs<M>& interaction)
+    CELER_FUNCTION BetheHeitlerLauncher(const BetheHeitlerData&    data,
+                                        const ModelInteractRef<M>& interaction)
         : bh(data), model(interaction)
     {
     }
 
     const BetheHeitlerData&     bh;    //!< Shared data for interactor
-    const ModelInteractRefs<M>& model; //!< State data needed to interact
+    const ModelInteractRef<M>&  model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;

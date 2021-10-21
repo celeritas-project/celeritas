@@ -16,16 +16,16 @@ namespace generated
 {
 void livermore_pe_interact(
     const detail::LivermorePEHostRef&,
-    const ModelInteractRefs<MemSpace::host>&);
+    const ModelInteractRef<MemSpace::host>&);
 
 void livermore_pe_interact(
     const detail::LivermorePEDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&);
+    const ModelInteractRef<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void livermore_pe_interact(
     const detail::LivermorePEDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&)
+    const ModelInteractRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

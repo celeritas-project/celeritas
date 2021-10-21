@@ -27,14 +27,14 @@ namespace detail
 template<MemSpace M>
 struct EPlusGGLauncher
 {
-    CELER_FUNCTION EPlusGGLauncher(const EPlusGGData&          data,
-                                   const ModelInteractRefs<M>& interaction)
+    CELER_FUNCTION EPlusGGLauncher(const EPlusGGData&         data,
+                                   const ModelInteractRef<M>& interaction)
         : epgg(data), model(interaction)
     {
     }
 
     const EPlusGGData&          epgg;  //!< Shared data for interactor
-    const ModelInteractRefs<M>& model; //!< State data needed to interact
+    const ModelInteractRef<M>&  model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;

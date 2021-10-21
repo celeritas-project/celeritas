@@ -52,10 +52,10 @@ class AtomicRelaxationHelper
   public:
     // Construct with the currently interacting element
     inline CELER_FUNCTION
-    AtomicRelaxationHelper(const AtomicRelaxParamsData& shared,
-                           const AtomicRelaxStateData&  states,
-                           ElementId                    el_id,
-                           ThreadId                     tid);
+    AtomicRelaxationHelper(const AtomicRelaxParamsRef& shared,
+                           const AtomicRelaxStateRef&  states,
+                           ElementId                   el_id,
+                           ThreadId                    tid);
 
     // Whether atomic relaxation should be applied
     explicit inline CELER_FUNCTION operator bool() const;
@@ -73,8 +73,8 @@ class AtomicRelaxationHelper
                        Span<Secondary>   secondaries) const;
 
   private:
-    const AtomicRelaxParamsData&     shared_;
-    const AtomicRelaxStateData&      states_;
+    const AtomicRelaxParamsRef&      shared_;
+    const AtomicRelaxStateRef&       states_;
     const ElementId                  el_id_;
     const ThreadId                   thread_;
 };

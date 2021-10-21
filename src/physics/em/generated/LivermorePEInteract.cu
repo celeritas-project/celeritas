@@ -19,30 +19,30 @@ namespace generated
 namespace
 {
 __global__ void livermore_pe_interact_kernel(
-    const detail::LivermorePEDeviceRef ptrs,
-    const ModelInteractRefs<MemSpace::device> model)
+    const detail::LivermorePEDeviceRef livermore_pe_data,
+    const ModelInteractRef<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
         return;
 
-    detail::LivermorePELauncher<MemSpace::device> launch(ptrs, model);
+    detail::LivermorePELauncher<MemSpace::device> launch(livermore_pe_data, model);
     launch(tid);
 }
 } // namespace
 
 void livermore_pe_interact(
-    const detail::LivermorePEDeviceRef& ptrs,
-    const ModelInteractRefs<MemSpace::device>& model)
+    const detail::LivermorePEDeviceRef& livermore_pe_data,
+    const ModelInteractRef<MemSpace::device>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(livermore_pe_data);
     CELER_EXPECT(model);
 
     static const KernelParamCalculator calc_kernel_params(
         livermore_pe_interact_kernel, "livermore_pe_interact");
     auto params = calc_kernel_params(model.states.size());
     livermore_pe_interact_kernel<<<params.grid_size, params.block_size>>>(
-        ptrs, model);
+        livermore_pe_data, model);
     CELER_CUDA_CHECK_ERROR();
 }
 

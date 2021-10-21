@@ -10,7 +10,6 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "MaterialData.hh"
-#include "MaterialData.hh"
 #include "MaterialView.hh"
 #include "Types.hh"
 
@@ -37,17 +36,17 @@ class MaterialTrackView
     //!@{
     //! Type aliases
     using Initializer_t = MaterialTrackState;
-    using MaterialParamsData
+    using MaterialParamsRef
         = MaterialParamsData<Ownership::const_reference, MemSpace::native>;
-    using MaterialStateData
+    using MaterialStateRef
         = MaterialStateData<Ownership::reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct from "static" parameters and "dynamic" state
-    inline CELER_FUNCTION MaterialTrackView(const MaterialParamsData& params,
-                                            const MaterialStateData&  states,
-                                            ThreadId                  tid);
+    inline CELER_FUNCTION MaterialTrackView(const MaterialParamsRef& params,
+                                            const MaterialStateRef&  states,
+                                            ThreadId                 tid);
 
     // Initialize the particle
     inline CELER_FUNCTION MaterialTrackView&
@@ -67,8 +66,8 @@ class MaterialTrackView
     inline CELER_FUNCTION Span<real_type> element_scratch();
 
   private:
-    const MaterialParamsData&     params_;
-    const MaterialStateData&      states_;
+    const MaterialParamsRef&      params_;
+    const MaterialStateRef&       states_;
     const ThreadId                thread_;
 
     inline CELER_FUNCTION MaterialTrackState& state() const;

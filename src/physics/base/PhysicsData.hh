@@ -199,8 +199,8 @@ struct PhysicsParamsData
     Items<ProcessId>            process_ids;
     Items<ValueTable>           value_tables;
     Items<IntegralXsProcess>    integral_xs;
-    Items<ModelGroup>           model_datas;
-    ParticleItems<ProcessGroup> process_group;
+    Items<ModelGroup>           model_groups;
+    ParticleItems<ProcessGroup> process_groups;
 
     // Special data
     HardwiredModels<W, M> hardwired;
@@ -219,7 +219,7 @@ struct PhysicsParamsData
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !process_group.empty() && max_particle_processes
+        return !process_groups.empty() && max_particle_processes
                && scaling_min_range > 0 && scaling_fraction > 0
                && energy_fraction > 0 && linear_loss_limit > 0
                && enable_fluctuation == static_cast<bool>(fluctuation);
@@ -238,8 +238,8 @@ struct PhysicsParamsData
         process_ids    = other.process_ids;
         value_tables   = other.value_tables;
         integral_xs    = other.integral_xs;
-        model_datas    = other.model_datas;
-        process_group  = other.process_group;
+        model_groups   = other.model_groups;
+        process_groups = other.process_groups;
 
         hardwired              = other.hardwired;
         fluctuation            = other.fluctuation;

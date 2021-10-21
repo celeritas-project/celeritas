@@ -19,30 +19,30 @@ namespace generated
 namespace
 {
 __global__ void klein_nishina_interact_kernel(
-    const detail::KleinNishinaDeviceRef ptrs,
-    const ModelInteractRefs<MemSpace::device> model)
+    const detail::KleinNishinaDeviceRef klein_nishina_data,
+    const ModelInteractRef<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
         return;
 
-    detail::KleinNishinaLauncher<MemSpace::device> launch(ptrs, model);
+    detail::KleinNishinaLauncher<MemSpace::device> launch(klein_nishina_data, model);
     launch(tid);
 }
 } // namespace
 
 void klein_nishina_interact(
-    const detail::KleinNishinaDeviceRef& ptrs,
-    const ModelInteractRefs<MemSpace::device>& model)
+    const detail::KleinNishinaDeviceRef& klein_nishina_data,
+    const ModelInteractRef<MemSpace::device>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(klein_nishina_data);
     CELER_EXPECT(model);
 
     static const KernelParamCalculator calc_kernel_params(
         klein_nishina_interact_kernel, "klein_nishina_interact");
     auto params = calc_kernel_params(model.states.size());
     klein_nishina_interact_kernel<<<params.grid_size, params.block_size>>>(
-        ptrs, model);
+        klein_nishina_data, model);
     CELER_CUDA_CHECK_ERROR();
 }
 

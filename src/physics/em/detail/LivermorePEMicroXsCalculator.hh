@@ -34,14 +34,14 @@ class LivermorePEMicroXsCalculator
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEMicroXsCalculator(const LivermorePEData& shared, Energy energy);
+    LivermorePEMicroXsCalculator(const LivermorePERef& shared, Energy energy);
 
     // Compute cross section
     inline CELER_FUNCTION real_type operator()(ElementId el_id) const;
 
   private:
     // Shared constant physics properties
-    const LivermorePEData& shared_;
+    const LivermorePERef& shared_;
     // Incident gamma energy
     const Energy inc_energy_;
 };

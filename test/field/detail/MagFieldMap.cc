@@ -37,7 +37,7 @@ MagFieldMap::MagFieldMap(ReadMap load_map)
 void MagFieldMap::build_data(ReadMap load_map, HostValue* host_data)
 {
     CELER_EXPECT(load_map);
-    detail::FieldMapData result = load_map();
+    detail::FieldMapInput result = load_map();
 
     host_data->params = result.params;
 

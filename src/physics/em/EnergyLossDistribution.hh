@@ -48,7 +48,7 @@ class EnergyLossDistribution
   public:
     //!@{
     //! Type aliases
-    using FluctuationData
+    using FluctuationRef
         = FluctuationData<Ownership::const_reference, MemSpace::native>;
     using MevEnergy = units::MevEnergy;
     using Real2     = Array<real_type, 2>;
@@ -57,7 +57,7 @@ class EnergyLossDistribution
   public:
     // Construct from model parameters, incident particle, and mean energy loss
     inline CELER_FUNCTION
-    EnergyLossDistribution(const FluctuationData&   shared,
+    EnergyLossDistribution(const FluctuationRef&    shared,
                            const CutoffView&        cutoffs,
                            const MaterialTrackView& material,
                            const ParticleTrackView& particle,
@@ -72,7 +72,7 @@ class EnergyLossDistribution
     //// DATA ////
 
     // Shared properties of the fluctuation model
-    const FluctuationData& shared_;
+    const FluctuationRef& shared_;
     // Current material
     const MaterialTrackView& material_;
     // Average energy loss calculated from the tables

@@ -118,8 +118,8 @@ ParticleParams::ParticleParams(const Input& input)
  */
 ParticleView ParticleParams::get(ParticleId id) const
 {
-    CELER_EXPECT(id < this->host_pointers().particles.size());
-    return ParticleView(this->host_pointers(), id);
+    CELER_EXPECT(id < this->host_ref().particles.size());
+    return ParticleView(this->host_ref(), id);
 }
 
 //---------------------------------------------------------------------------//

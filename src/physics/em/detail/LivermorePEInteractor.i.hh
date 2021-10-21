@@ -24,7 +24,7 @@ namespace detail
  */
 CELER_FUNCTION
 LivermorePEInteractor::LivermorePEInteractor(
-    const LivermorePEData&        shared,
+    const LivermorePERef&         shared,
     const AtomicRelaxationHelper& relaxation,
     ElementId                     el_id,
     const ParticleTrackView&      particle,

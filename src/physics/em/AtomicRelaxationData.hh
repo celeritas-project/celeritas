@@ -99,7 +99,7 @@ struct AtomicRelaxParamsData
     }
 };
 
-using AtomicRelaxParamsData
+using AtomicRelaxParamsRef
     = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
@@ -135,7 +135,7 @@ struct AtomicRelaxStateData
     }
 };
 
-using AtomicRelaxStateData
+using AtomicRelaxStateRef
     = AtomicRelaxStateData<Ownership::reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//

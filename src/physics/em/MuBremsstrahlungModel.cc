@@ -61,13 +61,13 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void MuBremsstrahlungModel::interact(
-    const ModelInteractRefs<MemSpace::device>& data) const
+    const ModelInteractRef<MemSpace::device>& data) const
 {
     generated::mu_bremsstrahlung_interact(interface_, data);
 }
 
 void MuBremsstrahlungModel::interact(
-    const ModelInteractRefs<MemSpace::host>& data) const
+    const ModelInteractRef<MemSpace::host>& data) const
 {
     generated::mu_bremsstrahlung_interact(interface_, data);
 }

@@ -19,30 +19,30 @@ namespace generated
 namespace
 {
 __global__ void moller_bhabha_interact_kernel(
-    const detail::MollerBhabhaDeviceRef ptrs,
-    const ModelInteractRefs<MemSpace::device> model)
+    const detail::MollerBhabhaDeviceRef moller_bhabha_data,
+    const ModelInteractRef<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
         return;
 
-    detail::MollerBhabhaLauncher<MemSpace::device> launch(ptrs, model);
+    detail::MollerBhabhaLauncher<MemSpace::device> launch(moller_bhabha_data, model);
     launch(tid);
 }
 } // namespace
 
 void moller_bhabha_interact(
-    const detail::MollerBhabhaDeviceRef& ptrs,
-    const ModelInteractRefs<MemSpace::device>& model)
+    const detail::MollerBhabhaDeviceRef& moller_bhabha_data,
+    const ModelInteractRef<MemSpace::device>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(moller_bhabha_data);
     CELER_EXPECT(model);
 
     static const KernelParamCalculator calc_kernel_params(
         moller_bhabha_interact_kernel, "moller_bhabha_interact");
     auto params = calc_kernel_params(model.states.size());
     moller_bhabha_interact_kernel<<<params.grid_size, params.block_size>>>(
-        ptrs, model);
+        moller_bhabha_data, model);
     CELER_CUDA_CHECK_ERROR();
 }
 

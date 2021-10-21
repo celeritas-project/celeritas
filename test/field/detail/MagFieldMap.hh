@@ -23,7 +23,7 @@ class MagFieldMap
   public:
     //@{
     //! Type aliases
-    using ReadMap   = std::function<detail::FieldMapData()>;
+    using ReadMap   = std::function<detail::FieldMapInput()>;
     using HostRef   = detail::FieldMapHostRef;
     using DeviceRef = detail::FieldMapDeviceRef;
     //@}

@@ -19,30 +19,30 @@ namespace generated
 namespace
 {
 __global__ void bethe_heitler_interact_kernel(
-    const detail::BetheHeitlerDeviceRef ptrs,
-    const ModelInteractRefs<MemSpace::device> model)
+    const detail::BetheHeitlerDeviceRef bethe_heitler_data,
+    const ModelInteractRef<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
         return;
 
-    detail::BetheHeitlerLauncher<MemSpace::device> launch(ptrs, model);
+    detail::BetheHeitlerLauncher<MemSpace::device> launch(bethe_heitler_data, model);
     launch(tid);
 }
 } // namespace
 
 void bethe_heitler_interact(
-    const detail::BetheHeitlerDeviceRef& ptrs,
-    const ModelInteractRefs<MemSpace::device>& model)
+    const detail::BetheHeitlerDeviceRef& bethe_heitler_data,
+    const ModelInteractRef<MemSpace::device>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(bethe_heitler_data);
     CELER_EXPECT(model);
 
     static const KernelParamCalculator calc_kernel_params(
         bethe_heitler_interact_kernel, "bethe_heitler_interact");
     auto params = calc_kernel_params(model.states.size());
     bethe_heitler_interact_kernel<<<params.grid_size, params.block_size>>>(
-        ptrs, model);
+        bethe_heitler_data, model);
     CELER_CUDA_CHECK_ERROR();
 }
 

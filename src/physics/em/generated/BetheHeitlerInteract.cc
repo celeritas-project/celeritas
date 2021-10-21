@@ -16,13 +16,13 @@ namespace celeritas
 namespace generated
 {
 void bethe_heitler_interact(
-    const detail::BetheHeitlerHostRef& ptrs,
-    const ModelInteractRefs<MemSpace::host>& model)
+    const detail::BetheHeitlerHostRef& bethe_heitler_data,
+    const ModelInteractRef<MemSpace::host>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(bethe_heitler_data);
     CELER_EXPECT(model);
 
-    detail::BetheHeitlerLauncher<MemSpace::host> launch(ptrs, model);
+    detail::BetheHeitlerLauncher<MemSpace::host> launch(bethe_heitler_data, model);
     for (auto tid : range(ThreadId{model.states.size()}))
     {
         launch(tid);

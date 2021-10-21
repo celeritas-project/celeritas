@@ -30,14 +30,14 @@ namespace detail
 template<MemSpace M>
 struct LivermorePELauncher
 {
-    CELER_FUNCTION LivermorePELauncher(const LivermorePEData&      data,
-                                       const ModelInteractRefs<M>& interaction)
+    CELER_FUNCTION LivermorePELauncher(const LivermorePERef&      data,
+                                       const ModelInteractRef<M>& interaction)
         : pe(data), model(interaction)
     {
     }
 
-    const LivermorePEData&      pe;    //!< Shared data for interactor
-    const ModelInteractRefs<M>& model; //!< State data needed to interact
+    const LivermorePERef&      pe;    //!< Shared data for interactor
+    const ModelInteractRef<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;

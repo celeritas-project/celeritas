@@ -15,7 +15,7 @@
 #include "physics/material/MaterialParams.hh"
 
 using namespace celeritas;
-using MaterialParamsData = MaterialParams::HostRef;
+using MaterialParamsRef = MaterialParams::HostRef;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -73,7 +73,7 @@ class ElementSelectorTest : public celeritas::Test
     }
 
     std::shared_ptr<MaterialParams> mats;
-    MaterialParamsData              host_mats;
+    MaterialParamsRef               host_mats;
     RandomEngine                    rng;
     std::vector<real_type>          storage;
 };
@@ -89,7 +89,7 @@ real_type mock_micro_xs(ElementId el_id)
 // and particle state
 struct CalcFancyMicroXs
 {
-    CalcFancyMicroXs(const MaterialParamsData& mats, units::MevEnergy energy)
+    CalcFancyMicroXs(const MaterialParamsRef& mats, units::MevEnergy energy)
         : mats_(mats), inv_energy_(1 / energy.value())
     {
     }
@@ -101,7 +101,7 @@ struct CalcFancyMicroXs
         return el.cbrt_z() * inv_energy_;
     }
 
-    const MaterialParamsData&     mats_;
+    const MaterialParamsRef&      mats_;
     real_type                     inv_energy_;
 };
 

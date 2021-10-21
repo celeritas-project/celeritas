@@ -114,7 +114,7 @@ struct ModelInteractStateRefs
  * All data needed to interact with a model.
  */
 template<MemSpace M>
-struct ModelInteractRefs
+struct ModelInteractRef
 {
     ModelInteractParamsRefs<M> params;
     ModelInteractStateRefs<M>  states;

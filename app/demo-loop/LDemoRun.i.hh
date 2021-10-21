@@ -78,7 +78,7 @@ void launch_models(LDemoParams const& host_params,
 {
     // TODO: these *should* be able to be persistent across steps, rather than
     // recreated at every step.
-    ModelInteractRefs<M> refs;
+    ModelInteractRef<M> refs;
     refs.params.particle     = params.particles;
     refs.params.material     = params.materials;
     refs.params.physics      = params.physics;

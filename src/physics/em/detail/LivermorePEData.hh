@@ -185,7 +185,7 @@ using LivermorePEDeviceRef
     = LivermorePEData<Ownership::const_reference, MemSpace::device>;
 using LivermorePEHostRef
     = LivermorePEData<Ownership::const_reference, MemSpace::host>;
-using LivermorePEData
+using LivermorePERef
     = LivermorePEData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//

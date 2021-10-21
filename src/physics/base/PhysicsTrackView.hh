@@ -31,11 +31,11 @@ class PhysicsTrackView
     //!@{
     //! Type aliases
     using Initializer_t = PhysicsTrackInitializer;
-    using FluctuationData
+    using FluctuationRef
         = FluctuationData<Ownership::const_reference, MemSpace::native>;
-    using PhysicsParamsData
+    using PhysicsParamsRef
         = PhysicsParamsData<Ownership::const_reference, MemSpace::native>;
-    using PhysicsStateData
+    using PhysicsStateRef
         = PhysicsStateData<Ownership::reference, MemSpace::native>;
     using MevEnergy   = units::MevEnergy;
     using ModelFinder = GridIdFinder<MevEnergy, ModelId>;
@@ -43,11 +43,11 @@ class PhysicsTrackView
 
   public:
     // Construct from "dynamic" state and "static" particle definitions
-    inline CELER_FUNCTION PhysicsTrackView(const PhysicsParamsData& params,
-                                           const PhysicsStateData&  states,
-                                           ParticleId               particle,
-                                           MaterialId               material,
-                                           ThreadId                 id);
+    inline CELER_FUNCTION PhysicsTrackView(const PhysicsParamsRef& params,
+                                           const PhysicsStateRef&  states,
+                                           ParticleId              particle,
+                                           MaterialId              material,
+                                           ThreadId                id);
 
     // Initialize the track view
     inline CELER_FUNCTION PhysicsTrackView& operator=(const Initializer_t&);
@@ -131,7 +131,7 @@ class PhysicsTrackView
     inline CELER_FUNCTION bool add_fluctuation() const;
 
     // Energy loss fluctuation model parameters
-    inline CELER_FUNCTION const FluctuationData& fluctuation() const;
+    inline CELER_FUNCTION const FluctuationRef& fluctuation() const;
 
     // Calculate macroscopic cross section on the fly for the given model
     inline CELER_FUNCTION real_type calc_xs_otf(ModelId             model,
@@ -160,8 +160,8 @@ class PhysicsTrackView
     inline CELER_FUNCTION ProcessId eplusgg_process_id() const;
 
   private:
-    const PhysicsParamsData&     params_;
-    const PhysicsStateData&      states_;
+    const PhysicsParamsRef&      params_;
+    const PhysicsStateRef&       states_;
     const ParticleId             particle_;
     const MaterialId             material_;
     const ThreadId               thread_;

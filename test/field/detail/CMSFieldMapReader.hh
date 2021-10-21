@@ -31,7 +31,7 @@ class CMSFieldMapReader
 {
     //!@{
     //! Type aliases
-    using result_type = detail::FieldMapData;
+    using result_type = detail::FieldMapInput;
     //!@}
 
     // Input format

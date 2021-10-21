@@ -16,13 +16,13 @@ namespace celeritas
 namespace generated
 {
 void rayleigh_interact(
-    const detail::RayleighHostRef& ptrs,
-    const ModelInteractRefs<MemSpace::host>& model)
+    const detail::RayleighHostRef& rayleigh_data,
+    const ModelInteractRef<MemSpace::host>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(rayleigh_data);
     CELER_EXPECT(model);
 
-    detail::RayleighLauncher<MemSpace::host> launch(ptrs, model);
+    detail::RayleighLauncher<MemSpace::host> launch(rayleigh_data, model);
     for (auto tid : range(ThreadId{model.states.size()}))
     {
         launch(tid);

@@ -18,7 +18,7 @@ namespace detail
  * Construct with shared and state data.
  */
 CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
-    const LivermorePEData& shared, Energy energy)
+    const LivermorePERef& shared, Energy energy)
     : shared_(shared), inc_energy_(energy.value())
 {
 }

@@ -13,9 +13,9 @@ namespace celeritas_test
 {
 using namespace celeritas;
 
-using ParticleParamsData
+using ParticleParamsRef
     = ParticleParamsData<Ownership::const_reference, MemSpace::device>;
-using ParticleStateData
+using ParticleStateRef
     = ParticleStateData<Ownership::reference, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
@@ -24,8 +24,8 @@ using ParticleStateData
 //! Input data
 struct PTVTestInput
 {
-    ParticleParamsData              params;
-    ParticleStateData               states;
+    ParticleParamsRef               params;
+    ParticleStateRef                states;
     std::vector<ParticleTrackState> init;
 };
 

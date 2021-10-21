@@ -26,9 +26,9 @@ using GeoParamsCRefDevice
 using GeoStateRefDevice
     = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
 
-using ParticleParamsData
+using ParticleParamsRef
     = ParticleParamsData<Ownership::const_reference, MemSpace::device>;
-using ParticleStateData
+using ParticleStateRef
     = ParticleStateData<Ownership::reference, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
@@ -43,8 +43,8 @@ struct FPTestInput
     GeoStateRefDevice        geo_states;
 
     std::vector<ParticleTrackState> init_track;
-    ParticleParamsData              particle_params;
-    ParticleStateData               particle_states;
+    ParticleParamsRef               particle_params;
+    ParticleStateRef                particle_states;
 
     FieldParamsData     field_params;
     FieldTestParams     test;

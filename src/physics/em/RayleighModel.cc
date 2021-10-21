@@ -27,18 +27,18 @@ RayleighModel::RayleighModel(ModelId               id,
 {
     CELER_EXPECT(id);
 
-    HostValue host_data;
+    HostValue host_ref;
 
-    host_data.model_id = id;
-    host_data.gamma_id = particles.find(pdg::gamma());
-    CELER_VALIDATE(host_data.gamma_id,
+    host_ref.model_id = id;
+    host_ref.gamma_id = particles.find(pdg::gamma());
+    CELER_VALIDATE(host_ref.gamma_id,
                    << "missing gamma particles (required for " << this->label()
                    << ")");
 
-    this->build_data(&host_data, materials);
+    this->build_data(&host_ref, materials);
 
     // Move to mirrored data, copying to device
-    mirror_ = CollectionMirror<detail::RayleighData>{std::move(host_data)};
+    mirror_ = CollectionMirror<detail::RayleighData>{std::move(host_ref)};
 
     CELER_ENSURE(this->mirror_);
 }
@@ -50,7 +50,7 @@ RayleighModel::RayleighModel(ModelId               id,
 auto RayleighModel::applicability() const -> SetApplicability
 {
     Applicability rayleigh_scattering;
-    rayleigh_scattering.particle = this->host_data().gamma_id;
+    rayleigh_scattering.particle = this->host_ref().gamma_id;
     rayleigh_scattering.lower    = zero_quantity();
     rayleigh_scattering.upper    = units::MevEnergy{1e+8};
 
@@ -61,14 +61,14 @@ auto RayleighModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void RayleighModel::interact(const ModelInteractRefs<MemSpace::device>& data) const
+void RayleighModel::interact(const ModelInteractRef<MemSpace::device>& data) const
 {
     generated::rayleigh_interact(this->device_ref(), data);
 }
 
-void RayleighModel::interact(const ModelInteractRefs<MemSpace::host>& data) const
+void RayleighModel::interact(const ModelInteractRef<MemSpace::host>& data) const
 {
-    generated::rayleigh_interact(this->host_data(), data);
+    generated::rayleigh_interact(this->host_ref(), data);
 }
 
 //---------------------------------------------------------------------------//
@@ -77,12 +77,12 @@ void RayleighModel::interact(const ModelInteractRefs<MemSpace::host>& data) cons
  */
 ModelId RayleighModel::model_id() const
 {
-    return this->host_data().model_id;
+    return this->host_ref().model_id;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert an RayleighData to a RayleighParameters and store.
+ * Construct RayleighParameters for all the elements in the problem.
  */
 void RayleighModel::build_data(HostValue* data, const MaterialParams& materials)
 {

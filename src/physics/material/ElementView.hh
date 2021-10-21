@@ -34,7 +34,7 @@ class ElementView
   public:
     //!@{
     //! Type aliases
-    using MaterialParamsData
+    using MaterialParamsRef
         = MaterialParamsData<Ownership::const_reference, MemSpace::native>;
     using AmuMass = units::AmuMass;
     //!@}
@@ -42,7 +42,7 @@ class ElementView
   public:
     // Construct from shared material data and global element ID
     inline CELER_FUNCTION
-    ElementView(const MaterialParamsData& params, ElementId el_id);
+    ElementView(const MaterialParamsRef& params, ElementId el_id);
 
     //// STATIC PROPERTIES ////
 

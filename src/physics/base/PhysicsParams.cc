@@ -55,8 +55,8 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
         << "\n  value_grid_ids: " << host_data.value_grid_ids.size()
         << "\n  process_ids: " << host_data.process_ids.size()
         << "\n  value_tables: " << host_data.value_tables.size()
-        << "\n  model_datas: " << host_data.model_datas.size()
-        << "\n  process_group: " << host_data.process_group.size();
+        << "\n  model_groups: " << host_data.model_groups.size()
+        << "\n  process_groups: " << host_data.process_groups.size();
 
     data_ = CollectionMirror<PhysicsParamsData>{std::move(host_data)};
 }
@@ -69,7 +69,7 @@ auto PhysicsParams::processes(ParticleId id) const -> SpanConstProcessId
 {
     CELER_EXPECT(id < this->num_processes());
     const auto& data = this->host_ref();
-    return data.process_ids[data.process_group[id].processes];
+    return data.process_ids[data.process_groups[id].processes];
 }
 
 //---------------------------------------------------------------------------//
@@ -162,13 +162,13 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
         }
     }
 
-    auto process_group  = make_builder(&data->process_group);
+    auto process_groups = make_builder(&data->process_groups);
     auto process_ids    = make_builder(&data->process_ids);
-    auto model_datas    = make_builder(&data->model_datas);
+    auto model_groups   = make_builder(&data->model_groups);
     auto model_ids      = make_builder(&data->model_ids);
     auto reals          = make_builder(&data->reals);
 
-    process_group.reserve(particle_models.size());
+    process_groups.reserve(particle_models.size());
 
     // Loop over particle IDs, set ProcessGroup
     for (auto particle_idx : range(particles.size()))
@@ -232,15 +232,15 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
         ProcessGroup pdata;
         pdata.processes = process_ids.insert_back(temp_processes.begin(),
                                                   temp_processes.end());
-        pdata.models    = model_datas.insert_back(temp_model_datas.begin(),
-                                               temp_model_datas.end());
+        pdata.models    = model_groups.insert_back(temp_model_datas.begin(),
+                                                temp_model_datas.end());
 
         // It's ok to have particles defined in the problem that do not have
         // any processes (if they are ever created, they will just be
         // transported until they exit the geometry).
         // NOTE: data tables will be assigned later
         CELER_ASSERT(process_to_models.empty() || pdata);
-        process_group.push_back(pdata);
+        process_groups.push_back(pdata);
     }
 
     // Assign hardwired models that do on-the-fly xs calculation
@@ -288,17 +288,17 @@ void PhysicsParams::build_xs(const Options&        opts,
     };
 
     Applicability applic;
-    for (auto particle_id : range(ParticleId(data->process_group.size())))
+    for (auto particle_id : range(ParticleId(data->process_groups.size())))
     {
         applic.particle = particle_id;
 
         // Processes for this particle
-        ProcessGroup&         process_group = data->process_group[particle_id];
+        ProcessGroup& process_groups = data->process_groups[particle_id];
         Span<const ProcessId> processes
-            = data->process_ids[process_group.processes];
-        Span<const ModelGroup> model_datas
-            = data->model_datas[process_group.models];
-        CELER_ASSERT(processes.size() == model_datas.size());
+            = data->process_ids[process_groups.processes];
+        Span<const ModelGroup> model_groups
+            = data->model_groups[process_groups.models];
+        CELER_ASSERT(processes.size() == model_groups.size());
 
         // Material-dependent physics tables, one per particle-process
         ValueGridArray<std::vector<ValueTable>> temp_tables;
@@ -316,7 +316,7 @@ void PhysicsParams::build_xs(const Options&        opts,
         {
             // Get energy bounds for this process
             Span<const real_type> energy_grid
-                = data->reals[model_datas[pp_idx].energy];
+                = data->reals[model_groups[pp_idx].energy];
             applic.lower = Applicability::Energy{energy_grid.front()};
             applic.upper = Applicability::Energy{energy_grid.back()};
             CELER_ASSERT(applic.lower < applic.upper);
@@ -392,9 +392,9 @@ void PhysicsParams::build_xs(const Options&        opts,
                     && temp_grid_ids[ValueGridType::range][mat_id.get()])
                 {
                     // Only one particle-process should have energy loss tables
-                    CELER_ASSERT(!process_group.eloss_ppid
-                                 || pp_idx == process_group.eloss_ppid.get());
-                    process_group.eloss_ppid = ParticleProcessId{pp_idx};
+                    CELER_ASSERT(!process_groups.eloss_ppid
+                                 || pp_idx == process_groups.eloss_ppid.get());
+                    process_groups.eloss_ppid = ParticleProcessId{pp_idx};
                 }
             }
 
@@ -430,13 +430,13 @@ void PhysicsParams::build_xs(const Options&        opts,
         }
 
         // Construct energy loss process data
-        process_group.integral_xs = integral_xs.insert_back(
+        process_groups.integral_xs = integral_xs.insert_back(
             temp_integral_xs.begin(), temp_integral_xs.end());
 
         // Construct value tables
         for (auto vgt : range(ValueGridType::size_))
         {
-            process_group.tables[vgt] = value_tables.insert_back(
+            process_groups.tables[vgt] = value_tables.insert_back(
                 temp_tables[vgt].begin(), temp_tables[vgt].end());
         }
     }

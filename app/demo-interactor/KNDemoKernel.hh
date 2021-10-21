@@ -61,7 +61,7 @@ struct TableData
     }
 };
 
-//! Data to immutable problem data
+//! Immutable problem data
 template<Ownership W, MemSpace M>
 struct ParamsData
 {
@@ -91,13 +91,13 @@ using ParamsHostRef = ParamsData<Ownership::const_reference, MemSpace::host>;
 using ParamsDeviceRef
     = ParamsData<Ownership::const_reference, MemSpace::device>;
 
-//! Data to initial conditions
+//! Initial conditions
 struct InitialData
 {
     celeritas::ParticleTrackState particle;
 };
 
-//! Data to thread-dependent state data
+//! Thread-dependent state data
 template<Ownership W, MemSpace M>
 struct StateData
 {
