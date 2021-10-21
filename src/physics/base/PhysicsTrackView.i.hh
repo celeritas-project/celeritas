@@ -431,6 +431,15 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Number of particle types.
+ */
+CELER_FUNCTION size_type PhysicsTrackView::num_particles() const
+{
+    return params_.process_groups.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a grid calculator of the given type.
  *
  * The calculator must take two arguments: a reference to XsGridData, and a

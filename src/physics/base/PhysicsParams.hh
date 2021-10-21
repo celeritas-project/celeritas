@@ -113,6 +113,9 @@ class PhysicsParams
     // Get a process
     inline const Process& process(ProcessId) const;
 
+    // Get the process for the given model
+    inline ProcessId process_id(ModelId id) const;
+
     // Get the processes that apply to a particular particle
     SpanConstProcessId processes(ParticleId) const;
 
@@ -185,6 +188,16 @@ const Process& PhysicsParams::process(ProcessId id) const
 {
     CELER_EXPECT(id < this->num_processes());
     return *processes_[id.get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the process ID of the given model.
+ */
+ProcessId PhysicsParams::process_id(ModelId id) const
+{
+    CELER_EXPECT(id < this->num_models());
+    return models_[id.get()].second;
 }
 
 //---------------------------------------------------------------------------//

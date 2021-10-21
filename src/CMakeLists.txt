@@ -43,7 +43,6 @@ celeritas_gen_interactor(_gen_sources "MollerBhabha" "moller_bhabha")
 celeritas_gen_interactor(_gen_sources "MuBremsstrahlung" "mu_bremsstrahlung")
 celeritas_gen_interactor(_gen_sources "Rayleigh" "rayleigh")
 celeritas_gen_interactor(_gen_sources "SeltzerBerger" "seltzer_berger")
-message(STATUS "Added sources: ${_gen_sources}")
 list(APPEND SOURCES ${_gen_sources})
 
 # Main library

@@ -93,6 +93,13 @@
     }
  \endcode
  */
+/*!
+ * \def CELER_NOT_IMPLEMENTED
+ *
+ * Assert if the code point is reached because a feature has yet to be fully
+ * implemented. This placeholder is so that code paths can be "declared but not
+ * defined" and implementations safely postponed in a greppable manner.
+ */
 
 //! \cond
 #define CELER_CUDA_ASSERT_(COND) \

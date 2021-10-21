@@ -146,13 +146,21 @@ struct CollectionStorageValidator<Ownership::value>
 template<>
 struct CollectionAssigner<Ownership::value, MemSpace::host>
 {
-    template<class T, Ownership W2, MemSpace M2>
+    template<class T, Ownership W2>
     CollectionStorage<T, Ownership::value, MemSpace::host>
-    operator()(const CollectionStorage<T, W2, M2>& source)
+    operator()(const CollectionStorage<T, W2, MemSpace::host>& source)
     {
-        static_assert(M2 == MemSpace::host,
-                      "Can only assign host values from host data");
         return {{source.data.data(), source.data.data() + source.data.size()}};
+    }
+
+    template<class T, Ownership W2>
+    CollectionStorage<T, Ownership::value, MemSpace::host>
+    operator()(const CollectionStorage<T, W2, MemSpace::device>& source)
+    {
+        CollectionStorage<T, Ownership::value, MemSpace::host> result{
+            std::vector<T>(source.data.size())};
+        source.data.copy_to_host({result.data.data(), result.data.size()});
+        return result;
     }
 };
 

@@ -31,7 +31,10 @@ struct ControlOptions
     real_type secondary_stack_factor = 3; // Secondary storage per state size
 
     //! True if all options are valid
-    explicit operator bool() const { return secondary_stack_factor > 0; }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return secondary_stack_factor > 0;
+    }
 };
 
 //---------------------------------------------------------------------------//

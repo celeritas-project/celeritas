@@ -116,7 +116,7 @@ class ValueGridLogBuilder : public ValueGridBuilder
     ValueGridId build(ValueGridInserter) const final;
 
     //! Access Values
-    SpanConstReal value() const { return make_span(value_); }
+    SpanConstReal value() const { return {value_.data(), value_.size()}; }
 
   private:
     real_type log_emin_;
