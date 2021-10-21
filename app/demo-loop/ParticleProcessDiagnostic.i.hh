@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include "base/CollectionBuilder.hh"
+#include "physics/base/PhysicsTrackView.hh"
 
 namespace demo_loop
 {
@@ -76,5 +77,40 @@ ParticleProcessDiagnostic<M>::particle_processes() const
         }
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with shared and state data.
+ */
+template<MemSpace M>
+CELER_FUNCTION
+ParticleProcessLauncher<M>::ParticleProcessLauncher(const ParamsDataRef& params,
+                                                    const StateDataRef& states,
+                                                    ItemsRef&           counts)
+    : params_(params), states_(states), counts_(counts)
+{
+    CELER_ASSERT(params_);
+    CELER_ASSERT(states_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create track views and tally particle/processes.
+ */
+template<MemSpace M>
+CELER_FUNCTION void ParticleProcessLauncher<M>::operator()(ThreadId tid) const
+{
+    ParticleTrackView particle(params_.particles, states_.particles, tid);
+    PhysicsTrackView  physics(
+        params_.physics, states_.physics, particle.particle_id(), {}, tid);
+
+    if (physics.model_id())
+    {
+        size_type index = physics.model_id().get() * physics.num_particles()
+                          + particle.particle_id().get();
+        CELER_ASSERT(index < counts_.size());
+        atomic_add(&counts_[ItemId<size_type>(index)], 1u);
+    }
 }
 } // namespace demo_loop

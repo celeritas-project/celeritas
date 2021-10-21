@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "ParticleProcessDiagnostic.hh"
 
-#include "physics/base/PhysicsTrackView.hh"
-
 using namespace celeritas;
 
 namespace demo_loop
@@ -22,19 +20,10 @@ void count_particle_process(
     const StateHostRef&                                         states,
     Collection<size_type, Ownership::reference, MemSpace::host> counts)
 {
+    ParticleProcessLauncher<MemSpace::host> launch(params, states, counts);
     for (auto tid : range(ThreadId{states.size()}))
     {
-        ParticleTrackView particle(params.particles, states.particles, tid);
-        PhysicsTrackView  physics(
-            params.physics, states.physics, particle.particle_id(), {}, tid);
-
-        if (physics.model_id())
-        {
-            size_type index = physics.model_id().get() * physics.num_particles()
-                              + particle.particle_id().get();
-            CELER_ASSERT(index < counts.size());
-            atomic_add(&counts[ItemId<size_type>(index)], 1u);
-        }
+        launch(tid);
     }
 }
 } // namespace demo_loop

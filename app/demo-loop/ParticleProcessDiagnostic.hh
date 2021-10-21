@@ -66,14 +66,54 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
 //---------------------------------------------------------------------------//
 // KERNEL LAUNCHER(S)
 //---------------------------------------------------------------------------//
+/*!
+ * Diagnostic kernel launcher
+ */
+template<MemSpace M>
+class ParticleProcessLauncher
+{
+  public:
+    //!@{
+    //! Type aliases
+    using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
+    using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
+    using ItemsRef      = Collection<size_type, Ownership::reference, M>;
+    //!@}
+
+  public:
+    // Construct with shared and state data
+    CELER_FUNCTION ParticleProcessLauncher(const ParamsDataRef& params,
+                                           const StateDataRef&  states,
+                                           ItemsRef&            counts);
+
+    //! Create track views and tally particle/processes
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+
+  private:
+    const ParamsDataRef& params_;
+    const StateDataRef&  states_;
+    ItemsRef&            counts_;
+};
+
 void count_particle_process(
     const celeritas::ParamsHostRef&                             params,
     const celeritas::StateHostRef&                              states,
     Collection<size_type, Ownership::reference, MemSpace::host> counts);
+
 void count_particle_process(
     const celeritas::ParamsDeviceRef&                             params,
     const celeritas::StateDeviceRef&                              states,
     Collection<size_type, Ownership::reference, MemSpace::device> counts);
+
+#if !CELERITAS_USE_CUDA
+inline void count_particle_process(
+    const celeritas::ParamsDeviceRef&                             params,
+    const celeritas::StateDeviceRef&                              states,
+    Collection<size_type, Ownership::reference, MemSpace::device> counts)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+#endif
 
 } // namespace demo_loop
 
