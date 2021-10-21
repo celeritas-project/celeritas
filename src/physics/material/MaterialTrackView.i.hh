@@ -18,9 +18,9 @@ namespace celeritas
  * Construct from dynamic and static particle properties.
  */
 CELER_FUNCTION
-MaterialTrackView::MaterialTrackView(const MaterialParamsPointers& params,
-                                     const MaterialStatePointers&  states,
-                                     ThreadId                      tid)
+MaterialTrackView::MaterialTrackView(const MaterialParamsData& params,
+                                     const MaterialStateData&  states,
+                                     ThreadId                  tid)
     : params_(params), states_(states), thread_(tid)
 {
     CELER_EXPECT(tid < states.state.size());

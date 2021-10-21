@@ -9,7 +9,7 @@
 
 #include "base/Macros.hh"
 #include "physics/base/Units.hh"
-#include "MaterialInterface.hh"
+#include "MaterialData.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -34,7 +34,7 @@ class ElementView
   public:
     //!@{
     //! Type aliases
-    using MaterialParamsPointers
+    using MaterialParamsData
         = MaterialParamsData<Ownership::const_reference, MemSpace::native>;
     using AmuMass = units::AmuMass;
     //!@}
@@ -42,7 +42,7 @@ class ElementView
   public:
     // Construct from shared material pointers and global element ID
     inline CELER_FUNCTION
-    ElementView(const MaterialParamsPointers& params, ElementId el_id);
+    ElementView(const MaterialParamsData& params, ElementId el_id);
 
     //// STATIC PROPERTIES ////
 

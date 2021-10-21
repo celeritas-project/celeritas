@@ -9,7 +9,7 @@
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
-#include "detail/BetheHeitlerInterface.hh"
+#include "detail/BetheHeitlerData.hh"
 
 namespace celeritas
 {
@@ -39,7 +39,7 @@ class BetheHeitlerModel final : public Model
     std::string label() const final { return "Bethe-Heitler"; }
 
   private:
-    detail::BetheHeitlerPointers interface_;
+    detail::BetheHeitlerData interface_;
 };
 
 //---------------------------------------------------------------------------//

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RayleighInterface.hh
+//! \file RayleighData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,7 +18,9 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Rayleigh angular parameters to fit tabulated form factors (\em FF)
+ * Rayleigh angular parameters to fit tabulated form factors.
+ *
+ * The form factors \em FF (constructed by the RayleighModel) are:
  * \f[
  *  FF(E,cos)^2 = \Sigma_{j} \frac{a_j}{[1 + b_j x]^{n}}
  * \f]
@@ -75,6 +77,5 @@ using RayleighHostRef
 using RayleighNativeRef
     = RayleighGroup<Ownership::const_reference, MemSpace::native>;
 
-//---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

@@ -11,7 +11,7 @@
 #include "base/Macros.hh"
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "physics/base/ModelInterface.hh"
+#include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
@@ -31,13 +31,13 @@ template<MemSpace M>
 struct MuBremsstrahlungLauncher
 {
     CELER_FUNCTION
-    MuBremsstrahlungLauncher(const MuBremsstrahlungPointers& pointers,
-                             const ModelInteractRefs<M>&     interaction)
+    MuBremsstrahlungLauncher(const MuBremsstrahlungData& pointers,
+                             const ModelInteractRefs<M>& interaction)
         : mb(pointers), model(interaction)
     {
     }
 
-    const MuBremsstrahlungPointers& mb;    //!< Shared data for interactor
+    const MuBremsstrahlungData&     mb;    //!< Shared data for interactor
     const ModelInteractRefs<M>&     model; //!< State data needed to interact
 
     //! Create track views and launch interactor

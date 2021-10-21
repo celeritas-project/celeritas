@@ -9,7 +9,7 @@
 
 #include "base/OpaqueId.hh"
 #include "random/distributions/GenerateCanonical.hh"
-#include "RngInterface.hh"
+#include "RngData.hh"
 
 namespace celeritas
 {

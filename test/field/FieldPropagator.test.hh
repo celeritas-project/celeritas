@@ -8,11 +8,11 @@
 #pragma once
 
 #include "FieldTestParams.hh"
-#include "field/FieldParamsPointers.hh"
+#include "field/FieldParamsData.hh"
 
 #include <vector>
-#include "geometry/GeoInterface.hh"
-#include "physics/base/ParticleInterface.hh"
+#include "geometry/GeoData.hh"
+#include "physics/base/ParticleData.hh"
 
 namespace celeritas_test
 {
@@ -26,9 +26,9 @@ using GeoParamsCRefDevice
 using GeoStateRefDevice
     = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
 
-using ParticleParamsPointers
+using ParticleParamsData
     = ParticleParamsData<Ownership::const_reference, MemSpace::device>;
-using ParticleStatePointers
+using ParticleStateData
     = ParticleStateData<Ownership::reference, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
@@ -43,10 +43,10 @@ struct FPTestInput
     GeoStateRefDevice        geo_states;
 
     std::vector<ParticleTrackState> init_track;
-    ParticleParamsPointers          particle_params;
-    ParticleStatePointers           particle_states;
+    ParticleParamsData              particle_params;
+    ParticleStateData               particle_states;
 
-    FieldParamsPointers field_params;
+    FieldParamsData     field_params;
     FieldTestParams     test;
 };
 

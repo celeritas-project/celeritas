@@ -10,7 +10,7 @@
 #include "base/Collection.hh"
 #include "base/Range.hh"
 #include "base/Span.hh"
-#include "physics/base/PhysicsInterface.hh"
+#include "physics/base/PhysicsData.hh"
 #include "physics/base/Units.hh"
 #include "physics/base/Types.hh"
 #include "physics/grid/RangeCalculator.hh"

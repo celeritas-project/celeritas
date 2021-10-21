@@ -9,7 +9,7 @@
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
-#include "detail/KleinNishinaInterface.hh"
+#include "detail/KleinNishinaData.hh"
 
 namespace celeritas
 {
@@ -39,7 +39,7 @@ class KleinNishinaModel final : public Model
     std::string label() const final { return "Klein-Nishina"; }
 
   private:
-    detail::KleinNishinaPointers interface_;
+    detail::KleinNishinaData interface_;
 };
 
 //---------------------------------------------------------------------------//

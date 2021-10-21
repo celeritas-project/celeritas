@@ -9,7 +9,7 @@
 
 #include "base/Span.hh"
 #include "random/RngEngine.hh"
-#include "random/RngInterface.hh"
+#include "random/RngData.hh"
 
 namespace celeritas
 {

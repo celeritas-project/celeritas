@@ -33,7 +33,7 @@ namespace
  */
 __global__ void initialize_kernel(ParamsDeviceRef const params,
                                   StateDeviceRef const  states,
-                                  InitialPointers const init)
+                                  InitialData const     init)
 {
     unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -204,7 +204,7 @@ cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 void initialize(const CudaGridParams&  opts,
                 const ParamsDeviceRef& params,
                 const StateDeviceRef&  states,
-                const InitialPointers& initial)
+                const InitialData&     initial)
 {
     CELER_EXPECT(states.alive.size() == states.size());
     CELER_EXPECT(states.rng.size() == states.size());

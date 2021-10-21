@@ -72,9 +72,9 @@ ImageStore::ImageStore(ImageRunArgs params)
 /*!
  * Access image on host for initializing.
  */
-ImagePointers ImageStore::host_interface()
+ImageData ImageStore::host_interface()
 {
-    ImagePointers result;
+    ImageData result;
 
     result.origin      = origin_;
     result.down_ax     = down_ax_;
@@ -89,9 +89,9 @@ ImagePointers ImageStore::host_interface()
 /*!
  * Access image on device for writing.
  */
-ImagePointers ImageStore::device_interface()
+ImageData ImageStore::device_interface()
 {
-    ImagePointers result;
+    ImageData result;
 
     result.origin      = origin_;
     result.down_ax     = down_ax_;

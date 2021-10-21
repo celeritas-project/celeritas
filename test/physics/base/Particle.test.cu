@@ -20,8 +20,8 @@ namespace celeritas_test
 //---------------------------------------------------------------------------//
 
 __global__ void ptv_test_kernel(unsigned int              size,
-                                ParticleParamsPointers    params,
-                                ParticleStatePointers     states,
+                                ParticleParamsData        params,
+                                ParticleStateData         states,
                                 const ParticleTrackState* init,
                                 double*                   result)
 {

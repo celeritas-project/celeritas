@@ -9,7 +9,7 @@
 
 #include "gtest/Test.hh"
 #include "base/Collection.hh"
-#include "physics/grid/XsGridInterface.hh"
+#include "physics/grid/XsGridData.hh"
 
 namespace celeritas_test
 {
@@ -28,10 +28,9 @@ class CalculatorTestBase : public celeritas::Test
     using Values     = celeritas::Collection<real_type,
                                          celeritas::Ownership::value,
                                          celeritas::MemSpace::host>;
-    using Pointers
-        = celeritas::Collection<real_type,
-                                celeritas::Ownership::const_reference,
-                                celeritas::MemSpace::host>;
+    using Data       = celeritas::Collection<real_type,
+                                       celeritas::Ownership::const_reference,
+                                       celeritas::MemSpace::host>;
     using SpanReal = celeritas::Span<real_type>;
     //!@}
 
@@ -42,12 +41,12 @@ class CalculatorTestBase : public celeritas::Test
     SpanReal mutable_values();
 
     const XsGridData& data() const { return data_; }
-    const Pointers&   values() const { return value_ref_; }
+    const Data&       values() const { return value_ref_; }
 
   private:
     XsGridData data_;
     Values     value_storage_;
-    Pointers   value_ref_;
+    Data       value_ref_;
 };
 
 //---------------------------------------------------------------------------//

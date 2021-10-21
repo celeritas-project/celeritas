@@ -9,7 +9,7 @@
 #include "physics/material/MaterialView.hh"
 #include "physics/material/MaterialParams.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "physics/material/MaterialInterface.hh"
+#include "physics/material/MaterialData.hh"
 #include "physics/material/detail/Utils.hh"
 #include "physics/base/Units.hh"
 #include "io/RootImporter.hh"

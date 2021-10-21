@@ -11,7 +11,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "random/RngEngine.hh"
-#include "physics/base/ModelInterface.hh"
+#include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
@@ -30,13 +30,13 @@ namespace detail
 template<MemSpace M>
 struct BetheHeitlerLauncher
 {
-    CELER_FUNCTION BetheHeitlerLauncher(const BetheHeitlerPointers& pointers,
+    CELER_FUNCTION BetheHeitlerLauncher(const BetheHeitlerData&     pointers,
                                         const ModelInteractRefs<M>& interaction)
         : bh(pointers), model(interaction)
     {
     }
 
-    const BetheHeitlerPointers& bh;    //!< Shared data for interactor
+    const BetheHeitlerData&     bh;    //!< Shared data for interactor
     const ModelInteractRefs<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor

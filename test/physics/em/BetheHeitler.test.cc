@@ -115,7 +115,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::BetheHeitlerPointers pointers_;
+    celeritas::detail::BetheHeitlerData pointers_;
 };
 
 //---------------------------------------------------------------------------//

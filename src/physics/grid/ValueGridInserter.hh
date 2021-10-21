@@ -12,7 +12,7 @@
 #include "base/CollectionBuilder.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
-#include "XsGridInterface.hh"
+#include "XsGridData.hh"
 
 namespace celeritas
 {

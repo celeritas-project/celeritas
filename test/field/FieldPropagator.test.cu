@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "FieldTestParams.hh"
 #include "FieldPropagator.test.hh"
-#include "field/FieldParamsPointers.hh"
+#include "field/FieldParamsData.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
 #include "geometry/GeoTrackView.hh"
@@ -34,9 +34,9 @@ __global__ void fp_test_kernel(const int                 size,
                                const GeoParamsCRefDevice shared,
                                const GeoStateRefDevice   state,
                                const VGGTestInit*        start,
-                               ParticleParamsPointers    particle_params,
-                               ParticleStatePointers     particle_states,
-                               FieldParamsPointers       field_params,
+                               ParticleParamsData        particle_params,
+                               ParticleStateData         particle_states,
+                               FieldParamsData           field_params,
                                FieldTestParams           test,
                                const ParticleTrackState* init_track,
                                double*                   pos,
@@ -90,9 +90,9 @@ __global__ void bc_test_kernel(const int                 size,
                                const GeoParamsCRefDevice shared,
                                const GeoStateRefDevice   state,
                                const VGGTestInit*        start,
-                               ParticleParamsPointers    particle_params,
-                               ParticleStatePointers     particle_states,
-                               FieldParamsPointers       field_params,
+                               ParticleParamsData        particle_params,
+                               ParticleStateData         particle_states,
+                               FieldParamsData           field_params,
                                FieldTestParams           test,
                                const ParticleTrackState* init_track,
                                double*                   pos,

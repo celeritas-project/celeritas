@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsInterface.hh
+//! \file PhysicsData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,9 +13,9 @@
 #include "Types.hh"
 #include "physics/em/detail/EPlusGGInteractor.hh"
 #include "physics/em/detail/LivermorePEMicroXsCalculator.hh"
-#include "physics/em/FluctuationInterface.hh"
-#include "physics/grid/ValueGridInterface.hh"
-#include "physics/grid/XsGridInterface.hh"
+#include "physics/em/FluctuationData.hh"
+#include "physics/grid/ValueGridData.hh"
+#include "physics/grid/XsGridData.hh"
 #include "physics/material/Types.hh"
 
 namespace celeritas
@@ -137,9 +137,9 @@ struct HardwiredModels
     detail::LivermorePEData<W, M> livermore_pe_data;
 
     // Positron annihilation
-    ProcessId               positron_annihilation;
-    ModelId                 eplusgg;
-    detail::EPlusGGPointers eplusgg_params;
+    ProcessId           positron_annihilation;
+    ModelId             eplusgg;
+    detail::EPlusGGData eplusgg_params;
 
     //// MEMBER FUNCTIONS ////
 

@@ -15,7 +15,7 @@
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "ElementView.hh"
-#include "MaterialInterface.hh"
+#include "MaterialData.hh"
 #include "MaterialView.hh"
 #include "Types.hh"
 

@@ -10,7 +10,7 @@
 #include "base/CollectionMirror.hh"
 #include "geometry/GeoParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "GeoMaterialInterface.hh"
+#include "GeoMaterialData.hh"
 
 namespace celeritas
 {

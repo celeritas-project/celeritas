@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "FieldInterface.hh"
+#include "FieldData.hh"
 
 #include "base/Types.hh"
 #include "physics/base/Units.hh"

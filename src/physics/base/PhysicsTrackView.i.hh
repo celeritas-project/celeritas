@@ -17,11 +17,11 @@ namespace celeritas
  * Construct from shared and static data.
  */
 CELER_FUNCTION
-PhysicsTrackView::PhysicsTrackView(const PhysicsParamsPointers& params,
-                                   const PhysicsStatePointers&  states,
-                                   ParticleId                   pid,
-                                   MaterialId                   mid,
-                                   ThreadId                     tid)
+PhysicsTrackView::PhysicsTrackView(const PhysicsParamsData& params,
+                                   const PhysicsStateData&  states,
+                                   ParticleId               pid,
+                                   MaterialId               mid,
+                                   ThreadId                 tid)
     : params_(params)
     , states_(states)
     , particle_(pid)
@@ -399,7 +399,7 @@ CELER_FUNCTION bool PhysicsTrackView::add_fluctuation() const
  * Energy loss fluctuation model parameters.
  */
 CELER_FUNCTION auto PhysicsTrackView::fluctuation() const
-    -> const FluctuationPointers&
+    -> const FluctuationData&
 {
     return params_.fluctuation;
 }

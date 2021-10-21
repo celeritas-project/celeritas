@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoInterface.hh
+//! \file GeoData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,7 +21,7 @@ namespace celeritas
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
- * Pointers to persistent data used by VecGeom implementation.
+ * Data to persistent data used by VecGeom implementation.
  */
 template<Ownership W, MemSpace M>
 struct GeoParamsData

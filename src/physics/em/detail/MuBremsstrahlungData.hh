@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MuBremsstrahlungInterface.hh
+//! \file MuBremsstrahlungData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,7 +19,7 @@ namespace detail
 /*!
  * Device data for creating an interactor.
  */
-struct MuBremsstrahlungPointers
+struct MuBremsstrahlungData
 {
     //! Model ID
     ModelId model_id;
@@ -52,8 +52,8 @@ struct MuBremsstrahlungPointers
     }
 };
 
-using MuBremsstrahlungHostRef   = MuBremsstrahlungPointers;
-using MuBremsstrahlungDeviceRef = MuBremsstrahlungPointers;
+using MuBremsstrahlungHostRef   = MuBremsstrahlungData;
+using MuBremsstrahlungDeviceRef = MuBremsstrahlungData;
 
 //---------------------------------------------------------------------------//
 } // namespace detail

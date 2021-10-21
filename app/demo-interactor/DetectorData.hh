@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DetectorInterface.hh
+//! \file DetectorData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Array.hh"
 #include "base/OpaqueId.hh"
-#include "base/StackAllocatorInterface.hh"
-#include "physics/grid/UniformGridInterface.hh"
+#include "base/StackAllocatorData.hh"
+#include "physics/grid/UniformGridData.hh"
 #include "physics/base/Units.hh"
 
 #ifndef __CUDA_ARCH__

@@ -12,7 +12,7 @@
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "physics/base/CutoffView.hh"
-#include "physics/base/ModelInterface.hh"
+#include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
@@ -31,13 +31,13 @@ namespace detail
 template<MemSpace M>
 struct MollerBhabhaLauncher
 {
-    CELER_FUNCTION MollerBhabhaLauncher(const MollerBhabhaPointers& pointers,
+    CELER_FUNCTION MollerBhabhaLauncher(const MollerBhabhaData&     pointers,
                                         const ModelInteractRefs<M>& interaction)
         : mb(pointers), model(interaction)
     {
     }
 
-    const MollerBhabhaPointers& mb;    //!< Shared data for interactor
+    const MollerBhabhaData&     mb;    //!< Shared data for interactor
     const ModelInteractRefs<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor

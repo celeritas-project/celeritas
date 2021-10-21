@@ -79,7 +79,7 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::KleinNishinaPointers pointers_;
+    celeritas::detail::KleinNishinaData pointers_;
 };
 
 //---------------------------------------------------------------------------//

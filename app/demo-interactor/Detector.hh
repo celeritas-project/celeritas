@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "DetectorInterface.hh"
+#include "DetectorData.hh"
 #include "base/OpaqueId.hh"
 #include "base/StackAllocator.hh"
 

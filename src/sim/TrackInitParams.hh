@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "TrackInitInterface.hh"
+#include "TrackInitData.hh"
 
 namespace celeritas
 {

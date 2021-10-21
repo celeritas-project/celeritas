@@ -9,7 +9,7 @@
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
-#include "detail/MollerBhabhaInterface.hh"
+#include "detail/MollerBhabhaData.hh"
 
 namespace celeritas
 {
@@ -39,7 +39,7 @@ class MollerBhabhaModel final : public Model
     std::string label() const final { return "Moller/Bhabha scattering"; }
 
   private:
-    detail::MollerBhabhaPointers interface_;
+    detail::MollerBhabhaData interface_;
 };
 
 //---------------------------------------------------------------------------//

@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/RayleighInterface.hh"
+#include "../detail/RayleighData.hh"
 
 namespace celeritas
 {

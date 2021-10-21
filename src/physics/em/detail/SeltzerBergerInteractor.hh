@@ -18,7 +18,7 @@
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
-#include "SeltzerBergerInterface.hh"
+#include "SeltzerBergerData.hh"
 
 namespace celeritas
 {

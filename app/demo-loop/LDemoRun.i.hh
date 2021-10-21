@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "base/CollectionStateStore.hh"
 #include "comm/Logger.hh"
-#include "physics/base/ModelInterface.hh"
+#include "physics/base/ModelData.hh"
 #include "sim/TrackInitUtils.hh"
-#include "sim/TrackInterface.hh"
+#include "sim/TrackData.hh"
 #include "LDemoParams.hh"
 #include "LDemoKernel.hh"
 #include "ParticleProcessDiagnostic.hh"

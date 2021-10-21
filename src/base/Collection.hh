@@ -61,7 +61,7 @@ void resize(
  * \endcode
  *
  * Also by convention, related collection groups are stored in a \c
- * Interface.hh file.
+ * Data.hh file.
  *
  * See ParticleParamsData and ParticleStateData for minimal examples of using
  * collection groups. The MaterialParamsData demonstrates additional complexity

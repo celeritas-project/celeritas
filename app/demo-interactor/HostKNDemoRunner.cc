@@ -93,7 +93,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     params.detector      = detector_params;
 
     // Construct initialization
-    InitialPointers initial;
+    InitialData initial;
     initial.particle = ParticleTrackState{kn_pointers_.gamma_id,
                                           units::MevEnergy{args.energy}};
 

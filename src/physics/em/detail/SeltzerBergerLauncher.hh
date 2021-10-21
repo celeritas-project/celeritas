@@ -11,7 +11,7 @@
 #include "base/Macros.hh"
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "physics/base/ModelInterface.hh"
+#include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/material/MaterialTrackView.hh"

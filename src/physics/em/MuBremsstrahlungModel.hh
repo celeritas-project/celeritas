@@ -9,7 +9,7 @@
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
-#include "detail/MuBremsstrahlungInterface.hh"
+#include "detail/MuBremsstrahlungData.hh"
 
 namespace celeritas
 {
@@ -39,7 +39,7 @@ class MuBremsstrahlungModel final : public Model
     std::string label() const final { return "Muon Bremsstrahlung"; }
 
   private:
-    detail::MuBremsstrahlungPointers interface_;
+    detail::MuBremsstrahlungData interface_;
 };
 
 //---------------------------------------------------------------------------//

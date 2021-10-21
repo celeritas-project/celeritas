@@ -12,7 +12,7 @@
 #include <functional>
 #include "base/CollectionMirror.hh"
 #include "io/ImportSBTable.hh"
-#include "detail/SeltzerBergerInterface.hh"
+#include "detail/SeltzerBergerData.hh"
 
 namespace celeritas
 {

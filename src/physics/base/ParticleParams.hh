@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <vector>
 #include "base/CollectionMirror.hh"
-#include "ParticleInterface.hh"
+#include "ParticleData.hh"
 #include "ParticleView.hh"
 #include "PDGNumber.hh"
 

@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Assert.hh"
-#include "sim/TrackInterface.hh"
+#include "sim/TrackData.hh"
 
 using celeritas::ParamsDeviceRef;
 using celeritas::ParamsHostRef;

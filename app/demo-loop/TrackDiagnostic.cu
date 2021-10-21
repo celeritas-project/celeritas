@@ -9,7 +9,7 @@
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 #include "sim/SimTrackView.hh"
-#include "physics/base/ModelInterface.hh"
+#include "physics/base/ModelData.hh"
 
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>

@@ -9,7 +9,7 @@
 
 #include <vector>
 #include "base/Types.hh"
-#include "detail/FieldMapInterface.hh"
+#include "detail/FieldMapData.hh"
 
 namespace celeritas_test
 {

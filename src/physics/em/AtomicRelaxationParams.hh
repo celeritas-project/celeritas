@@ -12,7 +12,7 @@
 #include "base/CollectionMirror.hh"
 #include "io/ImportAtomicRelaxation.hh"
 #include "physics/base/CutoffParams.hh"
-#include "AtomicRelaxationInterface.hh"
+#include "AtomicRelaxationData.hh"
 
 namespace celeritas
 {

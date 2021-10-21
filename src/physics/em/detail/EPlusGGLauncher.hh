@@ -11,7 +11,7 @@
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "random/RngEngine.hh"
-#include "physics/base/ModelInterface.hh"
+#include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "EPlusGGInteractor.hh"
@@ -27,13 +27,13 @@ namespace detail
 template<MemSpace M>
 struct EPlusGGLauncher
 {
-    CELER_FUNCTION EPlusGGLauncher(const EPlusGGPointers&      pointers,
+    CELER_FUNCTION EPlusGGLauncher(const EPlusGGData&          pointers,
                                    const ModelInteractRefs<M>& interaction)
         : epgg(pointers), model(interaction)
     {
     }
 
-    const EPlusGGPointers&      epgg;  //!< Shared data for interactor
+    const EPlusGGData&          epgg;  //!< Shared data for interactor
     const ModelInteractRefs<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor

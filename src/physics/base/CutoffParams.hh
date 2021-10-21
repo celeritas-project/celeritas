@@ -14,7 +14,7 @@
 #include "physics/base/Units.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "CutoffInterface.hh"
+#include "CutoffData.hh"
 #include "CutoffView.hh"
 
 namespace celeritas

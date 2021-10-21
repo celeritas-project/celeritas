@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file UserMapField.test.cc
 //---------------------------------------------------------------------------//
-#include "field/detail/FieldMapInterface.hh"
+#include "field/detail/FieldMapData.hh"
 #include "field/detail/MagFieldMap.hh"
 
 #include "celeritas_test.hh"

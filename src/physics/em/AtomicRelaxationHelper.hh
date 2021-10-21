@@ -12,7 +12,7 @@
 #include "physics/base/Units.hh"
 #include "random/distributions/IsotropicDistribution.hh"
 #include "AtomicRelaxation.hh"
-#include "AtomicRelaxationInterface.hh"
+#include "AtomicRelaxationData.hh"
 
 namespace celeritas
 {
@@ -52,10 +52,10 @@ class AtomicRelaxationHelper
   public:
     // Construct with the currently interacting element
     inline CELER_FUNCTION
-    AtomicRelaxationHelper(const AtomicRelaxParamsPointers& shared,
-                           const AtomicRelaxStatePointers&  states,
-                           ElementId                        el_id,
-                           ThreadId                         tid);
+    AtomicRelaxationHelper(const AtomicRelaxParamsData& shared,
+                           const AtomicRelaxStateData&  states,
+                           ElementId                    el_id,
+                           ThreadId                     tid);
 
     // Whether atomic relaxation should be applied
     explicit inline CELER_FUNCTION operator bool() const;
@@ -73,8 +73,8 @@ class AtomicRelaxationHelper
                        Span<Secondary>   secondaries) const;
 
   private:
-    const AtomicRelaxParamsPointers& shared_;
-    const AtomicRelaxStatePointers&  states_;
+    const AtomicRelaxParamsData&     shared_;
+    const AtomicRelaxStateData&      states_;
     const ElementId                  el_id_;
     const ThreadId                   thread_;
 };

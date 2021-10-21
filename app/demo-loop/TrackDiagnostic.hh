@@ -10,9 +10,9 @@
 #include "Diagnostic.hh"
 
 #include "base/Macros.hh"
-#include "physics/base/ModelInterface.hh"
+#include "physics/base/ModelData.hh"
 #include "sim/SimTrackView.hh"
-#include "sim/TrackInterface.hh"
+#include "sim/TrackData.hh"
 
 using namespace celeritas;
 

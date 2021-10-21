@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "sim/TrackInitInterface.hh"
-#include "sim/TrackInterface.hh"
+#include "sim/TrackInitData.hh"
+#include "sim/TrackData.hh"
 #include "sim/detail/InitializeTracks.hh"
 
 namespace celeritas

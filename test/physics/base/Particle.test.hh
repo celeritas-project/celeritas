@@ -7,15 +7,15 @@
 //---------------------------------------------------------------------------//
 
 #include <vector>
-#include "physics/base/ParticleInterface.hh"
+#include "physics/base/ParticleData.hh"
 
 namespace celeritas_test
 {
 using namespace celeritas;
 
-using ParticleParamsPointers
+using ParticleParamsData
     = ParticleParamsData<Ownership::const_reference, MemSpace::device>;
-using ParticleStatePointers
+using ParticleStateData
     = ParticleStateData<Ownership::reference, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
@@ -24,8 +24,8 @@ using ParticleStatePointers
 //! Input data
 struct PTVTestInput
 {
-    ParticleParamsPointers          params;
-    ParticleStatePointers           states;
+    ParticleParamsData              params;
+    ParticleStateData               states;
     std::vector<ParticleTrackState> init;
 };
 

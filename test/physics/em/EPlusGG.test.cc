@@ -108,7 +108,7 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::EPlusGGPointers pointers_;
+    celeritas::detail::EPlusGGData pointers_;
 };
 
 //---------------------------------------------------------------------------//

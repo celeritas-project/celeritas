@@ -14,7 +14,7 @@
 #include "base/Units.hh"
 #include "Model.hh"
 #include "Process.hh"
-#include "PhysicsInterface.hh"
+#include "PhysicsData.hh"
 #include "Types.hh"
 
 namespace celeritas

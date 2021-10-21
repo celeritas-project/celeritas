@@ -19,7 +19,7 @@
 #include "physics/material/MaterialParams.hh"
 #include "random/RngParams.hh"
 #include "sim/TrackInitParams.hh"
-#include "sim/TrackInterface.hh"
+#include "sim/TrackData.hh"
 #include "TrackInit.test.hh"
 
 namespace celeritas_test
@@ -39,9 +39,9 @@ ITTestInput::ITTestInput(std::vector<size_type>& host_alloc_size,
     alive.copy_to_device(make_span(host_alive));
 }
 
-ITTestInputPointers ITTestInput::device_pointers()
+ITTestInputData ITTestInput::device_pointers()
 {
-    ITTestInputPointers result;
+    ITTestInputData result;
     result.alloc_size = alloc_size.device_pointers();
     result.alive      = alive.device_pointers();
     return result;

@@ -106,7 +106,7 @@ class MuBremsstrahlungInteractorTest
     }
 
   protected:
-    celeritas::detail::MuBremsstrahlungPointers pointers_;
+    celeritas::detail::MuBremsstrahlungData pointers_;
 };
 
 //---------------------------------------------------------------------------//

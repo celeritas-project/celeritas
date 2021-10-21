@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file ValueGridInterface.cc
 //---------------------------------------------------------------------------//
-#include "ValueGridInterface.hh"
+#include "ValueGridData.hh"
 
 #include "base/Assert.hh"
 

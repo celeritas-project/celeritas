@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "GeoMaterialInterface.hh"
+#include "GeoMaterialData.hh"
 
 namespace celeritas
 {
@@ -20,19 +20,19 @@ class GeoMaterialView
   public:
     //!@{
     //! Type aliases
-    using GeoMaterialPointers
+    using GeoMaterialData
         = GeoMaterialParamsData<Ownership::const_reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct from shared data
-    inline CELER_FUNCTION GeoMaterialView(const GeoMaterialPointers& params);
+    inline CELER_FUNCTION GeoMaterialView(const GeoMaterialData& params);
 
     // Return material for the given volume
     inline CELER_FUNCTION MaterialId material_id(VolumeId volume) const;
 
   private:
-    const GeoMaterialPointers& params_;
+    const GeoMaterialData& params_;
 };
 
 //---------------------------------------------------------------------------//
@@ -42,7 +42,7 @@ class GeoMaterialView
  * Construct from shared data.
  */
 CELER_FUNCTION
-GeoMaterialView::GeoMaterialView(const GeoMaterialPointers& params)
+GeoMaterialView::GeoMaterialView(const GeoMaterialData& params)
     : params_(params)
 {
 }

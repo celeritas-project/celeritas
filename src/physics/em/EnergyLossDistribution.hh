@@ -12,7 +12,7 @@
 #include "physics/base/CutoffView.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
-#include "physics/em/FluctuationInterface.hh"
+#include "physics/em/FluctuationData.hh"
 #include "physics/material/MaterialTrackView.hh"
 
 namespace celeritas
@@ -48,7 +48,7 @@ class EnergyLossDistribution
   public:
     //!@{
     //! Type aliases
-    using FluctuationPointers
+    using FluctuationData
         = FluctuationData<Ownership::const_reference, MemSpace::native>;
     using MevEnergy = units::MevEnergy;
     using Real2     = Array<real_type, 2>;
@@ -57,12 +57,12 @@ class EnergyLossDistribution
   public:
     // Construct from model parameters, incident particle, and mean energy loss
     inline CELER_FUNCTION
-    EnergyLossDistribution(const FluctuationPointers& shared,
-                           const CutoffView&          cutoffs,
-                           const MaterialTrackView&   material,
-                           const ParticleTrackView&   particle,
-                           MevEnergy                  mean_loss,
-                           real_type                  step_length);
+    EnergyLossDistribution(const FluctuationData&   shared,
+                           const CutoffView&        cutoffs,
+                           const MaterialTrackView& material,
+                           const ParticleTrackView& particle,
+                           MevEnergy                mean_loss,
+                           real_type                step_length);
 
     // Calculate the actual energy loss from the mean loss
     template<class Engine>
@@ -72,7 +72,7 @@ class EnergyLossDistribution
     //// DATA ////
 
     // Shared properties of the fluctuation model
-    const FluctuationPointers& shared_;
+    const FluctuationData& shared_;
     // Current material
     const MaterialTrackView& material_;
     // Average energy loss calculated from the tables

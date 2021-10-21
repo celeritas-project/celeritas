@@ -75,7 +75,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         cutoff_inp.particles = this->particle_params();
         this->set_cutoff_params(cutoff_inp);
 
-        // Set MollerBhabhaPointers
+        // Set MollerBhabhaData
         const auto& params    = *this->particle_params();
         pointers_.electron_id = params.find(pdg::electron());
         pointers_.positron_id = params.find(pdg::positron());
@@ -109,7 +109,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::MollerBhabhaPointers pointers_;
+    celeritas::detail::MollerBhabhaData pointers_;
 };
 
 struct SampleInit

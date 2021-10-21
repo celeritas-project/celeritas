@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldParamsPointers.hh
+//! \file FieldParamsData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,7 +18,7 @@ namespace celeritas
  * Host and device parameters for propagation in a magnetic field and
  * suggested default values
  */
-struct FieldParamsPointers
+struct FieldParamsData
 {
     //! the minimum length of the field step
     real_type minimum_step = 1.0e-5 * units::millimeter;

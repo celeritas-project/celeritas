@@ -15,9 +15,8 @@ namespace celeritas
  * Construct with shared data and the stepper.
  */
 template<class StepperT>
-CELER_FUNCTION
-FieldDriver<StepperT>::FieldDriver(const FieldParamsPointers& shared,
-                                   StepperT&                  stepper)
+CELER_FUNCTION FieldDriver<StepperT>::FieldDriver(const FieldParamsData& shared,
+                                                  StepperT& stepper)
     : shared_(shared), stepper_(stepper)
 {
     CELER_ENSURE(shared_);

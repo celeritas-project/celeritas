@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitInterface.hh
+//! \file TrackInitData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Collection.hh"
 #include "base/Types.hh"
-#include "geometry/GeoInterface.hh"
-#include "physics/base/ParticleInterface.hh"
+#include "geometry/GeoData.hh"
+#include "physics/base/ParticleData.hh"
 #include "physics/base/Primary.hh"
-#include "SimInterface.hh"
+#include "SimData.hh"
 #include "Types.hh"
 
 namespace celeritas

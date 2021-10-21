@@ -26,11 +26,11 @@ namespace detail
  * must be handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
-    const MollerBhabhaPointers& shared,
-    const ParticleTrackView&    particle,
-    const CutoffView&           cutoffs,
-    const Real3&                inc_direction,
-    StackAllocator<Secondary>&  allocate)
+    const MollerBhabhaData&    shared,
+    const ParticleTrackView&   particle,
+    const CutoffView&          cutoffs,
+    const Real3&               inc_direction,
+    StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_momentum_(particle.momentum().value())

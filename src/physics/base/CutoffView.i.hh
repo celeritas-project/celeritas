@@ -13,7 +13,7 @@ namespace celeritas
  * Construct view from host/device for the given material id.
  */
 CELER_FUNCTION
-CutoffView::CutoffView(const CutoffPointers& params, MaterialId material)
+CutoffView::CutoffView(const CutoffData& params, MaterialId material)
     : params_(params), material_(material)
 {
     CELER_EXPECT(params_);

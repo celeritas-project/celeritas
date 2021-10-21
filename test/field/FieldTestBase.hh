@@ -8,16 +8,16 @@
 #include "base/CollectionStateStore.hh"
 #include "physics/base/Units.hh"
 
-#include "geometry/GeoInterface.hh"
+#include "geometry/GeoData.hh"
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoTrackView.hh"
 
 #include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleInterface.hh"
+#include "physics/base/ParticleData.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
 
-#include "field/FieldParamsPointers.hh"
+#include "field/FieldParamsData.hh"
 #include "field/FieldTestParams.hh"
 
 #include "celeritas_test.hh"
@@ -74,7 +74,7 @@ class FieldTestBase : public celeritas::Test
         resize(&state_value, particle_params->host_pointers(), 1);
         state_ref = state_value;
 
-        // Set values of FieldParamsPointers;
+        // Set values of FieldParamsData;
         field_params.delta_intersection = 1.0e-4 * units::millimeter;
 
         // Input parameters of an electron in a uniform magnetic field
@@ -98,7 +98,7 @@ class FieldTestBase : public celeritas::Test
     ParticleStateData<Ownership::value, MemSpace::host>     state_value;
     ParticleStateData<Ownership::reference, MemSpace::host> state_ref;
 
-    FieldParamsPointers field_params;
+    FieldParamsData field_params;
 
     // Test parameters
     FieldTestParams test;

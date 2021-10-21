@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file AtomicRelaxationInterface.hh
+//! \file AtomicRelaxationData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -99,7 +99,7 @@ struct AtomicRelaxParamsData
     }
 };
 
-using AtomicRelaxParamsPointers
+using AtomicRelaxParamsData
     = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
@@ -135,7 +135,7 @@ struct AtomicRelaxStateData
     }
 };
 
-using AtomicRelaxStatePointers
+using AtomicRelaxStateData
     = AtomicRelaxStateData<Ownership::reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//

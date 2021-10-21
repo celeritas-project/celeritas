@@ -12,7 +12,7 @@
 #include "base/CollectionStateStore.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
-#include "geometry/GeoInterface.hh"
+#include "geometry/GeoData.hh"
 #include "celeritas_test.hh"
 
 #include "GeoTestBase.hh"

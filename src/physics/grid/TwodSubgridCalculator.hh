@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Collection.hh"
-#include "TwodGridInterface.hh"
+#include "TwodGridData.hh"
 #include "detail/FindInterp.hh"
 
 namespace celeritas

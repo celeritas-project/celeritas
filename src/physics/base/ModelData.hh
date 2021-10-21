@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ModelInterface.hh
+//! \file ModelData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Span.hh"
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "random/RngInterface.hh"
-#include "physics/material/MaterialInterface.hh"
-#include "physics/base/CutoffInterface.hh"
-#include "physics/em/AtomicRelaxationInterface.hh"
-#include "sim/SimInterface.hh"
+#include "random/RngData.hh"
+#include "physics/material/MaterialData.hh"
+#include "physics/base/CutoffData.hh"
+#include "physics/em/AtomicRelaxationData.hh"
+#include "sim/SimData.hh"
 #include "Secondary.hh"
-#include "ParticleInterface.hh"
+#include "ParticleData.hh"
 #include "Interaction.hh"
-#include "PhysicsInterface.hh"
+#include "PhysicsData.hh"
 
 namespace celeritas
 {

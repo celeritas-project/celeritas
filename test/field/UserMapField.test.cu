@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "UserField.test.hh"
 #include "detail/MagFieldMap.hh"
-#include "detail/FieldMapInterface.hh"
+#include "detail/FieldMapData.hh"
 #include "detail/CMSMapField.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"

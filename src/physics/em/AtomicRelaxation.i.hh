@@ -24,12 +24,12 @@ namespace celeritas
  * emitted.
  */
 CELER_FUNCTION
-AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsPointers& shared,
-                                   const CutoffView&                cutoffs,
-                                   ElementId                        el_id,
-                                   SubshellId                       shell_id,
-                                   Span<Secondary>  secondaries,
-                                   Span<SubshellId> vacancies)
+AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsData& shared,
+                                   const CutoffView&            cutoffs,
+                                   ElementId                    el_id,
+                                   SubshellId                   shell_id,
+                                   Span<Secondary>              secondaries,
+                                   Span<SubshellId>             vacancies)
     : shared_(shared)
     , gamma_cutoff_(cutoffs.energy(shared_.gamma_id).value())
     , electron_cutoff_(cutoffs.energy(shared_.electron_id).value())

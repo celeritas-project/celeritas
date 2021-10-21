@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "RngInterface.hh"
+#include "RngData.hh"
 
 namespace celeritas
 {

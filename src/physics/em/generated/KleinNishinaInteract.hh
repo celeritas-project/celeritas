@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/KleinNishinaInterface.hh"
+#include "../detail/KleinNishinaData.hh"
 
 namespace celeritas
 {

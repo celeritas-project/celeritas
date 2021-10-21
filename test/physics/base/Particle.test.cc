@@ -12,7 +12,7 @@
 #include "base/Array.hh"
 #include "base/CollectionStateStore.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleInterface.hh"
+#include "physics/base/ParticleData.hh"
 #include "physics/base/Units.hh"
 #include "io/ImportData.hh"
 #include "io/RootImporter.hh"

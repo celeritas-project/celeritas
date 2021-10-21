@@ -22,10 +22,10 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void m_test_kernel(unsigned int const                       size,
-                              MTestInput::MaterialParamsPointers const params,
-                              MTestInput::MaterialStatePointers const  states,
-                              const MaterialTrackState* const          init,
+__global__ void m_test_kernel(unsigned int const                   size,
+                              MTestInput::MaterialParamsData const params,
+                              MTestInput::MaterialStateData const  states,
+                              const MaterialTrackState* const      init,
                               real_type* temperatures,
                               real_type* rad_len,
                               real_type* tot_z)

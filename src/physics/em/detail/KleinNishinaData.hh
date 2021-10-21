@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MollerBhabhaInterface.hh
+//! \file KleinNishinaData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,39 +16,29 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating an interactor.
+ * Device data for creating a KleinNishinaInteractor.
  */
-struct MollerBhabhaPointers
+struct KleinNishinaData
 {
     //! Model ID
     ModelId model_id;
 
+    //! 1 / electron mass [1 / MevMass]
+    real_type inv_electron_mass;
     //! ID of an electron
     ParticleId electron_id;
-    //! ID of a positron
-    ParticleId positron_id;
-    //! Electron mass * c^2 [MeV]
-    real_type electron_mass_c_sq;
-    //! Model's mininum energy limit [MeV]
-    static CELER_CONSTEXPR_FUNCTION real_type min_valid_energy()
-    {
-        return 1e-3;
-    }
-    //! Model's maximum energy limit [MeV]
-    static CELER_CONSTEXPR_FUNCTION real_type max_valid_energy()
-    {
-        return 100e6;
-    }
+    //! ID of a gamma
+    ParticleId gamma_id;
 
     //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
-        return electron_id && positron_id && electron_mass_c_sq > 0;
+        return model_id && inv_electron_mass > 0 && electron_id && gamma_id;
     }
 };
 
-using MollerBhabhaHostRef   = MollerBhabhaPointers;
-using MollerBhabhaDeviceRef = MollerBhabhaPointers;
+using KleinNishinaDeviceRef = KleinNishinaData;
+using KleinNishinaHostRef   = KleinNishinaData;
 
 //---------------------------------------------------------------------------//
 } // namespace detail

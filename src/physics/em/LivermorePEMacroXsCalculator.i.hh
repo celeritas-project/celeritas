@@ -15,7 +15,7 @@ namespace celeritas
  * Construct with shared model and material data.
  */
 CELER_FUNCTION LivermorePEMacroXsCalculator::LivermorePEMacroXsCalculator(
-    const LivermorePEPointers& shared, const MaterialView& material)
+    const LivermorePEData& shared, const MaterialView& material)
     : shared_(shared)
     , elements_(material.elements())
     , number_density_(material.number_density())

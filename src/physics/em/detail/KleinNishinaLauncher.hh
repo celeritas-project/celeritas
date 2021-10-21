@@ -11,7 +11,7 @@
 #include "base/Macros.hh"
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "physics/base/ModelInterface.hh"
+#include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
@@ -29,13 +29,13 @@ namespace detail
 template<MemSpace M>
 struct KleinNishinaLauncher
 {
-    CELER_FUNCTION KleinNishinaLauncher(const KleinNishinaPointers& pointers,
+    CELER_FUNCTION KleinNishinaLauncher(const KleinNishinaData&     pointers,
                                         const ModelInteractRefs<M>& interaction)
         : kn(pointers), model(interaction)
     {
     }
 
-    const KleinNishinaPointers& kn;    //!< Shared data for interactor
+    const KleinNishinaData&     kn;    //!< Shared data for interactor
     const ModelInteractRefs<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor

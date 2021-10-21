@@ -10,7 +10,7 @@
 #include "base/Collection.hh"
 #include "base/Quantity.hh"
 #include "NonuniformGrid.hh"
-#include "XsGridInterface.hh"
+#include "XsGridData.hh"
 #include "UniformGrid.hh"
 
 namespace celeritas

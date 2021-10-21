@@ -8,7 +8,7 @@
 #pragma once
 
 #include <string>
-#include "FieldMapInterface.hh"
+#include "FieldMapData.hh"
 
 namespace celeritas
 {

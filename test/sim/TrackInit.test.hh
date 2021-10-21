@@ -10,8 +10,8 @@
 #include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "sim/SimTrackView.hh"
-#include "sim/TrackInterface.hh"
-#include "sim/TrackInitInterface.hh"
+#include "sim/TrackData.hh"
+#include "sim/TrackInitData.hh"
 #include <vector>
 
 namespace celeritas_test
@@ -70,7 +70,7 @@ struct Interactor
 };
 
 //! Input data
-struct ITTestInputPointers
+struct ITTestInputData
 {
     Span<const size_type> alloc_size;
     Span<const char>      alive;
@@ -81,7 +81,7 @@ struct ITTestInput
     ITTestInput(std::vector<size_type>& host_alloc_size,
                 std::vector<char>&      host_alive);
 
-    ITTestInputPointers device_pointers();
+    ITTestInputData device_pointers();
 
     // Number of secondaries each track will produce
     DeviceVector<size_type> alloc_size;
@@ -97,14 +97,14 @@ struct ITTestOutput
     std::vector<size_type>    vacancy;
 };
 
-using SecondaryAllocatorPointers
+using SecondaryAllocatorData
     = celeritas::StackAllocatorData<Secondary,
                                     celeritas::Ownership::reference,
                                     celeritas::MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to produce secondaries and apply cutoffs
-void interact(StateDeviceRef states, ITTestInputPointers input);
+void interact(StateDeviceRef states, ITTestInputData input);
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to get the track IDs of the initialized tracks

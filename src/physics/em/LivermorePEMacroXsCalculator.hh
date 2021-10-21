@@ -27,20 +27,20 @@ class LivermorePEMacroXsCalculator
     using Energy              = detail::LivermorePEMicroXsCalculator::Energy;
     using MicroXsUnits        = detail::LivermorePEMicroXsCalculator::XsUnits;
     using XsUnits             = units::NativeUnit;
-    using LivermorePEPointers = detail::LivermorePEPointers;
+    using LivermorePEData     = detail::LivermorePEData;
     //!@}
 
   public:
     // Construct with shared data and material
     inline CELER_FUNCTION
-    LivermorePEMacroXsCalculator(const LivermorePEPointers& shared,
-                                 const MaterialView&        material);
+    LivermorePEMacroXsCalculator(const LivermorePEData& shared,
+                                 const MaterialView&    material);
 
     // Compute cross section on the fly at the given energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
   private:
-    const LivermorePEPointers&      shared_;
+    const LivermorePEData&          shared_;
     Span<const MatElementComponent> elements_;
     real_type                       number_density_;
 };

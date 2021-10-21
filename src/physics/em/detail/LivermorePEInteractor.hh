@@ -17,7 +17,7 @@
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/em/AtomicRelaxationHelper.hh"
-#include "LivermorePEInterface.hh"
+#include "LivermorePEData.hh"
 #include "LivermorePEMicroXsCalculator.hh"
 
 namespace celeritas
@@ -56,7 +56,7 @@ class LivermorePEInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEInteractor(const LivermorePEPointers&    shared,
+    LivermorePEInteractor(const LivermorePEData&        shared,
                           const AtomicRelaxationHelper& relaxation,
                           ElementId                     el_id,
                           const ParticleTrackView&      particle,
@@ -72,7 +72,7 @@ class LivermorePEInteractor
     //// DATA ////
 
     // Shared constant physics properties
-    const LivermorePEPointers& shared_;
+    const LivermorePEData& shared_;
     // Shared scratch space
     const AtomicRelaxationHelper& relaxation_;
     // Index in MaterialParams elements
