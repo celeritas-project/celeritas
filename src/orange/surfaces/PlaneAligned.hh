@@ -25,19 +25,13 @@ class PlaneAligned
     //@{
     //! Type aliases
     using Intersections  = Array<real_type, 1>;
-    using SpanConstRealN = Span<const real_type, 1>;
+    using Storage        = Span<const real_type, 1>;
     //@}
 
     //// CLASS ATTRIBUTES ////
 
     // Surface type identifier
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type();
-
-    //! Storage requirements
-    static CELER_CONSTEXPR_FUNCTION size_type size()
-    {
-        return SpanConstRealN::extent;
-    }
 
   public:
     //// CONSTRUCTORS ////
@@ -46,7 +40,7 @@ class PlaneAligned
     explicit inline CELER_FUNCTION PlaneAligned(real_type position);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION PlaneAligned(SpanConstRealN);
+    explicit inline CELER_FUNCTION PlaneAligned(Storage);
 
     //// ACCESSORS ////
 
@@ -54,7 +48,7 @@ class PlaneAligned
     CELER_FUNCTION real_type position() const { return position_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION SpanConstRealN data() const { return {&position_, 1}; }
+    CELER_FUNCTION Storage data() const { return {&position_, 1}; }
 
     //// CALCULATION ////
 
@@ -101,7 +95,7 @@ CELER_CONSTEXPR_FUNCTION SurfaceType PlaneAligned<T>::surface_type()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with radius.
+ * Construct from axis intercept.
  */
 template<Axis T>
 CELER_FUNCTION PlaneAligned<T>::PlaneAligned(real_type position)
@@ -114,8 +108,7 @@ CELER_FUNCTION PlaneAligned<T>::PlaneAligned(real_type position)
  * Construct from raw data.
  */
 template<Axis T>
-CELER_FUNCTION PlaneAligned<T>::PlaneAligned(SpanConstRealN data)
-    : position_(data[0])
+CELER_FUNCTION PlaneAligned<T>::PlaneAligned(Storage data) : position_(data[0])
 {
 }
 
@@ -156,7 +149,7 @@ PlaneAligned<T>::calc_intersections(const Real3& pos,
  * Calculate outward normal at a position.
  */
 template<Axis T>
-CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(const Real3& pos) const
+CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(const Real3&) const
 {
     Real3 norm{0, 0, 0};
 

@@ -51,7 +51,7 @@ class Span
     //!@}
 
     //! Size (may be dynamic)
-    static constexpr std::size_t extent = Extent;
+    static constexpr CELER_FUNCTION std::size_t extent = Extent;
 
   public:
     //// CONSTRUCTION ////
@@ -144,6 +144,9 @@ class Span
     //! Storage
     detail::SpanImpl<T, Extent> s_;
 };
+
+template<class T, std::size_t N>
+constexpr CELER_FUNCTION std::size_t Span<T, N>::extent;
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS

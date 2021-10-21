@@ -33,7 +33,7 @@ class GeneralQuadric
     //@{
     //! Type aliases
     using Intersections  = Array<real_type, 2>;
-    using SpanConstRealN = Span<const real_type, 10>;
+    using Storage        = Span<const real_type, 10>;
     using SpanConstReal3 = Span<const real_type, 3>;
     //@}
 
@@ -43,12 +43,6 @@ class GeneralQuadric
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type()
     {
         return SurfaceType::gq;
-    }
-
-    //! Storage requirements
-    static CELER_CONSTEXPR_FUNCTION size_type size()
-    {
-        return SpanConstRealN::extent;
     }
 
   public:
@@ -61,7 +55,7 @@ class GeneralQuadric
                                                   real_type    j);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION GeneralQuadric(SpanConstRealN);
+    explicit inline CELER_FUNCTION GeneralQuadric(Storage);
 
     //// ACCESSORS ////
 
@@ -78,7 +72,7 @@ class GeneralQuadric
     CELER_FUNCTION real_type zeroth() const { return j_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION SpanConstRealN data() const { return {&a_, 10}; }
+    CELER_FUNCTION Storage data() const { return {&a_, 10}; }
 
     //// CALCULATION ////
 
@@ -130,7 +124,7 @@ CELER_FUNCTION GeneralQuadric::GeneralQuadric(const Real3& abc,
 /*!
  * Construct from raw data.
  */
-CELER_FUNCTION GeneralQuadric::GeneralQuadric(SpanConstRealN data)
+CELER_FUNCTION GeneralQuadric::GeneralQuadric(Storage data)
     : a_(data[0])
     , b_(data[1])
     , c_(data[2])
@@ -180,14 +174,13 @@ GeneralQuadric::calc_intersections(const Real3& pos,
     // Quadratic values
     real_type a = (a_ * u + d_ * v) * u + (b_ * v + e_ * w) * v
                   + (c_ * w + f_ * u) * w;
-    real_type half_b = real_type(0.5)
-                       * ((2 * a_ * x + d_ * y + f_ * z + g_) * u
-                          + (2 * b_ * y + d_ * x + e_ * z + h_) * v
-                          + (2 * c_ * z + +e_ * y + f_ * x + i_) * w);
+    real_type b = (2 * a_ * x + d_ * y + f_ * z + g_) * u
+                  + (2 * b_ * y + d_ * x + e_ * z + h_) * v
+                  + (2 * c_ * z + e_ * y + f_ * x + i_) * w;
     real_type c = ((a_ * x + d_ * y + g_) * x + (b_ * y + e_ * z + h_) * y
                    + (c_ * z + f_ * x + i_) * z + j_);
 
-    return detail::QuadraticSolver::solve_general(a, half_b, c, on_surface);
+    return detail::QuadraticSolver::solve_general(a, b / 2, c, on_surface);
 }
 
 //---------------------------------------------------------------------------//

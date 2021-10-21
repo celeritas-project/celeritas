@@ -62,6 +62,7 @@ list(APPEND SOURCES
   comm/detail/LoggerMessage.cc
   geometry/detail/ScopedTimeAndRedirect.cc
   orange/Types.cc
+  orange/construct/SurfaceInserter.cc
   orange/surfaces/SurfaceIO.cc
   io/ImportProcess.cc
   io/ImportPhysicsTable.cc

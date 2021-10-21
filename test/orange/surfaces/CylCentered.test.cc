@@ -32,7 +32,7 @@ using VecReal       = std::vector<real_type>;
 //---------------------------------------------------------------------------//
 TEST(TestCCylX, construction)
 {
-    EXPECT_EQ(1, CCylX::size());
+    EXPECT_EQ(1, CCylX::Storage::extent);
     EXPECT_EQ(2, CCylX::Intersections{}.size());
 
     CCylX c(4.0);

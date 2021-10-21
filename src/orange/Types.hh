@@ -34,14 +34,13 @@ using UniverseId = OpaqueId<struct Universe>;
 /*!
  * Whether a position is logically "inside" or "outside" a surface.
  *
- * For a plane, "POS" (outside/true) is equivalent to
+ * For a plane, "outside" (true) is the "positive" sense and equivalent to
  * \f[
    \vec x \cdot \vec n >= 0
  * \f]
- * and "inside" (NEG) is to the left of the plane's normal. Likewise, for a
+ * and "inside" is to the left of the plane's normal. Likewise, for a
  * sphere, "inside" is where the dot product of the position and outward normal
- * is negative. These are *opposite* the signs from KENO, where `-` has the
- * sense of negating a closed region of space (i.e. the interior of a sphere).
+ * is negative.
  */
 enum class Sense : bool
 {
@@ -132,8 +131,7 @@ enum class SurfaceState : bool
 // CLASSES
 //---------------------------------------------------------------------------//
 /*!
- * \struct Initialization
- * \brief Volume ID and surface ID after initialization
+ * Volume ID and surface ID after initialization.
  *
  * Possible configurations for the initialization result ('X' means 'has
  * a valid ID', i.e. evaluates to true):
@@ -217,6 +215,8 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(SignedSense s)
  * Sentinel value indicating "no intersection".
  *
  * \todo There is probably a better place to put this since it's not a "type".
+ * \todo A value of zero might also work since zero-length steps are
+ * prohibited.
  */
 CELER_CONSTEXPR_FUNCTION real_type no_intersection()
 {

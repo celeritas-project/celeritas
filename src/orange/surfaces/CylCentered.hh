@@ -41,19 +41,13 @@ class CylCentered
     //@{
     //! Type aliases
     using Intersections  = Array<real_type, 2>;
-    using SpanConstRealN = Span<const real_type, 1>;
+    using Storage        = Span<const real_type, 1>;
     //@}
 
     //// CLASS ATTRIBUTES ////
 
     // Surface type identifier
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type();
-
-    //! Storage requirements
-    static CELER_CONSTEXPR_FUNCTION size_type size()
-    {
-        return SpanConstRealN::extent;
-    }
 
   public:
     //// CONSTRUCTORS ////
@@ -62,7 +56,7 @@ class CylCentered
     explicit inline CELER_FUNCTION CylCentered(real_type radius);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION CylCentered(SpanConstRealN);
+    explicit inline CELER_FUNCTION CylCentered(Storage);
 
     //// ACCESSORS ////
 
@@ -70,7 +64,7 @@ class CylCentered
     CELER_FUNCTION real_type radius_sq() const { return radius_sq_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION SpanConstRealN data() const { return {&radius_sq_, 1}; }
+    CELER_FUNCTION Storage data() const { return {&radius_sq_, 1}; }
 
     //// CALCULATION ////
 
@@ -131,8 +125,7 @@ CELER_FUNCTION CylCentered<T>::CylCentered(real_type radius)
  * Construct from raw data.
  */
 template<Axis T>
-CELER_FUNCTION CylCentered<T>::CylCentered(SpanConstRealN data)
-    : radius_sq_(data[0])
+CELER_FUNCTION CylCentered<T>::CylCentered(Storage data) : radius_sq_(data[0])
 {
 }
 
