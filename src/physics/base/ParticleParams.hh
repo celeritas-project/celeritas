@@ -87,7 +87,7 @@ class ParticleParams
     inline ParticleId find(PDGNumber pdg_code) const;
 
     // Access particle properties on host
-    inline ParticleView get(ParticleId id) const;
+    ParticleView get(ParticleId id) const;
 
     //! Access material properties on the host
     const HostRef& host_pointers() const { return data_.host(); }

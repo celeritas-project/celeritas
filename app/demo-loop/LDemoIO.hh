@@ -53,7 +53,10 @@ struct LDemoResult
     std::vector<double>    time;  //!< Real time per step
     std::vector<size_type> alive; //!< Num living tracks per step
     std::vector<double>    edep;  //!< Energy deposition along the grid
-    double                 total_time = 0; //!< All time
+    std::unordered_map<std::string, size_type> process; //!< Count of
+                                                        //!< particle/process
+                                                        //!< interactions
+    double total_time = 0;                              //!< All time
 };
 
 void to_json(nlohmann::json& j, const LDemoArgs& value);

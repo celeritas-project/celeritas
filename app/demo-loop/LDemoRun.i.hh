@@ -12,6 +12,7 @@
 #include "sim/TrackInterface.hh"
 #include "LDemoParams.hh"
 #include "LDemoKernel.hh"
+#include "ParticleProcessDiagnostic.hh"
 #include "TrackDiagnostic.hh"
 
 using namespace celeritas;
@@ -115,15 +116,17 @@ LDemoResult run_demo(LDemoArgs args)
 {
     CELER_EXPECT(args);
 
-    // Diagnostics
-    // TODO: Create a vector of these objects.
-    TrackDiagnostic<M> track_diagnostic;
-
     // Load all the problem data
     LDemoParams params = load_params(args);
 
     // Create param interfaces
     auto params_ref = build_params_refs<M>(params);
+
+    // Diagnostics
+    // TODO: Create a vector of these objects.
+    TrackDiagnostic<M>           track_diagnostic;
+    ParticleProcessDiagnostic<M> process_diagnostic(
+        params_ref, params.particles, params.physics);
 
     // Create states (TODO state store?)
     StateData<Ownership::value, M> state_storage;
@@ -133,8 +136,6 @@ LDemoResult run_demo(LDemoArgs args)
     StateData<Ownership::reference, M> states_ref = make_ref(state_storage);
 
     // Copy primaries to device and create track initializers
-    // TODO: for now this assumes we can initialize all primaries at once, but
-    // we should also handle the case where we have more primaries than tracks
     CELER_ASSERT(params.track_inits->host_pointers().primaries.size()
                  <= state_storage.track_inits.initializers.capacity());
     extend_from_primaries(params.track_inits->host_pointers(),
@@ -151,6 +152,9 @@ LDemoResult run_demo(LDemoArgs args)
 
         demo_loop::pre_step(params_ref, states_ref);
         demo_loop::along_and_post_step(params_ref, states_ref);
+
+        // Mid-step diagnostics
+        process_diagnostic.mid_step(states_ref);
 
         // Launch the interaction kernels for all applicable models
         launch_models(params, params_ref, states_ref);
@@ -180,8 +184,14 @@ LDemoResult run_demo(LDemoArgs args)
         }
     }
 
-    // TODO: return result
-    return LDemoResult{{0}, track_diagnostic.num_alive_per_step(), {0}, 0};
+    // Collect results from diagnostics
+    LDemoResult result;
+    result.time       = {0};
+    result.alive      = track_diagnostic.num_alive_per_step();
+    result.edep       = {0};
+    result.process    = process_diagnostic.particle_processes();
+    result.total_time = 0;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
