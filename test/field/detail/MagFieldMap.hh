@@ -33,18 +33,18 @@ class MagFieldMap
     MagFieldMap(ReadMap load_map);
 
     //! Access field map data on the host
-    const HostRef& host_ref() const { return group_.host(); }
+    const HostRef& host_ref() const { return mirror_.host(); }
 
     //! Access field map data on the device
-    const DeviceRef& device_ref() const { return group_.device(); }
+    const DeviceRef& device_ref() const { return mirror_.device(); }
 
   private:
     // Host/device storage and reference
-    CollectionMirror<detail::FieldMapData> group_;
+    CollectionMirror<detail::FieldMapData> mirror_;
 
   private:
     using HostValue = detail::FieldMapData<Ownership::value, MemSpace::host>;
-    void build_data(ReadMap load_map, HostValue* group);
+    void build_data(ReadMap load_map, HostValue* grohost_dataup);
 };
 
 //---------------------------------------------------------------------------//

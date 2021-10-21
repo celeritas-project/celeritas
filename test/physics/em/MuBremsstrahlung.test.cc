@@ -54,11 +54,10 @@ class MuBremsstrahlungInteractorTest
                                     ElementaryCharge{-1},
                                     stable}});
         const auto& params    = this->particle_params();
-        pointers_.mu_minus_id = params->find(pdg::mu_minus());
-        pointers_.mu_plus_id  = params->find(pdg::mu_plus());
-        pointers_.gamma_id    = params->find(pdg::gamma());
-        pointers_.electron_mass
-            = params->get(params->find(pdg::electron())).mass();
+        data_.mu_minus_id     = params->find(pdg::mu_minus());
+        data_.mu_plus_id      = params->find(pdg::mu_plus());
+        data_.gamma_id        = params->find(pdg::gamma());
+        data_.electron_mass = params->get(params->find(pdg::electron())).mass();
 
         MaterialParams::Input inp;
         inp.elements  = {{29, AmuMass{63.546}, "Cu"}};
@@ -93,7 +92,7 @@ class MuBremsstrahlungInteractorTest
 
         const auto& gamma = interaction.secondaries.front();
         EXPECT_TRUE(gamma);
-        EXPECT_EQ(pointers_.gamma_id, gamma.particle_id);
+        EXPECT_EQ(data_.gamma_id, gamma.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   gamma.energy.value());
         EXPECT_LT(0, gamma.energy.value());
@@ -106,7 +105,7 @@ class MuBremsstrahlungInteractorTest
     }
 
   protected:
-    celeritas::detail::MuBremsstrahlungData pointers_;
+    celeritas::detail::MuBremsstrahlungData data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -122,7 +121,7 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     auto material = this->material_track().material_view();
 
     // Create the interactor
-    MuBremsstrahlungInteractor interact(pointers_,
+    MuBremsstrahlungInteractor interact(data_,
                                         this->particle_track(),
                                         this->direction(),
                                         this->secondary_allocator(),
@@ -198,7 +197,7 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
 
                 // Create interactor
                 MuBremsstrahlungInteractor interact(
-                    pointers_,
+                    data_,
                     this->particle_track(),
                     this->direction(),
                     this->secondary_allocator(),

@@ -58,11 +58,11 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& params    = *this->particle_params();
-        pointers_.electron_id = params.find(pdg::electron());
-        pointers_.positron_id = params.find(pdg::positron());
-        pointers_.gamma_id    = params.find(pdg::gamma());
-        pointers_.inv_electron_mass
-            = 1 / (params.get(pointers_.electron_id).mass().value());
+        data_.electron_id     = params.find(pdg::electron());
+        data_.positron_id     = params.find(pdg::positron());
+        data_.gamma_id        = params.find(pdg::gamma());
+        data_.inv_electron_mass
+            = 1 / (params.get(data_.electron_id).mass().value());
 
         // Set default particle to photon with energy of 100 MeV
         this->set_inc_particle(pdg::gamma(), MevEnergy{100.0});
@@ -96,7 +96,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         // Electron
         const auto& electron = interaction.secondaries.front();
         EXPECT_TRUE(electron);
-        EXPECT_EQ(pointers_.electron_id, electron.particle_id);
+        EXPECT_EQ(data_.electron_id, electron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   electron.energy.value());
         EXPECT_LT(0, electron.energy.value());
@@ -104,7 +104,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         // Positron
         const auto& positron = interaction.secondaries.back();
         EXPECT_TRUE(positron);
-        EXPECT_EQ(pointers_.positron_id, positron.particle_id);
+        EXPECT_EQ(data_.positron_id, positron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   positron.energy.value());
         EXPECT_LT(0, positron.energy.value());
@@ -115,7 +115,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::BetheHeitlerData pointers_;
+    celeritas::detail::BetheHeitlerData data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -134,7 +134,7 @@ TEST_F(BetheHeitlerInteractorTest, basic)
             celeritas::ElementComponentId{0}));
 
     // Create the interactor
-    BetheHeitlerInteractor interact(pointers_,
+    BetheHeitlerInteractor interact(data_,
                                     this->particle_track(),
                                     this->direction(),
                                     this->secondary_allocator(),
@@ -212,7 +212,7 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
                     celeritas::ElementComponentId{0}));
 
             // Create interactor
-            BetheHeitlerInteractor interact(pointers_,
+            BetheHeitlerInteractor interact(data_,
                                             this->particle_track(),
                                             this->direction(),
                                             this->secondary_allocator(),

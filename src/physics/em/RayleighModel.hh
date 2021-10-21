@@ -52,17 +52,17 @@ class RayleighModel final : public Model
     //! Name of the model, for user interaction
     std::string label() const final { return "Rayleigh Scattering"; }
 
-    //! Access Rayleigh pointers on the host
-    const HostRef& host_ref() const { return group_.host(); }
+    //! Access Rayleigh data on the host
+    const HostRef& host_ref() const { return mirror_.host(); }
 
-    //! Access Rayleigh pointers on the device
-    const DeviceRef& device_ref() const { return group_.device(); }
+    //! Access Rayleigh data on the device
+    const DeviceRef& device_ref() const { return mirror_.device(); }
 
   private:
     //// DATA ////
 
     // Host/device storage and reference
-    CollectionMirror<detail::RayleighData> group_;
+    CollectionMirror<detail::RayleighData> mirror_;
 
     //// TYPES ////
 

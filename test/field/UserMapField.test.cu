@@ -27,7 +27,7 @@ using namespace celeritas;
 //---------------------------------------------------------------------------//
 
 __global__ void fieldmap_test_kernel(UserFieldTestParams       param,
-                                     detail::FieldMapDeviceRef group,
+                                     detail::FieldMapDeviceRef field_data,
                                      real_type*                value_x,
                                      real_type*                value_y,
                                      real_type*                value_z)
@@ -36,7 +36,7 @@ __global__ void fieldmap_test_kernel(UserFieldTestParams       param,
     if (tid.get() >= param.nsamples)
         return;
 
-    detail::CMSMapField field(group);
+    detail::CMSMapField field(field_data);
     //    Real3 pos{tid.get()*1.5-4, tid.get()*1.5-4, tid.get()*2.5-4};
     Real3 pos{tid.get() * param.delta_r,
               tid.get() * param.delta_r,
@@ -54,8 +54,8 @@ __global__ void fieldmap_test_kernel(UserFieldTestParams       param,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-UserFieldTestOutput
-fieldmap_test(UserFieldTestParams test_param, detail::FieldMapDeviceRef group)
+UserFieldTestOutput fieldmap_test(UserFieldTestParams       test_param,
+                                  detail::FieldMapDeviceRef field_data)
 {
     // Output data for kernel
     thrust::device_vector<real_type> value_x(test_param.nsamples, 0.0);
@@ -69,7 +69,7 @@ fieldmap_test(UserFieldTestParams test_param, detail::FieldMapDeviceRef group)
 
     fieldmap_test_kernel<<<params.grid_size, params.block_size>>>(
         test_param,
-        group,
+        field_data,
         raw_pointer_cast(value_x.data()),
         raw_pointer_cast(value_y.data()),
         raw_pointer_cast(value_z.data()));

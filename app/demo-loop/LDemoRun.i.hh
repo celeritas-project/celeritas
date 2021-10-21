@@ -42,7 +42,7 @@ struct ParamsGetter<P, MemSpace::device>
 };
 
 template<MemSpace M, class P>
-decltype(auto) get_pointers(const P& params)
+decltype(auto) get_ref(const P& params)
 {
     return ParamsGetter<P, M>{params}();
 }
@@ -53,14 +53,14 @@ ParamsData<Ownership::const_reference, M>
 build_params_refs(const LDemoParams& p)
 {
     ParamsData<Ownership::const_reference, M> ref;
-    ref.geometry    = get_pointers<M>(*p.geometry);
-    ref.materials   = get_pointers<M>(*p.materials);
-    ref.geo_mats    = get_pointers<M>(*p.geo_mats);
-    ref.cutoffs     = get_pointers<M>(*p.cutoffs);
-    ref.particles   = get_pointers<M>(*p.particles);
-    ref.physics     = get_pointers<M>(*p.physics);
-    ref.rng         = get_pointers<M>(*p.rng);
-    ref.track_inits = get_pointers<M>(*p.track_inits);
+    ref.geometry    = get_ref<M>(*p.geometry);
+    ref.materials   = get_ref<M>(*p.materials);
+    ref.geo_mats    = get_ref<M>(*p.geo_mats);
+    ref.cutoffs     = get_ref<M>(*p.cutoffs);
+    ref.particles   = get_ref<M>(*p.particles);
+    ref.physics     = get_ref<M>(*p.physics);
+    ref.rng         = get_ref<M>(*p.rng);
+    ref.track_inits = get_ref<M>(*p.track_inits);
     CELER_ENSURE(ref);
     return ref;
 }

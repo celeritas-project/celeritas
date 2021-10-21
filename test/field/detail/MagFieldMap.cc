@@ -22,26 +22,26 @@ MagFieldMap::MagFieldMap(ReadMap load_map)
 {
     CELER_ENSURE(load_map);
 
-    HostValue host_group;
-    this->build_data(load_map, &host_group);
+    HostValue host_data;
+    this->build_data(load_map, &host_data);
 
     // Move to mirrored data, copying to device
-    group_ = CollectionMirror<detail::FieldMapData>{std::move(host_group)};
-    CELER_ENSURE(this->group_);
+    mirror_ = CollectionMirror<detail::FieldMapData>{std::move(host_data)};
+    CELER_ENSURE(this->mirror_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert an input map to a MagFieldMap and store to FieldMapData.
  */
-void MagFieldMap::build_data(ReadMap load_map, HostValue* group)
+void MagFieldMap::build_data(ReadMap load_map, HostValue* host_data)
 {
     CELER_EXPECT(load_map);
     detail::FieldMapData result = load_map();
 
-    group->params = result.params;
+    host_data->params = result.params;
 
-    auto fieldmap = make_builder(&group->fieldmap);
+    auto fieldmap = make_builder(&host_data->fieldmap);
 
     size_type ngrid = result.params.num_grid_z * result.params.num_grid_r;
     fieldmap.reserve(ngrid);

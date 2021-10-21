@@ -61,14 +61,14 @@ auto RayleighModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void RayleighModel::interact(const ModelInteractRefs<MemSpace::device>& group) const
+void RayleighModel::interact(const ModelInteractRefs<MemSpace::device>& data) const
 {
-    generated::rayleigh_interact(this->device_ref(), group);
+    generated::rayleigh_interact(this->device_ref(), data);
 }
 
-void RayleighModel::interact(const ModelInteractRefs<MemSpace::host>& group) const
+void RayleighModel::interact(const ModelInteractRefs<MemSpace::host>& data) const
 {
-    generated::rayleigh_interact(this->host_data(), group);
+    generated::rayleigh_interact(this->host_data(), data);
 }
 
 //---------------------------------------------------------------------------//
@@ -84,14 +84,13 @@ ModelId RayleighModel::model_id() const
 /*!
  * Convert an RayleighData to a RayleighParameters and store.
  */
-void RayleighModel::build_data(HostValue*            group,
-                               const MaterialParams& materials)
+void RayleighModel::build_data(HostValue* data, const MaterialParams& materials)
 {
     // Number of elements
     unsigned int num_elements = materials.num_elements();
 
     // Build data for available elements
-    auto params = make_builder(&group->params);
+    auto params = make_builder(&data->params);
     params.reserve(num_elements);
 
     for (auto el_id : range(ElementId{num_elements}))

@@ -30,9 +30,9 @@ template<MemSpace M>
 struct SeltzerBergerLauncher
 {
     CELER_FUNCTION
-    SeltzerBergerLauncher(const SeltzerBergerNativeRef& pointers,
+    SeltzerBergerLauncher(const SeltzerBergerNativeRef& data,
                           const ModelInteractRefs<M>&   interaction)
-        : sb(pointers), model(interaction)
+        : sb(data), model(interaction)
     {
     }
 

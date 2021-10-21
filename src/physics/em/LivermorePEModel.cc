@@ -75,15 +75,14 @@ auto LivermorePEModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void LivermorePEModel::interact(
-    const ModelInteractRefs<MemSpace::device>& pointers) const
+    const ModelInteractRefs<MemSpace::device>& data) const
 {
-    generated::livermore_pe_interact(this->device_ref(), pointers);
+    generated::livermore_pe_interact(this->device_ref(), data);
 }
 
-void LivermorePEModel::interact(
-    const ModelInteractRefs<MemSpace::host>& pointers) const
+void LivermorePEModel::interact(const ModelInteractRefs<MemSpace::host>& data) const
 {
-    generated::livermore_pe_interact(this->host_ref(), pointers);
+    generated::livermore_pe_interact(this->host_ref(), data);
 }
 
 //---------------------------------------------------------------------------//

@@ -31,7 +31,7 @@ class UserMapFieldTest : public Test
   protected:
     void SetUp() override
     {
-        // Construct MagFieldMap and set the host data group
+        // Construct MagFieldMap and save a reference to the host data
         std::string test_file
             = celeritas::Test::test_data_path("field", "cmsFieldMap.tiny");
 
@@ -45,7 +45,7 @@ class UserMapFieldTest : public Test
             = detail::CMSFieldMapReader(params, test_file);
 
         map_   = std::make_shared<MagFieldMap>(load_map);
-        group_ = map_->host_ref();
+        ref_   = map_->host_ref();
 
         // Test parameters
         test_param_.nsamples = 8;
@@ -65,7 +65,7 @@ class UserMapFieldTest : public Test
   protected:
     UserFieldTestParams                  test_param_;
     std::shared_ptr<MagFieldMap>         map_;
-    celeritas::detail::FieldMapNativeRef group_;
+    celeritas::detail::FieldMapNativeRef ref_;
 };
 
 //---------------------------------------------------------------------------//
@@ -75,7 +75,7 @@ class UserMapFieldTest : public Test
 TEST_F(UserMapFieldTest, host_map_field)
 {
     // Create the magnetic field with a mapped field
-    CMSMapField field(this->group_);
+    CMSMapField field(this->ref_);
 
     for (int i : celeritas::range(this->test_param_.nsamples))
     {
@@ -95,15 +95,15 @@ TEST_F(UserMapFieldTest, host_map_field)
 class UserMapFieldDeviceTest : public UserMapFieldTest
 {
   public:
-    celeritas::detail::FieldMapDeviceRef device_group_;
+    celeritas::detail::FieldMapDeviceRef device_ref_;
 };
 
 TEST_F(UserMapFieldDeviceTest, TEST_IF_CELERITAS_CUDA(device_map_field))
 {
     // Run kernel for the magnetic field with a mapped field
-    this->device_group_ = this->map_->device_ref();
+    this->device_ref_ = this->map_->device_ref();
 
-    auto output = fieldmap_test(this->test_param_, this->device_group_);
+    auto output = fieldmap_test(this->test_param_, this->device_ref_);
 
     for (unsigned int i : celeritas::range(this->test_param_.nsamples))
     {

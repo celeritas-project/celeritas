@@ -31,9 +31,9 @@ template<MemSpace M>
 struct MuBremsstrahlungLauncher
 {
     CELER_FUNCTION
-    MuBremsstrahlungLauncher(const MuBremsstrahlungData& pointers,
+    MuBremsstrahlungLauncher(const MuBremsstrahlungData& data,
                              const ModelInteractRefs<M>& interaction)
-        : mb(pointers), model(interaction)
+        : mb(data), model(interaction)
     {
     }
 

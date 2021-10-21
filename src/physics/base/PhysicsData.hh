@@ -35,11 +35,11 @@ using ValueTableId = OpaqueId<struct ValueTable>;
  * Energy-dependent model IDs for a single process and particle type.
  *
  * For a given particle type, a single process should be divided into multiple
- * models as a function of energy. The ModelData represents this with an
+ * models as a function of energy. The ModelGroup represents this with an
  * energy grid, and each cell of the grid corresponding to a particular
  * ModelId.
  */
-struct ModelData
+struct ModelGroup
 {
     ItemRange<real_type> energy; //!< Energy grid bounds [MeV]
     ItemRange<ModelId>   model;  //!< Corresponding models
@@ -102,12 +102,12 @@ struct IntegralXsProcess
  * only be assigned if the integral approach is used and the particle has
  * continuous-discrete processes.
  */
-struct ProcessData
+struct ProcessGroup
 {
     ItemRange<ProcessId> processes; //!< Processes that apply [ppid]
     ValueGridArray<ItemRange<ValueTable>> tables;      //!< [vgt][ppid]
     ItemRange<IntegralXsProcess>          integral_xs; //!< [ppid]
-    ItemRange<ModelData> models;       //!< Model applicability [ppid]
+    ItemRange<ModelGroup> models;       //!< Model applicability [ppid]
     ParticleProcessId eloss_ppid{}; //!< Process with de/dx and range tables
 
     //! True if assigned and valid
@@ -199,8 +199,8 @@ struct PhysicsParamsData
     Items<ProcessId>            process_ids;
     Items<ValueTable>           value_tables;
     Items<IntegralXsProcess>    integral_xs;
-    Items<ModelData>            model_groups;
-    ParticleItems<ProcessData>  process_groups;
+    Items<ModelGroup>           model_datas;
+    ParticleItems<ProcessGroup> process_group;
 
     // Special data
     HardwiredModels<W, M> hardwired;
@@ -219,7 +219,7 @@ struct PhysicsParamsData
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !process_groups.empty() && max_particle_processes
+        return !process_group.empty() && max_particle_processes
                && scaling_min_range > 0 && scaling_fraction > 0
                && energy_fraction > 0 && linear_loss_limit > 0
                && enable_fluctuation == static_cast<bool>(fluctuation);
@@ -238,8 +238,8 @@ struct PhysicsParamsData
         process_ids    = other.process_ids;
         value_tables   = other.value_tables;
         integral_xs    = other.integral_xs;
-        model_groups   = other.model_groups;
-        process_groups = other.process_groups;
+        model_datas    = other.model_datas;
+        process_group  = other.process_group;
 
         hardwired              = other.hardwired;
         fluctuation            = other.fluctuation;

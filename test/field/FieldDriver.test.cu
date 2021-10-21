@@ -31,7 +31,7 @@ using namespace celeritas;
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void driver_test_kernel(const FieldParamsData pointers,
+__global__ void driver_test_kernel(const FieldParamsData data,
                                    FieldTestParams       test_params,
                                    double*               pos_x,
                                    double*               pos_z,
@@ -48,7 +48,7 @@ __global__ void driver_test_kernel(const FieldParamsData pointers,
     using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(pointers, rk4);
+    RKTraits::Driver_t   driver(data, rk4);
 
     // Test parameters and the sub-step size
     real_type hstep = 2 * constants::pi * test_params.radius
@@ -81,7 +81,7 @@ __global__ void driver_test_kernel(const FieldParamsData pointers,
     error[tid.get()] = total_step_length;
 }
 
-__global__ void accurate_advance_kernel(const FieldParamsData pointers,
+__global__ void accurate_advance_kernel(const FieldParamsData data,
                                         FieldTestParams       test_params,
                                         double*               pos_x,
                                         double*               pos_z,
@@ -98,7 +98,7 @@ __global__ void accurate_advance_kernel(const FieldParamsData pointers,
     using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(pointers, rk4);
+    RKTraits::Driver_t   driver(data, rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
@@ -140,7 +140,7 @@ __global__ void accurate_advance_kernel(const FieldParamsData pointers,
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 FITestOutput
-driver_test(const FieldParamsData& fd_pointers, FieldTestParams test_params)
+driver_test(const FieldParamsData& fd_data, FieldTestParams test_params)
 {
     // Input/Output data for kernel
 
@@ -157,7 +157,7 @@ driver_test(const FieldParamsData& fd_pointers, FieldTestParams test_params)
     auto params = calc_launch_params(test_params.nstates);
 
     driver_test_kernel<<<params.grid_size, params.block_size>>>(
-        fd_pointers,
+        fd_data,
         test_params,
         raw_pointer_cast(pos_x.data()),
         raw_pointer_cast(pos_z.data()),
@@ -186,7 +186,7 @@ driver_test(const FieldParamsData& fd_pointers, FieldTestParams test_params)
     return result;
 }
 
-OneGoodStepOutput accurate_advance_test(const FieldParamsData& fd_pointers,
+OneGoodStepOutput accurate_advance_test(const FieldParamsData& fd_data,
                                         FieldTestParams        test_params)
 {
     // Input/Output data for kernel
@@ -204,7 +204,7 @@ OneGoodStepOutput accurate_advance_test(const FieldParamsData& fd_pointers,
     auto params = calc_launch_params(test_params.nstates);
 
     accurate_advance_kernel<<<params.grid_size, params.block_size>>>(
-        fd_pointers,
+        fd_data,
         test_params,
         raw_pointer_cast(pos_x.data()),
         raw_pointer_cast(pos_z.data()),

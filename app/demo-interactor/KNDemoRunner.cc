@@ -32,12 +32,12 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
 
     // Set up KN interactor data;
     namespace pdg            = celeritas::pdg;
-    kn_pointers_.model_id    = ModelId{0}; // Unused but needed for error check
-    kn_pointers_.electron_id = pparams_->find(pdg::electron());
-    kn_pointers_.gamma_id    = pparams_->find(pdg::gamma());
-    kn_pointers_.inv_electron_mass
-        = 1 / pparams_->get(kn_pointers_.electron_id).mass().value();
-    CELER_ENSURE(kn_pointers_);
+    kn_data_.model_id        = ModelId{0}; // Unused but needed for error check
+    kn_data_.electron_id     = pparams_->find(pdg::electron());
+    kn_data_.gamma_id        = pparams_->find(pdg::gamma());
+    kn_data_.inv_electron_mass
+        = 1 / pparams_->get(kn_data_.electron_id).mass().value();
+    CELER_ENSURE(kn_data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -83,16 +83,16 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     DetectorStateData<Ownership::value, MemSpace::device> detector_states;
     resize(&detector_states, detector_params, args.num_tracks);
 
-    // Construct pointers to device data
+    // Construct data to device data
     ParamsDeviceRef params;
     params.particle      = pparams_->device_ref();
     params.tables        = xsparams_->device_ref();
-    params.kn_interactor = kn_pointers_;
+    params.kn_interactor = kn_data_;
     params.detector      = detector_params;
 
     InitialData initial;
-    initial.particle = ParticleTrackState{kn_pointers_.gamma_id,
-                                          units::MevEnergy{args.energy}};
+    initial.particle
+        = ParticleTrackState{kn_data_.gamma_id, units::MevEnergy{args.energy}};
 
     StateDeviceRef state;
     state.particle  = track_states;

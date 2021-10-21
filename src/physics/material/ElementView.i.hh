@@ -10,7 +10,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from shared material pointers and global element ID.
+ * Construct from shared material data and global element ID.
  */
 CELER_FUNCTION
 ElementView::ElementView(const MaterialParamsData& params, ElementId el_id)

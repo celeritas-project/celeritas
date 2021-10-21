@@ -21,7 +21,7 @@ GeoTestBase::LazyGeo GeoTestBase::lazy_;
  * Always reset geometry at end of test suite.
  *
  * This is needed because VecGeom stores its objects as static globals, and
- * only makes those objects visible with references/raw pointers. Thus we can't
+ * only makes those objects visible with references/raw data. Thus we can't
  * guarantee that the GeoParams destructor is calling a valid global VecGeom
  * pointer when it destructs, since static initialization/destruction order is
  * undefined across translation units.

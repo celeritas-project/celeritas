@@ -29,7 +29,7 @@ struct SATestInput
     int                   num_threads;
     int                   num_iters;
     int                   alloc_size;
-    MockAllocatorData     sa_pointers;
+    MockAllocatorData     sa_data;
 };
 
 //---------------------------------------------------------------------------//

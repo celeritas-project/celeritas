@@ -89,15 +89,15 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void SeltzerBergerModel::interact(
-    const ModelInteractRefs<MemSpace::device>& pointers) const
+    const ModelInteractRefs<MemSpace::device>& data) const
 {
-    generated::seltzer_berger_interact(this->device_ref(), pointers);
+    generated::seltzer_berger_interact(this->device_ref(), data);
 }
 
 void SeltzerBergerModel::interact(
-    const ModelInteractRefs<MemSpace::host>& pointers) const
+    const ModelInteractRefs<MemSpace::host>& data) const
 {
-    generated::seltzer_berger_interact(this->host_ref(), pointers);
+    generated::seltzer_berger_interact(this->host_ref(), data);
 }
 
 //---------------------------------------------------------------------------//

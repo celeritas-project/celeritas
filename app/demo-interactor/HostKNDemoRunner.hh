@@ -44,7 +44,7 @@ class HostKNDemoRunner
   private:
     constSPParticleParams                   pparams_;
     constSPXsGridParams                     xsparams_;
-    celeritas::detail::KleinNishinaData     kn_pointers_;
+    celeritas::detail::KleinNishinaData     kn_data_;
 };
 
 //---------------------------------------------------------------------------//

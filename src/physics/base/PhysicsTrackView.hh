@@ -170,7 +170,7 @@ class PhysicsTrackView
 
     CELER_FORCEINLINE_FUNCTION PhysicsTrackState& state();
     CELER_FORCEINLINE_FUNCTION const PhysicsTrackState& state() const;
-    CELER_FORCEINLINE_FUNCTION const ProcessData& process_group() const;
+    CELER_FORCEINLINE_FUNCTION const ProcessGroup& process_group() const;
 };
 
 //---------------------------------------------------------------------------//

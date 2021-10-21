@@ -40,7 +40,7 @@ class ElementView
     //!@}
 
   public:
-    // Construct from shared material pointers and global element ID
+    // Construct from shared material data and global element ID
     inline CELER_FUNCTION
     ElementView(const MaterialParamsData& params, ElementId el_id);
 

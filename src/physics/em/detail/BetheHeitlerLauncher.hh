@@ -30,9 +30,9 @@ namespace detail
 template<MemSpace M>
 struct BetheHeitlerLauncher
 {
-    CELER_FUNCTION BetheHeitlerLauncher(const BetheHeitlerData&     pointers,
+    CELER_FUNCTION BetheHeitlerLauncher(const BetheHeitlerData&     data,
                                         const ModelInteractRefs<M>& interaction)
-        : bh(pointers), model(interaction)
+        : bh(data), model(interaction)
     {
     }
 

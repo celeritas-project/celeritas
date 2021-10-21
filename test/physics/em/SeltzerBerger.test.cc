@@ -75,10 +75,10 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& particles   = *this->particle_params();
-        pointers_.ids.electron  = particles.find(pdg::electron());
-        pointers_.ids.positron  = particles.find(pdg::positron());
-        pointers_.ids.gamma     = particles.find(pdg::gamma());
-        pointers_.electron_mass = particles.get(pointers_.ids.electron).mass();
+        data_.ids.electron      = particles.find(pdg::electron());
+        data_.ids.positron      = particles.find(pdg::positron());
+        data_.ids.gamma         = particles.find(pdg::gamma());
+        data_.electron_mass     = particles.get(data_.ids.electron).mass();
 
         // Set default particle to incident 1 MeV photon
         this->set_inc_particle(pdg::electron(), MevEnergy{1.0});
@@ -101,12 +101,12 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         std::string         data_path = this->test_data_path("physics/em", "");
         SeltzerBergerReader read_element_data(data_path.c_str());
 
-        // Construct SeltzerBergerModel and set host pointers
+        // Construct SeltzerBergerModel and set host data
         model_    = std::make_shared<SeltzerBergerModel>(ModelId{0},
                                                       *this->particle_params(),
                                                       *this->material_params(),
                                                       read_element_data);
-        pointers_ = model_->host_ref();
+        data_     = model_->host_ref();
 
         // Set cutoffs
         CutoffParams::Input           input;
@@ -140,7 +140,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
 
   protected:
     std::shared_ptr<SeltzerBergerModel>       model_;
-    celeritas::detail::SeltzerBergerNativeRef pointers_;
+    celeritas::detail::SeltzerBergerNativeRef data_;
 };
 
 //---------------------------------------------------------------------------//

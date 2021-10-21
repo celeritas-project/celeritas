@@ -43,12 +43,12 @@ struct UserFieldTestOutput
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 UserFieldTestOutput fieldmap_test(UserFieldTestParams test_param,
-                                  celeritas::detail::FieldMapDeviceRef group);
+                                  celeritas::detail::FieldMapDeviceRef data);
 
 #if !CELERITAS_USE_CUDA
 inline UserFieldTestOutput
 fieldmap_test(UserFieldTestParams,
-              CELER_MAYBE_UNUSED celeritas::detail::FieldMapDeviceRef group)
+              CELER_MAYBE_UNUSED celeritas::detail::FieldMapDeviceRef data)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

@@ -27,9 +27,9 @@ namespace detail
 template<MemSpace M>
 struct EPlusGGLauncher
 {
-    CELER_FUNCTION EPlusGGLauncher(const EPlusGGData&          pointers,
+    CELER_FUNCTION EPlusGGLauncher(const EPlusGGData&          data,
                                    const ModelInteractRefs<M>& interaction)
-        : epgg(pointers), model(interaction)
+        : epgg(data), model(interaction)
     {
     }
 

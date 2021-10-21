@@ -63,14 +63,14 @@ class CollectionMirror
     //! Whether the data is assigned
     explicit operator bool() const { return static_cast<bool>(host_); }
 
-    //! Get host pointers after construction
+    //! Get references to host data after construction
     const HostRef& host() const
     {
         CELER_ENSURE(host_ref_);
         return host_ref_;
     }
 
-    //! Get device pointers after construction
+    //! Get references to device data after construction
     const DeviceRef& device() const
     {
         CELER_ENSURE(device_ref_);

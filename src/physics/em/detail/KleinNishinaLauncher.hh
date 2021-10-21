@@ -29,9 +29,9 @@ namespace detail
 template<MemSpace M>
 struct KleinNishinaLauncher
 {
-    CELER_FUNCTION KleinNishinaLauncher(const KleinNishinaData&     pointers,
+    CELER_FUNCTION KleinNishinaLauncher(const KleinNishinaData&     data,
                                         const ModelInteractRefs<M>& interaction)
-        : kn(pointers), model(interaction)
+        : kn(data), model(interaction)
     {
     }
 

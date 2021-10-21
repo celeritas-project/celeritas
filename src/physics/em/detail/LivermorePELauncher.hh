@@ -30,9 +30,9 @@ namespace detail
 template<MemSpace M>
 struct LivermorePELauncher
 {
-    CELER_FUNCTION LivermorePELauncher(const LivermorePEData&      pointers,
+    CELER_FUNCTION LivermorePELauncher(const LivermorePEData&      data,
                                        const ModelInteractRefs<M>& interaction)
-        : pe(pointers), model(interaction)
+        : pe(data), model(interaction)
     {
     }
 

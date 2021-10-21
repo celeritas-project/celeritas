@@ -24,7 +24,7 @@ namespace celeritas
  * The State class must be templated on ownership and memory space, and
  * additionally must have an operator bool(), a templated operator=, and a
  * size() accessor. It must also define a free function "resize" that takes
- * a value state and (optionally) Params host pointers.
+ * a value state and (optionally) Params host data.
  *
  * The state store is designed to be usable only from host code. Because C++
  * code in .cu files is still processed by the device compilation phase, this
@@ -37,7 +37,7 @@ namespace celeritas
  * \code
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
         *particle_params, num_tracks);
-    state_pointers.particle = pstates.ref();
+    state_data.particle = pstates.ref();
    \endcode
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>

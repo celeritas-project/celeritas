@@ -32,7 +32,7 @@ class Detector
     //!@}
 
   public:
-    // Construct from pointers
+    // Construct from data references
     inline CELER_FUNCTION Detector(const Params& params, const State& state);
 
     //// BUFFER INPUT ////

@@ -139,7 +139,7 @@ struct ResizableData
     }
 
     //! View to the data
-    CELER_FUNCTION SpanT pointers()
+    CELER_FUNCTION SpanT data()
     {
         return storage[ItemRangeT{ItemIdT{0}, ItemIdT{this->size()}}];
     }

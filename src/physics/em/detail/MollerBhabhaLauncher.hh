@@ -31,9 +31,9 @@ namespace detail
 template<MemSpace M>
 struct MollerBhabhaLauncher
 {
-    CELER_FUNCTION MollerBhabhaLauncher(const MollerBhabhaData&     pointers,
+    CELER_FUNCTION MollerBhabhaLauncher(const MollerBhabhaData&     data,
                                         const ModelInteractRefs<M>& interaction)
-        : mb(pointers), model(interaction)
+        : mb(data), model(interaction)
     {
     }
 

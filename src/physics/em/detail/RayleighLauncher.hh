@@ -30,9 +30,9 @@ namespace detail
 template<MemSpace M>
 struct RayleighLauncher
 {
-    CELER_FUNCTION RayleighLauncher(const RayleighNativeRef&    pointers,
+    CELER_FUNCTION RayleighLauncher(const RayleighNativeRef&    data,
                                     const ModelInteractRefs<M>& interaction)
-        : rayleigh(pointers), model(interaction)
+        : rayleigh(data), model(interaction)
     {
     }
 

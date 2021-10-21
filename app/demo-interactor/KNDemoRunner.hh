@@ -49,7 +49,7 @@ class KNDemoRunner
     constSPParticleParams                   pparams_;
     constSPXsGridParams                     xsparams_;
     CudaGridParams                          launch_params_;
-    celeritas::detail::KleinNishinaData     kn_pointers_;
+    celeritas::detail::KleinNishinaData     kn_data_;
 };
 
 //---------------------------------------------------------------------------//
