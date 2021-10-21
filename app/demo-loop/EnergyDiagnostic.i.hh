@@ -6,12 +6,17 @@
 //! \file EnergyDiagnostic.i.hh
 //---------------------------------------------------------------------------//
 
+#include "base/Atomics.hh"
 #include "base/CollectionAlgorithms.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Span.hh"
+#include "physics/grid/NonuniformGrid.hh"
 
 namespace demo_loop
 {
+//---------------------------------------------------------------------------//
+// EnergyDiagnostic implementation
+//---------------------------------------------------------------------------//
 template<MemSpace M>
 EnergyDiagnostic<M>::EnergyDiagnostic(const std::vector<real_type>& z_bounds)
     : Diagnostic<M>()
@@ -25,6 +30,26 @@ EnergyDiagnostic<M>::EnergyDiagnostic(const std::vector<real_type>& z_bounds)
     resize(&energy_by_z_, z_bounds_.size() - 1);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Accumulate energy deposition in diagnostic
+ */
+template<MemSpace M>
+void EnergyDiagnostic<M>::end_step(const StateDataRef& states)
+{
+    // Set up pointers to pass to device
+    EnergyBinPointers<M> pointers;
+    pointers.z_bounds    = z_bounds_;
+    pointers.energy_by_z = energy_by_z_;
+
+    // Invoke kernel for binning energies
+    demo_loop::bin_energy(states, pointers);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get vector of binned energy deposition
+ */
 template<MemSpace M>
 std::vector<real_type> EnergyDiagnostic<M>::energy_deposition()
 {
@@ -32,6 +57,36 @@ std::vector<real_type> EnergyDiagnostic<M>::energy_deposition()
     std::vector<real_type> edep(energy_by_z_.size());
     celeritas::copy_to_host(energy_by_z_, make_span(edep));
     return edep;
+}
+
+//---------------------------------------------------------------------------//
+// EnergyDiagnosticLauncher implementation
+//---------------------------------------------------------------------------//
+template<MemSpace M>
+EnergyDiagnosticLauncher<M>::EnergyDiagnosticLauncher(const StateDataRef& states,
+                                                      const Pointers& pointers)
+    : states_(states), pointers_(pointers)
+{
+    CELER_EXPECT(states_);
+    CELER_EXPECT(pointers_);
+}
+
+//---------------------------------------------------------------------------//
+template<MemSpace M>
+void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
+{
+    // Create grid from EnergyBinPointers
+    NonuniformGrid<real_type> grid(pointers_.z_bounds);
+
+    real_type z_pos             = states_.geometry.pos[tid][2];
+    real_type energy_deposition = states_.energy_deposition[tid];
+
+    using BinId = ItemId<real_type>;
+    if (z_pos > grid.front() && z_pos < grid.back())
+    {
+        auto bin = grid.find(z_pos);
+        atomic_add(&pointers_.energy_by_z[BinId{bin}], energy_deposition);
+    }
 }
 
 //---------------------------------------------------------------------------//

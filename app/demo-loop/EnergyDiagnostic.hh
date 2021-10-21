@@ -31,7 +31,7 @@ class EnergyDiagnostic : public Diagnostic<M>
     EnergyDiagnostic(const std::vector<real_type>& z_bounds);
 
     // Number of alive tracks determined at the end of a step.
-    void end_step(const StateDataRef& data) final;
+    void end_step(const StateDataRef& states) final;
 
     // Get vector of binned energy deposition
     std::vector<real_type> energy_deposition();
@@ -45,12 +45,15 @@ class EnergyDiagnostic : public Diagnostic<M>
 /*!
  * Holds pointers to z grid and binned energy values to pass to kernel
  */
+template<MemSpace M>
 struct EnergyBinPointers
 {
-    Collection<real_type, Ownership::const_reference, MemSpace::device>
-        z_bounds; //!< z bounds
-    Collection<real_type, Ownership::reference, MemSpace::device>
-        energy_by_z; //!< Binned energy values for each z interval
+    template<Ownership W>
+    using Items = Collection<real_type, W, M>;
+
+    Items<Ownership::const_reference> z_bounds; //!< z bounds
+    Items<Ownership::reference> energy_by_z; //!< Binned energy values for each
+                                             //!< z interval
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const
@@ -63,9 +66,39 @@ struct EnergyBinPointers
 // KERNEL LAUNCHER(S)
 //---------------------------------------------------------------------------//
 
-using StateDataRefDevice = StateData<Ownership::reference, MemSpace::device>;
+/*!
+ * Diagnostic kernel launcher
+ */
+template<MemSpace M>
+class EnergyDiagnosticLauncher
+{
+  public:
+    //!@{
+    //! Type aliases
+    using StateDataRef = StateData<Ownership::reference, M>;
+    using Pointers     = EnergyBinPointers<M>;
+    //!@}
 
-void bin_energy(const StateDataRefDevice& states, EnergyBinPointers& pointers);
+  public:
+    // Construct with shared and state data
+    CELER_FUNCTION EnergyDiagnosticLauncher(const StateDataRef& states,
+                                            const Pointers&     pointers);
+
+    //! Perform energy binning by z position
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+
+  private:
+    const StateDataRef& states_;
+    const Pointers&     pointers_;
+};
+
+using StateDataRefDevice = StateData<Ownership::reference, MemSpace::device>;
+using StateDataRefHost   = StateData<Ownership::reference, MemSpace::host>;
+using PointersDevice     = EnergyBinPointers<MemSpace::device>;
+using PointersHost       = EnergyBinPointers<MemSpace::host>;
+
+void bin_energy(const StateDataRefDevice& states, PointersDevice& pointers);
+void bin_energy(const StateDataRefHost& states, PointersHost& pointers);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_loop
