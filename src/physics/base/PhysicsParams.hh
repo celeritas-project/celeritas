@@ -14,7 +14,7 @@
 #include "base/Units.hh"
 #include "Model.hh"
 #include "Process.hh"
-#include "PhysicsInterface.hh"
+#include "PhysicsData.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -120,10 +120,10 @@ class PhysicsParams
     SpanConstProcessId processes(ParticleId) const;
 
     //! Access material properties on the host
-    const HostRef& host_pointers() const { return data_.host(); }
+    const HostRef& host_ref() const { return data_.host(); }
 
     //! Access material properties on the device
-    const DeviceRef& device_pointers() const { return data_.device(); }
+    const DeviceRef& device_ref() const { return data_.device(); }
 
   private:
     using SPConstModel = std::shared_ptr<const Model>;
@@ -158,7 +158,7 @@ class PhysicsParams
  */
 auto PhysicsParams::num_particles() const -> ParticleId::size_type
 {
-    return this->host_pointers().process_ids.size();
+    return this->host_ref().process_ids.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -167,7 +167,7 @@ auto PhysicsParams::num_particles() const -> ParticleId::size_type
  */
 auto PhysicsParams::max_particle_processes() const -> ProcessId::size_type
 {
-    return this->host_pointers().max_particle_processes;
+    return this->host_ref().max_particle_processes;
 }
 
 //---------------------------------------------------------------------------//

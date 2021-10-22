@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/KleinNishinaInterface.hh"
+#include "../detail/KleinNishinaData.hh"
 
 namespace celeritas
 {
@@ -16,16 +16,16 @@ namespace generated
 {
 void klein_nishina_interact(
     const detail::KleinNishinaHostRef&,
-    const ModelInteractRefs<MemSpace::host>&);
+    const ModelInteractRef<MemSpace::host>&);
 
 void klein_nishina_interact(
     const detail::KleinNishinaDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&);
+    const ModelInteractRef<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void klein_nishina_interact(
     const detail::KleinNishinaDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&)
+    const ModelInteractRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

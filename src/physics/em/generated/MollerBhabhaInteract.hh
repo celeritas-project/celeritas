@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/MollerBhabhaInterface.hh"
+#include "../detail/MollerBhabhaData.hh"
 
 namespace celeritas
 {
@@ -16,16 +16,16 @@ namespace generated
 {
 void moller_bhabha_interact(
     const detail::MollerBhabhaHostRef&,
-    const ModelInteractRefs<MemSpace::host>&);
+    const ModelInteractRef<MemSpace::host>&);
 
 void moller_bhabha_interact(
     const detail::MollerBhabhaDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&);
+    const ModelInteractRef<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void moller_bhabha_interact(
     const detail::MollerBhabhaDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&)
+    const ModelInteractRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

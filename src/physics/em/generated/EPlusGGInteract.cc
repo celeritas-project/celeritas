@@ -16,13 +16,13 @@ namespace celeritas
 namespace generated
 {
 void eplusgg_interact(
-    const detail::EPlusGGHostRef& ptrs,
-    const ModelInteractRefs<MemSpace::host>& model)
+    const detail::EPlusGGHostRef& eplusgg_data,
+    const ModelInteractRef<MemSpace::host>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(eplusgg_data);
     CELER_EXPECT(model);
 
-    detail::EPlusGGLauncher<MemSpace::host> launch(ptrs, model);
+    detail::EPlusGGLauncher<MemSpace::host> launch(eplusgg_data, model);
     for (auto tid : range(ThreadId{model.states.size()}))
     {
         launch(tid);

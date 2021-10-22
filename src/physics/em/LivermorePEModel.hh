@@ -14,7 +14,7 @@
 #include "io/ImportLivermorePE.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "detail/LivermorePEInterface.hh"
+#include "detail/LivermorePEData.hh"
 
 namespace celeritas
 {
@@ -44,10 +44,10 @@ class LivermorePEModel final : public Model
     SetApplicability applicability() const final;
 
     // Apply the interaction kernel on host
-    void interact(const HostInteractRefs&) const final;
+    void interact(const HostInteractRef&) const final;
 
     // Apply the interaction kernel on device
-    void interact(const DeviceInteractRefs&) const final;
+    void interact(const DeviceInteractRef&) const final;
 
     // ID of the model
     ModelId model_id() const final;
@@ -56,10 +56,10 @@ class LivermorePEModel final : public Model
     std::string label() const final { return "Livermore photoelectric"; }
 
     //! Access data on the host
-    const HostRef& host_pointers() const { return data_.host(); }
+    const HostRef& host_ref() const { return data_.host(); }
 
     //! Access data on the device
-    const DeviceRef& device_pointers() const { return data_.device(); }
+    const DeviceRef& device_ref() const { return data_.device(); }
 
   private:
     // Host/device storage and reference

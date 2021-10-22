@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/CollectionMirror.hh"
-#include "FieldMapInterface.hh"
+#include "FieldMapData.hh"
 
 namespace celeritas
 {
@@ -23,7 +23,7 @@ class MagFieldMap
   public:
     //@{
     //! Type aliases
-    using ReadMap   = std::function<detail::FieldMapData()>;
+    using ReadMap   = std::function<detail::FieldMapInput()>;
     using HostRef   = detail::FieldMapHostRef;
     using DeviceRef = detail::FieldMapDeviceRef;
     //@}
@@ -33,18 +33,18 @@ class MagFieldMap
     MagFieldMap(ReadMap load_map);
 
     //! Access field map data on the host
-    const HostRef& host_group() const { return group_.host(); }
+    const HostRef& host_ref() const { return mirror_.host(); }
 
     //! Access field map data on the device
-    const DeviceRef& device_group() const { return group_.device(); }
+    const DeviceRef& device_ref() const { return mirror_.device(); }
 
   private:
     // Host/device storage and reference
-    CollectionMirror<detail::FieldMapGroup> group_;
+    CollectionMirror<detail::FieldMapData> mirror_;
 
   private:
-    using HostValue = detail::FieldMapGroup<Ownership::value, MemSpace::host>;
-    void build_data(ReadMap load_map, HostValue* group);
+    using HostValue = detail::FieldMapData<Ownership::value, MemSpace::host>;
+    void build_data(const ReadMap&, HostValue*);
 };
 
 //---------------------------------------------------------------------------//

@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 
 #include "field/FieldDriver.hh"
-#include "field/FieldParamsPointers.hh"
-#include "field/FieldInterface.hh"
+#include "field/FieldParamsData.hh"
+#include "field/FieldData.hh"
 
 #include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
@@ -49,7 +49,7 @@ class FieldDriverTest : public Test
 
   protected:
     // Field parameters
-    FieldParamsPointers field_params;
+    FieldParamsData field_params;
 
     // Test parameters
     FieldTestParams test_params;

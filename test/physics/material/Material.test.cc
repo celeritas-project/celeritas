@@ -9,7 +9,7 @@
 #include "physics/material/MaterialView.hh"
 #include "physics/material/MaterialParams.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "physics/material/MaterialInterface.hh"
+#include "physics/material/MaterialData.hh"
 #include "physics/material/detail/Utils.hh"
 #include "physics/base/Units.hh"
 #include "io/RootImporter.hh"
@@ -277,8 +277,7 @@ TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_materials))
      * Celeritas constants results in the slightly different numerical values
      * calculated by Celeritas.
      */
-    celeritas::MaterialView mat(material_params->host_pointers(),
-                                MaterialId{1});
+    celeritas::MaterialView mat(material_params->host_ref(), MaterialId{1});
 
     EXPECT_EQ(MatterState::solid, mat.matter_state());
     EXPECT_SOFT_EQ(293.15, mat.temperature());         // [K]
@@ -325,7 +324,7 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELERITAS_CUDA(all))
     CollectionStateStore<MaterialStateData, MemSpace::device> states(
         *params, input.init.size());
 
-    input.params = params->device_pointers();
+    input.params = params->device_ref();
     input.states = states.ref();
 
     EXPECT_EQ(params->max_element_components(),

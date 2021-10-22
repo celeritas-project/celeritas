@@ -14,10 +14,10 @@ namespace celeritas
  */
 CELER_FUNCTION
 AtomicRelaxationHelper::AtomicRelaxationHelper(
-    const AtomicRelaxParamsPointers& shared,
-    const AtomicRelaxStatePointers&  states,
-    ElementId                        el_id,
-    ThreadId                         tid)
+    const AtomicRelaxParamsRef& shared,
+    const AtomicRelaxStateRef&  states,
+    ElementId                   el_id,
+    ThreadId                    tid)
     : shared_(shared), states_(states), el_id_(el_id), thread_(tid)
 {
     CELER_EXPECT(!shared_ || el_id_ < shared_.elements.size());

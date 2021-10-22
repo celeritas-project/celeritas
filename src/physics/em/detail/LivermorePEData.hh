@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePEInterface.hh
+//! \file LivermorePEData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,7 +11,7 @@
 #include "base/Types.hh"
 #include "base/Quantity.hh"
 #include "physics/base/Units.hh"
-#include "physics/grid/XsGridInterface.hh"
+#include "physics/grid/XsGridData.hh"
 
 namespace celeritas
 {
@@ -185,7 +185,7 @@ using LivermorePEDeviceRef
     = LivermorePEData<Ownership::const_reference, MemSpace::device>;
 using LivermorePEHostRef
     = LivermorePEData<Ownership::const_reference, MemSpace::host>;
-using LivermorePEPointers
+using LivermorePERef
     = LivermorePEData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//

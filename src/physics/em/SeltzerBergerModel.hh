@@ -12,7 +12,7 @@
 #include <functional>
 #include "base/CollectionMirror.hh"
 #include "io/ImportSBTable.hh"
-#include "detail/SeltzerBergerInterface.hh"
+#include "detail/SeltzerBergerData.hh"
 
 namespace celeritas
 {
@@ -64,10 +64,10 @@ class SeltzerBergerModel final : public Model
     SetApplicability applicability() const final;
 
     // Apply the interaction kernel on device
-    void interact(const HostInteractRefs&) const final;
+    void interact(const HostInteractRef&) const final;
 
     // Apply the interaction kernel
-    void interact(const DeviceInteractRefs&) const final;
+    void interact(const DeviceInteractRef&) const final;
 
     // ID of the model
     ModelId model_id() const final;
@@ -76,10 +76,10 @@ class SeltzerBergerModel final : public Model
     std::string label() const final { return "Seltzer-Berger bremsstrahlung"; }
 
     //! Access SB data on the host
-    const HostRef& host_pointers() const { return data_.host(); }
+    const HostRef& host_ref() const { return data_.host(); }
 
     //! Access SB data on the device
-    const DeviceRef& device_pointers() const { return data_.device(); }
+    const DeviceRef& device_ref() const { return data_.device(); }
 
   private:
     // Host/device storage and reference

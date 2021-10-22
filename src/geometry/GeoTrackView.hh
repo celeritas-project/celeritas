@@ -12,7 +12,7 @@
 
 #include "base/Macros.hh"
 #include "base/NumericLimits.hh"
-#include "GeoInterface.hh"
+#include "GeoData.hh"
 #include "Types.hh"
 
 namespace celeritas

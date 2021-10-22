@@ -25,7 +25,7 @@ auto MockModel::applicability() const -> SetApplicability
     return {applic_};
 }
 
-void MockModel::interact(const DeviceInteractRefs&) const
+void MockModel::interact(const DeviceInteractRef&) const
 {
     // Inform calling test code that we've been launched
     cb_(this->model_id());

@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInterface.hh
+//! \file TrackData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/StackAllocatorInterface.hh"
-#include "geometry/GeoInterface.hh"
-#include "geometry/GeoMaterialInterface.hh"
-#include "physics/base/CutoffInterface.hh"
+#include "base/StackAllocatorData.hh"
+#include "geometry/GeoData.hh"
+#include "geometry/GeoMaterialData.hh"
+#include "physics/base/CutoffData.hh"
 #include "physics/base/Interaction.hh"
-#include "physics/base/ParticleInterface.hh"
-#include "physics/base/PhysicsInterface.hh"
+#include "physics/base/ParticleData.hh"
+#include "physics/base/PhysicsData.hh"
 #include "physics/base/Secondary.hh"
-#include "physics/material/MaterialInterface.hh"
-#include "random/RngInterface.hh"
-#include "SimInterface.hh"
-#include "TrackInitInterface.hh"
+#include "physics/material/MaterialData.hh"
+#include "random/RngData.hh"
+#include "SimData.hh"
+#include "TrackInitData.hh"
 
 namespace celeritas
 {

@@ -55,7 +55,7 @@ void InteractorHostTestBase::set_material(const std::string& name)
     CELER_EXPECT(material_params_);
 
     mt_view_ = std::make_shared<MaterialTrackView>(
-        material_params_->host_pointers(), ms_.ref(), ThreadId{0});
+        material_params_->host_ref(), ms_.ref(), ThreadId{0});
 
     // Initialize
     MaterialTrackView::Initializer_t init;
@@ -96,7 +96,7 @@ void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
 
     // Construct track view
     pt_view_ = std::make_shared<ParticleTrackView>(
-        particle_params_->host_pointers(), ps_.ref(), ThreadId{0});
+        particle_params_->host_ref(), ps_.ref(), ThreadId{0});
 
     // Initialize
     ParticleTrackView::Initializer_t init;
@@ -174,7 +174,7 @@ void InteractorHostTestBase::check_momentum_conservation(
     CollectionStateStore<celeritas::ParticleStateData, celeritas::MemSpace::host>
                       temp_store(*particle_params_, 1);
     ParticleTrackView temp_track(
-        particle_params_->host_pointers(), temp_store.ref(), ThreadId{0});
+        particle_params_->host_ref(), temp_store.ref(), ThreadId{0});
 
     const auto& parent_track = this->particle_track();
 

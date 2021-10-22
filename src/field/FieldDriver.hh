@@ -12,8 +12,8 @@
 
 #include "RungeKuttaStepper.hh"
 #include "MagFieldEquation.hh"
-#include "FieldParamsPointers.hh"
-#include "FieldInterface.hh"
+#include "FieldParamsData.hh"
+#include "FieldData.hh"
 
 namespace celeritas
 {
@@ -29,7 +29,7 @@ class FieldDriver
   public:
     // Construct with shared data and the stepper
     inline CELER_FUNCTION
-    FieldDriver(const FieldParamsPointers& shared, StepperT& stepper);
+    FieldDriver(const FieldParamsData& shared, StepperT& stepper);
 
     // For a given trial step, advance by a sub_step within a tolerance error
     inline CELER_FUNCTION real_type operator()(real_type step, OdeState* state);
@@ -95,7 +95,7 @@ class FieldDriver
 
   private:
     // Shared constant properties
-    const FieldParamsPointers& shared_;
+    const FieldParamsData& shared_;
 
     // Stepper for this field driver
     StepperT& stepper_;

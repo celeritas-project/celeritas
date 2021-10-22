@@ -17,7 +17,7 @@
 #include "physics/grid/EnergyLossCalculator.hh"
 #include "physics/grid/InverseRangeCalculator.hh"
 #include "physics/grid/RangeCalculator.hh"
-#include "physics/grid/ValueGridInterface.hh"
+#include "physics/grid/ValueGridData.hh"
 #include "physics/grid/XsCalculator.hh"
 #include "Types.hh"
 

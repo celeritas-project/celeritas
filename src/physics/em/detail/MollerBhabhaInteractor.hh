@@ -18,7 +18,7 @@
 #include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "MollerBhabhaInterface.hh"
+#include "MollerBhabhaData.hh"
 
 namespace celeritas
 {
@@ -39,11 +39,11 @@ class MollerBhabhaInteractor
   public:
     //! Construct with shared and state data
     inline CELER_FUNCTION
-    MollerBhabhaInteractor(const MollerBhabhaPointers& shared,
-                           const ParticleTrackView&    particle,
-                           const CutoffView&           cutoffs,
-                           const Real3&                inc_direction,
-                           StackAllocator<Secondary>&  allocate);
+    MollerBhabhaInteractor(const MollerBhabhaData&    shared,
+                           const ParticleTrackView&   particle,
+                           const CutoffView&          cutoffs,
+                           const Real3&               inc_direction,
+                           StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -51,7 +51,7 @@ class MollerBhabhaInteractor
 
   private:
     // Shared constant physics properties
-    const MollerBhabhaPointers& shared_;
+    const MollerBhabhaData& shared_;
     // Incident energy [MeV]
     const real_type inc_energy_;
     // Incident momentum [MeV]

@@ -10,7 +10,7 @@
 #include "base/Assert.hh"
 #include "base/Types.hh"
 #include "random/RngEngine.hh"
-#include "physics/base/ModelInterface.hh"
+#include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/material/Types.hh"
 #include "physics/material/MaterialTrackView.hh"
@@ -30,14 +30,14 @@ namespace detail
 template<MemSpace M>
 struct RayleighLauncher
 {
-    CELER_FUNCTION RayleighLauncher(const RayleighNativeRef&    pointers,
-                                    const ModelInteractRefs<M>& interaction)
-        : rayleigh(pointers), model(interaction)
+    CELER_FUNCTION RayleighLauncher(const RayleighNativeRef&   data,
+                                    const ModelInteractRef<M>& interaction)
+        : rayleigh(data), model(interaction)
     {
     }
 
     const RayleighNativeRef&    rayleigh; //!< Shared data for interactor
-    const ModelInteractRefs<M>& model;    //!< State data needed to interact
+    const ModelInteractRef<M>&  model;    //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;

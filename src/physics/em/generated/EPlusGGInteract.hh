@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/EPlusGGInterface.hh"
+#include "../detail/EPlusGGData.hh"
 
 namespace celeritas
 {
@@ -16,16 +16,16 @@ namespace generated
 {
 void eplusgg_interact(
     const detail::EPlusGGHostRef&,
-    const ModelInteractRefs<MemSpace::host>&);
+    const ModelInteractRef<MemSpace::host>&);
 
 void eplusgg_interact(
     const detail::EPlusGGDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&);
+    const ModelInteractRef<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void eplusgg_interact(
     const detail::EPlusGGDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&)
+    const ModelInteractRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

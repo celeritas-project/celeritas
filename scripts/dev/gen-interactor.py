@@ -29,7 +29,7 @@ CLIKE_TOP = '''\
 HH_TEMPLATE = CLIKE_TOP + """\
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/{class}Interface.hh"
+#include "../detail/{class}Data.hh"
 
 namespace celeritas
 {{
@@ -37,16 +37,16 @@ namespace generated
 {{
 void {func}_interact(
     const detail::{class}HostRef&,
-    const ModelInteractRefs<MemSpace::host>&);
+    const ModelInteractRef<MemSpace::host>&);
 
 void {func}_interact(
     const detail::{class}DeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&);
+    const ModelInteractRef<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void {func}_interact(
     const detail::{class}DeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&)
+    const ModelInteractRef<MemSpace::device>&)
 {{
     CELER_ASSERT_UNREACHABLE();
 }}
@@ -67,13 +67,13 @@ namespace celeritas
 namespace generated
 {{
 void {func}_interact(
-    const detail::{class}HostRef& ptrs,
-    const ModelInteractRefs<MemSpace::host>& model)
+    const detail::{class}HostRef& {func}_data,
+    const ModelInteractRef<MemSpace::host>& model)
 {{
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT({func}_data);
     CELER_EXPECT(model);
 
-    detail::{class}Launcher<MemSpace::host> launch(ptrs, model);
+    detail::{class}Launcher<MemSpace::host> launch({func}_data, model);
     for (auto tid : range(ThreadId{{model.states.size()}}))
     {{
         launch(tid);
@@ -98,30 +98,30 @@ namespace generated
 namespace
 {{
 __global__ void {func}_interact_kernel(
-    const detail::{class}DeviceRef ptrs,
-    const ModelInteractRefs<MemSpace::device> model)
+    const detail::{class}DeviceRef {func}_data,
+    const ModelInteractRef<MemSpace::device> model)
 {{
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
         return;
 
-    detail::{class}Launcher<MemSpace::device> launch(ptrs, model);
+    detail::{class}Launcher<MemSpace::device> launch({func}_data, model);
     launch(tid);
 }}
 }} // namespace
 
 void {func}_interact(
-    const detail::{class}DeviceRef& ptrs,
-    const ModelInteractRefs<MemSpace::device>& model)
+    const detail::{class}DeviceRef& {func}_data,
+    const ModelInteractRef<MemSpace::device>& model)
 {{
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT({func}_data);
     CELER_EXPECT(model);
 
     static const KernelParamCalculator calc_kernel_params(
         {func}_interact_kernel, "{func}_interact");
     auto params = calc_kernel_params(model.states.size());
     {func}_interact_kernel<<<params.grid_size, params.block_size>>>(
-        ptrs, model);
+        {func}_data, model);
     CELER_CUDA_CHECK_ERROR();
 }}
 

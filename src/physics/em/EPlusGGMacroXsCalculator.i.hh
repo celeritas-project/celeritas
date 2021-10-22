@@ -17,8 +17,9 @@ namespace celeritas
 /*!
  * Construct with material.
  */
-CELER_FUNCTION EPlusGGMacroXsCalculator::EPlusGGMacroXsCalculator(
-    const EPlusGGPointers& shared, const MaterialView& material)
+CELER_FUNCTION
+EPlusGGMacroXsCalculator::EPlusGGMacroXsCalculator(const EPlusGGData&  shared,
+                                                   const MaterialView& material)
     : electron_mass_(shared.electron_mass)
     , electron_density_(material.electron_density())
 {

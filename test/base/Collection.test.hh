@@ -107,14 +107,14 @@ struct MockStateData
 class MockTrackView
 {
   public:
-    using ParamsPointers
+    using ParamsData
         = MockParamsData<Ownership::const_reference, MemSpace::native>;
-    using StatePointers = MockStateData<Ownership::reference, MemSpace::native>;
+    using StateData = MockStateData<Ownership::reference, MemSpace::native>;
     using ThreadId      = celeritas::ThreadId;
 
-    CELER_FUNCTION MockTrackView(const ParamsPointers& params,
-                                 const StatePointers&  states,
-                                 ThreadId              tid)
+    CELER_FUNCTION MockTrackView(const ParamsData& params,
+                                 const StateData&  states,
+                                 ThreadId          tid)
         : params_(params), states_(states), thread_(tid)
     {
         CELER_EXPECT(thread_ < states_.size());
@@ -136,8 +136,8 @@ class MockTrackView
     }
 
   private:
-    const ParamsPointers& params_;
-    const StatePointers&  states_;
+    const ParamsData&     params_;
+    const StateData&      states_;
     ThreadId              thread_;
 
     CELER_FUNCTION const MockMaterial& mat() const

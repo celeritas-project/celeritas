@@ -88,7 +88,6 @@ list(APPEND SOURCES
   physics/em/MuBremsstrahlungModel.cc
   physics/em/RayleighModel.cc
   physics/em/RayleighProcess.cc
-  physics/em/detail/RayleighData.cc
   physics/em/SeltzerBergerModel.cc
   physics/em/detail/Utils.cc
   physics/grid/ValueGridBuilder.cc

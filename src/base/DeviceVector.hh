@@ -84,10 +84,10 @@ class DeviceVector
     inline void copy_to_host(SpanT host_data) const;
 
     // Get a mutable view to device data
-    SpanT device_pointers() { return {this->data(), this->size()}; }
+    SpanT device_ref() { return {this->data(), this->size()}; }
 
     // Get a const view to device data
-    SpanConstT device_pointers() const { return {this->data(), this->size()}; }
+    SpanConstT device_ref() const { return {this->data(), this->size()}; }
 
     // Raw pointer to device data (dangerous!)
     inline T* data();
@@ -109,7 +109,7 @@ inline void swap(DeviceVector<T>&, DeviceVector<T>&) noexcept;
 /*!
  * Prevent accidental construction of Span from a device vector.
  *
- * Use \c dv.device_pointers() to get a span.
+ * Use \c dv.device_ref() to get a span.
  */
 template<class T>
 CELER_FUNCTION Span<const T> make_span(const DeviceVector<T>& dv)

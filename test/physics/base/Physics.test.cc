@@ -115,7 +115,7 @@ class PhysicsTrackViewHostTest : public PhysicsTestBase
         auto state_size = this->particles()->size();
 
         CELER_ASSERT(this->physics());
-        params_ref = this->physics()->host_pointers();
+        params_ref = this->physics()->host_ref();
         state      = StateStore(*this->physics(), state_size);
 
         // Save mapping of process label -> ID
@@ -500,10 +500,10 @@ TEST_F(PHYS_DEVICE_TEST, all)
     celeritas::DeviceVector<real_type> step(this->states.size());
 
     PTestInput inp;
-    inp.params = this->physics()->device_pointers();
+    inp.params = this->physics()->device_ref();
     inp.states = this->states.ref();
     inp.inits  = this->inits;
-    inp.result = step.device_pointers();
+    inp.result = step.device_ref();
 
     phys_cuda_test(inp);
     std::vector<real_type> step_host(step.size());
@@ -597,7 +597,7 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
     CollectionStateStore<PhysicsStateData, MemSpace::host> state{
         *this->physics(), 1};
     PhysicsParamsData<Ownership::const_reference, MemSpace::host> params_ref{
-        this->physics()->host_pointers()};
+        this->physics()->host_ref()};
 
     const auto pid = this->particles()->find("positron");
     ASSERT_TRUE(pid);

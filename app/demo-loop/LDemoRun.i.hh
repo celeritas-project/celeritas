@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "base/CollectionStateStore.hh"
 #include "comm/Logger.hh"
-#include "physics/base/ModelInterface.hh"
+#include "physics/base/ModelData.hh"
 #include "sim/TrackInitUtils.hh"
-#include "sim/TrackInterface.hh"
+#include "sim/TrackData.hh"
 #include "LDemoParams.hh"
 #include "LDemoKernel.hh"
 #include "ParticleProcessDiagnostic.hh"
@@ -30,10 +30,7 @@ struct ParamsGetter<P, MemSpace::host>
 {
     const P& params_;
 
-    auto operator()() const -> decltype(auto)
-    {
-        return params_.host_pointers();
-    }
+    auto operator()() const -> decltype(auto) { return params_.host_ref(); }
 };
 
 template<class P>
@@ -41,14 +38,11 @@ struct ParamsGetter<P, MemSpace::device>
 {
     const P& params_;
 
-    auto operator()() const -> decltype(auto)
-    {
-        return params_.device_pointers();
-    }
+    auto operator()() const -> decltype(auto) { return params_.device_ref(); }
 };
 
 template<MemSpace M, class P>
-decltype(auto) get_pointers(const P& params)
+decltype(auto) get_ref(const P& params)
 {
     return ParamsGetter<P, M>{params}();
 }
@@ -59,14 +53,14 @@ ParamsData<Ownership::const_reference, M>
 build_params_refs(const LDemoParams& p)
 {
     ParamsData<Ownership::const_reference, M> ref;
-    ref.geometry    = get_pointers<M>(*p.geometry);
-    ref.materials   = get_pointers<M>(*p.materials);
-    ref.geo_mats    = get_pointers<M>(*p.geo_mats);
-    ref.cutoffs     = get_pointers<M>(*p.cutoffs);
-    ref.particles   = get_pointers<M>(*p.particles);
-    ref.physics     = get_pointers<M>(*p.physics);
-    ref.rng         = get_pointers<M>(*p.rng);
-    ref.track_inits = get_pointers<M>(*p.track_inits);
+    ref.geometry    = get_ref<M>(*p.geometry);
+    ref.materials   = get_ref<M>(*p.materials);
+    ref.geo_mats    = get_ref<M>(*p.geo_mats);
+    ref.cutoffs     = get_ref<M>(*p.cutoffs);
+    ref.particles   = get_ref<M>(*p.particles);
+    ref.physics     = get_ref<M>(*p.physics);
+    ref.rng         = get_ref<M>(*p.rng);
+    ref.track_inits = get_ref<M>(*p.track_inits);
     CELER_ENSURE(ref);
     return ref;
 }
@@ -84,7 +78,7 @@ void launch_models(LDemoParams const& host_params,
 {
     // TODO: these *should* be able to be persistent across steps, rather than
     // recreated at every step.
-    ModelInteractRefs<M> refs;
+    ModelInteractRef<M> refs;
     refs.params.particle     = params.particles;
     refs.params.material     = params.materials;
     refs.params.physics      = params.physics;
@@ -136,9 +130,9 @@ LDemoResult run_demo(LDemoArgs args)
     StateData<Ownership::reference, M> states_ref = make_ref(state_storage);
 
     // Copy primaries to device and create track initializers
-    CELER_ASSERT(params.track_inits->host_pointers().primaries.size()
+    CELER_ASSERT(params.track_inits->host_ref().primaries.size()
                  <= state_storage.track_inits.initializers.capacity());
-    extend_from_primaries(params.track_inits->host_pointers(),
+    extend_from_primaries(params.track_inits->host_ref(),
                           &state_storage.track_inits);
 
     size_type num_alive       = 0;

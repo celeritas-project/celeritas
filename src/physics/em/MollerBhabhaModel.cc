@@ -64,15 +64,14 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
  * Apply the interaction kernel.
  */
 void MollerBhabhaModel::interact(
-    const ModelInteractRefs<MemSpace::device>& pointers) const
+    const ModelInteractRef<MemSpace::device>& data) const
 {
-    generated::moller_bhabha_interact(interface_, pointers);
+    generated::moller_bhabha_interact(interface_, data);
 }
 
-void MollerBhabhaModel::interact(
-    const ModelInteractRefs<MemSpace::host>& pointers) const
+void MollerBhabhaModel::interact(const ModelInteractRef<MemSpace::host>& data) const
 {
-    generated::moller_bhabha_interact(interface_, pointers);
+    generated::moller_bhabha_interact(interface_, data);
 }
 
 //---------------------------------------------------------------------------//

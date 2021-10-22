@@ -14,7 +14,7 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "EPlusGGInterface.hh"
+#include "EPlusGGData.hh"
 
 namespace celeritas
 {
@@ -39,7 +39,7 @@ class EPlusGGInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    EPlusGGInteractor(const EPlusGGPointers&     shared,
+    EPlusGGInteractor(const EPlusGGData&         shared,
                       const ParticleTrackView&   particle,
                       const Real3&               inc_direction,
                       StackAllocator<Secondary>& allocate);
@@ -50,7 +50,7 @@ class EPlusGGInteractor
 
   private:
     // Shared constant physics properties
-    const EPlusGGPointers& shared_;
+    const EPlusGGData& shared_;
     // Incident positron energy
     const real_type inc_energy_;
     // Incident direction

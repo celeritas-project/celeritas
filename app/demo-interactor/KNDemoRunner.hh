@@ -8,7 +8,7 @@
 #pragma once
 
 #include "physics/base/ParticleParams.hh"
-#include "physics/em/detail/KleinNishinaInterface.hh"
+#include "physics/em/detail/KleinNishinaData.hh"
 #include "KNDemoKernel.hh"
 #include "KNDemoIO.hh"
 #include "XsGridParams.hh"
@@ -49,7 +49,7 @@ class KNDemoRunner
     constSPParticleParams                   pparams_;
     constSPXsGridParams                     xsparams_;
     CudaGridParams                          launch_params_;
-    celeritas::detail::KleinNishinaPointers kn_pointers_;
+    celeritas::detail::KleinNishinaData     kn_data_;
 };
 
 //---------------------------------------------------------------------------//

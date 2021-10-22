@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SeltzerBergerInterface.hh
+//! \file SeltzerBergerData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 #include "base/Types.hh"
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
-#include "physics/grid/TwodGridInterface.hh"
+#include "physics/grid/TwodGridData.hh"
 
 namespace celeritas
 {

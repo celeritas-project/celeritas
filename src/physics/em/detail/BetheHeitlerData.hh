@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EPlusGGInterface.hh
+//! \file BetheHeitlerData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,29 +16,32 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Device data for creating an EPlusGGInteractor.
+ * Device data for creating a BetheHeitlerInteractor.
  */
-struct EPlusGGPointers
+struct BetheHeitlerData
 {
     //! Model ID
     ModelId model_id;
 
-    //! electron mass [MevMass]
-    real_type electron_mass;
+    //! Inverse of electron mass [1 / MevMass]
+    real_type inv_electron_mass;
+    //! ID of an electron
+    ParticleId electron_id;
     //! ID of an positron
     ParticleId positron_id;
     //! ID of a gamma
     ParticleId gamma_id;
 
-    //! Check whether the data is assigned
+    //! Check whether the view is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return model_id && electron_mass > 0 && positron_id && gamma_id;
+        return model_id && inv_electron_mass > 0 && electron_id && positron_id
+               && gamma_id;
     }
 };
 
-using EPlusGGHostRef   = EPlusGGPointers;
-using EPlusGGDeviceRef = EPlusGGPointers;
+using BetheHeitlerHostRef   = BetheHeitlerData;
+using BetheHeitlerDeviceRef = BetheHeitlerData;
 
 //---------------------------------------------------------------------------//
 } // namespace detail

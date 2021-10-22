@@ -17,11 +17,11 @@ namespace celeritas
  * Construct from shared and static data.
  */
 CELER_FUNCTION
-PhysicsTrackView::PhysicsTrackView(const PhysicsParamsPointers& params,
-                                   const PhysicsStatePointers&  states,
-                                   ParticleId                   pid,
-                                   MaterialId                   mid,
-                                   ThreadId                     tid)
+PhysicsTrackView::PhysicsTrackView(const PhysicsParamsRef& params,
+                                   const PhysicsStateRef&  states,
+                                   ParticleId              pid,
+                                   MaterialId              mid,
+                                   ThreadId                tid)
     : params_(params)
     , states_(states)
     , particle_(pid)
@@ -333,9 +333,9 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
     -> ModelFinder
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    const ModelGroup& mg
+    const ModelGroup& md
         = params_.model_groups[this->process_group().models[ppid.get()]];
-    return ModelFinder(params_.reals[mg.energy], params_.model_ids[mg.model]);
+    return ModelFinder(params_.reals[md.energy], params_.model_ids[md.model]);
 }
 
 //---------------------------------------------------------------------------//
@@ -399,7 +399,7 @@ CELER_FUNCTION bool PhysicsTrackView::add_fluctuation() const
  * Energy loss fluctuation model parameters.
  */
 CELER_FUNCTION auto PhysicsTrackView::fluctuation() const
-    -> const FluctuationPointers&
+    -> const FluctuationRef&
 {
     return params_.fluctuation;
 }
@@ -442,7 +442,7 @@ CELER_FUNCTION size_type PhysicsTrackView::num_particles() const
 /*!
  * Construct a grid calculator of the given type.
  *
- * The calculator must take two arguments: a reference to XsGridData, and a
+ * The calculator must take two arguments: a reference to XsGridRef, and a
  * reference to the Values data structure.
  */
 template<class T>

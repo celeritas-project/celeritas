@@ -40,7 +40,7 @@ class StackAllocatorTest : public celeritas::Test
                   reinterpret_cast<void*>(out.last_secondary_address))
               + in.alloc_size;
         constexpr celeritas::ItemId<MockSecondary> first_item{0};
-        return storage_end_ptr - &in.sa_pointers.storage[first_item];
+        return storage_end_ptr - &in.sa_data.storage[first_item];
     }
 };
 
@@ -94,7 +94,7 @@ TEST_F(StackAllocatorTest, TEST_IF_CELERITAS_CUDA(device))
 
     // Allocate a subset of the stack
     SATestInput input;
-    input.sa_pointers = data.ref();
+    input.sa_data     = data.ref();
     input.num_threads = 64;
     input.num_iters   = 1;
     input.alloc_size  = 2;

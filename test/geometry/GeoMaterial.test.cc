@@ -69,7 +69,7 @@ TEST_F(GeoMaterialTest, host)
     const auto& geo = *this->geo_params();
     EXPECT_EQ(5, geo.num_volumes());
 
-    GeoMaterialView geo_mat_view(geo_mat_->host_pointers());
+    GeoMaterialView geo_mat_view(geo_mat_->host_ref());
     for (auto i : range(geo.num_volumes()))
     {
         EXPECT_EQ(MaterialId{expected_mat_id[i]},

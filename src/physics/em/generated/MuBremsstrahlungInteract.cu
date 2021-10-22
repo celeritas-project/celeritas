@@ -19,30 +19,30 @@ namespace generated
 namespace
 {
 __global__ void mu_bremsstrahlung_interact_kernel(
-    const detail::MuBremsstrahlungDeviceRef ptrs,
-    const ModelInteractRefs<MemSpace::device> model)
+    const detail::MuBremsstrahlungDeviceRef mu_bremsstrahlung_data,
+    const ModelInteractRef<MemSpace::device> model)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < model.states.size()))
         return;
 
-    detail::MuBremsstrahlungLauncher<MemSpace::device> launch(ptrs, model);
+    detail::MuBremsstrahlungLauncher<MemSpace::device> launch(mu_bremsstrahlung_data, model);
     launch(tid);
 }
 } // namespace
 
 void mu_bremsstrahlung_interact(
-    const detail::MuBremsstrahlungDeviceRef& ptrs,
-    const ModelInteractRefs<MemSpace::device>& model)
+    const detail::MuBremsstrahlungDeviceRef& mu_bremsstrahlung_data,
+    const ModelInteractRef<MemSpace::device>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(mu_bremsstrahlung_data);
     CELER_EXPECT(model);
 
     static const KernelParamCalculator calc_kernel_params(
         mu_bremsstrahlung_interact_kernel, "mu_bremsstrahlung_interact");
     auto params = calc_kernel_params(model.states.size());
     mu_bremsstrahlung_interact_kernel<<<params.grid_size, params.block_size>>>(
-        ptrs, model);
+        mu_bremsstrahlung_data, model);
     CELER_CUDA_CHECK_ERROR();
 }
 

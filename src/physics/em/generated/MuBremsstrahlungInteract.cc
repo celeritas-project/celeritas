@@ -16,13 +16,13 @@ namespace celeritas
 namespace generated
 {
 void mu_bremsstrahlung_interact(
-    const detail::MuBremsstrahlungHostRef& ptrs,
-    const ModelInteractRefs<MemSpace::host>& model)
+    const detail::MuBremsstrahlungHostRef& mu_bremsstrahlung_data,
+    const ModelInteractRef<MemSpace::host>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(mu_bremsstrahlung_data);
     CELER_EXPECT(model);
 
-    detail::MuBremsstrahlungLauncher<MemSpace::host> launch(ptrs, model);
+    detail::MuBremsstrahlungLauncher<MemSpace::host> launch(mu_bremsstrahlung_data, model);
     for (auto tid : range(ThreadId{model.states.size()}))
     {
         launch(tid);

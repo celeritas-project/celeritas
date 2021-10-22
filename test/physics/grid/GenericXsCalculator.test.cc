@@ -42,7 +42,7 @@ class GenericXsCalculatorTest : public celeritas_test::CalculatorTestBase
 
     GenericGridData data_;
     Values          storage_;
-    Pointers        ref_;
+    Data            ref_;
 };
 
 //---------------------------------------------------------------------------//

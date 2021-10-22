@@ -10,7 +10,7 @@
 #include "physics/base/Units.hh"
 #include "physics/grid/TwodSubgridCalculator.hh"
 #include "random/distributions/ReciprocalDistribution.hh"
-#include "SeltzerBergerInterface.hh"
+#include "SeltzerBergerData.hh"
 
 namespace celeritas
 {

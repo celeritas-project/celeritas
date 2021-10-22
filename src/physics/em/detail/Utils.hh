@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "physics/em/AtomicRelaxationInterface.hh"
+#include "physics/em/AtomicRelaxationData.hh"
 
 namespace celeritas
 {

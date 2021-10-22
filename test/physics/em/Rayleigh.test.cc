@@ -49,7 +49,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         Base::set_particle_params(
             {{"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& particles = *this->particle_params();
-        group_.gamma_id       = particles.find(pdg::gamma());
+        model_ref_.gamma_id   = particles.find(pdg::gamma());
 
         // Set default particle to incident 1 MeV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{1.0});
@@ -72,10 +72,10 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         this->set_material_params(inp);
         this->set_material("PbWO");
 
-        // Construct RayleighModel and set the host data group
+        // Construct RayleighModel and save the host data reference
         model_ = std::make_shared<RayleighModel>(
             ModelId{0}, particles, *this->material_params());
-        group_ = model_->host_group();
+        model_ref_ = model_->host_ref();
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -90,7 +90,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
 
   protected:
     std::shared_ptr<RayleighModel>       model_;
-    celeritas::detail::RayleighNativeRef group_;
+    celeritas::detail::RayleighNativeRef model_ref_;
 };
 
 //---------------------------------------------------------------------------//
@@ -114,7 +114,7 @@ TEST_F(RayleighInteractorTest, basic)
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
 
         // Create the interactor
-        RayleighInteractor interact(this->model_->host_group(),
+        RayleighInteractor interact(this->model_->host_ref(),
                                     this->particle_track(),
                                     this->direction(),
                                     el_id);
@@ -165,7 +165,7 @@ TEST_F(RayleighInteractorTest, stress_test)
         RandomEngine& rng_engine = this->rng();
 
         // Create the interactor
-        RayleighInteractor interact(this->model_->host_group(),
+        RayleighInteractor interact(this->model_->host_ref(),
                                     this->particle_track(),
                                     this->direction(),
                                     el_id);

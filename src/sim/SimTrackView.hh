@@ -9,7 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "SimInterface.hh"
+#include "SimData.hh"
 
 namespace celeritas
 {

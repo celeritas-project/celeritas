@@ -76,7 +76,7 @@ void DeviceVector<T>::copy_to_host(SpanT data) const
 template<class T>
 T* DeviceVector<T>::data()
 {
-    return reinterpret_cast<T*>(allocation_.device_pointers().data());
+    return reinterpret_cast<T*>(allocation_.device_ref().data());
 }
 
 //---------------------------------------------------------------------------//
@@ -86,7 +86,7 @@ T* DeviceVector<T>::data()
 template<class T>
 const T* DeviceVector<T>::data() const
 {
-    return reinterpret_cast<const T*>(allocation_.device_pointers().data());
+    return reinterpret_cast<const T*>(allocation_.device_ref().data());
 }
 
 //---------------------------------------------------------------------------//

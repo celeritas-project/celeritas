@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/BetheHeitlerInterface.hh"
+#include "../detail/BetheHeitlerData.hh"
 
 namespace celeritas
 {
@@ -16,16 +16,16 @@ namespace generated
 {
 void bethe_heitler_interact(
     const detail::BetheHeitlerHostRef&,
-    const ModelInteractRefs<MemSpace::host>&);
+    const ModelInteractRef<MemSpace::host>&);
 
 void bethe_heitler_interact(
     const detail::BetheHeitlerDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&);
+    const ModelInteractRef<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void bethe_heitler_interact(
     const detail::BetheHeitlerDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&)
+    const ModelInteractRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

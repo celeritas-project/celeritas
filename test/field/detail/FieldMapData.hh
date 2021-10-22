@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldMapInterface.hh
+//! \file FieldMapData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -39,11 +39,13 @@ struct FieldMapElement
 
 //---------------------------------------------------------------------------//
 /*!
- * FieldMap data: vector of size [num_grid_z*num_grid_r] which stores data
+ * FieldMap input data.
+ *
+ * A vector of size [num_grid_z*num_grid_r] which stores data
  * for the equivalent 2-dimensional RZ-array[num_grid_z][num_grid_r] and
  * associated parameters
  */
-struct FieldMapData
+struct FieldMapInput
 {
     FieldMapParameters           params;
     std::vector<FieldMapElement> data;
@@ -54,7 +56,7 @@ struct FieldMapData
  * Device data for interpolating field values.
  */
 template<Ownership W, MemSpace M>
-struct FieldMapGroup
+struct FieldMapData
 {
     //! Parameters of FieldMap
     FieldMapParameters params;
@@ -84,7 +86,7 @@ struct FieldMapGroup
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    FieldMapGroup& operator=(const FieldMapGroup<W2, M2>& other)
+    FieldMapData& operator=(const FieldMapData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         params   = other.params;
@@ -94,11 +96,11 @@ struct FieldMapGroup
 };
 
 using FieldMapDeviceRef
-    = FieldMapGroup<Ownership::const_reference, MemSpace::device>;
+    = FieldMapData<Ownership::const_reference, MemSpace::device>;
 using FieldMapHostRef
-    = FieldMapGroup<Ownership::const_reference, MemSpace::host>;
+    = FieldMapData<Ownership::const_reference, MemSpace::host>;
 using FieldMapNativeRef
-    = FieldMapGroup<Ownership::const_reference, MemSpace::native>;
+    = FieldMapData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
 } // namespace detail

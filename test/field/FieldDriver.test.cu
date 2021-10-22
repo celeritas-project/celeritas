@@ -13,7 +13,7 @@
 #include <thrust/device_vector.h>
 
 #include "field/FieldDriver.hh"
-#include "field/FieldParamsPointers.hh"
+#include "field/FieldParamsData.hh"
 #include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
 #include "field/MagFieldEquation.hh"
@@ -31,13 +31,13 @@ using namespace celeritas;
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void driver_test_kernel(const FieldParamsPointers pointers,
-                                   FieldTestParams           test_params,
-                                   double*                   pos_x,
-                                   double*                   pos_z,
-                                   double*                   mom_y,
-                                   double*                   mom_z,
-                                   double*                   error)
+__global__ void driver_test_kernel(const FieldParamsData data,
+                                   FieldTestParams       test_params,
+                                   double*               pos_x,
+                                   double*               pos_z,
+                                   double*               mom_y,
+                                   double*               mom_z,
+                                   double*               error)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= test_params.nstates)
@@ -48,7 +48,7 @@ __global__ void driver_test_kernel(const FieldParamsPointers pointers,
     using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(pointers, rk4);
+    RKTraits::Driver_t   driver(data, rk4);
 
     // Test parameters and the sub-step size
     real_type hstep = 2 * constants::pi * test_params.radius
@@ -81,13 +81,13 @@ __global__ void driver_test_kernel(const FieldParamsPointers pointers,
     error[tid.get()] = total_step_length;
 }
 
-__global__ void accurate_advance_kernel(const FieldParamsPointers pointers,
-                                        FieldTestParams           test_params,
-                                        double*                   pos_x,
-                                        double*                   pos_z,
-                                        double*                   mom_y,
-                                        double*                   mom_z,
-                                        double*                   length)
+__global__ void accurate_advance_kernel(const FieldParamsData data,
+                                        FieldTestParams       test_params,
+                                        double*               pos_x,
+                                        double*               pos_z,
+                                        double*               mom_y,
+                                        double*               mom_z,
+                                        double*               length)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= test_params.nstates)
@@ -98,7 +98,7 @@ __global__ void accurate_advance_kernel(const FieldParamsPointers pointers,
     using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(pointers, rk4);
+    RKTraits::Driver_t   driver(data, rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
@@ -139,8 +139,8 @@ __global__ void accurate_advance_kernel(const FieldParamsPointers pointers,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-FITestOutput driver_test(const FieldParamsPointers& fd_pointers,
-                         FieldTestParams            test_params)
+FITestOutput
+driver_test(const FieldParamsData& fd_data, FieldTestParams test_params)
 {
     // Input/Output data for kernel
 
@@ -157,7 +157,7 @@ FITestOutput driver_test(const FieldParamsPointers& fd_pointers,
     auto params = calc_launch_params(test_params.nstates);
 
     driver_test_kernel<<<params.grid_size, params.block_size>>>(
-        fd_pointers,
+        fd_data,
         test_params,
         raw_pointer_cast(pos_x.data()),
         raw_pointer_cast(pos_z.data()),
@@ -186,8 +186,8 @@ FITestOutput driver_test(const FieldParamsPointers& fd_pointers,
     return result;
 }
 
-OneGoodStepOutput accurate_advance_test(const FieldParamsPointers& fd_pointers,
-                                        FieldTestParams            test_params)
+OneGoodStepOutput accurate_advance_test(const FieldParamsData& fd_data,
+                                        FieldTestParams        test_params)
 {
     // Input/Output data for kernel
 
@@ -204,7 +204,7 @@ OneGoodStepOutput accurate_advance_test(const FieldParamsPointers& fd_pointers,
     auto params = calc_launch_params(test_params.nstates);
 
     accurate_advance_kernel<<<params.grid_size, params.block_size>>>(
-        fd_pointers,
+        fd_data,
         test_params,
         raw_pointer_cast(pos_x.data()),
         raw_pointer_cast(pos_z.data()),

@@ -10,8 +10,8 @@
 #include "base/NumericLimits.hh"
 #include "base/Span.hh"
 #include "physics/base/Primary.hh"
-#include "sim/TrackInterface.hh"
-#include "sim/TrackInitInterface.hh"
+#include "sim/TrackData.hh"
+#include "sim/TrackInitData.hh"
 
 namespace celeritas
 {

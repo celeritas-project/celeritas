@@ -63,11 +63,9 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
             [&input](unsigned int i) { return input.prob[i]; },
             input.prob.size())(rng);
 
-        real_type w = input.weight[index];
-        real_type n = pn[index];
-        real_type b = pb[index];
-
-        n = 1 / n;
+        const real_type w    = input.weight[index];
+        const real_type ninv = 1 / pn[index];
+        const real_type b    = pb[index];
 
         // Sampling of scattering angle
         real_type x;
@@ -75,11 +73,12 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 
         if (y < fit_slice())
         {
-            x = y * n * (1 + half * (n + 1) * y * (1 - (n + 2) * y / 3));
+            x = y * ninv
+                * (1 + half * (ninv + 1) * y * (1 - (ninv + 2) * y / 3));
         }
         else
         {
-            x = std::pow(1 - y, -n) - 1;
+            x = std::pow(1 - y, -ninv) - 1;
         }
 
         cost = 1 - 2 * x / (b * input.factor);

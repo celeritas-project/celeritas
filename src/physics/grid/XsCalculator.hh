@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Quantity.hh"
-#include "XsGridInterface.hh"
+#include "XsGridData.hh"
 
 namespace celeritas
 {
@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Find and interpolate cross sections on a uniform log grid.
  *
- * \todo Currently this is hard-coded to use "cross section grid pointers"
+ * \todo Currently this is hard-coded to use "cross section grid data"
  * which have energy coordinates uniform in log space. This should
  * be expanded to handle multiple parameterizations of the energy grid (e.g.,
  * arbitrary spacing needed for the Livermore sampling) and of the value

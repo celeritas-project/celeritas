@@ -30,7 +30,7 @@ __global__ void sa_test_kernel(SATestInput const input, SATestOutput* output)
     if (thread_idx >= input.num_threads)
         return;
 
-    StackAllocatorMock allocate(input.sa_pointers);
+    StackAllocatorMock allocate(input.sa_data);
     for (int i = 0; i < input.num_iters; ++i)
     {
         MockSecondary* secondaries = allocate(input.alloc_size);
@@ -64,7 +64,7 @@ sa_post_test_kernel(SATestInput const input, SATestOutput* output)
 {
     auto thread_id = celeritas::KernelParamCalculator::thread_id();
 
-    const StackAllocatorMock allocate(input.sa_pointers);
+    const StackAllocatorMock allocate(input.sa_data);
     if (thread_id == celeritas::ThreadId{0})
     {
         output->view_size = allocate.get().size();
@@ -75,7 +75,7 @@ __global__ void sa_clear_kernel(SATestInput const input)
 {
     auto thread_id = celeritas::KernelParamCalculator::thread_id();
 
-    StackAllocatorMock allocate(input.sa_pointers);
+    StackAllocatorMock allocate(input.sa_data);
     if (thread_id == celeritas::ThreadId{0})
     {
         allocate.clear();

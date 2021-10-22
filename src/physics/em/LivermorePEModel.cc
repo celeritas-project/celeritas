@@ -63,7 +63,7 @@ LivermorePEModel::LivermorePEModel(ModelId               id,
 auto LivermorePEModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
-    photon_applic.particle = this->host_pointers().ids.gamma;
+    photon_applic.particle = this->host_ref().ids.gamma;
     photon_applic.lower    = zero_quantity();
     photon_applic.upper    = max_quantity();
 
@@ -74,16 +74,14 @@ auto LivermorePEModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void LivermorePEModel::interact(
-    const ModelInteractRefs<MemSpace::device>& pointers) const
+void LivermorePEModel::interact(const ModelInteractRef<MemSpace::device>& data) const
 {
-    generated::livermore_pe_interact(this->device_pointers(), pointers);
+    generated::livermore_pe_interact(this->device_ref(), data);
 }
 
-void LivermorePEModel::interact(
-    const ModelInteractRefs<MemSpace::host>& pointers) const
+void LivermorePEModel::interact(const ModelInteractRef<MemSpace::host>& data) const
 {
-    generated::livermore_pe_interact(this->host_pointers(), pointers);
+    generated::livermore_pe_interact(this->host_ref(), data);
 }
 
 //---------------------------------------------------------------------------//
@@ -92,7 +90,7 @@ void LivermorePEModel::interact(
  */
 ModelId LivermorePEModel::model_id() const
 {
-    return this->host_pointers().ids.model;
+    return this->host_ref().ids.model;
 }
 
 //---------------------------------------------------------------------------//

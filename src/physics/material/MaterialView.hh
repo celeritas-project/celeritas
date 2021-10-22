@@ -10,7 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "ElementView.hh"
-#include "MaterialInterface.hh"
+#include "MaterialData.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -35,14 +35,14 @@ class MaterialView
   public:
     //!@{
     //! Type aliases
-    using MaterialParamsPointers
+    using MaterialParamsRef
         = MaterialParamsData<Ownership::const_reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct from params and material ID
     inline CELER_FUNCTION
-    MaterialView(const MaterialParamsPointers& params, MaterialId id);
+    MaterialView(const MaterialParamsRef& params, MaterialId id);
 
     //// MATERIAL DATA ////
 
@@ -92,7 +92,7 @@ class MaterialView
                           log_mean_excitation_energy() const;
 
   private:
-    const MaterialParamsPointers& params_;
+    const MaterialParamsRef&      params_;
     MaterialId                    material_;
 
     // HELPER FUNCTIONS

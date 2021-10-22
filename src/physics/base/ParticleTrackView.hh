@@ -9,7 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "ParticleInterface.hh"
+#include "ParticleData.hh"
 #include "ParticleView.hh"
 #include "Units.hh"
 

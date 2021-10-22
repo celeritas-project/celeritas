@@ -17,13 +17,12 @@ namespace celeritas
  * Construct from model parameters, incident particle, and mean energy loss.
  */
 CELER_FUNCTION
-EnergyLossDistribution::EnergyLossDistribution(
-    const FluctuationPointers& shared,
-    const CutoffView&          cutoffs,
-    const MaterialTrackView&   material,
-    const ParticleTrackView&   particle,
-    MevEnergy                  mean_loss,
-    real_type                  step_length)
+EnergyLossDistribution::EnergyLossDistribution(const FluctuationRef& shared,
+                                               const CutoffView&     cutoffs,
+                                               const MaterialTrackView& material,
+                                               const ParticleTrackView& particle,
+                                               MevEnergy mean_loss,
+                                               real_type step_length)
     : shared_(shared)
     , material_(material)
     , mean_loss_(mean_loss.value())

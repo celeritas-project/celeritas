@@ -20,7 +20,7 @@
 
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
-#include "GeoInterface.hh"
+#include "GeoData.hh"
 #include "detail/ScopedTimeAndRedirect.hh"
 
 namespace celeritas

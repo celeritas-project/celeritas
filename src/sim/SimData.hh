@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SimInterface.hh
+//! \file SimData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,7 +13,6 @@
 #include "base/Types.hh"
 #include "detail/SimStateInit.hh"
 #include "Types.hh"
-
 
 namespace celeritas
 {

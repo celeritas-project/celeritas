@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "../detail/SeltzerBergerInterface.hh"
+#include "../detail/SeltzerBergerData.hh"
 
 namespace celeritas
 {
@@ -16,16 +16,16 @@ namespace generated
 {
 void seltzer_berger_interact(
     const detail::SeltzerBergerHostRef&,
-    const ModelInteractRefs<MemSpace::host>&);
+    const ModelInteractRef<MemSpace::host>&);
 
 void seltzer_berger_interact(
     const detail::SeltzerBergerDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&);
+    const ModelInteractRef<MemSpace::device>&);
 
 #if !CELERITAS_USE_CUDA
 inline void seltzer_berger_interact(
     const detail::SeltzerBergerDeviceRef&,
-    const ModelInteractRefs<MemSpace::device>&)
+    const ModelInteractRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

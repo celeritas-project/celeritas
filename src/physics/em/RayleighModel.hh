@@ -10,7 +10,7 @@
 #include "base/CollectionMirror.hh"
 #include "physics/base/Model.hh"
 #include "physics/material/MaterialParams.hh"
-#include "detail/RayleighInterface.hh"
+#include "detail/RayleighData.hh"
 
 namespace celeritas
 {
@@ -26,9 +26,9 @@ class RayleighModel final : public Model
     //@{
     //! Type aliases
     using HostRef
-        = detail::RayleighGroup<Ownership::const_reference, MemSpace::host>;
+        = detail::RayleighData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
-        = detail::RayleighGroup<Ownership::const_reference, MemSpace::device>;
+        = detail::RayleighData<Ownership::const_reference, MemSpace::device>;
     //@}
 
   public:
@@ -41,10 +41,10 @@ class RayleighModel final : public Model
     SetApplicability applicability() const final;
 
     // Apply the interaction kernel to host data
-    void interact(const HostInteractRefs&) const final;
+    void interact(const HostInteractRef&) const final;
 
     // Apply the interaction kernel to device data
-    void interact(const DeviceInteractRefs&) const final;
+    void interact(const DeviceInteractRef&) const final;
 
     // ID of the model
     ModelId model_id() const final;
@@ -52,19 +52,28 @@ class RayleighModel final : public Model
     //! Name of the model, for user interaction
     std::string label() const final { return "Rayleigh Scattering"; }
 
-    //! Access Rayleigh pointers on the host
-    const HostRef& host_group() const { return group_.host(); }
+    //! Access Rayleigh data on the host
+    const HostRef& host_ref() const { return mirror_.host(); }
 
-    //! Access Rayleigh pointers on the device
-    const DeviceRef& device_group() const { return group_.device(); }
+    //! Access Rayleigh data on the device
+    const DeviceRef& device_ref() const { return mirror_.device(); }
 
   private:
+    //// DATA ////
+
     // Host/device storage and reference
-    CollectionMirror<detail::RayleighGroup> group_;
+    CollectionMirror<detail::RayleighData> mirror_;
 
-  private:
-    using HostValue = detail::RayleighGroup<Ownership::value, MemSpace::host>;
-    void build_data(HostValue* group, const MaterialParams& materials);
+    //// TYPES ////
+
+    using AtomicNumber = int;
+    using HostValue = detail::RayleighData<Ownership::value, MemSpace::host>;
+    using ElScatParams = detail::RayleighParameters;
+
+    //// HELPER FUNCTIONS ////
+
+    void build_data(HostValue* host_data, const MaterialParams& materials);
+    static const ElScatParams& get_el_parameters(AtomicNumber atomic_number);
 };
 
 //---------------------------------------------------------------------------//

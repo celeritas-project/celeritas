@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "ImageInterface.hh"
+#include "ImageData.hh"
 
 namespace demo_rasterizer
 {
@@ -30,8 +30,7 @@ class ImageTrackView
 
   public:
     // Construct with image data and thread ID
-    inline CELER_FUNCTION
-    ImageTrackView(const ImagePointers& shared, ThreadId tid);
+    inline CELER_FUNCTION ImageTrackView(const ImageData& shared, ThreadId tid);
 
     // Calculate start position
     inline CELER_FUNCTION Real3 start_pos() const;
@@ -49,7 +48,7 @@ class ImageTrackView
     inline CELER_FUNCTION void set_pixel(unsigned int i, int value);
 
   private:
-    const ImagePointers& shared_;
+    const ImageData&     shared_;
     unsigned int         j_index_;
 };
 

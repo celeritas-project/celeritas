@@ -24,11 +24,11 @@ namespace detail
  * The incident gamma energy must be at least twice the electron rest mass.
  */
 BetheHeitlerInteractor::BetheHeitlerInteractor(
-    const BetheHeitlerPointers& shared,
-    const ParticleTrackView&    particle,
-    const Real3&                inc_direction,
-    StackAllocator<Secondary>&  allocate,
-    const ElementView&          element)
+    const BetheHeitlerData&    shared,
+    const ParticleTrackView&   particle,
+    const Real3&               inc_direction,
+    StackAllocator<Secondary>& allocate,
+    const ElementView&         element)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)

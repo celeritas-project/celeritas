@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "FieldMapInterface.hh"
+#include "FieldMapData.hh"
 
 namespace celeritas
 {
@@ -23,7 +23,7 @@ class CMSMapField
     using FieldMapRef = detail::FieldMapNativeRef;
 
   public:
-    // Construct with the shared map data (FieldMapGroup)
+    // Construct with the shared map data (FieldMapData)
     CELER_FUNCTION
     explicit CMSMapField(const FieldMapRef& shared);
 

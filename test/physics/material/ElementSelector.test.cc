@@ -15,7 +15,7 @@
 #include "physics/material/MaterialParams.hh"
 
 using namespace celeritas;
-using MaterialParamsPointers = MaterialParams::HostRef;
+using MaterialParamsRef = MaterialParams::HostRef;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -66,14 +66,14 @@ class ElementSelectorTest : public celeritas::Test
              "everything_weighted"},
         };
         mats      = std::make_shared<MaterialParams>(std::move(inp));
-        host_mats = mats->host_pointers();
+        host_mats = mats->host_ref();
 
         // Allocate storage
         storage.assign(mats->max_element_components(), -1);
     }
 
     std::shared_ptr<MaterialParams> mats;
-    MaterialParamsPointers          host_mats;
+    MaterialParamsRef               host_mats;
     RandomEngine                    rng;
     std::vector<real_type>          storage;
 };
@@ -89,8 +89,7 @@ real_type mock_micro_xs(ElementId el_id)
 // and particle state
 struct CalcFancyMicroXs
 {
-    CalcFancyMicroXs(const MaterialParamsPointers& mats,
-                     units::MevEnergy              energy)
+    CalcFancyMicroXs(const MaterialParamsRef& mats, units::MevEnergy energy)
         : mats_(mats), inv_energy_(1 / energy.value())
     {
     }
@@ -102,7 +101,7 @@ struct CalcFancyMicroXs
         return el.cbrt_z() * inv_energy_;
     }
 
-    const MaterialParamsPointers& mats_;
+    const MaterialParamsRef&      mats_;
     real_type                     inv_energy_;
 };
 
@@ -113,7 +112,7 @@ struct CalcFancyMicroXs
 //! You can't select an element in pure void. (No interactions anyway.)
 TEST_F(ElementSelectorTest, TEST_IF_CELERITAS_DEBUG(vacuum))
 {
-    MaterialView material(mats->host_pointers(), mats->find("hard_vacuum"));
+    MaterialView material(mats->host_ref(), mats->find("hard_vacuum"));
     EXPECT_THROW(ElementSelector(material, mock_micro_xs, make_span(storage)),
                  celeritas::DebugError);
 }

@@ -8,8 +8,8 @@
 #pragma once
 
 #include "base/Macros.hh"
-#include "physics/base/ModelInterface.hh"
-#include "sim/TrackInterface.hh"
+#include "physics/base/ModelData.hh"
+#include "sim/TrackData.hh"
 
 using namespace celeritas;
 

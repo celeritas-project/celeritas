@@ -16,13 +16,13 @@ namespace celeritas
 namespace generated
 {
 void klein_nishina_interact(
-    const detail::KleinNishinaHostRef& ptrs,
-    const ModelInteractRefs<MemSpace::host>& model)
+    const detail::KleinNishinaHostRef& klein_nishina_data,
+    const ModelInteractRef<MemSpace::host>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(klein_nishina_data);
     CELER_EXPECT(model);
 
-    detail::KleinNishinaLauncher<MemSpace::host> launch(ptrs, model);
+    detail::KleinNishinaLauncher<MemSpace::host> launch(klein_nishina_data, model);
     for (auto tid : range(ThreadId{model.states.size()}))
     {
         launch(tid);

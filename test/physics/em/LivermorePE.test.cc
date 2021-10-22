@@ -65,7 +65,7 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
     {
         relax_params_
             = std::make_shared<AtomicRelaxationParams>(std::move(inp));
-        relax_params_ref_ = relax_params_->host_pointers();
+        relax_params_ref_ = relax_params_->host_ref();
     }
 
     void SetUp() override
@@ -138,8 +138,7 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
         {
             const auto& electron = interaction.secondaries.front();
             EXPECT_TRUE(electron);
-            EXPECT_EQ(model_->host_pointers().ids.electron,
-                      electron.particle_id);
+            EXPECT_EQ(model_->host_ref().ids.electron, electron.particle_id);
             EXPECT_GT(this->particle_track().energy().value(),
                       electron.energy.value());
             EXPECT_LT(0, electron.energy.value());
@@ -191,7 +190,7 @@ TEST_F(LivermorePETest, basic)
     EXPECT_FALSE(relaxation);
 
     // Create the interactor
-    LivermorePEInteractor interact(model_->host_pointers(),
+    LivermorePEInteractor interact(model_->host_ref(),
                                    relaxation,
                                    el_id,
                                    this->particle_track(),
@@ -279,7 +278,7 @@ TEST_F(LivermorePETest, stress_test)
             this->resize_secondaries(num_samples);
 
             // Create interactor
-            LivermorePEInteractor interact(model_->host_pointers(),
+            LivermorePEInteractor interact(model_->host_ref(),
                                            relaxation,
                                            el_id,
                                            this->particle_track(),
@@ -369,7 +368,7 @@ TEST_F(LivermorePETest, distributions_all)
     this->resize_secondaries(secondary_size);
 
     // Create the interactor
-    LivermorePEInteractor interact(model_->host_pointers(),
+    LivermorePEInteractor interact(model_->host_ref(),
                                    relaxation,
                                    el_id,
                                    this->particle_track(),
@@ -466,7 +465,7 @@ TEST_F(LivermorePETest, distributions_radiative)
     this->resize_secondaries(secondary_size);
 
     // Create the interactor
-    LivermorePEInteractor interact(model_->host_pointers(),
+    LivermorePEInteractor interact(model_->host_ref(),
                                    relaxation,
                                    el_id,
                                    this->particle_track(),
@@ -527,8 +526,7 @@ TEST_F(LivermorePETest, macro_xs)
     using celeritas::units::MevEnergy;
 
     auto material = this->material_track().material_view();
-    LivermorePEMacroXsCalculator calc_macro_xs(model_->host_pointers(),
-                                               material);
+    LivermorePEMacroXsCalculator calc_macro_xs(model_->host_ref(), material);
 
     int    num_vals = 20;
     double loge_min = std::log(1.e-4);

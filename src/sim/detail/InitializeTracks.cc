@@ -17,7 +17,7 @@
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/material/MaterialTrackView.hh"
 #include "sim/SimTrackView.hh"
-#include "sim/TrackInitInterface.hh"
+#include "sim/TrackInitData.hh"
 
 namespace celeritas
 {

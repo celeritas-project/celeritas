@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "sim/TrackInitInterface.hh"
-#include "sim/TrackInterface.hh"
+#include "sim/TrackInitData.hh"
+#include "sim/TrackData.hh"
 #include "sim/detail/InitializeTracks.hh"
 
 namespace celeritas
@@ -132,7 +132,7 @@ extend_from_secondaries(const ParamsData<Ownership::const_reference, M>& params,
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
-    size_type num_vac = detail::remove_if_alive<M>(data->vacancies.pointers());
+    size_type num_vac = detail::remove_if_alive<M>(data->vacancies.data());
     data->vacancies.resize(num_vac);
 
     // Sum the total number secondaries produced in all interactions

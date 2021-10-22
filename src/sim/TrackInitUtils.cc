@@ -42,7 +42,7 @@ void extend_from_primaries(const TrackInitParamsHostRef& params,
         data->num_primaries -= count;
 
         // Launch a kernel to create track initializers from primaries
-        detail::process_primaries(primaries.device_pointers(), make_ref(*data));
+        detail::process_primaries(primaries.device_ref(), make_ref(*data));
     }
 }
 

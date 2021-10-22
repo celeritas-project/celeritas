@@ -49,8 +49,8 @@ MaterialId MaterialParams::find(const std::string& name) const
  */
 MaterialView MaterialParams::get(MaterialId id) const
 {
-    CELER_EXPECT(id < this->host_pointers().materials.size());
-    return MaterialView(this->host_pointers(), id);
+    CELER_EXPECT(id < this->host_ref().materials.size());
+    return MaterialView(this->host_ref(), id);
 }
 
 //---------------------------------------------------------------------------//
@@ -59,8 +59,8 @@ MaterialView MaterialParams::get(MaterialId id) const
  */
 ElementView MaterialParams::get(ElementId id) const
 {
-    CELER_EXPECT(id < this->host_pointers().elements.size());
-    return ElementView(this->host_pointers(), id);
+    CELER_EXPECT(id < this->host_ref().elements.size());
+    return ElementView(this->host_ref(), id);
 }
 
 //---------------------------------------------------------------------------//
@@ -69,7 +69,7 @@ ElementView MaterialParams::get(ElementId id) const
  */
 ElementComponentId::size_type MaterialParams::max_element_components() const
 {
-    return this->host_pointers().max_element_components;
+    return this->host_ref().max_element_components;
 }
 
 //---------------------------------------------------------------------------//

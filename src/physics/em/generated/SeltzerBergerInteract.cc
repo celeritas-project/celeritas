@@ -16,13 +16,13 @@ namespace celeritas
 namespace generated
 {
 void seltzer_berger_interact(
-    const detail::SeltzerBergerHostRef& ptrs,
-    const ModelInteractRefs<MemSpace::host>& model)
+    const detail::SeltzerBergerHostRef& seltzer_berger_data,
+    const ModelInteractRef<MemSpace::host>& model)
 {
-    CELER_EXPECT(ptrs);
+    CELER_EXPECT(seltzer_berger_data);
     CELER_EXPECT(model);
 
-    detail::SeltzerBergerLauncher<MemSpace::host> launch(ptrs, model);
+    detail::SeltzerBergerLauncher<MemSpace::host> launch(seltzer_berger_data, model);
     for (auto tid : range(ThreadId{model.states.size()}))
     {
         launch(tid);

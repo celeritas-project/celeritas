@@ -10,7 +10,7 @@
 #include <string>
 #include "Types.hh"
 #include "base/Types.hh"
-#include "GeoInterface.hh"
+#include "GeoData.hh"
 
 namespace celeritas
 {
@@ -52,10 +52,10 @@ class GeoParams
     int max_depth() const { return host_ref_.max_depth; }
 
     //! View in-host geometry data for CPU debugging
-    const HostRef& host_pointers() const { return host_ref_; }
+    const HostRef& host_ref() const { return host_ref_; }
 
     //! Get a view to the managed on-device data
-    const DeviceRef& device_pointers() const { return device_ref_; }
+    const DeviceRef& device_ref() const { return device_ref_; }
 
   private:
     size_type num_volumes_ = 0;

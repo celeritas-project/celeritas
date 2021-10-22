@@ -12,7 +12,7 @@
 #include "base/DeviceVector.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
-#include "ImageInterface.hh"
+#include "ImageData.hh"
 #include "ImageIO.hh"
 
 namespace demo_rasterizer
@@ -39,10 +39,10 @@ class ImageStore
     //// DEVICE ACCESSORS ////
 
     //! Access image on host for initializing
-    ImagePointers host_interface();
+    ImageData host_interface();
 
     //! Access image on device for writing
-    ImagePointers device_interface();
+    ImageData device_interface();
 
     //// HOST ACCESSORS ////
 

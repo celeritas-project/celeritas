@@ -50,7 +50,7 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
 
     using VecReal = std::vector<real_type>;
 
-    MaterialView mat(data_.materials->host_pointers(), range.material);
+    MaterialView mat(data_.materials->host_ref(), range.material);
     real_type    numdens = mat.number_density();
 
     StepLimitBuilders builders;

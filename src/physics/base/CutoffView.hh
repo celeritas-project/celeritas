@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "CutoffInterface.hh"
+#include "CutoffData.hh"
 
 namespace celeritas
 {
@@ -20,7 +20,7 @@ namespace celeritas
  *
  * \code
  * CutoffParams cutoffs(input);
- * CutoffView cutoff_view(cutoffs.host_pointers(), material_id);
+ * CutoffView cutoff_view(cutoffs.host_ref(), material_id);
  * cutoff_view.energy(particle_id);
  * cutoff_view.range(particle_id);
  * \endcode
@@ -31,7 +31,7 @@ class CutoffView
     //!@{
     //! Type aliases
     using CutoffId = OpaqueId<ParticleCutoff>;
-    using CutoffPointers
+    using CutoffData
         = CutoffParamsData<Ownership::const_reference, MemSpace::native>;
     using Energy = units::MevEnergy;
     //!@}
@@ -39,7 +39,7 @@ class CutoffView
   public:
     // Construct for the given particle and material ids
     inline CELER_FUNCTION
-    CutoffView(const CutoffPointers& params, MaterialId material);
+    CutoffView(const CutoffData& params, MaterialId material);
 
     //! Return energy cutoff value
     inline CELER_FUNCTION Energy energy(ParticleId particle) const;
@@ -48,7 +48,7 @@ class CutoffView
     inline CELER_FUNCTION real_type range(ParticleId particle) const;
 
   private:
-    const CutoffPointers& params_;
+    const CutoffData&     params_;
     MaterialId            material_;
 };
 

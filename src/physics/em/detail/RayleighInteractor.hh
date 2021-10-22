@@ -15,7 +15,7 @@
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
-#include "RayleighInterface.hh"
+#include "RayleighData.hh"
 
 namespace celeritas
 {
@@ -33,11 +33,6 @@ namespace detail
  */
 class RayleighInteractor
 {
-    //!@{
-    //! Type aliases
-    using ItemIdT = celeritas::ItemId<unsigned int>;
-    //!@}
-
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION RayleighInteractor(const RayleighNativeRef& shared,

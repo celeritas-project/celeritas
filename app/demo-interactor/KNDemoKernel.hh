@@ -11,13 +11,13 @@
 #include "base/CollectionAlgorithms.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
-#include "physics/base/ParticleInterface.hh"
+#include "physics/base/ParticleData.hh"
 #include "physics/base/Secondary.hh"
 #include "base/StackAllocator.hh"
-#include "physics/em/detail/KleinNishinaInterface.hh"
-#include "physics/grid/XsGridInterface.hh"
-#include "random/RngInterface.hh"
-#include "DetectorInterface.hh"
+#include "physics/em/detail/KleinNishinaData.hh"
+#include "physics/grid/XsGridData.hh"
+#include "random/RngData.hh"
+#include "DetectorData.hh"
 
 namespace demo_interactor
 {
@@ -61,13 +61,13 @@ struct TableData
     }
 };
 
-//! Pointers to immutable problem data
+//! Immutable problem data
 template<Ownership W, MemSpace M>
 struct ParamsData
 {
     celeritas::ParticleParamsData<W, M>     particle;
     TableData<W, M>                         tables;
-    celeritas::detail::KleinNishinaPointers kn_interactor;
+    celeritas::detail::KleinNishinaData     kn_interactor;
     DetectorParamsData                      detector;
 
     explicit CELER_FUNCTION operator bool() const
@@ -91,13 +91,13 @@ using ParamsHostRef = ParamsData<Ownership::const_reference, MemSpace::host>;
 using ParamsDeviceRef
     = ParamsData<Ownership::const_reference, MemSpace::device>;
 
-//! Pointers to initial conditions
-struct InitialPointers
+//! Initial conditions
+struct InitialData
 {
     celeritas::ParticleTrackState particle;
 };
 
-//! Pointers to thread-dependent state data
+//! Thread-dependent state data
 template<Ownership W, MemSpace M>
 struct StateData
 {
@@ -135,7 +135,7 @@ using StateDeviceRef = StateData<Ownership::reference, MemSpace::device>;
 void initialize(const CudaGridParams&  grid,
                 const ParamsDeviceRef& params,
                 const StateDeviceRef&  state,
-                const InitialPointers& initial);
+                const InitialData&     initial);
 
 //---------------------------------------------------------------------------//
 // Run an iteration

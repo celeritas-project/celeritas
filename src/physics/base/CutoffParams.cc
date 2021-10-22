@@ -105,7 +105,7 @@ CutoffParams::CutoffParams(const Input& input)
 
     // Move to mirrored data, copying to device
     data_ = CollectionMirror<CutoffParamsData>{std::move(host_data)};
-    CELER_ENSURE(this->host_pointers().cutoffs.size() == cutoffs_size);
+    CELER_ENSURE(this->host_ref().cutoffs.size() == cutoffs_size);
 }
 
 //---------------------------------------------------------------------------//

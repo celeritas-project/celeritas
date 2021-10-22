@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImageInterface.hh
+//! \file ImageData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,7 +16,7 @@ namespace demo_rasterizer
 /*!
  * Construction arguments for an on-device image view.
  */
-struct ImagePointers
+struct ImageData
 {
     celeritas::Real3 origin;   //!< Upper left corner
     celeritas::Real3 down_ax;  //!< Downward axis (increasing j, track
