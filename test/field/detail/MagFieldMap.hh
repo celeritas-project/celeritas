@@ -44,7 +44,7 @@ class MagFieldMap
 
   private:
     using HostValue = detail::FieldMapData<Ownership::value, MemSpace::host>;
-    void build_data(ReadMap load_map, HostValue* grohost_dataup);
+    void build_data(const ReadMap&, HostValue*);
 };
 
 //---------------------------------------------------------------------------//

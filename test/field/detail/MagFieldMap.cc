@@ -34,7 +34,7 @@ MagFieldMap::MagFieldMap(ReadMap load_map)
 /*!
  * Convert an input map to a MagFieldMap and store to FieldMapData.
  */
-void MagFieldMap::build_data(ReadMap load_map, HostValue* host_data)
+void MagFieldMap::build_data(const ReadMap& load_map, HostValue* host_data)
 {
     CELER_EXPECT(load_map);
     detail::FieldMapInput result = load_map();
