@@ -33,13 +33,6 @@
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
 
-#include <G4ElementSelector.hh>
-#include <G4EmElementSelector.hh>
-#include <G4Element.hh>
-#include <G4VEmProcess.hh>
-#include <G4ElementData.hh>
-#include <G4NistManager.hh>
-
 #include <TFile.h>
 #include <TTree.h>
 #include <TBranch.h>
@@ -395,94 +388,6 @@ std::vector<ImportProcess> store_processes()
 
 //---------------------------------------------------------------------------//
 /*!
- * Test import of element XS data at startup.
- */
-void store_elemental_xs()
-{
-    CELER_LOG(status) << "Test export of elemental XS data";
-
-    // load again element and material list
-    std::vector<ImportElement>  elements  = store_elements();
-    std::vector<ImportMaterial> materials = store_materials();
-    ImportProcessConverter      process_converter(
-        TableSelection::minimal, materials, elements);
-
-    // Loop over particles and processes, initialize elemental data and such
-    G4ParticleTable::G4PTblDicIterator& particle_iterator
-        = *(G4ParticleTable::GetParticleTable()->GetIterator());
-    particle_iterator.reset();
-
-    while (particle_iterator())
-    {
-        const G4ParticleDefinition& g4_particle_def
-            = *(particle_iterator.value());
-
-        celeritas::PDGNumber pdg(g4_particle_def.GetPDGEncoding());
-        if (!pdg)
-        {
-            // Skip "dummy" particles: generic ion and geantino
-            continue;
-        }
-
-        // XXX To reduce ROOT file data size in repo, only export processes for
-        // electron/positron/gamma for now. Extend this later.
-        if (!(pdg == celer_pdg::electron() || pdg == celer_pdg::positron()
-              || pdg == celer_pdg::gamma()))
-        {
-            // Not e-, e+, or gamma
-            continue;
-        }
-
-        const G4ProcessVector& process_list
-            = *g4_particle_def.GetProcessManager()->GetProcessList();
-
-        for (auto j : celeritas::range(process_list.size()))
-        {
-            if (dynamic_cast<const G4Transportation*>(process_list[j]))
-            {
-                // Skip transportation process
-                continue;
-            }
-
-            process_converter.test_elemental_xs(
-                elements, materials, g4_particle_def, *process_list[j]);
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
-void store_elemental_xs_with_IP(const std::vector<ImportProcess>& processes)
-{
-    CELER_LOG(info) << "TEST XS with vector ImportProcess. Size "
-                    << processes.size();
-
-    const auto process = processes.at(0);
-
-    CELER_LOG(info) << "  - tables size at 0 should show n of materials: "
-                    << process.tables.size();
-
-    for (const auto& table : process.tables)
-    {
-        CELER_LOG(info) << "   - physics vector size "
-                        << table.physics_vectors.size();
-
-        for (const auto& pvec : table.physics_vectors)
-        {
-            CELER_LOG(info) << "      - x            y (type "
-                            << (int)pvec.vector_type << ")";
-            for (int i : celeritas::range(pvec.x.size()))
-            {
-                CELER_LOG(info)
-                    << "      - " << pvec.x.at(i) << "     " << pvec.y.at(i);
-            }
-            CELER_LOG(info) << "      ---------------";
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Return a populated \c ImportVolume vector.
  */
 std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
@@ -603,10 +508,6 @@ int main(int argc, char* argv[])
     import_data.processes = store_processes();
     import_data.volumes   = store_volumes(world_phys_volume);
     CELER_ENSURE(import_data);
-
-    //// TEST ELEMENT XS EXPORT
-    // store_elemental_xs();
-    // store_elemental_xs_with_IP(import_data.processes);
 
     // Write data to disk and close ROOT file
     tree_data.Fill();

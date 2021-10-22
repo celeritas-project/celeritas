@@ -13,7 +13,6 @@
 
 #include "io/ImportElement.hh"
 #include "io/ImportMaterial.hh"
-#include "io/ImportElement.hh"
 #include "io/ImportProcess.hh"
 
 using celeritas::ImportElement;
@@ -94,20 +93,6 @@ class ImportProcessConverter
     ImportProcess operator()(const G4ParticleDefinition& particle,
                              const G4VProcess&           process);
 
-    // ------- SCRATCH AREA -------
-    void test_elemental_xs(const std::vector<ImportElement>  elements,
-                           const std::vector<ImportMaterial> materials,
-                           const G4ParticleDefinition&       particle,
-                           const G4VProcess&                 process);
-
-    void test_elemental_xs_using_process_();
-
-    std::vector<ImportPhysicsVector> add_element_selector(G4VEmModel& model);
-
-    ImportPhysicsVector
-    element_selector_physics_vector(G4VEmModel&           model,
-                                    const ImportMaterial& material);
-
   private:
     // Loop over EM processes and store them in
     // processes_
@@ -126,19 +111,26 @@ class ImportProcessConverter
     void add_table(const G4PhysicsTable*      table,
                    celeritas::ImportTableType table_type);
 
+    // Write physics vectors as in G4EmElementSelector / G4VEmModel
+    ImportProcess::ElementSelector add_element_selector_xs(G4VEmModel& model);
+
+    // Set up the physics vector energy grid for add_element_selector_xs(...)
+    ImportPhysicsVector
+    element_selector_physics_vector(G4VEmModel&           model,
+                                    const ImportMaterial& material);
+
   private:
+    // Store material and element information for the element selector tables
     std::vector<ImportMaterial> materials_;
     std::vector<ImportElement>  elements_;
 
-    // Whether to write tables that aren't used by
-    // physics
+    // Whether to write tables that aren't used by physics
     TableSelection which_tables_;
 
     // Temporary process data returned by operator()
     ImportProcess process_;
 
-    // Keep track of processes and tables already
-    // written
+    // Keep track of processes and tables already written
     struct PrevProcess
     {
         const G4ParticleDefinition* particle;

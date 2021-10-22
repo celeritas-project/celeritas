@@ -8,6 +8,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include "physics/base/PDGNumber.hh"
 #include "ImportPhysicsTable.hh"
 
@@ -107,23 +108,32 @@ enum class ImportModelClass
  * doing \c tables.at(table_type).physics_vectors.at(material_id) .
  * Conversely, element selector physics vectors are model dependent. Thus, for
  * simplicity, they are stored directly as physics vectors and retrieved by
- * calling \c element_selector_tables.at(model_id).at(material_id)
+ * providing the model, material, and element ids:
+ * \c element_selector_xs.at(model_id).at(material_id).find(element_id)->second
  */
 struct ImportProcess
 {
-    int                                           particle_pdg;
-    ImportProcessType                             process_type;
-    ImportProcessClass                            process_class;
-    std::vector<ImportModelClass>                 models;
-    std::vector<ImportPhysicsTable>               tables;
-    std::vector<std::vector<ImportPhysicsVector>> element_selector_tables;
+    //!@{
+    //! Type aliases
+    // One map per material: <element_id, physics_vector>
+    using ElementCrossSectionMap = std::map<int, ImportPhysicsVector>;
+    // Spans all materials, one per model
+    using ElementSelector = std::vector<ElementCrossSectionMap>;
+    //!@}
+
+    int                             particle_pdg;
+    ImportProcessType               process_type;
+    ImportProcessClass              process_class;
+    std::vector<ImportModelClass>   models;
+    std::vector<ImportPhysicsTable> tables;
+    std::vector<ElementSelector>    element_selector_xs;
 
     explicit operator bool() const
     {
         return process_type != ImportProcessType::not_defined
                && process_class != ImportProcessClass::unknown
                && !models.empty() && !tables.empty()
-               && !element_selector_tables.empty();
+               && !element_selector_xs.empty();
     }
 };
 
