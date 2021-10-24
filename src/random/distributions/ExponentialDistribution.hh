@@ -7,8 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+#include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "GenerateCanonical.hh"
 
 namespace celeritas
 {
@@ -49,6 +52,30 @@ class ExponentialDistribution
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from the mean of the exponential distribution.
+ */
+template<class RT>
+CELER_FUNCTION
+ExponentialDistribution<RT>::ExponentialDistribution(real_type lambda)
+    : neg_inv_lambda_(real_type{-1} / lambda)
+{
+    CELER_EXPECT(lambda > real_type{0});
+}
 
-#include "ExponentialDistribution.i.hh"
+//---------------------------------------------------------------------------//
+/*!
+ * Sample a random number according to the distribution.
+ */
+template<class RT>
+template<class Generator>
+CELER_FUNCTION auto ExponentialDistribution<RT>::operator()(Generator& rng)
+    -> result_type
+{
+    return std::log(generate_canonical<RT>(rng)) * neg_inv_lambda_;
+}
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas

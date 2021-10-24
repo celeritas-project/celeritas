@@ -7,8 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+#include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "GenerateCanonical.hh"
 
 namespace celeritas
 {
@@ -44,6 +47,29 @@ class RadialDistribution
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with defaults.
+ */
+template<class RealType>
+CELER_FUNCTION
+RadialDistribution<RealType>::RadialDistribution(real_type radius)
+    : radius_(radius)
+{
+    CELER_EXPECT(radius_ > 0);
+}
 
-#include "RadialDistribution.i.hh"
+//---------------------------------------------------------------------------//
+/*!
+ * Sample a random number according to the distribution.
+ */
+template<class RealType>
+template<class Generator>
+CELER_FUNCTION auto RadialDistribution<RealType>::operator()(Generator& rng)
+    -> result_type
+{
+    return std::cbrt(generate_canonical<RealType>(rng)) * radius_;
+}
+//---------------------------------------------------------------------------//
+} // namespace celeritas

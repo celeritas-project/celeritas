@@ -7,8 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "GenerateCanonical.hh"
 
 namespace celeritas
 {
@@ -35,8 +37,7 @@ class UniformRealDistribution
     inline CELER_FUNCTION UniformRealDistribution();
 
     // Construct on an arbitrary interval
-    explicit inline CELER_FUNCTION
-    UniformRealDistribution(real_type a, real_type b = 1);
+    inline CELER_FUNCTION UniformRealDistribution(real_type a, real_type b);
 
     // Sample a random number according to the distribution
     template<class Generator>
@@ -56,6 +57,41 @@ class UniformRealDistribution
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct on the interval [0, 1).
+ */
+template<class RealType>
+CELER_FUNCTION UniformRealDistribution<RealType>::UniformRealDistribution()
+    : UniformRealDistribution(0)
+{
+}
 
-#include "UniformRealDistribution.i.hh"
+//---------------------------------------------------------------------------//
+/*!
+ * Construct on the interval [a, b).
+ */
+template<class RealType>
+CELER_FUNCTION
+UniformRealDistribution<RealType>::UniformRealDistribution(real_type a,
+                                                           real_type b)
+    : a_(a), delta_(b - a)
+{
+    CELER_EXPECT(a <= b);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample a random number according to the distribution.
+ */
+template<class RealType>
+template<class Generator>
+CELER_FUNCTION auto
+UniformRealDistribution<RealType>::operator()(Generator& rng) -> result_type
+{
+    return delta_ * generate_canonical<RealType>(rng) + a_;
+}
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas
