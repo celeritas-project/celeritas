@@ -61,3 +61,19 @@ TEST(AlgorithmsTest, lower_bound)
         }
     }
 }
+
+TEST(AlgorithmsTest, min_element)
+{
+    std::vector<int> v;
+    // Empty vector will return 0, which is off-the-end
+    EXPECT_EQ(0, celeritas::min_element(v.data(), v.size()));
+
+    v = {100};
+    EXPECT_EQ(0, celeritas::min_element(v.data(), v.size()));
+
+    v = {10, 2, 100, 3, -1};
+    EXPECT_EQ(4, celeritas::min_element(v.data(), v.size()));
+
+    v[2] = -100;
+    EXPECT_EQ(2, celeritas::min_element(v.data(), v.size()));
+}

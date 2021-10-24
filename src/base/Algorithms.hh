@@ -81,6 +81,22 @@ CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b) noexcept
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return the index of the lowest value.
+ */
+template<class T>
+inline CELER_FUNCTION size_type min_element(const T* ptr, size_type length)
+{
+    size_type result = 0;
+    for (size_type i = 1; i < length; ++i)
+    {
+        if (ptr[i] < ptr[result])
+            result = i;
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 // Replace/extend <cmath>
 //---------------------------------------------------------------------------//
 /*!
