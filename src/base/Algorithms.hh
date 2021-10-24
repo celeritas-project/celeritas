@@ -82,16 +82,20 @@ CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b) noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the index of the lowest value.
+ * Return the lower of two values.
  */
-template<class T>
-inline CELER_FUNCTION size_type min_element(const T* ptr, size_type length)
+template<class ForwardIt>
+inline CELER_FUNCTION ForwardIt min_element(ForwardIt iter, ForwardIt last)
 {
-    size_type result = 0;
-    for (size_type i = 1; i < length; ++i)
+    // Avoid incrementing past the end
+    if (iter == last)
+        return last;
+
+    ForwardIt result = iter++;
+    for (; iter != last; ++iter)
     {
-        if (ptr[i] < ptr[result])
-            result = i;
+        if (*iter < *result)
+            result = iter;
     }
     return result;
 }
