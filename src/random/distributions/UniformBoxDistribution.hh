@@ -65,7 +65,7 @@ UniformBoxDistribution<RealType>::UniformBoxDistribution(result_type lower,
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample an isotropic unit vector.
+ * Sample uniformly in the box.
  */
 template<class RealType>
 template<class Generator>

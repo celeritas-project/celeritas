@@ -47,7 +47,7 @@ TEST_F(UniformBoxDistributionTest, all)
 
         // Tally octant
         int tally_bin = 1 * (r[0] >= 1) + 2 * (r[1] >= 2) + 4 * (r[2] >= 3);
-        ASSERT_TRUE(tally_bin >= 0 && tally_bin + 1 < int(octant_tally.size()));
+        ASSERT_TRUE(tally_bin >= 0 && tally_bin < int(octant_tally.size()));
         ++octant_tally[tally_bin];
     }
 

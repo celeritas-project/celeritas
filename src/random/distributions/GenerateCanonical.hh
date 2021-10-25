@@ -21,7 +21,7 @@ template<class RealType, class Generator>
 inline CELER_FUNCTION RealType generate_canonical(Generator& g);
 
 //---------------------------------------------------------------------------//
-//! Sample a celeritas::real_type on [0, 1).
+//! Sample a real_type on [0, 1).
 template<class Generator>
 inline CELER_FUNCTION real_type generate_canonical(Generator& g);
 
@@ -46,9 +46,6 @@ class GenerateCanonical
     //!@}
 
   public:
-    // Constructor
-    explicit CELER_FUNCTION GenerateCanonical() {}
-
     // Sample a random number
     result_type operator()(Generator& rng);
 };
@@ -59,7 +56,7 @@ class GenerateCanonical
 /*!
  * Generate random numbers in [0, 1).
  *
- * This is the default implementation, for CPU only code.
+ * This is the default implementation, for CPU-only code.
  */
 template<class Generator, class RealType>
 auto GenerateCanonical<Generator, RealType>::operator()(Generator& rng)

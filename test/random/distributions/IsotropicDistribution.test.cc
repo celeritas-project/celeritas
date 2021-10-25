@@ -49,7 +49,7 @@ TEST_F(IsotropicDistributionTest, bin)
         // Tally octant
         int tally_bin = 1 * (u[0] >= 0) + 2 * (u[1] >= 0) + 4 * (u[2] >= 0);
         ASSERT_GE(tally_bin, 0);
-        ASSERT_LE(tally_bin, octant_tally.size() - 1);
+        ASSERT_LT(tally_bin, octant_tally.size());
         ++octant_tally[tally_bin];
     }
 

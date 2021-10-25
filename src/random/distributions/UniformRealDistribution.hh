@@ -61,10 +61,14 @@ class UniformRealDistribution
 //---------------------------------------------------------------------------//
 /*!
  * Construct on the interval [0, 1).
+ *
+ * This constructor is generally unused because it's simpler and more efficient
+ * to directly call ``generate_canonical``. We leave it for compatibility with
+ * the standard.
  */
 template<class RealType>
 CELER_FUNCTION UniformRealDistribution<RealType>::UniformRealDistribution()
-    : UniformRealDistribution(0)
+    : UniformRealDistribution(0, 1)
 {
 }
 

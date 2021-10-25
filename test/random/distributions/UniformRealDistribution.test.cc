@@ -29,6 +29,25 @@ class UniformRealDistributionTest : public celeritas::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
+TEST_F(UniformRealDistributionTest, constructors)
+{
+    {
+        UniformRealDistribution<> sample_uniform{};
+        EXPECT_SOFT_EQ(0.0, sample_uniform.a());
+        EXPECT_SOFT_EQ(1.0, sample_uniform.b());
+    }
+    {
+        UniformRealDistribution<> sample_uniform{1, 2};
+        EXPECT_SOFT_EQ(1.0, sample_uniform.a());
+        EXPECT_SOFT_EQ(2.0, sample_uniform.b());
+    }
+    if (CELERITAS_DEBUG)
+    {
+        // b < a is not allowed
+        EXPECT_THROW(UniformRealDistribution<>(3, 2), celeritas::DebugError);
+    }
+}
+
 TEST_F(UniformRealDistributionTest, bin)
 {
     int num_samples = 10000;
