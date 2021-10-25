@@ -13,7 +13,7 @@
 #include "base/CollectionMirror.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "sim/TrackInterface.hh"
+#include "sim/TrackData.hh"
 
 namespace demo_loop
 {
