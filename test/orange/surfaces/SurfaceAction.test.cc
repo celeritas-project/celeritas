@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "orange/surfaces/SurfaceAction.hh"
 
+#include <algorithm>
+#include <iostream>
+#include <random>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -17,11 +20,47 @@
 #include "orange/construct/SurfaceInserter.hh"
 #include "orange/surfaces/Surfaces.hh"
 #include "orange/surfaces/SurfaceIO.hh"
+#include "random/distributions/IsotropicDistribution.hh"
+#include "random/distributions/UniformBoxDistribution.hh"
 #include "celeritas_test.hh"
-// #include "SurfaceAction.test.hh"
+#include "SurfaceAction.test.hh"
 
 using namespace celeritas;
-// using namespace celeritas_test;
+using namespace celeritas_test;
+
+namespace celeritas
+{
+std::ostream& operator<<(std::ostream& os, Sense s)
+{
+    return os << to_char(s);
+}
+} // namespace celeritas
+
+namespace
+{
+#if 0
+std::vector<Sense> string_to_senses(std::string s)
+{
+    std::vector<Sense> result(s.size());
+    std::transform(s.begin(), s.end(), result.begin(), [](char c) {
+        CELER_EXPECT(c == '+' || c == '-');
+        return c == '+' ? Sense::outside : Sense::inside;
+    });
+    return result;
+}
+#endif
+
+std::string senses_to_string(Span<const Sense> s)
+{
+    std::string result(s.size(), ' ');
+    std::transform(s.begin(), s.end(), result.begin(), [](Sense s) {
+        return to_char(s);
+    });
+    return result;
+}
+
+constexpr real_type noint = celeritas::no_intersection();
+} // namespace
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -47,7 +86,26 @@ class SurfaceActionTest : public celeritas::Test
         surf_params_ = SurfaceDataMirror{std::move(surface_data)};
     }
 
+    void fill_uniform_box(celeritas::Span<Real3> pos)
+    {
+        UniformBoxDistribution<> sample_box{{-3, -2, -1}, {6, 8, 10}};
+        for (Real3& d : pos)
+        {
+            d = sample_box(rng_);
+        }
+    }
+
+    void fill_isotropic(celeritas::Span<Real3> dir)
+    {
+        IsotropicDistribution<> sample_isotropic;
+        for (Real3& d : dir)
+        {
+            d = sample_isotropic(rng_);
+        }
+    }
+
     SurfaceDataMirror surf_params_;
+    std::mt19937      rng_;
 };
 
 //---------------------------------------------------------------------------//
@@ -98,4 +156,86 @@ TEST_F(SurfaceActionTest, string)
         "GQuadric: {0,1,2} {3,4,5} {6,7,8} 9"};
     // clang-format on
     EXPECT_VEC_EQ(expected_strings, strings);
+}
+
+TEST_F(SurfaceActionTest, host_distances)
+{
+    // Create states and sample uniform box, isotropic direction
+    OrangeMiniStateData<Ownership::value, MemSpace::host> states;
+    resize(&states, surf_params_.host(), 1024);
+    OrangeMiniStateData<Ownership::reference, MemSpace::host> state_ref;
+    state_ref = states;
+    this->fill_uniform_box(state_ref.pos[AllItems<Real3>{}]);
+    this->fill_isotropic(state_ref.dir[AllItems<Real3>{}]);
+
+    CalcSenseDistanceLauncher<> calc_thread{surf_params_.host(), state_ref};
+    for (auto tid : range(ThreadId{states.size()}))
+    {
+        calc_thread(tid);
+    }
+
+    auto test_threads = celeritas::range(ThreadId{10});
+    // PRINT_EXPECTED(senses_to_string(state_ref.sense[test_threads]));
+    // PRINT_EXPECTED(state_ref.distance[test_threads]);
+
+    const char expected_senses[]
+        = {'-', '-', '+', '+', '-', '-', '+', '-', '+', '-'};
+    const double expected_distance[] = {noint,
+                                        noint,
+                                        noint,
+                                        noint,
+                                        8.623486582635,
+                                        8.115429697208,
+                                        noint,
+                                        noint,
+                                        22.04764572126,
+                                        noint};
+    EXPECT_VEC_EQ(expected_senses,
+                  senses_to_string(state_ref.sense[test_threads]));
+    EXPECT_VEC_SOFT_EQ(expected_distance, state_ref.distance[test_threads]);
+}
+
+TEST_F(SurfaceActionTest, TEST_IF_CELERITAS_CUDA(device_distances))
+{
+    OrangeMiniStateData<Ownership::value, MemSpace::device> device_states;
+    {
+        // Initialize on host
+        OrangeMiniStateData<Ownership::value, MemSpace::host> host_states;
+        resize(&host_states, surf_params_.host(), 1024);
+        this->fill_uniform_box(host_states.pos[AllItems<Real3>{}]);
+        this->fill_isotropic(host_states.dir[AllItems<Real3>{}]);
+
+        // Copy starting position/direction to device
+        device_states = host_states;
+    }
+
+    // Launch kernel
+    SATestInput input;
+    input.params = surf_params_.device();
+    input.states = device_states;
+    sa_test(input);
+
+    {
+        // Copy result back to host
+        OrangeMiniStateData<Ownership::value, MemSpace::host> host_states;
+        host_states       = device_states;
+        auto test_threads = celeritas::range(ThreadId{10});
+
+        const char expected_senses[]
+            = {'-', '-', '+', '+', '-', '-', '+', '-', '+', '-'};
+        const double expected_distance[] = {noint,
+                                            noint,
+                                            noint,
+                                            noint,
+                                            8.623486582635,
+                                            8.115429697208,
+                                            noint,
+                                            noint,
+                                            22.04764572126,
+                                            noint};
+        EXPECT_VEC_EQ(expected_senses,
+                      senses_to_string(host_states.sense[test_threads]));
+        EXPECT_VEC_SOFT_EQ(expected_distance,
+                           host_states.distance[test_threads]);
+    }
 }

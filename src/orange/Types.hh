@@ -212,6 +212,15 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(SignedSense s)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Convert a signed sense to a surface state.
+ */
+CELER_CONSTEXPR_FUNCTION SurfaceState to_surface_state(SignedSense s)
+{
+    return s == SignedSense::on ? SurfaceState::on : SurfaceState::off;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Sentinel value indicating "no intersection".
  *
  * \todo There is probably a better place to put this since it's not a "type".
