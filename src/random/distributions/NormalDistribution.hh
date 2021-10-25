@@ -7,8 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+#include "base/Algorithms.hh"
+#include "base/Assert.hh"
+#include "base/Constants.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "GenerateCanonical.hh"
 
 namespace celeritas
 {
@@ -47,11 +52,46 @@ class NormalDistribution
   private:
     const real_type mean_;
     const real_type stddev_;
-    real_type       spare_;
-    bool            has_spare_;
+    real_type       spare_{};
+    bool            has_spare_{false};
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with mean and standard deviation.
+ */
+template<class RealType>
+CELER_FUNCTION
+NormalDistribution<RealType>::NormalDistribution(real_type mean,
+                                                 real_type stddev)
+    : mean_(mean), stddev_(stddev)
+{
+    CELER_EXPECT(stddev > 0);
+}
 
-#include "NormalDistribution.i.hh"
+//---------------------------------------------------------------------------//
+/*!
+ * Sample a random number according to the distribution.
+ */
+template<class RealType>
+template<class Generator>
+CELER_FUNCTION auto NormalDistribution<RealType>::operator()(Generator& rng)
+    -> result_type
+{
+    if (has_spare_)
+    {
+        has_spare_ = false;
+        return spare_ * stddev_ + mean_;
+    }
+
+    real_type theta = 2 * constants::pi * generate_canonical(rng);
+    real_type r     = std::sqrt(-2 * std::log(generate_canonical(rng)));
+    spare_          = r * std::cos(theta);
+    has_spare_      = true;
+    return r * std::sin(theta) * stddev_ + mean_;
+}
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas

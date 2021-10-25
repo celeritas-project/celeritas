@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+#include "base/Algorithms.hh"
+#include "base/Assert.hh"
+#include "base/Constants.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "NormalDistribution.hh"
@@ -66,6 +70,42 @@ class PoissonDistribution
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from the mean of the Poisson distribution.
+ */
+template<class RealType>
+CELER_FUNCTION
+PoissonDistribution<RealType>::PoissonDistribution(real_type lambda)
+    : lambda_(lambda), sample_normal_(lambda_, std::sqrt(lambda_))
+{
+    CELER_EXPECT(lambda_ > 0);
+}
 
-#include "PoissonDistribution.i.hh"
+//---------------------------------------------------------------------------//
+/*!
+ * Sample a random number according to the distribution.
+ */
+template<class RealType>
+template<class Generator>
+CELER_FUNCTION auto PoissonDistribution<RealType>::operator()(Generator& rng)
+    -> result_type
+{
+    if (lambda_ <= PoissonDistribution::lambda_threshold())
+    {
+        // Use direct method
+        int       k = 0;
+        real_type p = std::exp(lambda_);
+        do
+        {
+            ++k;
+            p *= generate_canonical(rng);
+        } while (p > 1);
+        return static_cast<result_type>(k - 1);
+    }
+    // Use Gaussian approximation rounded to nearest integer
+    return result_type(sample_normal_(rng) + real_type(0.5));
+}
+//---------------------------------------------------------------------------//
+} // namespace celeritas

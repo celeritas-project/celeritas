@@ -271,6 +271,7 @@ celeritas_add_test(random/distributions/NormalDistribution.test.cc)
 celeritas_add_test(random/distributions/PoissonDistribution.test.cc)
 celeritas_add_test(random/distributions/RadialDistribution.test.cc)
 celeritas_add_test(random/distributions/ReciprocalDistribution.test.cc)
+celeritas_add_test(random/distributions/UniformBoxDistribution.test.cc)
 celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 
 #-----------------------------------------------------------------------------#
