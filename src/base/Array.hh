@@ -38,6 +38,9 @@ struct Array
     using const_iterator  = const_pointer;
     //!@}
 
+    //! Static size (not in std::array)
+    static constexpr size_type extent = N;
+
     //// DATA ////
 
     T data_[N]; //!< Storage
@@ -81,6 +84,9 @@ struct Array
     }
     //!@}
 };
+
+template<class T, size_type N>
+constexpr size_type Array<T, N>::extent;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
