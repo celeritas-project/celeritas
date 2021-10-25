@@ -33,6 +33,9 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     if (tid.get() >= states.size())
         return;
 
+    // Clear out energy deposition
+    states.energy_deposition[tid] = 0;
+
     SimTrackView sim(states.sim, tid);
     if (!sim.alive())
         return;

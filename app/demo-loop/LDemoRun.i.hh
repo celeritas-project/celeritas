@@ -6,12 +6,14 @@
 //! \file LDemoRun.i.hh
 //---------------------------------------------------------------------------//
 #include "base/CollectionStateStore.hh"
+#include "base/VectorUtils.hh"
 #include "comm/Logger.hh"
 #include "physics/base/ModelData.hh"
 #include "sim/TrackInitUtils.hh"
 #include "sim/TrackData.hh"
 #include "LDemoParams.hh"
 #include "LDemoKernel.hh"
+#include "EnergyDiagnostic.hh"
 #include "ParticleProcessDiagnostic.hh"
 #include "TrackDiagnostic.hh"
 
@@ -121,6 +123,7 @@ LDemoResult run_demo(LDemoArgs args)
     TrackDiagnostic<M>           track_diagnostic;
     ParticleProcessDiagnostic<M> process_diagnostic(
         params_ref, params.particles, params.physics);
+    EnergyDiagnostic<M> energy_diagnostic(linspace(-700.0, 700.0, 1024 + 1));
 
     // Create states (TODO state store?)
     StateData<Ownership::value, M> state_storage;
@@ -170,6 +173,7 @@ LDemoResult run_demo(LDemoArgs args)
 
         // End-of-step diagnostic(s)
         track_diagnostic.end_step(states_ref);
+        energy_diagnostic.end_step(states_ref);
 
         if (--remaining_steps == 0)
         {
@@ -182,7 +186,7 @@ LDemoResult run_demo(LDemoArgs args)
     LDemoResult result;
     result.time       = {0};
     result.alive      = track_diagnostic.num_alive_per_step();
-    result.edep       = {0};
+    result.edep       = energy_diagnostic.energy_deposition();
     result.process    = process_diagnostic.particle_processes();
     result.total_time = 0;
     return result;

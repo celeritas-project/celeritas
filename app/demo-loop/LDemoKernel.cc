@@ -27,6 +27,9 @@ void pre_step(const ParamsHostRef& params, const StateHostRef& states)
 {
     for (auto tid : range(ThreadId{states.size()}))
     {
+        // Clear out energy deposition
+        states.energy_deposition[tid] = 0;
+
         SimTrackView sim(states.sim, tid);
         if (!sim.alive())
             continue;

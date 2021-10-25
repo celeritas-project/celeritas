@@ -29,6 +29,11 @@ template<class T>
 inline Span<T> move_extend(std::vector<T>&& ext, std::vector<T>* base);
 
 //---------------------------------------------------------------------------//
+// Return evenly spaced numbers over a specific interval
+template<class T>
+inline std::vector<real_type> linspace(T start, T stop, size_type n);
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
 
 #include "VectorUtils.i.hh"

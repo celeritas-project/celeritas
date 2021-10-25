@@ -194,6 +194,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_CUDA)
     set(_cuda_src
       demo-loop/LDemoKernel.cu
+      demo-loop/EnergyDiagnostic.cu
       demo-loop/ParticleProcessDiagnostic.cu
       demo-loop/TrackDiagnostic.cu
     )
@@ -202,6 +203,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     demo-loop/LDemoIO.cc
     demo-loop/LDemoKernel.cc
     demo-loop/LDemoParams.cc
+    demo-loop/EnergyDiagnostic.cc
     demo-loop/ParticleProcessDiagnostic.cc
     demo-loop/TrackDiagnostic.cc
     ${_cuda_src}

@@ -68,6 +68,23 @@ template<class T>
 struct CollectionStorage<T, Ownership::value, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
+//! Storage implementation for managed host data
+template<class T>
+struct CollectionStorage<T, Ownership::value, MemSpace::host>
+{
+    using type = std::vector<T>;
+    type data;
+};
+
+//! Storage implementation for managed device data
+template<class T>
+struct CollectionStorage<T, Ownership::value, MemSpace::device>
+{
+    using type = DeviceVector<T>;
+    type data;
+};
+
+//---------------------------------------------------------------------------//
 //! Assignment semantics for a collection
 template<Ownership W, MemSpace M>
 struct CollectionAssigner
@@ -122,23 +139,6 @@ struct CollectionStorageValidator<Ownership::value>
                        << "collection is too large (" << sizeof(Size)
                        << "-byte int cannot hold " << src << " elements)");
     }
-};
-
-//---------------------------------------------------------------------------//
-//! Storage implementation for managed host data
-template<class T>
-struct CollectionStorage<T, Ownership::value, MemSpace::host>
-{
-    using type = std::vector<T>;
-    type data;
-};
-
-//! Storage implementation for managed device data
-template<class T>
-struct CollectionStorage<T, Ownership::value, MemSpace::device>
-{
-    using type = DeviceVector<T>;
-    type data;
 };
 
 //---------------------------------------------------------------------------//

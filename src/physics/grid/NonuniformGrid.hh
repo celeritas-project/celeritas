@@ -37,6 +37,9 @@ class NonuniformGrid
     explicit inline CELER_FUNCTION
     NonuniformGrid(const ItemRange<value_type>& values, const Values& data);
 
+    // Construct with data (all values)
+    explicit inline CELER_FUNCTION NonuniformGrid(const Values& data);
+
     //! Number of grid points
     CELER_FORCEINLINE_FUNCTION size_type size() const { return data_.size(); }
 
