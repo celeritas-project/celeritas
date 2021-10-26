@@ -25,9 +25,6 @@ using logic_int = unsigned short int;
 //! Identifier for a surface in a universe
 using SurfaceId = OpaqueId<struct Surface>;
 
-//! Identifier for a relocatable set of volumes
-using UniverseId = OpaqueId<struct Universe>;
-
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
