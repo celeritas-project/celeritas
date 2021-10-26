@@ -69,8 +69,6 @@ TEST_F(PlaneAlignedTest, x_plane)
               calc_intersection(p, {0.9999, 0.0, 0.0}, px, SurfaceState::on));
     EXPECT_EQ(no_intersection(),
               calc_intersection(p, {1.0001, 0.0, 0.0}, mx, SurfaceState::on));
-    EXPECT_SOFT_EQ(0.0, calc_intersection(p, {1.0, 0.0, 0.0}, px));
-    EXPECT_SOFT_EQ(0.0, calc_intersection(p, {1.0, 0.0, 0.0}, mx));
     EXPECT_SOFT_EQ(0.01, calc_intersection(p, {0.99, 0.0, 0.0}, px));
     EXPECT_SOFT_EQ(0.01, calc_intersection(p, {1.01, 0.0, 0.0}, mx));
     EXPECT_SOFT_EQ(no_intersection(),
@@ -99,10 +97,10 @@ TEST_F(PlaneAlignedTest, y_plane)
     Real3 px{1.0, 0.0, 0.0};
 
     EXPECT_EQ(no_intersection(),
-              calc_intersection(p, {0, 1 - 1e-8, 0.0}, py, SurfaceState::on));
+              calc_intersection(p, {0, -1 + 1e-8, 0.0}, py, SurfaceState::on));
     EXPECT_SOFT_EQ(0.01, calc_intersection(p, {0.0, -1.01, 0.0}, py));
     EXPECT_SOFT_EQ(no_intersection(),
-                   calc_intersection(p, {0.0, 0.99, 0.0}, my));
+                   calc_intersection(p, {0.0, -1.1, 0.0}, my));
     EXPECT_EQ(no_intersection(), calc_intersection(p, {-1.01, 1.0, 0.0}, px));
 }
 
@@ -125,8 +123,6 @@ TEST_F(PlaneAlignedTest, plane_z)
 
     EXPECT_EQ(no_intersection(),
               calc_intersection(p, {0.0, 0.0, -1e-8}, pz, SurfaceState::on));
-    EXPECT_SOFT_EQ(0.0, calc_intersection(p, {0.0, 0.0, 0.0}, pz));
-    EXPECT_SOFT_EQ(0.0, calc_intersection(p, {0.0, 0.0, 0.0}, mz));
     EXPECT_SOFT_EQ(0.01, calc_intersection(p, {0.0, 0.0, -0.01}, pz));
     EXPECT_SOFT_EQ(0.01, calc_intersection(p, {0.0, 0.0, 0.01}, mz));
     EXPECT_EQ(no_intersection(), calc_intersection(p, {-1.01, 0.0, 0.0}, px));
