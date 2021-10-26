@@ -6,6 +6,7 @@
 //! \file SurfaceAction.test.hh
 //---------------------------------------------------------------------------//
 #include <vector>
+#include "base/CollectionBuilder.hh"
 #include "orange/Data.hh"
 #include "orange/surfaces/Surfaces.hh"
 #include "orange/surfaces/SurfaceAction.hh"
