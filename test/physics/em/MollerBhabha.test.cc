@@ -69,10 +69,11 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         this->set_material_params(inp);
         this->set_material("Cu");
 
-        // Set basic CutoffParams (no cuts)
+        // Set 1 keV cutoffs
         CutoffParams::Input cutoff_inp;
         cutoff_inp.materials = this->material_params();
         cutoff_inp.particles = this->particle_params();
+        cutoff_inp.cutoffs = {{pdg::electron(), {{MevEnergy{0.001}, 0.1234}}}};
         this->set_cutoff_params(cutoff_inp);
 
         // Set MollerBhabhaData
@@ -282,14 +283,14 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     //// Moller
     // Gold values based on the host rng. Energies are in MeV
     const double expected_m_inc_exit_cost[]
-        = {0.9867839018457, 0.9998679545527, 0.9999976849582, 0.9999999998794};
+        = {0.9784675127353, 0.9997401875592, 0.9999953862586, 0.9999999997589};
     const double expected_m_inc_exit_e[]
-        = {7.747030287179, 97.45544686297, 995.4854043205, 99997.64075507};
+        = {6.75726441249, 95.11275692125, 991.0427997072, 99995.28168559};
     const double expected_m_inc_edep[] = {0, 0, 0, 0};
     const double expected_m_sec_cost[]
-        = {0.8707717566471, 0.8489644755061, 0.9034620598411, 0.8353155270718};
+        = {0.9154612855963, 0.91405872098, 0.9478947756541, 0.9066254320384};
     const double expected_m_sec_e[]
-        = {2.252969712821, 2.54455313703, 4.514595679524, 2.359244932953};
+        = {3.24273558751, 4.887243078746, 8.957200292789, 4.718314414109};
 
     //// Bhabha
     // Gold values based on the host rng. Energies are in MeV

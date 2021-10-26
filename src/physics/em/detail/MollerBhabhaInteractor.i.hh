@@ -35,17 +35,13 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     , inc_energy_(particle.energy().value())
     , inc_momentum_(particle.momentum().value())
     , inc_direction_(inc_direction)
-    , secondary_energy_cutoff_(cutoffs.energy(particle.particle_id()).value())
+    , electron_cutoff_(cutoffs.energy(shared_.electron_id).value())
     , allocate_(allocate)
     , inc_particle_is_electron_(particle.particle_id() == shared_.electron_id)
 {
     CELER_EXPECT(particle.particle_id() == shared_.electron_id
                  || particle.particle_id() == shared_.positron_id);
-
-    secondary_energy_cutoff_
-        = max(real_type(inc_particle_is_electron_ ? 0.5 : 1)
-                  * secondary_energy_cutoff_,
-              shared_.min_valid_energy());
+    CELER_EXPECT(electron_cutoff_ >= shared_.min_valid_energy());
 }
 
 //---------------------------------------------------------------------------//
@@ -58,8 +54,7 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 {
-    if (inc_energy_ * real_type(inc_particle_is_electron_ ? 0.5 : 1)
-        <= secondary_energy_cutoff_)
+    if (inc_energy_ <= (inc_particle_is_electron_ ? 2 : 1) * electron_cutoff_)
     {
         // The secondary should not be emitted. This interaction cannot
         // happen and the incident particle must undergo an energy loss
@@ -82,18 +77,19 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     if (inc_particle_is_electron_)
     {
         MollerEnergyDistribution sample_moller(
-            shared_.electron_mass_c_sq, secondary_energy_cutoff_, inc_energy_);
+            shared_.electron_mass_c_sq, electron_cutoff_, inc_energy_);
         epsilon = sample_moller(rng);
     }
     else
     {
         BhabhaEnergyDistribution sample_bhabha(
-            shared_.electron_mass_c_sq, secondary_energy_cutoff_, inc_energy_);
+            shared_.electron_mass_c_sq, electron_cutoff_, inc_energy_);
         epsilon = sample_bhabha(rng);
     }
 
     // Sampled secondary kinetic energy
     const real_type secondary_energy = epsilon * inc_energy_;
+    CELER_ASSERT(secondary_energy >= electron_cutoff_);
 
     // Same equation as in ParticleTrackView::momentum_sq()
     const real_type secondary_momentum = std::sqrt(
