@@ -194,6 +194,8 @@ celeritas_add_test(orange/surfaces/Sphere.test.cc)
 
 celeritas_cudaoptional_test(orange/surfaces/SurfaceAction)
 
+celeritas_add_test(orange/universes/detail/LogicEvaluator.test.cc)
+celeritas_add_test(orange/universes/detail/LogicStack.test.cc)
 celeritas_add_test(orange/universes/detail/SurfaceFunctors.test.cc)
 
 #-----------------------------------------------------------------------------#
