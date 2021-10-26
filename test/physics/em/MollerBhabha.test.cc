@@ -69,10 +69,11 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         this->set_material_params(inp);
         this->set_material("Cu");
 
-        // Set basic CutoffParams (no cuts)
+        // Set 1 keV cutoffs
         CutoffParams::Input cutoff_inp;
         cutoff_inp.materials = this->material_params();
         cutoff_inp.particles = this->particle_params();
+        cutoff_inp.cutoffs = {{pdg::electron(), {{MevEnergy{0.001}, 0.1234}}}};
         this->set_cutoff_params(cutoff_inp);
 
         // Set MollerBhabhaData

@@ -35,13 +35,13 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     , inc_energy_(particle.energy().value())
     , inc_momentum_(particle.momentum().value())
     , inc_direction_(inc_direction)
-    , electron_cutoff_(max(cutoffs.energy(shared_.electron_id).value(),
-                           shared_.min_valid_energy()))
+    , electron_cutoff_(cutoffs.energy(shared_.electron_id).value())
     , allocate_(allocate)
     , inc_particle_is_electron_(particle.particle_id() == shared_.electron_id)
 {
     CELER_EXPECT(particle.particle_id() == shared_.electron_id
                  || particle.particle_id() == shared_.positron_id);
+    CELER_EXPECT(electron_cutoff_ >= shared_.min_valid_energy());
 }
 
 //---------------------------------------------------------------------------//
