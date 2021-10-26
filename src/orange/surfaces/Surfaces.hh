@@ -84,6 +84,8 @@ CELER_FUNCTION T Surfaces::make_surface(SurfaceId sid) const
     static_assert(T::Storage::extent > 0,
                   "Template parameter must be a surface class");
     CELER_EXPECT(sid < this->num_surfaces());
+    CELER_EXPECT(this->surface_type(sid) == T::surface_type());
+
     OpaqueId<real_type> start = data_.offsets[sid];
     OpaqueId<real_type> end{start.get()
                             + static_cast<size_type>(T::Storage::extent)};
