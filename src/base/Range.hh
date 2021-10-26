@@ -47,7 +47,8 @@ using RangeIter = detail::range_iter<T>;
  *
  * Here, T can be any of:
  * - an integer,
- * - an enum that has a "size_" member, or
+ * - an enum that has contiguous zero-indexed values and a "size_" enumeration
+ *   value indicating how many, or
  * - an OpaqueId.
  *
  * It is OK to dereference the end iterator! The result should just be the

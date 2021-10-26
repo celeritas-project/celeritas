@@ -54,10 +54,10 @@ enum class Sense : bool
  */
 enum class Axis
 {
-    x,
-    y,
-    z,
-    size_
+    x,    //!< X axis/I index coordinate
+    y,    //!< Y axis/J index coordinate
+    z,    //!< Z axis/K index coordinate
+    size_ //!< Sentinel value for looping over axes
 };
 
 //---------------------------------------------------------------------------//
@@ -87,8 +87,8 @@ enum class SurfaceType : unsigned char
     kz,  //!< Cone parallel to Z axis
     sq,  //!< Simple quadric
 #endif
-    gq, //!< General quadric
-    size_
+    gq,   //!< General quadric
+    size_ //!< Sentinel value for number of surface types
 };
 
 //---------------------------------------------------------------------------//
