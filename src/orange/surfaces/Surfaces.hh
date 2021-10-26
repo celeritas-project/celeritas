@@ -13,7 +13,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Operations on one or more surfaces.
+ * Access stored surface data.
  *
  * These are all surfaces in the entire geometry.
  */
@@ -22,12 +22,13 @@ class Surfaces
   public:
     //@{
     //! Type aliases
-    using Data = SurfaceData<Ownership::const_reference, MemSpace::native>;
+    using SurfaceDataRef
+        = SurfaceData<Ownership::const_reference, MemSpace::native>;
     //@}
 
   public:
-    // Construct with defaults
-    explicit inline CELER_FUNCTION Surfaces(const Data&);
+    // Construct with reference to persistent data
+    explicit inline CELER_FUNCTION Surfaces(const SurfaceDataRef&);
 
     // Number of surfaces
     inline CELER_FUNCTION SurfaceId::size_type num_surfaces() const;
@@ -40,16 +41,16 @@ class Surfaces
     inline CELER_FUNCTION T make_surface(SurfaceId) const;
 
   private:
-    const Data& data_;
+    const SurfaceDataRef& data_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with defaults.
+ * Construct with reference to persistent data.
  */
-CELER_FUNCTION Surfaces::Surfaces(const Data& data) : data_(data)
+CELER_FUNCTION Surfaces::Surfaces(const SurfaceDataRef& data) : data_(data)
 {
     CELER_EXPECT(data_);
 }
