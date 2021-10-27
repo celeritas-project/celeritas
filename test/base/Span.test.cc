@@ -49,9 +49,21 @@ TEST_F(SpanTest, fixed_size_zero)
     EXPECT_EQ(sizeof(int*), sizeof(empty_span));
     EXPECT_EQ("{}", span_to_string(empty_span));
 
-    auto templ_subspan = empty_span.subspan<0, 0>();
-    EXPECT_TRUE(
-        (std::is_same<decltype(empty_span), decltype(templ_subspan)>::value));
+    {
+        auto templ_subspan = empty_span.subspan<0, 0>();
+        EXPECT_TRUE((
+            std::is_same<decltype(empty_span), decltype(templ_subspan)>::value));
+    }
+    {
+        auto templ_subspan = empty_span.first<0>();
+        EXPECT_TRUE((
+            std::is_same<decltype(empty_span), decltype(templ_subspan)>::value));
+    }
+    {
+        auto templ_subspan = empty_span.last<0>();
+        EXPECT_TRUE((
+            std::is_same<decltype(empty_span), decltype(templ_subspan)>::value));
+    }
 
     // Test copy constructor
     Span<int, 0> other_span{empty_span};
@@ -157,6 +169,43 @@ TEST_F(SpanTest, dynamic_size)
             (std::is_same<Span<int, 2>, decltype(templ_subspan)>::value));
         EXPECT_EQ(local_data + 1, templ_subspan.data());
         EXPECT_EQ(2, templ_subspan.size());
+    }
+    {
+        auto templ_subspan = local_span.first<2>();
+        EXPECT_TRUE(
+            (std::is_same<Span<int, 2>, decltype(templ_subspan)>::value));
+        EXPECT_EQ(local_data, templ_subspan.data());
+        EXPECT_EQ(2, templ_subspan.size());
+    }
+    {
+        auto templ_subspan = local_span.first(2);
+        EXPECT_TRUE((std::is_same<Span<int>, decltype(templ_subspan)>::value));
+        EXPECT_EQ(local_data, templ_subspan.data());
+        EXPECT_EQ(2, templ_subspan.size());
+    }
+    {
+        auto templ_subspan = local_span.last<2>();
+        EXPECT_TRUE(
+            (std::is_same<Span<int, 2>, decltype(templ_subspan)>::value));
+        EXPECT_EQ(local_data + 1, templ_subspan.data());
+        EXPECT_EQ(2, templ_subspan.size());
+    }
+    {
+        auto templ_subspan = local_span.last(2);
+        EXPECT_TRUE((std::is_same<Span<int>, decltype(templ_subspan)>::value));
+        EXPECT_EQ(local_data + 1, templ_subspan.data());
+        EXPECT_EQ(2, templ_subspan.size());
+    }
+    {
+        auto templ_subspan = local_span.last(3);
+        EXPECT_TRUE((std::is_same<Span<int>, decltype(templ_subspan)>::value));
+        EXPECT_EQ(local_data, templ_subspan.data());
+        EXPECT_EQ(3, templ_subspan.size());
+    }
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(local_span.last(4), celeritas::DebugError);
+        EXPECT_THROW(local_span.last<4>(), celeritas::DebugError);
     }
 
     auto func_subspan = local_span.subspan(1);
