@@ -20,7 +20,7 @@ except (IndexError, TypeError):
 
 use_device = bool(strtobool(environ.get('CELERITAS_USE_DEVICE', 'true')))
 run_name = (path.splitext(path.basename(geometry_filename))[0]
-            + '-gpu' if use_device else '-cpu')
+            + ('-gpu' if use_device else '-cpu'))
 
 geant_exp_exe = environ.get('CELERITAS_GEANT_EXPORTER_EXE', './geant-exporter')
 physics_filename = run_name + ".root"
