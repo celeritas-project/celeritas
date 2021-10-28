@@ -40,8 +40,8 @@ namespace celeritas
  * accepting early if \f$ U < 1 - 0.0331 Z^4 \f$.
  *
  * Though this method is valid for \f$ \alpha \ge 1 \f$, it can easily be
- * extended for \f$ \alpha < 1 \f$: if \f$ X \sim \Gamma(\alpha + 1) \$ and \f$
- * U \sim U(0,1) \f$, then \f$ X U^{1/\alpha} \sim \Gamma(\alpha) \f$.
+ * extended for \f$ \alpha < 1 \f$: if \f$ X \sim \Gamma(\alpha + 1) \f$
+ * and \f$ U \sim U(0,1) \f$, then \f$ X U^{1/\alpha} \sim \Gamma(\alpha) \f$.
  */
 template<class RealType = ::celeritas::real_type>
 class GammaDistribution

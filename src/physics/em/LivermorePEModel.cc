@@ -71,19 +71,21 @@ auto LivermorePEModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Apply the interaction kernel.
  */
-void LivermorePEModel::interact(const ModelInteractRef<MemSpace::device>& data) const
+void LivermorePEModel::interact(const DeviceInteractRef& data) const
 {
     generated::livermore_pe_interact(this->device_ref(), data);
 }
 
-void LivermorePEModel::interact(const ModelInteractRef<MemSpace::host>& data) const
+void LivermorePEModel::interact(const HostInteractRef& data) const
 {
     generated::livermore_pe_interact(this->host_ref(), data);
 }
 
+//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

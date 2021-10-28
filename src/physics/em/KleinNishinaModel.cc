@@ -49,16 +49,16 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Apply the interaction kernel.
  */
-void KleinNishinaModel::interact(
-    const ModelInteractRef<MemSpace::device>& data) const
+void KleinNishinaModel::interact(const DeviceInteractRef& data) const
 {
     generated::klein_nishina_interact(interface_, data);
 }
 
-void KleinNishinaModel::interact(const ModelInteractRef<MemSpace::host>& data) const
+void KleinNishinaModel::interact(const HostInteractRef& data) const
 {
     generated::klein_nishina_interact(interface_, data);
 }
@@ -72,5 +72,6 @@ ModelId KleinNishinaModel::model_id() const
     return interface_.model_id;
 }
 
+//!@}
 //---------------------------------------------------------------------------//
 } // namespace celeritas

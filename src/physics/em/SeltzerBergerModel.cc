@@ -85,20 +85,20 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Apply the interaction kernel.
  */
-void SeltzerBergerModel::interact(
-    const ModelInteractRef<MemSpace::device>& data) const
+void SeltzerBergerModel::interact(const DeviceInteractRef& data) const
 {
     generated::seltzer_berger_interact(this->device_ref(), data);
 }
 
-void SeltzerBergerModel::interact(const ModelInteractRef<MemSpace::host>& data) const
+void SeltzerBergerModel::interact(const HostInteractRef& data) const
 {
     generated::seltzer_berger_interact(this->host_ref(), data);
 }
-
+//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

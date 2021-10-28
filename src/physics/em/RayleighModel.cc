@@ -58,19 +58,21 @@ auto RayleighModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Apply the interaction kernel.
  */
-void RayleighModel::interact(const ModelInteractRef<MemSpace::device>& data) const
+void RayleighModel::interact(const DeviceInteractRef& data) const
 {
     generated::rayleigh_interact(this->device_ref(), data);
 }
 
-void RayleighModel::interact(const ModelInteractRef<MemSpace::host>& data) const
+void RayleighModel::interact(const HostInteractRef& data) const
 {
     generated::rayleigh_interact(this->host_ref(), data);
 }
 
+//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

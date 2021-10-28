@@ -51,20 +51,20 @@ auto BetheHeitlerModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Apply the interaction kernel.
  */
-void BetheHeitlerModel::interact(
-    const ModelInteractRef<MemSpace::device>& data) const
+void BetheHeitlerModel::interact(const DeviceInteractRef& data) const
 {
     generated::bethe_heitler_interact(interface_, data);
 }
 
-void BetheHeitlerModel::interact(const ModelInteractRef<MemSpace::host>& data) const
+void BetheHeitlerModel::interact(const HostInteractRef& data) const
 {
     generated::bethe_heitler_interact(interface_, data);
 }
-
+//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

@@ -13,6 +13,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Create track initializers on device from primary particles.
  *
@@ -69,6 +70,6 @@ void extend_from_primaries(const TrackInitParamsHostRef& params,
         detail::process_primaries(primaries, make_ref(*data));
     }
 }
-
+//!@}
 //---------------------------------------------------------------------------//
 } // namespace celeritas
