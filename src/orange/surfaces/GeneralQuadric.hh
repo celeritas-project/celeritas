@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * General quadric surface.
  *
- * General quadrics that cannot be simplified to other CPTE surfaces include
+ * General quadrics that cannot be simplified to other ORANGE surfaces include
  * hyperboloids and paraboloids; and non-axis-aligned cylinders, ellipsoids,
  * and cones.
  *
