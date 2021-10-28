@@ -78,7 +78,9 @@ enum class SurfaceType : unsigned char
     cy,  //!< Cylinder parallel to Y axis
     cz,  //!< Cylinder parallel to Z axis
     p,   //!< General plane
-    s,   //!< Sphere
+#endif
+    s, //!< Sphere
+#if 0
     kx,  //!< Cone parallel to X axis
     ky,  //!< Cone parallel to Y axis
     kz,  //!< Cone parallel to Z axis

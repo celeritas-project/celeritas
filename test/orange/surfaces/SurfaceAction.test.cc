@@ -58,8 +58,6 @@ std::string senses_to_string(Span<const Sense> s)
     });
     return result;
 }
-
-constexpr real_type noint = celeritas::no_intersection();
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -81,6 +79,7 @@ class SurfaceActionTest : public celeritas::Test
         insert(CCylX(5));
         insert(CCylY(6));
         insert(CCylZ(7));
+        insert(Sphere({1, 2, 3}, 1.5));
         insert(GeneralQuadric({0, 1, 2}, {3, 4, 5}, {6, 7, 8}, 9));
 
         surf_params_ = SurfaceDataMirror{std::move(surface_data)};
@@ -153,6 +152,7 @@ TEST_F(SurfaceActionTest, string)
         "Cyl x: r=5",
         "Cyl y: r=6",
         "Cyl z: r=7",
+        "Sphere: r=1.5 at {1,2,3}",
         "GQuadric: {0,1,2} {3,4,5} {6,7,8} 9"};
     // clang-format on
     EXPECT_VEC_EQ(expected_strings, strings);
@@ -179,17 +179,18 @@ TEST_F(SurfaceActionTest, host_distances)
     // PRINT_EXPECTED(state_ref.distance[test_threads]);
 
     const char expected_senses[]
-        = {'-', '-', '+', '+', '-', '-', '+', '-', '+', '-'};
-    const double expected_distance[] = {noint,
-                                        noint,
-                                        noint,
-                                        noint,
+        = {'-', '-', '+', '+', '-', '-', '+', '+', '-', '-'};
+    const double expected_distance[] = {inf,
+                                        inf,
+                                        inf,
+                                        inf,
                                         8.623486582635,
                                         8.115429697208,
-                                        noint,
-                                        noint,
-                                        22.04764572126,
-                                        noint};
+                                        inf,
+                                        5.436749550654,
+                                        0.9761596300109,
+                                        5.848454015622};
+
     EXPECT_VEC_EQ(expected_senses,
                   senses_to_string(state_ref.sense[test_threads]));
     EXPECT_VEC_SOFT_EQ(expected_distance, state_ref.distance[test_threads]);
@@ -222,17 +223,17 @@ TEST_F(SurfaceActionTest, TEST_IF_CELERITAS_CUDA(device_distances))
         auto test_threads = celeritas::range(ThreadId{10});
 
         const char expected_senses[]
-            = {'-', '-', '+', '+', '-', '-', '+', '-', '+', '-'};
-        const double expected_distance[] = {noint,
-                                            noint,
-                                            noint,
-                                            noint,
+            = {'-', '-', '+', '+', '-', '-', '+', '+', '-', '-'};
+        const double expected_distance[] = {inf,
+                                            inf,
+                                            inf,
+                                            inf,
                                             8.623486582635,
                                             8.115429697208,
-                                            noint,
-                                            noint,
-                                            22.04764572126,
-                                            noint};
+                                            inf,
+                                            5.436749550654,
+                                            0.9761596300109,
+                                            5.848454015622};
         EXPECT_VEC_EQ(expected_senses,
                       senses_to_string(host_states.sense[test_threads]));
         EXPECT_VEC_SOFT_EQ(expected_distance,

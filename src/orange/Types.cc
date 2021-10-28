@@ -32,7 +32,9 @@ const char* to_cstring(SurfaceType value)
         "cy",
         "cz",
         "p",
+#endif
         "s",
+#if 0
         "kx",
         "ky",
         "kz",

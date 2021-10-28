@@ -14,6 +14,7 @@
 #include "../PlaneAligned.hh"
 #include "../CylCentered.hh"
 #include "../GeneralQuadric.hh"
+#include "../Sphere.hh"
 #include "../SurfaceTypeTraits.hh"
 #include "../Surfaces.hh"
 
@@ -98,7 +99,9 @@ CELER_FUNCTION auto SurfaceAction<F>::operator()(SurfaceId id) -> result_type
         ORANGE_SURF_APPLY_IMPL(cy);
         ORANGE_SURF_APPLY_IMPL(cz);
         ORANGE_SURF_APPLY_IMPL(p);
+#endif
         ORANGE_SURF_APPLY_IMPL(s);
+#if 0
         ORANGE_SURF_APPLY_IMPL(kx);
         ORANGE_SURF_APPLY_IMPL(ky);
         ORANGE_SURF_APPLY_IMPL(kz);

@@ -12,6 +12,7 @@
 #include "CylCentered.hh"
 #include "GeneralQuadric.hh"
 #include "PlaneAligned.hh"
+#include "Sphere.hh"
 
 namespace celeritas
 {
@@ -48,6 +49,13 @@ std::ostream& operator<<(std::ostream& os, const PlaneAligned<T>& s)
 
 ORANGE_INSTANTIATE_SHAPE_STREAM(PlaneAligned);
 //---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, const Sphere& s)
+{
+    os << "Sphere: r=" << std::sqrt(s.radius_sq()) << " at "
+       << make_span(s.origin());
+    return os;
+}
 
+//---------------------------------------------------------------------------//
 #undef ORANGE_INSTANTIATE_SHAPE_STREAM
 } // namespace celeritas
