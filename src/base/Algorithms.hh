@@ -82,7 +82,7 @@ CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b) noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the lower of two values.
+ * Return an iterator to the lowest value in the range.
  */
 template<class ForwardIt>
 inline CELER_FUNCTION ForwardIt min_element(ForwardIt iter, ForwardIt last)

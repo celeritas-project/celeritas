@@ -272,18 +272,6 @@ TEST(TestCCylZ, calc_intersections_on_surface)
         EXPECT_EQ(no_intersection(), distances[0]);
         EXPECT_EQ(no_intersection(), distances[1]);
 
-        // Tangent
-        distances = cyl.calc_intersections(
-            Real3{-1 + eps, 0, 0}, Real3{0, 1, 0}, SurfaceState::on);
-        EXPECT_EQ(no_intersection(), distances[0]);
-        EXPECT_EQ(no_intersection(), distances[1]);
-
-        // Heading in, slightly inside
-        distances = cyl.calc_intersections(
-            Real3{-1 + eps, 0, 0}, Real3{1, 0, 0}, SurfaceState::on);
-        EXPECT_SOFT_NEAR(2.0 - eps, distances[0], eps);
-        EXPECT_EQ(no_intersection(), distances[1]);
-
         // Heading away, slightly outside
         distances = cyl.calc_intersections(
             Real3{1.0 - eps, 0, 0}, Real3{1, 0, 0}, SurfaceState::on);

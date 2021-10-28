@@ -71,7 +71,7 @@ class CylCentered
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(const Real3& pos) const;
 
-    // Determine the sense of the position relative to this surface
+    // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         const Real3& pos, const Real3& dir, SurfaceState on_surface) const;
 
@@ -144,7 +144,7 @@ CELER_FUNCTION SignedSense CylCentered<T>::calc_sense(const Real3& pos) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Determine the sense of the position relative to this surface.
+ * Calculate all possible straight-line intersections with this surface.
  */
 template<Axis T>
 CELER_FUNCTION auto
