@@ -8,6 +8,7 @@
 #include "base/Constants.hh"
 #include "base/Units.hh"
 
+#include <cmath>
 #include "celeritas_test.hh"
 
 using namespace celeritas::units;
@@ -17,6 +18,14 @@ using celeritas::real_type;
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
+TEST(UnitsTest, mathematical)
+{
+    EXPECT_DOUBLE_EQ(euler, std::exp(1.0));
+    EXPECT_DOUBLE_EQ(pi, std::acos(-1.0));
+    EXPECT_DOUBLE_EQ(sqrt_two, std::sqrt(2.0));
+    EXPECT_DOUBLE_EQ(sqrt_three, std::sqrt(3.0));
+}
 
 TEST(UnitsTest, equivalence)
 {
