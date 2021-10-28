@@ -8,6 +8,8 @@
 #include "TrackInitUtils.hh"
 
 #include "base/Algorithms.hh"
+#include "base/DeviceVector.hh"
+#include "sim/TrackInitData.hh"
 #include "detail/InitializeTracks.hh"
 
 namespace celeritas
@@ -22,7 +24,7 @@ namespace celeritas
  * been initialized on device or the size of the available storage in the track
  * initializer vector, whichever is smaller).
  */
-void extend_from_primaries(const TrackInitParamsHostRef& params,
+void extend_from_primaries(const TrackInitParamsData<Ownership::const_reference, MemSpace::host>& params,
                            TrackInitStateDeviceVal*      data)
 {
     CELER_EXPECT(params);
@@ -47,7 +49,7 @@ void extend_from_primaries(const TrackInitParamsHostRef& params,
     }
 }
 
-void extend_from_primaries(const TrackInitParamsHostRef& params,
+void extend_from_primaries(const TrackInitParamsData<Ownership::const_reference, MemSpace::host>& params,
                            TrackInitStateHostVal*        data)
 {
     CELER_EXPECT(params);
