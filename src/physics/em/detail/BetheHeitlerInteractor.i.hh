@@ -36,9 +36,9 @@ BetheHeitlerInteractor::BetheHeitlerInteractor(
     , element_(element)
 {
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
-    CELER_EXPECT(inc_energy_.value() > 2 / shared_.inv_electron_mass);
+    CELER_EXPECT(inc_energy_.value() > 2 * shared_.electron_mass);
 
-    epsilon0_ = 1 / (shared_.inv_electron_mass * inc_energy_.value());
+    epsilon0_ = shared_.electron_mass / inc_energy_.value();
     CELER_ENSURE(epsilon0_ < real_type(0.5));
 }
 
@@ -133,13 +133,12 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     result.secondaries = {secondaries, 2};
 
     // Outgoing secondaries are electron and positron
-    MevMass electron_mass{1 / shared_.inv_electron_mass};
     secondaries[0].particle_id = shared_.electron_id;
     secondaries[1].particle_id = shared_.positron_id;
     secondaries[0].energy      = units::MevEnergy{
-        (1 - epsilon) * inc_energy_.value() - electron_mass.value()};
+        (1 - epsilon) * inc_energy_.value() - shared_.electron_mass};
     secondaries[1].energy = units::MevEnergy{epsilon * inc_energy_.value()
-                                             - electron_mass.value()};
+                                             - shared_.electron_mass};
     // Select charges for child particles (e-, e+) randomly
     if (BernoulliDistribution(half)(rng))
     {
@@ -152,14 +151,14 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     real_type                          phi = sample_phi(rng);
 
     // Electron
-    TsaiUrbanDistribution sample_electron_angle(secondaries[0].energy,
-                                                electron_mass);
-    real_type             cost = sample_electron_angle(rng);
+    TsaiUrbanDistribution sample_electron_angle(
+        secondaries[0].energy, MevMass{shared_.electron_mass});
+    real_type cost = sample_electron_angle(rng);
     secondaries[0].direction
         = rotate(from_spherical(cost, phi), inc_direction_);
     // Positron
-    TsaiUrbanDistribution sample_positron_angle(secondaries[1].energy,
-                                                electron_mass);
+    TsaiUrbanDistribution sample_positron_angle(
+        secondaries[1].energy, MevMass{shared_.electron_mass});
     cost = sample_positron_angle(rng);
     secondaries[1].direction
         = rotate(from_spherical(cost, phi + constants::pi), inc_direction_);

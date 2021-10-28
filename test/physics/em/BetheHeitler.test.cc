@@ -57,12 +57,11 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
               ElementaryCharge{1},
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
-        const auto& params = *this->particle_params();
-        data_.electron_id  = params.find(pdg::electron());
-        data_.positron_id  = params.find(pdg::positron());
-        data_.gamma_id     = params.find(pdg::gamma());
-        data_.inv_electron_mass
-            = 1 / (params.get(data_.electron_id).mass().value());
+        const auto& params  = *this->particle_params();
+        data_.electron_id   = params.find(pdg::electron());
+        data_.positron_id   = params.find(pdg::positron());
+        data_.gamma_id      = params.find(pdg::gamma());
+        data_.electron_mass = params.get(data_.electron_id).mass().value();
 
         // Set default particle to photon with energy of 100 MeV
         this->set_inc_particle(pdg::gamma(), MevEnergy{100.0});
