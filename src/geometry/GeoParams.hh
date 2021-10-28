@@ -43,6 +43,7 @@ class GeoParams
     const std::string& id_to_label(VolumeId vol_id) const;
 
     // Get the ID corresponding to a label
+    // TODO: rename to find ?? see MaterialParams etc.
     VolumeId label_to_id(const std::string& label) const;
 
     //! Number of volumes

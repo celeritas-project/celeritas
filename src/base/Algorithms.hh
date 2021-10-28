@@ -81,6 +81,26 @@ CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b) noexcept
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return an iterator to the lowest value in the range.
+ */
+template<class ForwardIt>
+inline CELER_FUNCTION ForwardIt min_element(ForwardIt iter, ForwardIt last)
+{
+    // Avoid incrementing past the end
+    if (iter == last)
+        return last;
+
+    ForwardIt result = iter++;
+    for (; iter != last; ++iter)
+    {
+        if (*iter < *result)
+            result = iter;
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 // Replace/extend <cmath>
 //---------------------------------------------------------------------------//
 /*!

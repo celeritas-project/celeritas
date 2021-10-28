@@ -226,9 +226,7 @@ TEST_F(ParticleDeviceTest, TEST_IF_CELERITAS_CUDA(calc_props))
 
     // Run GPU test
     PTVTestOutput result;
-#if CELERITAS_USE_CUDA
     result = ptv_test(input);
-#endif
 
     // Check results
     const double expected_props[] = {0.5,

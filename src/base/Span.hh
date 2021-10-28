@@ -145,6 +145,9 @@ class Span
     detail::SpanImpl<T, Extent> s_;
 };
 
+template<class T, std::size_t N>
+constexpr std::size_t Span<T, N>::extent;
+
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//

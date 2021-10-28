@@ -88,7 +88,7 @@ struct GeoStateData
 
     //// METHODS ////
 
-    //! True if assigned
+    //! True if sizes are consistent and states are assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return this->size() > 0 && dir.size() == this->size()

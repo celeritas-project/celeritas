@@ -41,8 +41,9 @@ namespace celeritas
  * data collections are typically accessed by thread ID. \c ParamsData are
  * immutable and always "mirrored" on both host and device. Sometimes it's
  * sensible to partition \c ParamsData into discrete helper structs (stored by
- * value), each with a group of collections: each of these should be called a
- * \c DataGroup.
+ * value), each with a group of collections, and perhaps another struct that
+ * has non-templated scalars (since the default assignment operator is less
+ * work than manually copying scalars in a templated assignment operator.
  *
  * A collection group has the following requirements to be compatible with the
 \c

@@ -13,7 +13,7 @@ mkdir ${BUILD_DIR} 2>/dev/null \
 cd ${BUILD_DIR}
 
 module purge
-module load cuda
+module load cuda/10
 CELERITAS_ENV=$SPACK_ROOT/var/spack/environments/celeritas/.spack-env/view
 export PATH=$CELERITAS_ENV/bin:${PATH}
 export CMAKE_PREFIX_PATH=$CELERITAS_ENV:${CMAKE_PREFIX_PATH}

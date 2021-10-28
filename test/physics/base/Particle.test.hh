@@ -42,5 +42,12 @@ struct PTVTestOutput
 //! Run on device and return results
 PTVTestOutput ptv_test(PTVTestInput);
 
+#if !CELERITAS_USE_CUDA
+inline PTVTestOutput ptv_test(PTVTestInput)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+#endif
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test
