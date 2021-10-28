@@ -24,8 +24,9 @@ namespace celeritas
  * been initialized on device or the size of the available storage in the track
  * initializer vector, whichever is smaller).
  */
-void extend_from_primaries(const TrackInitParamsData<Ownership::const_reference, MemSpace::host>& params,
-                           TrackInitStateDeviceVal*      data)
+void extend_from_primaries(
+    const TrackInitParamsData<Ownership::const_reference, MemSpace::host>& params,
+    TrackInitStateDeviceVal* data)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(data && *data);
@@ -49,8 +50,9 @@ void extend_from_primaries(const TrackInitParamsData<Ownership::const_reference,
     }
 }
 
-void extend_from_primaries(const TrackInitParamsData<Ownership::const_reference, MemSpace::host>& params,
-                           TrackInitStateHostVal*        data)
+void extend_from_primaries(
+    const TrackInitParamsData<Ownership::const_reference, MemSpace::host>& params,
+    TrackInitStateHostVal* data)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(data && *data);

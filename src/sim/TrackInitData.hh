@@ -27,10 +27,7 @@ namespace celeritas
  * for track initializers and parent track IDs.
  */
 template<Ownership W, MemSpace M>
-struct TrackInitParamsData
-{
-    static_assert(static_cast<int>(W) == -1, "This class must be specialized");
-};
+struct TrackInitParamsData;
 
 template<Ownership W>
 struct TrackInitParamsData<W, MemSpace::device>
