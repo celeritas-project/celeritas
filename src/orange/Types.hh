@@ -127,35 +127,6 @@ enum class SurfaceState : bool
 };
 
 //---------------------------------------------------------------------------//
-// CLASSES
-//---------------------------------------------------------------------------//
-/*!
- * Volume ID and surface ID after initialization.
- *
- * Possible configurations for the initialization result ('X' means 'has
- * a valid ID', i.e. evaluates to true):
- *
- *  Vol   | Surface | Description
- * :----: | :-----: | :-------------------------------
- *        |         | Failed to find new volume
- *   X    |         | Initialized
- *   X    |   X     | Crossed surface into new volume
- *        |   X     | Initialized on a surface (reject)
- */
-struct Initialization
-{
-    VolumeId  volume;
-    SurfaceId surface;
-    Sense     sense = Sense::inside; // Sense if on a surface
-
-    //! Whether initialization succeeded
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return static_cast<bool>(volume);
-    }
-};
-
-//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)
 //---------------------------------------------------------------------------//
 /*!
@@ -224,7 +195,7 @@ CELER_CONSTEXPR_FUNCTION SurfaceState to_surface_state(SignedSense s)
  *
  * \todo There is probably a better place to put this since it's not a "type".
  * \todo A value of zero might also work since zero-length steps are
- * prohibited.
+ * prohibited. But we'll need custom `min` and `min_element` in that case.
  */
 CELER_CONSTEXPR_FUNCTION real_type no_intersection()
 {
