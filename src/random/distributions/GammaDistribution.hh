@@ -25,7 +25,7 @@ namespace celeritas
  * \alpha \f$ and a scale parameter \f$ \beta \f$ and has the PDF:
  * \f[
    f(x; \alpha, \beta) = \frac{x^{\alpha - 1} e^{-x / \beta}}{\beta^\alpha
- \Gamma(\alpha)} \quad \text{ for } x > 0, \quad \alpha, \beta > 0
+ \Gamma(\alpha)} \quad \mathrm{for}\  x > 0, \quad \alpha, \beta > 0
    \f]
  * The algorithm described in Marsaglia, G. and Tsang, W. W. "A simple method
  * for generating gamma variables". ACM Transactions on Mathematical Software.
@@ -40,8 +40,8 @@ namespace celeritas
  * accepting early if \f$ U < 1 - 0.0331 Z^4 \f$.
  *
  * Though this method is valid for \f$ \alpha \ge 1 \f$, it can easily be
- * extended for \f$ \alpha < 1 \f$: if \f$ X \sim \Gamma(\alpha + 1) \$ and \f$
- * U \sim U(0,1) \f$, then \f$ X U^{1/\alpha} \sim \Gamma(\alpha) \f$.
+ * extended for \f$ \alpha < 1 \f$: if \f$ X \sim \Gamma(\alpha + 1) \f$
+ * and \f$ U \sim U(0,1) \f$, then \f$ X U^{1/\alpha} \sim \Gamma(\alpha) \f$.
  */
 template<class RealType = ::celeritas::real_type>
 class GammaDistribution

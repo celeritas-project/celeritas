@@ -57,21 +57,21 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Apply the interaction kernel.
  */
-void MuBremsstrahlungModel::interact(
-    const ModelInteractRef<MemSpace::device>& data) const
+void MuBremsstrahlungModel::interact(const DeviceInteractRef& data) const
 {
     generated::mu_bremsstrahlung_interact(interface_, data);
 }
 
-void MuBremsstrahlungModel::interact(
-    const ModelInteractRef<MemSpace::host>& data) const
+void MuBremsstrahlungModel::interact(const HostInteractRef& data) const
 {
     generated::mu_bremsstrahlung_interact(interface_, data);
 }
 
+//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.
