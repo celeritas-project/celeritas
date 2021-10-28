@@ -25,7 +25,7 @@ namespace celeritas
  * \alpha \f$ and a scale parameter \f$ \beta \f$ and has the PDF:
  * \f[
    f(x; \alpha, \beta) = \frac{x^{\alpha - 1} e^{-x / \beta}}{\beta^\alpha
- \Gamma(\alpha)} \quad \text{ for } x > 0, \quad \alpha, \beta > 0
+ \Gamma(\alpha)} \quad \mathrm{for}\  x > 0, \quad \alpha, \beta > 0
    \f]
  * The algorithm described in Marsaglia, G. and Tsang, W. W. "A simple method
  * for generating gamma variables". ACM Transactions on Mathematical Software.
