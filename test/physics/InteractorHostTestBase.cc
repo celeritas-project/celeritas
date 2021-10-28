@@ -158,6 +158,13 @@ void InteractorHostTestBase::check_energy_conservation(
     for (const Secondary& s : interaction.secondaries)
     {
         exit_energy += s.energy.value();
+
+        // Account for positron production
+        if (s.particle_id == particle_params_->find(pdg::positron()))
+        {
+            exit_energy
+                += 2 * particle_params_->get(s.particle_id).mass().value();
+        }
     }
 
     // Compare against incident particle
