@@ -461,13 +461,13 @@ int main(int argc, char* argv[])
     //// Load the physics list ////
 
     // User-defined physics list (see PhysicsList.hh)
-    // auto physics_list = std::make_unique<PhysicsList>();
+    auto physics_list = std::make_unique<PhysicsList>();
 
     // EM Standard Physics
-    auto physics_constructor = std::make_unique<std::vector<G4String>>();
-    physics_constructor->push_back("G4EmStandardPhysics");
-    auto physics_list = std::make_unique<G4GenericPhysicsList>(
-        physics_constructor.release());
+    // auto physics_constructor = std::make_unique<std::vector<G4String>>();
+    // physics_constructor->push_back("G4EmStandardPhysics");
+    // auto physics_list = std::make_unique<G4GenericPhysicsList>(
+    // physics_constructor.release());
 
     // Full Physics
     // auto physics_list = std::make_unique<FTFP_BERT>();
