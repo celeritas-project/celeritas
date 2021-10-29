@@ -23,8 +23,8 @@ struct BetheHeitlerData
     //! Model ID
     ModelId model_id;
 
-    //! Inverse of electron mass [1 / MevMass]
-    real_type inv_electron_mass;
+    //! Electron mass [MevMass]
+    real_type electron_mass;
     //! ID of an electron
     ParticleId electron_id;
     //! ID of an positron
@@ -35,7 +35,7 @@ struct BetheHeitlerData
     //! Check whether the view is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return model_id && inv_electron_mass > 0 && electron_id && positron_id
+        return model_id && electron_mass > 0 && electron_id && positron_id
                && gamma_id;
     }
 };

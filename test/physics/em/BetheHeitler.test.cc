@@ -57,12 +57,11 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
               ElementaryCharge{1},
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
-        const auto& params    = *this->particle_params();
-        data_.electron_id     = params.find(pdg::electron());
-        data_.positron_id     = params.find(pdg::positron());
-        data_.gamma_id        = params.find(pdg::gamma());
-        data_.inv_electron_mass
-            = 1 / (params.get(data_.electron_id).mass().value());
+        const auto& params  = *this->particle_params();
+        data_.electron_id   = params.find(pdg::electron());
+        data_.positron_id   = params.find(pdg::positron());
+        data_.gamma_id      = params.find(pdg::gamma());
+        data_.electron_mass = params.get(data_.electron_id).mass().value();
 
         // Set default particle to photon with energy of 100 MeV
         this->set_inc_particle(pdg::gamma(), MevEnergy{100.0});
@@ -165,12 +164,14 @@ TEST_F(BetheHeitlerInteractorTest, basic)
     EXPECT_EQ(2 * num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    const double expected_energy1[]
-        = {16.57248532448, 99.25227118843, 24.00633179151, 95.23685783041};
-    const double expected_energy2[]
-        = {83.42751467552, 0.7477288115688, 75.99366820849, 4.763142169585};
-    const double expected_angle[]
-        = {0.9999694782475, 0.9111977209393, 0.9997556894823, 0.9921593039016};
+    const double expected_energy1[] = {
+        16.0614863783763, 98.7412722423312, 23.4953328454145, 94.7258588843146};
+    const double expected_energy2[] = {
+        82.9165157294237, 0.236729865468827, 75.4826692623855, 4.25214322348543};
+    const double expected_angle[] = {0.999968990366521,
+                                     0.749593336413488,
+                                     0.999747408792083,
+                                     0.99092640152178};
 
     EXPECT_VEC_SOFT_EQ(expected_energy1, energy1);
     EXPECT_VEC_SOFT_EQ(expected_energy2, energy2);
@@ -235,6 +236,6 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
 
     // Gold values for average number of calls to RNG
     const double expected_avg_engine_samples[]
-        = {18.375, 23.125, 22.75, 23.3125, 22.5625};
+        = {19.5, 23.5, 23.3125, 23.3125, 22.5625};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

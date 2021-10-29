@@ -31,8 +31,8 @@ BetheHeitlerModel::BetheHeitlerModel(ModelId               id,
                    << "missing electron, positron and/or gamma particles "
                       "(required for "
                    << this->label() << ")");
-    interface_.inv_electron_mass
-        = 1 / particles.get(interface_.electron_id).mass().value();
+    interface_.electron_mass
+        = particles.get(interface_.electron_id).mass().value();
     CELER_ENSURE(interface_);
 }
 
