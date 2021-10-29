@@ -109,31 +109,39 @@ enum class ImportModelClass
  * Conversely, element selector physics vectors are model dependent. Thus, for
  * simplicity, they are stored directly as physics vectors and retrieved by
  * providing the model, material, and element ids:
- * \c element_selector_xs.at(model_id).at(material_id).find(element_id)->second
+ * \c element_selectors.at(model_idx).at(material_id).find(element_id)->second
  */
 struct ImportProcess
 {
     //!@{
     //! Type aliases
     // One map per material: <element_id, physics_vector>
-    using ElementCrossSectionMap = std::map<int, ImportPhysicsVector>;
+    using ElementPhysicsVectorMap = std::map<int, ImportPhysicsVector>;
     // Spans all materials, one per model
-    using ElementSelector = std::vector<ElementCrossSectionMap>;
+    using ElementSelector = std::vector<ElementPhysicsVectorMap>;
     //!@}
+
+    /* Or should I use
+    struct ElementSelectorData
+    {
+        int                 element_id;
+        ImportPhysicsVector physics_vector;
+    };
+    */
 
     int                             particle_pdg;
     ImportProcessType               process_type;
     ImportProcessClass              process_class;
     std::vector<ImportModelClass>   models;
     std::vector<ImportPhysicsTable> tables;
-    std::vector<ElementSelector>    element_selector_xs;
+    std::vector<ElementSelector>    element_selectors;
 
     explicit operator bool() const
     {
         return process_type != ImportProcessType::not_defined
                && process_class != ImportProcessClass::unknown
                && !models.empty() && !tables.empty()
-               && !element_selector_xs.empty();
+               && !element_selectors.empty();
     }
 };
 

@@ -54,6 +54,32 @@
 #include "GeantLoggerAdapter.hh"
 #include "GeantExceptionHandler.hh"
 
+//////////////////////////////////
+#include <iostream>
+#include "globals.hh"
+#include "G4UnitsTable.hh"
+#include "G4DataVector.hh"
+
+#include "G4ParticleTable.hh"
+#include "G4Gamma.hh"
+#include "G4Positron.hh"
+#include "G4Electron.hh"
+#include "G4Proton.hh"
+
+#include "G4NistManager.hh"
+#include "G4Material.hh"
+#include "G4Element.hh"
+
+#include <G4EmParameters.hh>
+#include "G4LivermorePhotoElectricModel.hh"
+#include "G4KleinNishinaCompton.hh"
+#include "G4BetheHeitlerModel.hh"
+#include "G4eeToTwoGammaModel.hh"
+#include "G4MollerBhabhaModel.hh"
+#include "G4SeltzerBergerModel.hh"
+#include "G4BetheBlochModel.hh"
+//////////////////////////////////
+
 using namespace geant_exporter;
 namespace celer_pdg = celeritas::pdg;
 using celeritas::ImportData;
@@ -332,9 +358,9 @@ std::vector<ImportProcess> store_processes()
 
     std::vector<ImportProcess> processes;
 
-    // TODO: decide if repeating store_material(), albeit slower, is better due
+    // TODO: decide if repeating store_x(), albeit slower, is better due
     // to simplicity, or if we should pass by reference the already created
-    // import_data.materials all the way down here
+    // import_data.materials all the way down to here
     ImportProcessConverter process_writer(
         TableSelection::minimal, store_materials(), store_elements());
 
