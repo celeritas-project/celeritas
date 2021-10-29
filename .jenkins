@@ -30,12 +30,13 @@ pipeline {
           agent {
             docker {
               image 'celeritas/ci-focal-cuda11:2021-05-27'
-              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
+              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && persistent-tmp'
+              args '-v persistent-tmp:/tmp/persistent'
             }
           }
           steps {
             sh 'rm -rf build && mkdir -p build'
-            sh 'SOURCE_DIR=. BUILD_DIR=build entrypoint-shell ./scripts/build/docker-cuda-ndebug.sh'
+            sh 'SOURCE_DIR=. BUILD_DIR=build TMPDIR=/tmp/persistent entrypoint-shell ./scripts/build/docker-cuda-ndebug.sh'
           }
           post {
             always {
@@ -52,7 +53,8 @@ pipeline {
           }
           steps {
             sh 'rm -rf build && mkdir -p build'
-            sh 'SOURCE_DIR=. BUILD_DIR=build entrypoint-shell ./scripts/build/docker-cuda.sh'
+            // Use fewer jobs for potentially less temporary usage
+            sh 'SOURCE_DIR=. BUILD_DIR=build PARALLEL_LEVEL=4 entrypoint-shell ./scripts/build/docker-cuda.sh'
           }
           post {
             always {
