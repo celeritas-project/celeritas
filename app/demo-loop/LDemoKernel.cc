@@ -118,11 +118,9 @@ void process_interactions(const ParamsHostRef& params,
                               particle.particle_id(),
                               geo_mat.material_id(geo.volume_id()),
                               tid);
-        CutoffView        cutoffs(params.cutoffs, mat.material_id());
 
-        // Apply cutoffs and interaction change
-        demo_loop::post_process(cutoffs,
-                                geo,
+        // Apply interaction change
+        demo_loop::post_process(geo,
                                 particle,
                                 phys,
                                 sim,
