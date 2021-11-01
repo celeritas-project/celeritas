@@ -122,15 +122,8 @@ TEST_F(ParticleImportTest, TEST_IF_CELERITAS_USE_ROOT(import_particle))
         loaded_pdgs.push_back(particles->id_to_pdg(particle_id).get());
     }
 
-    // clang-format off
-    const std::string expected_loaded_names[] = {"gamma", "e-", "e+", "mu-",
-        "mu+", "pi+", "pi-", "kaon+", "kaon-", "proton", "anti_proton",
-        "deuteron", "anti_deuteron", "He3", "anti_He3", "triton",
-        "anti_triton", "alpha", "anti_alpha"};
-    const int expected_loaded_pdgs[] = {22, 11, -11, 13, -13, 211, -211, 321,
-        -321, 2212, -2212, 1000010020, -1000010020, 1000020030, -1000020030,
-        1000010030, -1000010030, 1000020040, -1000020040};
-    // clang-format on
+    const std::string expected_loaded_names[] = {"gamma", "e-", "e+"};
+    const int         expected_loaded_pdgs[]  = {22, 11, -11};
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
     EXPECT_VEC_EQ(expected_loaded_pdgs, loaded_pdgs);

@@ -36,13 +36,11 @@ class BremsstrahlungProcess : public G4VEnergyLossProcess
     // Construct with model selection
     BremsstrahlungProcess(BremsModelSelection selection,
                           const std::string&  name = "eBrem");
-
     // Empty destructor
     ~BremsstrahlungProcess();
 
     // True for electrons and positrons
     bool IsApplicable(const G4ParticleDefinition& particle) final;
-
     // Print documentation
     void ProcessDescription(std::ostream&) const override;
 

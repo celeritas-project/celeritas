@@ -20,14 +20,12 @@ class PhysicsList : public G4VUserPhysicsList
   public:
     // Construct empty
     PhysicsList();
-
     // Default destructor
     ~PhysicsList();
 
     // Set up minimal E.M. particle list
     void ConstructParticle() override;
-
-    // Set up process list defined in the json input file
+    // Set up process list
     void ConstructProcess() override;
 
   private:
