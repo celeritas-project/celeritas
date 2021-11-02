@@ -6,6 +6,7 @@
 //! \file PhysicsList.cc
 //---------------------------------------------------------------------------//
 #include "PhysicsList.hh"
+#include "comm/Logger.hh"
 
 #include <G4ProcessManager.hh>
 #include <G4SystemOfUnits.hh>
@@ -48,9 +49,10 @@ namespace geant_exporter
  */
 PhysicsList::PhysicsList() : G4VUserPhysicsList()
 {
-    // Manually select the physics table binning
-    // G4EmParameters* em_parameters = G4EmParameters::Instance();
-    // em_parameters->SetNumberOfBins(10);
+    CELER_LOG(status) << "Loading physics list";
+
+    // Manually set the physics table binning
+    // G4EmParameters::Instance()->SetNumberOfBins(10);
 }
 
 //---------------------------------------------------------------------------//
@@ -91,6 +93,7 @@ void PhysicsList::ConstructProcess()
     this->add_gamma_processes();
     this->add_e_processes();
 }
+
 //---------------------------------------------------------------------------//
 // PRIVATE
 //---------------------------------------------------------------------------//
@@ -117,6 +120,9 @@ void PhysicsList::add_gamma_processes()
         auto compton_scattering = std::make_unique<G4ComptonScattering>();
         compton_scattering->SetEmModel(new G4KleinNishinaModel());
         physics_list->RegisterProcess(compton_scattering.release(), gamma);
+
+        CELER_LOG(info) << "Loaded Compton scattering with "
+                           "G4KleinNishinaModel";
     }
 
     if (true)
@@ -125,12 +131,18 @@ void PhysicsList::add_gamma_processes()
         auto photoelectrict_effect = std::make_unique<G4PhotoElectricEffect>();
         photoelectrict_effect->SetEmModel(new G4LivermorePhotoElectricModel());
         physics_list->RegisterProcess(photoelectrict_effect.release(), gamma);
+
+        CELER_LOG(info) << "Loaded photoelectric effect with "
+                           "G4LivermorePhotoElectricModel";
     }
 
     if (true)
     {
         // Rayleigh: G4LivermoreRayleighModel
         physics_list->RegisterProcess(new G4RayleighScattering(), gamma);
+
+        CELER_LOG(info) << "Loaded Rayleigh scattering with "
+                           "G4LivermoreRayleighModel";
     }
 
     if (true)
@@ -139,6 +151,8 @@ void PhysicsList::add_gamma_processes()
         auto gamma_conversion = std::make_unique<G4GammaConversion>();
         gamma_conversion->SetEmModel(new G4BetheHeitlerModel());
         physics_list->RegisterProcess(gamma_conversion.release(), gamma);
+
+        CELER_LOG(info) << "Loaded gamma conversion with G4BetheHeitlerModel";
     }
 }
 
@@ -171,6 +185,7 @@ void PhysicsList::add_e_processes()
     {
         // e+e- annihilation: G4eeToTwoGammaModel
         physics_list->RegisterProcess(new G4eplusAnnihilation(), positron);
+        CELER_LOG(info) << "Loaded pair annihilation with G4eplusAnnihilation";
     }
 
     if (true)
@@ -182,6 +197,8 @@ void PhysicsList::add_e_processes()
         positron_ionization->SetEmModel(new G4MollerBhabhaModel());
         physics_list->RegisterProcess(electron_ionization.release(), electron);
         physics_list->RegisterProcess(positron_ionization.release(), positron);
+
+        CELER_LOG(info) << "Loaded e-e+ ionization with G4MollerBhabhaModel";
     }
 
     if (true)
@@ -194,6 +211,25 @@ void PhysicsList::add_e_processes()
         auto positron_brems = std::make_unique<BremsstrahlungProcess>(models);
         physics_list->RegisterProcess(electron_brems.release(), electron);
         physics_list->RegisterProcess(positron_brems.release(), positron);
+
+        switch (models)
+        {
+            case BremsModelSelection::seltzer_berger:
+                CELER_LOG(info) << "Loaded Bremsstrahlung with "
+                                   "G4SeltzerBergerModel";
+                break;
+            case BremsModelSelection::relativistic:
+                CELER_LOG(info) << "Loaded Bremsstrahlung with "
+                                   "G4eBremsstrahlungRelModel";
+                break;
+            case BremsModelSelection::all:
+                CELER_LOG(info)
+                    << "Loaded Bremsstrahlung with "
+                       "G4SeltzerBergerModel and G4eBremsstrahlungRelModel";
+                break;
+            default:
+                CELER_LOG(warning) << "Bremsstrahlung model selection unknown";
+        }
     }
 
     // DISABLED
@@ -223,6 +259,9 @@ void PhysicsList::add_e_processes()
         coulomb_scat_positron->SetEmModel(coulomb_model_positron.release());
         physics_list->RegisterProcess(coulomb_scat_positron.release(),
                                       positron);
+
+        CELER_LOG(info) << "Loaded Coulomb scattering with "
+                           "G4eCoulombScatteringModel";
     }
 
     // DISABLED
@@ -250,6 +289,9 @@ void PhysicsList::add_e_processes()
         msc_positron->SetEmModel(urban_msc_positron.release());
         msc_positron->SetEmModel(wentzelvi_msc_positron.release());
         physics_list->RegisterProcess(msc_positron.release(), positron);
+
+        CELER_LOG(info) << "Loaded multiple scattering with G4UrbanMscModel "
+                           "and G4WentzelVIModel";
     }
 }
 
