@@ -23,9 +23,9 @@ namespace geant_exporter
  */
 BremsstrahlungProcess::BremsstrahlungProcess(BremsModelSelection selection,
                                              const std::string&  name)
-    : model_selection_(selection)
-    , G4VEnergyLossProcess(name)
+    : G4VEnergyLossProcess(name)
     , is_initialized_(false)
+    , model_selection_(selection)
 {
     SetProcessSubType(G4EmProcessSubType::fBremsstrahlung);
     SetSecondaryParticle(G4Gamma::Gamma());
