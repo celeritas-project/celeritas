@@ -10,7 +10,6 @@
 
 #include <G4ProcessManager.hh>
 #include <G4SystemOfUnits.hh>
-#include <G4EmBuilder.hh>
 #include <G4PhysicsListHelper.hh>
 
 #include <G4ComptonScattering.hh>
