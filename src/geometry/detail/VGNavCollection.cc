@@ -8,6 +8,7 @@
 #include "VGNavCollection.hh"
 
 #include <VecGeom/navigation/NavStatePool.h>
+#include "base/CollectionBuilder.hh"
 #include "comm/Device.hh"
 
 namespace celeritas
@@ -21,9 +22,15 @@ void VGNavCollection<Ownership::value, MemSpace::host>::resize(int max_depth,
                                                                size_type size)
 {
     CELER_EXPECT(max_depth > 0);
-    CELER_EXPECT(size == 1);
 
-    nav_state.reset(NavState::MakeInstance(max_depth));
+    // Add navigation states to collection
+    auto builder = make_builder(&nav_state);
+    builder.reserve(size);
+    for (size_type i = 0; i < size; ++i)
+    {
+        builder.push_back(
+            std::unique_ptr<NavState>(NavState::MakeInstance(max_depth)));
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -35,7 +42,7 @@ void VGNavCollection<Ownership::value, MemSpace::host>::resize(int max_depth,
 void VGNavCollection<Ownership::reference, MemSpace::host>::operator=(
     VGNavCollection<Ownership::value, MemSpace::host>& other)
 {
-    ptr = other.nav_state.get();
+    nav_state = other.nav_state;
 }
 
 //---------------------------------------------------------------------------//
@@ -47,8 +54,7 @@ auto VGNavCollection<Ownership::reference, MemSpace::host>::at(int,
     -> NavState&
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(id.get() == 0);
-    return *ptr;
+    return *nav_state[id];
 }
 
 //---------------------------------------------------------------------------//
