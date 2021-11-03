@@ -139,7 +139,8 @@ interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     {
         const auto& secondary = interaction.secondaries.front();
         h.dir                 = secondary.direction;
-        h.energy_deposited    = secondary.energy;
+        h.energy_deposited    = units::MevEnergy{
+            secondary.energy.value() + interaction.energy_deposition.value()};
         detector.buffer_hit(h);
     }
 

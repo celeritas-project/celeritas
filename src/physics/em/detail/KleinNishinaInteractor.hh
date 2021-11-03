@@ -28,7 +28,8 @@ namespace detail
  * an incident gamma, it adds a single secondary (electron) to the secondary
  * stack and returns an interaction for the change to the incident gamma
  * direction and energy. No cutoffs are performed for the incident energy or
- * the exiting gamma energy.
+ * the exiting gamma energy. A secondary production cutoff is applied to the
+ * outgoing electron.
  *
  * \note This performs the same sampling routine as in Geant4's
  *  G4KleinNishinaCompton, as documented in section 6.4.2 of the Geant4 Physics
@@ -47,6 +48,12 @@ class KleinNishinaInteractor
     // Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
+
+    //! Energy threshold for secondary production [MeV]
+    static CELER_CONSTEXPR_FUNCTION units::MevEnergy secondary_cutoff()
+    {
+        return units::MevEnergy{1e-4};
+    }
 
   private:
     // Constant data

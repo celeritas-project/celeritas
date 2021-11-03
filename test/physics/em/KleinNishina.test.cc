@@ -68,14 +68,28 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
         // Check secondaries
         ASSERT_EQ(1, interaction.secondaries.size());
         const auto& electron = interaction.secondaries.front();
-        EXPECT_TRUE(electron);
-        EXPECT_EQ(data_.electron_id, electron.particle_id);
-        EXPECT_GT(this->particle_track().energy().value(),
-                  electron.energy.value());
-        EXPECT_LT(0, electron.energy.value());
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
+        if (electron)
+        {
+            // Secondary survived cutoff
+            EXPECT_EQ(data_.electron_id, electron.particle_id);
+            EXPECT_GT(this->particle_track().energy().value(),
+                      electron.energy.value());
+            EXPECT_LT(KleinNishinaInteractor::secondary_cutoff(),
+                      electron.energy);
+            EXPECT_EQ(0, interaction.energy_deposition.value());
+            EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
+        }
+        else
+        {
+            // Secondary energy deposited locally
+            EXPECT_GT(KleinNishinaInteractor::secondary_cutoff(),
+                      interaction.energy_deposition);
+            EXPECT_LT(0, interaction.energy_deposition.value());
+        }
 
-        this->check_conservation(interaction);
+        // Since secondary cutoffs are applied inside the interactor, momentum
+        // may not be conserved between the incoming and outgoing particles
+        this->check_energy_conservation(interaction);
     }
 
   protected:
