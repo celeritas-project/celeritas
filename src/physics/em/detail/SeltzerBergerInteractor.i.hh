@@ -50,7 +50,7 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
 
 //---------------------------------------------------------------------------//
 /*!
- * Pair-production using the Seltzer-Berger model.
+ * Bremsstrahlung using the Seltzer-Berger model.
  *
  * See section 10.2.1 of the Geant physics reference 10.6.
  */

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/navigation/NavStatePool.h>
 #include "base/Assert.hh"
@@ -54,12 +55,12 @@ struct VGNavCollection<Ownership::value, MemSpace::host>
 {
     using NavState = vecgeom::cxx::NavigationState;
 
-    std::unique_ptr<NavState> nav_state;
+    std::vector<std::unique_ptr<NavState>> nav_state;
 
     // Resize with a number of states (must be 1)
     void resize(int max_depth, size_type size);
     // Whether the collection is assigned
-    explicit operator bool() const { return static_cast<bool>(nav_state); }
+    explicit operator bool() const { return !nav_state.empty(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -71,14 +72,14 @@ struct VGNavCollection<Ownership::reference, MemSpace::host>
 {
     using NavState = vecgeom::cxx::NavigationState;
 
-    NavState* ptr = nullptr;
+    std::vector<std::unique_ptr<NavState>>* ptr = nullptr;
 
     // Obtain reference from host memory
     void operator=(VGNavCollection<Ownership::value, MemSpace::host>& other);
     // Get the navigation state for a given thread
     NavState& at(int, ThreadId id) const;
     //! True if the collection is assigned/valiid
-    explicit operator bool() const { return static_cast<bool>(ptr); }
+    explicit operator bool() const { return !ptr->empty(); }
 };
 
 //---------------------------------------------------------------------------//

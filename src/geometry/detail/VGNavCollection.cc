@@ -21,9 +21,13 @@ void VGNavCollection<Ownership::value, MemSpace::host>::resize(int max_depth,
                                                                size_type size)
 {
     CELER_EXPECT(max_depth > 0);
-    CELER_EXPECT(size == 1);
 
-    nav_state.reset(NavState::MakeInstance(max_depth));
+    nav_state.clear();
+    nav_state.reserve(size);
+    for (size_type i = 0; i < size; ++i)
+    {
+        nav_state.emplace_back(NavState::MakeInstance(max_depth));
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -35,7 +39,7 @@ void VGNavCollection<Ownership::value, MemSpace::host>::resize(int max_depth,
 void VGNavCollection<Ownership::reference, MemSpace::host>::operator=(
     VGNavCollection<Ownership::value, MemSpace::host>& other)
 {
-    ptr = other.nav_state.get();
+    ptr = &other.nav_state;
 }
 
 //---------------------------------------------------------------------------//
@@ -47,8 +51,7 @@ auto VGNavCollection<Ownership::reference, MemSpace::host>::at(int,
     -> NavState&
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(id.get() == 0);
-    return *ptr;
+    return *(*ptr)[id.get()];
 }
 
 //---------------------------------------------------------------------------//
