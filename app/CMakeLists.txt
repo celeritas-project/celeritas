@@ -21,6 +21,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
     geant-exporter/PhysicsList.cc
     geant-exporter/PrimaryGeneratorAction.cc
     geant-exporter/ImportProcessConverter.cc
+    geant-exporter/BremsstrahlungProcess.cc
     # TODO: Move these to main celeritas::geant library for use in acceleritas?
     geant-exporter/GeantExceptionHandler.cc
     geant-exporter/GeantLoggerAdapter.cc

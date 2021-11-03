@@ -190,13 +190,9 @@ TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
     }
 
     // clang-format off
-    const double expected_energies[] = {0.00099, 0.0173344452484621, 0.00099,
-        0.970694711604435, 0.00099, 0.926090152562135, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0};
-    const double expected_ranges[] = {0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0};
+    const double expected_energies[] = {0.00099, 0.02092317256583, 0.00099,
+        1.313452899796, 0.00099, 1.228088459646};
+    const double expected_ranges[] = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
