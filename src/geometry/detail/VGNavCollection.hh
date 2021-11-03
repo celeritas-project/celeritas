@@ -8,10 +8,10 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 #include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/navigation/NavStatePool.h>
 #include "base/Assert.hh"
+#include "base/Collection.hh"
 #include "base/OpaqueId.hh"
 #include "base/Types.hh"
 
@@ -53,9 +53,10 @@ struct VGNavCollection<Ownership::reference, MemSpace::device>;
 template<>
 struct VGNavCollection<Ownership::value, MemSpace::host>
 {
-    using NavState = vecgeom::cxx::NavigationState;
+    using NavState   = vecgeom::cxx::NavigationState;
+    using UPNavState = std::unique_ptr<NavState>;
 
-    std::vector<std::unique_ptr<NavState>> nav_state;
+    StateCollection<UPNavState, Ownership::value, MemSpace::host> nav_state;
 
     // Resize with a number of states (must be 1)
     void resize(int max_depth, size_type size);
@@ -70,16 +71,17 @@ struct VGNavCollection<Ownership::value, MemSpace::host>
 template<>
 struct VGNavCollection<Ownership::reference, MemSpace::host>
 {
-    using NavState = vecgeom::cxx::NavigationState;
+    using NavState   = vecgeom::cxx::NavigationState;
+    using UPNavState = std::unique_ptr<NavState>;
 
-    std::vector<std::unique_ptr<NavState>>* ptr = nullptr;
+    StateCollection<UPNavState, Ownership::reference, MemSpace::host> nav_state;
 
     // Obtain reference from host memory
     void operator=(VGNavCollection<Ownership::value, MemSpace::host>& other);
     // Get the navigation state for a given thread
     NavState& at(int, ThreadId id) const;
     //! True if the collection is assigned/valiid
-    explicit operator bool() const { return !ptr->empty(); }
+    explicit operator bool() const { return !nav_state.empty(); }
 };
 
 //---------------------------------------------------------------------------//
