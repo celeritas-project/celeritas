@@ -34,7 +34,7 @@ if result_ge.returncode:
     exit(result_ge.returncode)
 
 storage_factor = 10 if use_device else 100
-max_num_tracks = 128*32 if use_device else 1
+max_num_tracks = 128*32 if use_device else 15
 
 inp = {
     'run': {

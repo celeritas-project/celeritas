@@ -65,7 +65,8 @@ class CollectionBuilder
     inline ItemRangeT insert_back(std::initializer_list<value_type> init);
 
     // Append a single element
-    inline ItemIdT push_back(value_type element);
+    inline ItemIdT push_back(const value_type& element);
+    inline ItemIdT push_back(value_type&& element);
 
     //! Number of elements in the collection
     size_type size() const { return col_.size(); }
