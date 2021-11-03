@@ -21,9 +21,8 @@ namespace geant_exporter
 /*!
  * Construct with model selection and process name.
  */
-BremsstrahlungProcess::BremsstrahlungProcess(BremsModelSelection selection,
-                                             const std::string&  name)
-    : G4VEnergyLossProcess(name)
+BremsstrahlungProcess::BremsstrahlungProcess(ModelSelection selection)
+    : G4VEnergyLossProcess("eBrem")
     , is_initialized_(false)
     , model_selection_(selection)
 {
@@ -64,8 +63,7 @@ void BremsstrahlungProcess::ProcessDescription(std::ostream& output) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialise process by constructing models based on
- * \c BremsModelSelection .
+ * Initialise process by constructing models based on \c ModelSelection .
  */
 void BremsstrahlungProcess::InitialiseEnergyLossProcess(
     const G4ParticleDefinition*, const G4ParticleDefinition*)
@@ -86,8 +84,8 @@ void BremsstrahlungProcess::InitialiseEnergyLossProcess(
 
     size_t model_index = 0;
 
-    if (model_selection_ == BremsModelSelection::seltzer_berger
-        || model_selection_ == BremsModelSelection::all)
+    if (model_selection_ == ModelSelection::seltzer_berger
+        || model_selection_ == ModelSelection::all)
     {
         if (!G4VEnergyLossProcess::EmModel(model_index))
         {
@@ -104,8 +102,8 @@ void BremsstrahlungProcess::InitialiseEnergyLossProcess(
         model_index++;
     }
 
-    if (model_selection_ == BremsModelSelection::relativistic
-        || model_selection_ == BremsModelSelection::all)
+    if (model_selection_ == ModelSelection::relativistic
+        || model_selection_ == ModelSelection::all)
     {
         if (energy_max > energy_limit)
         {

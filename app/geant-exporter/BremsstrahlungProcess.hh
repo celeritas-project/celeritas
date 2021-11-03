@@ -15,17 +15,6 @@ namespace geant_exporter
 {
 //---------------------------------------------------------------------------//
 /*!
- * Bremsstrahlung model selection.
- */
-enum class BremsModelSelection
-{
-    seltzer_berger,
-    relativistic,
-    all
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Electron/positron Bremsstrahlung process class derived from
  * \c G4eBremsstrahlung . The need for a new process class is to add the option
  * to manually select individual models.
@@ -33,9 +22,15 @@ enum class BremsModelSelection
 class BremsstrahlungProcess : public G4VEnergyLossProcess
 {
   public:
+    enum class ModelSelection
+    {
+        seltzer_berger,
+        relativistic,
+        all
+    };
+
     // Construct with model selection
-    BremsstrahlungProcess(BremsModelSelection selection,
-                          const std::string&  name = "eBrem");
+    explicit BremsstrahlungProcess(ModelSelection selection);
     // Empty destructor
     ~BremsstrahlungProcess();
 
@@ -61,7 +56,7 @@ class BremsstrahlungProcess : public G4VEnergyLossProcess
     BremsstrahlungProcess(const BremsstrahlungProcess&) = delete;
 
   private:
-    BremsModelSelection model_selection_;
+    ModelSelection model_selection_;
 };
 
 //---------------------------------------------------------------------------//

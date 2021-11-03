@@ -6,7 +6,9 @@
 //! \file PhysicsList.cc
 //---------------------------------------------------------------------------//
 #include "PhysicsList.hh"
+
 #include "comm/Logger.hh"
+#include "base/Assert.hh"
 
 #include <G4ProcessManager.hh>
 #include <G4SystemOfUnits.hh>
@@ -171,7 +173,8 @@ void PhysicsList::add_gamma_processes()
  *
  * \note
  * - Bremsstrahlung models are selected manually at compile time using
- *   \c BremsModelSelection and need to be updated accordingly.
+ *   \c BremsstrahlungProcess::ModelSelection and need to be updated
+ *   accordingly.
  * - Coulomb and multiple scatterings are currently disabled.
  */
 void PhysicsList::add_e_processes()
@@ -184,6 +187,7 @@ void PhysicsList::add_e_processes()
     {
         // e+e- annihilation: G4eeToTwoGammaModel
         physics_list->RegisterProcess(new G4eplusAnnihilation(), positron);
+
         CELER_LOG(info) << "Loaded pair annihilation with G4eplusAnnihilation";
     }
 
@@ -204,7 +208,7 @@ void PhysicsList::add_e_processes()
     {
         // Bremsstrahlung: G4SeltzerBergerModel + G4eBremsstrahlungRelModel
         // Currently only using Seltzer-Berger
-        auto models = BremsModelSelection::seltzer_berger;
+        auto models = BremsstrahlungProcess::ModelSelection::seltzer_berger;
 
         auto electron_brems = std::make_unique<BremsstrahlungProcess>(models);
         auto positron_brems = std::make_unique<BremsstrahlungProcess>(models);
@@ -213,21 +217,21 @@ void PhysicsList::add_e_processes()
 
         switch (models)
         {
-            case BremsModelSelection::seltzer_berger:
+            case BremsstrahlungProcess::ModelSelection::seltzer_berger:
                 CELER_LOG(info) << "Loaded Bremsstrahlung with "
                                    "G4SeltzerBergerModel";
                 break;
-            case BremsModelSelection::relativistic:
+            case BremsstrahlungProcess::ModelSelection::relativistic:
                 CELER_LOG(info) << "Loaded Bremsstrahlung with "
                                    "G4eBremsstrahlungRelModel";
                 break;
-            case BremsModelSelection::all:
+            case BremsstrahlungProcess::ModelSelection::all:
                 CELER_LOG(info)
                     << "Loaded Bremsstrahlung with "
                        "G4SeltzerBergerModel and G4eBremsstrahlungRelModel";
                 break;
             default:
-                CELER_LOG(warning) << "Bremsstrahlung model selection unknown";
+                CELER_ASSERT_UNREACHABLE();
         }
     }
 
