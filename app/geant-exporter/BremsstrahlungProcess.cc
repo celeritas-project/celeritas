@@ -19,7 +19,7 @@ namespace geant_exporter
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with model selection and process name.
+ * Construct with model selection.
  */
 BremsstrahlungProcess::BremsstrahlungProcess(ModelSelection selection)
     : G4VEnergyLossProcess("eBrem")

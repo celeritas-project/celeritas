@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
 #include <G4VEnergyLossProcess.hh>
 
 namespace geant_exporter
