@@ -87,6 +87,11 @@ class CutoffParams
     // Host/device storage and reference
     CollectionMirror<CutoffParamsData> data_;
     using HostValue = CutoffParamsData<Ownership::value, MemSpace::host>;
+
+    //// HELPER FUNCTIONS ////
+
+    // PDG numbers of particles with prodution cuts
+    static const std::vector<PDGNumber>& pdg_numbers();
 };
 
 //---------------------------------------------------------------------------//

@@ -26,9 +26,7 @@ CutoffView::CutoffView(const CutoffData& params, MaterialId material)
  */
 CELER_FUNCTION auto CutoffView::energy(ParticleId particle) const -> Energy
 {
-    CutoffId id{params_.num_materials * particle.get() + material_.get()};
-    CELER_ASSERT(id < params_.cutoffs.size());
-    return params_.cutoffs[id].energy;
+    return params_.cutoffs[this->index(particle)].energy;
 }
 
 //---------------------------------------------------------------------------//
@@ -37,8 +35,21 @@ CELER_FUNCTION auto CutoffView::energy(ParticleId particle) const -> Energy
  */
 CELER_FUNCTION real_type CutoffView::range(ParticleId particle) const
 {
-    CutoffId id{params_.num_materials * particle.get() + material_.get()};
-    return params_.cutoffs[id].range;
+    return params_.cutoffs[this->index(particle)].range;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Index in cutoffs of the given particle and material.
+ */
+CELER_FUNCTION auto CutoffView::index(ParticleId particle) const -> CutoffId
+{
+    CELER_EXPECT(particle < params_.id_to_index.size());
+    CELER_EXPECT(params_.id_to_index[particle] < params_.num_particles);
+    CutoffId id{params_.num_materials * params_.id_to_index[particle]
+                + material_.get()};
+    CELER_ENSURE(id < params_.cutoffs.size());
+    return id;
 }
 
 //---------------------------------------------------------------------------//

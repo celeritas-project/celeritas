@@ -32,32 +32,24 @@ CutoffParams::from_import(const ImportData& data,
     input.particles = std::move(particle_params);
     input.materials = std::move(material_params);
 
-    for (const auto pid : range(ParticleId{input.particles->size()}))
+    for (const auto& pdg : CutoffParams::pdg_numbers())
     {
-        CutoffParams::MaterialCutoffs m_cutoffs;
-
-        const auto pdg = input.particles->id_to_pdg(pid);
-
+        CutoffParams::MaterialCutoffs mat_cutoffs;
         for (const auto& material : data.materials)
         {
-            const auto& iter = material.pdg_cutoffs.find(pdg.get());
-
-            ParticleCutoff p_cutoff;
+            auto iter = material.pdg_cutoffs.find(pdg.get());
             if (iter != material.pdg_cutoffs.end())
             {
-                // Is a particle type with assigned cutoff values
-                p_cutoff.energy = units::MevEnergy{iter->second.energy};
-                p_cutoff.range  = iter->second.range;
+                // Found assigned cutoff values
+                mat_cutoffs.push_back({units::MevEnergy{iter->second.energy},
+                                       iter->second.range});
             }
             else
             {
-                // Set cutoffs to zero
-                p_cutoff.energy = units::MevEnergy{zero_quantity()};
-                p_cutoff.range  = 0;
+                mat_cutoffs.push_back({zero_quantity(), 0});
             }
-            m_cutoffs.push_back(p_cutoff);
         }
-        input.cutoffs.insert({pdg, m_cutoffs});
+        input.cutoffs.insert({pdg, mat_cutoffs});
     }
 
     return std::make_shared<CutoffParams>(input);
@@ -74,38 +66,62 @@ CutoffParams::CutoffParams(const Input& input)
 
     HostValue host_data;
     host_data.num_materials = input.materials->size();
-    host_data.num_particles = input.particles->size();
-    const auto cutoffs_size = host_data.num_materials * host_data.num_particles;
 
-    auto host_cutoffs = make_builder(&host_data.cutoffs);
-    host_cutoffs.reserve(cutoffs_size);
+    std::vector<ParticleCutoff> cutoffs;
 
-    for (const auto pid : range(ParticleId{input.particles->size()}))
+    // Initialize mapping of particle ID to index with invalid indices
+    std::vector<size_type> id_to_index(input.particles->size(), size_type(-1));
+    size_type              current_index = 0;
+
+    for (const auto& pdg : CutoffParams::pdg_numbers())
     {
-        const auto  pdg  = input.particles->id_to_pdg(pid);
-        const auto& iter = input.cutoffs.find(pdg);
+        if (auto pid = input.particles->find(pdg))
+        {
+            id_to_index[pid.get()] = current_index++;
 
-        if (iter != input.cutoffs.end())
-        {
-            // Found valid PDG and cutoff values
-            const auto& vec_mat_cutoffs = iter->second;
-            CELER_ASSERT(vec_mat_cutoffs.size() == host_data.num_materials);
-            host_cutoffs.insert_back(vec_mat_cutoffs.begin(),
-                                     vec_mat_cutoffs.end());
-        }
-        else
-        {
-            // PDG not added to Input.cutoffs. Set cutoffs to zero
-            for (CELER_MAYBE_UNUSED auto i : range(host_data.num_materials))
+            auto iter = input.cutoffs.find(pdg);
+            if (iter != input.cutoffs.end())
             {
-                host_cutoffs.push_back({units::MevEnergy{zero_quantity()}, 0});
+                // Found valid PDG and cutoff values
+                const auto& mat_cutoffs = iter->second;
+                CELER_ASSERT(mat_cutoffs.size() == host_data.num_materials);
+                cutoffs.insert(
+                    cutoffs.end(), mat_cutoffs.begin(), mat_cutoffs.end());
+            }
+            else
+            {
+                // Particle was defined in the problem but does not have
+                // cutoffs assigned -- set cutoffs to zero
+                for (CELER_MAYBE_UNUSED auto i : range(host_data.num_materials))
+                {
+                    cutoffs.push_back({zero_quantity(), 0});
+                }
             }
         }
     }
+    CELER_ASSERT(current_index <= CutoffParams::pdg_numbers().size());
+    host_data.num_particles = current_index;
+    make_builder(&host_data.cutoffs).insert_back(cutoffs.begin(), cutoffs.end());
+    make_builder(&host_data.id_to_index)
+        .insert_back(id_to_index.begin(), id_to_index.end());
 
     // Move to mirrored data, copying to device
     data_ = CollectionMirror<CutoffParamsData>{std::move(host_data)};
-    CELER_ENSURE(this->host_ref().cutoffs.size() == cutoffs_size);
+    CELER_ENSURE(data_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * PDG numbers of particles with prodution cuts.
+ *
+ * Only electrons and photons have secondary production cuts -- protons are not
+ * currently used, and positrons cannot have production cuts.
+ */
+const std::vector<PDGNumber>& CutoffParams::pdg_numbers()
+{
+    static const std::vector<PDGNumber> pdg_numbers{pdg::electron(),
+                                                    pdg::gamma()};
+    return pdg_numbers;
 }
 
 //---------------------------------------------------------------------------//

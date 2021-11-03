@@ -327,7 +327,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     {
         // Verify if secondary is above the cutoff threshold
         EXPECT_TRUE(secondary_energy
-                    > cutoff_view.energy(ParticleId{1}).value());
+                    > cutoff_view.energy(ParticleId{0}).value());
     }
 }
 

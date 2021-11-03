@@ -69,8 +69,9 @@ class EnergyLossDistributionTest : public celeritas::Test
         CutoffParams::Input cut_inp{
             particles,
             materials,
-            {{pdg::electron(), {{MevEnergy{1e-3}, 0}}},
-             {pdg::mu_minus(), {{MevEnergy{1e-3}, 0}}}}};
+            {
+                {pdg::electron(), {{MevEnergy{1e-3}, 0}}},
+            }};
         cutoffs = std::make_shared<CutoffParams>(std::move(cut_inp));
 
         // Construct states for a single host thread
