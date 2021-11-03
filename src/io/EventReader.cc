@@ -7,11 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "EventReader.hh"
 
+#include <HepMC3/GenEvent.h>
+#include <HepMC3/ReaderFactory.h>
+
 #include "base/ArrayUtils.hh"
 #include "comm/Logger.hh"
 #include "physics/base/Units.hh"
-#include "HepMC3/GenEvent.h"
-#include "HepMC3/ReaderFactory.h"
 
 namespace celeritas
 {
