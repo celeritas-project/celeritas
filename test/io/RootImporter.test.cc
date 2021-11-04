@@ -54,7 +54,7 @@ class RootImporterTest : public celeritas::Test
 TEST_F(RootImporterTest, particles)
 {
     const auto particles = data_.particles;
-    EXPECT_EQ(19, particles.size());
+    EXPECT_EQ(3, particles.size());
 
     // Check all names/PDG codes
     std::vector<std::string> loaded_names;
@@ -67,14 +67,9 @@ TEST_F(RootImporterTest, particles)
 
     // Particle ordering is the same as in the ROOT file
     // clang-format off
-    const std::string expected_loaded_names[] = {"He3", "alpha", "anti_He3",
-    "anti_alpha", "anti_deuteron", "anti_proton", "anti_triton", "deuteron",
-    "e+", "e-", "gamma", "kaon+", "kaon-", "mu+", "mu-", "pi+", "pi-",
-    "proton", "triton"};
+    const std::string expected_loaded_names[] = {"e+", "e-", "gamma"};
 
-    const int expected_loaded_pdgs[] = {1000020030, 1000020040, -1000020030,
-    -1000020040, -1000010020, -2212, -1000010030, 1000010020, -11, 11, 22, 321,
-    -321, -13, 13, 211, -211, 2212, 1000010030};
+    const int expected_loaded_pdgs[] = {-11, 11, 22};
     // clang-format on
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
@@ -162,10 +157,10 @@ TEST_F(RootImporterTest, materials)
     const std::string expected_names[]  = {"G4_Galactic", "G4_STAINLESS-STEEL"};
     const int         expected_states[] = {3, 1};
     const int    expected_pdgs[] = {-11, 11, 22, 2212, -11, 11, 22, 2212};
-    const double expected_cutoff_energies[] = {0.00099, 0.00099, 0.00099, 0.07,
-        0.9260901525621, 0.9706947116044, 0.01733444524846, 0.07};
+    const double expected_cutoff_energies[] = {0.00099, 0.00099, 0.00099, 0.1,
+        1.22808845964606, 1.31345289979559, 0.0209231725658313, 0.1};
     const double expected_cutoff_ranges[]
-        = {0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07};
+        = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
     const double expected_densities[] = {1e-25, 8};
     const double expected_e_densities[]
         = {0.05974697167543, 2.244432022882e+24};
@@ -230,7 +225,7 @@ TEST_F(RootImporterTest, processes)
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
         EXPECT_SOFT_EQ(839.66835335480653, steel.y.front());
-        EXPECT_SOFT_EQ(11.207442027393293, steel.y.back());
+        EXPECT_SOFT_EQ(11.380485677836065, steel.y.back());
     }
     {
         // Test range table
@@ -247,7 +242,7 @@ TEST_F(RootImporterTest, processes)
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
         EXPECT_SOFT_EQ(2.3818927937550707e-07, steel.y.front());
-        EXPECT_SOFT_EQ(8922642.7361662444, steel.y.back());
+        EXPECT_SOFT_EQ(8786971.3079055995, steel.y.back());
     }
     {
         // Test cross section table
@@ -260,12 +255,12 @@ TEST_F(RootImporterTest, processes)
         const ImportPhysicsVector& steel = xs.physics_vectors.back();
         EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
         ASSERT_EQ(steel.x.size(), steel.y.size());
-        ASSERT_EQ(55, steel.x.size());
-        EXPECT_SOFT_EQ(1.9413894232088691, steel.x.front());
+        ASSERT_EQ(54, steel.x.size());
+        EXPECT_SOFT_EQ(2.6269057995911775, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
         EXPECT_SOFT_EQ(0, steel.y.front());
-        EXPECT_SOFT_EQ(0.24960554333948043, steel.y[1]);
-        EXPECT_SOFT_EQ(0.58950471707787622, steel.y.back());
+        EXPECT_SOFT_EQ(0.18987862452122845, steel.y[1]);
+        EXPECT_SOFT_EQ(0.43566778103861714, steel.y.back());
     }
 }
 

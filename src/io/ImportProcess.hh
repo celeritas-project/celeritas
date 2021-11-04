@@ -87,6 +87,7 @@ enum class ImportModelClass
     e_plus_to_gg,
     livermore_photoelectric,
     klein_nishina,
+    bethe_heitler,
     bethe_heitler_lpm,
     livermore_rayleigh,
     mu_bethe_bloch,
