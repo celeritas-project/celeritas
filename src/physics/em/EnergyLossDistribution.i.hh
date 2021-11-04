@@ -224,7 +224,7 @@ CELER_FUNCTION real_type EnergyLossDistribution::sample_urban(Engine& rng) const
           * (this->sample_excitation_loss(xs_exc, binding_energy, rng)
              + this->sample_ionization_loss(xs_ion, rng));
 
-    CELER_ENSURE(result > 0);
+    CELER_ENSURE(result >= 0);
     return result;
 }
 
