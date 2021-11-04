@@ -53,8 +53,8 @@ class CutoffView
 
     //// HELPER FUNCTIONS ////
 
-    // Index in cutoffs of the given particle and matrial
-    CELER_FORCEINLINE_FUNCTION CutoffId index(ParticleId particle) const;
+    // Get the cutoff for the given particle and material
+    CELER_FORCEINLINE_FUNCTION ParticleCutoff get(ParticleId particle) const;
 };
 
 //---------------------------------------------------------------------------//

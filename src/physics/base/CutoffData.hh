@@ -29,9 +29,10 @@ struct ParticleCutoff
 /*!
  * Persistent shared cutoff data.
  *
- * The data is a vector of secondary production cuts for every particle type
- * and material. Currently production cuts are only stored for electrons and
- * photons (protons are unused and positrons cannot have a cutoff).
+ * Secondary production cuts are stored for every material and for only the
+ * particle types to which production cuts apply. Currently production cuts are
+ * only needed for electrons and photons (protons are unused and positrons
+ * cannot have a cutoff).
  *
  * \sa CutoffView
  * \sa CutoffParams
