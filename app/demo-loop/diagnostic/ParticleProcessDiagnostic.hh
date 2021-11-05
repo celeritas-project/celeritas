@@ -15,8 +15,7 @@
 #include "physics/base/PhysicsParams.hh"
 
 using celeritas::Collection;
-using celeritas::MemSpace;
-using celeritas::Ownership;
+using celeritas::ParamsData;
 using celeritas::size_type;
 
 namespace demo_loop
@@ -34,8 +33,8 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
   public:
     //!@{
     //! Type aliases
-    using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
-    using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
+    using ParamsDataRef    = ParamsData<Ownership::const_reference, M>;
+    using StateDataRef     = StateData<Ownership::reference, M>;
     using SPConstParticles = std::shared_ptr<const celeritas::ParticleParams>;
     using SPConstPhysics   = std::shared_ptr<const celeritas::PhysicsParams>;
     //!@}
@@ -75,8 +74,8 @@ class ParticleProcessLauncher
   public:
     //!@{
     //! Type aliases
-    using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
-    using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
+    using ParamsDataRef = ParamsData<Ownership::const_reference, M>;
+    using StateDataRef  = StateData<Ownership::reference, M>;
     using ItemsRef      = Collection<size_type, Ownership::reference, M>;
     //!@}
 
@@ -87,7 +86,7 @@ class ParticleProcessLauncher
                                            ItemsRef&            counts);
 
     //! Create track views and tally particle/processes
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+    inline CELER_FUNCTION void operator()(celeritas::ThreadId tid) const;
 
   private:
     const ParamsDataRef& params_;

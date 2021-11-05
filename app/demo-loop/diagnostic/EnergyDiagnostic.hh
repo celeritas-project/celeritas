@@ -15,6 +15,9 @@
 #include "base/Types.hh"
 #include "sim/TrackData.hh"
 
+using celeritas::Collection;
+using celeritas::real_type;
+
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
@@ -85,7 +88,7 @@ class EnergyDiagnosticLauncher
                                             const Pointers&     pointers);
 
     //! Perform energy binning by z position
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+    inline CELER_FUNCTION void operator()(celeritas::ThreadId tid) const;
 
   private:
     const StateDataRef& states_;

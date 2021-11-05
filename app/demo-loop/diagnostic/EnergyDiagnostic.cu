@@ -22,7 +22,7 @@ namespace demo_loop
 __global__ void
 bin_energy_kernel(const StateDataRefDevice states, PointersDevice pointers)
 {
-    auto tid = KernelParamCalculator::thread_id();
+    auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
         return;
 

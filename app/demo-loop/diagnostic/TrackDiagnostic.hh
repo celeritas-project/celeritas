@@ -14,7 +14,7 @@
 #include "sim/SimTrackView.hh"
 #include "sim/TrackData.hh"
 
-using namespace celeritas;
+using celeritas::size_type;
 
 namespace demo_loop
 {
@@ -24,7 +24,7 @@ namespace demo_loop
  */
 struct OneIfAlive
 {
-    CELER_FUNCTION size_type operator()(const SimTrackState& sim) const
+    CELER_FUNCTION size_type operator()(const celeritas::SimTrackState& sim) const
     {
         return sim.alive ? 1 : 0;
     }

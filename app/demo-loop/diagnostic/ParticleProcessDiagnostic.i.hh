@@ -9,6 +9,8 @@
 #include "base/CollectionBuilder.hh"
 #include "physics/base/PhysicsTrackView.hh"
 
+using celeritas::ItemId;
+
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
@@ -66,7 +68,7 @@ ParticleProcessDiagnostic<M>::particle_processes() const
                               + particle_id.get();
             CELER_ASSERT(index < counts.size());
 
-            size_type count = counts[celeritas::ItemId<size_type>{index}];
+            size_type count = counts[ItemId<size_type>{index}];
             if (count > 0)
             {
                 // Accumulate the result for this process
@@ -99,10 +101,12 @@ ParticleProcessLauncher<M>::ParticleProcessLauncher(const ParamsDataRef& params,
  * Create track views and tally particle/processes.
  */
 template<MemSpace M>
-CELER_FUNCTION void ParticleProcessLauncher<M>::operator()(ThreadId tid) const
+CELER_FUNCTION void
+ParticleProcessLauncher<M>::operator()(celeritas::ThreadId tid) const
 {
-    ParticleTrackView particle(params_.particles, states_.particles, tid);
-    PhysicsTrackView  physics(
+    celeritas::ParticleTrackView particle(
+        params_.particles, states_.particles, tid);
+    celeritas::PhysicsTrackView physics(
         params_.physics, states_.physics, particle.particle_id(), {}, tid);
 
     if (physics.model_id())
@@ -110,7 +114,7 @@ CELER_FUNCTION void ParticleProcessLauncher<M>::operator()(ThreadId tid) const
         size_type index = physics.model_id().get() * physics.num_particles()
                           + particle.particle_id().get();
         CELER_ASSERT(index < counts_.size());
-        atomic_add(&counts_[ItemId<size_type>(index)], 1u);
+        celeritas::atomic_add(&counts_[ItemId<size_type>(index)], 1u);
     }
 }
 } // namespace demo_loop

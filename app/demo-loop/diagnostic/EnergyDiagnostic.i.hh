@@ -55,7 +55,7 @@ std::vector<real_type> EnergyDiagnostic<M>::energy_deposition()
 {
     // Copy binned energy deposition to host
     std::vector<real_type> edep(energy_by_z_.size());
-    celeritas::copy_to_host(energy_by_z_, make_span(edep));
+    celeritas::copy_to_host(energy_by_z_, celeritas::make_span(edep));
     return edep;
 }
 
@@ -73,19 +73,20 @@ EnergyDiagnosticLauncher<M>::EnergyDiagnosticLauncher(const StateDataRef& states
 
 //---------------------------------------------------------------------------//
 template<MemSpace M>
-void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
+void EnergyDiagnosticLauncher<M>::operator()(celeritas::ThreadId tid) const
 {
     // Create grid from EnergyBinPointers
-    NonuniformGrid<real_type> grid(pointers_.z_bounds);
+    celeritas::NonuniformGrid<real_type> grid(pointers_.z_bounds);
 
     real_type z_pos             = states_.geometry.pos[tid][2];
     real_type energy_deposition = states_.energy_deposition[tid];
 
-    using BinId = ItemId<real_type>;
+    using BinId = celeritas::ItemId<real_type>;
     if (z_pos > grid.front() && z_pos < grid.back())
     {
         auto bin = grid.find(z_pos);
-        atomic_add(&pointers_.energy_by_z[BinId{bin}], energy_deposition);
+        celeritas::atomic_add(&pointers_.energy_by_z[BinId{bin}],
+                              energy_deposition);
     }
 }
 
