@@ -195,18 +195,18 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_CUDA)
     set(_cuda_src
       demo-loop/LDemoKernel.cu
-      demo-loop/EnergyDiagnostic.cu
-      demo-loop/ParticleProcessDiagnostic.cu
-      demo-loop/TrackDiagnostic.cu
+      demo-loop/diagnostic/EnergyDiagnostic.cu
+      demo-loop/diagnostic/ParticleProcessDiagnostic.cu
+      demo-loop/diagnostic/TrackDiagnostic.cu
     )
   endif()
   celeritas_add_library(celeritas_demo_loop
     demo-loop/LDemoIO.cc
     demo-loop/LDemoKernel.cc
     demo-loop/LDemoParams.cc
-    demo-loop/EnergyDiagnostic.cc
-    demo-loop/ParticleProcessDiagnostic.cc
-    demo-loop/TrackDiagnostic.cc
+    demo-loop/diagnostic/EnergyDiagnostic.cc
+    demo-loop/diagnostic/ParticleProcessDiagnostic.cc
+    demo-loop/diagnostic/TrackDiagnostic.cc
     ${_cuda_src}
   )
   celeritas_target_link_libraries(celeritas_demo_loop

@@ -13,9 +13,9 @@
 #include "sim/TrackData.hh"
 #include "LDemoParams.hh"
 #include "LDemoKernel.hh"
-#include "EnergyDiagnostic.hh"
-#include "ParticleProcessDiagnostic.hh"
-#include "TrackDiagnostic.hh"
+#include "diagnostic/EnergyDiagnostic.hh"
+#include "diagnostic/ParticleProcessDiagnostic.hh"
+#include "diagnostic/TrackDiagnostic.hh"
 
 using namespace celeritas;
 
