@@ -41,15 +41,20 @@ class CutoffView
     inline CELER_FUNCTION
     CutoffView(const CutoffData& params, MaterialId material);
 
-    //! Return energy cutoff value
+    // Return energy cutoff value
     inline CELER_FUNCTION Energy energy(ParticleId particle) const;
 
-    //! Return range cutoff value
+    // Return range cutoff value
     inline CELER_FUNCTION real_type range(ParticleId particle) const;
 
   private:
-    const CutoffData&     params_;
-    MaterialId            material_;
+    const CutoffData& params_;
+    MaterialId        material_;
+
+    //// HELPER FUNCTIONS ////
+
+    // Get the cutoff for the given particle and material
+    CELER_FORCEINLINE_FUNCTION ParticleCutoff get(ParticleId particle) const;
 };
 
 //---------------------------------------------------------------------------//

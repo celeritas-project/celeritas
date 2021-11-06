@@ -29,8 +29,10 @@ struct ParticleCutoff
 /*!
  * Persistent shared cutoff data.
  *
- * The data is a vector of cutoff energy values for every particle type and
- * material.
+ * Secondary production cuts are stored for every material and for only the
+ * particle types to which production cuts apply. Currently production cuts are
+ * only needed for electrons and photons (protons are unused and positrons
+ * cannot have a cutoff).
  *
  * \sa CutoffView
  * \sa CutoffParams
@@ -40,12 +42,17 @@ struct CutoffParamsData
 {
     template<class T>
     using Items = Collection<T, W, M>;
+    template<class T>
+    using ParticleItems = Collection<T, W, M, ParticleId>;
 
     // Backend storage
-    Items<ParticleCutoff> cutoffs; // [num_materials][num_particles]
+    Items<ParticleCutoff> cutoffs; //!< [num_materials][num_particles]
 
-    ParticleId::size_type num_particles;
-    MaterialId::size_type num_materials;
+    // Direct address table for mapping particle ID to index in cutoffs
+    ParticleItems<size_type> id_to_index;
+
+    ParticleId::size_type num_particles; //!< Particles with production cuts
+    MaterialId::size_type num_materials; //!< All materials in the problem
 
     //// MEMBER FUNCTIONS ////
 
@@ -53,7 +60,7 @@ struct CutoffParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return cutoffs.size() == num_particles * num_materials
-               && !cutoffs.empty();
+               && !cutoffs.empty() && !id_to_index.empty();
     }
 
     //! Assign from another set of data
@@ -63,6 +70,7 @@ struct CutoffParamsData
         CELER_EXPECT(other);
 
         this->cutoffs       = other.cutoffs;
+        this->id_to_index   = other.id_to_index;
         this->num_particles = other.num_particles;
         this->num_materials = other.num_materials;
 

@@ -179,7 +179,8 @@ TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
 
     std::vector<double> energies, ranges;
 
-    for (const auto pid : range(ParticleId{particles->size()}))
+    for (const auto pid :
+         {particles->find(pdg::electron()), particles->find(pdg::gamma())})
     {
         for (const auto matid : range(MaterialId{materials->size()}))
         {
@@ -189,11 +190,9 @@ TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
         }
     }
 
-    // clang-format off
-    const double expected_energies[] = {0.00099, 0.02092317256583, 0.00099,
-        1.313452899796, 0.00099, 1.228088459646};
-    const double expected_ranges[] = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
-    // clang-format on
+    const double expected_energies[]
+        = {0.00099, 1.31345289979559, 0.00099, 0.0209231725658313};
+    const double expected_ranges[] = {0.1, 0.1, 0.1, 0.1};
 
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
