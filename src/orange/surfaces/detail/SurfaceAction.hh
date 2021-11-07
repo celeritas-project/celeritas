@@ -26,26 +26,20 @@ namespace detail
 /*!
  * Helper class for applying an action functor to a generic surface.
  *
- * The templated operator() of the given functor F must be a Surface class. The
- * `result_type` type alias here uses GeneralQuadric to represent the "most
- * generic" type the functor accepts.
+ * The function-like instance of \c F must accept any surface type as an
+ * argument: this should always just be a templated \c operator() on the
+ * surface class. The result type should be the same regardless of the surface
+ * type.
  */
 template<class F>
 class SurfaceAction
 {
   public:
-    //@{
-    //! Type aliases
-    using result_type
-        = decltype(std::declval<F>()(std::declval<GeneralQuadric>()));
-    //@}
-
-  public:
     // Construct from surfaces and action
     inline CELER_FUNCTION SurfaceAction(const Surfaces& surfaces, F&& action);
 
     // Apply to the surface specified by a surface ID
-    inline CELER_FUNCTION result_type operator()(SurfaceId id);
+    inline CELER_FUNCTION decltype(auto) operator()(SurfaceId id);
 
     //! Access the resulting action
     CELER_FUNCTION const F& action() const { return action_; }
@@ -54,11 +48,59 @@ class SurfaceAction
     //// DATA ////
     Surfaces surfaces_;
     F        action_;
-
-    //// METHODS ////
-    template<SurfaceType ST>
-    inline CELER_FUNCTION result_type apply_impl(SurfaceId id);
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a surface type to a class property via a traits class.
+ *
+ * The traits class \c T must be templated on surface type, and (like \c
+ * std::integral_constant ) have a \verbatim
+      constexpr value_type operator()() const noexcept
+ * \endverbatim
+ * member function for extracting the desired value.
+ */
+template<template<class> class T>
+struct StaticSurfaceAction
+{
+    // Apply to the surface specified by a surface ID
+    inline CELER_FUNCTION decltype(auto) operator()(SurfaceType type) const;
+};
+
+//---------------------------------------------------------------------------//
+// PRIVATE MACRO DEFINITIONS
+//---------------------------------------------------------------------------//
+
+#define ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, TYPE) \
+    case SurfaceType::TYPE:                        \
+        FUNC(typename SurfaceTypeTraits<SurfaceType::TYPE>::type) break
+
+#define ORANGE_SURF_DISPATCH_IMPL(FUNC, ST)            \
+    do                                                 \
+    {                                                  \
+        switch (ST)                                    \
+        {                                              \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, px);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, py);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, pz);  \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cxc); \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, cyc); \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, czc); \
+            /* ORANGE_SURF_DISPATCH_CASE(FUNC, sc); */ \
+            /* ORANGE_SURF_DISPATCH_CASE(FUNC, cx); */ \
+            /* ORANGE_SURF_DISPATCH_CASE(FUNC, cy); */ \
+            /* ORANGE_SURF_DISPATCH_CASE(FUNC, cz); */ \
+            /* ORANGE_SURF_DISPATCH_CASE(FUNC, p);  */ \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, s);   \
+            /* ORANGE_SURF_DISPATCH_CASE(FUNC, kx); */ \
+            /* ORANGE_SURF_DISPATCH_CASE(FUNC, ky); */ \
+            /* ORANGE_SURF_DISPATCH_CASE(FUNC, kz); */ \
+            /* ORANGE_SURF_DISPATCH_CASE(FUNC, sq); */ \
+            ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, gq);  \
+            case SurfaceType::size_:                   \
+                CELER_ASSERT_UNREACHABLE();            \
+        }                                              \
+    } while (0)
 
 //---------------------------------------------------------------------------//
 // INLINE FUNCTION DEFINITIONS
@@ -78,57 +120,33 @@ SurfaceAction<F>::SurfaceAction(const Surfaces& surfaces, F&& action)
  * Apply to the surface specified by the given surface ID.
  */
 template<class F>
-CELER_FUNCTION auto SurfaceAction<F>::operator()(SurfaceId id) -> result_type
+CELER_FUNCTION auto SurfaceAction<F>::operator()(SurfaceId id)
+    -> decltype(auto)
 {
     CELER_EXPECT(id < surfaces_.num_surfaces());
-#define ORANGE_SURF_APPLY_IMPL(TYPE) \
-    case (SurfaceType::TYPE):        \
-        return this->apply_impl<SurfaceType::TYPE>(id)
+#define ORANGE_SA_APPLY_IMPL(SURFACE) \
+    return action_(surfaces_.make_surface<SURFACE>(id));
 
-    switch (surfaces_.surface_type(id))
-    {
-        ORANGE_SURF_APPLY_IMPL(px);
-        ORANGE_SURF_APPLY_IMPL(py);
-        ORANGE_SURF_APPLY_IMPL(pz);
-        ORANGE_SURF_APPLY_IMPL(cxc);
-        ORANGE_SURF_APPLY_IMPL(cyc);
-        ORANGE_SURF_APPLY_IMPL(czc);
-#if 0
-        ORANGE_SURF_APPLY_IMPL(sc);
-        ORANGE_SURF_APPLY_IMPL(cx);
-        ORANGE_SURF_APPLY_IMPL(cy);
-        ORANGE_SURF_APPLY_IMPL(cz);
-        ORANGE_SURF_APPLY_IMPL(p);
-#endif
-        ORANGE_SURF_APPLY_IMPL(s);
-#if 0
-        ORANGE_SURF_APPLY_IMPL(kx);
-        ORANGE_SURF_APPLY_IMPL(ky);
-        ORANGE_SURF_APPLY_IMPL(kz);
-        ORANGE_SURF_APPLY_IMPL(sq);
-#endif
-        ORANGE_SURF_APPLY_IMPL(gq);
-        case SurfaceType::size_:
-            CELER_ASSERT_UNREACHABLE();
-    }
-#undef ORANGE_SURF_APPLY_IMPL
+    ORANGE_SURF_DISPATCH_IMPL(ORANGE_SA_APPLY_IMPL, surfaces_.surface_type(id));
+#undef ORANGE_SA_APPLY_IMPL
     CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
-// PRIVATE INLINE FUNCTIONS
-//---------------------------------------------------------------------------//
 /*!
- * Apply to the surface specified by a surface ID.
+ * Apply to the surface specified by the given surface ID.
  */
-template<class F>
-template<SurfaceType ST>
-CELER_FUNCTION auto SurfaceAction<F>::apply_impl(SurfaceId id) -> result_type
+template<template<class> class T>
+CELER_FUNCTION decltype(auto)
+StaticSurfaceAction<T>::operator()(SurfaceType type) const
 {
-    using Surface_t = typename SurfaceTypeTraits<ST>::type;
-    return action_(surfaces_.make_surface<Surface_t>(id));
+#define ORANGE_SSA_GET(SURFACE) return T<SURFACE>()();
+    ORANGE_SURF_DISPATCH_IMPL(ORANGE_SSA_GET, type);
+#undef ORANGE_SSA_GET
 }
 
 //---------------------------------------------------------------------------//
+#undef ORANGE_SURF_DISPATCH_CASE_IMPL
+#undef ORANGE_SURF_DISPATCH_IMPL
 } // namespace detail
 } // namespace celeritas

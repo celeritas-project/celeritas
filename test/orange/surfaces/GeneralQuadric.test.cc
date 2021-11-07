@@ -44,7 +44,7 @@ TEST_F(GeneralQuadricTest, all)
 {
     EXPECT_EQ(celeritas::SurfaceType::gq, GeneralQuadric::surface_type());
     EXPECT_EQ(10, GeneralQuadric::Storage::extent);
-    EXPECT_EQ(2, GeneralQuadric::Intersections::extent);
+    EXPECT_EQ(2, GeneralQuadric::Intersections{}.size());
 
     const Real3 second{10.3125, 22.9375, 15.75};
     const Real3 cross{-21.867141445557, -20.25, 11.69134295109};
