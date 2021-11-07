@@ -1,0 +1,96 @@
+<ParameterList name="Teuchos XML input">
+  <ParameterList name="GEOMETRY">
+    <Parameter name="_provenance" type="string" value="five-volumes.org.omn:4"/>
+    <Parameter name="global" type="string" value="global"/>
+    <Parameter name="max_duplicate_cell_warn" type="int" value="20"/>
+    <Parameter name="write_kdtree" type="bool" value="false"/>
+    <Parameter name="tolerance" type="double" value="1e-08"/>
+    <Parameter name="length_scale" type="double" value="1.0"/>
+  </ParameterList>
+  <ParameterList name="UNIVERSE">
+    <ParameterList name="global">
+      <Parameter name="_provenance" type="string" value="five-volumes.org.omn:9"/>
+      <Parameter name="_type" type="string" value="unit"/>
+      <Parameter name="name" type="string" value="global"/>
+      <Parameter name="implicit_boundary" type="bool" value="false"/>
+      <Parameter name="implicit_holes" type="bool" value="false"/>
+      <Parameter name="otf_error_checking" type="bool" value="false"/>
+      <ParameterList name="SHAPE">
+        <ParameterList name="outer">
+          <Parameter name="_provenance" type="string" value="five-volumes.org.omn:14"/>
+          <Parameter name="_type" type="string" value="sphere"/>
+          <Parameter name="name" type="string" value="outer"/>
+          <Parameter name="radius" type="double" value="100.0"/>
+        </ParameterList>
+        <ParameterList name="alpha">
+          <Parameter name="_provenance" type="string" value="five-volumes.org.omn:18"/>
+          <Parameter name="_type" type="string" value="cuboid"/>
+          <Parameter name="name" type="string" value="alpha"/>
+          <Parameter name="xmin" type="double" value="-1.0"/>
+          <Parameter name="xmax" type="double" value="0.0"/>
+          <Parameter name="ymin" type="double" value="0.0"/>
+          <Parameter name="ymax" type="double" value="1.0"/>
+          <Parameter name="zmin" type="double" value="-0.5"/>
+          <Parameter name="zmax" type="double" value="0.5"/>
+        </ParameterList>
+        <ParameterList name="beta">
+          <Parameter name="_provenance" type="string" value="five-volumes.org.omn:21"/>
+          <Parameter name="_type" type="string" value="cuboid"/>
+          <Parameter name="name" type="string" value="beta"/>
+          <Parameter name="xmin" type="double" value="0.5"/>
+          <Parameter name="xmax" type="double" value="1.5"/>
+          <Parameter name="ymin" type="double" value="-1.0"/>
+          <Parameter name="ymax" type="double" value="0.0"/>
+          <Parameter name="zmin" type="double" value="-0.5"/>
+          <Parameter name="zmax" type="double" value="0.5"/>
+        </ParameterList>
+        <ParameterList name="gamma">
+          <Parameter name="_provenance" type="string" value="five-volumes.org.omn:24"/>
+          <Parameter name="_type" type="string" value="sphere"/>
+          <Parameter name="name" type="string" value="gamma"/>
+          <Parameter name="radius" type="double" value="0.75"/>
+        </ParameterList>
+        <ParameterList name="epsilon">
+          <Parameter name="_provenance" type="string" value="five-volumes.org.omn:28"/>
+          <Parameter name="_type" type="string" value="sphere"/>
+          <Parameter name="name" type="string" value="epsilon"/>
+          <Parameter name="translate" type="Array(double)" value="{-0.25,-0.25,0.0}"/>
+          <Parameter name="radius" type="double" value="0.25"/>
+        </ParameterList>
+      </ParameterList>
+      <ParameterList name="CELL">
+        <ParameterList name="a">
+          <Parameter name="_provenance" type="string" value="five-volumes.org.omn:34"/>
+          <Parameter name="name" type="string" value="a"/>
+          <Parameter name="composition" type="string" value="0"/>
+          <Parameter name="shapes" type="Array(string)" value="{alpha,gamma~}"/>
+        </ParameterList>
+        <ParameterList name="b">
+          <Parameter name="_provenance" type="string" value="five-volumes.org.omn:38"/>
+          <Parameter name="name" type="string" value="b"/>
+          <Parameter name="composition" type="string" value="1"/>
+          <Parameter name="shapes" type="Array(string)" value="{beta,gamma~}"/>
+        </ParameterList>
+        <ParameterList name="c">
+          <Parameter name="_provenance" type="string" value="five-volumes.org.omn:42"/>
+          <Parameter name="name" type="string" value="c"/>
+          <Parameter name="composition" type="string" value="2"/>
+          <Parameter name="shapes" type="Array(string)" value="{gamma,epsilon~}"/>
+        </ParameterList>
+        <ParameterList name="d">
+          <Parameter name="_provenance" type="string" value="five-volumes.org.omn:46"/>
+          <Parameter name="name" type="string" value="d"/>
+          <Parameter name="composition" type="string" value="3"/>
+          <Parameter name="shapes" type="Array(string)" value="{alpha~,beta~,gamma~,outer}"/>
+        </ParameterList>
+        <ParameterList name="e">
+          <Parameter name="_provenance" type="string" value="five-volumes.org.omn:50"/>
+          <Parameter name="name" type="string" value="e"/>
+          <Parameter name="composition" type="string" value="4"/>
+          <Parameter name="shapes" type="Array(string)" value="{epsilon}"/>
+        </ParameterList>
+      </ParameterList>
+      <Parameter name="interior" type="Array(string)" value="{outer}"/>
+    </ParameterList>
+  </ParameterList>
+</ParameterList>

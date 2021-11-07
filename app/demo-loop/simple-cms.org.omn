@@ -1,0 +1,87 @@
+!##############################################################################
+! File  : Geometria/orange/test/data/simple-cms.org.omn
+!
+! Simplified Compact Muon Solenoid proxy geometry
+!##############################################################################
+
+[GEOMETRY]
+global "global"
+comp       : matid
+    si       0
+    pb       1
+    c        2
+    ti       3
+    fe       4
+    galactic 5
+
+[UNIVERSE=general global]
+interior "world_box"
+
+!##############################################################################
+! SHAPES ("solids")
+!##############################################################################
+
+[UNIVERSE][SHAPE=cyl guide_tube]
+axis z
+radius 30
+length 1400
+
+[UNIVERSE][SHAPE=cyl silicon_tracker_outer]
+axis z
+radius 125
+length 1400
+
+[UNIVERSE][SHAPE=cyl crystal_em_calorimeter_outer]
+axis z
+radius 175
+length 1400
+
+[UNIVERSE][SHAPE=cyl hadron_calorimeter_outer]
+axis z
+radius 275
+length 1400
+
+[UNIVERSE][SHAPE=cyl superconducting_solenoid_outer]
+axis z
+radius 375
+length 1400
+
+[UNIVERSE][SHAPE=cyl iron_muon_chambers_outer]
+axis z
+radius 700
+length 1400
+
+[UNIVERSE][SHAPE=box world_box]
+widths 2000 2000 4000
+
+!##############################################################################
+! CELLS ("volumes")
+!##############################################################################
+
+[UNIVERSE][CELL guide_tube]
+comp galactic
+shapes guide_tube
+
+[UNIVERSE][CELL silicon_tracker]
+comp si
+shapes silicon_tracker_outer ~guide_tube
+
+[UNIVERSE][CELL crystal_em_calorimeter]
+comp pb
+shapes crystal_em_calorimeter_outer ~silicon_tracker_outer
+
+[UNIVERSE][CELL hadron_calorimeter]
+comp c
+shapes hadron_calorimeter_outer ~crystal_em_calorimeter_outer
+
+[UNIVERSE][CELL superconducting_solenoid]
+comp ti
+shapes superconducting_solenoid_outer ~hadron_calorimeter_outer
+
+[UNIVERSE][CELL iron_muon_chambers]
+comp fe
+shapes iron_muon_chambers_outer ~superconducting_solenoid_outer
+
+[UNIVERSE][CELL fill]
+comp galactic
+shapes -world_box +iron_muon_chambers_outer
