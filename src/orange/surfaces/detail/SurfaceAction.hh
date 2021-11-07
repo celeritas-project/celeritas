@@ -143,6 +143,7 @@ StaticSurfaceAction<T>::operator()(SurfaceType type) const
 #define ORANGE_SSA_GET(SURFACE) return T<SURFACE>()();
     ORANGE_SURF_DISPATCH_IMPL(ORANGE_SSA_GET, type);
 #undef ORANGE_SSA_GET
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
