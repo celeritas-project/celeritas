@@ -25,7 +25,8 @@ inline CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
                                             const ParticleTrackView& particle,
                                             PhysicsTrackView&        phys,
                                             SimTrackView&            sim,
-                                            Rng&                     rng);
+                                            Rng&                     rng,
+                                            Interaction*             result);
 
 template<class Rng>
 inline CELER_FUNCTION void move_and_select_model(const CutoffView& cutoffs,

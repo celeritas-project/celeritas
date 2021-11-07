@@ -37,6 +37,9 @@ ParticleProcessDiagnostic<M>::ParticleProcessDiagnostic(
 //---------------------------------------------------------------------------//
 /*!
  * Tally the particle/process combinations that occur at each step.
+
+ * This must be called after the post-step kernel and before the
+ * post-processing.
  */
 template<MemSpace M>
 void ParticleProcessDiagnostic<M>::mid_step(const StateDataRef& states)
