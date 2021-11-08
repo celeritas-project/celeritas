@@ -239,9 +239,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple-cms.gdml")
     set(_hepmc3_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/input.hepmc3")
     if (TARGET geant-exporter)
-      set(_geant_exporter_exe "$<TARGET_FILE:geant-exporter>")
-    else()
-      set(_geant_exporter_exe "geant-exporter")
+      set(_geant_exporter_env "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:geant-exporter>")
     endif()
     add_test(NAME "app/demo-loop"
       COMMAND "$<TARGET_FILE:Python::Interpreter>"
@@ -249,7 +247,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     )
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
-      "CELERITAS_GEANT_EXPORTER_EXE=${_geant_exporter_exe}"
+      "${_geant_exporter_env}"
       "CELER_DISABLE_PARALLEL=1"
     )
     set_tests_properties("app/demo-loop" PROPERTIES
@@ -272,7 +270,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     )
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
-      "CELERITAS_GEANT_EXPORTER_EXE=${_geant_exporter_exe}"
+      "${_geant_exporter_env}"
       "CELERITAS_USE_DEVICE=0"
       "CELER_DISABLE_PARALLEL=1"
     )
