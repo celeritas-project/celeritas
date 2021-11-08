@@ -63,6 +63,7 @@ list(APPEND SOURCES
   geometry/detail/ScopedTimeAndRedirect.cc
   orange/Types.cc
   orange/construct/SurfaceInserter.cc
+  orange/construct/VolumeInserter.cc
   orange/surfaces/SurfaceIO.cc
   io/ImportProcess.cc
   io/ImportPhysicsTable.cc
@@ -134,6 +135,7 @@ if(CELERITAS_USE_JSON)
     comm/DeviceIO.json.cc
     comm/KernelDiagnosticsIO.json.cc
     orange/construct/SurfaceInputIO.json.cc
+    orange/construct/VolumeInputIO.json.cc
   )
   list(APPEND PUBLIC_DEPS nlohmann_json::nlohmann_json)
 endif()

@@ -63,4 +63,144 @@ struct SurfaceData
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Data for a single volume definition.
+ *
+ * \sa VolumeView
+ */
+struct VolumeDef
+{
+    ItemRange<SurfaceId> faces;
+    ItemRange<logic_int> logic;
+
+    logic_int num_intersections{0};
+    logic_int flags{0};
+
+    //! Flag values (bit field)
+    enum Flags : logic_int
+    {
+        internal_surfaces = 0x1
+    };
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Data for volume definitions.
+ */
+template<Ownership W, MemSpace M>
+struct VolumeData
+{
+    //// TYPES ////
+
+    template<class T>
+    using Items = Collection<T, W, M, VolumeId>;
+
+    //// DATA ////
+
+    Items<VolumeDef> defs;
+
+    // Storage
+    Collection<SurfaceId, W, M> faces;
+    Collection<logic_int, W, M> logic;
+
+    //// METHODS ////
+
+    //! Number of volumes
+    CELER_FUNCTION VolumeId::size_type size() const { return defs.size(); }
+
+    //! True if sizes are valid
+    explicit CELER_FUNCTION operator bool() const { return !defs.empty(); }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    VolumeData& operator=(const VolumeData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+
+        defs  = other.defs;
+        faces = other.faces;
+        logic = other.logic;
+
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Data for universe definitions.
+ */
+template<Ownership W, MemSpace M>
+struct UniverseData
+{
+    //// TYPES ////
+
+    template<class T>
+    using Items = Collection<T, W, M, UniverseId>;
+
+    //// DATA ////
+
+    //// METHODS ////
+
+    //! True if sizes are valid
+    explicit CELER_FUNCTION operator bool() const { return false; }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    UniverseData& operator=(const UniverseData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Scalar values particular to an ORANGE geometry instance.
+ */
+struct OrangeParamsScalars
+{
+    size_type max_level{};
+    size_type max_faces{};
+    size_type max_intersections{};
+
+    // TODO: fuzziness/length scale
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Data to persistent data used by ORANGE implementation.
+ */
+template<Ownership W, MemSpace M>
+struct OrangeParamsData
+{
+    //// DATA ////
+
+    SurfaceData<W, M>  surfaces;
+    VolumeData<W, M>   volumes;
+    UniverseData<W, M> universes;
+
+    OrangeParamsScalars scalars;
+
+    //// METHODS ////
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return surfaces && volumes && universes;
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    OrangeParamsData& operator=(const OrangeParamsData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        surfaces  = other.surfaces;
+        volumes   = other.volumes;
+        universes = other.universes;
+        scalars   = other.scalars;
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
