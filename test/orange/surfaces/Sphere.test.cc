@@ -47,7 +47,7 @@ TEST_F(SphereTest, all)
 {
     EXPECT_EQ(celeritas::SurfaceType::s, Sphere::surface_type());
     EXPECT_EQ(4, Sphere::Storage::extent);
-    EXPECT_EQ(2, Sphere::Intersections::extent);
+    EXPECT_EQ(2, Sphere::Intersections{}.size());
 
     const Real3 origin{-1.1, 2.2, -3.3};
     real_type   radius = 4.4;
