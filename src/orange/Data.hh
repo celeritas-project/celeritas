@@ -46,8 +46,7 @@ struct SurfaceData
     //! True if sizes are valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !types.empty() && offsets.size() == types.size()
-               && reals.size() >= types.size();
+        return offsets.size() == types.size() && reals.size() >= types.size();
     }
 
     //! Assign from another set of data
