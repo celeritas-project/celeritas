@@ -184,6 +184,7 @@ class Collection
     using const_reference_type =
         typename CollectionTraitsT::const_reference_type;
     using size_type  = typename I::size_type;
+    using value_type = T;
     using ItemIdT    = I;
     using ItemRangeT = Range<ItemIdT>;
     using AllItemsT  = AllItems<T, M>;

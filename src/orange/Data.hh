@@ -17,7 +17,7 @@ namespace celeritas
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
- * Data for surface definitions.
+ * Data for type-deleted surface definitions.
  *
  * Surfaces each have a compile-time number of real data needed to define them.
  * (These usually are the nonzero coefficients of the quadric equation.) A
@@ -39,6 +39,9 @@ struct SurfaceData
     Collection<real_type, W, M> reals;
 
     //// METHODS ////
+
+    //! Number of surfaces
+    CELER_FUNCTION SurfaceId::size_type size() const { return types.size(); }
 
     //! True if sizes are valid
     explicit CELER_FUNCTION operator bool() const

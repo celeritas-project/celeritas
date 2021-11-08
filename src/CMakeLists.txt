@@ -133,6 +133,7 @@ if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
     comm/DeviceIO.json.cc
     comm/KernelDiagnosticsIO.json.cc
+    orange/construct/SurfaceInputIO.json.cc
   )
   list(APPEND PUBLIC_DEPS nlohmann_json::nlohmann_json)
 endif()

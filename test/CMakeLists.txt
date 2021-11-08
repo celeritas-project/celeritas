@@ -183,6 +183,7 @@ endif()
 
 celeritas_setup_tests(SERIAL PREFIX orange)
 
+celeritas_add_test(orange/construct/SurfaceInserter.test.cc)
 celeritas_add_test(orange/surfaces/detail/QuadraticSolver.test.cc)
 celeritas_add_test(orange/surfaces/CylCentered.test.cc)
 celeritas_add_test(orange/surfaces/GeneralQuadric.test.cc)
