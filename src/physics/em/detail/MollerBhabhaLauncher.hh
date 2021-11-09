@@ -37,8 +37,8 @@ struct MollerBhabhaLauncher
     {
     }
 
-    const MollerBhabhaData&     mb;    //!< Shared data for interactor
-    const ModelInteractRef<M>&  model; //!< State data needed to interact
+    const MollerBhabhaData&    mb;    //!< Shared data for interactor
+    const ModelInteractRef<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
@@ -60,11 +60,11 @@ CELER_FUNCTION void MollerBhabhaLauncher<M>::operator()(ThreadId tid) const
                              material.material_id(),
                              tid);
 
-    CutoffView cutoff(model.params.cutoffs, material.material_id());
-
     // This interaction only applies if the MB model was selected
     if (physics.model_id() != mb.model_id)
         return;
+
+    CutoffView cutoff(model.params.cutoffs, material.material_id());
 
     MollerBhabhaInteractor interact(
         mb, particle, cutoff, model.states.direction[tid], allocate_secondaries);
