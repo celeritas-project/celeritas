@@ -7,8 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iosfwd>
+#include <vector>
+
 // Source dependencies
 #include "base/CollectionMirror.hh"
+#include "base/Span.hh"
 #include "orange/Data.hh"
 
 // Test dependencies
@@ -26,6 +30,7 @@ class OrangeGeoTestBase : public celeritas::Test
     //!@{
     //! Type aliases
     using real_type = celeritas::real_type;
+    using Sense     = celeritas::Sense;
     using ParamsHostRef
         = celeritas::OrangeParamsData<celeritas::Ownership::const_reference,
                                       celeritas::MemSpace::host>;
@@ -43,6 +48,12 @@ class OrangeGeoTestBase : public celeritas::Test
     //!@}
 
   public:
+    // Convert a vector of senses to a string
+    static std::string senses_to_string(celeritas::Span<const Sense> senses);
+
+    // Default constructor
+    OrangeGeoTestBase() = default;
+
     // Destructor
     ~OrangeGeoTestBase();
 
@@ -62,8 +73,27 @@ class OrangeGeoTestBase : public celeritas::Test
         return params_.host();
     }
 
+    //! Access the shared CPU storage space for senses
+    celeritas::Span<Sense> sense_storage()
+    {
+        return celeritas::make_span(sense_storage_);
+    }
+
+    // Print geometry description
+    void describe(std::ostream& os) const;
+
   private:
+    //// TYPES ////
+    using ParamsHostValue
+        = celeritas::OrangeParamsData<celeritas::Ownership::value,
+                                      celeritas::MemSpace::host>;
+
+    //// DATA ////
     celeritas::CollectionMirror<celeritas::OrangeParamsData> params_;
+    std::vector<Sense>                                       sense_storage_;
+
+    //// METHODS ////
+    void build_impl(ParamsHostValue&& params);
 };
 
 //---------------------------------------------------------------------------//

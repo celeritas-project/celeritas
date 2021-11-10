@@ -8,8 +8,12 @@
 #include "OrangeGeoTestBase.hh"
 
 #include <fstream>
+#include <sstream>
+#include <utility>
 #include "celeritas_config.h"
 
+#include "base/Join.hh"
+#include "orange/Types.hh"
 #include "orange/construct/SurfaceInput.hh"
 #include "orange/construct/SurfaceInserter.hh"
 #include "orange/construct/VolumeInput.hh"
@@ -19,11 +23,46 @@
 #    include "orange/construct/VolumeInputIO.json.hh"
 #endif
 #include "orange/surfaces/Sphere.hh"
+#include "orange/surfaces/SurfaceAction.hh"
+#include "orange/surfaces/SurfaceIO.hh"
+#include "orange/universes/VolumeView.hh"
 
 using namespace celeritas;
 
 namespace celeritas_test
 {
+namespace
+{
+struct ToStream
+{
+    std::ostream& os;
+
+    template<class S>
+    std::ostream& operator()(S&& surf) const
+    {
+        os << surf;
+        return os;
+    }
+};
+
+} // namespace
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a vector of senses to a string.
+ */
+std::string OrangeGeoTestBase::senses_to_string(Span<const Sense> senses)
+{
+    std::ostringstream os;
+    os << '{' << celeritas::join(senses.begin(), senses.end(), ' ', [](Sense s) {
+        return to_char(s);
+    }) << '}';
+    return os.str();
+}
+
+//---------------------------------------------------------------------------//
+//! Default destructor
+OrangeGeoTestBase::~OrangeGeoTestBase() = default;
+
 //---------------------------------------------------------------------------//
 /*!
  * Load a geometry from the given JSON filename.
@@ -34,6 +73,9 @@ void OrangeGeoTestBase::build_geometry(const char* filename)
     CELER_EXPECT(filename);
     CELER_VALIDATE(CELERITAS_USE_JSON,
                    << "JSON is not enabled so geometry cannot be loaded");
+
+    OrangeParamsData<Ownership::value, MemSpace::host> host_data;
+
 #if CELERITAS_USE_JSON
     std::ifstream infile(
         this->test_data_path("orange", "five-volumes.org.json"));
@@ -46,8 +88,6 @@ void OrangeGeoTestBase::build_geometry(const char* filename)
                    << "input geometry has " << universes.size()
                    << "universes; at present there must be a single global "
                       "universe");
-
-    OrangeParamsData<Ownership::value, MemSpace::host> host_data;
 
     {
         // Insert surfaces
@@ -63,13 +103,9 @@ void OrangeGeoTestBase::build_geometry(const char* filename)
             insert(vol_inp.get<VolumeInput>());
         }
     }
-
-    // Construct device values and device/host references
-    CELER_ASSERT(host_data);
-    params_ = CollectionMirror<OrangeParamsData>{std::move(host_data)};
-
 #endif
-    CELER_ENSURE(params_);
+
+    return this->build_impl(std::move(host_data));
 }
 
 //---------------------------------------------------------------------------//
@@ -89,10 +125,7 @@ void OrangeGeoTestBase::build_geometry(OneVolInput)
         insert(inp);
     }
 
-    // Construct device values and device/host references
-    CELER_ASSERT(host_data);
-    params_ = CollectionMirror<OrangeParamsData>{std::move(host_data)};
-    CELER_ENSURE(params_);
+    return this->build_impl(std::move(host_data));
 }
 
 //---------------------------------------------------------------------------//
@@ -128,15 +161,59 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
         }
     }
 
-    // Construct device values and device/host references
-    CELER_ASSERT(host_data);
-    params_ = CollectionMirror<OrangeParamsData>{std::move(host_data)};
-    CELER_ENSURE(params_);
+    return this->build_impl(std::move(host_data));
 }
 
 //---------------------------------------------------------------------------//
-//! Default destructor
-OrangeGeoTestBase::~OrangeGeoTestBase() = default;
+/*!
+ * Print geometry description.
+ */
+void OrangeGeoTestBase::describe(std::ostream& os) const
+{
+    CELER_EXPECT(params_);
+
+    os << "# Surfaces\n";
+    Surfaces surfaces(this->params_host_ref().surfaces);
+    auto     surf_to_stream = make_surface_action(surfaces, ToStream{os});
+
+    // Loop over all surfaces and apply
+    for (auto id : range(SurfaceId{surfaces.num_surfaces()}))
+    {
+        os << " - " << id.get() << ": ";
+        surf_to_stream(id);
+        os << '\n';
+    }
+}
+
+//---------------------------------------------------------------------------//
+// PRIVATE METHODS
+//---------------------------------------------------------------------------//
+/*!
+ * Update and save geometry.
+ */
+void OrangeGeoTestBase::build_impl(ParamsHostValue&& host_data)
+{
+    CELER_EXPECT(host_data);
+
+    // Calculate max faces
+    size_type max_faces         = 0;
+    size_type max_intersections = 0;
+    for (auto vol_id : range(VolumeId{host_data.volumes.size()}))
+    {
+        const VolumeDef& def = host_data.volumes.defs[vol_id];
+        max_faces = std::max<size_type>(max_faces, def.faces.size());
+        max_intersections
+            = std::max<size_type>(max_intersections, def.num_intersections);
+    }
+    host_data.scalars.max_faces         = max_faces;
+    host_data.scalars.max_intersections = max_intersections;
+
+    sense_storage_.resize(max_faces);
+
+    // Construct device values and device/host references
+    params_ = CollectionMirror<OrangeParamsData>{std::move(host_data)};
+    CELER_ENSURE(params_);
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

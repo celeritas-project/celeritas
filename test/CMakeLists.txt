@@ -213,6 +213,7 @@ celeritas_target_link_libraries(CeleritasOrangeTest
 set(CELERITASTEST_LINK_LIBRARIES CeleritasOrangeTest)
 
 celeritas_add_test(orange/universes/VolumeView.test.cc)
+celeritas_add_test(orange/universes/detail/SenseCalculator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # I/O (ROOT)
