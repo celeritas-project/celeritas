@@ -74,8 +74,10 @@ void {func}_interact(
     CELER_EXPECT(model);
 
     detail::{class}Launcher<MemSpace::host> launch({func}_data, model);
-    for (auto tid : range(ThreadId{{model.states.size()}}))
+    #pragma omp parallel for
+    for (size_type i = 0; i < model.states.size(); ++i)
     {{
+        ThreadId tid{{i}};
         launch(tid);
     }}
 }}

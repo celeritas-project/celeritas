@@ -23,8 +23,10 @@ void livermore_pe_interact(
     CELER_EXPECT(model);
 
     detail::LivermorePELauncher<MemSpace::host> launch(livermore_pe_data, model);
-    for (auto tid : range(ThreadId{model.states.size()}))
+    #pragma omp parallel for
+    for (size_type i = 0; i < model.states.size(); ++i)
     {
+        ThreadId tid{i};
         launch(tid);
     }
 }

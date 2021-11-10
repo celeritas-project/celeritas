@@ -82,10 +82,6 @@ Device& global_device()
         }
     }
 
-#if CELERITAS_USE_CUDA && defined(_OPENMP)
-    CELER_NOT_IMPLEMENTED("OpenMP support with CUDA");
-#endif
-
     return device;
 }
 

@@ -25,8 +25,12 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
     return atomicAdd(address, value);
 #else
     CELER_EXPECT(address);
-    T initial = *address;
-    *address += value;
+    T initial;
+#    pragma omp atomic capture
+    {
+        initial = *address;
+        *address += value;
+    }
     return initial;
 #endif
 }

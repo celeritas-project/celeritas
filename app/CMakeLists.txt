@@ -222,6 +222,10 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
       VecGeom::vecgeom
     )
   endif()
+  find_package(OpenMP)
+  if(OpenMP_FOUND)
+    celeritas_target_link_libraries(celeritas_demo_loop PRIVATE OpenMP::OpenMP_CXX)
+  endif()
 
   # Add the executable
   add_executable(demo-loop
@@ -234,6 +238,9 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     VecGeom::vecgeom
     nlohmann_json::nlohmann_json
   )
+  if(OpenMP_FOUND)
+    celeritas_target_link_libraries(demo-loop OpenMP::OpenMP_CXX)
+  endif()
 
   if (CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
