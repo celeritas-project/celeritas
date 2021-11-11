@@ -25,8 +25,11 @@ namespace demo_loop
  */
 void pre_step(const ParamsHostRef& params, const StateHostRef& states)
 {
-    for (auto tid : range(ThreadId{states.size()}))
+#pragma omp parallel for
+    for (size_type i = 0; i < states.size(); ++i)
     {
+        ThreadId tid{i};
+
         // Clear out energy deposition
         states.energy_deposition[tid] = 0;
 
@@ -58,8 +61,10 @@ void pre_step(const ParamsHostRef& params, const StateHostRef& states)
 void along_and_post_step(const ParamsHostRef& params,
                          const StateHostRef&  states)
 {
-    for (auto tid : range(ThreadId{states.size()}))
+#pragma omp parallel for
+    for (size_type i = 0; i < states.size(); ++i)
     {
+        ThreadId     tid{i};
         SimTrackView sim(states.sim, tid);
         if (!sim.alive())
         {
@@ -103,8 +108,10 @@ void along_and_post_step(const ParamsHostRef& params,
 void process_interactions(const ParamsHostRef& params,
                           const StateHostRef&  states)
 {
-    for (auto tid : range(ThreadId{states.size()}))
+#pragma omp parallel for
+    for (size_type i = 0; i < states.size(); ++i)
     {
+        ThreadId     tid{i};
         SimTrackView sim(states.sim, tid);
         if (!sim.alive())
             continue;
