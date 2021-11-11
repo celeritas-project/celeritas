@@ -36,8 +36,8 @@ struct BetheHeitlerLauncher
     {
     }
 
-    const BetheHeitlerData&     bh;    //!< Shared data for interactor
-    const ModelInteractRef<M>&  model; //!< State data needed to interact
+    const BetheHeitlerData&    bh;    //!< Shared data for interactor
+    const ModelInteractRef<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
@@ -53,9 +53,6 @@ CELER_FUNCTION void BetheHeitlerLauncher<M>::operator()(ThreadId tid) const
     // Setup for ElementView access
     MaterialTrackView material(
         model.params.material, model.states.material, tid);
-    // Cache the associated MaterialView as function calls to
-    // MaterialTrackView are expensive
-    MaterialView material_view = material.material_view();
 
     PhysicsTrackView physics(model.params.physics,
                              model.states.physics,
@@ -67,6 +64,10 @@ CELER_FUNCTION void BetheHeitlerLauncher<M>::operator()(ThreadId tid) const
     // selected
     if (physics.model_id() != bh.model_id)
         return;
+
+    // Cache the associated MaterialView as function calls to
+    // MaterialTrackView are expensive
+    MaterialView material_view = material.material_view();
 
     // Assume only a single element in the material, for now
     CELER_ASSERT(material_view.num_elements() == 1);

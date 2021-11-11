@@ -56,13 +56,13 @@ CELER_FUNCTION void LivermorePELauncher<M>::operator()(ThreadId tid) const
                              particle.particle_id(),
                              material.material_id(),
                              tid);
-    CutoffView       cutoffs(model.params.cutoffs, material.material_id());
 
     // This interaction only applies if the Livermore PE model was selected
     if (physics.model_id() != pe.ids.model)
         return;
 
-    RngEngine rng(model.states.rng, tid);
+    CutoffView cutoffs(model.params.cutoffs, material.material_id());
+    RngEngine  rng(model.states.rng, tid);
 
     // Sample an element
     ElementSelector select_el(
