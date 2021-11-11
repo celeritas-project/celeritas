@@ -32,8 +32,8 @@ class SenseCalculator
     //! Return result
     struct result_type
     {
-        Span<Sense> senses; //!< Calculated senses for the volume
-        FaceId      face;   //!< The first face encountered that we are "on"
+        Span<Sense> senses;  //!< Calculated senses for the volume
+        OnFace      on_face; //!< The first face encountered that we are "on"
     };
 
   public:
@@ -42,9 +42,9 @@ class SenseCalculator
                                           const Real3&    pos,
                                           Span<Sense>     storage);
 
-    // Calculate senses for the given volume
+    // Calculate senses for the given volume, possibly on a face
     inline CELER_FUNCTION result_type operator()(const VolumeView& vol,
-                                                 FaceId            face = {});
+                                                 OnFace on_face = {});
 
   private:
     //! Compressed vector of surface definitions
@@ -75,34 +75,46 @@ CELER_FUNCTION SenseCalculator::SenseCalculator(const Surfaces& surfaces,
  * If the point is exactly on one of the volume's surfaces, the \c face value
  * of the return will be set.
  */
-CELER_FUNCTION auto
-SenseCalculator::operator()(const VolumeView& vol, FaceId face) -> result_type
+CELER_FUNCTION auto SenseCalculator::operator()(const VolumeView& vol,
+                                                OnFace on_face) -> result_type
 {
     CELER_EXPECT(vol.num_faces() <= sense_storage_.size());
+    CELER_EXPECT(!on_face || on_face.id() < vol.num_faces());
+
     // Resulting senses are a subset of the storage; and the face is preserved
     result_type result;
     result.senses = sense_storage_.first(vol.num_faces());
-    result.face   = face;
+    result.on_face = on_face;
 
     // Build a functor to calculate the sense of a surface ID given the current
     // state position
     auto calc_sense = make_surface_action(surfaces_, CalcSense{pos_});
 
     // Fill the temp logic vector with values for all surfaces in the cell
-    for (FaceId face_id : range(FaceId{vol.num_faces()}))
+    for (FaceId cur_face : range(FaceId{vol.num_faces()}))
     {
-        // Calculate sense
-        SignedSense ss = calc_sense(vol.get_surface(face_id));
-        // Save to result scratch space
-        result.senses[face_id.unchecked_get()] = to_sense(ss);
-        if (!result.face && ss == SignedSense::on)
+        Sense cur_sense;
+        if (cur_face != on_face.id())
         {
-            // This is the first face that we're exactly on: save it
-            result.face = face_id;
+            // Calculate sense
+            SignedSense ss = calc_sense(vol.get_surface(cur_face));
+            cur_sense      = to_sense(ss);
+            if (!result.on_face && ss == SignedSense::on)
+            {
+                // This is the first face that we're exactly on: save it
+                result.on_face = {cur_face, cur_sense};
+            }
         }
+        else
+        {
+            // Sense is known a priori
+            cur_sense = on_face.sense();
+        }
+        // Save sense to result scratch space
+        result.senses[cur_face.unchecked_get()] = cur_sense;
     }
 
-    CELER_ENSURE(!result.face || result.face < vol.num_faces());
+    CELER_ENSURE(!result.on_face || result.on_face.id() < result.senses.size());
     return result;
 }
 

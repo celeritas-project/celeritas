@@ -7,14 +7,40 @@
 //---------------------------------------------------------------------------//
 #include "orange/universes/detail/SenseCalculator.hh"
 
-#include <vector>
-#include "base/Span.hh"
 #include "orange/surfaces/Surfaces.hh"
-#include "celeritas_test.hh"
-#include "../../OrangeGeoTestBase.hh"
+#include "orange/universes/VolumeView.hh"
 
+// Test includes
+#include "celeritas_test.hh"
+#include "orange/OrangeGeoTestBase.hh"
+
+using celeritas::detail::OnFace;
 using celeritas::detail::SenseCalculator;
 using namespace celeritas;
+
+//---------------------------------------------------------------------------//
+// DETAIL TESTS
+//---------------------------------------------------------------------------//
+
+TEST(Types, OnFace)
+{
+    // Null face
+    OnFace not_face;
+    EXPECT_FALSE(not_face);
+    EXPECT_FALSE(not_face.id());
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(not_face.sense(), celeritas::DebugError);
+    }
+    EXPECT_NO_THROW(not_face.unchecked_sense());
+
+    // On a face
+    OnFace on_face{FaceId{3}, Sense::outside};
+    EXPECT_TRUE(on_face);
+    EXPECT_EQ(FaceId{3}, on_face.id());
+    EXPECT_EQ(Sense::outside, on_face.sense());
+    EXPECT_EQ(Sense::outside, on_face.unchecked_sense());
+}
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -40,7 +66,7 @@ class SenseCalculatorTest : public celeritas_test::OrangeGeoTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(SenseCalculatorTest, one_volumes)
+TEST_F(SenseCalculatorTest, one_volume)
 {
     {
         OneVolInput geo_inp;
@@ -54,7 +80,7 @@ TEST_F(SenseCalculatorTest, one_volumes)
 
     auto result = calc_senses(VolumeView(this->volume_ref(), VolumeId{0}));
     EXPECT_EQ(0, result.senses.size());
-    EXPECT_EQ(FaceId{}, result.face);
+    EXPECT_FALSE(result.on_face);
 }
 
 TEST_F(SenseCalculatorTest, two_volumes)
@@ -80,14 +106,14 @@ TEST_F(SenseCalculatorTest, two_volumes)
             auto result = calc_senses(inner);
             ASSERT_EQ(1, result.senses.size());
             EXPECT_EQ(Sense::inside, result.senses[0]);
-            EXPECT_EQ(FaceId{}, result.face);
+            EXPECT_FALSE(result.on_face);
         }
         {
             // Test not-sphere, not on a face
             auto result = calc_senses(outer);
             ASSERT_EQ(1, result.senses.size());
             EXPECT_EQ(Sense::inside, result.senses[0]);
-            EXPECT_EQ(FaceId{}, result.face);
+            EXPECT_FALSE(result.on_face);
         }
     }
     {
@@ -99,7 +125,15 @@ TEST_F(SenseCalculatorTest, two_volumes)
             auto result = calc_senses(inner);
             ASSERT_EQ(1, result.senses.size());
             EXPECT_EQ(Sense::outside, result.senses[0]);
-            EXPECT_EQ(FaceId{0}, result.face);
+            EXPECT_EQ(FaceId{0}, result.on_face.id());
+            EXPECT_EQ(Sense::outside, result.on_face.sense());
+        }
+        {
+            auto result = calc_senses(inner, OnFace{FaceId{0}, Sense::inside});
+            ASSERT_EQ(1, result.senses.size());
+            EXPECT_EQ(Sense::inside, result.senses[0]);
+            EXPECT_EQ(FaceId{0}, result.on_face.id());
+            EXPECT_EQ(Sense::inside, result.on_face.sense());
         }
     }
     {
@@ -111,7 +145,7 @@ TEST_F(SenseCalculatorTest, two_volumes)
             auto result = calc_senses(inner);
             ASSERT_EQ(1, result.senses.size());
             EXPECT_EQ(Sense::outside, result.senses[0]);
-            EXPECT_EQ(FaceId{}, result.face);
+            EXPECT_FALSE(result.on_face);
         }
     }
 }
@@ -140,7 +174,7 @@ TEST_F(SenseCalculatorTest, five_volumes)
             // Test inner sphere
             auto result = calc_senses(vol_e);
             EXPECT_EQ("{-}", senses_to_string(result.senses));
-            EXPECT_EQ(FaceId{}, result.face);
+            EXPECT_FALSE(result.on_face);
         }
         {
             // Test between spheres
@@ -148,13 +182,13 @@ TEST_F(SenseCalculatorTest, five_volumes)
             EXPECT_EQ("{- -}", senses_to_string(result.senses));
         }
         {
-            // Test square (faces: 1 through 7)
+            // Test square (faces: 3, 5, 6, 7, 8, 9, 10)
             auto result = calc_senses(vol_b);
             EXPECT_EQ("{- + - - - - +}", senses_to_string(result.senses));
         }
     }
     {
-        // Point is between spheres, on square edge
+        // Point is between spheres, on square edge (surface 8)
         SenseCalculator calc_senses(Surfaces{this->surface_ref()},
                                     Real3{0.5, -0.25, 0},
                                     this->sense_storage());
@@ -162,7 +196,7 @@ TEST_F(SenseCalculatorTest, five_volumes)
             // Test inner sphere
             auto result = calc_senses(vol_e);
             EXPECT_EQ("{+}", senses_to_string(result.senses));
-            EXPECT_EQ(FaceId{}, result.face);
+            EXPECT_FALSE(result.on_face);
         }
         {
             // Test between spheres
@@ -173,7 +207,65 @@ TEST_F(SenseCalculatorTest, five_volumes)
             // Test square (faces: 1 through 7)
             auto result = calc_senses(vol_b);
             EXPECT_EQ("{- + - - + - +}", senses_to_string(result.senses));
-            EXPECT_EQ(FaceId{4}, result.face);
+            EXPECT_EQ(FaceId{4}, result.on_face.id());
+            EXPECT_EQ(Sense::outside, result.on_face.sense());
+        }
+        {
+            // Test square with correct face (surface 8, face 4)
+            auto result = calc_senses(vol_b, OnFace{FaceId{4}, Sense::outside});
+            EXPECT_EQ("{- + - - + - +}", senses_to_string(result.senses));
+            EXPECT_EQ(FaceId{4}, result.on_face.id());
+            EXPECT_EQ(Sense::outside, result.on_face.sense());
+        }
+        {
+            // Test square with flipped sense
+            auto result = calc_senses(vol_b, OnFace{FaceId{4}, Sense::inside});
+            EXPECT_EQ("{- + - - - - +}", senses_to_string(result.senses));
+            EXPECT_EQ(FaceId{4}, result.on_face.id());
+            EXPECT_EQ(Sense::inside, result.on_face.sense());
+        }
+        {
+            // Test square with "incorrect" face that gets assigned anyway
+            auto result = calc_senses(vol_b, OnFace{FaceId{1}, Sense::inside});
+            EXPECT_EQ("{- - - - + - +}", senses_to_string(result.senses));
+            EXPECT_EQ(FaceId{1}, result.on_face.id());
+            EXPECT_EQ(Sense::inside, result.on_face.sense());
+        }
+        if (CELERITAS_DEBUG)
+        {
+            // Out-of-range face ID
+            EXPECT_THROW(calc_senses(vol_b, OnFace{FaceId{8}, Sense::inside}),
+                         celeritas::DebugError);
+        }
+    }
+    {
+        // Point is exactly on the lower right corner of b. If a face isn't
+        // given then the lower face ID will be the one considered "on".
+        // +x = surface 9 = face 5
+        // -y = surface 10 = face 6
+        SenseCalculator calc_senses(Surfaces{this->surface_ref()},
+                                    Real3{1.5, -1.0, 0},
+                                    this->sense_storage());
+        {
+            // Test natural sense
+            auto result = calc_senses(vol_b);
+            EXPECT_EQ("{- + - + + + +}", senses_to_string(result.senses));
+            EXPECT_EQ(FaceId{5}, result.on_face.id());
+            EXPECT_EQ(Sense::outside, result.on_face.sense());
+        }
+        {
+            // Test with lower face, flipped sense
+            auto result = calc_senses(vol_b, OnFace{FaceId{5}, Sense::inside});
+            EXPECT_EQ("{- + - + + - +}", senses_to_string(result.senses));
+            EXPECT_EQ(FaceId{5}, result.on_face.id());
+            EXPECT_EQ(Sense::inside, result.on_face.sense());
+        }
+        {
+            // Test with right face, flipped sense
+            auto result = calc_senses(vol_b, OnFace{FaceId{6}, Sense::inside});
+            EXPECT_EQ("{- + - + + + -}", senses_to_string(result.senses));
+            EXPECT_EQ(FaceId{6}, result.on_face.id());
+            EXPECT_EQ(Sense::inside, result.on_face.sense());
         }
     }
 }
