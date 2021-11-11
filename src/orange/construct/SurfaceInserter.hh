@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "SurfaceInput.hh"
 #include "../Data.hh"
 
 namespace celeritas
@@ -30,6 +31,7 @@ class SurfaceInserter
     //!@{
     //! Type aliases
     using Data = SurfaceData<Ownership::value, MemSpace::host>;
+    using SurfaceRange = ItemRange<struct Surface>;
     //!@}
 
     //! Type-deleted reference to a surface
@@ -43,7 +45,7 @@ class SurfaceInserter
 
   public:
     // Construct with reference to surfaces to build
-    explicit SurfaceInserter(Data* surfaces_);
+    explicit SurfaceInserter(Data* surfaces);
 
     // Add a new surface
     template<class T>
@@ -51,6 +53,9 @@ class SurfaceInserter
 
     // Append a generic surface view to the vector
     SurfaceId operator()(GenericSurfaceRef generic_surf);
+
+    // Create a bunch of surfaces (experimental)
+    SurfaceRange operator()(const SurfaceInput& all_surfaces);
 
   private:
     Data* surface_data_;

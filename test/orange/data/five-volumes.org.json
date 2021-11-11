@@ -1,0 +1,188 @@
+{
+"_format": "SCALE ORANGE",
+"_version": 0,
+"materials": {
+"cell_to_mat": [
+-1,
+0,
+1,
+2,
+3,
+4
+],
+"names": [
+"0",
+"1",
+"2",
+"3",
+"4"
+]
+},
+"universes": [
+{
+"_type": "simple unit",
+"bbox": [
+[
+-100.000000000001,
+-100.000000000001,
+-100.000000000001
+],
+[
+100.000000000001,
+100.000000000001,
+100.000000000001
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"a",
+"b",
+"c",
+"d",
+"e"
+],
+"cells": [
+{
+"faces": [
+0
+],
+"logic": "0",
+"num_intersections": 2,
+"zorder": 1
+},
+{
+"faces": [
+1,
+2,
+3,
+4,
+5,
+6,
+7
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & 6 &",
+"num_intersections": 8,
+"zorder": 1
+},
+{
+"faces": [
+3,
+5,
+6,
+7,
+8,
+9,
+10
+],
+"flags": 1,
+"logic": "3 0 ~ 1 & 2 ~ & 4 & 5 ~ & 6 & &",
+"num_intersections": 8,
+"zorder": 1
+},
+{
+"faces": [
+7,
+11
+],
+"flags": 1,
+"logic": "0 ~ 1 &",
+"num_intersections": 4,
+"zorder": 1
+},
+{
+"faces": [
+0,
+1,
+2,
+3,
+4,
+5,
+6,
+7,
+8,
+9,
+10
+],
+"flags": 1,
+"logic": "0 ~ 1 2 ~ & 3 & 4 ~ & 5 & 6 ~ & ~ & 7 & 3 ~ 5 & 6 ~ & 8 & 9 ~ & 10 & ~ &",
+"num_intersections": 13,
+"zorder": 1
+},
+{
+"faces": [
+11
+],
+"logic": "0 ~",
+"num_intersections": 2,
+"zorder": 1
+}
+],
+"md": {
+"name": "global",
+"provenance": "five-volumes.org.omn:9"
+},
+"surface_names": [
+"outer.s",
+"alpha.mx",
+"alpha.px",
+"alpha.my",
+"alpha.py",
+"alpha.mz",
+"alpha.pz",
+"gamma.s",
+"beta.mx",
+"beta.px",
+"beta.my",
+"epsilon.s"
+],
+"surfaces": {
+"data": [
+0,0,0, 10000,
+-1.0,
+0.0,
+0.0,
+1.0,
+-0.5,
+0.5,
+0,0,0, 0.5625,
+0.5,
+1.5,
+-1.0,
+-0.25,
+-0.25,
+0.0,
+0.0625
+],
+"sizes": [
+4,
+1,
+1,
+1,
+1,
+1,
+1,
+4,
+1,
+1,
+1,
+4
+],
+"types": [
+"s",
+"px",
+"px",
+"py",
+"py",
+"pz",
+"pz",
+"s",
+"px",
+"px",
+"py",
+"s"
+]
+}
+}
+]
+}

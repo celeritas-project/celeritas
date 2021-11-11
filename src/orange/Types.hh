@@ -127,6 +127,28 @@ enum class SurfaceState : bool
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Volume logic encoding.
+ *
+ * This uses an *unscoped* enum inside a *namespace* so that its values can be
+ * freely intermingled with other integers that represent face IDs.
+ */
+namespace logic
+{
+//! Special logical Evaluator tokens.
+// The enum values are set to the highest 4 values of logic_int.
+enum OperatorToken : logic_int
+{
+    lbegin = logic_int(~logic_int(4)),
+    ltrue  = lbegin, //!< Push 'true'
+    lor,             //!< Binary logical OR
+    land,            //!< Binary logical AND
+    lnot,            //!< Unary negation
+    lend
+};
+} // namespace logic
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)
 //---------------------------------------------------------------------------//
 /*!
@@ -203,9 +225,18 @@ CELER_CONSTEXPR_FUNCTION real_type no_intersection()
 }
 
 //---------------------------------------------------------------------------//
+namespace logic
+{
+//! Whether an integer is a special logic token.
+CELER_CONSTEXPR_FUNCTION bool is_operator_token(logic_int lv)
+{
+    return (lv >= lbegin);
+}
+} // namespace logic
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
-
 //! Get a printable character corresponding to a sense.
 inline static constexpr char to_char(Sense s)
 {
@@ -220,6 +251,15 @@ inline static constexpr char to_char(Axis ax)
 
 // Get a string corresponding to a surface type
 const char* to_cstring(SurfaceType);
+
+//! Get a printable character corresponding to an operator.
+namespace logic
+{
+inline static constexpr char to_char(OperatorToken tok)
+{
+    return is_operator_token(tok) ? "*|&~"[tok - lbegin] : '\a';
+}
+} // namespace logic
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
