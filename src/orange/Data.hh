@@ -127,34 +127,6 @@ struct VolumeData
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for universe definitions.
- */
-template<Ownership W, MemSpace M>
-struct UniverseData
-{
-    //// TYPES ////
-
-    template<class T>
-    using Items = Collection<T, W, M, UniverseId>;
-
-    //// DATA ////
-
-    //// METHODS ////
-
-    //! True if sizes are valid
-    explicit CELER_FUNCTION operator bool() const { return false; }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    UniverseData& operator=(const UniverseData<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        return *this;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Scalar values particular to an ORANGE geometry instance.
  */
 struct OrangeParamsScalars
@@ -177,7 +149,6 @@ struct OrangeParamsData
 
     SurfaceData<W, M>  surfaces;
     VolumeData<W, M>   volumes;
-    UniverseData<W, M> universes;
 
     OrangeParamsScalars scalars;
 
@@ -186,7 +157,7 @@ struct OrangeParamsData
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return surfaces && volumes && universes;
+        return surfaces && volumes;
     }
 
     //! Assign from another set of data
@@ -196,7 +167,6 @@ struct OrangeParamsData
         CELER_EXPECT(other);
         surfaces  = other.surfaces;
         volumes   = other.volumes;
-        universes = other.universes;
         scalars   = other.scalars;
         return *this;
     }
