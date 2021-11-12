@@ -20,6 +20,10 @@ namespace detail
  *
  * Particles are never allowed to be logically "on" a surface: they must be
  * logically on one side or another so that they are in a particular volume.
+ *
+ * This class encapsulates the storage of the sense/value: we could try using a
+ * bit field to compress the ID and sense at the cost of reducing the max
+ * number of surfaces/faces by a factor of two.
  */
 template<class ValueT>
 class OnTface
@@ -149,46 +153,6 @@ struct LocalState
     OnSurface    surface;
     Span<Sense>  temp_senses;
     TempNextFace temp_next;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether a initialization was successful and if it happened on a face.
- */
-class FoundFace
-{
-  public:
-    //! Not found
-    constexpr FoundFace() = default;
-
-    //! Possibly found, not on a surface
-    explicit CELER_CONSTEXPR_FUNCTION FoundFace(bool found)
-        : face_{}, found_{found}
-    {
-    }
-
-    //! Possibly found, possibly on a surface
-    CELER_CONSTEXPR_FUNCTION FoundFace(bool found, OnFace face)
-        : face_{face}, found_{found}
-    {
-    }
-
-    //! Whether initialization was successful
-    explicit CELER_CONSTEXPR_FUNCTION operator bool() const { return found_; }
-
-    //! Whether we're on a face
-    CELER_FUNCTION OnFace face() const
-    {
-        CELER_EXPECT(*this);
-        return face_;
-    }
-
-    //! Get the sense (unspecified if not on a face, to allow passthrough)
-    CELER_CONSTEXPR_FUNCTION OnFace unchecked_face() const { return face_; }
-
-  private:
-    OnFace face_;
-    bool   found_{false};
 };
 
 //---------------------------------------------------------------------------//
