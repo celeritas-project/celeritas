@@ -8,6 +8,8 @@
 #pragma once
 
 #include <iosfwd>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 // Source dependencies
@@ -31,9 +33,14 @@ class OrangeGeoTestBase : public celeritas::Test
     //! Type aliases
     using real_type = celeritas::real_type;
     using Sense     = celeritas::Sense;
+    using VolumeId  = celeritas::VolumeId;
+    using SurfaceId = celeritas::SurfaceId;
     using ParamsHostRef
         = celeritas::OrangeParamsData<celeritas::Ownership::const_reference,
                                       celeritas::MemSpace::host>;
+    using ParamsDeviceRef
+        = celeritas::OrangeParamsData<celeritas::Ownership::const_reference,
+                                      celeritas::MemSpace::device>;
     //!@}
 
     //!@{
@@ -73,11 +80,32 @@ class OrangeGeoTestBase : public celeritas::Test
         return params_.host();
     }
 
+    //! Get device data after loading
+    const ParamsDeviceRef& params_device_ref() const
+    {
+        CELER_EXPECT(params_);
+        return params_.device();
+    }
+
     //! Access the shared CPU storage space for senses
     celeritas::Span<Sense> sense_storage()
     {
         return celeritas::make_span(sense_storage_);
     }
+
+    //// QUERYING ////
+
+    // Find the volume from its label (nullptr allowed)
+    VolumeId find_volume(const char* label) const;
+
+    // Find the surface from its label (NULL pointer allowed)
+    SurfaceId find_surface(const char* label) const;
+
+    // Surface name (or sentinel if no surface);
+    std::string id_to_label(SurfaceId) const;
+
+    // Cell name (or sentinel if no surface);
+    std::string id_to_label(VolumeId) const;
 
     // Print geometry description
     void describe(std::ostream& os) const;
@@ -90,7 +118,12 @@ class OrangeGeoTestBase : public celeritas::Test
 
     //// DATA ////
     celeritas::CollectionMirror<celeritas::OrangeParamsData> params_;
-    std::vector<Sense>                                       sense_storage_;
+
+    std::vector<Sense>                         sense_storage_;
+    std::vector<std::string>                   surf_names_;
+    std::vector<std::string>                   vol_names_;
+    std::unordered_map<std::string, VolumeId>  vol_ids_;
+    std::unordered_map<std::string, SurfaceId> surf_ids_;
 
     //// METHODS ////
     void build_impl(ParamsHostValue&& params);

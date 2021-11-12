@@ -58,6 +58,12 @@ TEST_F(VolumeViewTest, one_volume)
 
     // Test that nonexistent face returns "false" id
     EXPECT_EQ(FaceId{}, vol.find_face(SurfaceId{123}));
+    if (CELERITAS_DEBUG)
+    {
+        // Disallow empty surfaces (burden is on the caller to check for null)
+        EXPECT_THROW(vol.get_surface(FaceId{}), DebugError);
+        EXPECT_THROW(vol.find_face(SurfaceId{}), DebugError);
+    }
 }
 
 TEST_F(VolumeViewTest, five_volumes)

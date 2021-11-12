@@ -93,6 +93,7 @@ void OrangeGeoTestBase::build_geometry(const char* filename)
         // Insert surfaces
         SurfaceInserter insert(&host_data.surfaces);
         insert(universes[0]["surfaces"].get<SurfaceInput>());
+        universes[0]["surface_names"].get_to(surf_names_);
     }
 
     {
@@ -102,6 +103,7 @@ void OrangeGeoTestBase::build_geometry(const char* filename)
         {
             insert(vol_inp.get<VolumeInput>());
         }
+        universes[0]["cell_names"].get_to(vol_names_);
     }
 #endif
 
@@ -116,13 +118,17 @@ void OrangeGeoTestBase::build_geometry(OneVolInput)
 {
     CELER_EXPECT(!params_);
     OrangeParamsData<Ownership::value, MemSpace::host> host_data;
-
+    {
+        // No suerfaces
+        surf_names_ = {};
+    }
     {
         // Insert volumes
         VolumeInserter insert(&host_data.volumes);
         VolumeInput    inp;
         inp.logic = {logic::ltrue};
         insert(inp);
+        vol_names_ = {"infinite"};
     }
 
     return this->build_impl(std::move(host_data));
@@ -142,8 +148,8 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
         // Insert surfaces
         SurfaceInserter insert(&host_data.surfaces);
         insert(Sphere({0, 0, 0}, inp.radius));
+        surf_names_ = {"sphere"};
     }
-
     {
         // Insert volumes
         VolumeInserter insert(&host_data.volumes);
@@ -159,6 +165,7 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
             inp.logic = {0};
             insert(inp);
         }
+        vol_names_ = {"inside", "outside"};
     }
 
     return this->build_impl(std::move(host_data));
@@ -167,6 +174,9 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
 //---------------------------------------------------------------------------//
 /*!
  * Print geometry description.
+ *
+ * This is just developer-oriented code until we get the full ORANGE metadata
+ * ported.
  */
 void OrangeGeoTestBase::describe(std::ostream& os) const
 {
@@ -179,10 +189,70 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
     // Loop over all surfaces and apply
     for (auto id : range(SurfaceId{surfaces.num_surfaces()}))
     {
-        os << " - " << id.get() << ": ";
+        os << " - " << surf_names_[id.get()] << "(" << id.get() << "): ";
         surf_to_stream(id);
         os << '\n';
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the surface from its label (nullptr allowed)
+ */
+SurfaceId OrangeGeoTestBase::find_surface(const char* label) const
+{
+    SurfaceId surface_id;
+    if (label)
+    {
+        auto iter = surf_ids_.find(label);
+        CELER_VALIDATE(iter != surf_ids_.end(),
+                       << "nonexistent surface label '" << label << '\'');
+        surface_id = iter->second;
+    }
+    return surface_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the volume from its label (nullptr allowed)
+ */
+VolumeId OrangeGeoTestBase::find_volume(const char* label) const
+{
+    VolumeId volume_id;
+    if (label)
+    {
+        auto iter = vol_ids_.find(label);
+        CELER_VALIDATE(iter != vol_ids_.end(),
+                       << "nonexistent volume label '" << label << '\'');
+        volume_id = iter->second;
+    }
+    return volume_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Surface name (or sentinel if no surface).
+ */
+std::string OrangeGeoTestBase::id_to_label(SurfaceId surf) const
+{
+    CELER_EXPECT(!surf || surf < surf_names_.size());
+    if (!surf)
+        return "[none]";
+
+    return surf_names_[surf.get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Volume name (or sentinel if no volume).
+ */
+std::string OrangeGeoTestBase::id_to_label(VolumeId vol) const
+{
+    CELER_EXPECT(!vol || vol < vol_names_.size());
+    if (!vol)
+        return "[none]";
+
+    return vol_names_[vol.get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -212,7 +282,28 @@ void OrangeGeoTestBase::build_impl(ParamsHostValue&& host_data)
 
     // Construct device values and device/host references
     params_ = CollectionMirror<OrangeParamsData>{std::move(host_data)};
+
+    // Build id/surface mapping
+    for (auto vid : range(VolumeId{vol_names_.size()}))
+    {
+        auto iter_inserted = vol_ids_.insert({vol_names_[vid.get()], vid});
+        CELER_VALIDATE(iter_inserted.second,
+                       << "duplicate volume name '"
+                       << iter_inserted.first->first << '\'');
+    }
+    for (auto sid : range(SurfaceId{surf_names_.size()}))
+    {
+        auto iter_inserted = surf_ids_.insert({surf_names_[sid.get()], sid});
+        CELER_VALIDATE(iter_inserted.second,
+                       << "duplicate surface name '"
+                       << iter_inserted.first->first << '\'');
+    }
+
     CELER_ENSURE(params_);
+    CELER_ENSURE(surf_names_.size() == this->params_host_ref().surfaces.size());
+    CELER_ENSURE(vol_names_.size() == this->params_host_ref().volumes.size());
+    CELER_ENSURE(surf_ids_.size() == surf_names_.size());
+    CELER_ENSURE(vol_ids_.size() == vol_names_.size());
 }
 
 //---------------------------------------------------------------------------//

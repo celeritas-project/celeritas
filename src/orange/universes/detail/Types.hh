@@ -149,7 +149,7 @@ struct LocalState
 {
     Real3        pos;
     Real3        dir;
-    VolumeId     cell;
+    VolumeId     volume;
     OnSurface    surface;
     Span<Sense>  temp_senses;
     TempNextFace temp_next;

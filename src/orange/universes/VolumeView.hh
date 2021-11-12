@@ -118,26 +118,23 @@ CELER_FUNCTION SurfaceId VolumeView::get_surface(FaceId id) const
  * - A non-empty surface ID that's among the faces in this volume will return
  *   the face ID, which is just the index of the surface ID in the list of
  *   local faces.
- * - The input is allowed to be false (not on a surface) in which case the
- *   result will be false.
  * - If the given surface is not present in the cell, the result will be false.
  *
  * This is an O(log(num_faces)) operation.
  */
 CELER_FUNCTION FaceId VolumeView::find_face(SurfaceId surface) const
 {
-    FaceId result;
-    if (surface)
+    CELER_EXPECT(surface);
+    auto surface_list = this->faces();
+    auto iter = lower_bound(surface_list.begin(), surface_list.end(), surface);
+    if (iter == surface_list.end() || *iter != surface)
     {
-        auto surface_list = this->faces();
-        auto iter
-            = lower_bound(surface_list.begin(), surface_list.end(), surface);
-        if (iter != surface_list.end() && *iter == surface)
-        {
-            result = FaceId(iter - surface_list.begin());
-        }
+        // Not found
+        return {};
     }
-    CELER_ENSURE(!result || result < this->num_faces());
+
+    FaceId result(iter - surface_list.begin());
+    CELER_ENSURE(result < this->num_faces());
     return result;
 }
 
