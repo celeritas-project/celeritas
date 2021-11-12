@@ -9,8 +9,6 @@
 #include "base/CollectionBuilder.hh"
 #include "physics/base/PhysicsTrackView.hh"
 
-using celeritas::ItemId;
-
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
@@ -44,7 +42,9 @@ ParticleProcessDiagnostic<M>::ParticleProcessDiagnostic(
 template<MemSpace M>
 void ParticleProcessDiagnostic<M>::mid_step(const StateDataRef& states)
 {
-    Collection<size_type, Ownership::reference, M> counts(counts_);
+    using ItemsRef = celeritas::Collection<size_type, Ownership::reference, M>;
+
+    ItemsRef counts(counts_);
     count_particle_process(params_, states, counts);
 }
 
@@ -53,11 +53,15 @@ void ParticleProcessDiagnostic<M>::mid_step(const StateDataRef& states)
  * Counts of particle/model combinations that underwent discrete interaction.
  */
 template<MemSpace M>
-std::unordered_map<std::string, size_type>
+std::unordered_map<std::string, celeritas::size_type>
 ParticleProcessDiagnostic<M>::particle_processes() const
 {
+    using BinId = celeritas::ItemId<size_type>;
+    using HostItems
+        = celeritas::Collection<size_type, Ownership::value, MemSpace::host>;
+
     // Copy result to host if necessary
-    Collection<size_type, Ownership::value, MemSpace::host> counts(counts_);
+    HostItems counts(counts_);
 
     // Map particle ID/model ID to particle and process name and store counts
     std::unordered_map<std::string, size_type> result;
@@ -71,7 +75,7 @@ ParticleProcessDiagnostic<M>::particle_processes() const
                               + particle_id.get();
             CELER_ASSERT(index < counts.size());
 
-            size_type count = counts[ItemId<size_type>{index}];
+            size_type count = counts[BinId{index}];
             if (count > 0)
             {
                 // Accumulate the result for this process
@@ -104,9 +108,10 @@ ParticleProcessLauncher<M>::ParticleProcessLauncher(const ParamsDataRef& params,
  * Create track views and tally particle/processes.
  */
 template<MemSpace M>
-CELER_FUNCTION void
-ParticleProcessLauncher<M>::operator()(celeritas::ThreadId tid) const
+CELER_FUNCTION void ParticleProcessLauncher<M>::operator()(ThreadId tid) const
 {
+    using BinId = celeritas::ItemId<size_type>;
+
     celeritas::ParticleTrackView particle(
         params_.particles, states_.particles, tid);
     celeritas::PhysicsTrackView physics(
@@ -117,7 +122,7 @@ ParticleProcessLauncher<M>::operator()(celeritas::ThreadId tid) const
         size_type index = physics.model_id().get() * physics.num_particles()
                           + particle.particle_id().get();
         CELER_ASSERT(index < counts_.size());
-        celeritas::atomic_add(&counts_[ItemId<size_type>(index)], 1u);
+        celeritas::atomic_add(&counts_[BinId(index)], 1u);
     }
 }
 } // namespace demo_loop

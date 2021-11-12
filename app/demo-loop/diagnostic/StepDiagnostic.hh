@@ -14,9 +14,6 @@
 #include <vector>
 #include "physics/base/ParticleParams.hh"
 
-using celeritas::ParamsData;
-using celeritas::size_type;
-
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
@@ -28,6 +25,7 @@ struct StepDiagnosticData
 {
     //// TYPES ////
 
+    using size_type = celeritas::size_type;
     template<class T>
     using StateItems = celeritas::StateCollection<T, W, M>;
     template<class T>
@@ -76,9 +74,10 @@ class StepDiagnostic : public Diagnostic<M>
   public:
     //!@{
     //! Type aliases
-    using ParamsDataRef    = ParamsData<Ownership::const_reference, M>;
-    using StateDataRef     = StateData<Ownership::reference, M>;
+    using size_type        = celeritas::size_type;
     using SPConstParticles = std::shared_ptr<const celeritas::ParticleParams>;
+    using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
+    using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
     //!@}
 
   public:
@@ -115,19 +114,20 @@ class StepLauncher
   public:
     //!@{
     //! Type aliases
-    using ParamsDataRef = ParamsData<Ownership::const_reference, M>;
-    using StateDataRef  = StateData<Ownership::reference, M>;
+    using size_type     = celeritas::size_type;
+    using ThreadId      = celeritas::ThreadId;
+    using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
+    using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION
-    StepLauncher(const ParamsDataRef&     params,
-                 const StateDataRef&      states,
-                 StepDiagnosticDataRef<M> data);
+    CELER_FUNCTION StepLauncher(const ParamsDataRef&     params,
+                                const StateDataRef&      states,
+                                StepDiagnosticDataRef<M> data);
 
     // Create track views and tally steps per track
-    inline CELER_FUNCTION void operator()(celeritas::ThreadId tid) const;
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
     const ParamsDataRef&     params_;

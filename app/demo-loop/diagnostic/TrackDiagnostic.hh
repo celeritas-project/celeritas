@@ -14,8 +14,6 @@
 #include "sim/SimTrackView.hh"
 #include "sim/TrackData.hh"
 
-using celeritas::size_type;
-
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
@@ -24,6 +22,8 @@ namespace demo_loop
  */
 struct OneIfAlive
 {
+    using size_type = celeritas::size_type;
+
     CELER_FUNCTION size_type operator()(const celeritas::SimTrackState& sim) const
     {
         return sim.alive ? 1 : 0;
@@ -41,7 +41,8 @@ template<MemSpace M>
 class TrackDiagnostic : public Diagnostic<M>
 {
   public:
-    using StateDataRef = StateData<Ownership::reference, M>;
+    using size_type    = celeritas::size_type;
+    using StateDataRef = celeritas::StateData<Ownership::reference, M>;
 
     TrackDiagnostic() : Diagnostic<M>() {}
 
@@ -62,8 +63,6 @@ class TrackDiagnostic : public Diagnostic<M>
 //---------------------------------------------------------------------------//
 // KERNEL LAUNCHER(S)
 //---------------------------------------------------------------------------//
-size_type
-reduce_alive(const StateData<Ownership::reference, MemSpace::device>& states);
-size_type
-reduce_alive(const StateData<Ownership::reference, MemSpace::host>& states);
+celeritas::size_type reduce_alive(const celeritas::StateDeviceRef& states);
+celeritas::size_type reduce_alive(const celeritas::StateHostRef& states);
 } // namespace demo_loop

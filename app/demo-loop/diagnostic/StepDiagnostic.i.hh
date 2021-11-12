@@ -71,7 +71,7 @@ void StepDiagnostic<M>::mid_step(const StateDataRef& states)
  * given particle type that took i + 1 steps.
  */
 template<MemSpace M>
-std::unordered_map<std::string, std::vector<size_type>>
+std::unordered_map<std::string, std::vector<celeritas::size_type>>
 StepDiagnostic<M>::steps()
 {
     using BinId = celeritas::ItemId<size_type>;
@@ -125,7 +125,7 @@ CELER_FUNCTION StepLauncher<M>::StepLauncher(const ParamsDataRef&     params,
  * killed in post-processing), but their action will be killing.
  */
 template<MemSpace M>
-CELER_FUNCTION void StepLauncher<M>::operator()(celeritas::ThreadId tid) const
+CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
 {
     using BinId = celeritas::ItemId<size_type>;
 

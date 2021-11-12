@@ -11,6 +11,8 @@
 #include "base/KernelParamCalculator.cuda.hh"
 #include "base/Macros.hh"
 
+using namespace celeritas;
+
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
@@ -20,9 +22,9 @@ namespace demo_loop
  * Get energy deposition from state data and accumulate in appropriate bin
  */
 __global__ void
-bin_energy_kernel(const StateDataRefDevice states, PointersDevice pointers)
+bin_energy_kernel(const StateDeviceRef states, PointersDevice pointers)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
         return;
 
@@ -33,10 +35,10 @@ bin_energy_kernel(const StateDataRefDevice states, PointersDevice pointers)
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
-void bin_energy(const StateDataRefDevice& states, PointersDevice& pointers)
+void bin_energy(const StateDeviceRef& states, PointersDevice& pointers)
 {
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        bin_energy_kernel, "bin_energy");
+    static const KernelParamCalculator calc_launch_params(bin_energy_kernel,
+                                                          "bin_energy");
     auto lparams = calc_launch_params(states.size());
     bin_energy_kernel<<<lparams.grid_size, lparams.block_size>>>(states,
                                                                  pointers);

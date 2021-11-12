@@ -13,7 +13,6 @@
 
 using celeritas::MemSpace;
 using celeritas::Ownership;
-using celeritas::StateData;
 
 namespace demo_loop
 {
@@ -25,13 +24,14 @@ template<MemSpace M>
 class Diagnostic
 {
   public:
-    using StateDataRef = StateData<Ownership::reference, M>;
+    using EventId      = celeritas::EventId;
+    using StateDataRef = celeritas::StateData<Ownership::reference, M>;
 
     // Memory allocations
     virtual void begin_simulation() {}
 
     // Collect diagnostic(s) before event begins
-    virtual void begin_event(celeritas::EventId, const StateDataRef&) {}
+    virtual void begin_event(EventId, const StateDataRef&) {}
 
     // Collect diagnostic(s) before step
     virtual void begin_step(const StateDataRef&) {}
@@ -43,7 +43,7 @@ class Diagnostic
     virtual void end_step(const StateDataRef&) {}
 
     // Collect diagnostic(s) after event ends
-    virtual void end_event(celeritas::EventId, const StateDataRef&) {}
+    virtual void end_event(EventId, const StateDataRef&) {}
 
     // Collect post-sim diagnostic(s)
     virtual void end_simulation() {}
