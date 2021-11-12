@@ -68,7 +68,8 @@ void StepDiagnostic<M>::mid_step(const StateDataRef& states)
  * Get distribution of steps per track for each particle type.
  *
  * For i in [0, max_steps), steps[particle][i] is the number of tracks of the
- * given particle type that took i + 1 steps.
+ * given particle type that took i + 1 steps (note that the first element is
+ * the number of tracks that took *one* step, not zero).
  */
 template<MemSpace M>
 std::unordered_map<std::string, std::vector<celeritas::size_type>>
@@ -89,6 +90,7 @@ StepDiagnostic<M>::steps()
         CELER_ASSERT(end.get() <= data.counts.size());
         auto counts = data.counts[celeritas::ItemRange<size_type>{start, end}];
 
+        // Export non-trivial particle's counts
         if (std::any_of(counts.begin(), counts.end(), [](size_type x) {
                 return x > 0;
             }))
@@ -148,10 +150,16 @@ CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
         CELER_ASSERT(data_.steps[tid] > 0);
         if (data_.steps[tid] <= data_.max_steps)
         {
-            auto index = particle.particle_id().get() * data_.max_steps
-                         + data_.steps[tid] - 1;
-            CELER_ASSERT(index < data_.counts.size());
-            celeritas::atomic_add(&data_.counts[BinId(index)], 1u);
+            // TODO: Add an ndarray-type class?
+            auto get = [this](size_type i, size_type j) -> size_type& {
+                size_type index = i * data_.max_steps + j;
+                CELER_ENSURE(index < data_.counts.size());
+                return data_.counts[BinId(index)];
+            };
+
+            // Get the bin corresponding to the given particle and step count
+            auto& bin = get(particle.particle_id().get(), data_.steps[tid] - 1);
+            celeritas::atomic_add(&bin, 1u);
         }
         data_.steps[tid] = 0;
     }
