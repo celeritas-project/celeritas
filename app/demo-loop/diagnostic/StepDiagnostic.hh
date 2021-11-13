@@ -43,8 +43,8 @@ struct StepDiagnosticData
     //! Whether the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return !steps.empty() && counts.size() == max_steps * num_particles
-               && max_steps > 0 && num_particles > 0;
+        return !steps.empty() && max_steps > 0 && num_particles > 0
+               && counts.size() == (max_steps + 2) * num_particles;
     }
 
     //! Assign from another set of data

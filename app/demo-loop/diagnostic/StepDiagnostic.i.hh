@@ -39,8 +39,8 @@ StepDiagnostic<M>::StepDiagnostic(const ParamsDataRef& params,
         .insert_back(zeros.begin(), zeros.end());
 
     // Tracks binned by number of steps and particle type (indexed as
-    // particle_id * max_steps + num_steps)
-    zeros.resize(host_data.max_steps * host_data.num_particles);
+    // particle_id * max_steps + num_steps). The final bin is for overflow.
+    zeros.resize((host_data.max_steps + 2) * host_data.num_particles);
     celeritas::make_builder(&host_data.counts)
         .insert_back(zeros.begin(), zeros.end());
 
@@ -67,9 +67,9 @@ void StepDiagnostic<M>::mid_step(const StateDataRef& states)
 /*!
  * Get distribution of steps per track for each particle type.
  *
- * For i in [0, max_steps), steps[particle][i] is the number of tracks of the
- * given particle type that took i + 1 steps (note that the first element is
- * the number of tracks that took *one* step, not zero).
+ * For i in [0, \c max_steps + 1], steps[particle][i] is the number of tracks
+ * of the given particle type that took i steps. The final bin stores the
+ * number of tracks that took greater than \c max_steps steps.
  */
 template<MemSpace M>
 std::unordered_map<std::string, std::vector<celeritas::size_type>>
@@ -86,7 +86,7 @@ StepDiagnostic<M>::steps()
     for (auto particle_id : range(celeritas::ParticleId{particles_->size()}))
     {
         auto start = BinId{particle_id.get() * data.max_steps};
-        auto end   = BinId{start.get() + data.max_steps};
+        auto end   = BinId{start.get() + data.max_steps + 2};
         CELER_ASSERT(end.get() <= data.counts.size());
         auto counts = data.counts[celeritas::ItemRange<size_type>{start, end}];
 
@@ -143,24 +143,25 @@ CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
         ++data_.steps[tid];
     }
 
-    // If the track was killed, tally the number of steps and reset the track's
-    // step counter.
+    // Tally the number of steps if the track was killed
     if (celeritas::action_killed(interaction.action))
     {
-        CELER_ASSERT(data_.steps[tid] > 0);
-        if (data_.steps[tid] <= data_.max_steps)
-        {
-            // TODO: Add an ndarray-type class?
-            auto get = [this](size_type i, size_type j) -> size_type& {
-                size_type index = i * data_.max_steps + j;
-                CELER_ENSURE(index < data_.counts.size());
-                return data_.counts[BinId(index)];
-            };
+        // TODO: Add an ndarray-type class?
+        auto get = [this](size_type i, size_type j) -> size_type& {
+            size_type index = i * data_.max_steps + j;
+            CELER_ENSURE(index < data_.counts.size());
+            return data_.counts[BinId(index)];
+        };
 
-            // Get the bin corresponding to the given particle and step count
-            auto& bin = get(particle.particle_id().get(), data_.steps[tid] - 1);
-            celeritas::atomic_add(&bin, 1u);
-        }
+        size_type num_steps = data_.steps[tid] <= data_.max_steps
+                                  ? data_.steps[tid]
+                                  : data_.max_steps + 1;
+
+        // Increment the bin corresponding to the given particle and step count
+        auto& bin = get(particle.particle_id().get(), num_steps);
+        celeritas::atomic_add(&bin, 1u);
+
+        // Reset the track's step counter
         data_.steps[tid] = 0;
     }
 }
