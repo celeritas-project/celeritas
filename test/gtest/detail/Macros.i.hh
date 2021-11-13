@@ -35,8 +35,7 @@ constexpr bool can_soft_equiv()
 template<class T1, class T2>
 struct SoftPrecisionType
 {
-    // Equivalent to std::common_type<T1,T2>::type
-    using type = decltype(true ? T1() : T2());
+    using type = std::common_type<T1, T2>::type;
 };
 
 // When comparing doubles to floats, use the floating point epsilon for

@@ -19,18 +19,6 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get the "skip" message for the skip macro.
- */
-const char* skip_cstring()
-{
-    static const std::string str = std::string(color_code('y'))
-                                   + std::string("[   SKIP   ]")
-                                   + std::string(color_code('d'));
-    return str.c_str();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Number of base-10 digits in an unsigned integer.
  *
  * This function is useful for pre-calculating field widths for printing.

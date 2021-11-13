@@ -14,10 +14,6 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-// Get the "skip" message for the skip macro
-const char* skip_cstring();
-
-//---------------------------------------------------------------------------//
 // Number of base-10 digits in an unsigned integer
 int num_digits(unsigned long val);
 

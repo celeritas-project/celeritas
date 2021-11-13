@@ -63,13 +63,4 @@
 #    define TEST_IF_CELERITAS_USE_ROOT(name) DISABLED_##name
 #endif
 
-//! Skip the remainder of the test (only run from the main function!!)
-#define SKIP(msg)                                                      \
-    do                                                                 \
-    {                                                                  \
-        std::cout << ::celeritas::detail::skip_cstring() << " " << msg \
-                  << std::endl;                                        \
-        return;                                                        \
-    } while (0)
-
 #include "Macros.i.hh"
