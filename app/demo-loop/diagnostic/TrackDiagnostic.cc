@@ -24,8 +24,7 @@ void TrackDiagnostic<MemSpace::host>::end_step(const StateDataRef& states)
  *
  * This function is nearly identical to its device-side counterpart.
  */
-size_type
-reduce_alive(const StateData<Ownership::reference, MemSpace::host>& states)
+size_type reduce_alive(const StateHostRef& states)
 {
     auto sim_states = states.sim.state[AllItems<SimTrackState>{}].data();
 

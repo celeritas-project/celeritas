@@ -52,7 +52,8 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     RngEngine         rng(states.rng, ThreadId(tid));
 
     // Sample mfp and calculate minimum step (interaction or step-limited)
-    demo_loop::calc_step_limits(mat, particle, phys, sim, rng);
+    demo_loop::calc_step_limits(
+        mat, particle, phys, sim, rng, &states.interactions[tid]);
 }
 
 //---------------------------------------------------------------------------//
