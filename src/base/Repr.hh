@@ -384,7 +384,7 @@ struct ReprTraits<T[N]> : public ContainerReprTraits<T[N]>
     }
 };
 
-template<class T, size_type N>
+template<class T, std::size_t N>
 struct ReprTraits<Span<T, N>> : public ContainerReprTraits<Span<T, N>>
 {
     using value_type = std::decay_t<T>;
