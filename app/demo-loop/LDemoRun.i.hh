@@ -13,9 +13,10 @@
 #include "sim/TrackData.hh"
 #include "LDemoParams.hh"
 #include "LDemoKernel.hh"
-#include "EnergyDiagnostic.hh"
-#include "ParticleProcessDiagnostic.hh"
-#include "TrackDiagnostic.hh"
+#include "diagnostic/EnergyDiagnostic.hh"
+#include "diagnostic/ParticleProcessDiagnostic.hh"
+#include "diagnostic/StepDiagnostic.hh"
+#include "diagnostic/TrackDiagnostic.hh"
 
 using namespace celeritas;
 
@@ -121,6 +122,8 @@ LDemoResult run_demo(LDemoArgs args)
     // Diagnostics
     // TODO: Create a vector of these objects.
     TrackDiagnostic<M>           track_diagnostic;
+    StepDiagnostic<M>            step_diagnostic(
+        params_ref, params.particles, args.max_num_tracks, 200);
     ParticleProcessDiagnostic<M> process_diagnostic(
         params_ref, params.particles, params.physics);
     EnergyDiagnostic<M> energy_diagnostic(linspace(-700.0, 700.0, 1024 + 1));
@@ -150,11 +153,12 @@ LDemoResult run_demo(LDemoArgs args)
         demo_loop::pre_step(params_ref, states_ref);
         demo_loop::along_and_post_step(params_ref, states_ref);
 
-        // Mid-step diagnostics
-        process_diagnostic.mid_step(states_ref);
-
         // Launch the interaction kernels for all applicable models
         launch_models(params, params_ref, states_ref);
+
+        // Mid-step diagnostics
+        process_diagnostic.mid_step(states_ref);
+        step_diagnostic.mid_step(states_ref);
 
         // Postprocess secondaries and interaction results
         demo_loop::process_interactions(params_ref, states_ref);
@@ -188,6 +192,7 @@ LDemoResult run_demo(LDemoArgs args)
     result.alive      = track_diagnostic.num_alive_per_step();
     result.edep       = energy_diagnostic.energy_deposition();
     result.process    = process_diagnostic.particle_processes();
+    result.steps      = step_diagnostic.steps();
     result.total_time = 0;
     return result;
 }

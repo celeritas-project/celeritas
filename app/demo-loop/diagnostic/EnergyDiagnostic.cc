@@ -3,27 +3,27 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleProcessDiagnostic.cc
+//! \file EnergyDiagnostic.cc
 //---------------------------------------------------------------------------//
-#include "ParticleProcessDiagnostic.hh"
+#include "EnergyDiagnostic.hh"
+
+#include "base/Atomics.hh"
+#include "base/Range.hh"
 
 using namespace celeritas;
 
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-/*!
- * Tally the particle/process combinations that occur at each step.
- */
-void count_particle_process(
-    const ParamsHostRef&                                        params,
-    const StateHostRef&                                         states,
-    Collection<size_type, Ownership::reference, MemSpace::host> counts)
+// KERNEL INTERFACE
+//---------------------------------------------------------------------------//
+void bin_energy(const StateHostRef& states, PointersHost& pointers)
 {
-    ParticleProcessLauncher<MemSpace::host> launch(params, states, counts);
+    EnergyDiagnosticLauncher<MemSpace::host> launch(states, pointers);
     for (auto tid : range(ThreadId{states.size()}))
     {
         launch(tid);
     }
 }
+
 } // namespace demo_loop

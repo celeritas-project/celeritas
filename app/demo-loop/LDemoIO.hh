@@ -56,7 +56,8 @@ struct LDemoResult
     std::unordered_map<std::string, size_type> process; //!< Count of
                                                         //!< particle/process
                                                         //!< interactions
-    double total_time = 0;                              //!< All time
+    std::unordered_map<std::string, std::vector<size_type>> steps;
+    double total_time = 0; //!< All time
 };
 
 void to_json(nlohmann::json& j, const LDemoArgs& value);

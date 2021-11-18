@@ -11,7 +11,8 @@
 #include "physics/base/ModelData.hh"
 #include "sim/TrackData.hh"
 
-using namespace celeritas;
+using celeritas::MemSpace;
+using celeritas::Ownership;
 
 namespace demo_loop
 {
@@ -23,7 +24,8 @@ template<MemSpace M>
 class Diagnostic
 {
   public:
-    using StateDataRef = StateData<Ownership::reference, M>;
+    using EventId      = celeritas::EventId;
+    using StateDataRef = celeritas::StateData<Ownership::reference, M>;
 
     // Memory allocations
     virtual void begin_simulation() {}

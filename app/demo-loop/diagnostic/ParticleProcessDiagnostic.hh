@@ -14,11 +14,6 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 
-using celeritas::Collection;
-using celeritas::MemSpace;
-using celeritas::Ownership;
-using celeritas::size_type;
-
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
@@ -34,6 +29,8 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
   public:
     //!@{
     //! Type aliases
+    using size_type = celeritas::size_type;
+    using Items     = celeritas::Collection<size_type, Ownership::value, M>;
     using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
     using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
     using SPConstParticles = std::shared_ptr<const celeritas::ParticleParams>;
@@ -60,7 +57,7 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
     // Shared physics data for getting process name from model ID
     SPConstPhysics physics_;
     // Count of particle/model combinations that underwent discrete interaction
-    Collection<size_type, Ownership::value, M> counts_;
+    Items counts_;
 };
 
 //---------------------------------------------------------------------------//
@@ -75,9 +72,11 @@ class ParticleProcessLauncher
   public:
     //!@{
     //! Type aliases
+    using size_type = celeritas::size_type;
+    using ThreadId  = celeritas::ThreadId;
+    using ItemsRef = celeritas::Collection<size_type, Ownership::reference, M>;
     using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
     using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
-    using ItemsRef      = Collection<size_type, Ownership::reference, M>;
     //!@}
 
   public:
@@ -96,20 +95,20 @@ class ParticleProcessLauncher
 };
 
 void count_particle_process(
-    const celeritas::ParamsHostRef&                             params,
-    const celeritas::StateHostRef&                              states,
-    Collection<size_type, Ownership::reference, MemSpace::host> counts);
+    const celeritas::ParamsHostRef&                   params,
+    const celeritas::StateHostRef&                    states,
+    ParticleProcessLauncher<MemSpace::host>::ItemsRef counts);
 
 void count_particle_process(
-    const celeritas::ParamsDeviceRef&                             params,
-    const celeritas::StateDeviceRef&                              states,
-    Collection<size_type, Ownership::reference, MemSpace::device> counts);
+    const celeritas::ParamsDeviceRef&                   params,
+    const celeritas::StateDeviceRef&                    states,
+    ParticleProcessLauncher<MemSpace::device>::ItemsRef counts);
 
 #if !CELERITAS_USE_CUDA
 inline void count_particle_process(
-    const celeritas::ParamsDeviceRef&                             params,
-    const celeritas::StateDeviceRef&                              states,
-    Collection<size_type, Ownership::reference, MemSpace::device> counts)
+    const celeritas::ParamsDeviceRef&                   params,
+    const celeritas::StateDeviceRef&                    states,
+    ParticleProcessLauncher<MemSpace::device>::ItemsRef counts)
 {
     CELER_ASSERT_UNREACHABLE();
 }

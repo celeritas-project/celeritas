@@ -22,7 +22,8 @@ CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
                                      const ParticleTrackView& particle,
                                      PhysicsTrackView&        phys,
                                      SimTrackView&            sim,
-                                     Rng&                     rng)
+                                     Rng&                     rng,
+                                     Interaction*             result)
 {
     // Sample mean free path
     if (!phys.has_interaction_mfp())
@@ -39,6 +40,7 @@ CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
         {
             // If the particle is stopped and cannot undergo a discrete
             // interaction, kill it
+            result->action = Action::cutoff_energy;
             sim.alive(false);
             return;
         }

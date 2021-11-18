@@ -26,7 +26,9 @@ template<MemSpace M>
 class EnergyDiagnostic : public Diagnostic<M>
 {
   public:
-    using StateDataRef = StateData<Ownership::reference, M>;
+    using real_type    = celeritas::real_type;
+    using Items        = celeritas::Collection<real_type, Ownership::value, M>;
+    using StateDataRef = celeritas::StateData<Ownership::reference, M>;
 
     EnergyDiagnostic(const std::vector<real_type>& z_bounds);
 
@@ -37,8 +39,8 @@ class EnergyDiagnostic : public Diagnostic<M>
     std::vector<real_type> energy_deposition();
 
   private:
-    Collection<real_type, Ownership::value, M> z_bounds_;
-    Collection<real_type, Ownership::value, M> energy_by_z_;
+    Items z_bounds_;
+    Items energy_by_z_;
 };
 
 //---------------------------------------------------------------------------//
@@ -49,7 +51,7 @@ template<MemSpace M>
 struct EnergyBinPointers
 {
     template<Ownership W>
-    using Items = Collection<real_type, W, M>;
+    using Items = celeritas::Collection<celeritas::real_type, W, M>;
 
     Items<Ownership::const_reference> z_bounds; //!< z bounds
     Items<Ownership::reference> energy_by_z; //!< Binned energy values for each
@@ -75,8 +77,10 @@ class EnergyDiagnosticLauncher
   public:
     //!@{
     //! Type aliases
-    using StateDataRef = StateData<Ownership::reference, M>;
+    using real_type    = celeritas::real_type;
+    using ThreadId     = celeritas::ThreadId;
     using Pointers     = EnergyBinPointers<M>;
+    using StateDataRef = celeritas::StateData<Ownership::reference, M>;
     //!@}
 
   public:
@@ -92,13 +96,12 @@ class EnergyDiagnosticLauncher
     const Pointers&     pointers_;
 };
 
-using StateDataRefDevice = StateData<Ownership::reference, MemSpace::device>;
-using StateDataRefHost   = StateData<Ownership::reference, MemSpace::host>;
-using PointersDevice     = EnergyBinPointers<MemSpace::device>;
-using PointersHost       = EnergyBinPointers<MemSpace::host>;
+using PointersDevice = EnergyBinPointers<MemSpace::device>;
+using PointersHost   = EnergyBinPointers<MemSpace::host>;
 
-void bin_energy(const StateDataRefDevice& states, PointersDevice& pointers);
-void bin_energy(const StateDataRefHost& states, PointersHost& pointers);
+void bin_energy(const celeritas::StateDeviceRef& states,
+                PointersDevice&                  pointers);
+void bin_energy(const celeritas::StateHostRef& states, PointersHost& pointers);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_loop
