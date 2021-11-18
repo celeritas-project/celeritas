@@ -21,10 +21,10 @@ __global__ void
 initialize_kernel(const ParamsDeviceRef params, const StateDeviceRef states)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= input.states.size())
+    if (tid.get() >= states.size())
         return;
 
-    InitializingLauncher<> calc_thread{input.params, input.states};
+    InitializingLauncher<> calc_thread{params, states};
     calc_thread(tid);
 }
 } // namespace
@@ -33,13 +33,12 @@ initialize_kernel(const ParamsDeviceRef params, const StateDeviceRef states)
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void test_initialize(ParamsDeviceRef, StateDeviceRef)
+void test_initialize(const ParamsDeviceRef& params, const StateDeviceRef& state)
 {
     static const celeritas::KernelParamCalculator calc_launch_params(
         initialize_kernel, "initialize");
-    auto params = calc_launch_params(input.num_threads);
-    initialize_kernel<<<params.grid_size, params.block_size>>>(
-        input.num_threads);
+    auto launch = calc_launch_params(state.size());
+    initialize_kernel<<<launch.grid_size, launch.block_size>>>(params, state);
 
     CELER_CUDA_CHECK_ERROR();
     CELER_CUDA_CALL(cudaDeviceSynchronize());

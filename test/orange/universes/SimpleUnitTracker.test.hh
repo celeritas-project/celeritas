@@ -72,10 +72,10 @@ struct InitializingLauncher
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device
-void test_initialize(ParamsDeviceRef, StateDeviceRef);
+void test_initialize(const ParamsDeviceRef&, const StateDeviceRef&);
 
 #if !CELERITAS_USE_CUDA
-void test_initialize(ParamsDeviceRef, StateDeviceRef)
+void test_initialize(const ParamsDeviceRef&, const StateDeviceRef&)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

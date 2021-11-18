@@ -38,7 +38,7 @@ class SimpleUnitTracker
 
   public:
     // Construct with parameters (surfaces, cells)
-    inline SimpleUnitTracker(const ParamsRef& params);
+    inline CELER_FUNCTION SimpleUnitTracker(const ParamsRef& params);
 
     // Find the local cell and possibly surface ID.
     inline CELER_FUNCTION Initialization initialize(LocalState state) const;

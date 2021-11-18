@@ -305,14 +305,14 @@ void OrangeGeoTestBase::build_impl(ParamsHostValue&& host_data)
     params_ = CollectionMirror<OrangeParamsData>{std::move(host_data)};
 
     // Build id/surface mapping
-    for (auto vid : range(VolumeId{vol_names_.size()}))
+    for (auto vid : range(VolumeId(vol_names_.size())))
     {
         auto iter_inserted = vol_ids_.insert({vol_names_[vid.get()], vid});
         CELER_VALIDATE(iter_inserted.second,
                        << "duplicate volume name '"
                        << iter_inserted.first->first << '\'');
     }
-    for (auto sid : range(SurfaceId{surf_names_.size()}))
+    for (auto sid : range(SurfaceId(surf_names_.size())))
     {
         auto iter_inserted = surf_ids_.insert({surf_names_[sid.get()], sid});
         CELER_VALIDATE(iter_inserted.second,
