@@ -23,7 +23,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
 {
 #ifdef __CUDA_ARCH__
     return atomicAdd(address, value);
-#else
+#elif defined(_OPENMP)
     CELER_EXPECT(address);
     T initial;
 #    pragma omp atomic capture
@@ -31,6 +31,11 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
         initial = *address;
         *address += value;
     }
+    return initial;
+#else
+    CELER_EXPECT(address);
+    T initial = *address;
+    *address += value;
     return initial;
 #endif
 }
