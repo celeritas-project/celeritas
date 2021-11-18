@@ -38,6 +38,7 @@ std::ostream& operator<<(std::ostream& os, Sense s)
 
 namespace
 {
+// Disabled since it's unused; it could be in the future though.
 #if 0
 std::vector<Sense> string_to_senses(std::string s)
 {

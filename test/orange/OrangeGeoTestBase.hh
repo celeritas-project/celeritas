@@ -13,6 +13,7 @@
 #include <vector>
 
 // Source dependencies
+#include "base/Array.hh"
 #include "base/CollectionMirror.hh"
 #include "base/Span.hh"
 #include "orange/Data.hh"
@@ -25,6 +26,8 @@ namespace celeritas_test
 //---------------------------------------------------------------------------//
 /*!
  * Test base for loading geometry.
+ *
+ * Much of this functionality will be rolled into the OrangeGeoParams.
  */
 class OrangeGeoTestBase : public celeritas::Test
 {
@@ -32,6 +35,7 @@ class OrangeGeoTestBase : public celeritas::Test
     //!@{
     //! Type aliases
     using real_type = celeritas::real_type;
+    using Real3     = celeritas::Real3;
     using Sense     = celeritas::Sense;
     using VolumeId  = celeritas::VolumeId;
     using SurfaceId = celeritas::SurfaceId;
@@ -110,6 +114,15 @@ class OrangeGeoTestBase : public celeritas::Test
     // Print geometry description
     void describe(std::ostream& os) const;
 
+    //! Lower point of bounding box
+    const Real3& bbox_lower() const { return bbox_lower_; }
+
+    //! Upper point of bounding box
+    const Real3& bbox_upper() const { return bbox_upper_; }
+
+    //! Number of volumes
+    VolumeId::size_type num_volumes() const { return vol_names_.size(); }
+
   private:
     //// TYPES ////
     using ParamsHostValue
@@ -124,6 +137,9 @@ class OrangeGeoTestBase : public celeritas::Test
     std::vector<std::string>                   vol_names_;
     std::unordered_map<std::string, VolumeId>  vol_ids_;
     std::unordered_map<std::string, SurfaceId> surf_ids_;
+
+    Real3 bbox_lower_;
+    Real3 bbox_upper_;
 
     //// METHODS ////
     void build_impl(ParamsHostValue&& params);

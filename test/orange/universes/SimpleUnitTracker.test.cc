@@ -7,16 +7,22 @@
 //---------------------------------------------------------------------------//
 #include "orange/universes/SimpleUnitTracker.hh"
 
+#include <random>
+
 // Source includes
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
+#include "base/Repr.hh"
 
 // Test includes
 #include "celeritas_test.hh"
 #include "orange/OrangeGeoTestBase.hh"
-// #include "SimpleUnitTracker.test.hh"
+#include "random/distributions/IsotropicDistribution.hh"
+#include "random/distributions/UniformBoxDistribution.hh"
+#include "SimpleUnitTracker.test.hh"
 
 using namespace celeritas;
+using namespace celeritas_test;
 using celeritas::constants::sqrt_two;
 using celeritas::detail::Initialization;
 using celeritas::detail::LocalState;
@@ -27,55 +33,37 @@ constexpr real_type sqrt_half = sqrt_two / 2;
 }
 
 //---------------------------------------------------------------------------//
-// TEST HARNESSES
+// TEST FIXTURES
 //---------------------------------------------------------------------------//
 
 class SimpleUnitTrackerTest : public celeritas_test::OrangeGeoTestBase
 {
   protected:
-    using LocalState = SimpleUnitTracker::LocalState;
+    using StateHostValue
+        = celeritas::OrangeStateData<Ownership::value, MemSpace::host>;
 
+    struct HeuristicInitResult
+    {
+        std::vector<double> vol_fractions; //!< Fraction per volume ID
+        double              failed{0}; //!< Fraction that couldn't initialize
+
+        void print_expected() const;
+    };
+
+  protected:
     // Initialization without any logical state
-    LocalState make_state(Real3 pos, Real3 dir)
-    {
-        normalize_direction(&dir);
-        LocalState state;
-        state.pos         = pos;
-        state.dir         = dir;
-        state.volume      = {};
-        state.surface     = {};
-        state.temp_senses = this->sense_storage();
-        return state;
-    }
+    LocalState make_state(Real3 pos, Real3 dir);
 
-    // Initialization crossing a surface with *before crossing volume*
-    // and *before crossing sense*
+    // Initialization crossing a surface
     LocalState make_state(
-        Real3 pos, Real3 dir, const char* vol, const char* surf, char sense)
-    {
-        Sense before_crossing_sense;
-        switch (sense)
-        {
-            case '-':
-                before_crossing_sense = Sense::inside;
-                break;
-            case '+':
-                before_crossing_sense = Sense::outside;
-                break;
-            default:
-                CELER_VALIDATE(false,
-                               << "invalid sense value '" << sense << "'");
-        }
+        Real3 pos, Real3 dir, const char* vol, const char* surf, char sense);
 
-        LocalState state = this->make_state(pos, dir);
-        state.volume     = this->find_volume(vol);
-        // *Intentionally* flip the sense because we're looking for the
-        // post-crossing volume. This is normally done by the multi-level
-        // TrackingGeometry.
-        state.surface
-            = {this->find_surface(surf), flip_sense(before_crossing_sense)};
-        return state;
-    }
+    HeuristicInitResult run_heuristic_init_host(size_type num_tracks) const;
+    HeuristicInitResult run_heuristic_init_device(size_type num_tracks) const;
+
+  private:
+    StateHostValue      setup_heuristic_states(size_type num_tracks) const;
+    HeuristicInitResult reduce_heuristic_init(StateHostValue) const;
 };
 
 class OneVolumeTest : public SimpleUnitTrackerTest
@@ -119,6 +107,176 @@ class FiveVolumesTest : public SimpleUnitTrackerTest
 };
 
 //---------------------------------------------------------------------------//
+// TEST FIXTURE IMPLEMENTATION
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize without any logical state.
+ */
+LocalState SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir)
+{
+    normalize_direction(&dir);
+    LocalState state;
+    state.pos         = pos;
+    state.dir         = dir;
+    state.volume      = {};
+    state.surface     = {};
+    state.temp_senses = this->sense_storage();
+    return state;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize crossing a surface.
+ *
+ * This takes the *before-crossing volume* and *before-crossing sense*.
+ */
+LocalState SimpleUnitTrackerTest::make_state(
+    Real3 pos, Real3 dir, const char* vol, const char* surf, char sense)
+{
+    Sense before_crossing_sense;
+    switch (sense)
+    {
+        case '-':
+            before_crossing_sense = Sense::inside;
+            break;
+        case '+':
+            before_crossing_sense = Sense::outside;
+            break;
+        default:
+            CELER_VALIDATE(false, << "invalid sense value '" << sense << "'");
+    }
+
+    LocalState state = this->make_state(pos, dir);
+    state.volume     = this->find_volume(vol);
+    // *Intentionally* flip the sense because we're looking for the
+    // post-crossing volume. This is normally done by the multi-level
+    // TrackingGeometry.
+    state.surface
+        = {this->find_surface(surf), flip_sense(before_crossing_sense)};
+    return state;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize particles randomly and tally their resulting locations.
+ */
+auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
+    -> HeuristicInitResult
+{
+    auto state_host = this->setup_heuristic_states(num_tracks);
+
+    // Set up for host run
+    OrangeStateData<Ownership::reference, MemSpace::host> host_state_ref;
+    host_state_ref = state_host;
+    InitializingLauncher<> calc_init{this->params_host_ref(), host_state_ref};
+
+    // Loop over all threads
+    for (auto tid : range(ThreadId{state_host.size()}))
+    {
+        calc_init(tid);
+    }
+
+    return this->reduce_heuristic_init(std::move(state_host));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize particles randomly and tally their resulting locations.
+ */
+auto SimpleUnitTrackerTest::run_heuristic_init_device(size_type num_tracks) const
+    -> HeuristicInitResult
+{
+    // Construct on host and copy to device
+    auto state_host = this->setup_heuristic_states(num_tracks);
+    OrangeStateData<Ownership::value, MemSpace::device> state_device;
+    state_device = state_host;
+    StateDeviceRef state_device_ref;
+    state_device_ref = state_device;
+
+    // Run on device
+    test_initialize(this->params_device_ref(), state_device_ref);
+
+    // Copy result back to host
+    state_host = state_device;
+    return this->reduce_heuristic_init(std::move(state_host));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct states on the host.
+ */
+auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
+    -> StateHostValue
+{
+    CELER_EXPECT(num_tracks > 0);
+    StateHostValue result;
+    resize(&result, this->params_host_ref(), num_tracks);
+    auto pos_view = result.pos[AllItems<Real3>{}];
+    auto dir_view = result.dir[AllItems<Real3>{}];
+
+    std::mt19937 rng;
+
+    // Sample uniform in space and isotropic in direction
+    UniformBoxDistribution<> sample_box{this->bbox_lower(), this->bbox_upper()};
+    IsotropicDistribution<>  sample_isotropic;
+    for (auto i : range(num_tracks))
+    {
+        pos_view[i] = sample_box(rng);
+        dir_view[i] = sample_isotropic(rng);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process "heuristic init" test results.
+ */
+auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostValue host) const
+    -> HeuristicInitResult
+{
+    CELER_EXPECT(host);
+    std::vector<size_type> counts(this->num_volumes());
+    size_type              error_count{};
+
+    for (auto vol : host.vol[AllItems<VolumeId>{}])
+    {
+        if (vol < counts.size())
+        {
+            ++counts[vol.unchecked_get()];
+        }
+        else
+        {
+            ++error_count;
+        }
+    }
+
+    HeuristicInitResult result;
+    result.vol_fractions.resize(counts.size());
+    const double norm = 1.0 / static_cast<double>(host.size());
+    for (auto i : range(counts.size()))
+    {
+        result.vol_fractions[i] = norm * static_cast<double>(counts[i]);
+    }
+    result.failed = norm * error_count;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Output copy-pasteable "gold" comparison unit testing code.
+ */
+void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
+{
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+         << "static const double expected_vol_fractions[] = "
+         << repr(this->vol_fractions) << ";\n"
+         << "EXPECT_VEC_SOFT_EQ(expected_vol_fractions, "
+            "result.vol_fractions);\n"
+         << "EXPECT_SOFT_EQ(" << this->failed << ", result.failed);\n"
+         << "/*** END CODE ***/\n";
+}
+
+//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
@@ -132,6 +290,28 @@ TEST_F(OneVolumeTest, initialize)
         EXPECT_TRUE(init);
         EXPECT_EQ(VolumeId{0}, init.volume);
         EXPECT_FALSE(init.surface);
+    }
+}
+
+TEST_F(OneVolumeTest, heuristic_init)
+{
+    size_type num_tracks = 1024;
+
+    static const double expected_vol_fractions[] = {1.0};
+
+    {
+        SCOPED_TRACE("Host heuristic");
+        auto result = this->run_heuristic_init_host(num_tracks);
+
+        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
+        EXPECT_SOFT_EQ(0, result.failed);
+    }
+    if (CELERITAS_USE_CUDA)
+    {
+        SCOPED_TRACE("Device heuristic");
+        auto result = this->run_heuristic_init_device(num_tracks);
+        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
+        EXPECT_SOFT_EQ(0, result.failed);
     }
 }
 
@@ -180,7 +360,36 @@ TEST_F(TwoVolumeTest, initialize)
     }
 }
 
+TEST_F(TwoVolumeTest, heuristic_init)
+{
+    size_type num_tracks = 1024;
+
+    static const double expected_vol_fractions[] = {0.5234375, 0.4765625};
+
+    {
+        SCOPED_TRACE("Host heuristic");
+        auto result = this->run_heuristic_init_host(num_tracks);
+
+        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
+        EXPECT_SOFT_EQ(0, result.failed);
+    }
+    if (CELERITAS_USE_CUDA)
+    {
+        SCOPED_TRACE("Device heuristic");
+        auto result = this->run_heuristic_init_device(num_tracks);
+        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
+        EXPECT_SOFT_EQ(0, result.failed);
+    }
+}
+
 //---------------------------------------------------------------------------//
+
+TEST_F(FiveVolumesTest, properties)
+{
+    // NOTE: bbox in the JSON file has been adjusted manually.
+    EXPECT_VEC_SOFT_EQ(Real3({-1.5, -1.5, -0.5}), bbox_lower());
+    EXPECT_VEC_SOFT_EQ(Real3({1.5, 1.5, 0.5}), bbox_upper());
+}
 
 TEST_F(FiveVolumesTest, initialize)
 {
@@ -287,5 +496,27 @@ TEST_F(FiveVolumesTest, initialize)
         EXPECT_EQ("a", this->id_to_label(init.volume));
         EXPECT_EQ("alpha.px", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
+    }
+}
+
+TEST_F(FiveVolumesTest, heuristic_init)
+{
+    size_type num_tracks = 10000;
+
+    static const double expected_vol_fractions[]
+        = {0, 0.0701, 0.106, 0.1621, 0.6555, 0.0063};
+
+    {
+        SCOPED_TRACE("Host heuristic");
+        auto result = this->run_heuristic_init_host(num_tracks);
+        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
+        EXPECT_SOFT_EQ(0, result.failed);
+    }
+    if (CELERITAS_USE_CUDA)
+    {
+        SCOPED_TRACE("Device heuristic");
+        auto result = this->run_heuristic_init_device(num_tracks);
+        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
+        EXPECT_SOFT_EQ(0, result.failed);
     }
 }
