@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.cc
+//! \file Macros.cc
 //---------------------------------------------------------------------------//
-#include "Utils.hh"
+#include "Macros.hh"
 
 #include <cstdio>
 #include <cstring>
@@ -38,17 +38,6 @@ int num_digits(unsigned long val)
     }
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a character as a two-digit hexadecimal like '0a'.
- */
-std::string char_to_hex_string(unsigned char value)
-{
-    char buffer[8];
-    std::sprintf(buffer, "%02hhx", value);
-    return {buffer, buffer + 2};
 }
 
 //---------------------------------------------------------------------------//
