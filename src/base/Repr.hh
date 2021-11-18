@@ -81,7 +81,7 @@ struct ReprTraits<double>
     {
         detail::print_simple_type(os, "double", name);
     }
-    static void init(std::ostream& os) { os.precision(13); }
+    static void init(std::ostream& os) { os.precision(14); }
     static void print_value(std::ostream& os, double value) { os << value; }
 };
 

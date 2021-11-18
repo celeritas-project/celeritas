@@ -7,8 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iomanip>
 #include <iostream>
 #include <type_traits>
+#include "base/Assert.hh"
 
 namespace celeritas
 {
@@ -32,11 +34,41 @@ struct Repr
 
 //---------------------------------------------------------------------------//
 /*!
+ * Save a stream's state and restore on destruction.
+ *
+ * Example:
+ * \code
+     {
+         ScopedStreamFormat save_fmt(&std::cout);
+         std::cout << setprecision(16) << 1.0;
+     }
+ * \endcode
+ */
+class ScopedStreamFormat
+{
+  public:
+    explicit ScopedStreamFormat(std::ios* s) : stream_{s}, orig_{nullptr}
+    {
+        CELER_EXPECT(s);
+        orig_.copyfmt(*s);
+    }
+
+    ~ScopedStreamFormat() { stream_->copyfmt(orig_); }
+
+  private:
+    std::ios* stream_;
+    std::ios  orig_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Write a streamable object to a stream.
  */
 template<class T>
 std::ostream& operator<<(std::ostream& os, const Repr<T>& s)
 {
+    ScopedStreamFormat save_fmt(&os);
+    ReprTraits<T>::init(os);
     if (s.name)
     {
         ReprTraits<T>::print_type(os, s.name);
