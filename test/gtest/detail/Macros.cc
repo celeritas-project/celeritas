@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.cc
+//! \file Macros.cc
 //---------------------------------------------------------------------------//
-#include "Utils.hh"
+#include "Macros.hh"
 
 #include <cstdio>
 #include <cstring>
@@ -17,18 +17,6 @@ namespace celeritas
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-/*!
- * Get the "skip" message for the skip macro.
- */
-const char* skip_cstring()
-{
-    static const std::string str = std::string(color_code('y'))
-                                   + std::string("[   SKIP   ]")
-                                   + std::string(color_code('d'));
-    return str.c_str();
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Number of base-10 digits in an unsigned integer.
@@ -50,17 +38,6 @@ int num_digits(unsigned long val)
     }
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a character as a two-digit hexadecimal like '0a'.
- */
-std::string char_to_hex_string(unsigned char value)
-{
-    char buffer[8];
-    std::sprintf(buffer, "%02hhx", value);
-    return {buffer, buffer + 2};
 }
 
 //---------------------------------------------------------------------------//

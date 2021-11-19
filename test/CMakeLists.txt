@@ -12,10 +12,10 @@ configure_file(gtest/detail/TestConfig.cc.in TestConfig.cc @ONLY)
 set(CELER_SOURCES)
 list(APPEND CELER_SOURCES
   gtest/Test.cc
+  gtest/detail/Macros.cc
   gtest/detail/NonMasterResultPrinter.cc
   gtest/detail/ParallelHandler.cc
   gtest/detail/TestMain.cc
-  gtest/detail/Utils.cc
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 
@@ -83,6 +83,7 @@ celeritas_add_test(base/DeviceVector.test.cc GPU)
 celeritas_add_test(base/Join.test.cc)
 celeritas_add_test(base/OpaqueId.test.cc)
 celeritas_add_test(base/Quantity.test.cc)
+celeritas_add_test(base/Repr.test.cc)
 celeritas_add_test(base/ScopedStreamRedirect.test.cc)
 celeritas_add_test(base/SoftEqual.test.cc)
 celeritas_add_test(base/Span.test.cc)
@@ -103,7 +104,6 @@ celeritas_setup_tests(PREFIX comm)
 
 celeritas_add_test(comm/Communicator.test.cc)
 celeritas_add_test(comm/Logger.test.cc)
-
 
 #-----------------------------------------------------------------------------#
 # Field
