@@ -176,6 +176,8 @@ add_library(Celeritas::Core ALIAS ${celeritas_target})
 find_package(OpenMP)
 if(OPENMP_FOUND)
   celeritas_target_link_libraries(celeritas PRIVATE OpenMP::OpenMP_CXX)
+else()
+  celeritas_target_compile_options(celeritas PRIVATE -Wno-unknown-pragmas)
 endif()
 
 celeritas_target_link_libraries(celeritas

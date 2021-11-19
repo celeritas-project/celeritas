@@ -311,6 +311,35 @@ function(celeritas_target_include_directories target)
 
 endfunction()
 
+# Replacement for target_compile_options that is aware of
+# the 4 libraries (objects, static, middle, final) libraries needed
+# for a separatable CUDA library
+function(celeritas_target_compile_options target)
+  if(NOT CELERITAS_USE_CUDA)
+    target_compile_options(${ARGV})
+  else()
+
+    celeritas_strip_alias(target ${target})
+    celeritas_lib_contains_cuda(_contains_cuda ${target})
+
+    if (_contains_cuda)
+      get_target_property(_targettype ${target} CELERITAS_CUDA_LIBRARY_TYPE)
+      if(_targettype)
+        get_target_property(_target_middle ${target} CELERITAS_CUDA_MIDDLE_LIBRARY)
+        get_target_property(_target_object ${target} CELERITAS_CUDA_OBJECT_LIBRARY)
+      endif()
+    endif()
+    if(_target_object)
+      target_compile_options(${_target_object} ${ARGN})
+    endif()
+    if(_target_middle)
+      target_compile_options(${_target_middle} ${ARGN})
+    else()
+      target_compile_options(${ARGV})
+    endif()
+  endif()
+endfunction()
+
 #
 # Replacement for the install function that is aware of the 3 libraries
 # (static, middle, final) libraries needed for a separatable CUDA library
