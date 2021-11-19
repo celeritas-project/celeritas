@@ -151,7 +151,6 @@ struct ReprTraits<unsigned int>
     }
 };
 
-#ifndef _WIN32
 template<>
 struct ReprTraits<long>
 {
@@ -179,7 +178,6 @@ struct ReprTraits<unsigned long>
         os << value << "ul";
     }
 };
-#endif
 
 template<>
 struct ReprTraits<long long>
