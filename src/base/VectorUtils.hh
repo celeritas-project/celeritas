@@ -14,21 +14,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// Move the given span to the end of another vector.
-template<class T, std::size_t N, class U>
-inline Span<U> extend(Span<T, N> ext, std::vector<U>* base);
-
-//---------------------------------------------------------------------------//
-// Move the given extension to the end of another vector.
-template<class T>
-inline Span<T> extend(const std::vector<T>& ext, std::vector<T>* base);
-
-//---------------------------------------------------------------------------//
-// Move the given extension to the end of another vector.
-template<class T>
-inline Span<T> move_extend(std::vector<T>&& ext, std::vector<T>* base);
-
-//---------------------------------------------------------------------------//
 // Return evenly spaced numbers over a specific interval
 template<class T>
 inline std::vector<real_type> linspace(T start, T stop, size_type n);
