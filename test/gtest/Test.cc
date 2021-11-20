@@ -84,7 +84,7 @@ std::string Test::make_unique_filename(const char* ext)
             str->erase(iter.base(), str->end());
         }
 
-        // Replace slashes/dashes with
+        // Replace slashes/underscores with dashes
         for (char& c : *str)
         {
             if (c == '/' || c == '_')

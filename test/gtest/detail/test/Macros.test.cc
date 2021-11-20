@@ -9,6 +9,7 @@
 
 #include <limits>
 #include "celeritas_test.hh"
+#include "base/ScopedStreamRedirect.hh"
 
 using namespace celeritas::detail;
 
@@ -24,19 +25,35 @@ constexpr double inf = std::numeric_limits<double>::infinity();
 
 TEST(PrintExpected, example)
 {
-    std::vector<int> values = {1, 2, 3};
-    PRINT_EXPECTED(values);
+    std::string out_result;
+    {
+        celeritas::ScopedStreamRedirect redirect_out(&std::cout);
+        std::cout << '\n';
 
-    using Limits_t = std::numeric_limits<double>;
-    const double more[]
-        = {.5, .001, Limits_t::infinity(), Limits_t::quiet_NaN()};
-    PRINT_EXPECTED(more);
+        std::vector<int> values = {1, 2, 3};
+        PRINT_EXPECTED(values);
 
-    const char* const cstrings[] = {"one", "three", "five"};
-    PRINT_EXPECTED(cstrings);
+        using Limits_t = std::numeric_limits<double>;
+        const double more[]
+            = {.5, .001, Limits_t::infinity(), Limits_t::quiet_NaN()};
+        PRINT_EXPECTED(more);
 
-    const std::string strings[] = {"a", "", "special\nchars\t"};
-    PRINT_EXPECTED(strings);
+        const char* const cstrings[] = {"one", "three", "five"};
+        PRINT_EXPECTED(cstrings);
+
+        const std::string strings[] = {"a", "", "special\nchars\t"};
+        PRINT_EXPECTED(strings);
+
+        out_result = redirect_out.str();
+    }
+    out_result.push_back('\n');
+    EXPECT_EQ(R"(
+static const int expected_values[] = {1, 2, 3};
+static const double expected_more[] = {0.5, 0.001, inf, nan};
+static const const char* expected_cstrings[] = {"one", "three", "five"};
+static const std::string expected_strings[] = {"a", "", "special\nchars\t"};
+)",
+              out_result);
 }
 
 TEST(IsSoftEquiv, successes)
