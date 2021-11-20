@@ -18,18 +18,19 @@ namespace detail
 //---------------------------------------------------------------------------//
 // HOST VALUE
 //---------------------------------------------------------------------------//
+/*!
+ * Resize with a number of states.
+ */
 void VGNavCollection<Ownership::value, MemSpace::host>::resize(int max_depth,
                                                                size_type size)
 {
     CELER_EXPECT(max_depth > 0);
 
     // Add navigation states to collection
-    auto builder = make_builder(&nav_state);
-    builder.reserve(size);
-    for (size_type i = 0; i < size; ++i)
+    this->nav_state.resize(size);
+    for (UPNavState& state : this->nav_state)
     {
-        builder.push_back(
-            std::unique_ptr<NavState>(NavState::MakeInstance(max_depth)));
+        state = std::unique_ptr<NavState>(NavState::MakeInstance(max_depth));
     }
 }
 
@@ -42,7 +43,7 @@ void VGNavCollection<Ownership::value, MemSpace::host>::resize(int max_depth,
 void VGNavCollection<Ownership::reference, MemSpace::host>::operator=(
     VGNavCollection<Ownership::value, MemSpace::host>& other)
 {
-    nav_state = other.nav_state;
+    nav_state = make_span(other.nav_state);
 }
 
 //---------------------------------------------------------------------------//
@@ -54,7 +55,8 @@ auto VGNavCollection<Ownership::reference, MemSpace::host>::at(int,
     -> NavState&
 {
     CELER_EXPECT(*this);
-    return *nav_state[id];
+    CELER_EXPECT(id < nav_state.size());
+    return *nav_state[id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
