@@ -173,6 +173,11 @@ struct AllItems
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
 {
+    static_assert(std::is_trivially_copyable<T>::value,
+                  "Collection element is not trivially copyable");
+    static_assert(std::is_trivially_destructible<T>::value,
+                  "Collection element is not trivially destructible");
+
     using CollectionTraitsT = detail::CollectionTraits<T, W>;
 
   public:
