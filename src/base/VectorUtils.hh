@@ -9,16 +9,13 @@
 #pragma once
 
 #include <vector>
-#include "Span.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Return evenly spaced numbers over a specific interval
-template<class T>
-inline std::vector<real_type> linspace(T start, T stop, size_type n);
+std::vector<real_type> linspace(real_type start, real_type stop, size_type n);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-#include "VectorUtils.i.hh"
