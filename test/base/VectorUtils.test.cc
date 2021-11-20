@@ -9,6 +9,10 @@
 
 #include "celeritas_test.hh"
 
+using celeritas::DebugError;
+using celeritas::linspace;
+using celeritas::real_type;
+
 //---------------------------------------------------------------------------//
 // HELPER CLASSES
 //---------------------------------------------------------------------------//
@@ -111,4 +115,37 @@ TEST_F(VectorUtilsTest, TEST_IF_CELERITAS_DEBUG(error_checking))
     EXPECT_NO_THROW(celeritas::extend(std::vector<int>(3), &dst));
     EXPECT_THROW(celeritas::extend(std::vector<int>(1), &dst),
                  celeritas::DebugError);
+}
+
+TEST(VectorUtils, linspace)
+{
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(linspace(1.23, 4.56, 0), DebugError);
+        EXPECT_THROW(linspace(1.23, 4.56, 1), DebugError);
+    }
+
+    {
+        auto result = linspace(10, 20, 2);
+
+        static const real_type expected[] = {10, 20};
+        EXPECT_VEC_SOFT_EQ(expected, result);
+    }
+    {
+        auto result = linspace(10, 20, 5);
+
+        static const real_type expected[] = {10, 12.5, 15, 17.5, 20};
+        EXPECT_VEC_SOFT_EQ(expected, result);
+    }
+    {
+        // Guard against accumulation error
+        const real_type exact_third = 1.0 / 3.0;
+        auto            result = linspace(exact_third, 2 * exact_third, 32768);
+        ASSERT_EQ(32768, result.size());
+        if (sizeof(real_type) == sizeof(double))
+        {
+            EXPECT_DOUBLE_EQ(exact_third, result.front());
+            EXPECT_DOUBLE_EQ(2 * exact_third, result.back());
+        }
+    }
 }
