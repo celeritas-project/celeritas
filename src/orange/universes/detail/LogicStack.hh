@@ -82,28 +82,28 @@ class LogicStack
 
   private:
     //! Get the least significant bit
-    CELER_FORCEINLINE_FUNCTION static constexpr size_type lsb(size_type val)
+    static CELER_CONSTEXPR_FUNCTION size_type lsb(size_type val)
     {
         return val & size_type(1);
     }
 
     //! Shift right by one
-    CELER_FORCEINLINE_FUNCTION static constexpr size_type shr(size_type val)
+    static CELER_CONSTEXPR_FUNCTION size_type shr(size_type val)
     {
         return val >> size_type(1);
     }
 
     //! Shift left by one
-    CELER_FORCEINLINE_FUNCTION static constexpr size_type shl(size_type val)
+    static CELER_CONSTEXPR_FUNCTION size_type shl(size_type val)
     {
         return val << size_type(1);
     }
 
     //! Greatest number of boolean values allowed on the stack
-    CELER_FORCEINLINE_FUNCTION static constexpr size_type max_stack_depth()
+    static CELER_CONSTEXPR_FUNCTION size_type max_stack_depth()
     {
         return sizeof(size_type) * 8;
-    };
+    }
 
   private:
     //// DATA ////

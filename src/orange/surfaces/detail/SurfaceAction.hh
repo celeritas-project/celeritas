@@ -9,6 +9,7 @@
 
 #include <utility>
 
+#include "base/Algorithms.hh"
 #include "base/Macros.hh"
 #include "orange/Types.hh"
 #include "../PlaneAligned.hh"
@@ -111,7 +112,7 @@ struct StaticSurfaceAction
 template<class F>
 CELER_FUNCTION
 SurfaceAction<F>::SurfaceAction(const Surfaces& surfaces, F&& action)
-    : surfaces_(surfaces), action_(std::forward<F>(action))
+    : surfaces_(surfaces), action_(forward<F>(action))
 {
 }
 

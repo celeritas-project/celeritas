@@ -98,9 +98,9 @@ using OnFace    = OnTface<struct Face>;
  *  Vol   | Surface | Description
  * :----: | :-----: | :-------------------------------
  *        |         | Failed to find new volume
+ *        |   X     | Initialized on a surface (reject)
  *   X    |         | Initialized
  *   X    |   X     | Crossed surface into new volume
- *        |   X     | Initialized on a surface (reject)
  */
 struct Initialization
 {
@@ -118,7 +118,7 @@ struct Initialization
 /*!
  * Next face ID and the distance to it.
  *
- * We may want to restructuer this if we store a vector of face/distance rather
+ * We may want to restructure this if we store a vector of face/distance rather
  * than two separate vectors.
  */
 struct TempNextFace

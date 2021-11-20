@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Algorithms.hh"
 #include "base/Macros.hh"
 #include "detail/SurfaceAction.hh"
 
@@ -24,7 +25,7 @@ template<class F>
 inline CELER_FUNCTION detail::SurfaceAction<F>
                       make_surface_action(const Surfaces& surfaces, F&& action)
 {
-    return detail::SurfaceAction<F>{surfaces, std::forward<F>(action)};
+    return detail::SurfaceAction<F>{surfaces, forward<F>(action)};
 }
 
 //---------------------------------------------------------------------------//
