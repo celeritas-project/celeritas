@@ -23,8 +23,10 @@ void mu_bremsstrahlung_interact(
     CELER_EXPECT(model);
 
     detail::MuBremsstrahlungLauncher<MemSpace::host> launch(mu_bremsstrahlung_data, model);
-    for (auto tid : range(ThreadId{model.states.size()}))
+    #pragma omp parallel for
+    for (size_type i = 0; i < model.states.size(); ++i)
     {
+        ThreadId tid{i};
         launch(tid);
     }
 }

@@ -174,6 +174,13 @@ celeritas_add_library(celeritas ${SOURCES})
 celeritas_strip_alias(celeritas_target celeritas)
 add_library(Celeritas::Core ALIAS ${celeritas_target})
 
+find_package(OpenMP)
+if(OPENMP_FOUND)
+  celeritas_target_link_libraries(celeritas PRIVATE OpenMP::OpenMP_CXX)
+else()
+  celeritas_target_compile_options(celeritas PRIVATE -Wno-unknown-pragmas)
+endif()
+
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}

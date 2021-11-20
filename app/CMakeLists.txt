@@ -224,6 +224,12 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
       VecGeom::vecgeom
     )
   endif()
+  find_package(OpenMP)
+  if(OpenMP_FOUND)
+    celeritas_target_link_libraries(celeritas_demo_loop PRIVATE OpenMP::OpenMP_CXX)
+  else()
+    celeritas_target_compile_options(celeritas_demo_loop PRIVATE -Wno-unknown-pragmas)
+  endif()
 
   # Add the executable
   add_executable(demo-loop

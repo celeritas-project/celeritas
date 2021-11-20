@@ -11,6 +11,9 @@
 #if CELERITAS_USE_CUDA
 #    include <cuda_runtime_api.h>
 #endif
+#ifdef _OPENMP
+#    include <omp.h>
+#endif
 
 #include <cstdlib>
 #include <iostream>
@@ -83,7 +86,10 @@ Device& global_device()
     }
 
 #if CELERITAS_USE_CUDA && defined(_OPENMP)
-    CELER_NOT_IMPLEMENTED("OpenMP support with CUDA");
+    if (omp_get_num_threads() > 1)
+    {
+        CELER_NOT_IMPLEMENTED("OpenMP support with CUDA");
+    }
 #endif
 
     return device;
