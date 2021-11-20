@@ -23,9 +23,7 @@ set_cache_var(CMAKE_EXPORT_COMPILE_COMMANDS BOOL ON)
 set_cache_var(BUILD_SHARED_LIBS BOOL ON)
 set_cache_var(CMAKE_CUDA_ARCHITECTURES STRING "35")
 set_cache_var(CMAKE_CUDA_FLAGS_DEBUG STRING "-g -G")
-# NOTE: CUDA error flags do not work with CMake 3.18
-#set_cache_var(CMAKE_CUDA_FLAGS STRING
-#  "-Werror all-warnings ${CMAKE_CUDA_FLAGS}")
+set_cache_var(CMAKE_CUDA_FLAGS STRING "-Werror cross-execution-space-call -Wno-deprecated-gpu-targets")
 
 set_cache_var(CELERITAS_DEBUG BOOL ON)
 set_cache_var(CMAKE_BUILD_TYPE STRING "Debug")
