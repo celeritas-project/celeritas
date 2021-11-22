@@ -204,7 +204,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   celeritas_add_library(celeritas_demo_loop
     demo-loop/LDemoIO.cc
     demo-loop/LDemoKernel.cc
-    demo-loop/LDemoParams.cc
+    demo-loop/Transporter.cc
     demo-loop/diagnostic/EnergyDiagnostic.cc
     demo-loop/diagnostic/ParticleProcessDiagnostic.cc
     demo-loop/diagnostic/StepDiagnostic.cc

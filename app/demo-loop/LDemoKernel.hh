@@ -18,6 +18,8 @@ using celeritas::StateHostRef;
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
+// TODO: convert all these to functors and autogenerate kernels
+//---------------------------------------------------------------------------//
 void pre_step(const ParamsDeviceRef&, const StateDeviceRef&);
 void pre_step(const ParamsHostRef&, const StateHostRef&);
 void along_and_post_step(const ParamsDeviceRef&, const StateDeviceRef&);

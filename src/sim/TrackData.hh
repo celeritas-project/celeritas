@@ -18,7 +18,6 @@
 #include "physics/material/MaterialData.hh"
 #include "random/RngData.hh"
 #include "SimData.hh"
-#include "TrackInitData.hh"
 
 namespace celeritas
 {
@@ -51,7 +50,6 @@ struct ParamsData
     CutoffParamsData<W, M>      cutoffs;
     PhysicsParamsData<W, M>     physics;
     RngParamsData<W, M>         rng;
-    TrackInitParamsData<W, M>   track_inits;
 
     ControlOptions control;
 
@@ -74,7 +72,6 @@ struct ParamsData
         cutoffs     = other.cutoffs;
         physics     = other.physics;
         rng         = other.rng;
-        track_inits = other.track_inits;
         return *this;
     }
 };
@@ -95,7 +92,6 @@ struct StateData
     PhysicsStateData<W, M>   physics;
     RngStateData<W, M>       rng;
     SimStateData<W, M>       sim;
-    TrackInitStateData<W, M> track_inits;
 
     // Stacks
     StackAllocatorData<Secondary, W, M> secondaries;
@@ -112,7 +108,7 @@ struct StateData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && materials && particles && physics && rng && sim
-               && track_inits && secondaries && !step_length.empty()
+               && secondaries && !step_length.empty()
                && !energy_deposition.empty() && !interactions.empty();
     }
 
@@ -127,7 +123,6 @@ struct StateData
         physics           = other.physics;
         rng               = other.rng;
         sim               = other.sim;
-        track_inits       = other.track_inits;
         secondaries       = other.secondaries;
         step_length       = other.step_length;
         energy_deposition = other.energy_deposition;
@@ -161,7 +156,6 @@ resize(StateData<Ownership::value, M>*                               data,
     resize(&data->physics, params.physics, size);
     resize(&data->rng, params.rng, size);
     resize(&data->sim, size);
-    resize(&data->track_inits, params.track_inits, size);
 
     auto sec_size
         = static_cast<size_type>(size * params.control.secondary_stack_factor);

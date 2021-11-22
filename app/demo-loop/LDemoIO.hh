@@ -7,9 +7,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <vector>
 #include <nlohmann/json.hpp>
 #include "base/Types.hh"
+#include "sim/TrackInitParams.hh"
+#include "Transporter.hh"
+
+namespace celeritas
+{
+class ParticleParams;
+}
 
 namespace demo_loop
 {
@@ -42,28 +50,14 @@ struct LDemoArgs
     }
 };
 
-//---------------------------------------------------------------------------//
-/*!
- * Tallied result and timing from run.
- */
-struct LDemoResult
-{
-    using size_type = celeritas::size_type;
-
-    std::vector<double>    time;  //!< Real time per step
-    std::vector<size_type> alive; //!< Num living tracks per step
-    std::vector<double>    edep;  //!< Energy deposition along the grid
-    std::unordered_map<std::string, size_type> process; //!< Count of
-                                                        //!< particle/process
-                                                        //!< interactions
-    std::unordered_map<std::string, std::vector<size_type>> steps;
-    double total_time = 0; //!< All time
-};
+// Load params from input arguments
+celeritas::TransporterInput load_input(const LDemoArgs& args);
+std::shared_ptr<celeritas::TrackInitParams>
+load_primaries(const std::shared_ptr<const celeritas::ParticleParams>& particles,
+               const LDemoArgs&                                        args);
 
 void to_json(nlohmann::json& j, const LDemoArgs& value);
 void from_json(const nlohmann::json& j, LDemoArgs& value);
-
-void to_json(nlohmann::json& j, const LDemoResult& value);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_loop
