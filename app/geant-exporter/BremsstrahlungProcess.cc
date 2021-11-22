@@ -14,6 +14,7 @@
 #include <G4Positron.hh>
 #include <G4SeltzerBergerModel.hh>
 #include <G4eBremsstrahlungRelModel.hh>
+#include <G4EmParameters.hh>
 
 namespace geant_exporter
 {
