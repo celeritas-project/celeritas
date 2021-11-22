@@ -255,6 +255,15 @@ auto ValueGridLogBuilder::build(ValueGridInserter insert) const -> ValueGridId
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Access values.
+ */
+auto ValueGridLogBuilder::value() const -> SpanConstReal
+{
+    return make_span(value_);
+}
+
+//---------------------------------------------------------------------------//
 // GENERIC BUILDER
 //---------------------------------------------------------------------------//
 /*!

@@ -173,6 +173,11 @@ struct AllItems
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
 {
+    static_assert(std::is_trivially_copyable<T>::value,
+                  "Collection element is not trivially copyable");
+    static_assert(std::is_trivially_destructible<T>::value,
+                  "Collection element is not trivially destructible");
+
     using CollectionTraitsT = detail::CollectionTraits<T, W>;
 
   public:
@@ -236,9 +241,17 @@ class Collection
     inline CELER_FUNCTION SpanT      operator[](AllItemsT);
     inline CELER_FUNCTION SpanConstT operator[](AllItemsT) const;
 
-    // Direct accesors to underlying data
-    CELER_CONSTEXPR_FUNCTION size_type size() const;
-    CELER_CONSTEXPR_FUNCTION bool      empty() const;
+    //!@{
+    //! Direct accesors to underlying data
+    CELER_FORCEINLINE_FUNCTION size_type size() const
+    {
+        return this->storage().size();
+    }
+    CELER_FORCEINLINE_FUNCTION bool empty() const
+    {
+        return this->storage().empty();
+    }
+    //!@}
 
   private:
     //// DATA ////

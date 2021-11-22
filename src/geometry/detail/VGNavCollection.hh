@@ -8,11 +8,12 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/navigation/NavStatePool.h>
 #include "base/Assert.hh"
-#include "base/Collection.hh"
 #include "base/OpaqueId.hh"
+#include "base/Span.hh"
 #include "base/Types.hh"
 
 namespace celeritas
@@ -56,9 +57,9 @@ struct VGNavCollection<Ownership::value, MemSpace::host>
     using NavState   = vecgeom::cxx::NavigationState;
     using UPNavState = std::unique_ptr<NavState>;
 
-    StateCollection<UPNavState, Ownership::value, MemSpace::host> nav_state;
+    std::vector<UPNavState> nav_state;
 
-    // Resize with a number of states (must be 1)
+    // Resize with a number of states
     void resize(int max_depth, size_type size);
     // Whether the collection is assigned
     explicit operator bool() const { return !nav_state.empty(); }
@@ -74,7 +75,7 @@ struct VGNavCollection<Ownership::reference, MemSpace::host>
     using NavState   = vecgeom::cxx::NavigationState;
     using UPNavState = std::unique_ptr<NavState>;
 
-    StateCollection<UPNavState, Ownership::reference, MemSpace::host> nav_state;
+    Span<UPNavState> nav_state;
 
     // Obtain reference from host memory
     void operator=(VGNavCollection<Ownership::value, MemSpace::host>& other);
