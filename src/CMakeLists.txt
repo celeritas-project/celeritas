@@ -53,6 +53,7 @@ list(APPEND SOURCES
   comm/KernelDiagnostics.cc
   base/ScopedStreamRedirect.cc
   base/TypeDemangler.cc
+  base/VectorUtils.cc
   base/detail/Copier.cc
   base/detail/ReprImpl.cc
   comm/Communicator.cc

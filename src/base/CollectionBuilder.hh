@@ -26,7 +26,8 @@ namespace celeritas
  * \code
     auto cb = make_builder(&myintcol.host);
     cb.reserve(100);
-    ItemRange<int> insertion = cb.extend(local_ints.begin(), local_ints.end());
+    ItemRange<int> insertion
+        = cb.insert_back(local_ints.begin(), local_ints.end());
     cb.push_back(123);
    \endcode
 
