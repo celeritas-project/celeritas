@@ -18,7 +18,8 @@ except (IndexError, TypeError):
     print("usage: {} inp.gdml inp.hepmc3".format(argv[0]))
     exit(2)
 
-use_device = bool(strtobool(environ.get('CELERITAS_USE_DEVICE', 'true')))
+# We reuse the "disable device" environment variable which prevents the GPU from being initialized at runtime.
+use_device = not strtobool(environ.get('CELER_DISABLE_DEVICE', 'false'))
 run_name = (path.splitext(path.basename(geometry_filename))[0]
             + ('-gpu' if use_device else '-cpu'))
 

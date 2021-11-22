@@ -280,7 +280,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
       "${_geant_exporter_env}"
-      "CELERITAS_USE_DEVICE=0"
+      "CELER_DISABLE_DEVICE=1"
       "CELER_DISABLE_PARALLEL=1"
     )
     set_tests_properties("app/demo-loop-cpu" PROPERTIES

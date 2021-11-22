@@ -64,6 +64,9 @@ void run(std::istream& is)
     std::unique_ptr<TransporterBase> transport_ptr;
     if (run_args.use_device)
     {
+        CELER_VALIDATE(celeritas::device(),
+                       << "CUDA device is unavailable but GPU run was "
+                          "requested");
         transport_ptr = std::make_unique<Transporter<MemSpace::device>>(
             std::move(input));
     }
@@ -126,12 +129,6 @@ int main(int argc, char* argv[])
 
     // Initialize GPU
     celeritas::activate_device(celeritas::Device::from_round_robin(comm));
-
-    if (!celeritas::device())
-    {
-        CELER_LOG(critical) << "CUDA capability is disabled";
-        return EXIT_FAILURE;
-    }
 
     std::string   filename = args[1];
     std::ifstream infile;
