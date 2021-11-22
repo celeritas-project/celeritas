@@ -262,6 +262,7 @@ celeritas_add_test(physics/em/LivermorePE.test.cc)
 celeritas_add_test(physics/em/MollerBhabha.test.cc)
 celeritas_add_test(physics/em/MuBremsstrahlung.test.cc)
 celeritas_add_test(physics/em/Rayleigh.test.cc)
+celeritas_add_test(physics/em/RelativisticBrem.test.cc)
 celeritas_add_test(physics/em/SeltzerBerger.test.cc)
 celeritas_add_test(physics/em/TsaiUrbanDistribution.test.cc)
 
