@@ -138,8 +138,9 @@ TransporterBase::~TransporterBase() = default;
 template<MemSpace M>
 Transporter<M>::Transporter(TransporterInput inp) : input_(std::move(inp))
 {
-    CELER_EXPECT(params_);
+    CELER_EXPECT(input_);
     params_ = build_params_refs<M>(input_);
+    CELER_ASSERT(params_);
     states_ = CollectionStateStore<StateData, M>(ParamsShim{input_},
                                                  input_.max_num_tracks);
 }

@@ -157,6 +157,7 @@ std::shared_ptr<celeritas::TrackInitParams>
 load_primaries(const std::shared_ptr<const celeritas::ParticleParams>& particles,
                const LDemoArgs&                                        args)
 {
+    CELER_EXPECT(particles);
     EventReader read_all_events(args.hepmc3_filename.c_str(), particles);
     TrackInitParams::Input input;
     input.primaries      = read_all_events();

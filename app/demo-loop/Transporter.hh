@@ -97,6 +97,9 @@ class TransporterBase
 
     // Transport the input primaries and all secondaries produced
     virtual TransporterResult operator()(const TrackInitParams& primaries) = 0;
+
+    //! Access input parameters (TODO hacky)
+    virtual const TransporterInput& input() const = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -112,6 +115,9 @@ class Transporter : public TransporterBase
 
     // Transport the input primaries and all secondaries produced
     TransporterResult operator()(const TrackInitParams& primaries) final;
+
+    //! Access input parameters (TODO hacky)
+    const TransporterInput& input() const final { return input_; }
 
   private:
     TransporterInput                          input_;

@@ -31,20 +31,47 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using namespace demo_loop;
+using celeritas::TransporterBase;
 
 namespace
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct parameters, input, and transporter from the given run arguments.
+ */
+std::unique_ptr<TransporterBase> build_transporter(const LDemoArgs& run_args)
+{
+    using celeritas::MemSpace;
+    using celeritas::Transporter;
+    using celeritas::TransporterInput;
+
+    TransporterInput                 input = load_input(run_args);
+    std::unique_ptr<TransporterBase> result;
+
+    if (run_args.use_device)
+    {
+        CELER_VALIDATE(celeritas::device(),
+                       << "CUDA device is unavailable but GPU run was "
+                          "requested");
+        result = std::make_unique<Transporter<MemSpace::device>>(
+            std::move(input));
+    }
+    else
+    {
+        result
+            = std::make_unique<Transporter<MemSpace::host>>(std::move(input));
+    }
+    CELER_ENSURE(result);
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Run, launch, and output.
  */
 void run(std::istream& is)
 {
-    using celeritas::MemSpace;
     using celeritas::TrackInitParams;
-    using celeritas::Transporter;
-    using celeritas::TransporterBase;
-    using celeritas::TransporterInput;
     using celeritas::TransporterResult;
 
     // Read input options
@@ -60,24 +87,10 @@ void run(std::istream& is)
     CELER_EXPECT(run_args);
 
     // Load all the problem data and create transporter
-    TransporterInput                 input = load_input(run_args);
-    std::unique_ptr<TransporterBase> transport_ptr;
-    if (run_args.use_device)
-    {
-        CELER_VALIDATE(celeritas::device(),
-                       << "CUDA device is unavailable but GPU run was "
-                          "requested");
-        transport_ptr = std::make_unique<Transporter<MemSpace::device>>(
-            std::move(input));
-    }
-    else
-    {
-        transport_ptr
-            = std::make_unique<Transporter<MemSpace::host>>(std::move(input));
-    }
+    auto transport_ptr = build_transporter(run_args);
 
     // Run all the primaries
-    auto primaries = load_primaries(input.particles, run_args);
+    auto primaries = load_primaries(transport_ptr->input().particles, run_args);
     auto result    = (*transport_ptr)(*primaries);
 
     // Save output
