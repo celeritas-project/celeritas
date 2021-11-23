@@ -204,7 +204,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   celeritas_add_library(celeritas_demo_loop
     demo-loop/LDemoIO.cc
     demo-loop/LDemoKernel.cc
-    demo-loop/LDemoParams.cc
+    demo-loop/Transporter.cc
     demo-loop/diagnostic/EnergyDiagnostic.cc
     demo-loop/diagnostic/ParticleProcessDiagnostic.cc
     demo-loop/diagnostic/StepDiagnostic.cc
@@ -220,15 +220,16 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
 
   if(CELERITAS_USE_CUDA)
     celeritas_target_link_libraries(celeritas_demo_loop
-      PRIVATE
-      VecGeom::vecgeom
+      PRIVATE VecGeom::vecgeom
     )
   endif()
   find_package(OpenMP)
   if(OpenMP_FOUND)
-    celeritas_target_link_libraries(celeritas_demo_loop PRIVATE OpenMP::OpenMP_CXX)
+    celeritas_target_link_libraries(celeritas_demo_loop
+      PRIVATE OpenMP::OpenMP_CXX)
   else()
-    celeritas_target_compile_options(celeritas_demo_loop PRIVATE -Wno-unknown-pragmas)
+    celeritas_target_compile_options(celeritas_demo_loop
+      PRIVATE -Wno-unknown-pragmas)
   endif()
 
   # Add the executable
@@ -248,7 +249,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple-cms.gdml")
     set(_hepmc3_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/input.hepmc3")
     if (TARGET geant-exporter)
-      set(_geant_exporter_env "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:geant-exporter>")
+      set(_geant_exporter_env
+        "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:geant-exporter>")
     endif()
     add_test(NAME "app/demo-loop"
       COMMAND "$<TARGET_FILE:Python::Interpreter>"
@@ -264,9 +266,12 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
       RESOURCE_LOCK gpu
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
     )
+
     # Disable test when prereqs are not available or for debug builds
     # TODO: Get test working on debug builds
-    if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_ROOT OR NOT CELERITAS_USE_HepMC3
+    if(NOT CELERITAS_USE_Geant4
+       OR NOT CELERITAS_USE_ROOT
+       OR NOT CELERITAS_USE_HepMC3
        OR CMAKE_BUILD_TYPE STREQUAL "Debug")
       set_tests_properties("app/demo-loop" PROPERTIES
         DISABLED true
@@ -280,14 +285,16 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
       "${_geant_exporter_env}"
-      "CELERITAS_USE_DEVICE=0"
+      "CELER_DISABLE_DEVICE=1"
       "CELER_DISABLE_PARALLEL=1"
     )
     set_tests_properties("app/demo-loop-cpu" PROPERTIES
       ENVIRONMENT "${_env};${_geant_test_env}"
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
     )
-    if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_ROOT OR NOT CELERITAS_USE_HepMC3)
+    if(NOT CELERITAS_USE_Geant4
+       OR NOT CELERITAS_USE_ROOT
+       OR NOT CELERITAS_USE_HepMC3)
       set_tests_properties("app/demo-loop-cpu" PROPERTIES
         DISABLED true
       )
