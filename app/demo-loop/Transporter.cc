@@ -33,8 +33,10 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-//
+// HELPER CLASSES AND FUNCTIONS
 //---------------------------------------------------------------------------//
+//!@{
+//! Helpers for constructing parameters for host and device.
 template<class P, MemSpace M>
 struct ParamsGetter;
 
@@ -60,7 +62,6 @@ decltype(auto) get_ref(const P& params)
     return ParamsGetter<P, M>{params}();
 }
 
-//---------------------------------------------------------------------------//
 template<MemSpace M>
 ParamsData<Ownership::const_reference, M>
 build_params_refs(const TransporterInput& p)
@@ -88,6 +89,7 @@ struct ParamsShim
     }
 };
 
+//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Launch interaction kernels for all applicable models.

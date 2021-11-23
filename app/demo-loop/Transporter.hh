@@ -111,7 +111,7 @@ class Transporter : public TransporterBase
 {
   public:
     // Construct from parameters
-    Transporter(TransporterInput inp);
+    explicit Transporter(TransporterInput inp);
 
     // Transport the input primaries and all secondaries produced
     TransporterResult operator()(const TrackInitParams& primaries) final;
