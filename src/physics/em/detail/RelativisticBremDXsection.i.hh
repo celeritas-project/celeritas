@@ -54,11 +54,11 @@ real_type RelativisticBremDXsection::operator()(real_type energy)
  * Compute the differential cross section without the LPM effect.
  */
 CELER_FUNCTION
-real_type RelativisticBremDXsection::dxsec_per_atom(real_type gammaEnergy)
+real_type RelativisticBremDXsection::dxsec_per_atom(real_type gamma_energy)
 {
     real_type dxsec{0};
 
-    real_type y     = gammaEnergy / total_energy_;
+    real_type y     = gamma_energy / total_energy_;
     real_type onemy = 1 - y;
     real_type term0 = onemy + R(0.75) * ipow<2>(y);
 
@@ -71,7 +71,7 @@ real_type RelativisticBremDXsection::dxsec_per_atom(real_type gammaEnergy)
     {
         // Tsai's analytical approximation.
         real_type invz    = 1 / static_cast<real_type>(elem_data_.iz);
-        real_type term1   = y / (total_energy_ - gammaEnergy);
+        real_type term1   = y / (total_energy_ - gamma_energy);
         real_type gamma   = term1 * elem_data_.gamma_factor;
         real_type epsilon = term1 * elem_data_.epsilon_factor;
 
@@ -93,14 +93,14 @@ real_type RelativisticBremDXsection::dxsec_per_atom(real_type gammaEnergy)
  * Compute the differential cross section with the LPM effect.
  */
 CELER_FUNCTION
-real_type RelativisticBremDXsection::dxsec_per_atom_lpm(real_type gammaEnergy)
+real_type RelativisticBremDXsection::dxsec_per_atom_lpm(real_type gamma_energy)
 {
-    real_type y     = gammaEnergy / total_energy_;
+    real_type y     = gamma_energy / total_energy_;
     real_type onemy = 1 - y;
     real_type y2    = R(0.25) * ipow<2>(y);
 
     // Evaluate LPM functions
-    auto lpm = compute_lpm_functions(gammaEnergy);
+    auto lpm = compute_lpm_functions(gamma_energy);
 
     real_type term  = lpm.xis * (y2 * lpm.gs + (onemy + 2 * y2) * lpm.phis);
     real_type dxsec = term * elem_data_.factor1 + onemy * elem_data_.factor2;
@@ -123,12 +123,12 @@ auto RelativisticBremDXsection::compute_screen_functions(real_type gam,
     real_type       eps2 = ipow<2>(eps);
 
     func.phi1 = R(16.863) - 2 * std::log(1 + R(0.311877) * gam2)
-                + R(2.4) * std::exp(-R(0.9) * gam)
+                + R(2.4) * std::exp(R(-0.9) * gam)
                 + R(1.6) * std::exp(R(-1.5) * gam);
     func.phi2 = 2 / (3 + R(19.5) * gam + 18 * gam2);
 
     func.psi1 = R(24.34) - 2 * std::log(1 + R(13.111641) * eps2)
-                + R(2.8) * std::exp(-8 * eps)
+                + R(2.8) * std::exp(R(-8) * eps)
                 + R(1.2) * std::exp(R(-29.2) * eps);
     func.psi2 = 2 / (3 + 120 * eps + 1200 * eps2);
 
@@ -185,16 +185,23 @@ auto RelativisticBremDXsection::compute_lpm_functions(real_type egamma)
     // Evaluate G(s) and phi(s): G4eBremsstrahlungRelModel::GetLPMFunctions
     if (shat < shared_.limit_s_lpm())
     {
-        real_type    val  = shat * shared_.inv_delta_lpm();
-        unsigned int ilow = static_cast<unsigned int>(val);
+        real_type val = shat * shared_.inv_delta_lpm();
+
+        CELER_ASSERT(val >= 0);
+        size_type ilow = static_cast<size_type>(val);
         val -= ilow;
+        CELER_ASSERT(ilow + 1 < shared_.lpm_table.size());
 
-        real_type xlow = shared_.lpm_table[ItemIdT{ilow}].gs;
-        func.gs = xlow + (shared_.lpm_table[ItemIdT{ilow + 1}].gs - xlow) * val;
+        auto linterp = [val](real_type lo, real_type hi) {
+            return lo + (hi - lo) * val;
+        };
 
-        xlow      = shared_.lpm_table[ItemIdT{ilow}].phis;
-        func.phis = xlow
-                    + (shared_.lpm_table[ItemIdT{ilow + 1}].phis - xlow) * val;
+        auto get_table = [ilow, this](size_type offset) {
+            return this->shared_.lpm_table[ItemIdT{ilow + offset}];
+        };
+
+        func.gs   = linterp(get_table(0).gs, get_table(1).gs);
+        func.phis = linterp(get_table(0).phis, get_table(1).phis);
     }
     else
     {
