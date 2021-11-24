@@ -39,7 +39,7 @@ namespace detail
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4eBremsstrahlungRelModel class, as documented in section 10.2.2 of the
- * Geant4 Physics Reference (release 10.6).
+ * Geant4 Physics Reference (release 10.7).
  */
 class RelativisticBremInteractor
 {
@@ -47,6 +47,7 @@ class RelativisticBremInteractor
     //!@{
     //! Type aliases
     using Energy      = units::MevEnergy;
+    using Momentum    = units::MevMomentum;
     using ElementData = detail::RelBremElementData;
     using ItemIdT     = celeritas::ItemId<unsigned int>;
     //!@}
@@ -73,6 +74,8 @@ class RelativisticBremInteractor
     const RelativisticBremNativeRef& shared_;
     // Incident particle energy
     const Energy inc_energy_;
+    // Incident particle momentum
+    const Momentum inc_momentum_;
     // Incident direction
     const Real3& inc_direction_;
     // Production cutoff for gammas

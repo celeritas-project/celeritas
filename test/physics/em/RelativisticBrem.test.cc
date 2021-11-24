@@ -125,8 +125,7 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
 //---------------------------------------------------------------------------//
 TEST_F(RelativisticBremTest, dxsec)
 {
-    const int num_samples         = 10;
-    real_type energy[num_samples] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
+    const real_type all_energy[] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
 
     // Production cuts
     auto material_view = this->material_track().material_view();
@@ -147,12 +146,12 @@ TEST_F(RelativisticBremTest, dxsec)
     std::vector<double> dxsec_value_lpm;
     std::vector<double> dxsec_value;
 
-    for (int i : celeritas::range(num_samples))
+    for (real_type energy : all_energy)
     {
-        real_type result = dxsec_lpm(energy[i]);
+        real_type result = dxsec_lpm(energy);
         dxsec_value_lpm.push_back(result);
 
-        result = dxsec(energy[i]);
+        result = dxsec(energy);
         dxsec_value.push_back(result);
     }
 
@@ -225,6 +224,7 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
     }
 
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
+    EXPECT_DOUBLE_EQ(double(rng_engine.count()) / num_samples, 12);
 
     // Note: these are "gold" values based on the host RNG.
 

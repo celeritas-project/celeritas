@@ -32,6 +32,7 @@ class RelativisticBremDXsection
   public:
     //!@{
     //! Type aliases
+    using R           = real_type;
     using Energy      = units::MevEnergy;
     using ItemIdT     = celeritas::ItemId<unsigned int>;
     using ElementData = detail::RelBremElementData;
@@ -49,16 +50,15 @@ class RelativisticBremDXsection
     inline CELER_FUNCTION real_type operator()(real_type energy);
 
     // Return the density correction
-    inline CELER_FUNCTION real_type density_correction() const
+    CELER_FUNCTION real_type density_correction() const
     {
         return density_corr_;
     }
 
-    // Return the density correction
-    inline CELER_FUNCTION real_type maximum_value() const
+    // Return the maximum value of the differential cross section
+    CELER_FUNCTION real_type maximum_value() const
     {
-        //        CELER_EXPECT(this->elem_data_);
-        return elem_data_.zFactor1 + elem_data_.zFactor2;
+        return elem_data_.factor1 + elem_data_.factor2;
     }
 
   private:

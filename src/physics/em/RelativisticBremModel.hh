@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/CollectionMirror.hh"
 #include "physics/base/Model.hh"
+
+#include "base/CollectionMirror.hh"
 #include "physics/material/MaterialParams.hh"
 #include "detail/RelativisticBremData.hh"
 
@@ -78,11 +79,14 @@ class RelativisticBremModel final : public Model
 
     //// HELPER FUNCTIONS ////
 
-    void build_data(HostValue* host_data, const MaterialParams& materials);
+    void build_data(HostValue*            host_data,
+                    const MaterialParams& materials,
+                    real_type             particle_mass);
 
     static const FormFactor& get_form_factor(AtomicNumber index);
     MigdalData               compute_lpm_data(real_type shat);
-    ElementData              compute_element_data(const ElementView& elem);
+    ElementData
+    compute_element_data(const ElementView& elem, real_type particle_mass);
 };
 
 //---------------------------------------------------------------------------//

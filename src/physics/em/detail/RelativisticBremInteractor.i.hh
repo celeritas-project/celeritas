@@ -31,6 +31,7 @@ RelativisticBremInteractor::RelativisticBremInteractor(
     const ElementComponentId&        elcomp_id)
     : shared_(shared)
     , inc_energy_(particle.energy())
+    , inc_momentum_(particle.momentum())
     , inc_direction_(direction)
     , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
     , allocate_(allocate)
@@ -47,11 +48,19 @@ RelativisticBremInteractor::RelativisticBremInteractor(
 //---------------------------------------------------------------------------//
 /*!
  * Sample the production of photons using the G4eBremsstrahlungRelModel
- * of Geant4 6.10.
+ * of the Geant4 10.7 release
  */
 template<class Engine>
 CELER_FUNCTION Interaction RelativisticBremInteractor::operator()(Engine& rng)
 {
+    // Allocate space for the brems photon
+    Secondary* secondaries = this->allocate_(1);
+    if (secondaries == nullptr)
+    {
+        // Failed to allocate space for the secondary
+        return Interaction::from_failure();
+    }
+
     // Min and max kinetic energy limits for sampling the secondary photon
     Energy tmin = min(gamma_cutoff_, inc_energy_);
     Energy tmax = min(shared_.high_energy_limit(), inc_energy_);
@@ -70,18 +79,10 @@ CELER_FUNCTION Interaction RelativisticBremInteractor::operator()(Engine& rng)
     do
     {
         gamma_energy = std::sqrt(max(
-            0.0,
+            real_type(0),
             std::exp(xmin + generate_canonical(rng) * xrange) - density_corr));
         dsigma       = dxsec_(gamma_energy);
     } while (dsigma < dxsec_.maximum_value() * generate_canonical(rng));
-
-    // Allocate space for the brems photon
-    Secondary* secondaries = this->allocate_(1);
-    if (secondaries == nullptr)
-    {
-        // Failed to allocate space for the secondary
-        return Interaction::from_failure();
-    }
 
     // Construct interaction for change to parent (incoming) particle
     Interaction result;
@@ -91,25 +92,19 @@ CELER_FUNCTION Interaction RelativisticBremInteractor::operator()(Engine& rng)
     secondaries[0].particle_id = shared_.ids.gamma;
     secondaries[0].energy      = units::MevEnergy{gamma_energy};
 
-    // angular distribution: G4ModifiedTsai
-
-    // Generate exiting gamma direction from isotropic azimuthal
-    // angle and TsaiUrbanDistribution for polar angle
+    // Generate exiting gamma direction from isotropic azimuthal angle and
+    // TsaiUrbanDistribution for polar angle (based on G4ModifiedTsai)
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    //    TsaiUrbanDistribution sample_gamma_angle(secondaries[0].energy,
-    TsaiUrbanDistribution sample_gamma_angle(inc_energy_,
+    TsaiUrbanDistribution              sample_gamma_angle(inc_energy_,
                                              shared_.electron_mass);
-    real_type             cost = sample_gamma_angle(rng);
+    real_type                          cost = sample_gamma_angle(rng);
     secondaries[0].direction
         = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
 
     // Update parent particle direction
-    real_type inc_momentum = std::sqrt(
-        inc_energy_.value()
-        * (inc_energy_.value() + 2 * shared_.electron_mass.value()));
     for (unsigned int i : range(3))
     {
-        real_type inc_momentum_i   = inc_momentum * inc_direction_[i];
+        real_type inc_momentum_i   = inc_momentum_.value() * inc_direction_[i];
         real_type gamma_momentum_i = result.secondaries[0].energy.value()
                                      * result.secondaries[0].direction[i];
         result.direction[i] = inc_momentum_i - gamma_momentum_i;

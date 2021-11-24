@@ -23,8 +23,8 @@ namespace detail
  */
 struct RelBremFormFactor
 {
-    real_type el;   //! elastic component
-    real_type inel; //! inelastic component
+    real_type el;   //!< elastic component
+    real_type inel; //!< inelastic component
 };
 
 //---------------------------------------------------------------------------//
@@ -35,8 +35,8 @@ struct RelBremFormFactor
  */
 struct RelBremMigdalData
 {
-    real_type Gs;   //! LPM G(s)
-    real_type phis; //! LPM \phi(s)
+    real_type gs;   //!< LPM G(s)
+    real_type phis; //!< LPM \phi(s)
 };
 
 //---------------------------------------------------------------------------//
@@ -46,16 +46,16 @@ struct RelBremMigdalData
  */
 struct RelBremElementData
 {
-    int       iZ;            //! Atomic number
-    real_type logZ;          //! \f$ \ln(Z) \f$
-    real_type fZ;            //! \f$ \ln(Z)/3 + f_c (Coulomb correction) \f$
-    real_type zFactor1;      //! \f$ ((Fel-fc)+Finel*invZ)\f$
-    real_type zFactor2;      //! \f$ (1.0+invZ)/12 \f$
-    real_type s1;            //! LPM variables
-    real_type inv_logs1;     //! 1/\ln(s1)
-    real_type inv_logs2;     //! 1/\ln(sqrt(2)*s1)
-    real_type gammaFactor;   //! constants for evaluating screening functions
-    real_type epsilonFactor; //!
+    int       iz;             //!< Atomic number
+    real_type logz;           //!< \f$ \ln(Z) \f$
+    real_type fz;             //!< \f$ \ln(Z)/3 + f_c (Coulomb correction) \f$
+    real_type factor1;        //!< \f$ ((Fel-fc)+Finel*invZ)\f$
+    real_type factor2;        //!< \f$ (1.0+invZ)/12 \f$
+    real_type s1;             //!< LPM variables
+    real_type inv_logs1;      //!< 1/\ln(s1)
+    real_type inv_logs2;      //!< 1/\ln(sqrt(2)*s1)
+    real_type gamma_factor;   //!< Constant for evaluating screening functions
+    real_type epsilon_factor; //!< Constant for evaluating screening functions
 };
 
 struct RelBremIds

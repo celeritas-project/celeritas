@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "RelativisticBremDXsection.hh"
 
+#include <cmath>
+
 namespace celeritas
 {
 namespace detail
@@ -58,31 +60,32 @@ real_type RelativisticBremDXsection::dxsec_per_atom(real_type gammaEnergy)
 
     real_type y     = gammaEnergy / total_energy_;
     real_type onemy = 1 - y;
-    real_type term0 = onemy + 0.75 * ipow<2>(y);
+    real_type term0 = onemy + R(0.75) * ipow<2>(y);
 
-    if (elem_data_.iZ < 5)
+    if (elem_data_.iz < 5)
     {
         // The Dirac-Fock model
-        dxsec = term0 * elem_data_.zFactor1 + onemy * elem_data_.zFactor2;
+        dxsec = term0 * elem_data_.factor1 + onemy * elem_data_.factor2;
     }
     else
     {
         // Tsai's analytical approximation.
-        real_type invZ    = 1 / static_cast<real_type>(elem_data_.iZ);
+        real_type invz    = 1 / static_cast<real_type>(elem_data_.iz);
         real_type term1   = y / (total_energy_ - gammaEnergy);
-        real_type gamma   = term1 * elem_data_.gammaFactor;
-        real_type epsilon = term1 * elem_data_.epsilonFactor;
+        real_type gamma   = term1 * elem_data_.gamma_factor;
+        real_type epsilon = term1 * elem_data_.epsilon_factor;
 
         // Evaluate the screening functions
         auto sfunc = compute_screen_functions(gamma, epsilon);
 
-        dxsec = term0
-                    * ((0.25 * sfunc.phi1 - elem_data_.fZ)
-                       + (0.25 * sfunc.psi1 - 2 * elem_data_.logZ / 3) * invZ)
-                + 0.125 * onemy * (sfunc.phi2 + sfunc.psi2 * invZ);
+        dxsec
+            = term0
+                  * ((R(0.25) * sfunc.phi1 - elem_data_.fz)
+                     + (R(0.25) * sfunc.psi1 - 2 * elem_data_.logz / 3) * invz)
+              + R(0.125) * onemy * (sfunc.phi2 + sfunc.psi2 * invz);
     }
 
-    return max(dxsec, 0.0);
+    return max(dxsec, R(0));
 }
 
 //---------------------------------------------------------------------------//
@@ -94,15 +97,15 @@ real_type RelativisticBremDXsection::dxsec_per_atom_lpm(real_type gammaEnergy)
 {
     real_type y     = gammaEnergy / total_energy_;
     real_type onemy = 1 - y;
-    real_type y2    = 0.25 * ipow<2>(y);
+    real_type y2    = R(0.25) * ipow<2>(y);
 
     // Evaluate LPM functions
     auto lpm = compute_lpm_functions(gammaEnergy);
 
     real_type term  = lpm.xis * (y2 * lpm.gs + (onemy + 2 * y2) * lpm.phis);
-    real_type dxsec = term * elem_data_.zFactor1 + onemy * elem_data_.zFactor2;
+    real_type dxsec = term * elem_data_.factor1 + onemy * elem_data_.factor2;
 
-    return max(dxsec, 0.0);
+    return max(dxsec, R(0));
 }
 
 //---------------------------------------------------------------------------//
@@ -119,12 +122,14 @@ auto RelativisticBremDXsection::compute_screen_functions(real_type gam,
     real_type       gam2 = ipow<2>(gam);
     real_type       eps2 = ipow<2>(eps);
 
-    func.phi1 = 16.863 - 2 * std::log(1 + 0.311877 * gam2)
-                + 2.4 * std::exp(-0.9 * gam) + 1.6 * std::exp(-1.5 * gam);
-    func.phi2 = 2 / (3 + 19.5 * gam + 18 * gam2);
+    func.phi1 = R(16.863) - 2 * std::log(1 + R(0.311877) * gam2)
+                + R(2.4) * std::exp(-R(0.9) * gam)
+                + R(1.6) * std::exp(R(-1.5) * gam);
+    func.phi2 = 2 / (3 + R(19.5) * gam + 18 * gam2);
 
-    func.psi1 = 24.34 - 2 * std::log(1 + 13.111641 * eps2)
-                + 2.8 * std::exp(-8 * eps) + 1.2 * std::exp(-29.2 * eps);
+    func.psi1 = R(24.34) - 2 * std::log(1 + R(13.111641) * eps2)
+                + R(2.8) * std::exp(-8 * eps)
+                + R(1.2) * std::exp(R(-29.2) * eps);
     func.psi2 = 2 / (3 + 120 * eps + 1200 * eps2);
 
     return func;
@@ -132,7 +137,7 @@ auto RelativisticBremDXsection::compute_screen_functions(real_type gam,
 
 //---------------------------------------------------------------------------//
 /*!
- * Compute the LPM fsuppression unctions.
+ * Compute the LPM suppression functions.
  */
 auto RelativisticBremDXsection::compute_lpm_functions(real_type egamma)
     -> LPMFunctions
@@ -143,7 +148,7 @@ auto RelativisticBremDXsection::compute_lpm_functions(real_type egamma)
     real_type y = egamma / total_energy_;
 
     real_type sprime
-        = std::sqrt(0.125 * y * lpm_energy_ / ((1 - y) * total_energy_));
+        = std::sqrt(R(0.125) * y * lpm_energy_ / (total_energy_ - egamma));
 
     real_type xi_sprime{2};
 
@@ -156,7 +161,7 @@ auto RelativisticBremDXsection::compute_lpm_functions(real_type egamma)
         real_type inv_logs2 = elem_data_.inv_logs2;
         real_type h_sprime  = std::log(sprime) * inv_logs2;
         xi_sprime           = 1 + h_sprime
-                    - 0.08 * (1 - h_sprime) * h_sprime * (2 - h_sprime)
+                    - R(0.08) * (1 - h_sprime) * h_sprime * (2 - h_sprime)
                           * inv_logs2;
     }
 
@@ -184,8 +189,8 @@ auto RelativisticBremDXsection::compute_lpm_functions(real_type egamma)
         unsigned int ilow = static_cast<unsigned int>(val);
         val -= ilow;
 
-        real_type xlow = shared_.lpm_table[ItemIdT{ilow}].Gs;
-        func.gs = xlow + (shared_.lpm_table[ItemIdT{ilow + 1}].Gs - xlow) * val;
+        real_type xlow = shared_.lpm_table[ItemIdT{ilow}].gs;
+        func.gs = xlow + (shared_.lpm_table[ItemIdT{ilow + 1}].gs - xlow) * val;
 
         xlow      = shared_.lpm_table[ItemIdT{ilow}].phis;
         func.phis = xlow
@@ -194,12 +199,12 @@ auto RelativisticBremDXsection::compute_lpm_functions(real_type egamma)
     else
     {
         real_type ss = ipow<4>(shat);
-        func.phis    = 1 - 0.01190476 / ss;
-        func.gs      = 1 - 0.0230655 / ss;
+        func.phis    = 1 - R(0.01190476) / ss;
+        func.gs      = 1 - R(0.0230655) / ss;
     }
 
     // Make sure suppression is smaller than 1: Migdal's approximation on xi
-    if (func.xis * func.phis > 1 || shat > 0.57)
+    if (func.xis * func.phis > 1 || shat > R(0.57))
     {
         func.xis = 1 / func.phis;
     }

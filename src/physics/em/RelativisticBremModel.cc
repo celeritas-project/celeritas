@@ -50,7 +50,7 @@ RelativisticBremModel::RelativisticBremModel(ModelId               id,
     host_ref.enable_lpm = enable_lpm;
 
     // Build other data (host_ref.lpm_table, host_ref.elem_data))
-    this->build_data(&host_ref, materials);
+    this->build_data(&host_ref, materials, host_ref.electron_mass.value());
 
     // Move to mirrored data, copying to device
     data_ = CollectionMirror<detail::RelativisticBremData>{std::move(host_ref)};
@@ -69,7 +69,7 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
     electron_brem.upper    = this->host_ref().high_energy_limit();
 
     Applicability positron_brem = electron_brem;
-    electron_brem.particle      = this->host_ref().ids.positron;
+    positron_brem.particle      = this->host_ref().ids.positron;
 
     return {electron_brem, positron_brem};
 }
@@ -104,7 +104,8 @@ ModelId RelativisticBremModel::model_id() const
  * Build RelativisticBremData (lpm_table and elem_data).
  */
 void RelativisticBremModel::build_data(HostValue*            data,
-                                       const MaterialParams& materials)
+                                       const MaterialParams& materials,
+                                       real_type             particle_mass)
 {
     // Build a table of LPM functions, G(s) and \phi(s) in the range
     // s = [0, data->limit_s_lpm()] with the 1/data->inv_delta_lpm() interval
@@ -127,7 +128,7 @@ void RelativisticBremModel::build_data(HostValue*            data,
 
     for (auto el_id : range(ElementId{num_elements}))
     {
-        auto z_data = compute_element_data(materials.get(el_id));
+        auto z_data = compute_element_data(materials.get(el_id), particle_mass);
         elem_data.push_back(z_data);
     }
 }
@@ -136,46 +137,49 @@ void RelativisticBremModel::build_data(HostValue*            data,
  * Initialise data for a given element:
  * G4eBremsstrahlungRelModel::InitialiseElementData()
  */
-auto RelativisticBremModel::compute_element_data(const ElementView& elem)
+auto RelativisticBremModel::compute_element_data(const ElementView& elem,
+                                                 real_type electron_mass)
     -> ElementData
 {
     ElementData data;
 
-    AtomicNumber iZ = min(elem.atomic_number(), 120);
+    AtomicNumber iz = min(elem.atomic_number(), 120);
 
-    data.iZ   = iZ;
-    data.logZ = elem.log_z();
+    data.iz   = iz;
+    data.logz = elem.log_z();
 
     real_type fc      = elem.coulomb_correction();
     real_type ff_el   = 1.0;
     real_type ff_inel = 1.0;
 
-    data.logZ = elem.log_z();
-    data.fZ   = data.logZ / 3 + fc;
+    data.logz = elem.log_z();
+    data.fz   = data.logz / 3 + fc;
 
-    if (iZ < 5)
+    if (iz < 5)
     {
-        ff_el   = RelativisticBremModel::get_form_factor(iZ).el;
-        ff_inel = RelativisticBremModel::get_form_factor(iZ).inel;
+        ff_el   = RelativisticBremModel::get_form_factor(iz).el;
+        ff_inel = RelativisticBremModel::get_form_factor(iz).inel;
     }
     else
     {
-        ff_el   = std::log(184.15) - data.logZ / 3;
-        ff_inel = std::log(1194.0) - 2 * data.logZ / 3;
+        ff_el   = std::log(184.15) - data.logz / 3;
+        ff_inel = std::log(1194.0) - 2 * data.logz / 3;
     }
 
     real_type z13 = elem.cbrt_z();
     real_type z23 = ipow<2>(z13);
 
-    units::MevMass electron_mass = units::MevMass{0.5109989461};
+    // XXX: TODO
+    //    units::MevMass electron_mass = units::MevMass{0.5109989461};
+    //    units::MevMass electron_mass = data_.host().electron_mass;
 
-    data.zFactor1      = (ff_el - fc) + ff_inel / iZ;
-    data.zFactor2      = (1 + real_type(1) / iZ) / 12;
-    data.s1            = z23 / ipow<2>(184.15);
-    data.inv_logs1     = 1 / std::log(data.s1);
-    data.inv_logs2     = 1 / (std::log(constants::sqrt_two * data.s1));
-    data.gammaFactor   = 100 * electron_mass.value() / z13;
-    data.epsilonFactor = 100 * electron_mass.value() / z23;
+    data.factor1        = (ff_el - fc) + ff_inel / iz;
+    data.factor2        = (1 + real_type(1) / iz) / 12;
+    data.s1             = z23 / ipow<2>(184.15);
+    data.inv_logs1      = 1 / std::log(data.s1);
+    data.inv_logs2      = 1 / (std::log(constants::sqrt_two * data.s1));
+    data.gamma_factor   = 100 * electron_mass / z13;
+    data.epsilon_factor = 100 * electron_mass / z23;
 
     return data;
 }
@@ -191,13 +195,13 @@ auto RelativisticBremModel::compute_lpm_data(real_type x) -> MigdalData
     if (x < 0.01)
     {
         data.phis = 6 * x * (1 - constants::pi * x);
-        data.Gs   = 12 * x - 2 * data.phis;
+        data.gs   = 12 * x - 2 * data.phis;
     }
     else
     {
-        double x2 = ipow<2>(x);
-        double x3 = x * x2;
-        double x4 = ipow<2>(x2);
+        real_type x2 = ipow<2>(x);
+        real_type x3 = x * x2;
+        real_type x4 = ipow<2>(x2);
 
         // use Stanev approximation: for \psi(s) and compute G(s)
         if (x < 0.415827)
@@ -205,19 +209,19 @@ auto RelativisticBremModel::compute_lpm_data(real_type x) -> MigdalData
             data.phis = 1
                         - std::exp(-6 * x * (1 + x * (3 - constants::pi))
                                    + x3 / (0.623 + 0.796 * x + 0.658 * x2));
-            double psi = 1
-                         - std::exp(-4 * x
-                                    - 8 * x2
-                                          / (1 + 3.936 * x + 4.97 * x2
-                                             - 0.05 * x3 + 7.5 * x4));
-            data.Gs = 3 * psi - 2 * data.phis;
+            real_type psi = 1
+                            - std::exp(-4 * x
+                                       - 8 * x2
+                                             / (1 + 3.936 * x + 4.97 * x2
+                                                - 0.05 * x3 + 7.5 * x4));
+            data.gs = 3 * psi - 2 * data.phis;
         }
         else if (x < 1.55)
         {
             data.phis = 1
                         - std::exp(-6 * x * (1 + x * (3 - constants::pi))
                                    + x3 / (0.623 + 0.796 * x + 0.658 * x2));
-            data.Gs = std::tanh(-0.160723 + 3.755030 * x - 1.798138 * x2
+            data.gs = std::tanh(-0.160723 + 3.755030 * x - 1.798138 * x2
                                 + 0.672827 * x3 - 0.120772 * x4);
         }
         else
@@ -225,12 +229,12 @@ auto RelativisticBremModel::compute_lpm_data(real_type x) -> MigdalData
             data.phis = 1 - 0.011905 / x4;
             if (x < 1.9156)
             {
-                data.Gs = std::tanh(-0.160723 + 3.755030 * x - 1.798138 * x2
+                data.gs = std::tanh(-0.160723 + 3.755030 * x - 1.798138 * x2
                                     + 0.672827 * x3 - 0.120772 * x4);
             }
             else
             {
-                data.Gs = 1 - 0.023065 / x4;
+                data.gs = 1 - 0.023065 / x4;
             }
         }
     }
@@ -247,9 +251,8 @@ auto RelativisticBremModel::compute_lpm_data(real_type x) -> MigdalData
  */
 auto RelativisticBremModel::get_form_factor(AtomicNumber z) -> const FormFactor&
 {
-    CELER_EXPECT(z >= 0 && z < 8);
-    static const FormFactor form_factor[] = {{0.0, 0.0},
-                                             {5.3104, 5.9173},
+    CELER_EXPECT(z > 0 && z < 8);
+    static const FormFactor form_factor[] = {{5.3104, 5.9173},
                                              {4.7935, 5.6125},
                                              {4.7402, 5.5377},
                                              {4.7112, 5.4728},
@@ -257,7 +260,7 @@ auto RelativisticBremModel::get_form_factor(AtomicNumber z) -> const FormFactor&
                                              {4.6134, 5.3688},
                                              {4.5520, 5.3236}};
 
-    return form_factor[z];
+    return form_factor[z - 1];
 }
 
 //---------------------------------------------------------------------------//
