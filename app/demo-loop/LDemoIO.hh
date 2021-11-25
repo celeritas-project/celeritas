@@ -53,8 +53,14 @@ struct LDemoArgs
 // Load params from input arguments
 celeritas::TransporterInput load_input(const LDemoArgs& args);
 std::shared_ptr<celeritas::TrackInitParams>
+
+// Load primary particles from an input HepMC3 event file
 load_primaries(const std::shared_ptr<const celeritas::ParticleParams>& particles,
                const LDemoArgs&                                        args);
+
+// Build transporter from input arguments
+std::unique_ptr<celeritas::TransporterBase>
+build_transporter(const LDemoArgs& run_args);
 
 void to_json(nlohmann::json& j, const LDemoArgs& value);
 void from_json(const nlohmann::json& j, LDemoArgs& value);
