@@ -37,36 +37,6 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct parameters, input, and transporter from the given run arguments.
- */
-std::unique_ptr<TransporterBase> build_transporter(const LDemoArgs& run_args)
-{
-    using celeritas::MemSpace;
-    using celeritas::Transporter;
-    using celeritas::TransporterInput;
-
-    TransporterInput                 input = load_input(run_args);
-    std::unique_ptr<TransporterBase> result;
-
-    if (run_args.use_device)
-    {
-        CELER_VALIDATE(celeritas::device(),
-                       << "CUDA device is unavailable but GPU run was "
-                          "requested");
-        result = std::make_unique<Transporter<MemSpace::device>>(
-            std::move(input));
-    }
-    else
-    {
-        result
-            = std::make_unique<Transporter<MemSpace::host>>(std::move(input));
-    }
-    CELER_ENSURE(result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Run, launch, and output.
  */
 void run(std::istream& is)

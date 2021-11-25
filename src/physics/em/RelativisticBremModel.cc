@@ -169,10 +169,6 @@ auto RelativisticBremModel::compute_element_data(const ElementView& elem,
     real_type z13 = elem.cbrt_z();
     real_type z23 = ipow<2>(z13);
 
-    // XXX: TODO
-    //    units::MevMass electron_mass = units::MevMass{0.5109989461};
-    //    units::MevMass electron_mass = data_.host().electron_mass;
-
     data.factor1        = (ff_el - fc) + ff_inel / iz;
     data.factor2        = (1 + real_type(1) / iz) / 12;
     data.s1             = z23 / ipow<2>(184.15);
