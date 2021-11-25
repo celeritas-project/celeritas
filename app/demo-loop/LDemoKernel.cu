@@ -120,7 +120,6 @@ __global__ void process_interactions_kernel(ParamsDeviceRef const params,
 
     ParticleTrackView particle(params.particles, states.particles, tid);
     GeoTrackView      geo(params.geometry, states.geometry, tid);
-    MaterialTrackView mat(params.materials, states.materials, tid);
     GeoMaterialView   geo_mat(params.geo_mats);
     PhysicsTrackView  phys(params.physics,
                           states.physics,
