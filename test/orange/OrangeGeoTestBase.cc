@@ -79,9 +79,9 @@ void OrangeGeoTestBase::build_geometry(const char* filename)
     OrangeParamsData<Ownership::value, MemSpace::host> host_data;
 
 #if CELERITAS_USE_JSON
-    std::ifstream infile(
-        this->test_data_path("orange", "five-volumes.org.json"));
-    CELER_VALIDATE(infile, << "failed to open geometry path");
+    std::ifstream infile(this->test_data_path("orange", filename));
+    CELER_VALIDATE(infile,
+                   << "failed to open geometry at '" << filename << '\'');
 
     auto        full_inp  = nlohmann::json::parse(infile);
     const auto& universes = full_inp["universes"];
@@ -130,7 +130,7 @@ void OrangeGeoTestBase::build_geometry(OneVolInput)
     CELER_EXPECT(!params_);
     OrangeParamsData<Ownership::value, MemSpace::host> host_data;
     {
-        // No suerfaces
+        // No surfaces
         surf_names_ = {};
     }
     {
