@@ -107,6 +107,12 @@
     {                            \
         assert(COND);            \
     } while (0)
+#define CELER_CUDA_FAIL_() \
+    do                     \
+    {                      \
+        assert(false);     \
+        CELER_UNREACHABLE; \
+    } while (0)
 #define CELER_DEBUG_ASSERT_(COND, WHICH)                                        \
     do                                                                          \
     {                                                                           \
@@ -142,7 +148,7 @@
 #    define CELER_EXPECT(COND) CELER_CUDA_ASSERT_(COND)
 #    define CELER_ASSERT(COND) CELER_CUDA_ASSERT_(COND)
 #    define CELER_ENSURE(COND) CELER_CUDA_ASSERT_(COND)
-#    define CELER_ASSERT_UNREACHABLE() CELER_CUDA_ASSERT_(false)
+#    define CELER_ASSERT_UNREACHABLE() CELER_CUDA_FAIL_()
 #elif CELERITAS_DEBUG && !defined(__CUDA_ARCH__)
 #    define CELER_EXPECT(COND) CELER_DEBUG_ASSERT_(COND, precondition)
 #    define CELER_ASSERT(COND) CELER_DEBUG_ASSERT_(COND, internal)

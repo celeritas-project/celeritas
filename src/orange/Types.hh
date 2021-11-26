@@ -25,6 +25,9 @@ using logic_int = unsigned short int;
 //! Identifier for a surface in a universe
 using SurfaceId = OpaqueId<struct Surface>;
 
+//! Identifier for a face local to a particular volume
+using FaceId = OpaqueId<struct Face>;
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//

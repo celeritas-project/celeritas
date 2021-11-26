@@ -194,6 +194,25 @@ celeritas_add_test(orange/surfaces/Sphere.test.cc)
 
 celeritas_cudaoptional_test(orange/surfaces/SurfaceAction)
 
+celeritas_add_test(orange/universes/detail/LogicEvaluator.test.cc)
+celeritas_add_test(orange/universes/detail/LogicStack.test.cc)
+celeritas_add_test(orange/universes/detail/SurfaceFunctors.test.cc)
+
+### Tests that require a geometry input ###
+
+celeritas_add_library(CeleritasOrangeTest
+  orange/OrangeGeoTestBase.cc
+)
+celeritas_target_link_libraries(CeleritasOrangeTest
+  PRIVATE Celeritas::Test
+  PUBLIC Celeritas::Core
+)
+set(CELERITASTEST_LINK_LIBRARIES CeleritasOrangeTest)
+
+celeritas_add_test(orange/universes/detail/SenseCalculator.test.cc)
+celeritas_add_test(orange/universes/VolumeView.test.cc)
+celeritas_cudaoptional_test(orange/universes/SimpleUnitTracker)
+
 #-----------------------------------------------------------------------------#
 # I/O (ROOT)
 

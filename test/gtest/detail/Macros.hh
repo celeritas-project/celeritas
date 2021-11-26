@@ -369,7 +369,6 @@ std::string failure_msg(const char*                             expected_expr,
 {
     using RT1 = ReprTraits<T1>;
     using RT2 = ReprTraits<T2>;
-    using std::setprecision;
     using std::setw;
 
     // Calculate how many digits we need to space out
