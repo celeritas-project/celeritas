@@ -9,6 +9,7 @@
 
 #include <type_traits>
 #include "Macros.hh"
+#include "detail/SortImpl.hh"
 
 namespace celeritas
 {

@@ -103,6 +103,32 @@ TEST(AlgorithmsTest, lower_bound)
     }
 }
 
+TEST(AlgorithmsTest, sort)
+{
+    std::vector<int> data;
+    {
+        celeritas::sort(data.begin(), data.end());
+        EXPECT_EQ(0, data.size());
+    }
+    {
+        data = {123};
+        celeritas::sort(data.begin(), data.end());
+        EXPECT_EQ(123, data.front());
+    }
+    {
+        data = {1, 2, 4, 3, -1, 123, 2};
+        celeritas::sort(data.begin(), data.end());
+        static const int expected_data[] = {-1, 1, 2, 2, 3, 4, 123};
+        EXPECT_VEC_EQ(expected_data, data);
+    }
+    {
+        data = {1, 2, 4, 3, -1, 123, 2};
+        celeritas::sort(data.begin(), data.end(), std::greater<>{});
+        static const int expected_data[] = {123, 4, 3, 2, 2, 1, -1};
+        EXPECT_VEC_EQ(expected_data, data);
+    }
+}
+
 TEST(AlgorithmsTest, minmax)
 {
     EXPECT_EQ(1, celeritas::min<int>(1, 2));
