@@ -19,14 +19,14 @@ namespace celeritas
 //! Implement perfect forwarding with device-friendly functions.
 template<class T>
 CELER_CONSTEXPR_FUNCTION T&&
-forward(typename std::remove_reference<T>::type& v) noexcept
+cforward(typename std::remove_reference<T>::type& v) noexcept
 {
     return static_cast<T&&>(v);
 }
 
 template<class T>
 CELER_CONSTEXPR_FUNCTION T&&
-forward(typename std::remove_reference<T>::type&& v) noexcept
+cforward(typename std::remove_reference<T>::type&& v) noexcept
 {
     return static_cast<T&&>(v);
 }
@@ -37,10 +37,24 @@ forward(typename std::remove_reference<T>::type&& v) noexcept
  * Cast a value as an rvalue reference to allow move construction.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION auto move(T&& v) noexcept ->
+CELER_CONSTEXPR_FUNCTION auto cmove(T&& v) noexcept ->
     typename std::remove_reference<T>::type&&
 {
     return static_cast<typename std::remove_reference<T>::type&&>(v);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Support swapping on device.
+ */
+template<class T>
+CELER_FUNCTION void
+cswap(T& a, T& b) noexcept(std::is_nothrow_move_constructible<T>::value&&
+                               std::is_nothrow_move_assignable<T>::value)
+{
+    T temp{a};
+    a = cmove(b);
+    b = cmove(temp);
 }
 
 //---------------------------------------------------------------------------//
@@ -67,7 +81,7 @@ struct Less<void>
     CELER_CONSTEXPR_FUNCTION auto operator()(T&& lhs, U&& rhs) const
         -> decltype(auto)
     {
-        return forward<T>(lhs) < forward<U>(rhs);
+        return cforward<T>(lhs) < cforward<U>(rhs);
     }
 };
 
@@ -121,6 +135,31 @@ inline CELER_FUNCTION ForwardIt lower_bound(ForwardIt first,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Sort an array on a single thread.
+ *
+ * This implementation is not thread-safe nor cooperative, but it can be called
+ * from CUDA code.
+ */
+template<class RandomAccessIt, class Compare>
+CELER_FORCEINLINE_FUNCTION void
+sort(RandomAccessIt first, RandomAccessIt last, Compare comp)
+{
+    using CompareRef = std::add_lvalue_reference_t<Compare>;
+    return ::celeritas::detail::heapsort_impl<CompareRef>(first, last, comp);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sort an array on a single thread.
+ */
+template<class RandomAccessIt>
+CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
+{
+    ::celeritas::sort(first, last, Less<decltype(*first)>{});
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return the higher of two values.
  */
 template<class T>
@@ -166,9 +205,10 @@ inline CELER_FUNCTION ForwardIt min_element(ForwardIt iter,
  * Return an iterator to the lowest value in the range.
  */
 template<class ForwardIt>
-CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt iter, ForwardIt last)
+CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
+                                                 ForwardIt last)
 {
-    return ::celeritas::min_element(iter, last, Less<decltype(*iter)>{});
+    return ::celeritas::min_element(first, last, Less<decltype(*first)>{});
 }
 
 //---------------------------------------------------------------------------//

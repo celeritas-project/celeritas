@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <functional>
 #include <type_traits>
+#include <utility>
 #include "celeritas_test.hh"
 
 struct Foo
@@ -19,8 +20,8 @@ struct Foo
 template<class Expected, class T>
 void test_forward_impl(T&& val)
 {
-    EXPECT_TRUE(
-        (std::is_same<Expected, decltype(celeritas::forward<T>(val))>::value));
+    EXPECT_TRUE((
+        std::is_same<Expected, decltype(celeritas::cforward<T>(val))>::value));
 }
 
 //---------------------------------------------------------------------------//
@@ -41,9 +42,34 @@ TEST(UtilityTest, move)
 {
     Foo foo;
 
-    EXPECT_TRUE((std::is_same<Foo&&, decltype(celeritas::move(foo))>::value));
-    EXPECT_TRUE((std::is_same<Foo&&, decltype(celeritas::move(Foo{}))>::value));
+    EXPECT_TRUE((std::is_same<Foo&&, decltype(celeritas::cmove(foo))>::value));
+    EXPECT_TRUE(
+        (std::is_same<Foo&&, decltype(celeritas::cmove(Foo{}))>::value));
 }
+
+TEST(UtilityTest, swap)
+{
+    using celeritas::cswap;
+
+    // Test trivial type swapping
+    {
+        int a = 1;
+        int b = 2;
+        cswap(a, b);
+        EXPECT_EQ(2, a);
+        EXPECT_EQ(1, b);
+    }
+
+    {
+        std::string a{"foo"};
+        std::string b{"barbarbarbarbar"};
+        cswap(a, b);
+        EXPECT_EQ("barbarbarbarbar", a);
+        EXPECT_EQ("foo", b);
+    }
+}
+
+//---------------------------------------------------------------------------//
 
 TEST(AlgorithmsTest, clamp)
 {
@@ -111,6 +137,8 @@ TEST(AlgorithmsTest, min_element)
     EXPECT_EQ(2, min_element_idx());
     EXPECT_EQ(0, min_element_gt_idx());
 }
+
+//---------------------------------------------------------------------------//
 
 TEST(MathTest, ipow)
 {
