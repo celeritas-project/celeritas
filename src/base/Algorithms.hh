@@ -9,7 +9,7 @@
 
 #include <type_traits>
 #include "Macros.hh"
-#include "detail/SortImpl.hh"
+#include "detail/AlgorithmsImpl.hh"
 
 namespace celeritas
 {
@@ -103,35 +103,41 @@ CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v) noexcept
 //---------------------------------------------------------------------------//
 /*!
  * Find the insertion point for a value in a sorted list.
- *
- * \todo Define an iterator adapter that dereferences using `__ldg` in
- * device code.
- * \todo Add a template on comparator if needed (defaulting to Less).
- * \todo Add a "lower_bound_index" that will use the native pointer difference
- * type instead of iterator arithmetic, for potential speedup on CUDA. Or
- * define an iterator adapter to Collections.
+ */
+template<class ForwardIt, class T, class Compare>
+CELER_FORCEINLINE_FUNCTION ForwardIt
+lower_bound(ForwardIt first, ForwardIt last, const T& value, Compare comp)
+{
+    using CompareRef = std::add_lvalue_reference_t<Compare>;
+    return ::celeritas::detail::lower_bound_impl<CompareRef>(
+        first, last, value, comp);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the insertion point for a value in a sorted list.
  */
 template<class ForwardIt, class T>
-inline CELER_FUNCTION ForwardIt lower_bound(ForwardIt first,
-                                            ForwardIt last,
-                                            const T&  value) noexcept
+CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(ForwardIt first,
+                                                 ForwardIt last,
+                                                 const T&  value)
 {
-    auto count = last - first;
-    while (count > 0)
-    {
-        auto      step   = count / 2;
-        ForwardIt middle = first + step;
-        if (*middle < value)
-        {
-            first = middle + 1;
-            count -= step + 1;
-        }
-        else
-        {
-            count = step;
-        }
-    }
-    return first;
+    return ::celeritas::lower_bound(first, last, value, Less<>{});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Partition elements in the given range, "true" before "false".
+ *
+ * This is done by swapping elements until the range is partitioned.
+ */
+template<class ForwardIt, class Predicate>
+CELER_FORCEINLINE_FUNCTION ForwardIt partition(ForwardIt first,
+                                               ForwardIt last,
+                                               Predicate pred)
+{
+    using PredicateRef = std::add_lvalue_reference_t<Predicate>;
+    return ::celeritas::detail::partition_impl<PredicateRef>(first, last, pred);
 }
 
 //---------------------------------------------------------------------------//
@@ -156,7 +162,7 @@ sort(RandomAccessIt first, RandomAccessIt last, Compare comp)
 template<class RandomAccessIt>
 CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
 {
-    ::celeritas::sort(first, last, Less<decltype(*first)>{});
+    ::celeritas::sort(first, last, Less<>{});
 }
 
 //---------------------------------------------------------------------------//

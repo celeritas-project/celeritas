@@ -1,9 +1,11 @@
 //----------------------------------*-C++-*----------------------------------//
-// Derived from LLVM project's sort implementation.
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //---------------------------------------------------------------------------//
-//! \file SortImpl.hh
+/*!
+ * \file AlgorithmsImpl.hh
+ * \brief Algorithm implementations directly derived from LLVM libc++
+ */
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -31,6 +33,97 @@ template<class RandomAccessIt>
 using difference_type_t =
     typename std::iterator_traits<RandomAccessIt>::difference_type;
 
+//---------------------------------------------------------------------------//
+// LOWER_BOUND
+//---------------------------------------------------------------------------//
+//!@{
+/*!
+ * Perform division-by-two quickly for positive integers.
+ *
+ * See llvm.org/PR39129.
+ */
+template<typename Integral>
+CELER_CONSTEXPR_FUNCTION
+    typename std::enable_if<std::is_integral<Integral>::value, Integral>::type
+    half_positive(Integral value)
+{
+    return static_cast<Integral>(
+        static_cast<typename std::make_unsigned<Integral>::type>(value) / 2);
+}
+
+template<typename T>
+CELER_CONSTEXPR_FUNCTION
+    typename std::enable_if<!std::is_integral<T>::value, T>::type
+    half_positive(T value)
+{
+    return value / 2;
+}
+//!@}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Implementation of lower-bound assuming iterator arithmetic.
+ */
+template<class Compare, class ForwardIterator, class T>
+CELER_FUNCTION ForwardIterator lower_bound_impl(ForwardIterator first,
+                                                ForwardIterator last,
+                                                const T&        value_,
+                                                Compare         comp)
+{
+    using difference_type = difference_type_t<ForwardIterator>;
+
+    difference_type len = last - first;
+    while (len != 0)
+    {
+        difference_type half_len = ::celeritas::detail::half_positive(len);
+        ForwardIterator m        = first + half_len;
+        if (comp(*m, value_))
+        {
+            first = ++m;
+            len -= half_len + 1;
+        }
+        else
+            len = half_len;
+    }
+    return first;
+}
+
+//---------------------------------------------------------------------------//
+// PARTITION
+//---------------------------------------------------------------------------//
+/*!
+ * Partition elements in the given range, "true" before "false".
+ *
+ * This implementation requires bidirectional iterators (typically true since
+ * celeritas tends to use contiguous data).
+ */
+template<class Predicate, class BidirectionalIterator>
+CELER_FUNCTION BidirectionalIterator partition_impl(BidirectionalIterator first,
+                                                    BidirectionalIterator last,
+                                                    Predicate             pred)
+{
+    while (true)
+    {
+        while (true)
+        {
+            if (first == last)
+                return first;
+            if (!pred(*first))
+                break;
+            ++first;
+        }
+        do
+        {
+            if (first == --last)
+                return first;
+        } while (!pred(*last));
+        cswap(*first, *last);
+        ++first;
+    }
+}
+
+//---------------------------------------------------------------------------//
+// SORT
 //---------------------------------------------------------------------------//
 /*!
  * Move the top element of the heap to its properly ordered place.

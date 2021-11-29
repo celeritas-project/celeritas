@@ -24,6 +24,14 @@ void test_forward_impl(T&& val)
         std::is_same<Expected, decltype(celeritas::cforward<T>(val))>::value));
 }
 
+struct IsInRange
+{
+    int start;
+    int stop;
+
+    bool operator()(int value) const { return value >= start && value < stop; }
+};
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -101,6 +109,15 @@ TEST(AlgorithmsTest, lower_bound)
                 << "Lower bound failed for value " << val + delta;
         }
     }
+}
+
+TEST(AlgorithmsTest, partition)
+{
+    std::vector<int> values{-1, 2, 3, 4, 2, 6, 9, 4};
+    celeritas::partition(values.begin(), values.end(), IsInRange{2, 4});
+
+    static const int expected_values[] = {2, 2, 3, 4, -1, 6, 9, 4};
+    EXPECT_VEC_EQ(expected_values, values);
 }
 
 TEST(AlgorithmsTest, sort)
