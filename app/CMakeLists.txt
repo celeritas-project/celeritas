@@ -223,7 +223,9 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
       PRIVATE VecGeom::vecgeom
     )
   endif()
-  find_package(OpenMP)
+  if(CELERITAS_USE_OpenMP)
+    find_package(OpenMP)
+  endif()
   if(OpenMP_FOUND)
     celeritas_target_link_libraries(celeritas_demo_loop
       PRIVATE OpenMP::OpenMP_CXX)
