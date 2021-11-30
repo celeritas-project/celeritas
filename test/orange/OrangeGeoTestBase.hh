@@ -35,9 +35,11 @@ class OrangeGeoTestBase : public celeritas::Test
     //!@{
     //! Type aliases
     using real_type = celeritas::real_type;
+    using size_type = celeritas::size_type;
     using Real3     = celeritas::Real3;
     using Sense     = celeritas::Sense;
     using VolumeId  = celeritas::VolumeId;
+    using FaceId    = celeritas::FaceId;
     using SurfaceId = celeritas::SurfaceId;
     using ParamsHostRef
         = celeritas::OrangeParamsData<celeritas::Ownership::const_reference,
@@ -51,7 +53,9 @@ class OrangeGeoTestBase : public celeritas::Test
     //! On-the-fly construction inputs
     struct OneVolInput
     {
+        bool complex_tracking = true;
     };
+
     struct TwoVolInput
     {
         real_type radius = 1;
@@ -97,6 +101,24 @@ class OrangeGeoTestBase : public celeritas::Test
         return celeritas::make_span(sense_storage_);
     }
 
+    //! Access the shared CPU storage space for faces
+    celeritas::Span<FaceId> face_storage()
+    {
+        return celeritas::make_span(face_storage_);
+    }
+
+    //! Access the shared CPU storage space for distances
+    celeritas::Span<real_type> distance_storage()
+    {
+        return celeritas::make_span(distance_storage_);
+    }
+
+    //! Access the shared CPU storage space for intersection indices
+    celeritas::Span<size_type> isect_storage()
+    {
+        return celeritas::make_span(isect_storage_);
+    }
+
     //// QUERYING ////
 
     // Find the volume from its label (nullptr allowed)
@@ -130,9 +152,17 @@ class OrangeGeoTestBase : public celeritas::Test
                                       celeritas::MemSpace::host>;
 
     //// DATA ////
+
+    // Param data
     celeritas::CollectionMirror<celeritas::OrangeParamsData> params_;
 
-    std::vector<Sense>                         sense_storage_;
+    // State data
+    std::vector<Sense>     sense_storage_;
+    std::vector<FaceId>    face_storage_;
+    std::vector<real_type> distance_storage_;
+    std::vector<size_type> isect_storage_;
+
+    // Metadata
     std::vector<std::string>                   surf_names_;
     std::vector<std::string>                   vol_names_;
     std::unordered_map<std::string, VolumeId>  vol_ids_;

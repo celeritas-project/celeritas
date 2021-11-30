@@ -206,7 +206,10 @@ struct OrangeStateData
     StateItems<Sense>     sense;
 
     // Scratch space
-    Items<Sense> temp_senses; // [track][max_faces]
+    Items<Sense>     temp_sense;    // [track][max_faces]
+    Items<FaceId>    temp_face;     // [track][max_intersections]
+    Items<real_type> temp_distance; // [track][max_intersections]
+    Items<size_type> temp_isect;    // [track][max_intersections]
 
     //// METHODS ////
 
@@ -219,7 +222,10 @@ struct OrangeStateData
             && vol.size() == pos.size()
             && surf.size() == pos.size()
             && sense.size() == pos.size()
-            && !temp_senses.empty();
+            && !temp_sense.empty()
+            && !temp_face.empty()
+            && temp_distance.size() == temp_face.size()
+            && temp_isect.size() == temp_face.size();
         // clang-format on
     }
 
@@ -238,7 +244,10 @@ struct OrangeStateData
         surf  = other.surf;
         sense = other.sense;
 
-        temp_senses = other.temp_senses;
+        temp_sense    = other.temp_sense;
+        temp_face     = other.temp_face;
+        temp_distance = other.temp_distance;
+        temp_isect    = other.temp_isect;
 
         CELER_ENSURE(*this);
         return *this;
@@ -264,7 +273,12 @@ resize(OrangeStateData<Ownership::value, M>* data,
     make_builder(&data->sense).resize(size);
 
     size_type face_states = params.scalars.max_faces * size;
-    make_builder(&data->temp_senses).resize(face_states);
+    make_builder(&data->temp_sense).resize(face_states);
+
+    size_type isect_states = params.scalars.max_intersections * size;
+    make_builder(&data->temp_face).resize(isect_states);
+    make_builder(&data->temp_distance).resize(isect_states);
+    make_builder(&data->temp_isect).resize(isect_states);
 
     CELER_ENSURE(*data);
 }

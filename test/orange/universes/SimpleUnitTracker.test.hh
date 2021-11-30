@@ -54,7 +54,7 @@ struct InitializingLauncher
         lstate.dir         = states.dir[tid];
         lstate.volume      = states.vol[tid];
         lstate.surface     = {states.surf[tid], states.sense[tid]};
-        lstate.temp_senses = states.temp_senses[ItemRange<Sense>(
+        lstate.temp_sense  = states.temp_sense[ItemRange<Sense>(
             begin_sense_id(tid), begin_sense_id(next_thread(tid)))];
 
         // Instantiate tracker and initialize

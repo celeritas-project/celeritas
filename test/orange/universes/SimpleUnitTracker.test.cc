@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/universes/SimpleUnitTracker.hh"
 
+#include <algorithm>
 #include <random>
 
 // Source includes
@@ -56,8 +57,15 @@ class SimpleUnitTrackerTest : public celeritas_test::OrangeGeoTestBase
     // Initialization without any logical state
     LocalState make_state(Real3 pos, Real3 dir);
 
-    // Initialization crossing a surface
+    // Initialization inside a volume
+    LocalState make_state(Real3 pos, Real3 dir, const char* vol);
+
+    // Initialization on a surface
     LocalState make_state(
+        Real3 pos, Real3 dir, const char* vol, const char* surf, char sense);
+
+    // Prepare for initialization across a surface
+    LocalState make_state_crossing(
         Real3 pos, Real3 dir, const char* vol, const char* surf, char sense);
 
     HeuristicInitResult run_heuristic_init_host(size_type num_tracks) const;
@@ -122,7 +130,23 @@ LocalState SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir)
     state.dir         = dir;
     state.volume      = {};
     state.surface     = {};
-    state.temp_senses = this->sense_storage();
+    state.temp_sense         = this->sense_storage();
+    state.temp_next.face     = this->face_storage().data();
+    state.temp_next.distance = this->distance_storage().data();
+    state.temp_next.isect    = this->isect_storage().data();
+    state.temp_next.size     = this->face_storage().size();
+    return state;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize inside a volume.
+ */
+LocalState
+SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir, const char* vol)
+{
+    LocalState state = this->make_state(pos, dir);
+    state.volume     = this->find_volume(vol);
     return state;
 }
 
@@ -135,6 +159,7 @@ LocalState SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir)
 LocalState SimpleUnitTrackerTest::make_state(
     Real3 pos, Real3 dir, const char* vol, const char* surf, char sense)
 {
+    CELER_ASSERT(vol && surf);
     Sense before_crossing_sense;
     switch (sense)
     {
@@ -153,8 +178,22 @@ LocalState SimpleUnitTrackerTest::make_state(
     // *Intentionally* flip the sense because we're looking for the
     // post-crossing volume. This is normally done by the multi-level
     // TrackingGeometry.
+    state.surface = {this->find_surface(surf), before_crossing_sense};
+    return state;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize crossing a surface.
+ *
+ * This takes the *before-crossing volume* and *before-crossing sense*.
+ */
+LocalState SimpleUnitTrackerTest::make_state_crossing(
+    Real3 pos, Real3 dir, const char* vol, const char* surf, char sense)
+{
+    auto state = this->make_state(pos, dir, vol, surf, sense);
     state.surface
-        = {this->find_surface(surf), flip_sense(before_crossing_sense)};
+        = {state.surface.id(), flip_sense(state.surface.unchecked_sense())};
     return state;
 }
 
@@ -288,6 +327,72 @@ void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
 }
 
 //---------------------------------------------------------------------------//
+// UTILITY TESTS
+//---------------------------------------------------------------------------//
+
+class UtilsTest : public celeritas::Test
+{
+};
+
+TEST_F(UtilsTest, closer_nonzero_distance)
+{
+    detail::CloserNonzeroDistance is_closer;
+
+    // Equal
+    EXPECT_FALSE(is_closer(0.0, 0.0));
+    EXPECT_FALSE(is_closer(1.0, 1.0));
+
+    // Positive vs nonpositive
+    EXPECT_FALSE(is_closer(-0.0001, 1.0));
+    EXPECT_FALSE(is_closer(0.0, 1.0));
+    EXPECT_TRUE(is_closer(1.0, 0.0));
+
+    // Positive vs positive
+    EXPECT_TRUE(is_closer(1.0, 20.0));
+}
+
+TEST_F(UtilsTest, intersection_partitioner)
+{
+    std::vector<real_type> distance = {1.25, -1e-16, 3, 0, inf, 5};
+    std::vector<FaceId>    face(distance.size(), FaceId{});
+    std::vector<size_type> isect(distance.size());
+
+    // Fill intersection IDs 0..N-1
+    std::iota(isect.begin(), isect.end(), 0);
+
+    // Construct temp next face
+    celeritas::detail::TempNextFace temp_next;
+    temp_next.face     = face.data();
+    temp_next.distance = distance.data();
+    temp_next.isect    = isect.data();
+    temp_next.size     = isect.size();
+
+    // Test on all entries
+    celeritas::detail::IntersectionPartitioner is_valid{temp_next};
+    {
+        std::vector<int> result;
+        for (size_type i : isect)
+        {
+            result.push_back(is_valid(i));
+        }
+        static const int expected_result[] = {1, 0, 1, 0, 0, 1};
+        EXPECT_VEC_EQ(expected_result, result);
+    }
+
+    // Partition so valid indices are first
+    {
+        auto iter = std::partition(isect.begin(), isect.end(), is_valid);
+        EXPECT_EQ(3, iter - isect.begin());
+
+        // Erase invalid and sort valid to avoid implementation dependence
+        isect.erase(iter, isect.end());
+        std::sort(isect.begin(), isect.end());
+        static const unsigned int expected_isect[] = {0, 2, 5};
+        EXPECT_VEC_EQ(expected_isect, isect);
+    }
+}
+
+//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
@@ -301,6 +406,18 @@ TEST_F(OneVolumeTest, initialize)
         EXPECT_TRUE(init);
         EXPECT_EQ(VolumeId{0}, init.volume);
         EXPECT_FALSE(init.surface);
+    }
+}
+
+TEST_F(OneVolumeTest, intersect)
+{
+    SimpleUnitTracker tracker(this->params_host_ref());
+
+    {
+        auto state = this->make_state({1, 2, 3}, {0, 0, 1}, "infinite");
+        auto isect = tracker.intersect(state);
+        EXPECT_FALSE(isect);
+        EXPECT_EQ(no_intersection(), isect.distance);
     }
 }
 
@@ -348,15 +465,15 @@ TEST_F(TwoVolumeTest, initialize)
     }
     {
         SCOPED_TRACE("Crossing the boundary from the inside");
-        auto init = tracker.initialize(
-            this->make_state({1.5, 0, 0}, {0, 0, 1}, "inside", "sphere", '-'));
+        auto init = tracker.initialize(this->make_state_crossing(
+            {1.5, 0, 0}, {0, 0, 1}, "inside", "sphere", '-'));
         EXPECT_EQ("outside", this->id_to_label(init.volume));
         EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
     }
     {
         SCOPED_TRACE("Crossing the boundary from the outside");
-        auto init = tracker.initialize(this->make_state(
+        auto init = tracker.initialize(this->make_state_crossing(
             {1.5, 0, 0}, {0, 0, 1}, "outside", "sphere", '+'));
         EXPECT_EQ("inside", this->id_to_label(init.volume));
         EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
@@ -368,6 +485,93 @@ TEST_F(TwoVolumeTest, initialize)
             = tracker.initialize(this->make_state({3.0, 0, 0}, {0, 0, 1}));
         EXPECT_EQ("outside", this->id_to_label(init.volume));
         EXPECT_FALSE(init.surface);
+    }
+}
+
+TEST_F(TwoVolumeTest, intersect)
+{
+    SimpleUnitTracker tracker(this->params_host_ref());
+
+    {
+        SCOPED_TRACE("Inside");
+        auto state = this->make_state({0.5, 0, 0}, {0, 0, 1}, "inside");
+        auto isect = tracker.intersect(state);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(sqrt_two, isect.distance);
+
+        state = this->make_state({0.5, 0, 0}, {1, 0, 0}, "inside");
+        isect = tracker.intersect(state);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(1.0, isect.distance);
+    }
+    {
+        SCOPED_TRACE("Outside");
+        auto state = this->make_state({0, 0, 2.0}, {0, 0, 1}, "outside");
+        auto isect = tracker.intersect(state);
+        EXPECT_FALSE(isect);
+
+        state = this->make_state({0, 0, 2.0}, {0, 0, -1}, "inside");
+        isect = tracker.intersect(state);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(0.5, isect.distance);
+    }
+    {
+        SCOPED_TRACE("Outside on surface heading out");
+        auto state = this->make_state(
+            {0, 0, 1.5}, {0, 0, 1}, "outside", "sphere", '+');
+        auto isect = tracker.intersect(state);
+        EXPECT_FALSE(isect);
+    }
+    {
+        SCOPED_TRACE("Outside on surface heading in");
+        auto state = this->make_state(
+            {0, 0, 1.5}, {0, 0, -1}, "outside", "sphere", '+');
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        // NOTE: being on a surface with opposite sense and direction means
+        // we should get a "zero distance" movement plus sense change, but
+        // zero-distance movements are prohibited. This will only happen in
+        // practice by changing direction immediately after crossing a surface
+        // without moving (impossible) since the tracking geometry does not
+        // allow initialization on a surface.
+#if 0
+        // "Correct" result
+        EXPECT_SOFT_EQ(0.0, isect.distance);
+#else
+        // "Expected" result
+        EXPECT_SOFT_EQ(3.0, isect.distance);
+#endif
+    }
+    {
+        SCOPED_TRACE("Inside on surface heading in");
+        auto state = this->make_state(
+            {0, 0, 1.5}, {0, 0, -1}, "inside", "sphere", '-');
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(3.0, isect.distance);
+    }
+    {
+        SCOPED_TRACE("Inside on surface heading out");
+        auto state = this->make_state(
+            {0, 1.5, 0}, {0, 1, 0}, "inside", "sphere", '-');
+        auto isect = tracker.intersect(state);
+#if 0
+        // "Correct" result
+        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(0.0, isect.distance);
+#else
+        // "Expected" result: no intersection
+        EXPECT_FALSE(isect);
+#endif
     }
 }
 
@@ -443,7 +647,7 @@ TEST_F(FiveVolumesTest, initialize)
     }
     {
         SCOPED_TRACE("Crossing the boundary from the inside of 'e'");
-        auto init = tracker.initialize(this->make_state(
+        auto init = tracker.initialize(this->make_state_crossing(
             {-0.5, -0.25, 0}, {-1, 0, 0}, "e", "epsilon.s", '-'));
         EXPECT_EQ("c", this->id_to_label(init.volume));
         EXPECT_EQ("epsilon.s", this->id_to_label(init.surface.id()));
@@ -454,7 +658,7 @@ TEST_F(FiveVolumesTest, initialize)
             "Crossing the boundary from the inside of 'e' but with "
             "numerical imprecision");
         real_type eps  = 1e-10;
-        auto      init = tracker.initialize(this->make_state(
+        auto      init = tracker.initialize(this->make_state_crossing(
             {eps, -0.25, 0}, {1, 0, 0}, "e", "epsilon.s", '-'));
         EXPECT_EQ("c", this->id_to_label(init.volume));
         EXPECT_EQ("epsilon.s", this->id_to_label(init.surface.id()));
@@ -463,11 +667,11 @@ TEST_F(FiveVolumesTest, initialize)
     {
         SCOPED_TRACE("Crossing the boundary into a more complicated region");
         auto init = tracker.initialize(
-            this->make_state({-.75 * sqrt_half, 0.75 * sqrt_half, 0},
-                             {0, 1, 0},
-                             "c",
-                             "gamma.s",
-                             '-'));
+            this->make_state_crossing({-.75 * sqrt_half, 0.75 * sqrt_half, 0},
+                                      {0, 1, 0},
+                                      "c",
+                                      "gamma.s",
+                                      '-'));
         EXPECT_EQ("a", this->id_to_label(init.volume));
         EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
@@ -475,11 +679,11 @@ TEST_F(FiveVolumesTest, initialize)
     {
         SCOPED_TRACE("Crossing back in from a complicated region");
         auto init = tracker.initialize(
-            this->make_state({-.75 * sqrt_half, 0.75 * sqrt_half, 0},
-                             {0, -1, 0},
-                             "a",
-                             "gamma.s",
-                             '+'));
+            this->make_state_crossing({-.75 * sqrt_half, 0.75 * sqrt_half, 0},
+                                      {0, -1, 0},
+                                      "a",
+                                      "gamma.s",
+                                      '+'));
         EXPECT_EQ("c", this->id_to_label(init.volume));
         EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
@@ -489,24 +693,48 @@ TEST_F(FiveVolumesTest, initialize)
         // correct when exactly on a boundary but not *known* to be on that
         // boundary. We'll either need to ensure that's ei
         SCOPED_TRACE("Crossing at triple point");
-        auto init = tracker.initialize(
-            this->make_state({0, 0.75, 0}, {0, 1, 0}, "c", "gamma.s", '-'));
+        auto init = tracker.initialize(this->make_state_crossing(
+            {0, 0.75, 0}, {0, 1, 0}, "c", "gamma.s", '-'));
         EXPECT_EQ("d", this->id_to_label(init.volume));
         EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
 
-        init = tracker.initialize(
-            this->make_state({0, 0.75, 0}, {-1, 0, 0}, "d", "gamma.s", '+'));
+        init = tracker.initialize(this->make_state_crossing(
+            {0, 0.75, 0}, {-1, 0, 0}, "d", "gamma.s", '+'));
         EXPECT_EQ("c", this->id_to_label(init.volume));
         EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
 
         // Near triple point, on sphere but crossing plane edge
-        init = tracker.initialize(
-            this->make_state({0, 0.75, 0}, {-1, 0, 0}, "d", "alpha.px", '+'));
+        init = tracker.initialize(this->make_state_crossing(
+            {0, 0.75, 0}, {-1, 0, 0}, "d", "alpha.px", '+'));
         EXPECT_EQ("a", this->id_to_label(init.volume));
         EXPECT_EQ("alpha.px", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
+    }
+}
+
+TEST_F(FiveVolumesTest, intersect)
+{
+    SimpleUnitTracker tracker(this->params_host_ref());
+
+    {
+        SCOPED_TRACE("internal surface for a");
+        auto state = this->make_state({-0.75, 0.5, 0}, {1, 0, 0}, "a");
+        auto isect = tracker.intersect(state);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ("gamma.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(0.19098300562505255, isect.distance);
+    }
+    {
+        SCOPED_TRACE("skip internal surfaces for d");
+        auto state = this->make_state({-2, 0.5, 0}, {1, 1, 0}, "d");
+        auto isect = tracker.intersect(state);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(101.04503395088592, isect.distance);
     }
 }
 
