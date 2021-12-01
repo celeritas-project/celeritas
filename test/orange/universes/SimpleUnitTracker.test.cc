@@ -13,6 +13,7 @@
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
 #include "base/Repr.hh"
+#include "base/Stopwatch.hh"
 
 // Test includes
 #include "celeritas_test.hh"
@@ -46,6 +47,7 @@ class SimpleUnitTrackerTest : public celeritas_test::OrangeGeoTestBase
     {
         std::vector<double> vol_fractions; //!< Fraction per volume ID
         double              failed{0}; //!< Fraction that couldn't initialize
+        double              walltime_per_track_ns{0}; //!< Kernel time
 
         void print_expected() const;
     };
@@ -63,7 +65,7 @@ class SimpleUnitTrackerTest : public celeritas_test::OrangeGeoTestBase
 
   private:
     StateHostValue      setup_heuristic_states(size_type num_tracks) const;
-    HeuristicInitResult reduce_heuristic_init(StateHostValue) const;
+    HeuristicInitResult reduce_heuristic_init(StateHostValue, double) const;
 };
 
 class OneVolumeTest : public SimpleUnitTrackerTest
@@ -159,6 +161,8 @@ LocalState SimpleUnitTrackerTest::make_state(
 //---------------------------------------------------------------------------//
 /*!
  * Initialize particles randomly and tally their resulting locations.
+ *
+ * This is (in effect) point sampling the bounding box to determine volumes.
  */
 auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
     -> HeuristicInitResult
@@ -171,12 +175,13 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
     InitializingLauncher<> calc_init{this->params_host_ref(), host_state_ref};
 
     // Loop over all threads
+    Stopwatch get_time;
     for (auto tid : range(ThreadId{state_host.size()}))
     {
         calc_init(tid);
     }
 
-    return this->reduce_heuristic_init(std::move(state_host));
+    return this->reduce_heuristic_init(std::move(state_host), get_time());
 }
 
 //---------------------------------------------------------------------------//
@@ -194,11 +199,13 @@ auto SimpleUnitTrackerTest::run_heuristic_init_device(size_type num_tracks) cons
     state_device_ref = state_device;
 
     // Run on device
+    Stopwatch get_time;
     test_initialize(this->params_device_ref(), state_device_ref);
+    const double kernel_time = get_time();
 
     // Copy result back to host
     state_host = state_device;
-    return this->reduce_heuristic_init(std::move(state_host));
+    return this->reduce_heuristic_init(std::move(state_host), kernel_time);
 }
 
 //---------------------------------------------------------------------------//
@@ -231,10 +238,12 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
 /*!
  * Process "heuristic init" test results.
  */
-auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostValue host) const
+auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostValue host,
+                                                  double wall_time) const
     -> HeuristicInitResult
 {
     CELER_EXPECT(host);
+    CELER_EXPECT(wall_time > 0);
     std::vector<size_type> counts(this->num_volumes());
     size_type              error_count{};
 
@@ -258,6 +267,7 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostValue host) const
         result.vol_fractions[i] = norm * static_cast<double>(counts[i]);
     }
     result.failed = norm * error_count;
+    result.walltime_per_track_ns = norm * wall_time * 1e9;
     return result;
 }
 
@@ -273,6 +283,7 @@ void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
          << "EXPECT_VEC_SOFT_EQ(expected_vol_fractions, "
             "result.vol_fractions);\n"
          << "EXPECT_SOFT_EQ(" << this->failed << ", result.failed);\n"
+         << "// Wall time (ns): " << this->walltime_per_track_ns << "\n"
          << "/*** END CODE ***/\n";
 }
 

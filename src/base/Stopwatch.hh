@@ -34,7 +34,7 @@ class Stopwatch
     inline Stopwatch();
 
     // Get the current elapsed time [s]
-    inline real_type operator()() const;
+    inline double operator()() const;
 
   private:
     using Clock     = std::chrono::high_resolution_clock;
@@ -45,6 +45,24 @@ class Stopwatch
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+// INLINE FUNCTION DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Start the count at construction.
+ */
+Stopwatch::Stopwatch() : start_(Clock::now()) {}
 
-#include "Stopwatch.i.hh"
+//---------------------------------------------------------------------------//
+/*!
+ * Get the current elapsed time in seconds.
+ */
+double Stopwatch::operator()() const
+{
+    using DurationSec = std::chrono::duration<double>;
+
+    auto duration = Clock::now() - start_;
+    return std::chrono::duration_cast<DurationSec>(duration).count();
+}
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas
