@@ -75,7 +75,7 @@ auto CollectionBuilder<T, M, I>::push_back(T&& el) -> ItemIdT
 }
 
 //---------------------------------------------------------------------------//
-// DEVICE PIE BUILDDER
+// DEVICE COLLECTION BUILDER
 //---------------------------------------------------------------------------//
 /*!
  * Increase the size to the given number of elements.
