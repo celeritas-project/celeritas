@@ -67,13 +67,14 @@ ParamsData<Ownership::const_reference, M>
 build_params_refs(const TransporterInput& p)
 {
     ParamsData<Ownership::const_reference, M> ref;
-    ref.geometry  = get_ref<M>(*p.geometry);
-    ref.materials = get_ref<M>(*p.materials);
-    ref.geo_mats  = get_ref<M>(*p.geo_mats);
-    ref.cutoffs   = get_ref<M>(*p.cutoffs);
-    ref.particles = get_ref<M>(*p.particles);
-    ref.physics   = get_ref<M>(*p.physics);
-    ref.rng       = get_ref<M>(*p.rng);
+    ref.control.secondary_stack_factor = p.secondary_stack_factor;
+    ref.geometry                       = get_ref<M>(*p.geometry);
+    ref.materials                      = get_ref<M>(*p.materials);
+    ref.geo_mats                       = get_ref<M>(*p.geo_mats);
+    ref.cutoffs                        = get_ref<M>(*p.cutoffs);
+    ref.particles                      = get_ref<M>(*p.particles);
+    ref.physics                        = get_ref<M>(*p.physics);
+    ref.rng                            = get_ref<M>(*p.rng);
     CELER_ENSURE(ref);
     return ref;
 }

@@ -44,7 +44,8 @@ inp = {
         'seed': 12345,
         'max_num_tracks': 128*32,
         'max_steps': 128,
-        'storage_factor': 10
+        'storage_factor': 10,
+        'secondary_stack_factor': 3
     }
 }
 

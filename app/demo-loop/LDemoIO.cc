@@ -45,6 +45,7 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"max_num_tracks", v.max_num_tracks},
                        {"max_steps", v.max_steps},
                        {"storage_factor", v.storage_factor},
+                       {"secondary_stack_factor", v.secondary_stack_factor},
                        {"use_device", v.use_device}};
 }
 
@@ -57,6 +58,7 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("max_num_tracks").get_to(v.max_num_tracks);
     j.at("max_steps").get_to(v.max_steps);
     j.at("storage_factor").get_to(v.storage_factor);
+    j.at("secondary_stack_factor").get_to(v.secondary_stack_factor);
     j.at("use_device").get_to(v.use_device);
 }
 
@@ -142,8 +144,9 @@ TransporterInput load_input(const LDemoArgs& args)
     }
 
     // Save constants
-    result.max_num_tracks = args.max_num_tracks;
-    result.max_steps      = args.max_steps;
+    result.max_num_tracks         = args.max_num_tracks;
+    result.max_steps              = args.max_steps;
+    result.secondary_stack_factor = args.secondary_stack_factor;
 
     CELER_ENSURE(result);
     return result;
