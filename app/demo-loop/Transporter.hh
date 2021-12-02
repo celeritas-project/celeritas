@@ -26,6 +26,7 @@ class GeoMaterialParams;
 class ParticleParams;
 class CutoffParams;
 class PhysicsParams;
+class AtomicRelaxationParams;
 class RngParams;
 class TrackInitParams;
 
@@ -39,9 +40,10 @@ struct TransporterInput
     std::shared_ptr<const GeoMaterialParams> geo_mats;
 
     // Physics
-    std::shared_ptr<const ParticleParams> particles;
-    std::shared_ptr<const CutoffParams>   cutoffs;
-    std::shared_ptr<const PhysicsParams>  physics;
+    std::shared_ptr<const ParticleParams>         particles;
+    std::shared_ptr<const CutoffParams>           cutoffs;
+    std::shared_ptr<const PhysicsParams>          physics;
+    std::shared_ptr<const AtomicRelaxationParams> relaxation;
 
     // Random
     std::shared_ptr<const RngParams> rng;

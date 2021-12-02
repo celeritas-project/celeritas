@@ -14,6 +14,7 @@
 #include "physics/base/ModelData.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
+#include "physics/em/AtomicRelaxationParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "random/RngParams.hh"
 #include "sim/TrackInitParams.hh"
@@ -75,6 +76,10 @@ build_params_refs(const TransporterInput& p)
     ref.particles                      = get_ref<M>(*p.particles);
     ref.physics                        = get_ref<M>(*p.physics);
     ref.rng                            = get_ref<M>(*p.rng);
+    if (p.relaxation)
+    {
+        ref.relaxation = get_ref<M>(*p.relaxation);
+    }
     CELER_ENSURE(ref);
     return ref;
 }
@@ -108,10 +113,12 @@ void launch_models(TransporterInput const& host_params,
     refs.params.particle     = params.particles;
     refs.params.material     = params.materials;
     refs.params.physics      = params.physics;
+    refs.params.relaxation   = params.relaxation;
     refs.params.cutoffs      = params.cutoffs;
     refs.states.particle     = states.particles;
     refs.states.material     = states.materials;
     refs.states.physics      = states.physics;
+    refs.states.relaxation   = states.relaxation;
     refs.states.rng          = states.rng;
     refs.states.sim          = states.sim;
     refs.states.direction    = states.geometry.dir;

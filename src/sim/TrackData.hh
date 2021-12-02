@@ -15,6 +15,7 @@
 #include "physics/base/ParticleData.hh"
 #include "physics/base/PhysicsData.hh"
 #include "physics/base/Secondary.hh"
+#include "physics/em/AtomicRelaxationData.hh"
 #include "physics/material/MaterialData.hh"
 #include "random/RngData.hh"
 #include "SimData.hh"
@@ -49,6 +50,7 @@ struct ParamsData
     ParticleParamsData<W, M>    particles;
     CutoffParamsData<W, M>      cutoffs;
     PhysicsParamsData<W, M>     physics;
+    AtomicRelaxParamsData<W, M> relaxation;
     RngParamsData<W, M>         rng;
 
     ControlOptions control;
@@ -71,6 +73,7 @@ struct ParamsData
         particles   = other.particles;
         cutoffs     = other.cutoffs;
         physics     = other.physics;
+        relaxation  = other.relaxation;
         rng         = other.rng;
         return *this;
     }
@@ -86,12 +89,13 @@ struct StateData
     template<class T>
     using Items = StateCollection<T, W, M>;
 
-    GeoStateData<W, M>       geometry;
-    MaterialStateData<W, M>  materials;
-    ParticleStateData<W, M>  particles;
-    PhysicsStateData<W, M>   physics;
-    RngStateData<W, M>       rng;
-    SimStateData<W, M>       sim;
+    GeoStateData<W, M>         geometry;
+    MaterialStateData<W, M>    materials;
+    ParticleStateData<W, M>    particles;
+    PhysicsStateData<W, M>     physics;
+    AtomicRelaxStateData<W, M> relaxation;
+    RngStateData<W, M>         rng;
+    SimStateData<W, M>         sim;
 
     // Stacks
     StackAllocatorData<Secondary, W, M> secondaries;
@@ -122,6 +126,7 @@ struct StateData
         particles         = other.particles;
         physics           = other.physics;
         rng               = other.rng;
+        relaxation        = other.relaxation;
         sim               = other.sim;
         secondaries       = other.secondaries;
         step_length       = other.step_length;
@@ -154,6 +159,7 @@ resize(StateData<Ownership::value, M>*                               data,
     resize(&data->materials, params.materials, size);
     resize(&data->particles, params.particles, size);
     resize(&data->physics, params.physics, size);
+    resize(&data->relaxation, params.relaxation, size);
     resize(&data->rng, params.rng, size);
     resize(&data->sim, size);
 
