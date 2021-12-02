@@ -95,6 +95,9 @@ AtomicRelaxation::operator()(Engine& rng)
                 secondary.direction   = sample_direction_(rng);
                 secondary.energy      = MevEnergy{transition.energy};
                 secondary.particle_id = shared_.electron_id;
+
+                // Accumulate the energy carried away by secondaries
+                sum_energy += transition.energy;
             }
         }
         else if (transition.energy >= gamma_cutoff_)
@@ -105,10 +108,10 @@ AtomicRelaxation::operator()(Engine& rng)
             secondary.direction   = sample_direction_(rng);
             secondary.energy      = MevEnergy{transition.energy};
             secondary.particle_id = shared_.gamma_id;
-        }
 
-        // Accumulate the energy carried away by secondaries
-        sum_energy += transition.energy;
+            // Accumulate the energy carried away by secondaries
+            sum_energy += transition.energy;
+        }
     }
 
     result_type result;

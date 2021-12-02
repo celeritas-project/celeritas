@@ -119,10 +119,10 @@ class PhysicsParams
     // Get the processes that apply to a particular particle
     SpanConstProcessId processes(ParticleId) const;
 
-    //! Access material properties on the host
+    //! Access physics properties on the host
     const HostRef& host_ref() const { return data_.host(); }
 
-    //! Access material properties on the device
+    //! Access physics properties on the device
     const DeviceRef& device_ref() const { return data_.device(); }
 
   private:

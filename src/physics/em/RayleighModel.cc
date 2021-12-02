@@ -119,7 +119,7 @@ void RayleighModel::build_data(HostValue* data, const MaterialParams& materials)
  * incident photon energy, \em FF is the form factor (unit-less) and \em AS
  * is the anomalous scattering factor.
  *
- * Excerpted from from G4RayleighAngularGenerator.cc of Geant4 6.10.
+ * Excerpted from G4RayleighAngularGenerator.cc of Geant4 6.10.
  * Parameters for Z = 0 are dropped as they are zeros and not used.
  * Reshaped as [el][param][3] with params.T.reshape((100, 3, 3)),
  * then updated 'n' with params[:,2,:] -= 1

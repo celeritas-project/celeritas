@@ -243,7 +243,7 @@ auto RelativisticBremModel::compute_lpm_data(real_type x) -> MigdalData
  * Elastic and inelatic form factor using the Dirac-Fock model of atom
  *
  * For light elements (Z < 5) where Thomas-Fermi model doesn't work.
- * Excerpted from from G4eBremsstrahlungRelModel of Geant4 10.7.
+ * Excerpted from G4eBremsstrahlungRelModel of Geant4 10.7.
  */
 auto RelativisticBremModel::get_form_factor(AtomicNumber z) -> const FormFactor&
 {

@@ -92,7 +92,6 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
                                             MevEnergy gamma_cutoff)
 {
     CELER_EXPECT(data);
-    CELER_EXPECT(!inp.shells.empty());
     AtomicRelaxElement el;
 
     // Collect all the subshell designators for this element
@@ -176,8 +175,8 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
         = max(data->max_stack_size,
               detail::calc_max_stack_size(make_const_ref(*data), el.shells));
 
-    // Add the elemental data
-    CELER_ASSERT(el);
+    // Add the elemental data (no data for Z < 6)
+    CELER_ASSERT(el || inp.shells.empty());
     make_builder(&data->elements).push_back(el);
 }
 
