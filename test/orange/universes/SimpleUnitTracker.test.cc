@@ -53,6 +53,11 @@ class SimpleUnitTrackerTest : public celeritas_test::OrangeGeoTestBase
         void print_expected() const;
     };
 
+    struct HeuristicTrackInput
+    {
+        real_type sigma;
+    };
+
   protected:
     // Initialization without any logical state
     LocalState make_state(Real3 pos, Real3 dir);
@@ -234,7 +239,7 @@ auto SimpleUnitTrackerTest::run_heuristic_init_device(size_type num_tracks) cons
     auto state_host = this->setup_heuristic_states(num_tracks);
     OrangeStateData<Ownership::value, MemSpace::device> state_device;
     state_device = state_host;
-    StateDeviceRef state_device_ref;
+    StateRef<MemSpace::device> state_device_ref;
     state_device_ref = state_device;
 
     // Run on device
