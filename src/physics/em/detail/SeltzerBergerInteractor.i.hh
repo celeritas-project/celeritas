@@ -8,6 +8,7 @@
 
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
+#include "PhysicsConstants.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 #include "SBEnergyDistHelper.hh"
 #include "SBEnergyDistribution.hh"
@@ -74,9 +75,7 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     }
 
     // Density correction
-    constexpr auto migdal = 4 * constants::pi * constants::r_electron
-                            * ipow<2>(constants::lambdabar_electron);
-    real_type density_factor   = material_.electron_density() * migdal;
+    real_type density_factor = material_.electron_density() * migdal_constant;
     real_type total_energy_val = inc_energy_.value()
                                  + shared_.electron_mass.value();
     real_type density_correction = density_factor * ipow<2>(total_energy_val);
@@ -87,7 +86,7 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
         // Helper class preprocesses cross section bounds and calculates
         // distribution
         SBEnergyDistHelper sb_helper(
-            shared_,
+            shared_.differential_xs,
             inc_energy_,
             material_.element_id(elcomp_id_),
             SBEnergyDistHelper::EnergySq{density_correction},
@@ -125,9 +124,9 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     // Generate exiting gamma direction from isotropic azimuthal
     // angle and TsaiUrbanDistribution for polar angle
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    TsaiUrbanDistribution sample_gamma_angle(secondaries[0].energy,
+    TsaiUrbanDistribution              sample_gamma_angle(inc_energy_,
                                              shared_.electron_mass);
-    real_type             cost = sample_gamma_angle(rng);
+    real_type                          cost = sample_gamma_angle(rng);
     secondaries[0].direction
         = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
 
