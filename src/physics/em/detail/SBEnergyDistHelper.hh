@@ -37,8 +37,8 @@ class SBEnergyDistHelper
   public:
     //!@{
     //! Type aliases
-    using SBData
-        = SeltzerBergerData<Ownership::const_reference, MemSpace::native>;
+    using SBDXsec
+        = SeltzerBergerTableData<Ownership::const_reference, MemSpace::native>;
     using Xs       = Quantity<SBElementTableData::XsUnits>;
     using Energy   = units::MevEnergy;
     using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
@@ -46,11 +46,11 @@ class SBEnergyDistHelper
 
   public:
     // Construct from data
-    inline CELER_FUNCTION SBEnergyDistHelper(const SBData& data,
-                                             Energy        inc_energy,
-                                             ElementId     element,
-                                             EnergySq      density_correction,
-                                             Energy        min_gamma_energy);
+    inline CELER_FUNCTION SBEnergyDistHelper(const SBDXsec& differential_xs,
+                                             Energy         inc_energy,
+                                             ElementId      element,
+                                             EnergySq       density_correction,
+                                             Energy         min_gamma_energy);
 
     // Sample scaled energy (analytic component of exiting distribution)
     template<class Engine>
@@ -100,7 +100,7 @@ class SBEnergyDistHelper
                                             ElementId       element) const;
 
     inline CELER_FUNCTION ReciprocalSampler
-    make_esq_sampler(real_type inc_energy, real_type min_gamma_energy) const;
+                          make_esq_sampler(real_type inc_energy, real_type min_gamma_energy) const;
 };
 
 //---------------------------------------------------------------------------//
