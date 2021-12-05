@@ -13,6 +13,7 @@
 
 using celeritas::from_quantity;
 using celeritas::Quantity;
+using celeritas::qvalue;
 using celeritas::to_quantity;
 using celeritas::zero_quantity;
 using celeritas::constants::pi;
@@ -56,7 +57,7 @@ TEST(QuantityTest, usage)
     // Create a quantity from a literal value in the native unit system
     auto half_rev = to_quantity<Revolution>(celeritas::constants::pi);
     EXPECT_TRUE((std::is_same<decltype(half_rev), Revolution>::value));
-    EXPECT_DOUBLE_EQ(0.5, half_rev.value());
+    EXPECT_DOUBLE_EQ(0.5, qvalue<Revolution>(half_rev));
 }
 
 TEST(QuantityTest, zeros)
@@ -69,7 +70,7 @@ TEST(QuantityTest, zeros)
 
     // Construct from a "zero" sentinel type
     zero_turn = zero_quantity();
-    EXPECT_EQ(0, zero_turn.value());
+    EXPECT_EQ(0, qvalue<Revolution>(zero_turn));
 }
 
 TEST(QuantityTest, comparators)
@@ -120,8 +121,8 @@ TEST(QuantityTest, swappiness)
     {
         // Should still work without std
         swap(dozen, gross);
-        EXPECT_EQ(12, gross.value());
-        EXPECT_EQ(1, dozen.value());
+        EXPECT_EQ(12, qvalue<Dozen>(gross));
+        EXPECT_EQ(1, qvalue<Dozen>(dozen));
     }
     EXPECT_EQ(12, from_quantity(dozen));
     EXPECT_EQ(144, from_quantity(gross));

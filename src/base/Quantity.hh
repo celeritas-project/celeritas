@@ -54,8 +54,9 @@ struct UnitlessQuantity
  * unnecessary floating point operations involving the speed of light:
  * \code
    real_type eval = qvalue<MevEnergy>(energy); // Natural units
-   MevMomentum momentum{std::sqrt(eval * eval + 2 * qvalue<MevMass>mass.value()
- * eval)}; \endcode
+   MevMomentum momentum{std::sqrt(eval * eval
+                                  + 2 * qvalue<MevMass>(mass) * eval)};
+   \endcode
  * The resulting quantity can be converted to the native Celeritas unit system
  * with `from_quantity`, which multiplies in the constant value of
  * ElMomentumUnit:
@@ -267,7 +268,7 @@ CELER_CONSTEXPR_FUNCTION Q to_quantity(typename Q::value_type value)
  * across different parts of the code and to make the user code more readable.
  *
  * \code
- assert(quantity<LightSpeed>(LightSpeed{1}) == 1);
+ assert(qvalue<LightSpeed>(LightSpeed{1}) == 1);
  * \endcode
  */
 template<class Q, class SrcUnitT, class ValueT>
