@@ -69,6 +69,8 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
                                           real_type*             edep,
                                           Interaction*           result)
 {
+    using Energy = ParticleTrackView::Energy;
+
     // Actual distance, limited by along-step length or geometry
     real_type step = phys.step_length();
     if (step > 0)
@@ -102,9 +104,9 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
 
     // Calculate energy loss over the step length
     auto eloss = calc_energy_loss(cutoffs, mat, particle, phys, step, rng);
-    *edep += eloss.value();
+    *edep += qvalue<Energy>(eloss);
     particle.energy(
-        ParticleTrackView::Energy{particle.energy().value() - eloss.value()});
+        Energy{qvalue<Energy>(particle.energy() - qvalue<Energy>(eloss)});
 
     // Reduce the remaining mean free path
     real_type mfp = phys.interaction_mfp() - step * phys.macro_xs();
@@ -132,9 +134,12 @@ CELER_FUNCTION void post_process(GeoTrackView&      geo,
                                  real_type*         edep,
                                  const Interaction& result)
 {
+    CELER_EXPECT(result);
+
+    using Energy = ParticleTrackView::Energy;
+
     // Update the track state from the interaction
     // TODO: handle recoverable errors
-    CELER_ASSERT(result);
     if (action_killed(result.action))
     {
         sim.alive(false);
@@ -146,7 +151,7 @@ CELER_FUNCTION void post_process(GeoTrackView&      geo,
     }
 
     // Deposit energy from interaction
-    *edep += result.energy_deposition.value();
+    *edep += qvalue<Energy>(result.energy_deposition);
 
     // Reset the physics state if a discrete interaction occured
     if (phys.model_id())

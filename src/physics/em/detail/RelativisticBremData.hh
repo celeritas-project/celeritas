@@ -125,7 +125,7 @@ struct RelativisticBremData
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass.value() > 0 && !lpm_table.empty()
+        return ids && electron_mass > zero_quantity() && !lpm_table.empty()
                && !elem_data.empty();
     }
 

@@ -11,6 +11,7 @@
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
 #include "Types.hh"
+#include "physics/base/Units.hh"
 #include "physics/em/detail/EPlusGGInteractor.hh"
 #include "physics/em/detail/LivermorePEMicroXsCalculator.hh"
 #include "physics/em/FluctuationData.hh"
@@ -41,6 +42,8 @@ using ValueTableId = OpaqueId<struct ValueTable>;
  */
 struct ModelGroup
 {
+    using Energy = units::MevEnergy;
+
     ItemRange<real_type> energy; //!< Energy grid bounds [MeV]
     ItemRange<ModelId>   model;  //!< Corresponding models
 
