@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "Macros.hh"
 #include "NumericLimits.hh"
 #include "Types.hh"
@@ -255,6 +257,26 @@ CELER_CONSTEXPR_FUNCTION Q to_quantity(typename Q::value_type value)
     using unit_type  = typename Q::unit_type;
 
     return Q{value * (value_type{1} / unit_type::value())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Use the value of a Quantity.
+ *
+ * The redundant unit type in the function signature is to make coupling safer
+ * across different parts of the code and to make the user code more readable.
+ *
+ * \code
+ assert(quantity<LightSpeed>(LightSpeed{1}) == 1);
+ * \endcode
+ */
+template<class Q, class SrcUnitT, class ValueT>
+CELER_CONSTEXPR_FUNCTION auto qvalue(Quantity<SrcUnitT, ValueT> quant)
+    -> ValueT
+{
+    static_assert(std::is_same<Q, Quantity<SrcUnitT, ValueT>>::value,
+                  "quantity units do not match");
+    return quant.value();
 }
 
 //---------------------------------------------------------------------------//
