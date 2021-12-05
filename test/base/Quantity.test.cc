@@ -13,15 +13,16 @@
 
 using celeritas::from_quantity;
 using celeritas::Quantity;
+using celeritas::to_quantity;
 using celeritas::zero_quantity;
 using celeritas::constants::pi;
 
 // One revolution = 2pi radians
-struct RevolutionUnit
+struct TwoPi
 {
     static double value() { return 2 * celeritas::constants::pi; }
 };
-using Revolution = Quantity<RevolutionUnit, double>;
+using Revolution = Quantity<TwoPi, double>;
 
 struct DozenUnit
 {
@@ -51,6 +52,11 @@ TEST(QuantityTest, usage)
     // Hypothetical return value for user
     Revolution spacing{dtheta};
     EXPECT_SOFT_EQ(2 * pi / 16, from_quantity(spacing));
+
+    // Create a quantity from a literal value in the native unit system
+    auto half_rev = to_quantity<Revolution>(celeritas::constants::pi);
+    EXPECT_TRUE((std::is_same<decltype(half_rev), Revolution>::value));
+    EXPECT_DOUBLE_EQ(0.5, half_rev.value());
 }
 
 TEST(QuantityTest, zeros)

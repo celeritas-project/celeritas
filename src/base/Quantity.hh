@@ -237,4 +237,25 @@ unit_cast(Quantity<UnitT, ValueT> quant) -> decltype(auto)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create a quantity from a value in the Celeritas unit system.
+ *
+ * This function can be used for defining a constant for use in another unit
+ * system (typically a "natural" unit system for use in physics kernels).
+ *
+ * \code
+ constexpr LightSpeed c = to_quantity<LightSpeed>(constants::c_light);
+ assert(c.value() == 1);
+ * \endcode
+ */
+template<class Q>
+CELER_CONSTEXPR_FUNCTION Q to_quantity(typename Q::value_type value)
+{
+    using value_type = typename Q::value_type;
+    using unit_type  = typename Q::unit_type;
+
+    return Q{value * (value_type{1} / unit_type::value())};
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
