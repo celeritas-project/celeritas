@@ -17,8 +17,8 @@ set_cache_var(CELERITAS_USE_VecGeom BOOL OFF)
 set_cache_var(BUILD_SHARED_LIBS BOOL ON)
 set_cache_var(CMAKE_BUILD_TYPE STRING "Debug")
 set_cache_var(CMAKE_CXX_FLAGS STRING
-  "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always")
+  "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always")
 set_cache_var(CMAKE_SWIG_CXX_FLAGS STRING
   "-Wno-deprecated-declarations")
 set_cache_var(CMAKE_CXX_FLAGS STRING
-  "-Wall -Wextra -Werror -pedantic -fdiagnostics-color=always")
+  "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always")
