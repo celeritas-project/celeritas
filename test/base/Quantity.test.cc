@@ -11,6 +11,7 @@
 #include "base/Constants.hh"
 #include "celeritas_test.hh"
 
+using celeritas::from_quantity;
 using celeritas::Quantity;
 using celeritas::zero_quantity;
 using celeritas::constants::pi;
@@ -49,7 +50,7 @@ TEST(QuantityTest, usage)
 
     // Hypothetical return value for user
     Revolution spacing{dtheta};
-    EXPECT_SOFT_EQ(2 * pi / 16, celeritas::unit_cast(spacing));
+    EXPECT_SOFT_EQ(2 * pi / 16, from_quantity(spacing));
 }
 
 TEST(QuantityTest, zeros)
@@ -116,6 +117,6 @@ TEST(QuantityTest, swappiness)
         EXPECT_EQ(12, gross.value());
         EXPECT_EQ(1, dozen.value());
     }
-    EXPECT_EQ(12, unit_cast(dozen));
-    EXPECT_EQ(144, unit_cast(gross));
+    EXPECT_EQ(12, from_quantity(dozen));
+    EXPECT_EQ(144, from_quantity(gross));
 }

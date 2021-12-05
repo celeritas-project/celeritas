@@ -37,7 +37,7 @@ move_to_collision(const celeritas::ParticleTrackView& particle,
     // Move particle
     axpy(distance, direction, position);
     // Update time
-    *time += distance * unit_cast(particle.speed());
+    *time += distance * from_quantity(particle.speed());
 }
 
 //---------------------------------------------------------------------------//
