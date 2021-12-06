@@ -1,7 +1,7 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 BUILDSCRIPT_DIR="$(cd "$(dirname $BASH_SOURCE[0])" && pwd)"
-source "${BUILDSCRIPT_DIR}/docker-setup.sh"
+. "${BUILDSCRIPT_DIR}/docker-setup.sh"
 
 set -x
 
