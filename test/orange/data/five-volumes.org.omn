@@ -1,0 +1,53 @@
+! Copyright 2021 UT-Battelle, LLC and other Celeritas Developers.
+! See the top-level COPYRIGHT file for details.
+! SPDX-License-Identifier: (Apache-2.0 OR MIT)
+[GEOMETRY]
+global "global"
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+
+[UNIVERSE=general global]
+interior "outer"
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+
+[UNIVERSE][SHAPE=sphere outer]
+r 100
+origin 0 0 0
+
+[UNIVERSE][SHAPE=cuboid alpha]
+faces -1 0 0 1 -.5 .5
+
+[UNIVERSE][SHAPE=cuboid beta]
+faces 0.5 1.5 -1 0 -.5 .5
+
+[UNIVERSE][SHAPE=sphere gamma]
+r 0.75
+origin 0 0 0
+
+[UNIVERSE][SHAPE=sphere epsilon]
+r 0.25
+origin -.25 -.25 0
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+
+[UNIVERSE][CELL a]
+comp 0
+shapes -alpha +gamma
+
+[UNIVERSE][CELL b]
+comp 1
+shapes -beta +gamma
+
+[UNIVERSE][CELL c]
+comp 2
+shapes -gamma +epsilon
+
+[UNIVERSE][CELL d]
+comp 3
+shapes +alpha +beta +gamma -outer
+
+[UNIVERSE][CELL e]
+comp 4
+shapes -epsilon
+

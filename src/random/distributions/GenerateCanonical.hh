@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <limits>
+#include <random>
 #include <type_traits>
 #include "base/Macros.hh"
 #include "base/Types.hh"
@@ -19,7 +21,7 @@ template<class RealType, class Generator>
 inline CELER_FUNCTION RealType generate_canonical(Generator& g);
 
 //---------------------------------------------------------------------------//
-//! Sample a celeritas::real_type on [0, 1).
+//! Sample a real_type on [0, 1).
 template<class Generator>
 inline CELER_FUNCTION real_type generate_canonical(Generator& g);
 
@@ -44,13 +46,45 @@ class GenerateCanonical
     //!@}
 
   public:
-    // Constructor
-    explicit CELER_FUNCTION GenerateCanonical() {}
-
     // Sample a random number
     result_type operator()(Generator& rng);
 };
 
-} // namespace celeritas
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Generate random numbers in [0, 1).
+ *
+ * This is the default implementation, for CPU-only code.
+ */
+template<class Generator, class RealType>
+auto GenerateCanonical<Generator, RealType>::operator()(Generator& rng)
+    -> result_type
+{
+    using limits_t = std::numeric_limits<result_type>;
+    return std::generate_canonical<result_type, limits_t::digits>(rng);
+}
 
-#include "GenerateCanonical.i.hh"
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to generate a random real number in [0, 1).
+ */
+template<class RealType, class Generator>
+CELER_FUNCTION RealType generate_canonical(Generator& g)
+{
+    return GenerateCanonical<Generator, RealType>()(g);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to generate a random real number in [0, 1).
+ */
+template<class Generator>
+CELER_FUNCTION real_type generate_canonical(Generator& g)
+{
+    return GenerateCanonical<Generator, real_type>()(g);
+}
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas

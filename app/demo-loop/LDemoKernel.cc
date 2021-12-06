@@ -1,0 +1,151 @@
+//----------------------------------*-C++-*----------------------------------//
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file LDemoKernel.cc
+//---------------------------------------------------------------------------//
+#include "LDemoKernel.hh"
+
+#include "base/StackAllocator.hh"
+#include "physics/base/CutoffView.hh"
+#include "random/RngEngine.hh"
+#include "sim/SimTrackView.hh"
+#include "KernelUtils.hh"
+
+using namespace celeritas;
+
+namespace demo_loop
+{
+//---------------------------------------------------------------------------//
+// KERNELS
+//---------------------------------------------------------------------------//
+/*!
+ * Sample mean free path and calculate physics step limits.
+ */
+void pre_step(const ParamsHostRef& params, const StateHostRef& states)
+{
+#pragma omp parallel for
+    for (size_type i = 0; i < states.size(); ++i)
+    {
+        ThreadId tid{i};
+
+        // Clear out energy deposition
+        states.energy_deposition[tid] = 0;
+
+        SimTrackView sim(states.sim, tid);
+        if (!sim.alive())
+            continue;
+
+        ParticleTrackView particle(params.particles, states.particles, tid);
+        GeoTrackView      geo(params.geometry, states.geometry, tid);
+        GeoMaterialView   geo_mat(params.geo_mats);
+        MaterialTrackView mat(params.materials, states.materials, tid);
+        PhysicsTrackView  phys(params.physics,
+                              states.physics,
+                              particle.particle_id(),
+                              geo_mat.material_id(geo.volume_id()),
+                              tid);
+        RngEngine         rng(states.rng, ThreadId(tid));
+
+        // Sample mfp and calculate minimum step (interaction or step-limited)
+        demo_loop::calc_step_limits(
+            mat, particle, phys, sim, rng, &states.interactions[tid]);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Propagate and process physical changes to the track along the step and
+ * select the process/model for discrete interaction.
+ */
+void along_and_post_step(const ParamsHostRef& params,
+                         const StateHostRef&  states)
+{
+#pragma omp parallel for
+    for (size_type i = 0; i < states.size(); ++i)
+    {
+        ThreadId     tid{i};
+        SimTrackView sim(states.sim, tid);
+        if (!sim.alive())
+        {
+            // Clear the model ID so inactive tracks will exit the interaction
+            // kernels
+            PhysicsTrackView phys(params.physics, states.physics, {}, {}, tid);
+            phys.model_id({});
+            continue;
+        }
+
+        ParticleTrackView particle(params.particles, states.particles, tid);
+        GeoTrackView      geo(params.geometry, states.geometry, tid);
+        GeoMaterialView   geo_mat(params.geo_mats);
+        MaterialTrackView mat(params.materials, states.materials, tid);
+        PhysicsTrackView  phys(params.physics,
+                              states.physics,
+                              particle.particle_id(),
+                              geo_mat.material_id(geo.volume_id()),
+                              tid);
+        CutoffView        cutoffs(params.cutoffs, mat.material_id());
+        RngEngine         rng(states.rng, ThreadId(tid));
+
+        // Propagate, calculate energy loss, and select model
+        demo_loop::move_and_select_model(cutoffs,
+                                         geo_mat,
+                                         geo,
+                                         mat,
+                                         particle,
+                                         phys,
+                                         sim,
+                                         rng,
+                                         &states.energy_deposition[tid],
+                                         &states.interactions[tid]);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Postprocessing of secondaries and interaction results.
+ */
+void process_interactions(const ParamsHostRef& params,
+                          const StateHostRef&  states)
+{
+#pragma omp parallel for
+    for (size_type i = 0; i < states.size(); ++i)
+    {
+        ThreadId     tid{i};
+        SimTrackView sim(states.sim, tid);
+        if (!sim.alive())
+            continue;
+
+        ParticleTrackView particle(params.particles, states.particles, tid);
+        GeoTrackView      geo(params.geometry, states.geometry, tid);
+        GeoMaterialView   geo_mat(params.geo_mats);
+        PhysicsTrackView  phys(params.physics,
+                              states.physics,
+                              particle.particle_id(),
+                              geo_mat.material_id(geo.volume_id()),
+                              tid);
+
+        // Apply interaction change
+        demo_loop::post_process(geo,
+                                particle,
+                                phys,
+                                sim,
+                                &states.energy_deposition[tid],
+                                states.interactions[tid]);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear secondaries.
+ */
+void cleanup(CELER_MAYBE_UNUSED const ParamsHostRef& params,
+             const StateHostRef&                     states)
+{
+    StackAllocator<Secondary> allocate_secondaries(states.secondaries);
+    allocate_secondaries.clear();
+}
+
+//---------------------------------------------------------------------------//
+} // namespace demo_loop

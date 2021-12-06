@@ -13,7 +13,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "physics/base/ParticleInterface.hh"
+#include "physics/base/ParticleData.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/material/MaterialParams.hh"

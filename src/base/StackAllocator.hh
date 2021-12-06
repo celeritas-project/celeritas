@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "StackAllocatorInterface.hh"
+#include "StackAllocatorData.hh"
 
 namespace celeritas
 {
@@ -100,13 +100,12 @@ class StackAllocator
     //! Type aliases
     using value_type  = T;
     using result_type = value_type*;
-    using Pointers
-        = StackAllocatorData<T, Ownership::reference, MemSpace::native>;
+    using Data = StackAllocatorData<T, Ownership::reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct with shared data
-    explicit inline CELER_FUNCTION StackAllocator(const Pointers& data);
+    explicit inline CELER_FUNCTION StackAllocator(const Data& data);
 
     // Total storage capacity (always safe)
     inline CELER_FUNCTION size_type capacity() const;
@@ -131,7 +130,7 @@ class StackAllocator
     inline CELER_FUNCTION Span<const value_type> get() const;
 
   private:
-    const Pointers& data_;
+    const Data& data_;
 
     //// HELPER FUNCTIONS ////
 

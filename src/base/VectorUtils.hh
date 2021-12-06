@@ -9,26 +9,13 @@
 #pragma once
 
 #include <vector>
-#include "Span.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// Move the given span to the end of another vector.
-template<class T, std::size_t N, class U>
-inline Span<U> extend(Span<T, N> ext, std::vector<U>* base);
-
-//---------------------------------------------------------------------------//
-// Move the given extension to the end of another vector.
-template<class T>
-inline Span<T> extend(const std::vector<T>& ext, std::vector<T>* base);
-
-//---------------------------------------------------------------------------//
-// Move the given extension to the end of another vector.
-template<class T>
-inline Span<T> move_extend(std::vector<T>&& ext, std::vector<T>* base);
+// Return evenly spaced numbers over a specific interval
+std::vector<real_type> linspace(real_type start, real_type stop, size_type n);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-#include "VectorUtils.i.hh"

@@ -14,7 +14,7 @@ namespace demo_rasterizer
  * Construct with defaults.
  */
 CELER_FUNCTION
-ImageTrackView::ImageTrackView(const ImagePointers& shared, ThreadId tid)
+ImageTrackView::ImageTrackView(const ImageData& shared, ThreadId tid)
     : shared_(shared), j_index_(tid.get())
 {
     CELER_EXPECT(j_index_ < shared_.dims[0]);

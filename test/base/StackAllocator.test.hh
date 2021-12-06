@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocator.test.hh
 //---------------------------------------------------------------------------//
-#include "base/StackAllocatorInterface.hh"
+#include "base/StackAllocatorData.hh"
 #include "base/Macros.hh"
 
 namespace celeritas_test
@@ -21,7 +21,7 @@ struct MockSecondary
 //! Input data
 struct SATestInput
 {
-    using MockAllocatorPointers
+    using MockAllocatorData
         = celeritas::StackAllocatorData<MockSecondary,
                                         celeritas::Ownership::reference,
                                         celeritas::MemSpace::device>;
@@ -29,7 +29,7 @@ struct SATestInput
     int                   num_threads;
     int                   num_iters;
     int                   alloc_size;
-    MockAllocatorPointers sa_pointers;
+    MockAllocatorData     sa_data;
 };
 
 //---------------------------------------------------------------------------//

@@ -19,7 +19,6 @@
 #include "comm/ScopedMpiInit.hh"
 #include "NonMasterResultPrinter.hh"
 #include "ParallelHandler.hh"
-#include "Utils.hh"
 
 namespace celeritas
 {

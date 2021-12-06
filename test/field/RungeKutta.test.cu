@@ -14,7 +14,7 @@
 #include "field/UniformMagField.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/RungeKuttaStepper.hh"
-#include "field/FieldInterface.hh"
+#include "field/FieldData.hh"
 
 #include "base/Range.hh"
 #include "base/Types.hh"

@@ -12,7 +12,7 @@
 #include "physics/base/Units.hh"
 #include "random/distributions/IsotropicDistribution.hh"
 #include "AtomicRelaxation.hh"
-#include "AtomicRelaxationInterface.hh"
+#include "AtomicRelaxationData.hh"
 
 namespace celeritas
 {
@@ -25,11 +25,14 @@ namespace celeritas
  * secondaries created in both relaxation and the primary process.
  *
  * \code
-    // Construct the helper for a model that produces a single secondary
-    AtomicRelaxationHelper relax_helper(shared, el_id, allocate, 1);
-    Span<Secondary>  secondaries = relax_helper.allocate_secondaries();
-    Span<SubshellId> vacancies   = relax_helper.allocate_vacancies();
-    if (secondaries.empty() || (secondaries.size() > 1 && vacancies.empty()))
+    // Allocate secondaries for a model that produces a single secondary
+    Span<Secondary> secondaries;
+    size_type       count = relax_helper.max_secondaries() + 1;
+    if (Secondary* ptr = allocate_secondaries(count))
+    {
+        secondaries = {ptr, count};
+    }
+    else
     {
         return Interaction::from_failure();
     }
@@ -37,25 +40,22 @@ namespace celeritas
 
     // ...
 
-    AtomicRelaxation sample_relaxation
-        = relax_helper.build_distribution(secondaries, vacancies, shell_id);
+    AtomicRelaxation sample_relaxation = relax_helper.build_distribution(
+        cutoffs, shell_id, secondaries.subspan(1));
     auto outgoing             = sample_relaxation(rng);
     result.secondaries        = outgoing.secondaries;
     result.energy_deposition -= outgoing.energy;
    \endcode
- *
- * If atomic relaxation is not enabled or does not apply to this element or
- * subshell, the helper will simply allocate space for secondaries created in
- * the primary process and no additional secondaries will be produced in
- * relaxation.
  */
 class AtomicRelaxationHelper
 {
   public:
     // Construct with the currently interacting element
     inline CELER_FUNCTION
-    AtomicRelaxationHelper(const AtomicRelaxParamsPointers& shared,
-                           ElementId                        el_id);
+    AtomicRelaxationHelper(const AtomicRelaxParamsRef& shared,
+                           const AtomicRelaxStateRef&  states,
+                           ElementId                   el_id,
+                           ThreadId                    tid);
 
     // Whether atomic relaxation should be applied
     explicit inline CELER_FUNCTION operator bool() const;
@@ -63,21 +63,20 @@ class AtomicRelaxationHelper
     // Space needed for relaxation secondaries
     inline CELER_FUNCTION size_type max_secondaries() const;
 
-    // Space needed for subshell ID stack
-    inline CELER_FUNCTION size_type max_vacancies() const;
+    // Storage for subshell ID stack
+    inline CELER_FUNCTION Span<SubshellId> scratch() const;
 
     // Create the sampling distribution from sampled shell and allocated mem
     inline CELER_FUNCTION AtomicRelaxation
     build_distribution(const CutoffView& cutoffs,
                        SubshellId        shell_id,
-                       Span<Secondary>   secondaries,
-                       Span<SubshellId>  vacancies) const;
+                       Span<Secondary>   secondaries) const;
 
   private:
-    // Shared EADL atomic relaxation data
-    const AtomicRelaxParamsPointers& shared_;
-    // Index in MaterialParams elements
-    ElementId el_id_;
+    const AtomicRelaxParamsRef&      shared_;
+    const AtomicRelaxStateRef&       states_;
+    const ElementId                  el_id_;
+    const ThreadId                   thread_;
 };
 
 //---------------------------------------------------------------------------//

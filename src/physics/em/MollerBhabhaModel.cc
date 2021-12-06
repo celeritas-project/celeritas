@@ -9,6 +9,7 @@
 
 #include "base/Assert.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/em/generated/MollerBhabhaInteract.hh"
 
 namespace celeritas
 {
@@ -49,7 +50,7 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
     // sampling loops.
     electron_applic.particle = interface_.electron_id;
     electron_applic.lower    = zero_quantity();
-    electron_applic.upper = units::MevEnergy{interface_.max_valid_energy()};
+    electron_applic.upper    = units::MevEnergy{interface_.max_valid_energy()};
 
     positron_applic.particle = interface_.positron_id;
     positron_applic.lower    = zero_quantity();
@@ -59,19 +60,21 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Apply the interaction kernel.
  */
-void MollerBhabhaModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
+void MollerBhabhaModel::interact(const DeviceInteractRef& data) const
 {
-#if CELERITAS_USE_CUDA
-    detail::moller_bhabha_interact(interface_, pointers);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
+    generated::moller_bhabha_interact(interface_, data);
 }
 
+void MollerBhabhaModel::interact(const HostInteractRef& data) const
+{
+    generated::moller_bhabha_interact(interface_, data);
+}
+
+//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

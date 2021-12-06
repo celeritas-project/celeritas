@@ -14,7 +14,7 @@
 #include "base/Units.hh"
 #include "Model.hh"
 #include "Process.hh"
-#include "PhysicsInterface.hh"
+#include "PhysicsData.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -113,14 +113,17 @@ class PhysicsParams
     // Get a process
     inline const Process& process(ProcessId) const;
 
+    // Get the process for the given model
+    inline ProcessId process_id(ModelId id) const;
+
     // Get the processes that apply to a particular particle
     SpanConstProcessId processes(ParticleId) const;
 
-    //! Access material properties on the host
-    const HostRef& host_pointers() const { return data_.host(); }
+    //! Access physics properties on the host
+    const HostRef& host_ref() const { return data_.host(); }
 
-    //! Access material properties on the device
-    const DeviceRef& device_pointers() const { return data_.device(); }
+    //! Access physics properties on the device
+    const DeviceRef& device_ref() const { return data_.device(); }
 
   private:
     using SPConstModel = std::shared_ptr<const Model>;
@@ -155,7 +158,7 @@ class PhysicsParams
  */
 auto PhysicsParams::num_particles() const -> ParticleId::size_type
 {
-    return this->host_pointers().process_ids.size();
+    return this->host_ref().process_ids.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -164,7 +167,7 @@ auto PhysicsParams::num_particles() const -> ParticleId::size_type
  */
 auto PhysicsParams::max_particle_processes() const -> ProcessId::size_type
 {
-    return this->host_pointers().max_particle_processes;
+    return this->host_ref().max_particle_processes;
 }
 
 //---------------------------------------------------------------------------//
@@ -185,6 +188,16 @@ const Process& PhysicsParams::process(ProcessId id) const
 {
     CELER_EXPECT(id < this->num_processes());
     return *processes_[id.get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the process ID of the given model.
+ */
+ProcessId PhysicsParams::process_id(ModelId id) const
+{
+    CELER_EXPECT(id < this->num_models());
+    return models_[id.get()].second;
 }
 
 //---------------------------------------------------------------------------//

@@ -10,7 +10,7 @@
 #include "base/CollectionMirror.hh"
 #include "geometry/GeoParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "GeoMaterialInterface.hh"
+#include "GeoMaterialData.hh"
 
 namespace celeritas
 {
@@ -44,10 +44,10 @@ class GeoMaterialParams
     explicit GeoMaterialParams(Input);
 
     //! Access material properties on the host
-    const HostRef& host_pointers() const { return data_.host(); }
+    const HostRef& host_ref() const { return data_.host(); }
 
     //! Access material properties on the device
-    const DeviceRef& device_pointers() const { return data_.device(); }
+    const DeviceRef& device_ref() const { return data_.device(); }
 
   private:
     CollectionMirror<GeoMaterialParamsData> data_;

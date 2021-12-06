@@ -17,11 +17,11 @@ namespace celeritas
  * Construct from shared and static data.
  */
 CELER_FUNCTION
-PhysicsTrackView::PhysicsTrackView(const PhysicsParamsPointers& params,
-                                   const PhysicsStatePointers&  states,
-                                   ParticleId                   pid,
-                                   MaterialId                   mid,
-                                   ThreadId                     tid)
+PhysicsTrackView::PhysicsTrackView(const PhysicsParamsRef& params,
+                                   const PhysicsStateRef&  states,
+                                   ParticleId              pid,
+                                   MaterialId              mid,
+                                   ThreadId                tid)
     : params_(params)
     , states_(states)
     , particle_(pid)
@@ -269,9 +269,9 @@ PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
  * E_0, E_0) \f$, where \f$ E_0 \f$ is the pre-step energy and \f$ \xi \f$ is
  * \c energy_fraction, \f$ \sigma_{\max} \f$ is set to the global maximum.
  * Otherwise, \f$ \sigma_{\max} = \max( \sigma(E_0), \sigma(\xi E_0) ) \f$. If
- * the cross section is not monotonic in the interval [\xi E_0, E_0) and the
- * interval does not contain the global maximum, the post-step cross section
- * \f$ \sigma(E_1) \f$ may be larger than \f$ \sigma_{\max} \f$.
+ * the cross section is not monotonic in the interval \f$ [\xi E_0, E_0) \f$
+ * and the interval does not contain the global maximum, the post-step cross
+ * section \f$ \sigma(E_1) \f$ may be larger than \f$ \sigma_{\max} \f$.
  */
 CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
                                                    ValueGridId       grid_id,
@@ -333,9 +333,9 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
     -> ModelFinder
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    const ModelGroup& mg
+    const ModelGroup& md
         = params_.model_groups[this->process_group().models[ppid.get()]];
-    return ModelFinder(params_.reals[mg.energy], params_.model_ids[mg.model]);
+    return ModelFinder(params_.reals[md.energy], params_.model_ids[md.model]);
 }
 
 //---------------------------------------------------------------------------//
@@ -399,7 +399,7 @@ CELER_FUNCTION bool PhysicsTrackView::add_fluctuation() const
  * Energy loss fluctuation model parameters.
  */
 CELER_FUNCTION auto PhysicsTrackView::fluctuation() const
-    -> const FluctuationPointers&
+    -> const FluctuationRef&
 {
     return params_.fluctuation;
 }
@@ -431,9 +431,18 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Number of particle types.
+ */
+CELER_FUNCTION size_type PhysicsTrackView::num_particles() const
+{
+    return params_.process_groups.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a grid calculator of the given type.
  *
- * The calculator must take two arguments: a reference to XsGridData, and a
+ * The calculator must take two arguments: a reference to XsGridRef, and a
  * reference to the Values data structure.
  */
 template<class T>

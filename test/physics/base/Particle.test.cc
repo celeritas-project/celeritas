@@ -12,7 +12,7 @@
 #include "base/Array.hh"
 #include "base/CollectionStateStore.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleInterface.hh"
+#include "physics/base/ParticleData.hh"
 #include "physics/base/Units.hh"
 #include "io/ImportData.hh"
 #include "io/RootImporter.hh"
@@ -122,15 +122,8 @@ TEST_F(ParticleImportTest, TEST_IF_CELERITAS_USE_ROOT(import_particle))
         loaded_pdgs.push_back(particles->id_to_pdg(particle_id).get());
     }
 
-    // clang-format off
-    const std::string expected_loaded_names[] = {"gamma", "e-", "e+", "mu-",
-        "mu+", "pi+", "pi-", "kaon+", "kaon-", "proton", "anti_proton",
-        "deuteron", "anti_deuteron", "He3", "anti_He3", "triton",
-        "anti_triton", "alpha", "anti_alpha"};
-    const int expected_loaded_pdgs[] = {22, 11, -11, 13, -13, 211, -211, 321,
-        -321, 2212, -2212, 1000010020, -1000010020, 1000020030, -1000020030,
-        1000010030, -1000010030, 1000020040, -1000020040};
-    // clang-format on
+    const std::string expected_loaded_names[] = {"gamma", "e-", "e+"};
+    const int         expected_loaded_pdgs[]  = {22, 11, -11};
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
     EXPECT_VEC_EQ(expected_loaded_pdgs, loaded_pdgs);
@@ -151,7 +144,7 @@ class ParticleTestHost : public ParticleTest
         CELER_ASSERT(particle_params);
 
         // Construct views
-        resize(&state_value, particle_params->host_pointers(), 1);
+        resize(&state_value, particle_params->host_ref(), 1);
         state_ref = state_value;
     }
 
@@ -162,7 +155,7 @@ class ParticleTestHost : public ParticleTest
 TEST_F(ParticleTestHost, electron)
 {
     ParticleTrackView particle(
-        particle_params->host_pointers(), state_ref, ThreadId(0));
+        particle_params->host_ref(), state_ref, ThreadId(0));
     particle = Initializer_t{ParticleId{0}, MevEnergy{0.5}};
 
     EXPECT_DOUBLE_EQ(0.5, particle.energy().value());
@@ -184,7 +177,7 @@ TEST_F(ParticleTestHost, electron)
 TEST_F(ParticleTestHost, gamma)
 {
     ParticleTrackView particle(
-        particle_params->host_pointers(), state_ref, ThreadId(0));
+        particle_params->host_ref(), state_ref, ThreadId(0));
     particle = Initializer_t{ParticleId{1}, MevEnergy{10}};
 
     EXPECT_DOUBLE_EQ(0, particle.mass().value());
@@ -196,7 +189,7 @@ TEST_F(ParticleTestHost, gamma)
 TEST_F(ParticleTestHost, neutron)
 {
     ParticleTrackView particle(
-        particle_params->host_pointers(), state_ref, ThreadId(0));
+        particle_params->host_ref(), state_ref, ThreadId(0));
     particle = Initializer_t{ParticleId{2}, MevEnergy{20}};
 
     EXPECT_DOUBLE_EQ(20, particle.energy().value());
@@ -221,14 +214,12 @@ TEST_F(ParticleDeviceTest, TEST_IF_CELERITAS_CUDA(calc_props))
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
         *particle_params, input.init.size());
-    input.params = particle_params->device_pointers();
+    input.params = particle_params->device_ref();
     input.states = pstates.ref();
 
     // Run GPU test
     PTVTestOutput result;
-#if CELERITAS_USE_CUDA
     result = ptv_test(input);
-#endif
 
     // Check results
     const double expected_props[] = {0.5,

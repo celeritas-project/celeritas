@@ -8,18 +8,26 @@
 #pragma once
 
 #include "base/Assert.hh"
-#include "sim/TrackInterface.hh"
+#include "sim/TrackData.hh"
 
 using celeritas::ParamsDeviceRef;
+using celeritas::ParamsHostRef;
 using celeritas::StateDeviceRef;
+using celeritas::StateHostRef;
 
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
+// TODO: convert all these to functors and autogenerate kernels
+//---------------------------------------------------------------------------//
 void pre_step(const ParamsDeviceRef&, const StateDeviceRef&);
+void pre_step(const ParamsHostRef&, const StateHostRef&);
 void along_and_post_step(const ParamsDeviceRef&, const StateDeviceRef&);
+void along_and_post_step(const ParamsHostRef&, const StateHostRef&);
 void process_interactions(const ParamsDeviceRef&, const StateDeviceRef&);
+void process_interactions(const ParamsHostRef&, const StateHostRef&);
 void cleanup(const ParamsDeviceRef&, const StateDeviceRef&);
+void cleanup(const ParamsHostRef&, const StateHostRef&);
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_CUDA

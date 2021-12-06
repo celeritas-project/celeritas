@@ -16,7 +16,7 @@
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
-#include "MuBremsstrahlung.hh"
+#include "MuBremsstrahlungData.hh"
 
 namespace celeritas
 {
@@ -39,12 +39,12 @@ class MuBremsstrahlungInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    MuBremsstrahlungInteractor(const MuBremsstrahlungInteractorPointers& shared,
-                               const ParticleTrackView&   particle,
-                               const Real3&               inc_direction,
-                               StackAllocator<Secondary>& allocate,
-                               const MaterialView&        material,
-                               ElementComponentId         elcomp_id);
+    MuBremsstrahlungInteractor(const MuBremsstrahlungData& shared,
+                               const ParticleTrackView&    particle,
+                               const Real3&                inc_direction,
+                               StackAllocator<Secondary>&  allocate,
+                               const MaterialView&         material,
+                               ElementComponentId          elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -59,7 +59,7 @@ class MuBremsstrahlungInteractor
     differential_cross_section(real_type gamma_energy) const;
 
     // Shared constant physics properties
-    const MuBremsstrahlungInteractorPointers& shared_;
+    const MuBremsstrahlungData& shared_;
     // Incident direction
     const Real3& inc_direction_;
     // Allocate space for one or more secondary particles
@@ -75,4 +75,3 @@ class MuBremsstrahlungInteractor
 } // namespace celeritas
 
 #include "MuBremsstrahlungInteractor.i.hh"
-

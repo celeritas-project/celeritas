@@ -9,6 +9,7 @@
 
 #include "base/Assert.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/em/generated/KleinNishinaInteract.hh"
 
 namespace celeritas
 {
@@ -48,17 +49,18 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Apply the interaction kernel.
  */
-void KleinNishinaModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
+void KleinNishinaModel::interact(const DeviceInteractRef& data) const
 {
-#if CELERITAS_USE_CUDA
-    detail::klein_nishina_interact(interface_, pointers);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
+    generated::klein_nishina_interact(interface_, data);
+}
+
+void KleinNishinaModel::interact(const HostInteractRef& data) const
+{
+    generated::klein_nishina_interact(interface_, data);
 }
 
 //---------------------------------------------------------------------------//
@@ -70,5 +72,6 @@ ModelId KleinNishinaModel::model_id() const
     return interface_.model_id;
 }
 
+//!@}
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -131,20 +131,4 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT) const
 }
 
 //---------------------------------------------------------------------------//
-//!@{
-//! Direct accesors to underlying data
-template<class T, Ownership W, MemSpace M, class I>
-CELER_CONSTEXPR_FUNCTION auto Collection<T, W, M, I>::size() const -> size_type
-{
-    return this->storage().size();
-}
-
-template<class T, Ownership W, MemSpace M, class I>
-CELER_CONSTEXPR_FUNCTION bool Collection<T, W, M, I>::empty() const
-{
-    return this->storage().empty();
-}
-//!@}
-
-//---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -33,7 +33,7 @@ __device__ int geo_id(const GeoTrackView& geo)
 
 __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
                              const GeoStateRefDevice   geo_state,
-                             const ImagePointers       image_state)
+                             const ImageData           image_state)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= image_state.dims[0])
@@ -94,7 +94,7 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
 //---------------------------------------------------------------------------//
 void trace(const GeoParamsCRefDevice& geo_params,
            const GeoStateRefDevice&   geo_state,
-           const ImagePointers&       image)
+           const ImageData&           image)
 {
     CELER_EXPECT(image);
 

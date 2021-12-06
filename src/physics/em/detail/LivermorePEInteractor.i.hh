@@ -23,15 +23,16 @@ namespace detail
  * handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION
-LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
-                                             const Scratch&           scratch,
-                                             ElementId                el_id,
-                                             const ParticleTrackView& particle,
-                                             const CutoffView&        cutoffs,
-                                             const Real3& inc_direction,
-                                             StackAllocator<Secondary>& allocate)
+LivermorePEInteractor::LivermorePEInteractor(
+    const LivermorePERef&         shared,
+    const AtomicRelaxationHelper& relaxation,
+    ElementId                     el_id,
+    const ParticleTrackView&      particle,
+    const CutoffView&             cutoffs,
+    const Real3&                  inc_direction,
+    StackAllocator<Secondary>&    allocate)
     : shared_(shared)
-    , scratch_(scratch)
+    , relaxation_(relaxation)
     , el_id_(el_id)
     , cutoffs_(cutoffs)
     , inc_direction_(inc_direction)
@@ -41,7 +42,6 @@ LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.gamma);
     CELER_EXPECT(inc_energy_.value() > 0);
-    CELER_EXPECT(!shared_.atomic_relaxation || scratch_.vacancies);
 
     inv_energy_ = 1 / inc_energy_.value();
 }
@@ -53,38 +53,15 @@ LivermorePEInteractor::LivermorePEInteractor(const LivermorePEPointers& shared,
 template<class Engine>
 CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 {
-    AtomicRelaxationHelper relaxation(shared_.atomic_relaxation, el_id_);
-    Span<Secondary>        secondaries;
-    Span<SubshellId>       vacancies;
-    if (relaxation)
+    Span<Secondary> secondaries;
+    size_type count = relaxation_ ? 1 + relaxation_.max_secondaries() : 1;
+    if (Secondary* ptr = allocate_(count))
     {
-        StackAllocator<SubshellId> allocate_vacancies(scratch_.vacancies);
-        size_type                  count = 1 + relaxation.max_secondaries();
-        if (Secondary* ptr = allocate_(count))
-        {
-            secondaries = {ptr, count};
-        }
-        count = relaxation.max_vacancies();
-        if (SubshellId* ptr = allocate_vacancies(count))
-        {
-            vacancies = {ptr, count};
-        }
-        else
-        {
-            // Failed to allocate space for vacancy stack
-            return Interaction::from_failure();
-        }
+        secondaries = {ptr, count};
     }
-    else if (Secondary* ptr = allocate_(1))
+    else
     {
-        // No relaxation: emit a single electron, and no vacancy stack is
-        // needed.
-        secondaries = {ptr, 1};
-    }
-
-    if (secondaries.empty())
-    {
-        // Failed to allocate space for secondaries or stack
+        // Failed to allocate space for secondaries
         return Interaction::from_failure();
     }
 
@@ -126,12 +103,12 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 
     // Construct interaction for change to primary (incident) particle
     Interaction result = Interaction::from_absorption();
-    if (relaxation)
+    if (relaxation_)
     {
         // Sample secondaries from atomic relaxation, into all but the initial
         // secondary position
-        AtomicRelaxation sample_relaxation = relaxation.build_distribution(
-            cutoffs_, shell_id, secondaries.subspan(1), vacancies);
+        AtomicRelaxation sample_relaxation = relaxation_.build_distribution(
+            cutoffs_, shell_id, secondaries.subspan(1));
 
         auto outgoing = sample_relaxation(rng);
         secondaries   = {secondaries.data(), 1 + outgoing.count};

@@ -14,10 +14,15 @@ namespace celeritas
  */
 CELER_FUNCTION
 AtomicRelaxationHelper::AtomicRelaxationHelper(
-    const AtomicRelaxParamsPointers& shared, ElementId el_id)
-    : shared_(shared), el_id_(el_id)
+    const AtomicRelaxParamsRef& shared,
+    const AtomicRelaxStateRef&  states,
+    ElementId                   el_id,
+    ThreadId                    tid)
+    : shared_(shared), states_(states), el_id_(el_id), thread_(tid)
 {
     CELER_EXPECT(!shared_ || el_id_ < shared_.elements.size());
+    CELER_EXPECT(!states_ || thread_ < states.size());
+    CELER_EXPECT(bool(shared_) == bool(states_));
 }
 
 //---------------------------------------------------------------------------//
@@ -27,7 +32,7 @@ AtomicRelaxationHelper::AtomicRelaxationHelper(
 CELER_FUNCTION AtomicRelaxationHelper::operator bool() const
 {
     // Atomic relaxation is enabled and the element has transition data
-    return shared_ && shared_.elements[el_id_.get()];
+    return shared_ && shared_.elements[el_id_];
 }
 
 //---------------------------------------------------------------------------//
@@ -37,20 +42,24 @@ CELER_FUNCTION AtomicRelaxationHelper::operator bool() const
 CELER_FUNCTION size_type AtomicRelaxationHelper::max_secondaries() const
 {
     CELER_EXPECT(*this);
-    return shared_.elements[el_id_.get()].max_secondary;
+    return shared_.elements[el_id_].max_secondary;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Maximum number of unprocessed subshell vacancies.
+ * Access scratch space.
  *
  * This temporary data is needed as part of a stack while processing the
  * cascade of electrons.
  */
-CELER_FUNCTION size_type AtomicRelaxationHelper::max_vacancies() const
+CELER_FUNCTION Span<SubshellId> AtomicRelaxationHelper::scratch() const
 {
     CELER_EXPECT(*this);
-    return shared_.elements[el_id_.get()].max_stack_size;
+    auto             offset = thread_.get() * shared_.max_stack_size;
+    Span<SubshellId> all_scratch
+        = states_.scratch[AllItems<SubshellId, MemSpace::native>{}];
+    CELER_ENSURE(offset + shared_.max_stack_size <= all_scratch.size());
+    return {all_scratch.data() + offset, shared_.max_stack_size};
 }
 
 //---------------------------------------------------------------------------//
@@ -60,14 +69,12 @@ CELER_FUNCTION size_type AtomicRelaxationHelper::max_vacancies() const
 CELER_FUNCTION AtomicRelaxation
 AtomicRelaxationHelper::build_distribution(const CutoffView& cutoffs,
                                            SubshellId        shell_id,
-                                           Span<Secondary>   secondaries,
-                                           Span<SubshellId>  vacancies) const
+                                           Span<Secondary>   secondaries) const
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(secondaries.size() == this->max_secondaries());
-    CELER_EXPECT(vacancies.size() == this->max_vacancies());
     return AtomicRelaxation{
-        shared_, cutoffs, el_id_, shell_id, secondaries, vacancies};
+        shared_, cutoffs, el_id_, shell_id, secondaries, this->scratch()};
 }
 
 //---------------------------------------------------------------------------//

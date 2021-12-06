@@ -40,12 +40,12 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams particles,
     CELER_EXPECT(xsparams_);
 
     // Set up KN interactor data;
-    kn_pointers_.model_id    = ModelId{0}; // Unused but needed for error check
-    kn_pointers_.electron_id = pparams_->find(pdg::electron());
-    kn_pointers_.gamma_id    = pparams_->find(pdg::gamma());
-    kn_pointers_.inv_electron_mass
-        = 1 / pparams_->get(kn_pointers_.electron_id).mass().value();
-    CELER_ENSURE(kn_pointers_);
+    kn_data_.model_id    = ModelId{0}; // Unused but needed for error check
+    kn_data_.electron_id = pparams_->find(pdg::electron());
+    kn_data_.gamma_id    = pparams_->find(pdg::gamma());
+    kn_data_.inv_electron_mass
+        = 1 / pparams_->get(kn_data_.electron_id).mass().value();
+    CELER_ENSURE(kn_data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -73,7 +73,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Particle data
     ParticleStateData<Ownership::value, MemSpace::host> track_states;
-    resize(&track_states, pparams_->host_pointers(), 1);
+    resize(&track_states, pparams_->host_ref(), 1);
 
     // Make secondary store
     StackAllocatorData<Secondary, Ownership::value, MemSpace::host> secondaries;
@@ -87,15 +87,15 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Construct references
     ParamsHostRef params;
-    params.particle      = pparams_->host_pointers();
-    params.tables        = xsparams_->host_pointers();
-    params.kn_interactor = kn_pointers_;
+    params.particle      = pparams_->host_ref();
+    params.tables        = xsparams_->host_ref();
+    params.kn_interactor = kn_data_;
     params.detector      = detector_params;
 
     // Construct initialization
-    InitialPointers initial;
-    initial.particle = ParticleTrackState{kn_pointers_.gamma_id,
-                                          units::MevEnergy{args.energy}};
+    InitialData initial;
+    initial.particle
+        = ParticleTrackState{kn_data_.gamma_id, units::MevEnergy{args.energy}};
 
     StateHostRef state;
     state.particle    = track_states;
@@ -164,7 +164,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
             // Construct the KN interactor
             KleinNishinaInteractor interact(
-                kn_pointers_, particle, direction, allocate_secondaries);
+                kn_data_, particle, direction, allocate_secondaries);
 
             // Perform interactions - emits a single particle
             Interaction interaction = interact(rng);
@@ -175,7 +175,9 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             {
                 const auto& secondary = interaction.secondaries.front();
                 h.dir                 = secondary.direction;
-                h.energy_deposited    = secondary.energy;
+                h.energy_deposited    = units::MevEnergy{
+                    secondary.energy.value()
+                    + interaction.energy_deposition.value()};
                 detector.buffer_hit(h);
             }
 

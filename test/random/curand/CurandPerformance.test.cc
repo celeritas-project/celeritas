@@ -8,7 +8,7 @@
 #include "CurandPerformance.test.hh"
 
 #include "base/Range.hh"
-#include "random/RngInterface.hh"
+#include "random/RngData.hh"
 
 #include "random/DiagnosticRngEngine.hh"
 #include "random/distributions/GenerateCanonical.hh"

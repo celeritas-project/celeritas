@@ -109,7 +109,17 @@ ParticleParams::ParticleParams(const Input& input)
     CELER_ENSURE(md_.size() == input.size());
     CELER_ENSURE(name_to_id_.size() == input.size());
     CELER_ENSURE(pdg_to_id_.size() == input.size());
-    CELER_ENSURE(this->host_pointers().particles.size() == input.size());
+    CELER_ENSURE(this->host_ref().particles.size() == input.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get particle properties in host code.
+ */
+ParticleView ParticleParams::get(ParticleId id) const
+{
+    CELER_EXPECT(id < this->host_ref().particles.size());
+    return ParticleView(this->host_ref(), id);
 }
 
 //---------------------------------------------------------------------------//

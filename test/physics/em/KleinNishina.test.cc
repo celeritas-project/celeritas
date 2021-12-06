@@ -43,10 +43,10 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
 
         // TODO: this should be part of the process's data storage/management
         const auto& params    = *this->particle_params();
-        pointers_.electron_id = params.find(pdg::electron());
-        pointers_.gamma_id    = params.find(pdg::gamma());
-        pointers_.inv_electron_mass
-            = 1 / (params.get(pointers_.electron_id).mass().value());
+        data_.electron_id     = params.find(pdg::electron());
+        data_.gamma_id        = params.find(pdg::gamma());
+        data_.inv_electron_mass
+            = 1 / (params.get(data_.electron_id).mass().value());
 
         // Set default particle to incident 10 MeV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{10});
@@ -68,18 +68,32 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
         // Check secondaries
         ASSERT_EQ(1, interaction.secondaries.size());
         const auto& electron = interaction.secondaries.front();
-        EXPECT_TRUE(electron);
-        EXPECT_EQ(pointers_.electron_id, electron.particle_id);
-        EXPECT_GT(this->particle_track().energy().value(),
-                  electron.energy.value());
-        EXPECT_LT(0, electron.energy.value());
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
+        if (electron)
+        {
+            // Secondary survived cutoff
+            EXPECT_EQ(data_.electron_id, electron.particle_id);
+            EXPECT_GT(this->particle_track().energy().value(),
+                      electron.energy.value());
+            EXPECT_LT(KleinNishinaInteractor::secondary_cutoff(),
+                      electron.energy);
+            EXPECT_EQ(0, interaction.energy_deposition.value());
+            EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
+        }
+        else
+        {
+            // Secondary energy deposited locally
+            EXPECT_GT(KleinNishinaInteractor::secondary_cutoff(),
+                      interaction.energy_deposition);
+            EXPECT_LT(0, interaction.energy_deposition.value());
+        }
 
-        this->check_conservation(interaction);
+        // Since secondary cutoffs are applied inside the interactor, momentum
+        // may not be conserved between the incoming and outgoing particles
+        this->check_energy_conservation(interaction);
     }
 
   protected:
-    celeritas::detail::KleinNishinaPointers pointers_;
+    celeritas::detail::KleinNishinaData data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -92,7 +106,7 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
     this->resize_secondaries(4);
 
     // Create the interactor
-    KleinNishinaInteractor interact(pointers_,
+    KleinNishinaInteractor interact(data_,
                                     this->particle_track(),
                                     this->direction(),
                                     this->secondary_allocator());
@@ -169,7 +183,7 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
             this->resize_secondaries(num_samples);
 
             // Create interactor
-            KleinNishinaInteractor interact(pointers_,
+            KleinNishinaInteractor interact(data_,
                                             this->particle_track(),
                                             this->direction(),
                                             this->secondary_allocator());
@@ -207,7 +221,7 @@ TEST_F(KleinNishinaInteractorTest, distributions)
     this->resize_secondaries(num_samples);
 
     // Create interactor
-    KleinNishinaInteractor interact(pointers_,
+    KleinNishinaInteractor interact(data_,
                                     this->particle_track(),
                                     this->direction(),
                                     this->secondary_allocator());

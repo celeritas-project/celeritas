@@ -301,7 +301,7 @@ TEST_F(CollectionTest, TEST_IF_CELERITAS_CUDA(device))
     CTestInput kernel_input;
     kernel_input.params = this->mock_params.device();
     kernel_input.states = device_states;
-    kernel_input.result = device_result.device_pointers();
+    kernel_input.result = device_result.device_ref();
 
     col_cuda_test(kernel_input);
     std::vector<double> result(device_result.size());

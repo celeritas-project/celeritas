@@ -33,7 +33,7 @@ namespace
  */
 __global__ void initialize_kernel(ParamsDeviceRef const params,
                                   StateDeviceRef const  states,
-                                  InitialPointers const init)
+                                  InitialData const     init)
 {
     unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -139,7 +139,8 @@ interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     {
         const auto& secondary = interaction.secondaries.front();
         h.dir                 = secondary.direction;
-        h.energy_deposited    = secondary.energy;
+        h.energy_deposited    = units::MevEnergy{
+            secondary.energy.value() + interaction.energy_deposition.value()};
         detector.buffer_hit(h);
     }
 
@@ -204,7 +205,7 @@ cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 void initialize(const CudaGridParams&  opts,
                 const ParamsDeviceRef& params,
                 const StateDeviceRef&  states,
-                const InitialPointers& initial)
+                const InitialData&     initial)
 {
     CELER_EXPECT(states.alive.size() == states.size());
     CELER_EXPECT(states.rng.size() == states.size());

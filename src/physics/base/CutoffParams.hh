@@ -14,7 +14,7 @@
 #include "physics/base/Units.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "CutoffInterface.hh"
+#include "CutoffData.hh"
 #include "CutoffView.hh"
 
 namespace celeritas
@@ -78,15 +78,20 @@ class CutoffParams
     inline CutoffView get(MaterialId material) const;
 
     //! Access cutoff data on the host
-    const HostRef& host_pointers() const { return data_.host(); }
+    const HostRef& host_ref() const { return data_.host(); }
 
     //! Access cutoff data on the device
-    const DeviceRef& device_pointers() const { return data_.device(); }
+    const DeviceRef& device_ref() const { return data_.device(); }
 
   private:
     // Host/device storage and reference
     CollectionMirror<CutoffParamsData> data_;
     using HostValue = CutoffParamsData<Ownership::value, MemSpace::host>;
+
+    //// HELPER FUNCTIONS ////
+
+    // PDG numbers of particles with prodution cuts
+    static const std::vector<PDGNumber>& pdg_numbers();
 };
 
 //---------------------------------------------------------------------------//
@@ -97,8 +102,8 @@ class CutoffParams
  */
 CutoffView CutoffParams::get(MaterialId material) const
 {
-    CELER_EXPECT(material < this->host_pointers().num_materials);
-    return CutoffView(this->host_pointers(), material);
+    CELER_EXPECT(material < this->host_ref().num_materials);
+    return CutoffView(this->host_ref(), material);
 }
 
 //---------------------------------------------------------------------------//

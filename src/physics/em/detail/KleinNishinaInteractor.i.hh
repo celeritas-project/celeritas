@@ -23,10 +23,10 @@ namespace detail
  * handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
-    const KleinNishinaPointers& shared,
-    const ParticleTrackView&    particle,
-    const Real3&                inc_direction,
-    StackAllocator<Secondary>&  allocate)
+    const KleinNishinaData&    shared,
+    const ParticleTrackView&   particle,
+    const Real3&               inc_direction,
+    StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_direction_(inc_direction)
@@ -111,11 +111,20 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
         = rotate(from_spherical(1 - one_minus_costheta, sample_phi(rng)),
                  result.direction);
 
-    // Outgoing secondary is an electron
-    electron_secondary->particle_id = shared_.electron_id;
     // Construct secondary energy by neglecting electron binding energy
     electron_secondary->energy
         = units::MevEnergy{inc_energy_.value() - result.energy.value()};
+
+    // Apply secondary production cutoff
+    if (electron_secondary->energy < KleinNishinaInteractor::secondary_cutoff())
+    {
+        result.energy_deposition = electron_secondary->energy;
+        *electron_secondary      = {};
+        return result;
+    }
+
+    // Outgoing secondary is an electron
+    electron_secondary->particle_id = shared_.electron_id;
     // Calculate exiting electron direction via conservation of momentum
     for (int i = 0; i < 3; ++i)
     {
@@ -125,8 +134,6 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     }
     normalize_direction(&electron_secondary->direction);
 
-    // Cutoff for secondary production happens *after* the interaction
-    // code.
     return result;
 }
 

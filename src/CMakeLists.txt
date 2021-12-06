@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
+include(CeleritasGenInteractor)
+
 #----------------------------------------------------------------------------#
 # CONFIGURE FILE
 #----------------------------------------------------------------------------#
@@ -31,6 +33,19 @@ list(APPEND SOURCES
   "${CMAKE_CURRENT_BINARY_DIR}/celeritas_version.cc"
 )
 
+# Generate model launcher code for host/device
+set(_gen_sources)
+celeritas_gen_interactor(_gen_sources "BetheHeitler" "bethe_heitler")
+celeritas_gen_interactor(_gen_sources "EPlusGG" "eplusgg")
+celeritas_gen_interactor(_gen_sources "KleinNishina" "klein_nishina")
+celeritas_gen_interactor(_gen_sources "LivermorePE" "livermore_pe")
+celeritas_gen_interactor(_gen_sources "MollerBhabha" "moller_bhabha")
+celeritas_gen_interactor(_gen_sources "MuBremsstrahlung" "mu_bremsstrahlung")
+celeritas_gen_interactor(_gen_sources "Rayleigh" "rayleigh")
+celeritas_gen_interactor(_gen_sources "RelativisticBrem" "relativistic_brem")
+celeritas_gen_interactor(_gen_sources "SeltzerBerger" "seltzer_berger")
+list(APPEND SOURCES ${_gen_sources})
+
 # Main library
 list(APPEND SOURCES
   base/Assert.cc
@@ -39,7 +54,9 @@ list(APPEND SOURCES
   comm/KernelDiagnostics.cc
   base/ScopedStreamRedirect.cc
   base/TypeDemangler.cc
+  base/VectorUtils.cc
   base/detail/Copier.cc
+  base/detail/ReprImpl.cc
   comm/Communicator.cc
   comm/Device.cc
   comm/Logger.cc
@@ -47,6 +64,10 @@ list(APPEND SOURCES
   comm/ScopedMpiInit.cc
   comm/detail/LoggerMessage.cc
   geometry/detail/ScopedTimeAndRedirect.cc
+  orange/Types.cc
+  orange/construct/SurfaceInserter.cc
+  orange/construct/VolumeInserter.cc
+  orange/surfaces/SurfaceIO.cc
   io/ImportProcess.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
@@ -74,7 +95,7 @@ list(APPEND SOURCES
   physics/em/MuBremsstrahlungModel.cc
   physics/em/RayleighModel.cc
   physics/em/RayleighProcess.cc
-  physics/em/detail/Rayleigh.cc
+  physics/em/RelativisticBremModel.cc
   physics/em/SeltzerBergerModel.cc
   physics/em/detail/Utils.cc
   physics/grid/ValueGridBuilder.cc
@@ -82,21 +103,13 @@ list(APPEND SOURCES
   physics/grid/ValueGridInterface.cc
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
-  random/RngInterface.cc
+  random/detail/RngStateInit.cc
 )
 
 if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
     base/KernelParamCalculator.cuda.cc
     base/detail/Filler.cu
-    physics/em/detail/BetheHeitler.cu
-    physics/em/detail/EPlusGG.cu
-    physics/em/detail/KleinNishina.cu
-    physics/em/detail/MollerBhabha.cu
-    physics/em/detail/MuBremsstrahlung.cu
-    physics/em/detail/LivermorePE.cu
-    physics/em/detail/Rayleigh.cu
-    physics/em/detail/SeltzerBerger.cu
     random/detail/RngStateInit.cu
     sim/detail/SimStateInit.cu
   )
@@ -125,6 +138,8 @@ if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
     comm/DeviceIO.json.cc
     comm/KernelDiagnosticsIO.json.cc
+    orange/construct/SurfaceInputIO.json.cc
+    orange/construct/VolumeInputIO.json.cc
   )
   list(APPEND PUBLIC_DEPS nlohmann_json::nlohmann_json)
 endif()
@@ -138,9 +153,9 @@ if(CELERITAS_USE_VecGeom)
     geometry/GeoMaterialParams.cc
     geometry/GeoParams.cc
     geometry/detail/VGNavCollection.cc
-    sim/TrackInitInterface.cc
     sim/TrackInitParams.cc
     sim/TrackInitUtils.cc
+    sim/detail/InitializeTracks.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml)
   # This needs to be public because its might be needed
@@ -161,6 +176,15 @@ endif()
 celeritas_add_library(celeritas ${SOURCES})
 celeritas_strip_alias(celeritas_target celeritas)
 add_library(Celeritas::Core ALIAS ${celeritas_target})
+
+if(CELERITAS_USE_OpenMP)
+  find_package(OpenMP)
+endif()
+if(OpenMP_FOUND)
+  celeritas_target_link_libraries(celeritas PRIVATE OpenMP::OpenMP_CXX)
+else()
+  celeritas_target_compile_options(celeritas PRIVATE -Wno-unknown-pragmas)
+endif()
 
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}

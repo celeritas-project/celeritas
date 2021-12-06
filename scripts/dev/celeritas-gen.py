@@ -274,6 +274,43 @@ SHELL_FILE = '''\
 
 '''
 
+OMN_TOP = '''\
+! Copyright {year} UT-Battelle, LLC and other Celeritas Developers.
+! See the top-level COPYRIGHT file for details.
+! SPDX-License-Identifier: (Apache-2.0 OR MIT)
+'''
+
+ORANGE_FILE = '''
+[GEOMETRY]
+global "global"
+comp         : matid
+    galactic   0
+    detector   1
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+
+[UNIVERSE=general global]
+interior "world_box"
+
+[UNIVERSE][SHAPE=box world_box]
+widths 10000 10000 10000  ! note: units are in cm
+
+[UNIVERSE][SHAPE=cyl mycyl]
+axis z
+radius 10
+length 20
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+
+[UNIVERSE][CELL detector]
+comp detector
+shapes mycyl
+
+[UNIVERSE][CELL world_fill]
+comp galactic
+shapes world_box ~mycyl
+'''
+
 YEAR = datetime.today().year
 
 TEMPLATES = {
@@ -293,6 +330,7 @@ TEMPLATES = {
     'CMakeLists.txt': CMAKELISTS_FILE,
     'py': PYTHON_FILE,
     'sh': SHELL_FILE,
+    'org.omn': ORANGE_FILE,
 }
 
 LANG = {
@@ -306,6 +344,7 @@ LANG = {
     'CMakeLists.txt': "CMake",
     'py': "Python",
     'sh': "Shell",
+    'omn': "Omnibus",
 }
 
 TOPS = {
@@ -315,6 +354,7 @@ TOPS = {
     'CMake': CMAKE_TOP,
     'Python': PYTHON_TOP,
     'Shell': SHELL_TOP,
+    'Omnibus': OMN_TOP,
 }
 
 HEXT = {

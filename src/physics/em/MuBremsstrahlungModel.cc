@@ -9,6 +9,7 @@
 
 #include "base/Assert.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/em/generated/MuBremsstrahlungInteract.hh"
 
 namespace celeritas
 {
@@ -56,19 +57,21 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Apply the interaction kernel.
  */
-void MuBremsstrahlungModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
+void MuBremsstrahlungModel::interact(const DeviceInteractRef& data) const
 {
-#if CELERITAS_USE_CUDA
-    detail::mu_bremsstrahlung_interact(interface_, pointers);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
+    generated::mu_bremsstrahlung_interact(interface_, data);
 }
 
+void MuBremsstrahlungModel::interact(const HostInteractRef& data) const
+{
+    generated::mu_bremsstrahlung_interact(interface_, data);
+}
+
+//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.
@@ -80,4 +83,3 @@ ModelId MuBremsstrahlungModel::model_id() const
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-

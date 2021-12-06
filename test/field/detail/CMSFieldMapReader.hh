@@ -8,7 +8,7 @@
 #pragma once
 
 #include <string>
-#include "FieldMapInterface.hh"
+#include "FieldMapData.hh"
 
 namespace celeritas
 {
@@ -31,7 +31,7 @@ class CMSFieldMapReader
 {
     //!@{
     //! Type aliases
-    using result_type = detail::FieldMapData;
+    using result_type = detail::FieldMapInput;
     //!@}
 
     // Input format

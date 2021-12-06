@@ -9,7 +9,7 @@
 
 #include <vector>
 #include "base/CollectionMirror.hh"
-#include "physics/grid/XsGridInterface.hh"
+#include "physics/grid/XsGridData.hh"
 #include "KNDemoKernel.hh"
 
 namespace demo_interactor
@@ -47,10 +47,10 @@ class XsGridParams
     explicit XsGridParams(const Input& input);
 
     // Access on-device data
-    const DeviceRef& device_pointers() const { return data_.device(); }
+    const DeviceRef& device_ref() const { return data_.device(); }
 
     // Get host-side data
-    const HostRef& host_pointers() const { return data_.host(); }
+    const HostRef& host_ref() const { return data_.host(); }
 
   private:
     celeritas::CollectionMirror<TableData> data_;

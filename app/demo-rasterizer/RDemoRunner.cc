@@ -43,9 +43,8 @@ void RDemoRunner::operator()(ImageStore* image) const
 
     CELER_LOG(status) << "Tracing geometry";
     Stopwatch get_time;
-    trace(geo_params_->device_pointers(),
-          geo_state.ref(),
-          image->device_interface());
+    trace(
+        geo_params_->device_ref(), geo_state.ref(), image->device_interface());
     CELER_LOG(diagnostic) << color_code('x') << "... " << get_time() << " s"
                           << color_code(' ');
 }

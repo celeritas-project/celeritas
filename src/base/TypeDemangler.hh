@@ -33,7 +33,7 @@ class TypeDemangler
     // Get the pretty typename of the instantiated type (static)
     inline std::string operator()() const;
     // Get the *dynamic* pretty typename of a variable (dynamic)
-    inline std::string operator()(const T& t) const;
+    inline std::string operator()(const T&) const;
 };
 
 //---------------------------------------------------------------------------//

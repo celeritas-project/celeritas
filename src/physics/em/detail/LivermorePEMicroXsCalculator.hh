@@ -8,11 +8,11 @@
 #pragma once
 
 #include "base/Macros.hh"
+#include "base/Quantity.hh"
 #include "base/Types.hh"
-#include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
-#include "LivermorePE.hh"
+#include "LivermorePEData.hh"
 
 namespace celeritas
 {
@@ -34,15 +34,14 @@ class LivermorePEMicroXsCalculator
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEMicroXsCalculator(const LivermorePEPointers& shared,
-                                 Energy                     energy);
+    LivermorePEMicroXsCalculator(const LivermorePERef& shared, Energy energy);
 
     // Compute cross section
     inline CELER_FUNCTION real_type operator()(ElementId el_id) const;
 
   private:
     // Shared constant physics properties
-    const LivermorePEPointers& shared_;
+    const LivermorePERef& shared_;
     // Incident gamma energy
     const Energy inc_energy_;
 };

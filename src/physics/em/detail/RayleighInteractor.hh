@@ -7,13 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Collection.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
+#include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
-#include "Rayleigh.hh"
+#include "RayleighData.hh"
 
 namespace celeritas
 {
@@ -31,11 +33,6 @@ namespace detail
  */
 class RayleighInteractor
 {
-    //!@{
-    //! Type aliases
-    using ItemIdT = celeritas::ItemId<unsigned int>;
-    //!@}
-
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION RayleighInteractor(const RayleighNativeRef& shared,

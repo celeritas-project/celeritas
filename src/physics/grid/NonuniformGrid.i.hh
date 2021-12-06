@@ -26,6 +26,18 @@ NonuniformGrid<T>::NonuniformGrid(const ItemRange<value_type>& values,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct with data (all values).
+ */
+template<class T>
+CELER_FUNCTION NonuniformGrid<T>::NonuniformGrid(const Values& data)
+    : data_(data[AllItems<value_type>{}])
+{
+    CELER_EXPECT(data_.size() >= 2);
+    CELER_EXPECT(data_.front() <= data_.back()); // Approximation for "sorted"
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the value at the given grid point.
  */
 template<class T>

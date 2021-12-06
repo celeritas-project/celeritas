@@ -12,10 +12,10 @@ configure_file(gtest/detail/TestConfig.cc.in TestConfig.cc @ONLY)
 set(CELER_SOURCES)
 list(APPEND CELER_SOURCES
   gtest/Test.cc
+  gtest/detail/Macros.cc
   gtest/detail/NonMasterResultPrinter.cc
   gtest/detail/ParallelHandler.cc
   gtest/detail/TestMain.cc
-  gtest/detail/Utils.cc
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 
@@ -83,6 +83,7 @@ celeritas_add_test(base/DeviceVector.test.cc GPU)
 celeritas_add_test(base/Join.test.cc)
 celeritas_add_test(base/OpaqueId.test.cc)
 celeritas_add_test(base/Quantity.test.cc)
+celeritas_add_test(base/Repr.test.cc)
 celeritas_add_test(base/ScopedStreamRedirect.test.cc)
 celeritas_add_test(base/SoftEqual.test.cc)
 celeritas_add_test(base/Span.test.cc)
@@ -103,7 +104,6 @@ celeritas_setup_tests(PREFIX comm)
 
 celeritas_add_test(comm/Communicator.test.cc)
 celeritas_add_test(comm/Logger.test.cc)
-
 
 #-----------------------------------------------------------------------------#
 # Field
@@ -179,6 +179,41 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 #-----------------------------------------------------------------------------#
+# ORANGE geometry
+
+celeritas_setup_tests(SERIAL PREFIX orange)
+
+celeritas_add_test(orange/construct/SurfaceInserter.test.cc)
+celeritas_add_test(orange/construct/VolumeInserter.test.cc)
+
+celeritas_add_test(orange/surfaces/detail/QuadraticSolver.test.cc)
+celeritas_add_test(orange/surfaces/CylCentered.test.cc)
+celeritas_add_test(orange/surfaces/GeneralQuadric.test.cc)
+celeritas_add_test(orange/surfaces/PlaneAligned.test.cc)
+celeritas_add_test(orange/surfaces/Sphere.test.cc)
+
+celeritas_cudaoptional_test(orange/surfaces/SurfaceAction)
+
+celeritas_add_test(orange/universes/detail/LogicEvaluator.test.cc)
+celeritas_add_test(orange/universes/detail/LogicStack.test.cc)
+celeritas_add_test(orange/universes/detail/SurfaceFunctors.test.cc)
+
+### Tests that require a geometry input ###
+
+celeritas_add_library(CeleritasOrangeTest
+  orange/OrangeGeoTestBase.cc
+)
+celeritas_target_link_libraries(CeleritasOrangeTest
+  PRIVATE Celeritas::Test
+  PUBLIC Celeritas::Core
+)
+set(CELERITASTEST_LINK_LIBRARIES CeleritasOrangeTest)
+
+celeritas_add_test(orange/universes/detail/SenseCalculator.test.cc)
+celeritas_add_test(orange/universes/VolumeView.test.cc)
+celeritas_cudaoptional_test(orange/universes/SimpleUnitTracker)
+
+#-----------------------------------------------------------------------------#
 # I/O (ROOT)
 
 celeritas_setup_tests(SERIAL PREFIX io)
@@ -246,6 +281,7 @@ celeritas_add_test(physics/em/LivermorePE.test.cc)
 celeritas_add_test(physics/em/MollerBhabha.test.cc)
 celeritas_add_test(physics/em/MuBremsstrahlung.test.cc)
 celeritas_add_test(physics/em/Rayleigh.test.cc)
+celeritas_add_test(physics/em/RelativisticBrem.test.cc)
 celeritas_add_test(physics/em/SeltzerBerger.test.cc)
 celeritas_add_test(physics/em/TsaiUrbanDistribution.test.cc)
 
@@ -271,6 +307,7 @@ celeritas_add_test(random/distributions/NormalDistribution.test.cc)
 celeritas_add_test(random/distributions/PoissonDistribution.test.cc)
 celeritas_add_test(random/distributions/RadialDistribution.test.cc)
 celeritas_add_test(random/distributions/ReciprocalDistribution.test.cc)
+celeritas_add_test(random/distributions/UniformBoxDistribution.test.cc)
 celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 
 #-----------------------------------------------------------------------------#

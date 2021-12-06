@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "RngInterface.hh"
+#include "RngData.hh"
 
 namespace celeritas
 {
@@ -33,10 +33,10 @@ class RngParams
     explicit inline RngParams(unsigned int seed);
 
     //! Access RNG properties for constructing RNG state
-    const HostRef& host_pointers() const { return host_ref_; }
+    const HostRef& host_ref() const { return host_ref_; }
 
     //! Access data on device
-    const DeviceRef& device_pointers() const { return device_ref_; }
+    const DeviceRef& device_ref() const { return device_ref_; }
 
   private:
     HostRef   host_ref_;

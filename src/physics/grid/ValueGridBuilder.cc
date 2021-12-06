@@ -12,7 +12,7 @@
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "physics/grid/UniformGrid.hh"
-#include "physics/grid/XsGridInterface.hh"
+#include "physics/grid/XsGridData.hh"
 #include "physics/grid/ValueGridInserter.hh"
 
 namespace celeritas
@@ -252,6 +252,15 @@ auto ValueGridLogBuilder::build(ValueGridInserter insert) const -> ValueGridId
     return insert(
         UniformGridData::from_bounds(log_emin_, log_emax_, value_.size()),
         this->value());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access values.
+ */
+auto ValueGridLogBuilder::value() const -> SpanConstReal
+{
+    return make_span(value_);
 }
 
 //---------------------------------------------------------------------------//

@@ -13,7 +13,7 @@
 #include "ModelIdGenerator.hh"
 #include "Types.hh"
 #include "physics/grid/ValueGridBuilder.hh"
-#include "physics/grid/ValueGridInterface.hh"
+#include "physics/grid/ValueGridData.hh"
 
 namespace celeritas
 {

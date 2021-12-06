@@ -71,8 +71,6 @@ TEST_F(UserParamFieldTest, host_parameterized_field)
 
 class UserParamFieldDeviceTest : public UserParamFieldTest
 {
-  public:
-    celeritas::detail::FieldMapDeviceRef device_group_;
 };
 
 TEST_F(UserParamFieldDeviceTest,

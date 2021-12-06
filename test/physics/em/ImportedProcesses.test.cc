@@ -174,7 +174,7 @@ TEST_F(ImportedProcessesTest, photoelectric)
     }
     catch (const RuntimeError& e)
     {
-        SKIP("Failed to create process: " << e.what());
+        GTEST_SKIP() << "Failed to create process: " << e.what();
     }
 
     // Test model
@@ -208,7 +208,7 @@ TEST_F(ImportedProcessesTest, bremsstrahlung)
     }
     catch (const RuntimeError& e)
     {
-        SKIP("Failed to create process: " << e.what());
+        GTEST_SKIP() << "Failed to create process: " << e.what();
     }
 
     // Test model

@@ -33,6 +33,9 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     if (tid.get() >= states.size())
         return;
 
+    // Clear out energy deposition
+    states.energy_deposition[tid] = 0;
+
     SimTrackView sim(states.sim, tid);
     if (!sim.alive())
         return;
@@ -49,7 +52,8 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     RngEngine         rng(states.rng, ThreadId(tid));
 
     // Sample mfp and calculate minimum step (interaction or step-limited)
-    demo_loop::calc_step_limits(mat, particle, phys, sim, rng);
+    demo_loop::calc_step_limits(
+        mat, particle, phys, sim, rng, &states.interactions[tid]);
 }
 
 //---------------------------------------------------------------------------//
@@ -116,18 +120,15 @@ __global__ void process_interactions_kernel(ParamsDeviceRef const params,
 
     ParticleTrackView particle(params.particles, states.particles, tid);
     GeoTrackView      geo(params.geometry, states.geometry, tid);
-    MaterialTrackView mat(params.materials, states.materials, tid);
     GeoMaterialView   geo_mat(params.geo_mats);
     PhysicsTrackView  phys(params.physics,
                           states.physics,
                           particle.particle_id(),
                           geo_mat.material_id(geo.volume_id()),
                           tid);
-    CutoffView        cutoffs(params.cutoffs, mat.material_id());
 
-    // Apply cutoffs and interaction change
-    demo_loop::post_process(cutoffs,
-                            geo,
+    // Apply interaction change
+    demo_loop::post_process(geo,
                             particle,
                             phys,
                             sim,

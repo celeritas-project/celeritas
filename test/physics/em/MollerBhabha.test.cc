@@ -69,18 +69,18 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         this->set_material_params(inp);
         this->set_material("Cu");
 
-        // Set basic CutoffParams (no cuts)
+        // Set 1 keV cutoffs
         CutoffParams::Input cutoff_inp;
         cutoff_inp.materials = this->material_params();
         cutoff_inp.particles = this->particle_params();
+        cutoff_inp.cutoffs = {{pdg::electron(), {{MevEnergy{0.001}, 0.1234}}}};
         this->set_cutoff_params(cutoff_inp);
 
-        // Set MollerBhabhaPointers
+        // Set MollerBhabhaData
         const auto& params    = *this->particle_params();
-        pointers_.electron_id = params.find(pdg::electron());
-        pointers_.positron_id = params.find(pdg::positron());
-        pointers_.electron_mass_c_sq
-            = params.get(pointers_.electron_id).mass().value();
+        data_.electron_id        = params.find(pdg::electron());
+        data_.positron_id        = params.find(pdg::positron());
+        data_.electron_mass_c_sq = params.get(data_.electron_id).mass().value();
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -98,7 +98,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         ASSERT_EQ(1, interaction.secondaries.size());
         const auto& electron = interaction.secondaries.front();
         EXPECT_TRUE(electron);
-        EXPECT_EQ(pointers_.electron_id, electron.particle_id);
+        EXPECT_EQ(data_.electron_id, electron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   electron.energy.value());
         EXPECT_LT(0, electron.energy.value());
@@ -109,7 +109,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::MollerBhabhaPointers pointers_;
+    celeritas::detail::MollerBhabhaData data_;
 };
 
 struct SampleInit
@@ -147,8 +147,7 @@ TEST_F(MollerBhabhaInteractorTest, basic)
                                   {1e5, {3, 7, -6}}};
     // clang-format on
 
-    CutoffView cutoff_view(this->cutoff_params()->host_pointers(),
-                           MaterialId{0});
+    CutoffView cutoff_view(this->cutoff_params()->host_ref(), MaterialId{0});
 
     for (const SampleInit& init : samples)
     {
@@ -160,7 +159,7 @@ TEST_F(MollerBhabhaInteractorTest, basic)
         {
             this->set_inc_particle(p, MevEnergy{init.energy});
 
-            MollerBhabhaInteractor mb_interact(pointers_,
+            MollerBhabhaInteractor mb_interact(data_,
                                                this->particle_track(),
                                                cutoff_view,
                                                dir,
@@ -250,8 +249,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     cutoff_inp.cutoffs.insert({pdg::positron(), material_cutoffs});
     this->set_cutoff_params(cutoff_inp);
 
-    CutoffView cutoff_view(this->cutoff_params()->host_pointers(),
-                           MaterialId{0});
+    CutoffView cutoff_view(this->cutoff_params()->host_ref(), MaterialId{0});
 
     for (const SampleInit& init : samples)
     {
@@ -263,7 +261,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
         {
             this->set_inc_particle(p, MevEnergy{init.energy});
 
-            MollerBhabhaInteractor mb_interact(pointers_,
+            MollerBhabhaInteractor mb_interact(data_,
                                                this->particle_track(),
                                                cutoff_view,
                                                dir,
@@ -285,14 +283,14 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     //// Moller
     // Gold values based on the host rng. Energies are in MeV
     const double expected_m_inc_exit_cost[]
-        = {0.9867839018457, 0.9998679545527, 0.9999976849582, 0.9999999998794};
+        = {0.9784675127353, 0.9997401875592, 0.9999953862586, 0.9999999997589};
     const double expected_m_inc_exit_e[]
-        = {7.747030287179, 97.45544686297, 995.4854043205, 99997.64075507};
+        = {6.75726441249, 95.11275692125, 991.0427997072, 99995.28168559};
     const double expected_m_inc_edep[] = {0, 0, 0, 0};
     const double expected_m_sec_cost[]
-        = {0.8707717566471, 0.8489644755061, 0.9034620598411, 0.8353155270718};
+        = {0.9154612855963, 0.91405872098, 0.9478947756541, 0.9066254320384};
     const double expected_m_sec_e[]
-        = {2.252969712821, 2.54455313703, 4.514595679524, 2.359244932953};
+        = {3.24273558751, 4.887243078746, 8.957200292789, 4.718314414109};
 
     //// Bhabha
     // Gold values based on the host rng. Energies are in MeV
@@ -329,7 +327,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     {
         // Verify if secondary is above the cutoff threshold
         EXPECT_TRUE(secondary_energy
-                    > cutoff_view.energy(ParticleId{1}).value());
+                    > cutoff_view.energy(ParticleId{0}).value());
     }
 }
 
@@ -339,8 +337,7 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
     const int           num_samples = 1e4;
     std::vector<double> avg_engine_samples;
 
-    CutoffView cutoff_view(this->cutoff_params()->host_pointers(),
-                           MaterialId{0});
+    CutoffView cutoff_view(this->cutoff_params()->host_ref(), MaterialId{0});
 
     // Moller's max energy fraction is 0.5, which leads to E_K > 2e-3
     // Bhabha's max energy fraction is 1.0, which leads to E_K > 1e-3
@@ -366,7 +363,7 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
 
                 // Create interactor
                 this->set_inc_particle(particle, MevEnergy{inc_e});
-                MollerBhabhaInteractor mb_interact(pointers_,
+                MollerBhabhaInteractor mb_interact(data_,
                                                    this->particle_track(),
                                                    cutoff_view,
                                                    this->direction(),

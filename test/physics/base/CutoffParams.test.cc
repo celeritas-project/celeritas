@@ -8,10 +8,10 @@
 #include "physics/base/CutoffParams.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleInterface.hh"
+#include "physics/base/ParticleData.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/MaterialParams.hh"
-#include "physics/material/MaterialInterface.hh"
+#include "physics/material/MaterialData.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/Types.hh"
 #include "physics/material/detail/Utils.hh"
@@ -108,7 +108,7 @@ TEST_F(CutoffParamsTest, empty_cutoffs)
     {
         for (const auto matid : range(MaterialId{material_params->size()}))
         {
-            CutoffView cutoff_view(cutoff_params.host_pointers(), matid);
+            CutoffView cutoff_view(cutoff_params.host_ref(), matid);
             energies.push_back(cutoff_view.energy(pid).value());
             ranges.push_back(cutoff_view.range(pid));
         }
@@ -139,7 +139,7 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
     {
         for (const auto matid : range(MaterialId{material_params->size()}))
         {
-            CutoffView cutoff_view(cutoff_params.host_pointers(), matid);
+            CutoffView cutoff_view(cutoff_params.host_ref(), matid);
 
             energies.push_back(cutoff_view.energy(pid).value());
             ranges.push_back(cutoff_view.range(pid));
@@ -179,25 +179,20 @@ TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
 
     std::vector<double> energies, ranges;
 
-    for (const auto pid : range(ParticleId{particles->size()}))
+    for (const auto pid :
+         {particles->find(pdg::electron()), particles->find(pdg::gamma())})
     {
         for (const auto matid : range(MaterialId{materials->size()}))
         {
-            CutoffView cutoff_view(cutoffs->host_pointers(), matid);
+            CutoffView cutoff_view(cutoffs->host_ref(), matid);
             energies.push_back(cutoff_view.energy(pid).value());
             ranges.push_back(cutoff_view.range(pid));
         }
     }
 
-    // clang-format off
-    const double expected_energies[] = {0.00099, 0.0173344452484621, 0.00099,
-        0.970694711604435, 0.00099, 0.926090152562135, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0};
-    const double expected_ranges[] = {0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.07, 0.07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0};
-    // clang-format on
+    const double expected_energies[]
+        = {0.00099, 1.31345289979559, 0.00099, 0.0209231725658313};
+    const double expected_ranges[] = {0.1, 0.1, 0.1, 0.1};
 
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);

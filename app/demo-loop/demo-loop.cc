@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <iostream>
 #include <fstream>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -23,12 +24,14 @@
 #include "comm/ScopedMpiInit.hh"
 
 #include "LDemoIO.hh"
-#include "LDemoRun.hh"
+#include "Transporter.hh"
+#include "Transporter.json.hh"
 
 using std::cerr;
 using std::cout;
 using std::endl;
 using namespace demo_loop;
+using celeritas::TransporterBase;
 
 namespace
 {
@@ -38,6 +41,9 @@ namespace
  */
 void run(std::istream& is)
 {
+    using celeritas::TrackInitParams;
+    using celeritas::TransporterResult;
+
     // Read input options
     auto inp = nlohmann::json::parse(is);
 
@@ -50,8 +56,14 @@ void run(std::istream& is)
     auto run_args = inp.at("run").get<LDemoArgs>();
     CELER_EXPECT(run_args);
 
-    auto result = run_gpu(run_args);
+    // Load all the problem data and create transporter
+    auto transport_ptr = build_transporter(run_args);
 
+    // Run all the primaries
+    auto primaries = load_primaries(transport_ptr->input().particles, run_args);
+    auto result    = (*transport_ptr)(*primaries);
+
+    // Save output
     nlohmann::json outp = {
         {"run", run_args},
         {"result", result},
@@ -100,12 +112,6 @@ int main(int argc, char* argv[])
 
     // Initialize GPU
     celeritas::activate_device(celeritas::Device::from_round_robin(comm));
-
-    if (!celeritas::device())
-    {
-        CELER_LOG(critical) << "CUDA capability is disabled";
-        return EXIT_FAILURE;
-    }
 
     std::string   filename = args[1];
     std::ifstream infile;

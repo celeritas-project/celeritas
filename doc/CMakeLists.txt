@@ -16,6 +16,7 @@ set(DOXYGEN_EXCLUDE_PATTERNS
   "*.nompi.cc"
   "*.nompi.i.hh"
   "*.noroot.cc"
+  "*/generated/*"
 )
 if(NOT CELERITAS_DEBUG)
   list(APPEND DOXYGEN_EXCLUDE_PATTERNS "*/detail/*")

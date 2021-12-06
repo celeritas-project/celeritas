@@ -439,8 +439,8 @@ std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
 
 //---------------------------------------------------------------------------//
 /*!
- * This application exports particle information, process, model, XS physics
- * tables, material, and volume information constructed by the physics list
+ * This application exports particles, processes, models, XS physics
+ * tables, material, and volume information constructed by the physics list and
  * loaded by the GDML geometry.
  *
  * The data is stored into a ROOT file as an \c ImportData struct.
@@ -493,19 +493,31 @@ int main(int argc, char* argv[])
 
     //// Load the physics list ////
 
-    // User-defined physics list (see PhysicsList.hh)
-    // auto physics_list = std::make_unique<PhysicsList>();
+    if (true)
+    {
+        // User-defined physics list
+        auto physics_list = std::make_unique<PhysicsList>();
+        run_manager->SetUserInitialization(physics_list.release());
+    }
 
-    // EM Standard Physics
-    auto physics_constructor = std::make_unique<std::vector<G4String>>();
-    physics_constructor->push_back("G4EmStandardPhysics");
-    auto physics_list = std::make_unique<G4GenericPhysicsList>(
-        physics_constructor.release());
+    // DISABLED
+    if (false)
+    {
+        // EM Standard Physics
+        auto physics_constructor = std::make_unique<std::vector<G4String>>();
+        physics_constructor->push_back("G4EmStandardPhysics");
+        auto physics_list = std::make_unique<G4GenericPhysicsList>(
+            physics_constructor.release());
+        run_manager->SetUserInitialization(physics_list.release());
+    }
 
-    // Full Physics
-    // auto physics_list = std::make_unique<FTFP_BERT>();
-
-    run_manager->SetUserInitialization(physics_list.release());
+    // DISABLED
+    if (false)
+    {
+        // Full Physics
+        auto physics_list = std::make_unique<FTFP_BERT>();
+        run_manager->SetUserInitialization(physics_list.release());
+    }
 
     //// Minimal run to generate the physics tables ////
     auto action_initialization = std::make_unique<ActionInitialization>();

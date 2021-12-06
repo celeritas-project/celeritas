@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geometry/GeoInterface.hh"
-#include "ImageInterface.hh"
+#include "geometry/GeoData.hh"
+#include "ImageData.hh"
 
 namespace demo_rasterizer
 {
@@ -24,7 +24,7 @@ using GeoStateRefDevice
 
 void trace(const GeoParamsCRefDevice& geo_params,
            const GeoStateRefDevice&   geo_state,
-           const ImagePointers&       image);
+           const ImageData&           image);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_rasterizer

@@ -18,11 +18,21 @@ namespace geant_exporter
 class PhysicsList : public G4VUserPhysicsList
 {
   public:
+    // Construct empty
     PhysicsList();
+    // Default destructor
     ~PhysicsList();
 
+    // Set up minimal E.M. particle list
     void ConstructParticle() override;
+    // Set up process list
     void ConstructProcess() override;
+
+  private:
+    // Add E.M. processes for photons
+    void add_gamma_processes();
+    // Add E.M. processes for electrons and positrons
+    void add_e_processes();
 };
 
 //---------------------------------------------------------------------------//

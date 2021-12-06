@@ -16,6 +16,7 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/material/MaterialParams.hh"
+#include "physics/em/generated/SeltzerBergerInteract.hh"
 
 namespace celeritas
 {
@@ -73,37 +74,38 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
     // tables?
 
     Applicability electron_applic;
-    electron_applic.particle = this->host_pointers().ids.electron;
+    electron_applic.particle = this->host_ref().ids.electron;
     electron_applic.lower    = zero_quantity();
     electron_applic.upper    = units::MevEnergy{1e8};
 
     Applicability positron_applic = electron_applic;
-    positron_applic.particle      = this->host_pointers().ids.positron;
+    positron_applic.particle      = this->host_ref().ids.positron;
 
     return {electron_applic, positron_applic};
 }
 
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Apply the interaction kernel.
  */
-void SeltzerBergerModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
+void SeltzerBergerModel::interact(const DeviceInteractRef& data) const
 {
-#if CELERITAS_USE_CUDA
-    detail::seltzer_berger_interact(this->device_pointers(), pointers);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
+    generated::seltzer_berger_interact(this->device_ref(), data);
 }
 
+void SeltzerBergerModel::interact(const HostInteractRef& data) const
+{
+    generated::seltzer_berger_interact(this->host_ref(), data);
+}
+//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.
  */
 ModelId SeltzerBergerModel::model_id() const
 {
-    return this->host_pointers().ids.model;
+    return this->host_ref().ids.model;
 }
 
 //---------------------------------------------------------------------------//

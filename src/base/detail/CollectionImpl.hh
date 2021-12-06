@@ -68,6 +68,23 @@ template<class T>
 struct CollectionStorage<T, Ownership::value, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
+//! Storage implementation for managed host data
+template<class T>
+struct CollectionStorage<T, Ownership::value, MemSpace::host>
+{
+    using type = std::vector<T>;
+    type data;
+};
+
+//! Storage implementation for managed device data
+template<class T>
+struct CollectionStorage<T, Ownership::value, MemSpace::device>
+{
+    using type = DeviceVector<T>;
+    type data;
+};
+
+//---------------------------------------------------------------------------//
 //! Assignment semantics for a collection
 template<Ownership W, MemSpace M>
 struct CollectionAssigner
@@ -125,34 +142,25 @@ struct CollectionStorageValidator<Ownership::value>
 };
 
 //---------------------------------------------------------------------------//
-//! Storage implementation for managed host data
-template<class T>
-struct CollectionStorage<T, Ownership::value, MemSpace::host>
-{
-    using type = std::vector<T>;
-    type data;
-};
-
-//! Storage implementation for managed device data
-template<class T>
-struct CollectionStorage<T, Ownership::value, MemSpace::device>
-{
-    using type = DeviceVector<T>;
-    type data;
-};
-
-//---------------------------------------------------------------------------//
 //! Assignment semantics for copying to host memory
 template<>
 struct CollectionAssigner<Ownership::value, MemSpace::host>
 {
-    template<class T, Ownership W2, MemSpace M2>
+    template<class T, Ownership W2>
     CollectionStorage<T, Ownership::value, MemSpace::host>
-    operator()(const CollectionStorage<T, W2, M2>& source)
+    operator()(const CollectionStorage<T, W2, MemSpace::host>& source)
     {
-        static_assert(M2 == MemSpace::host,
-                      "Can only assign host values from host data");
         return {{source.data.data(), source.data.data() + source.data.size()}};
+    }
+
+    template<class T, Ownership W2>
+    CollectionStorage<T, Ownership::value, MemSpace::host>
+    operator()(const CollectionStorage<T, W2, MemSpace::device>& source)
+    {
+        CollectionStorage<T, Ownership::value, MemSpace::host> result{
+            std::vector<T>(source.data.size())};
+        source.data.copy_to_host({result.data.data(), result.data.size()});
+        return result;
     }
 };
 

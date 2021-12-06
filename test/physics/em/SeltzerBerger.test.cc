@@ -75,10 +75,10 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& particles   = *this->particle_params();
-        pointers_.ids.electron  = particles.find(pdg::electron());
-        pointers_.ids.positron  = particles.find(pdg::positron());
-        pointers_.ids.gamma     = particles.find(pdg::gamma());
-        pointers_.electron_mass = particles.get(pointers_.ids.electron).mass();
+        data_.ids.electron      = particles.find(pdg::electron());
+        data_.ids.positron      = particles.find(pdg::positron());
+        data_.ids.gamma         = particles.find(pdg::gamma());
+        data_.electron_mass     = particles.get(data_.ids.electron).mass();
 
         // Set default particle to incident 1 MeV photon
         this->set_inc_particle(pdg::electron(), MevEnergy{1.0});
@@ -101,12 +101,12 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         std::string         data_path = this->test_data_path("physics/em", "");
         SeltzerBergerReader read_element_data(data_path.c_str());
 
-        // Construct SeltzerBergerModel and set host pointers
+        // Construct SeltzerBergerModel and set host data
         model_    = std::make_shared<SeltzerBergerModel>(ModelId{0},
                                                       *this->particle_params(),
                                                       *this->material_params(),
                                                       read_element_data);
-        pointers_ = model_->host_pointers();
+        data_     = model_->host_ref();
 
         // Set cutoffs
         CutoffParams::Input           input;
@@ -140,7 +140,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
 
   protected:
     std::shared_ptr<SeltzerBergerModel>       model_;
-    celeritas::detail::SeltzerBergerNativeRef pointers_;
+    celeritas::detail::SeltzerBergerNativeRef data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -149,7 +149,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
 
 TEST_F(SeltzerBergerTest, sb_tables)
 {
-    const auto& xs = model_->host_pointers().differential_xs;
+    const auto& xs = model_->host_ref().differential_xs;
 
     // The tables should just have the one element (copper). The values of the
     // arguments have been calculated from the g4emlow@7.13 dataset.
@@ -227,7 +227,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
     for (real_type inc_energy : {0.001, 0.0045, 0.567, 7.89, 89.0, 901.})
     {
         SBEnergyDistHelper edist_helper(
-            model_->host_pointers(),
+            model_->host_ref(),
             Energy{inc_energy},
             ElementId{0},
             this->density_correction(MaterialId{0}, Energy{inc_energy}),
@@ -245,7 +245,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         real_type inc_energy = 7.89;
 
         SBEnergyDistHelper edist_helper(
-            model_->host_pointers(),
+            model_->host_ref(),
             Energy{inc_energy},
             ElementId{0},
             this->density_correction(MaterialId{0}, Energy{inc_energy}),
@@ -310,7 +310,7 @@ TEST_F(SeltzerBergerTest, basic)
     auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
-    SeltzerBergerInteractor interact(model_->host_pointers(),
+    SeltzerBergerInteractor interact(model_->host_ref(),
                                      this->particle_track(),
                                      this->direction(),
                                      cutoffs,
@@ -395,7 +395,7 @@ TEST_F(SeltzerBergerTest, stress_test)
 
                 // Create interactor
                 this->set_inc_particle(particle, MevEnergy{inc_e});
-                SeltzerBergerInteractor interact(model_->host_pointers(),
+                SeltzerBergerInteractor interact(model_->host_ref(),
                                                  this->particle_track(),
                                                  this->direction(),
                                                  cutoffs,

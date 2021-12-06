@@ -9,6 +9,7 @@
 
 #include "base/Assert.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/em/generated/BetheHeitlerInteract.hh"
 
 namespace celeritas
 {
@@ -30,8 +31,8 @@ BetheHeitlerModel::BetheHeitlerModel(ModelId               id,
                    << "missing electron, positron and/or gamma particles "
                       "(required for "
                    << this->label() << ")");
-    interface_.inv_electron_mass
-        = 1 / particles.get(interface_.electron_id).mass().value();
+    interface_.electron_mass
+        = particles.get(interface_.electron_id).mass().value();
     CELER_ENSURE(interface_);
 }
 
@@ -50,19 +51,20 @@ auto BetheHeitlerModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+//!@{
 /*!
  * Apply the interaction kernel.
  */
-void BetheHeitlerModel::interact(
-    CELER_MAYBE_UNUSED const ModelInteractRefs<MemSpace::device>& pointers) const
+void BetheHeitlerModel::interact(const DeviceInteractRef& data) const
 {
-#if CELERITAS_USE_CUDA
-    detail::bethe_heitler_interact(interface_, pointers);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
+    generated::bethe_heitler_interact(interface_, data);
 }
 
+void BetheHeitlerModel::interact(const HostInteractRef& data) const
+{
+    generated::bethe_heitler_interact(interface_, data);
+}
+//!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.

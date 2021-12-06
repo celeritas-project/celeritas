@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * \page collections Collections and Collection Groups
+ * \page collections Collection: a data portability class
  *
  * The \c Collection manages data allocation and transfer between CPU and GPU.
  * Its primary design goal is facilitating construction of deeply hierarchical
@@ -32,11 +32,21 @@ namespace celeritas
  * can therefore be trivially copied to the GPU to enable arbitrarily deep and
  * complex data hierarchies.
  *
- * By convention, groups of Collections are either "StateData", which are
- * meant to be mutable, never directly copied between host and device, and
- * store data typically accessed by thread ID; and "ParamsData", which are
- * immutable and typically mirrorerd on both host and device. A collection
- * group has the following requirements to be compatible with the \c
+ * By convention, groups of Collections comprising the data for a single class
+ * or subsystem (such as RayleighInteractor or Physics) are stored in a helper
+ * struct suffixed with \c Data . For cases where there is both persistent data
+ * (problem-specific parameters) and transient data (track-specific states),
+ * the collections must be grouped into two separate classes. \c StateData are
+ * meant to be mutable and never directly copied between host and device; its
+ * data collections are typically accessed by thread ID. \c ParamsData are
+ * immutable and always "mirrored" on both host and device. Sometimes it's
+ * sensible to partition \c ParamsData into discrete helper structs (stored by
+ * value), each with a group of collections, and perhaps another struct that
+ * has non-templated scalars (since the default assignment operator is less
+ * work than manually copying scalars in a templated assignment operator.
+ *
+ * A collection group has the following requirements to be compatible with the
+\c
  * CollectionMirror, \c CollectionStateStore, and other such helper classes:
  * - Be a struct templated with \c template<Ownership W, MemSpace M>
  * - Contain only Collection objects and trivially copyable structs
@@ -45,7 +55,7 @@ namespace celeritas
  * - Define a templated assignment operator on "other" Ownership and MemSpace
  *   which assigns every member to the right-hand-side's member
  *
- * Additionally, a StateData collection group must define
+ * Additionally, a \c StateData collection group must define
  * - A member function \c size() returning the number of entries (i.e. number
  *   of threads)
  * - A free function \c resize with one of two signatures:
@@ -60,13 +70,16 @@ void resize(
     size_type                       size);
  * \endcode
  *
- * Also by convention, related collection groups are stored in a \c
- * Interface.hh file.
+ * By convention, related groups of collections are stored in a header file
+ * named \c Data.hh .
  *
  * See ParticleParamsData and ParticleStateData for minimal examples of using
- * collection groups. The MaterialParamsData demonstrates additional complexity
+ * collections. The MaterialParamsData demonstrates additional complexity
  * by having a multi-level data hierarchy, and MaterialStateData has a resize
- * function that uses params data. PhysicsParamsData is a very complex example.
+ * function that uses params data. PhysicsParamsData is a very complex example,
+ * and GeoParamsData demonstates how to use template specialization to adapt
+ * Collections to another codebase with a different convention for host-device
+ * portability.
  */
 
 //! Opaque ID representing a single element of a container.
@@ -160,6 +173,11 @@ struct AllItems
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
 {
+    static_assert(std::is_trivially_copyable<T>::value,
+                  "Collection element is not trivially copyable");
+    static_assert(std::is_trivially_destructible<T>::value,
+                  "Collection element is not trivially destructible");
+
     using CollectionTraitsT = detail::CollectionTraits<T, W>;
 
   public:
@@ -171,6 +189,7 @@ class Collection
     using const_reference_type =
         typename CollectionTraitsT::const_reference_type;
     using size_type  = typename I::size_type;
+    using value_type = T;
     using ItemIdT    = I;
     using ItemRangeT = Range<ItemIdT>;
     using AllItemsT  = AllItems<T, M>;
@@ -222,9 +241,17 @@ class Collection
     inline CELER_FUNCTION SpanT      operator[](AllItemsT);
     inline CELER_FUNCTION SpanConstT operator[](AllItemsT) const;
 
-    // Direct accesors to underlying data
-    CELER_CONSTEXPR_FUNCTION size_type size() const;
-    CELER_CONSTEXPR_FUNCTION bool      empty() const;
+    //!@{
+    //! Direct accesors to underlying data
+    CELER_FORCEINLINE_FUNCTION size_type size() const
+    {
+        return this->storage().size();
+    }
+    CELER_FORCEINLINE_FUNCTION bool empty() const
+    {
+        return this->storage().empty();
+    }
+    //!@}
 
   private:
     //// DATA ////

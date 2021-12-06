@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include <vector>
-#include "physics/material/MaterialInterface.hh"
+#include "physics/material/MaterialData.hh"
 
 namespace celeritas_test
 {
@@ -18,13 +18,13 @@ using namespace celeritas;
 //! Input data
 struct MTestInput
 {
-    using MaterialParamsPointers
+    using MaterialParamsRef
         = MaterialParamsData<Ownership::const_reference, MemSpace::device>;
-    using MaterialStatePointers
+    using MaterialStateRef
         = MaterialStateData<Ownership::reference, MemSpace::device>;
 
-    MaterialParamsPointers          params;
-    MaterialStatePointers           states;
+    MaterialParamsRef               params;
+    MaterialStateRef                states;
     std::vector<MaterialTrackState> init;
 
     size_type size() const

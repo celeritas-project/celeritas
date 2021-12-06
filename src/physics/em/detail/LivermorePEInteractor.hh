@@ -9,14 +9,15 @@
 
 #include "base/Algorithms.hh"
 #include "base/Macros.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "LivermorePE.hh"
+#include "physics/em/AtomicRelaxationHelper.hh"
+#include "LivermorePEData.hh"
 #include "LivermorePEMicroXsCalculator.hh"
 
 namespace celeritas
@@ -50,20 +51,18 @@ class LivermorePEInteractor
     //!@{
     //! Type aliases
     using MevEnergy = units::MevEnergy;
-    using Scratch
-        = RelaxationScratchData<Ownership::reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEInteractor(const LivermorePEPointers& shared,
-                          const Scratch&             scratch,
-                          ElementId                  el_id,
-                          const ParticleTrackView&   particle,
-                          const CutoffView&          cutoffs,
-                          const Real3&               inc_direction,
-                          StackAllocator<Secondary>& allocate);
+    LivermorePEInteractor(const LivermorePERef&         shared,
+                          const AtomicRelaxationHelper& relaxation,
+                          ElementId                     el_id,
+                          const ParticleTrackView&      particle,
+                          const CutoffView&             cutoffs,
+                          const Real3&                  inc_direction,
+                          StackAllocator<Secondary>&    allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -73,9 +72,9 @@ class LivermorePEInteractor
     //// DATA ////
 
     // Shared constant physics properties
-    const LivermorePEPointers& shared_;
+    const LivermorePERef& shared_;
     // Shared scratch space
-    const Scratch& scratch_;
+    const AtomicRelaxationHelper& relaxation_;
     // Index in MaterialParams elements
     ElementId el_id_;
     // Production thresholds

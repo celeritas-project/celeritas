@@ -18,13 +18,13 @@
 #include "base/Types.hh"
 #include "physics/base/ModelIdGenerator.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleInterface.hh"
+#include "physics/base/ParticleData.hh"
 #include "physics/base/CutoffParams.hh"
-#include "physics/base/CutoffInterface.hh"
+#include "physics/base/CutoffData.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/MaterialParams.hh"
-#include "physics/material/MaterialInterface.hh"
+#include "physics/material/MaterialData.hh"
 
 // Test helpers
 #include "gtest/Test.hh"

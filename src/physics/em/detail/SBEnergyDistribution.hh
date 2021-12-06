@@ -9,7 +9,7 @@
 
 #include "physics/base/Units.hh"
 #include "physics/grid/TwodSubgridCalculator.hh"
-#include "SeltzerBerger.hh"
+#include "SeltzerBergerData.hh"
 #include "SBEnergyDistHelper.hh"
 
 namespace celeritas

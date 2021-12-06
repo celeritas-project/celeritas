@@ -9,7 +9,7 @@
 
 #include <vector>
 #include "base/Assert.hh"
-#include "geometry/GeoInterface.hh"
+#include "geometry/GeoData.hh"
 
 namespace celeritas_test
 {

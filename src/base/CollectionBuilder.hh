@@ -26,7 +26,8 @@ namespace celeritas
  * \code
     auto cb = make_builder(&myintcol.host);
     cb.reserve(100);
-    ItemRange<int> insertion = cb.extend(local_ints.begin(), local_ints.end());
+    ItemRange<int> insertion
+        = cb.insert_back(local_ints.begin(), local_ints.end());
     cb.push_back(123);
    \endcode
 
@@ -65,7 +66,8 @@ class CollectionBuilder
     inline ItemRangeT insert_back(std::initializer_list<value_type> init);
 
     // Append a single element
-    inline ItemIdT push_back(value_type element);
+    inline ItemIdT push_back(const value_type& element);
+    inline ItemIdT push_back(value_type&& element);
 
     //! Number of elements in the collection
     size_type size() const { return col_.size(); }

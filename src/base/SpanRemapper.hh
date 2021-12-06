@@ -13,7 +13,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Utility for transforming host to device pointers.
+ * Utility for transforming host to device data.
  *
  * Although this is meant for host->device mapping, it will work for any two
  * ranges, so the nomenclature inside the class is "source" and "destination",
@@ -27,10 +27,10 @@ namespace celeritas
  *
  * \code
     auto remap_span = make_span_remapper(make_span(host_vec_),
-                                         device_vec_.device_pointers());
+                                         device_vec_.device_ref());
 
     // Create local vector of objects that will be copied to device (and must
-    // have device pointers)
+    // have device data)
     std::vector<Bar> temp_device_obj(host_obj.size());
     for (auto i : range(host_obj.size()))
     {
@@ -40,7 +40,7 @@ namespace celeritas
    \endcode
  *
  * The extra templating (rather than using T == U == V) simplifies conversions
- * between const and non-const types, as well as (potentially) device pointers
+ * between const and non-const types, as well as (potentially) device data
  * and non-device.
  */
 template<class T, class U>

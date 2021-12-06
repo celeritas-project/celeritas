@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <map>
 #include <tuple>
+#include "base/Algorithms.hh"
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/VectorUtils.hh"
@@ -67,7 +68,7 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
 auto PhysicsParams::processes(ParticleId id) const -> SpanConstProcessId
 {
     CELER_EXPECT(id < this->num_processes());
-    const auto& data = this->host_pointers();
+    const auto& data = this->host_ref();
     return data.process_ids[data.process_groups[id].processes];
 }
 
@@ -183,9 +184,9 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             data->max_particle_processes, process_to_models.size());
 
         std::vector<ProcessId>  temp_processes;
-        std::vector<ModelGroup> temp_model_groups;
+        std::vector<ModelGroup> temp_model_datas;
         temp_processes.reserve(process_to_models.size());
-        temp_model_groups.reserve(process_to_models.size());
+        temp_model_datas.reserve(process_to_models.size());
         for (auto& pid_models : process_to_models)
         {
             // Add process ID
@@ -194,7 +195,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             std::vector<ModelRange>& models = pid_models.second;
             CELER_ASSERT(!models.empty());
 
-            // Construct model group
+            // Construct model data
             std::vector<real_type> temp_energy_grid;
             std::vector<ModelId>   temp_models;
             temp_energy_grid.reserve(models.size() + 1);
@@ -219,27 +220,27 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
                 temp_models.push_back(std::get<2>(r));
             }
 
-            ModelGroup mgroup;
-            mgroup.energy = reals.insert_back(temp_energy_grid.begin(),
-                                              temp_energy_grid.end());
-            mgroup.model  = model_ids.insert_back(temp_models.begin(),
-                                                 temp_models.end());
-            CELER_ASSERT(mgroup);
-            temp_model_groups.push_back(mgroup);
+            ModelGroup mdata;
+            mdata.energy = reals.insert_back(temp_energy_grid.begin(),
+                                             temp_energy_grid.end());
+            mdata.model  = model_ids.insert_back(temp_models.begin(),
+                                                temp_models.end());
+            CELER_ASSERT(mdata);
+            temp_model_datas.push_back(mdata);
         }
 
-        ProcessGroup pgroup;
-        pgroup.processes = process_ids.insert_back(temp_processes.begin(),
-                                                   temp_processes.end());
-        pgroup.models    = model_groups.insert_back(temp_model_groups.begin(),
-                                                 temp_model_groups.end());
+        ProcessGroup pdata;
+        pdata.processes = process_ids.insert_back(temp_processes.begin(),
+                                                  temp_processes.end());
+        pdata.models    = model_groups.insert_back(temp_model_datas.begin(),
+                                                temp_model_datas.end());
 
         // It's ok to have particles defined in the problem that do not have
         // any processes (if they are ever created, they will just be
         // transported until they exit the geometry).
         // NOTE: data tables will be assigned later
-        CELER_ASSERT(process_to_models.empty() || pgroup);
-        process_groups.push_back(pgroup);
+        CELER_ASSERT(process_to_models.empty() || pdata);
+        process_groups.push_back(pdata);
     }
 
     // Assign hardwired models that do on-the-fly xs calculation
@@ -252,13 +253,13 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             data->hardwired.photoelectric              = process_id;
             data->hardwired.photoelectric_table_thresh = units::MevEnergy{0.2};
             data->hardwired.livermore_pe               = ModelId{model_idx};
-            data->hardwired.livermore_pe_data = pe_model->host_pointers();
+            data->hardwired.livermore_pe_data          = pe_model->host_ref();
         }
         else if (auto* epgg_model = dynamic_cast<const EPlusGGModel*>(&model))
         {
             data->hardwired.positron_annihilation = process_id;
             data->hardwired.eplusgg               = ModelId{model_idx};
-            data->hardwired.eplusgg_params = epgg_model->device_pointers();
+            data->hardwired.eplusgg_params        = epgg_model->device_ref();
         }
     }
 
@@ -292,11 +293,11 @@ void PhysicsParams::build_xs(const Options&        opts,
         applic.particle = particle_id;
 
         // Processes for this particle
-        ProcessGroup& process_group = data->process_groups[particle_id];
+        ProcessGroup& process_groups = data->process_groups[particle_id];
         Span<const ProcessId> processes
-            = data->process_ids[process_group.processes];
+            = data->process_ids[process_groups.processes];
         Span<const ModelGroup> model_groups
-            = data->model_groups[process_group.models];
+            = data->model_groups[process_groups.models];
         CELER_ASSERT(processes.size() == model_groups.size());
 
         // Material-dependent physics tables, one per particle-process
@@ -391,9 +392,9 @@ void PhysicsParams::build_xs(const Options&        opts,
                     && temp_grid_ids[ValueGridType::range][mat_id.get()])
                 {
                     // Only one particle-process should have energy loss tables
-                    CELER_ASSERT(!process_group.eloss_ppid
-                                 || pp_idx == process_group.eloss_ppid.get());
-                    process_group.eloss_ppid = ParticleProcessId{pp_idx};
+                    CELER_ASSERT(!process_groups.eloss_ppid
+                                 || pp_idx == process_groups.eloss_ppid.get());
+                    process_groups.eloss_ppid = ParticleProcessId{pp_idx};
                 }
             }
 
@@ -429,13 +430,13 @@ void PhysicsParams::build_xs(const Options&        opts,
         }
 
         // Construct energy loss process data
-        process_group.integral_xs = integral_xs.insert_back(
+        process_groups.integral_xs = integral_xs.insert_back(
             temp_integral_xs.begin(), temp_integral_xs.end());
 
         // Construct value tables
         for (auto vgt : range(ValueGridType::size_))
         {
-            process_group.tables[vgt] = value_tables.insert_back(
+            process_groups.tables[vgt] = value_tables.insert_back(
                 temp_tables[vgt].begin(), temp_tables[vgt].end());
         }
     }

@@ -11,7 +11,6 @@
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "physics/material/MaterialView.hh"
-#include "physics/em/detail/LivermorePE.hh"
 #include "physics/em/detail/LivermorePEMicroXsCalculator.hh"
 
 namespace celeritas
@@ -28,20 +27,20 @@ class LivermorePEMacroXsCalculator
     using Energy              = detail::LivermorePEMicroXsCalculator::Energy;
     using MicroXsUnits        = detail::LivermorePEMicroXsCalculator::XsUnits;
     using XsUnits             = units::NativeUnit;
-    using LivermorePEPointers = detail::LivermorePEPointers;
+    using LivermorePERef      = detail::LivermorePERef;
     //!@}
 
   public:
     // Construct with shared data and material
     inline CELER_FUNCTION
-    LivermorePEMacroXsCalculator(const LivermorePEPointers& shared,
-                                 const MaterialView&        material);
+    LivermorePEMacroXsCalculator(const LivermorePERef& shared,
+                                 const MaterialView&   material);
 
     // Compute cross section on the fly at the given energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
   private:
-    const LivermorePEPointers&      shared_;
+    const LivermorePERef&           shared_;
     Span<const MatElementComponent> elements_;
     real_type                       number_density_;
 };

@@ -15,7 +15,7 @@
 #include "base/StackAllocator.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
-#include "BetheHeitler.hh"
+#include "BetheHeitlerData.hh"
 
 namespace celeritas
 {
@@ -45,11 +45,11 @@ class BetheHeitlerInteractor
   public:
     //! Construct sampler from shared and state data
     inline CELER_FUNCTION
-    BetheHeitlerInteractor(const BetheHeitlerPointers& shared,
-                           const ParticleTrackView&    particle,
-                           const Real3&                inc_direction,
-                           StackAllocator<Secondary>&  allocate,
-                           const ElementView&          element);
+    BetheHeitlerInteractor(const BetheHeitlerData&    shared,
+                           const ParticleTrackView&   particle,
+                           const Real3&               inc_direction,
+                           StackAllocator<Secondary>& allocate,
+                           const ElementView&         element);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -59,7 +59,7 @@ class BetheHeitlerInteractor
     //// DATA ////
 
     // Gamma energy divided by electron mass * csquared
-    const BetheHeitlerPointers& shared_;
+    const BetheHeitlerData& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
     // Incident direction

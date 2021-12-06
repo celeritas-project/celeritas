@@ -8,9 +8,8 @@
 #pragma once
 
 #include "physics/base/Model.hh"
-
 #include "physics/base/ParticleParams.hh"
-#include "detail/EPlusGG.hh"
+#include "detail/EPlusGGData.hh"
 
 namespace celeritas
 {
@@ -27,8 +26,11 @@ class EPlusGGModel final : public Model
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
 
-    // Apply the interaction kernel
-    void interact(const DeviceInteractRefs&) const final;
+    // Apply the interaction kernel on host
+    void interact(const HostInteractRef&) const final;
+
+    // Apply the interaction kernel on device
+    void interact(const DeviceInteractRef&) const final;
 
     // ID of the model
     ModelId model_id() const final;
@@ -37,10 +39,10 @@ class EPlusGGModel final : public Model
     std::string label() const final { return "Positron annihilation (2g)"; }
 
     // Access data on device
-    detail::EPlusGGPointers device_pointers() const { return interface_; }
+    detail::EPlusGGData device_ref() const { return interface_; }
 
   private:
-    detail::EPlusGGPointers interface_;
+    detail::EPlusGGData interface_;
 };
 
 //---------------------------------------------------------------------------//

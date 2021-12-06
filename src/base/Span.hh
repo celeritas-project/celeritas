@@ -122,12 +122,24 @@ class Span
 
     //!@{
     //! Subviews
-    // TODO: first
-    // TODO: last
+    template<std::size_t Count>
+    CELER_FUNCTION Span<T, Count> first() const
+    {
+        CELER_EXPECT(Count <= this->size());
+        return {s_.data, Count};
+    }
+    CELER_FUNCTION
+    Span<T, dynamic_extent> first(std::size_t count) const
+    {
+        CELER_EXPECT(count <= this->size());
+        return {s_.data, count};
+    }
+
     template<std::size_t Offset, std::size_t Count = dynamic_extent>
     CELER_FUNCTION Span<T, detail::subspan_extent(Extent, Offset, Count)>
                    subspan() const
     {
+        CELER_EXPECT(Offset + Count <= this->size());
         return {s_.data + Offset,
                 detail::subspan_size(this->size(), Offset, Count)};
     }
@@ -135,8 +147,22 @@ class Span
     Span<T, dynamic_extent>
     subspan(std::size_t offset, std::size_t count = dynamic_extent) const
     {
+        CELER_EXPECT(offset + count <= this->size());
         return {s_.data + offset,
                 detail::subspan_size(this->size(), offset, count)};
+    }
+
+    template<std::size_t Count>
+    CELER_FUNCTION Span<T, Count> last() const
+    {
+        CELER_EXPECT(Count <= this->size());
+        return {this->data() + this->size() - Count, Count};
+    }
+    CELER_FUNCTION
+    Span<T, dynamic_extent> last(std::size_t count) const
+    {
+        CELER_EXPECT(count <= this->size());
+        return {this->data() + this->size() - count, count};
     }
     //!@}
 
@@ -144,6 +170,9 @@ class Span
     //! Storage
     detail::SpanImpl<T, Extent> s_;
 };
+
+template<class T, std::size_t N>
+constexpr std::size_t Span<T, N>::extent;
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS

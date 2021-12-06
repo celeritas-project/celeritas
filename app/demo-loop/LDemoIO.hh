@@ -7,9 +7,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <vector>
 #include <nlohmann/json.hpp>
 #include "base/Types.hh"
+#include "sim/TrackInitParams.hh"
+#include "Transporter.hh"
+
+namespace celeritas
+{
+class ParticleParams;
+}
 
 namespace demo_loop
 {
@@ -19,6 +27,7 @@ namespace demo_loop
  */
 struct LDemoArgs
 {
+    using real_type = celeritas::real_type;
     using size_type = celeritas::size_type;
 
     // Problem definition
@@ -31,34 +40,33 @@ struct LDemoArgs
     size_type    max_num_tracks{};
     size_type    max_steps{};
     size_type    storage_factor{};
+    real_type    secondary_stack_factor{};
+    bool         use_device{};
 
     //! Whether the run arguments are valid
     explicit operator bool() const
     {
         return !geometry_filename.empty() && !physics_filename.empty()
                && !hepmc3_filename.empty() && max_num_tracks > 0
-               && max_steps > 0 && storage_factor > 0;
+               && max_steps > 0 && storage_factor > 0
+               && secondary_stack_factor > 0;
     }
 };
 
-//---------------------------------------------------------------------------//
-/*!
- * Tallied result and timing from run.
- */
-struct LDemoResult
-{
-    using size_type = celeritas::size_type;
+// Load params from input arguments
+celeritas::TransporterInput load_input(const LDemoArgs& args);
+std::shared_ptr<celeritas::TrackInitParams>
 
-    std::vector<double>    time;  //!< Real time per step
-    std::vector<size_type> alive; //!< Num living tracks per step
-    std::vector<double>    edep;  //!< Energy deposition along the grid
-    double                 total_time = 0; //!< All time
-};
+// Load primary particles from an input HepMC3 event file
+load_primaries(const std::shared_ptr<const celeritas::ParticleParams>& particles,
+               const LDemoArgs&                                        args);
+
+// Build transporter from input arguments
+std::unique_ptr<celeritas::TransporterBase>
+build_transporter(const LDemoArgs& run_args);
 
 void to_json(nlohmann::json& j, const LDemoArgs& value);
 void from_json(const nlohmann::json& j, LDemoArgs& value);
-
-void to_json(nlohmann::json& j, const LDemoResult& value);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_loop

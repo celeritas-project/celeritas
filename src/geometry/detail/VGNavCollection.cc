@@ -8,6 +8,7 @@
 #include "VGNavCollection.hh"
 
 #include <VecGeom/navigation/NavStatePool.h>
+#include "base/CollectionBuilder.hh"
 #include "comm/Device.hh"
 
 namespace celeritas
@@ -17,13 +18,20 @@ namespace detail
 //---------------------------------------------------------------------------//
 // HOST VALUE
 //---------------------------------------------------------------------------//
+/*!
+ * Resize with a number of states.
+ */
 void VGNavCollection<Ownership::value, MemSpace::host>::resize(int max_depth,
                                                                size_type size)
 {
     CELER_EXPECT(max_depth > 0);
-    CELER_EXPECT(size == 1);
 
-    nav_state.reset(NavState::MakeInstance(max_depth));
+    // Add navigation states to collection
+    this->nav_state.resize(size);
+    for (UPNavState& state : this->nav_state)
+    {
+        state = std::unique_ptr<NavState>(NavState::MakeInstance(max_depth));
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -35,7 +43,7 @@ void VGNavCollection<Ownership::value, MemSpace::host>::resize(int max_depth,
 void VGNavCollection<Ownership::reference, MemSpace::host>::operator=(
     VGNavCollection<Ownership::value, MemSpace::host>& other)
 {
-    ptr = other.nav_state.get();
+    nav_state = make_span(other.nav_state);
 }
 
 //---------------------------------------------------------------------------//
@@ -47,8 +55,8 @@ auto VGNavCollection<Ownership::reference, MemSpace::host>::at(int,
     -> NavState&
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(id.get() == 0);
-    return *ptr;
+    CELER_EXPECT(id < nav_state.size());
+    return *nav_state[id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

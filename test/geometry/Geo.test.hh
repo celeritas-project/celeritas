@@ -8,7 +8,7 @@
 #pragma once
 
 #include <vector>
-#include "geometry/GeoInterface.hh"
+#include "geometry/GeoData.hh"
 #include "base/Assert.hh"
 
 namespace celeritas_test

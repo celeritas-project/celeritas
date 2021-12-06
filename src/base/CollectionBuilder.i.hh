@@ -53,7 +53,7 @@ auto CollectionBuilder<T, M, I>::insert_back(std::initializer_list<T> init)
  * Reserve space for the given number of elements.
  */
 template<class T, MemSpace M, class I>
-auto CollectionBuilder<T, M, I>::push_back(T el) -> ItemIdT
+auto CollectionBuilder<T, M, I>::push_back(const T& el) -> ItemIdT
 {
     CELER_EXPECT(this->storage().size() + 1 <= this->max_size());
     static_assert(M == MemSpace::host,
@@ -63,8 +63,19 @@ auto CollectionBuilder<T, M, I>::push_back(T el) -> ItemIdT
     return ItemIdT{idx};
 }
 
+template<class T, MemSpace M, class I>
+auto CollectionBuilder<T, M, I>::push_back(T&& el) -> ItemIdT
+{
+    CELER_EXPECT(this->storage().size() + 1 <= this->max_size());
+    static_assert(M == MemSpace::host,
+                  "Insertion currently works only for host memory");
+    size_type idx = this->size();
+    this->storage().push_back(std::move(el));
+    return ItemIdT{idx};
+}
+
 //---------------------------------------------------------------------------//
-// DEVICE PIE BUILDDER
+// DEVICE COLLECTION BUILDER
 //---------------------------------------------------------------------------//
 /*!
  * Increase the size to the given number of elements.

@@ -118,9 +118,8 @@ MaterialParams::MaterialParams(const Input& inp)
     data_ = CollectionMirror<MaterialParamsData>{std::move(host_data)};
 
     CELER_ENSURE(this->data_);
-    CELER_ENSURE(this->host_pointers().elements.size() == inp.elements.size());
-    CELER_ENSURE(this->host_pointers().materials.size()
-                 == inp.materials.size());
+    CELER_ENSURE(this->host_ref().elements.size() == inp.elements.size());
+    CELER_ENSURE(this->host_ref().materials.size() == inp.materials.size());
     CELER_ENSURE(elnames_.size() == inp.elements.size());
     CELER_ENSURE(matnames_.size() == inp.materials.size());
 }

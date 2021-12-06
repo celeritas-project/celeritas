@@ -17,7 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Photoelectric effect process for gammas.
+ * Bremsstrahlung process for electrons and positrons.
  */
 class BremsstrahlungProcess : public Process
 {
@@ -30,7 +30,7 @@ class BremsstrahlungProcess : public Process
     //!@}
 
   public:
-    // Construct from Livermore photoelectric data
+    // Construct from Bremsstrahlung data
     BremsstrahlungProcess(SPConstParticles particles,
                           SPConstMaterials materials,
                           SPConstImported  process_data);

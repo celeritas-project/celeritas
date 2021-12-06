@@ -101,12 +101,12 @@ TEST_F(DeviceAllocationTest, TEST_IF_CELERITAS_CUDA(device))
 
     {
         DeviceAllocation other(128);
-        Byte*            orig_alloc = alloc.device_pointers().data();
-        Byte*            orig_other = other.device_pointers().data();
+        Byte*            orig_alloc = alloc.device_ref().data();
+        Byte*            orig_other = other.device_ref().data();
         swap(alloc, other);
         EXPECT_EQ(1024, other.size());
-        EXPECT_EQ(orig_other, alloc.device_pointers().data());
-        EXPECT_EQ(orig_alloc, other.device_pointers().data());
+        EXPECT_EQ(orig_other, alloc.device_ref().data());
+        EXPECT_EQ(orig_alloc, other.device_ref().data());
     }
     EXPECT_EQ(128, alloc.size());
 
@@ -123,11 +123,11 @@ TEST_F(DeviceAllocationTest, TEST_IF_CELERITAS_CUDA(device))
 
     // Test move construction/assignment
     {
-        Byte*            orig_ptr = alloc.device_pointers().data();
+        Byte*            orig_ptr = alloc.device_ref().data();
         DeviceAllocation other(std::move(alloc));
         EXPECT_EQ(128, other.size());
         EXPECT_EQ(0, alloc.size());
-        EXPECT_EQ(orig_ptr, other.device_pointers().data());
+        EXPECT_EQ(orig_ptr, other.device_ref().data());
     }
 }
 
@@ -136,7 +136,7 @@ TEST_F(DeviceAllocationTest, TEST_IF_CELERITAS_CUDA(empty))
     DeviceAllocation alloc{0};
     EXPECT_TRUE(alloc.empty());
     EXPECT_EQ(0, alloc.size());
-    EXPECT_EQ(nullptr, alloc.device_pointers().data());
+    EXPECT_EQ(nullptr, alloc.device_ref().data());
 
     std::vector<Byte> newdata(alloc.size());
     alloc.copy_to_device(celeritas::make_span(newdata));

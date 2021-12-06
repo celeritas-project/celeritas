@@ -10,7 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
-#include "physics/em/detail/EPlusGG.hh"
+#include "physics/em/detail/EPlusGGInteractor.hh"
 #include "physics/material/MaterialView.hh"
 
 namespace celeritas
@@ -26,14 +26,14 @@ class EPlusGGMacroXsCalculator
     //! Type aliases
     using MevEnergy       = units::MevEnergy;
     using XsUnits         = units::NativeUnit;
-    using EPlusGGPointers = detail::EPlusGGPointers;
+    using EPlusGGData     = detail::EPlusGGData;
     //!@}
 
   public:
     // Construct with shared data and material
     inline CELER_FUNCTION
-    EPlusGGMacroXsCalculator(const EPlusGGPointers& shared,
-                             const MaterialView&    material);
+    EPlusGGMacroXsCalculator(const EPlusGGData&  shared,
+                             const MaterialView& material);
 
     // Compute cross section on the fly at the given energy
     inline CELER_FUNCTION real_type operator()(MevEnergy energy) const;

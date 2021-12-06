@@ -67,10 +67,7 @@ class EnergyLossDistributionTest : public celeritas::Test
 
         // Construct shared cutoff params
         CutoffParams::Input cut_inp{
-            particles,
-            materials,
-            {{pdg::electron(), {{MevEnergy{1e-3}, 0}}},
-             {pdg::mu_minus(), {{MevEnergy{1e-3}, 0}}}}};
+            particles, materials, {{pdg::electron(), {{MevEnergy{1e-3}, 0}}}}};
         cutoffs = std::make_shared<CutoffParams>(std::move(cut_inp));
 
         // Construct states for a single host thread
@@ -106,12 +103,12 @@ class EnergyLossDistributionTest : public celeritas::Test
 TEST_F(EnergyLossDistributionTest, gaussian)
 {
     ParticleTrackView particle(
-        particles->host_pointers(), particle_state.ref(), ThreadId{0});
+        particles->host_ref(), particle_state.ref(), ThreadId{0});
     particle = {ParticleId{1}, MevEnergy{1e-2}};
     MaterialTrackView material(
-        materials->host_pointers(), material_state.ref(), ThreadId{0});
+        materials->host_ref(), material_state.ref(), ThreadId{0});
     material = {MaterialId{0}};
-    CutoffView cutoff(cutoffs->host_pointers(), MaterialId{0});
+    CutoffView cutoff(cutoffs->host_ref(), MaterialId{0});
     MevEnergy  mean_loss{0.1};
 
     int                 num_samples = 5000;
@@ -148,12 +145,12 @@ TEST_F(EnergyLossDistributionTest, gaussian)
 TEST_F(EnergyLossDistributionTest, urban)
 {
     ParticleTrackView particle(
-        particles->host_pointers(), particle_state.ref(), ThreadId{0});
+        particles->host_ref(), particle_state.ref(), ThreadId{0});
     particle = {ParticleId{0}, MevEnergy{100}};
     MaterialTrackView material(
-        materials->host_pointers(), material_state.ref(), ThreadId{0});
+        materials->host_ref(), material_state.ref(), ThreadId{0});
     material = {MaterialId{0}};
-    CutoffView cutoff(cutoffs->host_pointers(), MaterialId{0});
+    CutoffView cutoff(cutoffs->host_ref(), MaterialId{0});
     MevEnergy  mean_loss{0.01};
     double     step = 0.01;
 

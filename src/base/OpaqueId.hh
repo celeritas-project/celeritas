@@ -15,6 +15,10 @@
 
 namespace celeritas
 {
+// Forward declare meaningless struct to avoid conflict with globally
+// namespaced PTL::Thread class when defining ThreadId type.
+struct Thread;
+
 //---------------------------------------------------------------------------//
 /*!
  * Type-safe index for accessing an array.
@@ -28,6 +32,8 @@ namespace celeritas
 template<class ValueT, class SizeT = ::celeritas::size_type>
 class OpaqueId
 {
+    static_assert(static_cast<SizeT>(-1) > 0, "SizeT must be unsigned.");
+
   public:
     //!@{
     //! Type aliases

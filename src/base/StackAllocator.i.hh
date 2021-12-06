@@ -15,7 +15,7 @@ namespace celeritas
  * Construct with defaults.
  */
 template<class T>
-CELER_FUNCTION StackAllocator<T>::StackAllocator(const Pointers& shared)
+CELER_FUNCTION StackAllocator<T>::StackAllocator(const Data& shared)
     : data_(shared)
 {
     CELER_EXPECT(shared);

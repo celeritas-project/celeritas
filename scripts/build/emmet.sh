@@ -1,9 +1,9 @@
 #!/bin/sh -e
 
-: ${BUILD_SUBDIR:=build}
+: ${BUILD_SUBDIR:=build-opt}
 BUILDSCRIPT_DIR="$(cd "$(dirname $BASH_SOURCE[0])" && pwd)"
 SOURCE_DIR="$(cd "${BUILDSCRIPT_DIR}" && git rev-parse --show-toplevel)"
-HOST=${HOSTNAME%%.*}
+HOST=emmet
 BUILD_DIR=${SOURCE_DIR}/${BUILD_SUBDIR}
 INSTALL_DIR=${SOURCE_DIR}/install
 
@@ -13,7 +13,7 @@ mkdir ${BUILD_DIR} 2>/dev/null \
 cd ${BUILD_DIR}
 
 module purge
-module load cuda
+module load cuda/11
 CELERITAS_ENV=$SPACK_ROOT/var/spack/environments/celeritas/.spack-env/view
 export PATH=$CELERITAS_ENV/bin:${PATH}
 export CMAKE_PREFIX_PATH=$CELERITAS_ENV:${CMAKE_PREFIX_PATH}

@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "ParticleInterface.hh"
+#include "ParticleData.hh"
 
 namespace celeritas
 {

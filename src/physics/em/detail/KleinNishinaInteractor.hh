@@ -14,7 +14,7 @@
 #include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "KleinNishina.hh"
+#include "KleinNishinaData.hh"
 
 namespace celeritas
 {
@@ -28,7 +28,8 @@ namespace detail
  * an incident gamma, it adds a single secondary (electron) to the secondary
  * stack and returns an interaction for the change to the incident gamma
  * direction and energy. No cutoffs are performed for the incident energy or
- * the exiting gamma energy.
+ * the exiting gamma energy. A secondary production cutoff is applied to the
+ * outgoing electron.
  *
  * \note This performs the same sampling routine as in Geant4's
  *  G4KleinNishinaCompton, as documented in section 6.4.2 of the Geant4 Physics
@@ -39,18 +40,24 @@ class KleinNishinaInteractor
   public:
     // Construct from shared and state data
     inline CELER_FUNCTION
-    KleinNishinaInteractor(const KleinNishinaPointers& shared,
-                           const ParticleTrackView&    particle,
-                           const Real3&                inc_direction,
-                           StackAllocator<Secondary>&  allocate);
+    KleinNishinaInteractor(const KleinNishinaData&    shared,
+                           const ParticleTrackView&   particle,
+                           const Real3&               inc_direction,
+                           StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
+    //! Energy threshold for secondary production [MeV]
+    static CELER_CONSTEXPR_FUNCTION units::MevEnergy secondary_cutoff()
+    {
+        return units::MevEnergy{1e-4};
+    }
+
   private:
     // Constant data
-    const KleinNishinaPointers& shared_;
+    const KleinNishinaData& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
     // Incident direction

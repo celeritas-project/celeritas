@@ -22,7 +22,8 @@ CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
                                      const ParticleTrackView& particle,
                                      PhysicsTrackView&        phys,
                                      SimTrackView&            sim,
-                                     Rng&                     rng)
+                                     Rng&                     rng,
+                                     Interaction*             result)
 {
     // Sample mean free path
     if (!phys.has_interaction_mfp())
@@ -39,6 +40,7 @@ CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
         {
             // If the particle is stopped and cannot undergo a discrete
             // interaction, kill it
+            result->action = Action::cutoff_energy;
             sim.alive(false);
             return;
         }
@@ -121,10 +123,9 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
 
 //---------------------------------------------------------------------------//
 /*!
- * Apply secondary cutoffs and process interaction change.
+ * Process interaction change.
  */
-CELER_FUNCTION void post_process(const CutoffView&  cutoffs,
-                                 GeoTrackView&      geo,
+CELER_FUNCTION void post_process(GeoTrackView&      geo,
                                  ParticleTrackView& particle,
                                  PhysicsTrackView&  phys,
                                  SimTrackView&      sim,
@@ -146,17 +147,6 @@ CELER_FUNCTION void post_process(const CutoffView&  cutoffs,
 
     // Deposit energy from interaction
     *edep += result.energy_deposition.value();
-
-    // Kill secondaries with energy below the production threshold and deposit
-    // their energy
-    for (auto& secondary : result.secondaries)
-    {
-        if (secondary.energy < cutoffs.energy(secondary.particle_id))
-        {
-            *edep += secondary.energy.value();
-            secondary = {};
-        }
-    }
 
     // Reset the physics state if a discrete interaction occured
     if (phys.model_id())
