@@ -117,7 +117,7 @@ struct ImportProcess
     //! Type aliases
     // One map per material: <element_id, physics_vector>
     using ElementPhysicsVectorMap = std::map<int, ImportPhysicsVector>;
-    // Spans all materials, one per model
+    // Vector spans over all models available in a given process
     using ElementSelector = std::vector<ElementPhysicsVectorMap>;
     //!@}
 

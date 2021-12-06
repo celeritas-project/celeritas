@@ -234,7 +234,7 @@ ImportProcessConverter::ImportProcessConverter(
     TableSelection                     which_tables,
     const std::vector<ImportMaterial>& materials,
     const std::vector<ImportElement>&  elements)
-    : which_tables_(which_tables), materials_(materials), elements_(elements)
+    : materials_(materials), elements_(elements), which_tables_(which_tables)
 {
     CELER_ENSURE(!materials_.empty());
     CELER_ENSURE(!elements_.empty());
@@ -530,11 +530,13 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
  * replicates the calculations in \c G4EmElementSelector::Initialise(...) .
  *
  * \note G4HepEm also initialises its data in this same way, although it is
- * stored in a non-trivial flat array for device compatibility.
+ * stored in a non-safe flat array for device compatibility.
  */
 ImportProcess::ElementSelector
 ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
 {
+    CELER_ASSERT(materials_.size());
+
     ImportProcess::ElementSelector element_selector;
     element_selector.resize(materials_.size());
 
@@ -561,8 +563,7 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
             element_xs_map.insert({elem_comp.element_id, physics_vector});
         }
 
-        // All physics vectors have the same energy grid values for the same
-        // material, thus we can reuse the same physics vector energy vector
+        // All physics vectors have the same energy grid for the same material
         const auto& energy_grid = element_xs_map.begin()->second.x;
 
         for (int bin_idx : celeritas::range(energy_grid.size()))
@@ -576,7 +577,7 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
                 const auto& element = elements_.at(elem_comp.element_id);
 
                 // Calculate cross-section
-                // Again, use user-input cuts or no?
+                // Again, use user-input cuts or not?
                 const double xs_per_atom = std::max(
                     0.0,
                     model.ComputeCrossSectionPerAtom(
@@ -600,7 +601,7 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
                 auto& physics_vector
                     = element_xs_map.find(elem_comp.element_id)->second;
 
-                physics_vector.y[bin_idx] = xs_per_atom;
+                physics_vector.y[bin_idx] = xs_sum;
             }
         }
 
@@ -701,8 +702,7 @@ ImportProcessConverter::initialize_element_selector_physics_vector(
                    (int)(bins_per_decade * std::log(max_energy / min_energy)
                          * inv_log_10_6));
     double delta = std::log(max_energy / min_energy) / (num_energy_bins - 1.0);
-    double log_min_e    = std::log(min_energy);
-    double inv_le_delta = 1.0 / delta;
+    double log_min_e = std::log(min_energy);
 
     // Fill energy bins
     physics_vector.x.push_back(min_energy);
