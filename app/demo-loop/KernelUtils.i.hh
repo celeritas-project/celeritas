@@ -106,7 +106,7 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
     auto eloss = calc_energy_loss(cutoffs, mat, particle, phys, step, rng);
     *edep += qvalue<Energy>(eloss);
     particle.energy(
-        Energy{qvalue<Energy>(particle.energy() - qvalue<Energy>(eloss)});
+        Energy{qvalue<Energy>(particle.energy()) - qvalue<Energy>(eloss)});
 
     // Reduce the remaining mean free path
     real_type mfp = phys.interaction_mfp() - step * phys.macro_xs();

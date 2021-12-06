@@ -28,7 +28,7 @@ set_cache_var(CMAKE_CUDA_FLAGS STRING "-Werror cross-execution-space-call -Wno-d
 set_cache_var(CELERITAS_DEBUG BOOL OFF)
 set_cache_var(CMAKE_BUILD_TYPE STRING "RelWithDebInfo")
 set_cache_var(CMAKE_CXX_FLAGS STRING
-  "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always")
+  "-Wall -Wextra -Werror -Wno-error=deprecated-declarations -pedantic -fdiagnostics-color=always")
 
 # MPI flags
 set_cache_var(MPI_CXX_SKIP_MPICXX BOOL TRUE)
