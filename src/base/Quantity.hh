@@ -53,15 +53,15 @@ struct UnitlessQuantity
  * A relativistic equation that operates on these quantities can do so without
  * unnecessary floating point operations involving the speed of light:
  * \code
-   real_type eval = qvalue<MevEnergy>(energy); // Natural units
+   real_type eval = value_as<MevEnergy>(energy); // Natural units
    MevMomentum momentum{std::sqrt(eval * eval
-                                  + 2 * qvalue<MevMass>(mass) * eval)};
+                                  + 2 * value_as<MevMass>(mass) * eval)};
    \endcode
  * The resulting quantity can be converted to the native Celeritas unit system
- * with `from_quantity`, which multiplies in the constant value of
+ * with `native_value_from`, which multiplies in the constant value of
  * ElMomentumUnit:
  * \code
- * real_type mom = from_quantity(momentum);
+ * real_type mom = native_value_from(momentum);
  * \endcode
  *
  * When using a Quantity from another part of the code, e.g. an imported unit
@@ -70,8 +70,8 @@ struct UnitlessQuantity
  *
  * \note The Quantity is designed to be a simple "strong type" class, not a
  * complex mathematical class. To operate on quantities, you must use
- `quantity`
- * (to operate within the Quantity's unit system) or `from_quantity` (to
+ `value_as`
+ * (to operate within the Quantity's unit system) or `native_value_from` (to
  * operate in the Celeritas native unit system), use the resulting numeric
  * values in your mathematical expressions, then return a new Quantity class
  * with the resulting value and correct type.
@@ -221,19 +221,20 @@ swap(Quantity<U, V>& a, Quantity<U, V>& b) noexcept
  * Convert the given quantity into the native Celeritas unit system.
  *
  * \code
- assert(from_quantity(Quantity<CLight>{1}) == 2.998e10 * centimeter/second);
+ assert(native_value_from(Quantity<CLight>{1}) == 2.998e10 *
+ centimeter/second);
  * \endcode
  */
 template<class UnitT, class ValueT>
-CELER_CONSTEXPR_FUNCTION auto from_quantity(Quantity<UnitT, ValueT> quant)
+CELER_CONSTEXPR_FUNCTION auto native_value_from(Quantity<UnitT, ValueT> quant)
     -> decltype(auto)
 {
     return quant.value() * UnitT::value();
 }
 
-//! Old spelling of "from_quantity".
+//! Old spelling of "native_value_from".
 template<class UnitT, class ValueT>
-[[deprecated("use 'from_quantity'")]] CELER_CONSTEXPR_FUNCTION auto
+[[deprecated("use 'native_value_from'")]] CELER_CONSTEXPR_FUNCTION auto
 unit_cast(Quantity<UnitT, ValueT> quant) -> decltype(auto)
 {
     return quant.value() * UnitT::value();
@@ -247,12 +248,12 @@ unit_cast(Quantity<UnitT, ValueT> quant) -> decltype(auto)
  * system (typically a "natural" unit system for use in physics kernels).
  *
  * \code
- constexpr LightSpeed c = to_quantity<LightSpeed>(constants::c_light);
+ constexpr LightSpeed c = native_value_to<LightSpeed>(constants::c_light);
  assert(c.value() == 1);
  * \endcode
  */
 template<class Q>
-CELER_CONSTEXPR_FUNCTION Q to_quantity(typename Q::value_type value)
+CELER_CONSTEXPR_FUNCTION Q native_value_to(typename Q::value_type value)
 {
     using value_type = typename Q::value_type;
     using unit_type  = typename Q::unit_type;
@@ -268,11 +269,11 @@ CELER_CONSTEXPR_FUNCTION Q to_quantity(typename Q::value_type value)
  * across different parts of the code and to make the user code more readable.
  *
  * \code
- assert(qvalue<LightSpeed>(LightSpeed{1}) == 1);
+ assert(value_as<LightSpeed>(LightSpeed{1}) == 1);
  * \endcode
  */
 template<class Q, class SrcUnitT, class ValueT>
-CELER_CONSTEXPR_FUNCTION auto qvalue(Quantity<SrcUnitT, ValueT> quant)
+CELER_CONSTEXPR_FUNCTION auto value_as(Quantity<SrcUnitT, ValueT> quant)
     -> ValueT
 {
     static_assert(std::is_same<Q, Quantity<SrcUnitT, ValueT>>::value,

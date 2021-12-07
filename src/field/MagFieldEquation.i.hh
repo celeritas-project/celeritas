@@ -22,7 +22,8 @@ MagFieldEquation<FieldT>::MagFieldEquation(const FieldT&           field,
     : field_(field), charge_(charge)
 {
     // The (Lorentz) coefficent in ElementaryCharge and MevMomentum
-    coeffi_ = from_quantity(charge_) / from_quantity(units::MevMomentum{1});
+    coeffi_ = native_value_from(charge_)
+              / native_value_from(units::MevMomentum{1});
 }
 
 //---------------------------------------------------------------------------//

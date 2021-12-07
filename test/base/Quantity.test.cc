@@ -11,10 +11,10 @@
 #include "base/Constants.hh"
 #include "celeritas_test.hh"
 
-using celeritas::from_quantity;
+using celeritas::native_value_from;
+using celeritas::native_value_to;
 using celeritas::Quantity;
-using celeritas::qvalue;
-using celeritas::to_quantity;
+using celeritas::value_as;
 using celeritas::zero_quantity;
 using celeritas::constants::pi;
 
@@ -52,12 +52,12 @@ TEST(QuantityTest, usage)
 
     // Hypothetical return value for user
     Revolution spacing{dtheta};
-    EXPECT_SOFT_EQ(2 * pi / 16, from_quantity(spacing));
+    EXPECT_SOFT_EQ(2 * pi / 16, native_value_from(spacing));
 
     // Create a quantity from a literal value in the native unit system
-    auto half_rev = to_quantity<Revolution>(celeritas::constants::pi);
+    auto half_rev = native_value_to<Revolution>(celeritas::constants::pi);
     EXPECT_TRUE((std::is_same<decltype(half_rev), Revolution>::value));
-    EXPECT_DOUBLE_EQ(0.5, qvalue<Revolution>(half_rev));
+    EXPECT_DOUBLE_EQ(0.5, value_as<Revolution>(half_rev));
 }
 
 TEST(QuantityTest, zeros)
@@ -70,7 +70,7 @@ TEST(QuantityTest, zeros)
 
     // Construct from a "zero" sentinel type
     zero_turn = zero_quantity();
-    EXPECT_EQ(0, qvalue<Revolution>(zero_turn));
+    EXPECT_EQ(0, value_as<Revolution>(zero_turn));
 }
 
 TEST(QuantityTest, comparators)
@@ -121,9 +121,9 @@ TEST(QuantityTest, swappiness)
     {
         // Should still work without std
         swap(dozen, gross);
-        EXPECT_EQ(12, qvalue<Dozen>(gross));
-        EXPECT_EQ(1, qvalue<Dozen>(dozen));
+        EXPECT_EQ(12, value_as<Dozen>(gross));
+        EXPECT_EQ(1, value_as<Dozen>(dozen));
     }
-    EXPECT_EQ(12, from_quantity(dozen));
-    EXPECT_EQ(144, from_quantity(gross));
+    EXPECT_EQ(12, native_value_from(dozen));
+    EXPECT_EQ(144, native_value_from(gross));
 }

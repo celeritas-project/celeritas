@@ -280,7 +280,7 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
         rad_coeff += comp.fraction * el.mass_radiation_coeff;
         log_mean_exc_energy
             += comp.fraction * el.atomic_number
-               * std::log(qvalue<units::MevEnergy>(
+               * std::log(value_as<units::MevEnergy>(
                    detail::get_mean_excitation_energy(el.atomic_number)));
     }
     result.density = result.number_density * avg_amu_mass

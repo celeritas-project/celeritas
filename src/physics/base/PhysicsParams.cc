@@ -156,8 +156,8 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
                            << applic.particle.unchecked_get());
             CELER_ASSERT(applic.lower < applic.upper);
             particle_models[applic.particle.get()][process_id].push_back(
-                {qvalue<ModelGroup::Energy>(applic.lower),
-                 qvalue<ModelGroup::Energy>(applic.upper),
+                {value_as<ModelGroup::Energy>(applic.lower),
+                 value_as<ModelGroup::Energy>(applic.upper),
                  ModelId{model_idx}});
         }
     }

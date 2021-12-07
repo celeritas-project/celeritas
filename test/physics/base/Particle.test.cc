@@ -164,7 +164,7 @@ TEST_F(ParticleTestHost, electron)
     EXPECT_DOUBLE_EQ(0.0, particle.decay_constant());
     EXPECT_SOFT_EQ(0.86286196322132447, particle.speed().value());
     EXPECT_SOFT_EQ(25867950886.882648,
-                   celeritas::from_quantity(particle.speed()));
+                   celeritas::native_value_from(particle.speed()));
     EXPECT_SOFT_EQ(1.9784755992474248, particle.lorentz_factor());
     EXPECT_SOFT_EQ(0.87235253544653601, particle.momentum().value());
     EXPECT_SOFT_EQ(0.7609989461, particle.momentum_sq().value());

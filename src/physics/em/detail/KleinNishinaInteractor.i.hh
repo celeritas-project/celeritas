@@ -57,7 +57,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     }
 
     // Value of epsilon corresponding to minimum photon energy
-    const real_type inc_energy_per_mecsq = qvalue<Energy>(inc_energy_)
+    const real_type inc_energy_per_mecsq = value_as<Energy>(inc_energy_)
                                            * shared_.inv_electron_mass;
     const real_type epsilon_0 = 1 / (1 + 2 * inc_energy_per_mecsq);
 

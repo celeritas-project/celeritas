@@ -104,9 +104,9 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
 
     // Calculate energy loss over the step length
     auto eloss = calc_energy_loss(cutoffs, mat, particle, phys, step, rng);
-    *edep += qvalue<Energy>(eloss);
+    *edep += value_as<Energy>(eloss);
     particle.energy(
-        Energy{qvalue<Energy>(particle.energy()) - qvalue<Energy>(eloss)});
+        Energy{value_as<Energy>(particle.energy()) - value_as<Energy>(eloss)});
 
     // Reduce the remaining mean free path
     real_type mfp = phys.interaction_mfp() - step * phys.macro_xs();
@@ -151,7 +151,7 @@ CELER_FUNCTION void post_process(GeoTrackView&      geo,
     }
 
     // Deposit energy from interaction
-    *edep += qvalue<Energy>(result.energy_deposition);
+    *edep += value_as<Energy>(result.energy_deposition);
 
     // Reset the physics state if a discrete interaction occured
     if (phys.model_id())

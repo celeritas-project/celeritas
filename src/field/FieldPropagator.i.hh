@@ -27,7 +27,7 @@ FieldPropagator<DriverT>::FieldPropagator(GeoTrackView*            track,
 
     for (size_type i = 0; i != 3; ++i)
     {
-        state_.mom[i] = qvalue<MomentumUnits>(particle.momentum())
+        state_.mom[i] = value_as<MomentumUnits>(particle.momentum())
                         * track->dir()[i];
     }
 }
