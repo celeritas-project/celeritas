@@ -23,4 +23,4 @@ mkdir ${BUILD_DIR} 2>/dev/null \
   || printf "\e[2;37m... from existing cache\e[0m\n"
 cd ${BUILD_DIR}
 
-export CXXFLAGS="-Wall -Wextra -pedantic -Werror -Wno-error=deprecated"
+export CXXFLAGS="-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations"
