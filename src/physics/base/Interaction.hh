@@ -79,7 +79,7 @@ CELER_FUNCTION Interaction Interaction::from_absorption()
 CELER_FUNCTION Interaction Interaction::from_unchanged(units::MevEnergy energy,
                                                        const Real3& direction)
 {
-    CELER_EXPECT(energy.value() > 0);
+    CELER_EXPECT(energy > zero_quantity());
     CELER_EXPECT(is_soft_unit_vector(direction, SoftEqual<real_type>(1e-6)));
 
     Interaction result;

@@ -21,11 +21,14 @@ FieldPropagator<DriverT>::FieldPropagator(GeoTrackView*            track,
 {
     CELER_ASSERT(particle.charge() != zero_quantity());
 
+    using MomentumUnits = OdeState::MomentumUnits;
+
     state_.pos = track->pos();
 
     for (size_type i = 0; i != 3; ++i)
     {
-        state_.mom[i] = particle.momentum().value() * track->dir()[i];
+        state_.mom[i] = value_as<MomentumUnits>(particle.momentum())
+                        * track->dir()[i];
     }
 }
 

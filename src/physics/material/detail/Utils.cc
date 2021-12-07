@@ -101,7 +101,7 @@ real_type calc_mass_rad_coeff(const ElementDef& el)
     // Eq 34.25
     constexpr real_type inv_x0_factor = 4 * alpha_fine_structure
                                         * ipow<2>(r_electron);
-    return inv_x0_factor / unit_cast(el.atomic_mass)
+    return inv_x0_factor / native_value_from(el.atomic_mass)
            * (ipow<2>(z_real) * (lrad - el.coulomb_correction)
               + z_real * lrad_prime);
 }

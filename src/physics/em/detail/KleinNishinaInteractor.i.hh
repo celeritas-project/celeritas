@@ -28,12 +28,12 @@ CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
     const Real3&               inc_direction,
     StackAllocator<Secondary>& allocate)
     : shared_(shared)
-    , inc_energy_(particle.energy().value())
+    , inc_energy_(particle.energy())
     , inc_direction_(inc_direction)
     , allocate_(allocate)
 {
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
-    CELER_EXPECT(inc_energy_.value() > 0);
+    CELER_EXPECT(inc_energy_ > zero_quantity());
 }
 
 //---------------------------------------------------------------------------//
@@ -46,6 +46,8 @@ CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
 {
+    using Energy = units::MevEnergy;
+
     // Allocate space for the single electron to be emitted
     Secondary* electron_secondary = this->allocate_(1);
     if (electron_secondary == nullptr)
@@ -55,7 +57,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     }
 
     // Value of epsilon corresponding to minimum photon energy
-    const real_type inc_energy_per_mecsq = inc_energy_.value()
+    const real_type inc_energy_per_mecsq = value_as<Energy>(inc_energy_)
                                            * shared_.inv_electron_mass;
     const real_type epsilon_0 = 1 / (1 + 2 * inc_energy_per_mecsq);
 
@@ -101,7 +103,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     // Construct interaction for change to primary (incident) particle
     Interaction result;
     result.action      = Action::scattered;
-    result.energy      = units::MevEnergy{epsilon * inc_energy_.value()};
+    result.energy      = Energy{epsilon * inc_energy_.value()};
     result.direction   = inc_direction_;
     result.secondaries = {electron_secondary, 1};
 
@@ -113,7 +115,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
 
     // Construct secondary energy by neglecting electron binding energy
     electron_secondary->energy
-        = units::MevEnergy{inc_energy_.value() - result.energy.value()};
+        = Energy{inc_energy_.value() - result.energy.value()};
 
     // Apply secondary production cutoff
     if (electron_secondary->energy < KleinNishinaInteractor::secondary_cutoff())

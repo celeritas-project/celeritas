@@ -58,7 +58,7 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
     {
         VecReal xs_grid;
         for (auto xs : data_.xs)
-            xs_grid.push_back(unit_cast(xs) * numdens);
+            xs_grid.push_back(native_value_from(xs) * numdens);
         builders[ValueGridType::macro_xs]
             = std::make_unique<ValueGridLogBuilder>(
                 range.lower.value(), range.upper.value(), xs_grid);

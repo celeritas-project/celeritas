@@ -41,7 +41,7 @@ LivermorePEInteractor::LivermorePEInteractor(
     , calc_micro_xs_(shared, particle.energy())
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.gamma);
-    CELER_EXPECT(inc_energy_.value() > 0);
+    CELER_EXPECT(inc_energy_ > zero_quantity());
 
     inv_energy_ = 1 / inc_energy_.value();
 }

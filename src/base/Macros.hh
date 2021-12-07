@@ -96,7 +96,7 @@
  * https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#__builtin_unreachable
  *
  * (The 'unreachable' and 'assume' compiler optimizations for CUDA are only
- * available in API version 11.1 or higher, which is encoded as major*1000 +
+ * available in API version 11.3 or higher, which is encoded as major*1000 +
  * minor*10).
  *
  * \note This macro should not generally be used; instead, the macro \c
@@ -104,7 +104,7 @@
  * (to provide a more detailed error message in case the point *is* reached).
  */
 #if (!defined(__CUDA_ARCH__) && (defined(__clang__) || defined(__GNUC__))) \
-    || (defined(__CUDA_ARCH__) && CUDART_VERSION >= 11010)
+    || (defined(__CUDA_ARCH__) && CUDART_VERSION >= 11030)
 #    define CELER_UNREACHABLE __builtin_unreachable()
 #elif defined(_MSC_VER)
 #    define CELER_UNREACHABLE __assume(false)
