@@ -9,8 +9,6 @@
 #include "base/ArrayUtils.hh"
 #include "base/Algorithms.hh"
 #include "random/distributions/GenerateCanonical.hh"
-#include "random/distributions/UniformRealDistribution.hh"
-#include "TsaiUrbanDistribution.hh"
 
 namespace celeritas
 {
@@ -35,7 +33,12 @@ RelativisticBremInteractor::RelativisticBremInteractor(
     , inc_direction_(direction)
     , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
     , allocate_(allocate)
-    , dxsec_(shared, particle, material, elcomp_id)
+    , rb_energy_sampler_(shared, particle, cutoffs, material, elcomp_id)
+    , final_state_interaction_(inc_energy_,
+                               inc_direction_,
+                               inc_momentum_,
+                               shared.electron_mass,
+                               shared.ids.gamma)
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
@@ -47,8 +50,7 @@ RelativisticBremInteractor::RelativisticBremInteractor(
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample the production of photons using the G4eBremsstrahlungRelModel
- * of the Geant4 10.7 release
+ * Sample the production of photons and update final states
  */
 template<class Engine>
 CELER_FUNCTION Interaction RelativisticBremInteractor::operator()(Engine& rng)
@@ -61,57 +63,11 @@ CELER_FUNCTION Interaction RelativisticBremInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Min and max kinetic energy limits for sampling the secondary photon
-    Energy tmin = min(gamma_cutoff_, inc_energy_);
-    Energy tmax = min(shared_.high_energy_limit(), inc_energy_);
-    if (tmin >= tmax)
-    {
-        return Interaction::from_unchanged(inc_energy_, inc_direction_);
-    }
+    // Sample the bremsstrahlung photon energy
+    Energy gamma_energy = rb_energy_sampler_(rng);
 
-    real_type density_corr = dxsec_.density_correction();
-    real_type xmin         = std::log(ipow<2>(tmin.value()) + density_corr);
-    real_type xrange = std::log(ipow<2>(tmax.value()) + density_corr) - xmin;
-
-    real_type gamma_energy{0};
-    real_type dsigma{0};
-
-    do
-    {
-        gamma_energy = std::sqrt(max(
-            real_type(0),
-            std::exp(xmin + generate_canonical(rng) * xrange) - density_corr));
-        dsigma       = dxsec_(gamma_energy);
-    } while (dsigma < dxsec_.maximum_value() * generate_canonical(rng));
-
-    // Construct interaction for change to parent (incoming) particle
-    Interaction result;
-    result.action      = Action::scattered;
-    result.energy      = units::MevEnergy{inc_energy_.value() - gamma_energy};
-    result.secondaries = {secondaries, 1};
-    secondaries[0].particle_id = shared_.ids.gamma;
-    secondaries[0].energy      = units::MevEnergy{gamma_energy};
-
-    // Generate exiting gamma direction from isotropic azimuthal angle and
-    // TsaiUrbanDistribution for polar angle (based on G4ModifiedTsai)
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    TsaiUrbanDistribution              sample_gamma_angle(inc_energy_,
-                                             shared_.electron_mass);
-    real_type                          cost = sample_gamma_angle(rng);
-    secondaries[0].direction
-        = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
-
-    // Update parent particle direction
-    for (unsigned int i : range(3))
-    {
-        real_type inc_momentum_i   = inc_momentum_.value() * inc_direction_[i];
-        real_type gamma_momentum_i = result.secondaries[0].energy.value()
-                                     * result.secondaries[0].direction[i];
-        result.direction[i] = inc_momentum_i - gamma_momentum_i;
-    }
-    normalize_direction(&result.direction);
-
-    return result;
+    // Update kinematics of the final state and return this interaction
+    return final_state_interaction_(rng, gamma_energy, secondaries);
 }
 
 //---------------------------------------------------------------------------//

@@ -24,7 +24,8 @@
 #include "physics/material/Types.hh"
 
 #include "RelativisticBremData.hh"
-#include "RelativisticBremDXsection.hh"
+#include "RBEnergySampler.hh"
+#include "BremFinalStateHelper.hh"
 
 namespace celeritas
 {
@@ -69,7 +70,6 @@ class RelativisticBremInteractor
 
   private:
     //// DATA ////
-
     // Shared constant physics properties
     const RelativisticBremNativeRef& shared_;
     // Incident particle energy
@@ -83,8 +83,11 @@ class RelativisticBremInteractor
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
 
-    // Differential cross section calcuator
-    RelativisticBremDXsection dxsec_;
+    //// HELPER CLASSES //// // A helper to sample the photon energy from the
+    /// relativistic model
+    RBEnergySampler rb_energy_sampler_;
+    // A helper to update the final state of the primary and the secondary
+    BremFinalStateHelper final_state_interaction_;
 };
 
 //---------------------------------------------------------------------------//

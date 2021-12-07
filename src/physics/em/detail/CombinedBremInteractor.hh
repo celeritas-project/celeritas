@@ -23,7 +23,9 @@
 #include "physics/material/Types.hh"
 
 #include "CombinedBremData.hh"
-#include "RelativisticBremDXsection.hh"
+#include "RBEnergySampler.hh"
+#include "SBEnergySampler.hh"
+#include "BremFinalStateHelper.hh"
 
 namespace celeritas
 {
@@ -64,7 +66,6 @@ class CombinedBremInteractor
 
   private:
     //// DATA ////
-
     // Shared constant physics properties
     const CombinedBremNativeRef& shared_;
     // Incident particle energy
@@ -81,28 +82,18 @@ class CombinedBremInteractor
     const MaterialView& material_;
     // Element in which interaction occurs
     const ElementComponentId elcomp_id_;
-    // Differential cross section calcuator for the relativistic interactor
-    RelativisticBremDXsection rb_dxsec_;
     // Incident particle flag for selecting XS correction factor
     const bool is_electron_;
     // Flag for selecting the relativistic bremsstrahlung model
     const bool is_relativistic_;
 
-    //// HELPER FUNCTIONS ////
-
-    //! Sample the bremsstrahlung energy at the low energy (SeltzerBerger)
-    template<class Engine>
-    inline CELER_FUNCTION Energy sample_energy_sb(Engine& rng);
-
-    //! Sample the bremsstrahlung energy by the high energy (RelativisticBrem)
-    template<class Engine>
-    inline CELER_FUNCTION Energy sample_energy_rb(Engine& rng);
-
-    //! Update the final state after the interaction
-    template<class Engine>
-    inline CELER_FUNCTION Interaction update_state(Engine&      rng,
-                                                   const Energy energy,
-                                                   Secondary*   secondaries);
+    //// HELPER CLASSES ////
+    // A helper to Sample the photon energy from the relativistic model
+    RBEnergySampler rb_energy_sampler_;
+    // A helper to sample the photon energy from the SeltzerBerger model
+    SBEnergySampler sb_energy_sampler_;
+    // A helper to update the final state of the primary and the secondary
+    BremFinalStateHelper final_state_interaction_;
 };
 
 //---------------------------------------------------------------------------//
