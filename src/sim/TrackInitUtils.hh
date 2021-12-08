@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Algorithms.hh"
+#include "base/detail/Copier.hh"
+#include "base/CollectionBuilder.hh"
 #include "sim/TrackInitData.hh"
 #include "sim/TrackData.hh"
 #include "sim/detail/InitializeTracks.hh"
@@ -16,13 +19,43 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-// Create track initializers on device from primary particles
-void extend_from_primaries(const TrackInitParamsHostRef& params,
-                           TrackInitStateDeviceVal*      data);
+/*!
+ * Create track initializers from primary particles.
+ *
+ * This creates the maximum possible number of track initializers on the
+ * templated memory space from host primaries (either the number of host
+ * primaries that have not yet been initialized or the size of the available
+ * storage in the track initializer vector, whichever is smaller).
+ */
+template<MemSpace M>
+void extend_from_primaries(const TrackInitParamsHostRef&            params,
+                           TrackInitStateData<Ownership::value, M>* data)
+{
+    CELER_EXPECT(params);
+    CELER_EXPECT(data && *data);
 
-// Create track initializers on host from primary particles
-void extend_from_primaries(const TrackInitParamsHostRef& params,
-                           TrackInitStateHostVal*        data);
+    // Number of primaries to initialize
+    auto count = min(data->initializers.capacity() - data->initializers.size(),
+                     data->num_primaries);
+    if (count > 0)
+    {
+        data->initializers.resize(data->initializers.size() + count);
+
+        // Allocate memory and copy primaries
+        Collection<Primary, Ownership::value, M> primaries;
+        make_builder(&primaries).resize(count);
+        detail::Copier<Primary, MemSpace::host> copy{
+            params.primaries[ItemRange<Primary>(
+                ItemId<Primary>(data->num_primaries - count),
+                ItemId<Primary>(data->num_primaries))]};
+        copy(M, primaries[AllItems<Primary, M>{}]);
+        data->num_primaries -= count;
+
+        // Create track initializers from primaries
+        detail::process_primaries(primaries[AllItems<Primary, M>{}],
+                                  make_ref(*data));
+    }
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -34,10 +67,9 @@ void extend_from_primaries(const TrackInitParamsHostRef& params,
  * any track initializers remaining from previous steps using the position.
  */
 template<MemSpace M>
-inline void
-initialize_tracks(const ParamsData<Ownership::const_reference, M>& params,
-                  const StateData<Ownership::reference, M>&        states,
-                  TrackInitStateData<Ownership::value, M>*         data)
+void initialize_tracks(const ParamsData<Ownership::const_reference, M>& params,
+                       const StateData<Ownership::reference, M>&        states,
+                       TrackInitStateData<Ownership::value, M>*         data)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
@@ -114,10 +146,10 @@ initialize_tracks(const ParamsData<Ownership::const_reference, M>& params,
    \endverbatim
  */
 template<MemSpace M>
-inline void
-extend_from_secondaries(const ParamsData<Ownership::const_reference, M>& params,
-                        const StateData<Ownership::reference, M>& states,
-                        TrackInitStateData<Ownership::value, M>*  data)
+void extend_from_secondaries(
+    const ParamsData<Ownership::const_reference, M>& params,
+    const StateData<Ownership::reference, M>&        states,
+    TrackInitStateData<Ownership::value, M>*         data)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
