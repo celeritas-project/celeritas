@@ -18,11 +18,6 @@ namespace celeritas
 /*!
  * Host-compiler-friendly vector for uninitialized device-storage data.
  *
- * The device vector's allocation is fixed on construction, but can be resized
- * to a logically smaller space, or assigned (replaced) by a new DeviceVector.
- * As a consequence, no \c resize operation will invalidate \c Span references
- * to device data.
- *
  * This class does *not* perform initialization on the data. The host code must
  * define and copy over suitable data. For more complex data usage (dynamic
  * size increases and assignment without memory reallocation), use \c
@@ -61,16 +56,10 @@ class DeviceVector
     // Swap with another vector
     inline void swap(DeviceVector& other) noexcept;
 
-    // Change the size without changing capacity
-    inline void resize(size_type size);
-
     //// ACCESSORS ////
 
     //! Get the number of elements
     size_type size() const { return size_; }
-
-    //! Get the number of elements that can fit in the allocated storage
-    size_type capacity() const { return capacity_; }
 
     //! Whether any elements are stored
     bool empty() const { return size_ == 0; }
@@ -98,7 +87,6 @@ class DeviceVector
   private:
     DeviceAllocation                    allocation_;
     detail::InitializedValue<size_type> size_;
-    detail::InitializedValue<size_type> capacity_;
 };
 
 // Swap two vectors
