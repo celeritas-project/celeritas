@@ -30,7 +30,8 @@ CELER_FUNCTION RelativisticBremDXsection::RelativisticBremDXsection(
     real_type density_factor = material.electron_density() * migdal_constant();
     density_corr_            = density_factor * ipow<2>(total_energy_);
 
-    lpm_energy_ = material.radiation_length() * lpm_constant().value();
+    lpm_energy_ = material.radiation_length()
+                  * value_as<MevPerCm>(lpm_constant());
     real_type lpm_threshold = lpm_energy_ * std::sqrt(density_factor);
     enable_lpm_ = (shared_.enable_lpm && (total_energy_ > lpm_threshold));
 }
