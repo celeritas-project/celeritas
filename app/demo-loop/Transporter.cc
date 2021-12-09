@@ -25,7 +25,11 @@
 #include "diagnostic/ParticleProcessDiagnostic.hh"
 #include "diagnostic/StepDiagnostic.hh"
 #include "diagnostic/TrackDiagnostic.hh"
-#include "LDemoKernel.hh"
+#include "generated/AlongAndPostStepKernel.hh"
+#include "generated/CleanupKernel.hh"
+#include "generated/PreStepKernel.hh"
+#include "generated/ProcessInteractionsKernel.hh"
+#include "LDemoLauncher.hh"
 
 using namespace demo_loop;
 
@@ -187,8 +191,8 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         // Create new tracks from primaries or secondaries
         initialize_tracks(params_, states_.ref(), &track_init_states);
 
-        demo_loop::pre_step(params_, states_.ref());
-        demo_loop::along_and_post_step(params_, states_.ref());
+        generated::pre_step(params_, states_.ref());
+        generated::along_and_post_step(params_, states_.ref());
 
         // Launch the interaction kernels for all applicable models
         launch_models(input_, params_, states_.ref());
@@ -198,13 +202,13 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         step_diagnostic.mid_step(states_.ref());
 
         // Postprocess secondaries and interaction results
-        demo_loop::process_interactions(params_, states_.ref());
+        generated::process_interactions(params_, states_.ref());
 
         // Create track initializers from surviving secondaries
         extend_from_secondaries(params_, states_.ref(), &track_init_states);
 
         // Clear secondaries
-        demo_loop::cleanup(params_, states_.ref());
+        generated::cleanup(params_, states_.ref());
 
         // Get the number of track initializers and active tracks
         num_alive = input_.max_num_tracks - track_init_states.vacancies.size();

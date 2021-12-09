@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LDemoKernel.hh
+//! \file LDemoLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,25 +17,9 @@
 
 using celeritas::MemSpace;
 using celeritas::Ownership;
-using celeritas::ParamsDeviceRef;
-using celeritas::ParamsHostRef;
-using celeritas::StateDeviceRef;
-using celeritas::StateHostRef;
 
 namespace demo_loop
 {
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-void pre_step(const ParamsDeviceRef&, const StateDeviceRef&);
-void pre_step(const ParamsHostRef&, const StateHostRef&);
-void along_and_post_step(const ParamsDeviceRef&, const StateDeviceRef&);
-void along_and_post_step(const ParamsHostRef&, const StateHostRef&);
-void process_interactions(const ParamsDeviceRef&, const StateDeviceRef&);
-void process_interactions(const ParamsHostRef&, const StateHostRef&);
-void cleanup(const ParamsDeviceRef&, const StateDeviceRef&);
-void cleanup(const ParamsHostRef&, const StateHostRef&);
-
 //---------------------------------------------------------------------------//
 // LAUNCHERS
 //---------------------------------------------------------------------------//
@@ -74,7 +58,9 @@ CDL_LAUNCHER(Cleanup)
 // INLINE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Sample mean free path and calculate physics step limits.
+ * Pre-step logic.
+ *
+ * Sample the mean free path and calculate the physics step limits.
  */
 template<MemSpace M>
 CELER_FUNCTION void PreStepLauncher<M>::operator()(ThreadId tid) const
@@ -105,6 +91,8 @@ CELER_FUNCTION void PreStepLauncher<M>::operator()(ThreadId tid) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Combined along- and post-step logic.
+ *
  * Propagate and process physical changes to the track along the step and
  * select the process/model for discrete interaction.
  */
@@ -150,7 +138,7 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Postprocessing of secondaries and interaction results.
+ * Postprocess secondaries and interaction results.
  */
 template<MemSpace M>
 CELER_FUNCTION void
@@ -186,35 +174,10 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
 template<MemSpace M>
 CELER_FUNCTION void CleanupLauncher<M>::operator()(ThreadId tid) const
 {
-    if (tid.get() == 0)
-    {
-        StackAllocator<Secondary> allocate_secondaries(states_.secondaries);
-        allocate_secondaries.clear();
-    }
+    CELER_ASSERT(tid.get() == 0);
+    StackAllocator<Secondary> allocate_secondaries(states_.secondaries);
+    allocate_secondaries.clear();
 }
-
-//---------------------------------------------------------------------------//
-#if !CELERITAS_USE_CUDA
-inline void pre_step(const ParamsDeviceRef&, const StateDeviceRef&)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
-
-inline void along_and_post_step(const ParamsDeviceRef&, const StateDeviceRef&)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
-
-inline void process_interactions(const ParamsDeviceRef&, const StateDeviceRef&)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
-
-inline void cleanup(const ParamsDeviceRef&, const StateDeviceRef&)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
-#endif
 //---------------------------------------------------------------------------//
 #undef CDL_LAUNCHER
 } // namespace demo_loop

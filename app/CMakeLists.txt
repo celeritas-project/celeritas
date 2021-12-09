@@ -194,21 +194,27 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   set(_cuda_src)
   if(CELERITAS_USE_CUDA)
     set(_cuda_src
-      demo-loop/LDemoKernel.cu
       demo-loop/diagnostic/EnergyDiagnostic.cu
       demo-loop/diagnostic/ParticleProcessDiagnostic.cu
       demo-loop/diagnostic/StepDiagnostic.cu
       demo-loop/diagnostic/TrackDiagnostic.cu
+      demo-loop/generated/AlongAndPostStepKernel.cu
+      demo-loop/generated/CleanupKernel.cu
+      demo-loop/generated/PreStepKernel.cu
+      demo-loop/generated/ProcessInteractionsKernel.cu
     )
   endif()
   celeritas_add_library(celeritas_demo_loop
     demo-loop/LDemoIO.cc
-    demo-loop/LDemoKernel.cc
     demo-loop/Transporter.cc
     demo-loop/diagnostic/EnergyDiagnostic.cc
     demo-loop/diagnostic/ParticleProcessDiagnostic.cc
     demo-loop/diagnostic/StepDiagnostic.cc
     demo-loop/diagnostic/TrackDiagnostic.cc
+    demo-loop/generated/AlongAndPostStepKernel.cc
+    demo-loop/generated/CleanupKernel.cc
+    demo-loop/generated/PreStepKernel.cc
+    demo-loop/generated/ProcessInteractionsKernel.cc
     ${_cuda_src}
   )
   celeritas_target_link_libraries(celeritas_demo_loop
