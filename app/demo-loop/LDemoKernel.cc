@@ -7,12 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "LDemoKernel.hh"
 
-#include "base/StackAllocator.hh"
-#include "physics/base/CutoffView.hh"
-#include "random/RngEngine.hh"
-#include "sim/SimTrackView.hh"
-#include "KernelUtils.hh"
-
 using namespace celeritas;
 
 namespace demo_loop
@@ -25,32 +19,12 @@ namespace demo_loop
  */
 void pre_step(const ParamsHostRef& params, const StateHostRef& states)
 {
+    PreStepLauncher<MemSpace::host> launch(params, states);
+
 #pragma omp parallel for
     for (size_type i = 0; i < states.size(); ++i)
     {
-        ThreadId tid{i};
-
-        // Clear out energy deposition
-        states.energy_deposition[tid] = 0;
-
-        SimTrackView sim(states.sim, tid);
-        if (!sim.alive())
-            continue;
-
-        ParticleTrackView particle(params.particles, states.particles, tid);
-        GeoTrackView      geo(params.geometry, states.geometry, tid);
-        GeoMaterialView   geo_mat(params.geo_mats);
-        MaterialTrackView mat(params.materials, states.materials, tid);
-        PhysicsTrackView  phys(params.physics,
-                              states.physics,
-                              particle.particle_id(),
-                              geo_mat.material_id(geo.volume_id()),
-                              tid);
-        RngEngine         rng(states.rng, ThreadId(tid));
-
-        // Sample mfp and calculate minimum step (interaction or step-limited)
-        demo_loop::calc_step_limits(
-            mat, particle, phys, sim, rng, &states.interactions[tid]);
+        launch(ThreadId{i});
     }
 }
 
@@ -62,43 +36,12 @@ void pre_step(const ParamsHostRef& params, const StateHostRef& states)
 void along_and_post_step(const ParamsHostRef& params,
                          const StateHostRef&  states)
 {
+    AlongAndPostStepLauncher<MemSpace::host> launch(params, states);
+
 #pragma omp parallel for
     for (size_type i = 0; i < states.size(); ++i)
     {
-        ThreadId     tid{i};
-        SimTrackView sim(states.sim, tid);
-        if (!sim.alive())
-        {
-            // Clear the model ID so inactive tracks will exit the interaction
-            // kernels
-            PhysicsTrackView phys(params.physics, states.physics, {}, {}, tid);
-            phys.model_id({});
-            continue;
-        }
-
-        ParticleTrackView particle(params.particles, states.particles, tid);
-        GeoTrackView      geo(params.geometry, states.geometry, tid);
-        GeoMaterialView   geo_mat(params.geo_mats);
-        MaterialTrackView mat(params.materials, states.materials, tid);
-        PhysicsTrackView  phys(params.physics,
-                              states.physics,
-                              particle.particle_id(),
-                              geo_mat.material_id(geo.volume_id()),
-                              tid);
-        CutoffView        cutoffs(params.cutoffs, mat.material_id());
-        RngEngine         rng(states.rng, ThreadId(tid));
-
-        // Propagate, calculate energy loss, and select model
-        demo_loop::move_and_select_model(cutoffs,
-                                         geo_mat,
-                                         geo,
-                                         mat,
-                                         particle,
-                                         phys,
-                                         sim,
-                                         rng,
-                                         &states.energy_deposition[tid],
-                                         &states.interactions[tid]);
+        launch(ThreadId{i});
     }
 }
 
@@ -109,30 +52,12 @@ void along_and_post_step(const ParamsHostRef& params,
 void process_interactions(const ParamsHostRef& params,
                           const StateHostRef&  states)
 {
+    ProcessInteractionsLauncher<MemSpace::host> launch(params, states);
+
 #pragma omp parallel for
     for (size_type i = 0; i < states.size(); ++i)
     {
-        ThreadId     tid{i};
-        SimTrackView sim(states.sim, tid);
-        if (!sim.alive())
-            continue;
-
-        ParticleTrackView particle(params.particles, states.particles, tid);
-        GeoTrackView      geo(params.geometry, states.geometry, tid);
-        GeoMaterialView   geo_mat(params.geo_mats);
-        PhysicsTrackView  phys(params.physics,
-                              states.physics,
-                              particle.particle_id(),
-                              geo_mat.material_id(geo.volume_id()),
-                              tid);
-
-        // Apply interaction change
-        demo_loop::post_process(geo,
-                                particle,
-                                phys,
-                                sim,
-                                &states.energy_deposition[tid],
-                                states.interactions[tid]);
+        launch(ThreadId{i});
     }
 }
 
@@ -143,8 +68,8 @@ void process_interactions(const ParamsHostRef& params,
 void cleanup(CELER_MAYBE_UNUSED const ParamsHostRef& params,
              const StateHostRef&                     states)
 {
-    StackAllocator<Secondary> allocate_secondaries(states.secondaries);
-    allocate_secondaries.clear();
+    CleanupLauncher<MemSpace::host> launch(params, states);
+    launch(ThreadId{0});
 }
 
 //---------------------------------------------------------------------------//

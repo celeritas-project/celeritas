@@ -8,11 +8,6 @@
 #include "LDemoKernel.hh"
 
 #include "base/KernelParamCalculator.cuda.hh"
-#include "base/StackAllocator.hh"
-#include "physics/base/CutoffView.hh"
-#include "random/RngEngine.hh"
-#include "sim/SimTrackView.hh"
-#include "KernelUtils.hh"
 
 using namespace celeritas;
 
@@ -33,27 +28,8 @@ pre_step_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     if (tid.get() >= states.size())
         return;
 
-    // Clear out energy deposition
-    states.energy_deposition[tid] = 0;
-
-    SimTrackView sim(states.sim, tid);
-    if (!sim.alive())
-        return;
-
-    ParticleTrackView particle(params.particles, states.particles, tid);
-    GeoTrackView      geo(params.geometry, states.geometry, tid);
-    GeoMaterialView   geo_mat(params.geo_mats);
-    MaterialTrackView mat(params.materials, states.materials, tid);
-    PhysicsTrackView  phys(params.physics,
-                          states.physics,
-                          particle.particle_id(),
-                          geo_mat.material_id(geo.volume_id()),
-                          tid);
-    RngEngine         rng(states.rng, ThreadId(tid));
-
-    // Sample mfp and calculate minimum step (interaction or step-limited)
-    demo_loop::calc_step_limits(
-        mat, particle, phys, sim, rng, &states.interactions[tid]);
+    PreStepLauncher<MemSpace::device> launch(params, states);
+    launch(tid);
 }
 
 //---------------------------------------------------------------------------//
@@ -68,39 +44,8 @@ __global__ void along_and_post_step_kernel(ParamsDeviceRef const params,
     if (tid.get() >= states.size())
         return;
 
-    SimTrackView sim(states.sim, tid);
-    if (!sim.alive())
-    {
-        // Clear the model ID so inactive tracks will exit the interaction
-        // kernels
-        PhysicsTrackView phys(params.physics, states.physics, {}, {}, tid);
-        phys.model_id({});
-        return;
-    }
-
-    ParticleTrackView particle(params.particles, states.particles, tid);
-    GeoTrackView      geo(params.geometry, states.geometry, tid);
-    GeoMaterialView   geo_mat(params.geo_mats);
-    MaterialTrackView mat(params.materials, states.materials, tid);
-    PhysicsTrackView  phys(params.physics,
-                          states.physics,
-                          particle.particle_id(),
-                          geo_mat.material_id(geo.volume_id()),
-                          tid);
-    CutoffView        cutoffs(params.cutoffs, mat.material_id());
-    RngEngine         rng(states.rng, ThreadId(tid));
-
-    // Propagate, calculate energy loss, and select model
-    demo_loop::move_and_select_model(cutoffs,
-                                     geo_mat,
-                                     geo,
-                                     mat,
-                                     particle,
-                                     phys,
-                                     sim,
-                                     rng,
-                                     &states.energy_deposition[tid],
-                                     &states.interactions[tid]);
+    AlongAndPostStepLauncher<MemSpace::device> launch(params, states);
+    launch(tid);
 }
 
 //---------------------------------------------------------------------------//
@@ -114,26 +59,8 @@ __global__ void process_interactions_kernel(ParamsDeviceRef const params,
     if (tid.get() >= states.size())
         return;
 
-    SimTrackView sim(states.sim, tid);
-    if (!sim.alive())
-        return;
-
-    ParticleTrackView particle(params.particles, states.particles, tid);
-    GeoTrackView      geo(params.geometry, states.geometry, tid);
-    GeoMaterialView   geo_mat(params.geo_mats);
-    PhysicsTrackView  phys(params.physics,
-                          states.physics,
-                          particle.particle_id(),
-                          geo_mat.material_id(geo.volume_id()),
-                          tid);
-
-    // Apply interaction change
-    demo_loop::post_process(geo,
-                            particle,
-                            phys,
-                            sim,
-                            &states.energy_deposition[tid],
-                            states.interactions[tid]);
+    ProcessInteractionsLauncher<MemSpace::device> launch(params, states);
+    launch(tid);
 }
 
 //---------------------------------------------------------------------------//
@@ -144,12 +71,11 @@ __global__ void
 cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
-    StackAllocator<Secondary> allocate_secondaries(states.secondaries);
+    if (tid.get() >= states.size())
+        return;
 
-    if (tid.get() == 0)
-    {
-        allocate_secondaries.clear();
-    }
+    CleanupLauncher<MemSpace::device> launch(params, states);
+    launch(tid);
 }
 
 } // namespace
