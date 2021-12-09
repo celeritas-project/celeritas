@@ -167,10 +167,6 @@ if(CELERITAS_USE_VecGeom)
     list(APPEND SOURCES
       sim/detail/InitializeTracks.cu
     )
-  else()
-    list(APPEND SOURCES
-      sim/detail/InitializeTracks.nocuda.cc
-    )
   endif()
 endif()
 

@@ -7,17 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "InitializeTracks.hh"
 
-#include <numeric>
-#include "base/Atomics.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-#include "geometry/GeoMaterialView.hh"
-#include "geometry/GeoTrackView.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "sim/SimTrackView.hh"
 #include "sim/TrackInitData.hh"
+#include "TrackInitLauncher.hh"
 
 namespace celeritas
 {
@@ -32,8 +25,7 @@ void init_tracks(const ParamsHostRef&         params,
                  const TrackInitStateHostRef& data)
 {
     // Number of vacancies, limited by the initializer size
-    auto num_vacancies
-        = std::min(data.vacancies.size(), data.initializers.size());
+    auto num_vacancies = min(data.vacancies.size(), data.initializers.size());
 
     InitTracksLauncher<MemSpace::host> launch(params, states, data);
     for (auto tid : range(ThreadId{num_vacancies}))

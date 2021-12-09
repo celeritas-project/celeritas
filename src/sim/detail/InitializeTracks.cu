@@ -12,6 +12,7 @@
 #include <thrust/remove.h>
 #include <thrust/scan.h>
 #include "base/KernelParamCalculator.cuda.hh"
+#include "TrackInitLauncher.hh"
 
 namespace celeritas
 {
@@ -91,6 +92,17 @@ __global__ void process_secondaries_kernel(const ParamsDeviceRef params,
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
+#define LAUNCH_KERNEL(NAME, THREADS, ARGS...)                                \
+    do                                                                       \
+    {                                                                        \
+        static const KernelParamCalculator NAME##_ckp(NAME##_kernel, #NAME); \
+        auto                               kp = NAME##_ckp(THREADS);         \
+                                                                             \
+        NAME##_kernel<<<kp.grid_size, kp.block_size>>>(ARGS);                \
+        CELER_CUDA_CHECK_ERROR();                                            \
+    } while (0)
+
+//---------------------------------------------------------------------------//
 /*!
  * Initialize the track states on device.
  */
@@ -101,13 +113,7 @@ void init_tracks(const ParamsDeviceRef&         params,
     // Number of vacancies, limited by the initializer size
     auto num_vacancies = min(data.vacancies.size(), data.initializers.size());
 
-    // Initialize tracks on device
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        init_tracks_kernel, "init_tracks");
-    auto lparams = calc_launch_params(num_vacancies);
-    init_tracks_kernel<<<lparams.grid_size, lparams.block_size>>>(
-        params, states, data);
-    CELER_CUDA_CHECK_ERROR();
+    LAUNCH_KERNEL(init_tracks, num_vacancies, params, states, data);
 }
 
 //---------------------------------------------------------------------------//
@@ -118,12 +124,7 @@ void locate_alive(const ParamsDeviceRef&         params,
                   const StateDeviceRef&          states,
                   const TrackInitStateDeviceRef& data)
 {
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        locate_alive_kernel, "locate_alive");
-    auto lparams = calc_launch_params(states.size());
-    locate_alive_kernel<<<lparams.grid_size, lparams.block_size>>>(
-        params, states, data);
-    CELER_CUDA_CHECK_ERROR();
+    LAUNCH_KERNEL(locate_alive, states.size(), params, states, data);
 }
 
 //---------------------------------------------------------------------------//
@@ -135,12 +136,7 @@ void process_primaries(Span<const Primary>            primaries,
 {
     CELER_EXPECT(primaries.size() <= data.initializers.size());
 
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        process_primaries_kernel, "process_primaries");
-    auto lparams = calc_launch_params(primaries.size());
-    process_primaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
-        primaries, data);
-    CELER_CUDA_CHECK_ERROR();
+    LAUNCH_KERNEL(process_primaries, primaries.size(), primaries, data);
 }
 
 //---------------------------------------------------------------------------//
@@ -154,12 +150,7 @@ void process_secondaries(const ParamsDeviceRef&         params,
     CELER_EXPECT(states.size() <= data.secondary_counts.size());
     CELER_EXPECT(states.size() <= states.interactions.size());
 
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        process_secondaries_kernel, "process_secondaries");
-    auto lparams = calc_launch_params(states.size());
-    process_secondaries_kernel<<<lparams.grid_size, lparams.block_size>>>(
-        params, states, data);
-    CELER_CUDA_CHECK_ERROR();
+    LAUNCH_KERNEL(process_secondaries, states.size(), params, states, data);
 }
 
 //---------------------------------------------------------------------------//
@@ -220,5 +211,6 @@ void exclusive_scan_counts<MemSpace::device>(Span<size_type> counts)
 }
 
 //---------------------------------------------------------------------------//
+#undef LAUNCH_KERNEL
 } // namespace detail
 } // namespace celeritas
