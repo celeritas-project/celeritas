@@ -38,7 +38,8 @@ class RootImporterTest : public celeritas::Test
   protected:
     void SetUp() override
     {
-        root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
+        root_filename_
+            = this->test_data_path("io", "../../../build/app/out.root");
 
         RootImporter import_from_root(root_filename_.c_str());
         data_ = import_from_root();
@@ -245,7 +246,7 @@ TEST_F(RootImporterTest, processes)
         EXPECT_SOFT_EQ(8786971.3079055995, steel.y.back());
     }
     {
-        // Test cross section table
+        // Test cross-section table
         const ImportPhysicsTable& xs = tables[2];
         ASSERT_EQ(ImportTableType::lambda, xs.table_type);
         EXPECT_EQ(ImportUnits::mev, xs.x_units);
@@ -261,6 +262,51 @@ TEST_F(RootImporterTest, processes)
         EXPECT_SOFT_EQ(0, steel.y.front());
         EXPECT_SOFT_EQ(0.18987862452122845, steel.y[1]);
         EXPECT_SOFT_EQ(0.43566778103861714, steel.y.back());
+    }
+    {
+        // Test element selector cross-section table
+        EXPECT_EQ(iter->models.size(), iter->element_selectors.size());
+
+        // Current iter points to Moller-Bhabha
+        const auto& mb_es_pair
+            = iter->element_selectors.find(iter->models.front());
+        const auto& mb_element_selector = mb_es_pair->second;
+
+        EXPECT_EQ(ImportModelClass::moller_bhabha, mb_es_pair->first);
+        EXPECT_EQ(1, mb_element_selector.size());
+
+        const auto& mb_physvec_map = mb_element_selector.front();
+        EXPECT_EQ(3, mb_physvec_map.size());
+
+        std::vector<double> element_id_list;
+        std::vector<double> element_physvec_x_size, element_physvec_y_size;
+        std::vector<double> element_physvec_x_back, element_physvec_y_back;
+        for (const auto& pair : mb_physvec_map)
+        {
+            const auto& phys_vec = pair.second;
+
+            element_id_list.push_back(pair.first);
+            element_physvec_x_size.push_back(phys_vec.x.size());
+            element_physvec_y_size.push_back(phys_vec.y.size());
+            element_physvec_x_back.push_back(phys_vec.x.back());
+            element_physvec_y_back.push_back(phys_vec.y.back());
+        }
+
+        static const double expected_element_id_list[]        = {0, 1, 2};
+        static const double expected_element_physvec_x_size[] = {9, 9, 9};
+        static const double expected_element_physvec_x_back[]
+            = {1e+08, 1e+08, 1e+08};
+        static const double expected_element_physvec_y_back[]
+            = {0.74573643410853, 0.91317829457364, 43.566778103862};
+
+        EXPECT_VEC_EQ(expected_element_id_list, element_id_list);
+        EXPECT_VEC_EQ(element_physvec_x_size, element_physvec_y_size);
+        EXPECT_VEC_SOFT_EQ(expected_element_physvec_x_size,
+                           element_physvec_x_size);
+        EXPECT_VEC_SOFT_EQ(expected_element_physvec_x_back,
+                           element_physvec_x_back);
+        EXPECT_VEC_SOFT_EQ(expected_element_physvec_y_back,
+                           element_physvec_y_back);
     }
 }
 

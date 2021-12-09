@@ -279,6 +279,7 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
     process_.particle_pdg  = particle.GetPDGEncoding();
     process_.models.clear();
     process_.tables.clear();
+    process_.element_selectors.clear();
 
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
     {
@@ -318,22 +319,20 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 {
 #if CELERITAS_G4_V10
-    process_.element_selectors.resize(process.GetNumberOfModels());
-
     for (auto i : celeritas::range(process.GetNumberOfModels()))
 #else
-    process_.element_selectors.resize(process.NumberOfModels());
-
     for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
-        // Save model list
-        process_.models.push_back(
-            to_import_model(process.GetModelByIndex(i)->GetName()));
+        auto&      model          = *process.GetModelByIndex(i);
+        const auto model_class_id = to_import_model(model.GetName());
 
-        // Save cross section tables as in G4EmElementSelector
-        process_.element_selectors[i]
-            = this->add_element_selector_xs(*process.GetModelByIndex(i));
+        // Save model list
+        process_.models.push_back(model_class_id);
+
+        // Save element-selector data
+        process_.element_selectors.insert(
+            {model_class_id, this->add_element_selector_xs(model)});
     }
 
     // Save potential tables
@@ -355,8 +354,15 @@ void ImportProcessConverter::store_energy_loss_tables(
 {
     for (auto i : celeritas::range(process.NumberOfModels()))
     {
-        process_.models.push_back(
-            to_import_model(process.GetModelByIndex(i)->GetName()));
+        auto&      model          = *process.GetModelByIndex(i);
+        const auto model_class_id = to_import_model(model.GetName());
+
+        // Save model list
+        process_.models.push_back(model_class_id);
+
+        // Save element-selector data
+        process_.element_selectors.insert(
+            {model_class_id, this->add_element_selector_xs(model)});
     }
 
     if (process.IsIonisationProcess())
@@ -368,6 +374,7 @@ void ImportProcessConverter::store_energy_loss_tables(
         this->add_table(process.DEDXTable(), ImportTableType::dedx);
         this->add_table(process.RangeTableForLoss(), ImportTableType::range);
     }
+
     this->add_table(process.LambdaTable(), ImportTableType::lambda);
 
     if (which_tables_ > TableSelection::minimal)
@@ -384,10 +391,12 @@ void ImportProcessConverter::store_energy_loss_tables(
             this->add_table(process.IonisationTable(),
                             ImportTableType::dedx_process);
         }
+
         else
         {
             this->add_table(process.DEDXTable(), ImportTableType::dedx_process);
         }
+
 #if CELERITAS_G4_V10
         this->add_table(process.DEDXTableForSubsec(),
                         ImportTableType::dedx_subsec);
@@ -395,6 +404,7 @@ void ImportProcessConverter::store_energy_loss_tables(
                         ImportTableType::ionization_subsec);
         this->add_table(process.SubLambdaTable(), ImportTableType::sublambda);
 #endif
+
         this->add_table(process.DEDXunRestrictedTable(),
                         ImportTableType::dedx_unrestricted);
         this->add_table(process.CSDARangeTable(), ImportTableType::csda_range);
@@ -538,20 +548,21 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
 {
     CELER_ASSERT(materials_.size());
 
-    ImportProcess::ElementSelector element_selector;
-    element_selector.resize(materials_.size());
-
     // Geant4 particle definition, needed for ComputeCrossSectionPerAtom(...)
     const G4ParticleDefinition& g4_particle_def
         = *G4ParticleTable::GetParticleTable()->FindParticle(
             process_.particle_pdg);
-
-    CELER_LOG(info) << "MODEL ELEMENT SELECTOR " << model.GetName();
+    ImportProcess::ElementSelector element_selector;
 
     for (int mat_id : celeritas::range(materials_.size()))
     {
         const auto& material = materials_.at(mat_id);
-        CELER_LOG(info) << "  material " << mat_id << " - " << material.name;
+
+        if (material.elements.size() == 1)
+        {
+            // Single-element materials do not need element selectors
+            continue;
+        }
 
         ImportProcess::ElementPhysicsVectorMap element_xs_map;
 
@@ -565,7 +576,8 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
         }
 
         // All physics vectors have the same energy grid for the same material
-        const auto& energy_grid = element_xs_map.begin()->second.x;
+        const auto& energy_grid     = element_xs_map.begin()->second.x;
+        auto&       g4_nist_manager = *G4NistManager::Instance();
 
         for (int bin_idx : celeritas::range(energy_grid.size()))
         {
@@ -583,7 +595,7 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
                     0.0,
                     model.ComputeCrossSectionPerAtom(
                         &g4_particle_def,
-                        G4NistManager::Instance()->FindOrBuildElement(
+                        g4_nist_manager.FindOrBuildElement(
                             element.atomic_number),
                         energy_bin_value,
                         material.pdg_cutoffs.find(process_.particle_pdg)
@@ -614,17 +626,17 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
             auto& phys_vector
                 = element_xs_map.find(elem_comp.element_id)->second;
 
-            if (phys_vector.y[0] == 0.0)
+            if (phys_vector.y.front() == 0.0)
             {
                 // Cross-section starts with null, use next bin value
-                phys_vector.y[0] = phys_vector.y[1];
+                phys_vector.y.front() = phys_vector.y[1];
             }
 
             const int last_bin = phys_vector.y.size() - 1;
-            if (phys_vector.y[last_bin] == 0.0)
+            if (phys_vector.y.back() == 0.0)
             {
                 // Cross-section ends with null, use previous bin value
-                phys_vector.y[last_bin] = phys_vector.y[last_bin - 1];
+                phys_vector.y.back() = phys_vector.y[last_bin - 1];
             }
         }
 
@@ -643,6 +655,7 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
 
             for (auto& iter : element_xs_map)
             {
+                // TODO: double check this statement
                 if (iter.first == std::prev(element_xs_map.end())->first)
                 {
                     break;
@@ -653,18 +666,6 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
 
         // Store element cross-section map for this material
         element_selector.push_back(element_xs_map);
-
-        for (auto& iter : element_xs_map)
-        {
-            const auto element = elements_.at(iter.first);
-            CELER_LOG(info) << "  " << iter.first << " - " << element.name;
-            const auto& phys_vec = iter.second;
-            for (int i : celeritas::range(phys_vec.x.size()))
-            {
-                CELER_LOG(info)
-                    << "    " << phys_vec.x.at(i) << ", " << phys_vec.y.at(i);
-            };
-        }
     }
 
     return element_selector;
