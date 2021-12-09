@@ -33,11 +33,9 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * This is a combination of the Seltzer-Berger model and the relativistic
- * bremsstrahlung model for electrons and positorons bremsstrahlung processes.
- *
+ * A combined bremsstrahlung interactor consisted of the Seltzer-Berger
+ * interactor at the low energy (< 1 GeV) and the relativistic bremsstrahlung
+ * interactor at the high energy for the e-/e+ bremsstrahlung process.
  */
 class CombinedBremInteractor
 {
