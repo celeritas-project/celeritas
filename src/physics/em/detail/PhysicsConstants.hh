@@ -21,10 +21,15 @@ namespace detail
  *
  * Derived constants    | Unit                  | Notes
  * -------------------- | --------------------- | ------------
- * electron_mass_c2()   | g * (m/s)^2           |
+ * electron_mass_c2()   | g * (cm/s)^2          |
  * migdal_constant()    | cm^3                  | Bremsstrahlung
- * lpm_constant()       | MeV/cm                | Relativistic Bremsstrahlung
+ * lpm_constant()       | Mev/cm                | Relativistic Bremsstrahlung
  */
+
+//!@{
+//! Type aliases
+using MevPerCm = Quantity<UnitDivide<units::Mev, units::NativeUnit>>;
+//!@}
 
 //!@{
 //! Constant functions
@@ -43,13 +48,14 @@ CELER_CONSTEXPR_FUNCTION real_type migdal_constant()
     return 4 * pi * r_electron * lambdabar_electron * lambdabar_electron;
 }
 
-CELER_CONSTEXPR_FUNCTION real_type lpm_constant()
+CELER_CONSTEXPR_FUNCTION MevPerCm lpm_constant()
 {
     using namespace constants;
     using namespace units;
 
-    return alpha_fine_structure * electron_mass_c2() * electron_mass_c2()
-           / (2 * h_planck * c_light);
+    return native_value_to<MevPerCm>(alpha_fine_structure * electron_mass_c2()
+                                     * electron_mass_c2()
+                                     / (2 * h_planck * c_light));
 }
 //!@}
 
