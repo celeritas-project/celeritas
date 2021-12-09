@@ -10,10 +10,11 @@
 #include "physics/base/Units.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/ParticleTrackView.hh"
-
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
+
+#include "random/distributions/ReciprocalDistribution.hh"
 
 #include "RelativisticBremData.hh"
 #include "RelativisticBremDXsection.hh"
@@ -49,6 +50,8 @@ class RBEnergySampler
     inline CELER_FUNCTION Energy operator()(Engine& rng);
 
   private:
+    using ReciprocalSampler = ReciprocalDistribution<real_type>;
+
     //// DATA ////
     // Shared data
     const RelativisticBremNativeRef& shared_;

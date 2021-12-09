@@ -44,19 +44,18 @@ CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy
     Energy tmax = min(shared_.high_energy_limit(), inc_energy_);
 
     real_type density_corr = dxsec_.density_correction();
-    real_type xmin         = std::log(ipow<2>(tmin.value()) + density_corr);
-    real_type xrange = std::log(ipow<2>(tmax.value()) + density_corr) - xmin;
+
+    ReciprocalSampler sample_exit_esq(ipow<2>(tmin.value()) + density_corr,
+                                      ipow<2>(tmax.value()) + density_corr);
 
     real_type gamma_energy{0};
     real_type dsigma{0};
 
     do
     {
-        gamma_energy = std::sqrt(max(
-            real_type(0),
-            std::exp(xmin + generate_canonical(rng) * xrange) - density_corr));
+        gamma_energy = std::sqrt(sample_exit_esq(rng) - density_corr);
         dsigma       = dxsec_(gamma_energy);
-    } while (dsigma < dxsec_.maximum_value() * generate_canonical(rng));
+    } while (!BernoulliDistribution(dsigma / dxsec_.maximum_value())(rng));
 
     return units::MevEnergy{gamma_energy};
 }

@@ -346,7 +346,7 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
     }
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
-    EXPECT_DOUBLE_EQ(average_energy / num_samples, 2932.1072998587779);
+    EXPECT_DOUBLE_EQ(average_energy / num_samples, 2932.1072998587733);
     EXPECT_DOUBLE_EQ(average_angle[0] / num_samples, 3.3286986548662216e-06);
     EXPECT_DOUBLE_EQ(average_angle[1] / num_samples, 1.3067055198983571e-06);
     EXPECT_DOUBLE_EQ(average_angle[2] / num_samples, 0.99999999899845182);
