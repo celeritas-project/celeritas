@@ -45,7 +45,7 @@ RelativisticBremInteractor::RelativisticBremInteractor(
     CELER_EXPECT(gamma_cutoff_ > zero_quantity());
 
     // Valid energy region of the relativistic e-/e+ Bremsstrahlung model
-    CELER_EXPECT(inc_energy_ > shared_.low_energy_limit());
+    CELER_EXPECT(inc_energy_ > seltzer_berger_limit());
 }
 
 //---------------------------------------------------------------------------//

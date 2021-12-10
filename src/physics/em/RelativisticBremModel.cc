@@ -15,6 +15,7 @@
 #include "base/CollectionBuilder.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/em/detail/PhysicsConstants.hh"
 #include "physics/em/detail/RelativisticBremData.hh"
 #include "physics/em/generated/RelativisticBremInteract.hh"
 
@@ -65,8 +66,8 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
 {
     Applicability electron_brem;
     electron_brem.particle = this->host_ref().ids.electron;
-    electron_brem.lower    = this->host_ref().low_energy_limit();
-    electron_brem.upper    = this->host_ref().high_energy_limit();
+    electron_brem.lower    = detail::seltzer_berger_limit();
+    electron_brem.upper    = detail::high_energy_limit();
 
     Applicability positron_brem = electron_brem;
     positron_brem.particle      = this->host_ref().ids.positron;
