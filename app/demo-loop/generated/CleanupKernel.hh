@@ -13,14 +13,18 @@ namespace demo_loop
 {
 namespace generated
 {
-void cleanup(const celeritas::ParamsHostRef&, const celeritas::StateHostRef&);
+void cleanup(
+    const celeritas::ParamsHostRef&,
+    const celeritas::StateHostRef&);
 
-void cleanup(const celeritas::ParamsDeviceRef&,
-             const celeritas::StateDeviceRef&);
+void cleanup(
+    const celeritas::ParamsDeviceRef&,
+    const celeritas::StateDeviceRef&);
 
 #if !CELERITAS_USE_CUDA
-inline void
-cleanup(const celeritas::ParamsDeviceRef&, const celeritas::StateDeviceRef&)
+inline void cleanup(
+    const celeritas::ParamsDeviceRef&,
+    const celeritas::StateDeviceRef&)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

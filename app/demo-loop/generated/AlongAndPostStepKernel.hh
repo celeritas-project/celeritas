@@ -13,15 +13,18 @@ namespace demo_loop
 {
 namespace generated
 {
-void along_and_post_step(const celeritas::ParamsHostRef&,
-                         const celeritas::StateHostRef&);
+void along_and_post_step(
+    const celeritas::ParamsHostRef&,
+    const celeritas::StateHostRef&);
 
-void along_and_post_step(const celeritas::ParamsDeviceRef&,
-                         const celeritas::StateDeviceRef&);
+void along_and_post_step(
+    const celeritas::ParamsDeviceRef&,
+    const celeritas::StateDeviceRef&);
 
 #if !CELERITAS_USE_CUDA
-inline void along_and_post_step(const celeritas::ParamsDeviceRef&,
-                                const celeritas::StateDeviceRef&)
+inline void along_and_post_step(
+    const celeritas::ParamsDeviceRef&,
+    const celeritas::StateDeviceRef&)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

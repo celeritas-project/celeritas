@@ -13,15 +13,18 @@ namespace demo_loop
 {
 namespace generated
 {
-void process_interactions(const celeritas::ParamsHostRef&,
-                          const celeritas::StateHostRef&);
+void process_interactions(
+    const celeritas::ParamsHostRef&,
+    const celeritas::StateHostRef&);
 
-void process_interactions(const celeritas::ParamsDeviceRef&,
-                          const celeritas::StateDeviceRef&);
+void process_interactions(
+    const celeritas::ParamsDeviceRef&,
+    const celeritas::StateDeviceRef&);
 
 #if !CELERITAS_USE_CUDA
-inline void process_interactions(const celeritas::ParamsDeviceRef&,
-                                 const celeritas::StateDeviceRef&)
+inline void process_interactions(
+    const celeritas::ParamsDeviceRef&,
+    const celeritas::StateDeviceRef&)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

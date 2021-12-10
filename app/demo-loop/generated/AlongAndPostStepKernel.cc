@@ -16,14 +16,15 @@ namespace demo_loop
 {
 namespace generated
 {
-void along_and_post_step(const ParamsHostRef& params,
-                         const StateHostRef&  states)
+void along_and_post_step(
+    const ParamsHostRef& params,
+    const StateHostRef& states)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
 
     AlongAndPostStepLauncher<MemSpace::host> launch(params, states);
-#pragma omp parallel for
+    #pragma omp parallel for
     for (size_type i = 0; i < states.size(); ++i)
     {
         launch(ThreadId{i});

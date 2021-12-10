@@ -19,8 +19,9 @@ namespace generated
 {
 namespace
 {
-__global__ void
-cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
+__global__ void cleanup_kernel(
+    ParamsDeviceRef const params,
+    StateDeviceRef const states)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < 1))
@@ -31,15 +32,18 @@ cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 }
 } // namespace
 
-void cleanup(const celeritas::ParamsDeviceRef& params,
-             const celeritas::StateDeviceRef&  states)
+void cleanup(
+    const celeritas::ParamsDeviceRef& params,
+    const celeritas::StateDeviceRef& states)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
 
-    static const KernelParamCalculator cleanup_ckp(cleanup_kernel, "cleanup");
-    auto                               kp = cleanup_ckp(1);
-    cleanup_kernel<<<kp.grid_size, kp.block_size>>>(params, states);
+    static const KernelParamCalculator cleanup_ckp(
+        cleanup_kernel, "cleanup");
+    auto kp = cleanup_ckp(1);
+    cleanup_kernel<<<kp.grid_size, kp.block_size>>>(
+        params, states);
     CELER_CUDA_CHECK_ERROR();
 }
 

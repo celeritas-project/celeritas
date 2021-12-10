@@ -16,13 +16,15 @@ namespace demo_loop
 {
 namespace generated
 {
-void cleanup(const ParamsHostRef& params, const StateHostRef& states)
+void cleanup(
+    const ParamsHostRef& params,
+    const StateHostRef& states)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
 
     CleanupLauncher<MemSpace::host> launch(params, states);
-#pragma omp parallel for
+    #pragma omp parallel for
     for (size_type i = 0; i < 1; ++i)
     {
         launch(ThreadId{i});

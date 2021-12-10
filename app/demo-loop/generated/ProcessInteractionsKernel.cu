@@ -19,8 +19,9 @@ namespace generated
 {
 namespace
 {
-__global__ void process_interactions_kernel(ParamsDeviceRef const params,
-                                            StateDeviceRef const  states)
+__global__ void process_interactions_kernel(
+    ParamsDeviceRef const params,
+    StateDeviceRef const states)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
@@ -31,8 +32,9 @@ __global__ void process_interactions_kernel(ParamsDeviceRef const params,
 }
 } // namespace
 
-void process_interactions(const celeritas::ParamsDeviceRef& params,
-                          const celeritas::StateDeviceRef&  states)
+void process_interactions(
+    const celeritas::ParamsDeviceRef& params,
+    const celeritas::StateDeviceRef& states)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
@@ -40,8 +42,8 @@ void process_interactions(const celeritas::ParamsDeviceRef& params,
     static const KernelParamCalculator process_interactions_ckp(
         process_interactions_kernel, "process_interactions");
     auto kp = process_interactions_ckp(states.size());
-    process_interactions_kernel<<<kp.grid_size, kp.block_size>>>(params,
-                                                                 states);
+    process_interactions_kernel<<<kp.grid_size, kp.block_size>>>(
+        params, states);
     CELER_CUDA_CHECK_ERROR();
 }
 

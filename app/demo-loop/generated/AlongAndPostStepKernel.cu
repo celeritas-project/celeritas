@@ -19,8 +19,9 @@ namespace generated
 {
 namespace
 {
-__global__ void along_and_post_step_kernel(ParamsDeviceRef const params,
-                                           StateDeviceRef const  states)
+__global__ void along_and_post_step_kernel(
+    ParamsDeviceRef const params,
+    StateDeviceRef const states)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
@@ -31,8 +32,9 @@ __global__ void along_and_post_step_kernel(ParamsDeviceRef const params,
 }
 } // namespace
 
-void along_and_post_step(const celeritas::ParamsDeviceRef& params,
-                         const celeritas::StateDeviceRef&  states)
+void along_and_post_step(
+    const celeritas::ParamsDeviceRef& params,
+    const celeritas::StateDeviceRef& states)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
@@ -40,7 +42,8 @@ void along_and_post_step(const celeritas::ParamsDeviceRef& params,
     static const KernelParamCalculator along_and_post_step_ckp(
         along_and_post_step_kernel, "along_and_post_step");
     auto kp = along_and_post_step_ckp(states.size());
-    along_and_post_step_kernel<<<kp.grid_size, kp.block_size>>>(params, states);
+    along_and_post_step_kernel<<<kp.grid_size, kp.block_size>>>(
+        params, states);
     CELER_CUDA_CHECK_ERROR();
 }
 
