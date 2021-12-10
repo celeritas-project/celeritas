@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "InitializeTracks.hh"
 
-#include "base/Range.hh"
 #include "InitTracksLauncher.hh"
 #include "LocateAliveLauncher.hh"
 #include "ProcessPrimariesLauncher.hh"
@@ -29,9 +28,10 @@ void init_tracks(const ParamsHostRef&         params,
     auto num_vacancies = min(data.vacancies.size(), data.initializers.size());
 
     InitTracksLauncher<MemSpace::host> launch(params, states, data);
-    for (auto tid : range(ThreadId{num_vacancies}))
+#pragma omp parallel for
+    for (size_type i = 0; i < num_vacancies; ++i)
     {
-        launch(tid);
+        launch(ThreadId{i});
     }
 }
 
@@ -44,9 +44,10 @@ void locate_alive(const ParamsHostRef&         params,
                   const TrackInitStateHostRef& data)
 {
     LocateAliveLauncher<MemSpace::host> launch(params, states, data);
-    for (auto tid : range(ThreadId{states.size()}))
+#pragma omp parallel for
+    for (size_type i = 0; i < states.size(); ++i)
     {
-        launch(tid);
+        launch(ThreadId{i});
     }
 }
 
@@ -57,12 +58,11 @@ void locate_alive(const ParamsHostRef&         params,
 void process_primaries(Span<const Primary>          primaries,
                        const TrackInitStateHostRef& data)
 {
-    // TODO: What to do about celeritas::size_type for host?
     ProcessPrimariesLauncher<MemSpace::host> launch(primaries, data);
-    for (auto tid :
-         range(ThreadId{static_cast<celeritas::size_type>(primaries.size())}))
+#pragma omp parallel for
+    for (size_type i = 0; i < primaries.size(); ++i)
     {
-        launch(tid);
+        launch(ThreadId{i});
     }
 }
 //---------------------------------------------------------------------------//
@@ -74,9 +74,10 @@ void process_secondaries(const ParamsHostRef&         params,
                          const TrackInitStateHostRef& data)
 {
     ProcessSecondariesLauncher<MemSpace::host> launch(params, states, data);
-    for (auto tid : range(ThreadId{states.size()}))
+#pragma omp parallel for
+    for (size_type i = 0; i < states.size(); ++i)
     {
-        launch(tid);
+        launch(ThreadId{i});
     }
 }
 

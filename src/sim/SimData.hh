@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
