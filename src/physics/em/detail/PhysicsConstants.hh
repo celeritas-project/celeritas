@@ -59,6 +59,22 @@ CELER_CONSTEXPR_FUNCTION MevPerCm lpm_constant()
 }
 //!@}
 
+//!@{
+//! Constant functions for model limits
+
+//! Maximum energy for the SeltzerBerger model to be valid
+CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_limit()
+{
+    return units::MevEnergy{1e3}; //! 1 GeV
+}
+
+//! Maximum energy for EM models to be valid
+CELER_CONSTEXPR_FUNCTION units::MevEnergy high_energy_limit()
+{
+    return units::MevEnergy{1e8}; //! 100 TeV
+}
+//!@}
+
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas
