@@ -10,6 +10,8 @@
 #include <utility>
 #include "io/SeltzerBergerReader.hh"
 #include "SeltzerBergerModel.hh"
+#include "RelativisticBremModel.hh"
+#include "CombinedBremModel.hh"
 
 namespace celeritas
 {
@@ -19,13 +21,15 @@ namespace celeritas
  */
 BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
                                              SPConstMaterials materials,
-                                             SPConstImported  process_data)
+                                             SPConstImported  process_data,
+                                             Options          options)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::e_brems,
                 {pdg::electron(), pdg::positron()})
+    , options_(options)
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
@@ -39,8 +43,18 @@ auto BremsstrahlungProcess::build_models(ModelIdGenerator next_id) const
     -> VecModel
 {
     SeltzerBergerModel::ReadData load_data = SeltzerBergerReader();
-    return {std::make_shared<SeltzerBergerModel>(
-        next_id(), *particles_, *materials_, load_data)};
+    if (options_.combined_model)
+    {
+        return {std::make_shared<CombinedBremModel>(
+            next_id(), *particles_, *materials_, load_data, options_.enable_lpm)};
+    }
+    else
+    {
+        return {std::make_shared<SeltzerBergerModel>(
+                    next_id(), *particles_, *materials_, load_data),
+                std::make_shared<RelativisticBremModel>(
+                    next_id(), *particles_, *materials_, options_.enable_lpm)};
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -118,6 +118,10 @@ TransporterInput load_input(const LDemoArgs& args)
         input.particles = result.particles;
         input.materials = result.materials;
 
+        BremsstrahlungOptions brem_options;
+        brem_options.combined_model = args.combined_brem;
+        brem_options.enable_lpm     = args.enable_lpm;
+
         auto process_data
             = std::make_shared<ImportedProcesses>(std::move(data.processes));
         input.processes.push_back(
@@ -133,7 +137,7 @@ TransporterInput load_input(const LDemoArgs& args)
         input.processes.push_back(std::make_shared<EIonizationProcess>(
             result.particles, process_data));
         input.processes.push_back(std::make_shared<BremsstrahlungProcess>(
-            result.particles, result.materials, process_data));
+            result.particles, result.materials, process_data, brem_options));
 
         result.physics = std::make_shared<PhysicsParams>(std::move(input));
     }

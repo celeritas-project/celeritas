@@ -17,6 +17,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Options for Bremsstrahlung process
+ */
+struct BremsstrahlungOptions
+{
+    bool combined_model{true}; //!> flag for model choices
+    bool enable_lpm{true};     //!> flag for the LPM effect
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Bremsstrahlung process for electrons and positrons.
  */
 class BremsstrahlungProcess : public Process
@@ -27,13 +37,15 @@ class BremsstrahlungProcess : public Process
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
     using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
+    using Options          = const BremsstrahlungOptions;
     //!@}
 
   public:
     // Construct from Bremsstrahlung data
     BremsstrahlungProcess(SPConstParticles particles,
                           SPConstMaterials materials,
-                          SPConstImported  process_data);
+                          SPConstImported  process_data,
+                          Options          options);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;
@@ -51,6 +63,7 @@ class BremsstrahlungProcess : public Process
     SPConstParticles       particles_;
     SPConstMaterials       materials_;
     ImportedProcessAdapter imported_;
+    Options                options_;
 };
 
 //---------------------------------------------------------------------------//
