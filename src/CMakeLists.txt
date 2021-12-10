@@ -113,7 +113,6 @@ if(CELERITAS_USE_CUDA)
     base/KernelParamCalculator.cuda.cc
     base/detail/Filler.cu
     random/detail/RngStateInit.cu
-    sim/detail/SimStateInit.cu
   )
   # TODO: CUDA RNG is included by host code
   list(APPEND PUBLIC_DEPS CUDA::cudart)
@@ -121,7 +120,6 @@ else()
   list(APPEND SOURCES
     random/detail/curand.nocuda.cc
     random/detail/RngStateInit.nocuda.cc
-    sim/detail/SimStateInit.nocuda.cc
   )
 endif()
 
