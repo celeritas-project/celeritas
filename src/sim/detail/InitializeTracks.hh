@@ -111,17 +111,6 @@ inline void process_secondaries(const ParamsDeviceRef&,
     CELER_NOT_CONFIGURED("CUDA");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-// HELPER CLASSES
-//---------------------------------------------------------------------------//
-struct IsEqual
-{
-    size_type value;
-
-    CELER_FUNCTION bool operator()(size_type x) const { return x == value; }
-};
-
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

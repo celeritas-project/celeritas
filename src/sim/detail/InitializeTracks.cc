@@ -8,9 +8,10 @@
 #include "InitializeTracks.hh"
 
 #include "base/Range.hh"
-#include "base/Types.hh"
-#include "sim/TrackInitData.hh"
-#include "TrackInitLauncher.hh"
+#include "InitTracksLauncher.hh"
+#include "LocateAliveLauncher.hh"
+#include "ProcessPrimariesLauncher.hh"
+#include "ProcessSecondariesLauncher.hh"
 
 namespace celeritas
 {

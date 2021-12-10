@@ -12,7 +12,10 @@
 #include <thrust/remove.h>
 #include <thrust/scan.h>
 #include "base/KernelParamCalculator.cuda.hh"
-#include "TrackInitLauncher.hh"
+#include "InitTracksLauncher.hh"
+#include "LocateAliveLauncher.hh"
+#include "ProcessPrimariesLauncher.hh"
+#include "ProcessSecondariesLauncher.hh"
 
 namespace celeritas
 {
