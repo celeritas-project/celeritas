@@ -96,24 +96,6 @@ class RelativisticBremDXsection
         real_type phis{0};
     };
 
-    /// STATIC CONSTANTS ///
-
-    // Migdal constant: 4\pi * r_0 * electron_reduced_compton_wavelength^2
-    static CELER_CONSTEXPR_FUNCTION real_type migdal_constant()
-    {
-        using namespace constants;
-        return real_type(4) * pi * r_electron * ipow<2>(lambdabar_electron);
-    }
-
-    // LPM constant: \alpha * (mc^2)^2 /(4\pi * \hbar c) in [MeV/cm]
-    static CELER_CONSTEXPR_FUNCTION real_type lpm_constant()
-    {
-        using namespace constants;
-        return alpha_fine_structure * ipow<2>(electron_mass * ipow<2>(c_light))
-               / (real_type(4) * pi * hbar_planck * c_light)
-               / unit_cast(units::MevEnergy{1});
-    }
-
     //// HELPER FUNCTIONS ////
 
     //! Calculate the differential cross section per atom

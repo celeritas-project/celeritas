@@ -36,6 +36,7 @@ list(APPEND SOURCES
 # Generate model launcher code for host/device
 set(_gen_sources)
 celeritas_gen_interactor(_gen_sources "BetheHeitler" "bethe_heitler")
+celeritas_gen_interactor(_gen_sources "CombinedBrem" "combined_brem")
 celeritas_gen_interactor(_gen_sources "EPlusGG" "eplusgg")
 celeritas_gen_interactor(_gen_sources "KleinNishina" "klein_nishina")
 celeritas_gen_interactor(_gen_sources "LivermorePE" "livermore_pe")
@@ -83,6 +84,7 @@ list(APPEND SOURCES
   physics/em/AtomicRelaxationParams.cc
   physics/em/BetheHeitlerModel.cc
   physics/em/BremsstrahlungProcess.cc
+  physics/em/CombinedBremModel.cc
   physics/em/ComptonProcess.cc
   physics/em/PhotoelectricProcess.cc
   physics/em/LivermorePEModel.cc

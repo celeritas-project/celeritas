@@ -5,10 +5,13 @@
 //---------------------------------------------------------------------------//
 //! \file SeltzerBerger.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/SeltzerBergerInteractor.hh"
+#include "physics/em/detail/CombinedBremInteractor.hh"
+
 #include "physics/em/detail/SBPositronXsCorrector.hh"
 #include "physics/em/detail/SBEnergyDistribution.hh"
-#include "physics/em/SeltzerBergerModel.hh"
+#include "physics/em/detail/RelativisticBremDXsection.hh"
+
+#include "physics/em/CombinedBremModel.hh"
 
 #include "celeritas_test.hh"
 #include "gtest/Main.hh"
@@ -25,16 +28,18 @@
 #include "../InteractionIO.hh"
 
 using celeritas::BremsstrahlungProcess;
+using celeritas::CombinedBremModel;
 using celeritas::ElementComponentId;
 using celeritas::ElementId;
 using celeritas::ElementView;
-using celeritas::SeltzerBergerModel;
 using celeritas::SeltzerBergerReader;
+using celeritas::detail::CombinedBremInteractor;
+using celeritas::detail::RelativisticBremDXsection;
 using celeritas::detail::SBElectronXsCorrector;
 using celeritas::detail::SBEnergyDistHelper;
 using celeritas::detail::SBEnergyDistribution;
 using celeritas::detail::SBPositronXsCorrector;
-using celeritas::detail::SeltzerBergerInteractor;
+
 using celeritas::units::AmuMass;
 using celeritas::units::MevMass;
 namespace constants = celeritas::constants;
@@ -47,7 +52,7 @@ using EnergySq = SBEnergyDistHelper::EnergySq;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
+class CombinedBremTest : public celeritas_test::InteractorHostTestBase
 {
     using Base = celeritas_test::InteractorHostTestBase;
 
@@ -75,10 +80,12 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& particles = *this->particle_params();
-        data_.ids.electron    = particles.find(pdg::electron());
-        data_.ids.positron    = particles.find(pdg::positron());
-        data_.ids.gamma       = particles.find(pdg::gamma());
-        data_.electron_mass   = particles.get(data_.ids.electron).mass();
+
+        data_.rb_data.ids.electron = particles.find(pdg::electron());
+        data_.rb_data.ids.positron = particles.find(pdg::positron());
+        data_.rb_data.ids.gamma    = particles.find(pdg::gamma());
+        data_.rb_data.electron_mass
+            = particles.get(data_.rb_data.ids.electron).mass();
 
         // Set default particle to incident 1 MeV photon
         this->set_inc_particle(pdg::electron(), MevEnergy{1.0});
@@ -102,10 +109,10 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         SeltzerBergerReader read_element_data(data_path.c_str());
 
         // Construct SeltzerBergerModel and set host data
-        model_ = std::make_shared<SeltzerBergerModel>(ModelId{0},
-                                                      *this->particle_params(),
-                                                      *this->material_params(),
-                                                      read_element_data);
+        model_ = std::make_shared<CombinedBremModel>(ModelId{0},
+                                                     *this->particle_params(),
+                                                     *this->material_params(),
+                                                     read_element_data);
         data_  = model_->host_ref();
 
         // Set cutoffs
@@ -139,166 +146,15 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<SeltzerBergerModel>       model_;
-    celeritas::detail::SeltzerBergerNativeRef data_;
+    std::shared_ptr<CombinedBremModel>       model_;
+    celeritas::detail::CombinedBremNativeRef data_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(SeltzerBergerTest, sb_tables)
-{
-    const auto& xs = model_->host_ref().differential_xs;
-
-    // The tables should just have the one element (copper). The values of the
-    // arguments have been calculated from the g4emlow@7.13 dataset.
-    ASSERT_EQ(1, xs.elements.size());
-
-    auto               argmax = xs.sizes[xs.elements[ElementId{0}].argmax];
-    const unsigned int expected_argmax[]
-        = {31, 31, 31, 30, 30, 7, 7, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0,
-           0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-           0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    EXPECT_VEC_EQ(argmax, expected_argmax);
-}
-
-TEST_F(SeltzerBergerTest, sb_positron_xs_scaling)
-{
-    const ParticleParams& pp        = *this->particle_params();
-    const MevMass     positron_mass = pp.get(pp.find(pdg::positron())).mass();
-    const MevEnergy   gamma_cutoff{0.01};
-    const ElementView el = this->material_params()->get(ElementId{0});
-
-    std::vector<real_type> scaling_frac;
-
-    for (real_type inc_energy : {1.0, 10.0, 100., 1000.})
-    {
-        SBPositronXsCorrector scale_xs(
-            positron_mass, el, gamma_cutoff, MevEnergy{inc_energy});
-        for (real_type sampled_efrac : {.10001, .5, .9, .9999})
-        {
-            real_type exit_energy = sampled_efrac * inc_energy;
-            scaling_frac.push_back(scale_xs(MevEnergy{exit_energy}));
-        }
-    }
-    // clang-format off
-    const double expected_scaling_frac[] = {
-        0.9980342329193, 0.9800123976959, 0.8513338610609, 2.827839668085e-05,
-        0.9999449017036, 0.9993355880532, 0.9870854387438, 0.04176283721387,
-        0.9999993627271, 0.9999919054025, 0.9997522383667, 0.4174036918268,
-        0.9999999935293, 0.9999999173093, 0.9999972926228, 0.8399650995661};
-    // clang-format on
-    EXPECT_VEC_SOFT_EQ(expected_scaling_frac, scaling_frac);
-}
-
-TEST_F(SeltzerBergerTest, sb_energy_dist)
-{
-    const MevEnergy gamma_cutoff{0.0009};
-
-    const int           num_samples = 8192;
-    std::vector<double> max_xs;
-    std::vector<double> max_xs_energy;
-    std::vector<double> avg_exit_frac;
-    std::vector<double> avg_engine_samples;
-
-    auto sample_many = [&](real_type inc_energy, auto& sample_energy) {
-        double        total_exit_energy = 0;
-        RandomEngine& rng_engine        = this->rng();
-        for (int i = 0; i < num_samples; ++i)
-        {
-            Energy exit_gamma = sample_energy(rng_engine);
-            EXPECT_GT(exit_gamma.value(), gamma_cutoff.value());
-            EXPECT_LT(exit_gamma.value(), inc_energy);
-            total_exit_energy += exit_gamma.value();
-        }
-
-        avg_exit_frac.push_back(total_exit_energy / (num_samples * inc_energy));
-        avg_engine_samples.push_back(double(rng_engine.count()) / num_samples);
-    };
-
-    // Note: the first point has a very low cross section compared to
-    // ionization so won't be encountered in practice. The differential cross
-    // section distribution is much flatter there, so there should be lower
-    // rejection. The second point is where the maximum of the differential SB
-    // data switches between a high-exit-energy peak and a low-exit-energy
-    // peak, which should result in a higher rejection rate. The remaining
-    // points are arbitrary.
-    for (real_type inc_energy : {0.001, 0.0045, 0.567, 7.89, 89.0, 901.})
-    {
-        SBEnergyDistHelper edist_helper(
-            model_->host_ref().differential_xs,
-            Energy{inc_energy},
-            ElementId{0},
-            this->density_correction(MaterialId{0}, Energy{inc_energy}),
-            gamma_cutoff);
-        max_xs.push_back(edist_helper.max_xs().value());
-        max_xs_energy.push_back(edist_helper.max_xs_energy().value());
-
-        SBEnergyDistribution<SBElectronXsCorrector> sample_energy(edist_helper,
-                                                                  {});
-        // Loop over many particles
-        sample_many(inc_energy, sample_energy);
-    }
-
-    {
-        real_type inc_energy = 7.89;
-
-        SBEnergyDistHelper edist_helper(
-            model_->host_ref().differential_xs,
-            Energy{inc_energy},
-            ElementId{0},
-            this->density_correction(MaterialId{0}, Energy{inc_energy}),
-            gamma_cutoff);
-
-        // Sample with a "correction" that's constant, which shouldn't change
-        // sampling efficiency or expected value correction
-        {
-            auto scale_xs = [](Energy) { return 2.0; };
-            SBEnergyDistribution<decltype(scale_xs)> sample_energy(
-                edist_helper, scale_xs);
-
-            // Loop over many particles
-            sample_many(inc_energy, sample_energy);
-        }
-
-        // Sample with the positron XS correction
-        {
-            const ParticleParams& pp = *this->particle_params();
-
-            SBEnergyDistribution<SBPositronXsCorrector> sample_energy(
-                edist_helper,
-                {pp.get(pp.find(pdg::positron())).mass(),
-                 this->material_params()->get(ElementId{0}),
-                 gamma_cutoff,
-                 Energy{inc_energy}});
-
-            // Loop over many particles
-            sample_many(inc_energy, sample_energy);
-        }
-    }
-
-    // clang-format off
-    const double expected_max_xs[] = {2.866525852195, 4.72696244794,
-        12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
-    const double expected_max_xs_energy[] = {0.001, 0.002718394312008,
-        5.67e-13, 7.89e-12, 8.9e-11, 9.01e-10};
-    const double expected_avg_exit_frac[] = {0.949115932248866,
-        0.497486662164049, 0.082127972143285, 0.0645177016233406, 
-        0.0774717918229646, 0.0891340819129683, 0.0661428500057435, 
-        0.0640038878541159};
-    const double expected_avg_engine_samples[] = {4.0791015625, 4.06005859375,
-	5.134765625, 4.65625, 4.43017578125, 4.35693359375, 4.6591796875,
-        4.66845703125};
-    // clang-format on
-
-    EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
-    EXPECT_VEC_SOFT_EQ(expected_max_xs_energy, max_xs_energy);
-    EXPECT_VEC_SOFT_EQ(expected_avg_exit_frac, avg_exit_frac);
-    EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
-}
-
-TEST_F(SeltzerBergerTest, basic)
+TEST_F(CombinedBremTest, basic_seltzer_berger)
 {
     using celeritas::MaterialView;
 
@@ -311,14 +167,14 @@ TEST_F(SeltzerBergerTest, basic)
     auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
-    SeltzerBergerInteractor interact(model_->host_ref(),
-                                     this->particle_track(),
-                                     this->direction(),
-                                     cutoffs,
-                                     this->secondary_allocator(),
-                                     material_view,
-                                     ElementComponentId{0});
-    RandomEngine&           rng_engine = this->rng();
+    CombinedBremInteractor interact(model_->host_ref(),
+                                    this->particle_track(),
+                                    this->direction(),
+                                    cutoffs,
+                                    this->secondary_allocator(),
+                                    material_view,
+                                    ElementComponentId{0});
+    RandomEngine&          rng_engine = this->rng();
 
     // Produce two samples from the original/incident photon
     std::vector<double> angle;
@@ -343,14 +199,81 @@ TEST_F(SeltzerBergerTest, basic)
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    const double expected_angle[]  = {0.959441513277674,
+    const double expected_angle[] = {0.959441513277674,
                                      0.994350429950924,
                                      0.968866136008621,
                                      0.961582855967571};
+
     const double expected_energy[] = {0.0349225070114679,
                                       0.0316182310804369,
                                       0.0838794010486177,
                                       0.106195186929141};
+    EXPECT_VEC_SOFT_EQ(expected_energy, energy);
+    EXPECT_VEC_SOFT_EQ(expected_angle, angle);
+
+    // Next sample should fail because we're out of secondary buffer space
+    {
+        Interaction result = interact(rng_engine);
+        EXPECT_EQ(0, result.secondaries.size());
+        EXPECT_EQ(celeritas::Action::failed, result.action);
+    }
+}
+
+TEST_F(CombinedBremTest, basic_relativistic_brem)
+{
+    const int num_samples = 4;
+
+    // Reserve  num_samples secondaries;
+    this->resize_secondaries(num_samples);
+
+    // Production cuts
+    auto material_view = this->material_track().material_view();
+    auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
+
+    // Set the incident particle energy
+    this->set_inc_particle(pdg::electron(), MevEnergy{25000});
+
+    // Create the interactor
+    CombinedBremInteractor interact(model_->host_ref(),
+                                    this->particle_track(),
+                                    this->direction(),
+                                    cutoffs,
+                                    this->secondary_allocator(),
+                                    material_view,
+                                    ElementComponentId{0});
+
+    RandomEngine& rng_engine = this->rng();
+
+    // Produce four samples from the original incident angle/energy
+    std::vector<double> angle;
+    std::vector<double> energy;
+
+    for (int i : celeritas::range(num_samples))
+    {
+        Interaction result = interact(rng_engine);
+        SCOPED_TRACE(result);
+        this->sanity_check(result);
+
+        EXPECT_EQ(result.secondaries.data(),
+                  this->secondary_allocator().get().data()
+                      + result.secondaries.size() * i);
+
+        energy.push_back(result.secondaries[0].energy.value());
+        angle.push_back(celeritas::dot_product(
+            result.direction, result.secondaries.back().direction));
+    }
+
+    EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
+
+    // Note: these are "gold" values based on the host RNG.
+
+    const double expected_energy[] = {
+        18844.5999305425, 42.185863858534, 3991.9107959354, 212.273682952066};
+
+    const double expected_angle[] = {0.999999972054405,
+                                     0.999999999587026,
+                                     0.999999999684891,
+                                     0.999999999474844};
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
@@ -363,27 +286,32 @@ TEST_F(SeltzerBergerTest, basic)
     }
 }
 
-TEST_F(SeltzerBergerTest, stress_test)
+TEST_F(CombinedBremTest, stress_test_combined)
 {
     using celeritas::MaterialView;
 
     const int           num_samples = 1e4;
     std::vector<double> avg_engine_samples;
+    std::vector<double> avg_energy_samples;
 
     // Views
     auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
     auto material_view = this->material_track().material_view();
 
     // Loop over a set of incident gamma energies
+    const real_type test_energy[]
+        = {1.5, 5, 10, 50, 100, 1000, 1e+4, 1e+5, 1e+6};
+
     for (auto particle : {pdg::electron(), pdg::positron()})
     {
-        for (double inc_e : {1.5, 5.0, 10.0, 50.0, 100.0})
+        for (real_type inc_e : test_energy)
         {
             SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
-            this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
+            //            this->set_inc_particle(particle, MevEnergy{inc_e});
 
             RandomEngine&           rng_engine            = this->rng();
             RandomEngine::size_type num_particles_sampled = 0;
+            double                  tot_energy_sampled    = 0;
 
             // Loop over several incident directions
             for (const Real3& inc_dir : {Real3{0, 0, 1},
@@ -396,25 +324,28 @@ TEST_F(SeltzerBergerTest, stress_test)
 
                 // Create interactor
                 this->set_inc_particle(particle, MevEnergy{inc_e});
-                SeltzerBergerInteractor interact(model_->host_ref(),
-                                                 this->particle_track(),
-                                                 this->direction(),
-                                                 cutoffs,
-                                                 this->secondary_allocator(),
-                                                 material_view,
-                                                 ElementComponentId{0});
+                CombinedBremInteractor interact(model_->host_ref(),
+                                                this->particle_track(),
+                                                this->direction(),
+                                                cutoffs,
+                                                this->secondary_allocator(),
+                                                material_view,
+                                                ElementComponentId{0});
 
                 // Loop over many particles
                 for (unsigned int i = 0; i < num_samples; ++i)
                 {
                     Interaction result = interact(rng_engine);
                     this->sanity_check(result);
+                    tot_energy_sampled += result.secondaries[0].energy.value();
                 }
                 EXPECT_EQ(num_samples,
                           this->secondary_allocator().get().size());
                 num_particles_sampled += num_samples;
             }
             avg_engine_samples.push_back(double(rng_engine.count())
+                                         / double(num_particles_sampled));
+            avg_energy_samples.push_back(tot_energy_sampled
                                          / double(num_particles_sampled));
         }
     }
@@ -425,11 +356,39 @@ TEST_F(SeltzerBergerTest, stress_test)
                                                   12.9641,
                                                   12.5832,
                                                   12.4988,
-                                                  14.10655,
-                                                  13.2396,
-                                                  12.9456,
-                                                  12.5815,
-                                                  12.4965};
+                                                  12.3433,
+                                                  12.4378,
+                                                  13.2556,
+                                                  15.367,
+                                                  14.1192,
+                                                  13.2432,
+                                                  12.9255,
+                                                  12.5747,
+                                                  12.5067,
+                                                  12.3345,
+                                                  12.4205,
+                                                  13.2902,
+                                                  15.3866};
+
+    const double expected_avg_energy_samples[] = {0.20338654094171,
+                                                  0.531736195035071,
+                                                  0.99638562846318,
+                                                  4.43594118671576,
+                                                  8.75900725345262,
+                                                  85.1851167368993,
+                                                  906.274779396939,
+                                                  10718.7588859397,
+                                                  149751.67430561,
+                                                  0.20012619581885,
+                                                  0.530399830105174,
+                                                  0.996540195643715,
+                                                  4.44236613904306,
+                                                  8.49262211238882,
+                                                  85.2456511477595,
+                                                  919.098158449066,
+                                                  10765.2921207004,
+                                                  147072.110682295};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+    EXPECT_VEC_SOFT_EQ(expected_avg_energy_samples, avg_energy_samples);
 }

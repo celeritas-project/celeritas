@@ -3,23 +3,27 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SeltzerBergerInteractor.hh
+//! \file CombinedBremInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "base/Macros.hh"
+#include "base/Types.hh"
 #include "base/StackAllocator.hh"
+
 #include "physics/base/CutoffView.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
+
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
 
-#include "SeltzerBergerData.hh"
+#include "CombinedBremData.hh"
+#include "RBEnergySampler.hh"
 #include "SBEnergySampler.hh"
 #include "BremFinalStateHelper.hh"
 
@@ -29,40 +33,30 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Seltzer-Berger model for electron and positron bremsstrahlung processes.
- *
- * Given an incoming electron or positron of sufficient energy (as per
- * CutOffView), this class provides the energy loss of these particles due to
- * radiation of photons in the field of a nucleus. This model improves accuracy
- * using cross sections based on interpolation of published tables from Seltzer
- * and Berger given in Nucl. Instr. and Meth. in Phys. Research B, 12(1):95–134
- * (1985) and Atomic Data and Nuclear Data Tables, 35():345 (1986). The cross
- * sections are obtained from SBEnergyDistribution and are appropriately scaled
- * in the case of positrons via SBPositronXsCorrector (to be done).
- *
- * \note This interactor performs an analogous sampling as in Geant4's
- * G4SeltzerBergerModel, documented in 10.2.1 of the Geant Physics Reference
- * (release 10.6). The implementation is based on Geant4 10.4.3.
+ * A combined bremsstrahlung interactor consisted of the Seltzer-Berger
+ * interactor at the low energy (< 1 GeV) and the relativistic bremsstrahlung
+ * interactor at the high energy for the e-/e+ bremsstrahlung process.
  */
-class SeltzerBergerInteractor
+class CombinedBremInteractor
 {
-  public:
     //!@{
     //! Type aliases
-    using Energy   = units::MevEnergy;
-    using Momentum = units::MevMomentum;
+    using Energy      = units::MevEnergy;
+    using Momentum    = units::MevMomentum;
+    using ElementData = detail::RelBremElementData;
+    using ItemIdT     = celeritas::ItemId<unsigned int>;
     //!@}
 
   public:
-    //! Construct sampler from device/shared and state data
+    // Construct with shared and state data
     inline CELER_FUNCTION
-    SeltzerBergerInteractor(const SeltzerBergerNativeRef& shared,
-                            const ParticleTrackView&      particle,
-                            const Real3&                  inc_direction,
-                            const CutoffView&             cutoffs,
-                            StackAllocator<Secondary>&    allocate,
-                            const MaterialView&           material,
-                            const ElementComponentId&     elcomp_id);
+    CombinedBremInteractor(const CombinedBremNativeRef& shared,
+                           const ParticleTrackView&     particle,
+                           const Real3&                 direction,
+                           const CutoffView&            cutoffs,
+                           StackAllocator<Secondary>&   allocate,
+                           const MaterialView&          material,
+                           const ElementComponentId&    elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -70,16 +64,14 @@ class SeltzerBergerInteractor
 
   private:
     //// DATA ////
-    // Device (host CPU or GPU device) references
-    const SeltzerBergerNativeRef& shared_;
+    // Shared constant physics properties
+    const CombinedBremNativeRef& shared_;
     // Incident particle energy
     const Energy inc_energy_;
     // Incident particle direction
     const Momentum inc_momentum_;
     // Incident particle direction
     const Real3& inc_direction_;
-    // Incident particle flag for selecting XS correction factor
-    const bool inc_particle_is_electron_;
     // Production cutoff for gammas
     const Energy gamma_cutoff_;
     // Allocate space for a secondary particle
@@ -88,9 +80,15 @@ class SeltzerBergerInteractor
     const MaterialView& material_;
     // Element in which interaction occurs
     const ElementComponentId elcomp_id_;
+    // Incident particle flag for selecting XS correction factor
+    const bool is_electron_;
+    // Flag for selecting the relativistic bremsstrahlung model
+    const bool is_relativistic_;
 
     //// HELPER CLASSES ////
-    // A helper to sample the bremsstrahlung photon energy
+    // A helper to Sample the photon energy from the relativistic model
+    RBEnergySampler rb_energy_sampler_;
+    // A helper to sample the photon energy from the SeltzerBerger model
     SBEnergySampler sb_energy_sampler_;
     // A helper to update the final state of the primary and the secondary
     BremFinalStateHelper final_state_interaction_;
@@ -100,4 +98,4 @@ class SeltzerBergerInteractor
 } // namespace detail
 } // namespace celeritas
 
-#include "SeltzerBergerInteractor.i.hh"
+#include "CombinedBremInteractor.i.hh"

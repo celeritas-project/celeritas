@@ -23,15 +23,13 @@ namespace detail
  * Model's applicability must be consistent with the table data.
  */
 CELER_FUNCTION
-SBEnergyDistHelper::SBEnergyDistHelper(const SBData& data,
-                                       Energy        inc_energy,
-                                       ElementId     element,
-                                       EnergySq      density_correction,
-                                       Energy        min_gamma_energy)
-    : calc_xs_{this->make_xs_calc(
-        data.differential_xs, inc_energy.value(), element)}
-    , max_xs_{this->calc_max_xs(
-          data.differential_xs, inc_energy.value(), element)}
+SBEnergyDistHelper::SBEnergyDistHelper(const SBDXsec& differential_xs,
+                                       Energy         inc_energy,
+                                       ElementId      element,
+                                       EnergySq       density_correction,
+                                       Energy         min_gamma_energy)
+    : calc_xs_{this->make_xs_calc(differential_xs, inc_energy.value(), element)}
+    , max_xs_{this->calc_max_xs(differential_xs, inc_energy.value(), element)}
     , inv_inc_energy_(1 / inc_energy.value())
     , dens_corr_(density_correction.value())
     , sample_exit_esq_{

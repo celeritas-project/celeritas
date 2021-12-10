@@ -64,7 +64,7 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
         // Set up shared material data
         MaterialParams::Input mi;
         mi.elements  = {{82, AmuMass{207.2}, "Pb"}};
-        mi.materials = {{0.0547 * na_avogadro,
+        mi.materials = {{0.05477 * na_avogadro,
                          293.15,
                          MatterState::solid,
                          {{ElementId{0}, 1.0}},
@@ -156,16 +156,16 @@ TEST_F(RelativisticBremTest, dxsec)
     }
 
     // Note: these are "gold" differential cross sections by the photon energy.
-    const double expected_dxsec_lpm[] = {3.1584258488274,
-                                         2.23995465631859,
-                                         1.76810279988423,
-                                         1.93907080926826,
-                                         2.31558285936817,
-                                         2.89616514952987,
-                                         3.27261137322664,
-                                         3.50871049476838,
-                                         3.48017267230553,
-                                         3.41228710634799};
+    const double expected_dxsec_lpm[] = {3.1589268205686,
+                                         2.24021800150128,
+                                         1.76771499385005,
+                                         1.93837223714831,
+                                         2.31473664706576,
+                                         2.8953506143604,
+                                         3.2720266599198,
+                                         3.50840669766741,
+                                         3.48017265095914,
+                                         3.41228707307214};
 
     const double expected_dxsec[] = {3.55000253342095,
                                      3.54986051043622,
@@ -229,7 +229,7 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
     // Note: these are "gold" values based on the host RNG.
 
     const double expected_energy[] = {
-        9.70687182761302, 16.1026750932808, 7.48446480682994, 8338.05471235281};
+        9.7121539090503, 16.1109589071687, 7.48863745059463, 8338.70226190511};
 
     const double expected_angle[] = {0.999999999858782,
                                      0.999999999999921,
@@ -293,9 +293,9 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
     // Note: these are "gold" values based on the host RNG.
 
     const double expected_energy[] = {
-        18872.0404050081, 43.592242238131, 4029.79130986756, 217.548454598548};
+        18872.4157243063, 43.6117832245235, 4030.31152398788, 217.621447606391};
 
-    const double expected_angle[] = {0.999999971803589,
+    const double expected_angle[] = {0.999999971800136,
                                      0.999999999587026,
                                      0.999999999683752,
                                      0.999999999474844};
@@ -346,7 +346,7 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
     }
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
-    EXPECT_DOUBLE_EQ(average_energy / num_samples, 2931.9004088988372);
+    EXPECT_DOUBLE_EQ(average_energy / num_samples, 2932.1072998587733);
     EXPECT_DOUBLE_EQ(average_angle[0] / num_samples, 3.3286986548662216e-06);
     EXPECT_DOUBLE_EQ(average_angle[1] / num_samples, 1.3067055198983571e-06);
     EXPECT_DOUBLE_EQ(average_angle[2] / num_samples, 0.99999999899845182);
