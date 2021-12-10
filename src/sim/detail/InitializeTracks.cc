@@ -53,7 +53,7 @@ void locate_alive(const ParamsHostRef&         params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Create track initializers on device from primary particles.
+ * Create track initializers on host from primary particles.
  */
 void process_primaries(Span<const Primary>          primaries,
                        const TrackInitStateHostRef& data)
@@ -67,7 +67,7 @@ void process_primaries(Span<const Primary>          primaries,
 }
 //---------------------------------------------------------------------------//
 /*!
- * Create track initializers on device from secondary particles.
+ * Create track initializers on host from secondary particles.
  */
 void process_secondaries(const ParamsHostRef&         params,
                          const StateHostRef&          states,

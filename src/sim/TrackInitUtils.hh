@@ -28,8 +28,8 @@ namespace celeritas
  * storage in the track initializer vector, whichever is smaller).
  */
 template<MemSpace M>
-void extend_from_primaries(const TrackInitParamsHostRef&            params,
-                           TrackInitStateData<Ownership::value, M>* data)
+inline void extend_from_primaries(const TrackInitParamsHostRef& params,
+                                  TrackInitStateData<Ownership::value, M>* data)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(data && *data);
@@ -67,9 +67,10 @@ void extend_from_primaries(const TrackInitParamsHostRef&            params,
  * any track initializers remaining from previous steps using the position.
  */
 template<MemSpace M>
-void initialize_tracks(const ParamsData<Ownership::const_reference, M>& params,
-                       const StateData<Ownership::reference, M>&        states,
-                       TrackInitStateData<Ownership::value, M>*         data)
+inline void
+initialize_tracks(const ParamsData<Ownership::const_reference, M>& params,
+                  const StateData<Ownership::reference, M>&        states,
+                  TrackInitStateData<Ownership::value, M>*         data)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
@@ -146,10 +147,10 @@ void initialize_tracks(const ParamsData<Ownership::const_reference, M>& params,
    \endverbatim
  */
 template<MemSpace M>
-void extend_from_secondaries(
-    const ParamsData<Ownership::const_reference, M>& params,
-    const StateData<Ownership::reference, M>&        states,
-    TrackInitStateData<Ownership::value, M>*         data)
+inline void
+extend_from_secondaries(const ParamsData<Ownership::const_reference, M>& params,
+                        const StateData<Ownership::reference, M>& states,
+                        TrackInitStateData<Ownership::value, M>*  data)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
