@@ -200,7 +200,7 @@ TEST_F(ImportedProcessesTest, photoelectric)
 TEST_F(ImportedProcessesTest, bremsstrahlung)
 {
     // Create bremsstrahlung process (requires Geant4 environment variables)
-    BremsstrahlungOptions                  options;
+    BremsstrahlungProcess::Options         options;
     std::shared_ptr<BremsstrahlungProcess> process;
     try
     {

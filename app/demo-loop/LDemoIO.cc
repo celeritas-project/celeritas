@@ -118,7 +118,7 @@ TransporterInput load_input(const LDemoArgs& args)
         input.particles = result.particles;
         input.materials = result.materials;
 
-        BremsstrahlungOptions brem_options;
+        BremsstrahlungProcess::Options brem_options;
         brem_options.combined_model = args.combined_brem;
         brem_options.enable_lpm     = args.enable_lpm;
 
