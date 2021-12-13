@@ -197,10 +197,52 @@ TEST_F(ImportedProcessesTest, photoelectric)
     }
 }
 
-TEST_F(ImportedProcessesTest, bremsstrahlung)
+TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
 {
     // Create bremsstrahlung process (requires Geant4 environment variables)
-    BremsstrahlungProcess::Options         options;
+    // with multiple models (SeltzerBergerModel and RelativisticBremModel)
+    BremsstrahlungProcess::Options options;
+    options.combined_model = false;
+    std::shared_ptr<BremsstrahlungProcess> process;
+    try
+    {
+        process = std::make_shared<BremsstrahlungProcess>(
+            particles_, materials_, processes_, options);
+    }
+    catch (const RuntimeError& e)
+    {
+        GTEST_SKIP() << "Failed to create process: " << e.what();
+    }
+
+    // Test model
+    auto models = process->build_models(ModelIdGenerator{});
+    ASSERT_EQ(2, models.size());
+    ASSERT_TRUE(models.front());
+    EXPECT_EQ("Seltzer-Berger bremsstrahlung", models.front()->label());
+    auto all_applic = models.front()->applicability();
+    ASSERT_EQ(2, all_applic.size());
+    Applicability applic = *all_applic.begin();
+
+    // Test step limits
+    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    {
+        applic.material = mat_id;
+        auto builders   = process->step_limits(applic);
+        EXPECT_TRUE(builders[VGT::macro_xs]);
+
+        // Only the ionization process has energy loss and range tables. It's
+        // de/dx table is the sum of the ionization and bremsstrahlung energy
+        // loss, and the range table is calculated from the summed de/dx.
+        EXPECT_FALSE(builders[VGT::energy_loss]);
+        EXPECT_FALSE(builders[VGT::range]);
+    }
+}
+
+TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
+{
+    // Create the combined bremsstrahlung process
+    BremsstrahlungProcess::Options options;
+    options.combined_model = true;
     std::shared_ptr<BremsstrahlungProcess> process;
     try
     {
@@ -216,14 +258,7 @@ TEST_F(ImportedProcessesTest, bremsstrahlung)
     auto models = process->build_models(ModelIdGenerator{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
-    if (options.combined_model)
-    {
-        EXPECT_EQ("Combined Bremsstrahlung", models.front()->label());
-    }
-    else
-    {
-        EXPECT_EQ("Seltzer-Berger bremsstrahlung", models.front()->label());
-    }
+    EXPECT_EQ("Combined Bremsstrahlung", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
