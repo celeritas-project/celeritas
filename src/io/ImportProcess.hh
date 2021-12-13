@@ -109,8 +109,13 @@ enum class ImportModelClass
  * doing \c tables.at(table_type).physics_vectors.at(material_id) .
  * Conversely, element selector physics vectors are model dependent. Thus, for
  * simplicity, they are stored directly as physics vectors and retrieved by
- * providing the model, material, and element ids:
- * \c element_selectors.find(model_id).at(material_id).find(element_id)->second
+ * providing the model class enum, material, and element ids:
+ * \c element_selectors.find(model).at(material_id).find(element_id)->second .
+ *
+ * \note
+ * Since single-element materials do not have element-selectors, it is possible
+ * to have empty element_selectors.
+ *
  */
 struct ImportProcess
 {
@@ -121,20 +126,6 @@ struct ImportProcess
     // Vector spans over all materials for a given model
     using ElementSelector = std::vector<ElementPhysicsVectorMap>;
     //!@}
-
-    /*
-    Or should I use vector<struct> element_selectors?
-    struct ElementSelector{
-        struct MaterialElementSelector
-        {
-        int                 element_id;
-        ImportPhysicsVector physics_vector;
-        };
-
-        ImportModelClass model;
-        vector<MaterialElementSelector> material_element_selector;
-    }
-    */
 
     int                                         particle_pdg;
     ImportProcessType                           process_type;
@@ -147,8 +138,7 @@ struct ImportProcess
     {
         return process_type != ImportProcessType::not_defined
                && process_class != ImportProcessClass::unknown
-               && !models.empty() && !tables.empty()
-               && !element_selectors.empty();
+               && !models.empty() && !tables.empty();
     }
 };
 

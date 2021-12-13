@@ -38,8 +38,7 @@ class RootImporterTest : public celeritas::Test
   protected:
     void SetUp() override
     {
-        root_filename_
-            = this->test_data_path("io", "../../../build/app/out.root");
+        root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
 
         RootImporter import_from_root(root_filename_.c_str());
         data_ = import_from_root();
@@ -280,29 +279,49 @@ TEST_F(RootImporterTest, processes)
 
         std::vector<double> element_id_list;
         std::vector<double> element_physvec_x_size, element_physvec_y_size;
+        std::vector<double> element_physvec_x_front, element_physvec_y_front;
         std::vector<double> element_physvec_x_back, element_physvec_y_back;
         for (const auto& pair : mb_physvec_map)
         {
             const auto& phys_vec = pair.second;
 
             element_id_list.push_back(pair.first);
+
             element_physvec_x_size.push_back(phys_vec.x.size());
             element_physvec_y_size.push_back(phys_vec.y.size());
+
+            element_physvec_x_front.push_back(phys_vec.x.front());
+            element_physvec_y_front.push_back(phys_vec.y.front());
+
             element_physvec_x_back.push_back(phys_vec.x.back());
             element_physvec_y_back.push_back(phys_vec.y.back());
         }
 
-        static const double expected_element_id_list[]        = {0, 1, 2};
+        static const double expected_element_id_list[] = {0, 1, 2};
+
+        // Only one size is needed, as x and y must have the same size
         static const double expected_element_physvec_x_size[] = {9, 9, 9};
+
+        static const double expected_element_physvec_x_front[]
+            = {1.31345289979559, 1.31345289979559, 1.31345289979559};
+        static const double expected_element_physvec_y_front[]
+            = {4.57705e-24, 4.22497e-24, 4.92913e-24};
+
         static const double expected_element_physvec_x_back[]
             = {1e+08, 1e+08, 1e+08};
-        static const double expected_element_physvec_y_back[]
-            = {0.74573643410853, 0.91317829457364, 43.566778103862};
+        static const double expected_element_physvec_y_back[] = {
+            5.04687252343649e-24, 4.65865156009522e-24, 5.43509348677776e-24};
 
         EXPECT_VEC_EQ(expected_element_id_list, element_id_list);
         EXPECT_VEC_EQ(element_physvec_x_size, element_physvec_y_size);
         EXPECT_VEC_SOFT_EQ(expected_element_physvec_x_size,
                            element_physvec_x_size);
+
+        EXPECT_VEC_SOFT_EQ(expected_element_physvec_x_front,
+                           element_physvec_x_front);
+        EXPECT_VEC_SOFT_EQ(expected_element_physvec_y_front,
+                           element_physvec_y_front);
+
         EXPECT_VEC_SOFT_EQ(expected_element_physvec_x_back,
                            element_physvec_x_back);
         EXPECT_VEC_SOFT_EQ(expected_element_physvec_y_back,

@@ -546,7 +546,8 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
 ImportProcess::ElementSelector
 ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
 {
-    CELER_ASSERT(materials_.size());
+    CELER_ASSERT(&model);
+    CELER_ASSERT(!materials_.empty());
 
     // Geant4 particle definition, needed for ComputeCrossSectionPerAtom(...)
     const G4ParticleDefinition& g4_particle_def
@@ -564,7 +565,7 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
             continue;
         }
 
-        ImportProcess::ElementPhysicsVectorMap element_xs_map;
+        ImportProcess::ElementPhysicsVectorMap element_physvec_map;
 
         // Set up all element physics vectors for this material and model
         for (const auto& elem_comp : material.elements)
@@ -572,100 +573,68 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
             ImportPhysicsVector physics_vector
                 = this->initialize_element_selector_physics_vector(model,
                                                                    material);
-            element_xs_map.insert({elem_comp.element_id, physics_vector});
+            element_physvec_map.insert({elem_comp.element_id, physics_vector});
         }
 
+        auto& g4_nist_manager = *G4NistManager::Instance();
+
         // All physics vectors have the same energy grid for the same material
-        const auto& energy_grid     = element_xs_map.begin()->second.x;
-        auto&       g4_nist_manager = *G4NistManager::Instance();
+        const auto& energy_grid = element_physvec_map.begin()->second.x;
 
-        for (int bin_idx : celeritas::range(energy_grid.size()))
+        for (const auto& elem_comp : material.elements)
         {
-            const double energy_bin_value = energy_grid.at(bin_idx);
-            double       xs_sum           = 0;
+            const auto& element = elements_.at(elem_comp.element_id);
 
-            for (const auto& elem_comp : material.elements)
+            const G4Element& g4_element
+                = *g4_nist_manager.FindOrBuildElement(element.atomic_number);
+            const double particle_cutoff
+                = material.pdg_cutoffs.find(process_.particle_pdg)->second.energy;
+
+            auto& physics_vector
+                = element_physvec_map.find(elem_comp.element_id)->second;
+
+            for (int bin_idx : celeritas::range(energy_grid.size()))
             {
-                // Fetch element
-                const auto& element = elements_.at(elem_comp.element_id);
+                const double energy_bin_value = energy_grid.at(bin_idx);
 
                 // Calculate cross-section
-                // Again, use user-input cuts or not?
-                const double xs_per_atom = std::max(
-                    0.0,
-                    model.ComputeCrossSectionPerAtom(
-                        &g4_particle_def,
-                        g4_nist_manager.FindOrBuildElement(
-                            element.atomic_number),
-                        energy_bin_value,
-                        material.pdg_cutoffs.find(process_.particle_pdg)
-                            ->second.energy,
-                        energy_bin_value));
+                const double xs_per_atom
+                    = std::max(
+                          0.0,
+                          model.ComputeCrossSectionPerAtom(&g4_particle_def,
+                                                           &g4_element,
+                                                           energy_bin_value,
+                                                           particle_cutoff,
+                                                           energy_bin_value))
+                      / cm2;
 
-                // TODO: Our ElementSelector expects us to manually multiply
-                // the material number density. If we decide to do that instead
-                // of storing it beforehand, this needs to be updated
-                const double atom_num_density = elem_comp.number_fraction
-                                                * material.number_density;
-
-                xs_sum += atom_num_density * xs_per_atom;
-
-                // Store cross-section
-                auto& physics_vector
-                    = element_xs_map.find(elem_comp.element_id)->second;
-
-                physics_vector.y[bin_idx] = xs_sum;
+                physics_vector.y[bin_idx] = xs_per_atom;
             }
         }
 
         // Avoid cross-section vectors starting or ending with zero values.
         // Geant4 simply uses the next/previous bin value when the vector's
         // front/back are zero. This feels like a trap.
-        for (const auto& elem_comp : material.elements)
+        for (auto& iter : element_physvec_map)
         {
-            auto& phys_vector
-                = element_xs_map.find(elem_comp.element_id)->second;
+            auto& phys_vector = iter.second;
 
             if (phys_vector.y.front() == 0.0)
             {
-                // Cross-section starts with null, use next bin value
+                // Cross-section starts with zero, use next bin value
                 phys_vector.y.front() = phys_vector.y[1];
             }
 
             const int last_bin = phys_vector.y.size() - 1;
             if (phys_vector.y.back() == 0.0)
             {
-                // Cross-section ends with null, use previous bin value
+                // Cross-section ends with zero, use previous bin value
                 phys_vector.y.back() = phys_vector.y[last_bin - 1];
             }
         }
 
-        // Normalize vectors per last element
-        auto& last_element_phys_vec = std::prev(element_xs_map.end())->second;
-        const int physics_vector_size = last_element_phys_vec.x.size();
-
-        for (int bin_idx : celeritas::range(physics_vector_size))
-        {
-            const double norm = last_element_phys_vec.y.at(bin_idx);
-            if (!norm)
-            {
-                // Normalization factor is zero
-                continue;
-            }
-
-            for (auto& iter : element_xs_map)
-            {
-                // TODO: double check this statement
-                if (iter.first == std::prev(element_xs_map.end())->first)
-                {
-                    break;
-                }
-                iter.second.y[bin_idx] /= norm;
-            }
-        }
-
         // Store element cross-section map for this material
-        element_selector.push_back(element_xs_map);
+        element_selector.push_back(element_physvec_map);
     }
 
     return element_selector;
@@ -674,7 +643,7 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
 //---------------------------------------------------------------------------//
 /*!
  * Set up \c ImportPhysicsVector type and energy grid, while leaving cross
- * section data empty. This meethod is used to initialize the vectors in
+ * section data empty. This method is used to initialize physics vectors in
  * \c this->add_element_selector_xs(...) .
  *
  * The energy grid is calculated exactly as in
@@ -684,19 +653,19 @@ ImportPhysicsVector
 ImportProcessConverter::initialize_element_selector_physics_vector(
     G4VEmModel& model, const ImportMaterial& material)
 {
+    CELER_ASSERT(&model);
+    CELER_ASSERT(!material.elements.empty());
+
     ImportPhysicsVector physics_vector;
     physics_vector.vector_type = ImportPhysicsVectorType::log;
 
     const double max_energy = model.HighEnergyLimit() / MeV;
-
-    // Do we use the low energy limit of the model, or user-input cuts?
-    // Using cuts we get different energy bins and, thus, different xs values
-    // const double min_energy = model.LowEnergyLimit() / MeV;
     const double min_energy
         = material.pdg_cutoffs.find(process_.particle_pdg)->second.energy;
 
     const int bins_per_decade
         = G4EmParameters::Instance()->NumberOfBinsPerDecade();
+    CELER_ASSERT(bins_per_decade);
 
     const double inv_log_10_6 = 1.0 / (6.0 * std::log(10.0));
     const int    num_energy_bins
@@ -717,6 +686,8 @@ ImportProcessConverter::initialize_element_selector_physics_vector(
     // Resize cross-section vector to match the number of energy bins
     physics_vector.y.resize(physics_vector.x.size());
 
+    CELER_ENSURE(physics_vector.vector_type == ImportPhysicsVectorType::log
+                 && !physics_vector.x.empty() && !physics_vector.y.empty());
     return physics_vector;
 }
 
