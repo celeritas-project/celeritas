@@ -216,7 +216,14 @@ TEST_F(ImportedProcessesTest, bremsstrahlung)
     auto models = process->build_models(ModelIdGenerator{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
-    EXPECT_EQ("Seltzer-Berger bremsstrahlung", models.front()->label());
+    if (options.combined_model)
+    {
+        EXPECT_EQ("Combined Bremsstrahlung", models.front()->label());
+    }
+    else
+    {
+        EXPECT_EQ("Seltzer-Berger bremsstrahlung", models.front()->label());
+    }
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
