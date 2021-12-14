@@ -115,8 +115,6 @@ enum class ImportModelClass
  *
  * Single-element materials do not have element-selectors. In these cases,
  * \c element_selectors.find(model).at(material_id) will be empty.
-
- *
  */
 struct ImportProcess
 {
