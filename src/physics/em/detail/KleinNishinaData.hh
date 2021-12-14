@@ -20,6 +20,8 @@ namespace detail
  */
 struct KleinNishinaData
 {
+    using Mass = units::MevMass;
+
     //! Model ID
     ModelId model_id;
 

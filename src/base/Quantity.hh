@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "Macros.hh"
 #include "NumericLimits.hh"
 #include "Types.hh"
@@ -15,6 +17,7 @@ namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
 //! Implementation class for creating a nonnumeric value comparable to
 //! Quantity.
 template<class T>
@@ -22,6 +25,8 @@ struct UnitlessQuantity
 {
     T value_; //!< Special nonnumeric value
 };
+
+//---------------------------------------------------------------------------//
 } // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -48,20 +53,28 @@ struct UnitlessQuantity
  * A relativistic equation that operates on these quantities can do so without
  * unnecessary floating point operations involving the speed of light:
  * \code
-   real_type eval = energy.value(); // Natural units
-   MevMomentum momentum{std::sqrt(eval * eval + 2 * mass.value() * eval)};
+   real_type eval = value_as<MevEnergy>(energy); // Natural units
+   MevMomentum momentum{std::sqrt(eval * eval
+                                  + 2 * value_as<MevMass>(mass) * eval)};
    \endcode
  * The resulting quantity can be converted to the native Celeritas unit system
- * with a `unit_cast`, which multiplies in the constant value of
+ * with `native_value_from`, which multiplies in the constant value of
  * ElMomentumUnit:
  * \code
- * real_type mom = unit_cast(momentum);
+ * real_type mom = native_value_from(momentum);
  * \endcode
  *
+ * When using a Quantity from another part of the code, e.g. an imported unit
+ * system, use the \c quantity free function rather than \c .value() in order
+ * to guarantee consistency of units between source and destination.
+ *
  * \note The Quantity is designed to be a simple "strong type" class, not a
- * complex mathematical class. To operate on quantities, you must use `value()`
- * or `unit_cast` as appropriate and operate on the numeric values as
- * appropriate, then return a new Quantity class as appropriate.
+ * complex mathematical class. To operate on quantities, you must use
+ `value_as`
+ * (to operate within the Quantity's unit system) or `native_value_from` (to
+ * operate in the Celeritas native unit system), use the resulting numeric
+ * values in your mathematical expressions, then return a new Quantity class
+ * with the resulting value and correct type.
  */
 template<class UnitT, class ValueT = real_type>
 class Quantity
@@ -87,7 +100,7 @@ class Quantity
     //! Construct implicitly from a unitless quantity
     CELER_CONSTEXPR_FUNCTION Quantity(Unitless uq) : value_(uq.value_) {}
 
-    //! Get numeric value, discarding units.
+    //! Get numeric value, discarding units
     CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
 
   private:
@@ -176,7 +189,7 @@ CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> zero_quantity()
 /*!
  * Get a quantitity greater than any other numeric quantity.
  */
-inline CELER_FUNCTION detail::UnitlessQuantity<real_type> max_quantity()
+CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> max_quantity()
 {
     return {numeric_limits<real_type>::infinity()};
 }
@@ -185,7 +198,7 @@ inline CELER_FUNCTION detail::UnitlessQuantity<real_type> max_quantity()
 /*!
  * Get a quantitity less than any other numeric quantity.
  */
-inline CELER_FUNCTION detail::UnitlessQuantity<real_type> neg_max_quantity()
+CELER_CONSTEXPR_FUNCTION detail::UnitlessQuantity<real_type> neg_max_quantity()
 {
     return {-numeric_limits<real_type>::infinity()};
 }
@@ -208,15 +221,64 @@ swap(Quantity<U, V>& a, Quantity<U, V>& b) noexcept
  * Convert the given quantity into the native Celeritas unit system.
  *
  * \code
- assert(unit_cast(Quantity<real_type, SpeedOfLight>{1})
-        == 2.998e10 * centimeter/second);
+ assert(native_value_from(Quantity<CLight>{1}) == 2.998e10 *
+ centimeter/second);
  * \endcode
  */
 template<class UnitT, class ValueT>
-CELER_CONSTEXPR_FUNCTION auto unit_cast(Quantity<UnitT, ValueT> quant)
-    -> decltype(ValueT() * UnitT::value())
+CELER_CONSTEXPR_FUNCTION auto native_value_from(Quantity<UnitT, ValueT> quant)
+    -> decltype(auto)
 {
     return quant.value() * UnitT::value();
+}
+
+//! Old spelling of "native_value_from".
+template<class UnitT, class ValueT>
+[[deprecated("use 'native_value_from'")]] CELER_CONSTEXPR_FUNCTION auto
+unit_cast(Quantity<UnitT, ValueT> quant) -> decltype(auto)
+{
+    return quant.value() * UnitT::value();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a quantity from a value in the Celeritas unit system.
+ *
+ * This function can be used for defining a constant for use in another unit
+ * system (typically a "natural" unit system for use in physics kernels).
+ *
+ * \code
+ constexpr LightSpeed c = native_value_to<LightSpeed>(constants::c_light);
+ assert(c.value() == 1);
+ * \endcode
+ */
+template<class Q>
+CELER_CONSTEXPR_FUNCTION Q native_value_to(typename Q::value_type value)
+{
+    using value_type = typename Q::value_type;
+    using unit_type  = typename Q::unit_type;
+
+    return Q{value * (value_type{1} / unit_type::value())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Use the value of a Quantity.
+ *
+ * The redundant unit type in the function signature is to make coupling safer
+ * across different parts of the code and to make the user code more readable.
+ *
+ * \code
+ assert(value_as<LightSpeed>(LightSpeed{1}) == 1);
+ * \endcode
+ */
+template<class Q, class SrcUnitT, class ValueT>
+CELER_CONSTEXPR_FUNCTION auto value_as(Quantity<SrcUnitT, ValueT> quant)
+    -> ValueT
+{
+    static_assert(std::is_same<Q, Quantity<SrcUnitT, ValueT>>::value,
+                  "quantity units do not match");
+    return quant.value();
 }
 
 //---------------------------------------------------------------------------//

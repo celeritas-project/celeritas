@@ -18,7 +18,10 @@
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
+
 #include "SeltzerBergerData.hh"
+#include "SBEnergySampler.hh"
+#include "BremFinalStateHelper.hh"
 
 namespace celeritas
 {
@@ -66,6 +69,7 @@ class SeltzerBergerInteractor
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
   private:
+    //// DATA ////
     // Device (host CPU or GPU device) references
     const SeltzerBergerNativeRef& shared_;
     // Incident particle energy
@@ -84,6 +88,12 @@ class SeltzerBergerInteractor
     const MaterialView& material_;
     // Element in which interaction occurs
     const ElementComponentId elcomp_id_;
+
+    //// HELPER CLASSES ////
+    // A helper to sample the bremsstrahlung photon energy
+    SBEnergySampler sb_energy_sampler_;
+    // A helper to update the final state of the primary and the secondary
+    BremFinalStateHelper final_state_interaction_;
 };
 
 //---------------------------------------------------------------------------//

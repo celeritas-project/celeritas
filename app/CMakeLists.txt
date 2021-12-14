@@ -191,10 +191,22 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
+  include(CeleritasGenDemoLoopKernel)
+
+  # Generate demo loop kernel/host loop code for host/device
+  set(_gen_src)
+  celeritas_gen_demo_loop_kernel(_gen_src
+    "AlongAndPostStep" "along_and_post_step" "'states.size()'")
+  celeritas_gen_demo_loop_kernel(_gen_src
+    "Cleanup" "cleanup" "1")
+  celeritas_gen_demo_loop_kernel(_gen_src
+    "PreStep" "pre_step" "'states.size()'")
+  celeritas_gen_demo_loop_kernel(_gen_src
+    "ProcessInteractions" "process_interactions" "'states.size()'")
+
   set(_cuda_src)
   if(CELERITAS_USE_CUDA)
     set(_cuda_src
-      demo-loop/LDemoKernel.cu
       demo-loop/diagnostic/EnergyDiagnostic.cu
       demo-loop/diagnostic/ParticleProcessDiagnostic.cu
       demo-loop/diagnostic/StepDiagnostic.cu
@@ -203,13 +215,13 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   endif()
   celeritas_add_library(celeritas_demo_loop
     demo-loop/LDemoIO.cc
-    demo-loop/LDemoKernel.cc
     demo-loop/Transporter.cc
     demo-loop/diagnostic/EnergyDiagnostic.cc
     demo-loop/diagnostic/ParticleProcessDiagnostic.cc
     demo-loop/diagnostic/StepDiagnostic.cc
     demo-loop/diagnostic/TrackDiagnostic.cc
     ${_cuda_src}
+    ${_gen_src}
   )
   celeritas_target_link_libraries(celeritas_demo_loop
     PRIVATE

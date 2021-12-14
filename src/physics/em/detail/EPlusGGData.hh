@@ -9,6 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Units.hh"
 
 namespace celeritas
 {
@@ -20,6 +21,8 @@ namespace detail
  */
 struct EPlusGGData
 {
+    using Mass = units::MevMass;
+
     //! Model ID
     ModelId model_id;
 

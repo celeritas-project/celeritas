@@ -135,7 +135,7 @@ struct SeltzerBergerData
     //! Whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass.value() > 0 && differential_xs;
+        return ids && electron_mass > zero_quantity() && differential_xs;
     }
 
     //! Assign from another set of data

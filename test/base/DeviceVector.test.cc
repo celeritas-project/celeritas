@@ -41,24 +41,16 @@ TEST_F(DeviceVectorTest, all)
 
     vec = Vec_t(1024);
     EXPECT_EQ(1024, vec.size());
-    EXPECT_EQ(1024, vec.capacity());
-
-    vec.resize(512);
-    EXPECT_EQ(512, vec.size());
-    EXPECT_EQ(1024, vec.capacity());
-
     {
         Vec_t other(128);
         int*  orig_vec   = vec.device_ref().data();
         int*  orig_other = other.device_ref().data();
         swap(vec, other);
-        EXPECT_EQ(512, other.size());
-        EXPECT_EQ(1024, other.capacity());
+        EXPECT_EQ(1024, other.size());
         EXPECT_EQ(orig_other, vec.device_ref().data());
         EXPECT_EQ(orig_vec, other.device_ref().data());
     }
     EXPECT_EQ(128, vec.size());
-    EXPECT_EQ(128, vec.capacity());
 
     std::vector<int> data(vec.size());
     data.front() = 1;
@@ -77,7 +69,6 @@ TEST_F(DeviceVectorTest, all)
         Vec_t other(std::move(vec));
         EXPECT_EQ(128, other.size());
         EXPECT_EQ(0, vec.size());
-        EXPECT_EQ(0, vec.capacity());
         EXPECT_EQ(orig_vec, other.device_ref().data());
     }
 }

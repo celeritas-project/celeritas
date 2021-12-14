@@ -8,7 +8,7 @@
 #pragma once
 
 #include "Collection.hh"
-#include "detail/Copier.hh"
+#include "Copier.hh"
 #include "detail/Filler.hh"
 
 namespace celeritas
@@ -33,7 +33,7 @@ template<class T, Ownership W, MemSpace M, class I, std::size_t E>
 void copy_to_host(const Collection<T, W, M, I>& src, Span<T, E> dst)
 {
     CELER_EXPECT(src.size() == dst.size());
-    detail::Copier<T, M> copy_impl{src[AllItems<T, M>{}]};
+    Copier<T, M> copy_impl{src[AllItems<T, M>{}]};
     copy_impl(MemSpace::host, dst);
 }
 

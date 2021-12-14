@@ -51,7 +51,7 @@ class EPlusGGInteractor
   private:
     // Shared constant physics properties
     const EPlusGGData& shared_;
-    // Incident positron energy
+    // Incident positron energy [MevEnergy]
     const real_type inc_energy_;
     // Incident direction
     const Real3& inc_direction_;

@@ -25,7 +25,7 @@ EPlusGGInteractor::EPlusGGInteractor(const EPlusGGData&         shared,
                                      const Real3&               inc_direction,
                                      StackAllocator<Secondary>& allocate)
     : shared_(shared)
-    , inc_energy_(particle.energy().value())
+    , inc_energy_(value_as<units::MevEnergy>(particle.energy()))
     , inc_direction_(inc_direction)
     , allocate_(allocate)
 {

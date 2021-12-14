@@ -12,8 +12,8 @@
 #include "geometry/GeoTrackView.hh"
 #include "physics/base/ParticleTrackView.hh"
 
-#include "field/FieldDriver.hh"
-#include "field/FieldData.hh"
+#include "FieldData.hh"
+#include "FieldDriver.hh"
 
 namespace celeritas
 {

@@ -110,22 +110,10 @@ struct RelativisticBremData
     //! The upper limit of the LPM variable for evaluating LPM functions
     static CELER_CONSTEXPR_FUNCTION real_type limit_s_lpm() { return 2.0; }
 
-    //! Minimum electron/positron energy for this model to be valid
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy low_energy_limit()
-    {
-        return units::MevEnergy{1e3}; //! 1 GeV
-    }
-
-    //! Maximum electron/positron energy for this model to be valid
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy high_energy_limit()
-    {
-        return units::MevEnergy{1e8}; //! 100 TeV
-    }
-
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass.value() > 0 && !lpm_table.empty()
+        return ids && electron_mass > zero_quantity() && !lpm_table.empty()
                && !elem_data.empty();
     }
 

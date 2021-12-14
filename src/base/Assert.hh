@@ -5,6 +5,9 @@
 //---------------------------------------------------------------------------//
 /*! \file Assert.hh
  *  \brief Macros, exceptions, and helpers for assertions and error handling.
+ *
+ *  This defines host- and device-compatible assertion macros that are toggled
+ *  on the \c CELERITAS_DEBUG configure macro.
  */
 //---------------------------------------------------------------------------//
 #pragma once
@@ -24,8 +27,9 @@
 /*!
  * \def CELER_EXPECT
  *
- * Precondition debug assertion macro. It is to "require" that the input values
- * or initial state satisfy a precondition.
+ * Precondition debug assertion macro. We "expect" that the input values
+ * or initial state satisfy a precondition, and we throw exception in
+ * debug mode if they do not.
  */
 /*!
  * \def CELER_ASSERT
@@ -43,8 +47,8 @@
  *
  * Always-on runtime assertion macro. This can check user input and input data
  * consistency, and will raise RuntimeError on failure with a descriptive error
- * message that is streamed as the second argument. This should not be used on
- * device.
+ * message that is streamed as the second argument. This macro cannot be used
+ * in \c __device__ -annotated code.
  *
  * The error message should read:
    ```
@@ -102,17 +106,35 @@
  */
 
 //! \cond
-#define CELER_CUDA_ASSERT_(COND) \
-    do                           \
-    {                            \
-        assert(COND);            \
-    } while (0)
-#define CELER_CUDA_FAIL_() \
-    do                     \
-    {                      \
-        assert(false);     \
-        CELER_UNREACHABLE; \
-    } while (0)
+#ifndef NDEBUG
+// CUDA assert macro is enabled
+#    define CELER_CUDA_ASSERT_(COND) \
+        do                           \
+        {                            \
+            assert(COND);            \
+        } while (0)
+#    define CELER_CUDA_FAIL_() \
+        do                     \
+        {                      \
+            assert(false);     \
+            CELER_UNREACHABLE; \
+        } while (0)
+#else
+// Substitute assertion to make RelWithDebInfo flags orthogonal to
+// CELERITAS_DEBUG flag
+#    define CELER_CUDA_ASSERT_(COND)     \
+        do                               \
+        {                                \
+            if (CELER_UNLIKELY(!(COND))) \
+                __trap();                \
+        } while (0)
+#    define CELER_CUDA_FAIL_() \
+        do                     \
+        {                      \
+            __trap();          \
+        } while (0)
+#endif
+
 #define CELER_DEBUG_ASSERT_(COND, WHICH)                                        \
     do                                                                          \
     {                                                                           \

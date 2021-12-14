@@ -74,11 +74,11 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
               ElementaryCharge{1},
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
-        const auto& particles   = *this->particle_params();
-        data_.ids.electron      = particles.find(pdg::electron());
-        data_.ids.positron      = particles.find(pdg::positron());
-        data_.ids.gamma         = particles.find(pdg::gamma());
-        data_.electron_mass     = particles.get(data_.ids.electron).mass();
+        const auto& particles = *this->particle_params();
+        data_.ids.electron    = particles.find(pdg::electron());
+        data_.ids.positron    = particles.find(pdg::positron());
+        data_.ids.gamma       = particles.find(pdg::gamma());
+        data_.electron_mass   = particles.get(data_.ids.electron).mass();
 
         // Set default particle to incident 1 MeV photon
         this->set_inc_particle(pdg::electron(), MevEnergy{1.0});
@@ -88,7 +88,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         MaterialParams::Input mat_inp;
         mat_inp.elements  = {{29, AmuMass{63.546}, "Cu"}};
         mat_inp.materials = {
-            {1.0 * na_avogadro,
+            {0.141 * na_avogadro,
              293.0,
              MatterState::solid,
              {{ElementId{0}, 1.0}},
@@ -102,16 +102,16 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         SeltzerBergerReader read_element_data(data_path.c_str());
 
         // Construct SeltzerBergerModel and set host data
-        model_    = std::make_shared<SeltzerBergerModel>(ModelId{0},
+        model_ = std::make_shared<SeltzerBergerModel>(ModelId{0},
                                                       *this->particle_params(),
                                                       *this->material_params(),
                                                       read_element_data);
-        data_     = model_->host_ref();
+        data_  = model_->host_ref();
 
         // Set cutoffs
         CutoffParams::Input           input;
         CutoffParams::MaterialCutoffs material_cutoffs;
-        material_cutoffs.push_back({MevEnergy{0.01}, 0.1234});
+        material_cutoffs.push_back({MevEnergy{0.02064384}, 0.07});
         input.materials = this->material_params();
         input.particles = this->particle_params();
         input.cutoffs.insert({pdg::gamma(), material_cutoffs});
@@ -227,7 +227,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
     for (real_type inc_energy : {0.001, 0.0045, 0.567, 7.89, 89.0, 901.})
     {
         SBEnergyDistHelper edist_helper(
-            model_->host_ref(),
+            model_->host_ref().differential_xs,
             Energy{inc_energy},
             ElementId{0},
             this->density_correction(MaterialId{0}, Energy{inc_energy}),
@@ -245,7 +245,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         real_type inc_energy = 7.89;
 
         SBEnergyDistHelper edist_helper(
-            model_->host_ref(),
+            model_->host_ref().differential_xs,
             Energy{inc_energy},
             ElementId{0},
             this->density_correction(MaterialId{0}, Energy{inc_energy}),
@@ -283,12 +283,13 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
     const double expected_max_xs_energy[] = {0.001, 0.002718394312008,
         5.67e-13, 7.89e-12, 8.9e-11, 9.01e-10};
-    const double expected_avg_exit_frac[] = {0.9491159324044, 0.4974867596411,
-        0.08235370866815, 0.0719988569368, 0.08780979490539, 0.1003040929175,
-        0.0728392571092988, 0.0693741457539784};
+    const double expected_avg_exit_frac[] = {0.949115932248866,
+        0.497486662164049, 0.082127972143285, 0.0645177016233406, 
+        0.0774717918229646, 0.0891340819129683, 0.0661428500057435, 
+        0.0640038878541159};
     const double expected_avg_engine_samples[] = {4.0791015625, 4.06005859375,
-        5.13916015625, 4.71923828125, 4.48486328125, 4.40869140625,
-        4.728515625, 4.7353515625};
+	5.134765625, 4.65625, 4.43017578125, 4.35693359375, 4.6591796875,
+        4.66845703125};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
@@ -342,14 +343,14 @@ TEST_F(SeltzerBergerTest, basic)
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    const double expected_angle[]  = {0.678580538592634,
-                                     0.954664999801702,
-                                     0.78773611343671,
-                                     0.756117435132947};
-    const double expected_energy[] = {0.0186731582677645,
-                                      0.0165944967626494,
-                                      0.0528278999530066,
-                                      0.0698924019767286};
+    const double expected_angle[]  = {0.959441513277674,
+                                     0.994350429950924,
+                                     0.968866136008621,
+                                     0.961582855967571};
+    const double expected_energy[] = {0.0349225070114679,
+                                      0.0316182310804369,
+                                      0.0838794010486177,
+                                      0.106195186929141};
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
@@ -419,15 +420,16 @@ TEST_F(SeltzerBergerTest, stress_test)
     }
 
     // Gold values for average number of calls to RNG
-    const double expected_avg_engine_samples[] = {15.0251,
-                                                  14.1522,
-                                                  13.8325,
-                                                  13.2383,
-                                                  13.02995,
-                                                  15.05335,
-                                                  14.18465,
-                                                  13.81935,
-                                                  13.2331,
-                                                  13.02855};
+    const double expected_avg_engine_samples[] = {14.088,
+                                                  13.2402,
+                                                  12.9641,
+                                                  12.5832,
+                                                  12.4988,
+                                                  14.10655,
+                                                  13.2396,
+                                                  12.9456,
+                                                  12.5815,
+                                                  12.4965};
+
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

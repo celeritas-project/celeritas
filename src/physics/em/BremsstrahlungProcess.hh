@@ -29,11 +29,21 @@ class BremsstrahlungProcess : public Process
     using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
     //!@}
 
+    // Options for the Bremsstrahlung process
+    struct Options
+    {
+        bool combined_model{true}; //!> Use a unified relativistic/SB
+                                   //!interactor
+        bool enable_lpm{true};     //!> Account for LPM effect at very high
+                                   //!energies
+    };
+
   public:
     // Construct from Bremsstrahlung data
     BremsstrahlungProcess(SPConstParticles particles,
                           SPConstMaterials materials,
-                          SPConstImported  process_data);
+                          SPConstImported  process_data,
+                          Options          options);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;
@@ -51,6 +61,7 @@ class BremsstrahlungProcess : public Process
     SPConstParticles       particles_;
     SPConstMaterials       materials_;
     ImportedProcessAdapter imported_;
+    Options                options_;
 };
 
 //---------------------------------------------------------------------------//

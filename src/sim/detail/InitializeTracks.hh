@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/NumericLimits.hh"
 #include "base/Span.hh"
 #include "physics/base/Primary.hh"
 #include "sim/TrackData.hh"
@@ -18,54 +17,38 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-// Invalid index flag
-CELER_CONSTEXPR_FUNCTION size_type flag_id()
-{
-    return numeric_limits<size_type>::max();
-}
-
-//---------------------------------------------------------------------------//
-// Get the thread ID of the last element
-inline CELER_FUNCTION ThreadId from_back(size_type size, ThreadId cur_thread);
-
-//---------------------------------------------------------------------------//
-// Initialize the track states on device.
+// Initialize track states
 void init_tracks(const ParamsDeviceRef&         params,
                  const StateDeviceRef&          states,
-                 const TrackInitStateDeviceRef& inits);
-
+                 const TrackInitStateDeviceRef& data);
 void init_tracks(const ParamsHostRef&         params,
                  const StateHostRef&          states,
-                 const TrackInitStateHostRef& inits);
+                 const TrackInitStateHostRef& data);
 
 //---------------------------------------------------------------------------//
-// Identify which tracks are still alive and count the number of secondaries
-// that survived cutoffs for each interaction.
+// Identify which tracks are alive and count secondaries created
 void locate_alive(const ParamsDeviceRef&         params,
                   const StateDeviceRef&          states,
-                  const TrackInitStateDeviceRef& inits);
-
+                  const TrackInitStateDeviceRef& data);
 void locate_alive(const ParamsHostRef&         params,
                   const StateHostRef&          states,
-                  const TrackInitStateHostRef& inits);
+                  const TrackInitStateHostRef& data);
 
 //---------------------------------------------------------------------------//
-// Create track initializers on device from primary particles
+// Create track initializers from primary particles
 void process_primaries(Span<const Primary>            primaries,
-                       const TrackInitStateDeviceRef& inits);
-
+                       const TrackInitStateDeviceRef& data);
 void process_primaries(Span<const Primary>          primaries,
-                       const TrackInitStateHostRef& inits);
+                       const TrackInitStateHostRef& data);
 
 //---------------------------------------------------------------------------//
-// Create track initializers on device from secondary particles.
+// Create track initializers from secondary particles
 void process_secondaries(const ParamsDeviceRef&         params,
                          const StateDeviceRef&          states,
-                         const TrackInitStateDeviceRef& inits);
-
+                         const TrackInitStateDeviceRef& data);
 void process_secondaries(const ParamsHostRef&         params,
                          const StateHostRef&          states,
-                         const TrackInitStateHostRef& inits);
+                         const TrackInitStateHostRef& data);
 
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive
@@ -98,17 +81,36 @@ template<>
 void exclusive_scan_counts<MemSpace::device>(Span<size_type> counts);
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTIONS
+// INLINE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
-/*!
- * Get the thread ID of the last element.
- */
-CELER_FUNCTION ThreadId from_back(size_type size, ThreadId cur_thread)
+#if !CELERITAS_USE_CUDA
+inline void init_tracks(const ParamsDeviceRef&,
+                        const StateDeviceRef&,
+                        const TrackInitStateDeviceRef&)
 {
-    CELER_EXPECT(cur_thread.get() + 1 <= size);
-    return ThreadId{size - cur_thread.get() - 1};
+    CELER_NOT_CONFIGURED("CUDA");
 }
 
+inline void locate_alive(const ParamsDeviceRef&,
+                         const StateDeviceRef&,
+                         const TrackInitStateDeviceRef&)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+
+inline void
+process_primaries(Span<const Primary>, const TrackInitStateDeviceRef&)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+
+inline void process_secondaries(const ParamsDeviceRef&,
+                                const StateDeviceRef&,
+                                const TrackInitStateDeviceRef&)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+#endif
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

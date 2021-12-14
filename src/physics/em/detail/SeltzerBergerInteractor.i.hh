@@ -8,11 +8,10 @@
 
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
-#include "random/distributions/UniformRealDistribution.hh"
+#include "PhysicsConstants.hh"
 #include "SBEnergyDistHelper.hh"
 #include "SBEnergyDistribution.hh"
 #include "SBPositronXsCorrector.hh"
-#include "TsaiUrbanDistribution.hh"
 
 namespace celeritas
 {
@@ -42,10 +41,22 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
     , allocate_(allocate)
     , material_(material)
     , elcomp_id_(elcomp_id)
+    , sb_energy_sampler_(shared.differential_xs,
+                         particle,
+                         gamma_cutoff_,
+                         material,
+                         elcomp_id,
+                         shared.electron_mass,
+                         inc_particle_is_electron_)
+    , final_state_interaction_(inc_energy_,
+                               inc_direction_,
+                               inc_momentum_,
+                               shared.electron_mass,
+                               shared.ids.gamma)
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
-    CELER_EXPECT(gamma_cutoff_.value() > 0);
+    CELER_EXPECT(gamma_cutoff_ > zero_quantity());
 }
 
 //---------------------------------------------------------------------------//
@@ -73,75 +84,11 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Density correction
-    constexpr auto migdal = 4 * constants::pi * constants::r_electron
-                            * ipow<2>(constants::lambdabar_electron);
-    real_type density_factor   = material_.electron_density() * migdal;
-    real_type total_energy_val = inc_energy_.value()
-                                 + shared_.electron_mass.value();
-    real_type density_correction = density_factor * ipow<2>(total_energy_val);
+    // Sample the bremsstrahlung photon energy
+    Energy gamma_energy = sb_energy_sampler_(rng);
 
-    // Outgoing photon secondary energy sampler
-    Energy gamma_exit_energy;
-    {
-        // Helper class preprocesses cross section bounds and calculates
-        // distribution
-        SBEnergyDistHelper sb_helper(
-            shared_,
-            inc_energy_,
-            material_.element_id(elcomp_id_),
-            SBEnergyDistHelper::EnergySq{density_correction},
-            gamma_cutoff_);
-
-        if (inc_particle_is_electron_)
-        {
-            // Rejection sample without modifying cross section
-            SBEnergyDistribution<SBElectronXsCorrector> sample_gamma_energy(
-                sb_helper, {});
-            gamma_exit_energy = sample_gamma_energy(rng);
-        }
-        else
-        {
-            SBEnergyDistribution<SBPositronXsCorrector> sample_gamma_energy(
-                sb_helper,
-                {shared_.electron_mass,
-                 material_.element_view(elcomp_id_),
-                 gamma_cutoff_,
-                 inc_energy_});
-            gamma_exit_energy = sample_gamma_energy(rng);
-        }
-    }
-
-    // Construct interaction for change to parent (incoming) particle
-    Interaction result;
-    result.action = Action::scattered;
-    result.energy
-        = units::MevEnergy{inc_energy_.value() - gamma_exit_energy.value()};
-    result.direction           = inc_direction_;
-    result.secondaries         = {secondaries, 1};
-    secondaries[0].particle_id = shared_.ids.gamma;
-    secondaries[0].energy      = gamma_exit_energy;
-
-    // Generate exiting gamma direction from isotropic azimuthal
-    // angle and TsaiUrbanDistribution for polar angle
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    TsaiUrbanDistribution sample_gamma_angle(secondaries[0].energy,
-                                             shared_.electron_mass);
-    real_type             cost = sample_gamma_angle(rng);
-    secondaries[0].direction
-        = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
-
-    // Update parent particle direction
-    for (unsigned int i : range(3))
-    {
-        real_type inc_momentum_i   = inc_momentum_.value() * inc_direction_[i];
-        real_type gamma_momentum_i = result.secondaries[0].energy.value()
-                                     * result.secondaries[0].direction[i];
-        result.direction[i] = inc_momentum_i - gamma_momentum_i;
-    }
-    normalize_direction(&result.direction);
-
-    return result;
+    // Update kinematics of the final state and return this interaction
+    return final_state_interaction_(rng, gamma_energy, secondaries);
 }
 
 //---------------------------------------------------------------------------//

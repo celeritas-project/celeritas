@@ -43,6 +43,10 @@ struct LDemoArgs
     real_type    secondary_stack_factor{};
     bool         use_device{};
 
+    // Options for physics processes and models
+    bool combined_brem{true};
+    bool enable_lpm{true};
+
     //! Whether the run arguments are valid
     explicit operator bool() const
     {
