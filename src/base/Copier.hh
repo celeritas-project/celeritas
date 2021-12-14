@@ -14,8 +14,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Copy spans of data.
@@ -51,5 +49,4 @@ void Copier<T, M>::operator()(MemSpace dstmem, Span<T> dst) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

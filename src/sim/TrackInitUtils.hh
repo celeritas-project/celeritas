@@ -8,8 +8,8 @@
 #pragma once
 
 #include "base/Algorithms.hh"
-#include "base/detail/Copier.hh"
 #include "base/CollectionBuilder.hh"
+#include "base/Copier.hh"
 #include "sim/TrackInitData.hh"
 #include "sim/TrackData.hh"
 #include "sim/detail/InitializeTracks.hh"
@@ -44,7 +44,7 @@ inline void extend_from_primaries(const TrackInitParamsHostRef& params,
         // Allocate memory and copy primaries
         Collection<Primary, Ownership::value, M> primaries;
         make_builder(&primaries).resize(count);
-        detail::Copier<Primary, MemSpace::host> copy{
+        Copier<Primary, MemSpace::host> copy{
             params.primaries[ItemRange<Primary>(
                 ItemId<Primary>(data->num_primaries - count),
                 ItemId<Primary>(data->num_primaries))]};

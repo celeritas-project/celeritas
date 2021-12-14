@@ -51,12 +51,12 @@ list(APPEND SOURCES ${_gen_sources})
 list(APPEND SOURCES
   base/Assert.cc
   base/ColorUtils.cc
+  base/Copier.cc
   base/DeviceAllocation.cc
   comm/KernelDiagnostics.cc
   base/ScopedStreamRedirect.cc
   base/TypeDemangler.cc
   base/VectorUtils.cc
-  base/detail/Copier.cc
   base/detail/ReprImpl.cc
   comm/Communicator.cc
   comm/Device.cc
