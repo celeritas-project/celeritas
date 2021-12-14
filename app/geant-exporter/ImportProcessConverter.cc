@@ -277,6 +277,8 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
     process_.process_type  = to_import_process_type(process.GetProcessType());
     process_.process_class = to_import_process_class(process);
     process_.particle_pdg  = particle.GetPDGEncoding();
+
+    // Clean up process_ data
     process_.models.clear();
     process_.tables.clear();
     process_.element_selectors.clear();
@@ -286,18 +288,21 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
         // G4VEmProcess tables
         this->store_em_tables(*em_process);
     }
+
     else if (const auto* energy_loss
              = dynamic_cast<const G4VEnergyLossProcess*>(&process))
     {
         // G4VEnergyLossProcess tables
         this->store_energy_loss_tables(*energy_loss);
     }
+
     else if (const auto* multiple_scattering
              = dynamic_cast<const G4VMultipleScattering*>(&process))
     {
         // G4VMultipleScattering tables
         this->store_multiple_scattering_tables(*multiple_scattering);
     }
+
     else
     {
         CELER_LOG(error) << "Cannot export unknown process '"
@@ -332,7 +337,7 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 
         // Save element-selector data
         process_.element_selectors.insert(
-            {model_class_id, this->add_element_selector_xs(model)});
+            {model_class_id, this->add_element_selector(model)});
     }
 
     // Save potential tables
@@ -362,7 +367,7 @@ void ImportProcessConverter::store_energy_loss_tables(
 
         // Save element-selector data
         process_.element_selectors.insert(
-            {model_class_id, this->add_element_selector_xs(model)});
+            {model_class_id, this->add_element_selector(model)});
     }
 
     if (process.IsIonisationProcess())
@@ -428,7 +433,7 @@ void ImportProcessConverter::store_multiple_scattering_tables(
 #if CELERITAS_G4_V10
     for (auto i : celeritas::range(4))
 #else
-    for (int i : celeritas::range(process.NumberOfModels()))
+    for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
@@ -544,12 +549,12 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
  * stored in a non-safe flat array for device compatibility.
  */
 ImportProcess::ElementSelector
-ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
+ImportProcessConverter::add_element_selector(G4VEmModel& model)
 {
     CELER_ASSERT(&model);
     CELER_ASSERT(!materials_.empty());
 
-    // Geant4 particle definition, needed for ComputeCrossSectionPerAtom(...)
+    // Needed for model.ComputeCrossSectionPerAtom(...)
     const G4ParticleDefinition& g4_particle_def
         = *G4ParticleTable::GetParticleTable()->FindParticle(
             process_.particle_pdg);
@@ -617,19 +622,19 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
         // front/back are zero. This feels like a trap.
         for (auto& iter : element_physvec_map)
         {
-            auto& phys_vector = iter.second;
+            auto& physics_vector = iter.second;
 
-            if (phys_vector.y.front() == 0.0)
+            if (physics_vector.y.front() == 0.0)
             {
                 // Cross-section starts with zero, use next bin value
-                phys_vector.y.front() = phys_vector.y[1];
+                physics_vector.y.front() = physics_vector.y[1];
             }
 
-            const int last_bin = phys_vector.y.size() - 1;
-            if (phys_vector.y.back() == 0.0)
+            const unsigned int last_bin = physics_vector.y.size() - 1;
+            if (physics_vector.y.back() == 0.0)
             {
                 // Cross-section ends with zero, use previous bin value
-                phys_vector.y.back() = phys_vector.y[last_bin - 1];
+                physics_vector.y.back() = physics_vector.y[last_bin - 1];
             }
         }
 
@@ -642,11 +647,11 @@ ImportProcessConverter::add_element_selector_xs(G4VEmModel& model)
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up \c ImportPhysicsVector type and energy grid, while leaving cross
- * section data empty. This method is used to initialize physics vectors in
- * \c this->add_element_selector_xs(...) .
+ * Set up \c ImportPhysicsVector type and energy grid, while leaving
+ * cross-section data empty. This method is used to initialize physics vectors
+ * in \c this->add_element_selector(...) .
  *
- * The energy grid is calculated exactly as in
+ * The energy grid is defined as in
  * \c G4VEmModel::InitialiseElementSelectors(...) .
  */
 ImportPhysicsVector

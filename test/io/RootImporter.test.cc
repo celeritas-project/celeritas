@@ -266,15 +266,16 @@ TEST_F(RootImporterTest, processes)
         // Test element selector cross-section table
         EXPECT_EQ(iter->models.size(), iter->element_selectors.size());
 
-        // Current iter points to Moller-Bhabha
-        const auto& mb_es_pair
+        // Current iter points to process class e_ioni
+        // Process e_ioni currently has only one available model: Moller-Bhabha
+        EXPECT_EQ(1, iter->element_selectors.size());
+
+        const auto& mb_pair
             = iter->element_selectors.find(iter->models.front());
-        const auto& mb_element_selector = mb_es_pair->second;
+        EXPECT_EQ(ImportModelClass::moller_bhabha, mb_pair->first);
 
-        EXPECT_EQ(ImportModelClass::moller_bhabha, mb_es_pair->first);
-        EXPECT_EQ(1, mb_element_selector.size());
-
-        const auto& mb_physvec_map = mb_element_selector.front();
+        const auto& mb_element_selector = mb_pair->second;
+        const auto& mb_physvec_map      = mb_element_selector.front();
         EXPECT_EQ(3, mb_physvec_map.size());
 
         std::vector<double> element_id_list;
@@ -299,7 +300,7 @@ TEST_F(RootImporterTest, processes)
 
         static const double expected_element_id_list[] = {0, 1, 2};
 
-        // Only one size is needed, as x and y must have the same size
+        // expected_element_physvec_y_size is not needed: x.size() == y.size()
         static const double expected_element_physvec_x_size[] = {9, 9, 9};
 
         static const double expected_element_physvec_x_front[]
@@ -326,6 +327,14 @@ TEST_F(RootImporterTest, processes)
                            element_physvec_x_back);
         EXPECT_VEC_SOFT_EQ(expected_element_physvec_y_back,
                            element_physvec_y_back);
+
+        for (auto i : celeritas::range(3))
+        {
+            EXPECT_GT(element_physvec_x_back[i], 0);
+            EXPECT_GT(element_physvec_x_front[i], 0);
+            EXPECT_GT(element_physvec_y_back[i], 0);
+            EXPECT_GT(element_physvec_y_front[i], 0);
+        }
     }
 }
 

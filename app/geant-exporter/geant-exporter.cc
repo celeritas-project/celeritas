@@ -357,11 +357,7 @@ std::vector<ImportProcess> store_processes()
     CELER_LOG(status) << "Exporting physics processes";
 
     std::vector<ImportProcess> processes;
-
-    // TODO: decide if repeating store_x(), albeit slower, is better due
-    // to simplicity, or if we should pass by reference the already created
-    // import_data.materials all the way down to here
-    ImportProcessConverter process_writer(
+    ImportProcessConverter     process_writer(
         TableSelection::minimal, store_materials(), store_elements());
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator

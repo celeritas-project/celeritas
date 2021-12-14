@@ -103,18 +103,19 @@ enum class ImportModelClass
  * \sa ImportData
  *
  * \note
- * XS tables depend on the physics process and their type (lambda, dedx, and so
- * on). Each table type includes physics vectors for all materials. Therefore,
- * the XS physics vector of a given material is retrieved by
- * doing \c tables.at(table_type).physics_vectors.at(material_id) .
- * Conversely, element selector physics vectors are model dependent. Thus, for
- * simplicity, they are stored directly as physics vectors and retrieved by
- * providing the model class enum, material, and element ids:
+ * \c ImportPhysicsTable is process and type (lambda, dedx, and so
+ * on) dependent, with each table type including physics vectors for all
+ * materials. Therefore, the physics vector of a given material is retrieved
+ * by doing \c tables.at(table_type).physics_vectors.at(material_id) .
+ *
+ * Conversely, element-selectors are model dependent. Thus, for simplicity,
+ * they are stored directly as physics vectors and retrieved by providing the
+ * model class enum, material, and element id:
  * \c element_selectors.find(model).at(material_id).find(element_id)->second .
  *
- * \note
- * Since single-element materials do not have element-selectors, it is possible
- * to have empty element_selectors.
+ * Single-element materials do not have element-selectors. In these cases,
+ * \c element_selectors.find(model).at(material_id) will be empty.
+
  *
  */
 struct ImportProcess
@@ -138,7 +139,8 @@ struct ImportProcess
     {
         return process_type != ImportProcessType::not_defined
                && process_class != ImportProcessClass::unknown
-               && !models.empty() && !tables.empty();
+               && !models.empty() && !tables.empty()
+               && !element_selectors.empty();
     }
 };
 

@@ -53,7 +53,7 @@ enum class TableSelection
  *
  * \code
  *  std::vector<ImportProcess> processes;
- *  ImportProcessConverter import(TableSelection::all);
+ *  ImportProcessConverter import(TableSelection::all, materials, elements);
  *
  *  G4ParticleTable::G4PTblDicIterator& particle_iterator
  *      = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -69,9 +69,9 @@ enum class TableSelection
  *      for (int j = 0; j < process_list.size(); j++)
  *      {
  *          if (ImportProcess process
- *                  = process_writer(g4_particle_def, *process_list[j]))
+ *                  = impoort(g4_particle_def, *process_list[j]))
  *          {
- *              processes.push_back(process);
+ *              processes.push_back(std::move(process));
  *          }
  *      }
  *  }
@@ -88,8 +88,7 @@ class ImportProcessConverter
     // Default destructor
     ~ImportProcessConverter();
 
-    // Return ImportProcess for a given particle and
-    // physics process
+    // Return ImportProcess for a given particle and physics process
     ImportProcess operator()(const G4ParticleDefinition& particle,
                              const G4VProcess&           process);
 
@@ -109,9 +108,9 @@ class ImportProcessConverter
                    celeritas::ImportTableType table_type);
 
     // Store element cross section data into physics vectors
-    ImportProcess::ElementSelector add_element_selector_xs(G4VEmModel& model);
+    ImportProcess::ElementSelector add_element_selector(G4VEmModel& model);
 
-    // Set up the physics vector energy grid for add_element_selector_xs(...)
+    // Set up the physics vector energy grid for add_element_selector(...)
     ImportPhysicsVector
     initialize_element_selector_physics_vector(G4VEmModel&           model,
                                                const ImportMaterial& material);
