@@ -11,6 +11,7 @@
 #include "base/Constants.hh"
 #include "random/distributions/GenerateCanonical.hh"
 
+#include "PhysicsConstants.hh"
 #include "SBEnergyDistHelper.hh"
 #include "SBEnergyDistribution.hh"
 #include "SBPositronXsCorrector.hh"
@@ -41,7 +42,7 @@ CombinedBremInteractor::CombinedBremInteractor(
     , material_(material)
     , elcomp_id_(elcomp_id)
     , is_electron_(particle.particle_id() == shared.rb_data.ids.electron)
-    , is_relativistic_(particle.energy() > shared.rb_data.low_energy_limit())
+    , is_relativistic_(particle.energy() > seltzer_berger_limit())
     , rb_energy_sampler_(shared.rb_data, particle, cutoffs, material, elcomp_id)
     , sb_energy_sampler_(shared.sb_differential_xs,
                          particle,

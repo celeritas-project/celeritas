@@ -9,6 +9,7 @@
 
 #include "base/Algorithms.hh"
 #include "random/distributions/BernoulliDistribution.hh"
+#include "PhysicsConstants.hh"
 
 namespace celeritas
 {
@@ -41,7 +42,7 @@ CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy
 {
     // Min and max kinetic energy limits for sampling the secondary photon
     Energy tmin = min(gamma_cutoff_, inc_energy_);
-    Energy tmax = min(shared_.high_energy_limit(), inc_energy_);
+    Energy tmax = min(high_energy_limit(), inc_energy_);
 
     real_type density_corr = dxsec_.density_correction();
 

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "CombinedBremModel.hh"
 
+#include "physics/em/detail/PhysicsConstants.hh"
 #include "physics/em/generated/CombinedBremInteract.hh"
 
 namespace celeritas
@@ -50,7 +51,7 @@ auto CombinedBremModel::applicability() const -> SetApplicability
     Applicability electron_brem;
     electron_brem.particle = this->host_ref().rb_data.ids.electron;
     electron_brem.lower    = zero_quantity();
-    electron_brem.upper    = this->host_ref().rb_data.high_energy_limit();
+    electron_brem.upper    = detail::high_energy_limit();
 
     Applicability positron_brem = electron_brem;
     positron_brem.particle      = this->host_ref().rb_data.ids.positron;
