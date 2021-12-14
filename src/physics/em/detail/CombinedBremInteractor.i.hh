@@ -33,13 +33,11 @@ CombinedBremInteractor::CombinedBremInteractor(
     StackAllocator<Secondary>&   allocate,
     const MaterialView&          material,
     const ElementComponentId&    elcomp_id)
-    : shared_(shared)
-    , inc_energy_(particle.energy())
+    : inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())
     , inc_direction_(direction)
     , gamma_cutoff_(cutoffs.energy(shared.rb_data.ids.gamma))
     , allocate_(allocate)
-    , material_(material)
     , elcomp_id_(elcomp_id)
     , is_electron_(particle.particle_id() == shared.rb_data.ids.electron)
     , is_relativistic_(particle.energy() > seltzer_berger_limit())
@@ -54,11 +52,11 @@ CombinedBremInteractor::CombinedBremInteractor(
     , final_state_interaction_(inc_energy_,
                                inc_direction_,
                                inc_momentum_,
-                               shared_.rb_data.electron_mass,
-                               shared_.rb_data.ids.gamma)
+                               shared.rb_data.electron_mass,
+                               shared.rb_data.ids.gamma)
 {
     CELER_EXPECT(is_electron_
-                 || particle.particle_id() == shared_.rb_data.ids.positron);
+                 || particle.particle_id() == shared.rb_data.ids.positron);
     CELER_EXPECT(gamma_cutoff_.value() > 0);
 }
 

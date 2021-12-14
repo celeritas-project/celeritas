@@ -551,7 +551,6 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
 ImportProcess::ElementSelector
 ImportProcessConverter::add_element_selector(G4VEmModel& model)
 {
-    CELER_ASSERT(&model);
     CELER_ASSERT(!materials_.empty());
 
     // Needed for model.ComputeCrossSectionPerAtom(...)
@@ -658,7 +657,6 @@ ImportPhysicsVector
 ImportProcessConverter::initialize_element_selector_physics_vector(
     G4VEmModel& model, const ImportMaterial& material)
 {
-    CELER_ASSERT(&model);
     CELER_ASSERT(!material.elements.empty());
 
     ImportPhysicsVector physics_vector;
@@ -670,7 +668,6 @@ ImportProcessConverter::initialize_element_selector_physics_vector(
 
     const int bins_per_decade
         = G4EmParameters::Instance()->NumberOfBinsPerDecade();
-    CELER_ASSERT(bins_per_decade);
 
     const double inv_log_10_6 = 1.0 / (6.0 * std::log(10.0));
     const int    num_energy_bins

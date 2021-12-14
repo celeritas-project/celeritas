@@ -39,7 +39,7 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
     , inc_particle_is_electron_(particle.particle_id() == shared_.ids.electron)
     , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
     , allocate_(allocate)
-    , material_(material)
+    //, material_(material)
     , elcomp_id_(elcomp_id)
     , sb_energy_sampler_(shared.differential_xs,
                          particle,
