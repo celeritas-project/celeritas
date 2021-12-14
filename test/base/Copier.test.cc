@@ -29,21 +29,21 @@ class CopierTest : public celeritas::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(CopierTest, all)
+TEST_F(CopierTest, host)
 {
     // Copy host --> host
     std::vector<int> src_vec(128, 1234);
     std::vector<int> dst_vec(src_vec.size() + 1);
-    {
-        Copier<int, MemSpace::host> copy{celeritas::make_span(src_vec)};
-        copy(MemSpace::host,
-             {dst_vec.data() + 1, dst_vec.data() + dst_vec.size()});
-    }
+
+    Copier<int, MemSpace::host> copy{celeritas::make_span(src_vec)};
+    copy(MemSpace::host, {dst_vec.data() + 1, dst_vec.data() + dst_vec.size()});
     EXPECT_EQ(0, dst_vec.front());
     EXPECT_EQ(1234, dst_vec[1]);
     EXPECT_EQ(1234, dst_vec.back());
+}
 
-#if CELERITAS_USE_CUDA
+TEST_F(CopierTest, TEST_IF_CELERITAS_CUDA(device))
+{
     // Copy host --> device
     std::vector<int> host_vec(128);
     host_vec.front() = 1;
@@ -69,5 +69,4 @@ TEST_F(CopierTest, all)
     }
     EXPECT_EQ(1, new_host_vec.front());
     EXPECT_EQ(1234, new_host_vec.back());
-#endif
 }
