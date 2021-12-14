@@ -14,7 +14,7 @@ namespace celeritas
  */
 template<class T>
 DeviceVector<T>::DeviceVector(size_type count)
-    : allocation_(count * sizeof(T)), size_(count), capacity_(count)
+    : allocation_(count * sizeof(T)), size_(count)
 {
 }
 
@@ -27,22 +27,7 @@ void DeviceVector<T>::swap(DeviceVector& other) noexcept
 {
     using std::swap;
     swap(size_, other.size_);
-    swap(capacity_, other.capacity_);
     swap(allocation_, other.allocation_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Change the size without changing capacity.
- *
- * There is no reallocation of storage: the vector can only shrink or grow up
- * to the container capacity.
- */
-template<class T>
-void DeviceVector<T>::resize(size_type size)
-{
-    CELER_EXPECT(size <= this->capacity());
-    size_ = size;
 }
 
 //---------------------------------------------------------------------------//

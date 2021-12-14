@@ -51,12 +51,12 @@ list(APPEND SOURCES ${_gen_sources})
 list(APPEND SOURCES
   base/Assert.cc
   base/ColorUtils.cc
+  base/Copier.cc
   base/DeviceAllocation.cc
   comm/KernelDiagnostics.cc
   base/ScopedStreamRedirect.cc
   base/TypeDemangler.cc
   base/VectorUtils.cc
-  base/detail/Copier.cc
   base/detail/ReprImpl.cc
   comm/Communicator.cc
   comm/Device.cc
@@ -113,7 +113,6 @@ if(CELERITAS_USE_CUDA)
     base/KernelParamCalculator.cuda.cc
     base/detail/Filler.cu
     random/detail/RngStateInit.cu
-    sim/detail/SimStateInit.cu
   )
   # TODO: CUDA RNG is included by host code
   list(APPEND PUBLIC_DEPS CUDA::cudart)
@@ -121,7 +120,6 @@ else()
   list(APPEND SOURCES
     random/detail/curand.nocuda.cc
     random/detail/RngStateInit.nocuda.cc
-    sim/detail/SimStateInit.nocuda.cc
   )
 endif()
 
@@ -156,7 +154,6 @@ if(CELERITAS_USE_VecGeom)
     geometry/GeoParams.cc
     geometry/detail/VGNavCollection.cc
     sim/TrackInitParams.cc
-    sim/TrackInitUtils.cc
     sim/detail/InitializeTracks.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml)
@@ -167,10 +164,6 @@ if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_CUDA)
     list(APPEND SOURCES
       sim/detail/InitializeTracks.cu
-    )
-  else()
-    list(APPEND SOURCES
-      sim/detail/InitializeTracks.nocuda.cc
     )
   endif()
 endif()

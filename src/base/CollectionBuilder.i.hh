@@ -16,6 +16,8 @@ template<class T, MemSpace M, class I>
 void CollectionBuilder<T, M, I>::reserve(size_type count)
 {
     CELER_EXPECT(count <= max_size());
+    static_assert(M == MemSpace::host,
+                  "Reserve currently works only for host memory");
     this->storage().reserve(count);
 }
 
@@ -50,7 +52,7 @@ auto CollectionBuilder<T, M, I>::insert_back(std::initializer_list<T> init)
 
 //---------------------------------------------------------------------------//
 /*!
- * Reserve space for the given number of elements.
+ * Add a new element to the end of the allocation.
  */
 template<class T, MemSpace M, class I>
 auto CollectionBuilder<T, M, I>::push_back(const T& el) -> ItemIdT
@@ -79,23 +81,12 @@ auto CollectionBuilder<T, M, I>::push_back(T&& el) -> ItemIdT
 //---------------------------------------------------------------------------//
 /*!
  * Increase the size to the given number of elements.
- *
- * \todo Rethink whether to add resizing to DeviceVector, since this
- * construction is super awkward.
  */
 template<class T, MemSpace M, class I>
 void CollectionBuilder<T, M, I>::resize(size_type size)
 {
-    CELER_EXPECT(size >= this->size());
-    CELER_EXPECT(this->storage().empty() || size <= this->storage().capacity());
-    if (this->storage().empty())
-    {
-        this->storage() = StorageT(size);
-    }
-    else
-    {
-        this->storage().resize(size);
-    }
+    CELER_EXPECT(this->storage().empty());
+    this->storage() = StorageT(size);
 }
 
 //---------------------------------------------------------------------------//

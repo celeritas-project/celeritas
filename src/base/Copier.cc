@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Perform a memcpy on the data.
@@ -48,5 +46,4 @@ void copy_bytes(MemSpace    dstmem,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

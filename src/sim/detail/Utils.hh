@@ -1,37 +1,41 @@
-//---------------------------------*-C++-*-----------------------------------//
+//----------------------------------*-C++-*----------------------------------//
 // Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SimStateInit.nocuda.cc
+//! \file Utils.hh
 //---------------------------------------------------------------------------//
-#include "SimStateInit.hh"
+#pragma once
 
 #include "base/Assert.hh"
-#include "../SimTrackView.hh"
+#include "base/NumericLimits.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-/*!
- * Initialize the sim states on device.
- */
-void sim_state_init(const SimStateData<Ownership::reference, MemSpace::device>&)
+struct IsEqual
 {
-    CELER_ASSERT_UNREACHABLE();
+    size_type value;
+
+    CELER_FUNCTION bool operator()(size_type x) const { return x == value; }
+};
+
+//---------------------------------------------------------------------------//
+//! Invalid index flag
+CELER_CONSTEXPR_FUNCTION size_type flag_id()
+{
+    return numeric_limits<size_type>::max();
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Initialize the sim states on host.
- */
-void sim_state_init(
-    const SimStateData<Ownership::reference, MemSpace::host>& data)
+//! Get the thread ID of the last element
+CELER_FORCEINLINE_FUNCTION ThreadId from_back(size_type size, ThreadId tid)
 {
-    for (auto id : range(ThreadId{data.size()}))
-        data.state[id] = SimTrackView::Initializer_t{};
+    CELER_EXPECT(tid.get() + 1 <= size);
+    return ThreadId{size - tid.get() - 1};
 }
 
 //---------------------------------------------------------------------------//

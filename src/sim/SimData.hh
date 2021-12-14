@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "detail/SimStateInit.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -72,8 +72,12 @@ template<MemSpace M>
 void resize(SimStateData<Ownership::value, M>* data, size_type size)
 {
     CELER_EXPECT(size > 0);
-    make_builder(&data->state).resize(size);
-    detail::sim_state_init(make_ref(*data));
+    StateCollection<SimTrackState, Ownership::value, MemSpace::host> state;
+    std::vector<SimTrackState> initial_state(size);
+    make_builder(&state).insert_back(initial_state.begin(),
+                                     initial_state.end());
+    data->state = state;
+    CELER_ENSURE(*data);
 }
 
 //---------------------------------------------------------------------------//
