@@ -53,8 +53,6 @@ class RBEnergySampler
     using ReciprocalSampler = ReciprocalDistribution<real_type>;
 
     //// DATA ////
-    // Shared data
-    const RelativisticBremNativeRef& shared_;
     // Incident particle energy
     const Energy inc_energy_;
     // Production cutoff for gammas
