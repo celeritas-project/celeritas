@@ -264,25 +264,30 @@ TEST_F(RootImporterTest, processes)
     }
     {
         // Test element selector cross-section table
-        EXPECT_EQ(iter->models.size(), iter->element_selectors.size());
+        EXPECT_EQ(iter->models.size(), iter->micro_xs.size());
 
         // Current iter points to process class e_ioni
         // Process e_ioni currently has only one available model: Moller-Bhabha
-        EXPECT_EQ(1, iter->element_selectors.size());
+        EXPECT_EQ(1, iter->micro_xs.size());
 
-        const auto& mb_pair
-            = iter->element_selectors.find(iter->models.front());
+        const auto& mb_pair = iter->micro_xs.find(iter->models.front());
         EXPECT_EQ(ImportModelClass::moller_bhabha, mb_pair->first);
 
-        const auto& mb_element_selector = mb_pair->second;
-        const auto& mb_physvec_map      = mb_element_selector.front();
-        EXPECT_EQ(3, mb_physvec_map.size());
+        // Fetch vector of materials
+        const auto& mb_micro_xs = mb_pair->second;
+
+        // Expect 2 materials
+        EXPECT_EQ(2, mb_micro_xs.size());
+
+        // Second material is stainless steel, with 3 elements
+        const auto& steel_physvec_map = mb_micro_xs.back();
+        EXPECT_EQ(3, steel_physvec_map.size());
 
         std::vector<double> element_id_list;
         std::vector<double> element_physvec_x_size, element_physvec_y_size;
         std::vector<double> element_physvec_x_front, element_physvec_y_front;
         std::vector<double> element_physvec_x_back, element_physvec_y_back;
-        for (const auto& pair : mb_physvec_map)
+        for (const auto& pair : steel_physvec_map)
         {
             const auto& phys_vec = pair.second;
 

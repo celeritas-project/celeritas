@@ -84,8 +84,6 @@ class SeltzerBergerInteractor
     const Energy gamma_cutoff_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
-    // Material in which interaction occurs
-    // const MaterialView& material_;
     // Element in which interaction occurs
     const ElementComponentId elcomp_id_;
 

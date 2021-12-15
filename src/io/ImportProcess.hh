@@ -111,13 +111,13 @@ enum class ImportModelClass
  * Conversely, element-selectors are model dependent. Thus, for simplicity,
  * they are stored directly as physics vectors and retrieved by providing the
  * model class enum, material, and element id:
- * \c element_selectors.find(model).at(material_id).find(element_id)->second .
+ * \c micro_xs.find(model).at(material_id).find(element_id)->second .
  *
  * Microscopic cross-section data stored in the element-selector physics vector
  * is in cm^2.
  *
  * Single-element materials do not have element-selectors. In these cases,
- * \c element_selectors.find(model).at(material_id) will be empty.
+ * \c micro_xs.find(model).at(material_id) will be empty.
  */
 struct ImportProcess
 {
@@ -126,22 +126,21 @@ struct ImportProcess
     // One map per material: <element_id, physics_vector>
     using ElementPhysicsVectorMap = std::map<int, ImportPhysicsVector>;
     // Vector spans over all materials for a given model
-    using ElementSelector = std::vector<ElementPhysicsVectorMap>;
+    using ModelMicroXS = std::vector<ElementPhysicsVectorMap>;
     //!@}
 
-    int                                         particle_pdg;
-    ImportProcessType                           process_type;
-    ImportProcessClass                          process_class;
-    std::vector<ImportModelClass>               models;
-    std::vector<ImportPhysicsTable>             tables;
-    std::map<ImportModelClass, ElementSelector> element_selectors;
+    int                                      particle_pdg;
+    ImportProcessType                        process_type;
+    ImportProcessClass                       process_class;
+    std::vector<ImportModelClass>            models;
+    std::vector<ImportPhysicsTable>          tables;
+    std::map<ImportModelClass, ModelMicroXS> micro_xs;
 
     explicit operator bool() const
     {
         return process_type != ImportProcessType::not_defined
                && process_class != ImportProcessClass::unknown
-               && !models.empty() && !tables.empty()
-               && !element_selectors.empty();
+               && !models.empty() && !tables.empty() && !micro_xs.empty();
     }
 };
 

@@ -281,7 +281,7 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
     // Clean up process_ data
     process_.models.clear();
     process_.tables.clear();
-    process_.element_selectors.clear();
+    process_.micro_xs.clear();
 
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
     {
@@ -336,8 +336,7 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
         process_.models.push_back(model_class_id);
 
         // Save element-selector data
-        process_.element_selectors.insert(
-            {model_class_id, this->add_element_selector(model)});
+        process_.micro_xs.insert({model_class_id, this->add_micro_xs(model)});
     }
 
     // Save potential tables
@@ -366,8 +365,7 @@ void ImportProcessConverter::store_energy_loss_tables(
         process_.models.push_back(model_class_id);
 
         // Save element-selector data
-        process_.element_selectors.insert(
-            {model_class_id, this->add_element_selector(model)});
+        process_.micro_xs.insert({model_class_id, this->add_micro_xs(model)});
     }
 
     if (process.IsIonisationProcess())
@@ -546,8 +544,8 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
  * The microscopic cross-section data is stored directly as grid values (in
  * cm^2), and thus need to be converted into CDFs when imported into Celeritas.
  */
-ImportProcess::ElementSelector
-ImportProcessConverter::add_element_selector(G4VEmModel& model)
+ImportProcess::ModelMicroXS
+ImportProcessConverter::add_micro_xs(G4VEmModel& model)
 {
     CELER_ASSERT(!materials_.empty());
 
@@ -555,7 +553,7 @@ ImportProcessConverter::add_element_selector(G4VEmModel& model)
     const G4ParticleDefinition& g4_particle_def
         = *G4ParticleTable::GetParticleTable()->FindParticle(
             process_.particle_pdg);
-    ImportProcess::ElementSelector element_selector;
+    ImportProcess::ModelMicroXS model_micro_xs;
 
     for (int mat_id : celeritas::range(materials_.size()))
     {
@@ -567,8 +565,7 @@ ImportProcessConverter::add_element_selector(G4VEmModel& model)
         for (const auto& elem_comp : material.elements)
         {
             ImportPhysicsVector physics_vector
-                = this->initialize_element_selector_physics_vector(model,
-                                                                   material);
+                = this->initialize_micro_xs_physics_vector(model, material);
             element_physvec_map.insert({elem_comp.element_id, physics_vector});
         }
 
@@ -631,23 +628,22 @@ ImportProcessConverter::add_element_selector(G4VEmModel& model)
         }
 
         // Store element cross-section map for this material
-        element_selector.push_back(element_physvec_map);
+        model_micro_xs.push_back(element_physvec_map);
     }
 
-    return element_selector;
+    return model_micro_xs;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Set up \c ImportPhysicsVector type and energy grid, while leaving
  * cross-section data empty. This method is used to initialize physics vectors
- * in \c this->add_element_selector(...) .
+ * in \c this->add_micro_xs(...) .
  *
  * The energy grid is calculated in the same way as in
  * \c G4VEmModel::InitialiseElementSelectors(...) .
  */
-ImportPhysicsVector
-ImportProcessConverter::initialize_element_selector_physics_vector(
+ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
     G4VEmModel& model, const ImportMaterial& material)
 {
     CELER_ASSERT(!material.elements.empty());

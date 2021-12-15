@@ -108,12 +108,12 @@ class ImportProcessConverter
                    celeritas::ImportTableType table_type);
 
     // Store element cross section data into physics vectors
-    ImportProcess::ElementSelector add_element_selector(G4VEmModel& model);
+    ImportProcess::ModelMicroXS add_micro_xs(G4VEmModel& model);
 
-    // Set up the physics vector energy grid for add_element_selector(...)
+    // Set up the physics vector energy grid for add_micro_xs(...)
     ImportPhysicsVector
-    initialize_element_selector_physics_vector(G4VEmModel&           model,
-                                               const ImportMaterial& material);
+    initialize_micro_xs_physics_vector(G4VEmModel&           model,
+                                       const ImportMaterial& material);
 
   private:
     // Store material and element information for the element selector tables
