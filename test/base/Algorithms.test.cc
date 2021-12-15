@@ -21,7 +21,7 @@ template<class Expected, class T>
 void test_forward_impl(T&& val)
 {
     EXPECT_TRUE((
-        std::is_same<Expected, decltype(celeritas::cforward<T>(val))>::value));
+        std::is_same<Expected, decltype(::celeritas::forward<T>(val))>::value));
 }
 
 struct IsInRange
@@ -50,30 +50,22 @@ TEST(UtilityTest, move)
 {
     Foo foo;
 
-    EXPECT_TRUE((std::is_same<Foo&&, decltype(celeritas::cmove(foo))>::value));
+    EXPECT_TRUE((std::is_same<Foo&&, decltype(::celeritas::move(foo))>::value));
     EXPECT_TRUE(
-        (std::is_same<Foo&&, decltype(celeritas::cmove(Foo{}))>::value));
+        (std::is_same<Foo&&, decltype(::celeritas::move(Foo{}))>::value));
 }
 
-TEST(UtilityTest, swap)
+TEST(UtilityTest, trivial_swap)
 {
-    using celeritas::cswap;
+    using celeritas::trivial_swap;
 
     // Test trivial type swapping
     {
         int a = 1;
         int b = 2;
-        cswap(a, b);
+        trivial_swap(a, b);
         EXPECT_EQ(2, a);
         EXPECT_EQ(1, b);
-    }
-
-    {
-        std::string a{"foo"};
-        std::string b{"barbarbarbarbar"};
-        cswap(a, b);
-        EXPECT_EQ("barbarbarbarbar", a);
-        EXPECT_EQ("foo", b);
     }
 }
 

@@ -6,6 +6,7 @@
 //! \file BetheHeitlerInteractor.i.hh
 //---------------------------------------------------------------------------//
 
+#include "base/Algorithms.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
 #include "TsaiUrbanDistribution.hh"
@@ -142,7 +143,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     // Select charges for child particles (e-, e+) randomly
     if (BernoulliDistribution(half)(rng))
     {
-        swap(secondaries[0].energy, secondaries[1].energy);
+        trivial_swap(secondaries[0].energy, secondaries[1].energy);
     }
 
     // Sample secondary directions.

@@ -18,13 +18,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // Forward declare cuda-compatible swap/move
 template<class T>
-CELER_FUNCTION void
-cswap(T&, T&) noexcept(std::is_nothrow_move_constructible<T>::value&&
-                           std::is_nothrow_move_assignable<T>::value);
-
-template<class T>
-CELER_CONSTEXPR_FUNCTION auto cmove(T&&) noexcept ->
-    typename std::remove_reference<T>::type&&;
+CELER_FUNCTION void trivial_swap(T&, T&) noexcept;
 
 namespace detail
 {
@@ -117,13 +111,24 @@ CELER_FUNCTION BidirectionalIterator partition_impl(BidirectionalIterator first,
             if (first == --last)
                 return first;
         } while (!pred(*last));
-        cswap(*first, *last);
+        trivial_swap(*first, *last);
         ++first;
     }
 }
 
 //---------------------------------------------------------------------------//
 // SORT
+//---------------------------------------------------------------------------//
+/*!
+ * Cast a value to an rvalue reference.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION auto trivial_move(T&& v) noexcept ->
+    typename std::remove_reference<T>::type&&
+{
+    return static_cast<typename std::remove_reference<T>::type&&>(v);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Move the top element of the heap to its properly ordered place.
@@ -168,11 +173,11 @@ CELER_FUNCTION void sift_down(RandomAccessIt first,
         return;
     }
 
-    value_type top(cmove(*start));
+    value_type top(trivial_move(*start));
     do
     {
         // We are not in heap order: swap the parent with its largest child
-        *start = cmove(*child_i);
+        *start = trivial_move(*child_i);
         start  = child_i;
 
         if ((len - 2) / 2 < child)
@@ -190,7 +195,7 @@ CELER_FUNCTION void sift_down(RandomAccessIt first,
             ++child;
         }
     } while (!comp(*child_i, top));
-    *start = cmove(top);
+    *start = trivial_move(top);
 }
 
 //---------------------------------------------------------------------------//
@@ -205,7 +210,7 @@ CELER_FORCEINLINE_FUNCTION void pop_heap(RandomAccessIt first,
 {
     if (len > 1)
     {
-        cswap(*first, *--last);
+        trivial_swap(*first, *--last);
         ::celeritas::detail::sift_down<Compare>(
             first, last, comp, len - 1, first);
     }
@@ -273,7 +278,7 @@ CELER_FUNCTION void partial_sort(RandomAccessIt first,
     {
         if (comp(*i, *first))
         {
-            cswap(*i, *first);
+            trivial_swap(*i, *first);
             ::celeritas::detail::sift_down<Compare>(
                 first, middle, comp, len, first);
         }

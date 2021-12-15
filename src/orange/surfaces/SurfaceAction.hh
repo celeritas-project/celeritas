@@ -25,7 +25,7 @@ template<class F>
 inline CELER_FUNCTION detail::SurfaceAction<F>
                       make_surface_action(const Surfaces& surfaces, F&& action)
 {
-    return detail::SurfaceAction<F>{surfaces, cforward<F>(action)};
+    return detail::SurfaceAction<F>{surfaces, ::celeritas::forward<F>(action)};
 }
 
 //---------------------------------------------------------------------------//

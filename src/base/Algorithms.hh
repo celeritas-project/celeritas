@@ -20,14 +20,14 @@ namespace celeritas
 //! Implement perfect forwarding with device-friendly functions.
 template<class T>
 CELER_CONSTEXPR_FUNCTION T&&
-cforward(typename std::remove_reference<T>::type& v) noexcept
+forward(typename std::remove_reference<T>::type& v) noexcept
 {
     return static_cast<T&&>(v);
 }
 
 template<class T>
 CELER_CONSTEXPR_FUNCTION T&&
-cforward(typename std::remove_reference<T>::type&& v) noexcept
+forward(typename std::remove_reference<T>::type&& v) noexcept
 {
     return static_cast<T&&>(v);
 }
@@ -38,7 +38,7 @@ cforward(typename std::remove_reference<T>::type&& v) noexcept
  * Cast a value as an rvalue reference to allow move construction.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION auto cmove(T&& v) noexcept ->
+CELER_CONSTEXPR_FUNCTION auto move(T&& v) noexcept ->
     typename std::remove_reference<T>::type&&
 {
     return static_cast<typename std::remove_reference<T>::type&&>(v);
@@ -46,16 +46,20 @@ CELER_CONSTEXPR_FUNCTION auto cmove(T&& v) noexcept ->
 
 //---------------------------------------------------------------------------//
 /*!
- * Support swapping on device.
+ * Support swapping of trivial types.
  */
 template<class T>
-CELER_FUNCTION void
-cswap(T& a, T& b) noexcept(std::is_nothrow_move_constructible<T>::value&&
-                               std::is_nothrow_move_assignable<T>::value)
+CELER_FORCEINLINE_FUNCTION void trivial_swap(T& a, T& b) noexcept
 {
+    static_assert(std::is_trivially_copy_constructible<T>::value,
+                  "Value is not trivially copyable");
+    static_assert(std::is_trivially_move_assignable<T>::value,
+                  "Value is not trivially movable");
+    static_assert(std::is_trivially_destructible<T>::value,
+                  "Value is not trivially destructible");
     T temp{a};
-    a = cmove(b);
-    b = cmove(temp);
+    a = ::celeritas::move(b);
+    b = ::celeritas::move(temp);
 }
 
 //---------------------------------------------------------------------------//
@@ -82,7 +86,7 @@ struct Less<void>
     CELER_CONSTEXPR_FUNCTION auto operator()(T&& lhs, U&& rhs) const
         -> decltype(auto)
     {
-        return cforward<T>(lhs) < cforward<U>(rhs);
+        return ::celeritas::forward<T>(lhs) < ::celeritas::forward<U>(rhs);
     }
 };
 
