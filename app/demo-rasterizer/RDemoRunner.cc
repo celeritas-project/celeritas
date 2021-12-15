@@ -34,7 +34,7 @@ RDemoRunner::RDemoRunner(SPConstGeo geometry)
 /*!
  * Trace an image.
  */
-void RDemoRunner::operator()(ImageStore* image) const
+void RDemoRunner::operator()(ImageStore* image, int ntimes) const
 {
     CELER_EXPECT(image);
 
@@ -42,11 +42,28 @@ void RDemoRunner::operator()(ImageStore* image) const
         *geo_params_, image->dims()[0]);
 
     CELER_LOG(status) << "Tracing geometry";
-    Stopwatch get_time;
-    trace(
-        geo_params_->device_ref(), geo_state.ref(), image->device_interface());
-    CELER_LOG(diagnostic) << color_code('x') << "... " << get_time() << " s"
-                          << color_code(' ');
+    // do it ntimes+1 as first one tends to be a warm-up run (slightly longer)
+    double sum = 0, time = 0;
+    for (int i = 0; i <= ntimes; ++i)
+    {
+        Stopwatch get_time;
+        trace(geo_params_->device_ref(),
+              geo_state.ref(),
+              image->device_interface());
+        time = get_time();
+        CELER_LOG(info) << color_code('x') << "Elapsed " << i << ": " << time
+                        << " s" << color_code(' ');
+        if (i > 0)
+        {
+            sum += time;
+        }
+    }
+    if (ntimes > 0)
+    {
+        CELER_LOG(info) << color_code('x')
+                        << "\tAverage time: " << sum / ntimes << " s"
+                        << color_code(' ');
+    }
 }
 
 //---------------------------------------------------------------------------//

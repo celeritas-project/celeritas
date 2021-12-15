@@ -79,19 +79,16 @@ TEST_F(GeoTrackViewHostTest, from_outside)
     geo              = {{-10, -10, -10}, {1, 0, 0}};
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2");
 
-    geo.find_next_step();
     EXPECT_SOFT_EQ(5, geo.next_step());
     geo.move_next_step(); // Shape2 -> Shape1
     EXPECT_SOFT_EQ(-5, geo.pos()[0]);
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
 
-    geo.find_next_step();
     EXPECT_SOFT_EQ(1, geo.next_step());
     geo.move_next_step(); // Shape1 -> Envelope
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
     EXPECT_FALSE(geo.is_outside());
 
-    geo.find_next_step();
     EXPECT_SOFT_EQ(1, geo.next_step());
     geo.move_next_step(); // Envelope -> World
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
@@ -110,7 +107,6 @@ TEST_F(GeoTrackViewHostTest, from_outside_edge)
     geo.move_next_step(); // outside -> World
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
 
-    geo.find_next_step();
     EXPECT_SOFT_EQ(7., geo.next_step());
     geo.move_next_step(); // World -> Envelope
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
@@ -124,14 +120,12 @@ TEST_F(GeoTrackViewHostTest, inside)
     geo              = {{-10, 10, 10}, {0, -1, 0}};
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2"); // Another Shape2
 
-    geo.find_next_step();
     EXPECT_SOFT_EQ(5.0, geo.next_step());
     geo.move_next_step(); // Shape2 -> Shape1
     EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
     EXPECT_FALSE(geo.is_outside());
 
-    geo.find_next_step();
     EXPECT_SOFT_EQ(1.0, geo.next_step());
     geo.move_next_step();
     EXPECT_FALSE(geo.is_outside());

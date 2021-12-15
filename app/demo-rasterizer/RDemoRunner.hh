@@ -31,7 +31,7 @@ class RDemoRunner
     explicit RDemoRunner(SPConstGeo geometry);
 
     // Trace an image
-    void operator()(ImageStore* image) const;
+    void operator()(ImageStore* image, int ntimes = 0) const;
 
   private:
     SPConstGeo geo_params_;
