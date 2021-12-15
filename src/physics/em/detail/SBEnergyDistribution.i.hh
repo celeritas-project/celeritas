@@ -28,7 +28,7 @@ SBEnergyDistribution<X>::SBEnergyDistribution(const SBEnergyDistHelper& helper,
     : helper_(helper)
     , inv_max_xs_{1
                   / (helper.max_xs().value() * scale_xs(helper.max_xs_energy()))}
-    , scale_xs_(move(scale_xs))
+    , scale_xs_(::celeritas::move(scale_xs))
 {
 }
 

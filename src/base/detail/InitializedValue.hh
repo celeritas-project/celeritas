@@ -55,9 +55,26 @@ class InitializedValue
     //! Implicit conversion to stored type
     operator T() const { return value_; }
 
+    //! Swap with another value
+    void swap(InitializedValue& other) noexcept
+    {
+        using std::swap;
+        swap(other.value_, value_);
+    }
+
   private:
     T value_{};
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Swap two values.
+ */
+template<class T>
+inline void swap(InitializedValue<T>& a, InitializedValue<T>& b) noexcept
+{
+    a.swap(b);
+}
 
 //---------------------------------------------------------------------------//
 } // namespace detail

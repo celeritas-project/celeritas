@@ -112,7 +112,7 @@ struct StaticSurfaceAction
 template<class F>
 CELER_FUNCTION
 SurfaceAction<F>::SurfaceAction(const Surfaces& surfaces, F&& action)
-    : surfaces_(surfaces), action_(forward<F>(action))
+    : surfaces_(surfaces), action_(::celeritas::forward<F>(action))
 {
 }
 
