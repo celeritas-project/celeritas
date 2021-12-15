@@ -9,6 +9,7 @@
 
 #include <type_traits>
 #include "Macros.hh"
+#include "detail/AlgorithmsImpl.hh"
 
 namespace celeritas
 {
@@ -44,6 +45,24 @@ CELER_CONSTEXPR_FUNCTION auto move(T&& v) noexcept ->
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Support swapping of trivial types.
+ */
+template<class T>
+CELER_FORCEINLINE_FUNCTION void trivial_swap(T& a, T& b) noexcept
+{
+    static_assert(std::is_trivially_copy_constructible<T>::value,
+                  "Value is not trivially copyable");
+    static_assert(std::is_trivially_move_assignable<T>::value,
+                  "Value is not trivially movable");
+    static_assert(std::is_trivially_destructible<T>::value,
+                  "Value is not trivially destructible");
+    T temp{a};
+    a = ::celeritas::move(b);
+    b = ::celeritas::move(temp);
+}
+
+//---------------------------------------------------------------------------//
 // Replace/extend <functional>
 //---------------------------------------------------------------------------//
 /*!
@@ -67,7 +86,7 @@ struct Less<void>
     CELER_CONSTEXPR_FUNCTION auto operator()(T&& lhs, U&& rhs) const
         -> decltype(auto)
     {
-        return forward<T>(lhs) < forward<U>(rhs);
+        return ::celeritas::forward<T>(lhs) < ::celeritas::forward<U>(rhs);
     }
 };
 
@@ -88,35 +107,66 @@ CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v) noexcept
 //---------------------------------------------------------------------------//
 /*!
  * Find the insertion point for a value in a sorted list.
- *
- * \todo Define an iterator adapter that dereferences using `__ldg` in
- * device code.
- * \todo Add a template on comparator if needed (defaulting to Less).
- * \todo Add a "lower_bound_index" that will use the native pointer difference
- * type instead of iterator arithmetic, for potential speedup on CUDA. Or
- * define an iterator adapter to Collections.
+ */
+template<class ForwardIt, class T, class Compare>
+CELER_FORCEINLINE_FUNCTION ForwardIt
+lower_bound(ForwardIt first, ForwardIt last, const T& value, Compare comp)
+{
+    using CompareRef = std::add_lvalue_reference_t<Compare>;
+    return ::celeritas::detail::lower_bound_impl<CompareRef>(
+        first, last, value, comp);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the insertion point for a value in a sorted list.
  */
 template<class ForwardIt, class T>
-inline CELER_FUNCTION ForwardIt lower_bound(ForwardIt first,
-                                            ForwardIt last,
-                                            const T&  value) noexcept
+CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(ForwardIt first,
+                                                 ForwardIt last,
+                                                 const T&  value)
 {
-    auto count = last - first;
-    while (count > 0)
-    {
-        auto      step   = count / 2;
-        ForwardIt middle = first + step;
-        if (*middle < value)
-        {
-            first = middle + 1;
-            count -= step + 1;
-        }
-        else
-        {
-            count = step;
-        }
-    }
-    return first;
+    return ::celeritas::lower_bound(first, last, value, Less<>{});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Partition elements in the given range, "true" before "false".
+ *
+ * This is done by swapping elements until the range is partitioned.
+ */
+template<class ForwardIt, class Predicate>
+CELER_FORCEINLINE_FUNCTION ForwardIt partition(ForwardIt first,
+                                               ForwardIt last,
+                                               Predicate pred)
+{
+    using PredicateRef = std::add_lvalue_reference_t<Predicate>;
+    return ::celeritas::detail::partition_impl<PredicateRef>(first, last, pred);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sort an array on a single thread.
+ *
+ * This implementation is not thread-safe nor cooperative, but it can be called
+ * from CUDA code.
+ */
+template<class RandomAccessIt, class Compare>
+CELER_FORCEINLINE_FUNCTION void
+sort(RandomAccessIt first, RandomAccessIt last, Compare comp)
+{
+    using CompareRef = std::add_lvalue_reference_t<Compare>;
+    return ::celeritas::detail::heapsort_impl<CompareRef>(first, last, comp);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sort an array on a single thread.
+ */
+template<class RandomAccessIt>
+CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
+{
+    ::celeritas::sort(first, last, Less<>{});
 }
 
 //---------------------------------------------------------------------------//
@@ -166,9 +216,10 @@ inline CELER_FUNCTION ForwardIt min_element(ForwardIt iter,
  * Return an iterator to the lowest value in the range.
  */
 template<class ForwardIt>
-CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt iter, ForwardIt last)
+CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
+                                                 ForwardIt last)
 {
-    return ::celeritas::min_element(iter, last, Less<decltype(*iter)>{});
+    return ::celeritas::min_element(first, last, Less<decltype(*first)>{});
 }
 
 //---------------------------------------------------------------------------//

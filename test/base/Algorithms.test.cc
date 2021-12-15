@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <functional>
 #include <type_traits>
+#include <utility>
 #include "celeritas_test.hh"
 
 struct Foo
@@ -19,9 +20,17 @@ struct Foo
 template<class Expected, class T>
 void test_forward_impl(T&& val)
 {
-    EXPECT_TRUE(
-        (std::is_same<Expected, decltype(celeritas::forward<T>(val))>::value));
+    EXPECT_TRUE((
+        std::is_same<Expected, decltype(::celeritas::forward<T>(val))>::value));
 }
+
+struct IsInRange
+{
+    int start;
+    int stop;
+
+    bool operator()(int value) const { return value >= start && value < stop; }
+};
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -41,9 +50,26 @@ TEST(UtilityTest, move)
 {
     Foo foo;
 
-    EXPECT_TRUE((std::is_same<Foo&&, decltype(celeritas::move(foo))>::value));
-    EXPECT_TRUE((std::is_same<Foo&&, decltype(celeritas::move(Foo{}))>::value));
+    EXPECT_TRUE((std::is_same<Foo&&, decltype(::celeritas::move(foo))>::value));
+    EXPECT_TRUE(
+        (std::is_same<Foo&&, decltype(::celeritas::move(Foo{}))>::value));
 }
+
+TEST(UtilityTest, trivial_swap)
+{
+    using celeritas::trivial_swap;
+
+    // Test trivial type swapping
+    {
+        int a = 1;
+        int b = 2;
+        trivial_swap(a, b);
+        EXPECT_EQ(2, a);
+        EXPECT_EQ(1, b);
+    }
+}
+
+//---------------------------------------------------------------------------//
 
 TEST(AlgorithmsTest, clamp)
 {
@@ -74,6 +100,41 @@ TEST(AlgorithmsTest, lower_bound)
             EXPECT_EQ(expected - v.begin(), actual - v.begin())
                 << "Lower bound failed for value " << val + delta;
         }
+    }
+}
+
+TEST(AlgorithmsTest, partition)
+{
+    std::vector<int> values{-1, 2, 3, 4, 2, 6, 9, 4};
+    celeritas::partition(values.begin(), values.end(), IsInRange{2, 4});
+
+    static const int expected_values[] = {2, 2, 3, 4, -1, 6, 9, 4};
+    EXPECT_VEC_EQ(expected_values, values);
+}
+
+TEST(AlgorithmsTest, sort)
+{
+    std::vector<int> data;
+    {
+        celeritas::sort(data.begin(), data.end());
+        EXPECT_EQ(0, data.size());
+    }
+    {
+        data = {123};
+        celeritas::sort(data.begin(), data.end());
+        EXPECT_EQ(123, data.front());
+    }
+    {
+        data = {1, 2, 4, 3, -1, 123, 2};
+        celeritas::sort(data.begin(), data.end());
+        static const int expected_data[] = {-1, 1, 2, 2, 3, 4, 123};
+        EXPECT_VEC_EQ(expected_data, data);
+    }
+    {
+        data = {1, 2, 4, 3, -1, 123, 2};
+        celeritas::sort(data.begin(), data.end(), std::greater<>{});
+        static const int expected_data[] = {123, 4, 3, 2, 2, 1, -1};
+        EXPECT_VEC_EQ(expected_data, data);
     }
 }
 
@@ -111,6 +172,8 @@ TEST(AlgorithmsTest, min_element)
     EXPECT_EQ(2, min_element_idx());
     EXPECT_EQ(0, min_element_gt_idx());
 }
+
+//---------------------------------------------------------------------------//
 
 TEST(MathTest, ipow)
 {

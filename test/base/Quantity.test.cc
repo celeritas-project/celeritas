@@ -112,7 +112,7 @@ TEST(QuantityTest, swappiness)
     using Dozen = Quantity<DozenUnit, int>;
     Dozen dozen{1}, gross{12};
     {
-        // ADL should prefer celeritas::swap
+        // ADL should prefer celeritas::swap implementation
         using std::swap;
         swap(dozen, gross);
         EXPECT_EQ(1, gross.value());
