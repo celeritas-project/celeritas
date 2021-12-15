@@ -25,8 +25,7 @@ RBEnergySampler::RBEnergySampler(const RelativisticBremNativeRef& shared,
                                  const CutoffView&                cutoffs,
                                  const MaterialView&              material,
                                  const ElementComponentId&        elcomp_id)
-    : shared_(shared)
-    , inc_energy_(particle.energy())
+    : inc_energy_(particle.energy())
     , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
     , dxsec_(shared, particle, material, elcomp_id)
 {

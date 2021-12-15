@@ -64,8 +64,6 @@ class CombinedBremInteractor
 
   private:
     //// DATA ////
-    // Shared constant physics properties
-    const CombinedBremNativeRef& shared_;
     // Incident particle energy
     const Energy inc_energy_;
     // Incident particle direction
@@ -76,8 +74,6 @@ class CombinedBremInteractor
     const Energy gamma_cutoff_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
-    // Material in which interaction occurs
-    const MaterialView& material_;
     // Element in which interaction occurs
     const ElementComponentId elcomp_id_;
     // Incident particle flag for selecting XS correction factor
