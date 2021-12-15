@@ -28,8 +28,6 @@ using namespace celeritas_test;
 class GeoParamsHostTest : public GeoTestBase
 {
   public:
-    using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
-
     std::string filename() const override { return "fourLevels.gdml"; }
 };
 
@@ -71,28 +69,27 @@ class GeoTrackViewHostTest : public GeoTestBase
     StateStore state;
 };
 
-TEST_F(GeoTrackViewHostTest, from_outside)
+TEST_F(GeoTrackViewHostTest, basic_tracking)
 {
     const auto& geom = *this->geo_params();
 
     GeoTrackView geo = this->make_geo_track_view();
     geo              = {{-10, -10, -10}, {1, 0, 0}};
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2");
-
     EXPECT_SOFT_EQ(5, geo.next_step());
-    geo.move_next_step(); // Shape2 -> Shape1
+
+    geo.move_to_boundary(); // Shape2 -> Shape1
     EXPECT_SOFT_EQ(-5, geo.pos()[0]);
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
-
     EXPECT_SOFT_EQ(1, geo.next_step());
-    geo.move_next_step(); // Shape1 -> Envelope
+
+    geo.move_to_boundary(); // Shape1 -> Envelope
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
     EXPECT_FALSE(geo.is_outside());
-
     EXPECT_SOFT_EQ(1, geo.next_step());
-    geo.move_next_step(); // Envelope -> World
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
 
+    geo.move_to_boundary(); // Envelope -> World
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
     EXPECT_FALSE(geo.is_outside());
 }
 
@@ -101,34 +98,59 @@ TEST_F(GeoTrackViewHostTest, from_outside_edge)
     const auto& geom = *this->geo_params();
 
     GeoTrackView geo = this->make_geo_track_view();
-    geo              = {{-24, 6.5, 6.5}, {1, 0, 0}};
+    geo              = {{-24, 10., 10.}, {1, 0, 0}};
     EXPECT_TRUE(geo.is_outside());
+    EXPECT_SOFT_EQ(0., geo.next_step()); // since it is on edge, but outside
 
-    geo.move_next_step(); // outside -> World
+    geo.move_to_boundary(); // outside -> World (still on the edge)
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
+    EXPECT_SOFT_EQ(7., geo.next_step()); // since it is on edge
 
-    EXPECT_SOFT_EQ(7., geo.next_step());
-    geo.move_next_step(); // World -> Envelope
+    geo.move_to_boundary(); // World -> Envelope
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
+    EXPECT_SOFT_EQ(1., geo.next_step());
+
+    geo.move_to_boundary(); // Envelope -> Shape1
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
+    EXPECT_SOFT_EQ(1., geo.next_step());
+
+    geo.move_to_boundary(); // Shape1 -> Shape2
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2");
+    EXPECT_SOFT_EQ(10., geo.next_step());
 }
 
-TEST_F(GeoTrackViewHostTest, inside)
+TEST_F(GeoTrackViewHostTest, leaving_world)
 {
     const auto& geom = *this->geo_params();
 
     GeoTrackView geo = this->make_geo_track_view();
-    geo              = {{-10, 10, 10}, {0, -1, 0}};
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2"); // Another Shape2
 
+    geo = {{-10, 10, 10}, {0, 1, 0}};
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2"); // Another Shape2
     EXPECT_SOFT_EQ(5.0, geo.next_step());
-    geo.move_next_step(); // Shape2 -> Shape1
-    EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
+
+    geo.move_to_boundary(); // Shape2 -> Shape1
+    EXPECT_SOFT_EQ(15.0, geo.pos()[1]);
     EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
     EXPECT_FALSE(geo.is_outside());
-
     EXPECT_SOFT_EQ(1.0, geo.next_step());
-    geo.move_next_step();
+
+    geo.move_to_boundary(); // Shape1 -> Envelope
+    EXPECT_SOFT_EQ(16.0, geo.pos()[1]);
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
     EXPECT_FALSE(geo.is_outside());
+    EXPECT_SOFT_EQ(2.0, geo.next_step());
+
+    geo.move_to_boundary(); // Envelope -> World
+    EXPECT_SOFT_EQ(18.0, geo.pos()[1]);
+    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_SOFT_EQ(6.0, geo.next_step());
+
+    geo.move_to_boundary(); // World -> out-of-world
+    EXPECT_SOFT_EQ(24.0, geo.pos()[1]);
+    EXPECT_TRUE(geo.is_outside());
+    EXPECT_GT(geo.next_step(), 1.e+99);
 }
 
 //---------------------------------------------------------------------------//

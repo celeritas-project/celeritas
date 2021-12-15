@@ -60,7 +60,7 @@ TEST_F(LinearPropagatorHostTest, accessors)
 
 //----------------------------------------------------------------------------//
 
-TEST_F(LinearPropagatorHostTest, track_line)
+TEST_F(LinearPropagatorHostTest, basic_tracking)
 {
     GeoTrackView     geo = this->make_geo_track_view();
     LinearPropagator propagate(&geo); // one propagator per track
@@ -91,30 +91,55 @@ TEST_F(LinearPropagatorHostTest, track_line)
         CELER_LOG(info) << "Init a track just outside of world volume...";
         geo = {{-24, 6.5, 6.5}, {1, 0, 0}};
         EXPECT_TRUE(geo.is_outside());
+        EXPECT_SOFT_EQ(0., geo.next_step()); // since on edge, but outside
 
-        auto step = propagate();
+        auto step = propagate(); // outside -> World
         EXPECT_FALSE(geo.is_outside());
         EXPECT_EQ(geom.id_to_label(step.volume), "World");
+        EXPECT_SOFT_EQ(7., geo.next_step());
 
         step = propagate(); // World -> Envelope
-        EXPECT_SOFT_EQ(7., step.distance);
         EXPECT_EQ(geom.id_to_label(step.volume), "Envelope");
+        EXPECT_SOFT_EQ(7., step.distance);
+        EXPECT_SOFT_EQ(1., geo.next_step());
+
+        step = propagate(); // Envelope -> Shape1
+        EXPECT_SOFT_EQ(1., step.distance);
+        EXPECT_EQ(geom.id_to_label(step.volume), "Shape1");
+
+        step = propagate();                                 // Shape1 -> Shape2
+        EXPECT_EQ(geom.id_to_label(step.volume), "Shape2"); // bad
     }
+
     {
         // Track from inside detector
-        geo = {{-10, 10, 10}, {0, -1, 0}};
+        geo = {{-10, 10, 10}, {0, 1, 0}};
         EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2"); // Shape2
+        EXPECT_SOFT_EQ(5.0, geo.next_step());
 
         auto step = propagate(); // Shape2 -> Shape1
         EXPECT_SOFT_EQ(5.0, step.distance);
-        EXPECT_SOFT_EQ(5.0, geo.pos()[1]);
+        EXPECT_SOFT_EQ(15.0, geo.pos()[1]);
         EXPECT_EQ(geom.id_to_label(step.volume), "Shape1");
         EXPECT_FALSE(geo.is_outside());
+        EXPECT_SOFT_EQ(1.0, geo.next_step());
 
-        step = propagate();
-        EXPECT_SOFT_EQ(1.0, step.distance);
-        EXPECT_EQ(geom.id_to_label(step.volume), "Envelope");
+        step = propagate(); // Shape1 -> Envelope
+        EXPECT_SOFT_EQ(16.0, geo.pos()[1]);
+        EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
         EXPECT_FALSE(geo.is_outside());
+        EXPECT_SOFT_EQ(2.0, geo.next_step());
+
+        step = propagate(); // Envelope -> World
+        EXPECT_SOFT_EQ(18.0, geo.pos()[1]);
+        EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
+        EXPECT_FALSE(geo.is_outside());
+        EXPECT_SOFT_EQ(6.0, geo.next_step());
+
+        step = propagate(); // World -> out-of-world
+        EXPECT_SOFT_EQ(24.0, geo.pos()[1]);
+        EXPECT_TRUE(geo.is_outside());
+        EXPECT_GT(geo.next_step(), 1.e+99);
     }
 }
 

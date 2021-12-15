@@ -71,7 +71,7 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
             }
 
             // Cross surface
-            geo.move_next_step();
+            geo.move_to_boundary();
             cur_id   = geo_id(geo);
             geo_dist = std::fmin(geo.next_step(),
                                  image_state.dims[1] * image_state.pixel_width);

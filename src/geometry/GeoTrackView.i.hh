@@ -10,6 +10,7 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 #include "base/ArrayUtils.hh"
 #include "detail/VGCompatibility.hh"
+#include "comm/Logger.hh"
 
 namespace celeritas
 {
@@ -88,15 +89,24 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
 //! Find the distance to the next geometric boundary.
 CELER_FUNCTION void GeoTrackView::find_next_step()
 {
-    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
-    CELER_ASSERT(navigator);
+    if (this->is_outside())
+    {
+        find_next_step_outside();
+        return;
+    }
+    else
+    {
+        const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
+        CELER_ASSERT(navigator);
 
-    next_step_
-        = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
-                                                   detail::to_vector(dir_),
-                                                   vecgeom::kInfLength,
-                                                   vgstate_,
-                                                   vgnext_);
+        next_step_
+            = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
+                                                       detail::to_vector(dir_),
+                                                       vecgeom::kInfLength,
+                                                       vgstate_,
+                                                       vgnext_);
+    }
+
     dirty_ = false;
 }
 
@@ -107,9 +117,9 @@ CELER_FUNCTION void GeoTrackView::find_next_step_outside()
     CELER_EXPECT(this->is_outside());
 
     // handling points outside of world volume
-    const vecgeom::VPlacedVolume* pplvol = shared_.world_volume;
-    const real_type               large  = vecgeom::kInfLength;
-    next_step_                           = pplvol->DistanceToIn(
+    auto*               pplvol = shared_.world_volume;
+    constexpr real_type large  = vecgeom::kInfLength;
+    next_step_                 = pplvol->DistanceToIn(
         detail::to_vector(pos_), detail::to_vector(dir_), large);
     vgnext_.Clear();
     if (next_step_ < large)
@@ -125,24 +135,13 @@ CELER_FUNCTION real_type GeoTrackView::move_to_boundary()
     if (dirty_)
         this->find_next_step();
 
-    // Move the next step plus an extra fudge distance
-    real_type dist = next_step_ + this->extra_push();
+    // Move next step
+    real_type dist = next_step_;
     axpy(dist, dir_, &pos_);
     next_step_ = 0.;
-    this->move_next_volume();
-    return dist;
-}
 
-//---------------------------------------------------------------------------//
-//! Move to the next boundary and update volume accordingly
-CELER_FUNCTION real_type GeoTrackView::move_next_step()
-{
-    if (dirty_)
-        this->find_next_step();
-    real_type dist = next_step_;
-    axpy(next_step_, dir_, &pos_);
-    next_step_ = 0.;
-    this->move_next_volume();
+    // Relocate to next tracking volume (maybe across multiple boundaries)
+    this->relocate();
     return dist;
 }
 
@@ -157,30 +156,33 @@ CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
 
     // do not move beyond next boundary!
     if (dist >= next_step_)
-        return this->move_to_boundary();
+    {
+        real_type ret = this->move_to_boundary();
+        return ret;
+    }
 
     // move and update next_step_
     axpy(dist, dir_, &pos_);
     next_step_ -= dist;
+
+    CELER_ENSURE(dist > 0.);
     return dist;
 }
 
 //---------------------------------------------------------------------------//
 //! Update state to next volume
-CELER_FUNCTION void GeoTrackView::move_next_volume()
+CELER_FUNCTION void GeoTrackView::relocate()
 {
     vgstate_ = vgnext_;
-    if (this->is_outside())
-        this->find_next_step_outside();
-    else
-        this->find_next_step();
+    find_next_step();
 }
 
 //---------------------------------------------------------------------------//
 //! Get the volume ID in the current cell.
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {
-    return (this->is_outside() ? VolumeId{} : VolumeId{this->volume().id()});
+    return (this->is_outside() ? VolumeId{999999}
+                               : VolumeId{this->volume().id()});
 }
 
 //---------------------------------------------------------------------------//

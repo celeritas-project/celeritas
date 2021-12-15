@@ -34,6 +34,7 @@ class GeoTrackView
     using GeoParamsRef
         = GeoParamsData<Ownership::const_reference, MemSpace::native>;
     using GeoStateRef = GeoStateData<Ownership::reference, MemSpace::native>;
+    using Vec3D       = vecgeom::Vector3D<real_type>;
     //!@}
 
     //! Helper struct for initializing from an existing geometry state
@@ -58,13 +59,11 @@ class GeoTrackView
     // Find the distance to the next boundary
     inline CELER_FUNCTION void find_next_step();
 
-    // Move to the next boundary
+    // Move to the next boundary along straight line
     inline CELER_FUNCTION real_type move_to_boundary();
-    inline CELER_FUNCTION real_type move_next_step();
-    inline CELER_FUNCTION real_type move_by(real_type step);
 
-    // Update current volume, called whenever move reaches boundary
-    inline CELER_FUNCTION void move_next_volume();
+    // Move by a user-provided step length
+    inline CELER_FUNCTION real_type move_by(real_type step);
 
     //!@{
     //! State accessors
@@ -122,6 +121,9 @@ class GeoTrackView
     //!@}
 
   private:
+    // Update current volume, called whenever move reaches boundary
+    inline CELER_FUNCTION void relocate();
+
     // Find the distance to the next boundary
     inline CELER_FUNCTION void find_next_step_outside();
 
