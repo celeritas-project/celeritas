@@ -69,7 +69,7 @@ enum class TableSelection
  *      for (int j = 0; j < process_list.size(); j++)
  *      {
  *          if (ImportProcess process
- *                  = impoort(g4_particle_def, *process_list[j]))
+ *                  = import(g4_particle_def, *process_list[j]))
  *          {
  *              processes.push_back(std::move(process));
  *          }

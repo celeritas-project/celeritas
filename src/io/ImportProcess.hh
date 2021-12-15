@@ -113,6 +113,9 @@ enum class ImportModelClass
  * model class enum, material, and element id:
  * \c element_selectors.find(model).at(material_id).find(element_id)->second .
  *
+ * Microscopic cross-section data stored in the element-selector physics vector
+ * is in cm^2.
+ *
  * Single-element materials do not have element-selectors. In these cases,
  * \c element_selectors.find(model).at(material_id) will be empty.
  */

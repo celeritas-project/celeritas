@@ -541,12 +541,10 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
  * Store element cross-section data into a physics vector for a given model.
  * Unlike material cross-section tables, which are process dependent, these are
  * model dependent.
+ * This function replicates \c G4EmElementSelector::Initialise(...) .
  *
- * The element cross-section data is stored by volume and this function
- * replicates the calculations in \c G4EmElementSelector::Initialise(...) .
- *
- * \note G4HepEm also initialises its data in this same way, although it is
- * stored in a non-safe flat array for device compatibility.
+ * The microscopic cross-section data is stored directly as grid values (in
+ * cm^2), and thus need to be converted into CDFs when imported into Celeritas.
  */
 ImportProcess::ElementSelector
 ImportProcessConverter::add_element_selector(G4VEmModel& model)
@@ -562,12 +560,6 @@ ImportProcessConverter::add_element_selector(G4VEmModel& model)
     for (int mat_id : celeritas::range(materials_.size()))
     {
         const auto& material = materials_.at(mat_id);
-
-        if (material.elements.size() == 1)
-        {
-            // Single-element materials do not need element selectors
-            continue;
-        }
 
         ImportProcess::ElementPhysicsVectorMap element_physvec_map;
 
@@ -601,7 +593,7 @@ ImportProcessConverter::add_element_selector(G4VEmModel& model)
             {
                 const double energy_bin_value = energy_grid.at(bin_idx);
 
-                // Calculate cross-section
+                // Calculate microscopic cross-section
                 const double xs_per_atom
                     = std::max(
                           0.0,
@@ -612,6 +604,7 @@ ImportProcessConverter::add_element_selector(G4VEmModel& model)
                                                            energy_bin_value))
                       / cm2;
 
+                // Store only the microscopic cross-section grid value [cm^2]
                 physics_vector.y[bin_idx] = xs_per_atom;
             }
         }
@@ -650,7 +643,7 @@ ImportProcessConverter::add_element_selector(G4VEmModel& model)
  * cross-section data empty. This method is used to initialize physics vectors
  * in \c this->add_element_selector(...) .
  *
- * The energy grid is defined as in
+ * The energy grid is calculated in the same way as in
  * \c G4VEmModel::InitialiseElementSelectors(...) .
  */
 ImportPhysicsVector
@@ -669,13 +662,12 @@ ImportProcessConverter::initialize_element_selector_physics_vector(
     const int bins_per_decade
         = G4EmParameters::Instance()->NumberOfBinsPerDecade();
 
-    const double inv_log_10_6 = 1.0 / (6.0 * std::log(10.0));
-    const int    num_energy_bins
-        = std::max(3,
-                   (int)(bins_per_decade * std::log(max_energy / min_energy)
-                         * inv_log_10_6));
-    double delta = std::log(max_energy / min_energy) / (num_energy_bins - 1.0);
-    double log_min_e = std::log(min_energy);
+    const double inv_log_10_6    = 1.0 / (6.0 * std::log(10.0));
+    const int    num_energy_bins = std::max<int>(
+        3, bins_per_decade * std::log(max_energy / min_energy) * inv_log_10_6);
+    const double delta = std::log(max_energy / min_energy)
+                         / (num_energy_bins - 1.0);
+    const double log_min_e = std::log(min_energy);
 
     // Fill energy bins
     physics_vector.x.push_back(min_energy);
