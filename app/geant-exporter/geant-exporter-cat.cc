@@ -178,7 +178,10 @@ void print_materials(std::vector<ImportMaterial>& materials,
 /*!
  * Print process information.
  */
-void print_process(const ImportProcess& proc, const ParticleParams& particles)
+void print_process(const ImportProcess&               proc,
+                   const std::vector<ImportMaterial>& materials,
+                   const std::vector<ImportElement>&  elements,
+                   const ParticleParams&              particles)
 {
     if (proc.process_type != ImportProcessType::electromagnetic)
     {
@@ -196,7 +199,47 @@ void print_process(const ImportProcess& proc, const ParticleParams& particles)
                  proc.models.end(),
                  ", ",
                  [](ImportModelClass im) { return to_cstring(im); })
-         << "\n";
+         << "\n\n";
+
+    cout << "### Microscopic cross-sections\n\n";
+
+    for (const auto& iter : proc.micro_xs)
+    {
+        // Print models
+        cout << to_cstring(iter.first) << "\n";
+
+        const auto& micro_xs = iter.second;
+        for (size_type mat_id = 0; mat_id < micro_xs.size(); mat_id++)
+        {
+            // Print materials
+            cout << "\n- " << materials.at(mat_id).name << "\n\n";
+            cout << "| Element       | Size  | Endpoints (MeV, cm^2) |\n"
+                 << "| ------------- | ----- | "
+                    "-----------------------------------------------------"
+                    "------- "
+                    "|\n";
+
+            const auto& element_map = micro_xs.at(mat_id);
+
+            for (const auto& iter_el : element_map)
+            {
+                // Print elements and their physics vectors
+                const auto physvec = iter_el.second;
+                cout << "| " << setw(13) << std::left
+                     << elements.at(iter_el.first).name << " | " << setw(5)
+                     << physvec.x.size() << " | (" << setprecision(3)
+                     << setw(12) << physvec.x.front() << ", "
+                     << setprecision(3) << setw(12) << physvec.y.front()
+                     << ") -> (" << setprecision(3) << setw(12)
+                     << physvec.x.back() << ", " << setprecision(3) << setw(12)
+                     << physvec.y.back() << ") |\n";
+            }
+        }
+
+        cout << "\n------\n\n";
+    }
+
+    cout << "### Macroscopic cross-sections\n";
 
     for (const auto& table : proc.tables)
     {
@@ -227,9 +270,9 @@ void print_process(const ImportProcess& proc, const ParticleParams& particles)
 /*!
  * Print stored data for all available processes.
  */
-void print_processes(const std::vector<ImportProcess>& processes,
-                     const ParticleParams&             particles)
+void print_processes(const ImportData& data, const ParticleParams& particles)
 {
+    const auto& processes = data.processes;
     CELER_LOG(info) << "Loaded " << processes.size() << " processes";
 
     // Print summary
@@ -265,7 +308,7 @@ void print_processes(const std::vector<ImportProcess>& processes,
     // Print details
     for (const ImportProcess& proc : processes)
     {
-        print_process(proc, particles);
+        print_process(proc, data.materials, data.elements, particles);
     }
 }
 //---------------------------------------------------------------------------//
@@ -342,7 +385,7 @@ int main(int argc, char* argv[])
     print_particles(*particle_params);
     print_elements(data.elements);
     print_materials(data.materials, data.elements, *particle_params);
-    print_processes(data.processes, *particle_params);
+    print_processes(data, *particle_params);
     print_volumes(data.volumes, data.materials);
 
     return EXIT_SUCCESS;
