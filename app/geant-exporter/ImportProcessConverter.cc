@@ -652,8 +652,9 @@ ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
     physics_vector.vector_type = ImportPhysicsVectorType::log;
 
     const double max_energy = model.HighEnergyLimit() / MeV;
-    const double min_energy
-        = material.pdg_cutoffs.find(process_.particle_pdg)->second.energy;
+    const double min_energy = std::max(
+        material.pdg_cutoffs.find(process_.particle_pdg)->second.energy,
+        model.LowEnergyLimit() / MeV);
 
     const int bins_per_decade
         = G4EmParameters::Instance()->NumberOfBinsPerDecade();
