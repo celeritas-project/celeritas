@@ -10,6 +10,7 @@
 #include <VecGeom/gdml/Frontend.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/GeoManager.h>
+#include <VecGeom/management/BVHManager.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include <celeritas_config.h>
@@ -74,6 +75,14 @@ GeoParams::GeoParams(const char* gdml_filename)
         CELER_ENSURE(device_ref_);
     }
 #endif
+
+    // init the BVH structure
+    vecgeom::cxx::BVHManager::Init();
+#if CELERITAS_USE_CUDA
+    // init the BVH structure
+    vecgeom::cxx::BVHManager::DeviceInit();
+#endif
+
     CELER_ENSURE(num_volumes_ > 0);
     CELER_ENSURE(host_ref_);
 }

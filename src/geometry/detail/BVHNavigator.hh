@@ -1,15 +1,16 @@
+//----------------------------------*-C++-*----------------------------------//
 // SPDX-FileCopyrightText: 2020 CERN
 // SPDX-License-Identifier: Apache-2.0
-
-/**
- * @file BVHNavigator.h
- * @brief Navigation methods for geometry.
+//---------------------------------------------------------------------------//
+/*!
+ * \file BVHNavigator.hh
+ * \brief Bounding Volume Hierarchy navigator directly derived from AdePT
+ *
+ * Original source:
+ * https://github.com/apt-sim/AdePT/blob/586a9c43915818bdf764b7315c3dbde7e63a34b8/base/inc/AdePT/BVHNavigator.h
  */
-
-#ifndef RT_NAVIGATOR_H_
-#define RT_NAVIGATOR_H_
-
-#include <CopCore/Global.h>
+//---------------------------------------------------------------------------//
+#pragma once
 
 #include <VecGeom/base/Global.h>
 #include <VecGeom/base/Vector3D.h>
@@ -20,8 +21,11 @@
 #    include <VecGeom/backend/cuda/Interface.h>
 #endif
 
-inline namespace COPCORE_IMPL
+namespace celeritas
 {
+namespace detail
+{
+//---------------------------------------------------------------------------//
 class BVHNavigator
 {
   public:
@@ -410,5 +414,6 @@ class BVHNavigator
     }
 };
 
-} // End namespace COPCORE_IMPL
-#endif // RT_LOOP_NAVIGATOR_H_
+//---------------------------------------------------------------------------//
+} // namespace detail
+} // namespace celeritas
