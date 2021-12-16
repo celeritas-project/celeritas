@@ -237,7 +237,7 @@ CELER_FUNCTION VolumeId VecgeomTrackView::volume_id() const
  */
 CELER_FUNCTION VolumeId VecgeomTrackView::volume_physid() const
 {
-    CELER_EXPECT(!this->is_outside());
+    if (this->is_outside()) return VolumeId{0};  // outside
     return VolumeId{this->vgstate_.Top()->id()};
 }
 

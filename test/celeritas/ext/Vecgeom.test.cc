@@ -119,7 +119,7 @@ auto VecgeomTestBase::track(const Real3& pos, const Real3& dir)
         result.distances.push_back(next.distance);
         if (!next.boundary)
         {
-            // Failure to find the next boundary while inside the geomtery
+            // Failure to find the next boundary while inside the geometry
             ADD_FAILURE();
             result.volumes.push_back("[NO INTERCEPT]");
             break;
