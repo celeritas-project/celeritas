@@ -11,8 +11,13 @@
 #include <vector>
 #include <memory>
 
+#include "io/ImportElement.hh"
+#include "io/ImportMaterial.hh"
 #include "io/ImportProcess.hh"
 
+using celeritas::ImportElement;
+using celeritas::ImportMaterial;
+using celeritas::ImportPhysicsVector;
 using celeritas::ImportProcess;
 
 class TFile;
@@ -20,6 +25,7 @@ class TTree;
 
 class G4VProcess;
 class G4VEmProcess;
+class G4VEmModel;
 class G4VEnergyLossProcess;
 class G4VMultipleScattering;
 class G4ParticleDefinition;
@@ -47,7 +53,7 @@ enum class TableSelection
  *
  * \code
  *  std::vector<ImportProcess> processes;
- *  ImportProcessConverter import(TableSelection::all);
+ *  ImportProcessConverter import(TableSelection::all, materials, elements);
  *
  *  G4ParticleTable::G4PTblDicIterator& particle_iterator
  *      = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -60,12 +66,12 @@ enum class TableSelection
  *      const G4ProcessVector& *process_list =
  *          *g4_particle_def.GetProcessManager()->GetProcessList();
  *
- *      for (int j; j < process_list.size(); j++)
+ *      for (int j = 0; j < process_list.size(); j++)
  *      {
  *          if (ImportProcess process
- *                  = process_writer(g4_particle_def, *process_list[j]))
+ *                  = import(g4_particle_def, *process_list[j]))
  *          {
- *              processes.push_back(process);
+ *              processes.push_back(std::move(process));
  *          }
  *      }
  *  }
@@ -75,7 +81,9 @@ class ImportProcessConverter
 {
   public:
     // Construct with selected list of tables
-    ImportProcessConverter(TableSelection which_tables);
+    ImportProcessConverter(TableSelection                     which_tables,
+                           const std::vector<ImportMaterial>& materials,
+                           const std::vector<ImportElement>&  elements);
 
     // Default destructor
     ~ImportProcessConverter();
@@ -85,13 +93,13 @@ class ImportProcessConverter
                              const G4VProcess&           process);
 
   private:
-    // Loop over EM processes and store them in processes_
+    // Loop over EM processes and store them in this->process_
     void store_em_tables(const G4VEmProcess& em_process);
 
-    // Loop over energy loss processes and store them in processes_
+    // Loop over energy loss processes and store them in this->process_
     void store_energy_loss_tables(const G4VEnergyLossProcess& eloss_process);
 
-    // Loop over multiple scattering processes and store them in processes_
+    // Loop over multiple scattering processes and store them in this->process_
     void
     store_multiple_scattering_tables(const G4VMultipleScattering& msc_process);
 
@@ -99,7 +107,19 @@ class ImportProcessConverter
     void add_table(const G4PhysicsTable*      table,
                    celeritas::ImportTableType table_type);
 
+    // Store element cross section data into physics vectors
+    ImportProcess::ModelMicroXS add_micro_xs(G4VEmModel& model);
+
+    // Set up the physics vector energy grid for add_micro_xs(...)
+    ImportPhysicsVector
+    initialize_micro_xs_physics_vector(G4VEmModel&           model,
+                                       const ImportMaterial& material);
+
   private:
+    // Store material and element information for the element selector tables
+    std::vector<ImportMaterial> materials_;
+    std::vector<ImportElement>  elements_;
+
     // Whether to write tables that aren't used by physics
     TableSelection which_tables_;
 

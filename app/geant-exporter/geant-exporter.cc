@@ -43,6 +43,7 @@
 #include "comm/ScopedMpiInit.hh"
 #include "io/ImportParticle.hh"
 #include "io/ImportPhysicsTable.hh"
+#include "io/ImportPhysicsVector.hh"
 #include "io/ImportData.hh"
 #include "physics/base/PDGNumber.hh"
 
@@ -61,6 +62,7 @@ using celeritas::ImportMatElemComponent;
 using celeritas::ImportMaterial;
 using celeritas::ImportMaterialState;
 using celeritas::ImportParticle;
+using celeritas::ImportPhysicsVector;
 using celeritas::ImportProductionCut;
 using celeritas::ImportVolume;
 using std::cout;
@@ -329,7 +331,8 @@ std::vector<ImportProcess> store_processes()
     CELER_LOG(status) << "Exporting physics processes";
 
     std::vector<ImportProcess> processes;
-    ImportProcessConverter     process_writer(TableSelection::minimal);
+    ImportProcessConverter     process_writer(
+        TableSelection::minimal, store_materials(), store_elements());
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());

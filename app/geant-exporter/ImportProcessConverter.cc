@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <string>
+#include <iterator>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -16,12 +17,16 @@
 
 #include <G4VProcess.hh>
 #include <G4VEmProcess.hh>
+#include <G4VEmModel.hh>
 #include <G4VEnergyLossProcess.hh>
 #include <G4VMultipleScattering.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4PhysicsVectorType.hh>
 #include <G4ProcessType.hh>
 #include <G4Material.hh>
+#include <G4ProductionCutsTable.hh>
+#include <G4NistManager.hh>
+#include <G4ParticleTable.hh>
 
 #include "io/ImportProcess.hh"
 #include "io/ImportPhysicsTable.hh"
@@ -175,7 +180,6 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
 ImportPhysicsVectorType
 to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
 {
-    // Geant4 v10
     switch (g4_vector_type)
     {
         case T_G4PhysicsVector:
@@ -227,9 +231,14 @@ double units_to_scaling(ImportUnits units)
 /*!
  * Construct with a selected list of tables.
  */
-ImportProcessConverter::ImportProcessConverter(TableSelection which_tables)
-    : which_tables_(which_tables)
+ImportProcessConverter::ImportProcessConverter(
+    TableSelection                     which_tables,
+    const std::vector<ImportMaterial>& materials,
+    const std::vector<ImportElement>&  elements)
+    : materials_(materials), elements_(elements), which_tables_(which_tables)
 {
+    CELER_ENSURE(!materials_.empty());
+    CELER_ENSURE(!elements_.empty());
 }
 
 //---------------------------------------------------------------------------//
@@ -268,26 +277,32 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
     process_.process_type  = to_import_process_type(process.GetProcessType());
     process_.process_class = to_import_process_class(process);
     process_.particle_pdg  = particle.GetPDGEncoding();
+
+    // Clean up process_ data
     process_.models.clear();
     process_.tables.clear();
+    process_.micro_xs.clear();
 
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
     {
         // G4VEmProcess tables
         this->store_em_tables(*em_process);
     }
+
     else if (const auto* energy_loss
              = dynamic_cast<const G4VEnergyLossProcess*>(&process))
     {
         // G4VEnergyLossProcess tables
         this->store_energy_loss_tables(*energy_loss);
     }
+
     else if (const auto* multiple_scattering
              = dynamic_cast<const G4VMultipleScattering*>(&process))
     {
         // G4VMultipleScattering tables
         this->store_multiple_scattering_tables(*multiple_scattering);
     }
+
     else
     {
         CELER_LOG(error) << "Cannot export unknown process '"
@@ -297,6 +312,10 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 
     return process_;
 }
+
+//---------------------------------------------------------------------------//
+// PRIVATE
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 /*!
@@ -310,8 +329,14 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
     for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
-        process_.models.push_back(
-            to_import_model(process.GetModelByIndex(i)->GetName()));
+        auto&      model          = *process.GetModelByIndex(i);
+        const auto model_class_id = to_import_model(model.GetName());
+
+        // Save model list
+        process_.models.push_back(model_class_id);
+
+        // Save element-selector data
+        process_.micro_xs.insert({model_class_id, this->add_micro_xs(model)});
     }
 
     // Save potential tables
@@ -323,7 +348,7 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 /*!
  * Store energy loss XS tables to this->process_.
  *
- * The following XS tables do not exist in Geant4 v11.
+ * The following XS tables do not exist in Geant4 v11:
  * - DEDXTableForSubsec()
  * - IonisationTableForSubsec()
  * - SubLambdaTable()
@@ -333,8 +358,14 @@ void ImportProcessConverter::store_energy_loss_tables(
 {
     for (auto i : celeritas::range(process.NumberOfModels()))
     {
-        process_.models.push_back(
-            to_import_model(process.GetModelByIndex(i)->GetName()));
+        auto&      model          = *process.GetModelByIndex(i);
+        const auto model_class_id = to_import_model(model.GetName());
+
+        // Save model list
+        process_.models.push_back(model_class_id);
+
+        // Save element-selector data
+        process_.micro_xs.insert({model_class_id, this->add_micro_xs(model)});
     }
 
     if (process.IsIonisationProcess())
@@ -346,6 +377,7 @@ void ImportProcessConverter::store_energy_loss_tables(
         this->add_table(process.DEDXTable(), ImportTableType::dedx);
         this->add_table(process.RangeTableForLoss(), ImportTableType::range);
     }
+
     this->add_table(process.LambdaTable(), ImportTableType::lambda);
 
     if (which_tables_ > TableSelection::minimal)
@@ -362,10 +394,12 @@ void ImportProcessConverter::store_energy_loss_tables(
             this->add_table(process.IonisationTable(),
                             ImportTableType::dedx_process);
         }
+
         else
         {
             this->add_table(process.DEDXTable(), ImportTableType::dedx_process);
         }
+
 #if CELERITAS_G4_V10
         this->add_table(process.DEDXTableForSubsec(),
                         ImportTableType::dedx_subsec);
@@ -373,6 +407,7 @@ void ImportProcessConverter::store_energy_loss_tables(
                         ImportTableType::ionization_subsec);
         this->add_table(process.SubLambdaTable(), ImportTableType::sublambda);
 #endif
+
         this->add_table(process.DEDXunRestrictedTable(),
                         ImportTableType::dedx_unrestricted);
         this->add_table(process.CSDARangeTable(), ImportTableType::csda_range);
@@ -396,7 +431,7 @@ void ImportProcessConverter::store_multiple_scattering_tables(
 #if CELERITAS_G4_V10
     for (auto i : celeritas::range(4))
 #else
-    for (int i : celeritas::range(process.NumberOfModels()))
+    for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
@@ -497,6 +532,154 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
     }
 
     process_.tables.push_back(std::move(table));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store element cross-section data into a physics vector for a given model.
+ * Unlike material cross-section tables, which are process dependent, these are
+ * model dependent.
+ * This function replicates \c G4EmElementSelector::Initialise(...) .
+ *
+ * The microscopic cross-section data is stored directly as grid values (in
+ * cm^2), and thus need to be converted into CDFs when imported into Celeritas.
+ */
+ImportProcess::ModelMicroXS
+ImportProcessConverter::add_micro_xs(G4VEmModel& model)
+{
+    CELER_ASSERT(!materials_.empty());
+
+    // Needed for model.ComputeCrossSectionPerAtom(...)
+    const G4ParticleDefinition& g4_particle_def
+        = *G4ParticleTable::GetParticleTable()->FindParticle(
+            process_.particle_pdg);
+    ImportProcess::ModelMicroXS model_micro_xs;
+
+    for (int mat_id : celeritas::range(materials_.size()))
+    {
+        const auto& material = materials_.at(mat_id);
+
+        ImportProcess::ElementPhysicsVectorMap element_physvec_map;
+
+        // Set up all element physics vectors for this material and model
+        for (const auto& elem_comp : material.elements)
+        {
+            ImportPhysicsVector physics_vector
+                = this->initialize_micro_xs_physics_vector(model, material);
+            element_physvec_map.insert({elem_comp.element_id, physics_vector});
+        }
+
+        auto& g4_nist_manager = *G4NistManager::Instance();
+
+        // All physics vectors have the same energy grid for the same material
+        const auto& energy_grid = element_physvec_map.begin()->second.x;
+
+        for (const auto& elem_comp : material.elements)
+        {
+            const auto& element = elements_.at(elem_comp.element_id);
+
+            const G4Element& g4_element
+                = *g4_nist_manager.FindOrBuildElement(element.atomic_number);
+            const double particle_cutoff
+                = material.pdg_cutoffs.find(process_.particle_pdg)->second.energy;
+
+            auto& physics_vector
+                = element_physvec_map.find(elem_comp.element_id)->second;
+
+            for (int bin_idx : celeritas::range(energy_grid.size()))
+            {
+                const double energy_bin_value = energy_grid.at(bin_idx);
+
+                // Calculate microscopic cross-section
+                const double xs_per_atom
+                    = std::max(
+                          0.0,
+                          model.ComputeCrossSectionPerAtom(&g4_particle_def,
+                                                           &g4_element,
+                                                           energy_bin_value,
+                                                           particle_cutoff,
+                                                           energy_bin_value))
+                      / cm2;
+
+                // Store only the microscopic cross-section grid value [cm^2]
+                physics_vector.y[bin_idx] = xs_per_atom;
+            }
+        }
+
+        // Avoid cross-section vectors starting or ending with zero values.
+        // Geant4 simply uses the next/previous bin value when the vector's
+        // front/back are zero. This feels like a trap.
+        for (auto& iter : element_physvec_map)
+        {
+            auto& physics_vector = iter.second;
+
+            if (physics_vector.y.front() == 0.0)
+            {
+                // Cross-section starts with zero, use next bin value
+                physics_vector.y.front() = physics_vector.y[1];
+            }
+
+            const unsigned int last_bin = physics_vector.y.size() - 1;
+            if (physics_vector.y.back() == 0.0)
+            {
+                // Cross-section ends with zero, use previous bin value
+                physics_vector.y.back() = physics_vector.y[last_bin - 1];
+            }
+        }
+
+        // Store element cross-section map for this material
+        model_micro_xs.push_back(element_physvec_map);
+    }
+
+    return model_micro_xs;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set up \c ImportPhysicsVector type and energy grid, while leaving
+ * cross-section data empty. This method is used to initialize physics vectors
+ * in \c this->add_micro_xs(...) .
+ *
+ * The energy grid is calculated in the same way as in
+ * \c G4VEmModel::InitialiseElementSelectors(...) .
+ */
+ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
+    G4VEmModel& model, const ImportMaterial& material)
+{
+    CELER_ASSERT(!material.elements.empty());
+
+    ImportPhysicsVector physics_vector;
+    physics_vector.vector_type = ImportPhysicsVectorType::log;
+
+    const double max_energy = model.HighEnergyLimit() / MeV;
+    const double min_energy = std::max(
+        material.pdg_cutoffs.find(process_.particle_pdg)->second.energy,
+        model.LowEnergyLimit() / MeV);
+
+    const int bins_per_decade
+        = G4EmParameters::Instance()->NumberOfBinsPerDecade();
+
+    const double inv_log_10_6    = 1.0 / (6.0 * std::log(10.0));
+    const int    num_energy_bins = std::max<int>(
+        3, bins_per_decade * std::log(max_energy / min_energy) * inv_log_10_6);
+    const double delta = std::log(max_energy / min_energy)
+                         / (num_energy_bins - 1.0);
+    const double log_min_e = std::log(min_energy);
+
+    // Fill energy bins
+    physics_vector.x.push_back(min_energy);
+    for (int i = 1; i < num_energy_bins - 1; i++)
+    {
+        physics_vector.x.push_back(std::exp(log_min_e + i * delta));
+    }
+    physics_vector.x.push_back(max_energy);
+
+    // Resize cross-section vector to match the number of energy bins
+    physics_vector.y.resize(physics_vector.x.size());
+
+    CELER_ENSURE(physics_vector.vector_type == ImportPhysicsVectorType::log
+                 && !physics_vector.x.empty() && !physics_vector.y.empty());
+    return physics_vector;
 }
 
 //---------------------------------------------------------------------------//

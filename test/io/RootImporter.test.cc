@@ -245,7 +245,7 @@ TEST_F(RootImporterTest, processes)
         EXPECT_SOFT_EQ(8786971.3079055995, steel.y.back());
     }
     {
-        // Test cross section table
+        // Test cross-section table
         const ImportPhysicsTable& xs = tables[2];
         ASSERT_EQ(ImportTableType::lambda, xs.table_type);
         EXPECT_EQ(ImportUnits::mev, xs.x_units);
@@ -261,6 +261,85 @@ TEST_F(RootImporterTest, processes)
         EXPECT_SOFT_EQ(0, steel.y.front());
         EXPECT_SOFT_EQ(0.18987862452122845, steel.y[1]);
         EXPECT_SOFT_EQ(0.43566778103861714, steel.y.back());
+    }
+    {
+        // Test element selector cross-section table
+        EXPECT_EQ(iter->models.size(), iter->micro_xs.size());
+
+        // Current iter points to process class e_ioni
+        // Process e_ioni currently has only one available model: Moller-Bhabha
+        EXPECT_EQ(1, iter->micro_xs.size());
+
+        const auto& mb_pair = iter->micro_xs.find(iter->models.front());
+        EXPECT_EQ(ImportModelClass::moller_bhabha, mb_pair->first);
+
+        // Fetch vector of materials
+        const auto& mb_micro_xs = mb_pair->second;
+
+        // Expect 2 materials
+        EXPECT_EQ(2, mb_micro_xs.size());
+
+        // Second material is stainless steel, with 3 elements
+        const auto& steel_physvec_map = mb_micro_xs.back();
+        EXPECT_EQ(3, steel_physvec_map.size());
+
+        std::vector<double> element_id_list;
+        std::vector<double> element_physvec_x_size, element_physvec_y_size;
+        std::vector<double> element_physvec_x_front, element_physvec_y_front;
+        std::vector<double> element_physvec_x_back, element_physvec_y_back;
+        for (const auto& pair : steel_physvec_map)
+        {
+            const auto& phys_vec = pair.second;
+
+            element_id_list.push_back(pair.first);
+
+            element_physvec_x_size.push_back(phys_vec.x.size());
+            element_physvec_y_size.push_back(phys_vec.y.size());
+
+            element_physvec_x_front.push_back(phys_vec.x.front());
+            element_physvec_y_front.push_back(phys_vec.y.front());
+
+            element_physvec_x_back.push_back(phys_vec.x.back());
+            element_physvec_y_back.push_back(phys_vec.y.back());
+        }
+
+        static const double expected_element_id_list[] = {0, 1, 2};
+
+        // expected_element_physvec_y_size is not needed: x.size() == y.size()
+        static const double expected_element_physvec_x_size[] = {9, 9, 9};
+
+        static const double expected_element_physvec_x_front[]
+            = {1.31345289979559, 1.31345289979559, 1.31345289979559};
+        static const double expected_element_physvec_y_front[]
+            = {4.57705e-24, 4.22497e-24, 4.92913e-24};
+
+        static const double expected_element_physvec_x_back[]
+            = {1e+08, 1e+08, 1e+08};
+        static const double expected_element_physvec_y_back[] = {
+            5.04687252343649e-24, 4.65865156009522e-24, 5.43509348677776e-24};
+
+        EXPECT_VEC_EQ(expected_element_id_list, element_id_list);
+        EXPECT_VEC_EQ(element_physvec_x_size, element_physvec_y_size);
+        EXPECT_VEC_SOFT_EQ(expected_element_physvec_x_size,
+                           element_physvec_x_size);
+
+        EXPECT_VEC_SOFT_EQ(expected_element_physvec_x_front,
+                           element_physvec_x_front);
+        EXPECT_VEC_SOFT_EQ(expected_element_physvec_y_front,
+                           element_physvec_y_front);
+
+        EXPECT_VEC_SOFT_EQ(expected_element_physvec_x_back,
+                           element_physvec_x_back);
+        EXPECT_VEC_SOFT_EQ(expected_element_physvec_y_back,
+                           element_physvec_y_back);
+
+        for (auto i : celeritas::range(3))
+        {
+            EXPECT_GT(element_physvec_x_back[i], 0);
+            EXPECT_GT(element_physvec_x_front[i], 0);
+            EXPECT_GT(element_physvec_y_back[i], 0);
+            EXPECT_GT(element_physvec_y_front[i], 0);
+        }
     }
 }
 

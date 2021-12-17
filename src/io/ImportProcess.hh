@@ -8,6 +8,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include "physics/base/PDGNumber.hh"
 #include "ImportPhysicsTable.hh"
 
@@ -100,20 +101,46 @@ enum class ImportModelClass
  * Store physics process data.
  *
  * \sa ImportData
+ *
+ * \note
+ * \c ImportPhysicsTable is process and type (lambda, dedx, and so
+ * on) dependent, with each table type including physics vectors for all
+ * materials. Therefore, the physics vector of a given material is retrieved
+ * by doing \c tables.at(table_type).physics_vectors.at(material_id) .
+ *
+ * Conversely, element-selectors are model dependent. Thus, for simplicity,
+ * they are stored directly as physics vectors and retrieved by providing the
+ * model class enum, material, and element id:
+ * \c micro_xs.find(model).at(material_id).find(element_id)->second .
+ *
+ * Microscopic cross-section data stored in the element-selector physics vector
+ * is in cm^2.
+ *
+ * Single-element materials do not have element-selectors. In these cases,
+ * \c micro_xs.find(model).at(material_id) will be empty.
  */
 struct ImportProcess
 {
-    int                             particle_pdg;
-    ImportProcessType               process_type;
-    ImportProcessClass              process_class;
-    std::vector<ImportModelClass>   models;
-    std::vector<ImportPhysicsTable> tables;
+    //!@{
+    //! Type aliases
+    // One map per material: <element_id, physics_vector>
+    using ElementPhysicsVectorMap = std::map<int, ImportPhysicsVector>;
+    // Vector spans over all materials for a given model
+    using ModelMicroXS = std::vector<ElementPhysicsVectorMap>;
+    //!@}
+
+    int                                      particle_pdg;
+    ImportProcessType                        process_type;
+    ImportProcessClass                       process_class;
+    std::vector<ImportModelClass>            models;
+    std::vector<ImportPhysicsTable>          tables;
+    std::map<ImportModelClass, ModelMicroXS> micro_xs;
 
     explicit operator bool() const
     {
         return process_type != ImportProcessType::not_defined
                && process_class != ImportProcessClass::unknown
-               && !models.empty() && !tables.empty();
+               && !models.empty() && !tables.empty() && !micro_xs.empty();
     }
 };
 

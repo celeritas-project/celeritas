@@ -29,7 +29,7 @@ namespace celeritas
  * `real_type`, a non-negative microscopic cross section.
  *
  * The element chooser does \em not calculate macroscopic cross sections
- * because they're multiiplied by fraction, not number density, and we only
+ * because they're multiplied by fraction, not number density, and we only
  * care about the fractional abundances and cross section weighting.
  *
  * \code
