@@ -12,7 +12,7 @@ pipeline {
         stage('minimal') {
           agent {
             docker {
-              image 'celeritas/ci-bionic-minimal:2021-03-09'
+              image 'celeritas/ci-bionic-minimal:2021-12-17'
               // Note: this image does not require CUDA
             }
           }
@@ -29,7 +29,7 @@ pipeline {
         stage('cuda-11-ndebug') {
           agent {
             docker {
-              image 'celeritas/ci-focal-cuda11:2021-05-27'
+              image 'celeritas/ci-focal-cuda11:2021-12-17'
               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && persistent-tmp'
               args '-v persistent-tmp:/tmp/persistent'
             }
@@ -47,7 +47,7 @@ pipeline {
         stage('cuda-11') {
           agent {
             docker {
-              image 'celeritas/ci-focal-cuda11:2021-05-27'
+              image 'celeritas/ci-focal-cuda11:2021-12-17'
               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
             }
           }

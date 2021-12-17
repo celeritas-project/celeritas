@@ -24,7 +24,7 @@ spack:
     cuda:
       buildable: false
       externals:
-      - spec: cuda@11.1.0
+      - spec: cuda@11.4.2
         prefix: /usr/local/cuda
     root:
       variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=14

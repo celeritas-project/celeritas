@@ -3,7 +3,7 @@
 These docker images use [spack](https://github.com/spack/spack) to build a
 CUDA-enabled development environment for Celeritas. There are two sets of
 images:
-- `dev` (this directory) which leaves spack fully installed and
+- `dev` (`dev` subdirectory) which leaves spack fully installed and
   debug symbols intact; and
 - `ci` (`ci` subdirectory) which only copies the necessary software stack (thus
   requiring lower bandwidth on the CI servers).
