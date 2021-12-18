@@ -4,19 +4,15 @@ spack:
   - cuda
   - doxygen
   - geant4
-
   - git
   - googletest
-
   - hepmc3
   - ninja
   - nlohmann-json
   - openmpi
   - python
-
   - root
   - swig
-
   - veccore
   - vecgeom +gdml
   concretization: together
