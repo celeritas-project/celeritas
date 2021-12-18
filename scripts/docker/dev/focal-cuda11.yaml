@@ -13,8 +13,6 @@ spack:
   - python
   - root
   - swig
-  - veccore
-  - vecgeom +gdml
   concretization: together
   packages:
     cuda:

@@ -71,6 +71,9 @@ SHELL ["docker-shell"]
 ENTRYPOINT ["/bin/bash", "/opt/spack/share/spack/docker/entrypoint.bash"]
 CMD ["interactive-shell"]
 
+# Bootstrap spack
+RUN spack spec zlib
+
 ###############################################################################
 # Install
 ###############################################################################

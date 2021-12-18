@@ -13,8 +13,6 @@ spack:
   - python
 
 
-
-
   - valgrind
   concretization: together
   packages:
