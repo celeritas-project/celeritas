@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RelativisticBremDXsection.i.hh
+//! \file RBDiffXsCalculator.i.hh
 //---------------------------------------------------------------------------//
 
 #include <cmath>
 
 #include "base/Algorithms.hh"
-#include "RelativisticBremDXsection.hh"
+#include "RBDiffXsCalculator.hh"
 #include "PhysicsConstants.hh"
 
 namespace celeritas
@@ -20,11 +20,11 @@ namespace detail
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION RelativisticBremDXsection::RelativisticBremDXsection(
-    const RelativisticBremNativeRef& shared,
-    const ParticleTrackView&         particle,
-    const MaterialView&              material,
-    const ElementComponentId&        elcomp_id)
+CELER_FUNCTION
+RBDiffXsCalculator::RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
+                                       const ParticleTrackView&  particle,
+                                       const MaterialView&       material,
+                                       const ElementComponentId& elcomp_id)
     : shared_(shared)
     , elem_data_(shared.elem_data[material.element_id(elcomp_id)])
     , total_energy_(particle.energy().value() + shared.electron_mass.value())
@@ -44,7 +44,7 @@ CELER_FUNCTION RelativisticBremDXsection::RelativisticBremDXsection(
  * bremsstrahlung photon energy in MeV.
  */
 CELER_FUNCTION
-real_type RelativisticBremDXsection::operator()(real_type energy)
+real_type RBDiffXsCalculator::operator()(real_type energy)
 {
     CELER_EXPECT(energy > 0);
     return enable_lpm_ ? this->dxsec_per_atom_lpm(energy)
@@ -56,7 +56,7 @@ real_type RelativisticBremDXsection::operator()(real_type energy)
  * Compute the differential cross section without the LPM effect.
  */
 CELER_FUNCTION
-real_type RelativisticBremDXsection::dxsec_per_atom(real_type gamma_energy)
+real_type RBDiffXsCalculator::dxsec_per_atom(real_type gamma_energy)
 {
     real_type dxsec{0};
 
@@ -95,7 +95,7 @@ real_type RelativisticBremDXsection::dxsec_per_atom(real_type gamma_energy)
  * Compute the differential cross section with the LPM effect.
  */
 CELER_FUNCTION
-real_type RelativisticBremDXsection::dxsec_per_atom_lpm(real_type gamma_energy)
+real_type RBDiffXsCalculator::dxsec_per_atom_lpm(real_type gamma_energy)
 {
     real_type y     = gamma_energy / total_energy_;
     real_type onemy = 1 - y;
@@ -116,8 +116,7 @@ real_type RelativisticBremDXsection::dxsec_per_atom_lpm(real_type gamma_energy)
  * incoherent screening function to the numerical screening functions computed
  * by using the Thomas-Fermi model: Y.-S.Tsai, Rev. Mod. Phys. 49 (1977) 421.
  */
-auto RelativisticBremDXsection::compute_screen_functions(real_type gam,
-                                                         real_type eps)
+auto RBDiffXsCalculator::compute_screen_functions(real_type gam, real_type eps)
     -> ScreenFunctions
 {
     ScreenFunctions func;
@@ -141,8 +140,7 @@ auto RelativisticBremDXsection::compute_screen_functions(real_type gam,
 /*!
  * Compute the LPM suppression functions.
  */
-auto RelativisticBremDXsection::compute_lpm_functions(real_type egamma)
-    -> LPMFunctions
+auto RBDiffXsCalculator::compute_lpm_functions(real_type egamma) -> LPMFunctions
 {
     LPMFunctions func;
 

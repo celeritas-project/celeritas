@@ -6,7 +6,7 @@
 //! \file RelativisticBremTest.test.cc
 //---------------------------------------------------------------------------//
 #include "physics/em/RelativisticBremModel.hh"
-#include "physics/em/detail/RelativisticBremDXsection.hh"
+#include "physics/em/detail/RBDiffXsCalculator.hh"
 #include "physics/em/detail/RelativisticBremInteractor.hh"
 
 #include "celeritas_test.hh"
@@ -24,7 +24,7 @@ using celeritas::ElementComponentId;
 using celeritas::ElementId;
 using celeritas::ElementView;
 using celeritas::RelativisticBremModel;
-using celeritas::detail::RelativisticBremDXsection;
+using celeritas::detail::RBDiffXsCalculator;
 using celeritas::detail::RelativisticBremInteractor;
 
 namespace pdg = celeritas::pdg;
@@ -131,16 +131,16 @@ TEST_F(RelativisticBremTest, dxsec)
     auto material_view = this->material_track().material_view();
 
     // Create the differential cross section
-    RelativisticBremDXsection dxsec_lpm(model_lpm_->host_ref(),
-                                        this->particle_track(),
-                                        material_view,
-                                        ElementComponentId{0});
+    RBDiffXsCalculator dxsec_lpm(model_lpm_->host_ref(),
+                                 this->particle_track(),
+                                 material_view,
+                                 ElementComponentId{0});
 
     // Create the differential cross section
-    RelativisticBremDXsection dxsec(model_->host_ref(),
-                                    this->particle_track(),
-                                    material_view,
-                                    ElementComponentId{0});
+    RBDiffXsCalculator dxsec(model_->host_ref(),
+                             this->particle_track(),
+                             material_view,
+                             ElementComponentId{0});
 
     // Calculate cross section values at ten photon energy (MevEnergy) points
     std::vector<double> dxsec_value_lpm;

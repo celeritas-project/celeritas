@@ -9,7 +9,7 @@
 
 #include "physics/em/detail/SBPositronXsCorrector.hh"
 #include "physics/em/detail/SBEnergyDistribution.hh"
-#include "physics/em/detail/RelativisticBremDXsection.hh"
+#include "physics/em/detail/RBDiffXsCalculator.hh"
 
 #include "physics/em/CombinedBremModel.hh"
 
@@ -34,7 +34,7 @@ using celeritas::ElementId;
 using celeritas::ElementView;
 using celeritas::SeltzerBergerReader;
 using celeritas::detail::CombinedBremInteractor;
-using celeritas::detail::RelativisticBremDXsection;
+using celeritas::detail::RBDiffXsCalculator;
 using celeritas::detail::SBElectronXsCorrector;
 using celeritas::detail::SBEnergyDistHelper;
 using celeritas::detail::SBEnergyDistribution;

@@ -15,7 +15,7 @@
 #include "physics/material/Types.hh"
 
 #include "RelativisticBremData.hh"
-#include "RelativisticBremDXsection.hh"
+#include "RBDiffXsCalculator.hh"
 
 namespace celeritas
 {
@@ -54,7 +54,7 @@ class RBEnergySampler
     // Squaer of production cutoff for gammas
     real_type tmax_sq_;
     // Differential cross section calcuator
-    RelativisticBremDXsection dxsec_;
+    RBDiffXsCalculator dxsec_;
 };
 
 //---------------------------------------------------------------------------//

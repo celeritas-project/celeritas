@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RelativisticBremDXsection.hh
+//! \file RBDiffXsCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,9 +24,9 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the different cross sections with and without the LPM effect.
+ * Calculate differential cross sections with and without the LPM effect.
  */
-class RelativisticBremDXsection
+class RBDiffXsCalculator
 {
   public:
     //!@{
@@ -40,10 +40,10 @@ class RelativisticBremDXsection
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    RelativisticBremDXsection(const RelativisticBremNativeRef& shared,
-                              const ParticleTrackView&         particle,
-                              const MaterialView&              material,
-                              const ElementComponentId&        elcomp_id);
+    RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
+                       const ParticleTrackView&         particle,
+                       const MaterialView&              material,
+                       const ElementComponentId&        elcomp_id);
 
     // Compute cross section
     inline CELER_FUNCTION real_type operator()(real_type energy);
@@ -105,7 +105,7 @@ class RelativisticBremDXsection
 
     //! Compute screening functions
     inline CELER_FUNCTION ScreenFunctions
-                          compute_screen_functions(real_type gamma, real_type epsilon);
+    compute_screen_functions(real_type gamma, real_type epsilon);
 
     //! Compute LPM functions
     inline CELER_FUNCTION LPMFunctions compute_lpm_functions(real_type ss);
@@ -115,4 +115,4 @@ class RelativisticBremDXsection
 } // namespace detail
 } // namespace celeritas
 
-#include "RelativisticBremDXsection.i.hh"
+#include "RBDiffXsCalculator.i.hh"
