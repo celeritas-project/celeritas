@@ -24,59 +24,48 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate differential cross sections with and without the LPM effect.
+ * Calculate differential cross sections for relativistic bremsstrahlung.
+ *
+ * This accounts for the LPM effect if the option is enabled and the
+ * electron energy is high enough.
+ *
+ * This is a shape function used for rejection, so as long as the resulting
+ * cross section is scaled by the maximum value the units do not matter.
  */
 class RBDiffXsCalculator
 {
   public:
     //!@{
     //! Type aliases
-    using R           = real_type;
     using Energy      = units::MevEnergy;
-    using ItemIdT     = celeritas::ItemId<unsigned int>;
     using ElementData = detail::RelBremElementData;
     //!@}
 
   public:
-    // Construct with shared and state data
+    // Construct with incident electron and current element
     inline CELER_FUNCTION
     RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
                        const ParticleTrackView&         particle,
                        const MaterialView&              material,
                        const ElementComponentId&        elcomp_id);
 
-    // Compute cross section
-    inline CELER_FUNCTION real_type operator()(real_type energy);
+    // Compute cross section of exiting gamma energy
+    inline CELER_FUNCTION real_type operator()(Energy energy);
 
-    // Return the density correction
+    //! Density correction factor [Energy^2]
     CELER_FUNCTION real_type density_correction() const
     {
         return density_corr_;
     }
 
-    // Return the maximum value of the differential cross section
+    //! Return the maximum value of the differential cross section
     CELER_FUNCTION real_type maximum_value() const
     {
         return elem_data_.factor1 + elem_data_.factor2;
     }
 
   private:
-    //// DATA ////
-
-    // Shared constant physics properties
-    const RelativisticBremNativeRef& shared_;
-    // Element data of the current material
-    const ElementData& elem_data_;
-    // Total energy of the incident particle
-    real_type total_energy_;
-    // Density correction for the current material
-    real_type density_corr_;
-    // LPM energy for the current material
-    real_type lpm_energy_;
-    // Flag for the LPM effect
-    bool enable_lpm_;
-
-    //// HELPER TYPES ////
+    //// TYPES ////
 
     //! Intermediate data for screening functions
     struct ScreenFunctions
@@ -94,6 +83,24 @@ class RBDiffXsCalculator
         real_type gs{0};
         real_type phis{0};
     };
+
+    using R       = real_type;
+    using ItemIdT = celeritas::ItemId<unsigned int>;
+
+    //// DATA ////
+
+    // Shared constant physics properties
+    const RelativisticBremNativeRef& shared_;
+    // Element data of the current material
+    const ElementData& elem_data_;
+    // Total energy of the incident particle
+    real_type total_energy_;
+    // Density correction for the current material
+    real_type density_corr_;
+    // LPM energy for the current material
+    real_type lpm_energy_;
+    // Flag for the LPM effect
+    bool enable_lpm_;
 
     //// HELPER FUNCTIONS ////
 

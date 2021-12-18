@@ -51,10 +51,10 @@ class RBEnergySampler
 
     // Square of minimum of incident particle energy and cutoff
     real_type tmin_sq_;
-    // Squaer of production cutoff for gammas
+    // Square of production cutoff for gammas
     real_type tmax_sq_;
     // Differential cross section calcuator
-    RBDiffXsCalculator dxsec_;
+    RBDiffXsCalculator calc_dxsec_;
 };
 
 //---------------------------------------------------------------------------//

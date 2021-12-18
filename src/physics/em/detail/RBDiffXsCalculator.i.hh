@@ -5,11 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file RBDiffXsCalculator.i.hh
 //---------------------------------------------------------------------------//
-
 #include <cmath>
 
 #include "base/Algorithms.hh"
-#include "RBDiffXsCalculator.hh"
 #include "PhysicsConstants.hh"
 
 namespace celeritas
@@ -18,7 +16,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with shared and state data.
+ * Construct with incident electron and current element.
  */
 CELER_FUNCTION
 RBDiffXsCalculator::RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
@@ -27,7 +25,8 @@ RBDiffXsCalculator::RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
                                        const ElementComponentId& elcomp_id)
     : shared_(shared)
     , elem_data_(shared.elem_data[material.element_id(elcomp_id)])
-    , total_energy_(particle.energy().value() + shared.electron_mass.value())
+    , total_energy_(value_as<units::MevEnergy>(particle.energy())
+                    + value_as<units::MevMass>(shared.electron_mass))
 {
     real_type density_factor = material.electron_density() * migdal_constant();
     density_corr_            = density_factor * ipow<2>(total_energy_);
@@ -44,11 +43,11 @@ RBDiffXsCalculator::RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
  * bremsstrahlung photon energy in MeV.
  */
 CELER_FUNCTION
-real_type RBDiffXsCalculator::operator()(real_type energy)
+real_type RBDiffXsCalculator::operator()(Energy energy)
 {
-    CELER_EXPECT(energy > 0);
-    return enable_lpm_ ? this->dxsec_per_atom_lpm(energy)
-                       : this->dxsec_per_atom(energy);
+    CELER_EXPECT(energy > zero_quantity());
+    return enable_lpm_ ? this->dxsec_per_atom_lpm(energy.value())
+                       : this->dxsec_per_atom(energy.value());
 }
 
 //---------------------------------------------------------------------------//
@@ -171,7 +170,6 @@ auto RBDiffXsCalculator::compute_lpm_functions(real_type egamma) -> LPMFunctions
     real_type shat = s * (1 + density_corr_ / ipow<2>(egamma));
 
     // Calculate xi(s)
-
     func.xis = 2;
     if (shat > 1)
     {

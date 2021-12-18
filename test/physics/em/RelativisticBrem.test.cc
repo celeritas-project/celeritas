@@ -148,10 +148,10 @@ TEST_F(RelativisticBremTest, dxsec)
 
     for (real_type energy : all_energy)
     {
-        real_type result = dxsec_lpm(energy);
+        real_type result = dxsec_lpm(MevEnergy{energy});
         dxsec_value_lpm.push_back(result);
 
-        result = dxsec(energy);
+        result = dxsec(MevEnergy{energy});
         dxsec_value.push_back(result);
     }
 
