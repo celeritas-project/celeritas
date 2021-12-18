@@ -14,6 +14,7 @@
 #include "base/Types.hh"
 #include "detail/VGNavCollection.hh"
 #include "detail/VGTraits.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -53,16 +54,6 @@ struct GeoParamsData
 
 //---------------------------------------------------------------------------//
 // STATE
-//---------------------------------------------------------------------------//
-/*!
- * Data required to initialize a geometry state.
- */
-struct GeoTrackInitializer
-{
-    Real3 pos;
-    Real3 dir;
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Interface for VecGeom state information.

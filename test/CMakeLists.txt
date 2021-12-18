@@ -154,6 +154,10 @@ celeritas_add_test(field/UserMapField.test.cc GPU)
 #-----------------------------------------------------------------------------#
 # Geometry
 
+celeritas_setup_tests(SERIAL PREFIX geometry)
+
+celeritas_add_test(geometry/BoundingBox.test.cc)
+
 if(CELERITAS_USE_VecGeom)
   set(CELER_VGTEST_SOURCES
     geometry/GeoTestBase.cc
