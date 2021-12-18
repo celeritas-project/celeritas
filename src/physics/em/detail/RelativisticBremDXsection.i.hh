@@ -5,10 +5,12 @@
 //---------------------------------------------------------------------------//
 //! \file RelativisticBremDXsection.i.hh
 //---------------------------------------------------------------------------//
-#include "RelativisticBremDXsection.hh"
-#include "PhysicsConstants.hh"
 
 #include <cmath>
+
+#include "base/Algorithms.hh"
+#include "RelativisticBremDXsection.hh"
+#include "PhysicsConstants.hh"
 
 namespace celeritas
 {
@@ -85,7 +87,7 @@ real_type RelativisticBremDXsection::dxsec_per_atom(real_type gamma_energy)
               + R(0.125) * onemy * (sfunc.phi2 + sfunc.psi2 * invz);
     }
 
-    return max(dxsec, R(0));
+    return celeritas::max(dxsec, R(0));
 }
 
 //---------------------------------------------------------------------------//

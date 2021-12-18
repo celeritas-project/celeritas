@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
 #include "base/Constants.hh"
 #include "base/Macros.hh"
 #include "base/Quantity.hh"

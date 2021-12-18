@@ -33,10 +33,10 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * Perform a high-energy Bremsstrahlung interaction.
  *
  * This is a relativistic Bremsstrahlung model for high-energy (> 1 GeV)
- * electrons and positorons.
+ * electrons and positrons.
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4eBremsstrahlungRelModel class, as documented in section 10.2.2 of the
@@ -70,6 +70,7 @@ class RelativisticBremInteractor
 
   private:
     //// DATA ////
+
     // Shared constant physics properties
     const RelativisticBremNativeRef& shared_;
     // Incident particle energy
@@ -83,8 +84,9 @@ class RelativisticBremInteractor
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
 
-    //// HELPER CLASSES //// // A helper to sample the photon energy from the
-    /// relativistic model
+    //// HELPER CLASSES ////
+
+    // A helper to sample the photon energy from the relativistic model
     RBEnergySampler rb_energy_sampler_;
     // A helper to update the final state of the primary and the secondary
     BremFinalStateHelper final_state_interaction_;

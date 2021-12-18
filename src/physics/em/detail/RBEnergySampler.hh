@@ -53,10 +53,11 @@ class RBEnergySampler
     using ReciprocalSampler = ReciprocalDistribution<real_type>;
 
     //// DATA ////
+
     // Incident particle energy
-    const Energy inc_energy_;
+    const real_type inc_energy_;
     // Production cutoff for gammas
-    const Energy gamma_cutoff_;
+    const real_type gamma_cutoff_;
     // Differential cross section calcuator
     RelativisticBremDXsection dxsec_;
 };

@@ -8,7 +8,7 @@
 
 #include "base/ArrayUtils.hh"
 #include "base/Algorithms.hh"
-#include "random/distributions/GenerateCanonical.hh"
+#include "PhysicsConstants.hh"
 
 namespace celeritas
 {

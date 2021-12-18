@@ -25,8 +25,8 @@ RBEnergySampler::RBEnergySampler(const RelativisticBremNativeRef& shared,
                                  const CutoffView&                cutoffs,
                                  const MaterialView&              material,
                                  const ElementComponentId&        elcomp_id)
-    : inc_energy_(particle.energy())
-    , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
+    : inc_energy_(value_as<Energy>(particle.energy()))
+    , gamma_cutoff_(value_as<Energy>(cutoffs.energy(shared.ids.gamma)))
     , dxsec_(shared, particle, material, elcomp_id)
 {
 }
@@ -40,13 +40,14 @@ template<class Engine>
 CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy
 {
     // Min and max kinetic energy limits for sampling the secondary photon
-    Energy tmin = min(gamma_cutoff_, inc_energy_);
-    Energy tmax = min(high_energy_limit(), inc_energy_);
+    real_type tmin = celeritas::min(gamma_cutoff_, inc_energy_);
+    real_type tmax
+        = celeritas::min(value_as<Energy>(high_energy_limit()), inc_energy_);
 
     real_type density_corr = dxsec_.density_correction();
 
-    ReciprocalSampler sample_exit_esq(ipow<2>(tmin.value()) + density_corr,
-                                      ipow<2>(tmax.value()) + density_corr);
+    ReciprocalSampler sample_exit_esq(ipow<2>(tmin) + density_corr,
+                                      ipow<2>(tmax) + density_corr);
 
     real_type gamma_energy{0};
     real_type dsigma{0};
@@ -57,7 +58,7 @@ CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy
         dsigma       = dxsec_(gamma_energy);
     } while (!BernoulliDistribution(dsigma / dxsec_.maximum_value())(rng));
 
-    return units::MevEnergy{gamma_energy};
+    return Energy{gamma_energy};
 }
 
 //---------------------------------------------------------------------------//
