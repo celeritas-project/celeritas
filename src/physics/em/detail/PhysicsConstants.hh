@@ -59,10 +59,12 @@ CELER_CONSTEXPR_FUNCTION MevPerCm lpm_constant()
 }
 //!@}
 
-//!@{
-//! Constant functions for model limits
+//---------------------------------------------------------------------------//
+// Constant functions for model limits
+//---------------------------------------------------------------------------//
 
-//! Maximum energy for the SeltzerBerger model - TODO: make this configurable 
+//!@{
+//! Maximum energy for the SeltzerBerger model - TODO: make this configurable
 CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_limit()
 {
     return units::MevEnergy{1e3}; //! 1 GeV

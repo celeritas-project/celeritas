@@ -47,8 +47,8 @@ CELER_FUNCTION
 real_type RelativisticBremDXsection::operator()(real_type energy)
 {
     CELER_EXPECT(energy > 0);
-    return (enable_lpm_) ? this->dxsec_per_atom_lpm(energy)
-                         : this->dxsec_per_atom(energy);
+    return enable_lpm_ ? this->dxsec_per_atom_lpm(energy)
+                       : this->dxsec_per_atom(energy);
 }
 
 //---------------------------------------------------------------------------//

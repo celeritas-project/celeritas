@@ -9,6 +9,7 @@
 
 #include "base/Algorithms.hh"
 #include "random/distributions/BernoulliDistribution.hh"
+#include "random/distributions/ReciprocalDistribution.hh"
 #include "PhysicsConstants.hh"
 
 namespace celeritas
@@ -25,10 +26,16 @@ RBEnergySampler::RBEnergySampler(const RelativisticBremNativeRef& shared,
                                  const CutoffView&                cutoffs,
                                  const MaterialView&              material,
                                  const ElementComponentId&        elcomp_id)
-    : inc_energy_(value_as<Energy>(particle.energy()))
-    , gamma_cutoff_(value_as<Energy>(cutoffs.energy(shared.ids.gamma)))
-    , dxsec_(shared, particle, material, elcomp_id)
+    : dxsec_(shared, particle, material, elcomp_id)
 {
+    // Min and max kinetic energy limits for sampling the secondary photon
+    real_type gamma_cutoff = value_as<Energy>(cutoffs.energy(shared.ids.gamma));
+    real_type inc_energy   = value_as<Energy>(particle.energy());
+    tmin_sq_               = ipow<2>(celeritas::min(gamma_cutoff, inc_energy));
+    tmax_sq_               = ipow<2>(
+        celeritas::min(value_as<Energy>(high_energy_limit()), inc_energy));
+
+    CELER_ENSURE(tmax_sq_ >= tmin_sq_);
 }
 
 //---------------------------------------------------------------------------//
@@ -39,16 +46,9 @@ RBEnergySampler::RBEnergySampler(const RelativisticBremNativeRef& shared,
 template<class Engine>
 CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy
 {
-    // Min and max kinetic energy limits for sampling the secondary photon
-    real_type tmin = celeritas::min(gamma_cutoff_, inc_energy_);
-    real_type tmax
-        = celeritas::min(value_as<Energy>(high_energy_limit()), inc_energy_);
-
     real_type density_corr = dxsec_.density_correction();
-
-    ReciprocalSampler sample_exit_esq(ipow<2>(tmin) + density_corr,
-                                      ipow<2>(tmax) + density_corr);
-
+    ReciprocalDistribution<real_type> sample_exit_esq(tmin_sq_ + density_corr,
+                                                      tmax_sq_ + density_corr);
     real_type gamma_energy{0};
     real_type dsigma{0};
 
