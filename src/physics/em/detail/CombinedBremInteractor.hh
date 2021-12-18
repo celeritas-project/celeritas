@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,7 +33,9 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * A combined bremsstrahlung interactor consisted of the Seltzer-Berger
+ * Apply either Seltzer-Berger or Relativistic depending on energy.
+ *
+ * This is a combined bremsstrahlung interactor consisted of the Seltzer-Berger
  * interactor at the low energy (< 1 GeV) and the relativistic bremsstrahlung
  * interactor at the high energy for the e-/e+ bremsstrahlung process.
  */
@@ -64,6 +66,7 @@ class CombinedBremInteractor
 
   private:
     //// DATA ////
+
     // Incident particle energy
     const Energy inc_energy_;
     // Incident particle direction
@@ -82,6 +85,7 @@ class CombinedBremInteractor
     const bool is_relativistic_;
 
     //// HELPER CLASSES ////
+
     // A helper to Sample the photon energy from the relativistic model
     RBEnergySampler rb_energy_sampler_;
     // A helper to sample the photon energy from the SeltzerBerger model

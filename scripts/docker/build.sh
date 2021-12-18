@@ -8,7 +8,7 @@ if [ -z "$1" ]; then
   exit 2
 fi
 
-SPACK_VERSION=v0.16.0
+SPACK_VERSION=v0.17.0
 CONFIG=$1
 
 case $CONFIG in 
@@ -22,12 +22,13 @@ esac
  
 case $CONFIG in 
   bionic-minimal)
-    BASE_TAG=ubuntu:bionic-20210428
+    BASE_TAG=ubuntu:bionic-20210930
     VECGEOM=
     ;;
   focal-cuda11)
-    BASE_TAG=nvidia/cuda:11.1-devel-ubuntu20.04
-    VECGEOM=v1.1.15
+    # ***IMPORTANT***: update cuda external version in dev/focal-cuda11!
+    BASE_TAG=nvidia/cuda:11.4.2-devel-ubuntu20.04
+    VECGEOM=v1.1.18
     ;;
   *)
     echo "Invalid configure type: $1"
@@ -35,6 +36,7 @@ case $CONFIG in
     ;;
 esac
 
+docker pull ${BASE_TAG}
 docker tag ${BASE_TAG} base-${CONFIG}
 
 docker build -t dev-${CONFIG} \

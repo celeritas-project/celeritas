@@ -3,7 +3,7 @@
 These docker images use [spack](https://github.com/spack/spack) to build a
 CUDA-enabled development environment for Celeritas. There are two sets of
 images:
-- `dev` (this directory) which leaves spack fully installed and
+- `dev` (`dev` subdirectory) which leaves spack fully installed and
   debug symbols intact; and
 - `ci` (`ci` subdirectory) which only copies the necessary software stack (thus
   requiring lower bandwidth on the CI servers).
@@ -34,7 +34,7 @@ Note that the `--rm` option automatically deletes the state of the container
 after you exit the docker client. This means all of your work will be
 destroyed.
 
-The `launch-testing` script will clone an active github pull request, build,
+The `launch-testing` script will clone an active GitHub pull request, build,
 and set up an image to use locally:
 ```console
 $ ./ci/launch-testing.sh 123
@@ -43,13 +43,22 @@ $ ./ci/launch-testing.sh 123
 To mount the image with your local source directory:
 ```console
 $ docker run --rm -ti -e "TERM=xterm-256color" \
-    -v /rnsdhpc/code/celeritas:src \
-    celeritas/ci-cuda11
+    -v ${SOURCE}:/home/celeritas/src \
+    celeritas/ci-focal-cuda11:${DATE}
+```
+where `${SOURCE}` is your local Celeritas source dir and `${DATE}` is the date
+time stamp of the desired image. If you just built locally, you can replace
+that last argument with the tag `ci-focal-cuda11`.
+
+After mounting, use the build scripts to configure and go:
+```console
+celeritas@abcd1234:~$ cd src
+celeritas@abcd1234:~/src$ BUILD_DIR=$PWD/build-docker ./scripts/build/docker-cuda.sh
 ```
 
-
-The `dev` image runs as root, but the `ci-cuda11` runs as a user `celeritas`.
-This is the best way to [make OpenMPI happy](https://github.com/open-mpi/ompi/issues/4451).
+The `dev` image runs as root, but the `ci-focal-cuda11` runs as a user
+`celeritas`.  This is the best way to [make OpenMPI
+happy](https://github.com/open-mpi/ompi/issues/4451).
 
 Note that the Jenkins CI runs as root regardless of the `run` command, so it
 defines `MPIEXEC_PREFLAGS=--allow-run-as-root` for CMake.

@@ -4,19 +4,13 @@ spack:
 
 
 
-
   - git
   - googletest
-
 
   - ninja
   - nlohmann-json
 
   - python
-
-
-
-
 
 
   - valgrind

@@ -14,10 +14,8 @@
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
 
-#include "random/distributions/ReciprocalDistribution.hh"
-
 #include "RelativisticBremData.hh"
-#include "RelativisticBremDXsection.hh"
+#include "RBDiffXsCalculator.hh"
 
 namespace celeritas
 {
@@ -26,7 +24,6 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Sample the bremsstrahlung photon energy from the relativistic model.
- *
  */
 class RBEnergySampler
 {
@@ -50,15 +47,14 @@ class RBEnergySampler
     inline CELER_FUNCTION Energy operator()(Engine& rng);
 
   private:
-    using ReciprocalSampler = ReciprocalDistribution<real_type>;
-
     //// DATA ////
-    // Incident particle energy
-    const Energy inc_energy_;
-    // Production cutoff for gammas
-    const Energy gamma_cutoff_;
+
+    // Square of minimum of incident particle energy and cutoff
+    real_type tmin_sq_;
+    // Square of production cutoff for gammas
+    real_type tmax_sq_;
     // Differential cross section calcuator
-    RelativisticBremDXsection dxsec_;
+    RBDiffXsCalculator calc_dxsec_;
 };
 
 //---------------------------------------------------------------------------//
