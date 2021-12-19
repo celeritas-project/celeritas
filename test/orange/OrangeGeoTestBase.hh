@@ -14,8 +14,9 @@
 
 // Source dependencies
 #include "base/Array.hh"
-#include "base/CollectionMirror.hh"
+#include "base/CollectionStateStore.hh"
 #include "base/Span.hh"
+#include "orange/OrangeParams.hh"
 #include "orange/Data.hh"
 
 // Test dependencies
@@ -26,8 +27,6 @@ namespace celeritas_test
 //---------------------------------------------------------------------------//
 /*!
  * Test base for loading geometry.
- *
- * Much of this functionality will be rolled into the OrangeGeoParams.
  */
 class OrangeGeoTestBase : public celeritas::Test
 {
@@ -41,12 +40,11 @@ class OrangeGeoTestBase : public celeritas::Test
     using VolumeId  = celeritas::VolumeId;
     using FaceId    = celeritas::FaceId;
     using SurfaceId = celeritas::SurfaceId;
-    using ParamsHostRef
-        = celeritas::OrangeParamsData<celeritas::Ownership::const_reference,
-                                      celeritas::MemSpace::host>;
-    using ParamsDeviceRef
-        = celeritas::OrangeParamsData<celeritas::Ownership::const_reference,
-                                      celeritas::MemSpace::device>;
+    using Params    = celeritas::OrangeParams;
+
+    using HostStateRef
+        = celeritas::OrangeStateData<celeritas::Ownership::reference,
+                                     celeritas::MemSpace::host>;
     //!@}
 
     //!@{
@@ -82,42 +80,14 @@ class OrangeGeoTestBase : public celeritas::Test
     void build_geometry(TwoVolInput);
 
     //! Get the data after loading
-    const ParamsHostRef& params_host_ref() const
+    const Params& params() const
     {
         CELER_EXPECT(params_);
-        return params_.host();
+        return *params_;
     }
 
-    //! Get device data after loading
-    const ParamsDeviceRef& params_device_ref() const
-    {
-        CELER_EXPECT(params_);
-        return params_.device();
-    }
-
-    //! Access the shared CPU storage space for senses
-    celeritas::Span<Sense> sense_storage()
-    {
-        return celeritas::make_span(sense_storage_);
-    }
-
-    //! Access the shared CPU storage space for faces
-    celeritas::Span<FaceId> face_storage()
-    {
-        return celeritas::make_span(face_storage_);
-    }
-
-    //! Access the shared CPU storage space for distances
-    celeritas::Span<real_type> distance_storage()
-    {
-        return celeritas::make_span(distance_storage_);
-    }
-
-    //! Access the shared CPU storage space for intersection indices
-    celeritas::Span<size_type> isect_storage()
-    {
-        return celeritas::make_span(isect_storage_);
-    }
+    // Lazily create and get a single-serving host state
+    const HostStateRef& host_state();
 
     //// QUERYING ////
 
@@ -136,43 +106,31 @@ class OrangeGeoTestBase : public celeritas::Test
     // Print geometry description
     void describe(std::ostream& os) const;
 
-    //! Lower point of bounding box
-    const Real3& bbox_lower() const { return bbox_lower_; }
-
-    //! Upper point of bounding box
-    const Real3& bbox_upper() const { return bbox_upper_; }
-
     //! Number of volumes
-    VolumeId::size_type num_volumes() const { return vol_names_.size(); }
+    VolumeId::size_type num_volumes() const
+    {
+        CELER_EXPECT(params_);
+        return params_->num_volumes();
+    }
 
   private:
     //// TYPES ////
-    using ParamsHostValue
-        = celeritas::OrangeParamsData<celeritas::Ownership::value,
-                                      celeritas::MemSpace::host>;
+
+    using HostStateStore
+        = celeritas::CollectionStateStore<celeritas::OrangeStateData,
+                                          celeritas::MemSpace::host>;
 
     //// DATA ////
 
     // Param data
-    celeritas::CollectionMirror<celeritas::OrangeParamsData> params_;
+    std::unique_ptr<Params> params_;
 
     // State data
-    std::vector<Sense>     sense_storage_;
-    std::vector<FaceId>    face_storage_;
-    std::vector<real_type> distance_storage_;
-    std::vector<size_type> isect_storage_;
+    HostStateStore host_state_;
 
-    // Metadata
-    std::vector<std::string>                   surf_names_;
-    std::vector<std::string>                   vol_names_;
-    std::unordered_map<std::string, VolumeId>  vol_ids_;
-    std::unordered_map<std::string, SurfaceId> surf_ids_;
+    //// HELPER FUNCTIONS ////
 
-    Real3 bbox_lower_;
-    Real3 bbox_upper_;
-
-    //// METHODS ////
-    void build_impl(ParamsHostValue&& params);
+    void resize_state_storage();
 };
 
 //---------------------------------------------------------------------------//

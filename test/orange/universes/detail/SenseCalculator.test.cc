@@ -54,11 +54,17 @@ class SenseCalculatorTest : public celeritas_test::OrangeGeoTestBase
 
     const SurfaceDataRef& surface_ref() const
     {
-        return this->params_host_ref().surfaces;
+        return this->params().host_ref().surfaces;
     }
     const VolumeDataRef& volume_ref() const
     {
-        return this->params_host_ref().volumes;
+        return this->params().host_ref().volumes;
+    }
+
+    //! Access the shared CPU storage space for senses
+    celeritas::Span<Sense> sense_storage()
+    {
+        return this->host_state().temp_sense[AllItems<Sense>{}];
     }
 };
 

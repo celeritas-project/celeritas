@@ -21,7 +21,6 @@
 #include "orange/surfaces/Sphere.hh"
 #include "orange/surfaces/SurfaceAction.hh"
 #include "orange/surfaces/SurfaceIO.hh"
-#include "orange/universes/VolumeView.hh"
 
 #if CELERITAS_USE_JSON
 #    include "base/Array.json.hh"
@@ -76,49 +75,8 @@ void OrangeGeoTestBase::build_geometry(const char* filename)
     CELER_VALIDATE(CELERITAS_USE_JSON,
                    << "JSON is not enabled so geometry cannot be loaded");
 
-    OrangeParamsData<Ownership::value, MemSpace::host> host_data;
-
-#if CELERITAS_USE_JSON
-    std::ifstream infile(this->test_data_path("orange", filename));
-    CELER_VALIDATE(infile,
-                   << "failed to open geometry at '" << filename << '\'');
-
-    auto        full_inp  = nlohmann::json::parse(infile);
-    const auto& universes = full_inp["universes"];
-
-    CELER_VALIDATE(universes.size() == 1,
-                   << "input geometry has " << universes.size()
-                   << "universes; at present there must be a single global "
-                      "universe");
-    const auto& uni = universes[0];
-
-    {
-        // Insert surfaces
-        SurfaceInserter insert(&host_data.surfaces);
-        insert(uni["surfaces"].get<SurfaceInput>());
-        uni["surface_names"].get_to(surf_names_);
-    }
-
-    {
-        // Insert volumes
-        VolumeInserter insert(&host_data.volumes);
-        for (const auto& vol_inp : uni["cells"])
-        {
-            insert(vol_inp.get<VolumeInput>());
-        }
-        uni["cell_names"].get_to(vol_names_);
-    }
-
-    {
-        // Save bbox
-        const auto& bbox = uni["bbox"];
-        bbox[0].get_to(bbox_lower_);
-        bbox[1].get_to(bbox_upper_);
-    }
-
-#endif
-
-    return this->build_impl(std::move(host_data));
+    params_
+        = std::make_unique<Params>(this->test_data_path("orange", filename));
 }
 
 //---------------------------------------------------------------------------//
@@ -128,27 +86,22 @@ void OrangeGeoTestBase::build_geometry(const char* filename)
 void OrangeGeoTestBase::build_geometry(OneVolInput inp)
 {
     CELER_EXPECT(!params_);
-    OrangeParamsData<Ownership::value, MemSpace::host> host_data;
-    {
-        // No surfaces
-        surf_names_ = {};
-    }
+    Params::Input input;
     {
         // Insert volumes
-        VolumeInserter insert(&host_data.volumes);
+        VolumeInserter insert(&input.volumes);
         VolumeInput    vi;
         vi.logic = {logic::ltrue};
         vi.flags = (inp.complex_tracking ? VolumeInput::Flags::internal_surfaces
                                          : 0);
         insert(vi);
-        vol_names_ = {"infinite"};
+        input.volume_labels = {"infinite"};
     }
 
     // Save fake bbox for sampling
-    bbox_lower_ = {-0.5, -0.5, -0.5};
-    bbox_upper_ = {0.5, 0.5, 0.5};
+    input.bbox = {{-0.5, -0.5, -0.5}, {0.5, 0.5, 0.5}};
 
-    return this->build_impl(std::move(host_data));
+    params_ = std::make_unique<Params>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//
@@ -159,17 +112,17 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
 {
     CELER_EXPECT(!params_);
     CELER_EXPECT(inp.radius > 0);
-    OrangeParamsData<Ownership::value, MemSpace::host> host_data;
+    Params::Input input;
 
     {
         // Insert surfaces
-        SurfaceInserter insert(&host_data.surfaces);
+        SurfaceInserter insert(&input.surfaces);
         insert(Sphere({0, 0, 0}, inp.radius));
-        surf_names_ = {"sphere"};
+        input.surface_labels = {"sphere"};
     }
     {
         // Insert volumes
-        VolumeInserter insert(&host_data.volumes);
+        VolumeInserter insert(&input.volumes);
         {
             VolumeInput vi;
             // Inside
@@ -182,14 +135,28 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
             vi.logic = {0};
             insert(vi);
         }
-        vol_names_ = {"inside", "outside"};
+        input.volume_labels = {"inside", "outside"};
     }
 
     // Save bbox
-    bbox_lower_ = {-inp.radius, -inp.radius, -inp.radius};
-    bbox_upper_ = {inp.radius, inp.radius, inp.radius};
+    input.bbox = {{-inp.radius, -inp.radius, -inp.radius},
+                  {inp.radius, inp.radius, inp.radius}};
 
-    return this->build_impl(std::move(host_data));
+    params_ = std::make_unique<Params>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Lazily create and get a single-serving host state.
+ */
+auto OrangeGeoTestBase::host_state() -> const HostStateRef&
+{
+    CELER_EXPECT(params_);
+    if (!host_state_)
+    {
+        host_state_ = HostStateStore(this->params(), 1);
+    }
+    return host_state_.ref();
 }
 
 //---------------------------------------------------------------------------//
@@ -204,13 +171,13 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
     CELER_EXPECT(params_);
 
     os << "# Surfaces\n";
-    Surfaces surfaces(this->params_host_ref().surfaces);
+    Surfaces surfaces(this->params().host_ref().surfaces);
     auto     surf_to_stream = make_surface_action(surfaces, ToStream{os});
 
     // Loop over all surfaces and apply
     for (auto id : range(SurfaceId{surfaces.num_surfaces()}))
     {
-        os << " - " << surf_names_[id.get()] << "(" << id.get() << "): ";
+        os << " - " << params_->id_to_label(id) << "(" << id.get() << "): ";
         surf_to_stream(id);
         os << '\n';
     }
@@ -222,13 +189,13 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
  */
 SurfaceId OrangeGeoTestBase::find_surface(const char* label) const
 {
+    CELER_EXPECT(params_);
     SurfaceId surface_id;
     if (label)
     {
-        auto iter = surf_ids_.find(label);
-        CELER_VALIDATE(iter != surf_ids_.end(),
+        surface_id = params_->find_surface(label);
+        CELER_VALIDATE(surface_id,
                        << "nonexistent surface label '" << label << '\'');
-        surface_id = iter->second;
     }
     return surface_id;
 }
@@ -239,13 +206,13 @@ SurfaceId OrangeGeoTestBase::find_surface(const char* label) const
  */
 VolumeId OrangeGeoTestBase::find_volume(const char* label) const
 {
+    CELER_EXPECT(params_);
     VolumeId volume_id;
     if (label)
     {
-        auto iter = vol_ids_.find(label);
-        CELER_VALIDATE(iter != vol_ids_.end(),
+        volume_id = params_->find_volume(label);
+        CELER_VALIDATE(volume_id,
                        << "nonexistent volume label '" << label << '\'');
-        volume_id = iter->second;
     }
     return volume_id;
 }
@@ -256,11 +223,10 @@ VolumeId OrangeGeoTestBase::find_volume(const char* label) const
  */
 std::string OrangeGeoTestBase::id_to_label(SurfaceId surf) const
 {
-    CELER_EXPECT(!surf || surf < surf_names_.size());
     if (!surf)
         return "[none]";
 
-    return surf_names_[surf.get()];
+    return params_->id_to_label(surf);
 }
 
 //---------------------------------------------------------------------------//
@@ -269,67 +235,10 @@ std::string OrangeGeoTestBase::id_to_label(SurfaceId surf) const
  */
 std::string OrangeGeoTestBase::id_to_label(VolumeId vol) const
 {
-    CELER_EXPECT(!vol || vol < vol_names_.size());
     if (!vol)
         return "[none]";
 
-    return vol_names_[vol.get()];
-}
-
-//---------------------------------------------------------------------------//
-// PRIVATE METHODS
-//---------------------------------------------------------------------------//
-/*!
- * Update and save geometry.
- */
-void OrangeGeoTestBase::build_impl(ParamsHostValue&& host_data)
-{
-    CELER_EXPECT(host_data.surfaces && host_data.volumes);
-
-    // Calculate max faces and intersections, reserving at least one to
-    // improve error checking in state
-    size_type max_faces         = 1;
-    size_type max_intersections = 1;
-    for (auto vol_id : range(VolumeId{host_data.volumes.size()}))
-    {
-        const VolumeDef& def = host_data.volumes.defs[vol_id];
-        max_faces = std::max<size_type>(max_faces, def.faces.size());
-        max_intersections
-            = std::max<size_type>(max_intersections, def.num_intersections);
-    }
-    host_data.scalars.max_faces         = max_faces;
-    host_data.scalars.max_intersections = max_intersections;
-
-    sense_storage_.resize(max_faces);
-    face_storage_.resize(max_intersections);
-    distance_storage_.resize(max_intersections);
-    isect_storage_.resize(max_intersections);
-
-    // Construct device values and device/host references
-    CELER_ASSERT(host_data);
-    params_ = CollectionMirror<OrangeParamsData>{std::move(host_data)};
-
-    // Build id/surface mapping
-    for (auto vid : range(VolumeId(vol_names_.size())))
-    {
-        auto iter_inserted = vol_ids_.insert({vol_names_[vid.get()], vid});
-        CELER_VALIDATE(iter_inserted.second,
-                       << "duplicate volume name '"
-                       << iter_inserted.first->first << '\'');
-    }
-    for (auto sid : range(SurfaceId(surf_names_.size())))
-    {
-        auto iter_inserted = surf_ids_.insert({surf_names_[sid.get()], sid});
-        CELER_VALIDATE(iter_inserted.second,
-                       << "duplicate surface name '"
-                       << iter_inserted.first->first << '\'');
-    }
-
-    CELER_ENSURE(params_);
-    CELER_ENSURE(surf_names_.size() == this->params_host_ref().surfaces.size());
-    CELER_ENSURE(vol_names_.size() == this->params_host_ref().volumes.size());
-    CELER_ENSURE(surf_ids_.size() == surf_names_.size());
-    CELER_ENSURE(vol_ids_.size() == vol_names_.size());
+    return params_->id_to_label(vol);
 }
 
 //---------------------------------------------------------------------------//
