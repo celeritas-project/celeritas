@@ -58,7 +58,7 @@ class TrackInitTest : public celeritas::Test
     {
         // Set up shared geometry data
         std::string test_file
-            = celeritas::Test::test_data_path("geometry", "twoBoxes.gdml");
+            = celeritas::Test::test_data_path("geometry", "two-boxes.gdml");
         geometry            = std::make_shared<GeoParams>(test_file.c_str());
         params.geometry     = geometry->device_ref();
 

@@ -30,7 +30,7 @@ class LinearPropagatorHostTest : public GeoTestBase
   public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
-    std::string filename() const override { return "fourLevels.gdml"; }
+    std::string filename() const override { return "four-levels.gdml"; }
 
     void SetUp() override { state = StateStore(*this->geo_params(), 1); }
 
@@ -199,7 +199,7 @@ class LP_DEVICE_TEST : public GeoTestBase
   public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
 
-    std::string filename() const override { return "fourLevels.gdml"; }
+    std::string filename() const override { return "four-levels.gdml"; }
 };
 
 TEST_F(LP_DEVICE_TEST, track_lines)

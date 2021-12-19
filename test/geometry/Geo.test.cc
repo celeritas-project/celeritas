@@ -28,7 +28,7 @@ using namespace celeritas_test;
 class GeoParamsHostTest : public GeoTestBase
 {
   public:
-    std::string filename() const override { return "fourLevels.gdml"; }
+    std::string filename() const override { return "four-levels.gdml"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -55,7 +55,7 @@ class GeoTrackViewHostTest : public GeoTestBase
   public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
-    std::string filename() const override { return "fourLevels.gdml"; }
+    std::string filename() const override { return "four-levels.gdml"; }
 
     void SetUp() override { state = StateStore(*this->geo_params(), 1); }
 
@@ -162,7 +162,7 @@ class GEO_DEVICE_TEST : public GeoTestBase
   public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
 
-    std::string filename() const override { return "fourLevels.gdml"; }
+    std::string filename() const override { return "four-levels.gdml"; }
 };
 
 TEST_F(GEO_DEVICE_TEST, all)
