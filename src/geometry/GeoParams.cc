@@ -50,6 +50,9 @@ GeoParams::GeoParams(const char* gdml_filename)
     host_ref_.world_volume = vecgeom::GeoManager::Instance().GetWorld();
     host_ref_.max_depth    = vecgeom::GeoManager::Instance().getMaxDepth();
 
+    // init the BVH structure
+    vecgeom::cxx::BVHManager::Init();
+
 #if CELERITAS_USE_CUDA
     if (celeritas::device())
     {
@@ -73,14 +76,10 @@ GeoParams::GeoParams(const char* gdml_filename)
             CELER_CUDA_CHECK_ERROR();
         }
         CELER_ENSURE(device_ref_);
-    }
-#endif
 
-    // init the BVH structure
-    vecgeom::cxx::BVHManager::Init();
-#if CELERITAS_USE_CUDA
-    // init the BVH structure
-    vecgeom::cxx::BVHManager::DeviceInit();
+        // init the BVH structure
+        vecgeom::cxx::BVHManager::DeviceInit();
+    }
 #endif
 
     CELER_ENSURE(num_volumes_ > 0);
