@@ -10,6 +10,7 @@
 #include <VecGeom/gdml/Frontend.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/GeoManager.h>
+#include <VecGeom/management/BVHManager.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include <celeritas_config.h>
@@ -49,6 +50,9 @@ GeoParams::GeoParams(const char* gdml_filename)
     host_ref_.world_volume = vecgeom::GeoManager::Instance().GetWorld();
     host_ref_.max_depth    = vecgeom::GeoManager::Instance().getMaxDepth();
 
+    // init the BVH structure
+    vecgeom::cxx::BVHManager::Init();
+
 #if CELERITAS_USE_CUDA
     if (celeritas::device())
     {
@@ -72,8 +76,12 @@ GeoParams::GeoParams(const char* gdml_filename)
             CELER_CUDA_CHECK_ERROR();
         }
         CELER_ENSURE(device_ref_);
+
+        // init the BVH structure
+        vecgeom::cxx::BVHManager::DeviceInit();
     }
 #endif
+
     CELER_ENSURE(num_volumes_ > 0);
     CELER_ENSURE(host_ref_);
 }

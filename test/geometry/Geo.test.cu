@@ -44,7 +44,7 @@ __global__ void vgg_test_kernel(const GeoParamsCRefDevice params,
             break;
 
         // Move next step
-        real_type dist = geo.move_next_step();
+        real_type dist = geo.move_to_boundary();
 
         // Save current ID and distance to travel
         ids[tid.get() * max_segments + seg]       = geo.volume_id();
@@ -67,7 +67,7 @@ VGGTestOutput vgg_test(VGGTestInput input)
     thrust::device_vector<VGGTestInit> init(input.init.begin(),
                                             input.init.end());
     thrust::device_vector<VolumeId> ids(input.init.size() * input.max_segments);
-    thrust::device_vector<double>   distances(ids.size(), -1.0);
+    thrust::device_vector<double>   distances(ids.size(), -2.0);
 
     // Run kernel
     static const celeritas::KernelParamCalculator calc_launch_params(
@@ -87,7 +87,7 @@ VGGTestOutput vgg_test(VGGTestInput input)
     VGGTestOutput result;
     for (auto id : thrust::host_vector<VolumeId>(ids))
     {
-        result.ids.push_back(id ? static_cast<int>(id.get()) : -1);
+        result.ids.push_back(id ? static_cast<int>(id.get()) : -3);
     }
     result.distances.resize(distances.size());
     thrust::copy(distances.begin(), distances.end(), result.distances.begin());

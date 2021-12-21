@@ -56,6 +56,7 @@ void run(std::istream& is)
     // Construct runner
     RDemoRunner run(geo_params);
     run(&image);
+    // run(&image, 10); // Ntimes for performance measurement
 
     // Get geometry names
     std::vector<std::string> vol_names;

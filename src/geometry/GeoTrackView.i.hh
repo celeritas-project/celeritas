@@ -10,9 +10,12 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 #include "base/ArrayUtils.hh"
 #include "detail/VGCompatibility.hh"
+#include "detail/BVHNavigator.hh"
 
 namespace celeritas
 {
+using Navigator = celeritas::detail::BVHNavigator;
+
 //---------------------------------------------------------------------------//
 //! Construct from persistent and state data.
 CELER_FUNCTION
@@ -51,7 +54,7 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
     // Note that LocateGlobalPoint sets `vgstate_`. If `vgstate_` is outside
     // (including possibly on the outside volume edge), the volume pointer it
     // returns would be null at this point.
-    vecgeom::GlobalLocator::LocateGlobalPoint(
+    Navigator::LocatePointIn(
         worldvol, detail::to_vector(pos_), vgstate_, contains_point);
 
     // Prepare for next step. If outside, vgstate_ will be reset to return
@@ -86,17 +89,25 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
 
 //---------------------------------------------------------------------------//
 //! Find the distance to the next geometric boundary.
-CELER_FUNCTION void GeoTrackView::find_next_step()
+CELER_FORCEINLINE_FUNCTION void GeoTrackView::find_next_step()
 {
-    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
-    CELER_ASSERT(navigator);
+    if (this->is_outside())
+    {
+        find_next_step_outside();
+    }
+    else
+    {
+        // Use BVH navigator
+        // Note: AdePT provides max phys.length as maxStep
+        //  - if used, next state = current state
+        next_step_
+            = Navigator::ComputeStepAndNextVolume(detail::to_vector(pos_),
+                                                  detail::to_vector(dir_),
+                                                  vecgeom::kInfLength,
+                                                  vgstate_,
+                                                  vgnext_);
+    }
 
-    next_step_
-        = navigator->ComputeStepAndPropagatedState(detail::to_vector(pos_),
-                                                   detail::to_vector(dir_),
-                                                   vecgeom::kInfLength,
-                                                   vgstate_,
-                                                   vgnext_);
     dirty_ = false;
 }
 
@@ -107,10 +118,11 @@ CELER_FUNCTION void GeoTrackView::find_next_step_outside()
     CELER_EXPECT(this->is_outside());
 
     // handling points outside of world volume
-    const vecgeom::VPlacedVolume* pplvol = shared_.world_volume;
-    const real_type               large  = vecgeom::kInfLength;
-    next_step_                           = pplvol->DistanceToIn(
+    auto*               pplvol = shared_.world_volume;
+    constexpr real_type large  = vecgeom::kInfLength;
+    next_step_                 = pplvol->DistanceToIn(
         detail::to_vector(pos_), detail::to_vector(dir_), large);
+
     vgnext_.Clear();
     if (next_step_ < large)
         vgnext_.Push(pplvol);
@@ -125,24 +137,13 @@ CELER_FUNCTION real_type GeoTrackView::move_to_boundary()
     if (dirty_)
         this->find_next_step();
 
-    // Move the next step plus an extra fudge distance
-    real_type dist = next_step_ + this->extra_push();
+    // Move next step
+    real_type dist = next_step_;
     axpy(dist, dir_, &pos_);
     next_step_ = 0.;
-    this->move_next_volume();
-    return dist;
-}
 
-//---------------------------------------------------------------------------//
-//! Move to the next boundary and update volume accordingly
-CELER_FUNCTION real_type GeoTrackView::move_next_step()
-{
-    if (dirty_)
-        this->find_next_step();
-    real_type dist = next_step_;
-    axpy(next_step_, dir_, &pos_);
-    next_step_ = 0.;
-    this->move_next_volume();
+    // Relocate to next tracking volume (maybe across multiple boundaries)
+    this->relocate();
     return dist;
 }
 
@@ -151,36 +152,45 @@ CELER_FUNCTION real_type GeoTrackView::move_next_step()
 CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
 {
     CELER_EXPECT(dist > 0.);
-
     if (dirty_)
         this->find_next_step();
 
     // do not move beyond next boundary!
     if (dist >= next_step_)
-        return this->move_to_boundary();
+    {
+        real_type ret = this->move_to_boundary();
+        return ret;
+    }
 
     // move and update next_step_
     axpy(dist, dir_, &pos_);
     next_step_ -= dist;
+
+    CELER_ENSURE(dist > 0.);
     return dist;
 }
 
 //---------------------------------------------------------------------------//
 //! Update state to next volume
-CELER_FUNCTION void GeoTrackView::move_next_volume()
+CELER_FUNCTION void GeoTrackView::relocate()
 {
-    vgstate_ = vgnext_;
-    if (this->is_outside())
-        this->find_next_step_outside();
-    else
-        this->find_next_step();
+    if (vgnext_.Top() != nullptr)
+    {
+        Vec3D tmpPos(detail::to_vector(this->pos_));
+        Navigator::RelocateToNextVolume(
+            tmpPos, detail::to_vector(this->dir_), vgnext_);
+    }
+
+    vgstate_ = vgnext_; // BVH relocation requires this extra step
+    find_next_step();
 }
 
 //---------------------------------------------------------------------------//
 //! Get the volume ID in the current cell.
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {
-    return (this->is_outside() ? VolumeId{} : VolumeId{this->volume().id()});
+    return (this->is_outside() ? VolumeId{999999}
+                               : VolumeId{this->volume().id()});
 }
 
 //---------------------------------------------------------------------------//
@@ -200,11 +210,7 @@ CELER_FUNCTION const vecgeom::LogicalVolume& GeoTrackView::volume() const
 //! Find the safety to the closest geometric boundary.
 CELER_FUNCTION real_type GeoTrackView::find_safety(Real3 pos) const
 {
-    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
-    CELER_ASSERT(navigator);
-
-    return navigator->GetSafetyEstimator()->ComputeSafety(
-        detail::to_vector(pos), vgstate_);
+    return Navigator::ComputeSafety(detail::to_vector(pos), vgstate_);
 }
 
 //---------------------------------------------------------------------------//
