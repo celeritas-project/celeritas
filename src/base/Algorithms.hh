@@ -51,13 +51,13 @@ CELER_CONSTEXPR_FUNCTION auto move(T&& v) noexcept ->
 template<class T>
 CELER_FORCEINLINE_FUNCTION void trivial_swap(T& a, T& b) noexcept
 {
-    static_assert(std::is_trivially_copy_constructible<T>::value,
+    static_assert(std::is_trivially_move_constructible<T>::value,
                   "Value is not trivially copyable");
     static_assert(std::is_trivially_move_assignable<T>::value,
                   "Value is not trivially movable");
     static_assert(std::is_trivially_destructible<T>::value,
                   "Value is not trivially destructible");
-    T temp{a};
+    T temp{::celeritas::move(a)};
     a = ::celeritas::move(b);
     b = ::celeritas::move(temp);
 }
