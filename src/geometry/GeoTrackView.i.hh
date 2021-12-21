@@ -97,8 +97,10 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
 }
 
 //---------------------------------------------------------------------------//
-//! Find the distance to the next geometric boundary.
-CELER_FORCEINLINE_FUNCTION void GeoTrackView::find_next_step()
+/*!
+ * Find the distance to the next geometric boundary.
+ */
+CELER_FUNCTION void GeoTrackView::find_next_step()
 {
     if (this->is_outside())
     {
@@ -126,7 +128,9 @@ CELER_FORCEINLINE_FUNCTION void GeoTrackView::find_next_step()
 }
 
 //---------------------------------------------------------------------------//
-//! For outside points, find distance to world volume
+/*!
+ * For outside points, find distance to world volume.
+ */
 CELER_FUNCTION void GeoTrackView::find_next_step_outside()
 {
     CELER_EXPECT(this->is_outside());
@@ -145,7 +149,9 @@ CELER_FUNCTION void GeoTrackView::find_next_step_outside()
 }
 
 //---------------------------------------------------------------------------//
-//! Move to the next boundary and update volume accordingly
+/*!
+ * Move to the next boundary and update volume accordingly.
+ */
 CELER_FUNCTION real_type GeoTrackView::move_to_boundary()
 {
     if (dirty_)
@@ -162,7 +168,11 @@ CELER_FUNCTION real_type GeoTrackView::move_to_boundary()
 }
 
 //---------------------------------------------------------------------------//
-//! Move by a given distance. If a boundary to be crossed, stop there instead
+/*!
+ * Move by a given distance.
+ *
+ * If a boundary to be crossed, stop there instead.
+ */
 CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
 {
     CELER_EXPECT(dist > 0.);
@@ -185,7 +195,9 @@ CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
 }
 
 //---------------------------------------------------------------------------//
-//! Update state to next volume
+/*!
+ * Update state to next volume.
+ */
 CELER_FUNCTION void GeoTrackView::relocate()
 {
 #ifdef VECGEOM_USE_NAVINDEX
@@ -203,7 +215,9 @@ CELER_FUNCTION void GeoTrackView::relocate()
 }
 
 //---------------------------------------------------------------------------//
-//! Get the volume ID in the current cell.
+/*!
+ * Get the volume ID in the current cell.
+ */
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {
     return (this->is_outside() ? VolumeId{999999}
@@ -213,7 +227,9 @@ CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 //---------------------------------------------------------------------------//
 // PRIVATE CLASS FUNCTIONS
 //---------------------------------------------------------------------------//
-//! Get a reference to the current volume, or to world volume if outside
+/*!
+ * Get a reference to the current volume, or to world volume if outside.
+ */
 CELER_FUNCTION const vecgeom::LogicalVolume& GeoTrackView::volume() const
 {
     const vecgeom::VPlacedVolume* physvol_ptr = vgstate_.Top();
@@ -222,9 +238,9 @@ CELER_FUNCTION const vecgeom::LogicalVolume& GeoTrackView::volume() const
 }
 
 //---------------------------------------------------------------------------//
-// HELPER METHODS
-//---------------------------------------------------------------------------//
-//! Find the safety to the closest geometric boundary.
+/*!
+ * Find the safety to the closest geometric boundary.
+ */
 CELER_FUNCTION real_type GeoTrackView::find_safety(Real3 pos) const
 {
 #ifdef VECGEOM_USE_NAVINDEX
