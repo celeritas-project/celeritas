@@ -15,12 +15,12 @@
 #include "base/Assert.hh"
 #include "base/CollectionStateStore.hh"
 #include "base/Types.hh"
+#include "geometry/GeoParams.hh"
 #include "sim/TrackData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class GeoParams;
 class MaterialParams;
 class GeoMaterialParams;
 class ParticleParams;
