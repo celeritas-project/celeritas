@@ -35,7 +35,7 @@ struct StepDiagnosticData
 
     StateItems<size_type> steps;  //!< Current step count for each track
     Items<size_type>      counts; //!< Bin tracks by particle and step count
-    size_type             max_steps;
+    size_type             num_bins;
     size_type             num_particles;
 
     //// METHODS ////
@@ -43,8 +43,8 @@ struct StepDiagnosticData
     //! Whether the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return !steps.empty() && max_steps > 0 && num_particles > 0
-               && counts.size() == (max_steps + 2) * num_particles;
+        return !steps.empty() && num_bins > 0 && num_particles > 0
+               && counts.size() == num_bins * num_particles;
     }
 
     //! Assign from another set of data
@@ -54,7 +54,7 @@ struct StepDiagnosticData
         CELER_EXPECT(other);
         steps         = other.steps;
         counts        = other.counts;
-        max_steps     = other.max_steps;
+        num_bins      = other.num_bins;
         num_particles = other.num_particles;
         return *this;
     }
