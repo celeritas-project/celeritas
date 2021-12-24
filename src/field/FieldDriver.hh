@@ -13,7 +13,7 @@
 #include "RungeKuttaStepper.hh"
 #include "MagFieldEquation.hh"
 #include "FieldParamsData.hh"
-#include "FieldData.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -29,10 +29,10 @@ class FieldDriver
   public:
     // Construct with shared data and the stepper
     inline CELER_FUNCTION
-    FieldDriver(const FieldParamsData& shared, StepperT& stepper);
+    FieldDriver(const FieldParamsData& shared, StepperT* stepper);
 
     // For a given trial step, advance by a sub_step within a tolerance error
-    inline CELER_FUNCTION real_type operator()(real_type step, OdeState* state);
+    inline CELER_FUNCTION real_type advance(real_type step, OdeState* state);
 
     // An adaptive step size control from G4MagIntegratorDriver
     // Move this to private after all tests with non-uniform field are done
@@ -40,8 +40,32 @@ class FieldDriver
                                                      OdeState* state,
                                                      real_type hinitial);
 
+    //// ACCESSORS ////
+
+    CELER_FUNCTION real_type minimum_step() const
+    {
+        return shared_.minimum_step;
+    }
+
+    CELER_FUNCTION real_type max_nsteps() const { return shared_.max_nsteps; }
+
+    CELER_FUNCTION real_type delta_intersection() const
+    {
+        return shared_.delta_intersection;
+    }
+
   private:
-    // A helper output for private member functions
+    //// DATA ////
+
+    // Shared constant properties
+    const FieldParamsData& shared_;
+
+    // Stepper for this field driver
+    StepperT& stepper_;
+
+    //// TYPES ////
+
+    //! A helper output for private member functions
     struct FieldOutput
     {
         real_type step_taken; //!< Step length taken
@@ -52,6 +76,8 @@ class FieldDriver
             real_type next_step; //!< Proposed next step size
         };
     };
+
+    //// HEPER FUNCTIONS ////
 
     // Find the next acceptable chord of with the miss-distance
     inline CELER_FUNCTION auto
@@ -74,31 +100,6 @@ class FieldDriver
     static CELER_CONSTEXPR_FUNCTION real_type half() { return 0.5; }
 
     static CELER_CONSTEXPR_FUNCTION real_type ppm() { return 1e-6; }
-
-  public:
-    //// AUXILIARY INTERFACE ////
-
-    inline CELER_FUNCTION real_type minimum_step() const
-    {
-        return shared_.minimum_step;
-    }
-
-    inline CELER_FUNCTION real_type max_nsteps() const
-    {
-        return shared_.max_nsteps;
-    }
-
-    inline CELER_FUNCTION real_type delta_intersection() const
-    {
-        return shared_.delta_intersection;
-    }
-
-  private:
-    // Shared constant properties
-    const FieldParamsData& shared_;
-
-    // Stepper for this field driver
-    StepperT& stepper_;
 };
 
 //---------------------------------------------------------------------------//

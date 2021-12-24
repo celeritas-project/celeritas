@@ -61,8 +61,8 @@ __global__ void fp_test_kernel(const int                 size,
     using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t    rk4(equation);
-    RKTraits::Driver_t     driver(field_params, rk4);
-    RKTraits::Propagator_t propagator(&geo_track, particle_track, driver);
+    RKTraits::Driver_t     driver(field_params, &rk4);
+    RKTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -117,8 +117,8 @@ __global__ void bc_test_kernel(const int                 size,
     using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t    rk4(equation);
-    RKTraits::Driver_t     driver(field_params, rk4);
-    RKTraits::Propagator_t propagator(&geo_track, particle_track, driver);
+    RKTraits::Driver_t     driver(field_params, &rk4);
+    RKTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -145,7 +145,7 @@ __global__ void bc_test_kernel(const int                 size,
             result = propagator(hstep);
             curved_length += result.distance;
 
-            if (result.on_boundary)
+            if (result.boundary)
             {
                 icross++;
                 int j = (icross - 1) % num_boundary;

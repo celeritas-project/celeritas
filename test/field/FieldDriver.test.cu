@@ -48,7 +48,7 @@ __global__ void driver_test_kernel(const FieldParamsData data,
     using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(data, rk4);
+    RKTraits::Driver_t   driver(data, &rk4);
 
     // Test parameters and the sub-step size
     real_type hstep = 2 * constants::pi * test_params.radius
@@ -68,7 +68,7 @@ __global__ void driver_test_kernel(const FieldParamsData data,
         // Travel hstep for num_steps times in the field
         for (CELER_MAYBE_UNUSED int j : celeritas::range(test_params.nsteps))
         {
-            total_step_length += driver(hstep, &y);
+            total_step_length += driver.advance(hstep, &y);
         }
         // Check the total length
     }
@@ -98,7 +98,7 @@ __global__ void accurate_advance_kernel(const FieldParamsData data,
     using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(data, rk4);
+    RKTraits::Driver_t   driver(data, &rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;

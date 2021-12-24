@@ -24,6 +24,7 @@
 
 using namespace celeritas;
 using namespace celeritas_test;
+using celeritas::detail::truncation_error;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -98,8 +99,8 @@ TEST_F(RungeKuttaTest, host)
             {
                 StepperResult result = rk4(hstep, y);
                 y                    = result.end_state;
-                total_err2
-                    += truncation_error(hstep, 0.001, y, result.err_state);
+                total_err2 += detail::truncation_error(
+                    hstep, 0.001, y, result.err_state);
             }
             // Check the state after each revolution and the total error
             EXPECT_VEC_NEAR(expected_y.pos, y.pos, sqrt(total_err2));

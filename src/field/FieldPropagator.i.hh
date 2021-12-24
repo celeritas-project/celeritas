@@ -5,6 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file FieldPropagator.i.hh
 //---------------------------------------------------------------------------//
+#include "base/NumericLimits.hh"
+#include "detail/FieldUtils.hh"
 
 namespace celeritas
 {
@@ -14,28 +16,34 @@ namespace celeritas
  */
 template<class DriverT>
 CELER_FUNCTION
-FieldPropagator<DriverT>::FieldPropagator(GeoTrackView*            track,
-                                          const ParticleTrackView& particle,
-                                          DriverT&                 driver)
-    : track_(track), driver_(driver)
+FieldPropagator<DriverT>::FieldPropagator(const ParticleTrackView& particle,
+                                          GeoTrackView*            track,
+                                          DriverT*                 driver)
+    : track_(*track), driver_(*driver)
 {
+    CELER_ASSERT(track && driver);
     CELER_ASSERT(particle.charge() != zero_quantity());
 
     using MomentumUnits = OdeState::MomentumUnits;
 
     state_.pos = track->pos();
-
-    for (size_type i = 0; i != 3; ++i)
-    {
-        state_.mom[i] = value_as<MomentumUnits>(particle.momentum())
-                        * track->dir()[i];
-    }
+    state_.mom = detail::ax(value_as<MomentumUnits>(particle.momentum()),
+                            track->dir());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Propagate a charged particle in a magnetic field and update the field
- * state.
+ * Propagate a charged particle until it hits a boundary.
+ */
+template<class DriverT>
+CELER_FUNCTION auto FieldPropagator<DriverT>::operator()() -> result_type
+{
+    return (*this)(numeric_limits<real_type>::infinity());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Propagate a charged particle in a magnetic field.
  *
  * It utilises a magnetic field driver based on an adaptive step
  * control to track a charged particle until it travels along a curved
@@ -48,10 +56,11 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 {
     result_type result;
 
-    // If not a valid range, transportation shouild not be a candiate process
+    // If not a valid range, transportation shouild not be a candidate process
     if (step < driver_.minimum_step())
     {
-        result.distance = numeric_limits<real_type>::infinity();
+        result.distance = step;
+        result.boundary = false;
         return result;
     }
 
@@ -65,7 +74,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         real_type step_left = step - step_taken;
 
         // Advance within the tolerance error for the remaining step length
-        real_type sub_step = driver_(step_left, &state_);
+        real_type sub_step = driver_.advance(step_left, &state_);
 
         // Check whether this sub-step intersects with a volume boundary
         result.boundary = intersect.intersected;
@@ -80,10 +89,10 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             state_.pos     = intersect.pos;
             result.boundary = intersect.intersected;
 
-            Real3 intersect_dir = state_.pos;
-            axpy(real_type(-1.0), beg_state.pos, &intersect_dir);
-            normalize_direction(&intersect_dir);
-            track_->propagate_state(beg_state.pos, intersect_dir);
+            // Calculate direction from begin_state to current position
+            Real3 intersect_dir
+                = detail::make_direction(beg_state.pos, state_.pos);
+            track_.propagate_state(beg_state.pos, intersect_dir);
         }
 
         // Add sub-step until there is no remaining step length
@@ -97,8 +106,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     // Update GeoTrackView and return result
     Real3 dir = state_.mom;
     normalize_direction(&dir);
-    track_->set_dir(dir);
-    track_->set_pos(state_.pos);
+    track_.set_dir(dir);
+    track_.set_pos(state_.pos);
 
     return result;
 }
@@ -116,21 +125,23 @@ FieldPropagator<DriverT>::query_intersection(const Real3&  beg_pos,
 {
     intersect->intersected = false;
 
-    Real3 chord = end_pos;
-    axpy(real_type(-1.0), beg_pos, &chord);
+    Real3 chord;
+    for (size_type i = 0; i != 3; ++i)
+    {
+        chord[i] = end_pos[i] - beg_pos[i];
+    }
 
     real_type length = norm(chord);
     CELER_ASSERT(length > 0);
 
-    real_type safety = track_->find_safety(beg_pos);
+    real_type safety = track_.find_safety(beg_pos);
     if (length > safety)
     {
         // Check whether the linear step length to the next boundary is
         // smaller than the segment to the final position
-        Real3 dir = chord;
-        normalize_direction(&dir);
+        normalize_direction(&chord);
 
-        real_type linear_step = track_->compute_step(beg_pos, dir, &safety);
+        real_type linear_step = track_.compute_step(beg_pos, chord, &safety);
 
         intersect->intersected = (linear_step <= length);
         intersect->scale       = linear_step / length;
@@ -139,7 +150,7 @@ FieldPropagator<DriverT>::query_intersection(const Real3&  beg_pos,
         if (intersect->intersected)
         {
             intersect->pos = beg_pos;
-            axpy(linear_step, dir, &(intersect->pos));
+            axpy(linear_step, chord, &(intersect->pos));
         }
     }
 }
@@ -163,34 +174,28 @@ CELER_FUNCTION OdeState FieldPropagator<DriverT>::find_intersection(
     {
         end_state = beg_state;
 
-        real_type step = driver_(intersect->step, &end_state);
+        real_type step = driver_.advance(intersect->step, &end_state);
         CELER_ASSERT(step == intersect->step);
 
         // Update the intersect candidate point
-        Real3 dir = end_state.pos;
-        axpy(real_type(-1.0), beg_pos, &dir);
-        normalize_direction(&dir);
+        Real3 dir = detail::make_direction(beg_pos, end_state.pos);
 
         real_type safety      = 0;
-        real_type linear_step = track_->compute_step(beg_pos, dir, &safety);
+        real_type linear_step = track_.compute_step(beg_pos, dir, &safety);
         intersect->pos        = beg_pos;
         axpy(linear_step, dir, &intersect->pos);
 
         // Check whether end_state point is within an acceptable tolerance
         // from the proposed intersect position on a boundary
-        Real3 delta = end_state.pos;
-        axpy(real_type(-1.0), intersect->pos, &delta);
-
-        intersect->intersected = (norm(delta) < driver_.delta_intersection());
+        intersect->intersected = (distance(intersect->pos, end_state.pos)
+                                  < driver_.delta_intersection());
 
         if (!intersect->intersected)
         {
             // Estimate a new trial step with the updated position of end_state
             real_type trial_step = intersect->step;
 
-            Real3 chord = end_state.pos;
-            axpy(real_type(-1.0), beg_pos, &chord);
-            real_type length = norm(chord);
+            real_type length = distance(beg_pos, end_state.pos);
             CELER_ASSERT(length > 0);
 
             intersect->scale = (linear_step / length);

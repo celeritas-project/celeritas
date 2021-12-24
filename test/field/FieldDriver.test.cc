@@ -8,7 +8,7 @@
 
 #include "field/FieldDriver.hh"
 #include "field/FieldParamsData.hh"
-#include "field/FieldData.hh"
+#include "field/Types.hh"
 
 #include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
@@ -66,7 +66,7 @@ TEST_F(FieldDriverTest, field_driver_host)
     using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, rk4);
+    RKTraits::Driver_t   driver(field_params, &rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
@@ -95,7 +95,7 @@ TEST_F(FieldDriverTest, field_driver_host)
             // Travel hstep for num_steps times in the field
             for (CELER_MAYBE_UNUSED int j : range(test_params.nsteps))
             {
-                total_step_length += driver(hstep, &y);
+                total_step_length += driver.advance(hstep, &y);
             }
 
             // Check the total error and the state (position, momentum)
@@ -115,7 +115,7 @@ TEST_F(FieldDriverTest, accurate_advance_host)
     using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, rk4);
+    RKTraits::Driver_t   driver(field_params, &rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;

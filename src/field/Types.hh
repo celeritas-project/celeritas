@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldData.hh
+//! \file Types.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,6 +13,8 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// STRUCTS
 //---------------------------------------------------------------------------//
 /*!
  * A utility array of the equation of motion based on \ref celeritas::Array .
@@ -37,4 +39,15 @@ struct StepperResult
 };
 
 //---------------------------------------------------------------------------//
+// FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Perform y <- ax + y for OdeState.
+ */
+inline CELER_FUNCTION void axpy(real_type a, const OdeState& x, OdeState* y)
+{
+    axpy(a, x.pos, &y->pos);
+    axpy(a, x.mom, &y->mom);
+}
+
 } // namespace celeritas

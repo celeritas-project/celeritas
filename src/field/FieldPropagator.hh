@@ -12,14 +12,13 @@
 #include "geometry/GeoTrackView.hh"
 #include "physics/base/ParticleTrackView.hh"
 
-#include "FieldData.hh"
-#include "FieldDriver.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * High level interface of propagating a charged particle in a magnetic field.
+ * Propagate a charged particle in a field.
  *
  * For a given initial state (position, momentum), it propagates a charged
  * particle along a curved trajectory up to an interaction length proposed by
@@ -42,21 +41,32 @@ class FieldPropagator
     //! Output results
     struct result_type
     {
-        real_type distance; //!< Curved distance traveled
-        bool      boundary; //!< True if hit a boundary before given distance
+        real_type distance{0};     //!< Curved distance traveled
+        bool      boundary{false}; //!< Hit a boundary before given distance
     };
 
   public:
     // Construct with shared parameters and the field driver
-    inline CELER_FUNCTION FieldPropagator(GeoTrackView*            track,
-                                          const ParticleTrackView& particle,
-                                          DriverT&                 driver);
+    inline CELER_FUNCTION FieldPropagator(const ParticleTrackView& particle,
+                                          GeoTrackView*            track,
+                                          DriverT*                 driver);
 
-    // Propagation in a field
-    inline CELER_FUNCTION result_type operator()(real_type step);
+    // Move track to next volume boundary.
+    inline CELER_FUNCTION result_type operator()();
+
+    // Move track up to a user-provided distance, or to the next boundary
+    inline CELER_FUNCTION result_type operator()(real_type dist);
 
   private:
-    // A helper input/output for private member functions
+    //// DATA ////
+
+    GeoTrackView& track_;
+    DriverT&      driver_;
+    OdeState      state_;
+
+    //// TYPES ////
+
+    //! A helper input/output for private member functions
     struct Intersection
     {
         bool  intersected{false}; //!< Status of intersection
@@ -68,6 +78,8 @@ class FieldPropagator
         };
     };
 
+    //// HELPER FUNCTIONS ////
+
     // Check whether the final state is crossed any boundary of volumes
     inline CELER_FUNCTION void query_intersection(const Real3&  beg_pos,
                                                   const Real3&  end_pos,
@@ -76,13 +88,7 @@ class FieldPropagator
     // Find the intersection point if any boundary is crossed
     inline CELER_FUNCTION OdeState find_intersection(const OdeState& beg_state,
                                                      Intersection* intersect);
-
-  private:
-    GeoTrackView* track_;
-    DriverT&      driver_;
-    OdeState      state_;
 };
-
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 

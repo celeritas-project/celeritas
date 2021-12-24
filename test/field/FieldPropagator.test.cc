@@ -47,7 +47,7 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
     using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, rk4);
+    RKTraits::Driver_t   driver(field_params, &rk4);
 
     // Test parameters and the sub-step size
     double step = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -65,11 +65,10 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         beg_state.pos = {test.radius, -10, i * 1.0e-6};
 
         // Check GeoTrackView
-        geo_track.find_next_step();
-        EXPECT_SOFT_EQ(5.5, geo_track.next_step());
+        EXPECT_SOFT_EQ(5.5, geo_track.find_next_step());
 
         // Construct FieldPropagator
-        RKTraits::Propagator_t propagator(&geo_track, particle_track, driver);
+        RKTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
 
         real_type                           total_length = 0;
         RKTraits::Propagator_t::result_type result;
@@ -106,7 +105,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
     using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, rk4);
+    RKTraits::Driver_t   driver(field_params, &rk4);
 
     const int num_boundary = 16;
 
@@ -125,11 +124,10 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         geo_track      = {{test.radius, 0, i * 1.0e-6}, {0, 1, 0}};
         particle_track = Initializer_t{ParticleId{0}, MevEnergy{test.energy}};
 
-        geo_track.find_next_step();
-        EXPECT_SOFT_EQ(0.5, geo_track.next_step());
+        EXPECT_SOFT_EQ(0.5, geo_track.find_next_step());
 
         // Construct FieldPropagator
-        RKTraits::Propagator_t propagator(&geo_track, particle_track, driver);
+        RKTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
 
         int                                 icross       = 0;
         real_type                           total_length = 0;
@@ -142,7 +140,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
                 result = propagator(step);
                 total_length += result.distance;
 
-                if (result.on_boundary)
+                if (result.boundary)
                 {
                     icross++;
                     int j = (icross - 1) % num_boundary;

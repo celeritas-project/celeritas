@@ -5,7 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file FieldDriver.i.hh
 //---------------------------------------------------------------------------//
+#include <cmath>
 
+#include "base/Algorithms.hh"
 #include "base/NumericLimits.hh"
 
 namespace celeritas
@@ -16,10 +18,10 @@ namespace celeritas
  */
 template<class StepperT>
 CELER_FUNCTION FieldDriver<StepperT>::FieldDriver(const FieldParamsData& shared,
-                                                  StepperT& stepper)
-    : shared_(shared), stepper_(stepper)
+                                                  StepperT* stepper)
+    : shared_(shared), stepper_(*stepper)
 {
-    CELER_ENSURE(shared_);
+    CELER_EXPECT(shared_ && stepper);
 }
 
 //---------------------------------------------------------------------------//
@@ -35,8 +37,8 @@ CELER_FUNCTION FieldDriver<StepperT>::FieldDriver(const FieldParamsData& shared,
  * (advance_accurate) will be performed.
  */
 template<class StepperT>
-CELER_FUNCTION real_type FieldDriver<StepperT>::
-                         operator()(real_type step, OdeState* state)
+CELER_FUNCTION real_type FieldDriver<StepperT>::advance(real_type step,
+                                                        OdeState* state)
 {
     // Output with a step control error
     FieldOutput output = this->find_next_chord(step, *state);
@@ -83,13 +85,13 @@ FieldDriver<StepperT>::find_next_chord(real_type step, const OdeState& state)
         result = stepper_(step, state);
 
         // Check whether the distance to the chord is small than the reference
-        real_type dchord
-            = distance_chord(state, result.mid_state, result.end_state);
+        real_type dchord = detail::distance_chord(
+            state, result.mid_state, result.end_state);
 
         if (dchord <= (shared_.delta_chord + FieldDriver::ppm()))
         {
             succeeded    = true;
-            output.error = truncation_error(
+            output.error = detail::truncation_error(
                 step, shared_.epsilon_rel_max, state, result.err_state);
         }
         else
@@ -193,7 +195,7 @@ FieldDriver<StepperT>::integrate_step(real_type step, const OdeState& state)
         // Update position and momentum
         output.state = result.end_state;
 
-        real_type dyerr = truncation_error(
+        real_type dyerr = detail::truncation_error(
             step, shared_.epsilon_rel_max, state, result.err_state);
         output.step_taken = step;
 
@@ -228,7 +230,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state)
     do
     {
         result  = stepper_(step, state);
-        errmax2 = truncation_error(
+        errmax2 = detail::truncation_error(
             step, shared_.epsilon_rel_max, state, result.err_state);
 
         if (errmax2 <= 1)
