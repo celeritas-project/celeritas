@@ -8,7 +8,7 @@
 
 #include <algorithm>
 #include "base/CollectionBuilder.hh"
-#include "physics/base/PhysicsTrackView.hh"
+#include "physics/base/ParticleTrackView.hh"
 #include "sim/SimTrackView.hh"
 
 namespace demo_loop
@@ -30,7 +30,9 @@ StepDiagnostic<M>::StepDiagnostic(const ParamsDataRef& params,
     CELER_EXPECT(max_steps > 0);
 
     StepDiagnosticData<Ownership::value, MemSpace::host> host_data;
-    host_data.max_steps     = max_steps;
+
+    // Add two extra bins for underflow and overflow
+    host_data.num_bins      = max_steps + 2;
     host_data.num_particles = particles_->size();
 
     // Initialize current number of steps in active tracks to zero
@@ -39,8 +41,8 @@ StepDiagnostic<M>::StepDiagnostic(const ParamsDataRef& params,
         .insert_back(zeros.begin(), zeros.end());
 
     // Tracks binned by number of steps and particle type (indexed as
-    // particle_id * max_steps + num_steps). The final bin is for overflow.
-    zeros.resize((host_data.max_steps + 2) * host_data.num_particles);
+    // particle_id * num_bins + num_steps). The final bin is for overflow.
+    zeros.resize(host_data.num_bins * host_data.num_particles);
     celeritas::make_builder(&host_data.counts)
         .insert_back(zeros.begin(), zeros.end());
 
@@ -85,8 +87,8 @@ StepDiagnostic<M>::steps()
     std::unordered_map<std::string, std::vector<size_type>> result;
     for (auto particle_id : range(celeritas::ParticleId{particles_->size()}))
     {
-        auto start = BinId{particle_id.get() * data.max_steps};
-        auto end   = BinId{start.get() + data.max_steps + 2};
+        auto start = BinId{particle_id.get() * data.num_bins};
+        auto end   = BinId{start.get() + data.num_bins};
         CELER_ASSERT(end.get() <= data.counts.size());
         auto counts = data.counts[celeritas::ItemRange<size_type>{start, end}];
 
@@ -148,14 +150,14 @@ CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
     {
         // TODO: Add an ndarray-type class?
         auto get = [this](size_type i, size_type j) -> size_type& {
-            size_type index = i * data_.max_steps + j;
+            size_type index = i * data_.num_bins + j;
             CELER_ENSURE(index < data_.counts.size());
             return data_.counts[BinId(index)];
         };
 
-        size_type num_steps = data_.steps[tid] <= data_.max_steps
+        size_type num_steps = data_.steps[tid] < data_.num_bins
                                   ? data_.steps[tid]
-                                  : data_.max_steps + 1;
+                                  : data_.num_bins;
 
         // Increment the bin corresponding to the given particle and step count
         auto& bin = get(particle.particle_id().get(), num_steps);
