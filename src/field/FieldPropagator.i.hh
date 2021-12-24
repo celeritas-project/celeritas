@@ -68,7 +68,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         real_type sub_step = driver_(step_left, &state_);
 
         // Check whether this sub-step intersects with a volume boundary
-        result.on_boundary = intersect.intersected;
+        result.boundary = intersect.intersected;
         this->query_intersection(beg_state.pos, state_.pos, &intersect);
 
         // If it is a geometry limited step, find the intersection point
@@ -78,7 +78,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             state_         = this->find_intersection(beg_state, &intersect);
             sub_step       = intersect.step;
             state_.pos     = intersect.pos;
-            result.on_boundary = intersect.intersected;
+            result.boundary = intersect.intersected;
 
             Real3 intersect_dir = state_.pos;
             axpy(real_type(-1.0), beg_state.pos, &intersect_dir);

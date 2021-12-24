@@ -39,11 +39,11 @@ template<class DriverT>
 class FieldPropagator
 {
   public:
-    // Output results
+    //! Output results
     struct result_type
     {
-        real_type distance;    //!< Curved distance traveled
-        bool      on_boundary; //!< Flag for the geometry limited step
+        real_type distance; //!< Curved distance traveled
+        bool      boundary; //!< True if hit a boundary before given distance
     };
 
   public:
