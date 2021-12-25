@@ -192,26 +192,13 @@ if(CELERITAS_BUILD_DOCS)
   find_package(Doxygen REQUIRED)
 endif()
 
-#----------------------------------------------------------------------------#
-# EXTERNALS
-#----------------------------------------------------------------------------#
-include(CeleritasLoadSubmodule)
-
-if(NOT CELERITAS_GIT_SUBMODULE)
-  set(_required_when_no_git REQUIRED)
-else()
-  set(_required_when_no_git QUIET)
-endif()
-
 if(CELERITAS_USE_JSON)
-  find_package(nlohmann_json 3.7.0 ${_required_when_no_git})
+  find_package(nlohmann_json 3.7.0 REQUIRED)
 endif()
 
 if(CELERITAS_BUILD_TESTS)
-  find_package(GTest ${_required_when_no_git})
+  find_package(GTest REQUIRED)
 endif()
-
-add_subdirectory(external)
 
 #----------------------------------------------------------------------------#
 # LIBRARY
