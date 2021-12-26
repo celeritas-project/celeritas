@@ -161,7 +161,7 @@ CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
 
         // Increment the bin corresponding to the given particle and step count
         auto& bin = get(particle.particle_id().get(), num_steps);
-        celeritas::atomic_add(&bin, 1u);
+        celeritas::atomic_add(&bin, size_type{1});
 
         // Reset the track's step counter
         data_.steps[tid] = 0;

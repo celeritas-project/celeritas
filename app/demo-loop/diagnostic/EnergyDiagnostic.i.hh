@@ -6,6 +6,7 @@
 //! \file EnergyDiagnostic.i.hh
 //---------------------------------------------------------------------------//
 
+#include "celeritas_config.h"
 #include "base/Atomics.hh"
 #include "base/CollectionAlgorithms.hh"
 #include "base/CollectionBuilder.hh"
@@ -92,6 +93,13 @@ void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
                               energy_deposition);
     }
 }
+
+#if !CELERITAS_USE_CUDA
+inline void bin_energy(const celeritas::StateDeviceRef&, PointersDevice&)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace demo_loop

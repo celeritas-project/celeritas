@@ -102,7 +102,7 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(ThreadId tid) const
         // ID in a reproducible way.
         CELER_ASSERT(sim.event_id() < data_.track_counters.size());
         TrackId::size_type track_id
-            = atomic_add(&data_.track_counters[sim.event_id()], 1u);
+            = atomic_add(&data_.track_counters[sim.event_id()], size_type{1});
 
         // Initialize the simulation state
         sim = {TrackId{track_id}, sim.track_id(), sim.event_id(), true};

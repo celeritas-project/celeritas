@@ -152,18 +152,20 @@ if(CELERITAS_USE_VecGeom)
     CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
     CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
   )
-  set_target_properties(VecGeom::vecgeomcuda PROPERTIES
-    CELERITAS_CUDA_LIBRARY_TYPE Shared
-    CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-    CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-    CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
-  )
-  set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
-    CELERITAS_CUDA_LIBRARY_TYPE Static
-    CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-    CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-    CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
-  )
+  if(CELERITAS_USE_CUDA)
+    set_target_properties(VecGeom::vecgeomcuda PROPERTIES
+      CELERITAS_CUDA_LIBRARY_TYPE Shared
+      CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+      CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
+      CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
+    )
+    set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
+      CELERITAS_CUDA_LIBRARY_TYPE Static
+      CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+      CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
+      CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
+    )
+  endif()
 endif()
 
 if(NOT PYTHON_FOUND)

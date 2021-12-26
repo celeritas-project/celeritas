@@ -85,8 +85,8 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
             // TODO: This is nondeterministic; we need to calculate the
             // track ID in a reproducible way.
             CELER_ASSERT(sim.event_id() < data_.track_counters.size());
-            TrackId::size_type track_id
-                = atomic_add(&data_.track_counters[sim.event_id()], 1u);
+            TrackId::size_type track_id = atomic_add(
+                &data_.track_counters[sim.event_id()], size_type{1});
 
             // Construct a track initializer from a secondary
             init.sim.track_id         = TrackId{track_id};

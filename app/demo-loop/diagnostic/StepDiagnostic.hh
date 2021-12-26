@@ -144,9 +144,9 @@ void count_steps(const celeritas::ParamsDeviceRef&       params,
                  StepDiagnosticDataRef<MemSpace::device> data);
 
 #if !CELERITAS_USE_CUDA
-inline void count_steps(const celeritas::ParamsDeviceRef&       params,
-                        const celeritas::StateDeviceRef&        states,
-                        StepDiagnosticDataRef<MemSpace::device> data)
+inline void count_steps(const celeritas::ParamsDeviceRef&,
+                        const celeritas::StateDeviceRef&,
+                        StepDiagnosticDataRef<MemSpace::device>)
 {
     CELER_ASSERT_UNREACHABLE();
 }
