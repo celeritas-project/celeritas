@@ -193,7 +193,7 @@ CELER_FUNCTION void GeoTrackView::relocate()
     {
         // BVH requires an lvalue temp_pos
         auto temp_pos = detail::to_vector(this->pos_);
-        Navigator::RelocateToNextVolume(
+        detail::BVHNavigator::RelocateToNextVolume(
             temp_pos, detail::to_vector(this->dir_), vgnext_);
     }
 #endif
