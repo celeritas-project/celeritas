@@ -95,7 +95,9 @@ TEST_F(FieldDriverTest, field_driver_host)
             // Travel hstep for num_steps times in the field
             for (CELER_MAYBE_UNUSED int j : range(test_params.nsteps))
             {
-                total_step_length += driver.advance(hstep, &y);
+                auto end = driver.advance(hstep, y);
+                total_step_length += end.step;
+                y = end.state;
             }
 
             // Check the total error and the state (position, momentum)
@@ -143,8 +145,10 @@ TEST_F(FieldDriverTest, accurate_advance_host)
             // Travel hstep for num_steps times in the field
             for (CELER_MAYBE_UNUSED int j : range(test_params.nsteps))
             {
-                total_curved_length
-                    += driver.accurate_advance(hstep, &y_accurate, .001);
+                auto end = driver.accurate_advance(hstep, y_accurate, .001);
+
+                total_curved_length += end.step;
+                y_accurate = end.state;
             }
             // Check the total error and the state (position, momentum)
             EXPECT_VEC_NEAR(y_expected.pos, y.pos, delta);

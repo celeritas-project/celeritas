@@ -44,8 +44,7 @@ class FieldTestBase : public celeritas::Test
     {
         // geo track view
         std::string test_file
-            = celeritas::Test::test_data_path("field", "fieldTest.gdml");
-        geo_params.reset();
+            = celeritas::Test::test_data_path("field", "field-test.gdml");
         geo_params = std::make_shared<celeritas::GeoParams>(test_file.c_str());
         geo_state  = GeoStateStore(*this->geo_params, 1);
 

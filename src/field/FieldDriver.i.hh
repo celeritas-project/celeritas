@@ -28,6 +28,10 @@ CELER_FUNCTION FieldDriver<StepperT>::FieldDriver(const FieldParamsData& shared,
 /*!
  * Adaptive step control based on G4ChordFinder and G4MagIntegratorDriver.
  *
+ * \param step maximum step length
+ * \param state starting state
+ * \return substep and updated state
+ *
  * For a given trial step, advance by a sub-step within a required tolerance
  * and update the current state (position and momentum).  For an efficient
  * adaptive integration, the proposed chord of which the miss-distance (the
@@ -37,29 +41,27 @@ CELER_FUNCTION FieldDriver<StepperT>::FieldDriver(const FieldParamsData& shared,
  * (advance_accurate) will be performed.
  */
 template<class StepperT>
-CELER_FUNCTION real_type FieldDriver<StepperT>::advance(real_type step,
-                                                        OdeState* state)
+CELER_FUNCTION DriverResult
+FieldDriver<StepperT>::advance(real_type step, const OdeState& state)
 {
-    // Output with a step control error
-    FieldOutput output = this->find_next_chord(step, *state);
+    CELER_EXPECT(step >= this->minimum_step());
 
-    real_type step_taken = output.step_taken;
+    // Output with a step control error
+    ChordSearch output = this->find_next_chord(step, state);
 
     // Evaluate the relative error
-    real_type rel_error = output.error / (shared_.epsilon_step * step_taken);
+    real_type rel_error = output.error
+                          / (shared_.epsilon_step * output.end.step);
 
     if (rel_error > 1)
     {
         // Advance more accurately with a newly proposed step
         real_type next_step = this->new_step_size(step, rel_error);
-        step_taken
-            = this->accurate_advance(step_taken, &output.state, next_step);
+        output.end          = this->accurate_advance(
+            output.end.step, output.end.state, next_step);
     }
 
-    // Accept this accuracy and update the current state
-    *state = output.state;
-
-    return step_taken;
+    return output.end;
 }
 
 //---------------------------------------------------------------------------//
@@ -70,10 +72,10 @@ CELER_FUNCTION real_type FieldDriver<StepperT>::advance(real_type step,
 template<class StepperT>
 CELER_FUNCTION auto
 FieldDriver<StepperT>::find_next_chord(real_type step, const OdeState& state)
-    -> FieldOutput
+    -> ChordSearch
 {
     // Output with a step control error
-    FieldOutput output;
+    ChordSearch output;
 
     bool          succeeded       = false;
     unsigned int  remaining_steps = shared_.max_nsteps;
@@ -105,23 +107,23 @@ FieldDriver<StepperT>::find_next_chord(real_type step, const OdeState& state)
     CELER_ASSERT(succeeded);
 
     // Update step, position and momentum
-    output.step_taken = step;
-    output.state      = result.end_state;
+    output.end.step  = step;
+    output.end.state = result.end_state;
 
     return output;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Accurate_advance for an adaptive step control.
+ * Accurate advance for an adaptive step control.
  *
  * Perform an adaptive step integration for a proposed step or a series of
  * sub-steps within a required tolerance until the the accumulated curved path
  * is equal to the input step length.
  */
 template<class StepperT>
-CELER_FUNCTION real_type FieldDriver<StepperT>::accurate_advance(
-    real_type step, OdeState* state, real_type hinitial)
+CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
+    real_type step, const OdeState& state, real_type hinitial)
 {
     CELER_ASSERT(step > 0);
 
@@ -138,7 +140,8 @@ CELER_FUNCTION real_type FieldDriver<StepperT>::accurate_advance(
     real_type h_threshold = shared_.epsilon_step * step;
 
     // Output with the next good step
-    FieldOutput output;
+    Integration output;
+    output.end.state = state;
 
     // Performance integration
     bool         succeeded       = false;
@@ -147,9 +150,9 @@ CELER_FUNCTION real_type FieldDriver<StepperT>::accurate_advance(
 
     do
     {
-        output = this->integrate_step(h, *state);
+        output = this->integrate_step(h, output.end.state);
 
-        curve_length += output.step_taken;
+        curve_length += output.end.step;
 
         if (h < h_threshold || curve_length >= end_curve_length)
         {
@@ -157,16 +160,16 @@ CELER_FUNCTION real_type FieldDriver<StepperT>::accurate_advance(
         }
         else
         {
-            h = std::fmax(std::fmax(output.next_step, shared_.minimum_step),
+            h = std::fmax(std::fmax(output.proposed_step, shared_.minimum_step),
                           end_curve_length - curve_length);
         }
-        *state = output.state;
     } while (!succeeded && --remaining_steps > 0);
 
     // TODO: loop check and handle rare cases if happen
     CELER_ASSERT(succeeded);
 
-    return curve_length;
+    output.end.step = curve_length;
+    return output.end;
 }
 
 //---------------------------------------------------------------------------//
@@ -178,10 +181,10 @@ CELER_FUNCTION real_type FieldDriver<StepperT>::accurate_advance(
 template<class StepperT>
 CELER_FUNCTION auto
 FieldDriver<StepperT>::integrate_step(real_type step, const OdeState& state)
-    -> FieldOutput
+    -> Integration
 {
     // Output with a next proposed step
-    FieldOutput output;
+    Integration output;
 
     if (step > shared_.minimum_step)
     {
@@ -193,15 +196,15 @@ FieldDriver<StepperT>::integrate_step(real_type step, const OdeState& state)
         StepperResult result = stepper_(step, state);
 
         // Update position and momentum
-        output.state = result.end_state;
+        output.end.state = result.end_state;
 
         real_type dyerr = detail::truncation_error(
             step, shared_.epsilon_rel_max, state, result.err_state);
-        output.step_taken = step;
+        output.end.step = step;
 
         // Compute a proposed new step
-        CELER_ASSERT(output.step_taken > 0);
-        output.next_step
+        CELER_ASSERT(output.end.step > 0);
+        output.proposed_step
             = this->new_step_size(step, dyerr / (step * shared_.epsilon_step));
     }
 
@@ -216,10 +219,10 @@ FieldDriver<StepperT>::integrate_step(real_type step, const OdeState& state)
 template<class StepperT>
 CELER_FUNCTION auto
 FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state)
-    -> FieldOutput
+    -> Integration
 {
     // Output with a proposed next step
-    FieldOutput output;
+    Integration output;
 
     // Perform integration for adaptive step control with the trunction error
     bool          succeeded       = false;
@@ -252,12 +255,12 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state)
     CELER_ASSERT(succeeded);
 
     // Update state, step taken by this trial and the next predicted step
-    output.state      = result.end_state;
-    output.step_taken = step;
-    output.next_step  = (errmax2 > ipow<2>(shared_.errcon))
-                           ? shared_.safety * step
-                                 * std::pow(errmax2, half() * shared_.pgrow)
-                           : shared_.max_stepping_increase * step;
+    output.end.state     = result.end_state;
+    output.end.step      = step;
+    output.proposed_step = (errmax2 > ipow<2>(shared_.errcon))
+                               ? shared_.safety * step
+                                     * std::pow(errmax2, half() * shared_.pgrow)
+                               : shared_.max_stepping_increase * step;
 
     return output;
 }

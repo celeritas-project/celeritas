@@ -8,6 +8,7 @@
 #pragma once
 
 #include "GeoTrackView.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -20,12 +21,10 @@ namespace celeritas
 class LinearPropagator
 {
   public:
-    //! Output results
-    struct result_type
-    {
-        real_type distance; //!< Distance traveled
-        bool      boundary; //!< True if hit a boundary before given distance
-    };
+    //!@{
+    //! Type aliases
+    using result_type = Propagation;
+    //!@}
 
   public:
     // Construct from persistent and state data

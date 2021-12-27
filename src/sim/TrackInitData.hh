@@ -11,7 +11,7 @@
 #include "base/CollectionBuilder.hh"
 #include "base/Types.hh"
 #include "comm/Device.hh"
-#include "geometry/GeoData.hh"
+#include "geometry/Types.hh"
 #include "physics/base/ParticleData.hh"
 #include "physics/base/Primary.hh"
 #include "SimData.hh"

@@ -39,6 +39,16 @@ struct StepperResult
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * The result of moving up to a certain distance along a step.
+ */
+struct DriverResult
+{
+    OdeState  state; //!< Post-step state
+    real_type step;  //!< Actual curved step
+};
+
+//---------------------------------------------------------------------------//
 // FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!

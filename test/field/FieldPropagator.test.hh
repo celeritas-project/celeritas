@@ -12,6 +12,7 @@
 
 #include <vector>
 #include "geometry/GeoData.hh"
+#include "geometry/Types.hh"
 #include "physics/base/ParticleData.hh"
 
 namespace celeritas_test
@@ -64,5 +65,15 @@ struct FPTestOutput
 FPTestOutput fp_test(FPTestInput input);
 FPTestOutput bc_test(FPTestInput input);
 
+#if !CELERITAS_USE_CUDA
+inline FPTestOutput fp_test(FPTestInput)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+inline FPTestOutput bc_test(FPTestInput)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+#endif
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

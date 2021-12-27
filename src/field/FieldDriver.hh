@@ -32,13 +32,14 @@ class FieldDriver
     FieldDriver(const FieldParamsData& shared, StepperT* stepper);
 
     // For a given trial step, advance by a sub_step within a tolerance error
-    inline CELER_FUNCTION real_type advance(real_type step, OdeState* state);
+    inline CELER_FUNCTION DriverResult advance(real_type       step,
+                                               const OdeState& state);
 
     // An adaptive step size control from G4MagIntegratorDriver
     // Move this to private after all tests with non-uniform field are done
-    inline CELER_FUNCTION real_type accurate_advance(real_type step,
-                                                     OdeState* state,
-                                                     real_type hinitial);
+    inline CELER_FUNCTION DriverResult accurate_advance(real_type       step,
+                                                        const OdeState& state,
+                                                        real_type hinitial);
 
     //// ACCESSORS ////
 
@@ -66,30 +67,31 @@ class FieldDriver
     //// TYPES ////
 
     //! A helper output for private member functions
-    struct FieldOutput
+    struct ChordSearch
     {
-        real_type step_taken; //!< Step length taken
-        OdeState  state;      //!< OdeState
-        union
-        {
-            real_type error;     //!< Stepper error
-            real_type next_step; //!< Proposed next step size
-        };
+        DriverResult end;   //!< Step taken and post-step state
+        real_type    error; //!< Stepper error
+    };
+
+    struct Integration
+    {
+        DriverResult end;           //!< Step taken and post-step state
+        real_type    proposed_step; //!< Proposed next step size
     };
 
     //// HEPER FUNCTIONS ////
 
     // Find the next acceptable chord of with the miss-distance
-    inline CELER_FUNCTION auto
-    find_next_chord(real_type step, const OdeState& state) -> FieldOutput;
+    inline CELER_FUNCTION ChordSearch find_next_chord(real_type       step,
+                                                      const OdeState& state);
 
     // Advance for a given step and  evaluate the next predicted step.
-    inline CELER_FUNCTION auto
-    integrate_step(real_type step, const OdeState& state) -> FieldOutput;
+    inline CELER_FUNCTION Integration integrate_step(real_type       step,
+                                                     const OdeState& state);
 
     // Advance within the truncated error and estimate a good next step size
-    inline CELER_FUNCTION auto
-    one_good_step(real_type step, const OdeState& state) -> FieldOutput;
+    inline CELER_FUNCTION Integration one_good_step(real_type       step,
+                                                    const OdeState& state);
 
     // Propose a next step size from a given step size and associated error
     inline CELER_FUNCTION real_type new_step_size(real_type step,

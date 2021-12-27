@@ -74,12 +74,12 @@ class GeoTrackView
     //! State modifiers will force state update before next step
     CELER_FUNCTION void set_pos(const Real3& newpos)
     {
-        pos_   = newpos;
+        pos_       = newpos;
         next_step_ = 0;
     }
     CELER_FUNCTION void set_dir(const Real3& newdir)
     {
-        dir_   = newdir;
+        dir_       = newdir;
         next_step_ = 0;
     }
     //!@}

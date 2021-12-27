@@ -33,14 +33,19 @@ CELER_FUNCTION Array<T, 3> ax(T a, const Array<T, 3>& x)
 /*!
  * Calculate the direction between the source and destination.
  */
-CELER_FUNCTION Real3 make_direction(const Real3& src, const Real3& dst)
+CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst)
 {
-    Real3 result;
+    Chord result;
     for (size_type i = 0; i != 3; ++i)
     {
-        result[i] = dst[i] - src[i];
+        result.dir[i] = dst[i] - src[i];
     }
-    normalize_direction(&result);
+    result.length        = norm(result.dir);
+    const real_type norm = 1 / result.length;
+    for (size_type i = 0; i != 3; ++i)
+    {
+        result.dir[i] *= norm;
+    }
     return result;
 }
 

@@ -68,7 +68,7 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         EXPECT_SOFT_EQ(5.5, geo_track.find_next_step());
 
         // Construct FieldPropagator
-        RKTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
+        RKTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
 
         real_type                           total_length = 0;
         RKTraits::Propagator_t::result_type result;
@@ -77,8 +77,9 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         {
             for (CELER_MAYBE_UNUSED int j : celeritas::range(test.nsteps))
             {
-                result = propagator(step);
-                EXPECT_DOUBLE_EQ(result.distance, step);
+                result = propagate(step);
+                EXPECT_FALSE(result.boundary);
+                EXPECT_DOUBLE_EQ(step, result.distance);
                 total_length += result.distance;
             }
         }
@@ -107,13 +108,12 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(field_params, &rk4);
 
-    const int num_boundary = 16;
-
     // clang-format off
-    real_type expected_y[num_boundary] 
+    static const real_type expected_y[num_boundary]
         = { 0.5,  1.5,  2.5,  3.5,  3.5,  2.5,  1.5,  0.5,
            -0.5, -1.5, -2.5, -3.5, -3.5, -2.5, -1.5, -0.5};
     // clang-format on
+    const int num_boundary = sizeof(expected_y) / sizeof(real_type);
 
     // Test parameters and the sub-step size
     double step = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -127,7 +127,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         EXPECT_SOFT_EQ(0.5, geo_track.find_next_step());
 
         // Construct FieldPropagator
-        RKTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
+        RKTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
 
         int                                 icross       = 0;
         real_type                           total_length = 0;
@@ -137,7 +137,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         {
             for (CELER_MAYBE_UNUSED auto k : celeritas::range(test.nsteps))
             {
-                result = propagator(step);
+                result = propagate(step);
                 total_length += result.distance;
 
                 if (result.boundary)
@@ -150,17 +150,18 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         }
 
         // Check stepper results with boundary crossings
-        EXPECT_SOFT_NEAR(geo_track.pos()[0], -0.13150565, test.epsilon);
-        EXPECT_SOFT_NEAR(geo_track.dir()[1], -0.03453068, test.epsilon);
-        EXPECT_SOFT_NEAR(total_length, 221.48171708, test.epsilon);
+        EXPECT_SOFT_NEAR(-0.13150565, geo_track.pos()[0], test.epsilon);
+        EXPECT_SOFT_NEAR(-0.03453068, geo_track.dir()[1], test.epsilon);
+        EXPECT_SOFT_NEAR(221.48171708, total_length, test.epsilon);
     }
 }
 
-#if CELERITAS_USE_CUDA
 //---------------------------------------------------------------------------//
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
 
+#define FieldPropagatorDeviceTest \
+    TEST_IF_CELERITAS_CUDA(FieldPropagatorDeviceTest)
 class FieldPropagatorDeviceTest : public FieldPropagatorHostTest
 {
   public:
@@ -240,6 +241,3 @@ TEST_F(FieldPropagatorDeviceTest, boundary_crossing_device)
         EXPECT_SOFT_NEAR(output.step[i], 221.48171708, test.epsilon);
     }
 }
-
-//---------------------------------------------------------------------------//
-#endif

@@ -68,9 +68,10 @@ __global__ void driver_test_kernel(const FieldParamsData data,
         // Travel hstep for num_steps times in the field
         for (CELER_MAYBE_UNUSED int j : celeritas::range(test_params.nsteps))
         {
-            total_step_length += driver.advance(hstep, &y);
+            auto end = driver.advance(hstep, y);
+            total_step_length += end.step;
+            y = end.state;
         }
-        // Check the total length
     }
 
     // output for validation
@@ -122,8 +123,9 @@ __global__ void accurate_advance_kernel(const FieldParamsData data,
         // Travel hstep for num_steps times in the field
         for (CELER_MAYBE_UNUSED int j : celeritas::range(test_params.nsteps))
         {
-            total_curved_length
-                += driver.accurate_advance(hstep, &y_accurate, 0.001);
+            auto end = driver.accurate_advance(hstep, y_accurate, 0.001);
+            total_curved_length += end.step;
+            y_accurate = end.state;
         }
     }
 

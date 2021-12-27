@@ -10,6 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "geometry/GeoTrackView.hh"
+#include "geometry/Types.hh"
 #include "physics/base/ParticleTrackView.hh"
 
 #include "Types.hh"
@@ -38,12 +39,7 @@ template<class DriverT>
 class FieldPropagator
 {
   public:
-    //! Output results
-    struct result_type
-    {
-        real_type distance{0};     //!< Curved distance traveled
-        bool      boundary{false}; //!< Hit a boundary before given distance
-    };
+    using result_type = Propagation;
 
   public:
     // Construct with shared parameters and the field driver
@@ -63,32 +59,8 @@ class FieldPropagator
     GeoTrackView& track_;
     DriverT&      driver_;
     OdeState      state_;
-
-    //// TYPES ////
-
-    //! A helper input/output for private member functions
-    struct Intersection
-    {
-        bool  intersected{false}; //!< Status of intersection
-        Real3 pos{0, 0, 0};       //!< Intersection point on a volme boundary
-        union
-        {
-            real_type step{0}; //!< Linear step length to the first boundary
-            real_type scale;   //!< Scale for the next trial step length
-        };
-    };
-
-    //// HELPER FUNCTIONS ////
-
-    // Check whether the final state is crossed any boundary of volumes
-    inline CELER_FUNCTION void query_intersection(const Real3&  beg_pos,
-                                                  const Real3&  end_pos,
-                                                  Intersection* intersect);
-
-    // Find the intersection point if any boundary is crossed
-    inline CELER_FUNCTION OdeState find_intersection(const OdeState& beg_state,
-                                                     Intersection* intersect);
 };
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 

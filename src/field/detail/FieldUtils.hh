@@ -21,7 +21,12 @@ inline CELER_FUNCTION Array<T, 3> ax(T a, const Array<T, 3>& x);
 
 //---------------------------------------------------------------------------//
 // Calculate the direction between the source and destination
-inline CELER_FUNCTION Real3 make_direction(const Real3& src, const Real3& dst);
+struct Chord
+{
+    real_type length;
+    Real3     dir;
+};
+inline CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst);
 
 //---------------------------------------------------------------------------//
 // Perform y <- ax + y for OdeState
