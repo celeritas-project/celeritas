@@ -75,21 +75,21 @@ TEST_F(GeoTrackViewHostTest, basic_tracking)
 
     GeoTrackView geo = this->make_geo_track_view();
     geo              = {{-10, -10, -10}, {1, 0, 0}};
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2");
-    EXPECT_SOFT_EQ(5, geo.next_step());
+    EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id()));
+    EXPECT_SOFT_EQ(5, geo.find_next_step());
 
-    geo.move_to_boundary(); // Shape2 -> Shape1
+    geo.move_across_boundary(); // Shape2 -> Shape1
     EXPECT_SOFT_EQ(-5, geo.pos()[0]);
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
-    EXPECT_SOFT_EQ(1, geo.next_step());
+    EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id()));
+    EXPECT_SOFT_EQ(1, geo.find_next_step());
 
-    geo.move_to_boundary(); // Shape1 -> Envelope
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
+    geo.move_across_boundary(); // Shape1 -> Envelope
+    EXPECT_EQ("Envelope", geom.id_to_label(geo.volume_id()));
     EXPECT_FALSE(geo.is_outside());
-    EXPECT_SOFT_EQ(1, geo.next_step());
+    EXPECT_SOFT_EQ(1, geo.find_next_step());
 
-    geo.move_to_boundary(); // Envelope -> World
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
+    geo.move_across_boundary(); // Envelope -> World
+    EXPECT_EQ("World", geom.id_to_label(geo.volume_id()));
     EXPECT_FALSE(geo.is_outside());
 }
 
@@ -100,23 +100,24 @@ TEST_F(GeoTrackViewHostTest, from_outside_edge)
     GeoTrackView geo = this->make_geo_track_view();
     geo              = {{-24, 10., 10.}, {1, 0, 0}};
     EXPECT_TRUE(geo.is_outside());
-    EXPECT_SOFT_EQ(0., geo.next_step()); // since it is on edge, but outside
+    EXPECT_SOFT_EQ(0., geo.find_next_step()); // since it is on edge, but
+                                              // outside
 
-    geo.move_to_boundary(); // outside -> World (still on the edge)
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
-    EXPECT_SOFT_EQ(7., geo.next_step()); // since it is on edge
+    geo.move_across_boundary(); // outside -> World (still on the edge)
+    EXPECT_EQ("World", geom.id_to_label(geo.volume_id()));
+    EXPECT_SOFT_EQ(7., geo.find_next_step()); // since it is on edge
 
-    geo.move_to_boundary(); // World -> Envelope
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
-    EXPECT_SOFT_EQ(1., geo.next_step());
+    geo.move_across_boundary(); // World -> Envelope
+    EXPECT_EQ("Envelope", geom.id_to_label(geo.volume_id()));
+    EXPECT_SOFT_EQ(1., geo.find_next_step());
 
-    geo.move_to_boundary(); // Envelope -> Shape1
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
-    EXPECT_SOFT_EQ(1., geo.next_step());
+    geo.move_across_boundary(); // Envelope -> Shape1
+    EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id()));
+    EXPECT_SOFT_EQ(1., geo.find_next_step());
 
-    geo.move_to_boundary(); // Shape1 -> Shape2
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2");
-    EXPECT_SOFT_EQ(10., geo.next_step());
+    geo.move_across_boundary(); // Shape1 -> Shape2
+    EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id()));
+    EXPECT_SOFT_EQ(10., geo.find_next_step());
 }
 
 TEST_F(GeoTrackViewHostTest, leaving_world)
@@ -126,31 +127,31 @@ TEST_F(GeoTrackViewHostTest, leaving_world)
     GeoTrackView geo = this->make_geo_track_view();
 
     geo = {{-10, 10, 10}, {0, 1, 0}};
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape2"); // Another Shape2
-    EXPECT_SOFT_EQ(5.0, geo.next_step());
+    EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id())); // Another Shape2
+    EXPECT_SOFT_EQ(5.0, geo.find_next_step());
 
-    geo.move_to_boundary(); // Shape2 -> Shape1
+    geo.move_across_boundary(); // Shape2 -> Shape1
     EXPECT_SOFT_EQ(15.0, geo.pos()[1]);
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Shape1");
+    EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id()));
     EXPECT_FALSE(geo.is_outside());
-    EXPECT_SOFT_EQ(1.0, geo.next_step());
+    EXPECT_SOFT_EQ(1.0, geo.find_next_step());
 
-    geo.move_to_boundary(); // Shape1 -> Envelope
+    geo.move_across_boundary(); // Shape1 -> Envelope
     EXPECT_SOFT_EQ(16.0, geo.pos()[1]);
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "Envelope");
+    EXPECT_EQ("Envelope", geom.id_to_label(geo.volume_id()));
     EXPECT_FALSE(geo.is_outside());
-    EXPECT_SOFT_EQ(2.0, geo.next_step());
+    EXPECT_SOFT_EQ(2.0, geo.find_next_step());
 
-    geo.move_to_boundary(); // Envelope -> World
+    geo.move_across_boundary(); // Envelope -> World
     EXPECT_SOFT_EQ(18.0, geo.pos()[1]);
-    EXPECT_EQ(geom.id_to_label(geo.volume_id()), "World");
+    EXPECT_EQ("World", geom.id_to_label(geo.volume_id()));
     EXPECT_FALSE(geo.is_outside());
-    EXPECT_SOFT_EQ(6.0, geo.next_step());
+    EXPECT_SOFT_EQ(6.0, geo.find_next_step());
 
-    geo.move_to_boundary(); // World -> out-of-world
+    geo.move_across_boundary(); // World -> out-of-world
     EXPECT_SOFT_EQ(24.0, geo.pos()[1]);
     EXPECT_TRUE(geo.is_outside());
-    EXPECT_GT(geo.next_step(), 1.e+99);
+    EXPECT_GT(geo.find_next_step(), 1.e+99);
 }
 
 //---------------------------------------------------------------------------//

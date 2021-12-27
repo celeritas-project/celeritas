@@ -33,7 +33,6 @@ GeoTrackView::GeoTrackView(const GeoParamsRef& data,
     , pos_(stateview.pos[thread])
     , dir_(stateview.dir[thread])
     , next_step_(stateview.next_step[thread])
-    , dirty_(true)
 {
 }
 
@@ -48,8 +47,9 @@ GeoTrackView::GeoTrackView(const GeoParamsRef& data,
 CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
 {
     // Initialize position/direction
-    pos_ = init.pos;
-    dir_ = init.dir;
+    pos_       = init.pos;
+    dir_       = init.dir;
+    next_step_ = 0;
 
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
@@ -66,13 +66,7 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
 #endif
         worldvol, detail::to_vector(pos_), vgstate_, contains_point);
 
-    // Prepare for next step. If outside, vgstate_ will be reset to return
-    //  world volume instead of null.
-    if (this->is_outside())
-        this->find_next_step_outside();
-    else
-        this->find_next_step();
-
+    CELER_ENSURE(!this->has_next_step());
     return *this;
 }
 
@@ -89,10 +83,12 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
         init.other.vgstate_.CopyTo(&vgstate_);
         pos_ = init.other.pos_;
     }
+
     // Set up the next state and initialize the direction
     dir_ = init.dir;
+    next_step_ = 0;
 
-    this->find_next_step();
+    CELER_ENSURE(!this->has_next_step());
     return *this;
 }
 
@@ -100,13 +96,13 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
 /*!
  * Find the distance to the next geometric boundary.
  */
-CELER_FUNCTION void GeoTrackView::find_next_step()
+CELER_FUNCTION real_type GeoTrackView::find_next_step()
 {
-    if (this->is_outside())
+    if (this->has_next_step())
     {
-        find_next_step_outside();
+        // Next boundary distance is cached
     }
-    else
+    else if (!this->is_outside())
     {
 #ifdef VECGEOM_USE_NAVINDEX
         // Use BVH navigator to find internal distance
@@ -123,83 +119,37 @@ CELER_FUNCTION void GeoTrackView::find_next_step()
             vgstate_,
             vgnext_);
     }
+    else
+    {
+        // Find distance to interior from inside world volume
+        auto* pplvol = shared_.world_volume;
+        next_step_   = pplvol->DistanceToIn(detail::to_vector(pos_),
+                                          detail::to_vector(dir_),
+                                          vecgeom::kInfLength);
+        next_step_   = std::fmax(next_step_, this->extra_push());
 
-    dirty_ = false;
-}
+        vgnext_.Clear();
+        if (next_step_ < vecgeom::kInfLength)
+            vgnext_.Push(pplvol);
+    }
 
-//---------------------------------------------------------------------------//
-/*!
- * For outside points, find distance to world volume.
- */
-CELER_FUNCTION void GeoTrackView::find_next_step_outside()
-{
-    CELER_EXPECT(this->is_outside());
-
-    // handling points outside of world volume
-    auto*               pplvol = shared_.world_volume;
-    constexpr real_type large  = vecgeom::kInfLength;
-    next_step_                 = pplvol->DistanceToIn(
-        detail::to_vector(pos_), detail::to_vector(dir_), large);
-
-    vgnext_.Clear();
-    if (next_step_ < large)
-        vgnext_.Push(pplvol);
-
-    dirty_ = false;
+    CELER_ENSURE(this->has_next_step());
+    return next_step_;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Move to the next boundary and update volume accordingly.
  */
-CELER_FUNCTION real_type GeoTrackView::move_to_boundary()
+CELER_FUNCTION void GeoTrackView::move_across_boundary()
 {
-    if (dirty_)
-        this->find_next_step();
+    CELER_EXPECT(this->has_next_step());
 
     // Move next step
-    real_type dist = next_step_;
-    axpy(dist, dir_, &pos_);
+    axpy(next_step_, dir_, &pos_);
     next_step_ = 0.;
 
     // Relocate to next tracking volume (maybe across multiple boundaries)
-    this->relocate();
-    return dist;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Move by a given distance.
- *
- * If a boundary to be crossed, stop there instead.
- */
-CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
-{
-    CELER_EXPECT(dist > 0.);
-    if (dirty_)
-        this->find_next_step();
-
-    // do not move beyond next boundary!
-    if (dist >= next_step_)
-    {
-        real_type ret = this->move_to_boundary();
-        return ret;
-    }
-
-    // move and update next_step_
-    axpy(dist, dir_, &pos_);
-    next_step_ -= dist;
-
-    CELER_ENSURE(dist > 0.);
-    return dist;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Update state to next volume.
- */
-CELER_FUNCTION void GeoTrackView::relocate()
-{
 #ifdef VECGEOM_USE_NAVINDEX
     if (vgnext_.Top() != nullptr)
     {
@@ -211,7 +161,23 @@ CELER_FUNCTION void GeoTrackView::relocate()
 #endif
 
     vgstate_ = vgnext_; // BVH relocation requires this extra step
-    find_next_step();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move within the current volume.
+ *
+ * The straight-line distance *must* be less than the distance to the
+ * boundary.
+ */
+CELER_FUNCTION void GeoTrackView::move_internal(real_type dist)
+{
+    CELER_EXPECT(this->has_next_step());
+    CELER_EXPECT(dist > 0 && dist < next_step_);
+
+    // Move and update next_step_
+    axpy(dist, dir_, &pos_);
+    next_step_ -= dist;
 }
 
 //---------------------------------------------------------------------------//
@@ -220,8 +186,8 @@ CELER_FUNCTION void GeoTrackView::relocate()
  */
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {
-    return (this->is_outside() ? VolumeId{999999}
-                               : VolumeId{this->volume().id()});
+    CELER_EXPECT(!this->is_outside());
+    return VolumeId{this->volume().id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -256,8 +222,9 @@ CELER_FUNCTION real_type GeoTrackView::find_safety(Real3 pos) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the distance to the next geometric boundary from a given position and
- * to a direction and update the safety without updating the vegeom state
+ * Find the distance to the next geometric boundary from a given position
+ * and to a direction and update the safety without updating the vegeom
+ * state
  */
 CELER_FUNCTION real_type GeoTrackView::compute_step(Real3      pos,
                                                     Real3      dir,

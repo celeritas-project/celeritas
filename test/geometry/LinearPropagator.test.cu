@@ -45,7 +45,7 @@ __global__ void linprop_test_kernel(const GeoParamsCRefDevice params,
 
         // Save current ID and distance to travel
         auto step                                 = propagate();
-        ids[tid.get() * max_segments + seg]       = step.volume;
+        ids[tid.get() * max_segments + seg]       = geo.volume_id();
         distances[tid.get() * max_segments + seg] = step.distance;
     }
 }

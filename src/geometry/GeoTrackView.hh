@@ -34,7 +34,6 @@ class GeoTrackView
     using GeoParamsRef
         = GeoParamsData<Ownership::const_reference, MemSpace::native>;
     using GeoStateRef = GeoStateData<Ownership::reference, MemSpace::native>;
-    using Vec3D       = vecgeom::Vector3D<real_type>;
     //!@}
 
     //! Helper struct for initializing from an existing geometry state
@@ -57,23 +56,18 @@ class GeoTrackView
                           operator=(const DetailedInitializer& init);
 
     // Find the distance to the next boundary
-    inline CELER_FUNCTION void find_next_step();
+    inline CELER_FUNCTION real_type find_next_step();
 
-    // Move to the next boundary along straight line
-    inline CELER_FUNCTION real_type move_to_boundary();
+    // Cross the next straight-line geometry boundary
+    inline CELER_FUNCTION void move_across_boundary();
 
-    // Move by a user-provided step length
-    inline CELER_FUNCTION real_type move_by(real_type step);
+    // Move within the volume
+    inline CELER_FUNCTION void move_internal(real_type step);
 
     //!@{
     //! State accessors
     CELER_FUNCTION const Real3& pos() const { return pos_; }
     CELER_FUNCTION const Real3& dir() const { return dir_; }
-    CELER_FUNCTION real_type next_step() const
-    {
-        CELER_ASSERT(!dirty_);
-        return next_step_;
-    }
     //!@}
 
     //!@{
@@ -81,12 +75,12 @@ class GeoTrackView
     CELER_FUNCTION void set_pos(const Real3& newpos)
     {
         pos_   = newpos;
-        dirty_ = true;
+        next_step_ = 0;
     }
     CELER_FUNCTION void set_dir(const Real3& newdir)
     {
         dir_   = newdir;
-        dirty_ = true;
+        next_step_ = 0;
     }
     //!@}
 
@@ -100,11 +94,12 @@ class GeoTrackView
     static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
 
   private:
-    //!@{
-    //! Type aliases
+    //// TYPES ////
+
     using Volume   = vecgeom::LogicalVolume;
     using NavState = vecgeom::NavigationState;
-    //!@}
+
+    //// DATA ////
 
     //! Shared/persistent geometry data
     const GeoParamsRef& shared_;
@@ -116,16 +111,12 @@ class GeoTrackView
     Real3&     pos_;
     Real3&     dir_;
     real_type& next_step_;
-    // Flag to trigger update of geometry information if and only if needed
-    bool dirty_;
     //!@}
 
-  private:
-    // Update current volume, called whenever move reaches boundary
-    inline CELER_FUNCTION void relocate();
+    //// HELPER FUNCTIONS ////
 
-    // Find the distance to the next boundary
-    inline CELER_FUNCTION void find_next_step_outside();
+    //! Whether the next distance-to-boundary has been found
+    inline CELER_FUNCTION bool has_next_step() const { return next_step_ > 0; }
 
   public:
     //! Get a reference to the current volume

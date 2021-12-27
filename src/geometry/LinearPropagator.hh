@@ -59,8 +59,9 @@ CELER_FUNCTION
 LinearPropagator::result_type LinearPropagator::operator()()
 {
     result_type result;
-    result.distance = track_.move_to_boundary();
+    result.distance = track_.find_next_step();
     result.boundary = true;
+    track_.move_across_boundary();
     return result;
 }
 
@@ -73,16 +74,22 @@ LinearPropagator::result_type LinearPropagator::operator()(real_type dist)
 {
     CELER_EXPECT(dist > 0);
 
-    if (dist >= track_.next_step())
+    result_type result;
+    result.boundary = true;
+    result.distance = track_.find_next_step();
+
+    if (dist >= result.distance)
     {
-        // Move to boundary
-        return (*this)();
+        track_.move_across_boundary();
+    }
+    else
+    {
+        result.boundary = false;
+        result.distance = dist;
+        track_.move_internal(dist);
     }
 
-    result_type result;
-    result.distance = track_.move_internal(dist);
-    result.boundary = false;
-    return resuult;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
