@@ -5,19 +5,24 @@
 //---------------------------------------------------------------------------//
 //! \file GeoTrackView.i.hh
 //---------------------------------------------------------------------------//
+#include <VecGeom/base/Config.h>
 #include <VecGeom/navigation/GlobalLocator.h>
 #include <VecGeom/navigation/VNavigator.h>
 #include <VecGeom/volumes/PlacedVolume.h>
+
 #include "base/ArrayUtils.hh"
 #include "detail/VGCompatibility.hh"
-#include "detail/BVHNavigator.hh"
+
+#ifdef VECGEOM_USE_NAVINDEX
+#    include "detail/BVHNavigator.hh"
+#endif
 
 namespace celeritas
 {
-using Navigator = celeritas::detail::BVHNavigator;
-
 //---------------------------------------------------------------------------//
-//! Construct from persistent and state data.
+/*!
+ * Construct from persistent and state data.
+ */
 CELER_FUNCTION
 GeoTrackView::GeoTrackView(const GeoParamsRef& data,
                            const GeoStateRef&  stateview,
@@ -54,7 +59,11 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
     // Note that LocateGlobalPoint sets `vgstate_`. If `vgstate_` is outside
     // (including possibly on the outside volume edge), the volume pointer it
     // returns would be null at this point.
-    Navigator::LocatePointIn(
+#ifdef VECGEOM_USE_NAVINDEX
+    detail::BVHNavigator::LocatePointIn(
+#else
+    vecgeom::GlobalLocator::LocateGlobalPoint(
+#endif
         worldvol, detail::to_vector(pos_), vgstate_, contains_point);
 
     // Prepare for next step. If outside, vgstate_ will be reset to return
@@ -97,15 +106,20 @@ CELER_FORCEINLINE_FUNCTION void GeoTrackView::find_next_step()
     }
     else
     {
-        // Use BVH navigator
+#ifdef VECGEOM_USE_NAVINDEX
+        // Use BVH navigator to find internal distance
         // Note: AdePT provides max phys.length as maxStep
         //  - if used, next state = current state
-        next_step_
-            = Navigator::ComputeStepAndNextVolume(detail::to_vector(pos_),
-                                                  detail::to_vector(dir_),
-                                                  vecgeom::kInfLength,
-                                                  vgstate_,
-                                                  vgnext_);
+        next_step_ = detail::BVHNavigator::ComputeStepAndNextVolume(
+#else
+        const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
+        next_step_ = navigator->ComputeStepAndPropagatedState(
+#endif
+            detail::to_vector(pos_),
+            detail::to_vector(dir_),
+            vecgeom::kInfLength,
+            vgstate_,
+            vgnext_);
     }
 
     dirty_ = false;
@@ -174,12 +188,15 @@ CELER_FUNCTION real_type GeoTrackView::move_by(real_type dist)
 //! Update state to next volume
 CELER_FUNCTION void GeoTrackView::relocate()
 {
+#ifdef VECGEOM_USE_NAVINDEX
     if (vgnext_.Top() != nullptr)
     {
-        Vec3D tmpPos(detail::to_vector(this->pos_));
-        Navigator::RelocateToNextVolume(
-            tmpPos, detail::to_vector(this->dir_), vgnext_);
+        // BVH requires an lvalue temp_pos
+        auto temp_pos = detail::to_vector(this->pos_);
+        detail::BVHNavigator::RelocateToNextVolume(
+            temp_pos, detail::to_vector(this->dir_), vgnext_);
     }
+#endif
 
     vgstate_ = vgnext_; // BVH relocation requires this extra step
     find_next_step();
@@ -210,7 +227,15 @@ CELER_FUNCTION const vecgeom::LogicalVolume& GeoTrackView::volume() const
 //! Find the safety to the closest geometric boundary.
 CELER_FUNCTION real_type GeoTrackView::find_safety(Real3 pos) const
 {
-    return Navigator::ComputeSafety(detail::to_vector(pos), vgstate_);
+#ifdef VECGEOM_USE_NAVINDEX
+    return detail::BVHNavigator::ComputeSafety(
+#else
+    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
+    CELER_ASSERT(navigator);
+
+    return navigator->GetSafetyEstimator()->ComputeSafety(
+#endif
+        detail::to_vector(pos), vgstate_);
 }
 
 //---------------------------------------------------------------------------//

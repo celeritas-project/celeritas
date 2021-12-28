@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
 #include "base/Span.hh"
 #include "physics/base/Primary.hh"
 #include "sim/TrackData.hh"
@@ -110,6 +111,25 @@ inline void process_secondaries(const ParamsDeviceRef&,
 {
     CELER_NOT_CONFIGURED("CUDA");
 }
+
+template<>
+size_type reduce_counts<MemSpace::device>(Span<size_type>)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+
+template<>
+size_type remove_if_alive<MemSpace::device>(Span<size_type>)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+
+template<>
+void exclusive_scan_counts<MemSpace::device>(Span<size_type>)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+
 #endif
 //---------------------------------------------------------------------------//
 } // namespace detail

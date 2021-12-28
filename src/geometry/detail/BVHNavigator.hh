@@ -20,6 +20,7 @@
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/backend/cuda/Interface.h>
 #endif
+#include "base/Macros.hh"
 
 namespace celeritas
 {
@@ -31,7 +32,7 @@ class BVHNavigator
   public:
     using VPlacedVolumePtr_t = vecgeom::VPlacedVolume const*;
 
-    __host__ __device__ static VPlacedVolumePtr_t
+    CELER_FUNCTION static VPlacedVolumePtr_t
     LocatePointIn(vecgeom::VPlacedVolume const*                vol,
                   vecgeom::Vector3D<vecgeom::Precision> const& point,
                   vecgeom::NavStateIndex&                      path,
@@ -67,7 +68,7 @@ class BVHNavigator
         return path.Top();
     }
 
-    __host__ __device__ static VPlacedVolumePtr_t
+    CELER_FUNCTION static VPlacedVolumePtr_t
     RelocatePoint(vecgeom::Vector3D<vecgeom::Precision> const& localpoint,
                   vecgeom::NavStateIndex&                      path)
     {
@@ -96,7 +97,7 @@ class BVHNavigator
     // taking step_limit into account. If a volume is hit, the function calls
     // out_state.SetBoundaryState(true) and hitcandidate is set to the hit
     // daughter volume, or kept unchanged if the current volume is left.
-    __host__ __device__ static double
+    CELER_FUNCTION static double
     ComputeStepAndHit(vecgeom::Vector3D<vecgeom::Precision> const& localpoint,
                       vecgeom::Vector3D<vecgeom::Precision> const& localdir,
                       vecgeom::Precision                           step_limit,
@@ -156,7 +157,7 @@ class BVHNavigator
 
     // Computes a step in the current volume from the localpoint into localdir,
     // until the next daughter bounding box, taking step_limit into account.
-    __host__ __device__ static double
+    CELER_FUNCTION static double
     ApproachNextVolume(vecgeom::Vector3D<vecgeom::Precision> const& localpoint,
                        vecgeom::Vector3D<vecgeom::Precision> const& localdir,
                        vecgeom::Precision                           step_limit,
@@ -196,7 +197,7 @@ class BVHNavigator
 
   public:
     // Computes the isotropic safety from the globalpoint.
-    __host__ __device__ static double
+    CELER_FUNCTION static double
     ComputeSafety(vecgeom::Vector3D<vecgeom::Precision> const& globalpoint,
                   vecgeom::NavStateIndex const&                state)
     {
@@ -223,7 +224,7 @@ class BVHNavigator
     // volume) into globaldir, taking step_limit into account. If a volume is
     // hit, the function calls out_state.SetBoundaryState(true) and relocates
     // the state to the next volume.
-    __host__ __device__ static double ComputeStepAndPropagatedState(
+    CELER_FUNCTION static double ComputeStepAndPropagatedState(
         vecgeom::Vector3D<vecgeom::Precision> const& globalpoint,
         vecgeom::Vector3D<vecgeom::Precision> const& globaldir,
         vecgeom::Precision                           step_limit,
@@ -295,7 +296,7 @@ class BVHNavigator
     //  - adds the hit daughter volume to out_state if one is hit.
     // However the function does _NOT_ relocate the state to the next volume,
     // that is entering multiple volumes that share a boundary.
-    __host__ __device__ static double ComputeStepAndNextVolume(
+    CELER_FUNCTION static double ComputeStepAndNextVolume(
         vecgeom::Vector3D<vecgeom::Precision> const& globalpoint,
         vecgeom::Vector3D<vecgeom::Precision> const& globaldir,
         vecgeom::Precision                           step_limit,
@@ -355,12 +356,11 @@ class BVHNavigator
 
     // Computes a step from the globalpoint (which must be in the current
     // volume) into globaldir, taking step_limit into account.
-    __host__ __device__ static vecgeom::Precision
-             ComputeStepToApproachNextVolume(
-                 vecgeom::Vector3D<vecgeom::Precision> const& globalpoint,
-                 vecgeom::Vector3D<vecgeom::Precision> const& globaldir,
-                 vecgeom::Precision                           step_limit,
-                 vecgeom::NavStateIndex const&                in_state)
+    CELER_FUNCTION static vecgeom::Precision ComputeStepToApproachNextVolume(
+        vecgeom::Vector3D<vecgeom::Precision> const& globalpoint,
+        vecgeom::Vector3D<vecgeom::Precision> const& globaldir,
+        vecgeom::Precision                           step_limit,
+        vecgeom::NavStateIndex const&                in_state)
     {
         // calculate local point/dir from global point/dir
         vecgeom::Vector3D<vecgeom::Precision> localpoint;
@@ -380,7 +380,7 @@ class BVHNavigator
 
     // Relocate a state that was returned from ComputeStepAndNextVolume: It
     // recursively locates the pushed point in the containing volume.
-    __host__ __device__ static void
+    CELER_FUNCTION static void
     RelocateToNextVolume(vecgeom::Vector3D<vecgeom::Precision>& globalpoint,
                          vecgeom::Vector3D<vecgeom::Precision> const& globaldir,
                          vecgeom::NavStateIndex&                      state)

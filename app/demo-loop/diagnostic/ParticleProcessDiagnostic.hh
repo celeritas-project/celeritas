@@ -105,10 +105,10 @@ void count_particle_process(
     ParticleProcessLauncher<MemSpace::device>::ItemsRef counts);
 
 #if !CELERITAS_USE_CUDA
-inline void count_particle_process(
-    const celeritas::ParamsDeviceRef&                   params,
-    const celeritas::StateDeviceRef&                    states,
-    ParticleProcessLauncher<MemSpace::device>::ItemsRef counts)
+inline void
+count_particle_process(const celeritas::ParamsDeviceRef&,
+                       const celeritas::StateDeviceRef&,
+                       ParticleProcessLauncher<MemSpace::device>::ItemsRef)
 {
     CELER_ASSERT_UNREACHABLE();
 }

@@ -8,17 +8,15 @@
 #include "TrackDiagnostic.hh"
 
 #include "base/Macros.hh"
-#include <thrust/transform_reduce.h>
+#include "base/Range.hh"
 
 using namespace celeritas;
 
 namespace demo_loop
 {
-template<>
-void TrackDiagnostic<MemSpace::host>::end_step(const StateDataRef& states)
+namespace
 {
-    num_alive_per_step_.push_back(demo_loop::reduce_alive(states));
-}
+//---------------------------------------------------------------------------//
 /*!
  * Sums the number of 'alive' tracks.
  *
@@ -28,11 +26,33 @@ size_type reduce_alive(const StateHostRef& states)
 {
     auto sim_states = states.sim.state[AllItems<SimTrackState>{}].data();
 
-    return thrust::transform_reduce(
-        thrust::raw_pointer_cast(sim_states),
-        thrust::raw_pointer_cast(sim_states) + states.size(),
-        OneIfAlive(),
-        0,
-        thrust::plus<unsigned int>());
+    size_type result = 0;
+    for (auto i : range(states.size()))
+    {
+        if (sim_states[i].alive)
+            result += 1;
+    }
+    return result;
 }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add the current step's number of alive tracks to this diagnostic.
+ */
+template<>
+void TrackDiagnostic<MemSpace::host>::end_step(const StateDataRef& states)
+{
+    num_alive_per_step_.push_back(demo_loop::reduce_alive(states));
+}
+
+#if !CELERITAS_USE_CUDA
+template<>
+void TrackDiagnostic<MemSpace::device>::end_step(const StateDataRef&)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+#endif
+
+//---------------------------------------------------------------------------//
 } // namespace demo_loop

@@ -9,6 +9,7 @@
 
 #include "Diagnostic.hh"
 
+#include "celeritas_config.h"
 #include "base/Macros.hh"
 #include "physics/base/ModelData.hh"
 #include "sim/SimTrackView.hh"
@@ -60,9 +61,4 @@ class TrackDiagnostic : public Diagnostic<M>
     std::vector<size_type> num_alive_per_step_;
 };
 
-//---------------------------------------------------------------------------//
-// KERNEL LAUNCHER(S)
-//---------------------------------------------------------------------------//
-celeritas::size_type reduce_alive(const celeritas::StateDeviceRef& states);
-celeritas::size_type reduce_alive(const celeritas::StateHostRef& states);
 } // namespace demo_loop

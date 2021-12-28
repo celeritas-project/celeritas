@@ -122,7 +122,7 @@ CELER_FUNCTION void ParticleProcessLauncher<M>::operator()(ThreadId tid) const
         size_type index = physics.model_id().get() * physics.num_particles()
                           + particle.particle_id().get();
         CELER_ASSERT(index < counts_.size());
-        celeritas::atomic_add(&counts_[BinId(index)], 1u);
+        celeritas::atomic_add(&counts_[BinId(index)], size_type{1});
     }
 }
 } // namespace demo_loop
