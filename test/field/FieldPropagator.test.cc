@@ -5,31 +5,108 @@
 //---------------------------------------------------------------------------//
 //! \file FieldPropagator.test.cc
 //---------------------------------------------------------------------------//
-#include "FieldTestBase.hh"
-
-#ifdef CELERITAS_USE_CUDA
-#    include "FieldPropagator.test.hh"
-#endif
+#include "field/FieldPropagator.hh"
 
 #include <fstream>
 #include "base/CollectionStateStore.hh"
+#include "geometry/GeoData.hh"
+#include "geometry/GeoParams.hh"
+#include "geometry/GeoTrackView.hh"
+#include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleData.hh"
-#include "field/UniformMagField.hh"
-#include "field/MagFieldEquation.hh"
-#include "field/RungeKuttaStepper.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/base/Units.hh"
 #include "field/FieldDriver.hh"
-#include "field/FieldPropagator.hh"
+#include "field/FieldParamsData.hh"
+#include "field/MagFieldEquation.hh"
 #include "field/MagFieldTraits.hh"
+#include "field/RungeKuttaStepper.hh"
+#include "field/UniformMagField.hh"
 
+#include "celeritas_test.hh"
+#include "FieldTestParams.hh"
+#include "FieldPropagator.test.hh"
+
+using namespace celeritas;
 using namespace celeritas_test;
-using celeritas::CollectionStateStore;
-using celeritas::ParticleStateData;
+using celeritas::units::MevEnergy;
+
+//---------------------------------------------------------------------------//
+// Test harness
+//---------------------------------------------------------------------------//
+
+class FieldPropagatorTestBase : public celeritas::Test
+{
+  public:
+    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
+
+    void SetUp()
+    {
+        using namespace celeritas::units;
+        namespace pdg = celeritas::pdg;
+
+        // Test geometry: 1-cm thick slabs normal to y, with 1-cm gaps in
+        // between
+        std::string test_file
+            = celeritas::Test::test_data_path("field", "field-test.gdml");
+        geo_params = std::make_shared<celeritas::GeoParams>(test_file.c_str());
+        geo_state  = GeoStateStore(*this->geo_params, 1);
+
+        // Create particle defs
+        constexpr auto        stable = ParticleDef::stable_decay_constant();
+        ParticleParams::Input defs;
+        defs.push_back({"electron",
+                        pdg::electron(),
+                        MevMass{0.5109989461},
+                        ElementaryCharge{-1},
+                        stable});
+        defs.push_back({"positron",
+                        pdg::positron(),
+                        MevMass{0.5109989461},
+                        ElementaryCharge{1},
+                        stable});
+
+        particle_params = std::make_shared<ParticleParams>(std::move(defs));
+
+        // Construct views
+        resize(&state_value, particle_params->host_ref(), 1);
+        state_ref = state_value;
+
+        // Set values of FieldParamsData;
+        field_params.delta_intersection = 1.0e-4 * units::millimeter;
+
+        // Input parameters of an electron in a uniform magnetic field
+        test.nstates     = 128;
+        test.nsteps      = 100;
+        test.revolutions = 10;
+        test.field_value = 1.0 * units::tesla;
+        test.radius      = 3.8085386036;
+        test.delta_z     = 6.7003310629;
+        test.energy      = 10.9181415106;
+        test.momentum_y  = 11.4177114158018;
+        test.momentum_z  = 0.0;
+        test.epsilon     = 1.0e-5;
+    }
+
+  protected:
+    GeoStateStore                               geo_state;
+    std::shared_ptr<const celeritas::GeoParams> geo_params;
+
+    std::shared_ptr<ParticleParams>                         particle_params;
+    ParticleStateData<Ownership::value, MemSpace::host>     state_value;
+    ParticleStateData<Ownership::reference, MemSpace::host> state_ref;
+
+    FieldParamsData field_params;
+
+    // Test parameters
+    FieldTestParams test;
+};
 
 //---------------------------------------------------------------------------//
 // HOST TESTS
 //---------------------------------------------------------------------------//
 
-class FieldPropagatorHostTest : public FieldTestBase
+class FieldPropagatorHostTest : public FieldPropagatorTestBase
 {
   public:
     using Initializer_t = ParticleTrackView::Initializer_t;
@@ -170,7 +247,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
 
 #define FieldPropagatorDeviceTest \
     TEST_IF_CELERITAS_CUDA(FieldPropagatorDeviceTest)
-class FieldPropagatorDeviceTest : public FieldPropagatorHostTest
+class FieldPropagatorDeviceTest : public FieldPropagatorTestBase
 {
   public:
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::device>;

@@ -5,23 +5,24 @@
 //---------------------------------------------------------------------------//
 //! \file FieldPropagator.test.cu
 //---------------------------------------------------------------------------//
-#include "FieldTestParams.hh"
 #include "FieldPropagator.test.hh"
-#include "field/FieldParamsData.hh"
-
-#include "base/KernelParamCalculator.cuda.hh"
-#include "geometry/GeoTrackView.hh"
-#include "physics/base/ParticleTrackView.hh"
-
-#include "field/UniformMagField.hh"
-#include "field/MagFieldEquation.hh"
-#include "field/RungeKuttaStepper.hh"
-#include "field/FieldDriver.hh"
-#include "field/FieldPropagator.hh"
-#include "field/MagFieldTraits.hh"
 
 #include <thrust/device_vector.h>
 
+#include "base/KernelParamCalculator.cuda.hh"
+#include "field/FieldDriver.hh"
+#include "field/FieldParamsData.hh"
+#include "field/FieldPropagator.hh"
+#include "field/MagFieldEquation.hh"
+#include "field/MagFieldTraits.hh"
+#include "field/RungeKuttaStepper.hh"
+#include "field/UniformMagField.hh"
+#include "geometry/GeoTrackView.hh"
+#include "physics/base/ParticleTrackView.hh"
+
+#include "FieldTestParams.hh"
+
+using namespace celeritas;
 using thrust::raw_pointer_cast;
 
 namespace celeritas_test
@@ -30,18 +31,18 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void fp_test_kernel(const int                 size,
-                               const GeoParamsCRefDevice shared,
-                               const GeoStateRefDevice   state,
-                               const VGGTestInit*        start,
-                               const ParticleParamsRef   particle_params,
-                               ParticleStateRef          particle_states,
-                               FieldParamsData           field_params,
-                               FieldTestParams           test,
-                               const ParticleTrackState* init_track,
-                               double*                   pos,
-                               double*                   dir,
-                               double*                   step)
+__global__ void fp_test_kernel(const int                  size,
+                               const GeoParamsCRefDevice  shared,
+                               const GeoStateRefDevice    state,
+                               const GeoTrackInitializer* start,
+                               const ParticleParamsRef    particle_params,
+                               ParticleStateRef           particle_states,
+                               FieldParamsData            field_params,
+                               FieldTestParams            test,
+                               const ParticleTrackState*  init_track,
+                               double*                    pos,
+                               double*                    dir,
+                               double*                    step)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= size)
@@ -86,18 +87,18 @@ __global__ void fp_test_kernel(const int                 size,
     dir[tid.get()]  = geo_track.dir()[1];
 }
 
-__global__ void bc_test_kernel(const int                 size,
-                               const GeoParamsCRefDevice shared,
-                               const GeoStateRefDevice   state,
-                               const VGGTestInit*        start,
-                               ParticleParamsRef         particle_params,
-                               ParticleStateRef          particle_states,
-                               FieldParamsData           field_params,
-                               FieldTestParams           test,
-                               const ParticleTrackState* init_track,
-                               double*                   pos,
-                               double*                   dir,
-                               double*                   step)
+__global__ void bc_test_kernel(const int                  size,
+                               const GeoParamsCRefDevice  shared,
+                               const GeoStateRefDevice    state,
+                               const GeoTrackInitializer* start,
+                               ParticleParamsRef          particle_params,
+                               ParticleStateRef           particle_states,
+                               FieldParamsData            field_params,
+                               FieldTestParams            test,
+                               const ParticleTrackState*  init_track,
+                               double*                    pos,
+                               double*                    dir,
+                               double*                    step)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= size)
@@ -180,8 +181,8 @@ FPTestOutput fp_test(FPTestInput input)
     CELER_ASSERT(input.geo_states);
 
     // Temporary device data for kernel
-    thrust::device_vector<VGGTestInit>        in_geo(input.init_geo.begin(),
-                                              input.init_geo.end());
+    thrust::device_vector<GeoTrackInitializer> in_geo(input.init_geo.begin(),
+                                                      input.init_geo.end());
     thrust::device_vector<ParticleTrackState> in_track = input.init_track;
 
     // Output data for kernel
@@ -234,8 +235,8 @@ FPTestOutput bc_test(FPTestInput input)
     CELER_ASSERT(input.geo_states);
 
     // Temporary device data for kernel
-    thrust::device_vector<VGGTestInit>        in_geo(input.init_geo.begin(),
-                                              input.init_geo.end());
+    thrust::device_vector<GeoTrackInitializer> in_geo(input.init_geo.begin(),
+                                                      input.init_geo.end());
     thrust::device_vector<ParticleTrackState> in_track = input.init_track;
 
     // Output data for kernel
