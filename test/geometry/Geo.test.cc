@@ -6,15 +6,15 @@
 //! \file GeoTrackView.test.cc
 //---------------------------------------------------------------------------//
 #include "geometry/GeoParams.hh"
-#include "geometry/GeoTrackView.hh"
 
 #include "base/ArrayIO.hh"
 #include "base/CollectionStateStore.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
 #include "geometry/GeoData.hh"
-#include "celeritas_test.hh"
+#include "geometry/GeoTrackView.hh"
 
+#include "celeritas_test.hh"
 #include "GeoTestBase.hh"
 #include "Geo.test.hh"
 
@@ -24,18 +24,47 @@ using namespace celeritas_test;
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-
-class GeoParamsHostTest : public GeoTestBase
+class VecgeomTest : public GeoTestBase<celeritas::GeoParams>
 {
   public:
-    std::string filename() const override { return "four-levels.gdml"; }
+    //!@{
+    using HostStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
+    //!@}
+
+  public:
+    const char* dirname() const override { return "geometry"; }
+    const char* fileext() const override { return ".gdml"; }
+
+    //! Construct host state (and load geometry) during steup
+    void SetUp() override
+    {
+        host_state = HostStateStore(*this->geometry(), 1);
+    }
+
+    //! Create a host track view
+    GeoTrackView make_geo_track_view()
+    {
+        return GeoTrackView(
+            this->geometry()->host_ref(), host_state.ref(), ThreadId(0));
+    }
+
+  private:
+    HostStateStore host_state;
 };
 
 //---------------------------------------------------------------------------//
 
-TEST_F(GeoParamsHostTest, accessors)
+class FourLevelsTest : public VecgeomTest
 {
-    const auto& geom = *this->geo_params();
+  public:
+    const char* filebase() const override { return "four-levels"; }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(FourLevelsTest, accessors)
+{
+    const auto& geom = *this->geometry();
     EXPECT_EQ(4, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
 
@@ -50,28 +79,9 @@ TEST_F(GeoParamsHostTest, accessors)
 
 //---------------------------------------------------------------------------//
 
-class GeoTrackViewHostTest : public GeoTestBase
+TEST_F(FourLevelsTest, basic_tracking)
 {
-  public:
-    using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
-
-    std::string filename() const override { return "four-levels.gdml"; }
-
-    void SetUp() override { state = StateStore(*this->geo_params(), 1); }
-
-    GeoTrackView make_geo_track_view()
-    {
-        return GeoTrackView(
-            this->geo_params()->host_ref(), state.ref(), ThreadId(0));
-    }
-
-  protected:
-    StateStore state;
-};
-
-TEST_F(GeoTrackViewHostTest, basic_tracking)
-{
-    const auto& geom = *this->geo_params();
+    const auto& geom = *this->geometry();
 
     GeoTrackView geo = this->make_geo_track_view();
     geo              = {{-10, -10, -10}, {1, 0, 0}};
@@ -93,9 +103,9 @@ TEST_F(GeoTrackViewHostTest, basic_tracking)
     EXPECT_FALSE(geo.is_outside());
 }
 
-TEST_F(GeoTrackViewHostTest, from_outside_edge)
+TEST_F(FourLevelsTest, from_outside_edge)
 {
-    const auto& geom = *this->geo_params();
+    const auto& geom = *this->geometry();
 
     GeoTrackView geo = this->make_geo_track_view();
     geo              = {{-24, 10., 10.}, {1, 0, 0}};
@@ -120,9 +130,9 @@ TEST_F(GeoTrackViewHostTest, from_outside_edge)
     EXPECT_SOFT_EQ(10., geo.find_next_step());
 }
 
-TEST_F(GeoTrackViewHostTest, leaving_world)
+TEST_F(FourLevelsTest, leaving_world)
 {
-    const auto& geom = *this->geo_params();
+    const auto& geom = *this->geometry();
 
     GeoTrackView geo = this->make_geo_track_view();
 
@@ -156,18 +166,9 @@ TEST_F(GeoTrackViewHostTest, leaving_world)
 
 //---------------------------------------------------------------------------//
 
-#define GEO_DEVICE_TEST TEST_IF_CELERITAS_CUDA(GeoTrackViewDeviceTest)
-class GEO_DEVICE_TEST : public GeoTestBase
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 {
-  public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
-
-    std::string filename() const override { return "four-levels.gdml"; }
-};
-
-TEST_F(GEO_DEVICE_TEST, all)
-{
-    CELER_ASSERT(this->geo_params());
 
     // Set up test input
     VGGTestInput input;
@@ -179,9 +180,9 @@ TEST_F(GEO_DEVICE_TEST, all)
                   {{-10, 10, -10}, {-1, 0, 0}},
                   {{-10, -10, 10}, {-1, 0, 0}},
                   {{-10, -10, -10}, {-1, 0, 0}}};
-    StateStore device_states(*this->geo_params(), input.init.size());
+    StateStore device_states(*this->geometry(), input.init.size());
     input.max_segments = 3;
-    input.params       = this->geo_params()->device_ref();
+    input.params       = this->geometry()->device_ref();
     input.state        = device_states.ref();
 
     // Run kernel

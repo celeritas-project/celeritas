@@ -12,8 +12,8 @@
 #include "io/RootImporter.hh"
 #include "io/ImportData.hh"
 
-#include "GeoTestBase.hh"
 #include "celeritas_test.hh"
+#include "GeoTestBase.hh"
 
 using namespace celeritas;
 
@@ -21,9 +21,10 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeoMaterialTest : public celeritas_test::GeoTestBase
+class GeoMaterialTest : public celeritas_test::GeoTestBase<celeritas::GeoParams>
 {
-    std::string filename() const override { return "four-steel-slabs.gdml"; }
+    const char* dirname() const override { return "geometry"; }
+    const char* filebase() const override { return "four-steel-slabs"; }
 
     void SetUp() override
     {
@@ -37,7 +38,7 @@ class GeoMaterialTest : public celeritas_test::GeoTestBase
 
         // Create geometry/material coupling
         GeoMaterialParams::Input input;
-        input.geometry  = this->geo_params();
+        input.geometry  = this->geometry();
         input.materials = material_;
         input.volume_to_mat
             = std::vector<MaterialId>(input.geometry->num_volumes());
@@ -66,7 +67,7 @@ TEST_F(GeoMaterialTest, host)
 {
     const unsigned int expected_mat_id[] = {1, 1, 1, 1, 0};
 
-    const auto& geo = *this->geo_params();
+    const auto& geo = *this->geometry();
     EXPECT_EQ(5, geo.num_volumes());
 
     GeoMaterialView geo_mat_view(geo_mat_->host_ref());

@@ -13,8 +13,8 @@
 #include "comm/Logger.hh"
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoData.hh"
-#include "celeritas_test.hh"
 
+#include "celeritas_test.hh"
 #include "GeoTestBase.hh"
 #include "LinearPropagator.test.hh"
 
@@ -25,19 +25,20 @@ using namespace celeritas_test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LinearPropagatorHostTest : public GeoTestBase
+class LinearPropagatorTest : public GeoTestBase<celeritas::GeoParams>
 {
   public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
-    std::string filename() const override { return "four-levels.gdml"; }
+    const char* dirname() const override { return "geometry"; }
+    const char* filebase() const override { return "four-levels"; }
 
-    void SetUp() override { state = StateStore(*this->geo_params(), 1); }
+    void SetUp() override { state = StateStore(*this->geometry(), 1); }
 
     GeoTrackView make_geo_track_view()
     {
         return GeoTrackView(
-            this->geo_params()->host_ref(), state.ref(), ThreadId(0));
+            this->geometry()->host_ref(), state.ref(), ThreadId(0));
     }
 
   protected:
@@ -46,26 +47,14 @@ class LinearPropagatorHostTest : public GeoTestBase
 
 //---------------------------------------------------------------------------//
 // HOST TESTS
-//---------------------------------------------------------------------------//
-
-TEST_F(LinearPropagatorHostTest, accessors)
-{
-    const auto& geom = *this->geo_params();
-    EXPECT_EQ(4, geom.num_volumes());
-    EXPECT_EQ(4, geom.max_depth());
-
-    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}));
-    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}));
-}
-
 //----------------------------------------------------------------------------//
 
-TEST_F(LinearPropagatorHostTest, basic_tracking)
+TEST_F(LinearPropagatorTest, basic_tracking)
 {
     GeoTrackView     geo = this->make_geo_track_view();
     LinearPropagator propagate(&geo); // one propagator per track
 
-    const auto& geom = *this->geo_params();
+    const auto& geom = *this->geometry();
     {
         // Track from outside detector, moving right
         geo = {{-10, 10, 10}, {1, 0, 0}};
@@ -145,12 +134,12 @@ TEST_F(LinearPropagatorHostTest, basic_tracking)
 
 //----------------------------------------------------------------------------//
 
-TEST_F(LinearPropagatorHostTest, track_intraVolume)
+TEST_F(LinearPropagatorTest, track_intra_volume)
 {
     GeoTrackView     geo = this->make_geo_track_view();
     LinearPropagator propagate(&geo); // one propagator per track
 
-    const auto& geom = *this->geo_params();
+    const auto& geom = *this->geometry();
     {
         // Track from outside detector, moving right
         geo = {{-10, 10, 10}, {0, 0, 1}};
@@ -190,21 +179,10 @@ TEST_F(LinearPropagatorHostTest, track_intraVolume)
 }
 
 //---------------------------------------------------------------------------//
-// DEVICE TESTS
-//---------------------------------------------------------------------------//
 
-#define LP_DEVICE_TEST TEST_IF_CELERITAS_CUDA(LinearPropagatorDeviceTest)
-class LP_DEVICE_TEST : public GeoTestBase
+TEST_F(LinearPropagatorTest, TEST_IF_CELERITAS_CUDA(device))
 {
-  public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
-
-    std::string filename() const override { return "four-levels.gdml"; }
-};
-
-TEST_F(LP_DEVICE_TEST, track_lines)
-{
-    CELER_ASSERT(this->geo_params());
 
     // Set up test input
     LinPropTestInput input;
@@ -216,10 +194,10 @@ TEST_F(LP_DEVICE_TEST, track_lines)
                   {{-10, 10, -10}, {-1, 0, 0}},
                   {{-10, -10, 10}, {-1, 0, 0}},
                   {{-10, -10, -10}, {-1, 0, 0}}};
-    StateStore device_states(*this->geo_params(), input.init.size());
+    StateStore device_states(*this->geometry(), input.init.size());
 
     input.max_segments = 3;
-    input.params       = this->geo_params()->device_ref();
+    input.params       = this->geometry()->device_ref();
     input.state        = device_states.ref();
 
     // Run kernel

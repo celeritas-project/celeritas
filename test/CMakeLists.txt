@@ -155,27 +155,27 @@ celeritas_add_test(field/UserMapField.test.cc GPU)
 # Geometry
 
 if(CELERITAS_USE_VecGeom)
-  set(CELER_VGTEST_SOURCES
-    geometry/GeoTestBase.cc
-  )
+  set(_vgcudatest)
   if(CELERITAS_USE_CUDA)
-    list(APPEND CELER_VGTEST_SOURCES
+    celeritas_add_library(CeleritasVecgeomCudaTest
       geometry/Geo.test.cu
       geometry/LinearPropagator.test.cu
     )
+    celeritas_target_link_libraries(CeleritasVecgeomCudaTest
+      PRIVATE Celeritas::Test VecGeom::vecgeom
+      PUBLIC Celeritas::Core
+    )
+    set(_vgcudatest CeleritasVecgeomCudaTest)
   endif()
-  celeritas_add_library(CeleritasVecgeomTest ${CELER_VGTEST_SOURCES})
-  celeritas_target_link_libraries(CeleritasVecgeomTest
-    PRIVATE Celeritas::Test VecGeom::vecgeom
-    PUBLIC Celeritas::Core
-  )
 
   celeritas_setup_tests(SERIAL PREFIX geometry
-    LINK_LIBRARIES CeleritasVecgeomTest VecGeom::vecgeom)
+    LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom)
 
+  celeritas_add_test(geometry/Geo.test.cc GPU)
+
+  # Generic geometry tests
   celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
     LINK_LIBRARIES Celeritas::ROOT)
-  celeritas_add_test(geometry/Geo.test.cc GPU)
   celeritas_add_test(geometry/LinearPropagator.test.cc GPU)
 endif()
 
