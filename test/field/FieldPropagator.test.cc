@@ -11,6 +11,7 @@
 #    include "FieldPropagator.test.hh"
 #endif
 
+#include <fstream>
 #include "base/CollectionStateStore.hh"
 #include "physics/base/ParticleData.hh"
 #include "field/UniformMagField.hh"
@@ -118,6 +119,10 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
     // Test parameters and the sub-step size
     double step = (2.0 * constants::pi * test.radius) / test.nsteps;
 
+    std::ostringstream filename;
+    filename << "boundary-points-" << step << "-orig.csv";
+    std::ofstream os(filename.str());
+
     for (auto i : celeritas::range(test.nstates))
     {
         // Initialize GeoTrackView and ParticleTrackView
@@ -146,6 +151,9 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
                     int j = (icross - 1) % num_boundary;
                     EXPECT_DOUBLE_EQ(expected_y[j], geo_track.pos()[1]);
                 }
+                const auto& pos = geo_track.pos();
+                os << pos[0] << "," << pos[1] << ","
+                   << (result.boundary ? "*" : ".") << '\n';
             }
         }
 
