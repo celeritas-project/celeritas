@@ -93,8 +93,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         real_type linear_step = track_.find_next_step();
         if (near_boundary || linear_step <= chord.length)
         {
-            near_boundary = true;
-
             // We intersect a boundary along the chord. Calculate the
             // expected straight-line intersection point.
             Real3 est_intercept_pos = state_.pos;
@@ -118,7 +116,12 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
                 // Straight-line intersect is too far from substep's end state.
                 // Decrease the allowed substep (curved path distance) by the
                 // fraction along the chord, and retry the driver step.
-                remaining = substep.step * linear_step / chord.length;
+                real_type scale = linear_step / chord.length;
+                remaining = substep.step * scale;
+                if (scale < 0.5)
+                {
+                    near_boundary = true;
+                }
             }
         }
         else
