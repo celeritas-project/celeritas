@@ -11,6 +11,7 @@
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "base/ArrayUtils.hh"
+#include "base/SoftEqual.hh"
 #include "detail/VGCompatibility.hh"
 
 #ifdef VECGEOM_USE_NAVINDEX
@@ -182,12 +183,48 @@ CELER_FUNCTION void GeoTrackView::move_internal(real_type dist)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Move within the current volume to a nearby point.
+ *
+ * \todo Currently it's up to the caller to make sure that the position is
+ * "nearby". We should actually test this with a safety distance.
+ */
+CELER_FUNCTION void GeoTrackView::move_internal(const Real3& pos)
+{
+    pos_       = pos;
+    next_step_ = 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Change the track's direction.
+ *
+ * This happens after a scattering event or movement inside a magnetic field.
+ * It resets the calculated distance-to-boundary.
+ */
+CELER_FUNCTION void GeoTrackView::set_dir(const Real3& newdir)
+{
+    CELER_EXPECT(is_soft_unit_vector(newdir, SoftEqual<real_type>(1e-6)));
+    dir_       = newdir;
+    next_step_ = 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the volume ID in the current cell.
  */
 CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
     return VolumeId{this->volume().id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the track is outside the valid geometry region.
+ */
+CELER_FUNCTION bool GeoTrackView::is_outside() const
+{
+    return vgstate_.IsOutside();
 }
 
 //---------------------------------------------------------------------------//
@@ -203,63 +240,4 @@ CELER_FUNCTION const vecgeom::LogicalVolume& GeoTrackView::volume() const
     return *physvol_ptr->GetLogicalVolume();
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Find the safety to the closest geometric boundary.
- */
-CELER_FUNCTION real_type GeoTrackView::find_safety(Real3 pos) const
-{
-#ifdef VECGEOM_USE_NAVINDEX
-    return detail::BVHNavigator::ComputeSafety(
-#else
-    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
-    CELER_ASSERT(navigator);
-
-    return navigator->GetSafetyEstimator()->ComputeSafety(
-#endif
-        detail::to_vector(pos), vgstate_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the distance to the next geometric boundary from a given position
- * and to a direction and update the safety without updating the vegeom
- * state
- */
-CELER_FUNCTION real_type GeoTrackView::compute_step(Real3      pos,
-                                                    Real3      dir,
-                                                    real_type* safety) const
-{
-    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
-    CELER_ASSERT(navigator);
-
-    return navigator->ComputeStepAndSafety(detail::to_vector(pos),
-                                           detail::to_vector(dir),
-                                           vecgeom::kInfLength,
-                                           vgstate_,
-                                           true,
-                                           *safety,
-                                           false);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Propagate to the next geometric boundary from a given position and
- * to a direction and update the vgstate
- */
-CELER_FUNCTION void GeoTrackView::propagate_state(Real3 pos, Real3 dir) const
-{
-    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
-    CELER_ASSERT(navigator);
-
-    navigator->ComputeStepAndPropagatedState(detail::to_vector(pos),
-                                             detail::to_vector(dir),
-                                             vecgeom::kInfLength,
-                                             vgstate_,
-                                             vgnext_);
-
-    vgstate_ = vgnext_;
-    vgstate_.SetBoundaryState(true);
-    vgnext_.Clear();
-}
 } // namespace celeritas

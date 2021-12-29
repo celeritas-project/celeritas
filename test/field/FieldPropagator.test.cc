@@ -109,7 +109,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
     RKTraits::Driver_t   driver(field_params, &rk4);
 
     // clang-format off
-    static const real_type expected_y[num_boundary]
+    static const real_type expected_y[]
         = { 0.5,  1.5,  2.5,  3.5,  3.5,  2.5,  1.5,  0.5,
            -0.5, -1.5, -2.5, -3.5, -3.5, -2.5, -1.5, -0.5};
     // clang-format on

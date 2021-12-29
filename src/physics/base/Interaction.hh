@@ -9,6 +9,7 @@
 
 #include "base/Array.hh"
 #include "base/ArrayUtils.hh"
+#include "base/SoftEqual.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"

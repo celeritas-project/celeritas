@@ -77,14 +77,14 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
 
-        real_type safety = track_.find_safety(state_.pos);
+        real_type safety = 0;
         if (chord.length > safety)
         {
             // Potential intersection with boundary (length is less than
             // safety). Do a detailed check boundary check from the start
             // position toward the substep point.
-            real_type linear_step
-                = track_.compute_step(state_.pos, chord.dir, &safety);
+            track_.set_dir(chord.dir);
+            real_type linear_step = track_.find_next_step();
 
             if (linear_step <= chord.length)
             {
@@ -108,8 +108,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
                     chord = detail::make_chord(state_.pos, substep.state.pos);
 
                     // Do a detailed boundary check
-                    linear_step
-                        = track_.compute_step(state_.pos, chord.dir, &safety);
+                    track_.set_dir(chord.dir);
+                    linear_step = track_.find_next_step();
 
                     est_intercept_pos = state_.pos;
                     axpy(linear_step, chord.dir, &est_intercept_pos);
@@ -127,15 +127,24 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
                 CELER_ASSERT(result.boundary);
 
                 // Complete move from start point to intersection
-                track_.propagate_state(
-                    state_.pos,
-                    detail::make_chord(state_.pos, substep.state.pos).dir);
+                track_.move_across_boundary();
+                state_.pos = track_.pos();
+                state_.mom = substep.state.mom;
             }
+            else
+            {
+                state_ = substep.state;
+                track_.move_internal(substep.state.pos);
+            }
+        }
+        else
+        {
+            state_ = substep.state;
+            track_.move_internal(substep.state.pos);
         }
 
         // Update substep state
         result.distance += substep.step;
-        state_ = substep.state;
     } while (!result.boundary
              && (result.distance + driver_.minimum_step()) < step);
 
@@ -143,7 +152,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     Real3 dir = state_.mom;
     normalize_direction(&dir);
     track_.set_dir(dir);
-    track_.set_pos(state_.pos);
 
     return result;
 }

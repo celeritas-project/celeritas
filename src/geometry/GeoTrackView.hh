@@ -64,31 +64,23 @@ class GeoTrackView
     // Move within the volume
     inline CELER_FUNCTION void move_internal(real_type step);
 
+    // Move within the volume to a specific point
+    inline CELER_FUNCTION void move_internal(const Real3& pos);
+
     //!@{
     //! State accessors
-    CELER_FUNCTION const Real3& pos() const { return pos_; }
-    CELER_FUNCTION const Real3& dir() const { return dir_; }
+    CELER_FORCEINLINE_FUNCTION const Real3& pos() const { return pos_; }
+    CELER_FORCEINLINE_FUNCTION const Real3& dir() const { return dir_; }
     //!@}
 
-    //!@{
-    //! State modifiers will force state update before next step
-    CELER_FUNCTION void set_pos(const Real3& newpos)
-    {
-        pos_       = newpos;
-        next_step_ = 0;
-    }
-    CELER_FUNCTION void set_dir(const Real3& newdir)
-    {
-        dir_       = newdir;
-        next_step_ = 0;
-    }
-    //!@}
+    // Change direction
+    inline CELER_FUNCTION void set_dir(const Real3& newdir);
 
-    //! Get the volume ID in the current cell.
-    inline CELER_FUNCTION VolumeId volume_id() const;
+    // Get the volume ID in the current cell.
+    CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
 
-    //! Whether the track is inside or outside the valid geometry region
-    CELER_FUNCTION bool is_outside() const { return vgstate_.IsOutside(); }
+    // Whether the track is outside the valid geometry region
+    CELER_FORCEINLINE_FUNCTION bool is_outside() const;
 
     //! A tiny push to make sure tracks do not get stuck at boundaries
     static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
@@ -116,25 +108,10 @@ class GeoTrackView
     //// HELPER FUNCTIONS ////
 
     //! Whether the next distance-to-boundary has been found
-    inline CELER_FUNCTION bool has_next_step() const { return next_step_ > 0; }
+    CELER_FUNCTION bool has_next_step() const { return next_step_ > 0; }
 
-  public:
     //! Get a reference to the current volume
     inline CELER_FUNCTION const Volume& volume() const;
-
-    //!@{
-    //! Helper methods
-    // Find the safety to the closest geometric boundary
-    inline CELER_FUNCTION real_type find_safety(Real3 pos) const;
-
-    // Find the distance to the next geometric boundary and update the safety
-    inline CELER_FUNCTION real_type compute_step(Real3      pos,
-                                                 Real3      dir,
-                                                 real_type* safety) const;
-
-    // Propagate to the next volume and update the vgstate
-    inline CELER_FUNCTION void propagate_state(Real3 pos, Real3 dir) const;
-    //!@}
 };
 
 //---------------------------------------------------------------------------//
