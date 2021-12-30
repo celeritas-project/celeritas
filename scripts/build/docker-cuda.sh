@@ -21,6 +21,7 @@ cmake -G Ninja \
   -DCELERITAS_DEBUG:BOOL=ON \
   -DCMAKE_BUILD_TYPE:STRING="Debug" \
   -DCMAKE_CUDA_ARCHITECTURES:STRING="70" \
+  -DCMAKE_CUDA_FLAGS:STRING="-Xnvlink --suppress-stack-size-warning" \
   -DCMAKE_EXE_LINKER_FLAGS:STRING="-Wl,--no-as-needed" \
   -DCMAKE_SHARED_LINKER_FLAGS:STRING="-Wl,--no-as-needed" \
   -DMPIEXEC_PREFLAGS:STRING="--allow-run-as-root" \
