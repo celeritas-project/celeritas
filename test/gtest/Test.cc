@@ -27,7 +27,8 @@ std::string Test::test_data_path(const char* subdir, const char* filename)
     os << detail::source_dir << "/test/" << subdir << "/data/" << filename;
 
     std::string result = os.str();
-    CELER_ENSURE(std::ifstream(result).good());
+    CELER_VALIDATE(std::ifstream(result).good(),
+                   << "Failed to open test data file at " << result);
     return result;
 }
 
