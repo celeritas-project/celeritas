@@ -153,22 +153,24 @@ if(CELERITAS_USE_VecGeom)
     CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
   )
   if(CELERITAS_USE_CUDA)
-    # Suppress warnings from virtual function calls in RDC
-    target_compile_options(VecGeom::vecgeomcuda
-      INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
-    )
     set_target_properties(VecGeom::vecgeomcuda PROPERTIES
       CELERITAS_CUDA_LIBRARY_TYPE Shared
-      CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-      CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-      CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
     )
     set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
       CELERITAS_CUDA_LIBRARY_TYPE Static
-      CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-      CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-      CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
     )
+    foreach(_lib VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
+      # Suppress warnings from virtual function calls in RDC
+      target_compile_options(${_lib}
+        INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
+      )
+      # Inform celeritas_add_library code
+      set_target_properties(${_lib} PROPERTIES
+        CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+        CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
+        CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
+      )
+    endforeach()
   endif()
 endif()
 
