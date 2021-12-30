@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../Types.hh"
 #include "base/Array.hh"
+#include "field/Types.hh"
 
 namespace celeritas
 {
@@ -29,9 +29,6 @@ struct Chord
 inline CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst);
 
 //---------------------------------------------------------------------------//
-// Perform y <- ax + y for OdeState
-inline CELER_FUNCTION void axpy(real_type a, const OdeState& x, OdeState* y);
-
 // Evaluate the stepper truncation error
 inline CELER_FUNCTION real_type truncation_error(real_type       step,
                                                  real_type       eps_rel_max,
