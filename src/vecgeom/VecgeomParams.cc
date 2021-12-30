@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoParams.cc
+//! \file VecgeomParams.cc
 //---------------------------------------------------------------------------//
-#include "GeoParams.hh"
+#include "VecgeomParams.hh"
 
 #include <VecGeom/gdml/Frontend.h>
 #include <VecGeom/management/ABBoxManager.h>
@@ -21,7 +21,7 @@
 
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
-#include "GeoData.hh"
+#include "VecgeomData.hh"
 #include "detail/ScopedTimeAndRedirect.hh"
 
 namespace celeritas
@@ -30,7 +30,7 @@ namespace celeritas
 /*!
  * Construct from a GDML input.
  */
-GeoParams::GeoParams(const char* gdml_filename)
+VecgeomParams::VecgeomParams(const char* gdml_filename)
 {
     CELER_LOG(info) << "Loading from GDML at " << gdml_filename;
     {
@@ -90,7 +90,7 @@ GeoParams::GeoParams(const char* gdml_filename)
 /*!
  * Clean up vecgeom on destruction
  */
-GeoParams::~GeoParams()
+VecgeomParams::~VecgeomParams()
 {
 #if CELERITAS_USE_CUDA
     if (device_ref_)
@@ -107,7 +107,7 @@ GeoParams::~GeoParams()
 /*!
  * Get the label for a placed volume ID
  */
-const std::string& GeoParams::id_to_label(VolumeId vol_id) const
+const std::string& VecgeomParams::id_to_label(VolumeId vol_id) const
 {
     CELER_EXPECT(vol_id.get() < num_volumes_);
     const auto* vol
@@ -120,7 +120,7 @@ const std::string& GeoParams::id_to_label(VolumeId vol_id) const
 /*!
  * Get the ID corresponding to a label
  */
-auto GeoParams::label_to_id(const std::string& label) const -> VolumeId
+auto VecgeomParams::label_to_id(const std::string& label) const -> VolumeId
 {
     const auto* vol
         = vecgeom::GeoManager::Instance().FindLogicalVolume(label.c_str());

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VGTraits.hh
+//! \file VecgeomTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,16 +16,16 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 template<MemSpace M>
-struct VGTraits;
+struct VecgeomTraits;
 
 template<>
-struct VGTraits<MemSpace::host>
+struct VecgeomTraits<MemSpace::host>
 {
     using PlacedVolume = vecgeom::cxx::VPlacedVolume;
 };
 
 template<>
-struct VGTraits<MemSpace::device>
+struct VecgeomTraits<MemSpace::device>
 {
     using PlacedVolume = vecgeom::cuda::VPlacedVolume;
 };

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoData.hh
+//! \file VecgeomData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,8 +12,9 @@
 #include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "detail/VGNavCollection.hh"
-#include "detail/VGTraits.hh"
+#include "geometry/Types.hh"
+#include "detail/VecgeomNavCollection.hh"
+#include "detail/VecgeomTraits.hh"
 
 namespace celeritas
 {
@@ -24,9 +25,9 @@ namespace celeritas
  * Persistent data used by VecGeom implementation.
  */
 template<Ownership W, MemSpace M>
-struct GeoParamsData
+struct VecgeomParamsData
 {
-    using PlacedVolumeT = typename detail::VGTraits<M>::PlacedVolume;
+    using PlacedVolumeT = typename detail::VecgeomTraits<M>::PlacedVolume;
 
     const PlacedVolumeT* world_volume = nullptr;
     int                  max_depth    = 0;
@@ -39,7 +40,7 @@ struct GeoParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    GeoParamsData& operator=(GeoParamsData<W2, M2>& other)
+    VecgeomParamsData& operator=(VecgeomParamsData<W2, M2>& other)
     {
         static_assert(M2 == M && W2 == Ownership::value
                           && W == Ownership::reference,
@@ -58,7 +59,7 @@ struct GeoParamsData
  * Interface for VecGeom state information.
  */
 template<Ownership W, MemSpace M>
-struct GeoStateData
+struct VecgeomStateData
 {
     //// TYPES ////
 
@@ -73,8 +74,8 @@ struct GeoStateData
     Items<real_type> next_step;
 
     // Wrapper for NavStatePool, vector, or void*
-    detail::VGNavCollection<W, M> vgstate;
-    detail::VGNavCollection<W, M> vgnext;
+    detail::VecgeomNavCollection<W, M> vgstate;
+    detail::VecgeomNavCollection<W, M> vgnext;
 
     //// METHODS ////
 
@@ -90,7 +91,7 @@ struct GeoStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    GeoStateData& operator=(GeoStateData<W2, M2>& other)
+    VecgeomStateData& operator=(VecgeomStateData<W2, M2>& other)
     {
         static_assert(M2 == M && W2 == Ownership::value
                           && W == Ownership::reference,
@@ -111,9 +112,9 @@ struct GeoStateData
  */
 template<MemSpace M>
 void resize(
-    GeoStateData<Ownership::value, M>*                               data,
-    const GeoParamsData<Ownership::const_reference, MemSpace::host>& params,
-    size_type                                                        size)
+    VecgeomStateData<Ownership::value, M>*                               data,
+    const VecgeomParamsData<Ownership::const_reference, MemSpace::host>& params,
+    size_type                                                            size)
 {
     CELER_EXPECT(data);
     CELER_EXPECT(size > 0);

@@ -128,8 +128,7 @@ if(CELERITAS_USE_VecGeom)
     LINK_LIBRARIES Celeritas::Core VecGeom::vecgeom ${_CeleritasPropagatorTest})
 endif()
 
-#-----------------------------------------------------------------------------#
-# Field - User field
+### User field ###
 
 celeritas_cudaoptional_test(field/UserParamField)
 
@@ -152,14 +151,13 @@ celeritas_setup_tests(SERIAL PREFIX fieldmap
 celeritas_add_test(field/UserMapField.test.cc GPU)
 
 #-----------------------------------------------------------------------------#
-# Geometry
+# VecGeom
 
 if(CELERITAS_USE_VecGeom)
   set(_vgcudatest)
   if(CELERITAS_USE_CUDA)
     celeritas_add_library(CeleritasVecgeomCudaTest
-      geometry/Geo.test.cu
-      geometry/LinearPropagator.test.cu
+      vecgeom/Vecgeom.test.cu
     )
     celeritas_target_link_libraries(CeleritasVecgeomCudaTest
       PRIVATE Celeritas::Test VecGeom::vecgeom
@@ -168,16 +166,17 @@ if(CELERITAS_USE_VecGeom)
     set(_vgcudatest CeleritasVecgeomCudaTest)
   endif()
 
-  celeritas_setup_tests(SERIAL PREFIX geometry
+  celeritas_setup_tests(SERIAL PREFIX vecgeom
     LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom)
 
-  celeritas_add_test(geometry/Geo.test.cc GPU)
+  celeritas_add_test(vecgeom/Vecgeom.test.cc GPU)
 
   # Generic geometry tests
   celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
     LINK_LIBRARIES Celeritas::ROOT)
-  celeritas_add_test(geometry/LinearPropagator.test.cc GPU)
 endif()
+
+celeritas_cudaoptional_test(geometry/LinearPropagator)
 
 #-----------------------------------------------------------------------------#
 # ORANGE geometry
@@ -247,6 +246,9 @@ celeritas_cudaoptional_test(physics/base/Particle
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_cudaoptional_test(physics/base/Physics)
 celeritas_add_test(physics/base/PhysicsStepUtils.test.cc)
+
+#-------------------------------------#
+# Physics (grid)
 
 celeritas_setup_tests(SERIAL PREFIX physics/grid
   LINK_LIBRARIES CeleritasPhysicsTest)

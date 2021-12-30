@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoParams.hh
+//! \file VecgeomParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
 #include "base/Types.hh"
-#include "GeoData.hh"
-#include "Types.hh"
+#include "geometry/Types.hh"
+#include "VecgeomData.hh"
 
 namespace celeritas
 {
@@ -20,22 +20,23 @@ namespace celeritas
  *
  * The model defines the shapes, volumes, etc.
  */
-class GeoParams
+class VecgeomParams
 {
   public:
     //!@{
     //! References to constructed data
-    using HostRef = GeoParamsData<Ownership::const_reference, MemSpace::host>;
+    using HostRef
+        = VecgeomParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
-        = GeoParamsData<Ownership::const_reference, MemSpace::device>;
+        = VecgeomParamsData<Ownership::const_reference, MemSpace::device>;
     //!@}
 
   public:
     // Construct from a GDML filename
-    explicit GeoParams(const char* gdml_filename);
+    explicit VecgeomParams(const char* gdml_filename);
 
     // Clean up VecGeom on destruction
-    ~GeoParams();
+    ~VecgeomParams();
 
     //// HOST ACCESSORS ////
 

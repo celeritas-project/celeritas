@@ -64,7 +64,6 @@ list(APPEND SOURCES
   comm/LoggerTypes.cc
   comm/ScopedMpiInit.cc
   comm/detail/LoggerMessage.cc
-  geometry/detail/ScopedTimeAndRedirect.cc
   orange/Types.cc
   orange/construct/SurfaceInserter.cc
   orange/construct/VolumeInserter.cc
@@ -106,6 +105,8 @@ list(APPEND SOURCES
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
   random/detail/RngStateInit.cc
+  sim/TrackInitParams.cc
+  sim/detail/InitializeTracks.cc
 )
 
 if(CELERITAS_USE_CUDA)
@@ -113,6 +114,7 @@ if(CELERITAS_USE_CUDA)
     base/KernelParamCalculator.cuda.cc
     base/detail/Filler.cu
     random/detail/RngStateInit.cu
+    sim/detail/InitializeTracks.cu
   )
   # TODO: CUDA RNG is included by host code
   list(APPEND PUBLIC_DEPS CUDA::cudart)
@@ -151,21 +153,15 @@ endif()
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     geometry/GeoMaterialParams.cc
-    geometry/GeoParams.cc
-    geometry/detail/VGNavCollection.cc
-    sim/TrackInitParams.cc
-    sim/detail/InitializeTracks.cc
+    vecgeom/VecgeomParams.cc
+    vecgeom/detail/ScopedTimeAndRedirect.cc
+    vecgeom/detail/VecgeomNavCollection.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml)
   # This needs to be public because its might be needed
   # to resolve the symbol generate by the `nvcc -dlink` of
   # one of the executable.
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
-  if(CELERITAS_USE_CUDA)
-    list(APPEND SOURCES
-      sim/detail/InitializeTracks.cu
-    )
-  endif()
 endif()
 
 celeritas_add_library(celeritas ${SOURCES})
@@ -203,15 +199,13 @@ install(FILES
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 
-foreach(_SUBDIR base comm geometry io physics random sim
-    base/detail comm/detail geometry/detail sim/detail)
-  file(GLOB _HEADERS
-    "${_SUBDIR}/*.hh"
-  )
-  install(FILES ${_HEADERS}
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${_SUBDIR}/"
-  )
-endforeach()
+# TODO: ignore .cuda.hh when cuda disabled; etc
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
+  COMPONENT development
+  FILES_MATCHING PATTERN "*.hh"
+  # TODO: ignore .cuda.hh when cuda disabled; etc
+)
 
 #----------------------------------------------------------------------------#
 # ROOT I/O MODULE

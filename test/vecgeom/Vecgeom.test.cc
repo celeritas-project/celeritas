@@ -3,20 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoTrackView.test.cc
+//! \file Vecgeom.test.cc
 //---------------------------------------------------------------------------//
-#include "geometry/GeoParams.hh"
+#include "vecgeom/VecgeomParams.hh"
 
 #include "base/ArrayIO.hh"
 #include "base/CollectionStateStore.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
-#include "geometry/GeoData.hh"
-#include "geometry/GeoTrackView.hh"
+#include "vecgeom/VecgeomData.hh"
+#include "vecgeom/VecgeomTrackView.hh"
 
 #include "celeritas_test.hh"
-#include "GeoTestBase.hh"
-#include "Geo.test.hh"
+#include "geometry/GeoTestBase.hh"
+#include "Vecgeom.test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -24,15 +24,16 @@ using namespace celeritas_test;
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-class VecgeomTest : public GeoTestBase<celeritas::GeoParams>
+class VecgeomTest : public GeoTestBase<celeritas::VecgeomParams>
 {
   public:
     //!@{
-    using HostStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
+    using HostStateStore
+        = CollectionStateStore<VecgeomStateData, MemSpace::host>;
     //!@}
 
   public:
-    const char* dirname() const override { return "geometry"; }
+    const char* dirname() const override { return "vecgeom"; }
     const char* fileext() const override { return ".gdml"; }
 
     //! Construct host state (and load geometry) during steup
@@ -42,9 +43,9 @@ class VecgeomTest : public GeoTestBase<celeritas::GeoParams>
     }
 
     //! Create a host track view
-    GeoTrackView make_geo_track_view()
+    VecgeomTrackView make_geo_track_view()
     {
-        return GeoTrackView(
+        return VecgeomTrackView(
             this->geometry()->host_ref(), host_state.ref(), ThreadId(0));
     }
 
@@ -83,8 +84,8 @@ TEST_F(FourLevelsTest, basic_tracking)
 {
     const auto& geom = *this->geometry();
 
-    GeoTrackView geo = this->make_geo_track_view();
-    geo              = {{-10, -10, -10}, {1, 0, 0}};
+    VecgeomTrackView geo = this->make_geo_track_view();
+    geo                  = {{-10, -10, -10}, {1, 0, 0}};
     EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id()));
     EXPECT_SOFT_EQ(5, geo.find_next_step());
 
@@ -107,8 +108,8 @@ TEST_F(FourLevelsTest, from_outside_edge)
 {
     const auto& geom = *this->geometry();
 
-    GeoTrackView geo = this->make_geo_track_view();
-    geo              = {{-24, 10., 10.}, {1, 0, 0}};
+    VecgeomTrackView geo = this->make_geo_track_view();
+    geo                  = {{-24, 10., 10.}, {1, 0, 0}};
     EXPECT_TRUE(geo.is_outside());
     EXPECT_SOFT_EQ(0., geo.find_next_step()); // since it is on edge, but
                                               // outside
@@ -134,7 +135,7 @@ TEST_F(FourLevelsTest, leaving_world)
 {
     const auto& geom = *this->geometry();
 
-    GeoTrackView geo = this->make_geo_track_view();
+    VecgeomTrackView geo = this->make_geo_track_view();
 
     geo = {{-10, 10, 10}, {0, 1, 0}};
     EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id())); // Another Shape2
@@ -168,7 +169,7 @@ TEST_F(FourLevelsTest, leaving_world)
 
 TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 {
-    using StateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
+    using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
 
     // Set up test input
     VGGTestInput input;

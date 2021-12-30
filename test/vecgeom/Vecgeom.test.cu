@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoTrackView.test.cu
+//! \file Vecgeom.test.cu
 //---------------------------------------------------------------------------//
-#include "geometry/GeoTrackView.hh"
+#include "vecgeom/VecgeomTrackView.hh"
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include "base/KernelParamCalculator.cuda.hh"
 
-#include "Geo.test.hh"
+#include "Vecgeom.test.hh"
 
 using thrust::raw_pointer_cast;
 using namespace celeritas;
@@ -22,12 +22,12 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void vgg_test_kernel(const GeoParamsCRefDevice params,
-                                const GeoStateRefDevice   state,
-                                const VGGTestInit*        start,
-                                const int                 max_segments,
-                                VolumeId*                 ids,
-                                double*                   distances)
+__global__ void vgg_test_kernel(const GeoParamsCRefDevice  params,
+                                const GeoStateRefDevice    state,
+                                const GeoTrackInitializer* start,
+                                const int                  max_segments,
+                                VolumeId*                  ids,
+                                double*                    distances)
 {
     CELER_EXPECT(params && state);
 
@@ -35,7 +35,7 @@ __global__ void vgg_test_kernel(const GeoParamsCRefDevice params,
     if (tid.get() >= state.size())
         return;
 
-    GeoTrackView geo(params, state, tid);
+    VecgeomTrackView geo(params, state, tid);
     geo = start[tid.get()];
 
     for (int seg = 0; seg < max_segments; ++seg)
@@ -65,8 +65,8 @@ VGGTestOutput vgg_test(VGGTestInput input)
     CELER_EXPECT(input.max_segments > 0);
 
     // Temporary device data for kernel
-    thrust::device_vector<VGGTestInit> init(input.init.begin(),
-                                            input.init.end());
+    thrust::device_vector<GeoTrackInitializer> init(input.init.begin(),
+                                                    input.init.end());
     thrust::device_vector<VolumeId> ids(input.init.size() * input.max_segments);
     thrust::device_vector<double>   distances(ids.size(), -2.0);
 

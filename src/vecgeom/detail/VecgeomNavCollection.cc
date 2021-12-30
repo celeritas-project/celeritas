@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VGNavCollection.cc
+//! \file VecgeomNavCollection.cc
 //---------------------------------------------------------------------------//
-#include "VGNavCollection.hh"
+#include "VecgeomNavCollection.hh"
 
 #include <VecGeom/navigation/NavStatePool.h>
 #include "base/CollectionBuilder.hh"
@@ -21,8 +21,8 @@ namespace detail
 /*!
  * Resize with a number of states.
  */
-void VGNavCollection<Ownership::value, MemSpace::host>::resize(int max_depth,
-                                                               size_type size)
+void VecgeomNavCollection<Ownership::value, MemSpace::host>::resize(
+    int max_depth, size_type size)
 {
     CELER_EXPECT(max_depth > 0);
 
@@ -40,8 +40,8 @@ void VGNavCollection<Ownership::value, MemSpace::host>::resize(int max_depth,
 /*!
  * Get a reference to host value data.
  */
-void VGNavCollection<Ownership::reference, MemSpace::host>::operator=(
-    VGNavCollection<Ownership::value, MemSpace::host>& other)
+void VecgeomNavCollection<Ownership::reference, MemSpace::host>::operator=(
+    VecgeomNavCollection<Ownership::value, MemSpace::host>& other)
 {
     nav_state = make_span(other.nav_state);
 }
@@ -50,9 +50,8 @@ void VGNavCollection<Ownership::reference, MemSpace::host>::operator=(
 /*!
  * Get the navigation state at the given thread, which must be zero.
  */
-auto VGNavCollection<Ownership::reference, MemSpace::host>::at(int,
-                                                               ThreadId id) const
-    -> NavState&
+auto VecgeomNavCollection<Ownership::reference, MemSpace::host>::at(
+    int, ThreadId id) const -> NavState&
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(id < nav_state.size());
@@ -74,8 +73,8 @@ void NavStatePoolDeleter::operator()(arg_type ptr) const
 /*!
  * Allocate the pool and save the GPU pointer.
  */
-void VGNavCollection<Ownership::value, MemSpace::device>::resize(int       md,
-                                                                 size_type sz)
+void VecgeomNavCollection<Ownership::value, MemSpace::device>::resize(
+    int md, size_type sz)
 {
     CELER_EXPECT(md > 0);
     CELER_EXPECT(sz > 0);
@@ -93,8 +92,8 @@ void VGNavCollection<Ownership::value, MemSpace::device>::resize(int       md,
 /*!
  * Copy the GPU pointer from the host-managed pool.
  */
-void VGNavCollection<Ownership::reference, MemSpace::device>::operator=(
-    VGNavCollection<Ownership::value, MemSpace::device>& other)
+void VecgeomNavCollection<Ownership::reference, MemSpace::device>::operator=(
+    VecgeomNavCollection<Ownership::value, MemSpace::device>& other)
 {
     CELER_ASSERT(other);
     pool_view = vecgeom::NavStatePoolView{

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoTrackView.hh
+//! \file VecgeomTrackView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,8 +12,8 @@
 
 #include "base/Macros.hh"
 #include "base/NumericLimits.hh"
-#include "GeoData.hh"
-#include "Types.hh"
+#include "geometry/Types.hh"
+#include "VecgeomData.hh"
 
 namespace celeritas
 {
@@ -22,37 +22,38 @@ namespace celeritas
  * Operate on the device with shared (persistent) data and local state.
  *
  * \code
-    GeoTrackView geom(vg_view, vg_state_view, thread_id);
+    VecgeomTrackView geom(vg_view, vg_state_view, thread_id);
    \endcode
  */
-class GeoTrackView
+class VecgeomTrackView
 {
   public:
     //!@{
     //! Type aliases
     using Initializer_t = GeoTrackInitializer;
-    using GeoParamsRef
-        = GeoParamsData<Ownership::const_reference, MemSpace::native>;
-    using GeoStateRef = GeoStateData<Ownership::reference, MemSpace::native>;
+    using ParamsRef
+        = VecgeomParamsData<Ownership::const_reference, MemSpace::native>;
+    using StateRef = VecgeomStateData<Ownership::reference, MemSpace::native>;
     //!@}
 
     //! Helper struct for initializing from an existing geometry state
     struct DetailedInitializer
     {
-        GeoTrackView& other; //!< Existing geometry
-        Real3         dir;   //!< New direction
+        VecgeomTrackView& other; //!< Existing geometry
+        Real3             dir;   //!< New direction
     };
 
   public:
     // Construct from persistent and state data
-    inline CELER_FUNCTION GeoTrackView(const GeoParamsRef& data,
-                                       const GeoStateRef&  stateview,
-                                       const ThreadId&     id);
+    inline CELER_FUNCTION VecgeomTrackView(const ParamsRef& data,
+                                           const StateRef&  stateview,
+                                           ThreadId         id);
 
     // Initialize the state
-    inline CELER_FUNCTION GeoTrackView& operator=(const Initializer_t& init);
+    inline CELER_FUNCTION VecgeomTrackView&
+                          operator=(const Initializer_t& init);
     // Initialize the state from a parent state and new direction
-    inline CELER_FUNCTION GeoTrackView&
+    inline CELER_FUNCTION VecgeomTrackView&
                           operator=(const DetailedInitializer& init);
 
     // Find the distance to the next boundary
@@ -94,7 +95,7 @@ class GeoTrackView
     //// DATA ////
 
     //! Shared/persistent geometry data
-    const GeoParamsRef& shared_;
+    const ParamsRef& shared_;
 
     //!@{
     //! Referenced thread-local data
@@ -117,4 +118,4 @@ class GeoTrackView
 //---------------------------------------------------------------------------//
 } // namespace celeritas
 
-#include "GeoTrackView.i.hh"
+#include "VecgeomTrackView.i.hh"
