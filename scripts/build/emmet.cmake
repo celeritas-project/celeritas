@@ -19,15 +19,11 @@ set_cache_var(CMAKE_INSTALL_RPATH STRING "$ENV{prefix_dir}/lib;${_rpath}")
 # Export compile commands for microsoft visual code
 set_cache_var(CMAKE_EXPORT_COMPILE_COMMANDS BOOL ON)
 
-if(CELERITAS_USE_VecGeom)
-  set(_suppress_stack "-Xnvlink --suppress-stack-size-warning")
-endif()
-
 # Build flags
 set_cache_var(BUILD_SHARED_LIBS BOOL ON)
 set_cache_var(CMAKE_CUDA_ARCHITECTURES STRING "35")
 set_cache_var(CMAKE_CUDA_FLAGS_DEBUG STRING "-g -G")
-set_cache_var(CMAKE_CUDA_FLAGS STRING "-Werror cross-execution-space-call -Wno-deprecated-gpu-targets ${_suppress_stack}")
+set_cache_var(CMAKE_CUDA_FLAGS STRING "-Werror cross-execution-space-call -Wno-deprecated-gpu-targets")
 
 set_cache_var(CELERITAS_DEBUG BOOL ON)
 set_cache_var(CMAKE_BUILD_TYPE STRING "Debug")

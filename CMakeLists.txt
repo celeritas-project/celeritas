@@ -153,6 +153,10 @@ if(CELERITAS_USE_VecGeom)
     CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
   )
   if(CELERITAS_USE_CUDA)
+    # Suppress warnings from virtual function calls in RDC
+    target_compile_options(VecGeom::vecgeomcuda
+      INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
+    )
     set_target_properties(VecGeom::vecgeomcuda PROPERTIES
       CELERITAS_CUDA_LIBRARY_TYPE Shared
       CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static

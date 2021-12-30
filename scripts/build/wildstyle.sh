@@ -29,7 +29,6 @@ cmake -G Ninja \
   -DCMAKE_CUDA_ARCHITECTURES:STRING="70" \
   -DCMAKE_CUDA_FLAGS_DEBUG:STRING="-g -G" \
   -DCMAKE_CUDA_FLAGS_RELEASE:STRING="-O3 -DNDEBUG --use_fast_math" \
-  -DCMAKE_CUDA_FLAGS:STRING="-Xnvlink --suppress-stack-size-warning" \
   -DCMAKE_CXX_FLAGS_RELEASE:STRING="-O3 -DNDEBUG -march=skylake-avx512 -mtune=skylake-avx512" \
   ..
 ninja -v
