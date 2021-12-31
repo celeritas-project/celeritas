@@ -13,8 +13,12 @@ CELERITAS_ENV=${SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view
 export PATH=$CELERITAS_ENV/bin:${PATH}
 export CMAKE_PREFIX_PATH=$CELERITAS_ENV:${CMAKE_PREFIX_PATH}
 
+# XXX ROOT fails with deployment target variable
+export MACOSX_DEPLOYMENT_TARGET=
+
 cmake -C ${BUILDSCRIPT_DIR}/yuri.cmake -G Ninja \
   -DCMAKE_INSTALL_PREFIX:PATH=$SOURCE_DIR/install \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=11.3 \
   ..
 ninja -v
 ctest --output-on-failure
