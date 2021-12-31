@@ -8,11 +8,6 @@
 #include "base/NumericLimits.hh"
 #include "detail/FieldUtils.hh"
 
-#include "base/ArrayIO.hh"
-#include <iostream>
-using std::cout;
-using std::endl;
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -77,8 +72,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 {
     result_type result;
 
-    cout << "=== BEGIN STEP : " << step << " ===\n";
-
     // Break the curved steps into substeps as determined by the driver *and*
     // by the proximity of geometry boundaries. Test for intersection with the
     // geometry boundary in each substep. This loop is guaranteed to converge
@@ -90,7 +83,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
         // Advance up to (but probably less than) the remaining step length
         DriverResult substep = driver_.advance(remaining, state_);
-        cout << "* Substep " << substep.step << endl;
         CELER_ASSERT(substep.step <= remaining);
 
         // TODO: use safety distance to reduce number of calls to
@@ -113,8 +105,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             result.distance += substep.step;
             remaining = step - result.distance;
             track_.move_internal(state_.pos);
-            cout << "! Moved to " << state_.pos << endl;
-            cout << "- Updated distance movement: " << result.distance << endl;
         }
         else if (substep.step * linear_step
                  <= driver_.minimum_step() * chord.length)
@@ -147,8 +137,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // Decrease the allowed substep (curved path distance) by the
             // fraction along the chord, and retry the driver step.
             remaining = substep.step * linear_step / chord.length;
-            cout << "- Rejected: decreasing by " << linear_step / chord.length
-                 << endl;
         }
     }
 
@@ -156,8 +144,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     {
         track_.move_across_boundary();
         state_.pos = track_.pos();
-        cout << "! Crossed boundary to " << state_.pos << endl;
-        cout << "- Updated distance movement: " << result.distance << endl;
     }
     else if (remaining > 0)
     {
@@ -165,7 +151,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         // value for "step". Return that we've moved this tiny amount (for e.g.
         // dE/dx purposes) but don't physically propagate the track.
         result.distance += remaining;
-        cout << "- Return extra distance: " << remaining << endl;
     }
 
     // Even though the along-substep movement was through chord lengths,
