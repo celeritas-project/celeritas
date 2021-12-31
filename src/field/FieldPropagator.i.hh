@@ -8,6 +8,11 @@
 #include "base/NumericLimits.hh"
 #include "detail/FieldUtils.hh"
 
+#include "base/ArrayIO.hh"
+#include <iostream>
+using std::cout;
+using std::endl;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -58,11 +63,13 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()() -> result_type
  * calculated momentum.
  *
  * Caveats:
- * - Due to boundary fuzziness, the track may translate slightly when it
- *   intersects a boundary.
- * - Due to minimum driver step length, the resulting distance moved may not
- *   exactly add up to the updated track position (TODO: should we do a
- *   "linear" propagation step when this happens?)
+ * - The physical (geometry track state) position may deviate from the exact
+ *   curved propagation position up to a driver-based tolerance at every
+ *   boundary crossing. The momentum will always be conserved, though.
+ * - In some unusual cases (e.g. a very small caller-requested step, or an
+ *   unusual accumulation in the driver's substeps) the distance returned may
+ *   be slightly higher (again, up to a driver-based tolerance) than the
+ *   physical distance travelled.
  */
 template<class DriverT>
 CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
@@ -70,19 +77,24 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 {
     result_type result;
 
+    cout << "=== BEGIN STEP : " << step << " ===\n";
+
     // Break the curved steps into substeps as determined by the driver *and*
     // by the proximity of geometry boundaries. Test for intersection with the
-    // geometry boundary in each substep.
-    real_type remaining     = step;
-    bool      near_boundary = false;
+    // geometry boundary in each substep. This loop is guaranteed to converge
+    // since the trial step always decreases *or* the actual position advances.
+    real_type remaining = step;
     while (remaining >= driver_.minimum_step())
     {
         CELER_ASSERT(soft_zero(distance(state_.pos, track_.pos())));
 
         // Advance up to (but probably less than) the remaining step length
         DriverResult substep = driver_.advance(remaining, state_);
+        cout << "* Substep " << substep.step << endl;
+        CELER_ASSERT(substep.step <= remaining);
 
-        // TODO: skip additional checking based on available safety distance
+        // TODO: use safety distance to reduce number of calls to
+        // find_next_step
 
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
@@ -91,51 +103,70 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         // the substep end point.
         track_.set_dir(chord.dir);
         real_type linear_step = track_.find_next_step();
-        if (near_boundary || linear_step <= chord.length)
+        if (linear_step > chord.length)
         {
-            near_boundary = true;
-
-            // We intersect a boundary along the chord. Calculate the
-            // expected straight-line intersection point.
-            Real3 est_intercept_pos = state_.pos;
-            axpy(linear_step, chord.dir, &est_intercept_pos);
-
-            if (distance(est_intercept_pos, substep.state.pos)
-                < driver_.delta_intersection())
-            {
-                // The substep's end point is within an acceptable tolerance
-                // from the chord's boundary intersection. Commit the proposed
-                // state's momentum but used the updated track position.
-                result.distance += substep.step;
-                remaining       = 0;
-                result.boundary = true;
-                track_.move_across_boundary();
-                state_.mom = substep.state.mom;
-                state_.pos = track_.pos();
-            }
-            else
-            {
-                // Straight-line intersect is too far from substep's end state.
-                // Decrease the allowed substep (curved path distance) by the
-                // fraction along the chord, and retry the driver step.
-                remaining = substep.step * linear_step / chord.length;
-            }
-        }
-        else
-        {
-            // No boundary intersection: accept substep movement inside the
-            // current volume
+            // No boundary intersection along the chord: accept substep
+            // movement inside the current volume and reset the remaining
+            // distance so we can continue toward the next boundary or end of
+            // caller-requested step.
             state_ = substep.state;
             result.distance += substep.step;
             remaining = step - result.distance;
             track_.move_internal(state_.pos);
+            cout << "! Moved to " << state_.pos << endl;
+            cout << "- Updated distance movement: " << result.distance << endl;
+        }
+        else if (substep.step * linear_step
+                 <= driver_.minimum_step() * chord.length)
+        {
+            // We're close enough to the boundary that the next trial step
+            // would be less than the driver's minimum step. Hop to the
+            // boundary without committing the substep.
+            result.boundary = true;
+            result.distance += linear_step;
+            remaining = 0;
+        }
+        else if (detail::is_intercept_close(state_.pos,
+                                            chord.dir,
+                                            linear_step,
+                                            substep.state.pos,
+                                            driver_.delta_intersection()))
+        {
+            // The straight-line intersection point is a distance less than
+            // `delta_intersection` from the substep's end position.
+            // Commit the proposed state's momentum but use the
+            // post-boundary-crossing track position for consistency
+            result.boundary = true;
+            result.distance += substep.step;
+            state_.mom = substep.state.mom;
+            remaining  = 0;
+        }
+        else
+        {
+            // The straight-line intercept is too far from substep's end state.
+            // Decrease the allowed substep (curved path distance) by the
+            // fraction along the chord, and retry the driver step.
+            remaining = substep.step * linear_step / chord.length;
+            cout << "- Rejected: decreasing by " << linear_step / chord.length
+                 << endl;
         }
     }
 
-    // Add any additional remaining substep (less than driver minimum)
-    // NOTE: this creates a slight inconsistency between the distance traveled
-    // and the actual position
-    result.distance += remaining;
+    if (result.boundary)
+    {
+        track_.move_across_boundary();
+        state_.pos = track_.pos();
+        cout << "! Crossed boundary to " << state_.pos << endl;
+        cout << "- Updated distance movement: " << result.distance << endl;
+    }
+    else if (remaining > 0)
+    {
+        // Bad luck with substep accumulation or possible very small initial
+        // value for "step". Return that we've moved this tiny amount (for e.g.
+        // dE/dx purposes) but don't physically propagate the track.
+        result.distance += remaining;
+        cout << "- Return extra distance: " << remaining << endl;
+    }
 
     // Even though the along-substep movement was through chord lengths,
     // conserve momentum through the field change by updating the final

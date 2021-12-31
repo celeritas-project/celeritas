@@ -29,6 +29,13 @@ struct Chord
 inline CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst);
 
 //---------------------------------------------------------------------------//
+inline CELER_FUNCTION bool is_intercept_close(const Real3& pos,
+                                              const Real3& dir,
+                                              real_type    distance,
+                                              const Real3& target,
+                                              real_type    tolerance);
+
+//---------------------------------------------------------------------------//
 // Evaluate the stepper truncation error
 inline CELER_FUNCTION real_type truncation_error(real_type       step,
                                                  real_type       eps_rel_max,

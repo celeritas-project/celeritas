@@ -51,6 +51,32 @@ CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the straight-line position is within a distance of the target.
+ *
+ * This is equivalent to:
+ * \code
+     Real3 temp = pos;
+     axpy(distance, dir, &pos);
+
+     return distance(pos, target) <= tolerance;
+ * \endcode
+ */
+CELER_FUNCTION bool is_intercept_close(const Real3& pos,
+                                       const Real3& dir,
+                                       real_type    distance,
+                                       const Real3& target,
+                                       real_type    tolerance)
+{
+    real_type delta_sq = 0;
+    for (size_type i = 0; i != 3; ++i)
+    {
+        delta_sq += ipow<2>(pos[i] - target[i] + distance * dir[i]);
+    }
+    return delta_sq <= ipow<2>(tolerance);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Evaluate the stepper truncation error square:
  * \f$ \Delta = max (\delta_{pos}^{2}, \epsilon \delta_{mom}^{2}) \f$
  */
