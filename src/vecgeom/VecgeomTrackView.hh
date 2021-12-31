@@ -22,7 +22,7 @@ namespace celeritas
  * Operate on the device with shared (persistent) data and local state.
  *
  * \code
-    VecgeomTrackView geom(vg_view, vg_state_view, thread_id);
+    VecgeomTrackView geom(vg_params_ref, vg_state_ref, thread_id);
    \endcode
  */
 class VecgeomTrackView
@@ -95,7 +95,7 @@ class VecgeomTrackView
     //// DATA ////
 
     //! Shared/persistent geometry data
-    const ParamsRef& shared_;
+    const ParamsRef& params_;
 
     //!@{
     //! Referenced thread-local data

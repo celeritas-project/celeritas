@@ -25,15 +25,15 @@ namespace celeritas
  * Construct from persistent and state data.
  */
 CELER_FUNCTION
-VecgeomTrackView::VecgeomTrackView(const ParamsRef& data,
-                                   const StateRef&  stateview,
+VecgeomTrackView::VecgeomTrackView(const ParamsRef& params,
+                                   const StateRef&  states,
                                    ThreadId         thread)
-    : shared_(data)
-    , vgstate_(stateview.vgstate.at(shared_.max_depth, thread))
-    , vgnext_(stateview.vgnext.at(shared_.max_depth, thread))
-    , pos_(stateview.pos[thread])
-    , dir_(stateview.dir[thread])
-    , next_step_(stateview.next_step[thread])
+    : params_(params)
+    , vgstate_(states.vgstate.at(params_.max_depth, thread))
+    , vgnext_(states.vgnext.at(params_.max_depth, thread))
+    , pos_(states.pos[thread])
+    , dir_(states.dir[thread])
+    , next_step_(states.next_step[thread])
 {
 }
 
@@ -55,7 +55,7 @@ VecgeomTrackView::operator=(const Initializer_t& init)
 
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
-    const vecgeom::VPlacedVolume* worldvol       = shared_.world_volume;
+    const vecgeom::VPlacedVolume* worldvol       = params_.world_volume;
     const bool                    contains_point = true;
 
     // Note that LocateGlobalPoint sets `vgstate_`. If `vgstate_` is outside
@@ -125,7 +125,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_next_step()
     else
     {
         // Find distance to interior from outside world volume
-        auto* pplvol = shared_.world_volume;
+        auto* pplvol = params_.world_volume;
         next_step_   = pplvol->DistanceToIn(detail::to_vector(pos_),
                                           detail::to_vector(dir_),
                                           vecgeom::kInfLength);
@@ -221,6 +221,8 @@ CELER_FUNCTION VolumeId VecgeomTrackView::volume_id() const
 }
 
 //---------------------------------------------------------------------------//
+// PRIVATE MEMBER FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
  * Whether the track is outside the valid geometry region.
  */
@@ -229,8 +231,6 @@ CELER_FUNCTION bool VecgeomTrackView::is_outside() const
     return vgstate_.IsOutside();
 }
 
-//---------------------------------------------------------------------------//
-// PRIVATE CLASS FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
  * Get a reference to the current volume, or to world volume if outside.
