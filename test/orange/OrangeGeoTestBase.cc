@@ -125,17 +125,18 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
         VolumeInserter insert(&input.volumes);
         {
             VolumeInput vi;
-            // Inside
-            vi.logic             = {0, logic::lnot};
             vi.faces             = {SurfaceId{0}};
             vi.num_intersections = 2;
-            insert(vi);
 
             // Outside
             vi.logic = {0};
             insert(vi);
+
+            // Inside
+            vi.logic = {0, logic::lnot};
+            insert(vi);
         }
-        input.volume_labels = {"inside", "outside"};
+        input.volume_labels = {"outside", "inside"};
     }
 
     // Save bbox

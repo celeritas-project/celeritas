@@ -572,7 +572,7 @@ TEST_F(TwoVolumeTest, heuristic_init)
 {
     size_type num_tracks = 1024;
 
-    static const double expected_vol_fractions[] = {0.5234375, 0.4765625};
+    static const double expected_vol_fractions[] = {0.4765625, 0.5234375};
 
     {
         SCOPED_TRACE("Host heuristic");

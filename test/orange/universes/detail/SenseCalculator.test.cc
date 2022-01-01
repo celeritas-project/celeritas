@@ -99,8 +99,8 @@ TEST_F(SenseCalculatorTest, two_volumes)
 
     // Note that since these have the same faces, the results should be the
     // same for both.
-    VolumeView inner(this->volume_ref(), VolumeId{0});
-    VolumeView outer(this->volume_ref(), VolumeId{1});
+    VolumeView outer(this->volume_ref(), VolumeId{0});
+    VolumeView inner(this->volume_ref(), VolumeId{1});
 
     {
         // Point is in the inner sphere
