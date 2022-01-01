@@ -43,8 +43,7 @@ TEST_F(IsotropicDistributionTest, bin)
         auto u = sample_isotropic(rng);
 
         // Make sure sampled point is on the surface of the unit sphere
-        ASSERT_TRUE(
-            celeritas::is_soft_unit_vector(u, celeritas::SoftEqual<>{}));
+        ASSERT_TRUE(celeritas::is_soft_unit_vector(u));
 
         // Tally octant
         int tally_bin = 1 * (u[0] >= 0) + 2 * (u[1] >= 0) + 4 * (u[2] >= 0);

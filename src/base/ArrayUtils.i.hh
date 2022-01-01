@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 
 #include <cmath>
-#include "base/Assert.hh"
-#include "base/SoftEqual.hh"
+#include "Algorithms.hh"
+#include "Assert.hh"
+#include "SoftEqual.hh"
 
 namespace celeritas
 {
@@ -133,9 +134,8 @@ inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi)
  */
 inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
 {
-    constexpr real_type sqrt_eps = 1e-6;
-    CELER_EXPECT(is_soft_unit_vector(dir, SoftEqual<real_type>(sqrt_eps)));
-    CELER_EXPECT(is_soft_unit_vector(rot, SoftEqual<real_type>(sqrt_eps)));
+    CELER_EXPECT(is_soft_unit_vector(dir));
+    CELER_EXPECT(is_soft_unit_vector(rot));
 
     // Direction enumeration
     enum
@@ -147,11 +147,11 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
 
     // Transform direction vector into theta, phi so we can use it as a
     // rotation matrix
-    real_type sintheta = std::sqrt(1 - rot[Z] * rot[Z]);
+    real_type sintheta = std::sqrt(1 - ipow<2>(rot[Z]));
     real_type cosphi;
     real_type sinphi;
 
-    if (sintheta >= sqrt_eps)
+    if (sintheta >= detail::SoftEqualTraits<real_type>::sqrt_prec())
     {
         // Typical case: far enough from z axis to calculate correctly
         const real_type inv_sintheta = 1 / (sintheta);
@@ -161,8 +161,8 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
     else if (sintheta > 0)
     {
         // Gives "correct" answers as long as x or y is not zero
-        cosphi = rot[X] / std::sqrt(rot[X] * rot[X] + rot[Y] * rot[Y]);
-        sinphi = std::sqrt(1 - cosphi * cosphi);
+        cosphi = rot[X] / std::sqrt(ipow<2>(rot[X]) + ipow<2>(rot[Y]));
+        sinphi = std::sqrt(1 - ipow<2>(cosphi));
     }
     else
     {
@@ -176,7 +176,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
            (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
            -sintheta * dir[X] + rot[Z] * dir[Z]};
 
-    CELER_ENSURE(is_soft_unit_vector(result, SoftEqual<real_type>(sqrt_eps)));
+    CELER_ENSURE(is_soft_unit_vector(result));
     return result;
 }
 
@@ -186,12 +186,14 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
  *
  * Example:
  * \code
-  CELER_EXPECT(is_soft_unit_vector(v, SoftEqual(1e-12)))
+  CELER_EXPECT(is_soft_unit_vector(v))
   \endcode
  */
-template<class T, size_type N, class SoftEq>
-CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v, SoftEq cmp)
+template<class T, size_type N>
+CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v)
 {
+    // (1 + eps, 0, 0) is barely allowed
+    SoftEqual<T> cmp{2 * detail::SoftEqualTraits<T>::rel_prec()};
     return cmp(T(1), dot_product(v, v));
 }
 
