@@ -127,7 +127,7 @@ CELER_FUNCTION auto SimpleUnitTracker::initialize(LocalState state) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance-to-intercept for the next surface
+ * Calculate distance-to-intercept for the next surface.
  */
 CELER_FUNCTION auto SimpleUnitTracker::intersect(LocalState state) const
     -> Intersection
@@ -172,7 +172,7 @@ CELER_FUNCTION auto SimpleUnitTracker::intersect(LocalState state) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance to the next boundary for nonreentrant cells
+ * Calculate distance to the next boundary for nonreentrant cells.
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::simple_intersect(LocalState state, VolumeView vol) const
