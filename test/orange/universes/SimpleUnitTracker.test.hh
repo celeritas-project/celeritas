@@ -89,7 +89,7 @@ CELER_CONSTEXPR_FUNCTION celeritas::ItemRange<T> build_range(
 }
 
 template<MemSpace M = MemSpace::native>
-inline LocalState build_local_state(
+inline CELER_FUNCTION LocalState build_local_state(
     ParamsRef<M> params,
     StateRef<M>        states,
     ThreadId tid)
@@ -128,44 +128,18 @@ struct InitializingLauncher
     {
         // Instantiate tracker and initialize
         celeritas::SimpleUnitTracker tracker(this->params);
-        auto init = tracker.initialize(build_local_state(params, states, tid));
+        auto lstate = build_local_state(params, states, tid);
+        auto init = tracker.initialize(lstate);
 
         // Update state with post-initialization result
         states.vol[tid]   = init.volume;
         states.surf[tid]  = init.surface.id();
         states.sense[tid] = init.surface.unchecked_sense();
-    }
-};
 
-//! Initialization heuristic
-template<MemSpace M = MemSpace::native>
-struct TraceStepLauncher
-{
-    ParamsRef<M> params;
-    StateRef<M>        states;
-    StepResultRef<M> steps;
-
-    CELER_FUNCTION void operator()(ThreadId tid) const
-    {
-        // Instantiate tracker and initialize
-        celeritas::SimpleUnitTracker tracker(this->params);
-
-        auto lstate = build_local_state(params, states, tid);
+        lstate.volume = init.volume;
         auto isect = tracker.intersect(lstate);
 
-        // Add distance/intersect
-        if (isect)
-        {
-            steps.distance[tid] = isect.distance;
-            steps.vol[tid] = lstate.volume;
-        }
-        else
-        {
-            steps.distance[tid] = 0;
-            steps.vol[tid] = 0;
-        }
-
-        // Update state with post-crossing result
+        // BOGUS
         states.surf[tid]  = isect.surface.id();
         states.sense[tid] = isect.surface.unchecked_sense();
     }
@@ -177,16 +151,8 @@ struct TraceStepLauncher
 //! Run on device
 void test_initialize(const ParamsRef<MemSpace::device>&, const StateRef<MemSpace::device>&);
 
-//! Run on device
-void test_distance(const ParamsRef<MemSpace::device>&, const StateRef<MemSpace::device>&, const StepResultRef<MemSpace::device>&);
-
 #if !CELERITAS_USE_CUDA
 inline void test_initialize(const ParamsRef<MemSpace::device>&, const StateRef<MemSpace::device>&)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
-
-inline void test_distance(const ParamsRef<MemSpace::device>&, const StateRef<MemSpace::device>&, const StepResultRef<MemSpace::device>&)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }
