@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoParams.hh
+//! \file VecgeomParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
-#include "Types.hh"
 #include "base/Types.hh"
-#include "GeoData.hh"
+#include "geometry/Types.hh"
+#include "VecgeomData.hh"
 
 namespace celeritas
 {
@@ -20,22 +20,23 @@ namespace celeritas
  *
  * The model defines the shapes, volumes, etc.
  */
-class GeoParams
+class VecgeomParams
 {
   public:
     //!@{
     //! References to constructed data
-    using HostRef = GeoParamsData<Ownership::const_reference, MemSpace::host>;
+    using HostRef
+        = VecgeomParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
-        = GeoParamsData<Ownership::const_reference, MemSpace::device>;
+        = VecgeomParamsData<Ownership::const_reference, MemSpace::device>;
     //!@}
 
   public:
     // Construct from a GDML filename
-    explicit GeoParams(const std::string& gdml_filename);
+    explicit VecgeomParams(const std::string& filename);
 
     // Clean up VecGeom on destruction
-    ~GeoParams();
+    ~VecgeomParams();
 
     //// HOST ACCESSORS ////
 
@@ -47,7 +48,7 @@ class GeoParams
     VolumeId label_to_id(const std::string& label) const;
 
     //! Number of volumes
-    size_type num_volumes() const { return num_volumes_; }
+    VolumeId::size_type num_volumes() const { return num_volumes_; }
 
     //! Maximum nested geometry depth
     int max_depth() const { return host_ref_.max_depth; }

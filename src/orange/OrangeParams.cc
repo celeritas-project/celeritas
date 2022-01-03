@@ -10,6 +10,8 @@
 #include <fstream>
 #include "celeritas_config.h"
 
+#include "base/StringUtils.hh"
+#include "comm/Logger.hh"
 #include "orange/construct/SurfaceInput.hh"
 #include "orange/construct/SurfaceInserter.hh"
 #include "orange/construct/VolumeInput.hh"
@@ -29,12 +31,25 @@ namespace
 /*!
  * Load a geometry from the given JSON filename.
  */
-OrangeParams::Input input_from_json(const std::string& filename)
+OrangeParams::Input input_from_json(std::string filename)
 {
     CELER_VALIDATE(CELERITAS_USE_JSON,
                    << "JSON is not enabled so geometry cannot be loaded");
 
+    CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     OrangeParams::Input input;
+
+    if (ends_with(filename, ".gdml"))
+    {
+        CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix: trying "
+                              "`.org.json` instead";
+        filename.erase(filename.end() - 5, filename.end());
+        filename += ".org.json";
+    }
+    else if (!ends_with(filename, ".json"))
+    {
+        CELER_LOG(warning) << "Expected '.json' extension for JSON input";
+    }
 
 #if CELERITAS_USE_JSON
     std::ifstream infile(filename);

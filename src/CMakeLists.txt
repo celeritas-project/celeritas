@@ -55,6 +55,7 @@ list(APPEND SOURCES
   base/DeviceAllocation.cc
   comm/KernelDiagnostics.cc
   base/ScopedStreamRedirect.cc
+  base/StringUtils.cc
   base/TypeDemangler.cc
   base/VectorUtils.cc
   base/detail/ReprImpl.cc
