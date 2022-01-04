@@ -20,9 +20,13 @@ namespace detail
 // FUNCTION-LIKE CLASSES
 //---------------------------------------------------------------------------//
 /*!
- * Predicate for finding closest valid distance.
+ * Predicate for finding the closest valid (strictly positive) distance.
+ *
+ * \todo Changing the QuadraticSolver class to return only positive
+ * intersections should allow us to replace this with a simple less-than
+ * comparator.
  */
-struct CloserNonzeroDistance
+struct CloserPositiveDistance
 {
     CELER_CONSTEXPR_FUNCTION bool operator()(real_type a, real_type b) const
     {
@@ -32,7 +36,10 @@ struct CloserNonzeroDistance
 
 //---------------------------------------------------------------------------//
 /*!
- * Predicate for partitioning valid (finite nonzero) from invalid distances.
+ * Predicate for partitioning valid (finite positive) from invalid distances.
+ *
+ * \todo See above, and if we add a "maximum distance" to the intersection
+ * lookup, then we can perhaps change to `return distance < max_dist`.
  */
 struct IntersectionPartitioner
 {

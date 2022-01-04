@@ -341,7 +341,7 @@ class UtilsTest : public celeritas::Test
 
 TEST_F(UtilsTest, closer_nonzero_distance)
 {
-    detail::CloserNonzeroDistance is_closer;
+    detail::CloserPositiveDistance is_closer;
 
     // Equal
     EXPECT_FALSE(is_closer(0.0, 0.0));

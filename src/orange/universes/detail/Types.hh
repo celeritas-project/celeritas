@@ -132,11 +132,15 @@ struct Initialization
 
 //---------------------------------------------------------------------------//
 /*!
- * Next face ID and the distance to it.
+ * Local face IDs, distances, and ordering.
  *
- * The index vector should be initialized with "iota" (or equivalent) before
- * sorting operations are performed. It allows indirect sorting of the
- * face/distance simultaneously.
+ * This is temporary space for calculating the distance-to-intersection within
+ * a volume. The faces and distances are effectively pairs, up to index \c
+ * size.
+ *
+ * The index vector \c isect is initialized with the sequence `[0, size)` to
+ * allow indirect sorting of the intersections stored in the face/distance
+ * pairs.
  */
 struct TempNextFace
 {

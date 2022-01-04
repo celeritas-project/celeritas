@@ -181,13 +181,13 @@ SimpleUnitTracker::simple_intersect(LocalState state, VolumeView vol) const
     CELER_EXPECT(state.temp_next && vol.num_intersections() > 0);
 
     // Crossing any surface will leave the cell; perform a linear search for
-    // the smallest (but nonzero) distance
+    // the smallest (but positive) distance
     size_type distance_idx;
     {
         const real_type* distance_ptr = celeritas::min_element(
             state.temp_next.distance,
             state.temp_next.distance + state.temp_next.size,
-            detail::CloserNonzeroDistance{});
+            detail::CloserPositiveDistance{});
         CELER_ASSERT(*distance_ptr > 0);
         distance_idx = distance_ptr - state.temp_next.distance;
     }
@@ -245,7 +245,7 @@ SimpleUnitTracker::complex_intersect(LocalState state, VolumeView vol) const
     -> Intersection
 {
     // Partition intersections (enumerated from 0 as the `idx` array) into
-    // valid (finite nonzero) and invalid (infinite-or-zero) groups.
+    // valid (finite positive) and invalid (infinite-or-negative) groups.
     size_type num_isect = celeritas::partition(
                               state.temp_next.isect,
                               state.temp_next.isect + state.temp_next.size,
