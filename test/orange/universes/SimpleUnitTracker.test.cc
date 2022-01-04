@@ -53,11 +53,6 @@ class SimpleUnitTrackerTest : public celeritas_test::OrangeGeoTestBase
         void print_expected() const;
     };
 
-    struct HeuristicTrackInput
-    {
-        real_type sigma;
-    };
-
   protected:
     // Initialization without any logical state
     LocalState make_state(Real3 pos, Real3 dir);

@@ -22,58 +22,6 @@ template<MemSpace M>
 using StateRef = celeritas::OrangeStateData<Ownership::reference, M>;
 
 //---------------------------------------------------------------------------//
-// Track step data for stepping heuristic
-//---------------------------------------------------------------------------//
-template<Ownership W, MemSpace M>
-struct TrackStepData
-{
-    //// TYPES ////
-
-    template<class T>
-    using StateItems = celeritas::StateCollection<T, W, M>;
-
-    StateItems<celeritas::real_type> distance; // [track]
-    StateItems<celeritas::size_type> vol;      // [track]
-
-    //! True if sizes are consistent and nonzero
-    explicit CELER_FUNCTION operator bool() const
-    {
-        // clang-format off
-        return !distance.empty()
-            && distance.size() == vol.size();
-    }
-
-    //! State size
-    CELER_FUNCTION ThreadId::size_type size() const { return distance.size(); }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    TrackStepData& operator=(TrackStepData<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        distance   = other.distance;
-        vol   = other.vol;
-    }
-};
-
-template<MemSpace M> using StepResultRef = TrackStepData<Ownership::reference, M>;
-
-//---------------------------------------------------------------------------//
-/*!
- * Resize particle states in host code.
- */
-template<MemSpace M>
-inline void
-resize(TrackStepData<Ownership::value, M>* data,
-       celeritas::size_type size)
-{
-    CELER_EXPECT(data);
-
-    make_builder(&data->distance).resize(size);
-    make_builder(&data->vol).resize(size);
-}
-
-//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 

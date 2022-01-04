@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "SimpleUnitTracker.test.hh"
 
-#include <thrust/reduce.h>
 #include "base/KernelParamCalculator.cuda.hh"
 
 namespace celeritas_test
