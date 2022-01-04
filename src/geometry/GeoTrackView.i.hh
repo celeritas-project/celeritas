@@ -102,6 +102,7 @@ CELER_FUNCTION real_type GeoTrackView::find_next_step()
     if (this->has_next_step())
     {
         // Next boundary distance is cached
+        return next_step_;
     }
     else if (!this->is_outside())
     {
@@ -122,18 +123,18 @@ CELER_FUNCTION real_type GeoTrackView::find_next_step()
     }
     else
     {
-        // Find distance to interior from inside world volume
+        // Find distance to interior from outside world volume
         auto* pplvol = shared_.world_volume;
         next_step_   = pplvol->DistanceToIn(detail::to_vector(pos_),
                                           detail::to_vector(dir_),
                                           vecgeom::kInfLength);
-        next_step_   = std::fmax(next_step_, this->extra_push());
 
         vgnext_.Clear();
         if (next_step_ < vecgeom::kInfLength)
             vgnext_.Push(pplvol);
     }
 
+    next_step_ = std::fmax(next_step_, this->extra_push());
     CELER_ENSURE(this->has_next_step());
     return next_step_;
 }
