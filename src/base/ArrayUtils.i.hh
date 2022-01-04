@@ -5,7 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file ArrayUtils.i.hh
 //---------------------------------------------------------------------------//
-
 #include <cmath>
 #include "Algorithms.hh"
 #include "Assert.hh"
@@ -222,8 +221,8 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
 template<class T, size_type N>
 CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v)
 {
-    // (1 + eps, 0, 0) is barely allowed
-    SoftEqual<T> cmp{2 * detail::SoftEqualTraits<T>::rel_prec()};
+    // (1 + eps, 0, 0) is not quite allowed for 2*eps precision; increase
+    SoftEqual<T> cmp{10 * detail::SoftEqualTraits<T>::rel_prec()};
     return cmp(T(1), dot_product(v, v));
 }
 
