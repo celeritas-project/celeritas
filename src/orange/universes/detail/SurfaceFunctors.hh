@@ -103,25 +103,21 @@ struct CalcSafetyDistance
 class CalcIntersections
 {
   public:
-    //!@{
-    //! Types
-    using face_int = FaceId::size_type;
-    //!@}
-
-  public:
     //! Construct from the particle point, direction, face ID, and temp storage
-    CELER_FUNCTION CalcIntersections(const Real3& pos,
-                                     const Real3& dir,
-                                     FaceId       on_face,
-                                     TempNextFace next_face)
+    CELER_FUNCTION CalcIntersections(const Real3&        pos,
+                                     const Real3&        dir,
+                                     FaceId              on_face,
+                                     bool                is_simple,
+                                     const TempNextFace& next_face)
         : pos_(pos)
         , dir_(dir)
         , on_face_idx_(on_face.unchecked_get())
-        , face_idx_(0)
+        , fill_isect_(!is_simple)
         , face_(next_face.face)
-        , dist_(next_face.distance)
+        , distance_(next_face.distance)
+        , isect_(next_face.isect)
     {
-        CELER_EXPECT(face_ && dist_);
+        CELER_EXPECT(face_ && distance_);
     }
 
     //! Operate on a surface
@@ -138,24 +134,33 @@ class CalcIntersections
         for (real_type dist : all_dist)
         {
             CELER_ASSERT(dist >= 0);
-            *face_++ = FaceId{face_idx_};
-            *dist_++ = dist;
+            face_[isect_idx_]     = FaceId{face_idx_};
+            distance_[isect_idx_] = dist;
+            if (fill_isect_)
+            {
+                isect_[isect_idx_] = isect_idx_;
+            }
+            ++isect_idx_;
         }
         // Increment to next face
         ++face_idx_;
     }
 
-    CELER_FUNCTION face_int face_idx() const { return face_idx_; }
+    CELER_FUNCTION size_type face_idx() const { return face_idx_; }
+    CELER_FUNCTION size_type isect_idx() const { return isect_idx_; }
 
   private:
     //// DATA ////
 
-    const Real3&   pos_;
-    const Real3&   dir_;
-    const face_int on_face_idx_;
-    face_int       face_idx_;
-    FaceId*        face_;
-    real_type*     dist_;
+    const Real3&     pos_;
+    const Real3&     dir_;
+    const size_type  on_face_idx_;
+    const bool       fill_isect_;
+    FaceId* const    face_;
+    real_type* const distance_;
+    size_type* const isect_;
+    size_type        face_idx_{0};
+    size_type        isect_idx_{0};
 };
 
 //---------------------------------------------------------------------------//

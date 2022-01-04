@@ -8,6 +8,7 @@
 #pragma once
 
 #include "orange/Types.hh"
+#include "base/OpaqueId.hh"
 #include "base/Span.hh"
 
 namespace celeritas
@@ -90,6 +91,21 @@ using OnFace    = OnTface<struct Face>;
 
 //---------------------------------------------------------------------------//
 /*!
+ * Distance and next-surface information.
+ *
+ * The resulting sense is *after* crossing the boundary.
+ */
+struct Intersection
+{
+    OnSurface surface;
+    real_type distance = no_intersection();
+
+    //! Whether a next surface has been found
+    explicit operator bool() const { return static_cast<bool>(surface); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Volume ID and surface ID after initialization.
  *
  * Possible configurations for the initialization result ('X' means 'has
@@ -116,22 +132,28 @@ struct Initialization
 
 //---------------------------------------------------------------------------//
 /*!
- * Next face ID and the distance to it.
+ * Local face IDs, distances, and ordering.
  *
- * We may want to restructure this if we store a vector of face/distance rather
- * than two separate vectors.
+ * This is temporary space for calculating the distance-to-intersection within
+ * a volume. The faces and distances are effectively pairs, up to index \c
+ * size.
+ *
+ * The index vector \c isect is initialized with the sequence `[0, size)` to
+ * allow indirect sorting of the intersections stored in the face/distance
+ * pairs.
  */
 struct TempNextFace
 {
     FaceId*    face{nullptr};
     real_type* distance{nullptr};
-    size_type  num_faces{0}; //!< "constant" in params
+    size_type* isect{nullptr};
+
+    size_type size{0}; //!< Number of intersections
 
     explicit CELER_FORCEINLINE_FUNCTION operator bool() const
     {
         return static_cast<bool>(face);
     }
-    CELER_FORCEINLINE_FUNCTION size_type size() const { return num_faces; }
 };
 
 //---------------------------------------------------------------------------//
@@ -151,7 +173,7 @@ struct LocalState
     Real3        dir;
     VolumeId     volume;
     OnSurface    surface;
-    Span<Sense>  temp_senses;
+    Span<Sense>  temp_sense;
     TempNextFace temp_next;
 };
 

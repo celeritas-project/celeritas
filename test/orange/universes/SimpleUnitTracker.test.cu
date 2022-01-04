@@ -17,8 +17,8 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void
-initialize_kernel(const ParamsDeviceRef params, const StateDeviceRef states)
+__global__ void initialize_kernel(const ParamsRef<MemSpace::device> params,
+                                  const StateRef<MemSpace::device>  states)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= states.size())
@@ -33,7 +33,8 @@ initialize_kernel(const ParamsDeviceRef params, const StateDeviceRef states)
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void test_initialize(const ParamsDeviceRef& params, const StateDeviceRef& state)
+void test_initialize(const ParamsRef<MemSpace::device>& params,
+                     const StateRef<MemSpace::device>&  state)
 {
     static const celeritas::KernelParamCalculator calc_launch_params(
         initialize_kernel, "initialize");

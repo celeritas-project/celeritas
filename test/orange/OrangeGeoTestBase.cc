@@ -125,7 +125,7 @@ void OrangeGeoTestBase::build_geometry(const char* filename)
 /*!
  * Construct a geometry with one infinite volume.
  */
-void OrangeGeoTestBase::build_geometry(OneVolInput)
+void OrangeGeoTestBase::build_geometry(OneVolInput inp)
 {
     CELER_EXPECT(!params_);
     OrangeParamsData<Ownership::value, MemSpace::host> host_data;
@@ -136,9 +136,11 @@ void OrangeGeoTestBase::build_geometry(OneVolInput)
     {
         // Insert volumes
         VolumeInserter insert(&host_data.volumes);
-        VolumeInput    inp;
-        inp.logic = {logic::ltrue};
-        insert(inp);
+        VolumeInput    vi;
+        vi.logic = {logic::ltrue};
+        vi.flags = (inp.complex_tracking ? VolumeInput::Flags::internal_surfaces
+                                         : 0);
+        insert(vi);
         vol_names_ = {"infinite"};
     }
 
@@ -169,16 +171,16 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
         // Insert volumes
         VolumeInserter insert(&host_data.volumes);
         {
-            VolumeInput inp;
+            VolumeInput vi;
             // Inside
-            inp.logic             = {0, logic::lnot};
-            inp.faces             = {SurfaceId{0}};
-            inp.num_intersections = 2;
-            insert(inp);
+            vi.logic             = {0, logic::lnot};
+            vi.faces             = {SurfaceId{0}};
+            vi.num_intersections = 2;
+            insert(vi);
 
             // Outside
-            inp.logic = {0};
-            insert(inp);
+            vi.logic = {0};
+            insert(vi);
         }
         vol_names_ = {"inside", "outside"};
     }
@@ -299,6 +301,9 @@ void OrangeGeoTestBase::build_impl(ParamsHostValue&& host_data)
     host_data.scalars.max_intersections = max_intersections;
 
     sense_storage_.resize(max_faces);
+    face_storage_.resize(max_intersections);
+    distance_storage_.resize(max_intersections);
+    isect_storage_.resize(max_intersections);
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);
