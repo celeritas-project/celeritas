@@ -34,16 +34,6 @@ struct GeoTrackInitializer
 
 //---------------------------------------------------------------------------//
 /*!
- * Enhanced intersection for curved-line travel.
- */
-struct NearbyIntersection
-{
-    real_type distance; //!< Distance along a straight-line direction
-    real_type safety;   //!< Known-safe distance along any direction
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Result of a propagation step.
  */
 struct Propagation
