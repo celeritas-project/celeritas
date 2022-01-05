@@ -95,6 +95,21 @@ CELER_FUNCTION T norm(const Array<T, N>& v)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the Euclidian (2) distance between two points.
+ */
+template<class T, size_type N>
+CELER_FUNCTION T distance(const Array<T, N>& x, const Array<T, N>& y)
+{
+    real_type dist_sq = 0;
+    for (size_type i = 0; i != N; ++i)
+    {
+        dist_sq += ipow<2>(y[i] - x[i]);
+    }
+    return std::sqrt(dist_sq);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Divide the given vector by its Euclidian norm.
  */
 CELER_FUNCTION void normalize_direction(Real3* direction)

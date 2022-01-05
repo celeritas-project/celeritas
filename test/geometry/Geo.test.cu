@@ -44,9 +44,10 @@ __global__ void vgg_test_kernel(const GeoParamsCRefDevice params,
             break;
 
         // Move next step
-        real_type dist = geo.move_to_boundary();
+        real_type dist = geo.find_next_step();
+        geo.move_across_boundary();
 
-        // Save current ID and distance to travel
+        // Save current ID and distance travelled
         ids[tid.get() * max_segments + seg]       = geo.volume_id();
         distances[tid.get() * max_segments + seg] = dist;
     }

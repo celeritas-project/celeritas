@@ -5,30 +5,107 @@
 //---------------------------------------------------------------------------//
 //! \file FieldPropagator.test.cc
 //---------------------------------------------------------------------------//
-#include "FieldTestBase.hh"
-
-#ifdef CELERITAS_USE_CUDA
-#    include "FieldPropagator.test.hh"
-#endif
+#include "field/FieldPropagator.hh"
 
 #include "base/CollectionStateStore.hh"
+#include "geometry/GeoData.hh"
+#include "geometry/GeoParams.hh"
+#include "geometry/GeoTrackView.hh"
+#include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleData.hh"
-#include "field/UniformMagField.hh"
-#include "field/MagFieldEquation.hh"
-#include "field/RungeKuttaStepper.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/base/Units.hh"
 #include "field/FieldDriver.hh"
-#include "field/FieldPropagator.hh"
+#include "field/FieldParamsData.hh"
+#include "field/MagFieldEquation.hh"
 #include "field/MagFieldTraits.hh"
+#include "field/RungeKuttaStepper.hh"
+#include "field/UniformMagField.hh"
 
+#include "celeritas_test.hh"
+#include "FieldTestParams.hh"
+#include "FieldPropagator.test.hh"
+
+using namespace celeritas;
 using namespace celeritas_test;
-using celeritas::CollectionStateStore;
-using celeritas::ParticleStateData;
+using celeritas::units::MevEnergy;
+
+//---------------------------------------------------------------------------//
+// Test harness
+//---------------------------------------------------------------------------//
+
+class FieldPropagatorTestBase : public celeritas::Test
+{
+  public:
+    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
+
+    void SetUp()
+    {
+        using namespace celeritas::units;
+        namespace pdg = celeritas::pdg;
+
+        // Test geometry: 1-cm thick slabs normal to y, with 1-cm gaps in
+        // between
+        std::string test_file
+            = celeritas::Test::test_data_path("field", "field-test.gdml");
+        geo_params = std::make_shared<celeritas::GeoParams>(test_file.c_str());
+        geo_state  = GeoStateStore(*this->geo_params, 1);
+
+        // Create particle defs
+        constexpr auto        stable = ParticleDef::stable_decay_constant();
+        ParticleParams::Input defs;
+        defs.push_back({"electron",
+                        pdg::electron(),
+                        MevMass{0.5109989461},
+                        ElementaryCharge{-1},
+                        stable});
+        defs.push_back({"positron",
+                        pdg::positron(),
+                        MevMass{0.5109989461},
+                        ElementaryCharge{1},
+                        stable});
+
+        particle_params = std::make_shared<ParticleParams>(std::move(defs));
+
+        // Construct views
+        resize(&state_value, particle_params->host_ref(), 1);
+        state_ref = state_value;
+
+        // Set values of FieldParamsData;
+        field_params.delta_intersection = 1.0e-4 * units::millimeter;
+
+        // Input parameters of an electron in a uniform magnetic field
+        test.nstates     = 128;
+        test.nsteps      = 100;
+        test.revolutions = 10;
+        test.field_value = 1.0 * units::tesla;
+        test.radius      = 3.8085386036;
+        test.delta_z     = 6.7003310629;
+        test.energy      = 10.9181415106;
+        test.momentum_y  = 11.4177114158018;
+        test.momentum_z  = 0.0;
+        test.epsilon     = 1.0e-5;
+    }
+
+  protected:
+    GeoStateStore                               geo_state;
+    std::shared_ptr<const celeritas::GeoParams> geo_params;
+
+    std::shared_ptr<ParticleParams>                         particle_params;
+    ParticleStateData<Ownership::value, MemSpace::host>     state_value;
+    ParticleStateData<Ownership::reference, MemSpace::host> state_ref;
+
+    FieldParamsData field_params;
+
+    // Test parameters
+    FieldTestParams test;
+};
 
 //---------------------------------------------------------------------------//
 // HOST TESTS
 //---------------------------------------------------------------------------//
 
-class FieldPropagatorHostTest : public FieldTestBase
+class FieldPropagatorHostTest : public FieldPropagatorTestBase
 {
   public:
     using Initializer_t = ParticleTrackView::Initializer_t;
@@ -47,7 +124,7 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
     using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, rk4);
+    RKTraits::Driver_t   driver(field_params, &rk4);
 
     // Test parameters and the sub-step size
     double step = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -65,11 +142,10 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         beg_state.pos = {test.radius, -10, i * 1.0e-6};
 
         // Check GeoTrackView
-        geo_track.find_next_step();
-        EXPECT_SOFT_EQ(5.5, geo_track.next_step());
+        EXPECT_SOFT_EQ(5.5, geo_track.find_next_step());
 
         // Construct FieldPropagator
-        RKTraits::Propagator_t propagator(&geo_track, particle_track, driver);
+        RKTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
 
         real_type                           total_length = 0;
         RKTraits::Propagator_t::result_type result;
@@ -78,8 +154,9 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         {
             for (CELER_MAYBE_UNUSED int j : celeritas::range(test.nsteps))
             {
-                result = propagator(step);
-                EXPECT_DOUBLE_EQ(result.distance, step);
+                result = propagate(step);
+                EXPECT_FALSE(result.boundary);
+                EXPECT_DOUBLE_EQ(step, result.distance);
                 total_length += result.distance;
             }
         }
@@ -106,15 +183,14 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
     using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, rk4);
-
-    const int num_boundary = 16;
+    RKTraits::Driver_t   driver(field_params, &rk4);
 
     // clang-format off
-    real_type expected_y[num_boundary] 
+    static const real_type expected_y[]
         = { 0.5,  1.5,  2.5,  3.5,  3.5,  2.5,  1.5,  0.5,
            -0.5, -1.5, -2.5, -3.5, -3.5, -2.5, -1.5, -0.5};
     // clang-format on
+    const int num_boundary = sizeof(expected_y) / sizeof(real_type);
 
     // Test parameters and the sub-step size
     double step = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -125,11 +201,10 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         geo_track      = {{test.radius, 0, i * 1.0e-6}, {0, 1, 0}};
         particle_track = Initializer_t{ParticleId{0}, MevEnergy{test.energy}};
 
-        geo_track.find_next_step();
-        EXPECT_SOFT_EQ(0.5, geo_track.next_step());
+        EXPECT_SOFT_EQ(0.5, geo_track.find_next_step());
 
         // Construct FieldPropagator
-        RKTraits::Propagator_t propagator(&geo_track, particle_track, driver);
+        RKTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
 
         int                                 icross       = 0;
         real_type                           total_length = 0;
@@ -139,10 +214,10 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         {
             for (CELER_MAYBE_UNUSED auto k : celeritas::range(test.nsteps))
             {
-                result = propagator(step);
+                result = propagate(step);
                 total_length += result.distance;
 
-                if (result.on_boundary)
+                if (result.boundary)
                 {
                     icross++;
                     int j = (icross - 1) % num_boundary;
@@ -152,18 +227,19 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         }
 
         // Check stepper results with boundary crossings
-        EXPECT_SOFT_NEAR(geo_track.pos()[0], -0.13150565, test.epsilon);
-        EXPECT_SOFT_NEAR(geo_track.dir()[1], -0.03453068, test.epsilon);
-        EXPECT_SOFT_NEAR(total_length, 221.48171708, test.epsilon);
+        EXPECT_SOFT_NEAR(-0.13150565, geo_track.pos()[0], test.epsilon);
+        EXPECT_SOFT_NEAR(-0.03453068, geo_track.dir()[1], test.epsilon);
+        EXPECT_SOFT_NEAR(221.48171708, total_length, test.epsilon);
     }
 }
 
-#if CELERITAS_USE_CUDA
 //---------------------------------------------------------------------------//
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
 
-class FieldPropagatorDeviceTest : public FieldPropagatorHostTest
+#define FieldPropagatorDeviceTest \
+    TEST_IF_CELERITAS_CUDA(FieldPropagatorDeviceTest)
+class FieldPropagatorDeviceTest : public FieldPropagatorTestBase
 {
   public:
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
@@ -242,6 +318,3 @@ TEST_F(FieldPropagatorDeviceTest, boundary_crossing_device)
         EXPECT_SOFT_NEAR(output.step[i], 221.48171708, test.epsilon);
     }
 }
-
-//---------------------------------------------------------------------------//
-#endif

@@ -8,9 +8,9 @@
 #pragma once
 
 #include <string>
-#include "Types.hh"
 #include "base/Types.hh"
 #include "GeoData.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -47,7 +47,7 @@ class GeoParams
     VolumeId label_to_id(const std::string& label) const;
 
     //! Number of volumes
-    size_type num_volumes() const { return num_volumes_; }
+    VolumeId::size_type num_volumes() const { return num_volumes_; }
 
     //! Maximum nested geometry depth
     int max_depth() const { return host_ref_.max_depth; }

@@ -34,6 +34,11 @@ template<class T, size_type N>
 inline CELER_FUNCTION T norm(const Array<T, N>& vec);
 
 //---------------------------------------------------------------------------//
+// Calculate the Euclidian (2) distance between two points
+template<class T, size_type N>
+inline CELER_FUNCTION T distance(const Array<T, N>& x, const Array<T, N>& y);
+
+//---------------------------------------------------------------------------//
 // Divide the given vector by its Euclidian norm
 inline CELER_FUNCTION void normalize_direction(Real3* direction);
 

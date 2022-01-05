@@ -5,6 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file FieldPropagator.i.hh
 //---------------------------------------------------------------------------//
+#include "base/NumericLimits.hh"
+#include "detail/FieldUtils.hh"
 
 namespace celeritas
 {
@@ -14,33 +16,55 @@ namespace celeritas
  */
 template<class DriverT>
 CELER_FUNCTION
-FieldPropagator<DriverT>::FieldPropagator(GeoTrackView*            track,
-                                          const ParticleTrackView& particle,
-                                          DriverT&                 driver)
-    : track_(track), driver_(driver)
+FieldPropagator<DriverT>::FieldPropagator(const ParticleTrackView& particle,
+                                          GeoTrackView*            track,
+                                          DriverT*                 driver)
+    : track_(*track), driver_(*driver)
 {
+    CELER_ASSERT(track && driver);
     CELER_ASSERT(particle.charge() != zero_quantity());
 
     using MomentumUnits = OdeState::MomentumUnits;
 
     state_.pos = track->pos();
-
-    for (size_type i = 0; i != 3; ++i)
-    {
-        state_.mom[i] = value_as<MomentumUnits>(particle.momentum())
-                        * track->dir()[i];
-    }
+    state_.mom = detail::ax(value_as<MomentumUnits>(particle.momentum()),
+                            track->dir());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Propagate a charged particle in a magnetic field and update the field
- * state.
+ * Propagate a charged particle until it hits a boundary.
+ */
+template<class DriverT>
+CELER_FUNCTION auto FieldPropagator<DriverT>::operator()() -> result_type
+{
+    return (*this)(numeric_limits<real_type>::infinity());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Propagate a charged particle in a magnetic field.
  *
  * It utilises a magnetic field driver based on an adaptive step
  * control to track a charged particle until it travels along a curved
  * trajectory for a given step length within a required accuracy or intersects
  * with a new volume (geometry limited step).
+ *
+ * The position of the internal OdeState `state_` should be consistent with the
+ * geometry `track_`'s position, but the geometry's direction will be a series
+ * of "trial" directions that are the chords between the start and end points
+ * of a curved substep through the field. At the end of the propagation step,
+ * the geometry state's direction is updated based on the actual value of the
+ * calculated momentum.
+ *
+ * Caveats:
+ * - The physical (geometry track state) position may deviate from the exact
+ *   curved propagation position up to a driver-based tolerance at every
+ *   boundary crossing. The momentum will always be conserved, though.
+ * - In some unusual cases (e.g. a very small caller-requested step, or an
+ *   unusual accumulation in the driver's substeps) the distance returned may
+ *   be slightly higher (again, up to a driver-based tolerance) than the
+ *   physical distance travelled.
  */
 template<class DriverT>
 CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
@@ -48,160 +72,95 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 {
     result_type result;
 
-    // If not a valid range, transportation shouild not be a candiate process
-    if (step < driver_.minimum_step())
+    // Break the curved steps into substeps as determined by the driver *and*
+    // by the proximity of geometry boundaries. Test for intersection with the
+    // geometry boundary in each substep. This loop is guaranteed to converge
+    // since the trial step always decreases *or* the actual position advances.
+    real_type remaining = step;
+    while (remaining >= driver_.minimum_step())
     {
-        result.distance = numeric_limits<real_type>::infinity();
-        return result;
+        CELER_ASSERT(soft_zero(distance(state_.pos, track_.pos())));
+
+        // Advance up to (but probably less than) the remaining step length
+        DriverResult substep = driver_.advance(remaining, state_);
+        CELER_ASSERT(substep.step <= remaining);
+
+        // TODO: use safety distance to reduce number of calls to
+        // find_next_step
+
+        // Check whether the chord for this sub-step intersects a boundary
+        auto chord = detail::make_chord(state_.pos, substep.state.pos);
+
+        // Do a detailed check boundary check from the start position toward
+        // the substep end point.
+        track_.set_dir(chord.dir);
+        real_type linear_step = track_.find_next_step();
+        if (linear_step > chord.length)
+        {
+            // No boundary intersection along the chord: accept substep
+            // movement inside the current volume and reset the remaining
+            // distance so we can continue toward the next boundary or end of
+            // caller-requested step.
+            state_ = substep.state;
+            result.distance += substep.step;
+            remaining = step - result.distance;
+            track_.move_internal(state_.pos);
+        }
+        else if (substep.step * linear_step
+                 <= driver_.minimum_step() * chord.length)
+        {
+            // We're close enough to the boundary that the next trial step
+            // would be less than the driver's minimum step. Hop to the
+            // boundary without committing the substep.
+            result.boundary = true;
+            result.distance += linear_step;
+            remaining = 0;
+        }
+        else if (detail::is_intercept_close(state_.pos,
+                                            chord.dir,
+                                            linear_step,
+                                            substep.state.pos,
+                                            driver_.delta_intersection()))
+        {
+            // The straight-line intersection point is a distance less than
+            // `delta_intersection` from the substep's end position.
+            // Commit the proposed state's momentum but use the
+            // post-boundary-crossing track position for consistency
+            result.boundary = true;
+            result.distance += substep.step;
+            state_.mom = substep.state.mom;
+            remaining  = 0;
+        }
+        else
+        {
+            // The straight-line intercept is too far from substep's end state.
+            // Decrease the allowed substep (curved path distance) by the
+            // fraction along the chord, and retry the driver step.
+            remaining = substep.step * linear_step / chord.length;
+        }
     }
 
-    // Initial parameters and states for the field integration
-    real_type    step_taken = 0;
-    Intersection intersect;
-
-    do
+    if (result.boundary)
     {
-        OdeState  beg_state = state_;
-        real_type step_left = step - step_taken;
+        track_.move_across_boundary();
+        state_.pos = track_.pos();
+    }
+    else if (remaining > 0)
+    {
+        // Bad luck with substep accumulation or possible very small initial
+        // value for "step". Return that we've moved this tiny amount (for e.g.
+        // dE/dx purposes) but don't physically propagate the track.
+        result.distance += remaining;
+    }
 
-        // Advance within the tolerance error for the remaining step length
-        real_type sub_step = driver_(step_left, &state_);
-
-        // Check whether this sub-step intersects with a volume boundary
-        result.on_boundary = intersect.intersected;
-        this->query_intersection(beg_state.pos, state_.pos, &intersect);
-
-        // If it is a geometry limited step, find the intersection point
-        if (intersect.intersected)
-        {
-            intersect.step = sub_step * intersect.scale;
-            state_         = this->find_intersection(beg_state, &intersect);
-            sub_step       = intersect.step;
-            state_.pos     = intersect.pos;
-            result.on_boundary = intersect.intersected;
-
-            Real3 intersect_dir = state_.pos;
-            axpy(real_type(-1.0), beg_state.pos, &intersect_dir);
-            normalize_direction(&intersect_dir);
-            track_->propagate_state(beg_state.pos, intersect_dir);
-        }
-
-        // Add sub-step until there is no remaining step length
-        step_taken += sub_step;
-
-    } while (!intersect.intersected
-             && (step_taken + driver_.minimum_step()) < step);
-
-    result.distance = step_taken;
-
-    // Update GeoTrackView and return result
+    // Even though the along-substep movement was through chord lengths,
+    // conserve momentum through the field change by updating the final
+    // *direction* based on the state's momentum.
     Real3 dir = state_.mom;
     normalize_direction(&dir);
-    track_->set_dir(dir);
-    track_->set_pos(state_.pos);
+    track_.set_dir(dir);
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Check whether the final position of the field integration for a given step
- * is inside the current volume or beyond any boundary of adjacent volumes.
- */
-template<class DriverT>
-CELER_FUNCTION void
-FieldPropagator<DriverT>::query_intersection(const Real3&  beg_pos,
-                                             const Real3&  end_pos,
-                                             Intersection* intersect)
-{
-    intersect->intersected = false;
-
-    Real3 chord = end_pos;
-    axpy(real_type(-1.0), beg_pos, &chord);
-
-    real_type length = norm(chord);
-    CELER_ASSERT(length > 0);
-
-    real_type safety = track_->find_safety(beg_pos);
-    if (length > safety)
-    {
-        // Check whether the linear step length to the next boundary is
-        // smaller than the segment to the final position
-        Real3 dir = chord;
-        normalize_direction(&dir);
-
-        real_type linear_step = track_->compute_step(beg_pos, dir, &safety);
-
-        intersect->intersected = (linear_step <= length);
-        intersect->scale       = linear_step / length;
-
-        // If intersects, estimate the candidate intersection point
-        if (intersect->intersected)
-        {
-            intersect->pos = beg_pos;
-            axpy(linear_step, dir, &(intersect->pos));
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the intersection point within a required accuracy using an iterative
- * method and return the final state by the field driver.
- */
-template<class DriverT>
-CELER_FUNCTION OdeState FieldPropagator<DriverT>::find_intersection(
-    const OdeState& beg_state, Intersection* intersect)
-{
-    intersect->intersected = false;
-    Real3 beg_pos          = beg_state.pos;
-
-    OdeState     end_state;
-    unsigned int remaining_steps = driver_.max_nsteps();
-
-    do
-    {
-        end_state = beg_state;
-
-        real_type step = driver_(intersect->step, &end_state);
-        CELER_ASSERT(step == intersect->step);
-
-        // Update the intersect candidate point
-        Real3 dir = end_state.pos;
-        axpy(real_type(-1.0), beg_pos, &dir);
-        normalize_direction(&dir);
-
-        real_type safety      = 0;
-        real_type linear_step = track_->compute_step(beg_pos, dir, &safety);
-        intersect->pos        = beg_pos;
-        axpy(linear_step, dir, &intersect->pos);
-
-        // Check whether end_state point is within an acceptable tolerance
-        // from the proposed intersect position on a boundary
-        Real3 delta = end_state.pos;
-        axpy(real_type(-1.0), intersect->pos, &delta);
-
-        intersect->intersected = (norm(delta) < driver_.delta_intersection());
-
-        if (!intersect->intersected)
-        {
-            // Estimate a new trial step with the updated position of end_state
-            real_type trial_step = intersect->step;
-
-            Real3 chord = end_state.pos;
-            axpy(real_type(-1.0), beg_pos, &chord);
-            real_type length = norm(chord);
-            CELER_ASSERT(length > 0);
-
-            intersect->scale = (linear_step / length);
-            intersect->step  = trial_step * intersect->scale;
-        }
-    } while (!intersect->intersected && --remaining_steps > 0);
-
-    // TODO: loop check and handle rare cases if happen
-    CELER_ASSERT(intersect->intersected);
-
-    return end_state;
 }
 
 //---------------------------------------------------------------------------//

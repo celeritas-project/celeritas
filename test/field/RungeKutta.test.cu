@@ -14,7 +14,7 @@
 #include "field/UniformMagField.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/RungeKuttaStepper.hh"
-#include "field/FieldData.hh"
+#include "field/Types.hh"
 
 #include "base/Range.hh"
 #include "base/Types.hh"
@@ -22,11 +22,12 @@
 #include "base/Units.hh"
 #include "physics/base/Units.hh"
 
+using celeritas::detail::truncation_error;
 using thrust::raw_pointer_cast;
+using namespace celeritas;
 
 namespace celeritas_test
 {
-using namespace celeritas;
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//

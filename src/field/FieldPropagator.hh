@@ -10,16 +10,16 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "geometry/GeoTrackView.hh"
+#include "geometry/Types.hh"
 #include "physics/base/ParticleTrackView.hh"
 
-#include "FieldData.hh"
-#include "FieldDriver.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * High level interface of propagating a charged particle in a magnetic field.
+ * Propagate a charged particle in a field.
  *
  * For a given initial state (position, momentum), it propagates a charged
  * particle along a curved trajectory up to an interaction length proposed by
@@ -39,46 +39,24 @@ template<class DriverT>
 class FieldPropagator
 {
   public:
-    // Output results
-    struct result_type
-    {
-        real_type distance;    //!< Curved distance traveled
-        bool      on_boundary; //!< Flag for the geometry limited step
-    };
+    using result_type = Propagation;
 
   public:
     // Construct with shared parameters and the field driver
-    inline CELER_FUNCTION FieldPropagator(GeoTrackView*            track,
-                                          const ParticleTrackView& particle,
-                                          DriverT&                 driver);
+    inline CELER_FUNCTION FieldPropagator(const ParticleTrackView& particle,
+                                          GeoTrackView*            track,
+                                          DriverT*                 driver);
 
-    // Propagation in a field
-    inline CELER_FUNCTION result_type operator()(real_type step);
+    // Move track to next volume boundary.
+    inline CELER_FUNCTION result_type operator()();
 
-  private:
-    // A helper input/output for private member functions
-    struct Intersection
-    {
-        bool  intersected{false}; //!< Status of intersection
-        Real3 pos{0, 0, 0};       //!< Intersection point on a volme boundary
-        union
-        {
-            real_type step{0}; //!< Linear step length to the first boundary
-            real_type scale;   //!< Scale for the next trial step length
-        };
-    };
-
-    // Check whether the final state is crossed any boundary of volumes
-    inline CELER_FUNCTION void query_intersection(const Real3&  beg_pos,
-                                                  const Real3&  end_pos,
-                                                  Intersection* intersect);
-
-    // Find the intersection point if any boundary is crossed
-    inline CELER_FUNCTION OdeState find_intersection(const OdeState& beg_state,
-                                                     Intersection* intersect);
+    // Move track up to a user-provided distance, or to the next boundary
+    inline CELER_FUNCTION result_type operator()(real_type dist);
 
   private:
-    GeoTrackView* track_;
+    //// DATA ////
+
+    GeoTrackView& track_;
     DriverT&      driver_;
     OdeState      state_;
 };

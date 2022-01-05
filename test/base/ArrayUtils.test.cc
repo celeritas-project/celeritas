@@ -56,6 +56,13 @@ TEST(ArrayUtilsTest, norm)
                    celeritas::norm(Array<double, 3>{2, 3, 4}));
 }
 
+TEST(ArrayUtilsTest, distance)
+{
+    EXPECT_SOFT_EQ(std::sqrt(4.0 + 9.0 + 16.0),
+                   celeritas::distance(Array<double, 3>{3, 4, 5},
+                                       Array<double, 3>{1, 1, 1}));
+}
+
 TEST(ArrayUtilsTest, normalize_direction)
 {
     Real3  direction{1, 2, 3};

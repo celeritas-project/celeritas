@@ -75,16 +75,13 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
     real_type step = phys.step_length();
     if (step > 0)
     {
-        // Store the current volume
-        auto pre_step_volume = geo.volume_id();
-
         // Propagate up to the step length or next boundary
         LinearPropagator propagate(&geo);
         auto             geo_step = propagate(step);
         step                      = geo_step.distance;
 
         // Particle entered a new volume before reaching the interaction point
-        if (geo_step.volume != pre_step_volume)
+        if (geo_step.boundary)
         {
             if (geo.is_outside())
             {
