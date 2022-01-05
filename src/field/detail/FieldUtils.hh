@@ -7,12 +7,35 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Array.hh"
+#include "field/Types.hh"
+
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
-// Perform y <- ax + y for OdeState
-inline CELER_FUNCTION void axpy(real_type a, const OdeState& x, OdeState* y);
+// Return y <- ax for a real variable
+template<class T>
+inline CELER_FUNCTION Array<T, 3> ax(T a, const Array<T, 3>& x);
 
+//---------------------------------------------------------------------------//
+// Calculate the direction between the source and destination
+struct Chord
+{
+    real_type length;
+    Real3     dir;
+};
+inline CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst);
+
+//---------------------------------------------------------------------------//
+inline CELER_FUNCTION bool is_intercept_close(const Real3& pos,
+                                              const Real3& dir,
+                                              real_type    distance,
+                                              const Real3& target,
+                                              real_type    tolerance);
+
+//---------------------------------------------------------------------------//
 // Evaluate the stepper truncation error
 inline CELER_FUNCTION real_type truncation_error(real_type       step,
                                                  real_type       eps_rel_max,
@@ -25,6 +48,7 @@ inline CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
                                                const OdeState& end_state);
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
 
 #include "FieldUtils.i.hh"

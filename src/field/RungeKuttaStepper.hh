@@ -12,7 +12,7 @@
 #include "base/Types.hh"
 #include "base/Macros.hh"
 
-#include "FieldData.hh"
+#include "Types.hh"
 
 namespace celeritas
 {

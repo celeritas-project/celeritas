@@ -47,7 +47,7 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
 
     int       cur_id   = geo_id(geo);
     real_type geo_dist = std::fmin(
-        geo.next_step(), image_state.dims[1] * image_state.pixel_width);
+        geo.find_next_step(), image_state.dims[1] * image_state.pixel_width);
 
     // Track along each pixel
     for (unsigned int i = 0; i < image_state.dims[1]; ++i)
@@ -71,9 +71,9 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
             }
 
             // Cross surface
-            geo.move_to_boundary();
+            geo.move_across_boundary();
             cur_id   = geo_id(geo);
-            geo_dist = std::fmin(geo.next_step(),
+            geo_dist = std::fmin(geo.find_next_step(),
                                  image_state.dims[1] * image_state.pixel_width);
         }
 

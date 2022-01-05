@@ -7,17 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "FieldTestParams.hh"
-#include "field/FieldParamsData.hh"
-
 #include <vector>
+#include "field/FieldParamsData.hh"
 #include "geometry/GeoData.hh"
+#include "geometry/Types.hh"
 #include "physics/base/ParticleData.hh"
+#include "FieldTestParams.hh"
 
 namespace celeritas_test
 {
-using namespace celeritas;
-
 using celeritas::MemSpace;
 using celeritas::Ownership;
 
@@ -27,27 +25,29 @@ using GeoStateRefDevice
     = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
 
 using ParticleParamsRef
-    = ParticleParamsData<Ownership::const_reference, MemSpace::device>;
+    = celeritas::ParticleParamsData<Ownership::const_reference, MemSpace::device>;
 using ParticleStateRef
-    = ParticleStateData<Ownership::reference, MemSpace::device>;
+    = celeritas::ParticleStateData<Ownership::reference, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
-using VGGTestInit = GeoTrackInitializer;
 //! Input data
 struct FPTestInput
 {
-    std::vector<VGGTestInit> init_geo;
-    GeoParamsCRefDevice      geo_params;
-    GeoStateRefDevice        geo_states;
+    using GeoInit      = celeritas::GeoTrackInitializer;
+    using ParticleInit = celeritas::ParticleTrackInitializer;
 
-    std::vector<ParticleTrackState> init_track;
-    ParticleParamsRef               particle_params;
-    ParticleStateRef                particle_states;
+    std::vector<GeoInit> init_geo;
+    GeoParamsCRefDevice  geo_params;
+    GeoStateRefDevice    geo_states;
 
-    FieldParamsData     field_params;
-    FieldTestParams     test;
+    std::vector<ParticleInit> init_track;
+    ParticleParamsRef         particle_params;
+    ParticleStateRef          particle_states;
+
+    celeritas::FieldParamsData field_params;
+    FieldTestParams            test;
 };
 
 //---------------------------------------------------------------------------//
@@ -64,5 +64,15 @@ struct FPTestOutput
 FPTestOutput fp_test(FPTestInput input);
 FPTestOutput bc_test(FPTestInput input);
 
+#if !CELERITAS_USE_CUDA
+inline FPTestOutput fp_test(FPTestInput)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+inline FPTestOutput bc_test(FPTestInput)
+{
+    CELER_NOT_CONFIGURED("CUDA");
+}
+#endif
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test
