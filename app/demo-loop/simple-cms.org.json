@@ -39,8 +39,8 @@
 "cell_names": [
 "[EXTERIOR]",
 "guide_tube",
-"silicon_tracker",
-"crystal_em_calorimeter",
+"si_tracker",
+"em_calorimeter",
 "hadron_calorimeter",
 "superconducting_solenoid",
 "iron_muon_chambers",
@@ -151,7 +151,7 @@
 ],
 "md": {
 "name": "global",
-"provenance": "simple-cms.org.omn:17"
+"provenance": "simple-cms.org.omn:18"
 },
 "surface_names": [
 "world_box.mx",

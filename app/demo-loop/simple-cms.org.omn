@@ -1,7 +1,8 @@
 !##############################################################################
-! File  : Geometria/orange/test/data/simple-cms.org.omn
+! File  : simple-cms.org.omn
 !
 ! Simplified Compact Muon Solenoid proxy geometry
+! Regenerate the JSON file with `orange2celeritas` from SCALE
 !##############################################################################
 
 [GEOMETRY]
@@ -62,11 +63,11 @@ widths 2000 2000 4000
 comp galactic
 shapes guide_tube
 
-[UNIVERSE][CELL silicon_tracker]
+[UNIVERSE][CELL si_tracker]
 comp si
 shapes silicon_tracker_outer ~guide_tube
 
-[UNIVERSE][CELL crystal_em_calorimeter]
+[UNIVERSE][CELL em_calorimeter]
 comp pb
 shapes crystal_em_calorimeter_outer ~silicon_tracker_outer
 
