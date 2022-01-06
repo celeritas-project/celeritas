@@ -298,7 +298,7 @@ celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 celeritas_setup_tests(SERIAL PREFIX sim)
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(sim/TrackInit.test.cc GPU
-    SOURCES sim/TrackInit.test.cu ${_needs_vecgeom}
+    SOURCES sim/TrackInit.test.cu
   )
 endif()
 
