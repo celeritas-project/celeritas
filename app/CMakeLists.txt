@@ -190,7 +190,7 @@ endif()
 # DEMO: full physics loop
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
+if(CELERITAS_BUILD_DEMOS)
   include(CeleritasGenDemoLoopKernel)
 
   # Generate demo loop kernel/host loop code for host/device
@@ -230,9 +230,9 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     Celeritas::ROOT
   )
 
-  if(CELERITAS_USE_CUDA)
+  if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     celeritas_target_link_libraries(celeritas_demo_loop
-      PRIVATE VecGeom::vecgeom
+      PUBLIC VecGeom::vecgeom
     )
   endif()
   if(CELERITAS_USE_OpenMP)
@@ -254,11 +254,10 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
   celeritas_target_link_libraries(demo-loop
     celeritas_demo_loop
     celeritas
-    VecGeom::vecgeom
     nlohmann_json::nlohmann_json
   )
 
-  if (CELERITAS_BUILD_TESTS)
+  if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple-cms.gdml")
     set(_hepmc3_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/input.hepmc3")
@@ -282,11 +281,14 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     )
 
     # Disable test when prereqs are not available or for debug builds
-    # TODO: Get test working on debug builds
+    # (debug failures seem limited to older architectures with debug assertions
+    # enabled)
     if(NOT CELERITAS_USE_Geant4
        OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3
-       OR CMAKE_BUILD_TYPE STREQUAL "Debug")
+       OR NOT CELERITAS_USE_VecGeom
+       OR (CELERITAS_USE_VecGeom AND CELERITAS_DEBUG
+           AND CMAKE_BUILD_TYPE STREQUAL "Debug"))
       set_tests_properties("app/demo-loop" PROPERTIES
         DISABLED true
       )
@@ -308,7 +310,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_VecGeom)
     )
     if(NOT CELERITAS_USE_Geant4
        OR NOT CELERITAS_USE_ROOT
-       OR NOT CELERITAS_USE_HepMC3)
+       OR NOT CELERITAS_USE_HepMC3
+       OR NOT CELERITAS_USE_VecGeom)
       set_tests_properties("app/demo-loop-cpu" PROPERTIES
         DISABLED true
       )

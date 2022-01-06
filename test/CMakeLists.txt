@@ -51,6 +51,9 @@ endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
+if(NOT CELERITAS_USE_VecGeom)
+  set(_needs_vecgeom DISABLE)
+endif()
 
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
@@ -113,20 +116,7 @@ celeritas_setup_tests(SERIAL PREFIX field)
 
 celeritas_cudaoptional_test(field/RungeKutta)
 celeritas_cudaoptional_test(field/FieldDriver)
-
-if(CELERITAS_USE_VecGeom)
-  if(CELERITAS_USE_CUDA)
-    celeritas_add_library(CeleritasPropagatorTest field/FieldPropagator.test.cu)
-    celeritas_target_link_libraries(CeleritasPropagatorTest
-      PRIVATE celeritas VecGeom::vecgeom
-    )
-    list(APPEND CELERITASTEST_LINK_LIBRARIES CeleritasPropagatorTest)
-    set(_CeleritasPropagatorTest CeleritasPropagatorTest)
-  endif()
-
-  celeritas_add_test(field/FieldPropagator.test.cc GPU
-    LINK_LIBRARIES Celeritas::Core VecGeom::vecgeom ${_CeleritasPropagatorTest})
-endif()
+celeritas_cudaoptional_test(field/FieldPropagator ${_needs_vecgeom})
 
 ### User field ###
 
@@ -136,39 +126,22 @@ set(CELER_USERFIELD_SOURCES
   field/detail/MagFieldMap.cc
   field/detail/CMSFieldMapReader.cc
 )
-if(CELERITAS_USE_CUDA)
-  list(APPEND CELER_USERFIELD_SOURCES
-    field/UserMapField.test.cu
-  )
-endif()
 celeritas_add_library(CeleritasUserFieldTest ${CELER_USERFIELD_SOURCES})
 celeritas_target_link_libraries(CeleritasUserFieldTest
   PUBLIC Celeritas::Core
 )
 
-celeritas_setup_tests(SERIAL PREFIX fieldmap
+celeritas_cudaoptional_test(field/UserMapField
   LINK_LIBRARIES CeleritasUserFieldTest)
-celeritas_add_test(field/UserMapField.test.cc GPU)
 
 #-----------------------------------------------------------------------------#
 # VecGeom
 
-celeritas_setup_tests(SERIAL PREFIX geometry)
-
 celeritas_setup_tests(SERIAL PREFIX vecgeom
   LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom)
 
-celeritas_setup_tests(SERIAL PREFIX geometry)
-
-celeritas_add_test(geometry/BoundingBox.test.cc)
-
 if(CELERITAS_USE_VecGeom)
-  set(_sources)
-  if(CELERITAS_USE_CUDA)
-    set(_sources vecgeom/Vecgeom.test.cu)
-  endif()
-
-  celeritas_add_test(vecgeom/Vecgeom.test.cc GPU SOURCES ${_sources})
+  celeritas_cudaoptional_test(vecgeom/Vecgeom)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -176,11 +149,12 @@ endif()
 
 celeritas_setup_tests(SERIAL PREFIX geometry)
 
-if(CELERITAS_USE_VecGeom)
-  celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
-    LINK_LIBRARIES Celeritas::ROOT)
-  celeritas_add_test(geometry/LinearPropagator.test.cc)
-endif()
+celeritas_add_test(geometry/BoundingBox.test.cc)
+
+#TODO: enable these tests when not vecgeom
+celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root} ${_needs_vecgeom}
+  LINK_LIBRARIES Celeritas::ROOT)
+celeritas_add_test(geometry/LinearPropagator.test.cc ${_needs_vecgeom})
 
 #-----------------------------------------------------------------------------#
 # ORANGE geometry
@@ -322,9 +296,9 @@ celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 # Sim
 
 celeritas_setup_tests(SERIAL PREFIX sim)
-if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
+if(CELERITAS_USE_CUDA)
   celeritas_add_test(sim/TrackInit.test.cc GPU
-    SOURCES sim/TrackInit.test.cu
-    LINK_LIBRARIES VecGeom::vecgeom)
+    SOURCES sim/TrackInit.test.cu ${_needs_vecgeom}
+  )
 endif()
 
