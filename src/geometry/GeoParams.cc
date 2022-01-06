@@ -126,7 +126,7 @@ const std::string& GeoParams::id_to_label(VolumeId vol_id) const
 /*!
  * Get the ID corresponding to a label
  */
-auto GeoParams::label_to_id(const std::string& label) const -> VolumeId
+auto GeoParams::find_volume(const std::string& label) const -> VolumeId
 {
     const auto* vol
         = vecgeom::GeoManager::Instance().FindLogicalVolume(label.c_str());

@@ -116,6 +116,21 @@ TEST_F(OneVolumeTest, track_view)
 
 //---------------------------------------------------------------------------//
 
+TEST_F(TwoVolumeTest, params)
+{
+    const OrangeParams& geo = this->params();
+
+    EXPECT_EQ(2, geo.num_volumes());
+    EXPECT_EQ(1, geo.num_surfaces());
+
+    EXPECT_EQ("sphere", geo.id_to_label(SurfaceId{0}));
+    EXPECT_EQ(SurfaceId{0}, geo.find_surface("sphere"));
+
+    const auto& bbox = geo.bbox();
+    EXPECT_VEC_SOFT_EQ((Real3{-1.5, -1.5, -1.5}), bbox.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1.5, 1.5, 1.5}), bbox.upper());
+}
+
 TEST_F(TwoVolumeTest, simple_track)
 {
     auto geo = this->make_track_view();

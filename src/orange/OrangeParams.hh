@@ -64,9 +64,6 @@ class OrangeParams
     // Get the label for a placed volume ID
     const std::string& id_to_label(VolumeId vol_id) const;
 
-    // DEPRECATED alias for find_volume
-    inline VolumeId label_to_id(const std::string& label) const;
-
     // Get the volume ID corresponding to a label
     VolumeId find_volume(const std::string& label) const;
 
@@ -103,19 +100,6 @@ class OrangeParams
     // Host/device storage and reference
     CollectionMirror<OrangeParamsData> data_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE MEMBER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Deprecated alias for find_volume.
- *
- * \todo Replace along with the other similar uses in celeritas.
- */
-VolumeId OrangeParams::label_to_id(const std::string& label) const
-{
-    return this->find_volume(label);
-}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

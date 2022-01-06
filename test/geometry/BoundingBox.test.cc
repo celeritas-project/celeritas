@@ -52,8 +52,10 @@ TEST_F(BoundingBoxTest, standard)
 {
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW((BoundingBox{{-1, -2, -3}, {-4, 5, 6}}),
-                     celeritas::DebugError);
+        const Real3 lo{-1, -2, -3};
+        EXPECT_THROW((BoundingBox{lo, {-4, 5, 6}}), celeritas::DebugError);
+        EXPECT_THROW((BoundingBox{lo, {4, -5, 6}}), celeritas::DebugError);
+        EXPECT_THROW((BoundingBox{lo, {4, 5, -6}}), celeritas::DebugError);
     }
 
     BoundingBox bb{{-1, -2, 3}, {4, 5, 6}};
