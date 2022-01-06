@@ -153,30 +153,30 @@ celeritas_add_test(field/UserMapField.test.cc GPU)
 #-----------------------------------------------------------------------------#
 # VecGeom
 
+celeritas_setup_tests(SERIAL PREFIX geometry)
+
+celeritas_setup_tests(SERIAL PREFIX vecgeom
+  LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom)
+
 if(CELERITAS_USE_VecGeom)
-  set(_vgcudatest)
+  set(_sources)
   if(CELERITAS_USE_CUDA)
-    celeritas_add_library(CeleritasVecgeomCudaTest
-      vecgeom/Vecgeom.test.cu
-    )
-    celeritas_target_link_libraries(CeleritasVecgeomCudaTest
-      PRIVATE Celeritas::Test VecGeom::vecgeom
-      PUBLIC Celeritas::Core
-    )
-    set(_vgcudatest CeleritasVecgeomCudaTest)
+    set(_sources vecgeom/Vecgeom.test.cu)
   endif()
 
-  celeritas_setup_tests(SERIAL PREFIX vecgeom
-    LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom)
+  celeritas_add_test(vecgeom/Vecgeom.test.cc GPU SOURCES ${_sources})
+endif()
 
-  celeritas_add_test(vecgeom/Vecgeom.test.cc GPU)
+#-----------------------------------------------------------------------------#
+# Implementation-independent geometry
 
-  # Generic geometry tests
+celeritas_setup_tests(SERIAL PREFIX geometry)
+
+if(CELERITAS_USE_VecGeom)
+  celeritas_cudaoptional_test(geometry/LinearPropagator)
   celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
     LINK_LIBRARIES Celeritas::ROOT)
 endif()
-
-celeritas_cudaoptional_test(geometry/LinearPropagator)
 
 #-----------------------------------------------------------------------------#
 # ORANGE geometry
