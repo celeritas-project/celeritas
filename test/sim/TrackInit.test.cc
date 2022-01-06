@@ -20,6 +20,8 @@
 #include "random/RngParams.hh"
 #include "sim/TrackInitParams.hh"
 #include "sim/TrackData.hh"
+
+#include "geometry/GeoTestBase.hh"
 #include "TrackInit.test.hh"
 
 namespace celeritas_test
@@ -51,16 +53,16 @@ ITTestInputData ITTestInput::device_ref()
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class TrackInitTest : public celeritas::Test
+class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
 {
   protected:
+    const char* dirname() const override { return "sim"; }
+    const char* filebase() const override { return "two-boxes"; }
+
     void SetUp() override
     {
         // Set up shared geometry data
-        std::string test_file
-            = celeritas::Test::test_data_path("geometry", "twoBoxes.gdml");
-        geometry            = std::make_shared<GeoParams>(test_file.c_str());
-        params.geometry     = geometry->device_ref();
+        params.geometry = this->geometry()->device_ref();
 
         // Set up shared material data
         materials = std::make_shared<MaterialParams>(
@@ -72,11 +74,12 @@ class TrackInitTest : public celeritas::Test
                                     "H2"}}});
         params.materials = materials->device_ref();
 
-        // Set up dummy geometry/material coupling data
+        // Set up dummy geo/material coupling data
         geo_mats = std::make_shared<GeoMaterialParams>(GeoMaterialParams::Input{
-            geometry,
+            this->geometry(),
             materials,
-            std::vector<MaterialId>(geometry->num_volumes(), MaterialId{0})});
+            std::vector<MaterialId>(this->geometry()->num_volumes(),
+                                    MaterialId{0})});
         params.geo_mats = geo_mats->device_ref();
 
         // Set up shared particle data
@@ -134,13 +137,14 @@ class TrackInitTest : public celeritas::Test
         CELER_EXPECT(track_inits);
 
         ParamsData<Ownership::const_reference, MemSpace::host> host_params;
-        host_params.geometry                       = geometry->host_ref();
-        host_params.geo_mats                       = geo_mats->host_ref();
-        host_params.materials                      = materials->host_ref();
-        host_params.particles                      = particles->host_ref();
-        host_params.cutoffs                        = cutoffs->host_ref();
-        host_params.physics     = physics.host();
-        host_params.rng                            = rng->host_ref();
+
+        host_params.geometry  = this->geometry()->host_ref();
+        host_params.geo_mats  = geo_mats->host_ref();
+        host_params.materials = materials->host_ref();
+        host_params.particles = particles->host_ref();
+        host_params.cutoffs   = cutoffs->host_ref();
+        host_params.physics   = physics.host();
+        host_params.rng       = rng->host_ref();
         host_params.control.secondary_stack_factor = storage_factor;
         CELER_ASSERT(host_params);
 
@@ -152,7 +156,6 @@ class TrackInitTest : public celeritas::Test
         CELER_ENSURE(states && track_init_states);
     }
 
-    std::shared_ptr<GeoParams>                    geometry;
     std::shared_ptr<GeoMaterialParams>            geo_mats;
     std::shared_ptr<ParticleParams>               particles;
     std::shared_ptr<MaterialParams>               materials;

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!-- \file twoBoxes.gdml -->
+<!-- \brief geometry of two boxes without material -->
+<!-- \authors Author: Dmitry Savin -->
+<!-- \license Distributed under the Apache license 2.0 -->
+<!-- parsed with TGDMLParse -->
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <solids>
+    <box lunit="cm" name="detector" x="10" y="10" z="10" />
+    <box lunit="cm" name="world" x="100" y="100" z="100" />
+  </solids>
+
+  <structure>
+    <volume name="Detector">
+      <solidref ref="detector"/>
+    </volume>
+    <volume name="World">
+      <solidref ref="world"/>
+      <physvol>
+        <volumeref ref="Detector"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="default" version="1.0">
+    <world ref="World"/>
+  </setup>
+
+</gdml>

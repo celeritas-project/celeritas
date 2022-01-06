@@ -23,6 +23,7 @@
 #include "field/UniformMagField.hh"
 
 #include "celeritas_test.hh"
+#include "geometry/GeoTestBase.hh"
 #include "FieldTestParams.hh"
 #include "FieldPropagator.test.hh"
 
@@ -31,25 +32,23 @@ using namespace celeritas_test;
 using celeritas::units::MevEnergy;
 
 //---------------------------------------------------------------------------//
-// Test harness
-//---------------------------------------------------------------------------//
-
-class FieldPropagatorTestBase : public celeritas::Test
+/*!
+ * Test harness.
+ *
+ * The test geometry is 1-cm thick slabs normal to y, with 1-cm gaps in
+ * between. We fire off electrons (TODO: also test positrons!) that end up
+ * running circles around the z axis (along which the magnetic field points).
+ */
+class FieldPropagatorTestBase : public GeoTestBase<celeritas::GeoParams>
 {
   public:
-    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
+    const char* dirname() const override { return "field"; }
+    const char* filebase() const override { return "field-test"; }
 
-    void SetUp()
+    void SetUp() override
     {
         using namespace celeritas::units;
         namespace pdg = celeritas::pdg;
-
-        // Test geometry: 1-cm thick slabs normal to y, with 1-cm gaps in
-        // between
-        std::string test_file
-            = celeritas::Test::test_data_path("field", "field-test.gdml");
-        geo_params = std::make_shared<celeritas::GeoParams>(test_file.c_str());
-        geo_state  = GeoStateStore(*this->geo_params, 1);
 
         // Create particle defs
         constexpr auto        stable = ParticleDef::stable_decay_constant();
@@ -88,9 +87,6 @@ class FieldPropagatorTestBase : public celeritas::Test
     }
 
   protected:
-    GeoStateStore                               geo_state;
-    std::shared_ptr<const celeritas::GeoParams> geo_params;
-
     std::shared_ptr<ParticleParams>                         particle_params;
     ParticleStateData<Ownership::value, MemSpace::host>     state_value;
     ParticleStateData<Ownership::reference, MemSpace::host> state_ref;
@@ -109,13 +105,23 @@ class FieldPropagatorHostTest : public FieldPropagatorTestBase
 {
   public:
     using Initializer_t = ParticleTrackView::Initializer_t;
+    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
+
+    void SetUp()
+    {
+        FieldPropagatorTestBase::SetUp();
+        geo_state_ = GeoStateStore(*this->geometry(), 1);
+    }
+
+  protected:
+    GeoStateStore geo_state_;
 };
 
 TEST_F(FieldPropagatorHostTest, field_propagator_host)
 {
     // Construct GeoTrackView and ParticleTrackView
     GeoTrackView geo_track = GeoTrackView(
-        this->geo_params->host_ref(), geo_state.ref(), ThreadId(0));
+        this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
     ParticleTrackView particle_track(
         particle_params->host_ref(), state_ref, ThreadId(0));
 
@@ -174,7 +180,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
 {
     // Construct GeoTrackView and ParticleTrackView
     GeoTrackView geo_track = GeoTrackView(
-        this->geo_params->host_ref(), geo_state.ref(), ThreadId(0));
+        this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
     ParticleTrackView particle_track(
         particle_params->host_ref(), state_ref, ThreadId(0));
 
@@ -247,8 +253,6 @@ class FieldPropagatorDeviceTest : public FieldPropagatorTestBase
 
 TEST_F(FieldPropagatorDeviceTest, field_propagator_device)
 {
-    CELER_ASSERT(geo_params);
-
     // Set up test input
     FPTestInput input;
     for (unsigned int i : celeritas::range(test.nstates))
@@ -256,8 +260,8 @@ TEST_F(FieldPropagatorDeviceTest, field_propagator_device)
         input.init_geo.push_back({{test.radius, -10, i * 1.0e-6}, {0, 1, 0}});
         input.init_track.push_back({ParticleId{0}, MevEnergy{test.energy}});
     }
-    input.geo_params = geo_params->device_ref();
-    GeoStateStore device_states(*geo_params, input.init_geo.size());
+    input.geo_params = this->geometry()->device_ref();
+    GeoStateStore device_states(*this->geometry(), input.init_geo.size());
     input.geo_states = device_states.ref();
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
@@ -284,8 +288,6 @@ TEST_F(FieldPropagatorDeviceTest, field_propagator_device)
 
 TEST_F(FieldPropagatorDeviceTest, boundary_crossing_device)
 {
-    CELER_ASSERT(geo_params);
-
     // Set up test input
     FPTestInput input;
     for (unsigned int i : celeritas::range(test.nstates))
@@ -294,8 +296,8 @@ TEST_F(FieldPropagatorDeviceTest, boundary_crossing_device)
         input.init_track.push_back({ParticleId{0}, MevEnergy{test.energy}});
     }
 
-    input.geo_params = geo_params->device_ref();
-    GeoStateStore device_states(*geo_params, input.init_geo.size());
+    input.geo_params = this->geometry()->device_ref();
+    GeoStateStore device_states(*this->geometry(), input.init_geo.size());
     input.geo_states = device_states.ref();
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(

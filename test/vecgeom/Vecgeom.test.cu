@@ -3,16 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LinearPropagator.test.cu
+//! \file Vecgeom.test.cu
 //---------------------------------------------------------------------------//
-#include "geometry/LinearPropagator.hh"
+#include "vecgeom/VecgeomTrackView.hh"
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include "base/KernelParamCalculator.cuda.hh"
-#include "geometry/GeoTrackView.hh"
 
-#include "LinearPropagator.test.hh"
+#include "Vecgeom.test.hh"
 
 using thrust::raw_pointer_cast;
 using namespace celeritas;
@@ -23,30 +22,40 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void linprop_test_kernel(const GeoParamsCRefDevice params,
-                                    const GeoStateRefDevice   state,
-                                    const LinPropTestInit*    start,
-                                    const int                 max_segments,
-                                    VolumeId*                 ids,
-                                    double*                   distances)
+__global__ void vgg_test_kernel(const GeoParamsCRefDevice  params,
+                                const GeoStateRefDevice    state,
+                                const GeoTrackInitializer* start,
+                                const int                  max_segments,
+                                int*                       ids,
+                                double*                    distances)
 {
+    CELER_EXPECT(params && state);
+
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= state.size())
         return;
 
-    GeoTrackView geo(params, state, tid);
+    VecgeomTrackView geo(params, state, tid);
     geo = start[tid.get()];
 
-    LinearPropagator propagate(&geo);
     for (int seg = 0; seg < max_segments; ++seg)
     {
+        // Move next step
+        real_type dist = geo.find_next_step();
+        if (dist < 1e20)
+        {
+            geo.move_across_boundary();
+        }
+
+        // Save current ID and distance travelled
+        ids[tid.get() * max_segments + seg]
+            = (geo.is_outside()
+                   ? -2
+                   : static_cast<int>(geo.volume_id().unchecked_get()));
+        distances[tid.get() * max_segments + seg] = dist;
+
         if (geo.is_outside())
             break;
-
-        // Save current ID and distance to travel
-        auto step                                 = propagate();
-        ids[tid.get() * max_segments + seg]       = geo.volume_id();
-        distances[tid.get() * max_segments + seg] = step.distance;
     }
 }
 
@@ -54,7 +63,7 @@ __global__ void linprop_test_kernel(const GeoParamsCRefDevice params,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-LinPropTestOutput linprop_test(LinPropTestInput input)
+VGGTestOutput vgg_test(VGGTestInput input)
 {
     CELER_EXPECT(input.params);
     CELER_EXPECT(input.state);
@@ -62,16 +71,16 @@ LinPropTestOutput linprop_test(LinPropTestInput input)
     CELER_EXPECT(input.max_segments > 0);
 
     // Temporary device data for kernel
-    thrust::device_vector<LinPropTestInit> init(input.init.begin(),
-                                                input.init.end());
-    thrust::device_vector<VolumeId> ids(input.init.size() * input.max_segments);
-    thrust::device_vector<double>   distances(ids.size(), -1.0);
+    thrust::device_vector<GeoTrackInitializer> init(input.init.begin(),
+                                                    input.init.end());
+    thrust::device_vector<int> ids(input.init.size() * input.max_segments, -3);
+    thrust::device_vector<double> distances(ids.size(), -3.0);
 
     // Run kernel
     static const celeritas::KernelParamCalculator calc_launch_params(
-        linprop_test_kernel, "linprop_test");
+        vgg_test_kernel, "vgg_test");
     auto params = calc_launch_params(init.size());
-    linprop_test_kernel<<<params.grid_size, params.block_size>>>(
+    vgg_test_kernel<<<params.grid_size, params.block_size>>>(
         input.params,
         input.state,
         raw_pointer_cast(init.data()),
@@ -82,11 +91,9 @@ LinPropTestOutput linprop_test(LinPropTestInput input)
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Copy result back to CPU
-    LinPropTestOutput result;
-    for (auto id : thrust::host_vector<VolumeId>(ids))
-    {
-        result.ids.push_back(id ? static_cast<int>(id.get()) : -1);
-    }
+    VGGTestOutput result;
+    result.ids.resize(ids.size());
+    thrust::copy(ids.begin(), ids.end(), result.ids.begin());
     result.distances.resize(distances.size());
     thrust::copy(distances.begin(), distances.end(), result.distances.begin());
 

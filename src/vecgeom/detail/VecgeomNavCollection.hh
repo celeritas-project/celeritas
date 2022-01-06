@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VGNavCollection.hh
+//! \file VecgeomNavCollection.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -31,16 +31,16 @@ namespace detail
  * which compilation phase is active.
  */
 template<Ownership W, MemSpace M>
-struct VGNavCollection;
+struct VecgeomNavCollection;
 
 template<>
-struct VGNavCollection<Ownership::value, MemSpace::host>;
+struct VecgeomNavCollection<Ownership::value, MemSpace::host>;
 template<>
-struct VGNavCollection<Ownership::value, MemSpace::device>;
+struct VecgeomNavCollection<Ownership::value, MemSpace::device>;
 template<>
-struct VGNavCollection<Ownership::reference, MemSpace::host>;
+struct VecgeomNavCollection<Ownership::reference, MemSpace::host>;
 template<>
-struct VGNavCollection<Ownership::reference, MemSpace::device>;
+struct VecgeomNavCollection<Ownership::reference, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 // HOST MEMSPACE
@@ -52,7 +52,7 @@ struct VGNavCollection<Ownership::reference, MemSpace::device>;
  * contructor, we must use a `unique_ptr` to manage its memory.
  */
 template<>
-struct VGNavCollection<Ownership::value, MemSpace::host>
+struct VecgeomNavCollection<Ownership::value, MemSpace::host>
 {
     using NavState   = vecgeom::cxx::NavigationState;
     using UPNavState = std::unique_ptr<NavState>;
@@ -70,7 +70,7 @@ struct VGNavCollection<Ownership::value, MemSpace::host>
  * Reference a host-owned navigation state.
  */
 template<>
-struct VGNavCollection<Ownership::reference, MemSpace::host>
+struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
 {
     using NavState   = vecgeom::cxx::NavigationState;
     using UPNavState = std::unique_ptr<NavState>;
@@ -78,7 +78,8 @@ struct VGNavCollection<Ownership::reference, MemSpace::host>
     Span<UPNavState> nav_state;
 
     // Obtain reference from host memory
-    void operator=(VGNavCollection<Ownership::value, MemSpace::host>& other);
+    void
+    operator=(VecgeomNavCollection<Ownership::value, MemSpace::host>& other);
     // Get the navigation state for a given thread
     NavState& at(int, ThreadId id) const;
     //! True if the collection is assigned/valiid
@@ -109,7 +110,7 @@ struct NavStatePoolDeleter
  * NavStatePool and smart pointer usage from the NVCC device compiler.
  */
 template<>
-struct VGNavCollection<Ownership::value, MemSpace::device>
+struct VecgeomNavCollection<Ownership::value, MemSpace::device>
 {
     using UPNavStatePool
         = std::unique_ptr<vecgeom::cxx::NavStatePool, NavStatePoolDeleter>;
@@ -127,21 +128,22 @@ struct VGNavCollection<Ownership::value, MemSpace::device>
 
 //---------------------------------------------------------------------------//
 /*!
- * Reference on-device memory owned by VGNavCollection<value, device>.
+ * Reference on-device memory owned by VecgeomNavCollection<value, device>.
  *
  * The NavStatePool underpinning the storage returns a void pointer that must
  * be manually manipulated to get a single state pointer. The max_depth
  * argument must be the same as the GeoParams.
  */
 template<>
-struct VGNavCollection<Ownership::reference, MemSpace::device>
+struct VecgeomNavCollection<Ownership::reference, MemSpace::device>
 {
     using NavState = vecgeom::NavigationState;
 
     vecgeom::NavStatePoolView pool_view = {nullptr, 0, 0};
 
     // Assign from device value
-    void operator=(VGNavCollection<Ownership::value, MemSpace::device>& other);
+    void
+    operator=(VecgeomNavCollection<Ownership::value, MemSpace::device>& other);
     // Get the navigation state for the given thread
     inline CELER_FUNCTION NavState& at(int max_depth, ThreadId thread) const;
 
@@ -159,7 +161,8 @@ struct VGNavCollection<Ownership::reference, MemSpace::device>
  * The max_depth_param is used for error checking against the allocated
  * max_depth.
  */
-CELER_FUNCTION auto VGNavCollection<Ownership::reference, MemSpace::device>::at(
+CELER_FUNCTION auto
+VecgeomNavCollection<Ownership::reference, MemSpace::device>::at(
     int max_depth_param, ThreadId thread) const -> NavState&
 {
     CELER_EXPECT(this->pool_view.IsValid());

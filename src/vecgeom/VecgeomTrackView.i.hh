@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoTrackView.i.hh
+//! \file VecgeomTrackView.i.hh
 //---------------------------------------------------------------------------//
 #include <VecGeom/base/Config.h>
 #include <VecGeom/navigation/GlobalLocator.h>
@@ -12,7 +12,7 @@
 
 #include "base/ArrayUtils.hh"
 #include "base/SoftEqual.hh"
-#include "detail/VGCompatibility.hh"
+#include "detail/VecgeomCompatibility.hh"
 
 #ifdef VECGEOM_USE_NAVINDEX
 #    include "detail/BVHNavigator.hh"
@@ -25,15 +25,15 @@ namespace celeritas
  * Construct from persistent and state data.
  */
 CELER_FUNCTION
-GeoTrackView::GeoTrackView(const GeoParamsRef& data,
-                           const GeoStateRef&  stateview,
-                           const ThreadId&     thread)
-    : shared_(data)
-    , vgstate_(stateview.vgstate.at(shared_.max_depth, thread))
-    , vgnext_(stateview.vgnext.at(shared_.max_depth, thread))
-    , pos_(stateview.pos[thread])
-    , dir_(stateview.dir[thread])
-    , next_step_(stateview.next_step[thread])
+VecgeomTrackView::VecgeomTrackView(const ParamsRef& params,
+                                   const StateRef&  states,
+                                   ThreadId         thread)
+    : params_(params)
+    , vgstate_(states.vgstate.at(params_.max_depth, thread))
+    , vgnext_(states.vgnext.at(params_.max_depth, thread))
+    , pos_(states.pos[thread])
+    , dir_(states.dir[thread])
+    , next_step_(states.next_step[thread])
 {
 }
 
@@ -45,7 +45,8 @@ GeoTrackView::GeoTrackView(const GeoParamsRef& data,
  * starting location and direction. Secondaries will initialize their states
  * from a copy of the parent.
  */
-CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
+CELER_FUNCTION VecgeomTrackView&
+VecgeomTrackView::operator=(const Initializer_t& init)
 {
     // Initialize position/direction
     pos_       = init.pos;
@@ -54,7 +55,7 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
 
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
-    const vecgeom::VPlacedVolume* worldvol       = shared_.world_volume;
+    const vecgeom::VPlacedVolume* worldvol       = params_.world_volume;
     const bool                    contains_point = true;
 
     // Note that LocateGlobalPoint sets `vgstate_`. If `vgstate_` is outside
@@ -76,7 +77,7 @@ CELER_FUNCTION GeoTrackView& GeoTrackView::operator=(const Initializer_t& init)
  * Construct the state from a direction and a copy of the parent state.
  */
 CELER_FUNCTION
-GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
+VecgeomTrackView& VecgeomTrackView::operator=(const DetailedInitializer& init)
 {
     if (this != &init.other)
     {
@@ -86,7 +87,7 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
     }
 
     // Set up the next state and initialize the direction
-    dir_ = init.dir;
+    dir_       = init.dir;
     next_step_ = 0;
 
     CELER_ENSURE(!this->has_next_step());
@@ -97,7 +98,7 @@ GeoTrackView& GeoTrackView::operator=(const DetailedInitializer& init)
 /*!
  * Find the distance to the next geometric boundary.
  */
-CELER_FUNCTION real_type GeoTrackView::find_next_step()
+CELER_FUNCTION real_type VecgeomTrackView::find_next_step()
 {
     if (this->has_next_step())
     {
@@ -124,7 +125,7 @@ CELER_FUNCTION real_type GeoTrackView::find_next_step()
     else
     {
         // Find distance to interior from outside world volume
-        auto* pplvol = shared_.world_volume;
+        auto* pplvol = params_.world_volume;
         next_step_   = pplvol->DistanceToIn(detail::to_vector(pos_),
                                           detail::to_vector(dir_),
                                           vecgeom::kInfLength);
@@ -143,7 +144,7 @@ CELER_FUNCTION real_type GeoTrackView::find_next_step()
 /*!
  * Move to the next boundary and update volume accordingly.
  */
-CELER_FUNCTION void GeoTrackView::move_across_boundary()
+CELER_FUNCTION void VecgeomTrackView::move_across_boundary()
 {
     CELER_EXPECT(this->has_next_step());
 
@@ -172,7 +173,7 @@ CELER_FUNCTION void GeoTrackView::move_across_boundary()
  * The straight-line distance *must* be less than the distance to the
  * boundary.
  */
-CELER_FUNCTION void GeoTrackView::move_internal(real_type dist)
+CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
 {
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(dist > 0 && dist < next_step_);
@@ -189,7 +190,7 @@ CELER_FUNCTION void GeoTrackView::move_internal(real_type dist)
  * \todo Currently it's up to the caller to make sure that the position is
  * "nearby". We should actually test this with a safety distance.
  */
-CELER_FUNCTION void GeoTrackView::move_internal(const Real3& pos)
+CELER_FUNCTION void VecgeomTrackView::move_internal(const Real3& pos)
 {
     pos_       = pos;
     next_step_ = 0;
@@ -202,7 +203,7 @@ CELER_FUNCTION void GeoTrackView::move_internal(const Real3& pos)
  * This happens after a scattering event or movement inside a magnetic field.
  * It resets the calculated distance-to-boundary.
  */
-CELER_FUNCTION void GeoTrackView::set_dir(const Real3& newdir)
+CELER_FUNCTION void VecgeomTrackView::set_dir(const Real3& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
     dir_       = newdir;
@@ -213,32 +214,33 @@ CELER_FUNCTION void GeoTrackView::set_dir(const Real3& newdir)
 /*!
  * Get the volume ID in the current cell.
  */
-CELER_FUNCTION VolumeId GeoTrackView::volume_id() const
+CELER_FUNCTION VolumeId VecgeomTrackView::volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
     return VolumeId{this->volume().id()};
 }
 
 //---------------------------------------------------------------------------//
+// PRIVATE MEMBER FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
  * Whether the track is outside the valid geometry region.
  */
-CELER_FUNCTION bool GeoTrackView::is_outside() const
+CELER_FUNCTION bool VecgeomTrackView::is_outside() const
 {
     return vgstate_.IsOutside();
 }
 
 //---------------------------------------------------------------------------//
-// PRIVATE CLASS FUNCTIONS
-//---------------------------------------------------------------------------//
 /*!
  * Get a reference to the current volume, or to world volume if outside.
  */
-CELER_FUNCTION const vecgeom::LogicalVolume& GeoTrackView::volume() const
+CELER_FUNCTION const vecgeom::LogicalVolume& VecgeomTrackView::volume() const
 {
     const vecgeom::VPlacedVolume* physvol_ptr = vgstate_.Top();
     CELER_ENSURE(physvol_ptr);
     return *physvol_ptr->GetLogicalVolume();
 }
 
+//---------------------------------------------------------------------------//
 } // namespace celeritas

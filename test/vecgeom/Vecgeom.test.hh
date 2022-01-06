@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LinearPropagator.test.hh
+//! \file Vecgeom.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
+#include "vecgeom/VecgeomData.hh"
 #include "base/Assert.hh"
-#include "geometry/GeoData.hh"
 
 namespace celeritas_test
 {
@@ -17,27 +17,28 @@ using celeritas::MemSpace;
 using celeritas::Ownership;
 
 using GeoParamsCRefDevice
-    = celeritas::GeoParamsData<Ownership::const_reference, MemSpace::device>;
+    = celeritas::VecgeomParamsData<Ownership::const_reference, MemSpace::device>;
 using GeoStateRefDevice
-    = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
+    = celeritas::VecgeomStateData<Ownership::reference, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
-using LinPropTestInit = celeritas::GeoTrackInitializer;
 
 //! Input data
-struct LinPropTestInput
+struct VGGTestInput
 {
-    std::vector<LinPropTestInit> init;
-    int                          max_segments = 0;
-    GeoParamsCRefDevice          params;
-    GeoStateRefDevice            state;
+    using GeoTrackInitializer = celeritas::GeoTrackInitializer;
+
+    std::vector<GeoTrackInitializer> init;
+    int                              max_segments = 0;
+    GeoParamsCRefDevice              params;
+    GeoStateRefDevice                state;
 };
 
 //---------------------------------------------------------------------------//
 //! Output results
-struct LinPropTestOutput
+struct VGGTestOutput
 {
     std::vector<int>    ids;
     std::vector<double> distances;
@@ -45,10 +46,10 @@ struct LinPropTestOutput
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-LinPropTestOutput linprop_test(LinPropTestInput);
+VGGTestOutput vgg_test(VGGTestInput);
 
 #if !CELERITAS_USE_CUDA
-LinPropTestOutput linprop_test(LinPropTestInput)
+inline VGGTestOutput vgg_test(VGGTestInput)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }
