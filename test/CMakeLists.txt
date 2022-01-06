@@ -291,7 +291,6 @@ celeritas_add_test(physics/em/TsaiUrbanDistribution.test.cc)
 
 celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
   ${_optional_geant4}
-  GPU # TODO: delete when device pointers are no longer directly accessed
   LINK_LIBRARIES Celeritas::ROOT)
 
 #-----------------------------------------------------------------------------#
