@@ -170,7 +170,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
 
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-rasterizer/simple-driver.py")
-    set(_gdml_inp "${PROJECT_SOURCE_DIR}/test/geometry/data/two-boxes.gdml")
+    set(_gdml_inp "${PROJECT_SOURCE_DIR}/demo-rasterizer/two-boxes.gdml")
     add_test(NAME "app/demo-rasterizer"
       COMMAND "$<TARGET_FILE:Python::Interpreter>" "${_driver}" "${_gdml_inp}"
     )
