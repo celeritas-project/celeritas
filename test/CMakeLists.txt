@@ -173,9 +173,9 @@ endif()
 celeritas_setup_tests(SERIAL PREFIX geometry)
 
 if(CELERITAS_USE_VecGeom)
-  celeritas_cudaoptional_test(geometry/LinearPropagator)
   celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
     LINK_LIBRARIES Celeritas::ROOT)
+  celeritas_add_test(geometry/LinearPropagator.test.cc)
 endif()
 
 #-----------------------------------------------------------------------------#

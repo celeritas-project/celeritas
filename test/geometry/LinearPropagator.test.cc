@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -16,29 +16,37 @@
 
 #include "celeritas_test.hh"
 #include "GeoTestBase.hh"
-#include "LinearPropagator.test.hh"
 
 using namespace celeritas;
-using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LinearPropagatorTest : public GeoTestBase<celeritas::GeoParams>
+class LinearPropagatorTest
+    : public celeritas_test::GeoTestBase<celeritas::GeoParams>
 {
   public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
     const char* dirname() const override { return "geometry"; }
-    const char* filebase() const override { return "four-levels"; }
+    const char* filebase() const override { return "simple-cms"; }
 
     void SetUp() override { state = StateStore(*this->geometry(), 1); }
 
     GeoTrackView make_geo_track_view()
     {
         return GeoTrackView(
-            this->geometry()->host_ref(), state.ref(), ThreadId(0));
+            this->geometry()->host_ref(), state.ref(), ThreadId{0});
+    }
+
+    std::string volume_label(const GeoTrackView& geo)
+    {
+        if (geo.is_outside())
+        {
+            return "[OUTSIDE]";
+        }
+        return this->geometry()->id_to_label(geo.volume_id());
     }
 
   protected:
@@ -49,171 +57,91 @@ class LinearPropagatorTest : public GeoTestBase<celeritas::GeoParams>
 // HOST TESTS
 //----------------------------------------------------------------------------//
 
-TEST_F(LinearPropagatorTest, basic_tracking)
+TEST_F(LinearPropagatorTest, all)
 {
-    GeoTrackView     geo = this->make_geo_track_view();
-    LinearPropagator propagate(&geo); // one propagator per track
+    GeoTrackView geo = this->make_geo_track_view();
 
-    const auto& geom = *this->geometry();
-    {
-        // Track from outside detector, moving right
-        geo = {{-10, 10, 10}, {1, 0, 0}};
-        EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id())); // in Shape2
-
-        auto step = propagate(1.e10); // very large proposed step
-        EXPECT_SOFT_EQ(5, step.distance);
-        EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id()));
-        EXPECT_SOFT_EQ(-5, geo.pos()[0]);
-
-        step = propagate(1.e10);
-        EXPECT_SOFT_EQ(1, step.distance);
-        EXPECT_EQ("Envelope", geom.id_to_label(geo.volume_id()));
-        EXPECT_FALSE(geo.is_outside());
-
-        step = propagate();
-        EXPECT_SOFT_EQ(1, step.distance);
-        EXPECT_FALSE(geo.is_outside());
-    }
+    // Initialize
+    geo = {{0, 0, 0}, {0, 0, 1}};
+    EXPECT_EQ("guide_tube", this->volume_label(geo));
 
     {
-        // Track from outside edge used to fail
-        CELER_LOG(info) << "Init a track just outside of world volume...";
-        geo = {{-24, 6.5, 6.5}, {1, 0, 0}};
-        EXPECT_TRUE(geo.is_outside());
+        LinearPropagator propagate(&geo);
 
-        auto step = propagate(); // outside -> World
-        EXPECT_FALSE(geo.is_outside());
-        EXPECT_SOFT_EQ(0., step.distance);
-        EXPECT_TRUE(step.boundary);
-        EXPECT_EQ("World", geom.id_to_label(geo.volume_id()));
-
-        step = propagate(); // World -> Envelope
-        EXPECT_EQ("Envelope", geom.id_to_label(geo.volume_id()));
-        EXPECT_SOFT_EQ(7., step.distance);
-        EXPECT_TRUE(step.boundary);
-
-        step = propagate(); // Envelope -> Shape1
-        EXPECT_SOFT_EQ(1., step.distance);
-        EXPECT_TRUE(step.boundary);
-        EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id()));
-
-        step = propagate();
-        EXPECT_TRUE(step.boundary);
-        EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id())); // bad
+        // Move up to a small distance
+        Propagation result = propagate(20);
+        EXPECT_SOFT_EQ(20, result.distance);
+        EXPECT_FALSE(result.boundary);
     }
+
+    // Check state and scatter
+    EXPECT_VEC_SOFT_EQ(Real3({0, 0, 20}), geo.pos());
+    EXPECT_EQ("guide_tube", this->volume_label(geo));
+    geo.set_dir({1, 0, 0});
 
     {
-        // Track from inside detector
-        geo = {{-10, 10, 10}, {0, 1, 0}};
-        EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id())); // Shape2
+        LinearPropagator propagate(&geo);
 
-        auto step = propagate(); // Shape2 -> Shape1
-        EXPECT_SOFT_EQ(5.0, step.distance);
-        EXPECT_SOFT_EQ(15.0, geo.pos()[1]);
-        EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id()));
-
-        step = propagate(); // Shape1 -> Envelope
-        EXPECT_SOFT_EQ(1.0, step.distance);
-        EXPECT_SOFT_EQ(16.0, geo.pos()[1]);
-        EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ("Envelope", geom.id_to_label(geo.volume_id()));
-
-        step = propagate(); // Envelope -> World
-        EXPECT_SOFT_EQ(2.0, step.distance);
-        EXPECT_SOFT_EQ(18.0, geo.pos()[1]);
-        EXPECT_FALSE(geo.is_outside());
-        EXPECT_EQ("World", geom.id_to_label(geo.volume_id()));
-
-        step = propagate(); // World -> out-of-world
-        EXPECT_SOFT_EQ(6.0, step.distance);
-        EXPECT_SOFT_EQ(24.0, geo.pos()[1]);
-        EXPECT_TRUE(geo.is_outside());
+        // Move to the next layer
+        Propagation result = propagate(1e20);
+        EXPECT_SOFT_EQ(30, result.distance);
+        EXPECT_TRUE(result.boundary);
     }
-}
 
-//----------------------------------------------------------------------------//
+    // Check state
+    EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), geo.pos());
+    EXPECT_EQ("si_tracker", this->volume_label(geo));
 
-TEST_F(LinearPropagatorTest, track_intra_volume)
-{
-    GeoTrackView     geo = this->make_geo_track_view();
-    LinearPropagator propagate(&geo); // one propagator per track
-
-    const auto& geom = *this->geometry();
     {
-        // Track from outside detector, moving right
-        geo = {{-10, 10, 10}, {0, 0, 1}};
-        EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id())); // Shape2
+        LinearPropagator propagate(&geo);
 
-        // break next step into two
-        auto step = propagate(2.5);
-        EXPECT_SOFT_EQ(2.5, step.distance);
-        EXPECT_SOFT_EQ(12.5, geo.pos()[2]);
-        EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id())); // still Shape2
+        // Move two steps internally
+        Propagation result = propagate(35);
+        EXPECT_SOFT_EQ(35, result.distance);
+        EXPECT_FALSE(result.boundary);
 
-        step = propagate(); // all remaining
-        EXPECT_SOFT_EQ(2.5, step.distance);
-        EXPECT_SOFT_EQ(15.0, geo.pos()[2]);
-        EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id())); // Shape2 ->
-                                                                // Shape1
-
-        // break next step into > 2 steps, re-calculating next_step each time
-        step = propagate(0.2); // step 1 inside Shape1
-        EXPECT_SOFT_EQ(0.2, step.distance);
-        EXPECT_FALSE(step.boundary);
-        EXPECT_SOFT_EQ(15.2, geo.pos()[2]);
-        EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id()));
-
-        step = propagate(0.4); // step 2 inside Shape1
-        EXPECT_SOFT_EQ(0.4, step.distance);
-        EXPECT_FALSE(step.boundary);
-        EXPECT_SOFT_EQ(15.6, geo.pos()[2]);
-        EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id()));
-
-        step = propagate(0.4); // last step inside Shape1
-        EXPECT_TRUE(step.boundary);
-        EXPECT_SOFT_EQ(0.4, step.distance);
-        EXPECT_SOFT_EQ(16, geo.pos()[2]);
-        EXPECT_EQ("Envelope", geom.id_to_label(geo.volume_id()));
+        result = propagate(40);
+        EXPECT_SOFT_EQ(40, result.distance);
+        EXPECT_FALSE(result.boundary);
     }
-}
 
-//---------------------------------------------------------------------------//
+    // Check state
+    EXPECT_VEC_SOFT_EQ(Real3({105, 0, 20}), geo.pos());
+    EXPECT_EQ("si_tracker", this->volume_label(geo));
 
-TEST_F(LinearPropagatorTest, TEST_IF_CELERITAS_CUDA(device))
-{
-    using StateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
+    {
+        LinearPropagator propagate(&geo);
 
-    // Set up test input
-    LinPropTestInput input;
-    input.init = {{{10, 10, 10}, {1, 0, 0}},
-                  {{10, 10, -10}, {1, 0, 0}},
-                  {{10, -10, 10}, {1, 0, 0}},
-                  {{10, -10, -10}, {1, 0, 0}},
-                  {{-10, 10, 10}, {-1, 0, 0}},
-                  {{-10, 10, -10}, {-1, 0, 0}},
-                  {{-10, -10, 10}, {-1, 0, 0}},
-                  {{-10, -10, -10}, {-1, 0, 0}}};
-    StateStore device_states(*this->geometry(), input.init.size());
+        // Move to next boundary (infinite max distance)
+        Propagation result = propagate();
+        EXPECT_SOFT_EQ(20, result.distance);
+        EXPECT_TRUE(result.boundary);
 
-    input.max_segments = 3;
-    input.params       = this->geometry()->device_ref();
-    input.state        = device_states.ref();
+        // Move slightly inside before next scatter
+        result = propagate(0.1);
+        EXPECT_SOFT_EQ(0.1, result.distance);
+        EXPECT_FALSE(result.boundary);
+    }
 
-    // Run kernel
-    auto output = linprop_test(input);
+    // Check state and scatter
+    EXPECT_VEC_SOFT_EQ(Real3({125.1, 0, 20}), geo.pos());
+    EXPECT_EQ("em_calorimeter", this->volume_label(geo));
+    geo.set_dir({0, 0, -1});
 
-    // clang-format off
-    static const int expected_ids[] = {
-        1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3,
-        1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3};
+    {
+        LinearPropagator propagate(&geo);
 
-    static const double expected_distances[]
-        = {5, 1, 1, 5, 1, 1, 5, 1, 1, 5, 1, 1,
-           5, 1, 1, 5, 1, 1, 5, 1, 1, 5, 1, 1};
-    // clang-format on
+        // Move to world volume
+        Propagation result = propagate(10000);
+        EXPECT_SOFT_EQ(720, result.distance);
+        EXPECT_TRUE(result.boundary);
 
-    // Check results
-    EXPECT_VEC_EQ(expected_ids, output.ids);
-    EXPECT_VEC_SOFT_EQ(output.distances, expected_distances);
+        // Move outside
+        result = propagate(10000);
+        EXPECT_SOFT_EQ(1300, result.distance);
+        EXPECT_TRUE(result.boundary);
+    }
+
+    EXPECT_VEC_SOFT_EQ(Real3({125.1, 0, -2000}), geo.pos());
+    EXPECT_EQ("[OUTSIDE]", this->volume_label(geo));
 }
