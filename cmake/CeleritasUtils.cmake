@@ -516,7 +516,7 @@ function(celeritas_target_link_libraries target)
       endif()
     endif()
 
-    # Set now to let taraget_link_libraries do the argument parsing
+    # Set now to let target_link_libraries do the argument parsing
     target_link_libraries(${_target_middle} ${ARGN})
 
     celeritas_use_middle_lib_in_property(${_target_middle} INTERFACE_LINK_LIBRARIES)
