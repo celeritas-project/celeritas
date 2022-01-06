@@ -63,7 +63,7 @@ TEST_F(LinearPropagatorTest, all)
 
     // Initialize
     geo = {{0, 0, 0}, {0, 0, 1}};
-    EXPECT_EQ("guide_tube", this->volume_label(geo));
+    EXPECT_EQ("vacuum_tube", this->volume_label(geo));
 
     {
         LinearPropagator propagate(&geo);
@@ -76,7 +76,7 @@ TEST_F(LinearPropagatorTest, all)
 
     // Check state and scatter
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 20}), geo.pos());
-    EXPECT_EQ("guide_tube", this->volume_label(geo));
+    EXPECT_EQ("vacuum_tube", this->volume_label(geo));
     geo.set_dir({1, 0, 0});
 
     {
