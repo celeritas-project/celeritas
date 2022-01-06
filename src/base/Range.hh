@@ -74,13 +74,15 @@ class Range
     //// CONSTRUCTORS ////
 
     //! Empty constructor for empty range
-    CELER_FUNCTION Range() : begin_{}, end_{} {}
+    CELER_FORCEINLINE_FUNCTION Range() : begin_{}, end_{} {}
 
     //! Construct from stop
-    CELER_FUNCTION Range(T end) : begin_{}, end_(end) {}
+    CELER_FORCEINLINE_FUNCTION Range(T end) : begin_{}, end_(end) {}
 
     //! Construct from start/stop
-    CELER_FUNCTION Range(T begin, T end) : begin_(begin), end_(end) {}
+    CELER_FORCEINLINE_FUNCTION Range(T begin, T end) : begin_(begin), end_(end)
+    {
+    }
 
     //// CONTAINER-LIKE ACCESS ////
 

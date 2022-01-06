@@ -230,16 +230,16 @@ class Collection
     //// ACCESS ////
 
     // Access a single element
-    inline CELER_FUNCTION reference_type       operator[](ItemIdT i);
-    inline CELER_FUNCTION const_reference_type operator[](ItemIdT i) const;
+    CELER_FORCEINLINE_FUNCTION reference_type       operator[](ItemIdT i);
+    CELER_FORCEINLINE_FUNCTION const_reference_type operator[](ItemIdT i) const;
 
     // Access a subset of the data with a slice
-    inline CELER_FUNCTION SpanT      operator[](ItemRangeT ps);
-    inline CELER_FUNCTION SpanConstT operator[](ItemRangeT ps) const;
+    CELER_FORCEINLINE_FUNCTION SpanT      operator[](ItemRangeT ps);
+    CELER_FORCEINLINE_FUNCTION SpanConstT operator[](ItemRangeT ps) const;
 
     // Access all data.
-    inline CELER_FUNCTION SpanT      operator[](AllItemsT);
-    inline CELER_FUNCTION SpanConstT operator[](AllItemsT) const;
+    CELER_FORCEINLINE_FUNCTION SpanT      operator[](AllItemsT);
+    CELER_FORCEINLINE_FUNCTION SpanConstT operator[](AllItemsT) const;
 
     //!@{
     //! Direct accesors to underlying data
