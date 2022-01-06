@@ -10,7 +10,7 @@
 #include "base/ArrayIO.hh"
 #include "base/CollectionStateStore.hh"
 #include "comm/Device.hh"
-#include "comm/Logger.hh"
+#include "base/Repr.hh"
 #include "vecgeom/VecgeomData.hh"
 #include "vecgeom/VecgeomTrackView.hh"
 
@@ -32,6 +32,14 @@ class VecgeomTest : public GeoTestBase<celeritas::VecgeomParams>
         = CollectionStateStore<VecgeomStateData, MemSpace::host>;
     //!@}
 
+    struct TrackingResult
+    {
+        std::vector<std::string> volumes;
+        std::vector<real_type>   distances;
+
+        void print_expected();
+    };
+
   public:
     const char* dirname() const override { return "vecgeom"; }
     const char* fileext() const override { return ".gdml"; }
@@ -49,9 +57,54 @@ class VecgeomTest : public GeoTestBase<celeritas::VecgeomParams>
             this->geometry()->host_ref(), host_state.ref(), ThreadId(0));
     }
 
+    //! Find linear segments until outside
+    TrackingResult track(const Real3& pos, const Real3& dir);
+
   private:
     HostStateStore host_state;
 };
+
+auto VecgeomTest::track(const Real3& pos, const Real3& dir) -> TrackingResult
+{
+    const auto& params = *this->geometry();
+
+    TrackingResult result;
+
+    VecgeomTrackView geo = this->make_geo_track_view();
+    geo                  = {pos, dir};
+
+    if (geo.is_outside())
+    {
+        // Initial step is outside but may approach insidfe
+        result.volumes.push_back("[OUTSIDE]");
+        result.distances.push_back(geo.find_next_step());
+        if (result.distances.back() < 1e20)
+        {
+            geo.move_across_boundary();
+        }
+    }
+
+    while (!geo.is_outside())
+    {
+        result.volumes.push_back(params.id_to_label(geo.volume_id()));
+        result.distances.push_back(geo.find_next_step());
+        geo.move_across_boundary();
+    }
+
+    return result;
+}
+
+void VecgeomTest::TrackingResult::print_expected()
+{
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+         << "static const char* const expected_volumes[] = "
+         << repr(this->volumes) << ";\n"
+         << "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
+         << "static const real_type expected_distances[] = "
+         << repr(this->distances) << ";\n"
+         << "EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);\n"
+         << "/*** END CODE ***/\n";
+}
 
 //---------------------------------------------------------------------------//
 
@@ -80,89 +133,102 @@ TEST_F(FourLevelsTest, accessors)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(FourLevelsTest, basic_tracking)
+TEST_F(FourLevelsTest, tracking)
 {
-    const auto& geom = *this->geometry();
-
-    VecgeomTrackView geo = this->make_geo_track_view();
-    geo                  = {{-10, -10, -10}, {1, 0, 0}};
-    EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id()));
-    EXPECT_SOFT_EQ(5, geo.find_next_step());
-
-    geo.move_across_boundary(); // Shape2 -> Shape1
-    EXPECT_SOFT_EQ(-5, geo.pos()[0]);
-    EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id()));
-    EXPECT_SOFT_EQ(1, geo.find_next_step());
-
-    geo.move_across_boundary(); // Shape1 -> Envelope
-    EXPECT_EQ("Envelope", geom.id_to_label(geo.volume_id()));
-    EXPECT_FALSE(geo.is_outside());
-    EXPECT_SOFT_EQ(1, geo.find_next_step());
-
-    geo.move_across_boundary(); // Envelope -> World
-    EXPECT_EQ("World", geom.id_to_label(geo.volume_id()));
-    EXPECT_FALSE(geo.is_outside());
-}
-
-TEST_F(FourLevelsTest, from_outside_edge)
-{
-    const auto& geom = *this->geometry();
-
-    VecgeomTrackView geo = this->make_geo_track_view();
-    geo                  = {{-24, 10., 10.}, {1, 0, 0}};
-    EXPECT_TRUE(geo.is_outside());
-    EXPECT_SOFT_EQ(0., geo.find_next_step()); // since it is on edge, but
-                                              // outside
-
-    geo.move_across_boundary(); // outside -> World (still on the edge)
-    EXPECT_EQ("World", geom.id_to_label(geo.volume_id()));
-    EXPECT_SOFT_EQ(7., geo.find_next_step()); // since it is on edge
-
-    geo.move_across_boundary(); // World -> Envelope
-    EXPECT_EQ("Envelope", geom.id_to_label(geo.volume_id()));
-    EXPECT_SOFT_EQ(1., geo.find_next_step());
-
-    geo.move_across_boundary(); // Envelope -> Shape1
-    EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id()));
-    EXPECT_SOFT_EQ(1., geo.find_next_step());
-
-    geo.move_across_boundary(); // Shape1 -> Shape2
-    EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id()));
-    EXPECT_SOFT_EQ(10., geo.find_next_step());
-}
-
-TEST_F(FourLevelsTest, leaving_world)
-{
-    const auto& geom = *this->geometry();
-
-    VecgeomTrackView geo = this->make_geo_track_view();
-
-    geo = {{-10, 10, 10}, {0, 1, 0}};
-    EXPECT_EQ("Shape2", geom.id_to_label(geo.volume_id())); // Another Shape2
-    EXPECT_SOFT_EQ(5.0, geo.find_next_step());
-
-    geo.move_across_boundary(); // Shape2 -> Shape1
-    EXPECT_SOFT_EQ(15.0, geo.pos()[1]);
-    EXPECT_EQ("Shape1", geom.id_to_label(geo.volume_id()));
-    EXPECT_FALSE(geo.is_outside());
-    EXPECT_SOFT_EQ(1.0, geo.find_next_step());
-
-    geo.move_across_boundary(); // Shape1 -> Envelope
-    EXPECT_SOFT_EQ(16.0, geo.pos()[1]);
-    EXPECT_EQ("Envelope", geom.id_to_label(geo.volume_id()));
-    EXPECT_FALSE(geo.is_outside());
-    EXPECT_SOFT_EQ(2.0, geo.find_next_step());
-
-    geo.move_across_boundary(); // Envelope -> World
-    EXPECT_SOFT_EQ(18.0, geo.pos()[1]);
-    EXPECT_EQ("World", geom.id_to_label(geo.volume_id()));
-    EXPECT_FALSE(geo.is_outside());
-    EXPECT_SOFT_EQ(6.0, geo.find_next_step());
-
-    geo.move_across_boundary(); // World -> out-of-world
-    EXPECT_SOFT_EQ(24.0, geo.pos()[1]);
-    EXPECT_TRUE(geo.is_outside());
-    EXPECT_GT(geo.find_next_step(), 1.e+99);
+    {
+        SCOPED_TRACE("Rightward");
+        auto result = this->track({-10, -10, -10}, {1, 0, 0});
+        // result.print_expected();
+        static const char* const expected_volumes[] = {"Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {5, 1, 1, 6, 1, 1, 10, 1, 1, 7};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("From outside edge");
+        auto result = this->track({-24, 10., 10.}, {1, 0, 0});
+        static const char* const expected_volumes[] = {"[OUTSIDE]",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {1e-13, 7.0 - 1e-13, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Leaving world");
+        auto result = this->track({-10, 10, 10}, {0, 1, 0});
+        static const char* const expected_volumes[]
+            = {"Shape2", "Shape1", "Envelope", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {5, 1, 2, 6};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Upward");
+        auto result = this->track({-10, 10, 10}, {0, 0, 1});
+        static const char* const expected_volumes[]
+            = {"Shape2", "Shape1", "Envelope", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {5, 1, 3, 5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        // Formerly in linear propagator test, used to fail
+        SCOPED_TRACE("From just outside world");
+        auto result = this->track({-24, 6.5, 6.5}, {1, 0, 0});
+        static const char* const expected_volumes[] = {"[OUTSIDE]",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {1e-13,
+                                                       6.9999999999999,
+                                                       1,
+                                                       5.2928932188135,
+                                                       1.4142135623731,
+                                                       5.2928932188135,
+                                                       1,
+                                                       6,
+                                                       1,
+                                                       5.2928932188135,
+                                                       1.4142135623731,
+                                                       5.2928932188135,
+                                                       1,
+                                                       7};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -182,24 +248,22 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
                   {{-10, -10, 10}, {-1, 0, 0}},
                   {{-10, -10, -10}, {-1, 0, 0}}};
     StateStore device_states(*this->geometry(), input.init.size());
-    input.max_segments = 3;
+    input.max_segments = 5;
     input.params       = this->geometry()->device_ref();
     input.state        = device_states.ref();
 
     // Run kernel
     auto output = vgg_test(input);
 
-    // clang-format off
-    static const int expected_ids[] = {
-        1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3,
-        1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3};
+    static const int expected_ids[]
+        = {1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3,
+           1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3};
 
     static const double expected_distances[]
-        = {5, 1, 1, 5, 1, 1, 5, 1, 1, 5, 1, 1,
-           5, 1, 1, 5, 1, 1, 5, 1, 1, 5, 1, 1};
-    // clang-format on
+        = {5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3,
+           5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3};
 
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);
-    EXPECT_VEC_SOFT_EQ(output.distances, expected_distances);
+    EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
 }

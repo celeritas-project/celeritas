@@ -105,8 +105,6 @@ list(APPEND SOURCES
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
   random/detail/RngStateInit.cc
-  sim/TrackInitParams.cc
-  sim/detail/InitializeTracks.cc
 )
 
 if(CELERITAS_USE_CUDA)
@@ -114,7 +112,6 @@ if(CELERITAS_USE_CUDA)
     base/KernelParamCalculator.cuda.cc
     base/detail/Filler.cu
     random/detail/RngStateInit.cu
-    sim/detail/InitializeTracks.cu
   )
   # TODO: CUDA RNG is included by host code
   list(APPEND PUBLIC_DEPS CUDA::cudart)
@@ -153,6 +150,8 @@ endif()
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     geometry/GeoMaterialParams.cc
+    sim/TrackInitParams.cc
+    sim/detail/InitializeTracks.cc
     vecgeom/VecgeomParams.cc
     vecgeom/detail/ScopedTimeAndRedirect.cc
     vecgeom/detail/VecgeomNavCollection.cc
@@ -162,6 +161,11 @@ if(CELERITAS_USE_VecGeom)
   # to resolve the symbol generate by the `nvcc -dlink` of
   # one of the executable.
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
+  if(CELERITAS_USE_CUDA)
+    list(APPEND SOURCES
+      sim/detail/InitializeTracks.cu
+    )
+  endif()
 endif()
 
 celeritas_add_library(celeritas ${SOURCES})

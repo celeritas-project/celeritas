@@ -26,7 +26,7 @@ __global__ void vgg_test_kernel(const GeoParamsCRefDevice  params,
                                 const GeoStateRefDevice    state,
                                 const GeoTrackInitializer* start,
                                 const int                  max_segments,
-                                VolumeId*                  ids,
+                                int*                       ids,
                                 double*                    distances)
 {
     CELER_EXPECT(params && state);
@@ -40,16 +40,22 @@ __global__ void vgg_test_kernel(const GeoParamsCRefDevice  params,
 
     for (int seg = 0; seg < max_segments; ++seg)
     {
-        if (geo.is_outside())
-            break;
-
         // Move next step
         real_type dist = geo.find_next_step();
-        geo.move_across_boundary();
+        if (dist < 1e20)
+        {
+            geo.move_across_boundary();
+        }
 
         // Save current ID and distance travelled
-        ids[tid.get() * max_segments + seg]       = geo.volume_id();
+        ids[tid.get() * max_segments + seg]
+            = (geo.is_outside()
+                   ? -2
+                   : static_cast<int>(geo.volume_id().unchecked_get()));
         distances[tid.get() * max_segments + seg] = dist;
+
+        if (geo.is_outside())
+            break;
     }
 }
 
@@ -67,8 +73,8 @@ VGGTestOutput vgg_test(VGGTestInput input)
     // Temporary device data for kernel
     thrust::device_vector<GeoTrackInitializer> init(input.init.begin(),
                                                     input.init.end());
-    thrust::device_vector<VolumeId> ids(input.init.size() * input.max_segments);
-    thrust::device_vector<double>   distances(ids.size(), -2.0);
+    thrust::device_vector<int> ids(input.init.size() * input.max_segments, -3);
+    thrust::device_vector<double> distances(ids.size(), -3.0);
 
     // Run kernel
     static const celeritas::KernelParamCalculator calc_launch_params(
@@ -86,10 +92,8 @@ VGGTestOutput vgg_test(VGGTestInput input)
 
     // Copy result back to CPU
     VGGTestOutput result;
-    for (auto id : thrust::host_vector<VolumeId>(ids))
-    {
-        result.ids.push_back(id ? static_cast<int>(id.get()) : -3);
-    }
+    result.ids.resize(ids.size());
+    thrust::copy(ids.begin(), ids.end(), result.ids.begin());
     result.distances.resize(distances.size());
     thrust::copy(distances.begin(), distances.end(), result.distances.begin());
 
