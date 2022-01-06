@@ -148,7 +148,7 @@ struct TempNextFace
     real_type* distance{nullptr};
     size_type* isect{nullptr};
 
-    size_type size{0}; //!< Number of intersections
+    size_type size{0}; //!< Maximum number of intersections
 
     explicit CELER_FORCEINLINE_FUNCTION operator bool() const
     {

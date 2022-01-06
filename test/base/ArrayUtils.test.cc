@@ -73,6 +73,15 @@ TEST(ArrayUtilsTest, normalize_direction)
     EXPECT_VEC_SOFT_EQ(expected, direction);
 }
 
+TEST(ArrayUtilsTest, is_soft_unit_vector)
+{
+    Real3 dir{1, 2, 3};
+    celeritas::normalize_direction(&dir);
+    EXPECT_TRUE(celeritas::is_soft_unit_vector(dir));
+    dir[0] += 1e-12;
+    EXPECT_TRUE(celeritas::is_soft_unit_vector(dir));
+}
+
 TEST(ArrayUtilsTest, rotate)
 {
     Real3 vec = {-1.1, 2.3, 0.9};
@@ -107,6 +116,32 @@ TEST(ArrayUtilsTest, rotate)
     EXPECT_VEC_SOFT_EQ(
         (Real3{-0.613930085414816, 0.0739664834328671, 0.785887275346237}),
         celeritas::rotate(scatter, vec));
+
+    // Transform a range of more almost-degenerate vectors
+    for (auto eps : {1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8})
+    {
+        vec = {-eps, 2 * eps, 1 - eps * eps};
+        celeritas::normalize_direction(&vec);
+        Real3 result = celeritas::rotate(scatter, vec);
+        EXPECT_SOFT_EQ(1.0, celeritas::dot_product(result, result))
+            << "for eps=" << eps << " => vec=" << vec;
+    }
+
+    // Test non-unit result failure from KN demo kernel
+    scatter = {-0.49359585864063, 0.814702199615169, -0.304341016419122};
+    EXPECT_SOFT_EQ(0.0, celeritas::dot_product(scatter, scatter) - 1);
+    vec = {0.00208591611691868, 0.00328080730344347, 0.999992442600138};
+    EXPECT_SOFT_EQ(0.0, celeritas::dot_product(vec, vec) - 1);
+    {
+        auto result = celeritas::rotate(scatter, vec);
+        EXPECT_SOFT_EQ(0.0, celeritas::dot_product(result, result) - 1);
+        // The expected value below is from using the regular/non-fallback
+        // calculation normalized to a unit vector
+        EXPECT_VEC_NEAR(
+            (Real3{-0.952973648767149, 0.0195839636531213, -0.302419730049247}),
+            result,
+            2e-11);
+    }
 
     // Switch scattered z direction
     costheta *= -1;

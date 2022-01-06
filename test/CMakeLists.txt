@@ -158,6 +158,10 @@ celeritas_setup_tests(SERIAL PREFIX geometry)
 celeritas_setup_tests(SERIAL PREFIX vecgeom
   LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom)
 
+celeritas_setup_tests(SERIAL PREFIX geometry)
+
+celeritas_add_test(geometry/BoundingBox.test.cc)
+
 if(CELERITAS_USE_VecGeom)
   set(_sources)
   if(CELERITAS_USE_CUDA)
@@ -212,6 +216,7 @@ set(CELERITASTEST_LINK_LIBRARIES CeleritasOrangeTest)
 celeritas_add_test(orange/universes/detail/SenseCalculator.test.cc)
 celeritas_add_test(orange/universes/VolumeView.test.cc)
 celeritas_cudaoptional_test(orange/universes/SimpleUnitTracker)
+celeritas_add_test(orange/Orange.test.cc)
 
 #-----------------------------------------------------------------------------#
 # I/O (ROOT)

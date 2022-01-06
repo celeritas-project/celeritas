@@ -25,7 +25,7 @@ class VolumeViewTest : public celeritas_test::OrangeGeoTestBase
 
     const VolumeDataRef& volume_ref() const
     {
-        return this->params_host_ref().volumes;
+        return this->params().host_ref().volumes;
     }
 
     void test_face_accessors(const VolumeView& volumes)

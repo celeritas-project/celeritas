@@ -15,9 +15,13 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// TYPE ALIASES
+//---------------------------------------------------------------------------//
 //! Identifier for a geometry volume
 using VolumeId = OpaqueId<struct Volume>;
 
+//---------------------------------------------------------------------------//
+// STRUCTS
 //---------------------------------------------------------------------------//
 /*!
  * Data required to initialize a geometry state.
@@ -30,16 +34,6 @@ struct GeoTrackInitializer
 
 //---------------------------------------------------------------------------//
 /*!
- * Enhanced intersection for curved-line travel.
- */
-struct NearbyIntersection
-{
-    real_type distance; //!< Distance along a straight-line direction
-    real_type safety;   //!< Known-safe distance along any direction
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Result of a propagation step.
  */
 struct Propagation
@@ -47,6 +41,29 @@ struct Propagation
     real_type distance{0}; //!< Distance traveled
     bool boundary{false};  //!< True if hit a boundary before given distance
 };
+
+//---------------------------------------------------------------------------//
+// ENUMS
+//---------------------------------------------------------------------------//
+/*!
+ * Enumeration for cartesian axes.
+ */
+enum class Axis
+{
+    x,    //!< X axis/I index coordinate
+    y,    //!< Y axis/J index coordinate
+    z,    //!< Z axis/K index coordinate
+    size_ //!< Sentinel value for looping over axes
+};
+
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS (HOST)
+//---------------------------------------------------------------------------//
+//! Get the lowercase name of the axis.
+inline constexpr char to_char(Axis ax)
+{
+    return "xyz\a"[static_cast<int>(ax)];
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

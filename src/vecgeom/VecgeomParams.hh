@@ -33,7 +33,7 @@ class VecgeomParams
 
   public:
     // Construct from a GDML filename
-    explicit VecgeomParams(const char* gdml_filename);
+    explicit VecgeomParams(const std::string& gdml_filename);
 
     // Clean up VecGeom on destruction
     ~VecgeomParams();
@@ -43,9 +43,8 @@ class VecgeomParams
     // Get the label for a placed volume ID
     const std::string& id_to_label(VolumeId vol_id) const;
 
-    // Get the ID corresponding to a label
-    // TODO: rename to find ?? see MaterialParams etc.
-    VolumeId label_to_id(const std::string& label) const;
+    // Get the volume ID corresponding to a label
+    VolumeId find_volume(const std::string& label) const;
 
     //! Number of volumes
     VolumeId::size_type num_volumes() const { return num_volumes_; }

@@ -14,7 +14,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for copying setup-time Collection classes to host and device.
+ * Helper class for copying setup-time Collection groups to host and device.
  *
  * This should generally be an implementation detail of Params classes, which
  * are constructed on host and must have the same data both on host and device.

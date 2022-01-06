@@ -25,7 +25,7 @@ using logic_int = unsigned short int;
 //! Identifier for a surface in a universe
 using SurfaceId = OpaqueId<struct Surface>;
 
-//! Identifier for a face local to a particular volume
+//! Identifier for a face local to a particular volume (internal use only)
 using FaceId = OpaqueId<struct Face>;
 
 //---------------------------------------------------------------------------//
@@ -46,18 +46,6 @@ enum class Sense : bool
 {
     inside,  //!< Quadric expression is less than zero
     outside, //!< Expression is greater than zero
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Enumeration for cartesian axes.
- */
-enum class Axis
-{
-    x,    //!< X axis/I index coordinate
-    y,    //!< Y axis/J index coordinate
-    z,    //!< Z axis/K index coordinate
-    size_ //!< Sentinel value for looping over axes
 };
 
 //---------------------------------------------------------------------------//
@@ -244,12 +232,6 @@ CELER_CONSTEXPR_FUNCTION bool is_operator_token(logic_int lv)
 inline static constexpr char to_char(Sense s)
 {
     return s == Sense::inside ? '-' : '+';
-}
-
-//! Get the lowercase name of the axis.
-inline static constexpr char to_char(Axis ax)
-{
-    return "xyz\a"[static_cast<int>(ax)];
 }
 
 // Get a string corresponding to a surface type
