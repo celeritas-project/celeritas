@@ -19,6 +19,7 @@
 #    include <VecGeom/management/CudaManager.h>
 #endif
 
+#include "base/StringUtils.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
 #include "GeoData.hh"
@@ -30,13 +31,18 @@ namespace celeritas
 /*!
  * Construct from a GDML input.
  */
-GeoParams::GeoParams(const char* gdml_filename)
+GeoParams::GeoParams(const std::string& filename)
 {
-    CELER_LOG(info) << "Loading from GDML at " << gdml_filename;
+    CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
+    if (!ends_with(filename, ".gdml"))
+    {
+        CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";
+    }
+
     {
         detail::ScopedTimeAndRedirect time_and_output_;
         constexpr bool                validate_xml_schema = false;
-        vgdml::Frontend::Load(gdml_filename, validate_xml_schema);
+        vgdml::Frontend::Load(filename, validate_xml_schema);
     }
 
     CELER_LOG(status) << "Initializing tracking information";
@@ -120,7 +126,7 @@ const std::string& GeoParams::id_to_label(VolumeId vol_id) const
 /*!
  * Get the ID corresponding to a label
  */
-auto GeoParams::label_to_id(const std::string& label) const -> VolumeId
+auto GeoParams::find_volume(const std::string& label) const -> VolumeId
 {
     const auto* vol
         = vecgeom::GeoManager::Instance().FindLogicalVolume(label.c_str());

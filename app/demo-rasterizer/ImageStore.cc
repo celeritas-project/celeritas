@@ -20,8 +20,7 @@ namespace demo_rasterizer
  */
 ImageStore::ImageStore(ImageRunArgs params)
 {
-    CELER_EXPECT(celeritas::is_soft_unit_vector(
-        params.rightward_ax, celeritas::SoftEqual<real_type>{}));
+    CELER_EXPECT(celeritas::is_soft_unit_vector(params.rightward_ax));
     CELER_EXPECT(params.lower_left != params.upper_right);
     CELER_EXPECT(params.vertical_pixels > 0);
 

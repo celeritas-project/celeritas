@@ -14,6 +14,7 @@
 #include "base/Types.hh"
 #include "detail/VGNavCollection.hh"
 #include "detail/VGTraits.hh"
+#include "Types.hh"
 
 namespace celeritas
 {

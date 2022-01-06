@@ -65,7 +65,7 @@ CELER_FUNCTION Span<real_type> MaterialTrackView::element_scratch()
     Span<real_type> all_scratch
         = states_.element_scratch[AllItems<real_type, MemSpace::native>{}];
     CELER_ENSURE(offset + params_.max_element_components <= all_scratch.size());
-    return {all_scratch.data() + offset, params_.max_element_components};
+    return all_scratch.subspan(offset, params_.max_element_components);
 }
 
 //---------------------------------------------------------------------------//

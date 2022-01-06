@@ -204,7 +204,7 @@ CELER_FUNCTION void GeoTrackView::move_internal(const Real3& pos)
  */
 CELER_FUNCTION void GeoTrackView::set_dir(const Real3& newdir)
 {
-    CELER_EXPECT(is_soft_unit_vector(newdir, SoftEqual<real_type>(1e-6)));
+    CELER_EXPECT(is_soft_unit_vector(newdir));
     dir_       = newdir;
     next_step_ = 0;
 }

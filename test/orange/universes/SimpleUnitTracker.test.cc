@@ -95,23 +95,11 @@ class TwoVolumeTest : public SimpleUnitTrackerTest
     }
 };
 
-//! Construct a test name that is disabled when JSON is disabled
-#if CELERITAS_USE_JSON
-#    define TEST_IF_CELERITAS_JSON(name) name
-#else
-#    define TEST_IF_CELERITAS_JSON(name) DISABLED_##name
-#endif
-
 #define FiveVolumesTest TEST_IF_CELERITAS_JSON(FiveVolumesTest)
 class FiveVolumesTest : public SimpleUnitTrackerTest
 {
     void SetUp() override
     {
-        if (!CELERITAS_USE_JSON)
-        {
-            GTEST_SKIP() << "JSON is not enabled";
-        }
-
         this->build_geometry("five-volumes.org.json");
     }
 };
@@ -130,11 +118,15 @@ LocalState SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir)
     state.dir         = dir;
     state.volume      = {};
     state.surface     = {};
-    state.temp_sense         = this->sense_storage();
-    state.temp_next.face     = this->face_storage().data();
-    state.temp_next.distance = this->distance_storage().data();
-    state.temp_next.isect    = this->isect_storage().data();
-    state.temp_next.size     = this->face_storage().size();
+
+    const auto& hsref        = this->host_state();
+    auto        face_storage = hsref.temp_face[AllItems<FaceId>{}];
+    state.temp_sense         = hsref.temp_sense[AllItems<Sense>{}];
+    state.temp_next.face     = face_storage.data();
+    state.temp_next.distance
+        = hsref.temp_distance[AllItems<real_type>{}].data();
+    state.temp_next.isect = hsref.temp_isect[AllItems<size_type>{}].data();
+    state.temp_next.size  = face_storage.size();
     return state;
 }
 
@@ -211,7 +203,7 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
     // Set up for host run
     OrangeStateData<Ownership::reference, MemSpace::host> host_state_ref;
     host_state_ref = state_host;
-    InitializingLauncher<> calc_init{this->params_host_ref(), host_state_ref};
+    InitializingLauncher<> calc_init{this->params().host_ref(), host_state_ref};
 
     // Loop over all threads
     Stopwatch get_time;
@@ -239,7 +231,7 @@ auto SimpleUnitTrackerTest::run_heuristic_init_device(size_type num_tracks) cons
 
     // Run on device
     Stopwatch get_time;
-    test_initialize(this->params_device_ref(), state_device_ref);
+    test_initialize(this->params().device_ref(), state_device_ref);
     const double kernel_time = get_time();
 
     // Copy result back to host
@@ -256,14 +248,15 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
 {
     CELER_EXPECT(num_tracks > 0);
     StateHostValue result;
-    resize(&result, this->params_host_ref(), num_tracks);
+    resize(&result, this->params().host_ref(), num_tracks);
     auto pos_view = result.pos[AllItems<Real3>{}];
     auto dir_view = result.dir[AllItems<Real3>{}];
 
     std::mt19937 rng;
 
     // Sample uniform in space and isotropic in direction
-    UniformBoxDistribution<> sample_box{this->bbox_lower(), this->bbox_upper()};
+    const auto&              bbox = this->params().bbox();
+    UniformBoxDistribution<> sample_box{bbox.lower(), bbox.upper()};
     IsotropicDistribution<>  sample_isotropic;
     for (auto i : range(num_tracks))
     {
@@ -398,7 +391,7 @@ TEST_F(UtilsTest, intersection_partitioner)
 
 TEST_F(OneVolumeTest, initialize)
 {
-    SimpleUnitTracker tracker(this->params_host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref());
 
     {
         // Anywhere is valid
@@ -411,7 +404,7 @@ TEST_F(OneVolumeTest, initialize)
 
 TEST_F(OneVolumeTest, intersect)
 {
-    SimpleUnitTracker tracker(this->params_host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref());
 
     {
         auto state = this->make_state({1, 2, 3}, {0, 0, 1}, "infinite");
@@ -447,7 +440,7 @@ TEST_F(OneVolumeTest, heuristic_init)
 
 TEST_F(TwoVolumeTest, initialize)
 {
-    SimpleUnitTracker tracker(this->params_host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref());
 
     {
         SCOPED_TRACE("In the inner sphere");
@@ -490,7 +483,7 @@ TEST_F(TwoVolumeTest, initialize)
 
 TEST_F(TwoVolumeTest, intersect)
 {
-    SimpleUnitTracker tracker(this->params_host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref());
 
     {
         SCOPED_TRACE("Inside");
@@ -579,7 +572,7 @@ TEST_F(TwoVolumeTest, heuristic_init)
 {
     size_type num_tracks = 1024;
 
-    static const double expected_vol_fractions[] = {0.5234375, 0.4765625};
+    static const double expected_vol_fractions[] = {0.4765625, 0.5234375};
 
     {
         SCOPED_TRACE("Host heuristic");
@@ -602,13 +595,14 @@ TEST_F(TwoVolumeTest, heuristic_init)
 TEST_F(FiveVolumesTest, properties)
 {
     // NOTE: bbox in the JSON file has been adjusted manually.
-    EXPECT_VEC_SOFT_EQ(Real3({-1.5, -1.5, -0.5}), bbox_lower());
-    EXPECT_VEC_SOFT_EQ(Real3({1.5, 1.5, 0.5}), bbox_upper());
+    const auto& bbox = this->params().bbox();
+    EXPECT_VEC_SOFT_EQ(Real3({-1.5, -1.5, -0.5}), bbox.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({1.5, 1.5, 0.5}), bbox.upper());
 }
 
 TEST_F(FiveVolumesTest, initialize)
 {
-    SimpleUnitTracker tracker(this->params_host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref());
 
     {
         SCOPED_TRACE("Exterior");
@@ -716,7 +710,7 @@ TEST_F(FiveVolumesTest, initialize)
 
 TEST_F(FiveVolumesTest, intersect)
 {
-    SimpleUnitTracker tracker(this->params_host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref());
 
     {
         SCOPED_TRACE("internal surface for a");

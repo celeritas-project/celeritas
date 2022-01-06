@@ -32,7 +32,7 @@ class GeoParams
 
   public:
     // Construct from a GDML filename
-    explicit GeoParams(const char* gdml_filename);
+    explicit GeoParams(const std::string& filename);
 
     // Clean up VecGeom on destruction
     ~GeoParams();
@@ -44,7 +44,7 @@ class GeoParams
 
     // Get the ID corresponding to a label
     // TODO: rename to find ?? see MaterialParams etc.
-    VolumeId label_to_id(const std::string& label) const;
+    VolumeId find_volume(const std::string& label) const;
 
     //! Number of volumes
     VolumeId::size_type num_volumes() const { return num_volumes_; }

@@ -55,6 +55,7 @@ list(APPEND SOURCES
   base/DeviceAllocation.cc
   comm/KernelDiagnostics.cc
   base/ScopedStreamRedirect.cc
+  base/StringUtils.cc
   base/TypeDemangler.cc
   base/VectorUtils.cc
   base/detail/ReprImpl.cc
@@ -65,6 +66,7 @@ list(APPEND SOURCES
   comm/ScopedMpiInit.cc
   comm/detail/LoggerMessage.cc
   geometry/detail/ScopedTimeAndRedirect.cc
+  orange/OrangeParams.cc
   orange/Types.cc
   orange/construct/SurfaceInserter.cc
   orange/construct/VolumeInserter.cc

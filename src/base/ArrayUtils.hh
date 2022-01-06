@@ -52,9 +52,8 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot);
 
 //---------------------------------------------------------------------------//
 // Test for being approximately a unit vector
-template<class T, size_type N, class SoftEq>
-inline CELER_FUNCTION bool
-is_soft_unit_vector(const Array<T, N>& v, SoftEq cmp);
+template<class T, size_type N>
+inline CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
