@@ -164,6 +164,10 @@ if(CELERITAS_USE_VecGeom)
       target_compile_options(${_lib}
         INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
       )
+      target_link_options(${_lib}
+        INTERFACE "$<DEVICE_LINK:SHELL: -Xnvlink --suppress-stack-size-warning>"
+      )
+
       # Inform celeritas_add_library code
       set_target_properties(${_lib} PROPERTIES
         CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static

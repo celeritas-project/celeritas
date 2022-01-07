@@ -155,6 +155,20 @@ function(celeritas_generate_empty_cu_file emptyfilenamevar target)
 endfunction()
 
 #
+# Transfer the setting \${what} (both the PUBLIC and INTERFACE version) to from library \${fromlib} to the library \${tolib} that depends on it
+#
+function(celeritas_transfer_setting fromlib tolib what)
+  get_target_property(_temp ${fromlib} ${what})
+  if (_temp)
+    cmake_language(CALL target_${what} ${tolib} PUBLIC ${_temp})
+  endif()
+  get_target_property(_temp ${fromlib} INTERFACE_${what})
+  if (_temp)
+    cmake_language(CALL target_${what} ${tolib} PUBLIC ${_temp})
+  endif()
+endfunction()
+
+#
 # celeritas_add_library
 #
 # Add a library taking into account whether it contains
@@ -579,7 +593,13 @@ function(celeritas_target_link_libraries target)
               PRIVATE
               $<DEVICE_LINK:$<TARGET_FILE:${_libstatic}>>
             )
-          add_dependencies(${_target_final} ${_libstatic})
+
+            # Also pass on the the options and definitions.
+            celeritas_transfer_setting(${_libstatic} ${_target_final} COMPILE_OPTIONS)
+            celeritas_transfer_setting(${_libstatic} ${_target_final} COMPILE_DEFINITIONS)
+            celeritas_transfer_setting(${_libstatic} ${_target_final} LINK_OPTIONS)
+
+            add_dependencies(${_target_final} ${_libstatic})
           endif()
         endif()
       endforeach()
