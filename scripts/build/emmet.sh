@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-: ${BUILD_SUBDIR:=build}
+: ${BUILD_SUBDIR:=build-novg}
 BUILDSCRIPT_DIR="$(cd "$(dirname $BASH_SOURCE[0])" && pwd)"
 SOURCE_DIR="$(cd "${BUILDSCRIPT_DIR}" && git rev-parse --show-toplevel)"
 HOST=emmet
