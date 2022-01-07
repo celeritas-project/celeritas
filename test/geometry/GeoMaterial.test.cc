@@ -7,8 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "geometry/GeoMaterialParams.hh"
 
+#include "base/CollectionStateStore.hh"
+#include "geometry/GeoData.hh"
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoMaterialView.hh"
+#include "geometry/GeoTrackView.hh"
 #include "io/RootImporter.hh"
 #include "io/ImportData.hh"
 
@@ -24,14 +27,14 @@ using namespace celeritas;
 class GeoMaterialTest : public celeritas_test::GeoTestBase<celeritas::GeoParams>
 {
     const char* dirname() const override { return "geometry"; }
-    const char* filebase() const override { return "four-steel-slabs"; }
+    const char* filebase() const override { return "simple-cms"; }
 
     void SetUp() override
     {
         // Load ROOT file
         std::string root_file
-            = this->test_data_path("io", "geant-exporter-data.root");
-        const auto data = RootImporter(root_file.c_str())();
+            = this->test_data_path("geometry", "simple-cms.root");
+        auto data = RootImporter(root_file.c_str())();
 
         // Set up shared material data
         material_ = MaterialParams::from_import(data);
@@ -40,16 +43,15 @@ class GeoMaterialTest : public celeritas_test::GeoTestBase<celeritas::GeoParams>
         GeoMaterialParams::Input input;
         input.geometry  = this->geometry();
         input.materials = material_;
-        input.volume_to_mat
-            = std::vector<MaterialId>(input.geometry->num_volumes());
+        input.volume_to_mat.resize(data.volumes.size());
+        input.volume_names.resize(data.volumes.size());
 
-        CELER_ASSERT(data.volumes.size() == input.volume_to_mat.size());
-        CELER_ASSERT(data.materials.size() == input.materials->num_materials());
-
-        for (const auto volume_id : range(data.volumes.size()))
+        for (const auto vol_idx : range(data.volumes.size()))
         {
-            const auto& volume             = data.volumes.at(volume_id);
-            input.volume_to_mat[volume_id] = MaterialId{volume.material_id};
+            const ImportVolume& volume = data.volumes[vol_idx];
+
+            input.volume_to_mat[vol_idx] = MaterialId{volume.material_id};
+            input.volume_names[vol_idx]  = volume.name;
         }
         geo_mat_ = std::make_shared<GeoMaterialParams>(std::move(input));
     }
@@ -65,15 +67,30 @@ class GeoMaterialTest : public celeritas_test::GeoTestBase<celeritas::GeoParams>
 
 TEST_F(GeoMaterialTest, host)
 {
-    const unsigned int expected_mat_id[] = {1, 1, 1, 1, 0};
-
-    const auto& geo = *this->geometry();
-    EXPECT_EQ(5, geo.num_volumes());
-
+    // Geometry track view and mat view
+    const auto& geo_params = *this->geometry();
+    CollectionStateStore<GeoStateData, MemSpace::host> geo_state(geo_params, 1);
+    GeoTrackView    geo(geo_params.host_ref(), geo_state.ref(), ThreadId{0});
     GeoMaterialView geo_mat_view(geo_mat_->host_ref());
-    for (auto i : range(geo.num_volumes()))
+
+    // Track across layers to get a truly implementation-independent
+    // comparison of material IDs encountered.
+    std::vector<std::string> materials;
+
+    geo = {{0, 0, 0}, {1, 0, 0}};
+    while (!geo.is_outside())
     {
-        EXPECT_EQ(MaterialId{expected_mat_id[i]},
-                  geo_mat_view.material_id(VolumeId{i}));
+        MaterialId matid = geo_mat_view.material_id(geo.volume_id());
+
+        materials.push_back(matid ? material_->id_to_label(matid)
+                                  : "[invalid]");
+
+        geo.find_next_step();
+        geo.move_across_boundary();
     }
+
+    // PRINT_EXPECTED(materials);
+    static const std::string expected_materials[]
+        = {"vacuum", "Si", "Pb", "C", "Ti", "Fe", "vacuum"};
+    EXPECT_VEC_EQ(expected_materials, materials);
 }

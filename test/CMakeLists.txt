@@ -151,8 +151,7 @@ celeritas_setup_tests(SERIAL PREFIX geometry)
 
 celeritas_add_test(geometry/BoundingBox.test.cc)
 
-#TODO: enable these tests when not vecgeom
-celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root} ${_needs_vecgeom}
+celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
   LINK_LIBRARIES Celeritas::ROOT)
 celeritas_add_test(geometry/LinearPropagator.test.cc)
 

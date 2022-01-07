@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,6 +20,12 @@ namespace celeritas
  *
  * For the forseeable future this class should just be a vector of MaterialIds,
  * one per volume.
+ *
+ * The constructor takes an array of material IDs for every volume. Missing
+ * material IDs may be allowed if they correspond to unreachable volume IDs. If
+ * the list of `volume_names` strings is provided, it must be the same size as
+ * `volume_to_mat` and indicate a mapping for the geometry's volume IDs.
+ * Otherwise, the array is required to have exactly one entry per volume ID.
  */
 class GeoMaterialParams
 {
@@ -32,11 +38,13 @@ class GeoMaterialParams
         = GeoMaterialParamsData<Ownership::const_reference, MemSpace::device>;
     //!@}
 
+    //! Input parameters
     struct Input
     {
         std::shared_ptr<const GeoParams>      geometry;
         std::shared_ptr<const MaterialParams> materials;
         std::vector<MaterialId>               volume_to_mat;
+        std::vector<std::string>              volume_names; // Optional
     };
 
   public:
