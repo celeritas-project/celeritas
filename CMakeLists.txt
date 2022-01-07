@@ -43,11 +43,10 @@ if(CMAKE_VERSION VERSION_LESS 3.13 AND CELERITAS_USE_CUDA AND CELERITAS_USE_MPI)
   message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
     "when building with CUDA + MPI.")
 endif()
-if(CMAKE_VERSION VERSION_LESS 3.17 AND CELERITAS_USE_CUDA
+if(CMAKE_VERSION VERSION_LESS 3.18 AND CELERITAS_USE_CUDA
     AND CELERITAS_USE_VecGeom)
-  message(FATAL_ERROR "VecGeom+CUDA has mysterious runtime errors under CMake "
-    "3.17. Please, for the sake of your own mental health, "
-    "use a newer version of CMake.")
+  message(FATAL_ERROR "VecGeom+CUDA requires additions to CMake to support \"Separable compilation\"
+    and those addition use feature present only in CMake 3.18 and later.")
 endif()
 if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
   message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
