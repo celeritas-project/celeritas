@@ -22,7 +22,7 @@ cmake -G Ninja \
   -DBUILD_SHARED_LIBS:BOOL=OFF \
   -DCMAKE_BUILD_TYPE:STRING="Release" \
   -DCMAKE_CUDA_ARCHITECTURES:STRING="70" \
-  -DCMAKE_CUDA_FLAGS:STRING="--use_fast_math" \
+  -DCMAKE_CUDA_FLAGS:STRING="--use_fast_math -Werror all-warnings" \
   -DCMAKE_EXE_LINKER_FLAGS:STRING="-Wl,--no-as-needed" \
   -DCMAKE_SHARED_LINKER_FLAGS:STRING="-Wl,--no-as-needed" \
   -DMPIEXEC_PREFLAGS:STRING="--allow-run-as-root" \
