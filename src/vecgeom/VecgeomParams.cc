@@ -157,7 +157,7 @@ void VecgeomParams::build_md()
     const std::regex final_ptr_regex{"0x[0-9a-f]{8,16}$"};
     std::smatch      ptr_match;
 
-    for (auto vol_idx : range(vol_labels_.size()))
+    for (auto vol_idx : range<VolumeId::size_type>(vol_labels_.size()))
     {
         // Get label
         const vecgeom::LogicalVolume* vol
