@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include "base/Types.hh"
 #include "geometry/Types.hh"
 #include "VecgeomData.hh"
@@ -38,7 +39,10 @@ class VecgeomParams
     // Clean up VecGeom on destruction
     ~VecgeomParams();
 
-    //// HOST ACCESSORS ////
+    //// VOLUMES ////
+
+    //! Number of volumes
+    VolumeId::size_type num_volumes() const { return vol_labels_.size(); }
 
     // Get the label for a placed volume ID
     const std::string& id_to_label(VolumeId vol_id) const;
@@ -46,11 +50,10 @@ class VecgeomParams
     // Get the volume ID corresponding to a label
     VolumeId find_volume(const std::string& label) const;
 
-    //! Number of volumes
-    VolumeId::size_type num_volumes() const { return num_volumes_; }
-
     //! Maximum nested geometry depth
     int max_depth() const { return host_ref_.max_depth; }
+
+    //// DATA ACCESS ////
 
     //! View in-host geometry data for CPU debugging
     const HostRef& host_ref() const { return host_ref_; }
@@ -59,10 +62,19 @@ class VecgeomParams
     const DeviceRef& device_ref() const { return device_ref_; }
 
   private:
-    size_type num_volumes_ = 0;
+    //// DATA ////
 
+    // Host metadata/access
+    std::vector<std::string>                  vol_labels_;
+    std::unordered_map<std::string, VolumeId> vol_ids_;
+
+    // Host/device storage and reference
     HostRef   host_ref_;
     DeviceRef device_ref_;
+
+    //// HELPER FUNCTIONS ////
+
+    void build_md();
 };
 
 //---------------------------------------------------------------------------//
