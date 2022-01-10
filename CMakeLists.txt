@@ -1,5 +1,5 @@
 #---------------------------------*-CMake-*----------------------------------#
-# Copyright 2020 UT-Battelle, LLC and other Celeritas Developers.
+# Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
@@ -43,11 +43,10 @@ if(CMAKE_VERSION VERSION_LESS 3.13 AND CELERITAS_USE_CUDA AND CELERITAS_USE_MPI)
   message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
     "when building with CUDA + MPI.")
 endif()
-if(CMAKE_VERSION VERSION_LESS 3.17 AND CELERITAS_USE_CUDA
+if(CMAKE_VERSION VERSION_LESS 3.18 AND CELERITAS_USE_CUDA
     AND CELERITAS_USE_VecGeom)
-  message(FATAL_ERROR "VecGeom+CUDA has mysterious runtime errors under CMake "
-    "3.17. Please, for the sake of your own mental health, "
-    "use a newer version of CMake.")
+  message(FATAL_ERROR "VecGeom+CUDA requires additions to CMake to support \"Separable compilation\"
+    and those addition use feature present only in CMake 3.18 and later.")
 endif()
 if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
   message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
@@ -155,16 +154,26 @@ if(CELERITAS_USE_VecGeom)
   if(CELERITAS_USE_CUDA)
     set_target_properties(VecGeom::vecgeomcuda PROPERTIES
       CELERITAS_CUDA_LIBRARY_TYPE Shared
-      CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-      CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-      CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
     )
     set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
       CELERITAS_CUDA_LIBRARY_TYPE Static
-      CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-      CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-      CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
     )
+    foreach(_lib VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
+      # Suppress warnings from virtual function calls in RDC
+      target_compile_options(${_lib}
+        INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
+      )
+      target_link_options(${_lib}
+        INTERFACE "$<DEVICE_LINK:SHELL: -Xnvlink --suppress-stack-size-warning>"
+      )
+
+      # Inform celeritas_add_library code
+      set_target_properties(${_lib} PROPERTIES
+        CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+        CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
+        CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
+      )
+    endforeach()
   endif()
 endif()
 

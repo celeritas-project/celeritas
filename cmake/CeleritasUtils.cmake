@@ -1,5 +1,5 @@
 #----------------------------------*-CMake-*----------------------------------#
-# Copyright 2020 UT-Battelle, LLC and other Celeritas Developers.
+# Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #[=======================================================================[.rst:
@@ -152,6 +152,20 @@ function(celeritas_generate_empty_cu_file emptyfilenamevar target)
     file(WRITE "${_stub}" "/* intentionally empty. */")
   endif()
   set(${emptyfilenamevar} ${_stub} PARENT_SCOPE)
+endfunction()
+
+#
+# Transfer the setting \${what} (both the PUBLIC and INTERFACE version) to from library \${fromlib} to the library \${tolib} that depends on it
+#
+function(celeritas_transfer_setting fromlib tolib what)
+  get_target_property(_temp ${fromlib} ${what})
+  if (_temp)
+    cmake_language(CALL target_${what} ${tolib} PUBLIC ${_temp})
+  endif()
+  get_target_property(_temp ${fromlib} INTERFACE_${what})
+  if (_temp)
+    cmake_language(CALL target_${what} ${tolib} PUBLIC ${_temp})
+  endif()
 endfunction()
 
 #
@@ -516,7 +530,7 @@ function(celeritas_target_link_libraries target)
       endif()
     endif()
 
-    # Set now to let taraget_link_libraries do the argument parsing
+    # Set now to let target_link_libraries do the argument parsing
     target_link_libraries(${_target_middle} ${ARGN})
 
     celeritas_use_middle_lib_in_property(${_target_middle} INTERFACE_LINK_LIBRARIES)
@@ -579,7 +593,13 @@ function(celeritas_target_link_libraries target)
               PRIVATE
               $<DEVICE_LINK:$<TARGET_FILE:${_libstatic}>>
             )
-          add_dependencies(${_target_final} ${_libstatic})
+
+            # Also pass on the the options and definitions.
+            celeritas_transfer_setting(${_libstatic} ${_target_final} COMPILE_OPTIONS)
+            celeritas_transfer_setting(${_libstatic} ${_target_final} COMPILE_DEFINITIONS)
+            celeritas_transfer_setting(${_libstatic} ${_target_final} LINK_OPTIONS)
+
+            add_dependencies(${_target_final} ${_libstatic})
           endif()
         endif()
       endforeach()
