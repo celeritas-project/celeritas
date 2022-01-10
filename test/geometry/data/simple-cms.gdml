@@ -4,6 +4,23 @@
   <define/>
 
   <materials>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="H">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <material name="vacuum" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="H"/>
+    </material>
     <isotope N="28" Z="14" name="Si28">
       <atom unit="g/mole" value="27.9769"/>
     </isotope>
@@ -116,27 +133,10 @@
       <D unit="g/cm3" value="7.874"/>
       <fraction n="1" ref="Fe"/>
     </material>
-    <isotope N="1" Z="1" name="H1">
-      <atom unit="g/mole" value="1.00782503081372"/>
-    </isotope>
-    <isotope N="2" Z="1" name="H2">
-      <atom unit="g/mole" value="2.01410199966617"/>
-    </isotope>
-    <element name="H">
-      <fraction n="0.999885" ref="H1"/>
-      <fraction n="0.000115" ref="H2"/>
-    </element>
-    <material name="Galactic" state="gas">
-      <T unit="K" value="2.73"/>
-      <P unit="pascal" value="3e-18"/>
-      <MEE unit="eV" value="21.8"/>
-      <D unit="g/cm3" value="1e-25"/>
-      <fraction n="1" ref="H"/>
-    </material>
   </materials>
 
   <solids>
-    <tube aunit="deg" lunit="mm" name="guide_tube" rmax="299.9999999999" z="14000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="lhc_vacuum_tube" rmax="299.9999999999" rmin="0" startphi="0" z="14000"/>
     <tube aunit="deg" deltaphi="360" lunit="mm" name="silicon_tracker" rmax="1249.9999999999" rmin="300" startphi="0" z="14000"/>
     <tube aunit="deg" deltaphi="360" lunit="mm" name="crystal_em_calorimeter" rmax="1749.9999999999" rmin="1250" startphi="0" z="14000"/>
     <tube aunit="deg" deltaphi="360" lunit="mm" name="hadron_calorimeter" rmax="2749.9999999999" rmin="1750" startphi="0" z="14000"/>
@@ -146,35 +146,61 @@
   </solids>
 
   <structure>
-    <volume name="guide_tube">
-      <materialref ref="Galactic"/>
-      <solidref ref="guide_tube"/>
+    <volume name="vacuum_tube">
+      <materialref ref="vacuum"/>
+      <solidref ref="lhc_vacuum_tube"/>
+      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="-1"/>
     </volume>
     <volume name="si_tracker">
       <materialref ref="Si"/>
       <solidref ref="silicon_tracker"/>
+      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00695018"/>
+      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.548291"/>
+      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.526624"/>
+      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="-1"/>
+      <auxiliary auxtype="SensDet" auxvalue="si_tracker_sd"/>
     </volume>
     <volume name="em_calorimeter">
       <materialref ref="Pb"/>
       <solidref ref="crystal_em_calorimeter"/>
+      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.101843"/>
+      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.36749"/>
+      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.27862"/>
+      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="-1"/>
+      <auxiliary auxtype="SensDet" auxvalue="em_calorimeter_sd"/>
     </volume>
     <volume name="had_calorimeter">
       <materialref ref="C"/>
       <solidref ref="hadron_calorimeter"/>
+      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00318751"/>
+      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.526624"/>
+      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.509223"/>
+      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="-1"/>
     </volume>
     <volume name="sc_solenoid">
       <materialref ref="Ti"/>
       <solidref ref="superconducting_solenoid"/>
+      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.0132486"/>
+      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.815083"/>
+      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.782873"/>
+      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="-1"/>
     </volume>
-    <volume name="iron_muon_chambers">
+    <volume name="fe_muon_chambers">
       <materialref ref="Fe"/>
       <solidref ref="iron_muon_chambers"/>
+      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.0206438"/>
+      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="1.29592"/>
+      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="1.21169"/>
+      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="-1"/>
     </volume>
     <volume name="world">
-      <materialref ref="Galactic"/>
+      <materialref ref="vacuum"/>
       <solidref ref="world_box"/>
-      <physvol name="guide_tube_pv">
-        <volumeref ref="guide_tube"/>
+      <physvol name="vacuum_tube_pv">
+        <volumeref ref="vacuum_tube"/>
       </physvol>
       <physvol name="si_tracker_pv">
         <volumeref ref="si_tracker"/>
@@ -189,8 +215,12 @@
         <volumeref ref="sc_solenoid"/>
       </physvol>
       <physvol name="iron_muon_chambers_pv">
-        <volumeref ref="iron_muon_chambers"/>
+        <volumeref ref="fe_muon_chambers"/>
       </physvol>
+      <auxiliary auxtype="gammaECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="electronECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="positronECut" auxunit="MeV" auxvalue="0.00099"/>
+      <auxiliary auxtype="protonECut" auxunit="MeV" auxvalue="-1"/>
     </volume>
   </structure>
 

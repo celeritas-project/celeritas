@@ -79,7 +79,8 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
             this->geometry(),
             materials,
             std::vector<MaterialId>(this->geometry()->num_volumes(),
-                                    MaterialId{0})});
+                                    MaterialId{0}),
+            {}});
         params.geo_mats = geo_mats->device_ref();
 
         // Set up shared particle data

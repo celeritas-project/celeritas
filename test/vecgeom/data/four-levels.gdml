@@ -200,7 +200,7 @@
         <volumeref ref="Shape1"/>
       </physvol>
     </volume>
-    <volume name="World">
+    <volume name="World0xdeadbeef">
       <materialref ref="G4_AIR"/>
       <solidref ref="World"/>
       <physvol name="env1">
@@ -239,7 +239,7 @@
   </structure>
 
   <setup name="Default" version="1.0">
-    <world ref="World"/>
+    <world ref="World0xdeadbeef"/>
   </setup>
 
 </gdml>

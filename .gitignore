@@ -10,3 +10,4 @@ Testing
 /install
 /spack-build*
 .vscode
+*.temp.org.xml

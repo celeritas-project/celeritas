@@ -32,6 +32,8 @@ namespace celeritas
  * All units must be converted at import time to be in accordance to the
  * Celeritas' unit standard. Refer to \c base/Units.hh for further information.
  *
+ * The "processes" field may be empty for testing applications.
+ *
  * \sa base/Units
  * \sa ImportParticle
  * \sa ImportElement
@@ -52,7 +54,7 @@ struct ImportData
     explicit operator bool() const
     {
         return !particles.empty() && !elements.empty() && !materials.empty()
-               && !processes.empty() && !volumes.empty();
+               && !volumes.empty();
     }
 };
 

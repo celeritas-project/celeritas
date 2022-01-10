@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "VecgeomParams.hh"
 
+#include <regex>
+#include <set>
 #include <VecGeom/gdml/Frontend.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/GeoManager.h>
@@ -19,6 +21,8 @@
 #    include <VecGeom/management/CudaManager.h>
 #endif
 
+#include "base/Join.hh"
+#include "base/Range.hh"
 #include "base/StringUtils.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
@@ -51,12 +55,15 @@ VecgeomParams::VecgeomParams(const std::string& filename)
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
     }
 
-    num_volumes_ = vecgeom::GeoManager::Instance().GetRegisteredVolumesCount();
+    // Create metadata
+    this->build_md();
 
-    host_ref_.world_volume = vecgeom::GeoManager::Instance().GetWorld();
-    host_ref_.max_depth    = vecgeom::GeoManager::Instance().getMaxDepth();
+    // Save host data
+    auto& vg_manager       = vecgeom::GeoManager::Instance();
+    host_ref_.world_volume = vg_manager.GetWorld();
+    host_ref_.max_depth    = vg_manager.getMaxDepth();
 
-    // init the BVH structure
+    // Init the bounding volume hierarchy structure
     vecgeom::cxx::BVHManager::Init();
 
 #if CELERITAS_USE_CUDA
@@ -64,7 +71,7 @@ VecgeomParams::VecgeomParams(const std::string& filename)
     {
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
 
-        CELER_LOG(status) << "Converting to CUDA geometry";
+        CELER_LOG(debug) << "Converting to CUDA geometry";
         {
             detail::ScopedTimeAndRedirect time_and_output_;
             // cuda_manager.set_verbose(1);
@@ -72,7 +79,7 @@ VecgeomParams::VecgeomParams(const std::string& filename)
             CELER_CUDA_CALL(cudaDeviceSynchronize());
         }
 
-        CELER_LOG(status) << "Transferring geometry to GPU";
+        CELER_LOG(debug) << "Transferring geometry to GPU";
         {
             detail::ScopedTimeAndRedirect time_and_output_;
             auto world_top_devptr = cuda_manager.Synchronize();
@@ -83,18 +90,21 @@ VecgeomParams::VecgeomParams(const std::string& filename)
         }
         CELER_ENSURE(device_ref_);
 
-        // init the BVH structure
-        vecgeom::cxx::BVHManager::DeviceInit();
+        CELER_LOG(debug) << "Initailizing BVH on GPU";
+        {
+            vecgeom::cxx::BVHManager::DeviceInit();
+            CELER_CUDA_CHECK_ERROR();
+        }
     }
 #endif
 
-    CELER_ENSURE(num_volumes_ > 0);
+    CELER_ENSURE(this->num_volumes() > 0);
     CELER_ENSURE(host_ref_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Clean up vecgeom on destruction
+ * Clean up vecgeom on destruction.
  */
 VecgeomParams::~VecgeomParams()
 {
@@ -111,28 +121,75 @@ VecgeomParams::~VecgeomParams()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the label for a placed volume ID
+ * Get the label for a placed volume ID.
  */
-const std::string& VecgeomParams::id_to_label(VolumeId vol_id) const
+const std::string& VecgeomParams::id_to_label(VolumeId vol) const
 {
-    CELER_EXPECT(vol_id.get() < num_volumes_);
-    const auto* vol
-        = vecgeom::GeoManager::Instance().FindLogicalVolume(vol_id.get());
-    CELER_ASSERT(vol);
-    return vol->GetLabel();
+    CELER_EXPECT(vol < vol_labels_.size());
+    return vol_labels_[vol.get()];
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the ID corresponding to a label
+ * Get the ID corresponding to a label.
  */
 auto VecgeomParams::find_volume(const std::string& label) const -> VolumeId
 {
-    const auto* vol
-        = vecgeom::GeoManager::Instance().FindLogicalVolume(label.c_str());
-    CELER_ASSERT(vol);
-    CELER_ASSERT(vol->id() < num_volumes_);
-    return VolumeId{vol->id()};
+    auto iter = vol_ids_.find(label);
+    if (iter == vol_ids_.end())
+        return {};
+    return iter->second;
+}
+
+//---------------------------------------------------------------------------//
+// PRIVATE MEMBER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct label metadata from volumes.
+ */
+void VecgeomParams::build_md()
+{
+    auto& vg_manager = vecgeom::GeoManager::Instance();
+
+    vol_labels_.resize(vg_manager.GetRegisteredVolumesCount());
+    std::set<std::string> duplicate_volumes;
+
+    const std::regex final_ptr_regex{"0x[0-9a-f]{8,16}$"};
+    std::smatch      ptr_match;
+
+    for (auto vol_idx : range<VolumeId::size_type>(vol_labels_.size()))
+    {
+        // Get label
+        const vecgeom::LogicalVolume* vol
+            = vg_manager.FindLogicalVolume(vol_idx);
+        CELER_ASSERT(vol);
+        std::string vol_label = vol->GetLabel();
+
+        // Remove possible Geant uniquifying pointer-address suffix
+        // (Geant4 does this automatically, but VGDML does not)
+        if (std::regex_search(vol_label, ptr_match, final_ptr_regex))
+        {
+            vol_label.erase(vol_label.begin() + ptr_match.position(0),
+                            vol_label.end());
+        }
+
+        // Add to label-to-ID map
+        auto iter_inserted = vol_ids_.insert({vol_label, VolumeId{vol_idx}});
+        if (!iter_inserted.second)
+        {
+            duplicate_volumes.insert(vol_label);
+        }
+
+        // Move to volume label
+        vol_labels_[vol_idx] = std::move(vol_label);
+    }
+
+    if (!duplicate_volumes.empty())
+    {
+        CELER_LOG(warning)
+            << "Geometry contains duplicate volume names: "
+            << join(duplicate_volumes.begin(), duplicate_volumes.end(), ", ");
+    }
 }
 
 //---------------------------------------------------------------------------//
