@@ -450,6 +450,17 @@ void ImportProcessConverter::store_multiple_scattering_tables(
                                 ImportTableType::lambda_msc_high);
             }
         }
+
+        if (i > 2)
+        {
+            // Index is beyond the code scope, which only includes a low
+            // and high msc energy model
+            CELER_LOG(error)
+                << "Cannot store multiple scattering table for process "
+                << process.GetProcessName() << ", model "
+                << process.GetModelByIndex(i)->GetName()
+                << ". Model index is > 2.";
+        }
     }
 }
 
