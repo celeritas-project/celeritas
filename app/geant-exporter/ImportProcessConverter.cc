@@ -101,22 +101,22 @@ ImportProcessClass to_import_process_class(const G4VProcess& process)
     static const std::unordered_map<std::string, ImportProcessClass> process_map
         = {
             // clang-format off
-            {"ionIoni",        ImportProcessClass::ion_ioni},
-            {"msc",            ImportProcessClass::msc},
-            {"hIoni",          ImportProcessClass::h_ioni},
-            {"hBrems",         ImportProcessClass::h_brems},
-            {"hPairProd",      ImportProcessClass::h_pair_prod},
-            {"CoulombScat",    ImportProcessClass::coulomb_scat},
-            {"eIoni",          ImportProcessClass::e_ioni},
-            {"eBrem",          ImportProcessClass::e_brems},
-            {"phot",           ImportProcessClass::photoelectric},
-            {"compt",          ImportProcessClass::compton},
-            {"conv",           ImportProcessClass::conversion},
-            {"Rayl",           ImportProcessClass::rayleigh},
-            {"annihil",        ImportProcessClass::annihilation},
-            {"muIoni",         ImportProcessClass::mu_ioni},
-            {"muBrems",        ImportProcessClass::mu_brems},
-            {"muPairProd",     ImportProcessClass::mu_pair_prod},
+            {"ionIoni",     ImportProcessClass::ion_ioni},
+            {"msc",         ImportProcessClass::msc},
+            {"hIoni",       ImportProcessClass::h_ioni},
+            {"hBrems",      ImportProcessClass::h_brems},
+            {"hPairProd",   ImportProcessClass::h_pair_prod},
+            {"CoulombScat", ImportProcessClass::coulomb_scat},
+            {"eIoni",       ImportProcessClass::e_ioni},
+            {"eBrem",       ImportProcessClass::e_brems},
+            {"phot",        ImportProcessClass::photoelectric},
+            {"compt",       ImportProcessClass::compton},
+            {"conv",        ImportProcessClass::conversion},
+            {"Rayl",        ImportProcessClass::rayleigh},
+            {"annihil",     ImportProcessClass::annihilation},
+            {"muIoni",      ImportProcessClass::mu_ioni},
+            {"muBrems",     ImportProcessClass::mu_brems},
+            {"muPairProd",  ImportProcessClass::mu_pair_prod},
             // clang-format on
         };
     auto iter = process_map.find(process.GetProcessName());
@@ -274,14 +274,10 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
                      << particle.GetPDGEncoding() << ')';
 
     // Save process and particle info
+    process_               = ImportProcess();
     process_.process_type  = to_import_process_type(process.GetProcessType());
     process_.process_class = to_import_process_class(process);
     process_.particle_pdg  = particle.GetPDGEncoding();
-
-    // Clean up process_ data
-    process_.models.clear();
-    process_.tables.clear();
-    process_.micro_xs.clear();
 
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
     {
@@ -428,6 +424,8 @@ void ImportProcessConverter::store_energy_loss_tables(
 void ImportProcessConverter::store_multiple_scattering_tables(
     const G4VMultipleScattering& process)
 {
+    const double msc_threshold = G4EmParameters::Instance()->MscEnergyLimit();
+
 #if CELERITAS_G4_V10
     for (auto i : celeritas::range(4))
 #else
@@ -437,8 +435,20 @@ void ImportProcessConverter::store_multiple_scattering_tables(
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
             process_.models.push_back(to_import_model(model->GetName()));
-            this->add_table(model->GetCrossSectionTable(),
-                            ImportTableType::lambda);
+
+            if (model->HighEnergyLimit() <= msc_threshold)
+            {
+                // Store low energy msc model
+                this->add_table(model->GetCrossSectionTable(),
+                                ImportTableType::lambda_msc_low);
+            }
+
+            else
+            {
+                // Store high energy msc model
+                this->add_table(model->GetCrossSectionTable(),
+                                ImportTableType::lambda_msc_high);
+            }
         }
     }
 }
@@ -500,6 +510,8 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
             table.y_units = ImportUnits::mev;
             break;
         case ImportTableType::lambda:
+        case ImportTableType::lambda_msc_low:
+        case ImportTableType::lambda_msc_high:
         case ImportTableType::sublambda:
             table.x_units = ImportUnits::mev;
             table.y_units = ImportUnits::cm_inv;

@@ -13,6 +13,7 @@
 #include <G4ProcessManager.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4PhysicsListHelper.hh>
+#include <G4Proton.hh>
 
 #include <G4ComptonScattering.hh>
 #include <G4KleinNishinaModel.hh>
@@ -72,13 +73,15 @@ PhysicsList::~PhysicsList() = default;
  * triton, He3, alpha, and generic ion, along with Geant4's pseudo-particles
  * geantino and charged geantino.
  *
- * Currently only instantiating e+, e-, and gamma, as in Celeritas.
+ * Currently only instantiating e+, e-, gamma, and proton (the latter is needed
+ * for msc)
  */
 void PhysicsList::ConstructParticle()
 {
     G4Gamma::GammaDefinition();
     G4Electron::ElectronDefinition();
     G4Positron::PositronDefinition();
+    G4Proton::ProtonDefinition();
 }
 
 //---------------------------------------------------------------------------//
@@ -175,7 +178,7 @@ void PhysicsList::add_gamma_processes()
  * - Bremsstrahlung models are selected manually at compile time using
  *   \c BremsstrahlungProcess::ModelSelection and need to be updated
  *   accordingly.
- * - Coulomb and multiple scatterings are currently disabled.
+ * - Coulomb scattering is currently disabled.
  */
 void PhysicsList::add_e_processes()
 {
@@ -267,8 +270,7 @@ void PhysicsList::add_e_processes()
                            "G4eCoulombScatteringModel";
     }
 
-    // DISABLED
-    if (false)
+    if (true)
     {
         // Multiple scattering: Urban (low E) and WentzelVI (high E) models
         double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();

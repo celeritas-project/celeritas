@@ -279,8 +279,8 @@ void print_processes(const ImportData& data, const ParticleParams& particles)
     cout << R"gfm(
 # Processes
 
-| Process        | Particle      | Models                    | Tables                   |
-| -------------- | ------------- | ------------------------- | ------------------------ |
+| Process        | Particle      | Models                    | Tables                          |
+| -------------- | ------------- | ------------------------- | ------------------------------- |
 )gfm";
     for (const ImportProcess& proc : processes)
     {
@@ -294,7 +294,7 @@ void print_processes(const ImportData& data, const ParticleParams& particles)
                          proc.models.end(),
                          ", ",
                          [](ImportModelClass im) { return to_cstring(im); }))
-             << " | " << setw(24)
+             << " | " << setw(31)
              << to_string(join(proc.tables.begin(),
                                proc.tables.end(),
                                ", ",
