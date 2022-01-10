@@ -9,6 +9,7 @@
 
 #include <vector>
 #include "base/Assert.hh"
+#include "base/Copier.hh"
 #include "base/DeviceVector.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
@@ -159,7 +160,9 @@ struct CollectionAssigner<Ownership::value, MemSpace::host>
     {
         CollectionStorage<T, Ownership::value, MemSpace::host> result{
             std::vector<T>(source.data.size())};
-        source.data.copy_to_host({result.data.data(), result.data.size()});
+        Copier<T, MemSpace::device> copy{
+            {source.data.data(), source.data.size()}};
+        copy(MemSpace::host, {result.data.data(), result.data.size()});
         return result;
     }
 };
