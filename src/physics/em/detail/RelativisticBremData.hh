@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -29,19 +29,23 @@ struct RelBremFormFactor
 
 //---------------------------------------------------------------------------//
 /*!
- * An array of LPM functions, G(s) and \phi(s) to build a table in the range
- * s = [0, limit] with an interval \delta where limit = 2.0 and \delta = 0.01
- * by default.
+ * Evaluated LPM data for a single energy gridpoint.
+ *
+ * These are  \f$ G(s) \f$ and \f$ \phi(s) \f$ in a table in the range \f$ s =
+ * [0, s_\mathrm{max}] \f$ with an interval \f$ \delta \f$ where \f$
+ * s_\mathrm{max} = 2.0 \f$ and \f$ \delta = 0.01 \f$ by default.
+ *
+ * This is used by \c RBDiffXsCalculator.
  */
 struct RelBremMigdalData
 {
-    real_type gs;   //!< LPM G(s)
-    real_type phis; //!< LPM \phi(s)
+    real_type gs;   //!< LPM \f$ G(s) \f$
+    real_type phis; //!< LPM \f$ \phi(s) \f$
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * A special meta data structure per element used in the differential cross
+ * A special metadata structure per element used in the differential cross
  * section calculation.
  */
 struct RelBremElementData
@@ -52,8 +56,8 @@ struct RelBremElementData
     real_type factor1;        //!< \f$ ((Fel-fc)+Finel*invZ)\f$
     real_type factor2;        //!< \f$ (1.0+invZ)/12 \f$
     real_type s1;             //!< LPM variables
-    real_type inv_logs1;      //!< 1/\ln(s1)
-    real_type inv_logs2;      //!< 1/\ln(sqrt(2)*s1)
+    real_type inv_logs1;      //!< \f$ 1/\ln(s1) \f$
+    real_type inv_logs2;      //!< \f$ 1/\ln(sqrt(2)*s1) \f$
     real_type gamma_factor;   //!< Constant for evaluating screening functions
     real_type epsilon_factor; //!< Constant for evaluating screening functions
 };

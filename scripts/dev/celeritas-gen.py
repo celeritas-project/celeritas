@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Copyright 2021 UT-Battelle, LLC and other Celeritas Developers.
+# Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """\
@@ -205,7 +205,7 @@ SWIG_FILE = '''\
 
 CMAKE_TOP = '''\
 #{modeline:-^77s}#
-# Copyright {year} UT-Battelle, LLC and other Celeritas Developers.
+# Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 '''
@@ -252,7 +252,7 @@ endfunction()
 PYTHON_TOP = '''\
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Copyright {year} UT-Battelle, LLC and other Celeritas Developers.
+# Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 '''
@@ -265,7 +265,7 @@ PYTHON_FILE = '''\
 
 SHELL_TOP = '''\
 #!/bin/sh -ex
-# Copyright {year} UT-Battelle, LLC and other Celeritas Developers.
+# Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 '''
@@ -275,7 +275,7 @@ SHELL_FILE = '''\
 '''
 
 OMN_TOP = '''\
-! Copyright {year} UT-Battelle, LLC and other Celeritas Developers.
+! Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
 ! See the top-level COPYRIGHT file for details.
 ! SPDX-License-Identifier: (Apache-2.0 OR MIT)
 '''
