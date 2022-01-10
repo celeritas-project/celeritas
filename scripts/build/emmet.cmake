@@ -6,9 +6,9 @@ endmacro()
 set_cache_var(CELERITAS_USE_CUDA BOOL ON)
 set_cache_var(CELERITAS_USE_Geant4 BOOL ON)
 set_cache_var(CELERITAS_USE_HepMC3 BOOL ON)
-set_cache_var(CELERITAS_USE_MPI BOOL OFF)
+set_cache_var(CELERITAS_USE_MPI BOOL ON)
 set_cache_var(CELERITAS_USE_ROOT BOOL ON)
-set_cache_var(CELERITAS_USE_VecGeom BOOL OFF)
+set_cache_var(CELERITAS_USE_VecGeom BOOL ON)
 set_cache_var(CELERITAS_GIT_SUBMODULE BOOL OFF)
 
 # Set rpath based on environment
