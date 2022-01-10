@@ -22,7 +22,6 @@ set_cache_var(CMAKE_EXPORT_COMPILE_COMMANDS BOOL ON)
 # Build flags
 set_cache_var(BUILD_SHARED_LIBS BOOL ON)
 set_cache_var(CMAKE_CUDA_ARCHITECTURES STRING "35")
-set_cache_var(CMAKE_CUDA_FLAGS_DEBUG STRING "-g -G")
 set_cache_var(CMAKE_CUDA_FLAGS STRING "-Werror cross-execution-space-call -Wno-deprecated-gpu-targets")
 
 set_cache_var(CELERITAS_DEBUG BOOL ON)

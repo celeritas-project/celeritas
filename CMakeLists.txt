@@ -8,8 +8,11 @@ cmake_minimum_required(VERSION 3.12)
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
+set(CMAKE_USER_MAKE_RULES_OVERRIDE
+  "${CMAKE_CURRENT_LIST_DIR}/cmake/CeleritasMakeRulesOverride.cmake")
+
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
-cmake_policy(VERSION 3.12...3.18)
+cmake_policy(VERSION 3.12...3.22)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 if(CMAKE_VERSION VERSION_LESS 3.18)
@@ -23,21 +26,27 @@ include(CeleritasUtils)
 # OPTIONS
 #----------------------------------------------------------------------------#
 
-# Components
-option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps" ON)
-option(CELERITAS_BUILD_DOCS  "Build Celeritas documentation" OFF)
-option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
+celeritas_optional_language(CUDA)
 
-# TPLs
-option(CELERITAS_USE_CUDA "Enable GPU transport" ON)
-option(CELERITAS_USE_Geant4 "Enable Geant4 adapter tools" OFF)
-option(CELERITAS_USE_HepMC3 "Enable HepMC3 event record reader" OFF)
-option(CELERITAS_USE_JSON "Enable JSON I/O" "${CELERITAS_BUILD_DEMOS}")
-option(CELERITAS_USE_MPI "Enable distributed memory parallelism" ON)
-option(CELERITAS_USE_OpenMP "Enable CPU shared-memory parallelism" ON)
-option(CELERITAS_USE_ROOT "Enable ROOT I/O" OFF)
-option(CELERITAS_USE_SWIG_Python "Enable SWIG Python bindings" OFF)
-option(CELERITAS_USE_VecGeom "Enable VecGeom geometry" ON)
+# Dependencies
+celeritas_optional_package(Doxygen "Generate code documentation")
+celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
+celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
+celeritas_optional_package(JSON nlohmann_json "Enable JSON I/O")
+celeritas_optional_package(MPI "Enable distributed memory parallelism")
+celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
+celeritas_optional_package(Python "Use Python to generate and preprocess")
+celeritas_optional_package(ROOT "Enable ROOT I/O")
+celeritas_optional_package(VecGeom "Use VecGeom geometry")
+
+if(CELERITAS_USE_Python)
+  celeritas_optional_package(SWIG "Build SWIG Python bindings")
+endif()
+
+# Components
+option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps"
+  ${CELERITAS_USE_JSON})
+option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
 
 if(CMAKE_VERSION VERSION_LESS 3.13 AND CELERITAS_USE_CUDA AND CELERITAS_USE_MPI)
   message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
@@ -45,8 +54,8 @@ if(CMAKE_VERSION VERSION_LESS 3.13 AND CELERITAS_USE_CUDA AND CELERITAS_USE_MPI)
 endif()
 if(CMAKE_VERSION VERSION_LESS 3.18 AND CELERITAS_USE_CUDA
     AND CELERITAS_USE_VecGeom)
-  message(FATAL_ERROR "VecGeom+CUDA requires additions to CMake to support \"Separable compilation\"
-    and those addition use feature present only in CMake 3.18 and later.")
+  message(FATAL_ERROR "VecGeom+CUDA requires CMake 3.18 or higher to support "
+    "\"Separable compilation\".")
 endif()
 if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
   message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
@@ -56,27 +65,34 @@ endif()
 # Library
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 if(NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
-  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON CACHE STRING
-      "Inform installed binaries of external library rpaths")
+  # Inform installed binaries of external library rpaths
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 endif()
-if(BUILD_SHARED_LIBS)
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}" CACHE STRING
-      "Inform installed binaries of internal library rpaths")
-endif()
-if(APPLE)
-  option(CMAKE_MACOSX_RPATH "Support @rpath in install targets" ON)
+if(BUILD_SHARED_LIBS AND NOT DEFINED CMAKE_INSTALL_RPATH)
+  # Inform installed binaries of internal library rpaths
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 endif()
 
 # Build flags
 option(CELERITAS_DEBUG "Enable runtime assertions" ON)
-if(NOT CMAKE_BUILD_TYPE AND (CMAKE_GENERATOR STREQUAL "Ninja"
-    OR CMAKE_GENERATOR STREQUAL "Unix Makefiles"))
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
-    "Build type set to default by Celeritas CMakeLists" FORCE)
+if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
+  if(CELERITAS_DEBUG)
+    set(_default_build_type "Debug")
+  else()
+    set(_default_build_type "Release")
+  endif()
+  set(CMAKE_BUILD_TYPE "${_default_build_type}" CACHE STRING
+    "Build type [None Debug Release RelWithDebInfo MinSizeRel]"
+    FORCE)
+  message(STATUS "Set default CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+  unset(_default_build_type)
 endif()
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_EXTENSIONS OFF)
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+  # Default CMake standard to C++14 for this directory and underneath
+  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
 
 #----------------------------------------------------------------------------#
 # DEPENDENCIES
@@ -86,23 +102,28 @@ if(CELERITAS_USE_CUDA)
   # Use host compiler by default to ensure ABI consistency
   set(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}" CACHE STRING
     "Set to CMAKE_CXX_COMPILER by Celeritas CMakeLists")
-  # Default to building device debug code
-  set(CMAKE_CUDA_FLAGS_DEBUG "-g -G" CACHE STRING
-    "Set by Celeritas CMakeLists")
 
   enable_language(CUDA)
-  set(CMAKE_CUDA_STANDARD 14)
-  set(CMAKE_CUDA_EXTENSIONS OFF)
+
+  if(NOT DEFINED CMAKE_CUDA_STANDARD)
+    set(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
+    set(CMAKE_CUDA_EXTENSIONS ${CMAKE_CXX_EXTENSIONS})
+  endif()
+  unset(CMAKE_CUDA_FLAGS_DEBUG_INIT)
 
   find_package(CUDAToolkit REQUIRED QUIET)
 endif()
 
+if(CELERITAS_USE_Doxygen)
+  find_package(Doxygen REQUIRED)
+endif()
+
 if(CELERITAS_USE_Geant4)
-  celeritas_find_package_config(Geant4 REQUIRED)
+  find_package(Geant4 REQUIRED)
 endif()
 
 if(CELERITAS_USE_HepMC3)
-  celeritas_find_package_config(HepMC3 REQUIRED)
+  find_package(HepMC3 REQUIRED)
   # HepMC3's cmake config file does not provide an imported target yet
   # Anticipate that it will, and create if not present. HepMC3 is
   # a private dep of Celeritas, so no need to re-export this.
@@ -115,25 +136,36 @@ if(CELERITAS_USE_HepMC3)
   endif()
 endif()
 
+if(CELERITAS_USE_JSON)
+  find_package(nlohmann_json 3.7.0 REQUIRED)
+endif()
+
 if(CELERITAS_USE_MPI)
   find_package(MPI REQUIRED)
 endif()
 
-if(CELERITAS_USE_ROOT)
-  celeritas_find_package_config(ROOT REQUIRED)
+if(CELERITAS_USE_OpenMP)
+  find_package(OpenMP REQUIRED)
 endif()
 
-if(CELERITAS_USE_SWIG_Python)
-  if(CMAKE_VERSION VERSION_LESS 3.15)
-    message(FATAL_ERROR "Celeritas requires CMake 3.15 or higher "
-      "when building with SWIG Python.")
+if(CELERITAS_USE_Python)
+  set(_components Interpreter)
+  if(CELERITAS_USE_SWIG)
+    list(APPEND _components Development)
   endif()
+  find_package(Python 3.6 REQUIRED COMPONENTS ${_components})
+endif()
+
+if(CELERITAS_USE_ROOT)
+  find_package(ROOT REQUIRED)
+endif()
+
+if(CELERITAS_USE_SWIG)
   find_package(SWIG 4.0 REQUIRED)
-  find_package(Python REQUIRED COMPONENTS Interpreter Development)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  celeritas_find_package_config(VecGeom 1.1.13 REQUIRED)
+  find_package(VecGeom 1.1.17 REQUIRED)
 
   if((CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
       OR (NOT CELERITAS_USE_CUDA AND VecGeom_CUDA_FOUND))
@@ -145,59 +177,17 @@ if(CELERITAS_USE_VecGeom)
   if(NOT VecGeom_GDML_FOUND)
     message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
   endif()
-
-  set_target_properties(VecGeom::vecgeom PROPERTIES
-    CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-    CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-    CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
-  )
-  if(CELERITAS_USE_CUDA)
-    set_target_properties(VecGeom::vecgeomcuda PROPERTIES
-      CELERITAS_CUDA_LIBRARY_TYPE Shared
-    )
-    set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
-      CELERITAS_CUDA_LIBRARY_TYPE Static
-    )
-    foreach(_lib VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
-      # Suppress warnings from virtual function calls in RDC
-      target_compile_options(${_lib}
-        INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
-      )
-      target_link_options(${_lib}
-        INTERFACE "$<DEVICE_LINK:SHELL: -Xnvlink --suppress-stack-size-warning>"
-      )
-
-      # Inform celeritas_add_library code
-      set_target_properties(${_lib} PROPERTIES
-        CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-        CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-        CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
-      )
-    endforeach()
-  endif()
-endif()
-
-if(NOT PYTHON_FOUND)
-  # Python is required to launch tests for the demo apps *and* to regenerate
-  # on-the-fly kernel launchers.
-  unset(_required)
-  if(CELERITAS_BUILD_TESTS AND CELERITAS_BUILD_DEMOS)
-    set(_required REQUIRED)
-  endif()
-  find_package(Python 3.6 COMPONENTS Interpreter ${_required})
-  unset(_required)
-endif()
-
-if(CELERITAS_BUILD_DOCS)
-  find_package(Doxygen REQUIRED)
-endif()
-
-if(CELERITAS_USE_JSON)
-  find_package(nlohmann_json 3.7.0 REQUIRED)
 endif()
 
 if(CELERITAS_BUILD_TESTS)
-  find_package(GTest REQUIRED)
+  # TODO: download and build GTest as a subproject if not available
+  find_package(GTest)
+  if(NOT GTest_FOUND)
+    message(SEND_ERROR "Googletest (GTest) is required for testing: setting "
+      "CELERITAS_BUILD_TESTS=OFF for next build")
+    set(CELERITAS_BUILD_TESTS OFF CACHE BOOL
+      "Disabled because of missing GTest" FORCE)
+  endif()
 endif()
 
 #----------------------------------------------------------------------------#
@@ -210,7 +200,7 @@ add_subdirectory(src)
 # SWIG INTERFACE
 #----------------------------------------------------------------------------#
 
-if(CELERITAS_USE_SWIG_Python)
+if(CELERITAS_USE_SWIG)
   add_subdirectory(interface)
 endif()
 
@@ -233,7 +223,7 @@ add_subdirectory(app)
 # DOCUMENTATION
 #----------------------------------------------------------------------------#
 
-if(CELERITAS_BUILD_DOCS)
+if(CELERITAS_USE_Doxygen)
   add_subdirectory(doc)
 endif()
 

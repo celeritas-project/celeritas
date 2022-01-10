@@ -4,6 +4,13 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
+if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
+  message(SEND_ERROR "JSON support is required for demos: setting "
+    "CELERITAS_BUILD_DEMOS=OFF for next build")
+  set(CELERITAS_BUILD_DEMOS OFF CACHE BOOL
+    "Disabled because of missing JSON" FORCE)
+endif()
+
 if(CELERITAS_BUILD_TESTS)
   # Set environment variables from Geant4-exported configuration
   set(_geant_test_env)
@@ -11,6 +18,14 @@ if(CELERITAS_BUILD_TESTS)
     list(APPEND _geant_test_env
       "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}")
   endforeach()
+
+  if(CELERITAS_USE_Python)
+    set(_python_exe "$<TARGET_FILE:Python::Interpreter>")
+    set(_disabled_unless_python)
+  else()
+    set(_python_exe "python3")
+    set(_disabled_unless_python DISABLED true)
+  endif()
 endif()
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
@@ -69,9 +84,6 @@ endif()
 #-----------------------------------------------------------------------------#
 # DEMO: physics interactions
 #-----------------------------------------------------------------------------#
-if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
-  message(SEND_ERROR "JSON support is required for demos")
-endif()
 
 if(CELERITAS_BUILD_DEMOS)
   add_library(celeritas_demo_interactor
@@ -96,7 +108,7 @@ if(CELERITAS_BUILD_DEMOS)
     if(CELERITAS_BUILD_TESTS)
       set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py")
       add_test(NAME "app/demo-interactor"
-        COMMAND "$<TARGET_FILE:Python::Interpreter>" "${_driver}"
+        COMMAND "${_python_exe}" "${_driver}"
       )
       set(_env
         "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
@@ -106,6 +118,7 @@ if(CELERITAS_BUILD_DEMOS)
         ENVIRONMENT "${_env}"
         RESOURCE_LOCK gpu
         REQUIRED_FILES "${_driver}"
+        ${_disabled_unless_python}
       )
     endif()
   endif()
@@ -123,7 +136,7 @@ if(CELERITAS_BUILD_DEMOS)
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py")
     add_test(NAME "app/host-demo-interactor"
-      COMMAND "$<TARGET_FILE:Python::Interpreter>" "${_driver}"
+      COMMAND "${_python_exe}" "${_driver}"
     )
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:host-demo-interactor>"
@@ -133,6 +146,7 @@ if(CELERITAS_BUILD_DEMOS)
     set_tests_properties("app/host-demo-interactor" PROPERTIES
       ENVIRONMENT "${_env}"
       REQUIRED_FILES "${_driver}"
+      ${_disabled_unless_python}
     )
   endif()
 endif()
@@ -235,9 +249,6 @@ if(CELERITAS_BUILD_DEMOS)
       PUBLIC VecGeom::vecgeom
     )
   endif()
-  if(CELERITAS_USE_OpenMP)
-    find_package(OpenMP)
-  endif()
   if(OpenMP_FOUND)
     celeritas_target_link_libraries(celeritas_demo_loop
       PRIVATE OpenMP::OpenMP_CXX)
@@ -266,7 +277,7 @@ if(CELERITAS_BUILD_DEMOS)
         "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:geant-exporter>")
     endif()
     add_test(NAME "app/demo-loop"
-      COMMAND "$<TARGET_FILE:Python::Interpreter>"
+      COMMAND "${_python_exe}"
       "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}"
     )
     set(_env
@@ -286,16 +297,18 @@ if(CELERITAS_BUILD_DEMOS)
     if(NOT CELERITAS_USE_Geant4
        OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3
+       OR NOT CELERITAS_USE_Python
        OR NOT CELERITAS_USE_VecGeom
        OR (CELERITAS_USE_VecGeom AND CELERITAS_DEBUG
-           AND CMAKE_BUILD_TYPE STREQUAL "Debug"))
+           AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+       )
       set_tests_properties("app/demo-loop" PROPERTIES
         DISABLED true
       )
     endif()
 
     add_test(NAME "app/demo-loop-cpu"
-      COMMAND "$<TARGET_FILE:Python::Interpreter>"
+      COMMAND "${_python_exe}"
       "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}"
     )
     set(_env
@@ -308,7 +321,8 @@ if(CELERITAS_BUILD_DEMOS)
       ENVIRONMENT "${_env};${_geant_test_env}"
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
     )
-    if(NOT CELERITAS_USE_Geant4
+    if(NOT CELERITAS_USE_CUDA
+       OR NOT CELERITAS_USE_Geant4
        OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3
        OR NOT CELERITAS_USE_VecGeom)

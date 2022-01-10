@@ -9,21 +9,33 @@ CeleritasUtils
 
 CMake utility functions for Celeritas.
 
-.. command:: celeritas_find_package_config
+Configuration utilities
+~~~~~~~~~~~~~~~~~~~~~~~
 
-  ::
+.. command:: celeritas_optional_language
 
-    celeritas_find_package_config(<package> [...])
+  Add an configurable cache option ``CELERITAS_USE_<lang>`` that defaults to
+  checking whether the language is available.
 
-  Find the given package specified by a config file, but print location and
-  version information while loading. A well-behaved package Config.cmake file
-  should already include this, but several of the HEP packages (ROOT, Geant4,
-  VecGeom do not, so this helps debug system configuration issues.
+    celeritas_optional_language(<lang>)
 
-  The "Found" message should only display the first time a package is found and
-  should be silent on subsequent CMake reconfigures.
+.. command:: celeritas_optional_package
 
-  Once upstream packages are updated, this can be replaced by ``find_package``.
+  Add an configurable cache option ``CELERITAS_USE_<package>`` that searches for
+  the package to decide its default value.
+
+    celeritas_optional_package(<package> [<find_package>] <docstring>)
+
+  This won't be used for all Celeritas options or even all external dependent
+  packages. If given, the ``<find_package>`` package name will searched for
+  instead of ``<package>``.
+
+
+Library utilities
+~~~~~~~~~~~~~~~~~
+
+The set of functions here are required to link Celeritas against upstream
+relocatable device code in the VecGeom library.
 
 
 .. command:: celeritas_add_library
@@ -73,12 +85,65 @@ CMake utility functions for Celeritas.
     [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
 
 #]=======================================================================]
-include(FindPackageHandleStandardArgs)
+include_guard(GLOBAL)
 
-macro(celeritas_find_package_config _package)
-  find_package(${_package} CONFIG ${ARGN})
-  find_package_handle_standard_args(${_package} CONFIG_MODE)
+include(CheckLanguage)
+
+#-----------------------------------------------------------------------------#
+# CONFIGURATION UTILITIES
+#-----------------------------------------------------------------------------#
+
+function(celeritas_optional_language lang)
+  set(_var "CELERITAS_USE_${lang}")
+  if(DEFINED "${_var}")
+    set(_val "${_var}")
+  else()
+    check_language(${lang})
+    set(_val OFF)
+    if(CMAKE_${lang}_COMPILER)
+      set(_val ON)
+    endif()
+    message(STATUS "Set ${_var}=${_val} based on compiler availability")
+  endif()
+
+  option("${_var}" "Enable the ${lang} language" "${_val}" )
+endfunction()
+
+function(celeritas_to_onoff varname)
+  if(ARGC GREATER 1 AND ARGV1)
+    set(${varname} ON PARENT_SCOPE)
+  else()
+    set(${varname} OFF PARENT_SCOPE)
+  endif()
+endfunction()
+
+# Note: this is a macro so that `find_package` variables stay in the global
+# scope.
+macro(celeritas_optional_package package)
+  if("${ARGC}" EQUAL 2)
+    set(_findpkg "${package}")
+    set(_docstring "${ARGV1}")
+  else()
+    set(_findpkg "${ARGV1}")
+    set(_docstring "${ARGV2}")
+  endif()
+
+  set(_var "CELERITAS_USE_${package}")
+  if(DEFINED "${_var}")
+    set(_val "${_var}")
+  else()
+    find_package(${_findpkg} QUIET)
+    list(GET _findpkg 0 _findpkg)
+    celeritas_to_onoff(_val ${${_findpkg}_FOUND})
+    message(STATUS "Set ${_var}=${_val} based on package availability")
+  endif()
+
+  option("${_var}" "${_docstring}" "${_val}")
 endmacro()
+
+#-----------------------------------------------------------------------------#
+# LIBRARY UTILITIES
+#-----------------------------------------------------------------------------#
 
 define_property(TARGET PROPERTY CELERITAS_CUDA_LIBRARY_TYPE
   BRIEF_DOCS "Indicate the type of cuda library (STATIC and SHARED for nvlink usage, FINAL for linking into not cuda library/executable"

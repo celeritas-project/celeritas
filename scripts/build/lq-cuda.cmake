@@ -22,7 +22,6 @@ set_cache_var(BUILD_SHARED_LIBS BOOL ON)
 set_cache_var(CMAKE_CUDA_FLAGS STRING "-arch=sm_70")
 # TODO: when using CMake 3.18, replace the above line with this one:
 # set_cache_var(CMAKE_CUDA_ARCHITECTURES STRING "35")
-set_cache_var(CMAKE_CUDA_FLAGS_DEBUG STRING "-g -G")
 set_cache_var(CMAKE_BUILD_TYPE STRING "Debug")
 
 # Use MPI
