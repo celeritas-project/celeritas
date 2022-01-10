@@ -15,7 +15,7 @@ FILENAME = "{class}Kernel.{ext}"
 
 CLIKE_TOP = '''\
 //{modeline:-^75s}//
-// Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -164,7 +164,6 @@ def main():
         help='String describing the number of threads')
 
     kwargs = vars(parser.parse_args())
-    kwargs['year'] = 2021
     for ext in ['hh', 'cc', 'cu']:
         generate(ext=ext, **kwargs)
 
