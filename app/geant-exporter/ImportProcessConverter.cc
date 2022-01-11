@@ -576,6 +576,12 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
  * that is a concatenation of the lambdaMod tables for Urban (low E) and
  * WentzelVI (high E) msc models. This allows Celeritas to load the msc process
  * as one lambda table, avoiding the need to write an exception for msc.
+ *
+ * \note
+ * At the interface---i.e. last bin of low energy lambda and first bin of high
+ * energy lambda---the cross-section values differ, despite the energy value
+ * being the same. To smooth out the combination, an average value is used to
+ * replace that single bin.
  */
 void ImportProcessConverter::merge_msc_tables()
 {
@@ -595,17 +601,31 @@ void ImportProcessConverter::merge_msc_tables()
     const auto vec_type
         = process_.tables.at(0).physics_vectors.at(0).vector_type;
 
-    const auto& table_low  = process_.tables.at(0);
-    const auto& table_high = process_.tables.at(1);
+    auto& table_low  = process_.tables.at(0);
+    auto& table_high = process_.tables.at(1);
 
     for (int i : celeritas::range(materials_.size()))
     {
         ImportPhysicsVector physvec_combined;
         physvec_combined.vector_type = vec_type;
 
-        const auto& physvec_low  = table_low.physics_vectors.at(i);
-        const auto& physvec_high = table_high.physics_vectors.at(i);
+        auto& physvec_low  = table_low.physics_vectors.at(i);
+        auto& physvec_high = table_high.physics_vectors.at(i);
 
+        // Low and high energy models have different XS values at the interface
+        // Calculate average between these values
+        double avg_interface_xs
+            = (physvec_low.y.back() + physvec_high.y.front()) / 2;
+
+        // Replace last bin of low E physics vector XS by the average
+        physvec_low.y.erase(physvec_low.y.end() - 1);
+        physvec_low.y.push_back(avg_interface_xs);
+
+        // Remove first bin of high E model to avoid duplication
+        physvec_high.x.erase(physvec_high.x.begin());
+        physvec_high.y.erase(physvec_high.y.begin());
+
+        // Resize combined vector
         physvec_combined.x.resize(physvec_low.x.size() + physvec_high.x.size());
         physvec_combined.y.resize(physvec_low.y.size() + physvec_high.y.size());
 
