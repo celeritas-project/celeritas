@@ -570,7 +570,7 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
 /*!
  * While all other processes keep one lambda table per process,
  * multiple scattering stores them by model. In Geant4, these tables are
- * labeled as lambdaMod[i], where i is the model index.
+ * labeled as LambdaMod[i], where i is the model index.
  *
  * This method overwrites \c process_.tables to store a single lambda table
  * that is a concatenation of the lambdaMod tables for Urban (low E) and
@@ -579,9 +579,9 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
  *
  * \note
  * At the interface---i.e. last bin of low energy lambda and first bin of high
- * energy lambda---the cross-section values differ, despite the energy value
- * being the same. To smooth out the combination, an average value is used to
- * replace that single bin.
+ * energy lambda---the cross-section values differ, despite their energy value
+ * being the same. To smooth out the combination, this bin is replaced by
+ * taking the average of both cross-section values.
  */
 void ImportProcessConverter::merge_msc_tables()
 {
@@ -590,7 +590,7 @@ void ImportProcessConverter::merge_msc_tables()
     // (The ordering is defined by PhysicsList)
     CELER_ASSERT(process_.tables.size() == 2);
     CELER_ASSERT(process_.tables.at(0).physics_vectors.at(0).x.front()
-                 <= G4EmParameters::Instance()->MscEnergyLimit() / MeV);
+                 < G4EmParameters::Instance()->MscEnergyLimit() / MeV);
 
     ImportPhysicsTable table_combined;
     table_combined.table_type = ImportTableType::lambda;
