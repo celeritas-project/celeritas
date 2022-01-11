@@ -62,18 +62,38 @@ packages:
 
 ## Configuring and building Celeritas
 
-Example build scripts are available in `scripts/build`; an example CMake
-command looks like:
-```sh
-cmake  \
-  -D CELERITAS_USE_CUDA=ON \
-  -D CELERITAS_USE_MPI=OFF \
-  -D CELERITAS_USE_VecGeom=ON \
-  -D CMAKE_BUILD_TYPE="RelWithDebInfo" \
-  -D CMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Werror" \
-  -D CMAKE_CUDA_FLAGS="-arch=sm_80" \
-  ${SOURCE_DIR}
+To configure Celeritas, assuming the dependencies you want are located in the
+`CMAKE_PREFIX_PATH` search path, and other environment variables such as `CXX`
+are set, you should be able to just run CMake and build:
+```console
+$ mkdir build
+$ cd build && cmake ..
+$ make
 ```
+
+Ideally you will build Celeritas with all dependencies to gain the full
+functionality of the code, but there are circumstances in which you may not
+have all the dependencies or features available. By default, the CMake code in
+Celeritas queries available packages and sets several `CELERITAS_USE_{package}`
+options based on what it finds, so you have a good chance of successfully
+configuring Celeritas on the first go. Two optional components,
+`CELERITAS_BUILD_<DEMOS|TESTS>`, will error in the configure if their required
+components are missing, but they will update the CMake cache variable so that
+the next configure will succeed (but with that component disabled).
+
+For a slightly more advanced but potentially simpler setup, you can use the
+CMake presets provided by Celeritas via the `CMakePresets.json` file for CMake
+3.21 and higher:
+```console
+$ cmake --preset=default
+```
+The three main options are "minimal", "default", and "full", which all set
+different expectations for available dependencies.
+
+If you want to add your own set of custom options and flags, create a
+`CMakeUserPresets.json` file or, if you are a developer, create a preset at
+`scripts/cmake-presets/${HOSTNAME%%.*}.json` and call `scripts/build.sh
+{preset}` to create the symlink, configure the preset, build, and test.
 
 ## Commit hooks
 

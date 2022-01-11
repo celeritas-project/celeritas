@@ -9,7 +9,7 @@ pipeline {
   stages {
     stage('Build') {
       parallel {
-        stage('minimal') {
+        stage('valgrind') {
           agent {
             docker {
               image 'celeritas/ci-bionic-minimal:2021-12-17'
@@ -17,8 +17,8 @@ pipeline {
             }
           }
           steps {
-            sh 'rm -rf build && mkdir -p build'
-            sh 'SOURCE_DIR=. BUILD_DIR=build entrypoint-shell ./scripts/build/docker-minimal.sh'
+            sh 'ln -s scripts/cmake-presets/ci.json CMakeUserPresets.json'
+            sh 'SOURCE_DIR=. entrypoint-shell ./scripts/build.sh valgrind'
           }
           post {
             always {
@@ -26,7 +26,7 @@ pipeline {
             }
           }
         }
-        stage('cuda-11-ndebug') {
+        stage('vecgeom') {
           agent {
             docker {
               image 'celeritas/ci-focal-cuda11:2021-12-18'
@@ -35,8 +35,8 @@ pipeline {
             }
           }
           steps {
-            sh 'rm -rf build && mkdir -p build'
-            sh 'SOURCE_DIR=. BUILD_DIR=build TMPDIR=/tmp/persistent entrypoint-shell ./scripts/build/docker-cuda-ndebug.sh'
+            sh 'ln -s scripts/cmake-presets/ci.json CMakeUserPresets.json'
+            sh 'SOURCE_DIR=. entrypoint-shell ./scripts/build.sh vecgeom'
           }
           post {
             always {
@@ -44,7 +44,7 @@ pipeline {
             }
           }
         }
-        stage('cuda-11') {
+        stage('full-novg') {
           agent {
             docker {
               image 'celeritas/ci-focal-cuda11:2021-12-18'
@@ -52,9 +52,25 @@ pipeline {
             }
           }
           steps {
-            sh 'rm -rf build && mkdir -p build'
-            // Use fewer jobs for potentially less temporary usage
-            sh 'SOURCE_DIR=. BUILD_DIR=build PARALLEL_LEVEL=4 entrypoint-shell ./scripts/build/docker-cuda.sh'
+            sh 'ln -s scripts/cmake-presets/ci.json CMakeUserPresets.json'
+            sh 'SOURCE_DIR=. entrypoint-shell ./scripts/build.sh full-novg'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+        stage('full-ndebug') {
+          agent {
+            docker {
+              image 'celeritas/ci-focal-cuda11:2021-12-18'
+              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
+            }
+          }
+          steps {
+            sh 'ln -s scripts/cmake-presets/ci.json CMakeUserPresets.json'
+            sh 'SOURCE_DIR=. entrypoint-shell ./scripts/build.sh full-ndebug'
           }
           post {
             always {

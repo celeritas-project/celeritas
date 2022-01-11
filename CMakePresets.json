@@ -1,0 +1,128 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Automatic options (debug with tests)",
+      "description": "Dependencies are enabled based on environment probing",
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS":{"type": "BOOL",   "value": "ON"},
+        "CELERITAS_DEBUG":      {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_USE_SWIG":   {"type": "BOOL",   "value": "OFF"},
+        "BUILD_SHARED_LIBS":    {"type": "BOOL",   "value": "ON"},
+        "CMAKE_BUILD_TYPE":     {"type": "STRING", "value": "Debug"},
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+      }
+    },
+    {
+      "name": "full",
+      "displayName": "Full",
+      "description": "All external dependencies are expected",
+      "inherits": "default",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_Doxygen": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "minimal",
+      "displayName": "Minimal",
+      "description": "Smallest capabilities for useful development",
+      "binaryDir": "${sourceDir}/build-minimal",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Doxygen": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Python":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": ".cuda-volta",
+      "hidden": true,
+      "description": "Options to enable CUDA 11 on Volta architecture",
+      "cacheVariables": {
+        "CELERITAS_USE_CUDA":       {"type": "BOOL",   "value": "ON"},
+        "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "70"},
+        "CMAKE_CUDA_FLAGS": "-Werror all-warnings",
+        "CMAKE_CUDA_FLAGS_RELEASE": "--use_fast_math -O3 -DNDEBUG"
+      }
+    },
+    {
+      "name": ".ndebug",
+      "hidden": true,
+      "description": "Disable debug mode",
+      "cacheVariables": {
+        "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "OFF"},
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "Release"}
+      }
+    },
+    {
+      "name": ".spack-base",
+      "description": "Setup for using spack environment",
+      "hidden": true,
+      "environment": {
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:$penv{PATH}",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
+      },
+      "condition": {
+        "lhs": "$env{SPACK_ROOT}",
+        "type": "notEquals",
+        "rhs": ""
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "jobs": 0,
+      "configurePreset": "default"
+    },
+    {
+      "name": "full",
+      "inherits": "default",
+      "configurePreset": "full"
+    },
+    {
+      "name": "minimal",
+      "inherits": "default",
+      "configurePreset": "minimal"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "output": {"outputOnFailure": true},
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+    },
+    {
+      "name": "full",
+      "inherits": "default",
+      "configurePreset": "full"
+    },
+    {
+      "name": "minimal",
+      "inherits": "default",
+      "configurePreset": "minimal"
+    }
+  ]
+}
