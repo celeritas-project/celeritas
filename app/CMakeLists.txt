@@ -156,30 +156,17 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
-  # Since the demo kernel links against VecGeom, which requires CUDA separable
-  # compilation, it cannot be linked directly into an executable.
-  celeritas_add_library(celeritas_demo_rasterizer
+  add_executable(demo-rasterizer
+    demo-rasterizer/demo-rasterizer.cc
     demo-rasterizer/RDemoRunner.cc
     demo-rasterizer/RDemoKernel.cu
     demo-rasterizer/ImageIO.cc
     demo-rasterizer/ImageStore.cc
   )
-  celeritas_target_link_libraries(celeritas_demo_rasterizer
-    PRIVATE
-      Celeritas::Core
-      nlohmann_json::nlohmann_json
-      VecGeom::vecgeom
-  )
-
-  # Add the executable
-  add_executable(demo-rasterizer
-    demo-rasterizer/demo-rasterizer.cc
-  )
   celeritas_target_link_libraries(demo-rasterizer
-    celeritas
-    VecGeom::vecgeom
-    celeritas_demo_rasterizer
+    Celeritas::Core
     nlohmann_json::nlohmann_json
+    VecGeom::vecgeom
   )
 
   if(CELERITAS_BUILD_TESTS)
@@ -207,66 +194,56 @@ endif()
 if(CELERITAS_BUILD_DEMOS)
   include(CeleritasGenDemoLoopKernel)
 
-  # Generate demo loop kernel/host loop code for host/device
-  set(_gen_src)
-  celeritas_gen_demo_loop_kernel(_gen_src
-    "AlongAndPostStep" "along_and_post_step" "'states.size()'")
-  celeritas_gen_demo_loop_kernel(_gen_src
-    "Cleanup" "cleanup" "1")
-  celeritas_gen_demo_loop_kernel(_gen_src
-    "PreStep" "pre_step" "'states.size()'")
-  celeritas_gen_demo_loop_kernel(_gen_src
-    "ProcessInteractions" "process_interactions" "'states.size()'")
-
-  set(_cuda_src)
-  if(CELERITAS_USE_CUDA)
-    set(_cuda_src
-      demo-loop/diagnostic/EnergyDiagnostic.cu
-      demo-loop/diagnostic/ParticleProcessDiagnostic.cu
-      demo-loop/diagnostic/StepDiagnostic.cu
-      demo-loop/diagnostic/TrackDiagnostic.cu
-    )
-  endif()
-  celeritas_add_library(celeritas_demo_loop
+  set(_demo_loop_src
+    demo-loop/demo-loop.cc
     demo-loop/LDemoIO.cc
     demo-loop/Transporter.cc
     demo-loop/diagnostic/EnergyDiagnostic.cc
     demo-loop/diagnostic/ParticleProcessDiagnostic.cc
     demo-loop/diagnostic/StepDiagnostic.cc
     demo-loop/diagnostic/TrackDiagnostic.cc
-    ${_cuda_src}
-    ${_gen_src}
   )
-  celeritas_target_link_libraries(celeritas_demo_loop
-    PRIVATE
+  set(_demo_loop_libs)
+
+  # Generate demo loop kernel/host loop code for host/device
+  celeritas_gen_demo_loop_kernel(_demo_loop_src
+    "AlongAndPostStep" "along_and_post_step" "'states.size()'")
+  celeritas_gen_demo_loop_kernel(_demo_loop_src
+    "Cleanup" "cleanup" "1")
+  celeritas_gen_demo_loop_kernel(_demo_loop_src
+    "PreStep" "pre_step" "'states.size()'")
+  celeritas_gen_demo_loop_kernel(_demo_loop_src
+    "ProcessInteractions" "process_interactions" "'states.size()'")
+
+  if(CELERITAS_USE_CUDA)
+    list(APPEND _demo_loop_src
+      demo-loop/diagnostic/EnergyDiagnostic.cu
+      demo-loop/diagnostic/ParticleProcessDiagnostic.cu
+      demo-loop/diagnostic/StepDiagnostic.cu
+      demo-loop/diagnostic/TrackDiagnostic.cu
+    )
+  endif()
+
+  set(_demo_loop_libs
     Celeritas::Core
     nlohmann_json::nlohmann_json
     Celeritas::ROOT
   )
-
   if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
-    celeritas_target_link_libraries(celeritas_demo_loop
-      PUBLIC VecGeom::vecgeom
-    )
+    list(APPEND _demo_loop_libs VecGeom::vecgeom)
   endif()
-  if(OpenMP_FOUND)
-    celeritas_target_link_libraries(celeritas_demo_loop
-      PRIVATE OpenMP::OpenMP_CXX)
-  else()
-    celeritas_target_compile_options(celeritas_demo_loop
-      PRIVATE -Wno-unknown-pragmas)
+  if(CELERITAS_USE_OpenMP)
+    list(APPEND _demo_loop_libs OpenMP::OpenMP_CXX)
   endif()
 
   # Add the executable
-  add_executable(demo-loop
-    demo-loop/demo-loop.cc
-  )
-  # Note: for static linking the library order is relevant.
-  celeritas_target_link_libraries(demo-loop
-    celeritas_demo_loop
-    celeritas
-    nlohmann_json::nlohmann_json
-  )
+  add_executable(demo-loop ${_demo_loop_src})
+  celeritas_target_link_libraries(demo-loop ${_demo_loop_libs})
+
+  if(NOT CELERITAS_USE_OpenMP)
+    celeritas_target_compile_options(demo-loop
+      PRIVATE -Wno-unknown-pragmas)
+  endif()
 
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")

@@ -121,18 +121,11 @@ celeritas_cudaoptional_test(field/FieldPropagator ${_needs_vecgeom})
 ### User field ###
 
 celeritas_cudaoptional_test(field/UserParamField)
-
-set(CELER_USERFIELD_SOURCES
-  field/detail/MagFieldMap.cc
-  field/detail/CMSFieldMapReader.cc
-)
-celeritas_add_library(CeleritasUserFieldTest ${CELER_USERFIELD_SOURCES})
-celeritas_target_link_libraries(CeleritasUserFieldTest
-  PUBLIC Celeritas::Core
-)
-
 celeritas_cudaoptional_test(field/UserMapField
-  LINK_LIBRARIES CeleritasUserFieldTest)
+  SOURCES
+    field/detail/MagFieldMap.cc
+    field/detail/CMSFieldMapReader.cc
+)
 
 #-----------------------------------------------------------------------------#
 # VecGeom
