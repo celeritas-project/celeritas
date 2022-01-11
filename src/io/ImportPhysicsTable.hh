@@ -38,12 +38,10 @@ enum class ImportTableType
     csda_range, //!< Continuous slowing down approximation
     range,
     secondary_range,
-    inverse_range,   //!< Inverse mapping of range: (range -> energy)
-    lambda,          //!< Macroscopic cross section
-    lambda_msc_low,  //!< Macroscopic cross section for low energy msc
-    lambda_msc_high, //!< Macroscopic cross section for high energy msc
-    sublambda,       //!< For subcutoff regions
-    lambda_prim,     //!< Cross section scaled by energy
+    inverse_range, //!< Inverse mapping of range: (range -> energy)
+    lambda,        //!< Macroscopic cross section
+    sublambda,     //!< For subcutoff regions
+    lambda_prim,   //!< Cross section scaled by energy
 };
 
 //---------------------------------------------------------------------------//
@@ -62,7 +60,7 @@ enum class ImportUnits
 
 //---------------------------------------------------------------------------//
 /*!
- * Imported physics table.
+ * Imported physics table. Each table stores physics vectors for all materials.
  */
 struct ImportPhysicsTable
 {

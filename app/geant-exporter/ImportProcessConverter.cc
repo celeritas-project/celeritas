@@ -420,10 +420,18 @@ void ImportProcessConverter::store_energy_loss_tables(
  * table, MSC keeps them independent.
  *
  * Starting on Geant4 v11, G4MultipleScattering provides \c NumberOfModels() .
+ *
+ * \note
+ * To simplify the downstream process in Celeritas and minimize code
+ * duplication, we use \c add_table(...) to push_back both low and high energy
+ * lambda tables to \c process_.tables , and merge both into a single lambda
+ * table at the end. This method might be revisited in the future when other
+ * msc models are included.
  */
 void ImportProcessConverter::store_multiple_scattering_tables(
     const G4VMultipleScattering& process)
 {
+    // Threshold between low/high energy models
     const double msc_threshold = G4EmParameters::Instance()->MscEnergyLimit();
 
 #if CELERITAS_G4_V10
@@ -434,34 +442,37 @@ void ImportProcessConverter::store_multiple_scattering_tables(
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
+            if (i > 1)
+            {
+                // Index is beyond the code scope, which only includes a low
+                // and high msc energy model
+                CELER_LOG(error)
+                    << "Cannot store multiple scattering table for process "
+                    << process.GetProcessName() << ", model "
+                    << process.GetModelByIndex(i)->GetName()
+                    << ". Model index is > 1.";
+            }
+
             process_.models.push_back(to_import_model(model->GetName()));
 
             if (model->HighEnergyLimit() <= msc_threshold)
             {
                 // Store low energy msc model
                 this->add_table(model->GetCrossSectionTable(),
-                                ImportTableType::lambda_msc_low);
+                                ImportTableType::lambda);
             }
 
             else
             {
                 // Store high energy msc model
                 this->add_table(model->GetCrossSectionTable(),
-                                ImportTableType::lambda_msc_high);
+                                ImportTableType::lambda);
             }
         }
-
-        if (i > 2)
-        {
-            // Index is beyond the code scope, which only includes a low
-            // and high msc energy model
-            CELER_LOG(error)
-                << "Cannot store multiple scattering table for process "
-                << process.GetProcessName() << ", model "
-                << process.GetModelByIndex(i)->GetName()
-                << ". Model index is > 2.";
-        }
     }
+
+    // Merge both low and high energy lambda tables into one
+    this->merge_msc_tables();
 }
 
 //---------------------------------------------------------------------------//
@@ -521,8 +532,6 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
             table.y_units = ImportUnits::mev;
             break;
         case ImportTableType::lambda:
-        case ImportTableType::lambda_msc_low:
-        case ImportTableType::lambda_msc_high:
         case ImportTableType::sublambda:
             table.x_units = ImportUnits::mev;
             table.y_units = ImportUnits::cm_inv;
@@ -555,6 +564,77 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
     }
 
     process_.tables.push_back(std::move(table));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * While all other processes keep one lambda table per process,
+ * multiple scattering stores them by model. In Geant4, these tables are
+ * labeled as lambdaMod[i], where i is the model index.
+ *
+ * This method overwrites \c process_.tables to store a single lambda table
+ * that is a concatenation of the lambdaMod tables for Urban (low E) and
+ * WentzelVI (high E) msc models. This allows Celeritas to load the msc process
+ * as one lambda table, avoiding the need to write an exception for msc.
+ */
+void ImportProcessConverter::merge_msc_tables()
+{
+    // Check that only 2 tables are stored (i.e. lambdas for low and high E)
+    // Check that low/high energy vectors are in ascending order of energy
+    // (The ordering is defined by PhysicsList)
+    CELER_ASSERT(process_.tables.size() == 2);
+    CELER_ASSERT(process_.tables.at(0).physics_vectors.at(0).x.front()
+                 <= G4EmParameters::Instance()->MscEnergyLimit() / MeV);
+
+    ImportPhysicsTable table_combined;
+    table_combined.table_type = ImportTableType::lambda;
+    table_combined.x_units    = ImportUnits::mev;
+    table_combined.y_units    = ImportUnits::cm_inv;
+
+    // Vector type is the same for all physics vectors
+    const auto vec_type
+        = process_.tables.at(0).physics_vectors.at(0).vector_type;
+
+    const auto& table_low  = process_.tables.at(0);
+    const auto& table_high = process_.tables.at(1);
+
+    for (int i : celeritas::range(materials_.size()))
+    {
+        ImportPhysicsVector physvec_combined;
+        physvec_combined.vector_type = vec_type;
+
+        const auto& physvec_low  = table_low.physics_vectors.at(i);
+        const auto& physvec_high = table_high.physics_vectors.at(i);
+
+        physvec_combined.x.resize(physvec_low.x.size() + physvec_high.x.size());
+        physvec_combined.y.resize(physvec_low.y.size() + physvec_high.y.size());
+
+        // Merge x
+        std::move(physvec_low.x.begin(),
+                  physvec_low.x.end(),
+                  physvec_combined.x.begin());
+
+        std::move(physvec_high.x.begin(),
+                  physvec_high.x.end(),
+                  physvec_combined.x.begin() + physvec_low.x.size());
+
+        // Merge y
+        std::move(physvec_low.y.begin(),
+                  physvec_low.y.end(),
+                  physvec_combined.y.begin());
+
+        std::move(physvec_high.y.begin(),
+                  physvec_high.y.end(),
+                  physvec_combined.y.begin() + physvec_low.y.size());
+
+        table_combined.physics_vectors.push_back(std::move(physvec_combined));
+    }
+
+    // Rewrite process tables to store only the combined lambda table
+    process_.tables.clear();
+    process_.tables.push_back(std::move(table_combined));
+
+    CELER_ENSURE(process_.tables.size() == 1);
 }
 
 //---------------------------------------------------------------------------//

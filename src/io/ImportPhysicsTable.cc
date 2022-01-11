@@ -29,8 +29,6 @@ const char* to_cstring(ImportTableType value)
         "secondary_range",
         "inverse_range",
         "lambda",
-        "lambda_msc_low",
-        "lambda_msc_high",
         "sublambda",
         "lambda_prim",
     };
