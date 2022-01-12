@@ -19,7 +19,8 @@
         "CMAKE_CXX_COMPILER": "/usr/bin/g++",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=skylake-avx512 -mtune=skylake-avx512",
-        "CMAKE_CUDA_FLAGS": "-Werror all-warnings  -Wno-deprecated-gpu-targets"
+        "CMAKE_CUDA_FLAGS": "-Werror all-warnings  -Wno-deprecated-gpu-targets",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"}
       }
     },
     {
