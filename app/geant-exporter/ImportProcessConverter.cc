@@ -431,9 +431,6 @@ void ImportProcessConverter::store_energy_loss_tables(
 void ImportProcessConverter::store_multiple_scattering_tables(
     const G4VMultipleScattering& process)
 {
-    // Threshold between low/high energy models
-    const double msc_threshold = G4EmParameters::Instance()->MscEnergyLimit();
-
 #if CELERITAS_G4_V10
     for (auto i : celeritas::range(4))
 #else
@@ -454,20 +451,8 @@ void ImportProcessConverter::store_multiple_scattering_tables(
             }
 
             process_.models.push_back(to_import_model(model->GetName()));
-
-            if (model->HighEnergyLimit() <= msc_threshold)
-            {
-                // Store low energy msc model
-                this->add_table(model->GetCrossSectionTable(),
-                                ImportTableType::lambda);
-            }
-
-            else
-            {
-                // Store high energy msc model
-                this->add_table(model->GetCrossSectionTable(),
-                                ImportTableType::lambda);
-            }
+            this->add_table(model->GetCrossSectionTable(),
+                            ImportTableType::lambda);
         }
     }
 
