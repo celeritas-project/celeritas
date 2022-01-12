@@ -179,4 +179,26 @@ TEST_F(TwoVolumeTest, persistence)
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({-1.5, 0, 0}), geo.pos());
     }
+    {
+        auto geo = this->make_track_view();
+        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+        EXPECT_VEC_SOFT_EQ(Real3({-1.5, 0, 0}), geo.pos());
+        geo.set_dir({1, 0, 0});
+    }
+    {
+        auto geo = this->make_track_view();
+        EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
+        geo.find_next_step();
+        geo.move_across_boundary();
+    }
+    {
+        auto geo = this->make_track_view();
+        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        geo.move_internal({-0.5, .5, .5});
+    }
+    {
+        auto geo = this->make_track_view();
+        EXPECT_VEC_SOFT_EQ(Real3({-0.5, .5, .5}), geo.pos());
+    }
 }

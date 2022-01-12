@@ -261,6 +261,7 @@ CELER_FUNCTION void OrangeTrackView::move_across_boundary()
     CELER_ASSERT(init.volume);
     local_.volume  = init.volume;
     local_.surface = init.surface;
+    dirty_         = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -278,6 +279,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     // Move and update next_step_
     axpy(dist, local_.dir, &local_.pos);
     next_step_ -= dist;
+    dirty_ = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -291,6 +293,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(const Real3& pos)
 {
     local_.pos = pos;
     next_step_ = 0;
+    dirty_     = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -305,6 +308,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(const Real3& newdir)
     CELER_EXPECT(is_soft_unit_vector(newdir));
     local_.dir = newdir;
     next_step_ = 0;
+    dirty_     = true;
 }
 
 //---------------------------------------------------------------------------//
