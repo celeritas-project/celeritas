@@ -46,7 +46,6 @@
       "name": "full-novg",
       "description": "Build with debug, everything but VecGeom",
       "inherits": [".cuda-volta", ".mpi", ".root", "base"],
-      "binaryDir": "${sourceDir}/build-full-novg",
       "cacheVariables": {
         "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "ON"}
       }
@@ -54,14 +53,12 @@
     {
       "name": "full-novg-ndebug",
       "description": "Build everything but VecGeom in release mode",
-      "binaryDir": "${sourceDir}/build-full-ndebug",
       "inherits": [".ndebug", "full-novg"]
     },
     {
       "name": "valgrind",
       "description": "Build without any dependencies but JSON/Googletest",
       "inherits": "base",
-      "binaryDir": "${sourceDir}/build-valgrind",
       "cacheVariables": {
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
@@ -75,7 +72,6 @@
       "name": "vecgeom-tests",
       "description": "Build tests in debug only with vecgeom",
       "inherits": [".cuda-volta", ".root", "base"],
-      "binaryDir": "${sourceDir}/build-vecgeom-tests",
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
@@ -86,7 +82,6 @@
       "name": "vecgeom-demos",
       "description": "Build demonstration with vecgeom",
       "inherits": [".ndebug", ".cuda-volta", ".root", "base"],
-      "binaryDir": "${sourceDir}/build-ecgeom-demos",
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},

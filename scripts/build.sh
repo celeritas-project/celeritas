@@ -29,15 +29,11 @@ fi
 CMAKE_PRESET=$1
 shift
 
+set -x
+
 # Configure
 cmake --preset=${CMAKE_PRESET}
 # Build
 cmake --build --preset=${CMAKE_PRESET}
 # Test
 ctest --preset=${CMAKE_PRESET}
-
-if [ "${CMAKE_PRESET}" = "valgrind" ]; then
-  cd build-valgrind
-  # Exclude tests with python launcher
-  ctest -E demo- -D ExperimentalMemCheck --output-on-failure
-fi
