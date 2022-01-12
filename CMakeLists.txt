@@ -124,16 +124,6 @@ endif()
 
 if(CELERITAS_USE_HepMC3)
   find_package(HepMC3 REQUIRED)
-  # HepMC3's cmake config file does not provide an imported target yet
-  # Anticipate that it will, and create if not present. HepMC3 is
-  # a private dep of Celeritas, so no need to re-export this.
-  if(NOT TARGET HepMC3::HepMC3)
-    add_library(HepMC3::HepMC3 UNKNOWN IMPORTED)
-    set_target_properties(HepMC3::HepMC3 PROPERTIES
-      INTERFACE_INCLUDE_DIRECTORIES "${HEPMC3_INCLUDE_DIR}"
-      IMPORTED_LOCATION "${HEPMC3_LIB}"
-    )
-  endif()
 endif()
 
 if(CELERITAS_USE_JSON)
