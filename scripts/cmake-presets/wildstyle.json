@@ -5,7 +5,7 @@
     {
       "name": "base",
       "displayName": "Wildstyle default options (GCC)",
-      "inherits": ["full", ".spack-base", ".cuda-volta"],
+      "inherits": [".spack-base", ".cuda-volta", "full"],
       "generator": "Ninja",
       "environment": {
         "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}"
@@ -35,7 +35,7 @@
       "name": "ndebug",
       "displayName": "Everything and in release mode",
       "binaryDir": "${sourceDir}/build-ndebug",
-      "inherits": ["base", ".ndebug"],
+      "inherits": [".ndebug", "base"],
       "cacheVariables": {
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}

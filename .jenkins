@@ -26,24 +26,6 @@ pipeline {
             }
           }
         }
-        stage('vecgeom') {
-          agent {
-            docker {
-              image 'celeritas/ci-focal-cuda11:2021-12-18'
-              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && persistent-tmp'
-              args '-v persistent-tmp:/tmp/persistent'
-            }
-          }
-          steps {
-            sh 'ln -s scripts/cmake-presets/ci.json CMakeUserPresets.json'
-            sh 'SOURCE_DIR=. entrypoint-shell ./scripts/build.sh vecgeom'
-          }
-          post {
-            always {
-              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-            }
-          }
-        }
         stage('full-novg') {
           agent {
             docker {
@@ -61,7 +43,7 @@ pipeline {
             }
           }
         }
-        stage('full-ndebug') {
+        stage('full-novg-ndebug') {
           agent {
             docker {
               image 'celeritas/ci-focal-cuda11:2021-12-18'
@@ -70,7 +52,42 @@ pipeline {
           }
           steps {
             sh 'ln -s scripts/cmake-presets/ci.json CMakeUserPresets.json'
-            sh 'SOURCE_DIR=. entrypoint-shell ./scripts/build.sh full-ndebug'
+            sh 'SOURCE_DIR=. entrypoint-shell ./scripts/build.sh full-novg-ndebug'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+        stage('vecgeom-demos') {
+          agent {
+            docker {
+              image 'celeritas/ci-focal-cuda11:2021-12-18'
+              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && persistent-tmp'
+              args '-v persistent-tmp:/tmp/persistent'
+            }
+          }
+          steps {
+            sh 'ln -s scripts/cmake-presets/ci.json CMakeUserPresets.json'
+            sh 'SOURCE_DIR=. entrypoint-shell ./scripts/build.sh vecgeom-demos'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+        stage('vecgeom-tests') {
+          agent {
+            docker {
+              image 'celeritas/ci-focal-cuda11:2021-12-18'
+              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
+            }
+          }
+          steps {
+            sh 'ln -s scripts/cmake-presets/ci.json CMakeUserPresets.json'
+            sh 'SOURCE_DIR=. entrypoint-shell ./scripts/build.sh vecgeom-tests'
           }
           post {
             always {
