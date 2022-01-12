@@ -19,7 +19,7 @@ pipeline {
           steps {
             sh 'ln -s scripts/cmake-presets/ci.json CMakeUserPresets.json'
             sh 'SOURCE_DIR=. entrypoint-shell ./scripts/build.sh valgrind'
-            sh '/opt/view/bin/ctest -E demo- -D ExperimentalMemCheck --output-on-failure'
+            sh '(cd build && /opt/view/bin/ctest -E demo- -D ExperimentalMemCheck --output-on-failure)'
           }
           post {
             always {

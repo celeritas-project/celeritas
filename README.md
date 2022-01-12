@@ -93,7 +93,15 @@ different expectations for available dependencies.
 If you want to add your own set of custom options and flags, create a
 `CMakeUserPresets.json` file or, if you are a developer, create a preset at
 `scripts/cmake-presets/${HOSTNAME%%.*}.json` and call `scripts/build.sh
-{preset}` to create the symlink, configure the preset, build, and test.
+{preset}` to create the symlink, configure the preset, build, and test. See
+[the scripts readme](scripts/README.md) for more details.
+
+If your CMake version is too old, you may get an unhelpful message:
+```
+CMake Error: Could not read presets from celeritas: Unrecognized "version" field
+```
+which is just a poor way of saying the version in the `CMakePresets.json` file
+is newer than that version knows how to handle.
 
 ## Commit hooks
 
