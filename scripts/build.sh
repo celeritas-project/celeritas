@@ -1,10 +1,11 @@
 #!/bin/sh -e
 
 if [ -z "${SOURCE_DIR}" ]; then
-  SOURCE_DIR="$(cd "$(dirname $0)" && git rev-parse --show-toplevel)"
+  cd "$(cd "$(dirname $0)" && git rev-parse --show-toplevel)"
 else
-  SOURCE_DIR="$(cd "${SOURCE_DIR}" && pwd)"
+  cd "${SOURCE_DIR}"
 fi
+
 
 # Link user presets for this system if they don't exist
 if [ ! -e "CMakeUserPresets.json" ]; then
@@ -13,8 +14,6 @@ if [ ! -e "CMakeUserPresets.json" ]; then
     ln -s "${_USER_PRESETS}" "CMakeUserPresets.json"
   fi
 fi
-
-cd "${SOURCE_DIR}"
 
 # Check arguments and give presets
 if [ $# -ne 1 ]; then

@@ -29,16 +29,19 @@ if(VecGeom_FOUND)
     set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
       CELERITAS_CUDA_LIBRARY_TYPE Static
     )
+    # Suppress warnings from virtual function calls in RDC
     foreach(_lib VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
-      # Suppress warnings from virtual function calls in RDC
       target_compile_options(${_lib}
         INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL: -Xnvlink --suppress-stack-size-warning>"
       )
       target_link_options(${_lib}
         INTERFACE "$<DEVICE_LINK:SHELL: -Xnvlink --suppress-stack-size-warning>"
       )
+    endforeach()
 
-      # Inform celeritas_add_library code
+    # Inform celeritas_add_library code
+    foreach(_lib VecGeom::vecgeom VecGeom::vecgeomcuda
+        VecGeom::vecgeomcuda_static)
       set_target_properties(${_lib} PROPERTIES
         CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
         CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
