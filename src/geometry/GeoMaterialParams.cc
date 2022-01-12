@@ -19,6 +19,9 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct from geometry and material params.
+ *
+ * Missing material IDs may be allowed if they correspond to unreachable volume
+ * IDs.
  */
 GeoMaterialParams::GeoMaterialParams(Input input)
 {
@@ -37,9 +40,8 @@ GeoMaterialParams::GeoMaterialParams(Input input)
 
     if (!input.volume_names.empty())
     {
-        // Remap materials to volume IDs using given volume names
-
-        // Build a map of volume name -> matid
+        // Remap materials to volume IDs using given volume names:
+        // build a map of volume name -> matid
         std::unordered_map<std::string, MaterialId> name_to_id;
         for (auto idx : range(input.volume_to_mat.size()))
         {

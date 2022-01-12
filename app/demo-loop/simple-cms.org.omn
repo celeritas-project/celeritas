@@ -1,7 +1,8 @@
 !##############################################################################
-! File  : Geometria/orange/test/data/simple-cms.org.omn
+! File  : simple-cms.org.omn
 !
 ! Simplified Compact Muon Solenoid proxy geometry
+! Regenerate the JSON file with `orange2celeritas` from SCALE
 !##############################################################################
 
 [GEOMETRY]
@@ -58,30 +59,30 @@ widths 2000 2000 4000
 ! CELLS ("volumes")
 !##############################################################################
 
-[UNIVERSE][CELL guide_tube]
+[UNIVERSE][CELL vacuum_tube]
 comp galactic
 shapes guide_tube
 
-[UNIVERSE][CELL silicon_tracker]
+[UNIVERSE][CELL si_tracker]
 comp si
 shapes silicon_tracker_outer ~guide_tube
 
-[UNIVERSE][CELL crystal_em_calorimeter]
+[UNIVERSE][CELL em_calorimeter]
 comp pb
 shapes crystal_em_calorimeter_outer ~silicon_tracker_outer
 
-[UNIVERSE][CELL hadron_calorimeter]
+[UNIVERSE][CELL had_calorimeter]
 comp c
 shapes hadron_calorimeter_outer ~crystal_em_calorimeter_outer
 
-[UNIVERSE][CELL superconducting_solenoid]
+[UNIVERSE][CELL sc_solenoid]
 comp ti
 shapes superconducting_solenoid_outer ~hadron_calorimeter_outer
 
-[UNIVERSE][CELL iron_muon_chambers]
+[UNIVERSE][CELL fe_muon_chambers]
 comp fe
 shapes iron_muon_chambers_outer ~superconducting_solenoid_outer
 
-[UNIVERSE][CELL fill]
+[UNIVERSE][CELL world]
 comp galactic
 shapes -world_box +iron_muon_chambers_outer

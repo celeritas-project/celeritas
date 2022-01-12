@@ -5,16 +5,16 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
 """
-from distutils.util import strtobool
 import json
+import re
 import subprocess
+from distutils.util import strtobool
 from os import environ, path
 from sys import exit, argv
 
 try:
-    geometry_filename = argv[1]
-    hepmc3_filename = argv[2]
-except (IndexError, TypeError):
+    (geometry_filename, hepmc3_filename) = argv[1:]
+except IndexError:
     print("usage: {} inp.gdml inp.hepmc3".format(argv[0]))
     exit(2)
 
@@ -34,6 +34,10 @@ result_ge = subprocess.run([geant_exp_exe,
 if result_ge.returncode:
     print("fatal: geant-exporter failed with error", result_ge.returncode)
     exit(result_ge.returncode)
+
+if strtobool(environ.get('CELER_DISABLE_VECGEOM', 'false')):
+    print("Replacing .gdml extension since VecGeom is disabled")
+    geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 
 inp = {
     'run': {
