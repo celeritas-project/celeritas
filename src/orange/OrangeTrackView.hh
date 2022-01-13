@@ -279,6 +279,8 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     // Move and update next_step_
     axpy(dist, local_.dir, &local_.pos);
     next_step_ -= dist;
+    local_.surface = {};
+
     dirty_ = true;
 }
 
@@ -291,9 +293,10 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
  */
 CELER_FUNCTION void OrangeTrackView::move_internal(const Real3& pos)
 {
-    local_.pos = pos;
-    next_step_ = 0;
-    dirty_     = true;
+    local_.pos     = pos;
+    local_.surface = {};
+    next_step_     = 0;
+    dirty_         = true;
 }
 
 //---------------------------------------------------------------------------//
