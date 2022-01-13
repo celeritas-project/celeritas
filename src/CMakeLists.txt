@@ -61,6 +61,7 @@ list(APPEND SOURCES
   base/detail/ReprImpl.cc
   comm/Communicator.cc
   comm/Device.cc
+  comm/Environment.cc
   comm/Logger.cc
   comm/LoggerTypes.cc
   comm/ScopedMpiInit.cc

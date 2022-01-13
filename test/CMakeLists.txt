@@ -107,6 +107,9 @@ celeritas_cudaoptional_test(base/StackAllocator)
 celeritas_setup_tests(PREFIX comm)
 
 celeritas_add_test(comm/Communicator.test.cc)
+celeritas_add_test(comm/Environment.test.cc
+  ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
+)
 celeritas_add_test(comm/Logger.test.cc)
 
 #-----------------------------------------------------------------------------#
