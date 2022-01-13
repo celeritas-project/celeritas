@@ -1,11 +1,6 @@
 #!/bin/sh -e
 
-if [ -z "${SOURCE_DIR}" ]; then
-  cd "$(cd "$(dirname $0)" && git rev-parse --show-toplevel)"
-else
-  cd "${SOURCE_DIR}"
-fi
-
+cd "$(dirname $0)"/..
 
 # Link user presets for this system if they don't exist
 if [ ! -e "CMakeUserPresets.json" ]; then

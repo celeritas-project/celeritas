@@ -84,7 +84,7 @@
       "inherits": [".ndebug", ".cuda-volta", ".root", "base"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
@@ -102,7 +102,7 @@
     {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base"},
     {"name": "valgrind"        , "configurePreset": "valgrind"        , "inherits": "base"},
     {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base", "jobs": 8},
-    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "jobs": 8}
+    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "jobs": 8, "targets": "app/all"}
   ],
   "testPresets": [
     {
@@ -115,6 +115,6 @@
     {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base"},
     {"name": "valgrind"        , "configurePreset": "valgrind"        , "inherits": "base"},
     {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base"},
-    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base"}
+    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "filter": {"include": {"name": "app/"}}}
   ]
 }

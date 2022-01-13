@@ -5,10 +5,9 @@ if [ -z "$1" ]; then
   exit 2;
 fi
 
-
 if [ -z "${CONFIG}" ]; then
-  echo "Defaulting CONFIG=bionic-minimal"
   CONFIG=focal-cuda11
+  echo "Set default CONFIG=${CONFIG}"
 fi
 
 CONTAINER=$(docker run -t -d ci-${CONFIG})
@@ -19,7 +18,7 @@ git clone https://github.com/celeritas-project/celeritas src
 cd src
 git fetch origin pull/$1/head:mr/$1
 git checkout mr/$1
-SOURCE_DIR=. BUILD_DIR=build entrypoint-shell ./scripts/build/docker.sh
+SOURCE_DIR=. entrypoint-shell ./scripts/docker/ci/config-build-test.sh
 EOF
 docker stop --time=0 $CONTAINER
 echo "To resume: docker start $CONTAINER \\"
