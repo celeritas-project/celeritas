@@ -70,7 +70,7 @@
     },
     {
       "name": "vecgeom-tests",
-      "description": "Build tests in debug only with vecgeom",
+      "description": "Build tests in debug with vecgeom",
       "inherits": [".cuda-volta", ".root", "base"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
@@ -85,7 +85,6 @@
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
     }

@@ -14,7 +14,7 @@ pipeline {
              }
            }
            steps {
-             sh 'entrypoint-shell ./scripts/docker/ci/config-build-test.sh valgrind'
+             sh 'entrypoint-shell ./scripts/docker/ci/run-ci.sh valgrind'
            }
            post {
              always {
@@ -30,7 +30,7 @@ pipeline {
              }
            }
            steps {
-             sh 'entrypoint-shell ./scripts/docker/ci/config-build-test.sh full-novg'
+             sh 'entrypoint-shell ./scripts/docker/ci/run-ci.sh full-novg'
            }
            post {
              always {
@@ -46,7 +46,7 @@ pipeline {
              }
            }
            steps {
-             sh 'entrypoint-shell ./scripts/docker/ci/config-build-test.sh full-novg-ndebug'
+             sh 'entrypoint-shell ./scripts/docker/ci/run-ci.sh full-novg-ndebug'
            }
            post {
              always {
@@ -63,7 +63,7 @@ pipeline {
              }
            }
            steps {
-             sh 'entrypoint-shell ./scripts/docker/ci/config-build-test.sh vecgeom-demos'
+             sh 'entrypoint-shell ./scripts/docker/ci/run-ci.sh vecgeom-demos'
            }
            post {
              always {
@@ -79,7 +79,7 @@ pipeline {
              }
            }
            steps {
-             sh 'entrypoint-shell ./scripts/docker/ci/config-build-test.sh vecgeom-tests'
+             sh 'entrypoint-shell ./scripts/docker/ci/run-ci.sh vecgeom-tests'
            }
            post {
              always {
