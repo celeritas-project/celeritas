@@ -41,14 +41,14 @@ namespace
 //---------------------------------------------------------------------------//
 //! Check that volume names are consistent between the ROOT file and geometry
 bool volumes_are_consistent(const GeoParams&                 geo,
-                            const std::vector<ImportVolume>& rootinp)
+                            const std::vector<ImportVolume>& imported_data)
 {
-    return geo.num_volumes() == rootinp.size()
+    return geo.num_volumes() == imported_data.size()
            && std::all_of(RangeIter<VolumeId>(VolumeId{0}),
                           RangeIter<VolumeId>(VolumeId{geo.num_volumes()}),
                           [&](VolumeId vol) {
                               return geo.id_to_label(vol)
-                                     == rootinp[vol.unchecked_get()].name;
+                                     == imported_data[vol.unchecked_get()].name;
                           });
 }
 
@@ -90,8 +90,8 @@ TransporterInput load_input(const LDemoArgs& args)
     CELER_LOG(status) << "Loading input files";
     TransporterInput result;
 
-    // Load rootinp from ROOT file
-    auto rootinp = RootImporter(args.physics_filename.c_str())();
+    // Load imported_data from ROOT file
+    auto imported_data = RootImporter(args.physics_filename.c_str())();
 
     // Load geometry
     {
@@ -101,7 +101,7 @@ TransporterInput load_input(const LDemoArgs& args)
 
     // Load materials
     {
-        result.materials = MaterialParams::from_import(rootinp);
+        result.materials = MaterialParams::from_import(imported_data);
     }
 
     // Create geometry/material coupling
@@ -110,13 +110,14 @@ TransporterInput load_input(const LDemoArgs& args)
         input.geometry  = result.geometry;
         input.materials = result.materials;
 
-        input.volume_to_mat.resize(input.geometry->num_volumes());
-        for (auto volume_idx : range(rootinp.volumes.size()))
+        input.volume_to_mat.resize(imported_data.volumes.size());
+        for (auto volume_idx :
+             range<VolumeId::size_type>(input.volume_to_mat.size()))
         {
             input.volume_to_mat[volume_idx]
-                = MaterialId{rootinp.volumes[volume_idx].material_id};
+                = MaterialId{imported_data.volumes[volume_idx].material_id};
         }
-        if (!volumes_are_consistent(*input.geometry, rootinp.volumes))
+        if (!volumes_are_consistent(*input.geometry, imported_data.volumes))
         {
             // Volume names do not match exactly between exported ROOT file and
             // the geometry (possibly using a ROOT/GDML input with an ORANGE
@@ -124,11 +125,11 @@ TransporterInput load_input(const LDemoArgs& args)
             CELER_LOG(warning) << "Volume/material mapping is inconsistent "
                                   "between ROOT file and geometry file: "
                                   "attempting to remap";
-            input.volume_names.resize(rootinp.volumes.size());
-            for (auto volume_idx : range(rootinp.volumes.size()))
+            input.volume_names.resize(imported_data.volumes.size());
+            for (auto volume_idx : range(imported_data.volumes.size()))
             {
                 input.volume_names[volume_idx]
-                    = std::move(rootinp.volumes[volume_idx].name);
+                    = std::move(imported_data.volumes[volume_idx].name);
             }
         }
         result.geo_mats = std::make_shared<GeoMaterialParams>(std::move(input));
@@ -136,13 +137,13 @@ TransporterInput load_input(const LDemoArgs& args)
 
     // Construct particle params
     {
-        result.particles = ParticleParams::from_import(rootinp);
+        result.particles = ParticleParams::from_import(imported_data);
     }
 
     // Construct cutoffs
     {
         result.cutoffs = CutoffParams::from_import(
-            rootinp, result.particles, result.materials);
+            imported_data, result.particles, result.materials);
     }
 
     // Load physics: create individual processes with make_shared
@@ -156,7 +157,7 @@ TransporterInput load_input(const LDemoArgs& args)
         brem_options.enable_lpm     = args.enable_lpm;
 
         auto process_data = std::make_shared<ImportedProcesses>(
-            std::move(rootinp.processes));
+            std::move(imported_data.processes));
         input.processes.push_back(
             std::make_shared<ComptonProcess>(result.particles, process_data));
         input.processes.push_back(std::make_shared<PhotoelectricProcess>(

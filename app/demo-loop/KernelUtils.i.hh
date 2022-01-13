@@ -93,7 +93,9 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
             {
                 // Update the material if it's inside
                 result->action = Action::entered_volume;
-                mat            = {geo_mat.material_id(geo.volume_id())};
+                auto matid     = geo_mat.material_id(geo.volume_id());
+                CELER_ASSERT(matid);
+                mat = {matid};
             }
         }
     }

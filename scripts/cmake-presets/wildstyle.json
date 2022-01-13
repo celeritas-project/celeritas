@@ -24,8 +24,17 @@
       }
     },
     {
+      "name": "serial",
+      "displayName": "Debug, OpenMP is disabled",
+      "inherits": ["base"],
+      "binaryDir": "${sourceDir}/build-serial",
+      "cacheVariables": {
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": "vecgeom",
-      "displayName": "Also enable VecGeom",
+      "displayName": "Debug with VecGeom",
       "inherits": ["base"],
       "binaryDir": "${sourceDir}/build-vecgeom",
       "cacheVariables": {
@@ -34,11 +43,16 @@
     },
     {
       "name": "ndebug",
-      "displayName": "Everything and in release mode",
+      "displayName": "Everything but vecgeom in release mode",
       "binaryDir": "${sourceDir}/build-ndebug",
-      "inherits": [".ndebug", "base"],
+      "inherits": [".ndebug", "base"]
+    },
+    {
+      "name": "ndebug-vecgeom",
+      "displayName": "Everything in release mode",
+      "binaryDir": "${sourceDir}/build-ndebug",
+      "inherits": [".ndebug", "vecgeom"],
       "cacheVariables": {
-        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
     }
@@ -50,16 +64,10 @@
       "jobs": 32,
       "nativeToolOptions": ["-k0"]
     },
-    {
-      "name": "vecgeom",
-      "configurePreset": "vecgeom",
-      "inherits": "base"
-    },
-    {
-      "name": "ndebug",
-      "configurePreset": "ndebug",
-      "inherits": "base"
-    }
+    {"name": "serial", "configurePreset": "serial", "inherits": "base"},
+    {"name": "vecgeom", "configurePreset": "vecgeom", "inherits": "base"},
+    {"name": "ndebug-vecgeom", "configurePreset": "ndebug-vecgeom", "inherits": "base"},
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
   ],
   "testPresets": [
     {
@@ -68,15 +76,9 @@
       "output": {"outputOnFailure": true},
       "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 32}
     },
-    {
-      "name": "vecgeom",
-      "configurePreset": "vecgeom",
-      "inherits": "base"
-    },
-    {
-      "name": "ndebug",
-      "configurePreset": "ndebug",
-      "inherits": "base"
-    }
+    {"name": "serial", "configurePreset": "serial", "inherits": "base"},
+    {"name": "ndebug-vecgeom", "configurePreset": "ndebug-vecgeom", "inherits": "base"},
+    {"name": "vecgeom", "configurePreset": "vecgeom", "inherits": "base"},
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
   ]
 }
