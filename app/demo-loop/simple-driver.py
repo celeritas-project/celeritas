@@ -14,9 +14,9 @@ from sys import exit, argv
 
 try:
     (geometry_filename, hepmc3_filename) = argv[1:]
-except IndexError:
+except ValueError:
     print("usage: {} inp.gdml inp.hepmc3".format(argv[0]))
-    exit(2)
+    exit(1)
 
 # We reuse the "disable device" environment variable, which prevents the GPU
 # from being initialized at runtime.
