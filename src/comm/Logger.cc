@@ -16,6 +16,7 @@
 #include "base/ColorUtils.hh"
 #include "base/Range.hh"
 #include "Communicator.hh"
+#include "Environment.hh"
 #include "ScopedMpiInit.hh"
 
 namespace
@@ -97,12 +98,13 @@ Logger::Logger(const Communicator& comm,
     {
         // Search for the provided environment variable to set the default
         // logging level using the `to_cstring` function in LoggerTypes.
-        if (const char* env_value = std::getenv(level_env))
+        const std::string& env_value = celeritas::getenv(level_env);
+        if (!env_value.empty())
         {
             auto levels = range(LogLevel::size_);
             auto iter   = std::find_if(
-                levels.begin(), levels.end(), [env_value](LogLevel lev) {
-                    return std::strcmp(env_value, to_cstring(lev)) == 0;
+                levels.begin(), levels.end(), [&env_value](LogLevel lev) {
+                    return env_value == to_cstring(lev);
                 });
             if (iter != levels.end())
             {

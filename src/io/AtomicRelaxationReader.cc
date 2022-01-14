@@ -8,8 +8,8 @@
 #include "AtomicRelaxationReader.hh"
 
 #include <fstream>
-#include <sstream>
 #include "base/SoftEqual.hh"
+#include "comm/Environment.hh"
 
 namespace celeritas
 {
@@ -20,20 +20,12 @@ namespace celeritas
  */
 AtomicRelaxationReader::AtomicRelaxationReader()
 {
-    const char* env_var = std::getenv("G4LEDATA");
-    CELER_VALIDATE(env_var,
+    const std::string& dir = celeritas::getenv("G4LEDATA");
+    CELER_VALIDATE(!dir.empty(),
                    << "environment variable G4LEDATA is not defined (needed "
                       "to locate atomic relaxation data)");
-    {
-        std::ostringstream os;
-        os << env_var << "/fluor";
-        fluor_path_ = os.str();
-    }
-    {
-        std::ostringstream os;
-        os << env_var << "/auger";
-        auger_path_ = os.str();
-    }
+    fluor_path_ = dir + "/fluor";
+    auger_path_ = dir + "/auger";
 }
 
 //---------------------------------------------------------------------------//

@@ -20,6 +20,7 @@
 #include "base/Assert.hh"
 #include "base/Stopwatch.hh"
 #include "Communicator.hh"
+#include "Environment.hh"
 #include "Logger.hh"
 
 namespace celeritas
@@ -37,8 +38,7 @@ int determine_num_devices()
         return 0;
     }
 
-    const char* disable = std::getenv("CELER_DISABLE_DEVICE");
-    if (disable && disable[0] != '\0')
+    if (!celeritas::getenv("CELER_DISABLE_DEVICE").empty())
     {
         CELER_LOG(info)
             << "Disabling GPU support since the 'CELER_DISABLE_DEVICE' "

@@ -43,12 +43,8 @@ class CMSFieldMapReader
     };
 
   public:
-    // Construct the reader using the environment variable
-    explicit CMSFieldMapReader(const FieldMapParameters& params);
-
     // Construct the reader using the path of the map file
-    explicit CMSFieldMapReader(const FieldMapParameters& params,
-                               std::string               file_name);
+    CMSFieldMapReader(const FieldMapParameters& params, std::string file_name);
 
     // Read the volume-based CMS magnetic field map
     result_type operator()() const;

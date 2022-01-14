@@ -8,10 +8,10 @@
 #include "LivermorePEReader.hh"
 
 #include <fstream>
-#include <sstream>
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "comm/Environment.hh"
 
 namespace celeritas
 {
@@ -22,13 +22,11 @@ namespace celeritas
  */
 LivermorePEReader::LivermorePEReader()
 {
-    const char* env_var = std::getenv("G4LEDATA");
-    CELER_VALIDATE(env_var,
+    const std::string& dir = celeritas::getenv("G4LEDATA");
+    CELER_VALIDATE(!dir.empty(),
                    << "environment variable G4LEDATA is not defined (needed "
                       "to locate Livermore data)");
-    std::ostringstream os;
-    os << env_var << "/livermore/phot_epics2014";
-    path_ = os.str();
+    path_ = dir + "/livermore/phot_epics2014";
 }
 
 //---------------------------------------------------------------------------//

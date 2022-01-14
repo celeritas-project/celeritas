@@ -7,10 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "ColorUtils.hh"
 
-#include <cstdlib>
-#include <cstring>
 #include <cstdio>
 #include <unistd.h>
+#include "comm/Environment.hh"
 
 namespace celeritas
 {
@@ -18,25 +17,26 @@ namespace
 {
 bool determine_use_color(FILE* stream)
 {
-    if (const char* color = std::getenv("GTEST_COLOR"))
+    const std::string& color_str = celeritas::getenv("GTEST_COLOR");
+    if (color_str == "0")
     {
-        if (std::strcmp("0", color) != 0)
-        {
-            // GTEST_COLOR environment is given and is not the string "0"
-            return true;
-        }
+        // GTEST_COLOR explicitly disables color
+        return false;
+    }
+    else if (!color_str.empty())
+    {
+        // GTEST_COLOR explicitly enables color
+        return true;
     }
 
     if (isatty(fileno(stream)))
     {
         // Given stream says it's a "terminal" i.e. user-facing
-        if (const char* term = std::getenv("TERM"))
+        const std::string& term_str = celeritas::getenv("TERM");
+        if (term_str.find("xterm") != std::string::npos)
         {
-            if (std::strstr("xterm", term) == nullptr)
-            {
-                // 'xterm' is in the TERM type, so assume it uses colors
-                return true;
-            }
+            // 'xterm' is in the TERM type, so assume it uses colors
+            return true;
         }
     }
 

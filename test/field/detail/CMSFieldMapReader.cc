@@ -22,18 +22,6 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Construct the reader using an environment variable to get the volume-based
- * CMS magnetic field map data and its parameters.
- */
-CMSFieldMapReader::CMSFieldMapReader(const FieldMapParameters& params)
-    : params_(params)
-{
-    file_name_ = std::getenv("USER_FIELD_MAP");
-    CELER_VALIDATE(file_name_.c_str(), << "USER_FIELD_MAP is not defined");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct the reader using an environment variable to get the volume-based
  * CMS magnetic field map data.
  */
 CMSFieldMapReader::CMSFieldMapReader(const FieldMapParameters& params,
