@@ -7,9 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <iosfwd>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace celeritas
 {
@@ -42,6 +44,7 @@ class Environment
     using mapped_type    = Container::mapped_type;
     using value_type     = Container::value_type;
     using const_iterator = Container::const_iterator;
+    using VecKVRef       = std::vector<std::reference_wrapper<value_type>>;
     //!@}
 
   public:
@@ -52,18 +55,14 @@ class Environment
     inline const mapped_type& operator[](const key_type&);
 
     // Insert possibly new environment variables (not thread-safe)
-    inline void insert(const value_type& value);
+    void insert(const value_type& value);
 
-    //!@{
-    //! Iterator access to existing variables
-    const_iterator cbegin() const { return vars_.cbegin(); }
-    const_iterator cend() const { return vars_.cend(); }
-    const_iterator begin() const { return vars_.begin(); }
-    const_iterator end() const { return vars_.end(); }
-    //!@}
+    //! Get an ordered (by access) vector of key/value pairs
+    const VecKVRef& ordered_environment() const { return ordered_; }
 
   private:
     std::unordered_map<key_type, mapped_type> vars_;
+    VecKVRef                                  ordered_;
 
     const mapped_type& load_from_getenv(const key_type&);
 };
@@ -95,17 +94,6 @@ auto Environment::operator[](const key_type& env_var) -> const mapped_type&
         return this->load_from_getenv(env_var);
     }
     return iter->second;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set environment variables en masse.
- *
- * Existing environment variables will *not* be overwritten.
- */
-void Environment::insert(const value_type& value)
-{
-    vars_.insert(value);
 }
 
 //---------------------------------------------------------------------------//

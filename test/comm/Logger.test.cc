@@ -9,12 +9,12 @@
 
 #include <iomanip>
 #include <thread>
-#include <stdlib.h> // POSIX
 
 #include "celeritas_test.hh"
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
 #include "comm/Communicator.hh"
+#include "comm/Environment.hh"
 #include "comm/ScopedMpiInit.hh"
 
 using celeritas::Communicator;
@@ -150,26 +150,29 @@ TEST_F(LoggerTest, DISABLED_performance)
 
 TEST_F(LoggerTest, env_setup)
 {
-    auto log_to_cout = [&](Provenance prov, LogLevel lev, std::string msg) {
+    auto log_to_cout = [](Provenance prov, LogLevel lev, std::string msg) {
         cout << to_cstring(lev) << ':' << prov.file << ':' << prov.line << ':'
              << msg << endl;
         EXPECT_EQ("This should print", msg);
     };
+    auto celer_setenv = [](const std::string& key, const std::string& val) {
+        celeritas::environment().insert({key, val});
+    };
 
     {
-        ::setenv("CELER_TEST_ENV", "debug", 1);
-        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV");
+        celer_setenv("CELER_TEST_ENV_0", "debug");
+        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV_0");
         log({"<test>", 0}, LogLevel::debug) << "This should print";
     }
     {
-        ::setenv("CELER_TEST_ENV", "error", 1);
-        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV");
+        celer_setenv("CELER_TEST_ENV_1", "error");
+        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV_1");
         log({"<test>", 1}, LogLevel::warning) << "This should not";
     }
     {
-        std::cerr << "We should see a helpful warning here: ";
-        ::setenv("CELER_TEST_ENV", "TEST_INVALID_VALUE", 1);
-        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV");
+        CELER_LOG(info) << "We should see a helpful warning below:";
+        celer_setenv("CELER_TEST_ENV_2", "TEST_INVALID_VALUE");
+        Logger log(comm_world, log_to_cout, "CELER_TEST_ENV_2");
         log({"<test>", 1}, LogLevel::debug) << "Should not print";
     }
 }

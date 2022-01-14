@@ -34,8 +34,9 @@ inline void from_json(const nlohmann::json& j, Environment& value)
 void to_json(nlohmann::json& j, const Environment& value)
 {
     j = nlohmann::json::object();
-    for (const auto& kv : value)
+    for (const auto& kvref : value.ordered_environment())
     {
+        const Environment::value_type& kv = kvref;
         j[kv.first] = kv.second;
     }
 }

@@ -47,8 +47,9 @@ const std::string& getenv(const std::string& key)
 std::ostream& operator<<(std::ostream& os, const Environment& env)
 {
     os << "{\n";
-    for (const auto& kv : env)
+    for (const auto& kvref : env.ordered_environment())
     {
+        const Environment::value_type& kv = kvref;
         os << "  " << kv.first << ": '" << kv.second << "',\n";
     }
     os << '}';
@@ -69,9 +70,30 @@ auto Environment::load_from_getenv(const key_type& key) -> const mapped_type&
         // Variable is set in the user environment
         value = sys_value;
     }
+
+    // Insert value and ordering. Note that since the elements are never
+    // erased, pointers to the keys are guaranteed to always be valid.
     auto iter_inserted = vars_.emplace(key, std::move(value));
     CELER_ASSERT(iter_inserted.second);
+    ordered_.push_back(std::ref(*iter_inserted.first));
+
+    CELER_ENSURE(ordered_.size() == vars_.size());
     return iter_inserted.first->second;
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Set environment variables en masse.
+ *
+ * Existing environment variables will *not* be overwritten.
+ */
+void Environment::insert(const value_type& value)
+{
+    auto iter_inserted = vars_.insert(value);
+    if (iter_inserted.second)
+    {
+        ordered_.push_back(std::ref(*iter_inserted.first));
+    }
+    CELER_ENSURE(ordered_.size() == vars_.size());
 }
 
 //---------------------------------------------------------------------------//

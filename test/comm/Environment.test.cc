@@ -35,7 +35,6 @@ class EnvironmentTest : public celeritas::Test
 TEST_F(EnvironmentTest, local)
 {
     Environment env;
-    EXPECT_TRUE(env.begin() == env.end());
     EXPECT_EQ("1", env["ENVTEST_ONE"]);
     EXPECT_EQ("0", env["ENVTEST_ZERO"]);
     EXPECT_EQ("", env["ENVTEST_EMPTY"]);
@@ -48,31 +47,18 @@ TEST_F(EnvironmentTest, local)
     std::ostringstream os;
     os << env;
     EXPECT_EQ(R"({
-  ENVTEST_UNSET: '',
-  ENVTEST_EMPTY: '',
-  ENVTEST_ZERO: '0',
   ENVTEST_ONE: '1',
+  ENVTEST_ZERO: '0',
+  ENVTEST_EMPTY: '',
+  ENVTEST_UNSET: '',
 })",
               os.str());
 }
 
 TEST_F(EnvironmentTest, global)
 {
-    Environment& env = celeritas::environment();
-
-    // Function to return whether a environment variable has been accessed
-    auto found_env = [&env](const std::string& s) -> bool {
-        return std::find_if(env.begin(),
-                            env.end(),
-                            [&s](const Environment::value_type& kv) {
-                                return s == kv.first;
-                            })
-               != env.end();
-    };
-
-    EXPECT_FALSE(found_env("ENVTEST_ONE"));
+    EXPECT_EQ("1", celeritas::environment()["ENVTEST_ONE"]);
     EXPECT_EQ("1", celeritas::getenv("ENVTEST_ONE"));
-    EXPECT_TRUE(found_env("ENVTEST_ONE"));
 }
 
 TEST_F(EnvironmentTest, json)
