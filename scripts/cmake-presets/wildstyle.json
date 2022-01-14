@@ -1,0 +1,84 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "configurePresets": [
+    {
+      "name": "base",
+      "displayName": "Wildstyle default options (GCC)",
+      "inherits": [".spack-base", ".cuda-volta", "full"],
+      "generator": "Ninja",
+      "environment": {
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}"
+      },
+      "cacheVariables": {
+        "CELERITAS_USE_Doxygen": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
+        "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=skylake-avx512 -mtune=skylake-avx512",
+        "CMAKE_CUDA_FLAGS": "-Werror all-warnings  -Wno-deprecated-gpu-targets",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"}
+      }
+    },
+    {
+      "name": "serial",
+      "displayName": "Debug, OpenMP is disabled",
+      "inherits": ["base"],
+      "binaryDir": "${sourceDir}/build-serial",
+      "cacheVariables": {
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "vecgeom",
+      "displayName": "Debug with VecGeom",
+      "inherits": ["base"],
+      "binaryDir": "${sourceDir}/build-vecgeom",
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "ndebug",
+      "displayName": "Everything but vecgeom in release mode",
+      "binaryDir": "${sourceDir}/build-ndebug",
+      "inherits": [".ndebug", "base"]
+    },
+    {
+      "name": "ndebug-vecgeom",
+      "displayName": "Everything in release mode",
+      "binaryDir": "${sourceDir}/build-ndebug-vecgeom",
+      "inherits": [".ndebug", "vecgeom"],
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "jobs": 32,
+      "nativeToolOptions": ["-k0"]
+    },
+    {"name": "serial", "configurePreset": "serial", "inherits": "base"},
+    {"name": "vecgeom", "configurePreset": "vecgeom", "inherits": "base"},
+    {"name": "ndebug-vecgeom", "configurePreset": "ndebug-vecgeom", "inherits": "base"},
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "output": {"outputOnFailure": true},
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 32}
+    },
+    {"name": "serial", "configurePreset": "serial", "inherits": "base"},
+    {"name": "ndebug-vecgeom", "configurePreset": "ndebug-vecgeom", "inherits": "base"},
+    {"name": "vecgeom", "configurePreset": "vecgeom", "inherits": "base"},
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
+  ]
+}

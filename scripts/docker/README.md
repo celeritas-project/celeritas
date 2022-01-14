@@ -34,10 +34,10 @@ Note that the `--rm` option automatically deletes the state of the container
 after you exit the docker client. This means all of your work will be
 destroyed.
 
-The `launch-testing` script will clone an active GitHub pull request, build,
+The `launch-local-test` script will clone an active GitHub pull request, build,
 and set up an image to use locally:
 ```console
-$ ./ci/launch-testing.sh 123
+$ ./ci/launch-local-test.sh 123
 ```
 
 To mount the image with your local source directory:
@@ -46,9 +46,12 @@ $ docker run --rm -ti -e "TERM=xterm-256color" \
     -v ${SOURCE}:/home/celeritas/src \
     celeritas/ci-focal-cuda11:${DATE}
 ```
-where `${SOURCE}` is your local Celeritas source dir and `${DATE}` is the date
-time stamp of the desired image. If you just built locally, you can replace
-that last argument with the tag `ci-focal-cuda11`.
+where `${SOURCE}` is your local Celeritas source directory and `${DATE}` is the
+date time stamp of the desired image. If you just built locally, you can
+replace that last argument with the tag `ci-focal-cuda11`:
+```console
+$ docker run --rm -ti -e "TERM=xterm-256color" -v /rnsdhpc/code/celeritas:/home/celeritas/src ci-focal-cuda11
+```
 
 After mounting, use the build scripts to configure and go:
 ```console

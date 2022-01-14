@@ -36,10 +36,10 @@ function(celeritas_gen_interactor var class func)
   set(_subdir "physics/em/generated")
   set(_basename "${_subdir}/${class}Interact")
 
-  if(PYTHON_FOUND)
+  if(Python_FOUND)
     # Regenerate files on the fly
     add_custom_command(
-      COMMAND "${Python_EXECUTABLE}"
+      COMMAND "$<TARGET_FILE:Python::Interpreter>"
         "${CELERITAS_GEN_INTERACTOR}" --class ${class} --func ${func}
       OUTPUT "${_srcdir}/${_basename}.cc" "${_srcdir}/${_basename}.cu"
       DEPENDS "${CELERITAS_GEN_INTERACTOR}"

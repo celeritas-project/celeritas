@@ -500,14 +500,16 @@ int main(int argc, char* argv[])
     CELER_LOG(status) << "Creating ROOT file";
     std::unique_ptr<TFile> root_output(
         TFile::Open(root_output_filename.c_str(), "recreate"));
-    CELER_ASSERT(root_output && !root_output->IsZombie());
+    CELER_VALIDATE(root_output && !root_output->IsZombie(),
+                   << "failed to create ROOT file at '" << root_output_filename
+                   << "'");
     CELER_LOG(info) << "Created ROOT output file '" << root_output_filename
                     << "'";
 
     TTree      tree_data("geant4_data", "geant4_data");
     ImportData import_data;
     TBranch*   branch = tree_data.Branch("ImportData", &import_data);
-    CELER_ASSERT(branch);
+    CELER_VALIDATE(branch, << "failed to initialize ROOT ImportData");
 
     // Populate ImportData members
     import_data.particles = store_particles();

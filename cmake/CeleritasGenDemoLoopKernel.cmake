@@ -39,10 +39,10 @@ function(celeritas_gen_demo_loop_kernel var class func threads)
   set(_subdir "demo-loop/generated")
   set(_basename "${_subdir}/${class}Kernel")
 
-  if(PYTHON_FOUND)
+  if(Python_FOUND)
     # Regenerate files on the fly
     add_custom_command(
-      COMMAND "${Python_EXECUTABLE}"
+      COMMAND "$<TARGET_FILE:Python::Interpreter>"
         "${CELERITAS_GEN_DEMO_LOOP_KERNEL}"
         --class ${class} --func ${func} --threads ${threads}
       OUTPUT "${_srcdir}/${_basename}.cc" "${_srcdir}/${_basename}.cu"

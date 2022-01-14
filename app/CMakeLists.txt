@@ -4,6 +4,13 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
+if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
+  message(SEND_ERROR "JSON support is required for demos: setting "
+    "CELERITAS_BUILD_DEMOS=OFF for next build")
+  set(CELERITAS_BUILD_DEMOS OFF CACHE BOOL
+    "Disabled because of missing JSON" FORCE)
+endif()
+
 if(CELERITAS_BUILD_TESTS)
   # Set environment variables from Geant4-exported configuration
   set(_geant_test_env)
@@ -11,6 +18,14 @@ if(CELERITAS_BUILD_TESTS)
     list(APPEND _geant_test_env
       "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}")
   endforeach()
+
+  if(CELERITAS_USE_Python)
+    set(_python_exe "$<TARGET_FILE:Python::Interpreter>")
+    set(_disabled_unless_python)
+  else()
+    set(_python_exe "python3")
+    set(_disabled_unless_python DISABLED true)
+  endif()
 endif()
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
@@ -70,10 +85,6 @@ endif()
 # DEMO: physics interactions
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
-  message(SEND_ERROR "JSON support is required for demos")
-endif()
-
 if(CELERITAS_BUILD_DEMOS)
   add_library(celeritas_demo_interactor
     demo-interactor/LoadXs.cc
@@ -97,7 +108,7 @@ if(CELERITAS_BUILD_DEMOS)
     if(CELERITAS_BUILD_TESTS)
       set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py")
       add_test(NAME "app/demo-interactor"
-        COMMAND "$<TARGET_FILE:Python::Interpreter>" "${_driver}"
+        COMMAND "${_python_exe}" "${_driver}"
       )
       set(_env
         "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
@@ -107,6 +118,7 @@ if(CELERITAS_BUILD_DEMOS)
         ENVIRONMENT "${_env}"
         RESOURCE_LOCK gpu
         REQUIRED_FILES "${_driver}"
+        ${_disabled_unless_python}
       )
     endif()
   endif()
@@ -124,7 +136,7 @@ if(CELERITAS_BUILD_DEMOS)
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-interactor/simple-driver.py")
     add_test(NAME "app/host-demo-interactor"
-      COMMAND "$<TARGET_FILE:Python::Interpreter>" "${_driver}"
+      COMMAND "${_python_exe}" "${_driver}"
     )
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:host-demo-interactor>"
@@ -134,6 +146,7 @@ if(CELERITAS_BUILD_DEMOS)
     set_tests_properties("app/host-demo-interactor" PROPERTIES
       ENVIRONMENT "${_env}"
       REQUIRED_FILES "${_driver}"
+      ${_disabled_unless_python}
     )
   endif()
 endif()
@@ -143,30 +156,17 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
-  # Since the demo kernel links against VecGeom, which requires CUDA separable
-  # compilation, it cannot be linked directly into an executable.
-  celeritas_add_library(celeritas_demo_rasterizer
+  add_executable(demo-rasterizer
+    demo-rasterizer/demo-rasterizer.cc
     demo-rasterizer/RDemoRunner.cc
     demo-rasterizer/RDemoKernel.cu
     demo-rasterizer/ImageIO.cc
     demo-rasterizer/ImageStore.cc
   )
-  celeritas_target_link_libraries(celeritas_demo_rasterizer
-    PRIVATE
-      Celeritas::Core
-      nlohmann_json::nlohmann_json
-      VecGeom::vecgeom
-  )
-
-  # Add the executable
-  add_executable(demo-rasterizer
-    demo-rasterizer/demo-rasterizer.cc
-  )
   celeritas_target_link_libraries(demo-rasterizer
-    celeritas
-    VecGeom::vecgeom
-    celeritas_demo_rasterizer
+    Celeritas::Core
     nlohmann_json::nlohmann_json
+    VecGeom::vecgeom
   )
 
   if(CELERITAS_BUILD_TESTS)
@@ -194,69 +194,56 @@ endif()
 if(CELERITAS_BUILD_DEMOS)
   include(CeleritasGenDemoLoopKernel)
 
-  # Generate demo loop kernel/host loop code for host/device
-  set(_gen_src)
-  celeritas_gen_demo_loop_kernel(_gen_src
-    "AlongAndPostStep" "along_and_post_step" "'states.size()'")
-  celeritas_gen_demo_loop_kernel(_gen_src
-    "Cleanup" "cleanup" "1")
-  celeritas_gen_demo_loop_kernel(_gen_src
-    "PreStep" "pre_step" "'states.size()'")
-  celeritas_gen_demo_loop_kernel(_gen_src
-    "ProcessInteractions" "process_interactions" "'states.size()'")
-
-  set(_cuda_src)
-  if(CELERITAS_USE_CUDA)
-    set(_cuda_src
-      demo-loop/diagnostic/EnergyDiagnostic.cu
-      demo-loop/diagnostic/ParticleProcessDiagnostic.cu
-      demo-loop/diagnostic/StepDiagnostic.cu
-      demo-loop/diagnostic/TrackDiagnostic.cu
-    )
-  endif()
-  celeritas_add_library(celeritas_demo_loop
+  set(_demo_loop_src
+    demo-loop/demo-loop.cc
     demo-loop/LDemoIO.cc
     demo-loop/Transporter.cc
     demo-loop/diagnostic/EnergyDiagnostic.cc
     demo-loop/diagnostic/ParticleProcessDiagnostic.cc
     demo-loop/diagnostic/StepDiagnostic.cc
     demo-loop/diagnostic/TrackDiagnostic.cc
-    ${_cuda_src}
-    ${_gen_src}
   )
-  celeritas_target_link_libraries(celeritas_demo_loop
-    PRIVATE
+  set(_demo_loop_libs)
+
+  # Generate demo loop kernel/host loop code for host/device
+  celeritas_gen_demo_loop_kernel(_demo_loop_src
+    "AlongAndPostStep" "along_and_post_step" "'states.size()'")
+  celeritas_gen_demo_loop_kernel(_demo_loop_src
+    "Cleanup" "cleanup" "1")
+  celeritas_gen_demo_loop_kernel(_demo_loop_src
+    "PreStep" "pre_step" "'states.size()'")
+  celeritas_gen_demo_loop_kernel(_demo_loop_src
+    "ProcessInteractions" "process_interactions" "'states.size()'")
+
+  if(CELERITAS_USE_CUDA)
+    list(APPEND _demo_loop_src
+      demo-loop/diagnostic/EnergyDiagnostic.cu
+      demo-loop/diagnostic/ParticleProcessDiagnostic.cu
+      demo-loop/diagnostic/StepDiagnostic.cu
+      demo-loop/diagnostic/TrackDiagnostic.cu
+    )
+  endif()
+
+  set(_demo_loop_libs
     Celeritas::Core
     nlohmann_json::nlohmann_json
     Celeritas::ROOT
   )
-
   if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
-    celeritas_target_link_libraries(celeritas_demo_loop
-      PUBLIC VecGeom::vecgeom
-    )
+    list(APPEND _demo_loop_libs VecGeom::vecgeom)
   endif()
   if(CELERITAS_USE_OpenMP)
-    find_package(OpenMP)
-  endif()
-  if(OpenMP_FOUND)
-    celeritas_target_link_libraries(celeritas_demo_loop
-      PRIVATE OpenMP::OpenMP_CXX)
-  else()
-    celeritas_target_compile_options(celeritas_demo_loop
-      PRIVATE -Wno-unknown-pragmas)
+    list(APPEND _demo_loop_libs OpenMP::OpenMP_CXX)
   endif()
 
   # Add the executable
-  add_executable(demo-loop
-    demo-loop/demo-loop.cc
-  )
-  # Note: for static linking the library order is relevant.
-  celeritas_target_link_libraries(demo-loop
-    celeritas_demo_loop
-    celeritas
-    nlohmann_json::nlohmann_json
-  )
+  add_executable(demo-loop ${_demo_loop_src})
+  celeritas_target_link_libraries(demo-loop ${_demo_loop_libs})
+
+  if(NOT CELERITAS_USE_OpenMP)
+    celeritas_target_compile_options(demo-loop
+      PRIVATE -Wno-unknown-pragmas)
+  endif()
 
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
@@ -267,7 +254,7 @@ if(CELERITAS_BUILD_DEMOS)
         "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:geant-exporter>")
     endif()
     add_test(NAME "app/demo-loop"
-      COMMAND "$<TARGET_FILE:Python::Interpreter>"
+      COMMAND "${_python_exe}"
       "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}"
     )
     set(_env
@@ -290,16 +277,17 @@ if(CELERITAS_BUILD_DEMOS)
     if(NOT CELERITAS_USE_Geant4
        OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3
-       OR NOT CELERITAS_USE_VecGeom
+       OR NOT CELERITAS_USE_Python
        OR (CELERITAS_USE_VecGeom AND CELERITAS_DEBUG
-           AND CMAKE_BUILD_TYPE STREQUAL "Debug"))
+           AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+       )
       set_tests_properties("app/demo-loop" PROPERTIES
         DISABLED true
       )
     endif()
 
     add_test(NAME "app/demo-loop-cpu"
-      COMMAND "$<TARGET_FILE:Python::Interpreter>"
+      COMMAND "${_python_exe}"
       "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}"
     )
     set(_env
@@ -315,7 +303,8 @@ if(CELERITAS_BUILD_DEMOS)
       ENVIRONMENT "${_env};${_geant_test_env}"
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
     )
-    if(NOT CELERITAS_USE_Geant4
+    if(NOT CELERITAS_USE_CUDA
+       OR NOT CELERITAS_USE_Geant4
        OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3)
       set_tests_properties("app/demo-loop-cpu" PROPERTIES
