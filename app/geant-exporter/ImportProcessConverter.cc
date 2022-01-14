@@ -101,22 +101,22 @@ ImportProcessClass to_import_process_class(const G4VProcess& process)
     static const std::unordered_map<std::string, ImportProcessClass> process_map
         = {
             // clang-format off
-            {"ionIoni",        ImportProcessClass::ion_ioni},
-            {"msc",            ImportProcessClass::msc},
-            {"hIoni",          ImportProcessClass::h_ioni},
-            {"hBrems",         ImportProcessClass::h_brems},
-            {"hPairProd",      ImportProcessClass::h_pair_prod},
-            {"CoulombScat",    ImportProcessClass::coulomb_scat},
-            {"eIoni",          ImportProcessClass::e_ioni},
-            {"eBrem",          ImportProcessClass::e_brems},
-            {"phot",           ImportProcessClass::photoelectric},
-            {"compt",          ImportProcessClass::compton},
-            {"conv",           ImportProcessClass::conversion},
-            {"Rayl",           ImportProcessClass::rayleigh},
-            {"annihil",        ImportProcessClass::annihilation},
-            {"muIoni",         ImportProcessClass::mu_ioni},
-            {"muBrems",        ImportProcessClass::mu_brems},
-            {"muPairProd",     ImportProcessClass::mu_pair_prod},
+            {"ionIoni",     ImportProcessClass::ion_ioni},
+            {"msc",         ImportProcessClass::msc},
+            {"hIoni",       ImportProcessClass::h_ioni},
+            {"hBrems",      ImportProcessClass::h_brems},
+            {"hPairProd",   ImportProcessClass::h_pair_prod},
+            {"CoulombScat", ImportProcessClass::coulomb_scat},
+            {"eIoni",       ImportProcessClass::e_ioni},
+            {"eBrem",       ImportProcessClass::e_brems},
+            {"phot",        ImportProcessClass::photoelectric},
+            {"compt",       ImportProcessClass::compton},
+            {"conv",        ImportProcessClass::conversion},
+            {"Rayl",        ImportProcessClass::rayleigh},
+            {"annihil",     ImportProcessClass::annihilation},
+            {"muIoni",      ImportProcessClass::mu_ioni},
+            {"muBrems",     ImportProcessClass::mu_brems},
+            {"muPairProd",  ImportProcessClass::mu_pair_prod},
             // clang-format on
         };
     auto iter = process_map.find(process.GetProcessName());
@@ -274,14 +274,10 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
                      << particle.GetPDGEncoding() << ')';
 
     // Save process and particle info
+    process_               = ImportProcess();
     process_.process_type  = to_import_process_type(process.GetProcessType());
     process_.process_class = to_import_process_class(process);
     process_.particle_pdg  = particle.GetPDGEncoding();
-
-    // Clean up process_ data
-    process_.models.clear();
-    process_.tables.clear();
-    process_.micro_xs.clear();
 
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
     {
@@ -436,6 +432,18 @@ void ImportProcessConverter::store_multiple_scattering_tables(
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
+            if (i > 0)
+            {
+                // Index is beyond the code scope, which only includes one msc
+                // model. Skipping any further model for now
+                CELER_LOG(warning)
+                    << "Cannot store multiple scattering table for process "
+                    << process.GetProcessName() << ", model "
+                    << process.GetModelByIndex(i)->GetName()
+                    << ". Model index is > 0.";
+                continue;
+            }
+
             process_.models.push_back(to_import_model(model->GetName()));
             this->add_table(model->GetCrossSectionTable(),
                             ImportTableType::lambda);

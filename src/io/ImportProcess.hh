@@ -106,7 +106,8 @@ enum class ImportModelClass
  * \c ImportPhysicsTable is process and type (lambda, dedx, and so
  * on) dependent, with each table type including physics vectors for all
  * materials. Therefore, the physics vector of a given material is retrieved
- * by doing \c tables.at(table_type).physics_vectors.at(material_id) .
+ * by finding the appropriate \c table_type in the \c tables vector and
+ * selecting the material: \c table.physics_vectors.at(material_id) .
  *
  * Conversely, element-selectors are model dependent. Thus, for simplicity,
  * they are stored directly as physics vectors and retrieved by providing the
@@ -115,9 +116,6 @@ enum class ImportModelClass
  *
  * Microscopic cross-section data stored in the element-selector physics vector
  * is in cm^2.
- *
- * Single-element materials do not have element-selectors. In these cases,
- * \c micro_xs.find(model).at(material_id) will be empty.
  */
 struct ImportProcess
 {
@@ -140,7 +138,7 @@ struct ImportProcess
     {
         return process_type != ImportProcessType::not_defined
                && process_class != ImportProcessClass::unknown
-               && !models.empty() && !tables.empty() && !micro_xs.empty();
+               && !models.empty() && !tables.empty();
     }
 };
 

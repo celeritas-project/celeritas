@@ -54,7 +54,7 @@ class RootImporterTest : public celeritas::Test
 TEST_F(RootImporterTest, particles)
 {
     const auto particles = data_.particles;
-    EXPECT_EQ(3, particles.size());
+    EXPECT_EQ(4, particles.size());
 
     // Check all names/PDG codes
     std::vector<std::string> loaded_names;
@@ -67,9 +67,9 @@ TEST_F(RootImporterTest, particles)
 
     // Particle ordering is the same as in the ROOT file
     // clang-format off
-    const std::string expected_loaded_names[] = {"e+", "e-", "gamma"};
+    const std::string expected_loaded_names[] = {"e+", "e-", "gamma", "proton"};
 
-    const int expected_loaded_pdgs[] = {-11, 11, 22};
+    const int expected_loaded_pdgs[] = {-11, 11, 22, 2212};
     // clang-format on
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);

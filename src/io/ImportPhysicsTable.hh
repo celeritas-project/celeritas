@@ -60,7 +60,7 @@ enum class ImportUnits
 
 //---------------------------------------------------------------------------//
 /*!
- * Imported physics table.
+ * Imported physics table. Each table stores physics vectors for all materials.
  */
 struct ImportPhysicsTable
 {
