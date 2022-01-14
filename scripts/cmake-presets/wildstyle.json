@@ -50,7 +50,7 @@
     {
       "name": "ndebug-vecgeom",
       "displayName": "Everything in release mode",
-      "binaryDir": "${sourceDir}/build-ndebug",
+      "binaryDir": "${sourceDir}/build-ndebug-vecgeom",
       "inherits": [".ndebug", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
