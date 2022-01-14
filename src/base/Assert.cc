@@ -27,7 +27,7 @@ bool determine_verbose_message()
     return true;
 #else
     // Verbose if the CELER_LOG environment variable is defined
-    return celeritas::getenv("CELER_LOG") != nullptr;
+    return !celeritas::getenv("CELER_LOG").empty();
 #endif
 }
 
