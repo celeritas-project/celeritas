@@ -9,16 +9,20 @@
 
 #include <stdexcept>
 #include "celeritas_config.h"
-#include "base/ColorUtils.hh"
-#include "comm/KernelDiagnostics.hh"
 #include "celeritas_version.h"
+#include "base/ColorUtils.hh"
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
+#include "comm/Environment.hh"
+#include "comm/KernelDiagnostics.hh"
 #include "comm/Logger.hh"
 #include "comm/Operations.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "NonMasterResultPrinter.hh"
 #include "ParallelHandler.hh"
+
+using std::cout;
+using std::endl;
 
 namespace celeritas
 {
@@ -42,17 +46,16 @@ int test_main(int argc, char** argv)
     {
         if (comm.rank() == 0)
         {
-            std::cout << color_code('r') << "[  FAILED  ]" << color_code(' ')
-                      << " CUDA failed to initialize: " << e.what()
-                      << std::endl;
+            cout << color_code('r') << "[  FAILED  ]" << color_code(' ')
+                 << " CUDA failed to initialize: " << e.what() << endl;
         }
         return 1;
     }
 
     if (comm.rank() == 0)
     {
-        std::cout << color_code('x') << "Celeritas version "
-                  << celeritas_version << std::endl;
+        cout << color_code('x') << "Celeritas version " << celeritas_version
+             << endl;
     }
 
     // Initialize google test
@@ -77,36 +80,33 @@ int test_main(int argc, char** argv)
 
     // Run everything
     int failed = RUN_ALL_TESTS();
+    bool no_tests = testing::UnitTest::GetInstance()->test_to_run_count() == 0;
+    failed += (no_tests ? 1 : 0);
 
     // Find out if any process failed
     failed = allreduce(comm, Operation::max, failed);
 
     // If no tests were run, there's a problem.
-    if (testing::UnitTest::GetInstance()->test_to_run_count() == 0)
-    {
-        if (comm.rank() == 0)
-        {
-            std::cout << color_code('r') << "[  FAILED  ]" << color_code(' ')
-                      << " No tests are written/enabled!" << std::endl;
-        }
-
-        failed = 1;
-    }
-
-    if (celeritas::device())
-    {
-        // Print kernel diagnostics
-        std::cout << color_code('x')
-                  << "Kernel diagnostics: " << celeritas::kernel_diagnostics()
-                  << color_code(' ') << std::endl;
-    }
-
-    // Print final results
     if (comm.rank() == 0)
     {
-        std::cout << color_code('x') << (argc > 0 ? argv[0] : "UNKNOWN")
-                  << ": tests " << (failed ? "FAILED" : "PASSED")
-                  << color_code(' ') << std::endl;
+        if (no_tests)
+        {
+            cout << color_code('r') << "[  FAILED  ]" << color_code(' ')
+                 << " No tests are written/enabled!" << endl;
+        }
+
+        // Write diagnostics and overall test result
+        cout << color_code('x');
+        if (celeritas::device())
+        {
+            cout << "Kernel diagnostics: " << celeritas::kernel_diagnostics()
+                 << endl;
+        }
+        cout << "Celeritas environment variables: " << celeritas::environment()
+             << endl;
+
+        cout << (argc > 0 ? argv[0] : "UNKNOWN") << ": tests "
+             << (failed ? "FAILED" : "PASSED") << color_code(' ') << endl;
     }
 
     // Return 1 if any failure, 0 if all success
