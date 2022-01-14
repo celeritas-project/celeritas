@@ -18,6 +18,8 @@
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
 #include "comm/DeviceIO.json.hh"
+#include "comm/Environment.hh"
+#include "comm/EnvironmentIO.json.hh"
 #include "comm/KernelDiagnostics.hh"
 #include "comm/KernelDiagnosticsIO.json.hh"
 #include "comm/Logger.hh"
@@ -51,6 +53,11 @@ void run(std::istream& is)
     {
         celeritas::set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
     }
+    if (inp.count("environ"))
+    {
+        // Specify env variables
+        inp["environ"].get_to(celeritas::environment());
+    }
 
     // For now, only do a single run
     auto run_args = inp.at("run").get<LDemoArgs>();
@@ -73,6 +80,7 @@ void run(std::istream& is)
                 {"version", std::string(celeritas_version)},
                 {"device", celeritas::device()},
                 {"kernels", celeritas::kernel_diagnostics()},
+                {"environ", celeritas::environment()},
             },
         },
     };
