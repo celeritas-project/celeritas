@@ -420,13 +420,6 @@ void ImportProcessConverter::store_energy_loss_tables(
  * table, MSC keeps them independent.
  *
  * Starting on Geant4 v11, G4MultipleScattering provides \c NumberOfModels() .
- *
- * \note
- * To simplify the downstream process in Celeritas and minimize code
- * duplication, we use \c add_table(...) to push_back both low and high energy
- * lambda tables to \c process_.tables , and merge both into a single lambda
- * table at the end. This method might be revisited in the future when other
- * msc models are included.
  */
 void ImportProcessConverter::store_multiple_scattering_tables(
     const G4VMultipleScattering& process)
@@ -439,15 +432,16 @@ void ImportProcessConverter::store_multiple_scattering_tables(
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
-            if (i > 1)
+            if (i > 0)
             {
-                // Index is beyond the code scope, which only includes a low
-                // and high msc energy model
-                CELER_LOG(error)
+                // Index is beyond the code scope, which only includes one msc
+                // model. Skipping any further model for now
+                CELER_LOG(warning)
                     << "Cannot store multiple scattering table for process "
                     << process.GetProcessName() << ", model "
                     << process.GetModelByIndex(i)->GetName()
-                    << ". Model index is > 1.";
+                    << ". Model index is > 0.";
+                continue;
             }
 
             process_.models.push_back(to_import_model(model->GetName()));
@@ -455,9 +449,6 @@ void ImportProcessConverter::store_multiple_scattering_tables(
                             ImportTableType::lambda);
         }
     }
-
-    // Merge both low and high energy lambda tables into one
-    this->merge_msc_tables();
 }
 
 //---------------------------------------------------------------------------//
@@ -549,97 +540,6 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
     }
 
     process_.tables.push_back(std::move(table));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * While all other processes keep one lambda table per process,
- * multiple scattering stores them by model. In Geant4, these tables are
- * labeled as LambdaMod[i], where i is the model index.
- *
- * This method overwrites \c process_.tables to store a single lambda table
- * that is a concatenation of the lambdaMod tables for Urban (low E) and
- * WentzelVI (high E) msc models. This allows Celeritas to load the msc process
- * as one lambda table, avoiding the need to write an exception for msc.
- *
- * \note
- * At the interface---i.e. last bin of low energy lambda and first bin of high
- * energy lambda---the cross-section values differ, despite their energy value
- * being the same. To smooth out the combination, this bin is replaced by
- * taking the average of both cross-section values.
- */
-void ImportProcessConverter::merge_msc_tables()
-{
-    // Check that only 2 tables are stored (i.e. lambdas for low and high E)
-    // Check that low/high energy vectors are in ascending order of energy
-    // (The ordering is defined by PhysicsList)
-    CELER_ASSERT(process_.tables.size() == 2);
-    CELER_ASSERT(process_.tables.at(0).physics_vectors.at(0).x.front()
-                 < G4EmParameters::Instance()->MscEnergyLimit() / MeV);
-
-    ImportPhysicsTable table_combined;
-    table_combined.table_type = ImportTableType::lambda;
-    table_combined.x_units    = ImportUnits::mev;
-    table_combined.y_units    = ImportUnits::cm_inv;
-
-    // Vector type is the same for all physics vectors
-    const auto vec_type
-        = process_.tables.at(0).physics_vectors.at(0).vector_type;
-
-    auto& table_low  = process_.tables.at(0);
-    auto& table_high = process_.tables.at(1);
-
-    for (int i : celeritas::range(materials_.size()))
-    {
-        ImportPhysicsVector physvec_combined;
-        physvec_combined.vector_type = vec_type;
-
-        auto& physvec_low  = table_low.physics_vectors.at(i);
-        auto& physvec_high = table_high.physics_vectors.at(i);
-
-        // Low and high energy models have different XS values at the interface
-        // Calculate average between these values
-        double avg_interface_xs
-            = (physvec_low.y.back() + physvec_high.y.front()) / 2;
-
-        // Replace last bin of low E physics vector XS by the average
-        physvec_low.y.erase(physvec_low.y.end() - 1);
-        physvec_low.y.push_back(avg_interface_xs);
-
-        // Remove first bin of high E model to avoid duplication
-        physvec_high.x.erase(physvec_high.x.begin());
-        physvec_high.y.erase(physvec_high.y.begin());
-
-        // Resize combined vector
-        physvec_combined.x.resize(physvec_low.x.size() + physvec_high.x.size());
-        physvec_combined.y.resize(physvec_low.y.size() + physvec_high.y.size());
-
-        // Merge x
-        std::move(physvec_low.x.begin(),
-                  physvec_low.x.end(),
-                  physvec_combined.x.begin());
-
-        std::move(physvec_high.x.begin(),
-                  physvec_high.x.end(),
-                  physvec_combined.x.begin() + physvec_low.x.size());
-
-        // Merge y
-        std::move(physvec_low.y.begin(),
-                  physvec_low.y.end(),
-                  physvec_combined.y.begin());
-
-        std::move(physvec_high.y.begin(),
-                  physvec_high.y.end(),
-                  physvec_combined.y.begin() + physvec_low.y.size());
-
-        table_combined.physics_vectors.push_back(std::move(physvec_combined));
-    }
-
-    // Rewrite process tables to store only the combined lambda table
-    process_.tables.clear();
-    process_.tables.push_back(std::move(table_combined));
-
-    CELER_ENSURE(process_.tables.size() == 1);
 }
 
 //---------------------------------------------------------------------------//

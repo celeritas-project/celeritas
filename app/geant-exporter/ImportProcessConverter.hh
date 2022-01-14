@@ -107,9 +107,6 @@ class ImportProcessConverter
     void add_table(const G4PhysicsTable*      table,
                    celeritas::ImportTableType table_type);
 
-    // Merge low and high energy msc tables into a single lambda table
-    void merge_msc_tables();
-
     // Store element cross section data into physics vectors
     ImportProcess::ModelMicroXS add_micro_xs(G4VEmModel& model);
 

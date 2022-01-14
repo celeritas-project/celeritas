@@ -178,7 +178,8 @@ void PhysicsList::add_gamma_processes()
  * - Bremsstrahlung models are selected manually at compile time using
  *   \c BremsstrahlungProcess::ModelSelection and need to be updated
  *   accordingly.
- * - Coulomb scattering is currently disabled.
+ * - Coulomb scattering and multiple scattering (high E) are currently
+ *   disabled.
  */
 void PhysicsList::add_e_processes()
 {
@@ -274,29 +275,46 @@ void PhysicsList::add_e_processes()
     {
         // Multiple scattering: Urban (low E) and WentzelVI (high E) models
         double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();
+        auto   msc_electron     = std::make_unique<G4eMultipleScattering>();
+        auto   msc_positron     = std::make_unique<G4eMultipleScattering>();
 
-        // Electron
-        auto msc_electron       = std::make_unique<G4eMultipleScattering>();
-        auto urban_msc_electron = std::make_unique<G4UrbanMscModel>();
-        auto wentzelvi_msc_electron = std::make_unique<G4WentzelVIModel>();
-        urban_msc_electron->SetHighEnergyLimit(msc_energy_limit);
-        wentzelvi_msc_electron->SetLowEnergyLimit(msc_energy_limit);
-        msc_electron->SetEmModel(urban_msc_electron.release());
-        msc_electron->SetEmModel(wentzelvi_msc_electron.release());
+        if (true)
+        {
+            // Urban model
+            // Electron
+            auto urban_msc_electron = std::make_unique<G4UrbanMscModel>();
+            urban_msc_electron->SetHighEnergyLimit(msc_energy_limit);
+            msc_electron->SetEmModel(urban_msc_electron.release());
+
+            // Positron
+            auto urban_msc_positron = std::make_unique<G4UrbanMscModel>();
+            urban_msc_positron->SetHighEnergyLimit(msc_energy_limit);
+            msc_positron->SetEmModel(urban_msc_positron.release());
+
+            CELER_LOG(info) << "Loaded multiple scattering with "
+                               "G4UrbanMscModel";
+        }
+
+        // DISABLED
+        if (false)
+        {
+            // WentzelVI model
+            // Electron
+            auto wentzelvi_msc_electron = std::make_unique<G4WentzelVIModel>();
+            wentzelvi_msc_electron->SetLowEnergyLimit(msc_energy_limit);
+            msc_electron->SetEmModel(wentzelvi_msc_electron.release());
+
+            // Positron
+            auto wentzelvi_msc_positron = std::make_unique<G4WentzelVIModel>();
+            wentzelvi_msc_positron->SetLowEnergyLimit(msc_energy_limit);
+            msc_positron->SetEmModel(wentzelvi_msc_positron.release());
+
+            CELER_LOG(info) << "Loaded multiple scattering with "
+                               "G4WentzelVIModel";
+        }
+
         physics_list->RegisterProcess(msc_electron.release(), electron);
-
-        // Positron
-        auto msc_positron       = std::make_unique<G4eMultipleScattering>();
-        auto urban_msc_positron = std::make_unique<G4UrbanMscModel>();
-        auto wentzelvi_msc_positron = std::make_unique<G4WentzelVIModel>();
-        urban_msc_positron->SetHighEnergyLimit(msc_energy_limit);
-        wentzelvi_msc_positron->SetLowEnergyLimit(msc_energy_limit);
-        msc_positron->SetEmModel(urban_msc_positron.release());
-        msc_positron->SetEmModel(wentzelvi_msc_positron.release());
         physics_list->RegisterProcess(msc_positron.release(), positron);
-
-        CELER_LOG(info) << "Loaded multiple scattering with G4UrbanMscModel "
-                           "and G4WentzelVIModel";
     }
 }
 
