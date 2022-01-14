@@ -17,6 +17,7 @@
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Stopwatch.hh"
+#include "Environment.hh"
 #include "Logger.hh"
 
 namespace celeritas
@@ -88,10 +89,9 @@ auto ScopedMpiInit::status() -> Status
     }
     if (CELER_UNLIKELY(status_ == Status::uninitialized))
     {
-        const char* disable = std::getenv("CELER_DISABLE_PARALLEL");
-        if (disable && disable[0] != '\0')
+        if (!celeritas::getenv("CELER_DISABLE_PARALLEL").empty())
         {
-            // MPI is disabled via an environment variable.
+            // Environment variable is set: disable MPI
             status_ = Status::disabled;
         }
         else

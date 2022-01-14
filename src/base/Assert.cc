@@ -11,9 +11,9 @@
 #    include <mpi.h>
 #endif
 
-#include <cstdlib>
 #include <sstream>
 #include "ColorUtils.hh"
+#include "comm/Environment.hh"
 
 namespace celeritas
 {
@@ -27,7 +27,7 @@ bool determine_verbose_message()
     return true;
 #else
     // Verbose if the CELER_LOG environment variable is defined
-    return std::getenv("CELER_LOG") != nullptr;
+    return celeritas::getenv("CELER_LOG") != nullptr;
 #endif
 }
 

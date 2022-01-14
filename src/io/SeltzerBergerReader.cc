@@ -8,9 +8,9 @@
 #include "SeltzerBergerReader.hh"
 
 #include <fstream>
-#include <sstream>
 #include "base/Assert.hh"
 #include "base/Range.hh"
+#include "comm/Environment.hh"
 
 namespace celeritas
 {
@@ -20,13 +20,11 @@ namespace celeritas
  */
 SeltzerBergerReader::SeltzerBergerReader()
 {
-    const char* env_var = std::getenv("G4LEDATA");
-    CELER_VALIDATE(env_var,
+    const std::string& dir = celeritas::getenv("G4LEDATA");
+    CELER_VALIDATE(!dir.empty(),
                    << "environment variable G4LEDATA is not defined (needed "
                       "to locate Seltzer-Berger data)");
-    std::ostringstream os;
-    os << env_var << "/brem_SB";
-    path_ = os.str();
+    path_ = dir + "/brem_SB";
 }
 
 //---------------------------------------------------------------------------//
