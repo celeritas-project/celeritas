@@ -78,6 +78,7 @@ class StepDiagnostic : public Diagnostic<M>
     using SPConstParticles = std::shared_ptr<const celeritas::ParticleParams>;
     using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
     using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
+    using TransporterResult = celeritas::TransporterResult;
     //!@}
 
   public:
@@ -89,6 +90,9 @@ class StepDiagnostic : public Diagnostic<M>
 
     // Number of steps per track, tallied before post-processing
     void mid_step(const StateDataRef& states) final;
+
+    // Collect diagnostic results
+    void get_result(TransporterResult* result) final;
 
     // Get distribution of steps per track for each particle type
     std::unordered_map<std::string, std::vector<size_type>> steps();

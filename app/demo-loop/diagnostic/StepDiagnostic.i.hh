@@ -67,6 +67,16 @@ void StepDiagnostic<M>::mid_step(const StateDataRef& states)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Collect the diagnostic results.
+ */
+template<MemSpace M>
+void StepDiagnostic<M>::get_result(TransporterResult* result)
+{
+    result->steps = this->steps();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get distribution of steps per track for each particle type.
  *
  * For i in [0, \c max_steps + 1], steps[particle][i] is the number of tracks

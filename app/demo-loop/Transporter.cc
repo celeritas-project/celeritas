@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "Transporter.hh"
 
+#include "base/Stopwatch.hh"
 #include "base/VectorUtils.hh"
 #include "geometry/GeoMaterialParams.hh"
 #include "geometry/GeoParams.hh"
@@ -99,6 +100,50 @@ struct ParamsShim
     }
 };
 
+//! Create a vector of diagnostics
+template<MemSpace M>
+std::vector<std::unique_ptr<Diagnostic<M>>>
+build_diagnostics(const TransporterInput&                    inp,
+                  ParamsData<Ownership::const_reference, M>& params)
+{
+    std::vector<std::unique_ptr<Diagnostic<M>>> result;
+    if (inp.enable_diagnostics)
+    {
+        result.push_back(std::make_unique<TrackDiagnostic<M>>());
+        result.push_back(std::make_unique<StepDiagnostic<M>>(
+            params, inp.particles, inp.max_num_tracks, 200));
+        result.push_back(std::make_unique<ParticleProcessDiagnostic<M>>(
+            params, inp.particles, inp.physics));
+        result.push_back(std::make_unique<EnergyDiagnostic<M>>(
+            linspace(-700.0, 700.0, 1024 + 1)));
+    }
+    return result;
+}
+
+// Accumulate fine-grained timing results
+template<MemSpace M>
+void accum_time(const TransporterInput&, Stopwatch&, real_type*);
+
+template<>
+void accum_time<MemSpace::device>(const TransporterInput& inp,
+                                  Stopwatch&              get_time,
+                                  real_type*              time)
+{
+    if (inp.sync)
+    {
+        CELER_CUDA_CALL(cudaDeviceSynchronize());
+        *time += get_time();
+    }
+}
+
+template<>
+void accum_time<MemSpace::host>(const TransporterInput&,
+                                Stopwatch& get_time,
+                                real_type* time)
+{
+    *time += get_time();
+}
+
 //!@}
 //---------------------------------------------------------------------------//
 /*!
@@ -166,14 +211,12 @@ Transporter<M>::Transporter(TransporterInput inp) : input_(std::move(inp))
 template<MemSpace M>
 TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 {
-    // Diagnostics
-    // TODO: Create a vector of these objects.
-    TrackDiagnostic<M> track_diagnostic;
-    StepDiagnostic<M>  step_diagnostic(
-        params_, input_.particles, input_.max_num_tracks, 200);
-    ParticleProcessDiagnostic<M> process_diagnostic(
-        params_, input_.particles, input_.physics);
-    EnergyDiagnostic<M> energy_diagnostic(linspace(-700.0, 700.0, 1024 + 1));
+    // Initialize results
+    TransporterResult result;
+    result.time.steps.reserve(input_.max_steps);
+
+    // Construct diagnostics
+    auto diagnostics = build_diagnostics(input_, params_);
 
     // Copy primaries to device and create track initializers
     TrackInitStateData<Ownership::value, M> track_init_states;
@@ -188,24 +231,44 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
     while (num_alive > 0 || num_inits > 0)
     {
+        // Start timers
+        Stopwatch get_step_time;
+        Stopwatch get_time;
+
         // Create new tracks from primaries or secondaries
         initialize_tracks(params_, states_.ref(), &track_init_states);
+        accum_time<M>(input_, get_time, &result.time.initialize_tracks);
 
+        // Sample mean free path and calculate step limits
+        get_time = {};
         generated::pre_step(params_, states_.ref());
+        accum_time<M>(input_, get_time, &result.time.pre_step);
+
+        // Move, calculate dE/dx, and select model for discrete interaction
+        get_time = {};
         generated::along_and_post_step(params_, states_.ref());
+        accum_time<M>(input_, get_time, &result.time.along_and_post_step);
 
         // Launch the interaction kernels for all applicable models
+        get_time = {};
         launch_models(input_, params_, states_.ref());
+        accum_time<M>(input_, get_time, &result.time.launch_models);
 
         // Mid-step diagnostics
-        process_diagnostic.mid_step(states_.ref());
-        step_diagnostic.mid_step(states_.ref());
+        for (auto& diagnostic : diagnostics)
+        {
+            diagnostic->mid_step(states_.ref());
+        }
 
-        // Postprocess secondaries and interaction results
+        // Postprocess interaction results
+        get_time = {};
         generated::process_interactions(params_, states_.ref());
+        accum_time<M>(input_, get_time, &result.time.process_interactions);
 
         // Create track initializers from surviving secondaries
+        get_time = {};
         extend_from_secondaries(params_, states_.ref(), &track_init_states);
+        accum_time<M>(input_, get_time, &result.time.extend_from_secondaries);
 
         // Clear secondaries
         generated::cleanup(params_, states_.ref());
@@ -214,9 +277,13 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         num_alive = input_.max_num_tracks - track_init_states.vacancies.size();
         num_inits = track_init_states.initializers.size();
 
-        // End-of-step diagnostic(s)
-        track_diagnostic.end_step(states_.ref());
-        energy_diagnostic.end_step(states_.ref());
+        // End-of-step diagnostics
+        for (auto& diagnostic : diagnostics)
+        {
+            diagnostic->end_step(states_.ref());
+        }
+
+        result.time.steps.push_back(get_step_time());
 
         if (--remaining_steps == 0)
         {
@@ -226,13 +293,10 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
     }
 
     // Collect results from diagnostics
-    TransporterResult result;
-    result.time       = {0};
-    result.alive      = track_diagnostic.num_alive_per_step();
-    result.edep       = energy_diagnostic.energy_deposition();
-    result.process    = process_diagnostic.particle_processes();
-    result.steps      = step_diagnostic.steps();
-    result.total_time = 0;
+    for (auto& diagnostic : diagnostics)
+    {
+        diagnostic->get_result(&result);
+    }
     return result;
 }
 

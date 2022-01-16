@@ -10,6 +10,7 @@
 #include "base/Macros.hh"
 #include "physics/base/ModelData.hh"
 #include "sim/TrackData.hh"
+#include "../Transporter.hh"
 
 using celeritas::MemSpace;
 using celeritas::Ownership;
@@ -24,8 +25,9 @@ template<MemSpace M>
 class Diagnostic
 {
   public:
-    using EventId      = celeritas::EventId;
-    using StateDataRef = celeritas::StateData<Ownership::reference, M>;
+    using EventId           = celeritas::EventId;
+    using StateDataRef      = celeritas::StateData<Ownership::reference, M>;
+    using TransporterResult = celeritas::TransporterResult;
 
     // Memory allocations
     virtual void begin_simulation() {}
@@ -47,5 +49,8 @@ class Diagnostic
 
     // Collect post-sim diagnostic(s)
     virtual void end_simulation() {}
+
+    // Collect results from diagnostic
+    virtual void get_result(TransporterResult*) {}
 };
 } // namespace demo_loop
