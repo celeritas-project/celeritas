@@ -1,10 +1,15 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Copyright 2022 UT-Battelle, LLC and other Celeritas Developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
 ORANGE input definition using python.
+
+Note that this file cannot be run standalone: it is merely an input to
+the ``orange2celeritas`` executable. The ``db`` variable is passed into this
+script as a global, then it's validated and written as an ORANGE XML input
+file. Finally, the ORANGE geometry is built from the XML and writes out the
+JSON file field-test.org.json.
 """
 
 layer_box = {
