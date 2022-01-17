@@ -51,9 +51,6 @@ endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
-if(NOT CELERITAS_USE_VecGeom)
-  set(_needs_vecgeom DISABLE)
-endif()
 
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
@@ -119,7 +116,7 @@ celeritas_setup_tests(SERIAL PREFIX field)
 
 celeritas_cudaoptional_test(field/RungeKutta)
 celeritas_cudaoptional_test(field/FieldDriver)
-celeritas_cudaoptional_test(field/FieldPropagator ${_needs_vecgeom})
+celeritas_cudaoptional_test(field/FieldPropagator)
 
 ### User field ###
 

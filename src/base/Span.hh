@@ -60,11 +60,11 @@ class Span
     constexpr Span() = default;
 
     //! Construct from data and size
-    CELER_FUNCTION Span(pointer d, size_type s) : s_(d, s) {}
+    CELER_FORCEINLINE_FUNCTION Span(pointer d, size_type s) : s_(d, s) {}
 
     //! Construct from two contiguous random-access iterators
     template<class Iter>
-    CELER_FUNCTION Span(Iter first, Iter last)
+    CELER_FORCEINLINE_FUNCTION Span(Iter first, Iter last)
         : s_(&(*first), static_cast<size_type>(last - first))
     {
     }

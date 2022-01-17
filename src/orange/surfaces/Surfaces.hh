@@ -86,11 +86,13 @@ CELER_FUNCTION T Surfaces::make_surface(SurfaceId sid) const
     CELER_EXPECT(sid < this->num_surfaces());
     CELER_EXPECT(this->surface_type(sid) == T::surface_type());
 
-    OpaqueId<real_type> start = data_.offsets[sid];
-    OpaqueId<real_type> end{start.get()
-                            + static_cast<size_type>(T::Storage::extent)};
-    CELER_ASSERT(end.unchecked_get() <= data_.reals.size());
-    return T{data_.reals[ItemRange<real_type>{start, end}]};
+    const real_type* data = data_.reals[AllItems<real_type>{}].data();
+
+    auto start_offset = data_.offsets[sid].unchecked_get();
+    auto stop_offset  = start_offset
+                       + static_cast<size_type>(T::Storage::extent);
+    CELER_ASSERT(stop_offset <= data_.reals.size());
+    return T{Span<const real_type>{data + start_offset, data + stop_offset}};
 }
 
 //---------------------------------------------------------------------------//

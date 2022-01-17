@@ -158,7 +158,7 @@ class range_iter : public std::iterator<std::input_iterator_tag, T>
   public:
     //// CONSTRUCTOR ////
 
-    CELER_FUNCTION range_iter(value_type value = TraitsT::zero())
+    CELER_FORCEINLINE_FUNCTION range_iter(value_type value = TraitsT::zero())
         : value_(value)
     {
         CELER_EXPECT(TraitsT::is_valid(value_));
@@ -238,7 +238,10 @@ class inf_range_iter : public range_iter<T>
   public:
     using TraitsT = typename Base::TraitsT;
 
-    CELER_FUNCTION inf_range_iter(T value = TraitsT::zero()) : Base(value) {}
+    CELER_FORCEINLINE_FUNCTION inf_range_iter(T value = TraitsT::zero())
+        : Base(value)
+    {
+    }
 
     CELER_FORCEINLINE_FUNCTION bool operator==(inf_range_iter const&) const
     {
@@ -261,7 +264,7 @@ class step_range_iter : public range_iter<T>
     using TraitsT      = typename Base::TraitsT;
     using counter_type = typename TraitsT::counter_type;
 
-    CELER_FUNCTION step_range_iter(T value, counter_type step)
+    CELER_FORCEINLINE_FUNCTION step_range_iter(T value, counter_type step)
         : Base(value), step_(step)
     {
     }
