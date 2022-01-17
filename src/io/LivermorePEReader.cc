@@ -12,6 +12,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "comm/Environment.hh"
+#include "comm/Logger.hh"
 
 namespace celeritas
 {
@@ -50,6 +51,8 @@ LivermorePEReader::result_type
 LivermorePEReader::operator()(AtomicNumber atomic_number) const
 {
     CELER_EXPECT(atomic_number > 0 && atomic_number < 101);
+
+    CELER_LOG(debug) << "Reading Livermore PE data for Z=" << atomic_number;
 
     result_type result;
     std::string Z = std::to_string(atomic_number);

@@ -9,7 +9,7 @@
 
 #include <memory>
 #include "base/ScopedStreamRedirect.hh"
-#include "base/Stopwatch.hh"
+#include "base/ScopedTimeLog.hh"
 
 namespace celeritas
 {
@@ -38,7 +38,7 @@ class ScopedTimeAndRedirect
   private:
     std::unique_ptr<ScopedStreamRedirect> stdout_;
     std::unique_ptr<ScopedStreamRedirect> stderr_;
-    Stopwatch                             get_time_;
+    ScopedTimeLog                         scoped_time_;
 };
 
 //---------------------------------------------------------------------------//

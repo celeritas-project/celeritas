@@ -10,6 +10,7 @@
 #include <fstream>
 #include "celeritas_config.h"
 
+#include "base/ScopedTimeLog.hh"
 #include "base/StringUtils.hh"
 #include "comm/Logger.hh"
 #include "orange/construct/SurfaceInput.hh"
@@ -37,7 +38,7 @@ OrangeParams::Input input_from_json(std::string filename)
                    << "JSON is not enabled so geometry cannot be loaded");
 
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
-    OrangeParams::Input input;
+    ScopedTimeLog scoped_time;
 
     if (ends_with(filename, ".gdml"))
     {
@@ -50,6 +51,8 @@ OrangeParams::Input input_from_json(std::string filename)
     {
         CELER_LOG(warning) << "Expected '.json' extension for JSON input";
     }
+
+    OrangeParams::Input input;
 
 #if CELERITAS_USE_JSON
     std::ifstream infile(filename);

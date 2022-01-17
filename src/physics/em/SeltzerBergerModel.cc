@@ -10,9 +10,10 @@
 #include <algorithm>
 #include "base/Assert.hh"
 #include "base/CollectionBuilder.hh"
-#include "comm/Logger.hh"
 #include "base/Join.hh"
 #include "base/Range.hh"
+#include "base/ScopedTimeLog.hh"
+#include "comm/Logger.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/material/MaterialParams.hh"
@@ -49,6 +50,8 @@ SeltzerBergerModel::SeltzerBergerModel(ModelId               id,
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
     // Load differential cross sections
+    CELER_LOG(status) << "Reading and building Seltzer Berger model data";
+    ScopedTimeLog scoped_time;
     make_builder(&host_data.differential_xs.elements)
         .reserve(materials.num_elements());
     for (auto el_id : range(ElementId{materials.num_elements()}))

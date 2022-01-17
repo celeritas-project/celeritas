@@ -11,6 +11,7 @@
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "comm/Environment.hh"
+#include "comm/Logger.hh"
 
 namespace celeritas
 {
@@ -52,6 +53,8 @@ SeltzerBergerReader::result_type
 SeltzerBergerReader::operator()(AtomicNumber atomic_number) const
 {
     CELER_EXPECT(atomic_number > 0);
+
+    CELER_LOG(debug) << "Reading SB cross sections for Z=" << atomic_number;
 
     result_type result;
 
