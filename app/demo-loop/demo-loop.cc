@@ -14,6 +14,7 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
+#include "base/Stopwatch.hh"
 #include "celeritas_version.h"
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
@@ -43,6 +44,7 @@ namespace
  */
 void run(std::istream& is)
 {
+    using celeritas::Stopwatch;
     using celeritas::TrackInitParams;
     using celeritas::TransporterResult;
 
@@ -63,12 +65,16 @@ void run(std::istream& is)
     auto run_args = inp.at("run").get<LDemoArgs>();
     CELER_EXPECT(run_args);
 
+    // Start timer for overall execution
+    Stopwatch get_total_time;
+
     // Load all the problem data and create transporter
     auto transport_ptr = build_transporter(run_args);
 
     // Run all the primaries
     auto primaries = load_primaries(transport_ptr->input().particles, run_args);
     auto result    = (*transport_ptr)(*primaries);
+    result.time.total = get_total_time();
 
     // Save output
     nlohmann::json outp = {

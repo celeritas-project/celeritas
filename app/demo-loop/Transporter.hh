@@ -52,6 +52,8 @@ struct TransporterInput
     size_type max_num_tracks{};
     size_type max_steps{};
     real_type secondary_stack_factor{};
+    bool      enable_diagnostics{true};
+    bool      sync{};
 
     //! True if all params are assigned
     explicit operator bool() const
@@ -59,6 +61,24 @@ struct TransporterInput
         return geometry && materials && geo_mats && particles && cutoffs
                && physics && rng;
     }
+};
+
+//---------------------------------------------------------------------------//
+//! Simulation timing results.
+struct TransporterTiming
+{
+    using VecReal = std::vector<real_type>;
+
+    VecReal   steps;   //!< Real time per step
+    real_type total{}; //!< Total simulation time
+
+    // Finer-grained timing information within a step
+    real_type initialize_tracks{};
+    real_type pre_step{};
+    real_type along_and_post_step{};
+    real_type launch_models{};
+    real_type process_interactions{};
+    real_type extend_from_secondaries{};
 };
 
 //---------------------------------------------------------------------------//
@@ -75,12 +95,11 @@ struct TransporterResult
 
     //// DATA ////
 
-    VecReal           time;    //!< Real time per step
     VecCount          alive;   //!< Num living tracks per step
     VecReal           edep;    //!< Energy deposition along the grid
     MapStringCount    process; //!< Count of particle/process interactions
     MapStringVecCount steps;   //!< Distribution of steps
-    double            total_time = 0; //!< Wall clock
+    TransporterTiming time;    //!< Timing information
 };
 
 //---------------------------------------------------------------------------//

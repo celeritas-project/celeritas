@@ -29,11 +29,15 @@ class EnergyDiagnostic : public Diagnostic<M>
     using real_type    = celeritas::real_type;
     using Items        = celeritas::Collection<real_type, Ownership::value, M>;
     using StateDataRef = celeritas::StateData<Ownership::reference, M>;
+    using TransporterResult = celeritas::TransporterResult;
 
     EnergyDiagnostic(const std::vector<real_type>& z_bounds);
 
     // Number of alive tracks determined at the end of a step.
     void end_step(const StateDataRef& states) final;
+
+    // Collect diagnostic results
+    void get_result(TransporterResult* result) final;
 
     // Get vector of binned energy deposition
     std::vector<real_type> energy_deposition();

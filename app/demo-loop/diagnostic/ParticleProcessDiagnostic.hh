@@ -33,8 +33,9 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
     using Items     = celeritas::Collection<size_type, Ownership::value, M>;
     using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
     using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
-    using SPConstParticles = std::shared_ptr<const celeritas::ParticleParams>;
-    using SPConstPhysics   = std::shared_ptr<const celeritas::PhysicsParams>;
+    using SPConstParticles  = std::shared_ptr<const celeritas::ParticleParams>;
+    using SPConstPhysics    = std::shared_ptr<const celeritas::PhysicsParams>;
+    using TransporterResult = celeritas::TransporterResult;
     //!@}
 
   public:
@@ -45,6 +46,9 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
 
     // Particle/model tallied after sampling discrete interaction
     void mid_step(const StateDataRef& states) final;
+
+    // Collect diagnostic results
+    void get_result(TransporterResult* result) final;
 
     // Get particle-process and number of times the interaction occured
     std::unordered_map<std::string, size_type> particle_processes() const;

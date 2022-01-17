@@ -50,6 +50,16 @@ void ParticleProcessDiagnostic<M>::mid_step(const StateDataRef& states)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Collect the diagnostic results.
+ */
+template<MemSpace M>
+void ParticleProcessDiagnostic<M>::get_result(TransporterResult* result)
+{
+    result->process = this->particle_processes();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Counts of particle/model combinations that underwent discrete interaction.
  */
 template<MemSpace M>

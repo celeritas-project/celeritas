@@ -52,6 +52,16 @@ void EnergyDiagnostic<M>::end_step(const StateDataRef& states)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Collect the diagnostic results.
+ */
+template<MemSpace M>
+void EnergyDiagnostic<M>::get_result(TransporterResult* result)
+{
+    result->edep = this->energy_deposition();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get vector of binned energy deposition
  */
 template<MemSpace M>

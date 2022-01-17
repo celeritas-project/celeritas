@@ -42,8 +42,9 @@ template<MemSpace M>
 class TrackDiagnostic : public Diagnostic<M>
 {
   public:
-    using size_type    = celeritas::size_type;
-    using StateDataRef = celeritas::StateData<Ownership::reference, M>;
+    using size_type         = celeritas::size_type;
+    using StateDataRef      = celeritas::StateData<Ownership::reference, M>;
+    using TransporterResult = celeritas::TransporterResult;
 
     TrackDiagnostic() : Diagnostic<M>() {}
 
@@ -55,6 +56,12 @@ class TrackDiagnostic : public Diagnostic<M>
     const std::vector<size_type>& num_alive_per_step() const
     {
         return num_alive_per_step_;
+    }
+
+    // Collect diagnostic results
+    void get_result(TransporterResult* result) final
+    {
+        result->alive = this->num_alive_per_step();
     }
 
   private:

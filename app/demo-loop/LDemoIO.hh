@@ -41,7 +41,9 @@ struct LDemoArgs
     size_type    max_steps{};
     size_type    storage_factor{};
     real_type    secondary_stack_factor{};
+    bool         enable_diagnostics{};
     bool         use_device{};
+    bool         sync{};
 
     // Options for physics processes and models
     bool combined_brem{true};

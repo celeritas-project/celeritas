@@ -14,14 +14,25 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 //! Save data to json
+inline void to_json(nlohmann::json& j, const TransporterTiming& v)
+{
+    j = nlohmann::json{{"steps", v.steps},
+                       {"total", v.total},
+                       {"initialize_tracks", v.initialize_tracks},
+                       {"pre_step", v.pre_step},
+                       {"along_and_post_step", v.along_and_post_step},
+                       {"launch_models", v.launch_models},
+                       {"process_interactions", v.process_interactions},
+                       {"extend_from_secondaries", v.extend_from_secondaries}};
+}
+
 inline void to_json(nlohmann::json& j, const TransporterResult& v)
 {
-    j = nlohmann::json{{"time", v.time},
-                       {"alive", v.alive},
+    j = nlohmann::json{{"alive", v.alive},
                        {"edep", v.edep},
                        {"process", v.process},
                        {"steps", v.steps},
-                       {"total_time", v.total_time}};
+                       {"time", v.time}};
 }
 
 //---------------------------------------------------------------------------//
