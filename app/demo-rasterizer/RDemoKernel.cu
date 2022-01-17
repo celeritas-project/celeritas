@@ -55,6 +55,7 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
         real_type pix_dist = image_state.pixel_width;
         real_type max_dist = 0;
         int       max_id   = cur_id;
+        int       abort_counter = 32; // max number of crossings per pixel
         while (geo_dist <= pix_dist)
         {
             // Move to geometry boundary
@@ -70,11 +71,26 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
                 max_id   = cur_id;
             }
 
-            // Cross surface
+            // Cross surface and update post-crossing ID
             geo.move_across_boundary();
             cur_id   = geo_id(geo);
-            geo_dist = std::fmin(geo.find_next_step(),
-                                 image_state.dims[1] * image_state.pixel_width);
+            // Next movement is to end of step or end of raytrace, whichever is
+            // smaller
+            geo_dist = std::fmin(
+                geo.find_next_step(),
+                (image_state.dims[1] - i) * image_state.pixel_width);
+
+            if (--abort_counter == 0)
+            {
+                // Reinitialize at end of pixel
+                Real3 new_pos = image.start_pos();
+                celeritas::axpy((i + 1) * image_state.pixel_width,
+                                image.start_dir(),
+                                &new_pos);
+                geo      = GeoTrackInitializer{new_pos, image.start_dir()};
+                geo_dist = geo.find_next_step();
+                pix_dist = 0;
+            }
         }
 
         // Move to pixel boundary
