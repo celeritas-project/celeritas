@@ -15,6 +15,7 @@
 #include "celeritas_version.h"
 #include "base/ColorUtils.hh"
 #include "base/Range.hh"
+#include "base/Stopwatch.hh"
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
 #include "comm/DeviceIO.json.hh"
@@ -40,10 +41,13 @@ void run(std::istream& is)
 {
     // Read input options
     auto inp = nlohmann::json::parse(is);
+    auto timers = nlohmann::json::object();
 
     // Load geometry
+    Stopwatch get_time;
     auto geo_params = std::make_shared<GeoParams>(
         inp.at("input").get<std::string>().c_str());
+    timers["load"] = get_time();
 
     if (inp.count("cuda_stack_size"))
     {
@@ -55,7 +59,9 @@ void run(std::istream& is)
 
     // Construct runner
     RDemoRunner run(geo_params);
+    get_time = {};
     run(&image);
+    timers["trace"] = get_time();
     // run(&image, 10); // Ntimes for performance measurement
 
     // Get geometry names
@@ -68,11 +74,13 @@ void run(std::istream& is)
 
     // Write image
     CELER_LOG(status) << "Transferring image from GPU to disk";
+    get_time                 = {};
     std::string out_filename = inp.at("output");
     auto        image_data   = image.data_to_host();
     std::ofstream(out_filename, std::ios::binary)
         .write(reinterpret_cast<const char*>(image_data.data()),
                image_data.size() * sizeof(decltype(image_data)::value_type));
+    timers["write"] = get_time();
 
     // Construct json output
     CELER_LOG(status) << "Exporting JSON metadata";
@@ -80,6 +88,7 @@ void run(std::istream& is)
         {"metadata", image},
         {"data", out_filename},
         {"volumes", vol_names},
+        {"timers", timers},
         {
             "runtime",
             {
