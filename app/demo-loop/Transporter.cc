@@ -214,6 +214,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
     // Initialize results
     TransporterResult result;
     result.time.steps.reserve(input_.max_steps);
+    result.initializers.reserve(input_.max_steps);
 
     // Construct diagnostics
     auto diagnostics = build_diagnostics(input_, params_);
@@ -233,9 +234,11 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
     {
         // Start timers
         Stopwatch get_step_time;
-        Stopwatch get_time;
+
+        result.initializers.push_back(num_inits);
 
         // Create new tracks from primaries or secondaries
+        Stopwatch get_time;
         initialize_tracks(params_, states_.ref(), &track_init_states);
         accum_time<M>(input_, get_time, &result.time.initialize_tracks);
 

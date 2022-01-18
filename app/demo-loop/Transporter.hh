@@ -95,11 +95,12 @@ struct TransporterResult
 
     //// DATA ////
 
-    VecCount          alive;   //!< Num living tracks per step
-    VecReal           edep;    //!< Energy deposition along the grid
-    MapStringCount    process; //!< Count of particle/process interactions
-    MapStringVecCount steps;   //!< Distribution of steps
-    TransporterTiming time;    //!< Timing information
+    VecCount          alive;        //!< Num living tracks per step
+    VecCount          initializers; //!< Num track initializers per step
+    VecReal           edep;         //!< Energy deposition along the grid
+    MapStringCount    process;      //!< Count of particle/process interactions
+    MapStringVecCount steps;        //!< Distribution of steps
+    TransporterTiming time;         //!< Timing information
 };
 
 //---------------------------------------------------------------------------//
