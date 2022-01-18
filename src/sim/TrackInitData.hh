@@ -57,7 +57,7 @@ struct TrackInitParamsData<W, MemSpace::host>
     //// DATA ////
 
     Items<Primary> primaries;     //!< Primary particles
-    size_type      capacity = 3;  //!< Initializer/parent storage per track
+    size_type      capacity{0};   //!< Initializer/parent storage per track
 
     //// METHODS ////
 
@@ -166,8 +166,7 @@ struct ResizableData
  * parents, and \c vacancies are all resizable, and \c track_counters has size
  * \c num_events.
  * - \c initializers stores the data for primaries and secondaries waiting to
- *   be turned into new tracks and can be any size up to \c capacity * \c
- *   num_tracks.
+ *   be turned into new tracks and can be any size up to \c capacity.
  * - \c parents is the \c ThreadId of the parent tracks of the initializers.
  * - \c vacancies stores the indices of the threads of tracks that have been
  *   killed; the size will be <= the number of tracks.
