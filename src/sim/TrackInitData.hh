@@ -25,7 +25,7 @@ namespace celeritas
  *
  * There is no persistent data needed on device. Primaries are copied to device
  * only when they are needed to initialize new tracks and are not stored on
- * device. \c storage_factor is only used at construction to allocate memory
+ * device. \c capacity is only used at construction to allocate memory
  * for track initializers and parent track IDs.
  */
 template<Ownership W, MemSpace M>
@@ -57,14 +57,14 @@ struct TrackInitParamsData<W, MemSpace::host>
     //// DATA ////
 
     Items<Primary> primaries;     //!< Primary particles
-    size_type storage_factor = 3; //!< Initializer/parent storage per track
+    size_type      capacity = 3;  //!< Initializer/parent storage per track
 
     //// METHODS ////
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !primaries.empty() && storage_factor > 0;
+        return !primaries.empty() && capacity > 0;
     }
 
     //! Assign from another set of data
@@ -72,7 +72,7 @@ struct TrackInitParamsData<W, MemSpace::host>
     TrackInitParamsData& operator=(const TrackInitParamsData<W2, M2>& other)
     {
         primaries      = other.primaries;
-        storage_factor = other.storage_factor;
+        capacity       = other.capacity;
         return *this;
     }
 };
@@ -166,7 +166,7 @@ struct ResizableData
  * parents, and \c vacancies are all resizable, and \c track_counters has size
  * \c num_events.
  * - \c initializers stores the data for primaries and secondaries waiting to
- *   be turned into new tracks and can be any size up to \c storage_factor * \c
+ *   be turned into new tracks and can be any size up to \c capacity * \c
  *   num_tracks.
  * - \c parents is the \c ThreadId of the parent tracks of the initializers.
  * - \c vacancies stores the indices of the threads of tracks that have been
@@ -232,7 +232,16 @@ using TrackInitStateHostVal
     = TrackInitStateData<Ownership::value, MemSpace::host>;
 
 //---------------------------------------------------------------------------//
-// Resize and initialize track initializer data.
+/*!
+ * Resize and initialize track initializer data.
+ *
+ * Here \c size is the number of track states, and the "capacity" is the
+ * maximum number of track initailizers (inactive/pending tracks) that we can
+ * hold.
+ *
+ * \warning It's likely that for GPU runs, the capacity should be greater than
+ * the size, but that might not be the case universally, so it is not asserted.
+ */
 template<MemSpace M>
 void resize(
     TrackInitStateData<Ownership::value, M>* data,
@@ -244,7 +253,7 @@ void resize(
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
 
     // Allocate device data
-    auto capacity = params.storage_factor * size;
+    auto capacity = params.capacity;
     make_builder(&data->initializers.storage).resize(capacity);
     make_builder(&data->parents.storage).resize(capacity);
     make_builder(&data->secondary_counts).resize(size);

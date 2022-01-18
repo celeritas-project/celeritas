@@ -18,11 +18,11 @@ namespace celeritas
 TrackInitParams::TrackInitParams(const Input& inp)
 {
     CELER_EXPECT(!inp.primaries.empty());
-    CELER_EXPECT(inp.storage_factor > 0);
+    CELER_EXPECT(inp.capacity > 0);
 
     make_builder(&host_value_.primaries)
         .insert_back(inp.primaries.begin(), inp.primaries.end());
-    host_value_.storage_factor = inp.storage_factor;
+    host_value_.capacity       = inp.capacity;
     host_ref_                  = host_value_;
 
     CELER_ENSURE(host_value_);

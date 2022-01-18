@@ -179,10 +179,11 @@ TEST_F(TrackInitTest, run)
     const size_type num_primaries  = 12;
     const size_type num_tracks     = 10;
     const size_type storage_factor = 10;
+    size_type       capacity       = num_tracks * storage_factor;
 
     // Construct persistent track initializer data
-    track_inits = std::make_shared<TrackInitParams>(TrackInitParams::Input{
-        generate_primaries(num_primaries), storage_factor});
+    track_inits = std::make_shared<TrackInitParams>(
+        TrackInitParams::Input{generate_primaries(num_primaries), capacity});
 
     build_states(num_tracks, storage_factor);
 
@@ -254,8 +255,8 @@ TEST_F(TrackInitTest, primaries)
     size_type       capacity       = num_tracks * storage_factor;
 
     // Construct persistent track initializer data
-    track_inits = std::make_shared<TrackInitParams>(TrackInitParams::Input{
-        generate_primaries(num_primaries), storage_factor});
+    track_inits = std::make_shared<TrackInitParams>(
+        TrackInitParams::Input{generate_primaries(num_primaries), capacity});
 
     build_states(num_tracks, storage_factor);
 
@@ -302,10 +303,11 @@ TEST_F(TrackInitTest, secondaries)
     const size_type num_primaries  = 128;
     const size_type num_tracks     = 512;
     const size_type storage_factor = 2;
+    size_type       capacity       = num_tracks * storage_factor;
 
     // Construct persistent track initializer data
-    track_inits = std::make_shared<TrackInitParams>(TrackInitParams::Input{
-        generate_primaries(num_primaries), storage_factor});
+    track_inits = std::make_shared<TrackInitParams>(
+        TrackInitParams::Input{generate_primaries(num_primaries), capacity});
 
     build_states(num_tracks, storage_factor);
 
