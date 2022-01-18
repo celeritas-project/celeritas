@@ -26,7 +26,6 @@
       "name": "vecgeom",
       "displayName": "Enable vecgeom",
       "description": "VecGeom and MPI are disabled",
-      "binaryDir": "${sourceDir}/build-novg",
       "inherits": ["base"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
