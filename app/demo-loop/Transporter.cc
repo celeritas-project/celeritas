@@ -219,7 +219,9 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
     // Construct diagnostics
     auto diagnostics = build_diagnostics(input_, params_);
 
-    // Copy primaries to device and create track initializers
+    // Copy primaries to device and create track initializers.
+    // We (currently) have to create initializers from *all* primaries
+    // all at once.
     TrackInitStateData<Ownership::value, M> track_init_states;
     resize(&track_init_states, primaries.host_ref(), input_.max_num_tracks);
     CELER_ASSERT(primaries.host_ref().primaries.size()

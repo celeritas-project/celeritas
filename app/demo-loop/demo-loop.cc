@@ -39,6 +39,17 @@ using celeritas::TransporterBase;
 namespace
 {
 //---------------------------------------------------------------------------//
+nlohmann::json get_runtime_json()
+{
+    return {
+        {"version", std::string(celeritas_version)},
+        {"device", celeritas::device()},
+        {"kernels", celeritas::kernel_diagnostics()},
+        {"environ", celeritas::environment()},
+    };
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Run, launch, and output.
  */
@@ -80,15 +91,7 @@ void run(std::istream& is)
     nlohmann::json outp = {
         {"run", run_args},
         {"result", result},
-        {
-            "runtime",
-            {
-                {"version", std::string(celeritas_version)},
-                {"device", celeritas::device()},
-                {"kernels", celeritas::kernel_diagnostics()},
-                {"environ", celeritas::environment()},
-            },
-        },
+        {"runtime", get_runtime_json()},
     };
     cout << outp.dump() << endl;
 }
@@ -155,6 +158,10 @@ int main(int argc, char* argv[])
     {
         CELER_LOG(critical)
             << "While running input at  " << filename << ": " << e.what();
+
+        // Write runtime even though results aren't available
+        cout << nlohmann::json{{"runtime", get_runtime_json()}}.dump() << endl;
+
         return EXIT_FAILURE;
     }
 

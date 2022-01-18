@@ -3,9 +3,10 @@
   "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
   "configurePresets": [
     {
-      "name": "base",
-      "displayName": "Wildstyle default options (GCC)",
+      "name": ".base",
+      "hidden": true,
       "inherits": [".spack-base", ".cuda-volta", "full"],
+      "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "environment": {
         "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}"
@@ -20,23 +21,28 @@
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=skylake-avx512 -mtune=skylake-avx512",
         "CMAKE_CUDA_FLAGS": "-Werror all-warnings  -Wno-deprecated-gpu-targets",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"}
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
       }
+    },
+    {
+      "name": "base",
+      "displayName": "Wildstyle default options (GCC, debug)",
+      "inherits": [".base"],
+      "binaryDir": "${sourceDir}/build"
     },
     {
       "name": "serial",
       "displayName": "Debug, OpenMP is disabled",
-      "inherits": ["base"],
-      "binaryDir": "${sourceDir}/build-serial",
+      "inherits": [".base"],
       "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
       "name": "vecgeom",
       "displayName": "Debug with VecGeom",
-      "inherits": ["base"],
-      "binaryDir": "${sourceDir}/build-vecgeom",
+      "inherits": [".base"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
@@ -44,16 +50,38 @@
     {
       "name": "ndebug",
       "displayName": "Everything but vecgeom in release mode",
-      "binaryDir": "${sourceDir}/build-ndebug",
-      "inherits": [".ndebug", "base"]
+      "inherits": [".ndebug", ".base"]
     },
     {
       "name": "ndebug-vecgeom",
       "displayName": "Everything in release mode",
-      "binaryDir": "${sourceDir}/build-ndebug-vecgeom",
+      "inherits": [".ndebug", "vecgeom"]
+    },
+    {
+      "name": "ndebug-serial",
+      "displayName": "Release, OpenMP is disabled",
+      "inherits": [".ndebug", ".base"],
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "ndebug-nocuda",
+      "displayName": "Forcibly disable CUDA mode",
+      "inherits": [".ndebug", ".base"],
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_CUDA": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "ndebug-vecgeom-serial",
+      "displayName": "Everything but openmp in release mode",
       "inherits": [".ndebug", "vecgeom"],
       "cacheVariables": {
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
       }
     }
   ],

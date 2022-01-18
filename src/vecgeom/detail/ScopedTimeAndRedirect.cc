@@ -20,9 +20,9 @@ namespace detail
  * Redirect cout/cerr on construction, and start timer implicitly.
  */
 ScopedTimeAndRedirect::ScopedTimeAndRedirect()
+    : stdout_{std::make_unique<ScopedStreamRedirect>(&std::cout)}
+    , stderr_{std::make_unique<ScopedStreamRedirect>(&std::cerr)}
 {
-    stdout_ = std::make_unique<ScopedStreamRedirect>(&std::cout);
-    stderr_ = std::make_unique<ScopedStreamRedirect>(&std::cerr);
 }
 
 //---------------------------------------------------------------------------//
@@ -33,30 +33,20 @@ ScopedTimeAndRedirect::ScopedTimeAndRedirect()
  */
 ScopedTimeAndRedirect::~ScopedTimeAndRedirect()
 {
-    // Save timer and clear redirects before printing
-    auto time_sec = get_time_();
-
     std::string sout = stdout_->str();
     stdout_.reset();
     std::string serr = stderr_->str();
     stderr_.reset();
 
+    Logger& celer_log = celeritas::world_logger();
     if (!sout.empty())
     {
-        ::celeritas::world_logger()({"vecgeom", 0}, LogLevel::diagnostic)
-            << sout;
+        celer_log({"vecgeom", 0}, LogLevel::diagnostic) << sout;
     }
 
     if (!serr.empty())
     {
-        ::celeritas::world_logger()({"vecgeom", 0}, LogLevel::warning) << serr;
-    }
-
-    if (time_sec > 0.01)
-    {
-        using celeritas::color_code;
-        CELER_LOG(diagnostic) << color_code('x') << "... " << time_sec << " s"
-                              << color_code(' ');
+        celer_log({"vecgeom", 0}, LogLevel::warning) << serr;
     }
 }
 

@@ -6,6 +6,7 @@
       "name": "base",
       "displayName": "Ubuntu/Docker default options for GCC",
       "inherits": "default",
+      "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},

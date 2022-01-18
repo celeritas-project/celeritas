@@ -36,7 +36,7 @@ class TrackInitParams
     struct Input
     {
         std::vector<Primary> primaries;
-        size_type            storage_factor;
+        size_type            capacity; //!< Max number of initializers
     };
 
   public:

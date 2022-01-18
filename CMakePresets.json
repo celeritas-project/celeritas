@@ -6,7 +6,7 @@
       "name": "default",
       "displayName": "Automatic options (debug with tests)",
       "description": "Dependencies are enabled based on environment probing",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS":{"type": "BOOL",   "value": "ON"},
@@ -21,6 +21,7 @@
       "name": "full",
       "displayName": "Full",
       "description": "All external dependencies are expected",
+      "binaryDir": "${sourceDir}/build",
       "inherits": "default",
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
@@ -39,7 +40,6 @@
       "name": "minimal",
       "displayName": "Minimal",
       "description": "Smallest capabilities for useful development",
-      "binaryDir": "${sourceDir}/build-minimal",
       "generator": "Ninja",
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},

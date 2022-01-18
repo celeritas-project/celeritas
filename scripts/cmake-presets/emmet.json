@@ -27,7 +27,6 @@
       "name": "vecgeom",
       "displayName": "Also enable VecGeom",
       "inherits": ["base"],
-      "binaryDir": "${sourceDir}/build-vecgeom",
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
@@ -35,7 +34,6 @@
     {
       "name": "ndebug",
       "displayName": "Everything and in release mode",
-      "binaryDir": "${sourceDir}/build-ndebug",
       "inherits": [".ndebug", "base"],
       "cacheVariables": {
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "ON"},

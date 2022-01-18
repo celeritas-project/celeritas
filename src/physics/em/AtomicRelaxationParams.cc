@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <vector>
 #include "base/Range.hh"
+#include "base/ScopedTimeLog.hh"
 #include "base/SoftEqual.hh"
 #include "detail/Utils.hh"
 
@@ -65,6 +66,8 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     }
 
     // Build elements
+    CELER_LOG(status) << "Reading and building atomic relaxation data";
+    ScopedTimeLog scoped_time;
     make_builder(&host_data.elements).reserve(num_elements);
     for (auto el_idx : range(num_elements))
     {

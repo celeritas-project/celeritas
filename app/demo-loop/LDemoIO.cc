@@ -66,7 +66,7 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"seed", v.seed},
                        {"max_num_tracks", v.max_num_tracks},
                        {"max_steps", v.max_steps},
-                       {"storage_factor", v.storage_factor},
+                       {"initializer_capacity", v.initializer_capacity},
                        {"secondary_stack_factor", v.secondary_stack_factor},
                        {"enable_diagnostics", v.enable_diagnostics},
                        {"use_device", v.use_device},
@@ -81,7 +81,7 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("seed").get_to(v.seed);
     j.at("max_num_tracks").get_to(v.max_num_tracks);
     j.at("max_steps").get_to(v.max_steps);
-    j.at("storage_factor").get_to(v.storage_factor);
+    j.at("initializer_capacity").get_to(v.initializer_capacity);
     j.at("secondary_stack_factor").get_to(v.secondary_stack_factor);
     j.at("enable_diagnostics").get_to(v.enable_diagnostics);
     j.at("use_device").get_to(v.use_device);
@@ -208,7 +208,7 @@ load_primaries(const std::shared_ptr<const celeritas::ParticleParams>& particles
     EventReader read_all_events(args.hepmc3_filename.c_str(), particles);
     TrackInitParams::Input input;
     input.primaries      = read_all_events();
-    input.storage_factor = args.storage_factor;
+    input.capacity       = args.initializer_capacity;
     return std::make_shared<TrackInitParams>(std::move(input));
 }
 

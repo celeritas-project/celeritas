@@ -29,6 +29,9 @@ class Diagnostic
     using StateDataRef      = celeritas::StateData<Ownership::reference, M>;
     using TransporterResult = celeritas::TransporterResult;
 
+    // Virtual destructor for polymorphic deletion
+    virtual ~Diagnostic() = 0;
+
     // Memory allocations
     virtual void begin_simulation() {}
 
@@ -53,4 +56,15 @@ class Diagnostic
     // Collect results from diagnostic
     virtual void get_result(TransporterResult*) {}
 };
+
+//---------------------------------------------------------------------------//
+// INLINE MEMBER FUNCTIONS
+//---------------------------------------------------------------------------//
+//! Default destructor
+template<MemSpace M>
+inline Diagnostic<M>::~Diagnostic()
+{
+}
+
+//---------------------------------------------------------------------------//
 } // namespace demo_loop

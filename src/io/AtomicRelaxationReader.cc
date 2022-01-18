@@ -10,6 +10,7 @@
 #include <fstream>
 #include "base/SoftEqual.hh"
 #include "comm/Environment.hh"
+#include "comm/Logger.hh"
 
 namespace celeritas
 {
@@ -60,6 +61,9 @@ AtomicRelaxationReader::operator()(AtomicNumber atomic_number) const
     {
         return result;
     }
+
+    CELER_LOG(debug) << "Reading atomic relaxation data for Z="
+                     << atomic_number;
 
     std::string Z = std::to_string(atomic_number);
 

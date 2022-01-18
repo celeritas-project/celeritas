@@ -18,6 +18,7 @@
 
 #include "base/Assert.hh"
 #include "base/Range.hh"
+#include "base/ScopedTimeLog.hh"
 #include "comm/Logger.hh"
 #include "physics/base/Units.hh"
 #include "ImportParticle.hh"
@@ -30,7 +31,8 @@ namespace celeritas
  */
 RootImporter::RootImporter(const char* filename)
 {
-    CELER_LOG(status) << "Opening ROOT file";
+    CELER_LOG(info) << "Opening ROOT file at " << filename;
+    ScopedTimeLog scoped_time;
     root_input_.reset(TFile::Open(filename, "read"));
     CELER_ENSURE(root_input_ && !root_input_->IsZombie());
 }
@@ -47,6 +49,9 @@ RootImporter::~RootImporter() = default;
  */
 ImportData RootImporter::operator()()
 {
+    CELER_LOG(status) << "Reading data from ROOT";
+    ScopedTimeLog scoped_time;
+
     std::unique_ptr<TTree> tree_data(root_input_->Get<TTree>(tree_name()));
     CELER_ASSERT(tree_data);
     CELER_ASSERT(tree_data->GetEntries() == 1);

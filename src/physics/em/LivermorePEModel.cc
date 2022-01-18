@@ -9,6 +9,7 @@
 
 #include "base/Assert.hh"
 #include "base/CollectionBuilder.hh"
+#include "base/ScopedTimeLog.hh"
 #include "comm/Device.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/em/generated/LivermorePEInteract.hh"
@@ -43,6 +44,8 @@ LivermorePEModel::LivermorePEModel(ModelId               id,
         = 1 / particles.get(host_data.ids.electron).mass().value();
 
     // Load Livermore cross section data
+    CELER_LOG(status) << "Reading and building Livermore PE model data";
+    ScopedTimeLog scoped_time;
     make_builder(&host_data.xs.elements).reserve(materials.num_elements());
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {

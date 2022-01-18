@@ -220,7 +220,8 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
            (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
            -sintheta * dir[X] + rot[Z] * dir[Z]};
 
-    CELER_ENSURE(is_soft_unit_vector(result));
+    // Always normalize to prevent roundoff error from propagating
+    normalize_direction(&result);
     return result;
 }
 
