@@ -43,19 +43,17 @@ num_tracks = 128*32 if use_device else 4
 num_primaries = 3 * 15 # assuming test hepmc input
 
 inp = {
-    'run': {
-        'use_device': use_device,
-        'geometry_filename': geometry_filename,
-        'physics_filename': physics_filename,
-        'hepmc3_filename': hepmc3_filename,
-        'seed': 12345,
-        'max_num_tracks': num_tracks,
-        'max_steps': 128,
-        'initializer_capacity': 10 * max([num_tracks, num_primaries]),
-        'secondary_stack_factor': 3,
-        'enable_diagnostics': True,
-        'sync': False
-    }
+    'use_device': use_device,
+    'geometry_filename': geometry_filename,
+    'physics_filename': physics_filename,
+    'hepmc3_filename': hepmc3_filename,
+    'seed': 12345,
+    'max_num_tracks': num_tracks,
+    'max_steps': 128*128*32 // num_tracks,
+    'initializer_capacity': 10 * max([num_tracks, num_primaries]),
+    'secondary_stack_factor': 3,
+    'enable_diagnostics': True,
+    'sync': True
 }
 
 
@@ -85,6 +83,11 @@ except json.decoder.JSONDecodeError as e:
     print("fatal:", str(e))
     exit(1)
 
-print(json.dumps(result, indent=1))
-with open(f'{run_name}.out.json', 'w') as f:
+outfilename = f'{run_name}.out.json'
+with open(outfilename, 'w') as f:
     json.dump(result, f)
+print("Results written to", outfilename)
+
+time = result['result']['time'].copy()
+time.pop('steps')
+print(json.dumps(time, indent=1))

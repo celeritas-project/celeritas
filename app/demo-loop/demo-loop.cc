@@ -39,7 +39,7 @@ using celeritas::TransporterBase;
 namespace
 {
 //---------------------------------------------------------------------------//
-nlohmann::json get_runtime_json()
+nlohmann::json get_system_json()
 {
     return {
         {"version", std::string(celeritas_version)},
@@ -73,26 +73,28 @@ void run(std::istream& is)
     }
 
     // For now, only do a single run
-    auto run_args = inp.at("run").get<LDemoArgs>();
+    auto run_args = inp.get<LDemoArgs>();
     CELER_EXPECT(run_args);
 
     // Start timer for overall execution
-    Stopwatch get_total_time;
+    Stopwatch get_setup_time;
 
     // Load all the problem data and create transporter
     auto transport_ptr = build_transporter(run_args);
+    const double setup_time    = get_setup_time();
 
     // Run all the primaries
     auto primaries = load_primaries(transport_ptr->input().particles, run_args);
     auto result    = (*transport_ptr)(*primaries);
-    result.time.total = get_total_time();
 
+    CELER_LOG(status) << "Saving output";
     // Save output
     nlohmann::json outp = {
-        {"run", run_args},
+        {"input", run_args},
         {"result", result},
-        {"runtime", get_runtime_json()},
+        {"system", get_system_json()},
     };
+    outp["result"]["time"]["setup"] = setup_time;
     cout << outp.dump() << endl;
 }
 } // namespace
@@ -159,8 +161,8 @@ int main(int argc, char* argv[])
         CELER_LOG(critical)
             << "While running input at  " << filename << ": " << e.what();
 
-        // Write runtime even though results aren't available
-        cout << nlohmann::json{{"runtime", get_runtime_json()}}.dump() << endl;
+        // Write system properties even though results aren't available
+        cout << nlohmann::json{{"system", get_system_json()}}.dump() << endl;
 
         return EXIT_FAILURE;
     }

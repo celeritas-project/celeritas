@@ -9,6 +9,7 @@
 
 #include "base/Stopwatch.hh"
 #include "base/VectorUtils.hh"
+#include "comm/Logger.hh"
 #include "geometry/GeoMaterialParams.hh"
 #include "geometry/GeoParams.hh"
 #include "physics/base/CutoffParams.hh"
@@ -211,10 +212,13 @@ Transporter<M>::Transporter(TransporterInput inp) : input_(std::move(inp))
 template<MemSpace M>
 TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 {
+    CELER_LOG(status) << "Initializing primaries";
+    Stopwatch get_transport_time;
     // Initialize results
     TransporterResult result;
     result.time.steps.reserve(input_.max_steps);
     result.initializers.reserve(input_.max_steps);
+    result.active.reserve(input_.max_steps);
 
     // Construct diagnostics
     auto diagnostics = build_diagnostics(input_, params_);
@@ -228,6 +232,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
                  <= track_init_states.initializers.capacity());
     extend_from_primaries(primaries.host_ref(), &track_init_states);
 
+    CELER_LOG(status) << "Transporting";
     size_type num_alive       = 0;
     size_type num_inits       = track_init_states.initializers.size();
     size_type remaining_steps = input_.max_steps;
@@ -243,6 +248,9 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         Stopwatch get_time;
         initialize_tracks(params_, states_.ref(), &track_init_states);
         accum_time<M>(input_, get_time, &result.time.initialize_tracks);
+
+        result.active.push_back(input_.max_num_tracks
+                                - track_init_states.vacancies.size());
 
         // Sample mean free path and calculate step limits
         get_time = {};
@@ -290,18 +298,20 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
         result.time.steps.push_back(get_step_time());
 
-        if (--remaining_steps == 0)
+        if (CELER_UNLIKELY(--remaining_steps == 0))
         {
-            // Exceeded step count
+            CELER_LOG(warning) << "Exceeded step count of " << input_.max_steps;
             break;
         }
     }
 
+    CELER_LOG(status) << "Finalizing diagnostic data";
     // Collect results from diagnostics
     for (auto& diagnostic : diagnostics)
     {
         diagnostic->get_result(&result);
     }
+    result.time.total = get_transport_time();
     return result;
 }
 

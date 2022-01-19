@@ -91,7 +91,7 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
 //---------------------------------------------------------------------------//
 TransporterInput load_input(const LDemoArgs& args)
 {
-    CELER_LOG(status) << "Loading input files";
+    CELER_LOG(status) << "Loading input and initializing problem data";
     TransporterInput result;
 
     // Load imported_data from ROOT file
