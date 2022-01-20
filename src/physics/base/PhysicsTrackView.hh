@@ -116,6 +116,9 @@ class PhysicsTrackView
     inline CELER_FUNCTION
         ModelFinder make_model_finder(ParticleProcessId) const;
 
+    // Whether the particle can have a discrete interaction at rest
+    inline CELER_FUNCTION bool has_at_rest() const;
+
     //// STATIC FUNCTIONS (depend only on params data) ////
 
     // Calculate scaled step range

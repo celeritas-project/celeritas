@@ -24,7 +24,7 @@ MockProcess::MockProcess(Input data) : data_(std::move(data))
     CELER_EXPECT(data_.interact);
     CELER_EXPECT(
         data_.xs.empty()
-        || std::all_of(data_.xs.begin(), data_.xs.end(), [](BarnMicroXs x) {
+        || std::any_of(data_.xs.begin(), data_.xs.end(), [](BarnMicroXs x) {
                return x > celeritas::zero_quantity();
            }));
     CELER_EXPECT(data_.energy_loss >= 0);
