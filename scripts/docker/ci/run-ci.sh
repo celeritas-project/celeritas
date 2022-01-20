@@ -23,5 +23,5 @@ cd build
 ctest -T Test ${_ctest_args}
 # Valgrind
 if [ "${CMAKE_PRESET}" = "valgrind" ]; then
-  ctest -T MemCheck -E 'demo-' ${_ctest_args}
+  ctest -T MemCheck -E 'demo-' --output-on-failure ${_ctest_args}
 fi
