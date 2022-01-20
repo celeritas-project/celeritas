@@ -62,11 +62,11 @@ void run(std::istream& is)
     // Read input options
     auto inp = nlohmann::json::parse(is);
 
-    if (inp.count("cuda_stack_size"))
+    if (inp.contains("cuda_stack_size"))
     {
         celeritas::set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
     }
-    if (inp.count("environ"))
+    if (inp.contains("environ"))
     {
         // Specify env variables
         inp["environ"].get_to(celeritas::environment());
