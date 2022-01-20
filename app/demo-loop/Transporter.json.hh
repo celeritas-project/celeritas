@@ -28,8 +28,9 @@ inline void to_json(nlohmann::json& j, const TransporterTiming& v)
 
 inline void to_json(nlohmann::json& j, const TransporterResult& v)
 {
-    j = nlohmann::json{{"alive", v.alive},
-                       {"initializers", v.initializers},
+    j = nlohmann::json{{"initializers", v.initializers},
+                       {"active", v.active},
+                       {"alive", v.alive},
                        {"edep", v.edep},
                        {"process", v.process},
                        {"steps", v.steps},

@@ -49,7 +49,7 @@ void run(std::istream& is)
         inp.at("input").get<std::string>().c_str());
     timers["load"] = get_time();
 
-    if (inp.count("cuda_stack_size"))
+    if (inp.contains("cuda_stack_size"))
     {
         set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
     }

@@ -98,6 +98,9 @@ class OrangeTrackView
 
     // Whether the next distance-to-boundary has been found
     CELER_FORCEINLINE_FUNCTION bool has_next_step() const;
+
+    // Invalidate the next distance-to-boundary
+    CELER_FORCEINLINE_FUNCTION void clear_next_step();
 };
 
 //---------------------------------------------------------------------------//
@@ -146,8 +149,6 @@ OrangeTrackView::OrangeTrackView(const ParamsRef& params,
         local_.temp_next.size = max_isect;
     }
 
-    next_step_ = 0;
-
     CELER_ENSURE(!this->has_next_step());
 }
 
@@ -184,7 +185,7 @@ OrangeTrackView::operator=(const Initializer_t& init)
     local_.dir     = init.dir;
     local_.volume  = {};
     local_.surface = {};
-    next_step_     = 0;
+    this->clear_next_step();
     dirty_         = true;
 
     // Initialize logical state
@@ -206,6 +207,7 @@ CELER_FUNCTION
 OrangeTrackView& OrangeTrackView::operator=(const DetailedInitializer& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
+    CELER_EXPECT(init.other.local_.volume);
 
     // Copy other track's position but update the direction
     local_.pos     = init.other.local_.pos;
@@ -214,7 +216,7 @@ OrangeTrackView& OrangeTrackView::operator=(const DetailedInitializer& init)
     local_.surface = init.other.local_.surface;
 
     // Clear step and surface info
-    next_step_ = 0;
+    this->clear_next_step();
     dirty_     = true;
 
     CELER_ENSURE(!this->has_next_step());
@@ -249,7 +251,6 @@ CELER_FUNCTION void OrangeTrackView::move_across_boundary()
 
     // Physically move next step
     axpy(next_step_, local_.dir, &local_.pos);
-    next_step_ = 0;
 
     // Logically update the surface
     local_.surface = next_surface_;
@@ -257,10 +258,11 @@ CELER_FUNCTION void OrangeTrackView::move_across_boundary()
     // Update the post-crossing volume
     SimpleUnitTracker tracker(params_);
     auto              init = tracker.initialize(local_);
-    // TODO: error correction/graceful failure if initialiation failured
+    // TODO: error correction/graceful failure if initialization failed
     CELER_ASSERT(init.volume);
     local_.volume  = init.volume;
     local_.surface = init.surface;
+    this->clear_next_step();
     dirty_         = true;
 }
 
@@ -295,7 +297,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(const Real3& pos)
 {
     local_.pos     = pos;
     local_.surface = {};
-    next_step_     = 0;
+    this->clear_next_step();
     dirty_         = true;
 }
 
@@ -310,7 +312,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(const Real3& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
     local_.dir = newdir;
-    next_step_ = 0;
+    this->clear_next_step();
     dirty_     = true;
 }
 
@@ -334,6 +336,21 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
 CELER_FUNCTION bool OrangeTrackView::has_next_step() const
 {
     return next_step_ != 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset the next distance-to-boundary.
+ *
+ * The next surface ID should only ever be used when next_step is zero, so it
+ * is OK to wrap it with the CELERITAS_DEBUG conditional.
+ */
+CELER_FUNCTION void OrangeTrackView::clear_next_step()
+{
+    next_step_ = 0;
+#if CELERITAS_DEBUG
+    next_surface_ = {};
+#endif
 }
 
 //---------------------------------------------------------------------------//
