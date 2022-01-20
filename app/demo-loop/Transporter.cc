@@ -216,9 +216,12 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
     Stopwatch get_transport_time;
     // Initialize results
     TransporterResult result;
-    result.time.steps.reserve(input_.max_steps);
-    result.initializers.reserve(input_.max_steps);
-    result.active.reserve(input_.max_steps);
+    if (input_.max_steps != input_.no_max_steps())
+    {
+        result.time.steps.reserve(input_.max_steps);
+        result.initializers.reserve(input_.max_steps);
+        result.active.reserve(input_.max_steps);
+    }
 
     // Construct diagnostics
     auto diagnostics = build_diagnostics(input_, params_);

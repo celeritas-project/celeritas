@@ -34,6 +34,12 @@ class TrackInitParams;
 //! Input parameters to the transporter.
 struct TransporterInput
 {
+    //! Arbitrarily high number for not stopping the simulation short
+    static constexpr size_type no_max_steps()
+    {
+        return celeritas::numeric_limits<size_type>::max();
+    }
+
     // Geometry and materials
     std::shared_ptr<const GeoParams>         geometry;
     std::shared_ptr<const MaterialParams>    materials;

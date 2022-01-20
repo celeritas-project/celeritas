@@ -39,7 +39,7 @@ struct LDemoArgs
     // Control
     unsigned int seed{};
     size_type    max_num_tracks{};
-    size_type    max_steps = celeritas::numeric_limits<size_type>::max();
+    size_type    max_steps = celeritas::TransporterInput::no_max_steps();
     size_type    initializer_capacity{};
     real_type    secondary_stack_factor{};
     bool         enable_diagnostics{};
