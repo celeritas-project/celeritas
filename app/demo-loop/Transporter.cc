@@ -300,7 +300,8 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
         if (CELER_UNLIKELY(--remaining_steps == 0))
         {
-            CELER_LOG(warning) << "Exceeded step count of " << input_.max_steps;
+            CELER_LOG(error) << "Exceeded step count of " << input_.max_steps
+                             << ": aborting transport loop";
             break;
         }
     }

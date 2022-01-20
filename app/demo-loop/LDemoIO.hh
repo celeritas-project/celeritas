@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 #include <nlohmann/json.hpp>
+#include "base/NumericLimits.hh"
 #include "base/Types.hh"
 #include "sim/TrackInitParams.hh"
 #include "Transporter.hh"
@@ -38,7 +39,7 @@ struct LDemoArgs
     // Control
     unsigned int seed{};
     size_type    max_num_tracks{};
-    size_type    max_steps{};
+    size_type    max_steps = celeritas::numeric_limits<size_type>::max();
     size_type    initializer_capacity{};
     real_type    secondary_stack_factor{};
     bool         enable_diagnostics{};

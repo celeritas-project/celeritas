@@ -80,7 +80,10 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("hepmc3_filename").get_to(v.hepmc3_filename);
     j.at("seed").get_to(v.seed);
     j.at("max_num_tracks").get_to(v.max_num_tracks);
-    j.at("max_steps").get_to(v.max_steps);
+    if (j.count("max_steps"))
+    {
+        j.at("max_steps").get_to(v.max_steps);
+    }
     j.at("initializer_capacity").get_to(v.initializer_capacity);
     j.at("secondary_stack_factor").get_to(v.secondary_stack_factor);
     j.at("enable_diagnostics").get_to(v.enable_diagnostics);
