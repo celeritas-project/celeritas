@@ -107,6 +107,13 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
     particle.energy(
         Energy{value_as<Energy>(particle.energy()) - value_as<Energy>(eloss)});
 
+    // Kill stopped particles with no at rest processes
+    if (particle.is_stopped() && !phys.has_at_rest())
+    {
+        result->action = Action::cutoff_energy;
+        sim.alive(false);
+    }
+
     // Reduce the remaining mean free path
     real_type mfp = phys.interaction_mfp() - step * phys.macro_xs();
     phys.interaction_mfp(soft_zero(mfp) ? 0 : mfp);

@@ -24,10 +24,10 @@ class LivermorePEMacroXsCalculator
   public:
     //!@{
     //! Type aliases
-    using Energy              = detail::LivermorePEMicroXsCalculator::Energy;
-    using MicroXsUnits        = detail::LivermorePEMicroXsCalculator::XsUnits;
-    using XsUnits             = units::NativeUnit;
-    using LivermorePERef      = detail::LivermorePERef;
+    using Energy         = detail::LivermorePEMicroXsCalculator::Energy;
+    using MicroXsUnits   = detail::LivermorePEMicroXsCalculator::XsUnits;
+    using XsUnits        = units::NativeUnit;
+    using LivermorePERef = detail::LivermorePERef;
     //!@}
 
   public:

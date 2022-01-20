@@ -340,6 +340,15 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the particle can have a discrete interaction at rest.
+ */
+CELER_FUNCTION bool PhysicsTrackView::has_at_rest() const
+{
+    return this->process_group().has_at_rest;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate scaled step range.
  *
  * This is the updated step function given by Eq. 7.4 of Geant4 Physics
@@ -420,8 +429,8 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(
     }
     else if (model == params_.hardwired.eplusgg)
     {
-        auto calc_xs = EPlusGGMacroXsCalculator(
-            params_.hardwired.eplusgg_params, material);
+        auto calc_xs = EPlusGGMacroXsCalculator(params_.hardwired.eplusgg_data,
+                                                material);
         result = calc_xs(energy);
     }
 

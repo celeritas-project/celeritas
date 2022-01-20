@@ -16,6 +16,7 @@
 #include "base/VectorUtils.hh"
 #include "comm/Logger.hh"
 #include "ParticleParams.hh"
+#include "physics/em/EPlusGGMacroXsCalculator.hh"
 #include "physics/em/EPlusGGModel.hh"
 #include "physics/em/LivermorePEModel.hh"
 #include "physics/grid/ValueGridInserter.hh"
@@ -259,7 +260,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
         {
             data->hardwired.positron_annihilation = process_id;
             data->hardwired.eplusgg               = ModelId{model_idx};
-            data->hardwired.eplusgg_params        = epgg_model->device_ref();
+            data->hardwired.eplusgg_data          = epgg_model->device_ref();
         }
     }
 
@@ -355,35 +356,52 @@ void PhysicsParams::build_xs(const Options&        opts,
                         = build_grid(builders[vgt]);
                 }
 
-                // If this is an energy loss process, find and store the energy
-                // of the largest cross section for this material
-                auto grid_id
-                    = temp_grid_ids[ValueGridType::macro_xs][mat_id.get()];
-                if (proc.type() == ProcessType::electromagnetic_dedx
-                    && opts.use_integral_xs && grid_id)
+                // Check if the particle can have a discrete interaction at
+                // rest for models with on-the-fly cross section calculation
+                auto mat_view = mats.get(mat_id);
+                if (processes[pp_idx] == data->hardwired.positron_annihilation)
                 {
-                    // Allocate storage for the energies if we haven't already
-                    energy_max_xs.resize(mats.size());
+                    auto calc_xs = EPlusGGMacroXsCalculator(
+                        data->hardwired.eplusgg_data, mat_view);
+                    process_groups.has_at_rest |= calc_xs(zero_quantity()) > 0;
+                }
 
+                if (auto grid_id
+                    = temp_grid_ids[ValueGridType::macro_xs][mat_id.get()])
+                {
                     const auto&        grid_data = data->value_grids[grid_id];
                     auto               data_ref  = make_const_ref(*data);
                     const UniformGrid  loge_grid(grid_data.log_energy);
                     const XsCalculator calc_xs(grid_data, data_ref.reals);
 
-                    // Find the energy of the largest cross section
-                    real_type xs_max = 0;
-                    real_type e_max  = 0;
-                    for (auto i : range(loge_grid.size()))
+                    // Check if the particle can have a discrete interaction at
+                    // rest
+                    process_groups.has_at_rest |= calc_xs(zero_quantity()) > 0;
+
+                    // If this is an energy loss process, find and store the
+                    // energy of the largest cross section for this material
+                    if (proc.type() == ProcessType::electromagnetic_dedx
+                        && opts.use_integral_xs)
                     {
-                        real_type xs = calc_xs[i];
-                        if (xs > xs_max)
+                        // Allocate storage for the energies if we haven't
+                        // already
+                        energy_max_xs.resize(mats.size());
+
+                        // Find the energy of the largest cross section
+                        real_type xs_max = 0;
+                        real_type e_max  = 0;
+                        for (auto i : range(loge_grid.size()))
                         {
-                            xs_max = xs;
-                            e_max  = std::exp(loge_grid[i]);
+                            real_type xs = calc_xs[i];
+                            if (xs > xs_max)
+                            {
+                                xs_max = xs;
+                                e_max  = std::exp(loge_grid[i]);
+                            }
                         }
+                        CELER_ASSERT(e_max > 0);
+                        energy_max_xs[mat_id.get()] = e_max;
                     }
-                    CELER_ASSERT(e_max > 0);
-                    energy_max_xs[mat_id.get()] = e_max;
                 }
 
                 // Index of the energy loss process that stores the de/dx and

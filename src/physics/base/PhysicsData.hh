@@ -112,6 +112,7 @@ struct ProcessGroup
     ItemRange<IntegralXsProcess>          integral_xs; //!< [ppid]
     ItemRange<ModelGroup> models;       //!< Model applicability [ppid]
     ParticleProcessId eloss_ppid{}; //!< Process with de/dx and range tables
+    bool has_at_rest{}; //!< Whether the particle type has an at-rest process
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -142,7 +143,7 @@ struct HardwiredModels
     // Positron annihilation
     ProcessId           positron_annihilation;
     ModelId             eplusgg;
-    detail::EPlusGGData eplusgg_params;
+    detail::EPlusGGData eplusgg_data;
 
     //// MEMBER FUNCTIONS ////
 
@@ -161,7 +162,7 @@ struct HardwiredModels
         }
         positron_annihilation = other.positron_annihilation;
         eplusgg               = other.eplusgg;
-        eplusgg_params        = other.eplusgg_params;
+        eplusgg_data          = other.eplusgg_data;
         return *this;
     }
 };
