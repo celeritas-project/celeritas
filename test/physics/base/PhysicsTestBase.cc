@@ -147,8 +147,8 @@ auto PhysicsTestBase::build_physics() const -> SPConstPhysics
         // Energy-dependent cross section
         inp.label       = "barks";
         inp.type        = ProcessType::electromagnetic_dedx;
-        inp.applic      = {make_applicability("electron", 1e-3, 10)};
-        inp.xs          = {Barn{6.0}, Barn{12.0}, Barn{6.0}};
+        inp.applic      = {make_applicability("electron", 1e-5, 10)};
+        inp.xs          = {Barn{0}, Barn{6.0}, Barn{12.0}, Barn{6.0}};
         inp.energy_loss = 0.5 * 1e-20;
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }

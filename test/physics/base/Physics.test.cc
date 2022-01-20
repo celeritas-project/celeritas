@@ -66,7 +66,7 @@ TEST_F(PhysicsParamsTest, accessors)
            "MockModel(7, p=2, emin=1, emax=100)",
            "MockModel(8, p=1, emin=0.001, emax=10)",
            "MockModel(9, p=2, emin=0.001, emax=10)",
-           "MockModel(10, p=3, emin=0.001, emax=10)"};
+           "MockModel(10, p=3, emin=1e-05, emax=10)"};
     EXPECT_VEC_EQ(expected_model_names, model_names);
 
     // Test host-accessible process map
@@ -233,6 +233,15 @@ TEST_F(PhysicsTrackViewHostTest, processes)
         EXPECT_EQ(ProcessId{4}, phys.process(meow_ppid));
         EXPECT_TRUE(phys.has_at_rest());
     }
+
+    // Electron
+    {
+        // No at-rest interaction
+        const PhysicsTrackView phys
+            = this->make_track_view("electron", MaterialId{1});
+        EXPECT_FALSE(phys.has_at_rest());
+    }
+
 }
 
 TEST_F(PhysicsTrackViewHostTest, value_grids)
