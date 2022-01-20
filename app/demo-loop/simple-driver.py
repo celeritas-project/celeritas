@@ -39,7 +39,7 @@ if strtobool(environ.get('CELER_DISABLE_VECGEOM', 'false')):
     print("Replacing .gdml extension since VecGeom is disabled")
     geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 
-num_tracks = 128*32 if use_device else 4
+num_tracks = 128*32 if use_device else 32
 num_primaries = 3 * 15 # assuming test hepmc input
 
 inp = {
@@ -49,8 +49,8 @@ inp = {
     'hepmc3_filename': hepmc3_filename,
     'seed': 12345,
     'max_num_tracks': num_tracks,
-    'max_steps': 128*128*32 // num_tracks,
-    'initializer_capacity': 10 * max([num_tracks, num_primaries]),
+    'max_steps': 128 if use_device else 64, # Just for sake of test time!
+    'initializer_capacity': 100 * max([num_tracks, num_primaries]),
     'secondary_stack_factor': 3,
     'enable_diagnostics': True,
     'sync': True
