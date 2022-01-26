@@ -82,7 +82,7 @@ template<>
 void exclusive_scan_counts<MemSpace::device>(Span<size_type> counts);
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_CUDA
 inline void init_tracks(const ParamsDeviceRef&,

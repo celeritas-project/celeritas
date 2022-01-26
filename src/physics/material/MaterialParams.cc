@@ -15,7 +15,6 @@
 #include "base/CollectionBuilder.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
-#include "base/SpanRemapper.hh"
 #include "comm/Logger.hh"
 #include "io/ImportData.hh"
 

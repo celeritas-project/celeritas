@@ -49,7 +49,7 @@ class ParticleView
 };
 
 //---------------------------------------------------------------------------//
-// INLINE METHODS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Construct from "static" particle definitions.

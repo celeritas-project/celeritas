@@ -63,7 +63,7 @@ class Communicator
 };
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 //! Construct a communicator with MPI_COMM_SELF
 Communicator Communicator::comm_self()

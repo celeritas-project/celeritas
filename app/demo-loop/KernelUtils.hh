@@ -18,8 +18,6 @@ using namespace celeritas;
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-// INLINE HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
 template<class Rng>
 inline CELER_FUNCTION void calc_step_limits(const MaterialTrackView& mat,
                                             const ParticleTrackView& particle,

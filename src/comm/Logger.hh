@@ -85,7 +85,7 @@ class Logger
 };
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 //! Create a logger that flushes its contents when it destructs
 detail::LoggerMessage Logger::operator()(Provenance prov, LogLevel lev)

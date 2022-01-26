@@ -96,7 +96,7 @@ using CCylY = CylCentered<Axis::y>;
 using CCylZ = CylCentered<Axis::z>;
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Surface type identifier.

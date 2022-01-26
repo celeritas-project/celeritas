@@ -8,6 +8,9 @@
 #pragma once
 
 #include <memory>
+#include <utility>
+
+#include "Assert.hh"
 #include "Span.hh"
 #include "Types.hh"
 #include "detail/InitializedValue.hh"
@@ -81,6 +84,44 @@ class DeviceAllocation
 inline void swap(DeviceAllocation& a, DeviceAllocation& b) noexcept;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Swap with another allocation.
+ */
+void DeviceAllocation::swap(DeviceAllocation& other) noexcept
+{
+    using std::swap;
+    swap(this->data_, other.data_);
+    swap(this->size_, other.size_);
+}
 
-#include "DeviceAllocation.i.hh"
+//---------------------------------------------------------------------------//
+/*!
+ * Get a view to the owned device memory.
+ */
+auto DeviceAllocation::device_ref() -> SpanBytes
+{
+    return {data_.get(), size_};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a view to the owned device memory.
+ */
+auto DeviceAllocation::device_ref() const -> SpanConstBytes
+{
+    return {data_.get(), size_};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Swap two allocations.
+ */
+void swap(DeviceAllocation& a, DeviceAllocation& b) noexcept
+{
+    return a.swap(b);
+}
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas

@@ -98,7 +98,7 @@ class GeneralQuadric
 };
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Construct with all coefficients.

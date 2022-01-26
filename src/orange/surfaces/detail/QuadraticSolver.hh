@@ -65,7 +65,7 @@ class QuadraticSolver
 };
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Find all nonnegative roots for general quadric surfaces.

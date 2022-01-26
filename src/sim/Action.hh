@@ -35,7 +35,7 @@ enum class Action
 };
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Whether the function returning an action succeeded.

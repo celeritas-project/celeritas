@@ -81,7 +81,7 @@ const std::string& getenv(const std::string& key);
 std::ostream& operator<<(std::ostream&, const Environment&);
 
 //---------------------------------------------------------------------------//
-// INLINE MEMBER FUNCTIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Get an environment variable from current or system enviroments.

@@ -4,14 +4,14 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file MpiTypes.hh
-//! Type definitions for MPI parallel operations
+//! Type definitions for MPI parallel operations (implementation-agnostic)
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "celeritas_config.h"
 
 #if CELERITAS_USE_MPI
-#    include "./MpiTypes.mpi.i.hh"
+#    include "./MpiTypes.mpi.hh"
 #else
-#    include "./MpiTypes.nompi.i.hh"
+#    include "./MpiTypes.nompi.hh"
 #endif

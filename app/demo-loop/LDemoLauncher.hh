@@ -60,7 +60,7 @@ CDL_LAUNCHER(ProcessInteractions)
 CDL_LAUNCHER(Cleanup)
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Pre-step logic.

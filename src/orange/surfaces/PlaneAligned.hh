@@ -81,7 +81,7 @@ using PlaneY = PlaneAligned<Axis::y>;
 using PlaneZ = PlaneAligned<Axis::z>;
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Surface type identifier.

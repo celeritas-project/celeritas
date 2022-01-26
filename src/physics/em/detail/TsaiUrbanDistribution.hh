@@ -7,8 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Algorithms.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "random/distributions/BernoulliDistribution.hh"
 #include "physics/base/Units.hh"
 
 namespace celeritas
@@ -57,7 +59,38 @@ class TsaiUrbanDistribution
 };
 
 //---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from input data.
+ */
+CELER_FUNCTION
+TsaiUrbanDistribution::TsaiUrbanDistribution(MevEnergy energy, MevMass mass)
+{
+    // MevMass{}.value() [MeV]
+    umax_ = 2 * (1 + energy.value() / mass.value());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample gamma angle (z-axis along the parent particle).
+ */
+template<class Engine>
+CELER_FUNCTION real_type TsaiUrbanDistribution::operator()(Engine& rng)
+{
+    real_type u;
+    do
+    {
+        real_type uu
+            = -std::log(generate_canonical(rng) * generate_canonical(rng));
+        u = uu
+            * (BernoulliDistribution(0.25)(rng) ? real_type(1.6)
+                                                : real_type(1.6 / 3));
+    } while (u > umax_);
+
+    return 1 - 2 * ipow<2>(u / umax_);
+}
+
+//---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas
-
-#include "TsaiUrbanDistribution.i.hh"

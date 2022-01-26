@@ -93,7 +93,7 @@ KernelDiagnostics& kernel_diagnostics();
 std::ostream& operator<<(std::ostream&, const KernelDiagnostics&);
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Get the kernel diagnostics for a given ID.

@@ -16,7 +16,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// INLINE HELPER FUNCTIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 inline CELER_FUNCTION real_type
 calc_tabulated_physics_step(const MaterialTrackView& material,
