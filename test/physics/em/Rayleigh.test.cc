@@ -40,10 +40,10 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using celeritas::ParticleDef;
+        using celeritas::ParticleRecord;
         using namespace celeritas::units;
         constexpr auto zero   = celeritas::zero_quantity();
-        constexpr auto stable = ParticleDef::stable_decay_constant();
+        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Set up shared particle data for RayleighModel
         Base::set_particle_params(

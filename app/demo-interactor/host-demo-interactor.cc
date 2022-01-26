@@ -41,7 +41,7 @@ std::shared_ptr<ParticleParams> load_params()
 {
     using namespace celeritas::units;
     constexpr auto zero   = zero_quantity();
-    constexpr auto stable = ParticleDef::stable_decay_constant();
+    constexpr auto stable = ParticleRecord::stable_decay_constant();
 
     return std::make_shared<ParticleParams>(
         ParticleParams::Input{{"electron",

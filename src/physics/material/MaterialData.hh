@@ -29,7 +29,7 @@ namespace celeritas
  * Note that more than one "element def" can exist for a single atomic number:
  * there might be different enrichments of an element in the problem.
  */
-struct ElementDef
+struct ElementRecord
 {
     int            atomic_number = 0; //!< Z number
     units::AmuMass atomic_mass;       //!< Isotope-weighted average atomic mass
@@ -65,7 +65,7 @@ struct MatElementComponent
  * this). Derivative properties such as electron_density are calculated from
  * the elemental components.
  */
-struct MaterialDef
+struct MaterialRecord
 {
     real_type   number_density; //!< Atomic number density [1/cm^3]
     real_type   temperature;    //!< Temperature [K]
@@ -97,9 +97,9 @@ struct MaterialParamsData
     template<class T>
     using Items = celeritas::Collection<T, W, M>;
 
-    Items<ElementDef>             elements;
+    Items<ElementRecord>          elements;
     Items<MatElementComponent>    elcomponents;
-    Items<MaterialDef>            materials;
+    Items<MaterialRecord>         materials;
     ElementComponentId::size_type max_element_components{};
 
     //// MEMBER FUNCTIONS ////

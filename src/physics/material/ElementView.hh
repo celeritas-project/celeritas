@@ -68,7 +68,7 @@ class ElementView
     inline CELER_FUNCTION real_type mass_radiation_coeff() const;
 
   private:
-    const ElementDef& def_;
+    const ElementRecord& def_;
 };
 
 //---------------------------------------------------------------------------//

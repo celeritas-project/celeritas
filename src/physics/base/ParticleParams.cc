@@ -40,7 +40,7 @@ ParticleParams::from_import(const ImportData& data)
         defs[i].mass           = units::MevMass{particle.mass};
         defs[i].charge         = units::ElementaryCharge{particle.charge};
         defs[i].decay_constant = (particle.is_stable
-                                      ? ParticleDef::stable_decay_constant()
+                                      ? ParticleRecord::stable_decay_constant()
                                       : 1. / particle.lifetime);
     }
 
@@ -96,7 +96,7 @@ ParticleParams::ParticleParams(const Input& input)
         md_.push_back({particle.name, particle.pdg_code});
 
         // Save the definitions on the host
-        ParticleDef host_def;
+        ParticleRecord host_def;
         host_def.mass           = particle.mass;
         host_def.charge         = particle.charge;
         host_def.decay_constant = particle.decay_constant;

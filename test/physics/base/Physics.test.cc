@@ -570,7 +570,7 @@ auto EPlusAnnihilationTest::build_particles() const -> SPConstParticles
     namespace pdg = celeritas::pdg;
 
     constexpr auto zero   = celeritas::zero_quantity();
-    constexpr auto stable = celeritas::ParticleDef::stable_decay_constant();
+    constexpr auto stable = celeritas::ParticleRecord::stable_decay_constant();
 
     return std::make_shared<ParticleParams>(
         ParticleParams::Input{{"positron",

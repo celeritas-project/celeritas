@@ -26,14 +26,14 @@ enum class MatterState
 
 //---------------------------------------------------------------------------//
 
-//! Opaque index to ElementDef in the global vector of elements
-using ElementId = OpaqueId<struct ElementDef>;
+//! Opaque index to ElementRecord in the global vector of elements
+using ElementId = OpaqueId<struct ElementRecord>;
 
 //! Opaque index to one elemental component datum in a particular material
 using ElementComponentId = OpaqueId<struct MatElementComponent>;
 
-//! Opaque index to MaterialDef in a vector: represents a material ID
-using MaterialId = OpaqueId<struct MaterialDef>;
+//! Opaque index to MaterialRecord in a vector: represents a material ID
+using MaterialId = OpaqueId<struct MaterialRecord>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

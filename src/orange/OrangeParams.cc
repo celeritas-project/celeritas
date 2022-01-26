@@ -151,7 +151,7 @@ OrangeParams::OrangeParams(Input input)
     size_type max_intersections = 1;
     for (auto vol_id : range(VolumeId{host_data.volumes.size()}))
     {
-        const VolumeDef& def = host_data.volumes.defs[vol_id];
+        const VolumeRecord& def = host_data.volumes.defs[vol_id];
         max_faces = std::max<size_type>(max_faces, def.faces.size());
         max_intersections
             = std::max<size_type>(max_intersections, def.num_intersections);

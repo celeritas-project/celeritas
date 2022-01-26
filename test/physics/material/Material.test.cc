@@ -57,7 +57,7 @@ TEST(MaterialUtils, radiation_length)
 {
     auto calc_inv_rad_coeff
         = [](int atomic_number, real_type amu_mass) -> real_type {
-        ElementDef el;
+        ElementRecord el;
         el.atomic_number      = atomic_number;
         el.atomic_mass        = units::AmuMass{amu_mass};
         el.coulomb_correction = detail::calc_coulomb_correction(atomic_number);

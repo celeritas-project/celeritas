@@ -51,7 +51,7 @@ class FieldPropagatorTestBase : public GeoTestBase<celeritas::GeoParams>
         namespace pdg = celeritas::pdg;
 
         // Create particle defs
-        constexpr auto        stable = ParticleDef::stable_decay_constant();
+        constexpr auto        stable = ParticleRecord::stable_decay_constant();
         ParticleParams::Input defs;
         defs.push_back({"electron",
                         pdg::electron(),

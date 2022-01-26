@@ -75,7 +75,7 @@ class VolumeView
 
   private:
     const VolumeDataRef& params_;
-    const VolumeDef      def_;
+    const VolumeRecord   def_;
 };
 
 //---------------------------------------------------------------------------//

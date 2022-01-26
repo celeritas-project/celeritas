@@ -32,10 +32,10 @@ class MuBremsstrahlungInteractorTest
   protected:
     void SetUp() override
     {
-        using celeritas::ParticleDef;
+        using celeritas::ParticleRecord;
         using namespace celeritas::units;
         constexpr auto zero   = celeritas::zero_quantity();
-        constexpr auto stable = ParticleDef::stable_decay_constant();
+        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         Base::set_particle_params({{"mu_minus",
                                     pdg::mu_minus(),

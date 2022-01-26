@@ -73,7 +73,7 @@ real_type calc_coulomb_correction(int atomic_number)
  * See ElementView::mass_radiation_coeff for details on this calculation and
  * how it's used.
  */
-real_type calc_mass_rad_coeff(const ElementDef& el)
+real_type calc_mass_rad_coeff(const ElementRecord& el)
 {
     CELER_EXPECT(el.atomic_number > 0);
     CELER_EXPECT(el.atomic_mass > zero_quantity());

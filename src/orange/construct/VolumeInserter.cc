@@ -83,7 +83,7 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
     auto faces = make_builder(&volume_data_->faces);
     auto logic = make_builder(&volume_data_->logic);
 
-    VolumeDef output;
+    VolumeRecord output;
     output.faces = faces.insert_back(input.faces.begin(), input.faces.end());
     output.logic = logic.insert_back(input.logic.begin(), input.logic.end());
     output.num_intersections = input.num_intersections;

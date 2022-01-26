@@ -58,7 +58,7 @@ auto PhysicsTestBase::build_particles() const -> SPConstParticles
     namespace pdg = celeritas::pdg;
 
     constexpr auto zero   = celeritas::zero_quantity();
-    constexpr auto stable = celeritas::ParticleDef::stable_decay_constant();
+    constexpr auto stable = celeritas::ParticleRecord::stable_decay_constant();
 
     ParticleParams::Input inp;
     inp.push_back({"gamma", pdg::gamma(), zero, zero, stable});
