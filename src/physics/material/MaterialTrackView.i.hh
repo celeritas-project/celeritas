@@ -41,7 +41,7 @@ MaterialTrackView::operator=(const Initializer_t& other)
 /*!
  * Current material identifier.
  */
-CELER_FORCEINLINE_FUNCTION MaterialId MaterialTrackView::material_id() const
+CELER_FUNCTION MaterialId MaterialTrackView::material_id() const
 {
     return this->state().material_id;
 }
@@ -50,7 +50,7 @@ CELER_FORCEINLINE_FUNCTION MaterialId MaterialTrackView::material_id() const
 /*!
  * Get material properties for the current material.
  */
-CELER_FORCEINLINE_FUNCTION MaterialView MaterialTrackView::material_view() const
+CELER_FUNCTION MaterialView MaterialTrackView::material_view() const
 {
     return MaterialView(params_, this->material_id());
 }
@@ -72,7 +72,7 @@ CELER_FUNCTION Span<real_type> MaterialTrackView::element_scratch()
 /*!
  * Access the thread-local state.
  */
-CELER_FORCEINLINE_FUNCTION MaterialTrackState& MaterialTrackView::state() const
+CELER_FUNCTION MaterialTrackState& MaterialTrackView::state() const
 {
     return states_.state[thread_];
 }
