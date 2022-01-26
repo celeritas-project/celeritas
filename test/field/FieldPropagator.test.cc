@@ -228,6 +228,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
                     icross++;
                     int j = (icross - 1) % num_boundary;
                     EXPECT_DOUBLE_EQ(expected_y[j], geo_track.pos()[1]);
+                    geo_track.cross_boundary();
                 }
             }
         }

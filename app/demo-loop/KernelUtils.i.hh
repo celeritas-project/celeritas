@@ -83,6 +83,8 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
         // Particle entered a new volume before reaching the interaction point
         if (geo_step.boundary)
         {
+            // TODO: handle this at end of step
+            geo.cross_boundary();
             if (geo.is_outside())
             {
                 // Kill the track if it's outside the valid geometry region

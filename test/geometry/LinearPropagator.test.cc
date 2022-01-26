@@ -86,6 +86,7 @@ TEST_F(LinearPropagatorTest, all)
         Propagation result = propagate(1e20);
         EXPECT_SOFT_EQ(30, result.distance);
         EXPECT_TRUE(result.boundary);
+        geo.cross_boundary();
     }
 
     // Check state
@@ -116,6 +117,7 @@ TEST_F(LinearPropagatorTest, all)
         Propagation result = propagate();
         EXPECT_SOFT_EQ(20, result.distance);
         EXPECT_TRUE(result.boundary);
+        geo.cross_boundary();
 
         // Move slightly inside before next scatter
         result = propagate(0.1);
@@ -135,11 +137,13 @@ TEST_F(LinearPropagatorTest, all)
         Propagation result = propagate(10000);
         EXPECT_SOFT_EQ(720, result.distance);
         EXPECT_TRUE(result.boundary);
+        geo.cross_boundary();
 
         // Move outside
         result = propagate(10000);
         EXPECT_SOFT_EQ(1300, result.distance);
         EXPECT_TRUE(result.boundary);
+        geo.cross_boundary();
     }
 
     EXPECT_VEC_SOFT_EQ(Real3({125.1, 0, -2000}), geo.pos());

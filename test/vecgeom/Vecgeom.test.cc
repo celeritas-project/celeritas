@@ -80,7 +80,8 @@ auto VecgeomTest::track(const Real3& pos, const Real3& dir) -> TrackingResult
         result.distances.push_back(geo.find_next_step());
         if (result.distances.back() < 1e20)
         {
-            geo.move_across_boundary();
+            geo.move_to_boundary();
+            geo.cross_boundary();
         }
     }
 
@@ -88,7 +89,8 @@ auto VecgeomTest::track(const Real3& pos, const Real3& dir) -> TrackingResult
     {
         result.volumes.push_back(params.id_to_label(geo.volume_id()));
         result.distances.push_back(geo.find_next_step());
-        geo.move_across_boundary();
+        geo.move_to_boundary();
+        geo.cross_boundary();
     }
 
     return result;

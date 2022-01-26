@@ -59,14 +59,17 @@ class VecgeomTrackView
     // Find the distance to the next boundary
     inline CELER_FUNCTION real_type find_next_step();
 
-    // Cross the next straight-line geometry boundary
-    inline CELER_FUNCTION void move_across_boundary();
+    // Move to the boundary in preparation for crossing it
+    inline CELER_FUNCTION void move_to_boundary();
 
     // Move within the volume
     inline CELER_FUNCTION void move_internal(real_type step);
 
     // Move within the volume to a specific point
     inline CELER_FUNCTION void move_internal(const Real3& pos);
+
+    // Cross from one side of the current surface to the other
+    inline CELER_FUNCTION void cross_boundary();
 
     //!@{
     //! State accessors

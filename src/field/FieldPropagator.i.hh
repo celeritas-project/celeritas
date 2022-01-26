@@ -142,7 +142,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
     if (result.boundary)
     {
-        track_.move_across_boundary();
+        track_.move_to_boundary();
         state_.pos = track_.pos();
     }
     else if (remaining > 0)

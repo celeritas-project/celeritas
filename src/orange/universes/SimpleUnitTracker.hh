@@ -225,7 +225,7 @@ SimpleUnitTracker::simple_intersect(const LocalState& state,
 
     // Post-surface sense will be on the other side of the surface
     Intersection result;
-    result.surface  = {surface, flip_sense(cur_sense)};
+    result.surface  = {surface, cur_sense};
     result.distance = state.temp_next.distance[distance_idx];
     return result;
 }
@@ -292,7 +292,7 @@ SimpleUnitTracker::complex_intersect(const LocalState& state,
             // this direction do we hit a surface that actually puts us
             // outside.
             Intersection result;
-            result.surface  = {vol.get_surface(face), new_sense};
+            result.surface  = {vol.get_surface(face), flip_sense(new_sense)};
             result.distance = state.temp_next.distance[isect];
             CELER_ENSURE(result.distance > 0 && !std::isinf(result.distance));
             return result;
