@@ -68,20 +68,12 @@ class LocateAliveLauncher
 template<MemSpace M>
 CELER_FUNCTION void LocateAliveLauncher<M>::operator()(ThreadId tid) const
 {
-    // Index of the secondary to copy to the parent track if vacant
-    size_type secondary_idx = flag_id();
-
     // Count how many secondaries survived cutoffs for each track
     data_.secondary_counts[tid] = 0;
-    Interaction& result         = states_.interactions[tid];
-    for (auto i : range(result.secondaries.size()))
+    for (const auto& secondary : states_.interactions[tid].secondaries)
     {
-        if (result.secondaries[i])
+        if (secondary)
         {
-            if (secondary_idx == flag_id())
-            {
-                secondary_idx = i;
-            }
             ++data_.secondary_counts[tid];
         }
     }
@@ -92,39 +84,14 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(ThreadId tid) const
         // The track is alive: mark this track slot as occupied
         data_.vacancies[tid] = flag_id();
     }
-    else if (secondary_idx != flag_id())
+    else if (data_.secondary_counts[tid] > 0)
     {
-        // The track was killed and it produced secondaries: fill the empty
-        // track slot with the first secondary and mark as occupied
-
-        // Calculate the track ID of the secondary
-        // TODO: This is nondeterministic; we need to calculate the track
-        // ID in a reproducible way.
-        CELER_ASSERT(sim.event_id() < data_.track_counters.size());
-        TrackId::size_type track_id
-            = atomic_add(&data_.track_counters[sim.event_id()], size_type{1});
-
-        // Initialize the simulation state
-        sim = {TrackId{track_id}, sim.track_id(), sim.event_id(), true};
-
-        // Initialize the particle state from the secondary
-        Secondary&        secondary = result.secondaries[secondary_idx];
-        ParticleTrackView particle(params_.particles, states_.particles, tid);
-        particle = {secondary.particle_id, secondary.energy};
-
-        // Keep the parent's geometry state but get the direction from the
-        // secondary. The material state will be the same as the parent's.
-        GeoTrackView geo(params_.geometry, states_.geometry, tid);
-        geo = GeoTrackView::DetailedInitializer{geo, secondary.direction};
-
-        // Initialize the physics state
-        PhysicsTrackView phys(params_.physics, states_.physics, {}, {}, tid);
-        phys = {};
-
-        // Mark the secondary as processed and the track as active
-        --data_.secondary_counts[tid];
-        secondary            = Secondary{};
+        // The track was killed and produced secondaries: in this case, the
+        // empty track slot will be filled with the first secondary. Mark this
+        // slot as occupied even though the secondary has not been initialized
+        // in it yet, and don't include the first secondary in the count
         data_.vacancies[tid] = flag_id();
+        --data_.secondary_counts[tid];
     }
     else
     {

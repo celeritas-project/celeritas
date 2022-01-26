@@ -43,6 +43,9 @@ struct Interaction
     // Return an interaction indicating all state changes have been applied
     static inline CELER_FUNCTION Interaction from_processed();
 
+    // Return an interaction representing the creation of a new track
+    static inline CELER_FUNCTION Interaction from_spawned();
+
     // Whether the interaction succeeded
     explicit inline CELER_FUNCTION operator bool() const;
 };
@@ -98,6 +101,17 @@ CELER_FUNCTION Interaction Interaction::from_processed()
 {
     Interaction result;
     result.action = Action::processed;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an interaction for the creation of a new track.
+ */
+CELER_FUNCTION Interaction Interaction::from_spawned()
+{
+    Interaction result;
+    result.action = Action::spawned;
     return result;
 }
 
