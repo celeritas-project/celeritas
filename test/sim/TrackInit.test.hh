@@ -93,7 +93,7 @@ struct ITTestInput
 struct ITTestOutput
 {
     std::vector<unsigned int> track_ids;
-    std::vector<unsigned int> parent_ids;
+    std::vector<int>          parent_ids;
     std::vector<unsigned int> init_ids;
     std::vector<size_type>    vacancies;
 };

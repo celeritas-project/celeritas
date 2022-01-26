@@ -189,7 +189,7 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         // Store the track IDs and parent IDs
         for (auto tid : range(ThreadId{sim.size()}))
         {
-            result.track_ids.push_back(sim[tid].track_id.get());
+            result.track_ids.push_back(sim[tid].track_id.unchecked_get());
             result.parent_ids.push_back(sim[tid].parent_id.unchecked_get());
         }
 
@@ -248,18 +248,23 @@ TEST_F(TrackInitTest, run)
     // Initialize the primary tracks on device
     initialize_tracks(params, states, &track_init_states);
 
-    // Check the IDs of the initialized tracks
+    // Check the track IDs and parent IDs of the initialized tracks
     {
         auto result = get_result(states, track_init_states);
         static const unsigned int expected_track_ids[]
             = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
         EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+
+        // All primary particles, so no parent
+        static const int expected_parent_ids[]
+            = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+        EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
     }
 
     // Allocate input device data (number of secondaries to produce for each
     // track and whether the track survives the interaction)
-    std::vector<size_type> alloc = {1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
-    std::vector<char>      alive = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
+    std::vector<size_type> alloc = {1, 1, 0, 0, 1, 1, 0, 0, 2, 1};
+    std::vector<char>      alive = {0, 1, 0, 1, 0, 1, 0, 1, 0, 0};
     ITTestInput            input(alloc, alive);
 
     // Launch kernel to process interactions
@@ -275,29 +280,45 @@ TEST_F(TrackInitTest, run)
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
     }
 
-    // Check the track IDs of the track initializers created from secondaries
-    // Output is sorted as TrackInitializerStore does not calculate IDs
-    // deterministically
+    // Check the track IDs of the track initializers created from secondaries.
+    // Because IDs are not calculated deterministically and we don't know which
+    // IDs were used for the immediately-initialized secondaries and which were
+    // used for the track initializers, just check that there is the correct
+    // number and they are in the correct range.
     {
         auto result = get_result(states, track_init_states);
-        std::sort(std::begin(result.init_ids), std::end(result.init_ids));
-        static const unsigned int expected_track_ids[] = {0, 1, 13, 15, 17};
-        EXPECT_VEC_EQ(expected_track_ids, result.init_ids);
+        EXPECT_TRUE(std::all_of(std::begin(result.init_ids),
+                                std::end(result.init_ids),
+                                [](unsigned int id) { return id <= 18; }));
+        EXPECT_EQ(5, result.init_ids.size());
+
+        // First two initializers are from primaries
+        EXPECT_EQ(0, result.init_ids[0]);
+        EXPECT_EQ(1, result.init_ids[1]);
     }
 
     // Initialize secondaries on device
     initialize_tracks(params, states, &track_init_states);
 
-    // Check the track IDs of the initialized tracks
-    // Output is sorted as TrackInitializerStore does not calculate IDs
-    // deterministically
+    // Check the track IDs and parent IDs of the initialized tracks
     {
-        auto         result = get_result(states, track_init_states);
-        unsigned int expected_track_ids[]
-            = {12, 3, 15, 5, 14, 7, 17, 9, 16, 11};
-        std::sort(std::begin(result.track_ids), std::end(result.track_ids));
-        std::sort(std::begin(expected_track_ids), std::end(expected_track_ids));
-        EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+        auto result = get_result(states, track_init_states);
+        EXPECT_TRUE(std::all_of(std::begin(result.track_ids),
+                                std::end(result.track_ids),
+                                [](unsigned int id) { return id <= 18; }));
+
+        // Tracks that were not killed should have the same ID
+        EXPECT_EQ(3, result.track_ids[1]);
+        EXPECT_EQ(5, result.track_ids[3]);
+        EXPECT_EQ(7, result.track_ids[5]);
+        EXPECT_EQ(9, result.track_ids[7]);
+
+        // Two tracks should have the same parent ID = 10
+        int expected_parent_ids[] = {2, -1, 7, -1, 6, -1, 10, -1, 10, 11};
+        std::sort(std::begin(result.parent_ids), std::end(result.parent_ids));
+        std::sort(std::begin(expected_parent_ids),
+                  std::end(expected_parent_ids));
+        EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
     }
 }
 
