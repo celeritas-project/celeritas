@@ -46,7 +46,8 @@ class ParticleTest : public celeritas::Test
         using namespace celeritas::units;
 
         constexpr auto zero   = celeritas::zero_quantity();
-        constexpr auto stable = celeritas::ParticleDef::stable_decay_constant();
+        constexpr auto stable
+            = celeritas::ParticleRecord::stable_decay_constant();
 
         // Create particle defs, initialize on device
         ParticleParams::Input defs;

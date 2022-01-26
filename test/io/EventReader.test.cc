@@ -33,7 +33,8 @@ class EventReaderTest : public celeritas::Test,
         using celeritas::units::ElementaryCharge;
         using celeritas::units::MevMass;
         auto           zero   = celeritas::zero_quantity();
-        constexpr auto stable = celeritas::ParticleDef::stable_decay_constant();
+        constexpr auto stable
+            = celeritas::ParticleRecord::stable_decay_constant();
 
         // Create shared standard model particle data
         particle_params_ = std::make_shared<ParticleParams>(

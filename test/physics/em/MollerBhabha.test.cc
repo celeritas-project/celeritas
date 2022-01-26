@@ -39,9 +39,9 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using celeritas::ParticleDef;
+        using celeritas::ParticleRecord;
         using namespace celeritas::units;
-        constexpr auto stable = ParticleDef::stable_decay_constant();
+        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Particles needed by interactor
         Base::set_particle_params({{"electron",

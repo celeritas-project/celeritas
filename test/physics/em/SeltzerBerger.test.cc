@@ -55,11 +55,11 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
     void SetUp() override
     {
         using celeritas::MatterState;
-        using celeritas::ParticleDef;
+        using celeritas::ParticleRecord;
         using namespace celeritas::constants;
         using namespace celeritas::units;
         constexpr auto zero   = celeritas::zero_quantity();
-        constexpr auto stable = ParticleDef::stable_decay_constant();
+        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Set up shared particle data
         Base::set_particle_params(

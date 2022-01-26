@@ -147,7 +147,7 @@ CELER_FUNCTION units::LogMevEnergy
 /*!
  * Static material defs for the current state.
  */
-CELER_FUNCTION const MaterialDef& MaterialView::material_def() const
+CELER_FUNCTION const MaterialRecord& MaterialView::material_def() const
 {
     return params_.materials[material_];
 }

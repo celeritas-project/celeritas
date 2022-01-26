@@ -97,7 +97,7 @@ class MaterialView
 
     // HELPER FUNCTIONS
 
-    CELER_FORCEINLINE_FUNCTION const MaterialDef& material_def() const;
+    CELER_FORCEINLINE_FUNCTION const MaterialRecord& material_def() const;
 };
 
 //---------------------------------------------------------------------------//

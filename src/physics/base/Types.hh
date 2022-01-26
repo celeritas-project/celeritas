@@ -13,8 +13,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-//! Opaque index to ParticleDef in a vector: represents a particle type
-using ParticleId = OpaqueId<struct ParticleDef>;
+//! Opaque index to ParticleRecord in a vector: represents a particle type
+using ParticleId = OpaqueId<struct ParticleRecord>;
 
 //! Opaque index of physics model
 using ModelId = OpaqueId<class Model>;

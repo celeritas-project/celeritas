@@ -39,10 +39,10 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using celeritas::ParticleDef;
+        using celeritas::ParticleRecord;
         using namespace celeritas::units;
         constexpr auto zero   = celeritas::zero_quantity();
-        auto           stable = ParticleDef::stable_decay_constant();
+        auto           stable = ParticleRecord::stable_decay_constant();
 
         // Particles for interactor
         Base::set_particle_params(

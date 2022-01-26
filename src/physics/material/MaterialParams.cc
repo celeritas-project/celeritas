@@ -139,7 +139,7 @@ void MaterialParams::append_element_def(const ElementInput& inp,
     CELER_EXPECT(inp.atomic_number > 0);
     CELER_EXPECT(inp.atomic_mass > zero_quantity());
 
-    ElementDef result;
+    ElementRecord result;
 
     // Copy basic properties
     result.atomic_number = inp.atomic_number;
@@ -253,7 +253,7 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
         CELER_ASSERT(iter_reinserted.second);
     }
 
-    MaterialDef result;
+    MaterialRecord result;
     // Copy basic properties
     result.number_density = inp.number_density;
     result.temperature    = inp.temperature;
@@ -273,7 +273,7 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
          host_data->elcomponents[result.elements])
     {
         CELER_ASSERT(comp.element < host_data->elements.size());
-        const ElementDef& el = host_data->elements[comp.element];
+        const ElementRecord& el = host_data->elements[comp.element];
 
         avg_amu_mass += comp.fraction * el.atomic_mass.value();
         avg_z += comp.fraction * el.atomic_number;

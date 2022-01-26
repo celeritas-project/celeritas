@@ -76,7 +76,8 @@ class CutoffParamsTest : public celeritas::Test
         // Set up ParticleParams
         ParticleParams::Input p_input;
         constexpr auto        zero = celeritas::zero_quantity();
-        constexpr auto stable = celeritas::ParticleDef::stable_decay_constant();
+        constexpr auto        stable
+            = celeritas::ParticleRecord::stable_decay_constant();
 
         p_input.push_back({"electron",
                            pdg::electron(),

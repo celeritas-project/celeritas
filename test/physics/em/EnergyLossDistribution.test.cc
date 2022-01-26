@@ -38,7 +38,8 @@ class EnergyLossDistributionTest : public celeritas::Test
         using namespace celeritas::units;
         namespace pdg = celeritas::pdg;
 
-        constexpr auto stable = celeritas::ParticleDef::stable_decay_constant();
+        constexpr auto stable
+            = celeritas::ParticleRecord::stable_decay_constant();
 
         // Set up shared material data
         MaterialParams::Input mat_inp;

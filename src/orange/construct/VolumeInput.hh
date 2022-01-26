@@ -19,7 +19,7 @@ namespace celeritas
  */
 struct VolumeInput
 {
-    using Flags = VolumeDef::Flags;
+    using Flags = VolumeRecord::Flags;
 
     //! Sorted list of surface IDs in this cell
     std::vector<SurfaceId> faces{};

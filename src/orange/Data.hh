@@ -68,7 +68,7 @@ struct SurfaceData
  *
  * \sa VolumeView
  */
-struct VolumeDef
+struct VolumeRecord
 {
     ItemRange<SurfaceId> faces;
     ItemRange<logic_int> logic;
@@ -97,7 +97,7 @@ struct VolumeData
 
     //// DATA ////
 
-    Items<VolumeDef> defs;
+    Items<VolumeRecord> defs;
 
     // Storage
     Collection<SurfaceId, W, M> faces;

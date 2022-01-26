@@ -89,7 +89,7 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
                                    pdg::gamma(),
                                    zero_quantity(),
                                    zero_quantity(),
-                                   ParticleDef::stable_decay_constant()}});
+                                   ParticleRecord::stable_decay_constant()}});
         params.particles = particles->device_ref();
 
         // Set up empty cutoff data

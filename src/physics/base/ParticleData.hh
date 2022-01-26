@@ -28,7 +28,7 @@ namespace celeritas
  * Particle definitions are accessed via the ParticleParams: using PDGs
  * to look up particle IDs, etc.
  */
-struct ParticleDef
+struct ParticleRecord
 {
     units::MevMass          mass;           //!< Rest mass [MeV / c^2]
     units::ElementaryCharge charge;         //!< Charge in units of [e]
@@ -61,7 +61,7 @@ struct ParticleParamsData
 
     //// DATA ////
 
-    Items<ParticleDef> particles;
+    Items<ParticleRecord> particles;
 
     //// METHODS ////
 
