@@ -55,12 +55,12 @@ class MaterialTrackView
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Current material identifier
-    inline CELER_FUNCTION MaterialId material_id() const;
+    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
 
     //// STATIC PROPERTIES ////
 
     // Get a view to material properties
-    inline CELER_FUNCTION MaterialView material_view() const;
+    CELER_FORCEINLINE_FUNCTION MaterialView material_view() const;
 
     // Access scratch space with at least one real per element component
     inline CELER_FUNCTION Span<real_type> element_scratch();
@@ -70,7 +70,7 @@ class MaterialTrackView
     const MaterialStateRef&       states_;
     const ThreadId                thread_;
 
-    inline CELER_FUNCTION MaterialTrackState& state() const;
+    CELER_FORCEINLINE_FUNCTION MaterialTrackState& state() const;
 };
 
 //---------------------------------------------------------------------------//

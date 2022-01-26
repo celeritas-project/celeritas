@@ -46,7 +46,7 @@ class LogicEvaluator
 /*!
  * Construct with a view to some logic definition.
  */
-CELER_FORCEINLINE_FUNCTION LogicEvaluator::LogicEvaluator(SpanConstLogic logic)
+CELER_FUNCTION LogicEvaluator::LogicEvaluator(SpanConstLogic logic)
     : logic_(logic)
 {
     CELER_EXPECT(!logic_.empty());

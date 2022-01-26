@@ -55,30 +55,30 @@ class LogicStack
     CELER_FORCEINLINE_FUNCTION size_type size() const { return size_; }
 
     // Whether any elements exist
-    inline CELER_FUNCTION bool empty() const;
+    CELER_FORCEINLINE_FUNCTION bool empty() const;
 
     // Access the top value of the stack
-    inline CELER_FUNCTION value_type top() const;
+    CELER_FORCEINLINE_FUNCTION value_type top() const;
 
     // Access a single bit (zero is deepest level of stack), used by ostream
-    inline CELER_FUNCTION value_type operator[](size_type index) const;
+    CELER_FORCEINLINE_FUNCTION value_type operator[](size_type index) const;
 
     //// MUTATORS ////
 
     // Push a boolean onto the stack
-    inline CELER_FUNCTION void push(value_type v);
+    CELER_FORCEINLINE_FUNCTION void push(value_type v);
 
     // Pop a value off the stack
-    inline CELER_FUNCTION value_type pop();
+    CELER_FORCEINLINE_FUNCTION value_type pop();
 
     // Negate the value on the top of the stack
-    inline CELER_FUNCTION void apply_not();
+    CELER_FORCEINLINE_FUNCTION void apply_not();
 
     // Apply boolean 'and' to the top of the stack
-    inline CELER_FUNCTION void apply_and();
+    CELER_FORCEINLINE_FUNCTION void apply_and();
 
     // Apply boolean 'or' to the top of the stack
-    inline CELER_FUNCTION void apply_or();
+    CELER_FORCEINLINE_FUNCTION void apply_or();
 
   private:
     //! Get the least significant bit
@@ -116,7 +116,7 @@ class LogicStack
 /*!
  * Whether the stack has any pushed values.
  */
-CELER_FORCEINLINE_FUNCTION bool LogicStack::empty() const
+CELER_FUNCTION bool LogicStack::empty() const
 {
     return size_ == size_type(0);
 }
@@ -125,7 +125,7 @@ CELER_FORCEINLINE_FUNCTION bool LogicStack::empty() const
 /*!
  * Access the top value of the stack.
  */
-CELER_FORCEINLINE_FUNCTION auto LogicStack::top() const -> value_type
+CELER_FUNCTION auto LogicStack::top() const -> value_type
 {
     CELER_EXPECT(!empty());
     return LogicStack::lsb(data_);
@@ -146,7 +146,7 @@ CELER_FUNCTION auto LogicStack::operator[](size_type index) const -> value_type
 /*!
  * Push a boolean onto the stack.
  */
-CELER_FORCEINLINE_FUNCTION void LogicStack::push(value_type v)
+CELER_FUNCTION void LogicStack::push(value_type v)
 {
     CELER_EXPECT(size() != max_stack_depth());
     // Shift stack left and add least significant bit
@@ -159,7 +159,7 @@ CELER_FORCEINLINE_FUNCTION void LogicStack::push(value_type v)
 /*!
  * Pop a value off the stack.
  */
-CELER_FORCEINLINE_FUNCTION auto LogicStack::pop() -> value_type
+CELER_FUNCTION auto LogicStack::pop() -> value_type
 {
     CELER_EXPECT(!empty());
     // Extract least significant bit
@@ -175,7 +175,7 @@ CELER_FORCEINLINE_FUNCTION auto LogicStack::pop() -> value_type
 /*!
  * Negate the value on the top of the stack.
  */
-CELER_FORCEINLINE_FUNCTION void LogicStack::apply_not()
+CELER_FUNCTION void LogicStack::apply_not()
 {
     CELER_EXPECT(!empty());
     data_ ^= size_type(1);
@@ -185,7 +185,7 @@ CELER_FORCEINLINE_FUNCTION void LogicStack::apply_not()
 /*!
  * Apply boolean 'and' to the top of the stack.
  */
-CELER_FORCEINLINE_FUNCTION void LogicStack::apply_and()
+CELER_FUNCTION void LogicStack::apply_and()
 {
     CELER_EXPECT(size() >= size_type(2));
     size_type temp = LogicStack::lsb(data_);
@@ -197,7 +197,7 @@ CELER_FORCEINLINE_FUNCTION void LogicStack::apply_and()
 /*!
  * Apply boolean 'or' to the top of the stack.
  */
-CELER_FORCEINLINE_FUNCTION void LogicStack::apply_or()
+CELER_FUNCTION void LogicStack::apply_or()
 {
     CELER_EXPECT(size() >= size_type(2));
     data_ = LogicStack::shr(data_) | LogicStack::lsb(data_);
