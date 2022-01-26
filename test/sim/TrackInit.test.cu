@@ -50,37 +50,6 @@ __global__ void interact_kernel(StateDeviceRef states, ITTestInputData input)
     }
 }
 
-__global__ void tracks_test_kernel(StateDeviceRef states, unsigned int* output)
-{
-    auto thread_id = celeritas::KernelParamCalculator::thread_id();
-    if (thread_id < states.size())
-    {
-        SimTrackView sim(states.sim, thread_id);
-        output[thread_id.get()] = sim.track_id().get();
-    }
-}
-
-__global__ void
-initializers_test_kernel(TrackInitStateDeviceRef inits, unsigned int* output)
-{
-    auto thread_id = celeritas::KernelParamCalculator::thread_id();
-    if (thread_id < inits.initializers.size())
-    {
-        TrackInitializer& init  = inits.initializers[thread_id];
-        output[thread_id.get()] = init.sim.track_id.get();
-    }
-}
-
-__global__ void
-vacancies_test_kernel(TrackInitStateDeviceRef inits, size_type* output)
-{
-    auto thread_id = celeritas::KernelParamCalculator::thread_id();
-    if (thread_id < inits.vacancies.size())
-    {
-        output[thread_id.get()] = inits.vacancies[thread_id];
-    }
-}
-
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
@@ -95,78 +64,6 @@ void interact(StateDeviceRef states, ITTestInputData input)
     auto lparams = calc_launch_params(states.size());
     interact_kernel<<<lparams.grid_size, lparams.block_size>>>(states, input);
     CELER_CUDA_CHECK_ERROR();
-}
-
-std::vector<unsigned int> tracks_test(StateDeviceRef states)
-{
-    // Allocate memory for results
-    std::vector<unsigned int> host_output(states.size());
-    if (states.size() == 0)
-    {
-        return host_output;
-    }
-    thrust::device_vector<unsigned int> output(states.size());
-
-    // Launch a kernel to check the track ID of the initialized tracks
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        tracks_test_kernel, "tracks_test");
-    auto lparams = calc_launch_params(states.size());
-    tracks_test_kernel<<<lparams.grid_size, lparams.block_size>>>(
-        states, thrust::raw_pointer_cast(output.data()));
-    CELER_CUDA_CHECK_ERROR();
-
-    // Copy data back to host
-    thrust::copy(output.begin(), output.end(), host_output.begin());
-
-    return host_output;
-}
-
-std::vector<unsigned int> initializers_test(TrackInitStateDeviceRef inits)
-{
-    // Allocate memory for results
-    std::vector<unsigned int> host_output(inits.initializers.size());
-    if (inits.initializers.size() == 0)
-    {
-        return host_output;
-    }
-    thrust::device_vector<unsigned int> output(inits.initializers.size());
-
-    // Launch a kernel to check the track ID of the track initializers
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        initializers_test_kernel, "initializers_test");
-    auto lparams = calc_launch_params(inits.initializers.size());
-    initializers_test_kernel<<<lparams.grid_size, lparams.block_size>>>(
-        inits, thrust::raw_pointer_cast(output.data()));
-    CELER_CUDA_CHECK_ERROR();
-
-    // Copy data back to host
-    thrust::copy(output.begin(), output.end(), host_output.begin());
-
-    return host_output;
-}
-
-std::vector<size_type> vacancies_test(TrackInitStateDeviceRef inits)
-{
-    // Allocate memory for results
-    std::vector<size_type> host_output(inits.vacancies.size());
-    if (inits.vacancies.size() == 0)
-    {
-        return host_output;
-    }
-    thrust::device_vector<size_type> output(inits.vacancies.size());
-
-    // Launch a kernel to check the indices of the empty slots
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        vacancies_test_kernel, "vacancies_test");
-    auto lparams = calc_launch_params(inits.vacancies.size());
-    vacancies_test_kernel<<<lparams.grid_size, lparams.block_size>>>(
-        inits, thrust::raw_pointer_cast(output.data()));
-    CELER_CUDA_CHECK_ERROR();
-
-    // Copy data back to host
-    thrust::copy(output.begin(), output.end(), host_output.begin());
-
-    return host_output;
 }
 
 //---------------------------------------------------------------------------//
