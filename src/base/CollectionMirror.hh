@@ -7,8 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <utility>
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "comm/Device.hh"
 
 namespace celeritas
 {
@@ -85,6 +87,24 @@ class CollectionMirror
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with defaults.
+ */
+template<template<Ownership, MemSpace> class P>
+CollectionMirror<P>::CollectionMirror(HostValue&& host)
+    : host_(std::move(host))
+{
+    CELER_EXPECT(host_);
+    host_ref_ = host_;
+    if (celeritas::device())
+    {
+        // Copy data to device and save reference
+        device_     = host_;
+        device_ref_ = device_;
+    }
+}
 
-#include "CollectionMirror.i.hh"
+//---------------------------------------------------------------------------//
+} // namespace celeritas

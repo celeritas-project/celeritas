@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
 #include "base/OpaqueId.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "RngData.hh"
@@ -87,6 +88,56 @@ class GenerateCanonical<RngEngine, double>
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from state.
+ */
+CELER_FUNCTION
+RngEngine::RngEngine(const StateRef& state, const ThreadId& id)
+{
+    CELER_EXPECT(id < state.rng.size());
+    state_ = &state.rng[id].state;
+}
 
-#include "RngEngine.i.hh"
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the RNG engine with a seed value.
+ */
+CELER_FUNCTION RngEngine& RngEngine::operator=(const Initializer_t& s)
+{
+    curand_init(s.seed, 0, 0, state_);
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample a random number.
+ */
+CELER_FUNCTION auto RngEngine::operator()() -> result_type
+{
+    return curand(state_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Specialization for RngEngine (float).
+ */
+CELER_FUNCTION float
+GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
+{
+    return curand_uniform(rng.state_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Specialization for RngEngine (double).
+ */
+CELER_FUNCTION double
+GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)
+{
+    return curand_uniform_double(rng.state_);
+}
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas
