@@ -73,34 +73,17 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
 
     // Actual distance, limited by along-step length or geometry
     real_type step = phys.step_length();
+    bool      crossed_boundary = false;
     if (step > 0)
     {
         // Propagate up to the step length or next boundary
         LinearPropagator propagate(&geo);
         auto             geo_step = propagate(step);
         step                      = geo_step.distance;
-
-        // Particle entered a new volume before reaching the interaction point
-        if (geo_step.boundary)
-        {
-            // TODO: handle this at end of step
-            geo.cross_boundary();
-            if (geo.is_outside())
-            {
-                // Kill the track if it's outside the valid geometry region
-                result->action = Action::escaped;
-                sim.alive(false);
-            }
-            else
-            {
-                // Update the material if it's inside
-                result->action = Action::entered_volume;
-                auto matid     = geo_mat.material_id(geo.volume_id());
-                CELER_ASSERT(matid);
-                mat = {matid};
-            }
-        }
+        crossed_boundary          = geo_step.boundary;
     }
+
+    // XXX is this needed?
     phys.step_length(phys.step_length() - step);
 
     // Calculate energy loss over the step length
@@ -109,24 +92,47 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
     particle.energy(
         Energy{value_as<Energy>(particle.energy()) - value_as<Energy>(eloss)});
 
-    // Kill stopped particles with no at rest processes
-    if (particle.is_stopped() && !phys.has_at_rest())
-    {
-        result->action = Action::cutoff_energy;
-        sim.alive(false);
-    }
-
     // Reduce the remaining mean free path
     real_type mfp = phys.interaction_mfp() - step * phys.macro_xs();
     phys.interaction_mfp(soft_zero(mfp) ? 0 : mfp);
 
     ModelId model{};
-    if (phys.interaction_mfp() <= 0)
+    if (crossed_boundary)
     {
-        // Reached the interaction point: sample the process and determine the
-        // corresponding model
-        auto ppid_mid = select_process_and_model(particle, phys, rng);
-        model         = ppid_mid.model;
+        // Particle entered a new volume before reaching the interaction point
+        geo.cross_boundary();
+        if (geo.is_outside())
+        {
+            // Kill the track if it's outside the valid geometry region
+            result->action = Action::escaped;
+            sim.alive(false);
+        }
+        else
+        {
+            // Update the material if it's inside
+            result->action = Action::entered_volume;
+            auto matid     = geo_mat.material_id(geo.volume_id());
+            CELER_ASSERT(matid);
+            mat = {matid};
+        }
+        phys.model_id(ModelId{});
+    }
+    else
+    {
+        // Kill stopped particles with no at rest processes
+        if (particle.is_stopped() && !phys.has_at_rest())
+        {
+            result->action = Action::cutoff_energy;
+            sim.alive(false);
+        }
+
+        if (phys.interaction_mfp() <= 0)
+        {
+            // Reached the interaction point: sample the process and determine
+            // the corresponding model
+            auto ppid_mid = select_process_and_model(particle, phys, rng);
+            model         = ppid_mid.model;
+        }
     }
     phys.model_id(model);
 }
