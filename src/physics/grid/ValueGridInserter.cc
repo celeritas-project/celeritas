@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "ValueGridInserter.hh"
 
-#include "base/SpanRemapper.hh"
 #include "base/VectorUtils.hh"
 #include "comm/Device.hh"
 
