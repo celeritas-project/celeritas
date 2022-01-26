@@ -92,9 +92,10 @@ struct ITTestInput
 //! Output data
 struct ITTestOutput
 {
-    std::vector<unsigned int> track_id;
-    std::vector<unsigned int> init_id;
-    std::vector<size_type>    vacancy;
+    std::vector<unsigned int> track_ids;
+    std::vector<int>          parent_ids;
+    std::vector<unsigned int> init_ids;
+    std::vector<size_type>    vacancies;
 };
 
 using SecondaryAllocatorData
@@ -105,19 +106,6 @@ using SecondaryAllocatorData
 //---------------------------------------------------------------------------//
 //! Launch a kernel to produce secondaries and apply cutoffs
 void interact(StateDeviceRef states, ITTestInputData input);
-
-//---------------------------------------------------------------------------//
-//! Launch a kernel to get the track IDs of the initialized tracks
-std::vector<unsigned int> tracks_test(StateDeviceRef states);
-
-//---------------------------------------------------------------------------//
-//! Launch a kernel to get the track IDs of the track initializers created from
-//! primaries or secondaries
-std::vector<unsigned int> initializers_test(TrackInitStateDeviceRef inits);
-
-//---------------------------------------------------------------------------//
-//! Launch a kernel to get the indices of the vacant slots in the track vector
-std::vector<size_type> vacancies_test(TrackInitStateDeviceRef inits);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

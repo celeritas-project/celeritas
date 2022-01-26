@@ -66,21 +66,20 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
     SimTrackView sim(states_.sim, tid);
 
     // Offset in the vector of track initializers
-    size_type offset_id = data_.secondary_counts[tid];
+    size_type offset = data_.secondary_counts[tid];
+
+    // A new track was initialized from a secondary in the parent's track slot
+    bool initialized = false;
+
+    // Save the parent ID since it will be overwritten if a secondary is
+    // initialized in this slot
+    const TrackId parent_id(sim.track_id());
 
     Interaction& result = states_.interactions[tid];
     for (const auto& secondary : result.secondaries)
     {
         if (secondary)
         {
-            // The secondary survived cutoffs: convert to a track
-            CELER_ASSERT(offset_id < data_.parents.size());
-            TrackInitializer& init = data_.initializers[ThreadId(
-                data_.initializers.size() - data_.parents.size() + offset_id)];
-
-            // Store the thread ID of the secondary's parent
-            data_.parents[ThreadId{offset_id++}] = tid;
-
             // Calculate the track ID of the secondary
             // TODO: This is nondeterministic; we need to calculate the
             // track ID in a reproducible way.
@@ -88,19 +87,51 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
             TrackId::size_type track_id = atomic_add(
                 &data_.track_counters[sim.event_id()], size_type{1});
 
-            // Construct a track initializer from a secondary
+            // Create a track initializer from the secondary
+            TrackInitializer init;
             init.sim.track_id         = TrackId{track_id};
-            init.sim.parent_id        = sim.track_id();
+            init.sim.parent_id        = parent_id;
             init.sim.event_id         = sim.event_id();
             init.sim.alive            = true;
             init.geo.pos              = geo.pos();
             init.geo.dir              = secondary.direction;
             init.particle.particle_id = secondary.particle_id;
             init.particle.energy      = secondary.energy;
+
+            if (!initialized && !sim.alive())
+            {
+                ParticleTrackView particle(
+                    params_.particles, states_.particles, tid);
+                PhysicsTrackView phys(
+                    params_.physics, states_.physics, {}, {}, tid);
+
+                // The parent was killed, so initialize the first secondary in
+                // the parent's track slot. Keep the parent's geometry state
+                // but get the direction from the secondary. The material state
+                // will be the same as the parent's.
+                sim = init.sim;
+                geo = GeoTrackView::DetailedInitializer{geo, init.geo.dir};
+                particle    = init.particle;
+                phys        = {};
+                initialized = true;
+            }
+            else
+            {
+                // Store the track initializer
+                ThreadId init_id(data_.initializers.size()
+                                 - data_.parents.size() + offset);
+                CELER_ASSERT(init_id < data_.initializers.size());
+                data_.initializers[init_id] = init;
+
+                // Store the thread ID of the secondary's parent
+                CELER_ASSERT(offset < data_.parents.size());
+                data_.parents[ThreadId(offset++)] = tid;
+            }
         }
     }
     // Clear the interaction
-    result = Interaction::from_processed();
+    result = initialized ? Interaction::from_spawned()
+                         : Interaction::from_processed();
 }
 
 //---------------------------------------------------------------------------//

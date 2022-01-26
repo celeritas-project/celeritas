@@ -27,6 +27,8 @@
 namespace celeritas_test
 {
 using namespace celeritas;
+using TrackInitDeviceValue
+    = TrackInitStateData<Ownership::value, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -115,7 +117,7 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         CELER_ENSURE(params);
     }
 
-    // Create primary particles
+    //! Create primary particles
     std::vector<Primary> generate_primaries(size_type num_primaries)
     {
         std::vector<Primary> result;
@@ -131,7 +133,7 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         return result;
     }
 
-    // Create mutable state data
+    //! Create mutable state data
     void build_states(size_type num_tracks, size_type storage_factor)
     {
         CELER_EXPECT(params);
@@ -157,6 +159,43 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         CELER_ENSURE(states && track_init_states);
     }
 
+    //! Copy results to host
+    ITTestOutput
+    get_result(StateDeviceRef& states, TrackInitDeviceValue& track_init_states)
+    {
+        CELER_EXPECT(states);
+        CELER_EXPECT(track_init_states);
+
+        ITTestOutput result;
+
+        // Copy track initializer data to host
+        TrackInitStateData<Ownership::value, MemSpace::host> data;
+        data = track_init_states;
+
+        // Store the IDs of the vacant track slots
+        const auto vacancies = data.vacancies.data();
+        result.vacancies     = {vacancies.begin(), vacancies.end()};
+
+        // Store the track IDs of the initializers
+        for (const auto& init : data.initializers.data())
+        {
+            result.init_ids.push_back(init.sim.track_id.get());
+        }
+
+        // Copy sim states to host
+        StateCollection<SimTrackState, Ownership::value, MemSpace::host> sim(
+            states.sim.state);
+
+        // Store the track IDs and parent IDs
+        for (auto tid : range(ThreadId{sim.size()}))
+        {
+            result.track_ids.push_back(sim[tid].track_id.unchecked_get());
+            result.parent_ids.push_back(sim[tid].parent_id.unchecked_get());
+        }
+
+        return result;
+    }
+
     std::shared_ptr<GeoMaterialParams>            geo_mats;
     std::shared_ptr<ParticleParams>               particles;
     std::shared_ptr<MaterialParams>               materials;
@@ -167,7 +206,7 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
     StateData<Ownership::value, MemSpace::device> device_states;
     ParamsDeviceRef                               params;
     StateDeviceRef                                states;
-    TrackInitStateData<Ownership::value, MemSpace::device> track_init_states;
+    TrackInitDeviceValue                          track_init_states;
 };
 
 //---------------------------------------------------------------------------//
@@ -188,31 +227,44 @@ TEST_F(TrackInitTest, run)
     build_states(num_tracks, storage_factor);
 
     // Check that all of the track slots were marked as empty
-    ITTestOutput output, expected;
-    output.vacancy   = vacancies_test(make_ref(track_init_states));
-    expected.vacancy = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    EXPECT_VEC_EQ(expected.vacancy, output.vacancy);
+    {
+        auto result = get_result(states, track_init_states);
+        static const unsigned int expected_vacancies[]
+            = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
+    }
 
     // Create track initializers on device from primary particles
     extend_from_primaries(track_inits->host_ref(), &track_init_states);
 
     // Check the track IDs of the track initializers created from primaries
-    output.init_id   = initializers_test(make_ref(track_init_states));
-    expected.init_id = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-    EXPECT_VEC_EQ(expected.init_id, output.init_id);
+    {
+        auto result = get_result(states, track_init_states);
+        static const unsigned int expected_track_ids[]
+            = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+        EXPECT_VEC_EQ(expected_track_ids, result.init_ids);
+    }
 
     // Initialize the primary tracks on device
     initialize_tracks(params, states, &track_init_states);
 
-    // Check the IDs of the initialized tracks
-    output.track_id   = tracks_test(states);
-    expected.track_id = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-    EXPECT_VEC_EQ(expected.track_id, output.track_id);
+    // Check the track IDs and parent IDs of the initialized tracks
+    {
+        auto result = get_result(states, track_init_states);
+        static const unsigned int expected_track_ids[]
+            = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+        EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+
+        // All primary particles, so no parent
+        static const int expected_parent_ids[]
+            = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+        EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+    }
 
     // Allocate input device data (number of secondaries to produce for each
     // track and whether the track survives the interaction)
-    std::vector<size_type> alloc = {1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
-    std::vector<char>      alive = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
+    std::vector<size_type> alloc = {1, 1, 0, 0, 1, 1, 0, 0, 2, 1};
+    std::vector<char>      alive = {0, 1, 0, 1, 0, 1, 0, 1, 0, 0};
     ITTestInput            input(alloc, alive);
 
     // Launch kernel to process interactions
@@ -222,29 +274,52 @@ TEST_F(TrackInitTest, run)
     extend_from_secondaries(params, states, &track_init_states);
 
     // Check the vacancies
-    output.vacancy   = vacancies_test(make_ref(track_init_states));
-    expected.vacancy = {2, 6};
-    EXPECT_VEC_EQ(expected.vacancy, output.vacancy);
+    {
+        auto result = get_result(states, track_init_states);
+        static const unsigned int expected_vacancies[] = {2, 6};
+        EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
+    }
 
-    // Check the track IDs of the track initializers created from secondaries
-    // Output is sorted as TrackInitializerStore does not calculate IDs
-    // deterministically
-    output.init_id = initializers_test(make_ref(track_init_states));
-    std::sort(std::begin(output.init_id), std::end(output.init_id));
-    expected.init_id = {0, 1, 15, 16, 17};
-    EXPECT_VEC_EQ(expected.init_id, output.init_id);
+    // Check the track IDs of the track initializers created from secondaries.
+    // Because IDs are not calculated deterministically and we don't know which
+    // IDs were used for the immediately-initialized secondaries and which were
+    // used for the track initializers, just check that there is the correct
+    // number and they are in the correct range.
+    {
+        auto result = get_result(states, track_init_states);
+        EXPECT_TRUE(std::all_of(std::begin(result.init_ids),
+                                std::end(result.init_ids),
+                                [](unsigned int id) { return id <= 18; }));
+        EXPECT_EQ(5, result.init_ids.size());
+
+        // First two initializers are from primaries
+        EXPECT_EQ(0, result.init_ids[0]);
+        EXPECT_EQ(1, result.init_ids[1]);
+    }
 
     // Initialize secondaries on device
     initialize_tracks(params, states, &track_init_states);
 
-    // Check the track IDs of the initialized tracks
-    // Output is sorted as TrackInitializerStore does not calculate IDs
-    // deterministically
-    output.track_id   = tracks_test(states);
-    expected.track_id = {12, 3, 16, 5, 13, 7, 17, 9, 14, 11};
-    std::sort(std::begin(output.track_id), std::end(output.track_id));
-    std::sort(std::begin(expected.track_id), std::end(expected.track_id));
-    EXPECT_VEC_EQ(expected.track_id, output.track_id);
+    // Check the track IDs and parent IDs of the initialized tracks
+    {
+        auto result = get_result(states, track_init_states);
+        EXPECT_TRUE(std::all_of(std::begin(result.track_ids),
+                                std::end(result.track_ids),
+                                [](unsigned int id) { return id <= 18; }));
+
+        // Tracks that were not killed should have the same ID
+        EXPECT_EQ(3, result.track_ids[1]);
+        EXPECT_EQ(5, result.track_ids[3]);
+        EXPECT_EQ(7, result.track_ids[5]);
+        EXPECT_EQ(9, result.track_ids[7]);
+
+        // Two tracks should have the same parent ID = 10
+        int expected_parent_ids[] = {2, -1, 7, -1, 6, -1, 10, -1, 10, 11};
+        std::sort(std::begin(result.parent_ids), std::end(result.parent_ids));
+        std::sort(std::begin(expected_parent_ids),
+                  std::end(expected_parent_ids));
+        EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+    }
 }
 
 TEST_F(TrackInitTest, primaries)
@@ -288,11 +363,10 @@ TEST_F(TrackInitTest, primaries)
     }
 
     // Check the final track IDs
-    ITTestOutput output, expected;
-    output.track_id = tracks_test(states);
-    expected.track_id.resize(num_tracks);
-    std::iota(expected.track_id.begin(), expected.track_id.end(), 0);
-    EXPECT_VEC_EQ(expected.track_id, output.track_id);
+    auto                   result = get_result(states, track_init_states);
+    std::vector<size_type> expected_track_ids(num_tracks);
+    std::iota(expected_track_ids.begin(), expected_track_ids.end(), 0);
+    EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
 
     EXPECT_EQ(track_init_states.num_primaries, 0);
     EXPECT_EQ(track_init_states.initializers.size(), 0);
