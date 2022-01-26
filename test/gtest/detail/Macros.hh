@@ -95,7 +95,7 @@ const char*
 trunc_string(unsigned int digits, const char* str, const char* trunc);
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 //! Whether soft equivalence can be performed on the given types.
 template<class T1, class T2>

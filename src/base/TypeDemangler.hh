@@ -43,7 +43,7 @@ class TypeDemangler
 std::string demangled_typeid_name(const char* typeid_name);
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Get the pretty typename of the instantiated type (static).

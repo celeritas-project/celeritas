@@ -58,7 +58,7 @@ class Diagnostic
 };
 
 //---------------------------------------------------------------------------//
-// INLINE MEMBER FUNCTIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 //! Default destructor
 template<MemSpace M>

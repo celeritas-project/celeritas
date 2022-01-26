@@ -104,7 +104,7 @@ struct StaticSurfaceAction
     } while (0)
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Construct with reference to surfaces and action to apply.

@@ -45,7 +45,7 @@ class Stopwatch
 };
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Start the count at construction.

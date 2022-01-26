@@ -54,7 +54,7 @@ struct IntersectionPartitioner
 };
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Convert an OnSurface (may be null) to an OnFace using a volume view.

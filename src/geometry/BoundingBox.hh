@@ -55,7 +55,7 @@ class BoundingBox
 };
 
 //---------------------------------------------------------------------------//
-// INLINE MEMBER FUNCTIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Create a bounding box with infinite extents.

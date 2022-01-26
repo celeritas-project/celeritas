@@ -62,7 +62,7 @@ class SurfaceInserter
 };
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Whether a generic surface reference is valid.

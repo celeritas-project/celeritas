@@ -61,7 +61,7 @@ class SimpleUnitTracker
 };
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Construct with reference to persistent parameter data.

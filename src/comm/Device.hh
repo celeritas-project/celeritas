@@ -92,7 +92,7 @@ std::ostream& operator<<(std::ostream&, const Device&);
 void set_cuda_stack_size(int limit);
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTION DEFINITIONS
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Get the CUDA device ID, if active.
