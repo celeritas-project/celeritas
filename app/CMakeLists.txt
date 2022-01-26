@@ -274,7 +274,8 @@ if(CELERITAS_BUILD_DEMOS)
     # Disable test when prereqs are not available or for debug builds
     # (debug failures seem limited to older architectures with debug assertions
     # enabled)
-    if(NOT CELERITAS_USE_Geant4
+    if(NOT CELERITAS_USE_CUDA
+       OR NOT CELERITAS_USE_Geant4
        OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3
        OR NOT CELERITAS_USE_Python
