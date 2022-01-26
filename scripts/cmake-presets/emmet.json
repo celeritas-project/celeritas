@@ -8,7 +8,7 @@
       "inherits": [".spack-base", "full"],
       "generator": "Ninja",
       "environment": {
-        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}"
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:/usr/local/cuda-11.6/bin:$penv{PATH}"
       },
       "cacheVariables": {
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "ON"},
