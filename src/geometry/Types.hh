@@ -19,6 +19,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 //! Identifier for a geometry volume
 using VolumeId = OpaqueId<struct Volume>;
+using SurfaceId = OpaqueId<struct Surface>;
 
 //---------------------------------------------------------------------------//
 // STRUCTS

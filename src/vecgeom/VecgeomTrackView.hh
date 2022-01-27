@@ -83,6 +83,9 @@ class VecgeomTrackView
     // Get the volume ID in the current cell.
     CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
 
+    //! VecGeom states are never "on" a surface
+    CELER_FUNCTION SurfaceId surface_id() const { return {}; }
+
     // Whether the track is outside the valid geometry region
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
 
