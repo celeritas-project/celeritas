@@ -71,27 +71,28 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
 {
     using Energy = ParticleTrackView::Energy;
 
-    // Actual distance, limited by along-step length or geometry
-    real_type step = phys.step_length();
     bool      crossed_boundary = false;
-    if (step > 0)
+    real_type step             = phys.step_length();
+
+    if (!particle.is_stopped())
     {
-        // Propagate up to the step length or next boundary
-        LinearPropagator propagate(&geo);
-        auto             geo_step = propagate(step);
-        step                      = geo_step.distance;
-        crossed_boundary          = geo_step.boundary;
+        // Boundary crossings and energy loss only need to be considered when
+        // the particle is moving
+        CELER_ASSERT(step > 0);
+        {
+            // Propagate up to the step length or next boundary
+            LinearPropagator propagate(&geo);
+            auto             geo_step = propagate(step);
+            step                      = geo_step.distance;
+            crossed_boundary          = geo_step.boundary;
+        }
+
+        // Calculate energy loss over the step length
+        auto eloss = calc_energy_loss(cutoffs, mat, particle, phys, step, rng);
+        *edep += value_as<Energy>(eloss);
+        particle.energy(Energy{value_as<Energy>(particle.energy())
+                               - value_as<Energy>(eloss)});
     }
-
-    // XXX is this needed?
-    phys.step_length(phys.step_length() - step);
-
-    // Calculate energy loss over the step length
-    CELER_ASSERT(!particle.is_stopped());
-    auto eloss = calc_energy_loss(cutoffs, mat, particle, phys, step, rng);
-    *edep += value_as<Energy>(eloss);
-    particle.energy(
-        Energy{value_as<Energy>(particle.energy()) - value_as<Energy>(eloss)});
 
     // Reduce the remaining mean free path
     real_type mfp = phys.interaction_mfp() - step * phys.macro_xs();
