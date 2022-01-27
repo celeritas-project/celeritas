@@ -75,7 +75,9 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
     if (min_range != inf)
     {
         // One or more range limiters applied: scale range limit according to
-        // user options
+        // user options.
+        // NOTE: if min_range doesn't change, and ends up being the limit for
+        // the whole step, then the energy by definition goes to zero.
         min_range = physics.range_to_step(min_range);
     }
 
@@ -145,12 +147,12 @@ CELER_FUNCTION ParticleTrackView::Energy
                                 Engine&                  rng)
 {
     CELER_EXPECT(step >= 0);
-    static_assert(ParticleTrackView::Energy::unit_type::value()
+    using Energy = ParticleTrackView::Energy;
+    using VGT    = ValueGridType;
+    static_assert(Energy::unit_type::value()
                       == EnergyLossCalculator::Energy::unit_type::value(),
                   "Incompatible energy types");
-
-    using VGT                  = ValueGridType;
-    const auto pre_step_energy = particle.energy();
+    const real_type pre_step_energy = value_as<Energy>(particle.energy());
 
     // Calculate the sum of energy loss rate over all processes.
     real_type total_eloss_rate = 0;
@@ -160,14 +162,14 @@ CELER_FUNCTION ParticleTrackView::Energy
         {
             auto calc_eloss_rate
                 = physics.make_calculator<EnergyLossCalculator>(grid_id);
-            total_eloss_rate = calc_eloss_rate(pre_step_energy);
+            total_eloss_rate = calc_eloss_rate(Energy{pre_step_energy});
         }
     }
 
     // Scale loss rate by step length
     real_type eloss = total_eloss_rate * step;
 
-    if (eloss > pre_step_energy.value() * physics.linear_loss_limit())
+    if (eloss > pre_step_energy * physics.linear_loss_limit())
     {
         // Enough energy is lost over this step that the dE/dx linear
         // approximation is probably wrong. Use the definition of the range as
@@ -181,7 +183,8 @@ CELER_FUNCTION ParticleTrackView::Energy
                 // Recalculate beginning-of-step range (instead of storing)
                 auto calc_range
                     = physics.make_calculator<RangeCalculator>(grid_id);
-                real_type remaining_range = calc_range(pre_step_energy) - step;
+                real_type remaining_range = calc_range(Energy{pre_step_energy})
+                                            - step;
                 CELER_ASSERT(remaining_range >= 0);
 
                 // Calculate energy along the range curve corresponding to the
@@ -189,29 +192,28 @@ CELER_FUNCTION ParticleTrackView::Energy
                 // step due to this process.
                 auto calc_energy
                     = physics.make_calculator<InverseRangeCalculator>(grid_id);
-                eloss = (pre_step_energy.value()
-                         - calc_energy(remaining_range).value());
+                eloss
+                    = (pre_step_energy - calc_energy(remaining_range).value());
             }
         }
         CELER_ASSERT(eloss > 0);
-        CELER_ASSERT(eloss <= pre_step_energy.value());
     }
+    CELER_ASSERT(eloss <= pre_step_energy);
 
     // Add energy loss fluctuations if this is the "energy loss" process
-    if (eloss > 0 && eloss < pre_step_energy.value()
-        && physics.add_fluctuation())
+    if (eloss > 0 && eloss < pre_step_energy && physics.add_fluctuation())
     {
         EnergyLossDistribution sample_loss(physics.fluctuation(),
                                            cutoffs,
                                            material,
                                            particle,
-                                           units::MevEnergy{eloss},
+                                           Energy{eloss},
                                            step);
-        eloss = min(sample_loss(rng).value(), pre_step_energy.value());
+        eloss = min(value_as<Energy>(sample_loss(rng)), pre_step_energy);
     }
 
-    CELER_ENSURE(eloss <= pre_step_energy.value());
-    return ParticleTrackView::Energy{eloss};
+    CELER_ASSERT(eloss <= pre_step_energy);
+    return Energy{eloss};
 }
 
 //---------------------------------------------------------------------------//
