@@ -87,6 +87,7 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
     phys.step_length(phys.step_length() - step);
 
     // Calculate energy loss over the step length
+    CELER_ASSERT(!particle.is_stopped());
     auto eloss = calc_energy_loss(cutoffs, mat, particle, phys, step, rng);
     *edep += value_as<Energy>(eloss);
     particle.energy(
@@ -97,7 +98,19 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
     phys.interaction_mfp(soft_zero(mfp) ? 0 : mfp);
 
     ModelId model{};
-    if (crossed_boundary)
+
+    if (particle.is_stopped())
+    {
+        // Particle lost all energy during its step.
+        CELER_ASSERT(!crossed_boundary);
+        if (!phys.has_at_rest())
+        {
+            // Kill stopped particles with no at rest processes
+            result->action = Action::cutoff_energy;
+            sim.alive(false);
+        }
+    }
+    else if (crossed_boundary)
     {
         // Particle entered a new volume before reaching the interaction point
         geo.cross_boundary();
@@ -115,24 +128,13 @@ CELER_FUNCTION void move_and_select_model(const CutoffView&      cutoffs,
             CELER_ASSERT(matid);
             mat = {matid};
         }
-        phys.model_id(ModelId{});
     }
-    else
+    else if (phys.interaction_mfp() <= 0)
     {
-        // Kill stopped particles with no at rest processes
-        if (particle.is_stopped() && !phys.has_at_rest())
-        {
-            result->action = Action::cutoff_energy;
-            sim.alive(false);
-        }
-
-        if (phys.interaction_mfp() <= 0)
-        {
-            // Reached the interaction point: sample the process and determine
-            // the corresponding model
-            auto ppid_mid = select_process_and_model(particle, phys, rng);
-            model         = ppid_mid.model;
-        }
+        // Reached the interaction point: sample the process and determine
+        // the corresponding model
+        auto ppid_mid = select_process_and_model(particle, phys, rng);
+        model         = ppid_mid.model;
     }
     phys.model_id(model);
 }
