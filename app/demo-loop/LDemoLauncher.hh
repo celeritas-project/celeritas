@@ -187,23 +187,33 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
                                - value_as<Energy>(eloss)});
     }
 
-    // Reduce the remaining mean free path
-    // TODO: use corresponding step limiter/acceptance to choose action
-    real_type mfp = phys.interaction_mfp() - step * phys.macro_xs();
-    phys.interaction_mfp(celeritas::soft_zero(mfp) ? 0 : mfp);
-
     ModelId result_model{};
     Action  result_action = Action::unchanged;
 
-    if (particle.is_stopped() && !phys.has_at_rest())
+    if (particle.is_stopped())
     {
         CELER_ASSERT(!crossed_boundary);
-
-        // Immediately kill stopped particles with no at rest processes
-        result_action = Action::cutoff_energy;
-        sim.alive(false);
+        if (!phys.has_at_rest())
+        {
+            // Immediately kill stopped particles with no at rest processes
+            result_action = Action::cutoff_energy;
+            sim.alive(false);
+        }
+        else
+        {
+            // Particle slowed down to zero: force an interaction now
+            phys.interaction_mfp(0);
+        }
     }
-    else if (crossed_boundary)
+    else
+    {
+        // Reduce the remaining mean free path
+        // TODO: use corresponding step limiter/acceptance to choose action
+        real_type mfp = phys.interaction_mfp() - step * phys.macro_xs();
+        phys.interaction_mfp(celeritas::soft_zero(mfp) ? 0 : mfp);
+    }
+
+    if (crossed_boundary)
     {
         // Particle entered a new volume before reaching the interaction point
         geo.cross_boundary();
@@ -222,7 +232,7 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
             mat = {matid};
         }
     }
-    else if (phys.interaction_mfp() <= 0 || particle.is_stopped())
+    else if (phys.interaction_mfp() <= 0)
     {
         // Reached the interaction point: sample the process and determine
         // the corresponding model
