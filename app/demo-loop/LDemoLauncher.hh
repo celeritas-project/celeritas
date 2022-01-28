@@ -95,11 +95,11 @@ CELER_FUNCTION void PreStepLauncher<M>::operator()(ThreadId tid) const
                                      particle.particle_id(),
                                      geo_mat.material_id(geo.volume_id()),
                                      tid);
-    celeritas::RngEngine         rng(states_.rng, tid);
 
     // Sample mean free path
     if (!phys.has_interaction_mfp())
     {
+        celeritas::RngEngine               rng(states_.rng, tid);
         ExponentialDistribution<real_type> sample_exponential;
         phys.interaction_mfp(sample_exponential(rng));
     }
@@ -188,22 +188,20 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
     }
 
     // Reduce the remaining mean free path
+    // TODO: use corresponding step limiter/acceptance to choose action
     real_type mfp = phys.interaction_mfp() - step * phys.macro_xs();
     phys.interaction_mfp(celeritas::soft_zero(mfp) ? 0 : mfp);
 
     ModelId result_model{};
     Action  result_action = Action::unchanged;
 
-    if (particle.is_stopped())
+    if (particle.is_stopped() && !phys.has_at_rest())
     {
-        // Particle lost all energy during its step.
         CELER_ASSERT(!crossed_boundary);
-        if (!phys.has_at_rest())
-        {
-            // Kill stopped particles with no at rest processes
-            result_action = Action::cutoff_energy;
-            sim.alive(false);
-        }
+
+        // Immediately kill stopped particles with no at rest processes
+        result_action = Action::cutoff_energy;
+        sim.alive(false);
     }
     else if (crossed_boundary)
     {
@@ -224,7 +222,7 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
             mat = {matid};
         }
     }
-    else if (phys.interaction_mfp() <= 0)
+    else if (phys.interaction_mfp() <= 0 || particle.is_stopped())
     {
         // Reached the interaction point: sample the process and determine
         // the corresponding model
