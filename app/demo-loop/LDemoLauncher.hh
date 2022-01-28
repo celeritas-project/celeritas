@@ -23,6 +23,11 @@
 #include "sim/SimTrackView.hh"
 #include "sim/TrackData.hh"
 
+#ifndef __CUDA_ARCH__
+#    include "base/ArrayIO.hh"
+#    include "comm/Logger.hh"
+#endif
+
 using celeritas::MemSpace;
 using celeritas::Ownership;
 using celeritas::value_as;
@@ -165,6 +170,7 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
 
     bool      crossed_boundary = false;
     real_type step             = phys.step_length();
+    real_type start_energy     = value_as<Energy>(particle.energy());
 
     if (!particle.is_stopped())
     {
@@ -181,10 +187,10 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
 
         // Calculate energy loss over the step length
         celeritas::CutoffView cutoffs(params_.cutoffs, mat.material_id());
-        auto eloss = calc_energy_loss(cutoffs, mat, particle, phys, step, rng);
-        states_.energy_deposition[tid] += value_as<Energy>(eloss);
-        particle.energy(Energy{value_as<Energy>(particle.energy())
-                               - value_as<Energy>(eloss)});
+        real_type             eloss = value_as<Energy>(
+            calc_energy_loss(cutoffs, mat, particle, phys, step, rng));
+        states_.energy_deposition[tid] += eloss;
+        particle.energy(Energy{start_energy - eloss});
     }
 
     ModelId result_model{};
@@ -192,7 +198,44 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
 
     if (particle.is_stopped())
     {
-        CELER_ASSERT(!crossed_boundary);
+        if (CELER_UNLIKELY(crossed_boundary))
+        {
+            // Particle should *not* go to zero energy at exactly the same time
+            // as it crosses the volume boundary.  Back particle slightly away
+            // from boundary to avoid on-surface initialization/direction
+            // change.
+
+            real_type backward_bump = real_type(1e-5) * step;
+#ifndef __CUDA_ARCH__
+            using VGT             = celeritas::ValueGridType;
+            using RangeCalculator = celeritas::RangeCalculator;
+
+            real_type range = -1;
+            if (auto ppid = phys.eloss_ppid())
+            {
+                auto grid_id = phys.value_grid(VGT::range, ppid);
+                auto calc_range
+                    = phys.make_calculator<RangeCalculator>(grid_id);
+                range = calc_range(Energy{start_energy});
+            }
+
+            CELER_LOG(error) << "Track " << sim.track_id().unchecked_get()
+                             << " (particle type ID "
+                             << particle.particle_id().unchecked_get()
+                             << ") lost all energy (" << start_energy
+                             << " MeV) while leaving volume "
+                             << geo.volume_id().unchecked_get() << " at point "
+                             << geo.pos() << " with step length " << step
+                             << " cm even though its max range was " << range
+                             << " cm.  Bumping by " << backward_bump
+                             << " to move it back inside the boundary.";
+#endif
+            celeritas::Real3 pos = geo.pos();
+            axpy(-real_type(1e-5) * step, geo.dir(), &pos);
+            geo.move_internal(pos);
+            crossed_boundary = false;
+        }
+
         if (!phys.has_at_rest())
         {
             // Immediately kill stopped particles with no at rest processes
