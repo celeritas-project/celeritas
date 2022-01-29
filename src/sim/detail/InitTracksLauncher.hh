@@ -94,7 +94,7 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
     // Initialize the geometry
     {
         GeoTrackView geo(params_.geometry, states_.geometry, vac_id);
-        if (tid < data_.parents.size())
+        if (tid < data_.num_secondaries)
         {
             // Copy the geometry state from the parent for improved
             // performance
