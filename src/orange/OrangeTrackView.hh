@@ -70,14 +70,17 @@ class OrangeTrackView
     // Find the distance to the next boundary
     inline CELER_FUNCTION real_type find_next_step();
 
-    // Cross the next straight-line geometry boundary
-    inline CELER_FUNCTION void move_across_boundary();
+    // Move to the boundary in preparation for crossing it
+    inline CELER_FUNCTION void move_to_boundary();
 
     // Move within the volume
     inline CELER_FUNCTION void move_internal(real_type step);
 
     // Move within the volume to a specific point
     inline CELER_FUNCTION void move_internal(const Real3& pos);
+
+    // Cross from one side of the current surface to the other
+    inline CELER_FUNCTION void cross_boundary();
 
     // Change direction
     inline CELER_FUNCTION void set_dir(const Real3& newdir);
@@ -242,26 +245,17 @@ CELER_FUNCTION real_type OrangeTrackView::find_next_step()
 
 //---------------------------------------------------------------------------//
 /*!
- * Move to the next boundary and update volume accordingly.
+ * Move to the next straight-line boundary but do not change volume
  */
-CELER_FUNCTION void OrangeTrackView::move_across_boundary()
+CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 {
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(next_surface_);
 
     // Physically move next step
     axpy(next_step_, local_.dir, &local_.pos);
-
-    // Logically update the surface
+    // Move to the inside of the surface
     local_.surface = next_surface_;
-
-    // Update the post-crossing volume
-    SimpleUnitTracker tracker(params_);
-    auto              init = tracker.initialize(local_);
-    // TODO: error correction/graceful failure if initialization failed
-    CELER_ASSERT(init.volume);
-    local_.volume  = init.volume;
-    local_.surface = init.surface;
     this->clear_next_step();
     dirty_         = true;
 }
@@ -282,7 +276,6 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     axpy(dist, local_.dir, &local_.pos);
     next_step_ -= dist;
     local_.surface = {};
-
     dirty_ = true;
 }
 
@@ -298,6 +291,30 @@ CELER_FUNCTION void OrangeTrackView::move_internal(const Real3& pos)
     local_.pos     = pos;
     local_.surface = {};
     this->clear_next_step();
+    dirty_         = true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Cross from one side of the current surface to the other.
+ *
+ * The position *must* be on the boundary following a move-to-boundary.
+ */
+CELER_FUNCTION void OrangeTrackView::cross_boundary()
+{
+    CELER_EXPECT(local_.surface);
+    CELER_EXPECT(!this->has_next_step());
+
+    // Flip current sense from "before crossing" to "after"
+    local_.surface.flip_sense();
+
+    // Update the post-crossing volume
+    SimpleUnitTracker tracker(params_);
+    auto              init = tracker.initialize(local_);
+    // TODO: error correction/graceful failure if initialization failed
+    CELER_ASSERT(init.volume);
+    local_.volume  = init.volume;
+    local_.surface = init.surface;
     dirty_         = true;
 }
 

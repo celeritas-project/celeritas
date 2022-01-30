@@ -64,6 +64,13 @@ class OnTface
         return sense_;
     }
 
+    //! Reverse the current sense, moving from one side to the other
+    CELER_FUNCTION void flip_sense()
+    {
+        CELER_EXPECT(*this);
+        sense_ = ::celeritas::flip_sense(sense_);
+    }
+
   private:
     IdT   id_{};
     Sense sense_{Sense::inside};
@@ -93,7 +100,8 @@ using OnFace    = OnTface<struct Face>;
 /*!
  * Distance and next-surface information.
  *
- * The resulting sense is *after* crossing the boundary.
+ * The resulting sense is *before* crossing the boundary (on the current side
+ * of it).
  */
 struct Intersection
 {

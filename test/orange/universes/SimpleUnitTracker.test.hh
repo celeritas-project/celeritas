@@ -89,7 +89,7 @@ struct InitializingLauncher
 
         // BOGUS
         states.surf[tid]  = isect.surface.id();
-        states.sense[tid] = isect.surface.unchecked_sense();
+        states.sense[tid] = flip_sense(isect.surface.unchecked_sense());
     }
 };
 

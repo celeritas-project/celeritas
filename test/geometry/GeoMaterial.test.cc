@@ -86,7 +86,8 @@ TEST_F(GeoMaterialTest, host)
                                   : "[invalid]");
 
         geo.find_next_step();
-        geo.move_across_boundary();
+        geo.move_to_boundary();
+        geo.cross_boundary();
     }
 
     // PRINT_EXPECTED(materials);

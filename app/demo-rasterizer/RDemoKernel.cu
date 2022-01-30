@@ -72,7 +72,8 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
             }
 
             // Cross surface and update post-crossing ID
-            geo.move_across_boundary();
+            geo.move_to_boundary();
+            geo.cross_boundary();
             cur_id   = geo_id(geo);
             // Next movement is to end of step or end of raytrace, whichever is
             // smaller

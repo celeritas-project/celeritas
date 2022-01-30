@@ -154,9 +154,15 @@ TEST_F(TwoVolumeTest, simple_track)
     // Next step should still be cached
     EXPECT_SOFT_EQ(sqrt_two - 1, geo.find_next_step());
 
-    // Cross boundary
-    geo.move_across_boundary();
+    // Move to boundary
+    geo.move_to_boundary();
     EXPECT_VEC_SOFT_EQ(Real3({0.5, 0, sqrt_two}), geo.pos());
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    EXPECT_FALSE(geo.is_outside());
+
+    // Logically flip the surface into the new volume
+    geo.cross_boundary();
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
     EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     EXPECT_TRUE(geo.is_outside());
@@ -168,7 +174,8 @@ TEST_F(TwoVolumeTest, simple_track)
     geo.set_dir({-sqrt_two / 2, -sqrt_two / 2, 0});
 
     EXPECT_SOFT_EQ(1.3284271247461896, geo.find_next_step());
-    geo.move_across_boundary();
+    geo.move_to_boundary();
+    geo.cross_boundary();
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{0}, geo.surface_id());
 }
@@ -179,7 +186,15 @@ TEST_F(TwoVolumeTest, persistence)
         auto geo = this->make_track_view();
         geo      = Initializer_t{{2.5, 0, 0}, {-1, 0, 0}};
         geo.find_next_step();
-        geo.move_across_boundary();
+        geo.move_to_boundary();
+    }
+    {
+        auto geo = this->make_track_view();
+        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+        EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
+        EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.dir());
+        geo.cross_boundary();
     }
     {
         auto geo = this->make_track_view();
@@ -188,7 +203,8 @@ TEST_F(TwoVolumeTest, persistence)
         EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.dir());
         EXPECT_SOFT_EQ(3.0, geo.find_next_step());
-        geo.move_across_boundary();
+        geo.move_to_boundary();
+        geo.cross_boundary();
         EXPECT_EQ(VolumeId{0}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({-1.5, 0, 0}), geo.pos());

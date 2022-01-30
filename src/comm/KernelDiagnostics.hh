@@ -25,7 +25,7 @@ struct KernelProperties
     unsigned int block_size = 0;
     unsigned int device_id  = 0;
 
-    int         num_regs  = 0; //!< Number of registers per thread
+    int         num_regs  = 0; //!< Number of 32-bit registers per thread
     std::size_t const_mem = 0; //!< Amount of constant memory (per thread) [b]
     std::size_t local_mem = 0; //!< Amount of local memory (per thread) [b]
     double      occupancy = 0; //!< Max blocks per multiprocessor

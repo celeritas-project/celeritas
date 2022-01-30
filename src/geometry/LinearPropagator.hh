@@ -15,8 +15,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Propagate (move) a particle in a straight line.
- *
- * This can be called repeatedly until the track crosses a geometry boundary.
  */
 class LinearPropagator
 {
@@ -33,7 +31,7 @@ class LinearPropagator
     // Move track to next volume boundary.
     inline CELER_FUNCTION result_type operator()();
 
-    // Move track by a user-provided distance, or to the next boundary
+    // Move track up to a user-provided distance, up to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
   private:
@@ -60,7 +58,7 @@ LinearPropagator::result_type LinearPropagator::operator()()
     result_type result;
     result.distance = track_.find_next_step();
     result.boundary = true;
-    track_.move_across_boundary();
+    track_.move_to_boundary();
     return result;
 }
 
@@ -79,7 +77,7 @@ LinearPropagator::result_type LinearPropagator::operator()(real_type dist)
 
     if (dist >= result.distance)
     {
-        track_.move_across_boundary();
+        track_.move_to_boundary();
     }
     else
     {

@@ -19,6 +19,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 //! Identifier for a geometry volume
 using VolumeId = OpaqueId<struct Volume>;
+using SurfaceId = OpaqueId<struct Surface>;
 
 //---------------------------------------------------------------------------//
 // STRUCTS
@@ -35,6 +36,9 @@ struct GeoTrackInitializer
 //---------------------------------------------------------------------------//
 /*!
  * Result of a propagation step.
+ *
+ * The boundary flag means that the geometry is step limiting, but the surface
+ * crossing must be called externally.
  */
 struct Propagation
 {

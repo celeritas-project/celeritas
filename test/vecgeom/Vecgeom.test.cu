@@ -44,7 +44,8 @@ __global__ void vgg_test_kernel(const GeoParamsCRefDevice  params,
         real_type dist = geo.find_next_step();
         if (dist < 1e20)
         {
-            geo.move_across_boundary();
+            geo.move_to_boundary();
+            geo.cross_boundary();
         }
 
         // Save current ID and distance travelled

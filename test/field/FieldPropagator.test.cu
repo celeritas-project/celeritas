@@ -78,6 +78,7 @@ __global__ void fp_test_kernel(const int                  size,
         {
             result = propagator(hstep);
             curved_length += result.distance;
+            CELER_ASSERT(!result.boundary);
         }
     }
 
@@ -158,6 +159,7 @@ __global__ void bc_test_kernel(const int                  size,
                            expected_y[j],
                            geo_track.pos()[1]);
                 }
+                geo_track.cross_boundary();
             }
         }
     }

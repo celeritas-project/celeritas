@@ -491,14 +491,14 @@ TEST_F(TwoVolumeTest, intersect)
         auto isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
         EXPECT_EQ(SurfaceId{0}, isect.surface.id());
-        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(sqrt_two, isect.distance);
 
         state = this->make_state({0.5, 0, 0}, {1, 0, 0}, "inside");
         isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
         EXPECT_EQ(SurfaceId{0}, isect.surface.id());
-        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(1.0, isect.distance);
     }
     {
@@ -511,7 +511,7 @@ TEST_F(TwoVolumeTest, intersect)
         isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
         EXPECT_EQ(SurfaceId{0}, isect.surface.id());
-        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(0.5, isect.distance);
     }
     {
@@ -527,7 +527,7 @@ TEST_F(TwoVolumeTest, intersect)
             {0, 0, 1.5}, {0, 0, -1}, "outside", "sphere", '+');
         auto isect = tracker.intersect(state);
         EXPECT_EQ(SurfaceId{0}, isect.surface.id());
-        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
         // NOTE: being on a surface with opposite sense and direction means
         // we should get a "zero distance" movement plus sense change, but
         // zero-distance movements are prohibited. This will only happen in
@@ -548,7 +548,7 @@ TEST_F(TwoVolumeTest, intersect)
             {0, 0, 1.5}, {0, 0, -1}, "inside", "sphere", '-');
         auto isect = tracker.intersect(state);
         EXPECT_EQ(SurfaceId{0}, isect.surface.id());
-        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(3.0, isect.distance);
     }
     {
@@ -559,7 +559,7 @@ TEST_F(TwoVolumeTest, intersect)
 #if 0
         // "Correct" result
         EXPECT_EQ(SurfaceId{0}, isect.surface.id());
-        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(0.0, isect.distance);
 #else
         // "Expected" result: no intersection
@@ -718,7 +718,7 @@ TEST_F(FiveVolumesTest, intersect)
         auto isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
         EXPECT_EQ("gamma.s", this->id_to_label(isect.surface.id()));
-        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(0.19098300562505255, isect.distance);
     }
     {
@@ -727,7 +727,7 @@ TEST_F(FiveVolumesTest, intersect)
         auto isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
         EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
-        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(101.04503395088592, isect.distance);
     }
 }

@@ -42,8 +42,8 @@ VecgeomTrackView::VecgeomTrackView(const ParamsRef& params,
  * Construct the state.
  *
  * Expensive. This function should only be called to initialize an event from a
- * starting location and direction. Secondaries will initialize their states
- * from a copy of the parent.
+ * starting location and direction, but excess secondaries will also be
+ * initialized this way.
  */
 CELER_FUNCTION VecgeomTrackView&
 VecgeomTrackView::operator=(const Initializer_t& init)
@@ -75,6 +75,10 @@ VecgeomTrackView::operator=(const Initializer_t& init)
 //---------------------------------------------------------------------------//
 /*!
  * Construct the state from a direction and a copy of the parent state.
+ *
+ * This is a faster method of creating secondaries from a parent that has just
+ * been absorbed, or when filling in an empty track from a parent that is still
+ * alive.
  */
 CELER_FUNCTION
 VecgeomTrackView& VecgeomTrackView::operator=(const DetailedInitializer& init)
@@ -142,16 +146,25 @@ CELER_FUNCTION real_type VecgeomTrackView::find_next_step()
 
 //---------------------------------------------------------------------------//
 /*!
- * Move to the next boundary and update volume accordingly.
+ * Move to the next boundary but don't cross yet.
  */
-CELER_FUNCTION void VecgeomTrackView::move_across_boundary()
+CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
 {
     CELER_EXPECT(this->has_next_step());
 
     // Move next step
     axpy(next_step_, dir_, &pos_);
     next_step_ = 0.;
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Cross from one side of the current surface to the other.
+ *
+ * The position *must* be on the boundary following a move-to-boundary.
+ */
+CELER_FUNCTION void VecgeomTrackView::cross_boundary()
+{
     // Relocate to next tracking volume (maybe across multiple boundaries)
 #ifdef VECGEOM_USE_NAVINDEX
     if (vgnext_.Top() != nullptr)
@@ -163,7 +176,7 @@ CELER_FUNCTION void VecgeomTrackView::move_across_boundary()
     }
 #endif
 
-    vgstate_ = vgnext_; // BVH relocation requires this extra step
+    vgstate_ = vgnext_;
 }
 
 //---------------------------------------------------------------------------//
