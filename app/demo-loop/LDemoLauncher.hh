@@ -205,7 +205,7 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
             // from boundary to avoid on-surface initialization/direction
             // change.
 
-            real_type backward_bump = real_type(1e-5) * step;
+            real_type backward_bump = real_type(-1e-5) * step;
 #ifndef __CUDA_ARCH__
             using VGT             = celeritas::ValueGridType;
             using RangeCalculator = celeritas::RangeCalculator;
@@ -231,7 +231,7 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
                              << " to move it back inside the boundary.";
 #endif
             celeritas::Real3 pos = geo.pos();
-            axpy(-real_type(1e-5) * step, geo.dir(), &pos);
+            axpy(backward_bump, geo.dir(), &pos);
             geo.move_internal(pos);
             crossed_boundary = false;
         }
