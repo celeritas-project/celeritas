@@ -8,6 +8,7 @@
 
 #include <cmath>
 
+#include "base/Algorithms.hh"
 #include "base/Assert.hh"
 #include "physics/base/Units.hh"
 
@@ -125,9 +126,13 @@ CELER_FUNCTION real_type ParticleTrackView::decay_constant() const
 // COMBINED PROPERTIES
 //---------------------------------------------------------------------------//
 /*!
- * Speed [1/c].
+ * Square of \f$ \beta \f$, which is the fraction of lightspeed [unitless].
  *
- * Speed is calculated using the equality pc/E = v/c --> v = pc^2/E. Using
+ * Beta is calculated using the equality
+ * \f[
+ * pc/E = \beta ; \quad \beta^2 = \frac{p^2 c^2}{E}
+ * \f].
+ * Using
  * \f[
  * E^2 = p^2 c^2 + m^2 c^4
  * \f]
@@ -136,25 +141,41 @@ CELER_FUNCTION real_type ParticleTrackView::decay_constant() const
  * E = K + mc^2
  * \f]
  *
- * the speed can be simplified to
+ * the square of the fraction of lightspeed speed is
  * \f[
- * v = c \sqrt{1 - \left( \frac{mc^2}{K + mc^2} \right)^2}
- *   = c \sqrt{1 - \gamma^{-2}}
+ * \beta^2 = 1 - \left( \frac{mc^2}{K + mc^2} \right)^2
+ *         = 1 - \gamma^{-2}
  * \f]
  *
  * where \f$ \gamma \f$ is the Lorentz factor (see below).
  *
  * By choosing not to divide out the mass, this expression will work for
  * massless particles.
+ *
+ * \todo For nonrelativistic particles (low kinetic energy) this expression
+ * may be inaccurate due to rounding error. It is however guaranteed to be in
+ * the exact range [0, 1].
  */
-CELER_FUNCTION units::LightSpeed ParticleTrackView::speed() const
+CELER_FUNCTION real_type ParticleTrackView::beta_sq() const
 {
     // Rest mass as energy
-    real_type mcsq = this->mass().value();
+    const real_type mcsq = this->mass().value();
     // Inverse of lorentz factor (safe for m=0)
     real_type inv_gamma = mcsq / (this->energy().value() + mcsq);
 
-    return units::LightSpeed{std::sqrt(1 - inv_gamma * inv_gamma)};
+    return 1 - ipow<2>(inv_gamma);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Speed [1/c].
+ *
+ * Speed is calculated using beta so that the expression works for massless
+ * particles.
+ */
+CELER_FUNCTION units::LightSpeed ParticleTrackView::speed() const
+{
+    return units::LightSpeed{std::sqrt(this->beta_sq())};
 }
 
 //---------------------------------------------------------------------------//
