@@ -82,6 +82,7 @@ UniformRealDistribution<RealType>::UniformRealDistribution(real_type a,
                                                            real_type b)
     : a_(a), delta_(b - a)
 {
+    CELER_EXPECT(a <= b);
 }
 
 //---------------------------------------------------------------------------//

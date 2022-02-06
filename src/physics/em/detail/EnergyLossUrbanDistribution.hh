@@ -287,8 +287,8 @@ EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
             unsigned int n = PoissonDistribution<real_type>(xs_exc_[i])(rng);
             if (n > 0)
             {
-                UniformRealDistribution<real_type> sample_fraction(n + 1,
-                                                                   n - 1);
+                UniformRealDistribution<real_type> sample_fraction(n - 1,
+                                                                   n + 1);
                 result += sample_fraction(rng) * binding_energy_[i];
             }
         }
@@ -357,7 +357,7 @@ EnergyLossUrbanDistribution::sample_ionization_loss(Engine& rng)
         // Add the contribution from ionizations in the energy interval in
         // which the energy loss is sampled for each collision (Eq. 20)
         UniformRealDistribution<real_type> sample_fraction(
-            1, alpha / energy_ratio);
+            alpha / energy_ratio, 1);
         for (CELER_MAYBE_UNUSED int i : range(n))
         {
             result += alpha * e_0 / sample_fraction(rng);

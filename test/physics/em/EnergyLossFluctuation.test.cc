@@ -159,16 +159,17 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         EXPECT_SOFT_EQ(0.00018926243294348, helper.beta_sq());
         EXPECT_SOFT_EQ(0.13988041753438,
                        value_as<EnergySq>(helper.bohr_variance()));
+
+        celeritas::detail::EnergyLossGammaDistribution sample_loss(helper);
         for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
         {
-            celeritas::detail::EnergyLossGammaDistribution sample_loss(helper);
             auto loss = sample_loss(rng).value();
             auto bin  = size_type((loss - lower) / width);
             CELER_ASSERT(bin < counts.size());
             counts[bin]++;
             sum += loss;
         }
-        EXPECT_SOFT_EQ(0.0952213970906181, sum / num_samples);
+        EXPECT_SOFT_EQ(0.096429312200727382, sum / num_samples);
     }
     {
         double           sum  = 0;
@@ -182,22 +183,22 @@ TEST_F(EnergyLossDistributionTest, gaussian)
                        value_as<EnergySq>(helper.bohr_variance()));
         EXPECT_EQ(EnergyLossFluctuationModel::gaussian, helper.model());
 
+        celeritas::detail::EnergyLossGaussianDistribution sample_loss(helper);
         for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
         {
-            celeritas::detail::EnergyLossGaussianDistribution sample_loss(
-                helper);
             auto loss = sample_loss(rng).value();
             auto bin  = size_type((loss - lower) / width);
             CELER_ASSERT(bin < counts.size());
             counts[bin]++;
             sum += loss;
         }
-        EXPECT_SOFT_EQ(0.1008228960123, sum / num_samples);
+        EXPECT_SOFT_EQ(0.10031120242856037, sum / num_samples);
     }
-    const double expected_counts[] = {9646, 150, 87, 35, 24, 21, 13, 9, 6, 1,
-                                      1,    2,   2,  1,  1,  0,  0,  1, 0, 0};
+
+    static const double expected_counts[] = {
+        9636, 166, 85, 31, 27, 18, 13, 6, 6, 4, 2, 2, 0, 3, 0, 0, 1, 0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_counts, counts);
-    EXPECT_EQ(60410, rng.count());
+    EXPECT_EQ(41006, rng.count());
 }
 
 TEST_F(EnergyLossDistributionTest, urban)
@@ -226,20 +227,21 @@ TEST_F(EnergyLossDistributionTest, urban)
     EXPECT_SOFT_EQ(1.3819085992495e-05,
                    value_as<EnergySq>(helper.bohr_variance()));
     EXPECT_EQ(EnergyLossFluctuationModel::urban, helper.model());
+    celeritas::detail::EnergyLossUrbanDistribution sample_loss(helper);
 
     for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
     {
-        celeritas::detail::EnergyLossUrbanDistribution sample_loss(helper);
         auto loss = sample_loss(rng).value();
         auto bin  = size_type((loss - lower) / width);
         CELER_ASSERT(bin < counts.size());
         counts[bin]++;
         sum += loss;
     }
-    const double expected_counts[] = {0,    0,   15,  223, 1174, 2398, 2656,
-                                      1835, 884, 394, 160, 125,  77,   31,
-                                      17,   8,   3,   0,   0,    0};
+
+    static const double expected_counts[]
+        = {0,   0,   12, 223, 1174, 2359, 2661, 1867, 898, 369,
+           189, 107, 60, 48,  20,   9,    2,    2,    0,   0};
     EXPECT_VEC_SOFT_EQ(expected_counts, counts);
-    EXPECT_SOFT_EQ(9.9757788697025472e-3, sum / num_samples);
+    EXPECT_SOFT_EQ(0.0099918954960280353, sum / num_samples);
     EXPECT_EQ(551188, rng.count());
 }
