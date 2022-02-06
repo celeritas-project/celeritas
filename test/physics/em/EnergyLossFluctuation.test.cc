@@ -3,9 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyLossDistribution.test.cc
+//! \file EnergyLossHelper.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/EnergyLossDistribution.hh"
+#include "physics/em/detail/EnergyLossDeltaDistribution.hh"
+#include "physics/em/detail/EnergyLossGammaDistribution.hh"
+#include "physics/em/detail/EnergyLossGaussianDistribution.hh"
+#include "physics/em/detail/EnergyLossUrbanDistribution.hh"
+#include "physics/em/EnergyLossHelper.hh"
 
 #include "base/CollectionStateStore.hh"
 #include "random/DiagnosticRngEngine.hh"
@@ -17,6 +21,8 @@
 using namespace celeritas;
 using namespace celeritas_test;
 using celeritas::units::MevEnergy;
+
+using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -78,12 +84,12 @@ class EnergyLossDistributionTest : public celeritas::Test
         // Construct energy loss fluctuation model parameters
         fluct.electron_id   = particles->find(pdg::electron());
         fluct.electron_mass = particles->get(fluct.electron_id).mass().value();
-        FluctuationParameters params;
+        UrbanFluctuationParameters params;
         params.oscillator_strength = {8. / 9, 1. / 9};
         params.binding_energy      = {1.317071809191344e-4, 3.24e-3};
         params.log_binding_energy  = {std::log(params.binding_energy[0]),
                                      std::log(params.binding_energy[1])};
-        make_builder(&fluct.params).push_back(params);
+        make_builder(&fluct.urban).push_back(params);
         fluct_ref = fluct;
     }
 
@@ -100,6 +106,28 @@ class EnergyLossDistributionTest : public celeritas::Test
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
+TEST_F(EnergyLossDistributionTest, none)
+{
+    ParticleTrackView particle(
+        particles->host_ref(), particle_state.ref(), ThreadId{0});
+    particle = {ParticleId{0}, MevEnergy{1e-2}};
+    MaterialTrackView material(
+        materials->host_ref(), material_state.ref(), ThreadId{0});
+    material = {MaterialId{0}};
+    CutoffView cutoff(cutoffs->host_ref(), MaterialId{0});
+    MevEnergy  mean_loss{2e-6};
+
+    // Tiny step, little energy loss
+    double           step = 1e-6;
+    EnergyLossHelper helper(
+        fluct_ref, cutoff, material, particle, mean_loss, step);
+    EXPECT_EQ(EnergyLossFluctuationModel::none, helper.model());
+
+    celeritas::detail::EnergyLossDeltaDistribution sample_loss(helper);
+    EXPECT_EQ(mean_loss, sample_loss(rng));
+    EXPECT_EQ(0, rng.count());
+}
 
 TEST_F(EnergyLossDistributionTest, gaussian)
 {
@@ -120,26 +148,55 @@ TEST_F(EnergyLossDistributionTest, gaussian)
     double              width = (upper - lower) / counts.size();
 
     // Larger step samples from gamma distribution, smaller step from Gaussian
-    for (double step : {5e-2, 5e-4})
     {
-        double                 sum = 0;
-        EnergyLossDistribution sample_loss(
+        double           sum  = 0;
+        double           step = 5e-2;
+        EnergyLossHelper helper(
             fluct_ref, cutoff, material, particle, mean_loss, step);
+        EXPECT_EQ(EnergyLossFluctuationModel::gamma, helper.model());
+        EXPECT_SOFT_EQ(0.00019160444039613,
+                       value_as<MevEnergy>(helper.max_energy()));
+        EXPECT_SOFT_EQ(0.00018926243294348, helper.beta_sq());
+        EXPECT_SOFT_EQ(0.13988041753438,
+                       value_as<EnergySq>(helper.bohr_variance()));
         for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
         {
+            celeritas::detail::EnergyLossGammaDistribution sample_loss(helper);
             auto loss = sample_loss(rng).value();
             auto bin  = size_type((loss - lower) / width);
             CELER_ASSERT(bin < counts.size());
             counts[bin]++;
             sum += loss;
         }
-        mean.push_back(sum / num_samples);
+        EXPECT_SOFT_EQ(0.0952213970906181, sum / num_samples);
+    }
+    {
+        double           sum  = 0;
+        double           step = 5e-4;
+        EnergyLossHelper helper(
+            fluct_ref, cutoff, material, particle, mean_loss, step);
+        EXPECT_SOFT_EQ(0.00019160444039613,
+                       value_as<MevEnergy>(helper.max_energy()));
+        EXPECT_SOFT_EQ(0.00018926243294348, helper.beta_sq());
+        EXPECT_SOFT_EQ(0.0013988041753438,
+                       value_as<EnergySq>(helper.bohr_variance()));
+        EXPECT_EQ(EnergyLossFluctuationModel::gaussian, helper.model());
+
+        for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+        {
+            celeritas::detail::EnergyLossGaussianDistribution sample_loss(
+                helper);
+            auto loss = sample_loss(rng).value();
+            auto bin  = size_type((loss - lower) / width);
+            CELER_ASSERT(bin < counts.size());
+            counts[bin]++;
+            sum += loss;
+        }
+        EXPECT_SOFT_EQ(0.1008228960123, sum / num_samples);
     }
     const double expected_counts[] = {9646, 150, 87, 35, 24, 21, 13, 9, 6, 1,
                                       1,    2,   2,  1,  1,  0,  0,  1, 0, 0};
-    const double expected_mean[]   = {0.0952213970906181, 0.1008228960123};
     EXPECT_VEC_SOFT_EQ(expected_counts, counts);
-    EXPECT_VEC_SOFT_EQ(expected_mean, mean);
     EXPECT_EQ(60410, rng.count());
 }
 
@@ -162,10 +219,17 @@ TEST_F(EnergyLossDistributionTest, urban)
     double              width = (upper - lower) / counts.size();
     double              sum   = 0;
 
-    EnergyLossDistribution sample_loss(
+    EnergyLossHelper helper(
         fluct_ref, cutoff, material, particle, mean_loss, step);
+    EXPECT_SOFT_EQ(0.001, value_as<MevEnergy>(helper.max_energy()));
+    EXPECT_SOFT_EQ(0.99997415284006, helper.beta_sq());
+    EXPECT_SOFT_EQ(1.3819085992495e-05,
+                   value_as<EnergySq>(helper.bohr_variance()));
+    EXPECT_EQ(EnergyLossFluctuationModel::urban, helper.model());
+
     for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
     {
+        celeritas::detail::EnergyLossUrbanDistribution sample_loss(helper);
         auto loss = sample_loss(rng).value();
         auto bin  = size_type((loss - lower) / width);
         CELER_ASSERT(bin < counts.size());

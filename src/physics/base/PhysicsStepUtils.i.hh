@@ -23,6 +23,28 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+template<EnergyLossFluctuationModel M, class Engine>
+CELER_FUNCTION EnergyLossHelper::Energy
+               sample_energy_loss(const EnergyLossHelper&  helper,
+                                  EnergyLossHelper::Energy max_loss,
+                                  Engine&                  rng)
+{
+    using Energy = EnergyLossHelper::Energy;
+    Energy result;
+    auto   sample_eloss = make_distribution<M>(helper);
+
+    do
+    {
+        result = sample_eloss(rng);
+        // Resample if the energy loss is above the particle's energy
+    } while (value_as<Energy>(result) >= value_as<Energy>(max_loss));
+    return result;
+}
+} // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Calculate physics step limits based on cross sections and range limiters.
@@ -205,13 +227,27 @@ CELER_FUNCTION ParticleTrackView::Energy
 
     if (physics.add_fluctuation() && eloss > 0)
     {
-        EnergyLossDistribution sample_loss(physics.fluctuation(),
-                                           cutoffs,
-                                           material,
-                                           particle,
-                                           Energy{eloss},
-                                           step);
-        eloss = min(value_as<Energy>(sample_loss(rng)), pre_step_energy);
+        EnergyLossHelper loss_helper(physics.fluctuation(),
+                                     cutoffs,
+                                     material,
+                                     particle,
+                                     Energy{eloss},
+                                     step);
+
+        switch (loss_helper.model())
+        {
+#define PSU_SAMPLE_ELOSS(MODEL)                                    \
+    case EnergyLossFluctuationModel::MODEL:                        \
+        eloss = value_as<Energy>(                                  \
+            sample_energy_loss<EnergyLossFluctuationModel::MODEL>( \
+                loss_helper, Energy{pre_step_energy}, rng));       \
+        break
+            PSU_SAMPLE_ELOSS(none);
+            PSU_SAMPLE_ELOSS(gamma);
+            PSU_SAMPLE_ELOSS(gaussian);
+            PSU_SAMPLE_ELOSS(urban);
+#undef PSU_SAMPLE_ELOSS
+        }
     }
 
     CELER_ASSERT(eloss >= 0 && eloss < pre_step_energy);

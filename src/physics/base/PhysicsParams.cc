@@ -489,7 +489,7 @@ void PhysicsParams::build_fluct(const Options&        opts,
 
         // Calculate the parameters for the energy loss fluctuation model (see
         // Geant3 PHYS332 2.4 and Geant4 physics reference manual 7.3.2)
-        FluctuationParameters params;
+        UrbanFluctuationParameters params;
         const real_type avg_z = mat.electron_density() / mat.number_density();
         params.oscillator_strength[1] = avg_z > 2 ? 2 / avg_z : 0;
         params.oscillator_strength[0] = 1 - params.oscillator_strength[1];
@@ -501,7 +501,7 @@ void PhysicsParams::build_fluct(const Options&        opts,
                        1 / params.oscillator_strength[0]);
         params.log_binding_energy[1] = std::log(params.binding_energy[1]);
         params.log_binding_energy[0] = std::log(params.binding_energy[0]);
-        make_builder(&data->fluctuation.params).push_back(params);
+        make_builder(&data->fluctuation.urban).push_back(params);
     }
 }
 
