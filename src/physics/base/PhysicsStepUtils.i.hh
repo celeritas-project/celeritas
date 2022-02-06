@@ -117,16 +117,10 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
  * \c range_to_step , and the above range calculation neglects energy loss by
  * discrete processes.
  *
- * Geant4's stepping algorithm independently stores the range for each process,
- * then (looping externally over all processes) calculates energy loss, checks
- * for the linear loss limit, and reduces the particle energy. Celeritas
- * inverts this loop so the total energy loss from along-step processess (not
- * including multiple scattering) is calculated first, then checked against
- * being greater than the linear loss limit.
- *
- * If energy loss is greater than the loss limit, we loop over all
- * processes with range tables and recalculate the pre-step range and solve for
- * the exact post-step energy loss.
+ * Both Geant4 and Celeritas integrate the energy loss terms across processes
+ * to get a single energy loss vector per particle type. The range table is an
+ * integral of the mean stopping power: the total distance for the particle's
+ * energy to reach zero.
  *
  * \note The inverse range correction assumes range is always the integral of
  * the stopping power/energy loss.
@@ -136,6 +130,13 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
  * why they use spline interpolation. Investigate higher-order reconstruction
  * of energy loss curve, e.g. through spline-based interpolation or log-log
  * interpolation.
+ *
+ * Zero energy loss can occur in the following cases:
+ * - The particle doesn't have slowing-down energy loss (e.g. photons)
+ * - The energy loss value at the given energy is zero (e.g. high energy
+ * particles)
+ * - The urban model is selected and samples zero collisions (possible in thin
+ * materials and/or small steps)
  */
 template<class Engine>
 CELER_FUNCTION ParticleTrackView::Energy
@@ -146,62 +147,63 @@ CELER_FUNCTION ParticleTrackView::Energy
                                 real_type                step,
                                 Engine&                  rng)
 {
-    CELER_EXPECT(step >= 0);
+    CELER_EXPECT(step > 0);
     using Energy = ParticleTrackView::Energy;
     using VGT    = ValueGridType;
     static_assert(Energy::unit_type::value()
                       == EnergyLossCalculator::Energy::unit_type::value(),
                   "Incompatible energy types");
+
+    auto ppid = physics.eloss_ppid();
+    if (!ppid)
+    {
+        // No energy loss processes for this particle
+        return Energy{0};
+    }
+
     const real_type pre_step_energy = value_as<Energy>(particle.energy());
 
     // Calculate the sum of energy loss rate over all processes.
-    real_type total_eloss_rate = 0;
-    if (auto ppid = physics.eloss_ppid())
+    real_type eloss;
     {
-        if (auto grid_id = physics.value_grid(VGT::energy_loss, ppid))
-        {
-            auto calc_eloss_rate
-                = physics.make_calculator<EnergyLossCalculator>(grid_id);
-            total_eloss_rate = calc_eloss_rate(Energy{pre_step_energy});
-        }
+        auto grid_id = physics.value_grid(VGT::energy_loss, ppid);
+        CELER_ASSERT(grid_id);
+        auto calc_eloss_rate
+            = physics.make_calculator<EnergyLossCalculator>(grid_id);
+        eloss = step * calc_eloss_rate(Energy{pre_step_energy});
     }
 
-    // Scale loss rate by step length
-    real_type eloss = total_eloss_rate * step;
-
-    if (eloss > pre_step_energy * physics.linear_loss_limit())
+    if (eloss >= pre_step_energy * physics.linear_loss_limit())
     {
         // Enough energy is lost over this step that the dE/dx linear
         // approximation is probably wrong. Use the definition of the range as
         // the integral of 1/loss to back-calculate the actual energy loss
         // along the curve given the actual step.
-        eloss = 0;
-        if (auto ppid = physics.eloss_ppid())
+        auto grid_id = physics.value_grid(VGT::range, ppid);
+        CELER_ASSERT(grid_id);
+
+        // Recalculate beginning-of-step range (instead of storing)
+        auto calc_range = physics.make_calculator<RangeCalculator>(grid_id);
+        real_type range = calc_range(Energy{pre_step_energy});
+        if (step == range)
         {
-            if (auto grid_id = physics.value_grid(VGT::range, ppid))
-            {
-                // Recalculate beginning-of-step range (instead of storing)
-                auto calc_range
-                    = physics.make_calculator<RangeCalculator>(grid_id);
-                real_type remaining_range = calc_range(Energy{pre_step_energy})
-                                            - step;
-                CELER_ASSERT(remaining_range >= 0);
-
-                // Calculate energy along the range curve corresponding to the
-                // actual step taken: this gives the exact energy loss over the
-                // step due to this process.
-                auto calc_energy
-                    = physics.make_calculator<InverseRangeCalculator>(grid_id);
-                eloss
-                    = (pre_step_energy - calc_energy(remaining_range).value());
-            }
+            // TODO: eloss should be pre_step_energy if and only if the range
+            // was the  step limiter (step == range). When we refactor to have
+            // generic range limiters, this exception should no longer be
+            // needed.
+            return Energy{pre_step_energy};
         }
-        CELER_ASSERT(eloss > 0);
-    }
-    CELER_ASSERT(eloss <= pre_step_energy);
+        CELER_ASSERT(range > step);
 
-    // Add energy loss fluctuations if this is the "energy loss" process
-    if (eloss > 0 && eloss < pre_step_energy && physics.add_fluctuation())
+        // Calculate energy along the range curve corresponding to the
+        // actual step taken: this gives the exact energy loss over the
+        // step due to this process.
+        auto calc_energy
+            = physics.make_calculator<InverseRangeCalculator>(grid_id);
+        eloss = pre_step_energy - value_as<Energy>(calc_energy(range - step));
+    }
+
+    if (physics.add_fluctuation() && eloss > 0)
     {
         EnergyLossDistribution sample_loss(physics.fluctuation(),
                                            cutoffs,
@@ -212,7 +214,7 @@ CELER_FUNCTION ParticleTrackView::Energy
         eloss = min(value_as<Energy>(sample_loss(rng)), pre_step_energy);
     }
 
-    CELER_ASSERT(eloss <= pre_step_energy);
+    CELER_ASSERT(eloss >= 0 && eloss < pre_step_energy);
     return Energy{eloss};
 }
 
