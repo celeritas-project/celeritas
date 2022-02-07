@@ -217,15 +217,17 @@ CELER_FUNCTION ParticleTrackView::Energy
         }
         CELER_ASSERT(range > step);
 
-        // Calculate energy along the range curve corresponding to the
-        // actual step taken: this gives the exact energy loss over the
-        // step due to this process.
+        // Calculate energy along the range curve corresponding to the actual
+        // step taken: this gives the exact energy loss over the step due to
+        // this process. If the step is very near the range (a few ULP off, for
+        // example), then the post-step energy will be calculated as zero
+        // without going through the condition above.
         auto calc_energy
             = physics.make_calculator<InverseRangeCalculator>(grid_id);
         eloss = pre_step_energy - value_as<Energy>(calc_energy(range - step));
     }
 
-    if (physics.add_fluctuation() && eloss > 0)
+    if (physics.add_fluctuation() && eloss > 0 && eloss < pre_step_energy)
     {
         EnergyLossHelper loss_helper(physics.fluctuation(),
                                      cutoffs,
@@ -250,7 +252,7 @@ CELER_FUNCTION ParticleTrackView::Energy
         }
     }
 
-    CELER_ASSERT(eloss >= 0 && eloss < pre_step_energy);
+    CELER_ASSERT(eloss >= 0 && eloss <= pre_step_energy);
     return Energy{eloss};
 }
 
