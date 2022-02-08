@@ -89,9 +89,83 @@ class DeviceVector
     detail::InitializedValue<size_type> size_;
 };
 
-// Swap two vectors
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with a number of allocated elements.
+ */
 template<class T>
-inline void swap(DeviceVector<T>&, DeviceVector<T>&) noexcept;
+DeviceVector<T>::DeviceVector(size_type count)
+    : allocation_(count * sizeof(T)), size_(count)
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the device data pointer.
+ */
+template<class T>
+void DeviceVector<T>::swap(DeviceVector& other) noexcept
+{
+    using std::swap;
+    swap(size_, other.size_);
+    swap(allocation_, other.allocation_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy data to device.
+ */
+template<class T>
+void DeviceVector<T>::copy_to_device(SpanConstT data)
+{
+    CELER_EXPECT(data.size() == this->size());
+    allocation_.copy_to_device(
+        {reinterpret_cast<const Byte*>(data.data()), data.size() * sizeof(T)});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy data to host.
+ */
+template<class T>
+void DeviceVector<T>::copy_to_host(SpanT data) const
+{
+    CELER_EXPECT(data.size() == this->size());
+    allocation_.copy_to_host(
+        {reinterpret_cast<Byte*>(data.data()), data.size() * sizeof(T)});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a device data pointer.
+ */
+template<class T>
+T* DeviceVector<T>::data()
+{
+    return reinterpret_cast<T*>(allocation_.device_ref().data());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a device data pointer.
+ */
+template<class T>
+const T* DeviceVector<T>::data() const
+{
+    return reinterpret_cast<const T*>(allocation_.device_ref().data());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Swap two vectors.
+ */
+template<class T>
+void swap(DeviceVector<T>& a, DeviceVector<T>& b) noexcept
+{
+    return a.swap(b);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -117,5 +191,3 @@ CELER_FUNCTION Span<T> make_span(DeviceVector<T>& dv)
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
-
-#include "DeviceVector.i.hh"
