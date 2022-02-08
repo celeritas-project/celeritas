@@ -130,7 +130,7 @@ CELER_FUNCTION real_type ParticleTrackView::decay_constant() const
  *
  * Beta is calculated using the equality
  * \f[
- * pc/E = \beta ; \quad \beta^2 = \frac{p^2 c^2}{E}
+ * pc/E = \beta ; \quad \beta^2 = \frac{p^2 c^2}{E^2}
  * \f].
  * Using
  * \f[

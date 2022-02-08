@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyLossHelper.test.cc
+//! \file EnergyLossFluctuation.test.cc
 //---------------------------------------------------------------------------//
 #include "physics/em/detail/EnergyLossDeltaDistribution.hh"
 #include "physics/em/detail/EnergyLossGammaDistribution.hh"
