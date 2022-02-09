@@ -33,14 +33,12 @@ CELER_FUNCTION EnergyLossHelper::Energy
                                   Engine&                  rng)
 {
     using Energy = EnergyLossHelper::Energy;
-    Energy result;
     auto   sample_eloss = make_distribution<M>(helper);
+    Energy result       = sample_eloss(rng);
 
-    do
-    {
-        result = sample_eloss(rng);
-        // Resample if the energy loss is above the particle's energy
-    } while (value_as<Energy>(result) >= value_as<Energy>(max_loss));
+    // TODO: investigate cases where sampled energy loss is greater than
+    // the track's actual energy, i.e. the range limiter failed.
+    result = Energy{celeritas::min(result.value(), max_loss.value())};
     return result;
 }
 } // namespace
