@@ -172,22 +172,52 @@ CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
 //---------------------------------------------------------------------------//
 /*!
  * Return the higher of two values.
+ *
+ * This function is specialized when building CUDA device code, which has
+ * special intrinsics for max.
  */
+#ifndef __CUDA_ARCH__
 template<class T>
+#else
+template<class T, typename = std::enable_if_t<!std::is_arithmetic<T>::value>>
+#endif
 CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b) noexcept
 {
     return (b > a) ? b : a;
 }
 
+#ifdef __CUDA_ARCH__
+template<class T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
+CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
+{
+    return ::max(a, b);
+}
+#endif
+
 //---------------------------------------------------------------------------//
 /*!
  * Return the lower of two values.
+ *
+ * This function is specialized when building CUDA device code, which has
+ * special intrinsics for min.
  */
+#ifndef __CUDA_ARCH__
 template<class T>
+#else
+template<class T, typename = std::enable_if_t<!std::is_arithmetic<T>::value>>
+#endif
 CELER_CONSTEXPR_FUNCTION const T& min(const T& a, const T& b) noexcept
 {
     return (b < a) ? b : a;
 }
+
+#ifdef __CUDA_ARCH__
+template<class T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
+CELER_CONSTEXPR_FUNCTION T min(T a, T b) noexcept
+{
+    return ::min(a, b);
+}
+#endif
 
 //---------------------------------------------------------------------------//
 /*!

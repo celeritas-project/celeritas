@@ -90,7 +90,7 @@ inline CELER_FUNCTION celeritas::real_type
         if (auto id = phys.value_grid(ValueGridType::range, ppid))
         {
             auto calc_range = phys.make_calculator<RangeCalculator>(id);
-            step            = min(step, calc_range(energy));
+            step            = celeritas::min(step, calc_range(energy));
         }
     }
     if (step != inf)
@@ -99,7 +99,7 @@ inline CELER_FUNCTION celeritas::real_type
     }
 
     // Take minimum of step and half the MFP
-    step = min(step, 0.5 * phys.interaction_mfp());
+    step = celeritas::min(step, 0.5 * phys.interaction_mfp());
     return step;
 }
 

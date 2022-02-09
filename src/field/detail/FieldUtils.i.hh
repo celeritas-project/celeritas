@@ -100,7 +100,7 @@ CELER_FUNCTION real_type truncation_error(real_type       step,
     errvel2 /= (magvel2 * ipow<2>(eps_rel_max));
 
     // Return the square of the maximum truncation error
-    return std::fmax(errpos2, errvel2);
+    return max(errpos2, errvel2);
 }
 
 //---------------------------------------------------------------------------//

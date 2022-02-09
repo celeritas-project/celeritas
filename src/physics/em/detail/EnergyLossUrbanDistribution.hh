@@ -150,15 +150,9 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
     // correction algorithm is discussed (though not in much detail) in PRM
     // section 7.3.3
     loss_scaling_
-        = max_energy_ > this->fwhm_min_energy()
-              ? 1 + real_type(0.5) * this->fwhm_min_energy() / max_energy_
-              : real_type(1.5);
-#if 0
-    // Alternatively...
-    loss_scaling_ = real_type(0.5)
-                        * std::fmin(this->fwhm_min_energy() / max_energy_, 1)
-                    + real_type(1);
-#endif
+        = real_type(0.5)
+              * min(this->fwhm_min_energy() / max_energy_, real_type(1))
+          + real_type(1);
     const real_type mean_loss = unscaled_mean_loss.value() / loss_scaling_;
 
     // Material-dependent data

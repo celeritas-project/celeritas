@@ -139,7 +139,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_next_step()
             vgnext_.Push(pplvol);
     }
 
-    next_step_ = std::fmax(next_step_, this->extra_push());
+    next_step_ = max(next_step_, this->extra_push());
     CELER_ENSURE(this->has_next_step());
     return next_step_;
 }
