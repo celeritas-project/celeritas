@@ -389,7 +389,7 @@ TEST_F(PhysicsTrackViewHostTest, fluctuation)
             = this->make_track_view("celeriton", mat_id);
 
         // Energy loss fluctuation model parameters
-        const auto& params = phys.fluctuation().params[mat_id];
+        const auto& params = phys.fluctuation().urban[mat_id];
         EXPECT_SOFT_EQ(1, params.oscillator_strength[0]);
         EXPECT_SOFT_EQ(0, params.oscillator_strength[1]);
         EXPECT_SOFT_EQ(19.2e-6, params.binding_energy[0]);
@@ -406,7 +406,7 @@ TEST_F(PhysicsTrackViewHostTest, fluctuation)
             = this->make_track_view("celeriton", mat_id);
 
         // Energy loss fluctuation model parameters
-        const auto& params = phys.fluctuation().params[mat_id];
+        const auto& params = phys.fluctuation().urban[mat_id];
         EXPECT_SOFT_EQ(0.5, params.oscillator_strength[0]);
         EXPECT_SOFT_EQ(0.5, params.oscillator_strength[1]);
         EXPECT_SOFT_EQ(2.53605625e-5, params.binding_energy[0]);

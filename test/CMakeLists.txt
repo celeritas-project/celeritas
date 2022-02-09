@@ -248,7 +248,7 @@ celeritas_setup_tests(SERIAL PREFIX physics/em
 
 celeritas_add_test(physics/em/BetheHeitler.test.cc)
 celeritas_add_test(physics/em/CombinedBrem.test.cc)
-celeritas_add_test(physics/em/EnergyLossDistribution.test.cc)
+celeritas_add_test(physics/em/EnergyLossFluctuation.test.cc)
 celeritas_add_test(physics/em/EPlusGG.test.cc)
 celeritas_add_test(physics/em/KleinNishina.test.cc)
 celeritas_add_test(physics/em/LivermorePE.test.cc)

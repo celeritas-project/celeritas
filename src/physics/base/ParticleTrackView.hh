@@ -78,6 +78,9 @@ class ParticleTrackView
 
     //// DERIVED PROPERTIES (indirection plus calculation) ////
 
+    // Square of fraction of lightspeed [unitless]
+    inline CELER_FUNCTION real_type beta_sq() const;
+
     // Speed [1/c]
     inline CELER_FUNCTION units::LightSpeed speed() const;
 

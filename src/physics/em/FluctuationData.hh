@@ -16,12 +16,12 @@ namespace celeritas
 /*!
  * Material-dependent parameters used in the energy loss fluctuation model.
  */
-struct FluctuationParameters
+struct UrbanFluctuationParameters
 {
     using Real2 = Array<real_type, 2>;
 
     Real2 binding_energy;      //!< Binding energies E_1 and E_2 [MeV]
-    Real2 log_binding_energy;  //!< Log of binding energies
+    Real2 log_binding_energy;  //!< Log of binding energies [LogMevEnergy]
     Real2 oscillator_strength; //!< Oscillator strengths f_1 and f_2
 };
 
@@ -39,7 +39,7 @@ struct FluctuationData
 
     ParticleId electron_id;                      //!< ID of an electron
     real_type  electron_mass;                    //!< Electron mass [MevMass]
-    MaterialItems<FluctuationParameters> params; //!< Model parameters
+    MaterialItems<UrbanFluctuationParameters> urban; //!< Model parameters
 
     //// MEMBER FUNCTIONS ////
 
@@ -55,7 +55,7 @@ struct FluctuationData
     {
         electron_id   = other.electron_id;
         electron_mass = other.electron_mass;
-        params        = other.params;
+        urban         = other.urban;
         return *this;
     }
 };

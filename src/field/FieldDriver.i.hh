@@ -99,7 +99,7 @@ FieldDriver<StepperT>::find_next_chord(real_type step, const OdeState& state)
         else
         {
             // Estimate a new trial chord with a relative scale
-            step *= std::fmax(std::sqrt(shared_.delta_chord / dchord), half());
+            step *= max(std::sqrt(shared_.delta_chord / dchord), half());
         }
     } while (!succeeded && (--remaining_steps > 0));
 
@@ -160,8 +160,8 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
         }
         else
         {
-            h = std::fmax(std::fmax(output.proposed_step, shared_.minimum_step),
-                          end_curve_length - curve_length);
+            h = max(max(output.proposed_step, shared_.minimum_step),
+                    end_curve_length - curve_length);
         }
     } while (!succeeded && --remaining_steps > 0);
 
@@ -247,7 +247,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state)
                               * std::pow(errmax2, half() * shared_.pshrink);
 
             // Truncation error too large, reduce stepsize with a low bound
-            step = std::fmax(htemp, shared_.max_stepping_decrease * step);
+            step = max(htemp, shared_.max_stepping_decrease * step);
         }
     } while (!succeeded && --remaining_steps > 0);
 
