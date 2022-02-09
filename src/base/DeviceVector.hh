@@ -89,6 +89,10 @@ class DeviceVector
     detail::InitializedValue<size_type> size_;
 };
 
+// Swap two vectors.
+template<class T>
+inline void swap(DeviceVector<T>& a, DeviceVector<T>& b) noexcept;
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
