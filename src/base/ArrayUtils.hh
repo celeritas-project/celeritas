@@ -13,6 +13,7 @@
 #include "Assert.hh"
 #include "SoftEqual.hh"
 #include "Types.hh"
+#include "detail/ArrayUtilsImpl.hh"
 
 namespace celeritas
 {
@@ -61,36 +62,6 @@ inline CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-namespace detail
-{
-//---------------------------------------------------------------------------//
-//! Traits for operations on Real3 vectors
-template<class T>
-struct RealVecTraits;
-
-template<>
-struct RealVecTraits<float>
-{
-    //! Threshold for rotation
-    static CELER_CONSTEXPR_FUNCTION float min_accurate_sintheta()
-    {
-        return 0.07f;
-    }
-};
-
-template<>
-struct RealVecTraits<double>
-{
-    //! Threshold for rotation
-    static CELER_CONSTEXPR_FUNCTION double min_accurate_sintheta()
-    {
-        return 0.005;
-    }
-};
-
-} // namespace detail
-
 //---------------------------------------------------------------------------//
 /*!
  * Increment a vector by another vector multiplied by a scalar.
