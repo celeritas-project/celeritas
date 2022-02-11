@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstdlib>
 #include <memory>
 #include <utility>
 
@@ -31,6 +32,7 @@ class DeviceAllocation
   public:
     //!@{
     //! Type aliases
+    using size_type      = std::size_t;
     using SpanBytes      = Span<Byte>;
     using SpanConstBytes = Span<const Byte>;
     //!@}
@@ -40,7 +42,7 @@ class DeviceAllocation
     DeviceAllocation() = default;
 
     // Construct and allocate a number of bytes
-    DeviceAllocation(std::size_t num_bytes);
+    DeviceAllocation(size_type num_bytes);
 
     // Swap with another allocation
     inline void swap(DeviceAllocation& other) noexcept;
@@ -48,7 +50,7 @@ class DeviceAllocation
     //// ACCESSORS ////
 
     //! Get the number of bytes allocated
-    std::size_t size() const { return size_; }
+    size_type size() const { return size_; }
 
     //! Whether memory is allocated
     bool empty() const { return size_ == 0; }
@@ -76,8 +78,8 @@ class DeviceAllocation
 
     //// DATA ////
 
-    detail::InitializedValue<std::size_t> size_;
-    DeviceUniquePtr                       data_;
+    detail::InitializedValue<size_type> size_;
+    DeviceUniquePtr                     data_;
 };
 
 // Swap two allocations
