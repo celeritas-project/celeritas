@@ -40,7 +40,7 @@ class DeviceAllocation
     DeviceAllocation() = default;
 
     // Construct and allocate a number of bytes
-    DeviceAllocation(size_type num_bytes);
+    DeviceAllocation(std::size_t num_bytes);
 
     // Swap with another allocation
     inline void swap(DeviceAllocation& other) noexcept;
@@ -48,7 +48,7 @@ class DeviceAllocation
     //// ACCESSORS ////
 
     //! Get the number of bytes allocated
-    size_type size() const { return size_; }
+    std::size_t size() const { return size_; }
 
     //! Whether memory is allocated
     bool empty() const { return size_ == 0; }
@@ -76,8 +76,8 @@ class DeviceAllocation
 
     //// DATA ////
 
-    detail::InitializedValue<size_type> size_;
-    DeviceUniquePtr                     data_;
+    detail::InitializedValue<std::size_t> size_;
+    DeviceUniquePtr                       data_;
 };
 
 // Swap two allocations

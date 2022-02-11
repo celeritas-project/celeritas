@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Allocate a buffer with the given number of bytes.
  */
-DeviceAllocation::DeviceAllocation(size_type bytes) : size_(bytes)
+DeviceAllocation::DeviceAllocation(std::size_t bytes) : size_(bytes)
 {
     CELER_EXPECT(celeritas::device());
     void* ptr = nullptr;
