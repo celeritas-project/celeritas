@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstdlib>
 #include <memory>
 #include <utility>
 
@@ -31,6 +32,7 @@ class DeviceAllocation
   public:
     //!@{
     //! Type aliases
+    using size_type      = std::size_t;
     using SpanBytes      = Span<Byte>;
     using SpanConstBytes = Span<const Byte>;
     //!@}
