@@ -162,8 +162,8 @@ struct ResizableData
  * Storage for dynamic data used to initialize new tracks.
  *
  * Not all of this is technically "state" data, though it is all mutable and in
- * most cases accessed by \c ThreadId. Specifically, \c initializers, \c
- * parents, and \c vacancies are all resizable, and \c track_counters has size
+ * most cases accessed by \c ThreadId. Specifically, \c initializers and \c
+ * vacancies are resizable, and \c track_counters has size
  * \c num_events.
  * - \c initializers stores the data for primaries and secondaries waiting to
  *   be turned into new tracks and can be any size up to \c capacity.
@@ -173,7 +173,6 @@ struct ResizableData
  * - \c track_counters stores the total number of particles that have been
  *   created per event.
  * - \c secondary_counts stores the number of secondaries created by each track
- *   (and is the only true state data).
  */
 template<Ownership W, MemSpace M>
 struct TrackInitStateData
@@ -190,19 +189,20 @@ struct TrackInitStateData
     //// DATA ////
 
     ResizableItems<TrackInitializer> initializers;
-    ResizableItems<ThreadId>         parents;
     ResizableItems<size_type>        vacancies;
+    StateItems<ThreadId>             parents;
     StateItems<size_type>            secondary_counts;
     EventItems<TrackId::size_type>   track_counters;
 
-    size_type num_primaries{}; //!< Number of uninitialized primaries
+    size_type num_primaries{};   //!< Number of uninitialized primaries
+    size_type num_secondaries{}; //!< Number of secondaries produced in step
 
     //// METHODS ////
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return initializers && parents && vacancies
+        return initializers && vacancies && !parents.empty()
                && !secondary_counts.empty() && !track_counters.empty();
     }
 
@@ -217,6 +217,7 @@ struct TrackInitStateData
         secondary_counts = other.secondary_counts;
         track_counters   = other.track_counters;
         num_primaries    = other.num_primaries;
+        num_secondaries  = other.num_secondaries;
         return *this;
     }
 };
@@ -254,12 +255,11 @@ void resize(
     // Allocate device data
     auto capacity = params.capacity;
     make_builder(&data->initializers.storage).resize(capacity);
-    make_builder(&data->parents.storage).resize(capacity);
+    make_builder(&data->parents).resize(size);
     make_builder(&data->secondary_counts).resize(size);
 
-    // Start with an empty vector of track initializers and parent thread IDs
+    // Start with an empty vector of track initializers
     data->initializers.resize(0);
-    data->parents.resize(0);
 
     // Initialize vacancies to mark all track slots as empty
     StateCollection<size_type, Ownership::value, MemSpace::host> vacancies;

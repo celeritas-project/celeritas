@@ -8,7 +8,6 @@
 #include "InitializeTracks.hh"
 
 #include <thrust/device_ptr.h>
-#include <thrust/reduce.h>
 #include <thrust/remove.h>
 #include <thrust/scan.h>
 #include "base/KernelParamCalculator.cuda.hh"
@@ -178,39 +177,35 @@ size_type remove_if_alive<MemSpace::device>(Span<size_type> vacancies)
 
 //---------------------------------------------------------------------------//
 /*!
- * Sum the total number of surviving secondaries.
- */
-template<>
-size_type reduce_counts<MemSpace::device>(Span<size_type> counts)
-{
-    size_type result = thrust::reduce(
-        thrust::device_pointer_cast(counts.data()),
-        thrust::device_pointer_cast(counts.data()) + counts.size(),
-        size_type(0),
-        thrust::plus<size_type>());
-
-    CELER_CUDA_CHECK_ERROR();
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Do an exclusive scan of the number of surviving secondaries from each track.
+ * Do an exclusive scan of the number of secondaries produced by each track.
  *
  * For an input array x, this calculates the exclusive prefix sum y of the
  * array elements, i.e., \f$ y_i = \sum_{j=0}^{i-1} x_j \f$,
  * where \f$ y_0 = 0 \f$, and stores the result in the input array.
+ *
+ * The return value is the sum of all elements in the input array.
  */
 template<>
-void exclusive_scan_counts<MemSpace::device>(Span<size_type> counts)
+size_type exclusive_scan_counts<MemSpace::device>(Span<size_type> counts)
 {
+    // Copy the last element to the host
+    Copier<size_type, MemSpace::device> copy_last_element_to{
+        {counts.data() + counts.size() - 1, 1}};
+    size_type partial1{};
+    copy_last_element_to(MemSpace::host, {&partial1, 1});
+
     thrust::exclusive_scan(
         thrust::device_pointer_cast(counts.data()),
-        thrust::device_pointer_cast(counts.data()) + counts.size(),
-        counts.data(),
+        thrust::device_pointer_cast(counts.data() + counts.size()),
+        thrust::device_pointer_cast(counts.data()),
         size_type(0));
-
     CELER_CUDA_CHECK_ERROR();
+
+    // Copy the last element (the sum of all elements but the last) to the host
+    size_type partial2{};
+    copy_last_element_to(MemSpace::host, {&partial2, 1});
+
+    return partial1 + partial2;
 }
 
 //---------------------------------------------------------------------------//

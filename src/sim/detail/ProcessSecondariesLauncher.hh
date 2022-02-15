@@ -66,7 +66,8 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
     SimTrackView sim(states_.sim, tid);
 
     // Offset in the vector of track initializers
-    size_type offset = data_.secondary_counts[tid];
+    CELER_ASSERT(data_.secondary_counts[tid] <= data_.num_secondaries);
+    size_type offset = data_.num_secondaries - data_.secondary_counts[tid];
 
     // A new track was initialized from a secondary in the parent's track slot
     bool initialized = false;
@@ -122,14 +123,18 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
             else
             {
                 // Store the track initializer
-                ThreadId init_id(data_.initializers.size()
-                                 - data_.parents.size() + offset);
-                CELER_ASSERT(init_id < data_.initializers.size());
-                data_.initializers[init_id] = init;
+                CELER_ASSERT(offset > 0 && offset <= data_.initializers.size());
+                data_.initializers[ThreadId(data_.initializers.size() - offset)]
+                    = init;
 
-                // Store the thread ID of the secondary's parent
-                CELER_ASSERT(offset < data_.parents.size());
-                data_.parents[ThreadId(offset++)] = tid;
+                // Store the thread ID of the secondary's parent if the
+                // secondary could be initialized in the next step
+                if (offset <= data_.parents.size())
+                {
+                    data_.parents[ThreadId(data_.parents.size() - offset)]
+                        = tid;
+                }
+                --offset;
             }
         }
     }
