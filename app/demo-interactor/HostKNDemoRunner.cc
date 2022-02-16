@@ -12,7 +12,6 @@
 #include "base/ArrayUtils.hh"
 #include "base/CollectionStateStore.hh"
 #include "base/Range.hh"
-#include "base/StackAllocator.hh"
 #include "base/Stopwatch.hh"
 #include "random/distributions/ExponentialDistribution.hh"
 #include "physics/base/ParticleTrackView.hh"
@@ -75,10 +74,6 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     ParticleStateData<Ownership::value, MemSpace::host> track_states;
     resize(&track_states, pparams_->host_ref(), 1);
 
-    // Make secondary store
-    StackAllocatorData<Secondary, Ownership::value, MemSpace::host> secondaries;
-    resize(&secondaries, args.max_steps);
-
     // Detector data
     DetectorParamsData detector_params;
     detector_params.tally_grid = args.tally_grid;
@@ -98,9 +93,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
         = ParticleTrackState{kn_data_.gamma_id, units::MevEnergy{args.energy}};
 
     StateHostRef state;
-    state.particle    = track_states;
-    state.secondaries = secondaries;
-    state.detector    = detector_states;
+    state.particle = track_states;
+    state.detector = detector_states;
 
     // Loop over particle tracks and events per track
     for (CELER_MAYBE_UNUSED auto n : range(args.num_tracks))
@@ -116,13 +110,10 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             params.particle, state.particle, ThreadId{0});
 
         // Create helper classes
-        StackAllocator<Secondary> allocate_secondaries(state.secondaries);
-        Detector                  detector(params.detector, state.detector);
+        Detector     detector(params.detector, state.detector);
         XsCalculator calc_xs(params.tables.xs, params.tables.reals);
 
-        CELER_ASSERT(state.secondaries.capacity() == args.max_steps);
         CELER_ASSERT(state.detector.hit_buffer.capacity() == args.max_steps);
-        CELER_ASSERT(allocate_secondaries.get().size() == 0);
         CELER_ASSERT(detector.num_hits() == 0);
 
         // Counters
@@ -163,20 +154,17 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             }
 
             // Construct the KN interactor
-            KleinNishinaInteractor interact(
-                kn_data_, particle, direction, allocate_secondaries);
+            KleinNishinaInteractor interact(kn_data_, particle, direction);
 
             // Perform interactions - emits a single particle
             Interaction interaction = interact(rng);
             CELER_ASSERT(interaction);
-            CELER_ASSERT(interaction.secondaries.size() == 1);
 
             // Deposit energy from the secondary (all local)
             {
-                const auto& secondary = interaction.secondaries.front();
-                h.dir                 = secondary.direction;
-                h.energy_deposited    = units::MevEnergy{
-                    secondary.energy.value()
+                h.dir              = interaction.secondary.direction;
+                h.energy_deposited = units::MevEnergy{
+                    interaction.secondary.energy.value()
                     + interaction.energy_deposition.value()};
                 detector.buffer_hit(h);
             }
@@ -186,17 +174,10 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
             direction = interaction.direction;
             particle.energy(interaction.energy);
         }
-        CELER_ASSERT(num_steps < args.max_steps
-                         ? allocate_secondaries.get().size() == num_steps - 1
-                         : allocate_secondaries.get().size() == num_steps);
         CELER_ASSERT(detector.num_hits() == num_steps);
 
         // Store transport time
         transport_time += elapsed_time();
-
-        // Clear secondaries
-        allocate_secondaries.clear();
-        CELER_ASSERT(allocate_secondaries.get().size() == 0);
 
         // Bin the tally results from the buffer onto the grid
         for (auto hit_id : range(Detector::HitId{detector.num_hits()}))

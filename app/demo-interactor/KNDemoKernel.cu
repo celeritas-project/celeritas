@@ -11,7 +11,6 @@
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.cuda.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "base/StackAllocator.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
 #include "random/RngEngine.hh"
 #include "physics/grid/XsCalculator.hh"
@@ -94,8 +93,7 @@ move_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 __global__ void
 interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 {
-    StackAllocator<Secondary> allocate_secondaries(states.secondaries);
-    unsigned int              tid = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     // Exit if out of range or already dead
     if (tid >= states.size() || !states.alive[tid])
@@ -127,8 +125,7 @@ interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     }
 
     // Construct RNG and interaction interfaces
-    KleinNishinaInteractor interact(
-        params.kn_interactor, particle, h.dir, allocate_secondaries);
+    KleinNishinaInteractor interact(params.kn_interactor, particle, h.dir);
 
     // Perform interaction: should emit a single particle (an electron)
     Interaction interaction = interact(rng);
@@ -137,10 +134,10 @@ interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     // Deposit energy from the secondary (effectively, an infinite energy
     // cutoff)
     {
-        const auto& secondary = interaction.secondaries.front();
-        h.dir                 = secondary.direction;
-        h.energy_deposited    = units::MevEnergy{
-            secondary.energy.value() + interaction.energy_deposition.value()};
+        h.dir = interaction.secondary.direction;
+        h.energy_deposited
+            = units::MevEnergy{interaction.secondary.energy.value()
+                               + interaction.energy_deposition.value()};
         detector.buffer_hit(h);
     }
 
@@ -174,11 +171,9 @@ cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 {
     unsigned int thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
     Detector     detector(params.detector, states.detector);
-    StackAllocator<Secondary> allocate_secondaries(states.secondaries);
 
     if (thread_idx == 0)
     {
-        allocate_secondaries.clear();
         detector.clear_buffer();
     }
 }

@@ -9,7 +9,6 @@
 
 #include "base/Assert.hh"
 #include "base/Macros.hh"
-#include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
@@ -70,12 +69,10 @@ CELER_FUNCTION void RelativisticBremLauncher<M>::operator()(ThreadId tid) const
     const ElementComponentId selected_element{0};
 
     CutoffView cutoffs(model.params.cutoffs, material.material_id());
-    StackAllocator<Secondary>  allocate_secondaries(model.states.secondaries);
     RelativisticBremInteractor interact(shared,
                                         particle,
                                         model.states.direction[tid],
                                         cutoffs,
-                                        allocate_secondaries,
                                         material_view,
                                         selected_element);
 

@@ -45,8 +45,7 @@ struct KleinNishinaLauncher
 template<MemSpace M>
 CELER_FUNCTION void KleinNishinaLauncher<M>::operator()(ThreadId tid) const
 {
-    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
-    ParticleTrackView         particle(
+    ParticleTrackView particle(
         model.params.particle, model.states.particle, tid);
 
     PhysicsTrackView physics(model.params.physics,
@@ -59,8 +58,7 @@ CELER_FUNCTION void KleinNishinaLauncher<M>::operator()(ThreadId tid) const
     if (physics.model_id() != kn.model_id)
         return;
 
-    KleinNishinaInteractor interact(
-        kn, particle, model.states.direction[tid], allocate_secondaries);
+    KleinNishinaInteractor interact(kn, particle, model.states.direction[tid]);
 
     RngEngine rng(model.states.rng, tid);
     model.states.interactions[tid] = interact(rng);

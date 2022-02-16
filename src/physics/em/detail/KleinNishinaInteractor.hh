@@ -30,8 +30,8 @@ namespace detail
  * Perform Compton scattering, neglecting atomic binding energy.
  *
  * This is a model for the discrete Compton inelastic scattering process. Given
- * an incident gamma, it adds a single secondary (electron) to the secondary
- * stack and returns an interaction for the change to the incident gamma
+ * an incident gamma, it produces a single secondary (electron)
+ * and returns an interaction for the change to the incident gamma
  * direction and energy. No cutoffs are performed for the incident energy or
  * the exiting gamma energy. A secondary production cutoff is applied to the
  * outgoing electron.
@@ -45,10 +45,9 @@ class KleinNishinaInteractor
   public:
     // Construct from shared and state data
     inline CELER_FUNCTION
-    KleinNishinaInteractor(const KleinNishinaData&    shared,
-                           const ParticleTrackView&   particle,
-                           const Real3&               inc_direction,
-                           StackAllocator<Secondary>& allocate);
+    KleinNishinaInteractor(const KleinNishinaData&  shared,
+                           const ParticleTrackView& particle,
+                           const Real3&             inc_direction);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -67,8 +66,6 @@ class KleinNishinaInteractor
     const units::MevEnergy inc_energy_;
     // Incident direction
     const Real3& inc_direction_;
-    // Allocate space for a secondary particle
-    StackAllocator<Secondary>& allocate_;
 };
 
 //---------------------------------------------------------------------------//
@@ -80,15 +77,13 @@ class KleinNishinaInteractor
  * The incident particle must be above the energy threshold: this should be
  * handled in code *before* the interactor is constructed.
  */
-CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
-    const KleinNishinaData&    shared,
-    const ParticleTrackView&   particle,
-    const Real3&               inc_direction,
-    StackAllocator<Secondary>& allocate)
+CELER_FUNCTION
+KleinNishinaInteractor::KleinNishinaInteractor(const KleinNishinaData& shared,
+                                               const ParticleTrackView& particle,
+                                               const Real3& inc_direction)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , inc_direction_(inc_direction)
-    , allocate_(allocate)
 {
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
     CELER_EXPECT(inc_energy_ > zero_quantity());
@@ -105,14 +100,6 @@ template<class Engine>
 CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
 {
     using Energy = units::MevEnergy;
-
-    // Allocate space for the single electron to be emitted
-    Secondary* electron_secondary = this->allocate_(1);
-    if (electron_secondary == nullptr)
-    {
-        // Failed to allocate space for a secondary
-        return Interaction::from_failure();
-    }
 
     // Value of epsilon corresponding to minimum photon energy
     const real_type inc_energy_per_mecsq = value_as<Energy>(inc_energy_)
@@ -160,10 +147,9 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
-    result.action      = Action::scattered;
-    result.energy      = Energy{epsilon * inc_energy_.value()};
-    result.direction   = inc_direction_;
-    result.secondaries = {electron_secondary, 1};
+    result.action    = Action::scattered;
+    result.energy    = Energy{epsilon * inc_energy_.value()};
+    result.direction = inc_direction_;
 
     // Sample azimuthal direction and rotate the outgoing direction
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
@@ -172,27 +158,27 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
                  result.direction);
 
     // Construct secondary energy by neglecting electron binding energy
-    electron_secondary->energy
+    result.secondary.energy
         = Energy{inc_energy_.value() - result.energy.value()};
 
     // Apply secondary production cutoff
-    if (electron_secondary->energy < KleinNishinaInteractor::secondary_cutoff())
+    if (result.secondary.energy < KleinNishinaInteractor::secondary_cutoff())
     {
-        result.energy_deposition = electron_secondary->energy;
-        *electron_secondary      = {};
+        result.energy_deposition = result.secondary.energy;
+        result.secondary         = {};
         return result;
     }
 
     // Outgoing secondary is an electron
-    electron_secondary->particle_id = shared_.electron_id;
+    result.secondary.particle_id = shared_.electron_id;
     // Calculate exiting electron direction via conservation of momentum
     for (int i = 0; i < 3; ++i)
     {
-        electron_secondary->direction[i]
-            = inc_direction_[i] * inc_energy_.value()
-              - result.direction[i] * result.energy.value();
+        result.secondary.direction[i] = inc_direction_[i] * inc_energy_.value()
+                                        - result.direction[i]
+                                              * result.energy.value();
     }
-    normalize_direction(&electron_secondary->direction);
+    normalize_direction(&result.secondary.direction);
 
     return result;
 }

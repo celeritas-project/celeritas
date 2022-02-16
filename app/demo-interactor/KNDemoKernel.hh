@@ -13,7 +13,6 @@
 #include "base/Types.hh"
 #include "physics/base/ParticleData.hh"
 #include "physics/base/Secondary.hh"
-#include "base/StackAllocator.hh"
 #include "physics/em/detail/KleinNishinaData.hh"
 #include "physics/grid/XsGridData.hh"
 #include "random/RngData.hh"
@@ -65,10 +64,10 @@ struct TableData
 template<Ownership W, MemSpace M>
 struct ParamsData
 {
-    celeritas::ParticleParamsData<W, M>     particle;
-    TableData<W, M>                         tables;
-    celeritas::detail::KleinNishinaData     kn_interactor;
-    DetectorParamsData                      detector;
+    celeritas::ParticleParamsData<W, M> particle;
+    TableData<W, M>                     tables;
+    celeritas::detail::KleinNishinaData kn_interactor;
+    DetectorParamsData                  detector;
 
     explicit CELER_FUNCTION operator bool() const
     {
@@ -101,9 +100,6 @@ struct InitialData
 template<Ownership W, MemSpace M>
 struct StateData
 {
-    using SecondaryAllocatorData
-        = celeritas::StackAllocatorData<celeritas::Secondary, W, M>;
-
     celeritas::ParticleStateData<W, M>                              particle;
     celeritas::RngStateData<Ownership::reference, MemSpace::device> rng;
     celeritas::Span<celeritas::Real3>                               position;
@@ -111,12 +107,11 @@ struct StateData
     celeritas::Span<celeritas::real_type>                           time;
     celeritas::Span<bool>                                           alive;
 
-    SecondaryAllocatorData  secondaries;
     DetectorStateData<W, M> detector;
 
     explicit CELER_FUNCTION operator bool() const
     {
-        return particle && rng && secondaries && detector && !position.empty()
+        return particle && rng && detector && !position.empty()
                && !direction.empty() && !time.empty() && !alive.empty();
     }
 

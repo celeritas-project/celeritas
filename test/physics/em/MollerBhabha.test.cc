@@ -95,8 +95,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_EQ(celeritas::Action::scattered, interaction.action);
 
         // Check secondaries
-        ASSERT_EQ(1, interaction.secondaries.size());
-        const auto& electron = interaction.secondaries.front();
+        const auto& electron = interaction.secondary;
         EXPECT_TRUE(electron);
         EXPECT_EQ(data_.electron_id, electron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
@@ -132,20 +131,16 @@ struct SampleResult
 //---------------------------------------------------------------------------//
 TEST_F(MollerBhabhaInteractorTest, basic)
 {
-    // Sample 4 Moller and 4 Bhabha interactors
-    this->resize_secondaries(8);
     RandomEngine& rng_engine = this->rng();
 
     // Sampled results
     SampleResult m_results, b_results;
 
-    // clang-format off
     // Incident energy [MeV] and unnormalized direction
     const SampleInit samples[] = {{1,   {5, 5, 5}},
                                   {10,  {-3, 7, 10}},
                                   {1e3, {1, -10, 5}},
                                   {1e5, {3, 7, -6}}};
-    // clang-format on
 
     CutoffView cutoff_view(this->cutoff_params()->host_ref(), MaterialId{0});
 
@@ -159,15 +154,12 @@ TEST_F(MollerBhabhaInteractorTest, basic)
         {
             this->set_inc_particle(p, MevEnergy{init.energy});
 
-            MollerBhabhaInteractor mb_interact(data_,
-                                               this->particle_track(),
-                                               cutoff_view,
-                                               dir,
-                                               this->secondary_allocator());
+            MollerBhabhaInteractor mb_interact(
+                data_, this->particle_track(), cutoff_view, dir);
 
             Interaction result = mb_interact(rng_engine);
             this->sanity_check(result);
-            const Secondary& sec = result.secondaries.front();
+            const Secondary& sec = result.secondary;
 
             SampleResult& r = (p == pdg::electron() ? m_results : b_results);
             r.inc_exit_cost.push_back(dot_product(result.direction, dir));
@@ -223,20 +215,16 @@ TEST_F(MollerBhabhaInteractorTest, basic)
 //---------------------------------------------------------------------------//
 TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
 {
-    // Sample 4 Moller and 4 Bhabha interactors
-    this->resize_secondaries(8);
     RandomEngine& rng_engine = this->rng();
 
     // Sampled results
     SampleResult m_results, b_results;
 
-    // clang-format off
     // Incident energy [MeV] and unnormalized direction
-    const SampleInit samples[] = {{10,   {5, 5, 5}},
-                                  {1e2,  {-3, 7, 10}},
+    const SampleInit samples[] = {{10, {5, 5, 5}},
+                                  {1e2, {-3, 7, 10}},
                                   {1e3, {1, -10, 5}},
                                   {1e5, {3, 7, -6}}};
-    // clang-format on
 
     // Create CutoffParams with a 1 MeV electron cutoff (range not needed)
     CutoffParams::MaterialCutoffs material_cutoffs;
@@ -261,15 +249,12 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
         {
             this->set_inc_particle(p, MevEnergy{init.energy});
 
-            MollerBhabhaInteractor mb_interact(data_,
-                                               this->particle_track(),
-                                               cutoff_view,
-                                               dir,
-                                               this->secondary_allocator());
+            MollerBhabhaInteractor mb_interact(
+                data_, this->particle_track(), cutoff_view, dir);
 
             Interaction result = mb_interact(rng_engine);
             this->sanity_check(result);
-            const Secondary& sec = result.secondaries.front();
+            const Secondary& sec = result.secondary;
 
             SampleResult& r = (p == pdg::electron() ? m_results : b_results);
             r.inc_exit_cost.push_back(dot_product(result.direction, dir));
@@ -359,15 +344,13 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
                                          Real3{1, 1, 1}})
             {
                 this->set_inc_direction(inc_dir);
-                this->resize_secondaries(num_samples);
 
                 // Create interactor
                 this->set_inc_particle(particle, MevEnergy{inc_e});
                 MollerBhabhaInteractor mb_interact(data_,
                                                    this->particle_track(),
                                                    cutoff_view,
-                                                   this->direction(),
-                                                   this->secondary_allocator());
+                                                   this->direction());
 
                 // Loop over half the sample size
                 for (int i = 0; i < num_samples; ++i)
@@ -375,9 +358,6 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
                     Interaction result = mb_interact(rng_engine);
                     this->sanity_check(result);
                 }
-
-                EXPECT_EQ(num_samples,
-                          this->secondary_allocator().get().size());
                 num_particles_sampled += num_samples;
             }
             avg_engine_samples.push_back(double(rng_engine.count())

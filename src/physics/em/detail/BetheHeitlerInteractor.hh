@@ -141,9 +141,9 @@ BetheHeitlerInteractor::BetheHeitlerInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 {
-    // Allocate space for the pair-produced electrons
-    Secondary* secondaries = this->allocate_(2);
-    if (secondaries == nullptr)
+    // Allocate space for the pair-produced positron
+    Secondary* positron = this->allocate_(1);
+    if (positron == nullptr)
     {
         // Failed to allocate space for a secondary
         return Interaction::from_failure();
@@ -219,20 +219,21 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     }
 
     // Construct interaction for change to primary (incident) particle (gamma)
-    Interaction result = Interaction::from_absorption();
-    result.secondaries = {secondaries, 2};
+    Interaction result  = Interaction::from_absorption();
+    result.secondaries  = {positron, 1};
+    Secondary* electron = &result.secondary;
 
     // Outgoing secondaries are electron and positron
-    secondaries[0].particle_id = shared_.electron_id;
-    secondaries[1].particle_id = shared_.positron_id;
-    secondaries[0].energy      = units::MevEnergy{
-        (1 - epsilon) * inc_energy_.value() - shared_.electron_mass};
-    secondaries[1].energy = units::MevEnergy{epsilon * inc_energy_.value()
-                                             - shared_.electron_mass};
+    electron->particle_id = shared_.electron_id;
+    positron->particle_id = shared_.positron_id;
+    electron->energy = units::MevEnergy{(1 - epsilon) * inc_energy_.value()
+                                        - shared_.electron_mass};
+    positron->energy = units::MevEnergy{epsilon * inc_energy_.value()
+                                        - shared_.electron_mass};
     // Select charges for child particles (e-, e+) randomly
     if (BernoulliDistribution(half)(rng))
     {
-        trivial_swap(secondaries[0].energy, secondaries[1].energy);
+        trivial_swap(electron->energy, positron->energy);
     }
 
     // Sample secondary directions.
@@ -242,15 +243,14 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 
     // Electron
     TsaiUrbanDistribution sample_electron_angle(
-        secondaries[0].energy, MevMass{shared_.electron_mass});
-    real_type cost = sample_electron_angle(rng);
-    secondaries[0].direction
-        = rotate(from_spherical(cost, phi), inc_direction_);
+        electron->energy, MevMass{shared_.electron_mass});
+    real_type cost      = sample_electron_angle(rng);
+    electron->direction = rotate(from_spherical(cost, phi), inc_direction_);
     // Positron
     TsaiUrbanDistribution sample_positron_angle(
-        secondaries[1].energy, MevMass{shared_.electron_mass});
+        positron->energy, MevMass{shared_.electron_mass});
     cost = sample_positron_angle(rng);
-    secondaries[1].direction
+    positron->direction
         = rotate(from_spherical(cost, phi + constants::pi), inc_direction_);
     return result;
 }

@@ -302,9 +302,7 @@ TEST_F(SeltzerBergerTest, basic)
 {
     using celeritas::MaterialView;
 
-    // Reserve 4 secondaries, one for each sample
     const int num_samples = 4;
-    this->resize_secondaries(num_samples);
 
     // Production cuts
     auto material_view = this->material_track().material_view();
@@ -315,7 +313,6 @@ TEST_F(SeltzerBergerTest, basic)
                                      this->particle_track(),
                                      this->direction(),
                                      cutoffs,
-                                     this->secondary_allocator(),
                                      material_view,
                                      ElementComponentId{0});
     RandomEngine&           rng_engine = this->rng();
@@ -325,22 +322,16 @@ TEST_F(SeltzerBergerTest, basic)
     std::vector<double> energy;
 
     // Loop number of samples
-    for (int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
         this->sanity_check(result);
 
-        EXPECT_EQ(result.secondaries.data(),
-                  this->secondary_allocator().get().data()
-                      + result.secondaries.size() * i);
-
-        energy.push_back(result.secondaries[0].energy.value());
-        angle.push_back(celeritas::dot_product(
-            result.direction, result.secondaries.front().direction));
+        energy.push_back(result.secondary.energy.value());
+        angle.push_back(celeritas::dot_product(result.direction,
+                                               result.secondary.direction));
     }
-
-    EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_angle[]  = {0.959441513277674,
@@ -354,13 +345,6 @@ TEST_F(SeltzerBergerTest, basic)
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
-
-    // Next sample should fail because we're out of secondary buffer space
-    {
-        Interaction result = interact(rng_engine);
-        EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
-    }
 }
 
 TEST_F(SeltzerBergerTest, stress_test)
@@ -392,7 +376,6 @@ TEST_F(SeltzerBergerTest, stress_test)
                                          Real3{1, 1, 1}})
             {
                 this->set_inc_direction(inc_dir);
-                this->resize_secondaries(num_samples);
 
                 // Create interactor
                 this->set_inc_particle(particle, MevEnergy{inc_e});
@@ -400,7 +383,6 @@ TEST_F(SeltzerBergerTest, stress_test)
                                                  this->particle_track(),
                                                  this->direction(),
                                                  cutoffs,
-                                                 this->secondary_allocator(),
                                                  material_view,
                                                  ElementComponentId{0});
 
@@ -410,8 +392,6 @@ TEST_F(SeltzerBergerTest, stress_test)
                     Interaction result = interact(rng_engine);
                     this->sanity_check(result);
                 }
-                EXPECT_EQ(num_samples,
-                          this->secondary_allocator().get().size());
                 num_particles_sampled += num_samples;
             }
             avg_engine_samples.push_back(double(rng_engine.count())

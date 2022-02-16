@@ -10,7 +10,6 @@
 #include "base/ArrayUtils.hh"
 #include "base/Constants.hh"
 #include "base/Macros.hh"
-#include "base/StackAllocator.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
@@ -66,7 +65,6 @@ class SeltzerBergerInteractor
                             const ParticleTrackView&      particle,
                             const Real3&                  inc_direction,
                             const CutoffView&             cutoffs,
-                            StackAllocator<Secondary>&    allocate,
                             const MaterialView&           material,
                             const ElementComponentId&     elcomp_id);
 
@@ -88,8 +86,6 @@ class SeltzerBergerInteractor
     const bool inc_particle_is_electron_;
     // Production cutoff for gammas
     const Energy gamma_cutoff_;
-    // Allocate space for a secondary particle
-    StackAllocator<Secondary>& allocate_;
     // Element in which interaction occurs
     const ElementComponentId elcomp_id_;
 
@@ -114,7 +110,6 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
     const ParticleTrackView&      particle,
     const Real3&                  inc_direction,
     const CutoffView&             cutoffs,
-    StackAllocator<Secondary>&    allocate,
     const MaterialView&           material,
     const ElementComponentId&     elcomp_id)
     : shared_(shared)
@@ -123,7 +118,6 @@ SeltzerBergerInteractor::SeltzerBergerInteractor(
     , inc_direction_(inc_direction)
     , inc_particle_is_electron_(particle.particle_id() == shared_.ids.electron)
     , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
-    , allocate_(allocate)
     , elcomp_id_(elcomp_id)
     , sb_energy_sampler_(shared.differential_xs,
                          particle,
@@ -160,19 +154,11 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
         return Interaction::from_unchanged(inc_energy_, inc_direction_);
     }
 
-    // Allocate space for the brems photon
-    Secondary* secondaries = this->allocate_(1);
-    if (secondaries == nullptr)
-    {
-        // Failed to allocate space for the secondary
-        return Interaction::from_failure();
-    }
-
     // Sample the bremsstrahlung photon energy
     Energy gamma_energy = sb_energy_sampler_(rng);
 
     // Update kinematics of the final state and return this interaction
-    return final_state_interaction_(rng, gamma_energy, secondaries);
+    return final_state_interaction_(rng, gamma_energy);
 }
 
 //---------------------------------------------------------------------------//

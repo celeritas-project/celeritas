@@ -9,7 +9,6 @@
 
 #include "base/Assert.hh"
 #include "base/Macros.hh"
-#include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
@@ -37,8 +36,8 @@ struct MuBremsstrahlungLauncher
     {
     }
 
-    const MuBremsstrahlungData&     mb;    //!< Shared data for interactor
-    const ModelInteractRef<M>&      model; //!< State data needed to interact
+    const MuBremsstrahlungData& mb;    //!< Shared data for interactor
+    const ModelInteractRef<M>&  model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
@@ -47,8 +46,7 @@ struct MuBremsstrahlungLauncher
 template<MemSpace M>
 CELER_FUNCTION void MuBremsstrahlungLauncher<M>::operator()(ThreadId tid) const
 {
-    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
-    ParticleTrackView         particle(
+    ParticleTrackView particle(
         model.params.particle, model.states.particle, tid);
 
     // Setup for MaterialView access
@@ -71,12 +69,8 @@ CELER_FUNCTION void MuBremsstrahlungLauncher<M>::operator()(ThreadId tid) const
 
     // TODO: sample an element. For now assume one element per material
     const ElementComponentId   elcomp_id{0};
-    MuBremsstrahlungInteractor interact(mb,
-                                        particle,
-                                        model.states.direction[tid],
-                                        allocate_secondaries,
-                                        material_view,
-                                        elcomp_id);
+    MuBremsstrahlungInteractor interact(
+        mb, particle, model.states.direction[tid], material_view, elcomp_id);
 
     RngEngine rng(model.states.rng, tid);
     model.states.interactions[tid] = interact(rng);

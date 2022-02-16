@@ -15,11 +15,9 @@
 #include "base/Macros.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/CutoffView.hh"
-#include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "random/distributions/UniformRealDistribution.hh"
@@ -47,11 +45,10 @@ class MollerBhabhaInteractor
   public:
     //! Construct with shared and state data
     inline CELER_FUNCTION
-    MollerBhabhaInteractor(const MollerBhabhaData&    shared,
-                           const ParticleTrackView&   particle,
-                           const CutoffView&          cutoffs,
-                           const Real3&               inc_direction,
-                           StackAllocator<Secondary>& allocate);
+    MollerBhabhaInteractor(const MollerBhabhaData&  shared,
+                           const ParticleTrackView& particle,
+                           const CutoffView&        cutoffs,
+                           const Real3&             inc_direction);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -68,8 +65,6 @@ class MollerBhabhaInteractor
     const Real3& inc_direction_;
     // Secondary electron cutoff for current material
     const real_type electron_cutoff_;
-    // Allocate space for the secondary particle
-    StackAllocator<Secondary>& allocate_;
     // Incident particle flag for selecting Moller or Bhabha scattering
     const bool inc_particle_is_electron_;
 };
@@ -83,18 +78,16 @@ class MollerBhabhaInteractor
  * The incident particle must be within the model's valid energy range. this
  * must be handled in code *before* the interactor is constructed.
  */
-CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
-    const MollerBhabhaData&    shared,
-    const ParticleTrackView&   particle,
-    const CutoffView&          cutoffs,
-    const Real3&               inc_direction,
-    StackAllocator<Secondary>& allocate)
+CELER_FUNCTION
+MollerBhabhaInteractor::MollerBhabhaInteractor(const MollerBhabhaData& shared,
+                                               const ParticleTrackView& particle,
+                                               const CutoffView& cutoffs,
+                                               const Real3&      inc_direction)
     : shared_(shared)
     , inc_energy_(particle.energy().value())
     , inc_momentum_(particle.momentum().value())
     , inc_direction_(inc_direction)
     , electron_cutoff_(cutoffs.energy(shared_.electron_id).value())
-    , allocate_(allocate)
     , inc_particle_is_electron_(particle.particle_id() == shared_.electron_id)
 {
     CELER_EXPECT(particle.particle_id() == shared_.electron_id
@@ -119,15 +112,6 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         // process.
         return Interaction::from_unchanged(units::MevEnergy{inc_energy_},
                                            inc_direction_);
-    }
-
-    // Allocate memory for the produced electron
-    Secondary* electron_secondary = this->allocate_(1);
-
-    if (electron_secondary == nullptr)
-    {
-        // Fail to allocate space for a secondary
-        return Interaction::from_failure();
     }
 
     // Sample energy transfer fraction
@@ -184,15 +168,14 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     // Construct interaction for change to primary (incident) particle
     const real_type inc_exiting_energy = inc_energy_ - secondary_energy;
     Interaction     result;
-    result.action      = Action::scattered;
-    result.energy      = units::MevEnergy{inc_exiting_energy};
-    result.secondaries = {electron_secondary, 1};
-    result.direction   = inc_exiting_direction;
+    result.action    = Action::scattered;
+    result.energy    = units::MevEnergy{inc_exiting_energy};
+    result.direction = inc_exiting_direction;
 
     // Assign values to the secondary particle
-    electron_secondary[0].particle_id = shared_.electron_id;
-    electron_secondary[0].energy      = units::MevEnergy{secondary_energy};
-    electron_secondary[0].direction   = secondary_direction;
+    result.secondary.particle_id = shared_.electron_id;
+    result.secondary.energy      = units::MevEnergy{secondary_energy};
+    result.secondary.direction   = secondary_direction;
 
     return result;
 }

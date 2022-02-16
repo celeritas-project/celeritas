@@ -52,10 +52,10 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
 
-        const auto& params      = *this->particle_params();
-        data_.positron_id       = params.find(pdg::positron());
-        data_.gamma_id          = params.find(pdg::gamma());
-        data_.electron_mass     = 0.5109989461;
+        const auto& params  = *this->particle_params();
+        data_.positron_id   = params.find(pdg::positron());
+        data_.gamma_id      = params.find(pdg::gamma());
+        data_.electron_mass = 0.5109989461;
 
         // Set up shared material data
         MaterialParams::Input mi;
@@ -85,9 +85,9 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_EQ(celeritas::Action::absorbed, interaction.action);
 
         // Check secondaries (two photons)
-        ASSERT_EQ(2, interaction.secondaries.size());
+        ASSERT_EQ(1, interaction.secondaries.size());
 
-        const auto& gamma1 = interaction.secondaries.front();
+        const auto& gamma1 = interaction.secondary;
         EXPECT_TRUE(gamma1);
         EXPECT_EQ(data_.gamma_id, gamma1.particle_id);
 
@@ -97,7 +97,7 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_LT(0, gamma1.energy.value());
         EXPECT_SOFT_EQ(1.0, celeritas::norm(gamma1.direction));
 
-        const auto& gamma2 = interaction.secondaries.back();
+        const auto& gamma2 = interaction.secondaries.front();
         EXPECT_TRUE(gamma2);
         EXPECT_EQ(data_.gamma_id, gamma2.particle_id);
         EXPECT_GT(
@@ -119,8 +119,8 @@ TEST_F(EPlusGGInteractorTest, basic)
 {
     const int num_samples = 4;
 
-    // Reserve  num_samples*2 secondaries;
-    this->resize_secondaries(num_samples * 2);
+    // Reserve  num_samples secondaries;
+    this->resize_secondaries(num_samples);
 
     // Create the interactor
     EPlusGGInteractor interact(data_,
@@ -144,14 +144,13 @@ TEST_F(EPlusGGInteractorTest, basic)
                   this->secondary_allocator().get().data()
                       + result.secondaries.size() * i);
 
-        angle.push_back(
-            celeritas::dot_product(result.secondaries.front().direction,
-                                   result.secondaries.back().direction));
-        energy1.push_back(result.secondaries[0].energy.value());
-        energy2.push_back(result.secondaries[1].energy.value());
+        angle.push_back(celeritas::dot_product(
+            result.secondary.direction, result.secondaries.front().direction));
+        energy1.push_back(result.secondary.energy.value());
+        energy2.push_back(result.secondaries.front().energy.value());
     }
 
-    EXPECT_EQ(2 * num_samples, this->secondary_allocator().get().size());
+    EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy1[] = {
@@ -183,8 +182,8 @@ TEST_F(EPlusGGInteractorTest, at_rest)
     this->set_inc_particle(pdg::positron(), celeritas::zero_quantity());
     const int num_samples = 4;
 
-    // Reserve  num_samples*2 secondaries;
-    this->resize_secondaries(num_samples * 2);
+    // Reserve  num_samples secondaries;
+    this->resize_secondaries(num_samples);
 
     // Create the interactor
     EPlusGGInteractor interact(data_,
@@ -199,15 +198,15 @@ TEST_F(EPlusGGInteractorTest, at_rest)
         SCOPED_TRACE(result);
         this->sanity_check(result);
 
-        ASSERT_EQ(2, result.secondaries.size());
-        EXPECT_SOFT_EQ(-1,
-                       celeritas::dot_product(result.secondaries[0].direction,
-                                              result.secondaries[1].direction));
+        ASSERT_EQ(1, result.secondaries.size());
+        EXPECT_SOFT_EQ(
+            -1,
+            celeritas::dot_product(result.secondary.direction,
+                                   result.secondaries.front().direction));
 
+        EXPECT_SOFT_EQ(data_.electron_mass, result.secondary.energy.value());
         EXPECT_SOFT_EQ(data_.electron_mass,
-                       result.secondaries[0].energy.value());
-        EXPECT_SOFT_EQ(data_.electron_mass,
-                       result.secondaries[1].energy.value());
+                       result.secondaries.front().energy.value());
     }
 }
 
@@ -230,7 +229,7 @@ TEST_F(EPlusGGInteractorTest, stress_test)
         {
             SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
             this->set_inc_direction(inc_dir);
-            this->resize_secondaries(2 * num_samples);
+            this->resize_secondaries(num_samples);
 
             // Create interactor
             EPlusGGInteractor interact(data_,
@@ -245,8 +244,7 @@ TEST_F(EPlusGGInteractorTest, stress_test)
                 // SCOPED_TRACE(result);
                 this->sanity_check(result);
             }
-            EXPECT_EQ(2 * num_samples,
-                      this->secondary_allocator().get().size());
+            EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
         avg_engine_samples.push_back(double(rng_engine.count())

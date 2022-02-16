@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/ArrayUtils.hh"
 #include "base/Algorithms.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Macros.hh"
@@ -145,15 +146,17 @@ template<class Engine>
 CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 {
     Span<Secondary> secondaries;
-    size_type count = relaxation_ ? 1 + relaxation_.max_secondaries() : 1;
-    if (Secondary* ptr = allocate_(count))
+    if (relaxation_)
     {
-        secondaries = {ptr, count};
-    }
-    else
-    {
-        // Failed to allocate space for secondaries
-        return Interaction::from_failure();
+        if (Secondary* ptr = allocate_(relaxation_.max_secondaries()))
+        {
+            secondaries = {ptr, relaxation_.max_secondaries()};
+        }
+        else
+        {
+            // Failed to allocate space for secondaries
+            return Interaction::from_failure();
+        }
     }
 
     // Sample atomic subshell
@@ -176,33 +179,29 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
         binding_energy     = shells[shell_id.get()].binding_energy;
     }
 
-    // Outgoing secondary is an electron
-    CELER_ASSERT(!secondaries.empty());
-    {
-        Secondary& electron  = secondaries.front();
-        electron.particle_id = shared_.ids.electron;
-
-        // Electron kinetic energy is the difference between the incident
-        // photon energy and the binding energy of the shell
-        electron.energy
-            = MevEnergy{inc_energy_.value() - binding_energy.value()};
-
-        // Direction of the emitted photoelectron is sampled from the
-        // Sauter-Gavrila distribution
-        electron.direction = this->sample_direction(rng);
-    }
-
     // Construct interaction for change to primary (incident) particle
     Interaction result = Interaction::from_absorption();
+
+    // Outgoing secondary is an electron
+    result.secondary.particle_id = shared_.ids.electron;
+
+    // Electron kinetic energy is the difference between the incident
+    // photon energy and the binding energy of the shell
+    result.secondary.energy
+        = MevEnergy{inc_energy_.value() - binding_energy.value()};
+
+    // Direction of the emitted photoelectron is sampled from the
+    // Sauter-Gavrila distribution
+    result.secondary.direction = this->sample_direction(rng);
+
     if (relaxation_)
     {
-        // Sample secondaries from atomic relaxation, into all but the initial
-        // secondary position
-        AtomicRelaxation sample_relaxation = relaxation_.build_distribution(
-            cutoffs_, shell_id, secondaries.subspan(1));
+        // Sample secondaries from atomic relaxation
+        AtomicRelaxation sample_relaxation
+            = relaxation_.build_distribution(cutoffs_, shell_id, secondaries);
 
-        auto outgoing = sample_relaxation(rng);
-        secondaries   = {secondaries.data(), 1 + outgoing.count};
+        auto outgoing      = sample_relaxation(rng);
+        result.secondaries = {secondaries.data(), outgoing.count};
 
         // The local energy deposition is the difference between the binding
         // energy of the vacancy subshell and the sum of the energies of any
@@ -214,7 +213,6 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     {
         result.energy_deposition = binding_energy;
     }
-    result.secondaries = secondaries;
 
     CELER_ENSURE(result.energy_deposition.value() >= 0);
     return result;

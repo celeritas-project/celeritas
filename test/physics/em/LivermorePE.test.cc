@@ -133,11 +133,9 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
         EXPECT_EQ(celeritas::Action::absorbed, interaction.action);
 
         // Check secondaries
-        ASSERT_GT(2, interaction.secondaries.size());
-        if (interaction.secondaries.size() == 1)
+        const auto& electron = interaction.secondary;
+        if (electron)
         {
-            const auto& electron = interaction.secondaries.front();
-            EXPECT_TRUE(electron);
             EXPECT_EQ(model_->host_ref().ids.electron, electron.particle_id);
             EXPECT_GT(this->particle_track().energy().value(),
                       electron.energy.value());
@@ -175,9 +173,6 @@ TEST_F(LivermorePETest, basic)
 {
     RandomEngine& rng_engine = this->rng();
 
-    // Reserve 4 secondaries
-    this->resize_secondaries(4);
-
     // Sampled element
     ElementId el_id{0};
 
@@ -203,22 +198,18 @@ TEST_F(LivermorePETest, basic)
     std::vector<double> energy_deposition;
 
     // Produce four samples from the original incident energy/dir
-    for (int i : celeritas::range(4))
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(4))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
         this->sanity_check(result);
-        EXPECT_EQ(result.secondaries.data(),
-                  this->secondary_allocator().get().data() + i);
 
         // Add actual results to vector
-        energy_electron.push_back(result.secondaries.front().energy.value());
+        energy_electron.push_back(result.secondary.energy.value());
         costheta_electron.push_back(celeritas::dot_product(
-            result.secondaries.front().direction, this->direction()));
+            result.secondary.direction, this->direction()));
         energy_deposition.push_back(result.energy_deposition.value());
     }
-
-    EXPECT_EQ(4, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy_electron[]
@@ -230,13 +221,6 @@ TEST_F(LivermorePETest, basic)
     EXPECT_VEC_SOFT_EQ(expected_energy_electron, energy_electron);
     EXPECT_VEC_SOFT_EQ(expected_costheta_electron, costheta_electron);
     EXPECT_VEC_SOFT_EQ(expected_energy_deposition, energy_deposition);
-
-    // Next sample should fail because we're out of secondary buffer space
-    {
-        Interaction result = interact(rng_engine);
-        EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
-    }
 }
 
 TEST_F(LivermorePETest, stress_test)
@@ -275,7 +259,6 @@ TEST_F(LivermorePETest, stress_test)
         {
             SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
             this->set_inc_direction(inc_dir);
-            this->resize_secondaries(num_samples);
 
             // Create interactor
             LivermorePEInteractor interact(model_->host_ref(),
@@ -292,15 +275,14 @@ TEST_F(LivermorePETest, stress_test)
                 Interaction result = interact(rng_engine);
                 // SCOPED_TRACE(result);
                 this->sanity_check(result);
-                for (const auto& sec : result.secondaries)
+                if (result.secondary)
                 {
-                    tot_cosine
-                        += celeritas::dot_product(inc_dir, sec.direction);
-                    tot_energy += sec.energy.value();
+                    tot_cosine += celeritas::dot_product(
+                        inc_dir, result.secondary.direction);
+                    tot_energy += result.secondary.energy.value();
+                    ++num_secondaries;
                 }
-                num_secondaries += result.secondaries.size();
             }
-            EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
         avg_engine_samples.push_back(double(rng_engine.count())
@@ -363,8 +345,9 @@ TEST_F(LivermorePETest, distributions_all)
         relax_params_ref_, relax_states_ref_, el_id, ThreadId{0});
     EXPECT_EQ(7, relaxation.max_secondaries());
 
-    // Allocate storage for secondaries (atomic relaxation + photoelectron)
-    int secondary_size = (relaxation.max_secondaries() + 1) * num_samples;
+    // Allocate storage for secondaries (from atomic relaxation; photoelectron
+    // is preallocated in the interaction)
+    int secondary_size = relaxation.max_secondaries() * num_samples;
     this->resize_secondaries(secondary_size);
 
     // Create the interactor
@@ -390,20 +373,21 @@ TEST_F(LivermorePETest, distributions_all)
         SCOPED_TRACE(out);
         ASSERT_TRUE(out);
         this->check_energy_conservation(out);
-        num_secondaries += out.secondaries.size();
+        num_secondaries += out.num_secondaries();
 
         // Bin directional change of the photoelectron
-        double costheta = celeritas::dot_product(
-            inc_direction, out.secondaries.front().direction);
+        double costheta
+            = celeritas::dot_product(inc_direction, out.secondary.direction);
         int ct_bin = (1 + costheta) / 2 * nbins; // Remap from [-1,1] to [0,1]
         if (ct_bin >= 0 && ct_bin < nbins)
         {
             ++costheta_dist[ct_bin];
         }
 
+        // Increment the count of the discrete sampled energy
+        energy_to_count[out.secondary.energy.value()]++;
         for (const auto& secondary : out.secondaries)
         {
-            // Increment the count of the discrete sampled energy
             energy_to_count[secondary.energy.value()]++;
         }
     }
@@ -460,8 +444,9 @@ TEST_F(LivermorePETest, distributions_radiative)
         relax_params_ref_, relax_states_ref_, el_id, ThreadId{0});
     EXPECT_EQ(3, relaxation.max_secondaries());
 
-    // Allocate storage for secondaries (atomic relaxation + photoelectron)
-    int secondary_size = (relaxation.max_secondaries() + 1) * num_samples;
+    // Allocate storage for secondaries (from atomic relaxation; photoelectron
+    // is preallocated in the interaction)
+    int secondary_size = relaxation.max_secondaries() * num_samples;
     this->resize_secondaries(secondary_size);
 
     // Create the interactor
@@ -485,8 +470,10 @@ TEST_F(LivermorePETest, distributions_radiative)
         SCOPED_TRACE(out);
         ASSERT_TRUE(out);
         this->check_energy_conservation(out);
-        num_secondaries += out.secondaries.size();
+        num_secondaries += out.num_secondaries();
 
+        // Increment the count of the discrete sampled energy
+        energy_to_count[out.secondary.energy.value()]++;
         for (const auto& secondary : out.secondaries)
         {
             // Increment the count of the discrete sampled energy

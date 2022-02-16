@@ -9,7 +9,6 @@
 
 #include "base/Assert.hh"
 #include "base/Macros.hh"
-#include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/ModelData.hh"
@@ -47,8 +46,7 @@ struct MollerBhabhaLauncher
 template<MemSpace M>
 CELER_FUNCTION void MollerBhabhaLauncher<M>::operator()(ThreadId tid) const
 {
-    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
-    ParticleTrackView         particle(
+    ParticleTrackView particle(
         model.params.particle, model.states.particle, tid);
 
     MaterialTrackView material(
@@ -67,7 +65,7 @@ CELER_FUNCTION void MollerBhabhaLauncher<M>::operator()(ThreadId tid) const
     CutoffView cutoff(model.params.cutoffs, material.material_id());
 
     MollerBhabhaInteractor interact(
-        mb, particle, cutoff, model.states.direction[tid], allocate_secondaries);
+        mb, particle, cutoff, model.states.direction[tid]);
 
     RngEngine rng(model.states.rng, tid);
     model.states.interactions[tid] = interact(rng);

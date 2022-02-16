@@ -102,10 +102,7 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
     {
         ASSERT_TRUE(interaction);
 
-        // Check secondaries (bremsstrahlung photon)
-        ASSERT_EQ(1, interaction.secondaries.size());
-
-        const auto& gamma = interaction.secondaries.front();
+        const auto& gamma = interaction.secondary;
         EXPECT_TRUE(gamma);
         EXPECT_EQ(data_.ids.gamma, gamma.particle_id);
 
@@ -186,9 +183,6 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
 {
     const int num_samples = 4;
 
-    // Reserve  num_samples secondaries;
-    this->resize_secondaries(num_samples);
-
     // Production cuts
     auto material_view = this->material_track().material_view();
     auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
@@ -198,7 +192,6 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
                                         this->particle_track(),
                                         this->direction(),
                                         cutoffs,
-                                        this->secondary_allocator(),
                                         material_view,
                                         ElementComponentId{0});
 
@@ -208,22 +201,16 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
     std::vector<double> angle;
     std::vector<double> energy;
 
-    for (int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
         this->sanity_check(result);
 
-        EXPECT_EQ(result.secondaries.data(),
-                  this->secondary_allocator().get().data()
-                      + result.secondaries.size() * i);
-
-        energy.push_back(result.secondaries[0].energy.value());
-        angle.push_back(celeritas::dot_product(
-            result.direction, result.secondaries.back().direction));
+        energy.push_back(result.secondary.energy.value());
+        angle.push_back(celeritas::dot_product(result.direction,
+                                               result.secondary.direction));
     }
-
-    EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
     EXPECT_DOUBLE_EQ(double(rng_engine.count()) / num_samples, 12);
 
     // Note: these are "gold" values based on the host RNG.
@@ -238,21 +225,11 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
-
-    // Next sample should fail because we're out of secondary buffer space
-    {
-        Interaction result = interact(rng_engine);
-        EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
-    }
 }
 
 TEST_F(RelativisticBremTest, basic_with_lpm)
 {
     const int num_samples = 4;
-
-    // Reserve  num_samples secondaries;
-    this->resize_secondaries(num_samples);
 
     // Production cuts
     auto material_view = this->material_track().material_view();
@@ -263,7 +240,6 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
                                         this->particle_track(),
                                         this->direction(),
                                         cutoffs,
-                                        this->secondary_allocator(),
                                         material_view,
                                         ElementComponentId{0});
 
@@ -273,22 +249,16 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
     std::vector<double> angle;
     std::vector<double> energy;
 
-    for (int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
         this->sanity_check(result);
 
-        EXPECT_EQ(result.secondaries.data(),
-                  this->secondary_allocator().get().data()
-                      + result.secondaries.size() * i);
-
-        energy.push_back(result.secondaries[0].energy.value());
-        angle.push_back(celeritas::dot_product(
-            result.direction, result.secondaries.back().direction));
+        energy.push_back(result.secondary.energy.value());
+        angle.push_back(celeritas::dot_product(result.direction,
+                                               result.secondary.direction));
     }
-
-    EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
 
@@ -308,9 +278,6 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
 {
     const int num_samples = 1000;
 
-    // Reserve  num_samples secondaries;
-    this->resize_secondaries(num_samples);
-
     // Production cuts
     auto material_view = this->material_track().material_view();
     auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
@@ -320,7 +287,6 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
                                         this->particle_track(),
                                         this->direction(),
                                         cutoffs,
-                                        this->secondary_allocator(),
                                         material_view,
                                         ElementComponentId{0});
 
@@ -330,21 +296,16 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
     real_type average_energy{0};
     Real3     average_angle{0, 0, 0};
 
-    for (int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
 
-        average_energy += result.secondaries[0].energy.value();
-        average_angle[0] += result.secondaries[0].direction[0];
-        average_angle[1] += result.secondaries[0].direction[1];
-        average_angle[2] += result.secondaries[0].direction[2];
-
-        EXPECT_EQ(result.secondaries.data(),
-                  this->secondary_allocator().get().data()
-                      + result.secondaries.size() * i);
+        average_energy += result.secondary.energy.value();
+        average_angle[0] += result.secondary.direction[0];
+        average_angle[1] += result.secondary.direction[1];
+        average_angle[2] += result.secondary.direction[2];
     }
-    EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     EXPECT_SOFT_EQ(average_energy / num_samples, 2932.1072998587733);
     EXPECT_SOFT_NEAR(

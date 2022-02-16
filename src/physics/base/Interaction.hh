@@ -27,7 +27,8 @@ struct Interaction
     Action           action;            //!< Failure, scatter, absorption, ...
     units::MevEnergy energy;            //!< Post-interaction energy
     Real3            direction;         //!< Post-interaction direction
-    Span<Secondary>  secondaries;       //!< Emitted secondaries
+    Secondary        secondary;         //!< First secondary is preallocated
+    Span<Secondary>  secondaries;       //!< Remaining emitted secondaries
     units::MevEnergy energy_deposition; //!< Energy loss locally to material
 
     // Return an interaction representing a recoverable error
@@ -48,6 +49,9 @@ struct Interaction
 
     // Whether the interaction succeeded
     explicit inline CELER_FUNCTION operator bool() const;
+
+    // Total number of secondaries
+    inline CELER_FUNCTION size_type num_secondaries() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -122,6 +126,15 @@ CELER_FUNCTION Interaction Interaction::from_spawned()
 CELER_FUNCTION Interaction::operator bool() const
 {
     return action_completed(this->action);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Total number of secondaries.
+ */
+CELER_FUNCTION size_type Interaction::num_secondaries() const
+{
+    return (secondary ? 1 : 0) + secondaries.size();
 }
 
 //---------------------------------------------------------------------------//

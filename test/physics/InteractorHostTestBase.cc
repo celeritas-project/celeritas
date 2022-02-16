@@ -154,9 +154,7 @@ void InteractorHostTestBase::check_energy_conservation(
         exit_energy += interaction.energy.value();
     }
 
-    // Subtract contributions from exiting secondaries
-    for (const Secondary& s : interaction.secondaries)
-    {
+    auto accum_secondary = [&exit_energy, this](const Secondary& s) {
         exit_energy += s.energy.value();
 
         // Account for positron production
@@ -165,6 +163,16 @@ void InteractorHostTestBase::check_energy_conservation(
             exit_energy
                 += 2 * particle_params_->get(s.particle_id).mass().value();
         }
+    };
+
+    // Subtract contributions from exiting secondaries
+    if (interaction.secondary)
+    {
+        accum_secondary(interaction.secondary);
+    }
+    for (const Secondary& s : interaction.secondaries)
+    {
+        accum_secondary(s);
     }
 
     // Compare against incident particle
@@ -200,14 +208,22 @@ void InteractorHostTestBase::check_momentum_conservation(
              &exit_momentum);
     }
 
-    // Subtract contributions from exiting secondaries
-    for (const Secondary& s : interaction.secondaries)
-    {
+    auto accum_secondary = [&exit_momentum, &temp_track](const Secondary& s) {
         ParticleTrackView::Initializer_t init;
         init.particle_id = s.particle_id;
         init.energy      = s.energy;
         temp_track       = init;
         axpy(temp_track.momentum().value(), s.direction, &exit_momentum);
+    };
+
+    // Subtract contributions from exiting secondaries
+    if (interaction.secondary)
+    {
+        accum_secondary(interaction.secondary);
+    }
+    for (const Secondary& s : interaction.secondaries)
+    {
+        accum_secondary(s);
     }
 
     // Compare against incident particle

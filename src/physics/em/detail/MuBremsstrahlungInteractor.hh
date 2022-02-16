@@ -14,7 +14,6 @@
 #include "base/Types.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
@@ -48,7 +47,6 @@ class MuBremsstrahlungInteractor
     MuBremsstrahlungInteractor(const MuBremsstrahlungData& shared,
                                const ParticleTrackView&    particle,
                                const Real3&                inc_direction,
-                               StackAllocator<Secondary>&  allocate,
                                const MaterialView&         material,
                                ElementComponentId          elcomp_id);
 
@@ -68,8 +66,6 @@ class MuBremsstrahlungInteractor
     const MuBremsstrahlungData& shared_;
     // Incident direction
     const Real3& inc_direction_;
-    // Allocate space for one or more secondary particles
-    StackAllocator<Secondary>& allocate_;
     // Element properties
     const ElementView element_;
     // Incident particle
@@ -86,12 +82,10 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     const MuBremsstrahlungData& shared,
     const ParticleTrackView&    particle,
     const Real3&                inc_direction,
-    StackAllocator<Secondary>&  allocate,
     const MaterialView&         material,
     ElementComponentId          elcomp_id)
     : shared_(shared)
     , inc_direction_(inc_direction)
-    , allocate_(allocate)
     , element_(material.element_view(elcomp_id))
     , particle_(particle)
 {
@@ -108,14 +102,6 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
 {
-    // Allocate space for gamma
-    Secondary* secondaries = this->allocate_(1);
-    if (secondaries == nullptr)
-    {
-        // Failed to allocate space for a secondary
-        return Interaction::from_failure();
-    }
-
     const real_type min_inc_kinetic_energy = min(
         particle_.energy().value(), shared_.min_incident_energy().value());
     const real_type func_1
@@ -151,12 +137,11 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     result.action    = Action::scattered;
     result.energy    = units::MevEnergy{particle_.energy().value() - epsilon};
     result.direction = inc_direction;
-    result.secondaries = {secondaries, 1};
 
     // Save outgoing secondary data
-    secondaries[0].particle_id = shared_.gamma_id;
-    secondaries[0].energy      = units::MevEnergy{epsilon};
-    secondaries[0].direction   = gamma_dir;
+    result.secondary.particle_id = shared_.gamma_id;
+    result.secondary.energy      = units::MevEnergy{epsilon};
+    result.secondary.direction   = gamma_dir;
 
     return result;
 }

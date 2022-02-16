@@ -88,9 +88,7 @@ class MuBremsstrahlungInteractorTest
         EXPECT_EQ(celeritas::Action::scattered, interaction.action);
 
         // Check secondaries
-        ASSERT_EQ(1, interaction.secondaries.size());
-
-        const auto& gamma = interaction.secondaries.front();
+        const auto& gamma = interaction.secondary;
         EXPECT_TRUE(gamma);
         EXPECT_EQ(data_.gamma_id, gamma.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
@@ -114,9 +112,7 @@ class MuBremsstrahlungInteractorTest
 
 TEST_F(MuBremsstrahlungInteractorTest, basic)
 {
-    // Reserve 4 secondaries
     int num_samples = 4;
-    this->resize_secondaries(num_samples);
 
     auto material = this->material_track().material_view();
 
@@ -124,7 +120,6 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     MuBremsstrahlungInteractor interact(data_,
                                         this->particle_track(),
                                         this->direction(),
-                                        this->secondary_allocator(),
                                         material,
                                         celeritas::ElementComponentId{0});
     RandomEngine&              rng_engine = this->rng();
@@ -133,21 +128,16 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     std::vector<double> costheta;
 
     // Produce four samples from the original incident energy
-    for (int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
         this->sanity_check(result);
 
-        EXPECT_EQ(result.secondaries.data(),
-                  this->secondary_allocator().get().data() + i);
-
-        energy.push_back(result.secondaries[0].energy.value());
-        costheta.push_back(celeritas::dot_product(
-            result.secondaries.front().direction, this->direction()));
+        energy.push_back(result.secondary.energy.value());
+        costheta.push_back(celeritas::dot_product(result.secondary.direction,
+                                                  this->direction()));
     }
-
-    EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy[] = {
@@ -159,13 +149,6 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_costheta, costheta);
-
-    // Next sample should fail because we're out of secondary buffer space
-    {
-        Interaction result = interact(rng_engine);
-        EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
-    }
 }
 
 TEST_F(MuBremsstrahlungInteractorTest, stress_test)
@@ -191,7 +174,6 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
             {
                 SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
                 this->set_inc_direction(inc_dir);
-                this->resize_secondaries(num_samples);
 
                 auto material = this->material_track().material_view();
 
@@ -200,7 +182,6 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
                     data_,
                     this->particle_track(),
                     this->direction(),
-                    this->secondary_allocator(),
                     material,
                     celeritas::ElementComponentId{0});
 
@@ -210,8 +191,6 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
                     // SCOPED_TRACE(result);
                     this->sanity_check(result);
                 }
-                EXPECT_EQ(num_samples,
-                          this->secondary_allocator().get().size());
                 num_particles_sampled += num_samples;
             }
             avg_engine_samples.push_back(double(rng_engine.count())

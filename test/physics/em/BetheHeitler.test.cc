@@ -91,9 +91,9 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_EQ(celeritas::Action::absorbed, interaction.action);
 
         // Check secondaries
-        ASSERT_EQ(2, interaction.secondaries.size());
+        ASSERT_EQ(1, interaction.secondaries.size());
         // Electron
-        const auto& electron = interaction.secondaries.front();
+        const auto& electron = interaction.secondary;
         EXPECT_TRUE(electron);
         EXPECT_EQ(data_.electron_id, electron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
@@ -101,7 +101,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_LT(0, electron.energy.value());
         EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
         // Positron
-        const auto& positron = interaction.secondaries.back();
+        const auto& positron = interaction.secondaries.front();
         EXPECT_TRUE(positron);
         EXPECT_EQ(data_.positron_id, positron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
@@ -123,9 +123,10 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
 
 TEST_F(BetheHeitlerInteractorTest, basic)
 {
-    // Reserve 4 secondaries, two for each sample
+    // Reserve four secondaries, one for each sample (the other is preallocated
+    // in the Interaction)
     const int num_samples = 4;
-    this->resize_secondaries(2 * num_samples);
+    this->resize_secondaries(num_samples);
 
     // Get the ElementView
     const celeritas::ElementView element(
@@ -154,14 +155,13 @@ TEST_F(BetheHeitlerInteractorTest, basic)
                   this->secondary_allocator().get().data()
                       + result.secondaries.size() * i);
 
-        angle.push_back(
-            celeritas::dot_product(result.secondaries.front().direction,
-                                   result.secondaries.back().direction));
-        energy1.push_back(result.secondaries[0].energy.value());
-        energy2.push_back(result.secondaries[1].energy.value());
+        angle.push_back(celeritas::dot_product(
+            result.secondary.direction, result.secondaries.front().direction));
+        energy1.push_back(result.secondary.energy.value());
+        energy2.push_back(result.secondaries.front().energy.value());
     }
 
-    EXPECT_EQ(2 * num_samples, this->secondary_allocator().get().size());
+    EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy1[] = {
@@ -205,7 +205,7 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
         {
             SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
             this->set_inc_direction(inc_dir);
-            this->resize_secondaries(2 * num_samples);
+            this->resize_secondaries(num_samples);
 
             // Get the ElementView
             const celeritas::ElementView element(
@@ -226,8 +226,7 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
                 SCOPED_TRACE(result);
                 this->sanity_check(result);
             }
-            EXPECT_EQ(2 * num_samples,
-                      this->secondary_allocator().get().size());
+            EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
         avg_engine_samples.push_back(double(rng_engine.count())

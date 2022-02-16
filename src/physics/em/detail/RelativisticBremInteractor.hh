@@ -10,7 +10,6 @@
 #include "base/Collection.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "base/StackAllocator.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Algorithms.hh"
 
@@ -63,7 +62,6 @@ class RelativisticBremInteractor
                                const ParticleTrackView&         particle,
                                const Real3&                     direction,
                                const CutoffView&                cutoffs,
-                               StackAllocator<Secondary>&       allocate,
                                const MaterialView&              material,
                                const ElementComponentId&        elcomp_id);
 
@@ -84,8 +82,6 @@ class RelativisticBremInteractor
     const Real3& inc_direction_;
     // Production cutoff for gammas
     const Energy gamma_cutoff_;
-    // Allocate space for a secondary particle
-    StackAllocator<Secondary>& allocate_;
 
     //// HELPER CLASSES ////
 
@@ -107,7 +103,6 @@ RelativisticBremInteractor::RelativisticBremInteractor(
     const ParticleTrackView&         particle,
     const Real3&                     direction,
     const CutoffView&                cutoffs,
-    StackAllocator<Secondary>&       allocate,
     const MaterialView&              material,
     const ElementComponentId&        elcomp_id)
     : shared_(shared)
@@ -115,7 +110,6 @@ RelativisticBremInteractor::RelativisticBremInteractor(
     , inc_momentum_(particle.momentum())
     , inc_direction_(direction)
     , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
-    , allocate_(allocate)
     , rb_energy_sampler_(shared, particle, cutoffs, material, elcomp_id)
     , final_state_interaction_(inc_energy_,
                                inc_direction_,
@@ -138,19 +132,11 @@ RelativisticBremInteractor::RelativisticBremInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction RelativisticBremInteractor::operator()(Engine& rng)
 {
-    // Allocate space for the brems photon
-    Secondary* secondaries = this->allocate_(1);
-    if (secondaries == nullptr)
-    {
-        // Failed to allocate space for the secondary
-        return Interaction::from_failure();
-    }
-
     // Sample the bremsstrahlung photon energy
     Energy gamma_energy = rb_energy_sampler_(rng);
 
     // Update kinematics of the final state and return this interaction
-    return final_state_interaction_(rng, gamma_energy, secondaries);
+    return final_state_interaction_(rng, gamma_energy);
 }
 
 //---------------------------------------------------------------------------//

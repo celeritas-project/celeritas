@@ -73,10 +73,6 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     rng_params.seed = args.seed;
     resize(&rng_states, make_const_ref(rng_params), args.num_tracks);
 
-    // Secondary data
-    StackAllocatorData<Secondary, Ownership::value, MemSpace::device> secondaries;
-    resize(&secondaries, args.num_tracks);
-
     // Detector data
     DetectorParamsData detector_params;
     detector_params.tally_grid = args.tally_grid;
@@ -102,8 +98,7 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     state.time      = time.device_ref();
     state.alive     = alive.device_ref();
 
-    state.secondaries = secondaries;
-    state.detector    = detector_states;
+    state.detector = detector_states;
 
     // Initialize particle states
     initialize(launch_params_, params, state, initial);
