@@ -154,7 +154,7 @@ void InteractorHostTestBase::check_energy_conservation(
         exit_energy += interaction.energy.value();
     }
 
-    auto accum_secondary = [&exit_energy, this](const Secondary& s) {
+    auto accum_secondary = [&](const Secondary& s) {
         exit_energy += s.energy.value();
 
         // Account for positron production

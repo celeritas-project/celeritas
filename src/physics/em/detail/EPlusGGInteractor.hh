@@ -19,9 +19,6 @@
 #include "random/distributions/IsotropicDistribution.hh"
 #include "random/distributions/ReciprocalDistribution.hh"
 #include "EPlusGGData.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/IsotropicDistribution.hh"
-#include "random/distributions/ReciprocalDistribution.hh"
 
 namespace celeritas
 {

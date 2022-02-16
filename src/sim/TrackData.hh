@@ -169,7 +169,13 @@ resize(StateData<Ownership::value, M>*                               data,
 
     resize(&data->step_length, size);
     resize(&data->energy_deposition, size);
-    resize(&data->interactions, size);
+
+    // Initialize empty interactions
+    StateCollection<Interaction, Ownership::value, MemSpace::host> interactions;
+    std::vector<Interaction> initial_state(size, Interaction{});
+    make_builder(&interactions)
+        .insert_back(initial_state.begin(), initial_state.end());
+    data->interactions = interactions;
 }
 
 //---------------------------------------------------------------------------//

@@ -70,6 +70,10 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(ThreadId tid) const
 {
     // Count how many secondaries survived cutoffs for each track
     data_.secondary_counts[tid] = 0;
+    if (states_.interactions[tid].secondary)
+    {
+        ++data_.secondary_counts[tid];
+    }
     for (const auto& secondary : states_.interactions[tid].secondaries)
     {
         if (secondary)

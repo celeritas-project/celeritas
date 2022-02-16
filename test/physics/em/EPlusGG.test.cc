@@ -119,7 +119,7 @@ TEST_F(EPlusGGInteractorTest, basic)
 {
     const int num_samples = 4;
 
-    // Reserve  num_samples secondaries;
+    // Reserve num_samples secondaries;
     this->resize_secondaries(num_samples);
 
     // Create the interactor
@@ -182,7 +182,7 @@ TEST_F(EPlusGGInteractorTest, at_rest)
     this->set_inc_particle(pdg::positron(), celeritas::zero_quantity());
     const int num_samples = 4;
 
-    // Reserve  num_samples secondaries;
+    // Reserve num_samples secondaries;
     this->resize_secondaries(num_samples);
 
     // Create the interactor

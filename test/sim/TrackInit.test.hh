@@ -45,21 +45,30 @@ struct Interactor
         }
 
         // Create secondaries
-        if (alloc_size > 0)
+        if (alloc_size > 1)
         {
-            Secondary* allocated = this->allocate_secondaries(alloc_size);
+            Secondary* allocated = this->allocate_secondaries(alloc_size - 1);
             if (!allocated)
             {
                 return Interaction::from_failure();
             }
 
-            result.secondaries = {allocated, alloc_size};
-            for (auto& secondary : result.secondaries)
-            {
-                secondary.particle_id = ParticleId(0);
-                secondary.energy      = units::MevEnergy(5.);
-                secondary.direction   = {1., 0., 0.};
-            }
+            result.secondaries = {allocated, alloc_size - 1};
+        }
+
+        auto init_secondary = [](Secondary& s) {
+            s.particle_id = ParticleId(0);
+            s.energy      = units::MevEnergy(5.);
+            s.direction   = {1., 0., 0.};
+        };
+
+        if (alloc_size > 0)
+        {
+            init_secondary(result.secondary);
+        }
+        for (Secondary& s : result.secondaries)
+        {
+            init_secondary(s);
         }
 
         return result;
