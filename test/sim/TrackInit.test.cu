@@ -36,16 +36,13 @@ __global__ void interact_kernel(StateDeviceRef states, ITTestInputData input)
                                 input.alloc_size[thread_id.get()],
                                 input.alive[thread_id.get()]);
             states.interactions[thread_id] = interact();
+            CELER_ASSERT(states.interactions[thread_id]);
 
             // Kill the selected tracks
             if (!input.alive[thread_id.get()])
             {
                 sim.alive(false);
             }
-        }
-        else
-        {
-            states.interactions[thread_id] = Interaction::from_absorption();
         }
     }
 }

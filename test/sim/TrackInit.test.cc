@@ -374,9 +374,9 @@ TEST_F(TrackInitTest, primaries)
 
 TEST_F(TrackInitTest, secondaries)
 {
-    const size_type num_primaries  = 128;
+    const size_type num_primaries  = 512;
     const size_type num_tracks     = 512;
-    const size_type storage_factor = 2;
+    const size_type storage_factor = 8;
     size_type       capacity       = num_tracks * storage_factor;
 
     // Construct persistent track initializer data
@@ -388,7 +388,7 @@ TEST_F(TrackInitTest, secondaries)
     // Allocate input device data (number of secondaries to produce for each
     // track and whether the track survives the interaction)
     std::vector<size_type> alloc     = {1, 1, 2, 0, 0, 0, 0, 0};
-    std::vector<char>      alive     = {1, 0, 0, 1, 0, 0, 0, 0};
+    std::vector<char>      alive     = {1, 0, 0, 1, 1, 0, 0, 1};
     size_type              base_size = alive.size();
     for (size_type i = 0; i < num_tracks / base_size - 1; ++i)
     {
@@ -399,19 +399,23 @@ TEST_F(TrackInitTest, secondaries)
 
     // Create track initializers on device from primary particles
     extend_from_primaries(track_inits->host_ref(), &track_init_states);
-    EXPECT_EQ(track_init_states.num_primaries, 0);
-    EXPECT_EQ(track_init_states.initializers.size(), num_primaries);
+    EXPECT_EQ(0, track_init_states.num_primaries);
+    EXPECT_EQ(num_primaries, track_init_states.initializers.size());
 
-    while (track_init_states.initializers.size() > 0)
+    const size_type num_iter = 16;
+    for (CELER_MAYBE_UNUSED size_type i : range(num_iter))
     {
-        // Initialize the primary tracks on device
+        // All queued initializers are converted to tracks
         initialize_tracks(params, states, &track_init_states);
+        EXPECT_EQ(0, track_init_states.initializers.size());
 
         // Launch kernel to process interactions
         interact(states, input.device_ref());
 
         // Launch a kernel to create track initializers from secondaries
         extend_from_secondaries(params, states, &track_init_states);
+        EXPECT_EQ(128, track_init_states.initializers.size());
+        EXPECT_EQ(128, track_init_states.vacancies.size());
     }
 }
 
