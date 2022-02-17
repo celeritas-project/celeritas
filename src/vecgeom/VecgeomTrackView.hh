@@ -14,7 +14,6 @@
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
-
 #include "base/ArrayUtils.hh"
 #include "base/Macros.hh"
 #include "base/NumericLimits.hh"
@@ -70,6 +69,9 @@ class VecgeomTrackView
 
     // Find the distance to the next boundary
     inline CELER_FUNCTION real_type find_next_step();
+
+    // Find the safety at a given position within the current volumn
+    inline CELER_FUNCTION real_type safety(const Real3& pos) const;
 
     // Move to the boundary in preparation for crossing it
     inline CELER_FUNCTION void move_to_boundary();
@@ -160,8 +162,8 @@ VecgeomTrackView::VecgeomTrackView(const ParamsRef& params,
  * starting location and direction, but excess secondaries will also be
  * initialized this way.
  */
-CELER_FUNCTION VecgeomTrackView&
-VecgeomTrackView::operator=(const Initializer_t& init)
+CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::
+                                 operator=(const Initializer_t& init)
 {
     // Initialize position/direction
     pos_       = init.pos;
@@ -257,6 +259,24 @@ CELER_FUNCTION real_type VecgeomTrackView::find_next_step()
     next_step_ = max(next_step_, this->extra_push());
     CELER_ENSURE(this->has_next_step());
     return next_step_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the new safety at a given position within the current volumn.
+ */
+CELER_FUNCTION real_type VecgeomTrackView::safety(const Real3& pos) const
+{
+#ifdef VECGEOM_USE_NAVINDEX
+    real_type safety = detail::BVHNavigator::ComputeSafety(
+        detail::to_vector(pos), vgstate_);
+#else
+    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
+    real_type                  safety
+        = navigator->GetSafetyEstimator()->ComputeSafetyForLocalPoint(
+            detail::to_vector(pos), vgstate_.Top());
+#endif
+    return safety;
 }
 
 //---------------------------------------------------------------------------//
