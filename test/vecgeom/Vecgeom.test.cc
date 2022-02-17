@@ -232,6 +232,38 @@ TEST_F(FourLevelsTest, tracking)
 
 //---------------------------------------------------------------------------//
 
+TEST_F(FourLevelsTest, safety)
+{
+    VecgeomTrackView       geo = this->make_geo_track_view();
+    std::vector<real_type> safeties;
+
+    for (auto i : range(11))
+    {
+        real_type r = 2.0 * i;
+        geo         = {{r, r, r}, {1, 0, 0}};
+
+        if (!geo.is_outside())
+        {
+            safeties.push_back(geo.safety(geo.pos()));
+        }
+    }
+
+    static const real_type expected_safeties[] = {3,
+                                                  1,
+                                                  0,
+                                                  1.92820323027551,
+                                                  1.53589838486225,
+                                                  5,
+                                                  1.53589838486225,
+                                                  1.92820323027551,
+                                                  0,
+                                                  1,
+                                                  3};
+    EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
+}
+
+//---------------------------------------------------------------------------//
+
 TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 {
     using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
