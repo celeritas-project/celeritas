@@ -8,6 +8,8 @@
 #pragma once
 
 #include "../Data.hh"
+#include "base/Types.hh"
+#include "geometry/Types.hh"
 #include "VolumeInput.hh"
 
 namespace celeritas

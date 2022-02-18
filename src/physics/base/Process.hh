@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include "Applicability.hh"
 #include "ModelIdGenerator.hh"
 #include "Types.hh"

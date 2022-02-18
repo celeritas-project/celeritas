@@ -8,6 +8,7 @@
 #include "SurfaceIO.hh"
 
 #include <cmath>
+#include "base/Span.hh"
 #include "base/SpanIO.hh"
 #include "CylCentered.hh"
 #include "GeneralQuadric.hh"

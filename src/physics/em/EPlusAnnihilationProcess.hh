@@ -9,6 +9,7 @@
 
 #include "physics/base/Process.hh"
 
+#include <memory>
 #include "physics/base/ParticleParams.hh"
 
 namespace celeritas

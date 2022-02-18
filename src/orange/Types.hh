@@ -11,7 +11,6 @@
 
 #include "base/OpaqueId.hh"
 #include "base/NumericLimits.hh"
-#include "geometry/Types.hh"
 
 namespace celeritas
 {

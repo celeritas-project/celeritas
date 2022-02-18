@@ -8,7 +8,11 @@
 #include "PhotoelectricProcess.hh"
 
 #include <utility>
+#include "base/Assert.hh"
+#include "io/ImportLivermorePE.hh"
+#include "io/ImportProcess.hh"
 #include "io/LivermorePEReader.hh"
+#include "physics/base/PDGNumber.hh"
 #include "LivermorePEModel.hh"
 
 namespace celeritas

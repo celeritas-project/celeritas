@@ -10,12 +10,18 @@
 #include <initializer_list>
 #include <map>
 #include <memory>
+#include <utility>
 #include <vector>
+
+#include "PDGNumber.hh"
+#include "Process.hh"
+#include "base/Assert.hh"
 #include "base/OpaqueId.hh"
 #include "base/Span.hh"
+#include "io/ImportPhysicsTable.hh"
 #include "io/ImportProcess.hh"
-#include "Process.hh"
-#include "PDGNumber.hh"
+#include "physics/base/Applicability.hh"
+#include "physics/base/Types.hh"
 
 namespace celeritas
 {

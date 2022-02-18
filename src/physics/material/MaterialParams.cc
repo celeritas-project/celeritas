@@ -9,14 +9,23 @@
 
 #include <algorithm>
 #include <cmath>
-#include <numeric>
-#include "detail/Utils.hh"
-#include "base/Algorithms.hh"
+#include <utility>
+
 #include "base/CollectionBuilder.hh"
+#include "base/Constants.hh"
+#include "base/NumericLimits.hh"
+#include "base/Quantity.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
+#include "base/Span.hh"
 #include "comm/Logger.hh"
 #include "io/ImportData.hh"
+#include "io/ImportElement.hh"
+#include "io/ImportMaterial.hh"
+
+#include "MaterialData.hh"
+#include "Types.hh"
+#include "detail/Utils.hh"
 
 namespace celeritas
 {

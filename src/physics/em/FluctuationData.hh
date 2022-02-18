@@ -7,8 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Array.hh"
+#include "base/Collection.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
+#include "physics/material/Types.hh"
 
 namespace celeritas
 {

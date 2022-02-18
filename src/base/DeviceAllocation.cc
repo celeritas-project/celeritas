@@ -9,6 +9,8 @@
 
 #include "device_runtime_api.h"
 #include "Assert.hh"
+#include "Macros.hh"
+#include "Types.hh"
 #include "comm/Device.hh"
 
 namespace celeritas

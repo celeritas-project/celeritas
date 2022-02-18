@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "EIonizationProcess.hh"
 
+#include "base/Assert.hh"
+#include "io/ImportProcess.hh"
+#include "physics/base/PDGNumber.hh"
 #include "MollerBhabhaModel.hh"
 
 namespace celeritas

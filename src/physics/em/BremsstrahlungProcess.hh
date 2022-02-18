@@ -9,6 +9,7 @@
 
 #include "physics/base/Process.hh"
 
+#include <memory>
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"

@@ -8,7 +8,10 @@
 #pragma once
 
 #include <vector>
+
+#include "celeritas_config.h"
 #include "FieldTestParams.hh"
+#include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 

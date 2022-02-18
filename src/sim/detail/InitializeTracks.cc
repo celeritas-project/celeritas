@@ -12,6 +12,7 @@
 #include "LocateAliveLauncher.hh"
 #include "ProcessPrimariesLauncher.hh"
 #include "ProcessSecondariesLauncher.hh"
+#include "Utils.hh"
 
 namespace celeritas
 {

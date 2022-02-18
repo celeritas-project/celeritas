@@ -17,6 +17,7 @@
 namespace celeritas
 {
 class ValueGridInserter;
+struct XsGridData;
 
 //---------------------------------------------------------------------------//
 /*!

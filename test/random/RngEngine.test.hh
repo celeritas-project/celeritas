@@ -9,6 +9,8 @@
 #include <vector>
 #include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "base/Types.hh"
+#include "random/RngData.hh"
 
 namespace celeritas_test
 {

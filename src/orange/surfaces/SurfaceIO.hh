@@ -9,7 +9,7 @@
 
 #include <iosfwd>
 #include "SurfaceTypeTraits.hh"
-#include "../Types.hh"
+#include "geometry/Types.hh"
 
 namespace celeritas
 {

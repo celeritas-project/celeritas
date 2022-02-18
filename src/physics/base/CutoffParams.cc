@@ -7,10 +7,16 @@
 //---------------------------------------------------------------------------//
 #include "CutoffParams.hh"
 
-#include "base/CollectionBuilder.hh"
-#include "physics/base/Units.hh"
-#include "io/ImportData.hh"
+#include <utility>
 #include "ParticleParams.hh"
+#include "base/CollectionBuilder.hh"
+#include "base/Macros.hh"
+#include "base/Quantity.hh"
+#include "base/Range.hh"
+#include "io/ImportData.hh"
+#include "io/ImportMaterial.hh"
+#include "physics/base/CutoffData.hh"
+#include "physics/base/Units.hh"
 #include "physics/material/MaterialParams.hh"
 
 namespace celeritas

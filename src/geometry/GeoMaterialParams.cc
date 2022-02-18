@@ -8,11 +8,18 @@
 #include "GeoMaterialParams.hh"
 
 #include <algorithm>
+#include <string>
 #include <unordered_map>
+#include <utility>
+#include "base/Assert.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Join.hh"
+#include "base/OpaqueId.hh"
 #include "base/Range.hh"
 #include "comm/Logger.hh"
+#include "geometry/GeoMaterialData.hh"
+#include "geometry/Types.hh"
+#include "orange/OrangeParams.hh"
 
 namespace celeritas
 {

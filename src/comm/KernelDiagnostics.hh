@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <celeritas_config.h>
 #include <algorithm>
+#include <cstddef>
 #include <iosfwd>
 #include <unordered_map>
 #include <type_traits>
 #include <vector>
+#include "celeritas_config.h"
 #include "base/Assert.hh"
 #include "base/OpaqueId.hh"
 

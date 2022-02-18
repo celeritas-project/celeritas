@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "RelativisticBremModel.hh"
 
+#include <cmath>
+
 #include "base/Assert.hh"
 #include "base/Algorithms.hh"
 #include "base/Constants.hh"
@@ -18,8 +20,6 @@
 #include "physics/em/detail/PhysicsConstants.hh"
 #include "physics/em/detail/RelativisticBremData.hh"
 #include "physics/em/generated/RelativisticBremInteract.hh"
-
-#include <cmath>
 
 namespace celeritas
 {

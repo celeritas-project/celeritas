@@ -8,17 +8,18 @@
 #include "SeltzerBergerModel.hh"
 
 #include <algorithm>
+
 #include "base/Assert.hh"
 #include "base/CollectionBuilder.hh"
-#include "base/Join.hh"
 #include "base/Range.hh"
 #include "base/ScopedTimeLog.hh"
 #include "comm/Logger.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/material/MaterialParams.hh"
-#include "physics/em/detail/PhysicsConstants.hh"
-#include "physics/em/generated/SeltzerBergerInteract.hh"
+
+#include "detail/PhysicsConstants.hh"
+#include "generated/SeltzerBergerInteract.hh"
 
 namespace celeritas
 {

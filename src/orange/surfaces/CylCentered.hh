@@ -11,8 +11,9 @@
 #include "base/ArrayUtils.hh"
 #include "base/Macros.hh"
 #include "base/Span.hh"
-#include "../Types.hh"
+#include "geometry/Types.hh"
 #include "detail/QuadraticSolver.hh"
+#include "orange/Types.hh"
 
 namespace celeritas
 {

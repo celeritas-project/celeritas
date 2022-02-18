@@ -9,14 +9,17 @@
 
 #include "physics/base/Model.hh"
 
+#include <functional>
+#include <memory>
 #include "base/CollectionMirror.hh"
-#include "physics/material/MaterialParams.hh"
 #include "detail/CombinedBremData.hh"
 #include "SeltzerBergerModel.hh"
 #include "RelativisticBremModel.hh"
 
 namespace celeritas
 {
+struct ImportSBTable;
+class MaterialParams;
 class ParticleParams;
 
 //---------------------------------------------------------------------------//

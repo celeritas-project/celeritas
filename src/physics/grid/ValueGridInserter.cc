@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ValueGridInserter.hh"
 
-#include "base/VectorUtils.hh"
-#include "comm/Device.hh"
+#include "base/Assert.hh"
+#include "physics/grid/XsGridData.hh"
 
 namespace celeritas
 {

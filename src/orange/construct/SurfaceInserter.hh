@@ -7,8 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Span.hh"
+#include "base/Types.hh"
+#include "geometry/Types.hh"
+#include "orange/Types.hh"
+#include "orange/Data.hh"
 #include "SurfaceInput.hh"
-#include "../Data.hh"
 
 namespace celeritas
 {

@@ -12,10 +12,19 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <vector>
+
+#include "celeritas_config.h"
+#include "base/Assert.hh"
+#include "base/CollectionStateStore.hh"
+#include "base/Types.hh"
+#include "random/RngParams.hh"
+#include "random/distributions/GenerateCanonical.hh"
+
+#include "DiagnosticRngEngine.hh"
+#include "SequenceEngine.hh"
 #include "celeritas_test.hh"
 #include "RngEngine.test.hh"
-#include "base/CollectionStateStore.hh"
-#include "random/distributions/GenerateCanonical.hh"
 
 using celeritas::CollectionStateStore;
 using celeritas::generate_canonical;

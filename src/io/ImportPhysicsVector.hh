@@ -8,7 +8,6 @@
 #pragma once
 
 #include <vector>
-#include "base/Types.hh"
 
 namespace celeritas
 {

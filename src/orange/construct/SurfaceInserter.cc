@@ -7,9 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "SurfaceInserter.hh"
 
+#include "base/Assert.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Range.hh"
 #include "orange/surfaces/SurfaceAction.hh"
+#include "SurfaceInput.hh"
 
 namespace celeritas
 {

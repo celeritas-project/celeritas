@@ -8,6 +8,7 @@
 #pragma once
 
 #include "physics/base/Model.hh"
+
 #include "physics/base/ParticleParams.hh"
 #include "detail/MuBremsstrahlungData.hh"
 

@@ -8,10 +8,18 @@
 #include "ImportedProcessAdapter.hh"
 
 #include <algorithm>
+#include <ostream>
+#include <tuple>
 
+#include "base/EnumArray.hh"
 #include "base/Range.hh"
-#include "physics/base/ParticleParams.hh"
 #include "io/ImportData.hh"
+#include "io/ImportPhysicsVector.hh"
+#include "physics/base/PDGNumber.hh"
+#include "physics/base/ParticleParams.hh"
+#include "physics/grid/ValueGridBuilder.hh"
+#include "physics/grid/ValueGridData.hh"
+#include "physics/material/Types.hh"
 
 namespace celeritas
 {
