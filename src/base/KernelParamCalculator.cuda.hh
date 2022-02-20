@@ -58,11 +58,13 @@ class KernelParamCalculator
 
     // Construct with the default block size
     template<class F>
-    KernelParamCalculator(F kernel_func, const char* name);
+    KernelParamCalculator(F* kernel_func_ptr, const char* name);
 
     // Construct with an explicit number of threads per block
     template<class F>
-    KernelParamCalculator(F kernel_func, const char* name, dim_type block_size);
+    KernelParamCalculator(F*          kernel_func_ptr,
+                          const char* name,
+                          dim_type    block_size);
 
     // Get launch parameters
     LaunchParams operator()(size_type min_num_threads) const;
@@ -95,9 +97,10 @@ CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
  * Construct for the given global kernel F.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(F kernel_func, const char* name)
+KernelParamCalculator::KernelParamCalculator(F*          kernel_func_ptr,
+                                             const char* name)
     : KernelParamCalculator(
-        kernel_func, name, celeritas::device().default_block_size())
+        kernel_func_ptr, name, celeritas::device().default_block_size())
 {
 }
 
@@ -106,13 +109,14 @@ KernelParamCalculator::KernelParamCalculator(F kernel_func, const char* name)
  * Construct for the given global kernel F.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(F           kernel_func,
+KernelParamCalculator::KernelParamCalculator(F*          kernel_func_ptr,
                                              const char* name,
                                              dim_type    block_size)
     : block_size_(block_size)
 {
     CELER_EXPECT(block_size % celeritas::device().warp_size() == 0);
-    id_ = celeritas::kernel_diagnostics().insert(kernel_func, name, block_size);
+    id_ = celeritas::kernel_diagnostics().insert<F>(
+        kernel_func_ptr, name, block_size);
 }
 
 //---------------------------------------------------------------------------//

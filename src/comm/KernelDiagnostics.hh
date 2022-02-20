@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <iosfwd>
 #include <unordered_map>
+#include <type_traits>
 #include <vector>
 #include "base/Assert.hh"
 #include "base/OpaqueId.hh"
@@ -59,7 +60,7 @@ class KernelDiagnostics
     // Register a kernel, gathering diagnostics if needed
     template<class F>
     inline key_type
-    insert(F func_ptr, const char* name, unsigned int block_size);
+    insert(F* func_ptr, const char* name, unsigned int block_size);
 
     //! Number of kernel diagnostics available
     size_type size() const { return values_.size(); }
@@ -128,9 +129,12 @@ void KernelDiagnostics::launch(key_type key, unsigned int num_threads)
  */
 template<class F>
 inline auto
-KernelDiagnostics::insert(F func, const char* name, unsigned int block_size)
+KernelDiagnostics::insert(F* func, const char* name, unsigned int block_size)
     -> key_type
 {
+    static_assert(std::is_function<F>::value,
+                  "KernelDiagnostics must be called with a function object, "
+                  "not a function pointer or anything else.");
     auto iter_inserted = keys_.insert(
         {reinterpret_cast<std::uintptr_t>(func), key_type{this->size()}});
     if (CELER_UNLIKELY(iter_inserted.second))
@@ -144,7 +148,7 @@ KernelDiagnostics::insert(F func, const char* name, unsigned int block_size)
         diag.block_size      = block_size;
 
         cudaFuncAttributes attr;
-        CELER_CUDA_CALL(cudaFuncGetAttributes(&attr, func));
+        CELER_CUDA_CALL(cudaFuncGetAttributes(&attr, reinterpret_cast<const void*>(func)));
         diag.num_regs  = attr.numRegs;
         diag.const_mem = attr.constSizeBytes;
         diag.local_mem = attr.localSizeBytes;
@@ -164,5 +168,6 @@ KernelDiagnostics::insert(F func, const char* name, unsigned int block_size)
     return iter_inserted.first->second;
 }
 #endif
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas
