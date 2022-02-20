@@ -4,7 +4,10 @@ cd "$(dirname $0)"/..
 
 # Link user presets for this system if they don't exist
 if [ ! -e "CMakeUserPresets.json" ]; then
-  _USER_PRESETS="scripts/cmake-presets/${HOSTNAME%%.*}.json"
+  if [ -z "${LMOD_SYSTEM_NAME}" ]; then
+    LMOD_SYSTEM_NAME=${HOSTNAME%%.*}
+  fi
+  _USER_PRESETS="scripts/cmake-presets/${LMOD_SYSTEM_NAME}.json"
   if [ -f "${_USER_PRESETS}" ]; then
     ln -s "${_USER_PRESETS}" "CMakeUserPresets.json"
   fi
