@@ -27,8 +27,8 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = CLIKE_TOP + """\
-#include "celeritas_config.h"
 #include "base/Assert.hh"
+#include "base/Macros.hh"
 #include "../detail/{class}Data.hh"
 
 namespace celeritas
@@ -43,7 +43,7 @@ void {func}_interact(
     const detail::{class}DeviceRef&,
     const ModelInteractRef<MemSpace::device>&);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline void {func}_interact(
     const detail::{class}DeviceRef&,
     const ModelInteractRef<MemSpace::device>&)
@@ -87,8 +87,10 @@ void {func}_interact(
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
+#include "base/device_runtime_api.h"
 #include "base/Assert.hh"
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
+#include "comm/Device.hh"
 #include "../detail/{class}Launcher.hh"
 
 using namespace celeritas::detail;
@@ -118,13 +120,10 @@ void {func}_interact(
 {{
     CELER_EXPECT({func}_data);
     CELER_EXPECT(model);
-
-    static const KernelParamCalculator calc_kernel_params(
-        {func}_interact_kernel, "{func}_interact");
-    auto params = calc_kernel_params(model.states.size());
-    {func}_interact_kernel<<<params.grid_size, params.block_size>>>(
-        {func}_data, model);
-    CELER_CUDA_CHECK_ERROR();
+    CELER_LAUNCH_KERNEL({func}_interact,
+                        celeritas::device().default_block_size(),
+                        model.states.size(),
+                        {func}_data, model);
 }}
 
 }} // namespace generated

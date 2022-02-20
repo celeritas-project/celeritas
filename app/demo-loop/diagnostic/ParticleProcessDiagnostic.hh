@@ -110,7 +110,7 @@ void count_particle_process(
     const celeritas::StateDeviceRef&                    states,
     ParticleProcessLauncher<MemSpace::device>::ItemsRef counts);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline void
 count_particle_process(const celeritas::ParamsDeviceRef&,
                        const celeritas::StateDeviceRef&,

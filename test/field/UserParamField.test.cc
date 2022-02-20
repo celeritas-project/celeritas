@@ -74,7 +74,7 @@ class UserParamFieldDeviceTest : public UserParamFieldTest
 };
 
 TEST_F(UserParamFieldDeviceTest,
-       TEST_IF_CELERITAS_CUDA(device_parameterized_field))
+       TEST_IF_CELER_DEVICE(device_parameterized_field))
 {
     // Run kernel for the magnetic field with a parameterized field
     auto output = parameterized_field_test(this->test_param_);

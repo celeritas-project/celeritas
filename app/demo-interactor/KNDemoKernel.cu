@@ -9,7 +9,8 @@
 
 #include "base/ArrayUtils.hh"
 #include "base/Assert.hh"
-#include "base/KernelParamCalculator.cuda.hh"
+#include "comm/Device.hh"
+#include "base/KernelParamCalculator.device.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "base/StackAllocator.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
@@ -188,24 +189,16 @@ cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACES
 //---------------------------------------------------------------------------//
-#define CDE_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, ARGS...)       \
-    do                                                              \
-    {                                                               \
-        static const KernelParamCalculator calc_kernel_params_(     \
-            NAME##_kernel, #NAME, BLOCK_SIZE);                      \
-        auto grid_ = calc_kernel_params_(THREADS);                  \
-                                                                    \
-        NAME##_kernel<<<grid_.grid_size, grid_.block_size>>>(ARGS); \
-        CELER_CUDA_CHECK_ERROR();                                   \
-    } while (0)
+#define CDE_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, ...) \
+    CELER_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, __VA_ARGS__)
 
 /*!
  * Initialize particle states.
  */
-void initialize(const CudaGridParams&  opts,
-                const ParamsDeviceRef& params,
-                const StateDeviceRef&  states,
-                const InitialData&     initial)
+void initialize(const DeviceGridParams& opts,
+                const ParamsDeviceRef&  params,
+                const StateDeviceRef&   states,
+                const InitialData&      initial)
 {
     CELER_EXPECT(states.alive.size() == states.size());
     CELER_EXPECT(states.rng.size() == states.size());
@@ -217,9 +210,9 @@ void initialize(const CudaGridParams&  opts,
 /*!
  * Run an iteration.
  */
-void iterate(const CudaGridParams&  opts,
-             const ParamsDeviceRef& params,
-             const StateDeviceRef&  states)
+void iterate(const DeviceGridParams& opts,
+             const ParamsDeviceRef&  params,
+             const StateDeviceRef&   states)
 {
     // Move to the collision site
     CDE_LAUNCH_KERNEL(move, opts.block_size, states.size(), params, states);
@@ -230,7 +223,7 @@ void iterate(const CudaGridParams&  opts,
     if (opts.sync)
     {
         // Synchronize for granular kernel timing diagnostics
-        CELER_CUDA_CALL(cudaDeviceSynchronize());
+        CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
     }
 }
 
@@ -238,9 +231,9 @@ void iterate(const CudaGridParams&  opts,
 /*!
  * Clean up after an iteration.
  */
-void cleanup(const CudaGridParams&  opts,
-             const ParamsDeviceRef& params,
-             const StateDeviceRef&  states)
+void cleanup(const DeviceGridParams& opts,
+             const ParamsDeviceRef&  params,
+             const StateDeviceRef&   states)
 {
     // Process hits from buffer to grid
     CDE_LAUNCH_KERNEL(process_hits,
@@ -250,11 +243,12 @@ void cleanup(const CudaGridParams&  opts,
                       states);
 
     // Clear buffers
-    CDE_LAUNCH_KERNEL(cleanup, 32, 1, params, states);
+    CDE_LAUNCH_KERNEL(
+        cleanup, celeritas::device().warp_size(), 1, params, states);
 
     if (opts.sync)
     {
-        CELER_CUDA_CALL(cudaDeviceSynchronize());
+        CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
     }
 }
 

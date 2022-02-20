@@ -9,7 +9,9 @@
 
 #include <thrust/device_vector.h>
 
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/device_runtime_api.h"
+#include "comm/Device.hh"
+#include "base/KernelParamCalculator.device.hh"
 #include "field/FieldDriver.hh"
 #include "field/FieldParamsData.hh"
 #include "field/FieldPropagator.hh"
@@ -193,25 +195,22 @@ FPTestOutput fp_test(FPTestInput input)
     thrust::device_vector<double> dir(input.init_geo.size(), -1.0);
 
     // Run kernel
-    celeritas::KernelParamCalculator calc_launch_params(fp_test_kernel,
-                                                        "fp_test");
-    auto params = calc_launch_params(in_geo.size());
-
-    fp_test_kernel<<<params.grid_size, params.block_size>>>(
-        in_geo.size(),
-        input.geo_params,
-        input.geo_states,
-        raw_pointer_cast(in_geo.data()),
-        input.particle_params,
-        input.particle_states,
-        input.field_params,
-        input.test,
-        raw_pointer_cast(in_track.data()),
-        raw_pointer_cast(pos.data()),
-        raw_pointer_cast(dir.data()),
-        raw_pointer_cast(step.data()));
-    CELER_CUDA_CHECK_ERROR();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(fp_test,
+                        celeritas::device().default_block_size(),
+                        in_geo.size(),
+                        in_geo.size(),
+                        input.geo_params,
+                        input.geo_states,
+                        raw_pointer_cast(in_geo.data()),
+                        input.particle_params,
+                        input.particle_states,
+                        input.field_params,
+                        input.test,
+                        raw_pointer_cast(in_track.data()),
+                        raw_pointer_cast(pos.data()),
+                        raw_pointer_cast(dir.data()),
+                        raw_pointer_cast(step.data()));
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Copy result back to CPU
     FPTestOutput result;
@@ -247,25 +246,22 @@ FPTestOutput bc_test(FPTestInput input)
     thrust::device_vector<double> dir(input.init_geo.size(), -1.0);
 
     // Run kernel
-    celeritas::KernelParamCalculator calc_launch_params(bc_test_kernel,
-                                                        "bc_test");
-    auto params = calc_launch_params(in_geo.size());
-
-    bc_test_kernel<<<params.grid_size, params.block_size>>>(
-        in_geo.size(),
-        input.geo_params,
-        input.geo_states,
-        raw_pointer_cast(in_geo.data()),
-        input.particle_params,
-        input.particle_states,
-        input.field_params,
-        input.test,
-        raw_pointer_cast(in_track.data()),
-        raw_pointer_cast(pos.data()),
-        raw_pointer_cast(dir.data()),
-        raw_pointer_cast(step.data()));
-    CELER_CUDA_CHECK_ERROR();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(bc_test,
+                        celeritas::device().default_block_size(),
+                        in_geo.size(),
+                        in_geo.size(),
+                        input.geo_params,
+                        input.geo_states,
+                        raw_pointer_cast(in_geo.data()),
+                        input.particle_params,
+                        input.particle_states,
+                        input.field_params,
+                        input.test,
+                        raw_pointer_cast(in_track.data()),
+                        raw_pointer_cast(pos.data()),
+                        raw_pointer_cast(dir.data()),
+                        raw_pointer_cast(step.data()));
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Copy result back to CPU
     FPTestOutput result;

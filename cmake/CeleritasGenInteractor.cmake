@@ -49,8 +49,14 @@ function(celeritas_gen_interactor var class func)
   endif()
 
   set(_sources ${${var}} "${_basename}.cc")
-  if(CELERITAS_USE_CUDA)
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     list(APPEND _sources "${_basename}.cu")
+  endif()
+  if(CELERITAS_USE_HIP)
+    set_source_files_properties(
+      "${_basename}.cu"
+      PROPERTIES LANGUAGE HIP
+    )
   endif()
   set(${var} "${_sources}" PARENT_SCOPE)
 endfunction()

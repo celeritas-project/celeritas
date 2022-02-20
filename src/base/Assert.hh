@@ -17,8 +17,11 @@
 
 #include <stdexcept>
 #include <string>
-#ifndef __CUDA_ARCH__
+#ifndef CELER_DEVICE_COMPILE
 #    include <sstream>
+#elif __HIP_DEVICE_COMPILE__
+#    include <hip/hip_runtime.h>
+#    include <assert.h>
 #endif
 
 //---------------------------------------------------------------------------//
@@ -106,32 +109,37 @@
  */
 
 //! \cond
-#ifndef NDEBUG
+#if CELERITAS_USE_HIP || defined(NDEBUG)
+// HIP "assert" can cause unexpected device failures on AMD (simultaneous
+// writes from multiple threads), plus it will be disabled if NDEBUG -- same
+// with CUDA
+#    define CELER_DEVICE_ASSERT_(COND)                                      \
+        do                                                                  \
+        {                                                                   \
+            if (CELER_UNLIKELY(!(COND)))                                    \
+            {                                                               \
+                ::celeritas::device_debug_error(#COND, __FILE__, __LINE__); \
+            }                                                               \
+        } while (0)
+#    define CELER_DEVICE_ASSERT_UNREACHABLE_()                             \
+        do                                                                 \
+        {                                                                  \
+            ::celeritas::device_debug_error(                               \
+                "Unreachable code point encountered", __FILE__, __LINE__); \
+            CELER_UNREACHABLE;                                             \
+        } while (0)
+#elif CELERITAS_USE_CUDA && !defined(NDEBUG)
 // CUDA assert macro is enabled
-#    define CELER_CUDA_ASSERT_(COND) \
-        do                           \
-        {                            \
-            assert(COND);            \
+#    define CELER_DEVICE_ASSERT_(COND) \
+        do                             \
+        {                              \
+            assert(COND);              \
         } while (0)
-#    define CELER_CUDA_FAIL_() \
-        do                     \
-        {                      \
-            assert(false);     \
-            CELER_UNREACHABLE; \
-        } while (0)
-#else
-// Substitute assertion to make RelWithDebInfo flags orthogonal to
-// CELERITAS_DEBUG flag
-#    define CELER_CUDA_ASSERT_(COND)     \
-        do                               \
-        {                                \
-            if (CELER_UNLIKELY(!(COND))) \
-                __trap();                \
-        } while (0)
-#    define CELER_CUDA_FAIL_() \
-        do                     \
-        {                      \
-            __trap();          \
+#    define CELER_DEVICE_ASSERT_UNREACHABLE_() \
+        do                                     \
+        {                                      \
+            assert(false);                     \
+            CELER_UNREACHABLE;                 \
         } while (0)
 #endif
 
@@ -166,12 +174,12 @@
     } while (0)
 //! \endcond
 
-#if CELERITAS_DEBUG && defined(__CUDA_ARCH__)
-#    define CELER_EXPECT(COND) CELER_CUDA_ASSERT_(COND)
-#    define CELER_ASSERT(COND) CELER_CUDA_ASSERT_(COND)
-#    define CELER_ENSURE(COND) CELER_CUDA_ASSERT_(COND)
-#    define CELER_ASSERT_UNREACHABLE() CELER_CUDA_FAIL_()
-#elif CELERITAS_DEBUG && !defined(__CUDA_ARCH__)
+#if CELERITAS_DEBUG && defined(CELER_DEVICE_COMPILE)
+#    define CELER_EXPECT(COND) CELER_DEVICE_ASSERT_(COND)
+#    define CELER_ASSERT(COND) CELER_DEVICE_ASSERT_(COND)
+#    define CELER_ENSURE(COND) CELER_DEVICE_ASSERT_(COND)
+#    define CELER_ASSERT_UNREACHABLE() CELER_DEVICE_ASSERT_UNREACHABLE_()
+#elif CELERITAS_DEBUG && !defined(CELER_DEVICE_COMPILE)
 #    define CELER_EXPECT(COND) CELER_DEBUG_ASSERT_(COND, precondition)
 #    define CELER_ASSERT(COND) CELER_DEBUG_ASSERT_(COND, internal)
 #    define CELER_ENSURE(COND) CELER_DEBUG_ASSERT_(COND, postcondition)
@@ -183,7 +191,7 @@
 #    define CELER_ASSERT_UNREACHABLE() CELER_UNREACHABLE
 #endif
 
-#ifndef __CUDA_ARCH__
+#ifndef CELER_DEVICE_COMPILE
 #    define CELER_VALIDATE(COND, MSG) CELER_RUNTIME_ASSERT_(COND, MSG)
 #    define CELER_NOT_CONFIGURED(WHAT) CELER_DEBUG_FAIL_(WHAT, unconfigured)
 #    define CELER_NOT_IMPLEMENTED(WHAT) CELER_DEBUG_FAIL_(WHAT, unimplemented)
@@ -223,7 +231,7 @@
             if (CELER_UNLIKELY(cuda_result_ != cudaSuccess)) \
             {                                                \
                 cudaGetLastError();                          \
-                ::celeritas::throw_cuda_call_error(          \
+                ::celeritas::throw_device_call_error(        \
                     cudaGetErrorString(cuda_result_),        \
                     #STATEMENT,                              \
                     __FILE__,                                \
@@ -239,13 +247,79 @@
 #endif
 
 /*!
- * \def CELER_CUDA_CHECK_ERROR
+ * \def CELER_HIP_CALL
+ *
+ * When HIP support is enabled, execute the wrapped statement and throw a
+ * RuntimeError if it fails. If HIP is disabled, throw an unconfigured
+ * assertion.
+ *
+ * If it fails, we call \c hipGetLastError to clear the error code.
+ *
+ * \code
+ *     CELER_HIP_CALL(hipMalloc(&ptr_gpu, 100 * sizeof(float)));
+ *     CELER_HIP_CALL(hipDeviceSynchronize());
+ * \endcode
+ *
+ * \note A file that uses this macro must include \c hip_runtime_api.h or be
+ * compiled by NVCC (which implicitly includes that header).
+ */
+#if CELERITAS_USE_HIP
+#    define CELER_HIP_CALL(STATEMENT)                      \
+        do                                                 \
+        {                                                  \
+            hipError_t hip_result_ = (STATEMENT);          \
+            if (CELER_UNLIKELY(hip_result_ != hipSuccess)) \
+            {                                              \
+                hipGetLastError();                         \
+                ::celeritas::throw_device_call_error(      \
+                    hipGetErrorString(hip_result_),        \
+                    #STATEMENT,                            \
+                    __FILE__,                              \
+                    __LINE__);                             \
+            }                                              \
+        } while (0)
+#else
+#    define CELER_HIP_CALL(STATEMENT)    \
+        do                               \
+        {                                \
+            CELER_NOT_CONFIGURED("HIP"); \
+        } while (0)
+#endif
+
+/*!
+ * \def CELER_DEVICE_CALL_PREFIX
+ *
+ * Prepend the argument with "cuda" or "hip" and call with the appropriate
+ * checking statement as above.
+ *
+ * Example:
+ *
+ * \code
+ *     CELER_DEVICE_CALL_PREFIX(Malloc(&ptr_gpu, 100 * sizeof(float)));
+ *     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+ * \endcode
+ *
+ */
+#if CELERITAS_USE_CUDA
+#    define CELER_DEVICE_CALL_PREFIX(STMT) CELER_CUDA_CALL(cuda##STMT)
+#elif CELERITAS_USE_HIP
+#    define CELER_DEVICE_CALL_PREFIX(STMT) CELER_HIP_CALL(hip##STMT)
+#else
+#    define CELER_DEVICE_CALL_PREFIX(STMT)       \
+        do                                       \
+        {                                        \
+            CELER_NOT_CONFIGURED("CUDA or HIP"); \
+        } while (0)
+#endif
+
+/*!
+ * \def CELER_DEVICE_CHECK_ERROR
  *
  * After a kernel launch or other call, check that no CUDA errors have
  * occurred. This is also useful for checking success after external CUDA
  * libraries have been called.
  */
-#define CELER_CUDA_CHECK_ERROR() CELER_CUDA_CALL(cudaPeekAtLastError())
+#define CELER_DEVICE_CHECK_ERROR() CELER_DEVICE_CALL_PREFIX(PeekAtLastError())
 
 /*!
  * \def CELER_MPI_CALL
@@ -275,10 +349,14 @@
         } while (0)
 #endif
 
+//---------------------------------------------------------------------------//
+// ENUMERATIONS
+//---------------------------------------------------------------------------//
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// FUNCTIONS
+// ENUMERATIONS
 //---------------------------------------------------------------------------//
 enum class DebugErrorType
 {
@@ -299,11 +377,11 @@ enum class DebugErrorType
                                     const char*    file,
                                     int            line);
 
-// Construct and throw a RuntimeError for failed CUDA calls.
-[[noreturn]] void throw_cuda_call_error(const char* error_string,
-                                        const char* code,
-                                        const char* file,
-                                        int         line);
+// Construct and throw a RuntimeError for failed CUDA/HIP calls.
+[[noreturn]] void throw_device_call_error(const char* error_string,
+                                          const char* code,
+                                          const char* file,
+                                          int         line);
 
 // Construct and throw a RuntimeError for failed MPI calls.
 [[noreturn]] void throw_mpi_call_error(int         errorcode,
@@ -316,6 +394,7 @@ enum class DebugErrorType
                                       const char* condition,
                                       const char* file,
                                       int         line);
+
 //---------------------------------------------------------------------------//
 // TYPES
 //---------------------------------------------------------------------------//
@@ -341,6 +420,26 @@ class RuntimeError : public std::runtime_error
     explicit RuntimeError(const char* msg);
     explicit RuntimeError(const std::string& msg);
 };
+
+//---------------------------------------------------------------------------//
+// INLINE FUNCTION DEFINITIONS
+//---------------------------------------------------------------------------//
+
+#ifdef CELER_DEVICE_COMPILE
+__attribute__((noinline)) __host__ __device__ inline void
+device_debug_error(const char* condition, const char* file, unsigned int line)
+{
+    printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
+           file,
+           line,
+           condition);
+#    if CELERITAS_USE_CUDA
+    __trap();
+#    else
+    abort();
+#    endif
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -47,7 +47,7 @@ int test_main(int argc, char** argv)
         if (comm.rank() == 0)
         {
             cout << color_code('r') << "[  FAILED  ]" << color_code(' ')
-                 << " CUDA failed to initialize: " << e.what() << endl;
+                 << " Device failed to initialize: " << e.what() << endl;
         }
         return 1;
     }

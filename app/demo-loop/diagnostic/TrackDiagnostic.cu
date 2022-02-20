@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "TrackDiagnostic.hh"
 #include "base/Assert.hh"
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
 #include "sim/SimTrackView.hh"
 #include "physics/base/ModelData.hh"
 

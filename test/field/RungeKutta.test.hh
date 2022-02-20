@@ -9,6 +9,7 @@
 
 #include <vector>
 #include "FieldTestParams.hh"
+#include "base/Macros.hh"
 #include "base/Types.hh"
 
 namespace celeritas_test
@@ -32,10 +33,10 @@ struct RK4TestOutput
 //! Run on device and return results
 RK4TestOutput rk4_test(FieldTestParams test_param);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline RK4TestOutput rk4_test(FieldTestParams)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

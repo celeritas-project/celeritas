@@ -81,7 +81,7 @@ TEST_F(StackAllocatorTest, host)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(StackAllocatorTest, TEST_IF_CELERITAS_CUDA(device))
+TEST_F(StackAllocatorTest, TEST_IF_CELER_DEVICE(device))
 {
     using StateStore
         = celeritas::CollectionStateStore<MockAllocatorData,

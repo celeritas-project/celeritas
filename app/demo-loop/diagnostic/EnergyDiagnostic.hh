@@ -203,10 +203,10 @@ CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
     }
 }
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline void bin_energy(const celeritas::StateDeviceRef&, PointersDevice&)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA/HIP");
 }
 #endif
 

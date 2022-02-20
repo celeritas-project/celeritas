@@ -9,7 +9,7 @@
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
 
 #include "Vecgeom.test.hh"
 

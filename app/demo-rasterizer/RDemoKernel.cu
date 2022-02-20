@@ -8,7 +8,7 @@
 #include "RDemoKernel.hh"
 
 #include "base/Assert.hh"
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
 #include "geometry/GeoTrackView.hh"
 #include "ImageTrackView.hh"
 #include <cmath>
@@ -121,9 +121,9 @@ void trace(const GeoParamsCRefDevice& geo_params,
     auto params = calc_kernel_params(image.dims[0]);
     trace_kernel<<<params.grid_size, params.block_size>>>(
         geo_params, geo_state, image);
-    CELER_CUDA_CHECK_ERROR();
+    CELER_DEVICE_CHECK_ERROR();
 
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//

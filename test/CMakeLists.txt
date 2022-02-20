@@ -30,13 +30,40 @@ target_include_directories(CeleritasTest
 )
 
 #-----------------------------------------------------------------------------#
+# HIP SUPPORT
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_USE_HIP)
+  set_source_files_properties(
+    base/Collection.test.cu
+    base/NumericLimits.test.cu
+    base/Range.test.cu
+    base/StackAllocator.test.cu
+    field/FieldDriver.test.cu
+    field/FieldPropagator.test.cu
+    field/RungeKutta.test.cu
+    field/UserMapField.test.cu
+    field/UserParamField.test.cu
+    orange/surfaces/SurfaceAction.test.cu
+    orange/universes/SimpleUnitTracker.test.cu
+    physics/base/Particle.test.cu
+    physics/base/Physics.test.cu
+    physics/material/Material.test.cu
+    random/RngEngine.test.cu
+    random/curand/CurandPerformance.test.cu
+    sim/TrackInit.test.cu
+    PROPERTIES LANGUAGE HIP
+  )
+endif()
+
+#-----------------------------------------------------------------------------#
 # TESTS
 #-----------------------------------------------------------------------------#
 
 include(CeleritasAddTest)
 
-function(celeritas_cudaoptional_test base)
-  if(CELERITAS_USE_CUDA)
+function(celeritas_device_test base)
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     set(_cuda_args GPU SOURCES "${base}.test.cu")
   endif()
   celeritas_add_test("${base}.test.cc" ${_cuda_args} ${ARGN})
@@ -50,6 +77,9 @@ if(NOT CELERITAS_USE_HepMC3)
 endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
+endif()
+if(CELERITAS_DEBUG)
+  set(_disable_if_debug DISABLE)
 endif()
 
 if(NOT CELERITAS_USE_Geant4)
@@ -92,10 +122,10 @@ celeritas_add_test(base/Stopwatch.test.cc)
 celeritas_add_test(base/TypeDemangler.test.cc)
 celeritas_add_test(base/VectorUtils.test.cc)
 
-celeritas_cudaoptional_test(base/Collection)
-celeritas_cudaoptional_test(base/NumericLimits)
-celeritas_cudaoptional_test(base/Range)
-celeritas_cudaoptional_test(base/StackAllocator)
+celeritas_device_test(base/Collection)
+celeritas_device_test(base/NumericLimits)
+celeritas_device_test(base/Range)
+celeritas_device_test(base/StackAllocator)
 
 #-----------------------------------------------------------------------------#
 # Comm
@@ -113,14 +143,14 @@ celeritas_add_test(comm/Logger.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX field)
 
-celeritas_cudaoptional_test(field/RungeKutta)
-celeritas_cudaoptional_test(field/FieldDriver)
-celeritas_cudaoptional_test(field/FieldPropagator)
+celeritas_device_test(field/RungeKutta)
+celeritas_device_test(field/FieldDriver)
+celeritas_device_test(field/FieldPropagator)
 
 ### User field ###
 
-celeritas_cudaoptional_test(field/UserParamField)
-celeritas_cudaoptional_test(field/UserMapField
+celeritas_device_test(field/UserParamField)
+celeritas_device_test(field/UserMapField
   SOURCES
     field/detail/MagFieldMap.cc
     field/detail/CMSFieldMapReader.cc
@@ -133,7 +163,7 @@ celeritas_setup_tests(SERIAL PREFIX vecgeom
   LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom)
 
 if(CELERITAS_USE_VecGeom)
-  celeritas_cudaoptional_test(vecgeom/Vecgeom)
+  celeritas_device_test(vecgeom/Vecgeom)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -161,7 +191,7 @@ celeritas_add_test(orange/surfaces/GeneralQuadric.test.cc)
 celeritas_add_test(orange/surfaces/PlaneAligned.test.cc)
 celeritas_add_test(orange/surfaces/Sphere.test.cc)
 
-celeritas_cudaoptional_test(orange/surfaces/SurfaceAction)
+celeritas_device_test(orange/surfaces/SurfaceAction)
 
 celeritas_add_test(orange/universes/detail/LogicEvaluator.test.cc)
 celeritas_add_test(orange/universes/detail/LogicStack.test.cc)
@@ -180,7 +210,7 @@ set(CELERITASTEST_LINK_LIBRARIES CeleritasOrangeTest)
 
 celeritas_add_test(orange/universes/detail/SenseCalculator.test.cc)
 celeritas_add_test(orange/universes/VolumeView.test.cc)
-celeritas_cudaoptional_test(orange/universes/SimpleUnitTracker)
+celeritas_device_test(orange/universes/SimpleUnitTracker)
 celeritas_add_test(orange/Orange.test.cc)
 
 #-----------------------------------------------------------------------------#
@@ -212,9 +242,9 @@ celeritas_setup_tests(SERIAL PREFIX physics/base
   LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_add_test(physics/base/CutoffParams.test.cc
   LINK_LIBRARIES Celeritas::ROOT)
-celeritas_cudaoptional_test(physics/base/Particle
+celeritas_device_test(physics/base/Particle
   LINK_LIBRARIES Celeritas::ROOT)
-celeritas_cudaoptional_test(physics/base/Physics)
+celeritas_device_test(physics/base/Physics)
 celeritas_add_test(physics/base/PhysicsStepUtils.test.cc)
 
 #-------------------------------------#
@@ -237,7 +267,7 @@ celeritas_add_test(physics/grid/XsCalculator.test.cc)
 celeritas_setup_tests(SERIAL PREFIX physics/material
   LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_add_test(physics/material/ElementSelector.test.cc)
-celeritas_cudaoptional_test(physics/material/Material
+celeritas_device_test(physics/material/Material
   LINK_LIBRARIES Celeritas::ROOT)
 
 #-------------------------------------#
@@ -268,8 +298,13 @@ celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
 
 celeritas_setup_tests(SERIAL PREFIX random)
 
-celeritas_cudaoptional_test(random/RngEngine)
-celeritas_cudaoptional_test(random/curand/CurandPerformance)
+celeritas_device_test(random/RngEngine)
+if(CELERITAS_USE_CUDA)
+  celeritas_add_test(random/curand/CurandPerformance.test.cc GPU
+    SOURCES random/curand/CurandPerformance.test.cu
+    ${_disable_if_debug}
+  )
+endif()
 celeritas_add_test(random/Selector.test.cc)
 
 celeritas_add_test(random/distributions/BernoulliDistribution.test.cc)
@@ -287,7 +322,7 @@ celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 # Sim
 
 celeritas_setup_tests(SERIAL PREFIX sim)
-if(CELERITAS_USE_CUDA)
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   celeritas_add_test(sim/TrackInit.test.cc GPU
     SOURCES sim/TrackInit.test.cu
   )

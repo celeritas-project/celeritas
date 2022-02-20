@@ -167,7 +167,7 @@ TEST_F(SimpleCollectionTest, algo_host)
     celeritas::copy_to_host(src, celeritas::make_span(dst));
 }
 
-TEST_F(SimpleCollectionTest, TEST_IF_CELERITAS_CUDA(algo_device))
+TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
 {
     Value<device> src;
     make_builder(&src).resize(2);
@@ -290,7 +290,7 @@ TEST_F(CollectionTest, host)
     EXPECT_EQ(1, mock.matid().unchecked_get());
 }
 
-TEST_F(CollectionTest, TEST_IF_CELERITAS_CUDA(device))
+TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
 {
     // Construct with 1024 states
     MockStateData<Ownership::value, MemSpace::device> device_states;

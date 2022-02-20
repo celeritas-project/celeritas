@@ -8,6 +8,7 @@
 #pragma once
 
 #include <vector>
+#include "base/Macros.hh"
 #include "base/Types.hh"
 #include "detail/FieldMapData.hh"
 
@@ -45,12 +46,12 @@ struct UserFieldTestOutput
 UserFieldTestOutput fieldmap_test(UserFieldTestParams test_param,
                                   celeritas::detail::FieldMapDeviceRef data);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline UserFieldTestOutput
 fieldmap_test(UserFieldTestParams,
               CELER_MAYBE_UNUSED celeritas::detail::FieldMapDeviceRef data)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 
@@ -58,10 +59,10 @@ fieldmap_test(UserFieldTestParams,
 //! Run on device and return results
 UserFieldTestOutput parameterized_field_test(UserFieldTestParams test_param);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline UserFieldTestOutput parameterized_field_test(UserFieldTestParams)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

@@ -23,7 +23,7 @@ struct RangeTestInput
     std::vector<int> x;
     std::vector<int> y;
     unsigned int     num_threads;
-    unsigned int     num_blocks;
+    unsigned int     threads_per_block;
 };
 
 //! Output data
@@ -36,10 +36,10 @@ struct RangeTestOutput
 //! Run on device and return results
 RangeTestOutput rangedev_test(RangeTestInput);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline RangeTestOutput rangedev_test(RangeTestInput)
 {
-    return {};
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

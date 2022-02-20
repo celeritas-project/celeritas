@@ -9,12 +9,12 @@
 #pragma once
 
 #include <cstddef>
-#include "celeritas_config.h"
+#include "Macros.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-#if CELERITAS_USE_CUDA
+#if CELER_USE_DEVICE
 //! Standard type for container sizes, optimized for GPU use.
 using size_type = unsigned int;
 #else
@@ -41,8 +41,8 @@ enum class MemSpace
 {
     host,
     device,
-#ifdef __CUDACC__
-    native = device, // Included by a CUDA file
+#ifdef CELER_DEVICE_SOURCE
+    native = device, // Included by a CUDA/HIP file
 #else
     native = host,
 #endif

@@ -85,7 +85,7 @@ TEST_F(DeviceAllocationTest, always)
     EXPECT_TRUE(alloc.empty());
 }
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 TEST_F(DeviceAllocationTest, nocuda)
 {
     // Can't allocate
@@ -93,7 +93,7 @@ TEST_F(DeviceAllocationTest, nocuda)
 }
 #endif
 
-TEST_F(DeviceAllocationTest, TEST_IF_CELERITAS_CUDA(device))
+TEST_F(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
 {
     DeviceAllocation alloc(1024);
     EXPECT_EQ(1024, alloc.size());
@@ -131,7 +131,7 @@ TEST_F(DeviceAllocationTest, TEST_IF_CELERITAS_CUDA(device))
     }
 }
 
-TEST_F(DeviceAllocationTest, TEST_IF_CELERITAS_CUDA(empty))
+TEST_F(DeviceAllocationTest, TEST_IF_CELER_DEVICE(empty))
 {
     DeviceAllocation alloc{0};
     EXPECT_TRUE(alloc.empty());

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "base/Assert.hh"
+#include "base/Macros.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
 
@@ -43,11 +44,11 @@ struct Filler<T, MemSpace::device>
     void operator()(Span<T>) const;
 };
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 template<class T>
 void Filler<T, MemSpace::device>::operator()(Span<T>) const
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

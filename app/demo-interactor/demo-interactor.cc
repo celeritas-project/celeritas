@@ -65,7 +65,7 @@ void run(std::istream& is)
     auto inp = nlohmann::json::parse(is);
 
     // Construct runner
-    auto         grid_params = inp.at("grid_params").get<CudaGridParams>();
+    auto         grid_params = inp.at("grid_params").get<DeviceGridParams>();
     KNDemoRunner run(load_params(), load_xs(), grid_params);
 
     // For now, only do a single run

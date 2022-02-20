@@ -460,7 +460,7 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
 // PHYSICS TRACK VIEW (DEVICE)
 //---------------------------------------------------------------------------//
 
-#define PHYS_DEVICE_TEST TEST_IF_CELERITAS_CUDA(PhysicsTrackViewDeviceTest)
+#define PHYS_DEVICE_TEST TEST_IF_CELER_DEVICE(PhysicsTrackViewDeviceTest)
 class PHYS_DEVICE_TEST : public PhysicsTestBase
 {
     using Base = PhysicsTestBase;

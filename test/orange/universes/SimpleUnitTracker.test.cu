@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "SimpleUnitTracker.test.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
 
 namespace celeritas_test
 {
@@ -36,13 +36,12 @@ __global__ void initialize_kernel(const ParamsRef<MemSpace::device> params,
 void test_initialize(const ParamsRef<MemSpace::device>& params,
                      const StateRef<MemSpace::device>&  state)
 {
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        initialize_kernel, "initialize");
-    auto launch = calc_launch_params(state.size());
-    initialize_kernel<<<launch.grid_size, launch.block_size>>>(params, state);
-
-    CELER_CUDA_CHECK_ERROR();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(initialize,
+                        celeritas::device().default_block_size(),
+                        state.size(),
+                        params,
+                        state);
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//

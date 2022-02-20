@@ -8,7 +8,7 @@
 #include "RungeKutta.test.hh"
 #include "detail/MagTestTraits.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
 #include <thrust/device_vector.h>
 
 #include "field/UniformMagField.hh"
@@ -102,7 +102,7 @@ RK4TestOutput rk4_test(FieldTestParams test_param)
         raw_pointer_cast(mom_y.data()),
         raw_pointer_cast(mom_z.data()),
         raw_pointer_cast(error.data()));
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Copy result back to CPU
     RK4TestOutput result;

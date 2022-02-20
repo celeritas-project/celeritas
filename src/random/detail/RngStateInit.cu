@@ -8,7 +8,9 @@
 #include "RngStateInit.hh"
 
 #include "base/Assert.hh"
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
+#include "base/device_runtime_api.h"
+#include "comm/Device.hh"
 #include "random/RngEngine.hh"
 
 namespace celeritas
@@ -49,13 +51,11 @@ void rng_state_init(
     const RngInitData<Ownership::const_reference, MemSpace::device>& seeds)
 {
     CELER_EXPECT(rng.size() == seeds.size());
-
-    // Launch kernel to build RNG states on device
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        rng_state_init_kernel, "rng_state_init");
-    auto params = calc_launch_params(seeds.size());
-    rng_state_init_kernel<<<params.grid_size, params.block_size>>>(rng, seeds);
-    CELER_CUDA_CHECK_ERROR();
+    CELER_LAUNCH_KERNEL(rng_state_init,
+                        celeritas::device().default_block_size(),
+                        seeds.size(),
+                        rng,
+                        seeds);
 }
 
 //---------------------------------------------------------------------------//

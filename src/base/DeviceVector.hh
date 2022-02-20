@@ -32,11 +32,15 @@ namespace celeritas
 template<class T>
 class DeviceVector
 {
+#if !CELERITAS_USE_HIP
+    // rocrand states have nontrivial destructors, and some HIP integer types
+    // are not trivially copyable
     static_assert(std::is_trivially_copyable<T>::value,
                   "DeviceVector element is not trivially copyable");
 
     static_assert(std::is_trivially_destructible<T>::value,
                   "DeviceVector element is not trivially destructible");
+#endif
 
   public:
     //!@{

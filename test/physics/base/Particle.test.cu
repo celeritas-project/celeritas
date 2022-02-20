@@ -9,7 +9,9 @@
 #include "Particle.test.hh"
 
 #include <thrust/device_vector.h>
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/device_runtime_api.h"
+#include "comm/Device.hh"
+#include "base/KernelParamCalculator.device.hh"
 
 using thrust::raw_pointer_cast;
 
@@ -55,20 +57,19 @@ __global__ void ptv_test_kernel(unsigned int              size,
 PTVTestOutput ptv_test(PTVTestInput input)
 {
     thrust::device_vector<ParticleTrackState> init = input.init;
-    thrust::device_vector<double>             result(init.size()
+
+    thrust::device_vector<double> result(init.size()
                                          * PTVTestOutput::props_per_thread());
 
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        ptv_test_kernel, "ptv_test");
-    auto params = calc_launch_params(init.size());
-    ptv_test_kernel<<<params.grid_size, params.block_size>>>(
-        init.size(),
-        input.params,
-        input.states,
-        raw_pointer_cast(init.data()),
-        raw_pointer_cast(result.data()));
-    CELER_CUDA_CHECK_ERROR();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(ptv_test,
+                        celeritas::device().default_block_size(),
+                        init.size(),
+                        init.size(),
+                        input.params,
+                        input.states,
+                        raw_pointer_cast(init.data()),
+                        raw_pointer_cast(result.data()));
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     PTVTestOutput output;
     output.props.resize(result.size());

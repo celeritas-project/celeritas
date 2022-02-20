@@ -27,7 +27,7 @@ using celeritas::Ownership;
 
 //---------------------------------------------------------------------------//
 //! Kernel thread dimensions
-struct CudaGridParams
+struct DeviceGridParams
 {
     unsigned int block_size = 256;   //!< Threads per block
     bool         sync       = false; //!< Call synchronize after every kernel
@@ -132,27 +132,27 @@ using StateDeviceRef = StateData<Ownership::reference, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 // Initialize particle states
-void initialize(const CudaGridParams&  grid,
-                const ParamsDeviceRef& params,
-                const StateDeviceRef&  state,
-                const InitialData&     initial);
+void initialize(const DeviceGridParams& grid,
+                const ParamsDeviceRef&  params,
+                const StateDeviceRef&   state,
+                const InitialData&      initial);
 
 //---------------------------------------------------------------------------//
 // Run an iteration
-void iterate(const CudaGridParams&  grid,
-             const ParamsDeviceRef& params,
-             const StateDeviceRef&  state);
+void iterate(const DeviceGridParams& grid,
+             const ParamsDeviceRef&  params,
+             const StateDeviceRef&   state);
 
 //---------------------------------------------------------------------------//
 // Clean up data
-void cleanup(const CudaGridParams&  grid,
-             const ParamsDeviceRef& params,
-             const StateDeviceRef&  state);
+void cleanup(const DeviceGridParams& grid,
+             const ParamsDeviceRef&  params,
+             const StateDeviceRef&   state);
 
 //---------------------------------------------------------------------------//
 // Sum the total number of living particles
 celeritas::size_type
-reduce_alive(const CudaGridParams& grid, celeritas::Span<const bool> alive);
+reduce_alive(const DeviceGridParams& grid, celeritas::Span<const bool> alive);
 
 //---------------------------------------------------------------------------//
 // Finalize, copying tallied data to host

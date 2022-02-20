@@ -43,7 +43,7 @@ Commands
 
 .. command:: celeritas_add_test
 
-Add a CUDA/C++ GoogleTest test::
+Add a CUDA/HIP/C++ GoogleTest test::
 
     celeritas_add_test(
       <filename>
@@ -338,7 +338,7 @@ function(celeritas_add_test SOURCE_FILE)
   endif()
 
   set(_COMMON_PROPS)
-  if(CELERITAS_USE_CUDA)
+  if(CELERITAS_USE_DEVICE)
     if(NOT PARSE_GPU)
       list(APPEND PARSE_ENVIRONMENT "CELER_DISABLE_DEVICE=1")
     elseif(NOT CELERITAS_DEBUG)

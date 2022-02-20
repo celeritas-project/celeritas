@@ -3,39 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file curand.nocuda.cc
+//! \file mockrand.hh
 //---------------------------------------------------------------------------//
-#include "curand.nocuda.hh"
-
-#include "base/Assert.hh"
+#pragma once
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-void curand_init(unsigned long long,
-                 unsigned long long,
-                 unsigned long long,
-                 MockCurandState*)
+//! Placeholder for CUDA random state to allow compiling
+struct MockRandState
 {
-    CELER_NOT_CONFIGURED("CUDA");
-}
+};
 
-unsigned int curand(MockCurandState*)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
-
-float curand_uniform(MockCurandState*)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
-
-double curand_uniform_double(MockCurandState*)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
+//---------------------------------------------------------------------------//
+//!@{
+//! Random functions.
+void         mockrand_init(unsigned long long seed,
+                           unsigned long long sequence,
+                           unsigned long long offset,
+                           MockRandState*     state);
+unsigned int mockrand(MockRandState* state);
+float        mockrand_uniform(MockRandState* state);
+double       mockrand_uniform_double(MockRandState* state);
+//!@}
 
 //---------------------------------------------------------------------------//
 } // namespace detail

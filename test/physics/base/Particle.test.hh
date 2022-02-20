@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 
 #include <vector>
+#include "base/Macros.hh"
+#include "base/Types.hh"
 #include "physics/base/ParticleData.hh"
 
 namespace celeritas_test
@@ -42,10 +44,10 @@ struct PTVTestOutput
 //! Run on device and return results
 PTVTestOutput ptv_test(PTVTestInput);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline PTVTestOutput ptv_test(PTVTestInput)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

@@ -120,7 +120,7 @@ void KernelDiagnostics::launch(key_type key, unsigned int num_threads)
 #endif
 }
 
-#ifdef __CUDACC__
+#ifdef CELER_DEVICE_SOURCE
 //---------------------------------------------------------------------------//
 /*!
  * Register the given __global__ kernel function.
@@ -147,15 +147,16 @@ KernelDiagnostics::insert(F* func, const char* name, unsigned int block_size)
         diag.name            = name;
         diag.block_size      = block_size;
 
-        cudaFuncAttributes attr;
-        CELER_CUDA_CALL(cudaFuncGetAttributes(&attr, reinterpret_cast<const void*>(func)));
+        CELER_DEVICE_PREFIX(FuncAttributes) attr;
+        CELER_DEVICE_CALL_PREFIX(
+            FuncGetAttributes(&attr, reinterpret_cast<const void*>(func)));
         diag.num_regs  = attr.numRegs;
         diag.const_mem = attr.constSizeBytes;
         diag.local_mem = attr.localSizeBytes;
 
         std::size_t dynamic_smem_size = 0;
         int         num_blocks        = 0;
-        CELER_CUDA_CALL(cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+        CELER_DEVICE_CALL_PREFIX(OccupancyMaxActiveBlocksPerMultiprocessor(
             &num_blocks, func, diag.block_size, dynamic_smem_size));
         diag.occupancy = static_cast<double>(num_blocks * diag.block_size)
                          / device.max_threads();

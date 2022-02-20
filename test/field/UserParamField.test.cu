@@ -8,8 +8,11 @@
 #include "UserField.test.hh"
 #include "detail/CMSParameterizedField.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
 #include <thrust/device_vector.h>
+
+#include "base/KernelParamCalculator.device.hh"
+#include "base/device_runtime_api.h"
+#include "comm/Device.hh"
 
 #include "base/Range.hh"
 #include "base/Types.hh"
@@ -57,16 +60,14 @@ UserFieldTestOutput parameterized_field_test(UserFieldTestParams test_param)
     thrust::device_vector<real_type> value_z(test_param.nsamples, 0.0);
 
     // Run kernel
-    celeritas::KernelParamCalculator calc_launch_params(
-        parameterized_field_test_kernel, "parameterized_field_test");
-    auto params = calc_launch_params(test_param.nsamples);
-
-    parameterized_field_test_kernel<<<params.grid_size, params.block_size>>>(
-        test_param,
-        raw_pointer_cast(value_x.data()),
-        raw_pointer_cast(value_y.data()),
-        raw_pointer_cast(value_z.data()));
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(parameterized_field_test,
+                        celeritas::device().default_block_size(),
+                        test_param.nsamples,
+                        test_param,
+                        raw_pointer_cast(value_x.data()),
+                        raw_pointer_cast(value_y.data()),
+                        raw_pointer_cast(value_z.data()));
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Copy result back to CPU
     UserFieldTestOutput result;

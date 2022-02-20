@@ -87,18 +87,18 @@ RuntimeError::RuntimeError(const std::string& msg) : std::runtime_error(msg) {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a message and throw an error from a runtime CUDA failure.
+ * Construct a message and throw an error from a runtime CUDA/HIP failure.
  */
-[[noreturn]] void throw_cuda_call_error(const char* error_string,
-                                        const char* code,
-                                        const char* file,
-                                        int         line)
+[[noreturn]] void throw_device_call_error(const char* error_string,
+                                          const char* code,
+                                          const char* file,
+                                          int         line)
 {
     std::ostringstream msg;
     // clang-format off
     msg << color_code('W') << file << ':' << line << ':'
         << color_code(' ') << "\nceleritas: "
-        << color_code('R') << "cuda error: "
+        << color_code('R') << (CELERITAS_USE_CUDA ? "cuda" : "device") << " error: "
         << color_code(' ') << error_string << "\n    "
         << color_code('x') << code
         << color_code(' ');

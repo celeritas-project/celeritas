@@ -46,7 +46,7 @@ void TrackDiagnostic<MemSpace::host>::end_step(const StateDataRef& states)
     num_alive_per_step_.push_back(demo_loop::reduce_alive(states));
 }
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 template<>
 void TrackDiagnostic<MemSpace::device>::end_step(const StateDataRef&)
 {

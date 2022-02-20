@@ -6,6 +6,8 @@
 //! \file SimpleUnitTracker.test.hh
 //---------------------------------------------------------------------------//
 
+#include "base/Macros.hh"
+#include "base/Types.hh"
 #include "orange/Data.hh"
 #include "orange/universes/SimpleUnitTracker.hh"
 
@@ -99,10 +101,10 @@ struct InitializingLauncher
 //! Run on device
 void test_initialize(const ParamsRef<MemSpace::device>&, const StateRef<MemSpace::device>&);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline void test_initialize(const ParamsRef<MemSpace::device>&, const StateRef<MemSpace::device>&)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 #endif

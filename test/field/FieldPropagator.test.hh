@@ -8,6 +8,8 @@
 #pragma once
 
 #include <vector>
+#include "base/Macros.hh"
+#include "base/Types.hh"
 #include "field/FieldParamsData.hh"
 #include "geometry/GeoData.hh"
 #include "geometry/Types.hh"
@@ -64,14 +66,14 @@ struct FPTestOutput
 FPTestOutput fp_test(FPTestInput input);
 FPTestOutput bc_test(FPTestInput input);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline FPTestOutput fp_test(FPTestInput)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 inline FPTestOutput bc_test(FPTestInput)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 //---------------------------------------------------------------------------//

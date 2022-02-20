@@ -44,17 +44,17 @@ OneGoodStepOutput
 accurate_advance_test(const celeritas::FieldParamsData& fd_ptr,
                       FieldTestParams                   tp);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline FITestOutput
 driver_test(const celeritas::FieldParamsData&, FieldTestParams)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 inline OneGoodStepOutput
 accurate_advance_test(const celeritas::FieldParamsData&, FieldTestParams)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

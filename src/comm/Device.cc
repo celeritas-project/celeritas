@@ -7,16 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "Device.hh"
 
-#include "celeritas_config.h"
-#if CELERITAS_USE_CUDA
-#    include <cuda_runtime_api.h>
-#endif
+#include <cstdlib>
+#include <iostream>
+
 #ifdef _OPENMP
 #    include <omp.h>
 #endif
 
-#include <cstdlib>
-#include <iostream>
+#include "base/device_runtime_api.h"
 #include "base/Assert.hh"
 #include "base/Stopwatch.hh"
 #include "Communicator.hh"
@@ -32,9 +30,10 @@ namespace
 //---------------------------------------------------------------------------//
 int determine_num_devices()
 {
-    if (!CELERITAS_USE_CUDA)
+    if (!CELER_USE_DEVICE)
     {
-        CELER_LOG(debug) << "Disabling GPU support since CUDA is disabled";
+        CELER_LOG(debug) << "Disabling GPU support since CUDA and HIP are "
+                            "disabled";
         return 0;
     }
 
@@ -47,7 +46,7 @@ int determine_num_devices()
     }
 
     int result = -1;
-    CELER_CUDA_CALL(cudaGetDeviceCount(&result));
+    CELER_DEVICE_CALL_PREFIX(GetDeviceCount(&result));
     if (result == 0)
     {
         CELER_LOG(warning) << "Disabling GPU support since no CUDA devices "
@@ -75,7 +74,7 @@ Device& global_device()
     {
         // Check that CUDA and Celeritas device IDs are consistent
         int cur_id = -1;
-        CELER_CUDA_CALL(cudaGetDevice(&cur_id));
+        CELER_DEVICE_CALL_PREFIX(GetDevice(&cur_id));
         if (cur_id != device.device_id())
         {
             CELER_LOG(warning)
@@ -85,7 +84,7 @@ Device& global_device()
         }
     }
 
-#if CELERITAS_USE_CUDA && defined(_OPENMP)
+#if CELER_USE_DEVICE && defined(_OPENMP)
     if (omp_get_num_threads() > 1)
     {
         CELER_NOT_IMPLEMENTED("OpenMP support with CUDA");
@@ -137,14 +136,27 @@ Device::Device(int id) : id_(id)
 {
     CELER_EXPECT(id >= 0 && id < Device::num_devices());
 
-#if CELERITAS_USE_CUDA
+#if CELER_USE_DEVICE
+#    if CELERITAS_USE_CUDA
     cudaDeviceProp props;
-    CELER_CUDA_CALL(cudaGetDeviceProperties(&props, id));
+#    elif CELERITAS_USE_HIP
+    hipDeviceProp_t props;
+#    endif
+
+    CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
     name_                 = props.name;
     total_global_mem_     = props.totalGlobalMem;
     max_threads_          = props.maxThreadsPerMultiProcessor;
     num_multi_processors_ = props.multiProcessorCount;
     warp_size_            = props.warpSize;
+#    if CELERITAS_USE_HIP
+    if (name_.empty())
+    {
+        // HIP has an extra field that seems to be used instead of the regular
+        // props.name
+        name_ = props.gcnArchName;
+    }
+#    endif
 #endif
 
     CELER_ENSURE(*this);
@@ -186,13 +198,13 @@ void activate_device(Device&& device)
     CELER_LOG_LOCAL(debug) << "Initializing '" << device.name() << "', ID "
                            << device.device_id() << " of "
                            << Device::num_devices();
-    CELER_CUDA_CALL(cudaSetDevice(device.device_id()));
+    CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
 
     global_device() = std::move(device);
 
     // Call cudaFree to wake up the device, making other timers more accurate
-    CELER_CUDA_CALL(cudaFree(nullptr));
-    CELER_LOG(debug) << "CUDA initialization took " << get_time() << "s";
+    CELER_DEVICE_CALL_PREFIX(Free(nullptr));
+    CELER_LOG(debug) << "Device initialization took " << get_time() << "s";
 }
 
 //---------------------------------------------------------------------------//
@@ -214,7 +226,7 @@ std::ostream& operator<<(std::ostream& os, const Device& d)
 
 //---------------------------------------------------------------------------//
 /*!
- * Increase CUDA stack size to enable complex geometries.
+ * Increase CUDA stack size to enable complex geometries with VecGeom.
  *
  * For the cms2018.gdml detector geometry, the default stack size is too small,
  * and a limit of 32768 is recommended.

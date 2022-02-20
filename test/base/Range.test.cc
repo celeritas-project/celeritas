@@ -9,6 +9,7 @@
 
 #include "celeritas_test.hh"
 #include "Range.test.hh"
+#include "comm/Device.hh"
 
 using namespace celeritas_test;
 
@@ -397,7 +398,7 @@ TEST(CountTest, backward)
 //---------------------------------------------------------------------------//
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
-TEST(TEST_IF_CELERITAS_CUDA(DeviceRangeTest), grid_stride)
+TEST(TEST_IF_CELER_DEVICE(DeviceRangeTest), grid_stride)
 {
     // next prime after 1<<20 elements to avoid multiples of block/stride
     unsigned int N = 1048583;
@@ -412,8 +413,8 @@ TEST(TEST_IF_CELERITAS_CUDA(DeviceRangeTest), grid_stride)
     {
         input.y[i] = i;
     }
-    input.num_threads = 32;
-    input.num_blocks  = 256;
+    input.num_threads       = celeritas::device().warp_size();
+    input.threads_per_block = 256;
 
     // Calculate saxpy using CPU
     std::vector<int> z_cpu(N, 0.0);

@@ -25,8 +25,8 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = CLIKE_TOP + """\
-#include "celeritas_config.h"
 #include "base/Assert.hh"
+#include "base/Macros.hh"
 
 namespace demo_loop
 {{
@@ -40,12 +40,12 @@ void {func}(
     const celeritas::ParamsDeviceRef&,
     const celeritas::StateDeviceRef&);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline void {func}(
     const celeritas::ParamsDeviceRef&,
     const celeritas::StateDeviceRef&)
 {{
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }}
 #endif
 
@@ -84,9 +84,11 @@ void {func}(
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
+#include "base/device_runtime_api.h"
 #include "base/Assert.hh"
 #include "base/Types.hh"
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
+#include "comm/Device.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -116,13 +118,10 @@ void {func}(
 {{
     CELER_EXPECT(params);
     CELER_EXPECT(states);
-
-    static const KernelParamCalculator {func}_ckp(
-        {func}_kernel, "{func}");
-    auto kp = {func}_ckp({threads});
-    {func}_kernel<<<kp.grid_size, kp.block_size>>>(
-        params, states);
-    CELER_CUDA_CHECK_ERROR();
+    CELER_LAUNCH_KERNEL({func},
+                        celeritas::device().default_block_size(),
+                        {threads},
+                        params, states);
 }}
 
 }} // namespace generated

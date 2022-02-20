@@ -8,8 +8,10 @@
 #include "Material.test.hh"
 
 #include <thrust/device_vector.h>
+#include "base/device_runtime_api.h"
+#include "comm/Device.hh"
 #include "base/Range.hh"
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
 #include "physics/material/MaterialTrackView.hh"
 
 using thrust::raw_pointer_cast;
@@ -76,19 +78,17 @@ MTestOutput m_test(const MTestInput& input)
     thrust::device_vector<real_type>          rad_len(input.size());
     thrust::device_vector<real_type>          tot_z(input.size());
 
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        m_test_kernel, "m_test");
-    auto params = calc_launch_params(init.size());
-    m_test_kernel<<<params.grid_size, params.block_size>>>(
-        init.size(),
-        input.params,
-        input.states,
-        raw_pointer_cast(init.data()),
-        raw_pointer_cast(temperatures.data()),
-        raw_pointer_cast(rad_len.data()),
-        raw_pointer_cast(tot_z.data()));
-    CELER_CUDA_CHECK_ERROR();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(m_test,
+                        celeritas::device().default_block_size(),
+                        init.size(),
+                        init.size(),
+                        input.params,
+                        input.states,
+                        raw_pointer_cast(init.data()),
+                        raw_pointer_cast(temperatures.data()),
+                        raw_pointer_cast(rad_len.data()),
+                        raw_pointer_cast(tot_z.data()));
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     MTestOutput result;
     result.temperatures.resize(init.size());

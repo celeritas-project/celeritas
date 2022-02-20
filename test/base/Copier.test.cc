@@ -42,7 +42,7 @@ TEST_F(CopierTest, host)
     EXPECT_EQ(1234, dst_vec.back());
 }
 
-TEST_F(CopierTest, TEST_IF_CELERITAS_CUDA(device))
+TEST_F(CopierTest, TEST_IF_CELER_DEVICE(device))
 {
     // Copy host --> device
     std::vector<int> host_vec(128);

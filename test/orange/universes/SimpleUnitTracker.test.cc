@@ -427,7 +427,7 @@ TEST_F(OneVolumeTest, heuristic_init)
         EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
         EXPECT_SOFT_EQ(0, result.failed);
     }
-    if (CELERITAS_USE_CUDA)
+    if (CELER_USE_DEVICE)
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
@@ -581,7 +581,7 @@ TEST_F(TwoVolumeTest, heuristic_init)
         EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
         EXPECT_SOFT_EQ(0, result.failed);
     }
-    if (CELERITAS_USE_CUDA)
+    if (CELER_USE_DEVICE)
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
@@ -745,7 +745,7 @@ TEST_F(FiveVolumesTest, heuristic_init)
         EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
         EXPECT_SOFT_EQ(0, result.failed);
     }
-    if (CELERITAS_USE_CUDA)
+    if (CELER_USE_DEVICE)
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);

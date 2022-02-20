@@ -9,7 +9,10 @@
 
 #include <thrust/device_vector.h>
 #include "base/Assert.hh"
+#include "base/KernelParamCalculator.device.hh"
 #include "base/Range.hh"
+#include "base/device_runtime_api.h"
+#include "comm/Device.hh"
 
 using celeritas::range;
 
@@ -36,13 +39,15 @@ RangeTestOutput rangedev_test(RangeTestInput input)
     thrust::device_vector<int> z_dev(input.x.size(), 0);
 
     // Test kernel
-    rangedev_test_kernel<<<input.num_threads, input.num_blocks>>>(
-        input.a,
-        thrust::raw_pointer_cast(x_dev.data()),
-        thrust::raw_pointer_cast(y_dev.data()),
-        thrust::raw_pointer_cast(z_dev.data()),
-        z_dev.size());
-    CELER_CUDA_CHECK_ERROR();
+    CELER_LAUNCH_KERNEL(rangedev_test,
+                        input.threads_per_block,
+                        input.num_threads,
+                        input.a,
+                        thrust::raw_pointer_cast(x_dev.data()),
+                        thrust::raw_pointer_cast(y_dev.data()),
+                        thrust::raw_pointer_cast(z_dev.data()),
+                        z_dev.size());
+    CELER_DEVICE_CHECK_ERROR();
 
     // Copy result back to CPU
     RangeTestOutput result;
