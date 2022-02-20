@@ -85,6 +85,7 @@ class SBPositronXsCorrector
 /*!
  * Construct with positron data and energy range.
  */
+CELER_FUNCTION
 SBPositronXsCorrector::SBPositronXsCorrector(Mass               positron_mass,
                                              const ElementView& el,
                                              Energy min_gamma_energy,

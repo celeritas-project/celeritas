@@ -106,12 +106,14 @@ class BetheHeitlerInteractor
 };
 
 //---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
  *
  * The incident gamma energy must be at least twice the electron rest mass.
  */
-BetheHeitlerInteractor::BetheHeitlerInteractor(
+CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     const BetheHeitlerData&    shared,
     const ParticleTrackView&   particle,
     const Real3&               inc_direction,
@@ -130,8 +132,6 @@ BetheHeitlerInteractor::BetheHeitlerInteractor(
     CELER_ENSURE(epsilon0_ < real_type(0.5));
 }
 
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Pair-production using the Bethe-Heitler model.

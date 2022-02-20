@@ -176,8 +176,8 @@ std::vector<celeritas::real_type> EnergyDiagnostic<M>::energy_deposition()
 // EnergyDiagnosticLauncher implementation
 //---------------------------------------------------------------------------//
 template<MemSpace M>
-EnergyDiagnosticLauncher<M>::EnergyDiagnosticLauncher(const StateDataRef& states,
-                                                      const Pointers& pointers)
+CELER_FUNCTION EnergyDiagnosticLauncher<M>::EnergyDiagnosticLauncher(
+    const StateDataRef& states, const Pointers& pointers)
     : states_(states), pointers_(pointers)
 {
     CELER_EXPECT(states_);
@@ -186,7 +186,7 @@ EnergyDiagnosticLauncher<M>::EnergyDiagnosticLauncher(const StateDataRef& states
 
 //---------------------------------------------------------------------------//
 template<MemSpace M>
-void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
+CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
 {
     // Create grid from EnergyBinPointers
     celeritas::NonuniformGrid<real_type> grid(pointers_.z_bounds);

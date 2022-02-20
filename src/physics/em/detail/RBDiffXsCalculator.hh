@@ -225,7 +225,8 @@ real_type RBDiffXsCalculator::dxsec_per_atom_lpm(real_type gamma_energy)
  * incoherent screening function to the numerical screening functions computed
  * by using the Thomas-Fermi model: Y.-S.Tsai, Rev. Mod. Phys. 49 (1977) 421.
  */
-auto RBDiffXsCalculator::compute_screen_functions(real_type gam, real_type eps)
+CELER_FUNCTION auto
+RBDiffXsCalculator::compute_screen_functions(real_type gam, real_type eps)
     -> ScreenFunctions
 {
     ScreenFunctions func;
@@ -249,7 +250,8 @@ auto RBDiffXsCalculator::compute_screen_functions(real_type gam, real_type eps)
 /*!
  * Compute the LPM suppression functions.
  */
-auto RBDiffXsCalculator::compute_lpm_functions(real_type egamma) -> LPMFunctions
+CELER_FUNCTION auto RBDiffXsCalculator::compute_lpm_functions(real_type egamma)
+    -> LPMFunctions
 {
     LPMFunctions func;
 
