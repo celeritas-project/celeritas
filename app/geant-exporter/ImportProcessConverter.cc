@@ -516,6 +516,8 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
             table.x_units = ImportUnits::mev;
             table.y_units = ImportUnits::cm_mev_inv;
             break;
+        default:
+            CELER_ASSERT_UNREACHABLE();
     };
 
     // Convert units

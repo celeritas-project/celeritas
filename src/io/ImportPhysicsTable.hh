@@ -65,8 +65,8 @@ enum class ImportUnits
 struct ImportPhysicsTable
 {
     ImportTableType                  table_type;
-    ImportUnits                      x_units;
-    ImportUnits                      y_units;
+    ImportUnits                      x_units{ImportUnits::none};
+    ImportUnits                      y_units{ImportUnits::none};
     std::vector<ImportPhysicsVector> physics_vectors;
 };
 
