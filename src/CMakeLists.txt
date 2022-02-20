@@ -133,7 +133,7 @@ elseif(CELERITAS_USE_HIP)
   )
 else()
   list(APPEND SOURCES
-    random/detail/MockRand.cc
+    random/detail/mockrand.cc
     random/detail/RngStateInit.nocuda.cc
   )
 endif()
