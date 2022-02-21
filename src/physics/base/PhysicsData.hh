@@ -113,6 +113,7 @@ struct ProcessGroup
     ItemRange<IntegralXsProcess>          integral_xs; //!< [ppid]
     ItemRange<ModelGroup> models;   //!< Model applicability [ppid]
     ParticleProcessId eloss_ppid{}; //!< Process with de/dx and range tables
+    ParticleProcessId msc_ppid{};   //!< Process of msc
     bool has_at_rest{}; //!< Whether the particle type has an at-rest process
 
     //! True if assigned and valid

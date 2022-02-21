@@ -416,6 +416,12 @@ void PhysicsParams::build_xs(const Options&        opts,
                                  || pp_idx == process_groups.eloss_ppid.get());
                     process_groups.eloss_ppid = ParticleProcessId{pp_idx};
                 }
+
+                // Index of the electromagnetic msc process
+                if (proc.type() == ProcessType::electromagnetic_msc)
+                {
+                    process_groups.msc_ppid = ParticleProcessId{pp_idx};
+                }
             }
 
             // Outer loop over grid types

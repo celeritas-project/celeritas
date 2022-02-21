@@ -117,6 +117,9 @@ class PhysicsTrackView
     // Particle-process ID of the process with the de/dx and range tables
     inline CELER_FUNCTION ParticleProcessId eloss_ppid() const;
 
+    // Particle-process ID of the process with the msc cross section table
+    inline CELER_FUNCTION ParticleProcessId msc_ppid() const;
+
     // Models that apply to the given process ID
     inline CELER_FUNCTION
         ModelFinder make_model_finder(ParticleProcessId) const;
@@ -157,7 +160,7 @@ class PhysicsTrackView
 
     // Access scratch space for particle-process cross section calculations
     inline CELER_FUNCTION real_type& per_process_xs(ParticleProcessId);
-    inline CELER_FUNCTION real_type  per_process_xs(ParticleProcessId) const;
+    inline CELER_FUNCTION real_type per_process_xs(ParticleProcessId) const;
 
     //// HACKS ////
 
@@ -208,8 +211,8 @@ PhysicsTrackView::PhysicsTrackView(const PhysicsParamsRef& params,
  *
  * \todo Add total interaction cross section to state.
  */
-CELER_FUNCTION PhysicsTrackView&
-PhysicsTrackView::operator=(const Initializer_t&)
+CELER_FUNCTION PhysicsTrackView& PhysicsTrackView::
+                                 operator=(const Initializer_t&)
 {
     this->state().interaction_mfp = -1;
     this->state().step_length     = -1;
@@ -415,7 +418,7 @@ PhysicsTrackView::use_integral_xs(ParticleProcessId ppid) const
  * this material.
  */
 CELER_FUNCTION real_type
-PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
+               PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
 
@@ -493,6 +496,15 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
 CELER_FUNCTION ParticleProcessId PhysicsTrackView::eloss_ppid() const
 {
     return this->process_group().eloss_ppid;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Particle-process ID of the multiple scatterting process
+ */
+CELER_FUNCTION ParticleProcessId PhysicsTrackView::msc_ppid() const
+{
+    return this->process_group().msc_ppid;
 }
 
 //---------------------------------------------------------------------------//
