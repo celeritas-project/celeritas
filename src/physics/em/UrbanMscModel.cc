@@ -151,12 +151,14 @@ auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
 
     data.z23 = ipow<2>(z13);
 
-    data.stepmina = 27.725 / (1 + 0.203 * zeff);
-    data.stepminb = 6.152 / (1 + 0.111 * zeff);
+    // Parameters for the step minimum calculation
+    data.stepmin_a = 27.725 / (1 + 0.203 * zeff);
+    data.stepmin_b = 6.152 / (1 + 0.111 * zeff);
 
-    data.doverra = 9.6280e-1 - 8.4848e-2 * std::sqrt(data.zeff)
-                   + 4.3769e-3 * zeff;
-    data.doverrb = 1.15 - 9.76e-4 * zeff;
+    // Parameters for the maximum distance that particles can travel
+    data.d_over_r = 9.6280e-1 - 8.4848e-2 * std::sqrt(data.zeff)
+                    + 4.3769e-3 * zeff;
+    data.d_over_r_mh = 1.15 - 9.76e-4 * zeff;
 
     return data;
 }
