@@ -25,9 +25,9 @@
 #include "physics/em/detail/UrbanMscStepLimit.hh"
 #include "physics/em/detail/UrbanMscScatter.hh"
 
-#include "vecgeom/VecgeomData.hh"
-#include "vecgeom/VecgeomParams.hh"
-#include "vecgeom/VecgeomTrackView.hh"
+#include "geometry/GeoData.hh"
+#include "geometry/GeoParams.hh"
+#include "geometry/GeoTrackView.hh"
 
 #include "celeritas_test.hh"
 #include "gtest/Test.hh"
@@ -44,14 +44,14 @@ using detail::UrbanMscStepLimit;
 using celeritas::MemSpace;
 using celeritas::Ownership;
 using GeoParamsCRefDevice
-    = celeritas::VecgeomParamsData<Ownership::const_reference, MemSpace::device>;
+    = celeritas::GeoParamsData<Ownership::const_reference, MemSpace::device>;
 using GeoStateRefDevice
-    = celeritas::VecgeomStateData<Ownership::reference, MemSpace::device>;
+    = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UrbanMscTest : public GeoTestBase<celeritas::VecgeomParams>
+class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
 {
   public:
     const char* dirname() const override { return "io"; }
@@ -71,8 +71,7 @@ class UrbanMscTest : public GeoTestBase<celeritas::VecgeomParams>
         = CollectionStateStore<ParticleStateData, MemSpace::host>;
     using PhysicsParamsHostRef
         = PhysicsParamsData<Ownership::const_reference, MemSpace::host>;
-    using GeoStateStore
-        = CollectionStateStore<VecgeomStateData, MemSpace::host>;
+    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
     void SetUp() override
     {
@@ -129,9 +128,9 @@ class UrbanMscTest : public GeoTestBase<celeritas::VecgeomParams>
     }
 
     //! Make geometry track view
-    VecgeomTrackView make_geo_track_view()
+    GeoTrackView make_geo_track_view()
     {
-        return VecgeomTrackView(
+        return GeoTrackView(
             this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
     }
 
@@ -182,7 +181,7 @@ TEST_F(UrbanMscTest, msc_scattering)
 {
     // Views
     PhysicsTrackView   phys     = this->make_track_view("e-", MaterialId{1});
-    VecgeomTrackView   geo_view = this->make_geo_track_view();
+    GeoTrackView       geo_view = this->make_geo_track_view();
     const MaterialView material_view = material_params_->get(MaterialId{1});
 
     // Create the model
