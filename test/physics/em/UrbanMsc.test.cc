@@ -200,10 +200,10 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_DOUBLE_EQ(msc_.coeffc2, 2.745018223507488);
     EXPECT_DOUBLE_EQ(msc_.coeffc3, -2.2531516772497562);
     EXPECT_DOUBLE_EQ(msc_.coeffc4, 0.052696806851297018);
-    EXPECT_DOUBLE_EQ(msc_.stepmina, 4.4449610414595817);
-    EXPECT_DOUBLE_EQ(msc_.stepminb, 1.5922149179564158);
-    EXPECT_DOUBLE_EQ(msc_.doverra, 0.64474963087322135);
-    EXPECT_DOUBLE_EQ(msc_.doverrb, 1.1248191999999999);
+    EXPECT_DOUBLE_EQ(msc_.stepmin_a, 4.4449610414595817);
+    EXPECT_DOUBLE_EQ(msc_.stepmin_b, 1.5922149179564158);
+    EXPECT_DOUBLE_EQ(msc_.d_over_r, 0.64474963087322135);
+    EXPECT_DOUBLE_EQ(msc_.d_over_r_mh, 1.1248191999999999);
 
     // Test the step limitation algorithm and the msc sample scattering
     detail::MscStepLimiterResult step_result;
@@ -246,11 +246,16 @@ TEST_F(UrbanMscTest, msc_scattering)
         UrbanMscStepLimit step_limiter(
             model->host_ref(), *part_view_, geo_view, phys, material_view);
 
-        UrbanMscScatter scatter(
-            model->host_ref(), *part_view_, direction, phys, material_view);
+        step_result = step_limiter(rng_engine);
 
-        step_result   = step_limiter(rng_engine);
-        sample_result = scatter(rng_engine, step_result);
+        UrbanMscScatter scatter(model->host_ref(),
+                                *part_view_,
+                                direction,
+                                phys,
+                                material_view,
+                                step_result);
+
+        sample_result = scatter(rng_engine);
 
         fstep.push_back(sample_result.step_length);
         angle.push_back(sample_result.direction[0]);
