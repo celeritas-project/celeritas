@@ -24,9 +24,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * This is a helper class for the UrbanMsc model
+ * This is a helper class for the UrbanMscStepLimit and UrbanMscScatter.
  */
 class UrbanMscHelper
 {
@@ -44,41 +42,19 @@ class UrbanMscHelper
                                          const PhysicsTrackView&  physics,
                                          const MaterialView&      material);
 
-  private:
-    //// DATA ////
-
-    // Incident particle energy
-    const Energy inc_energy_;
-    // Incident particle flag for positron
-    const bool is_positron_;
-    // PhysicsTrackView
-    const PhysicsTrackView& physics_;
-    // Material dependent data
-    const MaterialData& msc_;
-    // Shared value of small tau
-    real_type tau_small_;
-    // Process ID of the eletromagnetic_msc process
-    ParticleProcessId msc_pid_;
-    // Process ID of the energy loss process
-    ParticleProcessId eloss_pid_;
-    // Grid ID of range value of the energy loss
-    ValueGridId range_gid_;
-    // Grid ID of dedx value of the energy loss
-    ValueGridId eloss_gid_;
-    // Grid ID of the lambda value of MSC
-    ValueGridId mfp_gid_;
-
-  public:
     //// COMMON PROPERTIES ////
 
     //! A scale factor for the range
     static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 5e-2; }
 
-    //! The lower bound of energy to scale the miminum true path length limit
+    //! The lower bound of energy to scale the mininum true path length limit
     static CELER_CONSTEXPR_FUNCTION Energy tlow() { return Energy(5e-3); }
 
-    //! The minimum value of the true path length limit
-    static CELER_CONSTEXPR_FUNCTION real_type limit_min_fix() { return 1e-9; }
+    //! The minimum value of the true path length limit (0.01*CLHEP::nm)
+    static CELER_CONSTEXPR_FUNCTION real_type limit_min_fix()
+    {
+        return 1e-9 * units::centimeter;
+    }
 
     //// HELPER FUNCTIONS ////
 
@@ -127,6 +103,30 @@ class UrbanMscHelper
     inline CELER_FUNCTION real_type calc_true_path(real_type true_path,
                                                    real_type geom_path,
                                                    real_type alpha) const;
+
+  private:
+    //// DATA ////
+
+    // Incident particle energy
+    const Energy inc_energy_;
+    // Incident particle flag for positron
+    const bool is_positron_;
+    // PhysicsTrackView
+    const PhysicsTrackView& physics_;
+    // Material dependent data
+    const MaterialData& msc_;
+    // Shared value of small tau
+    real_type tau_small_;
+    // Process ID of the eletromagnetic_msc process
+    ParticleProcessId msc_pid_;
+    // Process ID of the energy loss process
+    ParticleProcessId eloss_pid_;
+    // Grid ID of range value of the energy loss
+    ValueGridId range_gid_;
+    // Grid ID of dedx value of the energy loss
+    ValueGridId eloss_gid_;
+    // Grid ID of the lambda value of MSC
+    ValueGridId mfp_gid_;
 };
 
 //---------------------------------------------------------------------------//
@@ -146,6 +146,9 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscNativeRef& shared,
     , msc_(shared.msc_data[material.material_id()])
     , tau_small_(shared.params.tau_small)
 {
+    CELER_EXPECT(particle.particle_id() == shared.electron_id
+                 || particle.particle_id() == shared.positron_id);
+
     eloss_pid_ = physics.eloss_ppid();
     range_gid_ = physics.value_grid(ValueGridType::range, eloss_pid_);
     eloss_gid_ = physics.value_grid(ValueGridType::energy_loss, eloss_pid_);
@@ -157,7 +160,7 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscNativeRef& shared,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the mean free path of the msc for a given particle energy
+ * Calculate the mean free path of the msc for a given particle energy.
  */
 CELER_FUNCTION real_type UrbanMscHelper::msc_mfp(Energy energy) const
 {
@@ -171,7 +174,7 @@ CELER_FUNCTION real_type UrbanMscHelper::msc_mfp(Energy energy) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the total energy loss over a given step lenth
+ * Calculate the total energy loss over a given step lenth.
  */
 CELER_FUNCTION auto UrbanMscHelper::eloss(real_type step) const -> Energy
 {
@@ -183,7 +186,7 @@ CELER_FUNCTION auto UrbanMscHelper::eloss(real_type step) const -> Energy
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate the kinetic energy at the end of a given msc step
+ * Evaluate the kinetic energy at the end of a given msc step.
  */
 CELER_FUNCTION auto UrbanMscHelper::end_energy(real_type step) const -> Energy
 {
@@ -198,19 +201,20 @@ CELER_FUNCTION auto UrbanMscHelper::end_energy(real_type step) const -> Energy
 
 //---------------------------------------------------------------------------//
 /*!
- * Define the minimum step using the ratio of lambda_elastic/lambda_transport
+ * Define the minimum step using the ratio of lambda_elastic/lambda_transport.
  */
 CELER_FUNCTION real_type UrbanMscHelper::calc_step_min(Energy    energy,
                                                        real_type lambda) const
 {
     real_type re = energy.value();
 
-    return 1e-3 * lambda / (2e-3 + re * (msc_.stepmina + msc_.stepminb * re));
+    return lambda
+           / (2 + real_type(1e3) * re * (msc_.stepmin_a + msc_.stepmin_b * re));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the mimimum of the true path length limit
+ * Calculate the minimum of the true path length limit.
  */
 CELER_FUNCTION real_type UrbanMscHelper::calc_limit_min(Energy    energy,
                                                         real_type step) const
@@ -218,11 +222,11 @@ CELER_FUNCTION real_type UrbanMscHelper::calc_limit_min(Energy    energy,
     real_type xm = (is_positron_)
                        ? real_type(0.70) * step * std::sqrt(msc_.zeff)
                        : real_type(0.87) * step * msc_.z23;
-    real_type xc = energy.value() / this->tlow().value();
 
-    if (xc < 1)
+    if (energy.value() < this->tlow().value())
     {
-        xm *= real_type(0.5) * (1 + xc);
+        // Energy is below a pre-defined limit
+        xm *= real_type(0.5) * (1 + energy.value() / this->tlow().value());
     }
 
     return max<real_type>(xm, this->limit_min_fix());
@@ -230,7 +234,7 @@ CELER_FUNCTION real_type UrbanMscHelper::calc_limit_min(Energy    energy,
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample a random true path length limit
+ * Sample a random true path length limit.
  */
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscHelper::randomize_limit(
@@ -259,9 +263,9 @@ CELER_FUNCTION real_type UrbanMscHelper::randomize_limit(
  * or \f$ t(z) = \frac{1}{\alpha} [ 1 - (1-\alpha w z)^{1/w}] \f$ if the
  * geom path is small, where \f$ w = 1 + \frac{1}{\alpha \lambda_{10}}\f$.
  *
- * @param true_path the proposed step before transporation
- * @param geom_path the proposed step after transporation
- * @param alpha variable from UrbanMscStepLimit
+ * @param true_path the proposed step before transporation.
+ * @param geom_path the proposed step after transporation.
+ * @param alpha variable from UrbanMscStepLimit.
  */
 CELER_FUNCTION
 real_type UrbanMscHelper::calc_true_path(real_type true_path,
