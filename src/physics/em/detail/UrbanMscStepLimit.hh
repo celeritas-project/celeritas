@@ -26,7 +26,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Output data type of UrbanMscStepLimit (step limitation algorithm)
+ * Output data type of UrbanMscStepLimit (step limitation algorithm).
  */
 struct MscStepLimiterResult
 {
@@ -40,8 +40,6 @@ struct MscStepLimiterResult
 
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
  * This is the step limitation algorithm of the Urban model for the e-/e+
  * multiple scattering.
 
@@ -119,6 +117,9 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscNativeRef& shared,
     , msc_(shared_.msc_data[material.material_id()])
     , helper_(shared, particle, physics, material)
 {
+    CELER_EXPECT(particle.particle_id() == shared.electron_id
+                 || particle.particle_id() == shared.positron_id);
+
     range_  = helper_.range(inc_energy_);
     lambda_ = helper_.msc_mfp(inc_energy_);
 }
@@ -144,8 +145,8 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
 
     // The case for a very small step or the lower limit for the linear
     // distance that e-/e+ can travel is far from the geometry boundary
-    // NOTE: use doverrb for muons and charged hadrons
-    real_type distance = range_ * msc_.doverra;
+    // NOTE: use d_over_r_mh for muons and charged hadrons
+    real_type distance = range_ * msc_.d_over_r;
     if (result.true_path < helper_.limit_min_fix()
         || (safety_ > 0 && distance < safety_))
     {
@@ -184,9 +185,9 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
     // The lower bound for the true path length limit
     limit_ = max<real_type>(limit_, result.limit_min);
 
-    // Randomize the limit if this step should be determined by msc
     if (limit_ < result.true_path)
     {
+        // Randomize the limit if this step should be determined by msc
         result.true_path = min<real_type>(
             result.true_path,
             helper_.randomize_limit(rng, limit_, result.limit_min));
@@ -229,9 +230,9 @@ real_type UrbanMscStepLimit::calc_geom_path(real_type true_path)
     real_type geom_path = true_path;
     alpha_              = -1;
 
-    // geometrical path length = true path length for a very small step
     if (true_path < 100 * helper_.limit_min_fix())
     {
+      // geometrical path length = true path length for a very small step
         return geom_path;
     }
 
