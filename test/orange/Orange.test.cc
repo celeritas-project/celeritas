@@ -143,6 +143,11 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
     EXPECT_FALSE(geo.is_outside());
 
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(geo.find_safety({0.6, 0, 0}), celeritas::DebugError);
+    }
+
     // Try a boundary; second call should be cached
     EXPECT_SOFT_EQ(sqrt_two, geo.find_next_step());
     EXPECT_SOFT_EQ(sqrt_two, geo.find_next_step());
