@@ -123,7 +123,7 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
 
     // Interaction representing creation of a new track
     {
-        states_.interactions[vac_id].action = Action::spawned;
+        states_.interactions[vac_id] = Interaction::from_spawned();
     }
 }
 
