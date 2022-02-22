@@ -253,6 +253,7 @@ CELER_FUNCTION real_type OrangeTrackView::find_next_step()
 CELER_FUNCTION real_type OrangeTrackView::find_safety(const Real3&)
 {
     CELER_NOT_IMPLEMENTED("safety distance in ORANGE");
+    return 0;
 }
 
 //---------------------------------------------------------------------------//
