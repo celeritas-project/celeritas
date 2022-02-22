@@ -20,7 +20,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Output data type of UrbanMscScatter
+ * Output data type of UrbanMscScatter.
  */
 struct MscSamplingResult
 {
@@ -31,9 +31,7 @@ struct MscSamplingResult
 
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * This is a class for sampling cos(theta) of the Urban multiple scattering
+ * This is a class for sampling cos(theta) of the Urban multiple scattering.
  */
 class UrbanMscScatter
 {
@@ -52,12 +50,12 @@ class UrbanMscScatter
                                           const ParticleTrackView& particle,
                                           const Real3&             direction,
                                           const PhysicsTrackView&  physics,
-                                          const MaterialView&      material);
+                                          const MaterialView&      material,
+                                          const StepLimiterResult& input);
 
     // Sample the final true step length, position and direction by msc
     template<class Engine>
-    inline CELER_FUNCTION MscSamplingResult
-                          operator()(Engine& rng, const StepLimiterResult& input);
+    inline CELER_FUNCTION MscSamplingResult operator()(Engine& rng);
 
   private:
     //// DATA ////
@@ -76,14 +74,16 @@ class UrbanMscScatter
     const MaterialData& msc_;
     // Urban MSC helper class
     UrbanMscHelper helper_;
+    // Results from UrbanMSCStepLimit
+    StepLimiterResult input_;
 
     //// COMMON PROPERTIES ////
 
     //! The minimum step length for geometry ( 0.05*CLHEP::nm)
-    static CELER_CONSTEXPR_FUNCTION real_type geom_min() { return 5e-9; }
-
-    //! A limit on number values
-    static CELER_CONSTEXPR_FUNCTION real_type num_limit() { return 0.01; }
+    static CELER_CONSTEXPR_FUNCTION real_type geom_min()
+    {
+        return 5e-9 * units::centimeter;
+    }
 
     //! The constant in the Highland theta0 formula: 13.6 MeV
     static CELER_CONSTEXPR_FUNCTION Energy c_highland()
@@ -130,7 +130,8 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
                                  const ParticleTrackView& particle,
                                  const Real3&             direction,
                                  const PhysicsTrackView&  physics,
-                                 const MaterialView&      material)
+                                 const MaterialView&      material,
+                                 const StepLimiterResult& input)
     : inc_energy_(particle.energy())
     , inc_direction_(direction)
     , is_positron_(particle.particle_id() == shared.positron_id)
@@ -139,7 +140,11 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
     , params_(shared.params)
     , msc_(shared.msc_data[material.material_id()])
     , helper_(shared, particle, physics, material)
+    , input_(input)
 {
+    CELER_EXPECT(particle.particle_id() == shared.electron_id
+                 || particle.particle_id() == shared.positron_id);
+
     lambda_ = helper_.msc_mfp(inc_energy_);
 }
 
@@ -152,18 +157,18 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
  *
  */
 template<class Engine>
-CELER_FUNCTION auto UrbanMscScatter::
-                    operator()(Engine& rng, const StepLimiterResult& input) -> MscSamplingResult
+CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng)
+    -> MscSamplingResult
 {
     MscSamplingResult result;
 
     // Covert the geometry path length to the true path length
-    real_type geom_path = input.geom_path;
+    real_type geom_path = input_.geom_path;
     real_type true_path
-        = helper_.calc_true_path(input.true_path, geom_path, input.alpha);
+        = helper_.calc_true_path(input_.true_path, geom_path, input_.alpha);
 
     // Protect against a wrong true -> geom -> true transformation
-    true_path = min<real_type>(true_path, input.phys_step);
+    true_path = min<real_type>(true_path, input_.phys_step);
 
     result.step_length = true_path;
 
@@ -173,13 +178,13 @@ CELER_FUNCTION auto UrbanMscScatter::
         auto end_energy = helper_.end_energy(true_path);
 
         bool skip_sampling = (end_energy.value() < 1e-9
-                              || true_path <= input.limit_min
+                              || true_path <= input_.limit_min
                               || true_path < lambda_ * params_.tau_small);
 
         if (!skip_sampling)
         {
             real_type cth = this->sample_cos_theta(
-                rng, end_energy, input.true_path, input.limit_min);
+                rng, end_energy, input_.true_path, input_.limit_min);
 
             CELER_ENSURE(std::abs(cth) <= 1);
 
@@ -188,7 +193,7 @@ CELER_FUNCTION auto UrbanMscScatter::
             result.direction = rotate(from_spherical(cth, phi), inc_direction_);
 
             // Displace the lateral position by the multiple scattering
-            if (input.is_displaced && tau_ >= params_.tau_small)
+            if (input_.is_displaced && tau_ >= params_.tau_small)
             {
                 real_type rmax2 = (true_path - geom_path)
                                   * (true_path + geom_path);
@@ -261,7 +266,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         // Sample the mean distribution of the scattering angle, cos(theta)
         real_type xmean;
         real_type x2mean;
-        if (tau < num_limit())
+        if (tau < real_type(0.01))
         {
             xmean  = 1 - tau * (1 - real_type(0.5) * tau);
             x2mean = 1 - tau * (5 - real_type(6.25) * tau) / 3;
@@ -293,14 +298,14 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
             return cth;
         }
 
-        // theta0 > theta0max = pi/6
         if (theta0 > constants::pi / 6)
         {
+            // theta0 > theta0_max
             return this->simple_scattering(rng, xmean, x2mean);
         }
 
         real_type x = theta2 * (1 - theta2 / 12);
-        if (theta2 > num_limit())
+        if (theta2 > real_type(0.01))
         {
             real_type sth = 2 * std::sin(real_type(0.5) * theta0);
             x             = ipow<2>(sth);
@@ -368,7 +373,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
             else
             {
                 var = (1 - d) * generate_canonical(rng);
-                if (var < num_limit() * d)
+                if (var < real_type(0.01) * d)
                 {
                     var /= (d * c1);
                     cth = -1
@@ -396,8 +401,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
 /*!
  * Sample the large anagle scattering using 2 model functions.
  *
- * @param xmean the mean of \f$\cos\theta\f$
- * @param x2mean the mean of \f$\cos\theta^{2}\f$
+ * @param xmean the mean of \f$\cos\theta\f$.
+ * @param x2mean the mean of \f$\cos\theta^{2}\f$.
  */
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
@@ -433,8 +438,8 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
  * radiation length unit and the correction term, respectively. For details,
  * see the section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
  *
- * @param true_path the true step length
- * @param end_energy the particle energy at the end of of the msc step
+ * @param true_path the true step length.
+ * @param end_energy the particle energy at the end of of the msc step.
  */
 CELER_FUNCTION
 real_type
@@ -468,7 +473,7 @@ UrbanMscScatter::compute_theta0(real_type true_path, Energy end_energy) const
 /*!
  * Calculate the correction on theta0 for positrons.
  *
- * @param tau (incident energy * energy at the end of step)/electron_mass
+ * @param tau (incident energy * energy at the end of step)/electron_mass.
  */
 CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
 {
@@ -509,15 +514,15 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
 //---------------------------------------------------------------------------//
 /*!
  * Sample the displacement direction using G4UrbanMscModel::SampleDisplacement
- * of Geant4 10.7: simple and fast sampling based on single scattering results
+ * of Geant4 10.7: simple and fast sampling based on single scattering results.
  *
  * A simple distribution for the unit direction on the lateral (x-y) plane,
  * \f$ Phi = \phi \pm \psi \f$ where \f$ psi \sim \exp(-\beta*v) \f$ and
  * \f$\beta\f$ is determined from the requirement that the distribution should
  * give the same mean value that is obtained from the single scattering
- * simulation
+ * simulation.
  *
- * @param phi the azimuthal angle of the multiple scattering
+ * @param phi the azimuthal angle of the multiple scattering.
  */
 template<class Engine>
 CELER_FUNCTION Real3 UrbanMscScatter::dir_displacement(Engine&   rng,
