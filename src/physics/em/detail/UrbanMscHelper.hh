@@ -286,6 +286,8 @@ real_type UrbanMscHelper::calc_true_path(real_type true_path,
     {
         if (alpha < 0)
         {
+            // For cases that the true path is very small compared to either
+            // the mean free path or the range
             length = -lambda * std::log(1 - geom_path / lambda);
         }
         else
