@@ -70,6 +70,9 @@ class OrangeTrackView
     // Find the distance to the next boundary
     inline CELER_FUNCTION real_type find_next_step();
 
+    // Find the nearest (any direction) boundary within the current volume
+    inline CELER_FUNCTION real_type find_safety(const Real3& pos);
+
     // Move to the boundary in preparation for crossing it
     inline CELER_FUNCTION void move_to_boundary();
 
@@ -241,6 +244,15 @@ CELER_FUNCTION real_type OrangeTrackView::find_next_step()
     }
 
     return next_step_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the nearest (any direction) boundary within the current volume.
+ */
+CELER_FUNCTION real_type OrangeTrackView::find_safety(const Real3&)
+{
+    CELER_NOT_IMPLEMENTED("safety distance in ORANGE");
 }
 
 //---------------------------------------------------------------------------//
