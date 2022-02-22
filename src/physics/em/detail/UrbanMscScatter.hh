@@ -382,10 +382,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                 }
                 else
                 {
-                    cth = 1
-                          + x
-                                * (c - xsi
-                                   - c * std::exp(-std::log(var + d) / c1));
+                    cth = x * (c - xsi - c * std::exp(-std::log(var + d) / c1))
+                          + 1;
                 }
             }
         }
