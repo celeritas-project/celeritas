@@ -168,7 +168,7 @@ class FieldDriverDeviceTest : public FieldDriverTest
 {
 };
 
-TEST_F(FieldDriverDeviceTest, TEST_IF_CELERITAS_CUDA(field_driver_device))
+TEST_F(FieldDriverDeviceTest, TEST_IF_CELER_DEVICE(field_driver_device))
 {
     // Run kernel
     auto output = driver_test(field_params, test_params);
@@ -190,7 +190,7 @@ TEST_F(FieldDriverDeviceTest, TEST_IF_CELERITAS_CUDA(field_driver_device))
     }
 }
 
-TEST_F(FieldDriverDeviceTest, TEST_IF_CELERITAS_CUDA(accurate_advance_device))
+TEST_F(FieldDriverDeviceTest, TEST_IF_CELER_DEVICE(accurate_advance_device))
 {
     // Run kernel
     auto output = accurate_advance_test(field_params, test_params);

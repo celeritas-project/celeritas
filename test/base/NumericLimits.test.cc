@@ -36,7 +36,7 @@ TYPED_TEST(RealNumericLimitsTest, host)
     EXPECT_TRUE(std::isnan(celer_limits_t::quiet_NaN()));
 }
 
-#if CELERITAS_USE_CUDA
+#if CELER_USE_DEVICE
 TYPED_TEST(RealNumericLimitsTest, device)
 #else
 TYPED_TEST(RealNumericLimitsTest, DISABLED_device)

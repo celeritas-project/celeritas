@@ -76,7 +76,7 @@ VecgeomParams::VecgeomParams(const std::string& filename)
             detail::ScopedTimeAndRedirect time_and_output_;
             // cuda_manager.set_verbose(1);
             cuda_manager.LoadGeometry();
-            CELER_CUDA_CALL(cudaDeviceSynchronize());
+            CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
         }
 
         CELER_LOG(debug) << "Transferring geometry to GPU";
@@ -86,14 +86,14 @@ VecgeomParams::VecgeomParams(const std::string& filename)
             CELER_ASSERT(world_top_devptr != nullptr);
             device_ref_.world_volume = world_top_devptr.GetPtr();
             device_ref_.max_depth    = host_ref_.max_depth;
-            CELER_CUDA_CHECK_ERROR();
+            CELER_DEVICE_CHECK_ERROR();
         }
         CELER_ENSURE(device_ref_);
 
         CELER_LOG(debug) << "Initailizing BVH on GPU";
         {
             vecgeom::cxx::BVHManager::DeviceInit();
-            CELER_CUDA_CHECK_ERROR();
+            CELER_DEVICE_CHECK_ERROR();
         }
     }
 #endif

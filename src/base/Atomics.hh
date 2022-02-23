@@ -21,7 +21,7 @@ namespace celeritas
 template<class T>
 CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
 {
-#ifdef __CUDA_ARCH__
+#ifdef CELER_DEVICE_COMPILE
     return atomicAdd(address, value);
 #elif defined(_OPENMP)
     CELER_EXPECT(address);
@@ -74,7 +74,7 @@ inline __device__ double atomic_add(double* address, double val)
 template<class T>
 CELER_FORCEINLINE_FUNCTION T atomic_min(T* address, T value)
 {
-#ifdef __CUDA_ARCH__
+#ifdef CELER_DEVICE_COMPILE
     return atomicMin(address, value);
 #else
     CELER_EXPECT(address);
@@ -91,7 +91,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_min(T* address, T value)
 template<class T>
 CELER_FORCEINLINE_FUNCTION T atomic_max(T* address, T value)
 {
-#ifdef __CUDA_ARCH__
+#ifdef CELER_DEVICE_COMPILE
     return atomicMax(address, value);
 #else
     CELER_EXPECT(address);

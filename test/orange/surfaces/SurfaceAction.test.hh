@@ -6,7 +6,9 @@
 //! \file SurfaceAction.test.hh
 //---------------------------------------------------------------------------//
 #include <vector>
+
 #include "base/CollectionBuilder.hh"
+#include "base/Macros.hh"
 #include "orange/Data.hh"
 #include "orange/surfaces/Surfaces.hh"
 #include "orange/surfaces/SurfaceAction.hh"
@@ -157,10 +159,10 @@ struct SATestInput
 //! Run on device and return results
 void sa_test(SATestInput);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline void sa_test(SATestInput)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

@@ -174,10 +174,13 @@ struct AllItems
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
 {
+#if !CELERITAS_USE_HIP
+    // rocrand states have nontrivial destructors
     static_assert(std::is_trivially_copyable<T>::value,
                   "Collection element is not trivially copyable");
     static_assert(std::is_trivially_destructible<T>::value,
                   "Collection element is not trivially destructible");
+#endif
 
     using CollectionTraitsT = detail::CollectionTraits<T, W>;
 

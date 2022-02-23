@@ -14,7 +14,7 @@ spack:
   - openmpi
   - python
   - py-h5py
-  - root
+  - root cxxstd=14
   - swig
   - valgrind ~ubsan
   - veccore
@@ -25,7 +25,7 @@ spack:
     valgrind:
       variants: ~boost
     root:
-      variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=14
+      variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl
     all:
       variants: +cuda cxxstd=14 cuda_arch=35
       providers:

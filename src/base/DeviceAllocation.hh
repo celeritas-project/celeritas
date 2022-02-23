@@ -70,11 +70,11 @@ class DeviceAllocation
     void copy_to_host(SpanBytes bytes) const;
 
   private:
-    struct CudaFreeDeleter
+    struct DeviceFreeDeleter
     {
         void operator()(Byte*) const;
     };
-    using DeviceUniquePtr = std::unique_ptr<Byte[], CudaFreeDeleter>;
+    using DeviceUniquePtr = std::unique_ptr<Byte[], DeviceFreeDeleter>;
 
     //// DATA ////
 

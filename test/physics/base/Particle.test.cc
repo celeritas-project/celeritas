@@ -209,7 +209,7 @@ class ParticleDeviceTest : public ParticleTest
     using Base = ParticleTest;
 };
 
-TEST_F(ParticleDeviceTest, TEST_IF_CELERITAS_CUDA(calc_props))
+TEST_F(ParticleDeviceTest, TEST_IF_CELER_DEVICE(calc_props))
 {
     PTVTestInput input;
     input.init = {{ParticleId{0}, MevEnergy{0.5}},

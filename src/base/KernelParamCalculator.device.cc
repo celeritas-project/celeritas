@@ -5,10 +5,11 @@
 //---------------------------------------------------------------------------//
 //! \file KernelParamCalculator.cuda.cc
 //---------------------------------------------------------------------------//
+#include "KernelParamCalculator.device.hh"
+
 #include <cassert>
 #include <limits>
-
-#include "KernelParamCalculator.cuda.hh"
+#include "base/device_runtime_api.h"
 #include "Assert.hh"
 
 namespace

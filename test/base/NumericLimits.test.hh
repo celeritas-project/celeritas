@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include "base/Assert.hh"
+#include "base/Macros.hh"
 
 namespace celeritas_test
 {
@@ -28,11 +29,11 @@ struct NLTestOutput
 template<class T>
 NLTestOutput<T> nl_test();
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 template<class T>
 inline NLTestOutput<T> nl_test()
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

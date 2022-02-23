@@ -21,6 +21,12 @@
 using namespace celeritas;
 using namespace celeritas_test;
 
+#if CELERITAS_USE_CUDA
+#    define TEST_IF_CELERITAS_CUDA(name) name
+#else
+#    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
+#endif
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//

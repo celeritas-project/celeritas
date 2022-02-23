@@ -5,11 +5,12 @@
 //---------------------------------------------------------------------------//
 //! \file Physics.test.hh
 //---------------------------------------------------------------------------//
-#include "celeritas_config.h"
 #include "base/Assert.hh"
 #include "base/Collection.hh"
+#include "base/Macros.hh"
 #include "base/Range.hh"
 #include "base/Span.hh"
+#include "base/Types.hh"
 #include "physics/base/PhysicsData.hh"
 #include "physics/base/Units.hh"
 #include "physics/base/Types.hh"
@@ -107,10 +108,10 @@ inline CELER_FUNCTION celeritas::real_type
 //! Run on device and return results
 void phys_cuda_test(const PTestInput&);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline void phys_cuda_test(const PTestInput&)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

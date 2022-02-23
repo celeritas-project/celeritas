@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "Collection.test.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/device_runtime_api.h"
+#include "comm/Device.hh"
+#include "base/KernelParamCalculator.device.hh"
 
 using celeritas::ItemId;
 using celeritas::ItemRange;
@@ -69,13 +71,12 @@ void col_cuda_test(CTestInput input)
 {
     CELER_VALIDATE(input.states.size() > 0, << "Expected more states");
 
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        col_cuda_test_kernel, "col_cuda_test");
-    auto params = calc_launch_params(input.states.size());
-    col_cuda_test_kernel<<<params.grid_size, params.block_size>>>(
-        input.params, input.states, input.result);
-
-    CELER_CUDA_CHECK_ERROR();
+    CELER_LAUNCH_KERNEL(col_cuda_test,
+                        celeritas::device().default_block_size(),
+                        input.states.size(),
+                        input.params,
+                        input.states,
+                        input.result);
 }
 
 //---------------------------------------------------------------------------//

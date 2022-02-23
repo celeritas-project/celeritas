@@ -5,12 +5,15 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocator.test.cu
 //---------------------------------------------------------------------------//
+#include "base/device_runtime_api.h"
 #include "StackAllocator.test.hh"
 
 #include <cstdint>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
-#include "base/KernelParamCalculator.cuda.hh"
+#include "comm/Device.hh"
+
+#include "base/KernelParamCalculator.device.hh"
 #include "base/StackAllocator.hh"
 
 using thrust::raw_pointer_cast;
@@ -92,22 +95,20 @@ SATestOutput sa_test(const SATestInput& input)
     // Construct and initialize output data
     thrust::device_vector<SATestOutput> out(1);
 
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        sa_test_kernel, "sa_test");
-    auto params = calc_launch_params(input.num_threads);
-    sa_test_kernel<<<params.grid_size, params.block_size>>>(
-        input, raw_pointer_cast(out.data()));
-    CELER_CUDA_CHECK_ERROR();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(sa_test,
+                        celeritas::device().default_block_size(),
+                        input.num_threads,
+                        input,
+                        raw_pointer_cast(out.data()));
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Access secondaries after the first kernel completed
-    static const celeritas::KernelParamCalculator calc_post_params(
-        sa_post_test_kernel, "sa_post_test");
-    params = calc_launch_params(input.num_threads);
-    sa_post_test_kernel<<<params.grid_size, params.block_size>>>(
-        input, raw_pointer_cast(out.data()));
-    CELER_CUDA_CHECK_ERROR();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(sa_post_test,
+                        celeritas::device().default_block_size(),
+                        input.num_threads,
+                        input,
+                        raw_pointer_cast(out.data()));
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Copy data back to host
     thrust::host_vector<SATestOutput> host_result = out;
@@ -118,12 +119,8 @@ SATestOutput sa_test(const SATestInput& input)
 //! Clear secondaries, only a single thread needed
 void sa_clear(const SATestInput& input)
 {
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        sa_clear_kernel, "sa_clear", 32);
-    auto params = calc_launch_params(1);
-    sa_clear_kernel<<<params.grid_size, params.block_size>>>(input);
-    CELER_CUDA_CHECK_ERROR();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(sa_clear, celeritas::device().warp_size(), 1, input);
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//

@@ -109,7 +109,7 @@ class SeltzerBergerInteractor
  * The incident particle must be within the model's valid energy range. this
  * must be handled in code *before* the interactor is constructed.
  */
-SeltzerBergerInteractor::SeltzerBergerInteractor(
+CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
     const SeltzerBergerNativeRef& shared,
     const ParticleTrackView&      particle,
     const Real3&                  inc_direction,

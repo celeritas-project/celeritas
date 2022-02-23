@@ -23,7 +23,7 @@
 #include "sim/SimTrackView.hh"
 #include "sim/TrackData.hh"
 
-#ifndef __CUDA_ARCH__
+#ifndef CELER_DEVICE_COMPILE
 #    include "base/ArrayIO.hh"
 #    include "comm/Logger.hh"
 #endif
@@ -206,7 +206,7 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
             // change.
 
             real_type backward_bump = real_type(-1e-5) * step;
-#ifndef __CUDA_ARCH__
+#ifndef CELER_DEVICE_COMPILE
             using VGT             = celeritas::ValueGridType;
             using RangeCalculator = celeritas::RangeCalculator;
 

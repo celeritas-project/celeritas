@@ -8,6 +8,7 @@
 
 #include <vector>
 #include "base/Assert.hh"
+#include "base/Macros.hh"
 
 namespace celeritas_test
 {
@@ -27,16 +28,16 @@ std::vector<unsigned int> re_test_native(RngDeviceRef);
 template<class T>
 std::vector<T> re_test_canonical(RngDeviceRef);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 std::vector<unsigned int> re_test_native(RngDeviceRef)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 template<class T>
 inline std::vector<T> re_test_canonical(RngDeviceRef)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "KNDemoKernel.hh"
 
+#include "base/device_runtime_api.h"
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>
 
@@ -18,18 +19,18 @@ namespace demo_interactor
 /*!
  * Sum the total number of living particles.
  */
-size_type reduce_alive(const CudaGridParams& grid, Span<const bool> alive)
+size_type reduce_alive(const DeviceGridParams& grid, Span<const bool> alive)
 {
     size_type result = thrust::reduce(
         thrust::device_pointer_cast(alive.data()),
         thrust::device_pointer_cast(alive.data() + alive.size()),
         size_type(0),
         thrust::plus<size_type>());
-    CELER_CUDA_CHECK_ERROR();
+    CELER_DEVICE_CHECK_ERROR();
 
     if (grid.sync)
     {
-        CELER_CUDA_CALL(cudaDeviceSynchronize());
+        CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
     }
     return result;
 }

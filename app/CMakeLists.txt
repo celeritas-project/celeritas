@@ -81,6 +81,22 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
   endif()
 endif()
 
+if(CELERITAS_USE_HIP)
+  set_source_files_properties(
+    demo-loop/generated/AlongAndPostStepKernel.cu
+    demo-loop/generated/ProcessInteractionsKernel.cu
+    demo-loop/generated/PreStepKernel.cu
+    demo-loop/generated/CleanupKernel.cu
+    demo-loop/diagnostic/TrackDiagnostic.cu
+    demo-loop/diagnostic/StepDiagnostic.cu
+    demo-loop/diagnostic/ParticleProcessDiagnostic.cu
+    demo-loop/diagnostic/EnergyDiagnostic.cu
+    demo-interactor/KNDemoKernel.cu
+    demo-interactor/KNDemoKernel.thrust.cu
+    PROPERTIES LANGUAGE HIP
+  )
+endif()
+
 #-----------------------------------------------------------------------------#
 # DEMO: physics interactions
 #-----------------------------------------------------------------------------#
@@ -96,7 +112,7 @@ if(CELERITAS_BUILD_DEMOS)
     nlohmann_json::nlohmann_json
   )
 
-  if(CELERITAS_USE_CUDA)
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     add_executable(demo-interactor
       demo-interactor/demo-interactor.cc
       demo-interactor/KNDemoRunner.cc
@@ -215,13 +231,13 @@ if(CELERITAS_BUILD_DEMOS)
   celeritas_gen_demo_loop_kernel(_demo_loop_src
     "ProcessInteractions" "process_interactions" "'states.size()'")
 
-  if(CELERITAS_USE_CUDA)
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     list(APPEND _demo_loop_src
       demo-loop/diagnostic/EnergyDiagnostic.cu
       demo-loop/diagnostic/ParticleProcessDiagnostic.cu
       demo-loop/diagnostic/StepDiagnostic.cu
       demo-loop/diagnostic/TrackDiagnostic.cu
-    )
+      )
   endif()
 
   set(_demo_loop_libs
@@ -274,7 +290,7 @@ if(CELERITAS_BUILD_DEMOS)
     # Disable test when prereqs are not available or for debug builds
     # (debug failures seem limited to older architectures with debug assertions
     # enabled)
-    if(NOT CELERITAS_USE_CUDA
+    if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
        OR NOT CELERITAS_USE_Geant4
        OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3
@@ -304,7 +320,7 @@ if(CELERITAS_BUILD_DEMOS)
       ENVIRONMENT "${_env};${_geant_test_env}"
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
     )
-    if(NOT CELERITAS_USE_CUDA
+    if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
        OR NOT CELERITAS_USE_Geant4
        OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3)

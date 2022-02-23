@@ -1,20 +1,58 @@
-//---------------------------------*-CUDA-*----------------------------------//
+//---------------------------------*-C++-*-----------------------------------//
 // Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KernelParamCalculator.cuda.hh
+//! \file KernelParamCalculator.device.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cstddef>
-#include <cuda_runtime_api.h>
+
+#include "base/device_runtime_api.h"
 #include "Assert.hh"
 #include "Macros.hh"
 #include "OpaqueId.hh"
 #include "Types.hh"
 #include "comm/Device.hh"
 #include "comm/KernelDiagnostics.hh"
+
+/*!
+ * \def CELER_LAUNCH_KERNEL
+ *
+ * Create a kernel param calculator with the given kernel, assuming the
+ * function itself has a \c _kernel suffix, and launch with the given
+ * block/thread sizes and arguments list.
+ */
+#define CELER_LAUNCH_KERNEL(NAME, BLOCK_SIZE, THREADS, ...)                  \
+    do                                                                       \
+    {                                                                        \
+        static const ::celeritas::KernelParamCalculator calc_launch_params_( \
+            NAME##_kernel, #NAME, BLOCK_SIZE);                               \
+        auto grid_ = calc_launch_params_(THREADS);                           \
+                                                                             \
+        CELER_LAUNCH_KERNEL_IMPL(NAME##_kernel,                              \
+                                 grid_.grid_size,                            \
+                                 grid_.block_size,                           \
+                                 0,                                          \
+                                 0,                                          \
+                                 __VA_ARGS__);                               \
+        CELER_DEVICE_CHECK_ERROR();                                          \
+    } while (0)
+
+#if CELERITAS_USE_CUDA
+#    define CELER_LAUNCH_KERNEL_IMPL(KERNEL, GRID, BLOCK, SHARED, STREAM, ...) \
+        KERNEL<<<GRID, BLOCK, SHARED, STREAM>>>(__VA_ARGS__)
+#elif CELERITAS_USE_HIP
+#    define CELER_LAUNCH_KERNEL_IMPL(KERNEL, GRID, BLOCK, SHARED, STREAM, ...) \
+        hipLaunchKernelGGL(KERNEL, GRID, BLOCK, SHARED, STREAM, __VA_ARGS__)
+#else
+#    define CELER_LAUNCH_KERNEL_IMPL(KERNEL, GRID, BLOCK, SHARED, STREAM, ...) \
+        CELER_NOT_CONFIGURED("CUDA or HIP");                                   \
+        (void)sizeof(GRID);                                                    \
+        (void)sizeof(KERNEL);                                                  \
+        (void)sizeof(__VA_ARGS__);
+#endif
 
 namespace celeritas
 {
@@ -58,11 +96,13 @@ class KernelParamCalculator
 
     // Construct with the default block size
     template<class F>
-    KernelParamCalculator(F kernel_func, const char* name);
+    KernelParamCalculator(F* kernel_func_ptr, const char* name);
 
     // Construct with an explicit number of threads per block
     template<class F>
-    KernelParamCalculator(F kernel_func, const char* name, dim_type block_size);
+    KernelParamCalculator(F*          kernel_func_ptr,
+                          const char* name,
+                          dim_type    block_size);
 
     // Get launch parameters
     LaunchParams operator()(size_type min_num_threads) const;
@@ -82,7 +122,7 @@ class KernelParamCalculator
  */
 CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
 {
-#ifdef __CUDA_ARCH__
+#ifdef CELER_DEVICE_COMPILE
     return ThreadId{blockIdx.x * blockDim.x + threadIdx.x};
 #else
     // blockIdx/threadIdx not available: shouldn't be called by host code
@@ -95,9 +135,10 @@ CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
  * Construct for the given global kernel F.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(F kernel_func, const char* name)
+KernelParamCalculator::KernelParamCalculator(F*          kernel_func_ptr,
+                                             const char* name)
     : KernelParamCalculator(
-        kernel_func, name, celeritas::device().default_block_size())
+        kernel_func_ptr, name, celeritas::device().default_block_size())
 {
 }
 
@@ -106,13 +147,14 @@ KernelParamCalculator::KernelParamCalculator(F kernel_func, const char* name)
  * Construct for the given global kernel F.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(F           kernel_func,
+KernelParamCalculator::KernelParamCalculator(F*          kernel_func_ptr,
                                              const char* name,
                                              dim_type    block_size)
     : block_size_(block_size)
 {
     CELER_EXPECT(block_size % celeritas::device().warp_size() == 0);
-    id_ = celeritas::kernel_diagnostics().insert(kernel_func, name, block_size);
+    id_ = celeritas::kernel_diagnostics().insert<F>(
+        kernel_func_ptr, name, block_size);
 }
 
 //---------------------------------------------------------------------------//

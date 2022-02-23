@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "base/Macros.hh"
 #include "base/Span.hh"
 #include "physics/base/Primary.hh"
 #include "sim/TrackData.hh"
@@ -74,44 +74,44 @@ size_type exclusive_scan_counts<MemSpace::device>(Span<size_type> counts);
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline void init_tracks(const ParamsDeviceRef&,
                         const StateDeviceRef&,
                         const TrackInitStateDeviceRef&)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 inline void locate_alive(const ParamsDeviceRef&,
                          const StateDeviceRef&,
                          const TrackInitStateDeviceRef&)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 inline void
 process_primaries(Span<const Primary>, const TrackInitStateDeviceRef&)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 inline void process_secondaries(const ParamsDeviceRef&,
                                 const StateDeviceRef&,
                                 const TrackInitStateDeviceRef&)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 template<>
 size_type remove_if_alive<MemSpace::device>(Span<size_type>)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 template<>
 size_type exclusive_scan_counts<MemSpace::device>(Span<size_type>)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 #endif

@@ -3,13 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file NumericLimits.test.cu
+//! file NumericLimits.test.cu
 //---------------------------------------------------------------------------//
 #include "NumericLimits.test.hh"
 
 #include "base/Assert.hh"
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
+#include "base/device_runtime_api.h"
 #include "base/NumericLimits.hh"
+#include "comm/Device.hh"
 
 namespace celeritas_test
 {
@@ -50,23 +52,24 @@ NLTestOutput<T> nl_test()
 {
     // Allocate output data
     NLTestOutput<T>* result_device;
-    CELER_CUDA_CALL(cudaMalloc(&result_device, sizeof(NLTestOutput<T>)));
+    CELER_DEVICE_CALL_PREFIX(Malloc(&result_device, sizeof(NLTestOutput<T>)));
 
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        nl_test_kernel<T>, "nl_test");
+    static const ::celeritas::KernelParamCalculator calc_launch_params(
+        nl_test_kernel<T>, "nl_test", celeritas::device().warp_size());
+    auto grid = calc_launch_params(3);
 
-    auto params = calc_launch_params(3);
-    nl_test_kernel<<<params.grid_size, params.block_size>>>(result_device);
-    CELER_CUDA_CHECK_ERROR();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL_IMPL(
+        nl_test_kernel<T>, grid.grid_size, grid.block_size, 0, 0, result_device);
+    CELER_DEVICE_CHECK_ERROR();
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Copy to host
     NLTestOutput<T> result;
-    CELER_CUDA_CALL(cudaMemcpy(&result,
-                               result_device,
-                               sizeof(NLTestOutput<T>),
-                               cudaMemcpyDeviceToHost));
-    CELER_CUDA_CALL(cudaFree(result_device));
+    CELER_DEVICE_CALL_PREFIX(Memcpy(&result,
+                                    result_device,
+                                    sizeof(NLTestOutput<T>),
+                                    CELER_DEVICE_PREFIX(MemcpyDeviceToHost)));
+    CELER_DEVICE_CALL_PREFIX(Free(result_device));
     return result;
 }
 

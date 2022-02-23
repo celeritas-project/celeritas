@@ -245,7 +245,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
 //---------------------------------------------------------------------------//
 
 #define FieldPropagatorDeviceTest \
-    TEST_IF_CELERITAS_CUDA(FieldPropagatorDeviceTest)
+    TEST_IF_CELER_DEVICE(FieldPropagatorDeviceTest)
 class FieldPropagatorDeviceTest : public FieldPropagatorTestBase
 {
   public:

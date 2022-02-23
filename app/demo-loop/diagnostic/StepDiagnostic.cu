@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "StepDiagnostic.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
 
 using namespace celeritas;
 
@@ -45,7 +45,7 @@ void count_steps(const ParamsDeviceRef&                  params,
                                                           "count_steps");
     auto                               kp = calc_launch_params(states.size());
     count_steps_kernel<<<kp.grid_size, kp.block_size>>>(params, states, data);
-    CELER_CUDA_CHECK_ERROR();
+    CELER_DEVICE_CHECK_ERROR();
 }
 //---------------------------------------------------------------------------//
 } // namespace demo_loop

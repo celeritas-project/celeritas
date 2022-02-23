@@ -43,7 +43,7 @@ class RngEngine
     inline CELER_FUNCTION result_type operator()();
 
   private:
-    curandState_t* state_;
+    RngThreadState* state_;
 
     template<class Generator, class RealType>
     friend class GenerateCanonical;
@@ -97,7 +97,7 @@ CELER_FUNCTION
 RngEngine::RngEngine(const StateRef& state, const ThreadId& id)
 {
     CELER_EXPECT(id < state.rng.size());
-    state_ = &state.rng[id].state;
+    state_ = &state.rng[id];
 }
 
 //---------------------------------------------------------------------------//
@@ -106,7 +106,7 @@ RngEngine::RngEngine(const StateRef& state, const ThreadId& id)
  */
 CELER_FUNCTION RngEngine& RngEngine::operator=(const Initializer_t& s)
 {
-    curand_init(s.seed, 0, 0, state_);
+    CELER_DEVICE_SHORT_PREFIX(rand_init)(s.seed, 0, 0, state_);
     return *this;
 }
 
@@ -116,7 +116,7 @@ CELER_FUNCTION RngEngine& RngEngine::operator=(const Initializer_t& s)
  */
 CELER_FUNCTION auto RngEngine::operator()() -> result_type
 {
-    return curand(state_);
+    return CELER_DEVICE_SHORT_PREFIX(rand)(state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -126,7 +126,7 @@ CELER_FUNCTION auto RngEngine::operator()() -> result_type
 CELER_FUNCTION float
 GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 {
-    return curand_uniform(rng.state_);
+    return CELER_DEVICE_SHORT_PREFIX(rand_uniform)(rng.state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -136,7 +136,7 @@ GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 CELER_FUNCTION double
 GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)
 {
-    return curand_uniform_double(rng.state_);
+    return CELER_DEVICE_SHORT_PREFIX(rand_uniform_double)(rng.state_);
 }
 
 //---------------------------------------------------------------------------//

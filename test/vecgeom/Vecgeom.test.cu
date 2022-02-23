@@ -9,7 +9,7 @@
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
 
 #include "Vecgeom.test.hh"
 
@@ -88,7 +88,7 @@ VGGTestOutput vgg_test(VGGTestInput input)
         input.max_segments,
         raw_pointer_cast(ids.data()),
         raw_pointer_cast(distances.data()));
-    CELER_CUDA_CHECK_ERROR();
+    CELER_CUDA_CALL(cudaPeekAtLastError());
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Copy result back to CPU

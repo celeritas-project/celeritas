@@ -132,7 +132,7 @@ void accum_time<MemSpace::device>(const TransporterInput& inp,
 {
     if (inp.sync)
     {
-        CELER_CUDA_CALL(cudaDeviceSynchronize());
+        CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
         *time += get_time();
     }
 }

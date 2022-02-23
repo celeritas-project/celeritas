@@ -8,7 +8,7 @@
 #include "EnergyDiagnostic.hh"
 
 #include "base/CollectionBuilder.hh"
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
 #include "base/Macros.hh"
 
 using namespace celeritas;
@@ -42,7 +42,7 @@ void bin_energy(const StateDeviceRef& states, PointersDevice& pointers)
     auto lparams = calc_launch_params(states.size());
     bin_energy_kernel<<<lparams.grid_size, lparams.block_size>>>(states,
                                                                  pointers);
-    CELER_CUDA_CHECK_ERROR();
+    CELER_DEVICE_CHECK_ERROR();
 }
 
 } // namespace demo_loop

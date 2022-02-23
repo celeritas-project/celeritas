@@ -10,7 +10,9 @@
 #include "detail/FieldMapData.hh"
 #include "detail/CMSMapField.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
+#include "base/device_runtime_api.h"
+#include "comm/Device.hh"
 #include <thrust/device_vector.h>
 
 #include "base/Range.hh"
@@ -63,17 +65,15 @@ UserFieldTestOutput fieldmap_test(UserFieldTestParams       test_param,
     thrust::device_vector<real_type> value_z(test_param.nsamples, 0.0);
 
     // Run kernel
-    celeritas::KernelParamCalculator calc_launch_params(fieldmap_test_kernel,
-                                                        "fieldmap_test");
-    auto params = calc_launch_params(test_param.nsamples);
-
-    fieldmap_test_kernel<<<params.grid_size, params.block_size>>>(
-        test_param,
-        field_data,
-        raw_pointer_cast(value_x.data()),
-        raw_pointer_cast(value_y.data()),
-        raw_pointer_cast(value_z.data()));
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(fieldmap_test,
+                        celeritas::device().default_block_size(),
+                        test_param.nsamples,
+                        test_param,
+                        field_data,
+                        raw_pointer_cast(value_x.data()),
+                        raw_pointer_cast(value_y.data()),
+                        raw_pointer_cast(value_z.data()));
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Copy result back to CPU
     UserFieldTestOutput result;

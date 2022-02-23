@@ -9,11 +9,13 @@
 
 #include <random>
 #include "base/Assert.hh"
+#include "base/Macros.hh"
 #include "base/CollectionBuilder.hh"
 #include "comm/Device.hh"
 #include "random/detail/RngStateInit.hh"
 
 #include "celeritas_config.h"
+#include "base/device_runtime_api.h"
 #if CELERITAS_USE_CUDA
 /*!
  * \def QUALIFIERS
@@ -22,20 +24,26 @@
  */
 #    define QUALIFIERS static __forceinline__ __host__ __device__
 #    include <curand_kernel.h>
+#elif CELERITAS_USE_HIP
+#    define FQUALIFIERS __forceinline__ __host__ __device__
+#    include <hiprand_kernel.h>
 #else
-#    include "detail/curand.nocuda.hh"
+#    include "detail/mockrand.hh"
 #endif
 
 #include "base/Collection.hh"
 #include "base/Types.hh"
 
-#if !CELERITAS_USE_CUDA
-//! Define an unused RNG state for "device" code to support no-cuda build
-using curandState_t = celeritas::detail::MockCurandState;
-#endif
-
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+using mockrandState_t = detail::MockRandState;
+#endif
+
+//! RNG state type: curandState_t, hiprandState_t, mockrandState_t
+using RngThreadState = CELER_DEVICE_SHORT_PREFIX(randState_t);
+
 //---------------------------------------------------------------------------//
 /*!
  * Properties of the global random number generator.
@@ -79,25 +87,6 @@ struct RngParamsData<W, MemSpace::host>
 
 //---------------------------------------------------------------------------//
 /*!
- * The underlying RNG state is *different* on host and device.
- */
-template<MemSpace M>
-struct RngThreadState;
-
-template<>
-struct RngThreadState<MemSpace::device>
-{
-    curandState_t state;
-};
-
-template<>
-struct RngThreadState<MemSpace::host>
-{
-    curandState_t state;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Initialize an RNG.
  */
 template<MemSpace M>
@@ -129,7 +118,7 @@ struct RngStateData
 
     //// DATA ////
 
-    StateItems<RngThreadState<M>> rng;
+    StateItems<RngThreadState> rng;
 
     //// METHODS ////
 

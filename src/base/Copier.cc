@@ -7,10 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "Copier.hh"
 
-#include "celeritas_config.h"
-#if CELERITAS_USE_CUDA
-#    include <cuda_runtime_api.h>
-#endif
+#include "base/device_runtime_api.h"
+#include "base/Macros.hh"
 #include <cstring>
 
 namespace celeritas
@@ -31,18 +29,18 @@ void copy_bytes(MemSpace    dstmem,
         return;
     }
 
-#if CELERITAS_USE_CUDA
-    cudaMemcpyKind kind = cudaMemcpyDefault;
+#if CELER_USE_DEVICE
+    CELER_DEVICE_PREFIX(MemcpyKind) kind = CELER_DEVICE_PREFIX(MemcpyDefault);
     if (srcmem == MemSpace::host && dstmem == MemSpace::device)
-        kind = cudaMemcpyHostToDevice;
+        kind = CELER_DEVICE_PREFIX(MemcpyHostToDevice);
     else if (srcmem == MemSpace::device && dstmem == MemSpace::host)
-        kind = cudaMemcpyDeviceToHost;
+        kind = CELER_DEVICE_PREFIX(MemcpyDeviceToHost);
     else if (srcmem == MemSpace::device && dstmem == MemSpace::device)
-        kind = cudaMemcpyDeviceToDevice;
+        kind = CELER_DEVICE_PREFIX(MemcpyDeviceToDevice);
     else
         CELER_ASSERT_UNREACHABLE();
 #endif
-    CELER_CUDA_CALL(cudaMemcpy(dst, src, count, kind));
+    CELER_DEVICE_CALL_PREFIX(Memcpy(dst, src, count, kind));
 }
 
 //---------------------------------------------------------------------------//

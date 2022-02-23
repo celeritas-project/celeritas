@@ -10,7 +10,8 @@
 #include <thrust/device_ptr.h>
 #include <thrust/remove.h>
 #include <thrust/scan.h>
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
+#include "comm/Device.hh"
 #include "InitTracksLauncher.hh"
 #include "LocateAliveLauncher.hh"
 #include "ProcessPrimariesLauncher.hh"
@@ -94,15 +95,9 @@ __global__ void process_secondaries_kernel(const ParamsDeviceRef params,
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
-#define LAUNCH_KERNEL(NAME, THREADS, ARGS...)                                \
-    do                                                                       \
-    {                                                                        \
-        static const KernelParamCalculator NAME##_ckp(NAME##_kernel, #NAME); \
-        auto                               kp = NAME##_ckp(THREADS);         \
-                                                                             \
-        NAME##_kernel<<<kp.grid_size, kp.block_size>>>(ARGS);                \
-        CELER_CUDA_CHECK_ERROR();                                            \
-    } while (0)
+#define LAUNCH_KERNEL(NAME, THREADS, ...) \
+    CELER_LAUNCH_KERNEL(                  \
+        NAME, celeritas::device().default_block_size(), THREADS, __VA_ARGS__)
 
 //---------------------------------------------------------------------------//
 /*!
@@ -168,7 +163,7 @@ size_type remove_if_alive<MemSpace::device>(Span<size_type> vacancies)
         thrust::device_pointer_cast(vacancies.data() + vacancies.size()),
         IsEqual{flag_id()});
 
-    CELER_CUDA_CHECK_ERROR();
+    CELER_DEVICE_CHECK_ERROR();
 
     // New size of the vacancy vector
     size_type result = thrust::raw_pointer_cast(end) - vacancies.data();
@@ -199,7 +194,7 @@ size_type exclusive_scan_counts<MemSpace::device>(Span<size_type> counts)
         thrust::device_pointer_cast(counts.data() + counts.size()),
         thrust::device_pointer_cast(counts.data()),
         size_type(0));
-    CELER_CUDA_CHECK_ERROR();
+    CELER_DEVICE_CHECK_ERROR();
 
     // Copy the last element (the sum of all elements but the last) to the host
     size_type partial2{};

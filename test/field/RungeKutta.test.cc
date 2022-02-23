@@ -112,7 +112,7 @@ TEST_F(RungeKuttaTest, host)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(RungeKuttaTest, TEST_IF_CELERITAS_CUDA(device))
+TEST_F(RungeKuttaTest, TEST_IF_CELER_DEVICE(device))
 {
     // Run kernel
     auto output = rk4_test(param);

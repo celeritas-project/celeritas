@@ -32,7 +32,7 @@ TEST_F(DeviceVectorTest, all)
     EXPECT_EQ(0, vec.size());
     EXPECT_TRUE(vec.empty());
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
     // Can't allocate
     EXPECT_THROW(Vec_t(1234), celeritas::DebugError);
     cout << "CUDA is disabled; skipping remainder of test." << endl;

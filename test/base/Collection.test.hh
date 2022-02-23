@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/Collection.hh"
+#include "base/Macros.hh"
 #include "base/Types.hh"
-#include "celeritas_config.h"
 
 namespace celeritas_test
 {
@@ -163,10 +163,10 @@ struct CTestInput
 //! Run on device and return results
 void col_cuda_test(CTestInput);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline void col_cuda_test(CTestInput)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 

@@ -220,7 +220,7 @@ TEST_F(SurfaceActionTest, host_distances)
     EXPECT_VEC_SOFT_EQ(expected_distance, state_ref.distance[test_threads]);
 }
 
-TEST_F(SurfaceActionTest, TEST_IF_CELERITAS_CUDA(device_distances))
+TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
 {
     OrangeMiniStateData<Ownership::value, MemSpace::device> device_states;
     {

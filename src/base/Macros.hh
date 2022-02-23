@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
+
 /*!
  * \def CELER_FUNCTION
  *
@@ -25,6 +27,10 @@
 #if defined(__NVCC__)
 #    define CELER_FUNCTION __host__ __device__
 #    define CELER_FORCEINLINE_FUNCTION __host__ __device__ __forceinline__
+#elif defined(__HIP__)
+#    define CELER_FUNCTION __host__ __device__
+#    define CELER_FORCEINLINE_FUNCTION \
+        __host__ __device__ inline __attribute__((always_inline))
 #else
 #    define CELER_FUNCTION
 #    if defined(_MSC_VER)
@@ -104,10 +110,63 @@
  * (to provide a more detailed error message in case the point *is* reached).
  */
 #if (!defined(__CUDA_ARCH__) && (defined(__clang__) || defined(__GNUC__))) \
-    || (defined(__CUDA_ARCH__) && CUDART_VERSION >= 11030)
+    || (defined(__CUDA_ARCH__) && CUDART_VERSION >= 11030)                 \
+    || defined(__HIP_DEVICE_COMPILE__)
 #    define CELER_UNREACHABLE __builtin_unreachable()
 #elif defined(_MSC_VER)
 #    define CELER_UNREACHABLE __assume(false)
 #else
 #    define CELER_UNREACHABLE
+#endif
+
+/*!
+ * \def CELER_USE_DEVICE
+ *
+ * True if HIP or CUDA are enabled, false otherwise.
+ */
+#if CELERITAS_USE_CUDA || CELERITAS_USE_HIP
+#    define CELER_USE_DEVICE 1
+#else
+#    define CELER_USE_DEVICE 0
+#endif
+
+/*!
+ * \def CELER_DEVICE_SOURCE
+ *
+ * Defined and true if building a HIP or CUDA source file. This is a generic
+ * replacement for \c __CUDACC__ .
+ */
+#if defined(__CUDACC__) || defined(__HIP__)
+#    define CELER_DEVICE_SOURCE 1
+#endif
+
+/*!
+ * \def CELER_DEVICE_COMPILE
+ *
+ * Defined and true if building device code in HIP or CUDA. This is a generic
+ * replacement for \c #ifdef \c __CUDA_ARCH__ .
+ */
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+#    define CELER_DEVICE_COMPILE 1
+#endif
+
+/*!
+ * \def CELER_DEVICE_PREFIX
+ *
+ * Add a prefix "hip", "cuda", or "mock" to a code token.
+ */
+/*!
+ * \def CELER_DEVICE_SHORT_PREFIX
+ *
+ * Add a prefix "hip", "cu", or "mock" to a code token.
+ */
+#if CELERITAS_USE_CUDA
+#    define CELER_DEVICE_PREFIX(TOK) cuda##TOK
+#    define CELER_DEVICE_SHORT_PREFIX(TOK) cu##TOK
+#elif CELERITAS_USE_HIP
+#    define CELER_DEVICE_PREFIX(TOK) hip##TOK
+#    define CELER_DEVICE_SHORT_PREFIX(TOK) hip##TOK
+#else
+#    define CELER_DEVICE_PREFIX(TOK) mock##TOK
+#    define CELER_DEVICE_SHORT_PREFIX(TOK) mock##TOK
 #endif

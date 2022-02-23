@@ -98,7 +98,7 @@ class UserMapFieldDeviceTest : public UserMapFieldTest
     celeritas::detail::FieldMapDeviceRef device_ref_;
 };
 
-TEST_F(UserMapFieldDeviceTest, TEST_IF_CELERITAS_CUDA(device_map_field))
+TEST_F(UserMapFieldDeviceTest, TEST_IF_CELER_DEVICE(device_map_field))
 {
     // Run kernel for the magnetic field with a mapped field
     this->device_ref_ = this->map_->device_ref();

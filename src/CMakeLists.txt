@@ -113,18 +113,27 @@ list(APPEND SOURCES
   sim/detail/InitializeTracks.cc
 )
 
-if(CELERITAS_USE_CUDA)
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
-    base/KernelParamCalculator.cuda.cc
+    base/KernelParamCalculator.device.cc
     base/detail/Filler.cu
     random/detail/RngStateInit.cu
     sim/detail/InitializeTracks.cu
   )
+endif()
+if(CELERITAS_USE_CUDA)
   # TODO: CUDA RNG is included by host code
   list(APPEND PUBLIC_DEPS CUDA::cudart)
+elseif(CELERITAS_USE_HIP)
+  set_source_files_properties(
+    base/detail/Filler.cu
+    random/detail/RngStateInit.cu
+    sim/detail/InitializeTracks.cu
+    PROPERTIES LANGUAGE HIP
+  )
 else()
   list(APPEND SOURCES
-    random/detail/curand.nocuda.cc
+    random/detail/mockrand.cc
     random/detail/RngStateInit.nocuda.cc
   )
 endif()
@@ -171,6 +180,13 @@ celeritas_add_library(celeritas ${SOURCES})
 celeritas_strip_alias(celeritas_target celeritas)
 add_library(Celeritas::Core ALIAS ${celeritas_target})
 
+if(CELERITAS_USE_ROOT AND NOT BUILD_SHARED_LIBS)
+  # Must build with -fPIC to link with ROOT
+  set_target_properties(celeritas
+    PROPERTIES POSITION_INDEPENDENT_CODE ON
+  )
+endif()
+
 if(OpenMP_FOUND)
   celeritas_target_link_libraries(celeritas PRIVATE OpenMP::OpenMP_CXX)
 else()
@@ -188,6 +204,16 @@ celeritas_target_include_directories(celeritas
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+
+if(CELERITAS_USE_HIP)
+  # TODO: host code includes RNG; super hacky workaround
+  target_include_directories(celeritas
+    SYSTEM PUBLIC
+      "$ENV{ROCM_PATH}/hiprand/include"
+      "$ENV{ROCM_PATH}/rocrand/include"
+      "$ENV{ROCM_PATH}/hip/include"
+  )
+endif()
 
 celeritas_install(TARGETS celeritas
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

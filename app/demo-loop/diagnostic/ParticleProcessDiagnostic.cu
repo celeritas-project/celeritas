@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ParticleProcessDiagnostic.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/KernelParamCalculator.device.hh"
 
 using namespace celeritas;
 
@@ -48,7 +48,7 @@ void count_particle_process(
     auto kp = calc_launch_params(states.size());
     count_particle_process_kernel<<<kp.grid_size, kp.block_size>>>(
         params, states, counts);
-    CELER_CUDA_CHECK_ERROR();
+    CELER_DEVICE_CHECK_ERROR();
 }
 //---------------------------------------------------------------------------//
 } // namespace demo_loop

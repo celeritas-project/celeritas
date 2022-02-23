@@ -27,6 +27,9 @@ include(CeleritasUtils)
 #----------------------------------------------------------------------------#
 
 celeritas_optional_language(CUDA)
+if(NOT CELERITAS_USE_CUDA)
+  celeritas_optional_language(HIP)
+endif()
 
 # Dependencies
 celeritas_optional_package(Doxygen "Generate code documentation")
@@ -60,6 +63,13 @@ endif()
 if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
   message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
     "with this version of CMake. Set CMAKE_CUDA_FLAGS.")
+endif()
+
+if(CMAKE_VERSION VERSION_LESS 3.22 AND CELERITAS_USE_HIP)
+  message(WARNING "HIP support is immature; CMake 3.22+ is recommended.")
+endif()
+if(CELERITAS_USE_HIP AND CELERITAS_USE_VecGeom)
+  message(SEND_ERROR "HIP is incompatible with VecGeom.")
 endif()
 
 # Library
@@ -112,6 +122,8 @@ if(CELERITAS_USE_CUDA)
   unset(CMAKE_CUDA_FLAGS_DEBUG_INIT)
 
   find_package(CUDAToolkit REQUIRED QUIET)
+elseif(CELERITAS_USE_HIP)
+  enable_language(HIP)
 endif()
 
 if(CELERITAS_USE_Doxygen)

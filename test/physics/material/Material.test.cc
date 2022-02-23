@@ -315,7 +315,7 @@ class MaterialDeviceTest : public MaterialTest
     void SetUp() override { Base::SetUp(); }
 };
 
-TEST_F(MaterialDeviceTest, TEST_IF_CELERITAS_CUDA(all))
+TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
 {
     MTestInput input;
     input.init
@@ -335,7 +335,7 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELERITAS_CUDA(all))
 
     // Run GPU test
     MTestOutput result;
-#if CELERITAS_USE_CUDA
+#if CELER_USE_DEVICE
     result = m_test(input);
 #endif
 

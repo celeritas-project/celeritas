@@ -9,7 +9,9 @@
 
 #include <thrust/copy.h>
 #include <thrust/device_vector.h>
-#include "base/KernelParamCalculator.cuda.hh"
+#include "base/device_runtime_api.h"
+#include "comm/Device.hh"
+#include "base/KernelParamCalculator.device.hh"
 
 namespace celeritas_test
 {
@@ -56,11 +58,11 @@ void interact(StateDeviceRef states, ITTestInputData input)
     CELER_EXPECT(states.size() > 0);
     CELER_EXPECT(states.size() == input.alloc_size.size());
 
-    static const KernelParamCalculator calc_launch_params(interact_kernel,
-                                                          "interact");
-    auto lparams = calc_launch_params(states.size());
-    interact_kernel<<<lparams.grid_size, lparams.block_size>>>(states, input);
-    CELER_CUDA_CHECK_ERROR();
+    CELER_LAUNCH_KERNEL(interact,
+                        celeritas::device().default_block_size(),
+                        states.size(),
+                        states,
+                        input);
 }
 
 //---------------------------------------------------------------------------//

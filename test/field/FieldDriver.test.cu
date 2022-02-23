@@ -6,11 +6,11 @@
 //! \file FieldDriver.test.cu
 //---------------------------------------------------------------------------//
 #include "FieldDriver.test.hh"
-#include "FieldTestParams.hh"
-#include "detail/MagTestTraits.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
 #include <thrust/device_vector.h>
+#include "base/KernelParamCalculator.device.hh"
+#include "base/device_runtime_api.h"
+#include "comm/Device.hh"
 
 #include "field/FieldDriver.hh"
 #include "field/FieldParamsData.hh"
@@ -21,6 +21,9 @@
 #include "base/Range.hh"
 #include "base/Types.hh"
 #include "base/Constants.hh"
+
+#include "FieldTestParams.hh"
+#include "detail/MagTestTraits.hh"
 
 using thrust::raw_pointer_cast;
 
@@ -154,19 +157,17 @@ driver_test(const FieldParamsData& fd_data, FieldTestParams test_params)
     thrust::device_vector<double> error(test_params.nstates, 0.0);
 
     // Run kernel
-    celeritas::KernelParamCalculator calc_launch_params(driver_test_kernel,
-                                                        "driver_test");
-    auto params = calc_launch_params(test_params.nstates);
-
-    driver_test_kernel<<<params.grid_size, params.block_size>>>(
-        fd_data,
-        test_params,
-        raw_pointer_cast(pos_x.data()),
-        raw_pointer_cast(pos_z.data()),
-        raw_pointer_cast(mom_y.data()),
-        raw_pointer_cast(mom_z.data()),
-        raw_pointer_cast(error.data()));
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(driver_test,
+                        celeritas::device().default_block_size(),
+                        test_params.nstates,
+                        fd_data,
+                        test_params,
+                        raw_pointer_cast(pos_x.data()),
+                        raw_pointer_cast(pos_z.data()),
+                        raw_pointer_cast(mom_y.data()),
+                        raw_pointer_cast(mom_z.data()),
+                        raw_pointer_cast(error.data()));
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Copy result back to CPU
     FITestOutput result;
@@ -201,19 +202,17 @@ OneGoodStepOutput accurate_advance_test(const FieldParamsData& fd_data,
     thrust::device_vector<double> length(test_params.nstates, 0.0);
 
     // Run kernel
-    celeritas::KernelParamCalculator calc_launch_params(
-        accurate_advance_kernel, "accurate_advance_test");
-    auto params = calc_launch_params(test_params.nstates);
-
-    accurate_advance_kernel<<<params.grid_size, params.block_size>>>(
-        fd_data,
-        test_params,
-        raw_pointer_cast(pos_x.data()),
-        raw_pointer_cast(pos_z.data()),
-        raw_pointer_cast(mom_y.data()),
-        raw_pointer_cast(mom_z.data()),
-        raw_pointer_cast(length.data()));
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(accurate_advance,
+                        celeritas::device().default_block_size(),
+                        test_params.nstates,
+                        fd_data,
+                        test_params,
+                        raw_pointer_cast(pos_x.data()),
+                        raw_pointer_cast(pos_z.data()),
+                        raw_pointer_cast(mom_y.data()),
+                        raw_pointer_cast(mom_z.data()),
+                        raw_pointer_cast(length.data()));
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
     // Copy result back to CPU
     OneGoodStepOutput result;

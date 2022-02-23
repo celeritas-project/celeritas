@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "celeritas_config.h"
+#include "base/Macros.hh"
 #include "base/Repr.hh"
 #include "base/SoftEqual.hh"
 
@@ -58,11 +59,11 @@
 #    define TEST_IF_CELERITAS_DEBUG(name) DISABLED_##name
 #endif
 
-//! Construct a test name that is disabled when CUDA is disabled
-#if CELERITAS_USE_CUDA
-#    define TEST_IF_CELERITAS_CUDA(name) name
+//! Construct a test name that is disabled when CUDA/HIP are disabled
+#if CELER_USE_DEVICE
+#    define TEST_IF_CELER_DEVICE(name) name
 #else
-#    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
+#    define TEST_IF_CELER_DEVICE(name) DISABLED_##name
 #endif
 
 //! Construct a test name that is disabled when ROOT is disabled

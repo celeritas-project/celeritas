@@ -5,9 +5,11 @@
 //---------------------------------------------------------------------------//
 //! \file SurfaceAction.test.cu
 //---------------------------------------------------------------------------//
+#include "base/device_runtime_api.h"
 #include "SurfaceAction.test.hh"
 
-#include "base/KernelParamCalculator.cuda.hh"
+#include "comm/Device.hh"
+#include "base/KernelParamCalculator.device.hh"
 
 namespace celeritas_test
 {
@@ -35,13 +37,11 @@ __global__ void sa_test_kernel(SATestInput input)
 //! Run on device and return results
 void sa_test(SATestInput input)
 {
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        sa_test_kernel, "sa_test");
-    auto params = calc_launch_params(input.states.size());
-    sa_test_kernel<<<params.grid_size, params.block_size>>>(input);
-
-    CELER_CUDA_CHECK_ERROR();
-    CELER_CUDA_CALL(cudaDeviceSynchronize());
+    CELER_LAUNCH_KERNEL(sa_test,
+                        celeritas::device().default_block_size(),
+                        input.states.size(),
+                        input);
+    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//

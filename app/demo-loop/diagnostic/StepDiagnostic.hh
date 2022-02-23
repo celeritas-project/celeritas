@@ -151,7 +151,7 @@ void count_steps(const celeritas::ParamsDeviceRef&       params,
                  const celeritas::StateDeviceRef&        states,
                  StepDiagnosticDataRef<MemSpace::device> data);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline void count_steps(const celeritas::ParamsDeviceRef&,
                         const celeritas::StateDeviceRef&,
                         StepDiagnosticDataRef<MemSpace::device>)

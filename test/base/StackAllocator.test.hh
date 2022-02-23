@@ -49,15 +49,15 @@ struct SATestOutput
 SATestOutput sa_test(const SATestInput&);
 void         sa_clear(const SATestInput&);
 
-#if !CELERITAS_USE_CUDA
+#if !CELER_USE_DEVICE
 inline SATestOutput sa_test(const SATestInput&)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 inline void sa_clear(const SATestInput&)
 {
-    CELER_NOT_CONFIGURED("CUDA");
+    CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 
