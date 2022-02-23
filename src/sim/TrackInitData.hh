@@ -56,8 +56,8 @@ struct TrackInitParamsData<W, MemSpace::host>
 
     //// DATA ////
 
-    Items<Primary> primaries;     //!< Primary particles
-    size_type      capacity{0};   //!< Initializer/parent storage per track
+    Items<Primary> primaries;   //!< Primary particles
+    size_type      capacity{0}; //!< Initializer/parent storage per track
 
     //// METHODS ////
 
@@ -71,8 +71,8 @@ struct TrackInitParamsData<W, MemSpace::host>
     template<Ownership W2, MemSpace M2>
     TrackInitParamsData& operator=(const TrackInitParamsData<W2, M2>& other)
     {
-        primaries      = other.primaries;
-        capacity       = other.capacity;
+        primaries = other.primaries;
+        capacity  = other.capacity;
         return *this;
     }
 };

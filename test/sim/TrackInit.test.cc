@@ -100,8 +100,8 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         params.cutoffs = cutoffs->device_ref();
 
         // Set up shared RNG data
-        rng            = std::make_shared<RngParams>(12345);
-        params.rng     = rng->device_ref();
+        rng        = std::make_shared<RngParams>(12345);
+        params.rng = rng->device_ref();
 
         // Add dummy physics data
         PhysicsParamsData<Ownership::value, MemSpace::host> host_physics;

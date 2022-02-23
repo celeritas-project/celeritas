@@ -98,10 +98,7 @@ class TwoVolumeTest : public SimpleUnitTrackerTest
 #define FiveVolumesTest TEST_IF_CELERITAS_JSON(FiveVolumesTest)
 class FiveVolumesTest : public SimpleUnitTrackerTest
 {
-    void SetUp() override
-    {
-        this->build_geometry("five-volumes.org.json");
-    }
+    void SetUp() override { this->build_geometry("five-volumes.org.json"); }
 };
 
 //---------------------------------------------------------------------------//
@@ -114,10 +111,10 @@ LocalState SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir)
 {
     normalize_direction(&dir);
     LocalState state;
-    state.pos         = pos;
-    state.dir         = dir;
-    state.volume      = {};
-    state.surface     = {};
+    state.pos     = pos;
+    state.dir     = dir;
+    state.volume  = {};
+    state.surface = {};
 
     const auto& hsref        = this->host_state();
     auto        face_storage = hsref.temp_face[AllItems<FaceId>{}];
@@ -298,7 +295,7 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostValue host,
     {
         result.vol_fractions[i] = norm * static_cast<double>(counts[i]);
     }
-    result.failed = norm * error_count;
+    result.failed                = norm * error_count;
     result.walltime_per_track_ns = norm * wall_time * 1e9;
     return result;
 }

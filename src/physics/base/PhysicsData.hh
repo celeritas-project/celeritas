@@ -110,7 +110,7 @@ struct ProcessGroup
     ItemRange<ProcessId> processes; //!< Processes that apply [ppid]
     ValueGridArray<ItemRange<ValueTable>> tables;      //!< [vgt][ppid]
     ItemRange<IntegralXsProcess>          integral_xs; //!< [ppid]
-    ItemRange<ModelGroup> models;       //!< Model applicability [ppid]
+    ItemRange<ModelGroup> models;   //!< Model applicability [ppid]
     ParticleProcessId eloss_ppid{}; //!< Process with de/dx and range tables
     bool has_at_rest{}; //!< Whether the particle type has an at-rest process
 

@@ -40,8 +40,8 @@ class CylCentered
   public:
     //@{
     //! Type aliases
-    using Intersections  = Array<real_type, 2>;
-    using Storage        = Span<const real_type, 1>;
+    using Intersections = Array<real_type, 2>;
+    using Storage       = Span<const real_type, 1>;
     //@}
 
     //// CLASS ATTRIBUTES ////

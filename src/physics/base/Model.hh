@@ -49,7 +49,7 @@ class Model
   public:
     //@{
     //! Type aliases
-    using SetApplicability = std::set<Applicability>;
+    using SetApplicability  = std::set<Applicability>;
     using HostInteractRef   = ModelInteractRef<MemSpace::host>;
     using DeviceInteractRef = ModelInteractRef<MemSpace::device>;
     //@}

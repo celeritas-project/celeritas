@@ -49,8 +49,8 @@ class ImageTrackView
     inline CELER_FUNCTION void set_pixel(unsigned int i, int value);
 
   private:
-    const ImageData&     shared_;
-    unsigned int         j_index_;
+    const ImageData& shared_;
+    unsigned int     j_index_;
 };
 
 //---------------------------------------------------------------------------//

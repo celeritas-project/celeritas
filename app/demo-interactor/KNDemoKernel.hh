@@ -65,10 +65,10 @@ struct TableData
 template<Ownership W, MemSpace M>
 struct ParamsData
 {
-    celeritas::ParticleParamsData<W, M>     particle;
-    TableData<W, M>                         tables;
-    celeritas::detail::KleinNishinaData     kn_interactor;
-    DetectorParamsData                      detector;
+    celeritas::ParticleParamsData<W, M> particle;
+    TableData<W, M>                     tables;
+    celeritas::detail::KleinNishinaData kn_interactor;
+    DetectorParamsData                  detector;
 
     explicit CELER_FUNCTION operator bool() const
     {

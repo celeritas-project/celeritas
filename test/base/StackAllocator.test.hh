@@ -26,10 +26,10 @@ struct SATestInput
                                         celeritas::Ownership::reference,
                                         celeritas::MemSpace::device>;
 
-    int                   num_threads;
-    int                   num_iters;
-    int                   alloc_size;
-    MockAllocatorData     sa_data;
+    int               num_threads;
+    int               num_iters;
+    int               alloc_size;
+    MockAllocatorData sa_data;
 };
 
 //---------------------------------------------------------------------------//

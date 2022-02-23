@@ -67,14 +67,14 @@ struct ParamsData
     ParamsData& operator=(const ParamsData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        geometry    = other.geometry;
-        geo_mats    = other.geo_mats;
-        materials   = other.materials;
-        particles   = other.particles;
-        cutoffs     = other.cutoffs;
-        physics     = other.physics;
-        relaxation  = other.relaxation;
-        rng         = other.rng;
+        geometry   = other.geometry;
+        geo_mats   = other.geo_mats;
+        materials  = other.materials;
+        particles  = other.particles;
+        cutoffs    = other.cutoffs;
+        physics    = other.physics;
+        relaxation = other.relaxation;
+        rng        = other.rng;
         return *this;
     }
 };

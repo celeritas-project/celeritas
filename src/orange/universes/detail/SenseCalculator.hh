@@ -32,8 +32,8 @@ class SenseCalculator
     //! Return result
     struct result_type
     {
-        Span<Sense> senses;  //!< Calculated senses for the volume
-        OnFace      face;    //!< The first face encountered that we are "on"
+        Span<Sense> senses; //!< Calculated senses for the volume
+        OnFace      face;   //!< The first face encountered that we are "on"
     };
 
   public:

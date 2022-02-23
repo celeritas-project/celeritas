@@ -42,9 +42,9 @@ class HostKNDemoRunner
     result_type operator()(demo_interactor::KNDemoRunArgs args);
 
   private:
-    constSPParticleParams                   pparams_;
-    constSPXsGridParams                     xsparams_;
-    celeritas::detail::KleinNishinaData     kn_data_;
+    constSPParticleParams               pparams_;
+    constSPXsGridParams                 xsparams_;
+    celeritas::detail::KleinNishinaData kn_data_;
 };
 
 //---------------------------------------------------------------------------//

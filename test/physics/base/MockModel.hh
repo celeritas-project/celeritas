@@ -24,9 +24,9 @@ class MockModel final : public celeritas::Model
   public:
     //!@{
     //! Type aliases
-    using Applicability         = celeritas::Applicability;
-    using ModelId               = celeritas::ModelId;
-    using ModelCallback         = std::function<void(ModelId)>;
+    using Applicability = celeritas::Applicability;
+    using ModelId       = celeritas::ModelId;
+    using ModelCallback = std::function<void(ModelId)>;
     //!@}
 
   public:

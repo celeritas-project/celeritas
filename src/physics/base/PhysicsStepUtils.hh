@@ -71,7 +71,7 @@ CELER_FUNCTION EnergyLossHelper::Energy
                                   EnergyLossHelper::Energy max_loss,
                                   Engine&                  rng)
 {
-    using Energy = EnergyLossHelper::Energy;
+    using Energy        = EnergyLossHelper::Energy;
     auto   sample_eloss = make_distribution<M>(helper);
     Energy result       = sample_eloss(rng);
 

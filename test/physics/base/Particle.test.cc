@@ -45,7 +45,7 @@ class ParticleTest : public celeritas::Test
         namespace pdg = celeritas::pdg;
         using namespace celeritas::units;
 
-        constexpr auto zero   = celeritas::zero_quantity();
+        constexpr auto zero = celeritas::zero_quantity();
         constexpr auto stable
             = celeritas::ParticleRecord::stable_decay_constant();
 

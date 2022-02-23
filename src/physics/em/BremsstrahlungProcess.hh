@@ -33,9 +33,9 @@ class BremsstrahlungProcess : public Process
     struct Options
     {
         bool combined_model{true}; //!> Use a unified relativistic/SB
-                                   //!interactor
+                                   //! interactor
         bool enable_lpm{true};     //!> Account for LPM effect at very high
-                                   //!energies
+                                   //! energies
     };
 
   public:

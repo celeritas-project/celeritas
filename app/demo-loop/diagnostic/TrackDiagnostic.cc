@@ -34,7 +34,7 @@ size_type reduce_alive(const StateHostRef& states)
     }
     return result;
 }
-}
+} // namespace
 
 //---------------------------------------------------------------------------//
 /*!

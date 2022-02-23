@@ -62,10 +62,10 @@ class VecgeomTrackView
 
     // Initialize the state
     inline CELER_FUNCTION VecgeomTrackView&
-                          operator=(const Initializer_t& init);
+    operator=(const Initializer_t& init);
     // Initialize the state from a parent state and new direction
     inline CELER_FUNCTION VecgeomTrackView&
-                          operator=(const DetailedInitializer& init);
+    operator=(const DetailedInitializer& init);
 
     // Find the distance to the next boundary
     inline CELER_FUNCTION real_type find_next_step();
@@ -162,8 +162,8 @@ VecgeomTrackView::VecgeomTrackView(const ParamsRef& params,
  * starting location and direction, but excess secondaries will also be
  * initialized this way.
  */
-CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::
-                                 operator=(const Initializer_t& init)
+CELER_FUNCTION VecgeomTrackView&
+VecgeomTrackView::operator=(const Initializer_t& init)
 {
     // Initialize position/direction
     pos_       = init.pos;

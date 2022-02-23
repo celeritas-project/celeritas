@@ -42,9 +42,9 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
              {"gamma", pdg::gamma(), zero, zero, stable}});
 
         // TODO: this should be part of the process's data storage/management
-        const auto& params    = *this->particle_params();
-        data_.electron_id     = params.find(pdg::electron());
-        data_.gamma_id        = params.find(pdg::gamma());
+        const auto& params = *this->particle_params();
+        data_.electron_id  = params.find(pdg::electron());
+        data_.gamma_id     = params.find(pdg::gamma());
         data_.inv_electron_mass
             = 1 / (params.get(data_.electron_id).mass().value());
 

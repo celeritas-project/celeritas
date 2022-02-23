@@ -82,8 +82,9 @@ class RungeKuttaStepper
  * \f]
  */
 template<class E>
-CELER_FUNCTION auto RungeKuttaStepper<E>::
-                    operator()(real_type step, const OdeState& beg_state) -> Result
+CELER_FUNCTION auto
+RungeKuttaStepper<E>::operator()(real_type step, const OdeState& beg_state)
+    -> Result
 {
     using celeritas::axpy;
     real_type           half_step               = step / real_type(2);

@@ -80,7 +80,7 @@ void run(std::istream& is)
     Stopwatch get_setup_time;
 
     // Load all the problem data and create transporter
-    auto transport_ptr = build_transporter(run_args);
+    auto         transport_ptr = build_transporter(run_args);
     const double setup_time    = get_setup_time();
 
     // Run all the primaries

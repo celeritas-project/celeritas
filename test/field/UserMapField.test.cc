@@ -44,8 +44,8 @@ class UserMapFieldTest : public Test
         MagFieldMap::ReadMap load_map
             = detail::CMSFieldMapReader(params, test_file);
 
-        map_   = std::make_shared<MagFieldMap>(load_map);
-        ref_   = map_->host_ref();
+        map_ = std::make_shared<MagFieldMap>(load_map);
+        ref_ = map_->host_ref();
 
         // Test parameters
         test_param_.nsamples = 8;

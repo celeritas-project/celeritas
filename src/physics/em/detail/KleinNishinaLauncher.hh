@@ -35,8 +35,8 @@ struct KleinNishinaLauncher
     {
     }
 
-    const KleinNishinaData&     kn;    //!< Shared data for interactor
-    const ModelInteractRef<M>&  model; //!< State data needed to interact
+    const KleinNishinaData&    kn;    //!< Shared data for interactor
+    const ModelInteractRef<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;

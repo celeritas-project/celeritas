@@ -45,7 +45,7 @@ class GammaConversionProcess : public Process
     std::string label() const final;
 
   private:
-    SPConstParticles particles_;
+    SPConstParticles       particles_;
     ImportedProcessAdapter imported_;
 };
 

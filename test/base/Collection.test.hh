@@ -110,7 +110,7 @@ class MockTrackView
     using ParamsData
         = MockParamsData<Ownership::const_reference, MemSpace::native>;
     using StateData = MockStateData<Ownership::reference, MemSpace::native>;
-    using ThreadId      = celeritas::ThreadId;
+    using ThreadId  = celeritas::ThreadId;
 
     CELER_FUNCTION MockTrackView(const ParamsData& params,
                                  const StateData&  states,
@@ -136,9 +136,9 @@ class MockTrackView
     }
 
   private:
-    const ParamsData&     params_;
-    const StateData&      states_;
-    ThreadId              thread_;
+    const ParamsData& params_;
+    const StateData&  states_;
+    ThreadId          thread_;
 
     CELER_FUNCTION const MockMaterial& mat() const
     {

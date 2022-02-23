@@ -101,8 +101,8 @@ struct CalcFancyMicroXs
         return el.cbrt_z() * inv_energy_;
     }
 
-    const MaterialParamsRef&      mats_;
-    real_type                     inv_energy_;
+    const MaterialParamsRef& mats_;
+    real_type                inv_energy_;
 };
 
 //---------------------------------------------------------------------------//

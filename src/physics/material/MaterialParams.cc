@@ -284,10 +284,10 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
     }
     result.density = result.number_density * avg_amu_mass
                      * constants::atomic_mass;
-    result.electron_density = result.number_density * avg_z;
-    result.rad_length       = 1 / (rad_coeff * result.density);
-    log_mean_exc_energy     = avg_z > 0 ? log_mean_exc_energy / avg_z
-                                    : -numeric_limits<real_type>::infinity();
+    result.electron_density    = result.number_density * avg_z;
+    result.rad_length          = 1 / (rad_coeff * result.density);
+    log_mean_exc_energy        = avg_z > 0 ? log_mean_exc_energy / avg_z
+                                           : -numeric_limits<real_type>::infinity();
     result.log_mean_exc_energy = units::LogMevEnergy{log_mean_exc_energy};
     result.mean_exc_energy = units::MevEnergy{std::exp(log_mean_exc_energy)};
 

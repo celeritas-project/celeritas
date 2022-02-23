@@ -79,7 +79,7 @@ int test_main(int argc, char** argv)
     listeners.Append(new ParallelHandler(comm));
 
     // Run everything
-    int failed = RUN_ALL_TESTS();
+    int  failed   = RUN_ALL_TESTS();
     bool no_tests = testing::UnitTest::GetInstance()->test_to_run_count() == 0;
     failed += (no_tests ? 1 : 0);
 

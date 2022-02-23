@@ -24,9 +24,9 @@ class PhotoelectricProcess : public Process
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles   = std::shared_ptr<const ParticleParams>;
-    using SPConstMaterials   = std::shared_ptr<const MaterialParams>;
-    using SPConstImported    = std::shared_ptr<const ImportedProcesses>;
+    using SPConstParticles = std::shared_ptr<const ParticleParams>;
+    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
+    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
     //!@}
 
   public:

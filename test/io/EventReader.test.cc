@@ -32,7 +32,7 @@ class EventReaderTest : public celeritas::Test,
         using celeritas::PDGNumber;
         using celeritas::units::ElementaryCharge;
         using celeritas::units::MevMass;
-        auto           zero   = celeritas::zero_quantity();
+        auto           zero = celeritas::zero_quantity();
         constexpr auto stable
             = celeritas::ParticleRecord::stable_decay_constant();
 

@@ -132,8 +132,8 @@ struct VolumeData
 struct OrangeParamsScalars
 {
     static constexpr size_type max_level{1};
-    size_type max_faces{};
-    size_type max_intersections{};
+    size_type                  max_faces{};
+    size_type                  max_intersections{};
 
     // TODO: fuzziness/length scale
 
@@ -153,8 +153,8 @@ struct OrangeParamsData
 {
     //// DATA ////
 
-    SurfaceData<W, M>  surfaces;
-    VolumeData<W, M>   volumes;
+    SurfaceData<W, M> surfaces;
+    VolumeData<W, M>  volumes;
 
     OrangeParamsScalars scalars;
 
@@ -171,9 +171,9 @@ struct OrangeParamsData
     OrangeParamsData& operator=(const OrangeParamsData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        surfaces  = other.surfaces;
-        volumes   = other.volumes;
-        scalars   = other.scalars;
+        surfaces = other.surfaces;
+        volumes  = other.volumes;
+        scalars  = other.scalars;
         return *this;
     }
 };

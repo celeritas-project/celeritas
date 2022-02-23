@@ -37,8 +37,8 @@ struct FluctuationData
 
     //// MEMBER DATA ////
 
-    ParticleId electron_id;                      //!< ID of an electron
-    real_type  electron_mass;                    //!< Electron mass [MevMass]
+    ParticleId electron_id;   //!< ID of an electron
+    real_type  electron_mass; //!< Electron mass [MevMass]
     MaterialItems<UrbanFluctuationParameters> urban; //!< Model parameters
 
     //// MEMBER FUNCTIONS ////

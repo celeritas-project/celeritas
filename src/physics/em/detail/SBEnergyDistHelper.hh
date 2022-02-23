@@ -104,7 +104,7 @@ class SBEnergyDistHelper
                                             ElementId       element) const;
 
     inline CELER_FUNCTION ReciprocalSampler
-                          make_esq_sampler(real_type inc_energy, real_type min_gamma_energy) const;
+    make_esq_sampler(real_type inc_energy, real_type min_gamma_energy) const;
 };
 
 //---------------------------------------------------------------------------//

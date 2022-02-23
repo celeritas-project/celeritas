@@ -52,9 +52,9 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
     // Track along each pixel
     for (unsigned int i = 0; i < image_state.dims[1]; ++i)
     {
-        real_type pix_dist = image_state.pixel_width;
-        real_type max_dist = 0;
-        int       max_id   = cur_id;
+        real_type pix_dist      = image_state.pixel_width;
+        real_type max_dist      = 0;
+        int       max_id        = cur_id;
         int       abort_counter = 32; // max number of crossings per pixel
         while (geo_dist <= pix_dist)
         {
@@ -74,7 +74,7 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
             // Cross surface and update post-crossing ID
             geo.move_to_boundary();
             geo.cross_boundary();
-            cur_id   = geo_id(geo);
+            cur_id = geo_id(geo);
             // Next movement is to end of step or end of raytrace, whichever is
             // smaller
             geo_dist = std::fmin(

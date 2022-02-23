@@ -52,7 +52,7 @@ class ParticleTrackView
 
     // Initialize the particle
     inline CELER_FUNCTION ParticleTrackView&
-                          operator=(const Initializer_t& other);
+    operator=(const Initializer_t& other);
 
     // Change the particle's energy [MeV]
     inline CELER_FUNCTION void energy(Energy);

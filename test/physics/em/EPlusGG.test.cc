@@ -52,10 +52,10 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
 
-        const auto& params      = *this->particle_params();
-        data_.positron_id       = params.find(pdg::positron());
-        data_.gamma_id          = params.find(pdg::gamma());
-        data_.electron_mass     = 0.5109989461;
+        const auto& params  = *this->particle_params();
+        data_.positron_id   = params.find(pdg::positron());
+        data_.gamma_id      = params.find(pdg::gamma());
+        data_.electron_mass = 0.5109989461;
 
         // Set up shared material data
         MaterialParams::Input mi;

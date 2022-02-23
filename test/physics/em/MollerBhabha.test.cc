@@ -77,7 +77,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         this->set_cutoff_params(cutoff_inp);
 
         // Set MollerBhabhaData
-        const auto& params    = *this->particle_params();
+        const auto& params       = *this->particle_params();
         data_.electron_id        = params.find(pdg::electron());
         data_.positron_id        = params.find(pdg::positron());
         data_.electron_mass_c_sq = params.get(data_.electron_id).mass().value();
