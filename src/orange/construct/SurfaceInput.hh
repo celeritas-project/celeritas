@@ -8,6 +8,7 @@
 #pragma once
 
 #include <vector>
+
 #include "../Data.hh"
 
 namespace celeritas

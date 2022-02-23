@@ -7,13 +7,15 @@
 //---------------------------------------------------------------------------//
 
 #include "random/RngEngine.hh"
-#include "RngEngine.test.hh"
 
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
-#include "base/KernelParamCalculator.device.hh"
+
 #include "base/device_runtime_api.h"
+#include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
+
+#include "RngEngine.test.hh"
 
 using namespace celeritas;
 using thrust::raw_pointer_cast;

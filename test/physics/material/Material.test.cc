@@ -5,22 +5,23 @@
 //---------------------------------------------------------------------------//
 //! \file Material.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/material/ElementView.hh"
-#include "physics/material/MaterialView.hh"
-#include "physics/material/MaterialParams.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "physics/material/MaterialData.hh"
-#include "physics/material/detail/Utils.hh"
-#include "physics/base/Units.hh"
-#include "io/RootImporter.hh"
-#include "io/ImportData.hh"
-#include "base/CollectionStateStore.hh"
+#include "Material.test.hh"
 
 #include <cstring>
 #include <limits>
 
+#include "base/CollectionStateStore.hh"
+#include "io/ImportData.hh"
+#include "io/RootImporter.hh"
+#include "physics/base/Units.hh"
+#include "physics/material/ElementView.hh"
+#include "physics/material/MaterialData.hh"
+#include "physics/material/MaterialParams.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "physics/material/MaterialView.hh"
+#include "physics/material/detail/Utils.hh"
+
 #include "celeritas_test.hh"
-#include "Material.test.hh"
 
 using namespace celeritas;
 using celeritas::units::AmuMass;

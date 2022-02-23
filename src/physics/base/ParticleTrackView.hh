@@ -14,6 +14,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
+
 #include "ParticleData.hh"
 #include "ParticleView.hh"
 #include "Units.hh"
@@ -52,7 +53,7 @@ class ParticleTrackView
 
     // Initialize the particle
     inline CELER_FUNCTION ParticleTrackView&
-                          operator=(const Initializer_t& other);
+    operator=(const Initializer_t& other);
 
     // Change the particle's energy [MeV]
     inline CELER_FUNCTION void energy(Energy);

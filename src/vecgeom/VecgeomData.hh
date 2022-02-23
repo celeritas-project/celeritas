@@ -13,6 +13,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "geometry/Types.hh"
+
 #include "detail/VecgeomNavCollection.hh"
 #include "detail/VecgeomTraits.hh"
 

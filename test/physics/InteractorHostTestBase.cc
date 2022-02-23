@@ -10,9 +10,10 @@
 #include "base/ArrayUtils.hh"
 #include "base/StackAllocator.hh"
 #include "physics/base/Interaction.hh"
-#include "physics/base/Secondary.hh"
 #include "physics/base/ParticleTrackView.hh"
+#include "physics/base/Secondary.hh"
 #include "physics/material/MaterialTrackView.hh"
+
 #include "gtest/detail/Macros.hh"
 
 using namespace celeritas;

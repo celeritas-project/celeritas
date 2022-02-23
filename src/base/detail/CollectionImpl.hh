@@ -8,6 +8,7 @@
 #pragma once
 
 #include <vector>
+
 #include "base/Assert.hh"
 #include "base/Copier.hh"
 #include "base/DeviceVector.hh"

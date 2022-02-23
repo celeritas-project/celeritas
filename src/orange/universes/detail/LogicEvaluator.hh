@@ -10,6 +10,7 @@
 #include "base/Assert.hh"
 #include "base/Span.hh"
 #include "orange/Types.hh"
+
 #include "LogicStack.hh"
 
 namespace celeritas

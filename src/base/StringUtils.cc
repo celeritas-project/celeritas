@@ -8,6 +8,7 @@
 #include "StringUtils.hh"
 
 #include <algorithm>
+#include <string>
 
 namespace celeritas
 {

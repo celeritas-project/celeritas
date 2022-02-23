@@ -21,13 +21,13 @@
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
 
+#include "BremFinalStateHelper.hh"
 #include "PhysicsConstants.hh"
-#include "SeltzerBergerData.hh"
 #include "SBEnergyDistHelper.hh"
 #include "SBEnergyDistribution.hh"
 #include "SBEnergySampler.hh"
 #include "SBPositronXsCorrector.hh"
-#include "BremFinalStateHelper.hh"
+#include "SeltzerBergerData.hh"
 
 namespace celeritas
 {

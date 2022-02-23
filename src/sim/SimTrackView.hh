@@ -9,6 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+
 #include "SimData.hh"
 
 namespace celeritas

@@ -8,7 +8,12 @@
 #include "EPlusGGModel.hh"
 
 #include "base/Assert.hh"
+#include "base/Quantity.hh"
+#include "physics/base/Applicability.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/base/ParticleView.hh"
+#include "physics/base/Units.hh"
+#include "physics/em/detail/EPlusGGData.hh"
 #include "physics/em/generated/EPlusGGInteract.hh"
 
 namespace celeritas

@@ -8,8 +8,10 @@
 #include "physics/grid/ValueGridInserter.hh"
 
 #include <algorithm>
-#include "celeritas_test.hh"
+
 #include "base/Range.hh"
+
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 

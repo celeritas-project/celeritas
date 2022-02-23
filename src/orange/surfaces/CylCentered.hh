@@ -11,7 +11,9 @@
 #include "base/ArrayUtils.hh"
 #include "base/Macros.hh"
 #include "base/Span.hh"
-#include "../Types.hh"
+#include "geometry/Types.hh"
+#include "orange/Types.hh"
+
 #include "detail/QuadraticSolver.hh"
 
 namespace celeritas
@@ -40,8 +42,8 @@ class CylCentered
   public:
     //@{
     //! Type aliases
-    using Intersections  = Array<real_type, 2>;
-    using Storage        = Span<const real_type, 1>;
+    using Intersections = Array<real_type, 2>;
+    using Storage       = Span<const real_type, 1>;
     //@}
 
     //// CLASS ATTRIBUTES ////

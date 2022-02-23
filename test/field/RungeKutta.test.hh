@@ -8,9 +8,13 @@
 #pragma once
 
 #include <vector>
-#include "FieldTestParams.hh"
+
+#include "celeritas_config.h"
+#include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+
+#include "FieldTestParams.hh"
 
 namespace celeritas_test
 {

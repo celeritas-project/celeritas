@@ -8,8 +8,9 @@
 #include "random/distributions/NormalDistribution.hh"
 
 #include "base/Range.hh"
-#include "celeritas_test.hh"
+
 #include "../DiagnosticRngEngine.hh"
+#include "celeritas_test.hh"
 
 using celeritas::NormalDistribution;
 

@@ -11,6 +11,7 @@
 #include <functional>
 #include <type_traits>
 #include <utility>
+
 #include "celeritas_test.hh"
 
 struct Foo
@@ -148,7 +149,7 @@ TEST(AlgorithmsTest, min_element)
 {
     std::vector<int> v;
 
-    auto             min_element_idx = [&v]() {
+    auto min_element_idx = [&v]() {
         return celeritas::min_element(v.begin(), v.end()) - v.begin();
     };
     auto min_element_gt_idx = [&v]() {

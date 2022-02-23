@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "gtest/Test.hh"
-
 #include <string>
 #include <utility>
+
 #include "celeritas_config.h"
 #include "comm/Logger.hh"
+
+#include "gtest/Test.hh"
 
 namespace celeritas_test
 {

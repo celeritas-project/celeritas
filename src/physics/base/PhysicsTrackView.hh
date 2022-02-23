@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "PhysicsData.hh"
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
@@ -18,6 +17,8 @@
 #include "physics/grid/XsCalculator.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
+
+#include "PhysicsData.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -167,17 +168,17 @@ class PhysicsTrackView
     inline CELER_FUNCTION ProcessId eplusgg_process_id() const;
 
   private:
-    const PhysicsParamsRef&      params_;
-    const PhysicsStateRef&       states_;
-    const ParticleId             particle_;
-    const MaterialId             material_;
-    const ThreadId               thread_;
+    const PhysicsParamsRef& params_;
+    const PhysicsStateRef&  states_;
+    const ParticleId        particle_;
+    const MaterialId        material_;
+    const ThreadId          thread_;
 
     //// IMPLEMENTATION HELPER FUNCTIONS ////
 
-    CELER_FORCEINLINE_FUNCTION PhysicsTrackState& state();
+    CELER_FORCEINLINE_FUNCTION PhysicsTrackState&       state();
     CELER_FORCEINLINE_FUNCTION const PhysicsTrackState& state() const;
-    CELER_FORCEINLINE_FUNCTION const ProcessGroup& process_group() const;
+    CELER_FORCEINLINE_FUNCTION const ProcessGroup&      process_group() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -601,7 +602,7 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(
     {
         auto calc_xs = EPlusGGMacroXsCalculator(params_.hardwired.eplusgg_data,
                                                 material);
-        result = calc_xs(energy);
+        result       = calc_xs(energy);
     }
 
     CELER_ENSURE(result >= 0);
@@ -636,7 +637,7 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
  * Access scratch space for particle-process cross section calculations.
  */
 CELER_FUNCTION real_type&
-               PhysicsTrackView::per_process_xs(ParticleProcessId ppid)
+PhysicsTrackView::per_process_xs(ParticleProcessId ppid)
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
     auto idx = thread_.get() * params_.max_particle_processes + ppid.get();

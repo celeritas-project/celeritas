@@ -8,10 +8,12 @@
 #pragma once
 
 #include <vector>
+
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
+
 #include "XsGridData.hh"
 
 namespace celeritas

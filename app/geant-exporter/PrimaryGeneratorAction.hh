@@ -8,10 +8,9 @@
 #pragma once
 
 #include <memory>
-
-#include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4Event.hh>
 #include <G4ParticleGun.hh>
+#include <G4VUserPrimaryGeneratorAction.hh>
 
 namespace geant_exporter
 {

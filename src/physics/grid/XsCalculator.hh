@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "base/Quantity.hh"
+
 #include "Interpolator.hh"
 #include "UniformGrid.hh"
 #include "XsGridData.hh"

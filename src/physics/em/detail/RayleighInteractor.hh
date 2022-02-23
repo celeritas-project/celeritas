@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/ArrayUtils.hh"
 #include "base/Algorithms.hh"
+#include "base/ArrayUtils.hh"
 #include "base/Collection.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
@@ -17,9 +17,10 @@
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
+#include "random/Selector.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "random/distributions/IsotropicDistribution.hh"
-#include "random/Selector.hh"
+
 #include "RayleighData.hh"
 
 namespace celeritas

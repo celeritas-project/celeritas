@@ -8,18 +8,18 @@
 #include "LDemoIO.hh"
 
 #include <algorithm>
+
 #include "comm/Logger.hh"
 #include "geometry/GeoMaterialParams.hh"
 #include "geometry/GeoParams.hh"
 #include "io/EventReader.hh"
 #include "io/ImportData.hh"
-#include "io/EventReader.hh"
 #include "io/RootImporter.hh"
 #include "physics/base/CutoffParams.hh"
+#include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/base/ModelData.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
-#include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/em/BremsstrahlungProcess.hh"
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/EIonizationProcess.hh"
@@ -210,8 +210,8 @@ load_primaries(const std::shared_ptr<const celeritas::ParticleParams>& particles
     CELER_EXPECT(particles);
     EventReader read_all_events(args.hepmc3_filename.c_str(), particles);
     TrackInitParams::Input input;
-    input.primaries      = read_all_events();
-    input.capacity       = args.initializer_capacity;
+    input.primaries = read_all_events();
+    input.capacity  = args.initializer_capacity;
     return std::make_shared<TrackInitParams>(std::move(input));
 }
 

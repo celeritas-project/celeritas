@@ -10,8 +10,10 @@
 #include <thrust/device_ptr.h>
 #include <thrust/remove.h>
 #include <thrust/scan.h>
+
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
+
 #include "InitTracksLauncher.hh"
 #include "LocateAliveLauncher.hh"
 #include "ProcessPrimariesLauncher.hh"

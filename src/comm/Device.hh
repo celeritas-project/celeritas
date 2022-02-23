@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <iosfwd>
 #include <string>
+
 #include "base/Assert.hh"
 
 namespace celeritas

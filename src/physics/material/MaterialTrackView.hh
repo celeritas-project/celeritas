@@ -13,6 +13,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
+
 #include "MaterialData.hh"
 #include "MaterialView.hh"
 #include "Types.hh"
@@ -54,7 +55,7 @@ class MaterialTrackView
 
     // Initialize the particle
     inline CELER_FUNCTION MaterialTrackView&
-                          operator=(const Initializer_t& other);
+    operator=(const Initializer_t& other);
 
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
@@ -70,9 +71,9 @@ class MaterialTrackView
     inline CELER_FUNCTION Span<real_type> element_scratch();
 
   private:
-    const MaterialParamsRef&      params_;
-    const MaterialStateRef&       states_;
-    const ThreadId                thread_;
+    const MaterialParamsRef& params_;
+    const MaterialStateRef&  states_;
+    const ThreadId           thread_;
 
     CELER_FORCEINLINE_FUNCTION MaterialTrackState& state() const;
 };

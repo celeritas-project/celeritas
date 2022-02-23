@@ -8,8 +8,8 @@
 #include "random/detail/RngStateInit.hh"
 
 #include "base/Span.hh"
-#include "random/RngEngine.hh"
 #include "random/RngData.hh"
+#include "random/RngEngine.hh"
 
 namespace celeritas
 {

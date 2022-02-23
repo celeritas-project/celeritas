@@ -13,6 +13,7 @@
 #include "orange/surfaces/SurfaceAction.hh"
 #include "orange/surfaces/Surfaces.hh"
 #include "orange/universes/VolumeView.hh"
+
 #include "SurfaceFunctors.hh"
 
 namespace celeritas
@@ -32,8 +33,8 @@ class SenseCalculator
     //! Return result
     struct result_type
     {
-        Span<Sense> senses;  //!< Calculated senses for the volume
-        OnFace      face;    //!< The first face encountered that we are "on"
+        Span<Sense> senses; //!< Calculated senses for the volume
+        OnFace      face;   //!< The first face encountered that we are "on"
     };
 
   public:

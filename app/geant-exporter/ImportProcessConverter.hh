@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <unordered_map>
 #include <vector>
-#include <memory>
 
 #include "io/ImportElement.hh"
 #include "io/ImportMaterial.hh"

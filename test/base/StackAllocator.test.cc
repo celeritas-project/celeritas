@@ -8,9 +8,11 @@
 #include "base/StackAllocator.hh"
 
 #include <cstdint>
+
 #include "base/CollectionStateStore.hh"
-#include "celeritas_test.hh"
+
 #include "StackAllocator.test.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas_test;
 

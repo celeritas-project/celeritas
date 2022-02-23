@@ -10,6 +10,7 @@
 #include "base/Macros.hh"
 #include "physics/base/ModelData.hh"
 #include "sim/TrackData.hh"
+
 #include "../Transporter.hh"
 
 using celeritas::MemSpace;

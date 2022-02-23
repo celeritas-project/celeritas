@@ -9,8 +9,8 @@
 
 #include <nlohmann/json.hpp>
 
-#include "base/Assert.hh"
 #include "base/Array.hh"
+#include "base/Assert.hh"
 #include "base/Types.hh"
 
 namespace demo_rasterizer

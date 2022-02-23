@@ -8,6 +8,7 @@
 #include "VecgeomNavCollection.hh"
 
 #include <VecGeom/navigation/NavStatePool.h>
+
 #include "base/CollectionBuilder.hh"
 #include "comm/Device.hh"
 

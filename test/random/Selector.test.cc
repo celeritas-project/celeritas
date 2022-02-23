@@ -6,9 +6,10 @@
 //! \file Selector.test.cc
 //---------------------------------------------------------------------------//
 #include "random/Selector.hh"
-#include "SequenceEngine.hh"
 
 #include "base/OpaqueId.hh"
+
+#include "SequenceEngine.hh"
 #include "celeritas_test.hh"
 
 using celeritas::make_selector;

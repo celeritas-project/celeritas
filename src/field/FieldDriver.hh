@@ -14,9 +14,9 @@
 #include "base/NumericLimits.hh"
 #include "base/Types.hh"
 
-#include "RungeKuttaStepper.hh"
-#include "MagFieldEquation.hh"
 #include "FieldParamsData.hh"
+#include "MagFieldEquation.hh"
+#include "RungeKuttaStepper.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -161,7 +161,6 @@ FieldDriver<StepperT>::advance(real_type step, const OdeState& state)
 
     return output.end;
 }
-
 
 //---------------------------------------------------------------------------//
 /*!
@@ -370,7 +369,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state)
  */
 template<class StepperT>
 CELER_FUNCTION real_type
-               FieldDriver<StepperT>::new_step_size(real_type step, real_type rel_error) const
+FieldDriver<StepperT>::new_step_size(real_type step, real_type rel_error) const
 {
     CELER_ASSERT(rel_error > 0);
     real_type scale_factor

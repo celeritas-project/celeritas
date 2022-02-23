@@ -9,14 +9,15 @@
 
 #include "base/Assert.hh"
 #include "base/Types.hh"
-#include "random/RngEngine.hh"
 #include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "physics/material/Types.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "physics/material/ElementView.hh"
-#include "physics/material/ElementSelector.hh"
 #include "physics/base/PhysicsTrackView.hh"
+#include "physics/material/ElementSelector.hh"
+#include "physics/material/ElementView.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "physics/material/Types.hh"
+#include "random/RngEngine.hh"
+
 #include "RayleighInteractor.hh"
 
 namespace celeritas
@@ -36,8 +37,8 @@ struct RayleighLauncher
     {
     }
 
-    const RayleighNativeRef&    rayleigh; //!< Shared data for interactor
-    const ModelInteractRef<M>&  model;    //!< State data needed to interact
+    const RayleighNativeRef&   rayleigh; //!< Shared data for interactor
+    const ModelInteractRef<M>& model;    //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;

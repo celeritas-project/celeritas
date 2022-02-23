@@ -88,4 +88,3 @@ constexpr real_type lambdabar_electron = 3.8615926796e-13 * units::meter;
 //---------------------------------------------------------------------------//
 } // namespace constants
 } // namespace celeritas
-

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "base/Assert.hh"
+
 #include "OpaqueId.hh"
 #include "Range.hh"
 #include "Types.hh"

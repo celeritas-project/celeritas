@@ -13,9 +13,25 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
+
+#include "base/Algorithms.hh"
+#include "base/Assert.hh"
+#include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
+#include "base/OpaqueId.hh"
+#include "base/Quantity.hh"
 #include "base/Range.hh"
 #include "base/ScopedTimeLog.hh"
 #include "base/SoftEqual.hh"
+#include "comm/Logger.hh"
+#include "physics/base/CutoffParams.hh"
+#include "physics/base/PDGNumber.hh"
+#include "physics/base/ParticleParams.hh"
+#include "physics/base/Types.hh"
+#include "physics/em/AtomicRelaxationData.hh"
+#include "physics/material/MaterialParams.hh"
+#include "physics/material/Types.hh"
+
 #include "detail/Utils.hh"
 
 namespace celeritas

@@ -7,11 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "Filler.hh"
 
-#include "base/device_runtime_api.h"
-#include <thrust/fill.h>
 #include <thrust/device_malloc.h>
-#include <thrust/execution_policy.h>
 #include <thrust/device_ptr.h>
+#include <thrust/execution_policy.h>
+#include <thrust/fill.h>
+
+#include "base/device_runtime_api.h"
 
 namespace celeritas
 {

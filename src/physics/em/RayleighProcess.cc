@@ -8,6 +8,7 @@
 #include "RayleighProcess.hh"
 
 #include <utility>
+
 #include "RayleighModel.hh"
 
 namespace celeritas

@@ -10,8 +10,8 @@
 #include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
 #include "orange/Data.hh"
-#include "orange/surfaces/Surfaces.hh"
 #include "orange/surfaces/SurfaceAction.hh"
+#include "orange/surfaces/Surfaces.hh"
 
 namespace celeritas_test
 {

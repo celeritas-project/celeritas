@@ -8,24 +8,24 @@
 #include "field/FieldPropagator.hh"
 
 #include "base/CollectionStateStore.hh"
-#include "geometry/GeoData.hh"
-#include "geometry/GeoParams.hh"
-#include "geometry/GeoTrackView.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleData.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Units.hh"
 #include "field/FieldDriver.hh"
 #include "field/FieldParamsData.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/MagFieldTraits.hh"
 #include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
-
-#include "celeritas_test.hh"
+#include "geometry/GeoData.hh"
+#include "geometry/GeoParams.hh"
 #include "geometry/GeoTestBase.hh"
-#include "FieldTestParams.hh"
+#include "geometry/GeoTrackView.hh"
+#include "physics/base/ParticleData.hh"
+#include "physics/base/ParticleParams.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/base/Units.hh"
+
 #include "FieldPropagator.test.hh"
+#include "FieldTestParams.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

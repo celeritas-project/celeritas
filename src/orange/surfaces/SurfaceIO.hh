@@ -8,8 +8,10 @@
 #pragma once
 
 #include <iosfwd>
+
+#include "geometry/Types.hh"
+
 #include "SurfaceTypeTraits.hh"
-#include "../Types.hh"
 
 namespace celeritas
 {

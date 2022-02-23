@@ -8,12 +8,19 @@
 #include "RayleighModel.hh"
 
 #include "base/Assert.hh"
-#include "base/Range.hh"
 #include "base/CollectionBuilder.hh"
+#include "base/Quantity.hh"
+#include "base/Range.hh"
+#include "base/detail/RangeImpl.hh"
+#include "physics/base/Applicability.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/em/detail/RayleighData.hh"
-#include "physics/em/generated/RayleighInteract.hh"
+#include "physics/base/Units.hh"
+#include "physics/material/ElementView.hh"
+#include "physics/material/Types.hh"
+
+#include "detail/RayleighData.hh"
+#include "generated/RayleighInteract.hh"
 
 namespace celeritas
 {

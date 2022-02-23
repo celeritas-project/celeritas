@@ -7,10 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Process.hh"
+#include <memory>
 
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/Process.hh"
 #include "physics/material/MaterialParams.hh"
 
 namespace celeritas
@@ -33,9 +34,9 @@ class BremsstrahlungProcess : public Process
     struct Options
     {
         bool combined_model{true}; //!> Use a unified relativistic/SB
-                                   //!interactor
+                                   //! interactor
         bool enable_lpm{true};     //!> Account for LPM effect at very high
-                                   //!energies
+                                   //! energies
     };
 
   public:

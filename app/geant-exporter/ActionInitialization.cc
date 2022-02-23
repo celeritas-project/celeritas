@@ -6,6 +6,7 @@
 //! \file ActionInitialization.cc
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
+
 #include "PrimaryGeneratorAction.hh"
 
 namespace geant_exporter

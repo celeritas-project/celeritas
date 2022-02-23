@@ -10,7 +10,9 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
+
 #include "base/Algorithms.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::no_intersection;

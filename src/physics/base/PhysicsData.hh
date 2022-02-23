@@ -10,14 +10,15 @@
 #include "base/Array.hh"
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
-#include "Types.hh"
 #include "physics/base/Units.hh"
+#include "physics/em/FluctuationData.hh"
 #include "physics/em/detail/EPlusGGInteractor.hh"
 #include "physics/em/detail/LivermorePEMicroXsCalculator.hh"
-#include "physics/em/FluctuationData.hh"
 #include "physics/grid/ValueGridData.hh"
 #include "physics/grid/XsGridData.hh"
 #include "physics/material/Types.hh"
+
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -110,7 +111,7 @@ struct ProcessGroup
     ItemRange<ProcessId> processes; //!< Processes that apply [ppid]
     ValueGridArray<ItemRange<ValueTable>> tables;      //!< [vgt][ppid]
     ItemRange<IntegralXsProcess>          integral_xs; //!< [ppid]
-    ItemRange<ModelGroup> models;       //!< Model applicability [ppid]
+    ItemRange<ModelGroup> models;   //!< Model applicability [ppid]
     ParticleProcessId eloss_ppid{}; //!< Process with de/dx and range tables
     bool has_at_rest{}; //!< Whether the particle type has an at-rest process
 

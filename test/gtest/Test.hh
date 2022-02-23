@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <gtest/gtest.h>
 #include <cmath>
 #include <string>
+#include <gtest/gtest.h>
 
 namespace celeritas
 {

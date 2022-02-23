@@ -9,12 +9,12 @@
 
 #include "base/Array.hh"
 #include "base/ArrayUtils.hh"
+#include "base/Macros.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-#include "base/Macros.hh"
-#include "detail/FieldUtils.hh"
 
 #include "Types.hh"
+#include "detail/FieldUtils.hh"
 
 namespace celeritas
 {
@@ -82,8 +82,9 @@ class RungeKuttaStepper
  * \f]
  */
 template<class E>
-CELER_FUNCTION auto RungeKuttaStepper<E>::
-                    operator()(real_type step, const OdeState& beg_state) -> Result
+CELER_FUNCTION auto
+RungeKuttaStepper<E>::operator()(real_type step, const OdeState& beg_state)
+    -> Result
 {
     using celeritas::axpy;
     real_type           half_step               = step / real_type(2);

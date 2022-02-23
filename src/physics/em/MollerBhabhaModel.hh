@@ -8,11 +8,13 @@
 #pragma once
 
 #include "physics/base/Model.hh"
-#include "physics/base/ParticleParams.hh"
+
 #include "detail/MollerBhabhaData.hh"
 
 namespace celeritas
 {
+class ParticleParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the Moller-Bhabha model interaction.

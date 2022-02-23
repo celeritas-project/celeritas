@@ -16,6 +16,7 @@
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/material/MaterialTrackView.hh"
 #include "random/RngEngine.hh"
+
 #include "CombinedBremInteractor.hh"
 
 namespace celeritas

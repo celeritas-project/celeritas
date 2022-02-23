@@ -9,6 +9,7 @@
 
 #include "orange/Data.hh"
 #include "orange/surfaces/Surfaces.hh"
+
 #include "detail/LogicEvaluator.hh"
 #include "detail/SenseCalculator.hh"
 #include "detail/SurfaceFunctors.hh"

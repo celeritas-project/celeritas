@@ -8,10 +8,11 @@
 #pragma once
 
 #include <iomanip>
-#include <string>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <vector>
+
 #include "Array.hh"
 #include "Collection.hh"
 #include "Join.hh"

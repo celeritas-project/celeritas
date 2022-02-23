@@ -8,6 +8,7 @@
 #pragma once
 
 #include <type_traits>
+
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"

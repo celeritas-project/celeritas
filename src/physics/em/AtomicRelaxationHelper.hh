@@ -11,6 +11,7 @@
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "random/distributions/IsotropicDistribution.hh"
+
 #include "AtomicRelaxation.hh"
 #include "AtomicRelaxationData.hh"
 
@@ -73,10 +74,10 @@ class AtomicRelaxationHelper
                        Span<Secondary>   secondaries) const;
 
   private:
-    const AtomicRelaxParamsRef&      shared_;
-    const AtomicRelaxStateRef&       states_;
-    const ElementId                  el_id_;
-    const ThreadId                   thread_;
+    const AtomicRelaxParamsRef& shared_;
+    const AtomicRelaxStateRef&  states_;
+    const ElementId             el_id_;
+    const ThreadId              thread_;
 };
 
 //---------------------------------------------------------------------------//

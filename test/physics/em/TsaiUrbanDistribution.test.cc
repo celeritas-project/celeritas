@@ -8,8 +8,10 @@
 #include "physics/em/detail/TsaiUrbanDistribution.hh"
 
 #include <random>
+
 #include "base/Constants.hh"
 #include "base/Units.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::detail::TsaiUrbanDistribution;

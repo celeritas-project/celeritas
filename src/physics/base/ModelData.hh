@@ -10,15 +10,16 @@
 #include "base/Span.hh"
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "random/RngData.hh"
-#include "physics/material/MaterialData.hh"
 #include "physics/base/CutoffData.hh"
 #include "physics/em/AtomicRelaxationData.hh"
+#include "physics/material/MaterialData.hh"
+#include "random/RngData.hh"
 #include "sim/SimData.hh"
-#include "Secondary.hh"
-#include "ParticleData.hh"
+
 #include "Interaction.hh"
+#include "ParticleData.hh"
 #include "PhysicsData.hh"
+#include "Secondary.hh"
 
 namespace celeritas
 {

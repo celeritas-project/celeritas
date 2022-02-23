@@ -11,9 +11,12 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include "base/Assert.hh"
 #include "base/CollectionMirror.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
+
 #include "ElementView.hh"
 #include "MaterialData.hh"
 #include "MaterialView.hh"

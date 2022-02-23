@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+
 #include "XsGridParams.hh"
 
 namespace demo_interactor

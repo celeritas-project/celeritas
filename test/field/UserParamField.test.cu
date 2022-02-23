@@ -5,18 +5,17 @@
 //---------------------------------------------------------------------------//
 //! \file UserParamField.test.cu
 //---------------------------------------------------------------------------//
-#include "UserField.test.hh"
-#include "detail/CMSParameterizedField.hh"
-
 #include <thrust/device_vector.h>
 
-#include "base/KernelParamCalculator.device.hh"
 #include "base/device_runtime_api.h"
-#include "comm/Device.hh"
-
+#include "base/Constants.hh"
+#include "base/KernelParamCalculator.device.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-#include "base/Constants.hh"
+#include "comm/Device.hh"
+
+#include "UserField.test.hh"
+#include "detail/CMSParameterizedField.hh"
 
 using thrust::raw_pointer_cast;
 

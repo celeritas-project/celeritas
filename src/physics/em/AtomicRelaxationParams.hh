@@ -8,14 +8,20 @@
 #pragma once
 
 #include <functional>
-#include "base/Algorithms.hh"
+
 #include "base/CollectionMirror.hh"
+#include "base/Types.hh"
 #include "io/ImportAtomicRelaxation.hh"
-#include "physics/base/CutoffParams.hh"
+#include "physics/base/Units.hh"
+
 #include "AtomicRelaxationData.hh"
 
 namespace celeritas
 {
+class CutoffParams;
+class MaterialParams;
+class ParticleParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Data management for the EADL transition data for atomic relaxation.

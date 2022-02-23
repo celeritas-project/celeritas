@@ -8,6 +8,7 @@
 #pragma once
 
 #include "physics/base/Units.hh"
+
 #include "../EnergyLossHelper.hh"
 
 namespace celeritas

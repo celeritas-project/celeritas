@@ -9,6 +9,7 @@
 
 #include <iomanip>
 #include <ostream>
+
 #include "Span.hh"
 
 namespace celeritas

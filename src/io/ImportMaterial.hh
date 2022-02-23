@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
 #include <map>
+#include <string>
 #include <vector>
 
-#include "ImportElement.hh"
 #include "base/Types.hh"
+
+#include "ImportElement.hh"
 
 namespace celeritas
 {

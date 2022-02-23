@@ -9,8 +9,10 @@
 
 #include <memory>
 #include <utility>
-#include "EPlusGGModel.hh"
+
 #include "physics/grid/ValueGridBuilder.hh"
+
+#include "EPlusGGModel.hh"
 
 namespace celeritas
 {

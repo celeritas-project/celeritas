@@ -8,7 +8,9 @@
 #include "base/Copier.hh"
 
 #include <vector>
+
 #include "base/DeviceVector.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::Copier;

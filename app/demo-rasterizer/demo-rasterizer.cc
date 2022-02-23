@@ -6,8 +6,8 @@
 //! \file demo-rasterizer.cc
 //---------------------------------------------------------------------------//
 #include <cstddef>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
@@ -40,12 +40,12 @@ namespace demo_rasterizer
 void run(std::istream& is)
 {
     // Read input options
-    auto inp = nlohmann::json::parse(is);
+    auto inp    = nlohmann::json::parse(is);
     auto timers = nlohmann::json::object();
 
     // Load geometry
     Stopwatch get_time;
-    auto geo_params = std::make_shared<GeoParams>(
+    auto      geo_params = std::make_shared<GeoParams>(
         inp.at("input").get<std::string>().c_str());
     timers["load"] = get_time();
 

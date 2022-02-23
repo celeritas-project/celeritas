@@ -9,10 +9,17 @@
 
 #include <algorithm>
 #include <cmath>
+#include <type_traits>
+
+#include "base/Assert.hh"
+#include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
+#include "base/OpaqueId.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "physics/grid/UniformGrid.hh"
+#include "physics/grid/UniformGridData.hh"
+#include "physics/grid/XsGridData.hh"
 
 namespace demo_interactor
 {

@@ -9,6 +9,7 @@
 
 #include "base/Algorithms.hh"
 #include "base/Macros.hh"
+
 #include "detail/SurfaceAction.hh"
 
 namespace celeritas

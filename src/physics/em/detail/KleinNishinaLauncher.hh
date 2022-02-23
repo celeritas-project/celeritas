@@ -16,6 +16,7 @@
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
 #include "random/RngEngine.hh"
+
 #include "KleinNishinaInteractor.hh"
 
 namespace celeritas
@@ -35,8 +36,8 @@ struct KleinNishinaLauncher
     {
     }
 
-    const KleinNishinaData&     kn;    //!< Shared data for interactor
-    const ModelInteractRef<M>&  model; //!< State data needed to interact
+    const KleinNishinaData&    kn;    //!< Shared data for interactor
+    const ModelInteractRef<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;

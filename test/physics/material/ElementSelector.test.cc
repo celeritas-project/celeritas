@@ -9,10 +9,12 @@
 
 #include <memory>
 #include <random>
-#include "celeritas_test.hh"
+
 #include "base/Range.hh"
-#include "random/SequenceEngine.hh"
 #include "physics/material/MaterialParams.hh"
+#include "random/SequenceEngine.hh"
+
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 using MaterialParamsRef = MaterialParams::HostRef;
@@ -101,8 +103,8 @@ struct CalcFancyMicroXs
         return el.cbrt_z() * inv_energy_;
     }
 
-    const MaterialParamsRef&      mats_;
-    real_type                     inv_energy_;
+    const MaterialParamsRef& mats_;
+    real_type                inv_energy_;
 };
 
 //---------------------------------------------------------------------------//

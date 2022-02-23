@@ -14,6 +14,7 @@
 #include "physics/base/Units.hh"
 #include "physics/grid/GenericXsCalculator.hh"
 #include "physics/material/Types.hh"
+
 #include "LivermorePEData.hh"
 
 namespace celeritas

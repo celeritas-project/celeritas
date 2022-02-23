@@ -9,10 +9,11 @@
 
 #include <algorithm>
 #include <cmath>
+
 #include "base/Algorithms.hh"
 #include "base/Constants.hh"
-#include "base/Range.hh"
 #include "base/Quantity.hh"
+#include "base/Range.hh"
 #include "physics/material/MaterialData.hh"
 
 namespace celeritas

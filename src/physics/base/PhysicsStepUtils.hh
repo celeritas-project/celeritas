@@ -7,14 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
 #include "base/Algorithms.hh"
+#include "base/Assert.hh"
 #include "base/NumericLimits.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/GenerateCanonical.hh"
-#include "random/Selector.hh"
 #include "physics/em/EnergyLossDistribution.hh"
 #include "physics/grid/EnergyLossCalculator.hh"
 #include "physics/grid/InverseRangeCalculator.hh"
@@ -22,6 +19,10 @@
 #include "physics/grid/ValueGridData.hh"
 #include "physics/grid/XsCalculator.hh"
 #include "physics/material/MaterialTrackView.hh"
+#include "random/Selector.hh"
+#include "random/distributions/BernoulliDistribution.hh"
+#include "random/distributions/GenerateCanonical.hh"
+
 #include "CutoffView.hh"
 #include "ParticleTrackView.hh"
 #include "PhysicsTrackView.hh"
@@ -71,7 +72,7 @@ CELER_FUNCTION EnergyLossHelper::Energy
                                   EnergyLossHelper::Energy max_loss,
                                   Engine&                  rng)
 {
-    using Energy = EnergyLossHelper::Energy;
+    using Energy        = EnergyLossHelper::Energy;
     auto   sample_eloss = make_distribution<M>(helper);
     Energy result       = sample_eloss(rng);
 

@@ -57,10 +57,10 @@ inline void {func}_interact(
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
-#include "base/Assert.hh"
-#include "base/Range.hh"
-#include "base/Types.hh"
 #include "../detail/{class}Launcher.hh"
+
+#include "base/Assert.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {{

@@ -8,8 +8,10 @@
 #include "base/Join.hh"
 
 #include <fstream>
-#include "celeritas_test.hh"
+
 #include "base/Range.hh"
+
+#include "celeritas_test.hh"
 
 using celeritas::join;
 using celeritas::join_stream;

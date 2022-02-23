@@ -8,11 +8,13 @@
 #pragma once
 
 #include <cmath>
+
 #include "base/Array.hh"
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Types.hh"
+
 #include "detail/InterpolatorTraits.hh"
 
 namespace celeritas

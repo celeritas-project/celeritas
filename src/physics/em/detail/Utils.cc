@@ -8,6 +8,7 @@
 #include "Utils.hh"
 
 #include <cmath>
+
 #include "base/Algorithms.hh"
 #include "base/Range.hh"
 

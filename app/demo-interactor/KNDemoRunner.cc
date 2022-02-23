@@ -31,10 +31,10 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
     CELER_EXPECT(launch_params_.block_size > 0);
 
     // Set up KN interactor data;
-    namespace pdg            = celeritas::pdg;
-    kn_data_.model_id        = ModelId{0}; // Unused but needed for error check
-    kn_data_.electron_id     = pparams_->find(pdg::electron());
-    kn_data_.gamma_id        = pparams_->find(pdg::gamma());
+    namespace pdg        = celeritas::pdg;
+    kn_data_.model_id    = ModelId{0}; // Unused but needed for error check
+    kn_data_.electron_id = pparams_->find(pdg::electron());
+    kn_data_.gamma_id    = pparams_->find(pdg::gamma());
     kn_data_.inv_electron_mass
         = 1 / pparams_->get(kn_data_.electron_id).mass().value();
     CELER_ENSURE(kn_data_);

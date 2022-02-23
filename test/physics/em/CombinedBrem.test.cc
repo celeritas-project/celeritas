@@ -5,16 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file SeltzerBerger.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/CombinedBremInteractor.hh"
-
-#include "physics/em/detail/SBPositronXsCorrector.hh"
-#include "physics/em/detail/SBEnergyDistribution.hh"
-#include "physics/em/detail/RBDiffXsCalculator.hh"
-
-#include "physics/em/CombinedBremModel.hh"
-
-#include "celeritas_test.hh"
-#include "gtest/Main.hh"
 #include "base/Algorithms.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
@@ -22,10 +12,18 @@
 #include "physics/base/CutoffView.hh"
 #include "physics/base/Units.hh"
 #include "physics/em/BremsstrahlungProcess.hh"
-#include "physics/material/MaterialView.hh"
+#include "physics/em/CombinedBremModel.hh"
+#include "physics/em/detail/CombinedBremInteractor.hh"
+#include "physics/em/detail/RBDiffXsCalculator.hh"
+#include "physics/em/detail/SBEnergyDistribution.hh"
+#include "physics/em/detail/SBPositronXsCorrector.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "../InteractorHostTestBase.hh"
+#include "physics/material/MaterialView.hh"
+
 #include "../InteractionIO.hh"
+#include "../InteractorHostTestBase.hh"
+#include "celeritas_test.hh"
+#include "gtest/Main.hh"
 
 using celeritas::BremsstrahlungProcess;
 using celeritas::CombinedBremModel;

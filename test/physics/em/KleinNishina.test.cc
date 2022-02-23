@@ -5,14 +5,14 @@
 //---------------------------------------------------------------------------//
 //! \file KleinNishina.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/KleinNishinaInteractor.hh"
-
-#include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "physics/base/Units.hh"
-#include "../InteractorHostTestBase.hh"
+#include "physics/em/detail/KleinNishinaInteractor.hh"
+
 #include "../InteractionIO.hh"
+#include "../InteractorHostTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::detail::KleinNishinaInteractor;
 namespace pdg = celeritas::pdg;
@@ -42,9 +42,9 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
              {"gamma", pdg::gamma(), zero, zero, stable}});
 
         // TODO: this should be part of the process's data storage/management
-        const auto& params    = *this->particle_params();
-        data_.electron_id     = params.find(pdg::electron());
-        data_.gamma_id        = params.find(pdg::gamma());
+        const auto& params = *this->particle_params();
+        data_.electron_id  = params.find(pdg::electron());
+        data_.gamma_id     = params.find(pdg::gamma());
         data_.inv_electron_mass
             = 1 / (params.get(data_.electron_id).mass().value());
 

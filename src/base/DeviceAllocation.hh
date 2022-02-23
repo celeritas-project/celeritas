@@ -11,7 +11,6 @@
 #include <memory>
 #include <utility>
 
-#include "Assert.hh"
 #include "Span.hh"
 #include "Types.hh"
 #include "detail/InitializedValue.hh"

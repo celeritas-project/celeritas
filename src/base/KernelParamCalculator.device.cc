@@ -9,7 +9,9 @@
 
 #include <cassert>
 #include <limits>
+
 #include "base/device_runtime_api.h"
+
 #include "Assert.hh"
 
 namespace

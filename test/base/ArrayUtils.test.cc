@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "base/ArrayUtils.hh"
 
-#include "celeritas_test.hh"
-#include "base/Constants.hh"
 #include "base/ArrayIO.hh"
+#include "base/Constants.hh"
+
+#include "celeritas_test.hh"
 
 using celeritas::Array;
 using Real3 = Array<double, 3>;

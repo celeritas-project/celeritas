@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cmath>
+
 #include "base/Algorithms.hh"
 #include "base/Assert.hh"
 #include "base/Constants.hh"

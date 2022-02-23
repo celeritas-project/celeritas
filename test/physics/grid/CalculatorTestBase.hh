@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "gtest/Test.hh"
 #include "base/Collection.hh"
 #include "physics/grid/XsGridData.hh"
+
+#include "gtest/Test.hh"
 
 namespace celeritas_test
 {
@@ -31,7 +32,7 @@ class CalculatorTestBase : public celeritas::Test
     using Data       = celeritas::Collection<real_type,
                                        celeritas::Ownership::const_reference,
                                        celeritas::MemSpace::host>;
-    using SpanReal = celeritas::Span<real_type>;
+    using SpanReal   = celeritas::Span<real_type>;
     //!@}
 
   public:

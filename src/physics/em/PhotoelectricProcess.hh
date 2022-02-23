@@ -7,10 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Process.hh"
+#include <memory>
 
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/Process.hh"
 #include "physics/material/MaterialParams.hh"
 
 namespace celeritas
@@ -24,9 +25,9 @@ class PhotoelectricProcess : public Process
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles   = std::shared_ptr<const ParticleParams>;
-    using SPConstMaterials   = std::shared_ptr<const MaterialParams>;
-    using SPConstImported    = std::shared_ptr<const ImportedProcesses>;
+    using SPConstParticles = std::shared_ptr<const ParticleParams>;
+    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
+    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
     //!@}
 
   public:

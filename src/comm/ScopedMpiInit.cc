@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "ScopedMpiInit.hh"
 
-#include <cstdlib>
-
 #include "celeritas_config.h"
 #if CELERITAS_USE_MPI
 #    include <mpi.h>
@@ -17,6 +15,7 @@
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Stopwatch.hh"
+
 #include "Environment.hh"
 #include "Logger.hh"
 

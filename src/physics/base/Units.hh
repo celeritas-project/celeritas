@@ -8,8 +8,8 @@
 #pragma once
 
 #include "base/Constants.hh"
-#include "base/Units.hh"
 #include "base/Quantity.hh"
+#include "base/Units.hh"
 
 namespace celeritas
 {

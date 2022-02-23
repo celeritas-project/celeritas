@@ -10,8 +10,8 @@
 #include "base/Algorithms.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "random/distributions/UniformRealDistribution.hh"
 #include "random/distributions/BernoulliDistribution.hh"
+#include "random/distributions/UniformRealDistribution.hh"
 
 namespace celeritas
 {

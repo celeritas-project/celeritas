@@ -5,16 +5,16 @@
 //---------------------------------------------------------------------------//
 //! \file EPlusGG.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/EPlusGGInteractor.hh"
-
-#include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "physics/base/Units.hh"
 #include "physics/em/EPlusGGMacroXsCalculator.hh"
+#include "physics/em/detail/EPlusGGInteractor.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "../InteractorHostTestBase.hh"
+
 #include "../InteractionIO.hh"
+#include "../InteractorHostTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::ElementId;
 using celeritas::EPlusGGMacroXsCalculator;
@@ -52,10 +52,10 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
 
-        const auto& params      = *this->particle_params();
-        data_.positron_id       = params.find(pdg::positron());
-        data_.gamma_id          = params.find(pdg::gamma());
-        data_.electron_mass     = 0.5109989461;
+        const auto& params  = *this->particle_params();
+        data_.positron_id   = params.find(pdg::positron());
+        data_.gamma_id      = params.find(pdg::gamma());
+        data_.electron_mass = 0.5109989461;
 
         // Set up shared material data
         MaterialParams::Input mi;

@@ -8,9 +8,11 @@
 #include "random/distributions/UniformBoxDistribution.hh"
 
 #include <random>
+
 #include "base/Range.hh"
-#include "celeritas_test.hh"
+
 #include "../DiagnosticRngEngine.hh"
+#include "celeritas_test.hh"
 
 using celeritas::UniformBoxDistribution;
 

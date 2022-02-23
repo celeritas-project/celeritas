@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "RngStateInit.hh"
 
+#include "base/device_runtime_api.h"
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.device.hh"
-#include "base/device_runtime_api.h"
 #include "comm/Device.hh"
 #include "random/RngEngine.hh"
 

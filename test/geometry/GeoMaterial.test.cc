@@ -5,18 +5,17 @@
 //---------------------------------------------------------------------------//
 //! \file GeoMaterial.test.cc
 //---------------------------------------------------------------------------//
-#include "geometry/GeoMaterialParams.hh"
-
 #include "base/CollectionStateStore.hh"
 #include "geometry/GeoData.hh"
-#include "geometry/GeoParams.hh"
+#include "geometry/GeoMaterialParams.hh"
 #include "geometry/GeoMaterialView.hh"
+#include "geometry/GeoParams.hh"
 #include "geometry/GeoTrackView.hh"
-#include "io/RootImporter.hh"
 #include "io/ImportData.hh"
+#include "io/RootImporter.hh"
 
-#include "celeritas_test.hh"
 #include "GeoTestBase.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 

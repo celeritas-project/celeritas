@@ -9,6 +9,7 @@
 
 #include <initializer_list>
 #include <limits>
+
 #include "Collection.hh"
 
 namespace celeritas

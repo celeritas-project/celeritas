@@ -8,6 +8,7 @@
 #pragma once
 
 #include "base/CollectionMirror.hh"
+
 #include "FieldMapData.hh"
 
 namespace celeritas

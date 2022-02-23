@@ -9,6 +9,7 @@
 
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::NonuniformGrid;

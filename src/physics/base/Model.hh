@@ -9,8 +9,9 @@
 
 #include <set>
 #include <string>
-#include "base/Span.hh"
-#include "physics/grid/UniformGrid.hh"
+
+#include "base/Types.hh"
+
 #include "Applicability.hh"
 #include "Types.hh"
 
@@ -49,7 +50,7 @@ class Model
   public:
     //@{
     //! Type aliases
-    using SetApplicability = std::set<Applicability>;
+    using SetApplicability  = std::set<Applicability>;
     using HostInteractRef   = ModelInteractRef<MemSpace::host>;
     using DeviceInteractRef = ModelInteractRef<MemSpace::device>;
     //@}

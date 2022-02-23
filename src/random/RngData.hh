@@ -8,14 +8,14 @@
 #pragma once
 
 #include <random>
+
+#include "base/device_runtime_api.h"
+#include "celeritas_config.h"
 #include "base/Assert.hh"
-#include "base/Macros.hh"
 #include "base/CollectionBuilder.hh"
+#include "base/Macros.hh"
 #include "comm/Device.hh"
 #include "random/detail/RngStateInit.hh"
-
-#include "celeritas_config.h"
-#include "base/device_runtime_api.h"
 #if CELERITAS_USE_CUDA
 /*!
  * \def QUALIFIERS

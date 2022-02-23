@@ -10,7 +10,8 @@
 #include "base/Array.hh"
 #include "base/Macros.hh"
 #include "base/Span.hh"
-#include "../Types.hh"
+#include "geometry/Types.hh"
+#include "orange/Types.hh"
 
 namespace celeritas
 {
@@ -24,8 +25,8 @@ class PlaneAligned
   public:
     //@{
     //! Type aliases
-    using Intersections  = Array<real_type, 1>;
-    using Storage        = Span<const real_type, 1>;
+    using Intersections = Array<real_type, 1>;
+    using Storage       = Span<const real_type, 1>;
     //@}
 
     //// CLASS ATTRIBUTES ////

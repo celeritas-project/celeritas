@@ -8,11 +8,12 @@
 #include "RDemoRunner.hh"
 
 #include "base/CollectionStateStore.hh"
+#include "base/ColorUtils.hh"
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
-#include "base/ColorUtils.hh"
 #include "comm/Logger.hh"
 #include "geometry/GeoParams.hh"
+
 #include "ImageTrackView.hh"
 #include "RDemoKernel.hh"
 

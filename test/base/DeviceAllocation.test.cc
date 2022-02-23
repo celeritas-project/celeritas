@@ -8,8 +8,10 @@
 #include "base/DeviceAllocation.hh"
 
 #include <algorithm>
-#include "celeritas_test.hh"
+
 #include "base/Span.hh"
+
+#include "celeritas_test.hh"
 
 using celeritas::Byte;
 using celeritas::DeviceAllocation;

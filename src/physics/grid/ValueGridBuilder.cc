@@ -9,10 +9,12 @@
 
 #include <algorithm>
 #include <cmath>
+
+#include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"
 #include "physics/grid/UniformGrid.hh"
-#include "physics/grid/XsGridData.hh"
+#include "physics/grid/UniformGridData.hh"
 #include "physics/grid/ValueGridInserter.hh"
 
 namespace celeritas

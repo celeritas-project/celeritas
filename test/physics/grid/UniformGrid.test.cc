@@ -8,6 +8,7 @@
 #include "physics/grid/UniformGrid.hh"
 
 #include <cmath>
+
 #include "celeritas_test.hh"
 
 using celeritas::UniformGrid;

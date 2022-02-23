@@ -9,12 +9,14 @@
 
 #include <memory>
 #include <vector>
+
 #include "base/CollectionMirror.hh"
 #include "base/Types.hh"
 #include "base/Units.hh"
+
 #include "Model.hh"
-#include "Process.hh"
 #include "PhysicsData.hh"
+#include "Process.hh"
 #include "Types.hh"
 
 namespace celeritas

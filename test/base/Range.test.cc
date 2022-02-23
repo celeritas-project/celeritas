@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "base/Range.hh"
 
-#include "celeritas_test.hh"
-#include "Range.test.hh"
 #include "comm/Device.hh"
+
+#include "Range.test.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas_test;
 

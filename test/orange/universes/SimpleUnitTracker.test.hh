@@ -28,21 +28,19 @@ using StateRef = celeritas::OrangeStateData<Ownership::reference, M>;
 //---------------------------------------------------------------------------//
 
 template<class T>
-CELER_CONSTEXPR_FUNCTION celeritas::ItemRange<T> build_range(
-    celeritas::size_type stride,
-    ThreadId tid)
+CELER_CONSTEXPR_FUNCTION celeritas::ItemRange<T>
+                         build_range(celeritas::size_type stride, ThreadId tid)
 {
     CELER_EXPECT(tid);
     using IdT = celeritas::ItemId<T>;
-    auto t = tid.unchecked_get();
+    auto t    = tid.unchecked_get();
     return {IdT{t * stride}, IdT{(t + 1) * stride}};
 }
 
 template<MemSpace M = MemSpace::native>
-inline CELER_FUNCTION LocalState build_local_state(
-    ParamsRef<M> params,
-    StateRef<M>        states,
-    ThreadId tid)
+inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
+                                                   StateRef<M>  states,
+                                                   ThreadId     tid)
 {
     using namespace celeritas;
 
@@ -72,14 +70,14 @@ template<MemSpace M = MemSpace::native>
 struct InitializingLauncher
 {
     ParamsRef<M> params;
-    StateRef<M>        states;
+    StateRef<M>  states;
 
     CELER_FUNCTION void operator()(ThreadId tid) const
     {
         // Instantiate tracker and initialize
         celeritas::SimpleUnitTracker tracker(this->params);
         auto lstate = build_local_state(params, states, tid);
-        auto init = tracker.initialize(lstate);
+        auto init   = tracker.initialize(lstate);
 
         // Update state with post-initialization result
         states.vol[tid]   = init.volume;
@@ -87,7 +85,7 @@ struct InitializingLauncher
         states.sense[tid] = init.surface.unchecked_sense();
 
         lstate.volume = init.volume;
-        auto isect = tracker.intersect(lstate);
+        auto isect    = tracker.intersect(lstate);
 
         // BOGUS
         states.surf[tid]  = isect.surface.id();
@@ -99,10 +97,12 @@ struct InitializingLauncher
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device
-void test_initialize(const ParamsRef<MemSpace::device>&, const StateRef<MemSpace::device>&);
+void test_initialize(const ParamsRef<MemSpace::device>&,
+                     const StateRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
-inline void test_initialize(const ParamsRef<MemSpace::device>&, const StateRef<MemSpace::device>&)
+inline void test_initialize(const ParamsRef<MemSpace::device>&,
+                            const StateRef<MemSpace::device>&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

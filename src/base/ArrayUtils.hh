@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cmath>
+
 #include "Algorithms.hh"
 #include "Array.hh"
 #include "Assert.hh"

@@ -7,14 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "CurandPerformance.test.hh"
 
-#include "base/Assert.hh"
-
 #include <curand_kernel.h>
 #include <curand_mtgp32.h>
 #include <curand_mtgp32_host.h>
 #include <curand_mtgp32dc_p_11213.h>
-
 #include <thrust/device_vector.h>
+
+#include "base/Assert.hh"
 
 using thrust::raw_pointer_cast;
 

@@ -8,13 +8,14 @@
 #include "io/RootImporter.hh"
 
 #include <algorithm>
-#include "io/ImportPhysicsTable.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/material/MaterialView.hh"
-#include "base/Types.hh"
+
 #include "base/Range.hh"
+#include "base/Types.hh"
 #include "io/ImportData.hh"
+#include "io/ImportPhysicsTable.hh"
+#include "physics/base/CutoffView.hh"
+#include "physics/base/PDGNumber.hh"
+#include "physics/material/MaterialView.hh"
 
 #include "celeritas_test.hh"
 

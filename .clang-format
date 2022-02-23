@@ -58,15 +58,45 @@ ForEachMacros:
   - foreach
   - Q_FOREACH
   - BOOST_FOREACH
-IncludeBlocks:   Preserve
+IncludeBlocks:   Regroup
+# Category 0: main include
+# Category 1: system includes
+# Category 2: celeritas absolute includes
+# Category 5: relative includes
+# Category 7: test includes
 IncludeCategories:
-  - Regex:           '^"(llvm|llvm-c|clang|clang-c)/'
-    Priority:        2
-  - Regex:           '^(<|"(gtest|isl|json)/)'
-    Priority:        3
-  - Regex:           '.*'
+  - Regex:           '^<[^/.]+>$'
     Priority:        1
-IncludeIsMainRegex: '$'
+    SortPriority:    1
+  - Regex:           '^<.+>$'
+    Priority:        1
+    SortPriority:    2
+  - Regex:           '^"celeritas_(config|version)\.h"'
+    Priority:        2
+    SortPriority:    3
+  - Regex:           '^"base/device_runtime_api\.h"$'
+    Priority:        2
+    SortPriority:    3
+  #- Regex:           '^"(celcore|orange|celeritas)/'
+  - Regex:           '^"(base|comm|field|geometry|io|orange|physics|random|sim|vecgeom)/'
+    Priority:        2
+    SortPriority:    4
+    CaseSensitive:   true
+  - Regex:           '^"[^/]+"'
+    Priority:        5
+    SortPriority:    5
+  - Regex:           '^"detail/"'
+    Priority:        5
+    SortPriority:    6
+  - Regex:           '"(^gtest/|TestBase|\.test\.hh|celeritas_test\.hh)'
+    Priority:        7
+    CaseSensitive:   true
+    SortPriority:    7
+  - Regex:           '.*'
+    Priority:        5
+    SortPriority:    5
+IncludeIsMainRegex: '(\.[^.]+)?$'
+IncludeIsMainSourceRegex: '\.cu$' # Allow CU files as main
 IndentCaseLabels: true
 IndentPPDirectives: AfterHash
 IndentWidth:     4
@@ -92,7 +122,7 @@ PenaltyExcessCharacter: 25
 PenaltyReturnTypeOnItsOwnLine: 10
 PointerAlignment: Left
 ReflowComments:  true
-SortIncludes:    false
+SortIncludes:    true
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: false

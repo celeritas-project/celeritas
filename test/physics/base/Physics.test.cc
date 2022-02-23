@@ -5,19 +5,19 @@
 //---------------------------------------------------------------------------//
 //! \file Physics.test.cc
 //---------------------------------------------------------------------------//
+#include "Physics.test.hh"
+
+#include "base/CollectionStateStore.hh"
+#include "base/Range.hh"
+#include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/base/PhysicsTrackView.hh"
-
-#include "celeritas_test.hh"
-#include "base/Range.hh"
-#include "base/CollectionStateStore.hh"
-#include "physics/base/ParticleParams.hh"
+#include "physics/em/EPlusAnnihilationProcess.hh"
 #include "physics/grid/RangeCalculator.hh"
 #include "physics/grid/XsCalculator.hh"
-#include "physics/em/EPlusAnnihilationProcess.hh"
 
 #include "PhysicsTestBase.hh"
-#include "Physics.test.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -241,7 +241,6 @@ TEST_F(PhysicsTrackViewHostTest, processes)
             = this->make_track_view("electron", MaterialId{1});
         EXPECT_FALSE(phys.has_at_rest());
     }
-
 }
 
 TEST_F(PhysicsTrackViewHostTest, value_grids)
@@ -585,9 +584,9 @@ auto EPlusAnnihilationTest::build_particles() const -> SPConstParticles
 auto EPlusAnnihilationTest::build_physics() const -> SPConstPhysics
 {
     PhysicsParams::Input physics_inp;
-    physics_inp.materials = this->materials();
-    physics_inp.particles = this->particles();
-    physics_inp.options   = this->build_physics_options();
+    physics_inp.materials                  = this->materials();
+    physics_inp.particles                  = this->particles();
+    physics_inp.options                    = this->build_physics_options();
     physics_inp.options.enable_fluctuation = false;
 
     physics_inp.processes.push_back(

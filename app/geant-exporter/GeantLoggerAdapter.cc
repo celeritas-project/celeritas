@@ -9,6 +9,7 @@
 
 #include <cctype>
 #include <G4strstreambuf.hh>
+
 #include "comm/Logger.hh"
 
 namespace celeritas

@@ -8,8 +8,8 @@
 #include "Physics.test.hh"
 
 #include "base/device_runtime_api.h"
-#include "comm/Device.hh"
 #include "base/KernelParamCalculator.device.hh"
+#include "comm/Device.hh"
 
 using namespace celeritas;
 

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstddef>
+
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 

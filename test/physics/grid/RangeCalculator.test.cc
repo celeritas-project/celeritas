@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "physics/grid/RangeCalculator.hh"
 
-#include "celeritas_test.hh"
 #include "CalculatorTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::RangeCalculator;
 

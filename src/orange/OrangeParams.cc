@@ -7,9 +7,16 @@
 //---------------------------------------------------------------------------//
 #include "OrangeParams.hh"
 
+#include <algorithm>
 #include <fstream>
-#include "celeritas_config.h"
+#include <initializer_list>
 
+#include "celeritas_config.h"
+#include "base/Array.hh"
+#include "base/Assert.hh"
+#include "base/Collection.hh"
+#include "base/OpaqueId.hh"
+#include "base/Range.hh"
 #include "base/ScopedTimeLog.hh"
 #include "base/StringUtils.hh"
 #include "comm/Logger.hh"
@@ -18,8 +25,14 @@
 #include "orange/construct/VolumeInput.hh"
 #include "orange/construct/VolumeInserter.hh"
 
+#include "Data.hh"
+#include "Types.hh"
+
 #if CELERITAS_USE_JSON
+#    include <nlohmann/json.hpp>
+
 #    include "base/Array.json.hh"
+
 #    include "construct/SurfaceInputIO.json.hh"
 #    include "construct/VolumeInputIO.json.hh"
 #endif

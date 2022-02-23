@@ -9,11 +9,14 @@
 
 #include <memory>
 #include <string>
+#include <vector>
+
+#include "physics/grid/ValueGridBuilder.hh"
+#include "physics/grid/ValueGridData.hh"
+
 #include "Applicability.hh"
 #include "ModelIdGenerator.hh"
 #include "Types.hh"
-#include "physics/grid/ValueGridBuilder.hh"
-#include "physics/grid/ValueGridData.hh"
 
 namespace celeritas
 {

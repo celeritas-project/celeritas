@@ -8,8 +8,10 @@
 #pragma once
 
 #include <vector>
-#include "FieldTestParams.hh"
+
 #include "field/FieldParamsData.hh"
+
+#include "FieldTestParams.hh"
 
 namespace celeritas_test
 {

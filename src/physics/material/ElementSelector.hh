@@ -13,6 +13,7 @@
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "random/distributions/GenerateCanonical.hh"
+
 #include "MaterialView.hh"
 #include "Types.hh"
 

@@ -8,6 +8,7 @@
 #include "LoggerMessage.hh"
 
 #include <sstream>
+
 #include "base/Assert.hh"
 
 namespace celeritas

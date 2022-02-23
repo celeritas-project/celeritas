@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "field/MagFieldEquation.hh"
 #include "field/FieldDriver.hh"
+#include "field/MagFieldEquation.hh"
 
 namespace celeritas
 {

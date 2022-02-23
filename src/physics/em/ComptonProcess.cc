@@ -8,6 +8,7 @@
 #include "ComptonProcess.hh"
 
 #include <utility>
+
 #include "KleinNishinaModel.hh"
 
 namespace celeritas

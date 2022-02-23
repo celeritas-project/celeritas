@@ -8,6 +8,7 @@
 #pragma once
 
 #include <type_traits>
+
 #include "Macros.hh"
 #include "detail/AlgorithmsImpl.hh"
 

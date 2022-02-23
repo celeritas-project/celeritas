@@ -5,14 +5,13 @@
 //---------------------------------------------------------------------------//
 //! \file UserMapField.test.cc
 //---------------------------------------------------------------------------//
+#include "base/ArrayUtils.hh"
+#include "base/Range.hh"
 #include "field/detail/FieldMapData.hh"
 #include "field/detail/MagFieldMap.hh"
 
-#include "celeritas_test.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-
 #include "UserField.test.hh"
+#include "celeritas_test.hh"
 #include "detail/CMSFieldMapReader.hh"
 #include "detail/CMSMapField.hh"
 
@@ -44,8 +43,8 @@ class UserMapFieldTest : public Test
         MagFieldMap::ReadMap load_map
             = detail::CMSFieldMapReader(params, test_file);
 
-        map_   = std::make_shared<MagFieldMap>(load_map);
-        ref_   = map_->host_ref();
+        map_ = std::make_shared<MagFieldMap>(load_map);
+        ref_ = map_->host_ref();
 
         // Test parameters
         test_param_.nsamples = 8;

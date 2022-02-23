@@ -7,8 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Array.hh"
+#include "base/Collection.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
+#include "physics/material/Types.hh"
 
 namespace celeritas
 {
@@ -37,8 +41,8 @@ struct FluctuationData
 
     //// MEMBER DATA ////
 
-    ParticleId electron_id;                      //!< ID of an electron
-    real_type  electron_mass;                    //!< Electron mass [MevMass]
+    ParticleId electron_id;   //!< ID of an electron
+    real_type  electron_mass; //!< Electron mass [MevMass]
     MaterialItems<UrbanFluctuationParameters> urban; //!< Model parameters
 
     //// MEMBER FUNCTIONS ////

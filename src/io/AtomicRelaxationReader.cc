@@ -8,6 +8,7 @@
 #include "AtomicRelaxationReader.hh"
 
 #include <fstream>
+
 #include "base/SoftEqual.hh"
 #include "comm/Environment.hh"
 #include "comm/Logger.hh"

@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Model.hh"
 #include <functional>
+
+#include "physics/base/Model.hh"
 
 namespace celeritas_test
 {
@@ -24,9 +25,9 @@ class MockModel final : public celeritas::Model
   public:
     //!@{
     //! Type aliases
-    using Applicability         = celeritas::Applicability;
-    using ModelId               = celeritas::ModelId;
-    using ModelCallback         = std::function<void(ModelId)>;
+    using Applicability = celeritas::Applicability;
+    using ModelId       = celeritas::ModelId;
+    using ModelCallback = std::function<void(ModelId)>;
     //!@}
 
   public:

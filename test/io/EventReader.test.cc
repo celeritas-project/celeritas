@@ -7,11 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "io/EventReader.hh"
 
-#include "celeritas_test.hh"
 #include "base/Range.hh"
 #include "base/Span.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/Units.hh"
+
+#include "celeritas_test.hh"
 
 using celeritas::EventReader;
 using celeritas::ParticleParams;
@@ -32,7 +33,7 @@ class EventReaderTest : public celeritas::Test,
         using celeritas::PDGNumber;
         using celeritas::units::ElementaryCharge;
         using celeritas::units::MevMass;
-        auto           zero   = celeritas::zero_quantity();
+        auto           zero = celeritas::zero_quantity();
         constexpr auto stable
             = celeritas::ParticleRecord::stable_decay_constant();
 

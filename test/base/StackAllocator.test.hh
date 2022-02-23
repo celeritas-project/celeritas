@@ -5,8 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocator.test.hh
 //---------------------------------------------------------------------------//
-#include "base/StackAllocatorData.hh"
 #include "base/Macros.hh"
+#include "base/StackAllocatorData.hh"
 
 namespace celeritas_test
 {
@@ -26,10 +26,10 @@ struct SATestInput
                                         celeritas::Ownership::reference,
                                         celeritas::MemSpace::device>;
 
-    int                   num_threads;
-    int                   num_iters;
-    int                   alloc_size;
-    MockAllocatorData     sa_data;
+    int               num_threads;
+    int               num_iters;
+    int               alloc_size;
+    MockAllocatorData sa_data;
 };
 
 //---------------------------------------------------------------------------//

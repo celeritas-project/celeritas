@@ -18,6 +18,7 @@
 #include "physics/base/Types.hh"
 #include "physics/material/MaterialTrackView.hh"
 #include "random/RngEngine.hh"
+
 #include "MollerBhabhaInteractor.hh"
 
 namespace celeritas

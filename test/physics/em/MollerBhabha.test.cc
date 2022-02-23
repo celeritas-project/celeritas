@@ -5,17 +5,17 @@
 //---------------------------------------------------------------------------//
 //! \file MollerBhabha.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/MollerBhabhaInteractor.hh"
-
-#include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "../InteractorHostTestBase.hh"
-#include "../InteractionIO.hh"
-#include "physics/material/MaterialTrackView.hh"
 #include "physics/base/CutoffView.hh"
+#include "physics/base/Units.hh"
+#include "physics/em/detail/MollerBhabhaInteractor.hh"
+#include "physics/material/MaterialTrackView.hh"
+
+#include "../InteractionIO.hh"
+#include "../InteractorHostTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::Action;
 using celeritas::CutoffView;
@@ -77,7 +77,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         this->set_cutoff_params(cutoff_inp);
 
         // Set MollerBhabhaData
-        const auto& params    = *this->particle_params();
+        const auto& params       = *this->particle_params();
         data_.electron_id        = params.find(pdg::electron());
         data_.positron_id        = params.find(pdg::positron());
         data_.electron_mass_c_sq = params.get(data_.electron_id).mass().value();

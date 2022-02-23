@@ -7,8 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Span.hh"
+#include "base/Types.hh"
+#include "geometry/Types.hh"
+#include "orange/Data.hh"
+#include "orange/Types.hh"
+
 #include "SurfaceInput.hh"
-#include "../Data.hh"
 
 namespace celeritas
 {
@@ -30,7 +35,7 @@ class SurfaceInserter
   public:
     //!@{
     //! Type aliases
-    using Data = SurfaceData<Ownership::value, MemSpace::host>;
+    using Data         = SurfaceData<Ownership::value, MemSpace::host>;
     using SurfaceRange = ItemRange<struct Surface>;
     //!@}
 

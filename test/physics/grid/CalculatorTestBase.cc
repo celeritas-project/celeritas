@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <vector>
+
 #include "base/CollectionBuilder.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"

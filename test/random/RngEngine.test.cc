@@ -5,17 +5,23 @@
 //---------------------------------------------------------------------------//
 //! \file RngEngine.test.cc
 //---------------------------------------------------------------------------//
-#include "random/RngParams.hh"
-#include "DiagnosticRngEngine.hh"
-#include "SequenceEngine.hh"
+#include "RngEngine.test.hh"
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
-#include "celeritas_test.hh"
-#include "RngEngine.test.hh"
+#include <vector>
+
+#include "celeritas_config.h"
+#include "base/Assert.hh"
 #include "base/CollectionStateStore.hh"
+#include "base/Types.hh"
+#include "random/RngParams.hh"
 #include "random/distributions/GenerateCanonical.hh"
+
+#include "DiagnosticRngEngine.hh"
+#include "SequenceEngine.hh"
+#include "celeritas_test.hh"
 
 using celeritas::CollectionStateStore;
 using celeritas::generate_canonical;

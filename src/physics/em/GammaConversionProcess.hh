@@ -7,10 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Process.hh"
+#include <memory>
 
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/Process.hh"
 
 namespace celeritas
 {
@@ -45,7 +46,7 @@ class GammaConversionProcess : public Process
     std::string label() const final;
 
   private:
-    SPConstParticles particles_;
+    SPConstParticles       particles_;
     ImportedProcessAdapter imported_;
 };
 

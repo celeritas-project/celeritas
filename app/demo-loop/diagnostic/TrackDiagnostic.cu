@@ -6,13 +6,14 @@
 //! \file TrackDiagnostic.cu
 //---------------------------------------------------------------------------//
 #include "TrackDiagnostic.hh"
-#include "base/Assert.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "sim/SimTrackView.hh"
-#include "physics/base/ModelData.hh"
 
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>
+
+#include "base/Assert.hh"
+#include "base/KernelParamCalculator.device.hh"
+#include "physics/base/ModelData.hh"
+#include "sim/SimTrackView.hh"
 
 using namespace celeritas;
 

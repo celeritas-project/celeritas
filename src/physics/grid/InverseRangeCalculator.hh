@@ -8,10 +8,12 @@
 #pragma once
 
 #include <cmath>
-#include "base/Collection.hh"
-#include "base/Quantity.hh"
+
 #include "base/Algorithms.hh"
 #include "base/Assert.hh"
+#include "base/Collection.hh"
+#include "base/Quantity.hh"
+
 #include "Interpolator.hh"
 #include "NonuniformGrid.hh"
 #include "UniformGrid.hh"

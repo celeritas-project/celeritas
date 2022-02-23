@@ -8,9 +8,10 @@
 #pragma once
 
 #include "base/Collection.hh"
-#include "physics/base/Units.hh"
 #include "physics/base/Types.hh"
+#include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
+
 #include "Types.hh"
 
 namespace celeritas

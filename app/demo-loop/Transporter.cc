@@ -23,6 +23,7 @@
 #include "sim/TrackInitUtils.hh"
 
 // Local includes for now
+#include "LDemoLauncher.hh"
 #include "diagnostic/EnergyDiagnostic.hh"
 #include "diagnostic/ParticleProcessDiagnostic.hh"
 #include "diagnostic/StepDiagnostic.hh"
@@ -31,7 +32,6 @@
 #include "generated/CleanupKernel.hh"
 #include "generated/PreStepKernel.hh"
 #include "generated/ProcessInteractionsKernel.hh"
-#include "LDemoLauncher.hh"
 
 using namespace demo_loop;
 

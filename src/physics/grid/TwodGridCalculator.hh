@@ -9,9 +9,9 @@
 
 #include "base/Array.hh"
 #include "base/Collection.hh"
+
 #include "TwodGridData.hh"
 #include "TwodSubgridCalculator.hh"
-
 #include "detail/FindInterp.hh"
 
 namespace celeritas

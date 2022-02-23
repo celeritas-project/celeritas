@@ -6,6 +6,7 @@
 //! \file Array.test.cc
 //---------------------------------------------------------------------------//
 #include "base/Array.hh"
+
 #include "base/EnumArray.hh"
 
 #include "celeritas_test.hh"

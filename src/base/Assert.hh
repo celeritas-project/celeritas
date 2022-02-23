@@ -12,16 +12,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
-#include "Macros.hh"
-
 #include <stdexcept>
 #include <string>
+
+#include "celeritas_config.h"
+
+#include "Macros.hh"
 #ifndef CELER_DEVICE_COMPILE
 #    include <sstream>
 #elif __HIP_DEVICE_COMPILE__
-#    include <hip/hip_runtime.h>
 #    include <assert.h>
+#    include <hip/hip_runtime.h>
 #endif
 
 //---------------------------------------------------------------------------//

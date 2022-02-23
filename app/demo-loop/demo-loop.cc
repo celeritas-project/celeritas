@@ -6,16 +6,16 @@
 //! \file demo-loop.cc
 //---------------------------------------------------------------------------//
 #include <cstddef>
-#include <iostream>
 #include <fstream>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "base/Stopwatch.hh"
 #include "celeritas_version.h"
+#include "base/Stopwatch.hh"
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
 #include "comm/DeviceIO.json.hh"
@@ -80,7 +80,7 @@ void run(std::istream& is)
     Stopwatch get_setup_time;
 
     // Load all the problem data and create transporter
-    auto transport_ptr = build_transporter(run_args);
+    auto         transport_ptr = build_transporter(run_args);
     const double setup_time    = get_setup_time();
 
     // Run all the primaries

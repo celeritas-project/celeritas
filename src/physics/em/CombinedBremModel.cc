@@ -7,7 +7,18 @@
 //---------------------------------------------------------------------------//
 #include "CombinedBremModel.hh"
 
+#include <memory>
+#include <utility>
+
+#include "base/Assert.hh"
+#include "base/Quantity.hh"
+#include "physics/base/Applicability.hh"
+#include "physics/em/RelativisticBremModel.hh"
+#include "physics/em/SeltzerBergerModel.hh"
+#include "physics/em/detail/CombinedBremData.hh"
 #include "physics/em/detail/PhysicsConstants.hh"
+#include "physics/em/detail/RelativisticBremData.hh"
+#include "physics/em/detail/SeltzerBergerData.hh"
 #include "physics/em/generated/CombinedBremInteract.hh"
 
 namespace celeritas

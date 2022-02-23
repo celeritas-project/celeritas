@@ -10,12 +10,12 @@
 #include "base/Macros.hh"
 #include "base/NumericLimits.hh"
 #include "base/Types.hh"
-#include "detail/FieldUtils.hh"
 #include "geometry/GeoTrackView.hh"
 #include "geometry/Types.hh"
 #include "physics/base/ParticleTrackView.hh"
 
 #include "Types.hh"
+#include "detail/FieldUtils.hh"
 
 namespace celeritas
 {

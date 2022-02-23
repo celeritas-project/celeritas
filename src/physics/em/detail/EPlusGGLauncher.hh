@@ -10,10 +10,11 @@
 #include "base/Assert.hh"
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "random/RngEngine.hh"
 #include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
+#include "random/RngEngine.hh"
+
 #include "EPlusGGInteractor.hh"
 
 namespace celeritas
@@ -33,8 +34,8 @@ struct EPlusGGLauncher
     {
     }
 
-    const EPlusGGData&          epgg;  //!< Shared data for interactor
-    const ModelInteractRef<M>&  model; //!< State data needed to interact
+    const EPlusGGData&         epgg;  //!< Shared data for interactor
+    const ModelInteractRef<M>& model; //!< State data needed to interact
 
     //! Create track views and launch interactor
     inline CELER_FUNCTION void operator()(ThreadId tid) const;

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <VecGeom/volumes/PlacedVolume.h>
+
 #include "base/Types.hh"
 
 namespace celeritas

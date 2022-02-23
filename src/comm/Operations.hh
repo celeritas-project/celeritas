@@ -16,11 +16,12 @@
 #    include <mpi.h>
 #endif
 
-#include "base/Span.hh"
 #include "base/Assert.hh"
 #include "base/Macros.hh"
-#include "detail/MpiTypes.hh"
+#include "base/Span.hh"
+
 #include "Communicator.hh"
+#include "detail/MpiTypes.hh"
 
 namespace celeritas
 {

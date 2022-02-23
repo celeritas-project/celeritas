@@ -12,9 +12,10 @@
 #include <limits>
 #include <utility>
 #include <vector>
-#include "random/distributions/GenerateCanonical.hh"
+
 #include "base/Algorithms.hh"
 #include "base/Span.hh"
+#include "random/distributions/GenerateCanonical.hh"
 
 namespace celeritas_test
 {

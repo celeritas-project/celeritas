@@ -8,6 +8,7 @@
 #include "ImageIO.hh"
 
 #include "base/Array.json.hh"
+
 #include "ImageStore.hh"
 
 namespace demo_rasterizer

@@ -9,7 +9,6 @@
 
 #ifdef __GNUG__
 #    include <cstdlib>
-#    include <memory>
 #    include <cxxabi.h>
 #endif // __GNUG__
 

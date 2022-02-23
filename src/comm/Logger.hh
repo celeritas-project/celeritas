@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
 #include <string>
+#include <utility>
+
 #include "LoggerTypes.hh"
 #include "detail/LoggerMessage.hh"
 

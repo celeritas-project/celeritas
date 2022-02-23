@@ -8,6 +8,7 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
+
 #include "VolumeInput.hh"
 
 namespace celeritas

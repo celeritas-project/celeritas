@@ -7,41 +7,34 @@
 //---------------------------------------------------------------------------//
 #include "PhysicsList.hh"
 
-#include "comm/Logger.hh"
-#include "base/Assert.hh"
-
-#include <G4ProcessManager.hh>
-#include <G4SystemOfUnits.hh>
-#include <G4PhysicsListHelper.hh>
-#include <G4Proton.hh>
-
 #include <G4ComptonScattering.hh>
 #include <G4KleinNishinaModel.hh>
-
-#include <G4PhotoElectricEffect.hh>
 #include <G4LivermorePhotoElectricModel.hh>
+#include <G4PhotoElectricEffect.hh>
+#include <G4PhysicsListHelper.hh>
+#include <G4ProcessManager.hh>
+#include <G4Proton.hh>
+#include <G4SystemOfUnits.hh>
+
+#include "base/Assert.hh"
+#include "comm/Logger.hh"
 
 // Not from Geant4
-#include "BremsstrahlungProcess.hh"
-
-#include <G4GammaConversion.hh>
 #include <G4BetheHeitlerModel.hh>
-
 #include <G4CoulombScattering.hh>
-#include <G4eCoulombScatteringModel.hh>
-
-#include <G4eIonisation.hh>
-#include <G4MollerBhabhaModel.hh>
-
-#include <G4RayleighScattering.hh>
+#include <G4GammaConversion.hh>
 #include <G4LivermoreRayleighModel.hh>
-
-#include <G4eplusAnnihilation.hh>
-#include <G4eeToTwoGammaModel.hh>
-
-#include <G4eMultipleScattering.hh>
+#include <G4MollerBhabhaModel.hh>
+#include <G4RayleighScattering.hh>
 #include <G4UrbanMscModel.hh>
 #include <G4WentzelVIModel.hh>
+#include <G4eCoulombScatteringModel.hh>
+#include <G4eIonisation.hh>
+#include <G4eMultipleScattering.hh>
+#include <G4eeToTwoGammaModel.hh>
+#include <G4eplusAnnihilation.hh>
+
+#include "BremsstrahlungProcess.hh"
 
 namespace geant_exporter
 {

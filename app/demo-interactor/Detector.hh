@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "DetectorData.hh"
 #include "base/Assert.hh"
 #include "base/OpaqueId.hh"
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "physics/grid/UniformGrid.hh"
+
+#include "DetectorData.hh"
 
 namespace demo_interactor
 {

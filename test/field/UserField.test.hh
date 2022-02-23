@@ -8,8 +8,10 @@
 #pragma once
 
 #include <vector>
+
 #include "base/Macros.hh"
 #include "base/Types.hh"
+
 #include "detail/FieldMapData.hh"
 
 namespace celeritas_test

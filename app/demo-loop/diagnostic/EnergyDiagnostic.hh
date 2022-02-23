@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Diagnostic.hh"
-
 #include <vector>
+
 #include "celeritas_config.h"
 #include "base/Atomics.hh"
 #include "base/CollectionAlgorithms.hh"
@@ -20,6 +19,8 @@
 #include "base/Types.hh"
 #include "physics/grid/NonuniformGrid.hh"
 #include "sim/TrackData.hh"
+
+#include "Diagnostic.hh"
 
 namespace demo_loop
 {

@@ -7,11 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "orange/universes/detail/SurfaceFunctors.hh"
 
-#include "celeritas_test.hh"
 #include "orange/Data.hh"
 #include "orange/construct/SurfaceInserter.hh"
 #include "orange/surfaces/SurfaceAction.hh"
 #include "orange/surfaces/Surfaces.hh"
+
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 

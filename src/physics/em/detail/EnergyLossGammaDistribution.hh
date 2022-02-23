@@ -8,11 +8,13 @@
 #pragma once
 
 #include <cmath>
+
 #include "base/Algorithms.hh"
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "random/distributions/GammaDistribution.hh"
+
 #include "../EnergyLossHelper.hh"
 
 namespace celeritas

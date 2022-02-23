@@ -11,11 +11,11 @@
 #include "base/CollectionStateStore.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
-#include "geometry/GeoParams.hh"
 #include "geometry/GeoData.hh"
+#include "geometry/GeoParams.hh"
 
-#include "celeritas_test.hh"
 #include "GeoTestBase.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 

@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "PhysicsTestBase.hh"
 
-#include "physics/material/MaterialParams.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
+#include "physics/material/MaterialParams.hh"
 
 using namespace celeritas;
 

@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "NumericLimits.test.hh"
 
+#include "base/device_runtime_api.h"
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.device.hh"
-#include "base/device_runtime_api.h"
 #include "base/NumericLimits.hh"
 #include "comm/Device.hh"
 

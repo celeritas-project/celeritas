@@ -22,8 +22,8 @@ TrackInitParams::TrackInitParams(const Input& inp)
 
     make_builder(&host_value_.primaries)
         .insert_back(inp.primaries.begin(), inp.primaries.end());
-    host_value_.capacity       = inp.capacity;
-    host_ref_                  = host_value_;
+    host_value_.capacity = inp.capacity;
+    host_ref_            = host_value_;
 
     CELER_ENSURE(host_value_);
     CELER_ENSURE(host_ref_);

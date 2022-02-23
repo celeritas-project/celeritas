@@ -10,6 +10,7 @@
 #include "base/Array.hh"
 #include "base/Macros.hh"
 #include "geometry/Types.hh"
+
 #include "Data.hh"
 #include "universes/SimpleUnitTracker.hh"
 #include "universes/detail/Types.hh"
@@ -50,7 +51,7 @@ class OrangeTrackView
     inline CELER_FUNCTION OrangeTrackView& operator=(const Initializer_t& init);
     // Initialize the state from a parent state and new direction
     inline CELER_FUNCTION OrangeTrackView&
-                          operator=(const DetailedInitializer& init);
+    operator=(const DetailedInitializer& init);
 
     //// ACCESSORS ////
 
@@ -192,7 +193,7 @@ OrangeTrackView::operator=(const Initializer_t& init)
     local_.volume  = {};
     local_.surface = {};
     this->clear_next_step();
-    dirty_         = true;
+    dirty_ = true;
 
     // Initialize logical state
     SimpleUnitTracker tracker(params_);
@@ -223,7 +224,7 @@ OrangeTrackView& OrangeTrackView::operator=(const DetailedInitializer& init)
 
     // Clear step and surface info
     this->clear_next_step();
-    dirty_     = true;
+    dirty_ = true;
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -270,7 +271,7 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     // Move to the inside of the surface
     local_.surface = next_surface_;
     this->clear_next_step();
-    dirty_         = true;
+    dirty_ = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -289,7 +290,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     axpy(dist, local_.dir, &local_.pos);
     next_step_ -= dist;
     local_.surface = {};
-    dirty_ = true;
+    dirty_         = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -304,7 +305,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(const Real3& pos)
     local_.pos     = pos;
     local_.surface = {};
     this->clear_next_step();
-    dirty_         = true;
+    dirty_ = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -343,7 +344,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(const Real3& newdir)
     CELER_EXPECT(is_soft_unit_vector(newdir));
     local_.dir = newdir;
     this->clear_next_step();
-    dirty_     = true;
+    dirty_ = true;
 }
 
 //---------------------------------------------------------------------------//

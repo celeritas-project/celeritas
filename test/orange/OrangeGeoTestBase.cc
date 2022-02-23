@@ -10,8 +10,8 @@
 #include <fstream>
 #include <sstream>
 #include <utility>
-#include "celeritas_config.h"
 
+#include "celeritas_config.h"
 #include "base/Join.hh"
 #include "orange/Types.hh"
 #include "orange/construct/SurfaceInput.hh"

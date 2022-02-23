@@ -10,8 +10,8 @@
 #include <thrust/device_vector.h>
 
 #include "base/device_runtime_api.h"
-#include "comm/Device.hh"
 #include "base/KernelParamCalculator.device.hh"
+#include "comm/Device.hh"
 #include "field/FieldDriver.hh"
 #include "field/FieldParamsData.hh"
 #include "field/FieldPropagator.hh"
@@ -187,7 +187,7 @@ FPTestOutput fp_test(FPTestInput input)
     // Temporary device data for kernel
     thrust::device_vector<GeoTrackInitializer> in_geo(input.init_geo.begin(),
                                                       input.init_geo.end());
-    thrust::device_vector<ParticleTrackState> in_track = input.init_track;
+    thrust::device_vector<ParticleTrackState>  in_track = input.init_track;
 
     // Output data for kernel
     thrust::device_vector<double> step(input.init_geo.size(), -1.0);
@@ -238,7 +238,7 @@ FPTestOutput bc_test(FPTestInput input)
     // Temporary device data for kernel
     thrust::device_vector<GeoTrackInitializer> in_geo(input.init_geo.begin(),
                                                       input.init_geo.end());
-    thrust::device_vector<ParticleTrackState> in_track = input.init_track;
+    thrust::device_vector<ParticleTrackState>  in_track = input.init_track;
 
     // Output data for kernel
     thrust::device_vector<double> step(input.init_geo.size(), -1.0);

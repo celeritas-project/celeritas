@@ -5,18 +5,19 @@
 //---------------------------------------------------------------------------//
 //! \file Particle.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/base/ParticleTrackView.hh"
+#include "Particle.test.hh"
 
 #include "celeritas_config.h"
-#include "celeritas_test.hh"
 #include "base/Array.hh"
 #include "base/CollectionStateStore.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleData.hh"
-#include "physics/base/Units.hh"
 #include "io/ImportData.hh"
 #include "io/RootImporter.hh"
-#include "Particle.test.hh"
+#include "physics/base/ParticleData.hh"
+#include "physics/base/ParticleParams.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/base/Units.hh"
+
+#include "celeritas_test.hh"
 
 using celeritas::ParticleId;
 using celeritas::ParticleParams;
@@ -45,7 +46,7 @@ class ParticleTest : public celeritas::Test
         namespace pdg = celeritas::pdg;
         using namespace celeritas::units;
 
-        constexpr auto zero   = celeritas::zero_quantity();
+        constexpr auto zero = celeritas::zero_quantity();
         constexpr auto stable
             = celeritas::ParticleRecord::stable_decay_constant();
 

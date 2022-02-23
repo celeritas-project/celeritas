@@ -10,6 +10,7 @@
 #include <nlohmann/json.hpp>
 
 #include "base/Assert.hh"
+
 #include "Environment.hh"
 
 namespace celeritas
@@ -37,7 +38,7 @@ void to_json(nlohmann::json& j, const Environment& value)
     for (const auto& kvref : value.ordered_environment())
     {
         const Environment::value_type& kv = kvref;
-        j[kv.first] = kv.second;
+        j[kv.first]                       = kv.second;
     }
 }
 

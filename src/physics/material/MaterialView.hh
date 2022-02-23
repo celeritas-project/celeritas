@@ -9,6 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+
 #include "ElementView.hh"
 #include "MaterialData.hh"
 #include "Types.hh"
@@ -92,8 +93,8 @@ class MaterialView
                           log_mean_excitation_energy() const;
 
   private:
-    const MaterialParamsRef&      params_;
-    MaterialId                    material_;
+    const MaterialParamsRef& params_;
+    MaterialId               material_;
 
     // HELPER FUNCTIONS
 

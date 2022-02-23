@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
-
 #include <vector>
+
+#include "base/Types.hh"
 
 namespace celeritas_test
 {

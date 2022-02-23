@@ -9,13 +9,14 @@
 
 #include "base/ArrayUtils.hh"
 #include "base/Assert.hh"
-#include "comm/Device.hh"
 #include "base/KernelParamCalculator.device.hh"
-#include "physics/base/ParticleTrackView.hh"
 #include "base/StackAllocator.hh"
+#include "comm/Device.hh"
+#include "physics/base/ParticleTrackView.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
-#include "random/RngEngine.hh"
 #include "physics/grid/XsCalculator.hh"
+#include "random/RngEngine.hh"
+
 #include "Detector.hh"
 #include "KernelUtils.hh"
 

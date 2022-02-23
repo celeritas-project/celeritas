@@ -13,6 +13,7 @@
 #include "physics/base/CutoffView.hh"
 #include "physics/base/Units.hh"
 #include "random/distributions/IsotropicDistribution.hh"
+
 #include "AtomicRelaxationData.hh"
 
 namespace celeritas

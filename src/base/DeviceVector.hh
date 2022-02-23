@@ -8,6 +8,7 @@
 #pragma once
 
 #include <type_traits>
+
 #include "DeviceAllocation.hh"
 #include "Span.hh"
 #include "detail/InitializedValue.hh"

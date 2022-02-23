@@ -7,14 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Diagnostic.hh"
-
 #include <string>
 #include <unordered_map>
+
 #include "base/CollectionBuilder.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/base/PhysicsTrackView.hh"
+
+#include "Diagnostic.hh"
 
 namespace demo_loop
 {

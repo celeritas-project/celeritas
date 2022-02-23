@@ -18,12 +18,13 @@
 #include "base/Range.hh"
 #include "orange/Data.hh"
 #include "orange/construct/SurfaceInserter.hh"
-#include "orange/surfaces/Surfaces.hh"
 #include "orange/surfaces/SurfaceIO.hh"
+#include "orange/surfaces/Surfaces.hh"
 #include "random/distributions/IsotropicDistribution.hh"
 #include "random/distributions/UniformBoxDistribution.hh"
-#include "celeritas_test.hh"
+
 #include "SurfaceAction.test.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

@@ -8,6 +8,7 @@
 #include "physics/grid/InverseRangeCalculator.hh"
 
 #include "base/SoftEqual.hh"
+
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
 

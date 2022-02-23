@@ -9,8 +9,10 @@
 
 #include <memory>
 #include <vector>
-#include "physics/grid/XsCalculator.hh"
+
 #include "physics/grid/ValueGridInserter.hh"
+#include "physics/grid/XsCalculator.hh"
+
 #include "celeritas_test.hh"
 
 using namespace celeritas;

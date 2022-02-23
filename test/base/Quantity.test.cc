@@ -8,7 +8,9 @@
 #include "base/Quantity.hh"
 
 #include <type_traits>
+
 #include "base/Constants.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::native_value_from;

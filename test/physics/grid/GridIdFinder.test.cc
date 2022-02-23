@@ -9,6 +9,7 @@
 
 #include "base/OpaqueId.hh"
 #include "physics/base/Units.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::GridIdFinder;

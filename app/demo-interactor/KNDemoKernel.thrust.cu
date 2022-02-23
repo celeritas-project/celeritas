@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "KNDemoKernel.hh"
 
-#include "base/device_runtime_api.h"
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>
+
+#include "base/device_runtime_api.h"
 
 using namespace celeritas;
 

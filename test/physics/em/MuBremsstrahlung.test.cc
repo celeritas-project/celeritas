@@ -5,16 +5,16 @@
 //---------------------------------------------------------------------------//
 //! \file MuBremsstrahlungInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/MuBremsstrahlungInteractor.hh"
-#include "physics/material/MaterialView.hh"
-#include "physics/material/MaterialTrackView.hh"
-
-#include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "physics/base/Units.hh"
-#include "../InteractorHostTestBase.hh"
+#include "physics/em/detail/MuBremsstrahlungInteractor.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "physics/material/MaterialView.hh"
+
 #include "../InteractionIO.hh"
+#include "../InteractorHostTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::detail::MuBremsstrahlungInteractor;
 namespace constants = celeritas::constants;
@@ -53,10 +53,10 @@ class MuBremsstrahlungInteractorTest
                                     MevMass{0.5109989461},
                                     ElementaryCharge{-1},
                                     stable}});
-        const auto& params    = this->particle_params();
-        data_.mu_minus_id     = params->find(pdg::mu_minus());
-        data_.mu_plus_id      = params->find(pdg::mu_plus());
-        data_.gamma_id        = params->find(pdg::gamma());
+        const auto& params  = this->particle_params();
+        data_.mu_minus_id   = params->find(pdg::mu_minus());
+        data_.mu_plus_id    = params->find(pdg::mu_plus());
+        data_.gamma_id      = params->find(pdg::gamma());
         data_.electron_mass = params->get(params->find(pdg::electron())).mass();
 
         MaterialParams::Input inp;

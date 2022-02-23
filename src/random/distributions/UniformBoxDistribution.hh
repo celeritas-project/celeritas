@@ -8,9 +8,11 @@
 #pragma once
 
 #include <cmath>
-#include "base/Constants.hh"
+
 #include "base/Array.hh"
+#include "base/Constants.hh"
 #include "base/Types.hh"
+
 #include "UniformRealDistribution.hh"
 
 namespace celeritas

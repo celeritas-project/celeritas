@@ -6,21 +6,21 @@
 //! \file RungeKutta.test.cu
 //---------------------------------------------------------------------------//
 #include "RungeKutta.test.hh"
-#include "detail/MagTestTraits.hh"
 
-#include "base/KernelParamCalculator.device.hh"
 #include <thrust/device_vector.h>
 
-#include "field/UniformMagField.hh"
+#include "base/Constants.hh"
+#include "base/KernelParamCalculator.device.hh"
+#include "base/Range.hh"
+#include "base/Types.hh"
+#include "base/Units.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/RungeKuttaStepper.hh"
 #include "field/Types.hh"
-
-#include "base/Range.hh"
-#include "base/Types.hh"
-#include "base/Constants.hh"
-#include "base/Units.hh"
+#include "field/UniformMagField.hh"
 #include "physics/base/Units.hh"
+
+#include "detail/MagTestTraits.hh"
 
 using celeritas::detail::truncation_error;
 using thrust::raw_pointer_cast;

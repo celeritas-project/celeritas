@@ -9,6 +9,7 @@
 
 #include <cstdio>
 #include <cstring>
+
 #include "base/Assert.hh"
 
 namespace celeritas
