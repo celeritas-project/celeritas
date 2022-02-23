@@ -18,41 +18,40 @@
 #    include <G4RunManagerFactory.hh>
 #endif
 
-#include <G4UImanager.hh>
 #include <FTFP_BERT.hh>
-#include <G4VModularPhysicsList.hh>
 #include <G4GenericPhysicsList.hh>
-#include <G4ParticleTable.hh>
 #include <G4Material.hh>
 #include <G4MaterialTable.hh>
-#include <G4SystemOfUnits.hh>
-#include <G4Transportation.hh>
+#include <G4ParticleTable.hh>
 #include <G4ProductionCutsTable.hh>
 #include <G4RToEConvForElectron.hh>
 #include <G4RToEConvForGamma.hh>
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
-
+#include <G4SystemOfUnits.hh>
+#include <G4Transportation.hh>
+#include <G4UImanager.hh>
+#include <G4VModularPhysicsList.hh>
+#include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
-#include <TBranch.h>
 
 #include "base/Range.hh"
 #include "comm/Communicator.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
+#include "io/ImportData.hh"
 #include "io/ImportParticle.hh"
 #include "io/ImportPhysicsTable.hh"
 #include "io/ImportPhysicsVector.hh"
-#include "io/ImportData.hh"
 #include "physics/base/PDGNumber.hh"
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
-#include "PhysicsList.hh"
-#include "ImportProcessConverter.hh"
-#include "GeantLoggerAdapter.hh"
 #include "GeantExceptionHandler.hh"
+#include "GeantLoggerAdapter.hh"
+#include "ImportProcessConverter.hh"
+#include "PhysicsList.hh"
 
 using namespace geant_exporter;
 namespace celer_pdg = celeritas::pdg;

@@ -8,6 +8,7 @@
 #include "Communicator.hh"
 
 #include "base/Assert.hh"
+
 #include "ScopedMpiInit.hh"
 
 namespace celeritas

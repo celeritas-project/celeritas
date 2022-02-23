@@ -10,8 +10,8 @@
 #include "base/Algorithms.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Copier.hh"
-#include "sim/TrackInitData.hh"
 #include "sim/TrackData.hh"
+#include "sim/TrackInitData.hh"
 #include "sim/detail/InitializeTracks.hh"
 
 namespace celeritas

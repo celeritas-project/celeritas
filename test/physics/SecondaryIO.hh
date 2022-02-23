@@ -8,6 +8,7 @@
 #pragma once
 
 #include <iosfwd>
+
 #include "physics/base/Secondary.hh"
 
 namespace celeritas

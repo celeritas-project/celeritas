@@ -8,6 +8,7 @@
 #include "random/distributions/ReciprocalDistribution.hh"
 
 #include "base/Range.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::ReciprocalDistribution;

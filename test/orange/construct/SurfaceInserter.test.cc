@@ -10,12 +10,13 @@
 #include <fstream>
 
 #include "celeritas_config.h"
-#include "celeritas_test.hh"
 #include "orange/construct/SurfaceInput.hh"
-#include "orange/surfaces/PlaneAligned.hh"
 #include "orange/surfaces/CylCentered.hh"
 #include "orange/surfaces/GeneralQuadric.hh"
+#include "orange/surfaces/PlaneAligned.hh"
 #include "orange/surfaces/Sphere.hh"
+
+#include "celeritas_test.hh"
 
 #if CELERITAS_USE_JSON
 #    include "orange/construct/SurfaceInputIO.json.hh"

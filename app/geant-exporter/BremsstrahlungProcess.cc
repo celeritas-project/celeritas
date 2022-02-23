@@ -7,14 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "BremsstrahlungProcess.hh"
 
-#include <G4SystemOfUnits.hh>
-#include <G4ParticleDefinition.hh>
-#include <G4Gamma.hh>
 #include <G4Electron.hh>
+#include <G4EmParameters.hh>
+#include <G4Gamma.hh>
+#include <G4ParticleDefinition.hh>
 #include <G4Positron.hh>
 #include <G4SeltzerBergerModel.hh>
+#include <G4SystemOfUnits.hh>
 #include <G4eBremsstrahlungRelModel.hh>
-#include <G4EmParameters.hh>
 
 namespace geant_exporter
 {

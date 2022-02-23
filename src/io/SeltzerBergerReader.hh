@@ -8,7 +8,9 @@
 #pragma once
 
 #include <string>
+
 #include "base/Types.hh"
+
 #include "ImportSBTable.hh"
 
 namespace celeritas

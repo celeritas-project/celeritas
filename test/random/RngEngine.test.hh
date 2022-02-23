@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include <vector>
+
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"

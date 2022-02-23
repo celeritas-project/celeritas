@@ -8,12 +8,14 @@
 #include "BremsstrahlungProcess.hh"
 
 #include <utility>
+
 #include "base/Assert.hh"
 #include "io/SeltzerBergerReader.hh"
 #include "physics/base/PDGNumber.hh"
-#include "SeltzerBergerModel.hh"
-#include "RelativisticBremModel.hh"
+
 #include "CombinedBremModel.hh"
+#include "RelativisticBremModel.hh"
+#include "SeltzerBergerModel.hh"
 
 namespace celeritas
 {

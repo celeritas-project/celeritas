@@ -16,6 +16,7 @@
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
 #include "random/RngEngine.hh"
+
 #include "KleinNishinaInteractor.hh"
 
 namespace celeritas

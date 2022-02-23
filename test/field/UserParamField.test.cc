@@ -5,11 +5,11 @@
 //---------------------------------------------------------------------------//
 //! \file UserParamField.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 
 #include "UserField.test.hh"
+#include "celeritas_test.hh"
 #include "detail/CMSParameterizedField.hh"
 
 using celeritas::detail::CMSParameterizedField;

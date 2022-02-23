@@ -5,11 +5,11 @@
 //---------------------------------------------------------------------------//
 //! \file SurfaceAction.test.cu
 //---------------------------------------------------------------------------//
-#include "base/device_runtime_api.h"
 #include "SurfaceAction.test.hh"
 
-#include "comm/Device.hh"
+#include "base/device_runtime_api.h"
 #include "base/KernelParamCalculator.device.hh"
+#include "comm/Device.hh"
 
 namespace celeritas_test
 {

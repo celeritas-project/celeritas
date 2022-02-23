@@ -8,12 +8,14 @@
 #pragma once
 
 #include <vector>
+
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "field/FieldParamsData.hh"
 #include "geometry/GeoData.hh"
 #include "geometry/Types.hh"
 #include "physics/base/ParticleData.hh"
+
 #include "FieldTestParams.hh"
 
 namespace celeritas_test

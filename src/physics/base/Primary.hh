@@ -8,8 +8,9 @@
 #pragma once
 
 #include "base/Types.hh"
-#include "ParticleData.hh"
 #include "sim/Types.hh"
+
+#include "ParticleData.hh"
 
 namespace celeritas
 {

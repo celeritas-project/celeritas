@@ -14,6 +14,7 @@
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "sim/Action.hh"
+
 #include "Secondary.hh"
 
 namespace celeritas

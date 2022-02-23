@@ -9,10 +9,12 @@
 
 #include <algorithm>
 #include <cmath>
+
 #include "base/CollectionBuilder.hh"
 #include "base/Range.hh"
-#include "celeritas_test.hh"
+
 #include "CalculatorTestBase.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 

@@ -10,8 +10,9 @@
 #include <fstream>
 
 #include "celeritas_config.h"
-#include "celeritas_test.hh"
 #include "orange/construct/VolumeInput.hh"
+
+#include "celeritas_test.hh"
 
 #if CELERITAS_USE_JSON
 #    include "orange/construct/VolumeInputIO.json.hh"

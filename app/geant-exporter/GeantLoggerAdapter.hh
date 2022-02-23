@@ -8,6 +8,7 @@
 #pragma once
 
 #include <G4coutDestination.hh>
+
 #include "comm/LoggerTypes.hh"
 
 namespace celeritas

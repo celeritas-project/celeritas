@@ -9,14 +9,15 @@
 
 #include "base/Assert.hh"
 #include "base/Types.hh"
-#include "random/RngEngine.hh"
 #include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "physics/material/Types.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "physics/material/ElementView.hh"
-#include "physics/material/ElementSelector.hh"
 #include "physics/base/PhysicsTrackView.hh"
+#include "physics/material/ElementSelector.hh"
+#include "physics/material/ElementView.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "physics/material/Types.hh"
+#include "random/RngEngine.hh"
+
 #include "RayleighInteractor.hh"
 
 namespace celeritas

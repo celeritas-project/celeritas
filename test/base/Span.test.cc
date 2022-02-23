@@ -10,7 +10,9 @@
 #include <iomanip>
 #include <sstream>
 #include <type_traits>
+
 #include "base/SpanIO.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::Span;

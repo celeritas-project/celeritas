@@ -8,6 +8,7 @@
 #include "ScopedStreamRedirect.hh"
 
 #include <cctype>
+
 #include "base/Assert.hh"
 
 namespace celeritas

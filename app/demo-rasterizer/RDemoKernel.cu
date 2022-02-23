@@ -7,11 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "RDemoKernel.hh"
 
+#include <cmath>
+
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.device.hh"
 #include "geometry/GeoTrackView.hh"
+
 #include "ImageTrackView.hh"
-#include <cmath>
 
 using namespace celeritas;
 using namespace demo_rasterizer;

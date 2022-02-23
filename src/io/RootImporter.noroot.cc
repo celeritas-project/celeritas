@@ -8,6 +8,7 @@
 #include "RootImporter.hh"
 
 #include "base/Assert.hh"
+
 #include "ImportData.hh"
 
 // We're not linking against ROOT: declare a TFile so that its null-op

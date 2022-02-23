@@ -5,8 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocator.test.hh
 //---------------------------------------------------------------------------//
-#include "base/StackAllocatorData.hh"
 #include "base/Macros.hh"
+#include "base/StackAllocatorData.hh"
 
 namespace celeritas_test
 {

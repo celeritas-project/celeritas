@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "PhysicsData.hh"
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
@@ -18,6 +17,8 @@
 #include "physics/grid/XsCalculator.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
+
+#include "PhysicsData.hh"
 #include "Types.hh"
 
 namespace celeritas

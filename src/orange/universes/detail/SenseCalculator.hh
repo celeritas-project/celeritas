@@ -13,6 +13,7 @@
 #include "orange/surfaces/SurfaceAction.hh"
 #include "orange/surfaces/Surfaces.hh"
 #include "orange/universes/VolumeView.hh"
+
 #include "SurfaceFunctors.hh"
 
 namespace celeritas

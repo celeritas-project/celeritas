@@ -17,11 +17,12 @@
 #include "base/Stopwatch.hh"
 
 // Test includes
-#include "celeritas_test.hh"
 #include "orange/OrangeGeoTestBase.hh"
 #include "random/distributions/IsotropicDistribution.hh"
 #include "random/distributions/UniformBoxDistribution.hh"
+
 #include "SimpleUnitTracker.test.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

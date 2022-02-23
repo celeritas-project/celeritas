@@ -7,13 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Diagnostic.hh"
-
 #include "celeritas_config.h"
 #include "base/Macros.hh"
 #include "physics/base/ModelData.hh"
 #include "sim/SimTrackView.hh"
 #include "sim/TrackData.hh"
+
+#include "Diagnostic.hh"
 
 namespace demo_loop
 {

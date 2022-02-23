@@ -6,16 +6,18 @@
 //! \file Collection.test.cc
 //---------------------------------------------------------------------------//
 #include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/CollectionMirror.hh"
-#include "base/CollectionAlgorithms.hh"
 
 #include <cstdint>
 #include <type_traits>
-#include "celeritas_test.hh"
-#include "Collection.test.hh"
+
+#include "base/CollectionAlgorithms.hh"
+#include "base/CollectionBuilder.hh"
+#include "base/CollectionMirror.hh"
 #include "base/DeviceVector.hh"
 #include "comm/Device.hh"
+
+#include "Collection.test.hh"
+#include "celeritas_test.hh"
 
 using celeritas::AllItems;
 using celeritas::Collection;

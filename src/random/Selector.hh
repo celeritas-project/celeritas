@@ -8,9 +8,10 @@
 #pragma once
 
 #include <type_traits>
+
 #include "base/Range.hh"
-#include "random/distributions/GenerateCanonical.hh"
 #include "base/SoftEqual.hh"
+#include "random/distributions/GenerateCanonical.hh"
 
 namespace celeritas
 {

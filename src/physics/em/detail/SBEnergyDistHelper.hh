@@ -14,6 +14,7 @@
 #include "physics/grid/TwodGridCalculator.hh"
 #include "physics/grid/TwodSubgridCalculator.hh"
 #include "random/distributions/ReciprocalDistribution.hh"
+
 #include "SeltzerBergerData.hh"
 
 namespace celeritas

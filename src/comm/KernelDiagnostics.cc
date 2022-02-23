@@ -8,6 +8,7 @@
 #include "KernelDiagnostics.hh"
 
 #include <iostream>
+
 #include "base/Macros.hh"
 #include "base/Range.hh"
 #include "comm/Device.hh"

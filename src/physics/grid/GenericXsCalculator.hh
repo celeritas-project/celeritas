@@ -8,9 +8,11 @@
 #pragma once
 
 #include <cmath>
+
 #include "base/Collection.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+
 #include "Interpolator.hh"
 #include "NonuniformGrid.hh"
 #include "XsGridData.hh"

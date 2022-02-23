@@ -8,8 +8,9 @@
 #pragma once
 
 #include <cstddef>
-#include <iostream>
 #include <functional>
+#include <iostream>
+
 #include "base/Assert.hh"
 
 namespace celeritas

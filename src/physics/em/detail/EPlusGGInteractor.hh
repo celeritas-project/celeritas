@@ -9,8 +9,8 @@
 
 #include "base/ArrayUtils.hh"
 #include "base/Macros.hh"
-#include "base/Types.hh"
 #include "base/StackAllocator.hh"
+#include "base/Types.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Secondary.hh"
@@ -18,6 +18,7 @@
 #include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/IsotropicDistribution.hh"
 #include "random/distributions/ReciprocalDistribution.hh"
+
 #include "EPlusGGData.hh"
 
 namespace celeritas

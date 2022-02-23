@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Model.hh"
-
 #include "base/CollectionMirror.hh"
+#include "physics/base/Model.hh"
 #include "physics/material/MaterialParams.hh"
+
 #include "detail/RelativisticBremData.hh"
 
 namespace celeritas

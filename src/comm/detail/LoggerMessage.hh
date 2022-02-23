@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <utility>
+
 #include "../LoggerTypes.hh"
 
 namespace celeritas

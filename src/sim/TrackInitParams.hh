@@ -8,8 +8,10 @@
 #pragma once
 
 #include <vector>
+
 #include "base/Types.hh"
 #include "physics/base/Primary.hh"
+
 #include "TrackInitData.hh"
 
 namespace celeritas

@@ -5,9 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file RngEngine.test.cc
 //---------------------------------------------------------------------------//
-#include "random/RngParams.hh"
-#include "DiagnosticRngEngine.hh"
-#include "SequenceEngine.hh"
+#include "RngEngine.test.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -24,7 +22,6 @@
 #include "DiagnosticRngEngine.hh"
 #include "SequenceEngine.hh"
 #include "celeritas_test.hh"
-#include "RngEngine.test.hh"
 
 using celeritas::CollectionStateStore;
 using celeritas::generate_canonical;

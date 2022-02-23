@@ -9,6 +9,7 @@
 
 #include <cfloat>
 #include <climits>
+
 #include "Macros.hh"
 
 namespace celeritas

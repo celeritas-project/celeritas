@@ -10,12 +10,13 @@
 #include <iomanip>
 #include <thread>
 
-#include "celeritas_test.hh"
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
 #include "comm/Communicator.hh"
 #include "comm/Environment.hh"
 #include "comm/ScopedMpiInit.hh"
+
+#include "celeritas_test.hh"
 
 using celeritas::Communicator;
 using celeritas::Logger;

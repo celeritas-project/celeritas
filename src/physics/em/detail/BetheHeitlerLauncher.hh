@@ -9,14 +9,15 @@
 
 #include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "random/RngEngine.hh"
 #include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
-#include "base/StackAllocator.hh"
 #include "physics/material/MaterialTrackView.hh"
+#include "random/RngEngine.hh"
+
 #include "BetheHeitlerInteractor.hh"
 
 namespace celeritas

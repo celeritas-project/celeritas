@@ -10,6 +10,7 @@
 #include "base/Assert.hh"
 #include "base/OpaqueId.hh"
 #include "random/distributions/GenerateCanonical.hh"
+
 #include "RngData.hh"
 
 namespace celeritas

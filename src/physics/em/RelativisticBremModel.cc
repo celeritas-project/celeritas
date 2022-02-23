@@ -9,12 +9,11 @@
 
 #include <cmath>
 
-#include "base/Assert.hh"
 #include "base/Algorithms.hh"
-#include "base/Constants.hh"
-
-#include "base/Range.hh"
+#include "base/Assert.hh"
 #include "base/CollectionBuilder.hh"
+#include "base/Constants.hh"
+#include "base/Range.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/em/detail/PhysicsConstants.hh"

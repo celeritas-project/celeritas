@@ -5,13 +5,12 @@
 //---------------------------------------------------------------------------//
 //! \file Orange.test.cc
 //---------------------------------------------------------------------------//
+#include "base/Constants.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
 
-#include "base/Constants.hh"
-
-#include "celeritas_test.hh"
 #include "OrangeGeoTestBase.hh"
+#include "celeritas_test.hh"
 // #include "Orange.test.hh"
 
 using namespace celeritas;

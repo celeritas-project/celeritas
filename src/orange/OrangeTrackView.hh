@@ -10,6 +10,7 @@
 #include "base/Array.hh"
 #include "base/Macros.hh"
 #include "geometry/Types.hh"
+
 #include "Data.hh"
 #include "universes/SimpleUnitTracker.hh"
 #include "universes/detail/Types.hh"

@@ -8,7 +8,9 @@
 #include "random/distributions/RadialDistribution.hh"
 
 #include <random>
+
 #include "base/Range.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::RadialDistribution;

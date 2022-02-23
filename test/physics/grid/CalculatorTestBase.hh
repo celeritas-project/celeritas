@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "gtest/Test.hh"
 #include "base/Collection.hh"
 #include "physics/grid/XsGridData.hh"
+
+#include "gtest/Test.hh"
 
 namespace celeritas_test
 {

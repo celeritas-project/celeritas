@@ -11,10 +11,12 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #include "base/CollectionMirror.hh"
+
+#include "PDGNumber.hh"
 #include "ParticleData.hh"
 #include "ParticleView.hh"
-#include "PDGNumber.hh"
 
 namespace celeritas
 {

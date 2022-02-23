@@ -8,6 +8,7 @@
 #pragma once
 
 #include "geometry/GeoData.hh"
+
 #include "ImageData.hh"
 
 namespace demo_rasterizer

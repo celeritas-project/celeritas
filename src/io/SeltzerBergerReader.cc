@@ -8,6 +8,7 @@
 #include "SeltzerBergerReader.hh"
 
 #include <fstream>
+
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "comm/Environment.hh"

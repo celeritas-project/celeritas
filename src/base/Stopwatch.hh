@@ -8,6 +8,7 @@
 #pragma once
 
 #include <chrono>
+
 #include "Types.hh"
 
 namespace celeritas

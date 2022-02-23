@@ -9,12 +9,12 @@
 
 #include "base/Array.hh"
 #include "base/ArrayUtils.hh"
+#include "base/Macros.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-#include "base/Macros.hh"
-#include "detail/FieldUtils.hh"
 
 #include "Types.hh"
+#include "detail/FieldUtils.hh"
 
 namespace celeritas
 {

@@ -10,14 +10,15 @@
 #include "base/Array.hh"
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
-#include "Types.hh"
 #include "physics/base/Units.hh"
+#include "physics/em/FluctuationData.hh"
 #include "physics/em/detail/EPlusGGInteractor.hh"
 #include "physics/em/detail/LivermorePEMicroXsCalculator.hh"
-#include "physics/em/FluctuationData.hh"
 #include "physics/grid/ValueGridData.hh"
 #include "physics/grid/XsGridData.hh"
 #include "physics/material/Types.hh"
+
+#include "Types.hh"
 
 namespace celeritas
 {

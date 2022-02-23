@@ -8,18 +8,18 @@
 #include "LDemoIO.hh"
 
 #include <algorithm>
+
 #include "comm/Logger.hh"
 #include "geometry/GeoMaterialParams.hh"
 #include "geometry/GeoParams.hh"
 #include "io/EventReader.hh"
 #include "io/ImportData.hh"
-#include "io/EventReader.hh"
 #include "io/RootImporter.hh"
 #include "physics/base/CutoffParams.hh"
+#include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/base/ModelData.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
-#include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/em/BremsstrahlungProcess.hh"
 #include "physics/em/ComptonProcess.hh"
 #include "physics/em/EIonizationProcess.hh"

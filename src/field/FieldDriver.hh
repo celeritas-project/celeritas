@@ -14,9 +14,9 @@
 #include "base/NumericLimits.hh"
 #include "base/Types.hh"
 
-#include "RungeKuttaStepper.hh"
-#include "MagFieldEquation.hh"
 #include "FieldParamsData.hh"
+#include "MagFieldEquation.hh"
+#include "RungeKuttaStepper.hh"
 #include "Types.hh"
 
 namespace celeritas

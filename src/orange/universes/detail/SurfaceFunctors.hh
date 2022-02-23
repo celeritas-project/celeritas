@@ -10,6 +10,7 @@
 #include "base/Algorithms.hh"
 #include "base/Array.hh"
 #include "base/Assert.hh"
+
 #include "Types.hh"
 
 namespace celeritas

@@ -7,13 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Model.hh"
-
 #include <functional>
+
 #include "base/CollectionMirror.hh"
 #include "io/ImportLivermorePE.hh"
+#include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
+
 #include "detail/LivermorePEData.hh"
 
 namespace celeritas

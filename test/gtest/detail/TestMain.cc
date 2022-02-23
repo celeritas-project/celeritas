@@ -8,6 +8,7 @@
 #include "TestMain.hh"
 
 #include <stdexcept>
+
 #include "celeritas_config.h"
 #include "celeritas_version.h"
 #include "base/ColorUtils.hh"
@@ -18,6 +19,7 @@
 #include "comm/Logger.hh"
 #include "comm/Operations.hh"
 #include "comm/ScopedMpiInit.hh"
+
 #include "NonMasterResultPrinter.hh"
 #include "ParallelHandler.hh"
 

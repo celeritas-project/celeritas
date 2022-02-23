@@ -8,9 +8,8 @@
 #include "CurandPerformance.test.hh"
 
 #include "base/Range.hh"
-#include "random/RngData.hh"
-
 #include "random/DiagnosticRngEngine.hh"
+#include "random/RngData.hh"
 #include "random/distributions/GenerateCanonical.hh"
 
 #include "celeritas_test.hh"

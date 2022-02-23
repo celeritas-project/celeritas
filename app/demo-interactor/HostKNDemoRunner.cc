@@ -9,19 +9,21 @@
 
 #include <iostream>
 #include <random>
+
 #include "base/ArrayUtils.hh"
 #include "base/CollectionStateStore.hh"
 #include "base/Range.hh"
 #include "base/StackAllocator.hh"
 #include "base/Stopwatch.hh"
-#include "random/distributions/ExponentialDistribution.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Units.hh"
 #include "physics/base/Secondary.hh"
+#include "physics/base/Units.hh"
 #include "physics/em/detail/KleinNishinaInteractor.hh"
 #include "physics/grid/XsCalculator.hh"
-#include "KernelUtils.hh"
+#include "random/distributions/ExponentialDistribution.hh"
+
 #include "Detector.hh"
+#include "KernelUtils.hh"
 
 using namespace celeritas;
 using celeritas::detail::KleinNishinaInteractor;

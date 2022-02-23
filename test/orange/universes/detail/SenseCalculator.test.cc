@@ -11,8 +11,9 @@
 #include "orange/universes/VolumeView.hh"
 
 // Test includes
-#include "celeritas_test.hh"
 #include "orange/OrangeGeoTestBase.hh"
+
+#include "celeritas_test.hh"
 
 using celeritas::detail::OnFace;
 using celeritas::detail::SenseCalculator;

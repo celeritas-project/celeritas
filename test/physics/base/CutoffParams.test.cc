@@ -6,18 +6,19 @@
 //! \file CutoffParams.test.cc
 //---------------------------------------------------------------------------//
 #include "physics/base/CutoffParams.hh"
+
+#include "base/Range.hh"
+#include "io/ImportData.hh"
+#include "io/RootImporter.hh"
 #include "physics/base/CutoffView.hh"
-#include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleData.hh"
+#include "physics/base/ParticleParams.hh"
 #include "physics/base/Units.hh"
-#include "physics/material/MaterialParams.hh"
-#include "physics/material/MaterialData.hh"
 #include "physics/material/ElementView.hh"
+#include "physics/material/MaterialData.hh"
+#include "physics/material/MaterialParams.hh"
 #include "physics/material/Types.hh"
 #include "physics/material/detail/Utils.hh"
-#include "base/Range.hh"
-#include "io/RootImporter.hh"
-#include "io/ImportData.hh"
 
 #include "celeritas_test.hh"
 

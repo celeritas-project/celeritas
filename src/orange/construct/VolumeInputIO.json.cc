@@ -9,9 +9,11 @@
 
 #include <string>
 #include <vector>
+
 #include "base/Assert.hh"
 #include "base/OpaqueId.hh"
 #include "orange/Types.hh"
+
 #include "VolumeInput.hh"
 
 namespace celeritas

@@ -10,8 +10,8 @@
 #include "base/Array.hh"
 #include "base/OpaqueId.hh"
 #include "base/StackAllocatorData.hh"
-#include "physics/grid/UniformGridData.hh"
 #include "physics/base/Units.hh"
+#include "physics/grid/UniformGridData.hh"
 
 #ifndef CELER_DEVICE_COMPILE
 #    include "base/CollectionBuilder.hh"

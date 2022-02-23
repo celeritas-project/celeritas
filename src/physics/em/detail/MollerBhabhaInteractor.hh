@@ -9,24 +9,24 @@
 
 #include <cmath>
 
-#include "base/Constants.hh"
 #include "base/Algorithms.hh"
 #include "base/ArrayUtils.hh"
+#include "base/Constants.hh"
 #include "base/Macros.hh"
 #include "base/Range.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
-
+#include "physics/base/CutoffView.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "physics/base/CutoffView.hh"
-#include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "random/distributions/UniformRealDistribution.hh"
 #include "random/distributions/BernoulliDistribution.hh"
+#include "random/distributions/UniformRealDistribution.hh"
+
+#include "BhabhaEnergyDistribution.hh"
 #include "MollerBhabhaData.hh"
 #include "MollerEnergyDistribution.hh"
-#include "BhabhaEnergyDistribution.hh"
 
 namespace celeritas
 {

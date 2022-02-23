@@ -10,8 +10,9 @@
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "geometry/Types.hh"
-#include "orange/Types.hh"
 #include "orange/Data.hh"
+#include "orange/Types.hh"
+
 #include "SurfaceInput.hh"
 
 namespace celeritas

@@ -5,24 +5,25 @@
 //---------------------------------------------------------------------------//
 //! \file TrackInit.test.cc
 //---------------------------------------------------------------------------//
-#include "sim/TrackInitUtils.hh"
+#include "TrackInit.test.hh"
 
 #include <algorithm>
 #include <numeric>
-#include "celeritas_test.hh"
+
 #include "base/CollectionStateStore.hh"
-#include "geometry/GeoParams.hh"
 #include "geometry/GeoMaterialParams.hh"
+#include "geometry/GeoParams.hh"
+#include "geometry/GeoTestBase.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "random/RngParams.hh"
-#include "sim/TrackInitParams.hh"
 #include "sim/TrackData.hh"
+#include "sim/TrackInitParams.hh"
+#include "sim/TrackInitUtils.hh"
 
-#include "geometry/GeoTestBase.hh"
-#include "TrackInit.test.hh"
+#include "celeritas_test.hh"
 
 namespace celeritas_test
 {

@@ -10,6 +10,7 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+
 #include "Array.hh"
 #include "SpanIO.hh"
 

@@ -8,9 +8,11 @@
 #include "random/distributions/ExponentialDistribution.hh"
 
 #include <random>
+
 #include "base/Range.hh"
-#include "celeritas_test.hh"
+
 #include "../DiagnosticRngEngine.hh"
+#include "celeritas_test.hh"
 
 using celeritas::ExponentialDistribution;
 

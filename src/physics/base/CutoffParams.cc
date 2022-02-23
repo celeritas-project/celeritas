@@ -8,7 +8,7 @@
 #include "CutoffParams.hh"
 
 #include <utility>
-#include "ParticleParams.hh"
+
 #include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
 #include "base/Quantity.hh"
@@ -18,6 +18,8 @@
 #include "physics/base/CutoffData.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/MaterialParams.hh"
+
+#include "ParticleParams.hh"
 
 namespace celeritas
 {

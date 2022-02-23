@@ -9,6 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+
 #include "ElementView.hh"
 #include "MaterialData.hh"
 #include "Types.hh"

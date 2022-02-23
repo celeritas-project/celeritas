@@ -11,8 +11,9 @@
 #include "physics/base/Units.hh"
 #include "physics/grid/TwodSubgridCalculator.hh"
 #include "random/distributions/BernoulliDistribution.hh"
-#include "SeltzerBergerData.hh"
+
 #include "SBEnergyDistHelper.hh"
+#include "SeltzerBergerData.hh"
 
 namespace celeritas
 {

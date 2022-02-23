@@ -5,13 +5,13 @@
 //---------------------------------------------------------------------------//
 //! \file Vecgeom.test.cu
 //---------------------------------------------------------------------------//
-#include "vecgeom/VecgeomTrackView.hh"
+#include "Vecgeom.test.hh"
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
-#include "base/KernelParamCalculator.device.hh"
 
-#include "Vecgeom.test.hh"
+#include "base/KernelParamCalculator.device.hh"
+#include "vecgeom/VecgeomTrackView.hh"
 
 using thrust::raw_pointer_cast;
 using namespace celeritas;

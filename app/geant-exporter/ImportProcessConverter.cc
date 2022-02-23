@@ -8,34 +8,33 @@
 #include "ImportProcessConverter.hh"
 
 #include <fstream>
-#include <string>
 #include <iterator>
-
-#include <TFile.h>
-#include <TTree.h>
-#include <TBranch.h>
-
-#include <G4VProcess.hh>
-#include <G4VEmProcess.hh>
-#include <G4VEmModel.hh>
-#include <G4VEnergyLossProcess.hh>
-#include <G4VMultipleScattering.hh>
-#include <G4SystemOfUnits.hh>
-#include <G4PhysicsVectorType.hh>
-#include <G4ProcessType.hh>
+#include <string>
 #include <G4Material.hh>
-#include <G4ProductionCutsTable.hh>
 #include <G4NistManager.hh>
 #include <G4ParticleTable.hh>
+#include <G4PhysicsVectorType.hh>
+#include <G4ProcessType.hh>
+#include <G4ProductionCutsTable.hh>
+#include <G4SystemOfUnits.hh>
+#include <G4VEmModel.hh>
+#include <G4VEmProcess.hh>
+#include <G4VEnergyLossProcess.hh>
+#include <G4VMultipleScattering.hh>
+#include <G4VProcess.hh>
+#include <TBranch.h>
+#include <TFile.h>
+#include <TTree.h>
 
-#include "io/ImportProcess.hh"
-#include "io/ImportPhysicsTable.hh"
-#include "io/ImportPhysicsVector.hh"
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/TypeDemangler.hh"
 #include "base/Types.hh"
 #include "comm/Logger.hh"
+#include "io/ImportPhysicsTable.hh"
+#include "io/ImportPhysicsVector.hh"
+#include "io/ImportProcess.hh"
+
 #include "CeleritasG4Version.hh"
 
 using celeritas::ImportModelClass;

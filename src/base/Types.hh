@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cstddef>
+
 #include "Macros.hh"
 
 namespace celeritas

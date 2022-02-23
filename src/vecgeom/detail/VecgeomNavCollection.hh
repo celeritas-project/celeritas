@@ -9,8 +9,9 @@
 
 #include <memory>
 #include <vector>
-#include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/navigation/NavStatePool.h>
+#include <VecGeom/navigation/NavigationState.h>
+
 #include "base/Assert.hh"
 #include "base/OpaqueId.hh"
 #include "base/Span.hh"

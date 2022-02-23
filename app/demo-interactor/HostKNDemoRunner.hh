@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleData.hh"
+#include "physics/base/ParticleParams.hh"
 #include "physics/em/detail/KleinNishinaData.hh"
+
 #include "KNDemoIO.hh"
 #include "XsGridParams.hh"
 

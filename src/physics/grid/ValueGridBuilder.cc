@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
+
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/SoftEqual.hh"

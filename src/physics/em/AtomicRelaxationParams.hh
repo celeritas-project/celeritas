@@ -8,10 +8,12 @@
 #pragma once
 
 #include <functional>
+
 #include "base/CollectionMirror.hh"
 #include "base/Types.hh"
 #include "io/ImportAtomicRelaxation.hh"
 #include "physics/base/Units.hh"
+
 #include "AtomicRelaxationData.hh"
 
 namespace celeritas

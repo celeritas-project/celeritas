@@ -9,8 +9,8 @@
 
 #include <utility>
 
-#include "base/OpaqueId.hh"
 #include "base/NumericLimits.hh"
+#include "base/OpaqueId.hh"
 
 namespace celeritas
 {

@@ -6,20 +6,19 @@
 //! \file RungeKutta.test.cc
 //---------------------------------------------------------------------------//
 
-#include "field/RungeKuttaStepper.hh"
-#include "field/UniformMagField.hh"
-#include "field/MagFieldEquation.hh"
+#include "RungeKutta.test.hh"
 
+#include "base/Constants.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-#include "base/Constants.hh"
 #include "base/Units.hh"
+#include "field/MagFieldEquation.hh"
+#include "field/RungeKuttaStepper.hh"
+#include "field/UniformMagField.hh"
 #include "physics/base/Units.hh"
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
-
-#include "RungeKutta.test.hh"
 #include "detail/MagTestTraits.hh"
 
 using namespace celeritas;

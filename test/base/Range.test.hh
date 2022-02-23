@@ -5,11 +5,11 @@
 //---------------------------------------------------------------------------//
 //! \file Range.test.hh
 //---------------------------------------------------------------------------//
-#include "base/Macros.hh"
-
-#include "celeritas_config.h"
 #include <cstdint>
 #include <vector>
+
+#include "celeritas_config.h"
+#include "base/Macros.hh"
 
 namespace celeritas_test
 {

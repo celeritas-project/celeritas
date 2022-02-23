@@ -7,28 +7,26 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Algorithms.hh"
+#include "base/ArrayUtils.hh"
 #include "base/Collection.hh"
 #include "base/Macros.hh"
-#include "base/Types.hh"
 #include "base/StackAllocator.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Algorithms.hh"
-
+#include "base/Types.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
-
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
 
 #include "BremFinalStateHelper.hh"
-#include "RelativisticBremData.hh"
-#include "RBEnergySampler.hh"
 #include "PhysicsConstants.hh"
+#include "RBEnergySampler.hh"
+#include "RelativisticBremData.hh"
 
 namespace celeritas
 {

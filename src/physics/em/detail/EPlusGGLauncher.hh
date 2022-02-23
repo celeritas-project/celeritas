@@ -10,10 +10,11 @@
 #include "base/Assert.hh"
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "random/RngEngine.hh"
 #include "physics/base/ModelData.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
+#include "random/RngEngine.hh"
+
 #include "EPlusGGInteractor.hh"
 
 namespace celeritas

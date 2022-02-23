@@ -10,9 +10,10 @@
 #include <algorithm>
 #include <cstddef>
 #include <iosfwd>
-#include <unordered_map>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
+
 #include "celeritas_config.h"
 #include "base/Assert.hh"
 #include "base/OpaqueId.hh"

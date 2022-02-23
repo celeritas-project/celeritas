@@ -9,8 +9,10 @@
 
 #include <vector>
 #include <nlohmann/json.hpp>
+
 #include "base/Types.hh"
 #include "physics/grid/UniformGrid.hh"
+
 #include "KNDemoKernel.hh"
 
 namespace demo_interactor

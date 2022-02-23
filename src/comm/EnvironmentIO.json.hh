@@ -10,6 +10,7 @@
 #include <nlohmann/json.hpp>
 
 #include "base/Assert.hh"
+
 #include "Environment.hh"
 
 namespace celeritas

@@ -5,13 +5,14 @@
 //---------------------------------------------------------------------------//
 //! \file Particle.test.cu
 //---------------------------------------------------------------------------//
-#include "physics/base/ParticleTrackView.hh"
 #include "Particle.test.hh"
 
 #include <thrust/device_vector.h>
+
 #include "base/device_runtime_api.h"
-#include "comm/Device.hh"
 #include "base/KernelParamCalculator.device.hh"
+#include "comm/Device.hh"
+#include "physics/base/ParticleTrackView.hh"
 
 using thrust::raw_pointer_cast;
 

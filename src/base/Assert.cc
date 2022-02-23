@@ -12,8 +12,10 @@
 #endif
 
 #include <sstream>
-#include "ColorUtils.hh"
+
 #include "comm/Environment.hh"
+
+#include "ColorUtils.hh"
 
 namespace celeritas
 {

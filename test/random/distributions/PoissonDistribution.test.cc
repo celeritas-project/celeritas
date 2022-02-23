@@ -8,9 +8,11 @@
 #include "random/distributions/PoissonDistribution.hh"
 
 #include <map>
+
 #include "base/Range.hh"
-#include "celeritas_test.hh"
+
 #include "../DiagnosticRngEngine.hh"
+#include "celeritas_test.hh"
 
 using celeritas::PoissonDistribution;
 

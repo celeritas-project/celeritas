@@ -5,14 +5,13 @@
 //---------------------------------------------------------------------------//
 //! \file UserMapField.test.cc
 //---------------------------------------------------------------------------//
+#include "base/ArrayUtils.hh"
+#include "base/Range.hh"
 #include "field/detail/FieldMapData.hh"
 #include "field/detail/MagFieldMap.hh"
 
-#include "celeritas_test.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-
 #include "UserField.test.hh"
+#include "celeritas_test.hh"
 #include "detail/CMSFieldMapReader.hh"
 #include "detail/CMSMapField.hh"
 

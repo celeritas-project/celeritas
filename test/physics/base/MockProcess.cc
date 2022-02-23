@@ -8,8 +8,10 @@
 #include "MockProcess.hh"
 
 #include <algorithm>
-#include "MockModel.hh"
+
 #include "physics/material/MaterialView.hh"
+
+#include "MockModel.hh"
 
 using namespace celeritas;
 

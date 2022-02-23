@@ -9,8 +9,10 @@
 
 #include <string>
 #include <unordered_map>
+
 #include "base/Types.hh"
 #include "geometry/Types.hh"
+
 #include "VecgeomData.hh"
 
 namespace celeritas

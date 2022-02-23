@@ -14,9 +14,10 @@
 #include "base/Macros.hh"
 #include "random/distributions/PoissonDistribution.hh"
 #include "random/distributions/UniformRealDistribution.hh"
-#include "EnergyLossGaussianDistribution.hh"
+
 #include "../EnergyLossHelper.hh"
 #include "../FluctuationData.hh"
+#include "EnergyLossGaussianDistribution.hh"
 
 namespace celeritas
 {

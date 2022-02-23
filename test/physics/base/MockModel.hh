@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Model.hh"
 #include <functional>
+
+#include "physics/base/Model.hh"
 
 namespace celeritas_test
 {

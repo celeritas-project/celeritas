@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <iostream>
 #include <type_traits>
+
 #include "base/Assert.hh"
 
 namespace celeritas

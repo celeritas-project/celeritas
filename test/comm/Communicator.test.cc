@@ -6,11 +6,12 @@
 //! \file Communicator.test.cc
 //---------------------------------------------------------------------------//
 #include "comm/Communicator.hh"
+
+#include "base/Span.hh"
 #include "comm/Operations.hh"
 #include "comm/ScopedMpiInit.hh"
 
 #include "celeritas_test.hh"
-#include "base/Span.hh"
 
 using celeritas::Communicator;
 using celeritas::Operation;

@@ -9,6 +9,7 @@
 
 #include <string>
 #include <utility>
+
 #include "LoggerTypes.hh"
 #include "detail/LoggerMessage.hh"
 

@@ -9,8 +9,9 @@
 
 #include <cstddef>
 #include <type_traits>
-#include "detail/SpanImpl.hh"
+
 #include "Array.hh"
+#include "detail/SpanImpl.hh"
 
 namespace celeritas
 {

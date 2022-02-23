@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+
 #include "base/Assert.hh"
 #include "base/ColorUtils.hh"
 

@@ -12,9 +12,10 @@
 #include "base/Algorithms.hh"
 #include "base/Macros.hh"
 #include "orange/Types.hh"
-#include "../PlaneAligned.hh"
+
 #include "../CylCentered.hh"
 #include "../GeneralQuadric.hh"
+#include "../PlaneAligned.hh"
 #include "../Sphere.hh"
 #include "../SurfaceTypeTraits.hh"
 #include "../Surfaces.hh"

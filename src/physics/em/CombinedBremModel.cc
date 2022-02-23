@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <utility>
+
 #include "base/Assert.hh"
 #include "base/Quantity.hh"
 #include "physics/base/Applicability.hh"

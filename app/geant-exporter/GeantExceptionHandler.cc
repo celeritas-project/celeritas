@@ -8,6 +8,7 @@
 #include "GeantExceptionHandler.hh"
 
 #include <sstream>
+
 #include "base/Assert.hh"
 #include "comm/Logger.hh"
 

@@ -5,16 +5,16 @@
 //---------------------------------------------------------------------------//
 //! \file StackAllocator.test.cu
 //---------------------------------------------------------------------------//
-#include "base/device_runtime_api.h"
 #include "StackAllocator.test.hh"
 
 #include <cstdint>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
-#include "comm/Device.hh"
 
+#include "base/device_runtime_api.h"
 #include "base/KernelParamCalculator.device.hh"
 #include "base/StackAllocator.hh"
+#include "comm/Device.hh"
 
 using thrust::raw_pointer_cast;
 

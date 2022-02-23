@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <utility>
+
 #include "celeritas_test.hh"
 
 using celeritas::OpaqueId;

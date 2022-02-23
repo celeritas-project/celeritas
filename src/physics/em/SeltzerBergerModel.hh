@@ -7,11 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Model.hh"
-
 #include <functional>
+
 #include "base/CollectionMirror.hh"
 #include "io/ImportSBTable.hh"
+#include "physics/base/Model.hh"
+
 #include "detail/SeltzerBergerData.hh"
 
 namespace celeritas

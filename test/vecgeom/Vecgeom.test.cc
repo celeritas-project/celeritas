@@ -5,18 +5,18 @@
 //---------------------------------------------------------------------------//
 //! \file Vecgeom.test.cc
 //---------------------------------------------------------------------------//
-#include "vecgeom/VecgeomParams.hh"
+#include "Vecgeom.test.hh"
 
 #include "base/ArrayIO.hh"
 #include "base/CollectionStateStore.hh"
-#include "comm/Device.hh"
 #include "base/Repr.hh"
+#include "comm/Device.hh"
+#include "geometry/GeoTestBase.hh"
 #include "vecgeom/VecgeomData.hh"
+#include "vecgeom/VecgeomParams.hh"
 #include "vecgeom/VecgeomTrackView.hh"
 
 #include "celeritas_test.hh"
-#include "geometry/GeoTestBase.hh"
-#include "Vecgeom.test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

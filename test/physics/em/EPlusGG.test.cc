@@ -5,16 +5,16 @@
 //---------------------------------------------------------------------------//
 //! \file EPlusGG.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/EPlusGGInteractor.hh"
-
-#include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "physics/base/Units.hh"
 #include "physics/em/EPlusGGMacroXsCalculator.hh"
+#include "physics/em/detail/EPlusGGInteractor.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "../InteractorHostTestBase.hh"
+
 #include "../InteractionIO.hh"
+#include "../InteractorHostTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::ElementId;
 using celeritas::EPlusGGMacroXsCalculator;

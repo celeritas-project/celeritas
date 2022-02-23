@@ -8,7 +8,9 @@
 #pragma once
 
 #include <memory>
+
 #include "geometry/GeoParams.hh"
+
 #include "ImageStore.hh"
 
 namespace demo_rasterizer

@@ -10,9 +10,10 @@
 #include "base/Assert.hh"
 #include "base/Quantity.hh"
 #include "physics/base/Applicability.hh"
-#include "physics/base/ParticleParams.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/base/ParticleParams.hh"
 #include "physics/base/Units.hh"
+
 #include "detail/MollerBhabhaData.hh"
 #include "generated/MollerBhabhaInteract.hh"
 

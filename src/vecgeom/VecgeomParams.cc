@@ -11,14 +11,13 @@
 #include <set>
 #include <VecGeom/gdml/Frontend.h>
 #include <VecGeom/management/ABBoxManager.h>
-#include <VecGeom/management/GeoManager.h>
 #include <VecGeom/management/BVHManager.h>
+#include <VecGeom/management/GeoManager.h>
 #include <VecGeom/volumes/PlacedVolume.h>
-
 #include <celeritas_config.h>
 #if CELERITAS_USE_CUDA
-#    include <cuda_runtime_api.h>
 #    include <VecGeom/management/CudaManager.h>
+#    include <cuda_runtime_api.h>
 #endif
 
 #include "base/Join.hh"
@@ -26,6 +25,7 @@
 #include "base/StringUtils.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
+
 #include "VecgeomData.hh"
 #include "detail/ScopedTimeAndRedirect.hh"
 

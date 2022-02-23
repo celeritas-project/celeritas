@@ -8,9 +8,10 @@
 #include "orange/universes/VolumeView.hh"
 
 #include "celeritas_config.h"
-#include "celeritas_test.hh"
 #include "base/Range.hh"
+
 #include "../OrangeGeoTestBase.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 

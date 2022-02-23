@@ -8,8 +8,10 @@
 #pragma once
 
 #include <vector>
+
 #include "base/CollectionMirror.hh"
 #include "physics/grid/XsGridData.hh"
+
 #include "KNDemoKernel.hh"
 
 namespace demo_interactor

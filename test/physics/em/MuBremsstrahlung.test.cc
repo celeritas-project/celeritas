@@ -5,16 +5,16 @@
 //---------------------------------------------------------------------------//
 //! \file MuBremsstrahlungInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/MuBremsstrahlungInteractor.hh"
-#include "physics/material/MaterialView.hh"
-#include "physics/material/MaterialTrackView.hh"
-
-#include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "physics/base/Units.hh"
-#include "../InteractorHostTestBase.hh"
+#include "physics/em/detail/MuBremsstrahlungInteractor.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "physics/material/MaterialView.hh"
+
 #include "../InteractionIO.hh"
+#include "../InteractorHostTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::detail::MuBremsstrahlungInteractor;
 namespace constants = celeritas::constants;

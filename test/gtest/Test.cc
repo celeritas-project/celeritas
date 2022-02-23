@@ -10,7 +10,9 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
+
 #include "base/Assert.hh"
+
 #include "detail/TestConfig.hh"
 
 namespace celeritas

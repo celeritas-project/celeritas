@@ -11,6 +11,7 @@
 #include "base/CollectionBuilder.hh"
 #include "base/OpaqueId.hh"
 #include "geometry/Types.hh"
+
 #include "Types.hh"
 
 namespace celeritas

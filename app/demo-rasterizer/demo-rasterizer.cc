@@ -6,8 +6,8 @@
 //! \file demo-rasterizer.cc
 //---------------------------------------------------------------------------//
 #include <cstddef>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>

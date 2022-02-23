@@ -7,16 +7,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Diagnostic.hh"
-
 #include <algorithm>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #include "base/CollectionBuilder.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "sim/SimTrackView.hh"
+
+#include "Diagnostic.hh"
 
 namespace demo_loop
 {

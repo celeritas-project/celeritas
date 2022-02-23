@@ -5,8 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file ImportedProcesses.test.cc
 //---------------------------------------------------------------------------//
+#include "io/ImportData.hh"
+#include "io/RootImporter.hh"
 #include "physics/base/ImportedProcessAdapter.hh"
-
 #include "physics/base/Model.hh"
 #include "physics/em/BremsstrahlungProcess.hh"
 #include "physics/em/ComptonProcess.hh"
@@ -15,8 +16,7 @@
 #include "physics/em/GammaConversionProcess.hh"
 #include "physics/em/PhotoelectricProcess.hh"
 #include "physics/em/RayleighProcess.hh"
-#include "io/RootImporter.hh"
-#include "io/ImportData.hh"
+
 #include "celeritas_test.hh"
 
 using namespace celeritas;

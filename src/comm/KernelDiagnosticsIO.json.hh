@@ -8,6 +8,7 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
+
 #include "KernelDiagnostics.hh"
 
 namespace celeritas

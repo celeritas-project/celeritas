@@ -8,6 +8,7 @@
 #include "KernelDiagnosticsIO.json.hh"
 
 #include "base/Range.hh"
+
 #include "KernelDiagnostics.hh"
 
 namespace celeritas

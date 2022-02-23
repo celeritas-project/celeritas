@@ -9,11 +9,13 @@
 
 #include <memory>
 #include <vector>
+
 #include "base/CollectionMirror.hh"
 #include "base/Types.hh"
 #include "geometry/GeoParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "physics/material/Types.hh"
+
 #include "GeoMaterialData.hh"
 
 namespace celeritas

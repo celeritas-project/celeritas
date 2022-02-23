@@ -5,20 +5,18 @@
 //---------------------------------------------------------------------------//
 //! \file RayleighInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/RayleighInteractor.hh"
-#include "physics/em/RayleighModel.hh"
-
-#include "physics/material/ElementView.hh"
-#include "physics/material/Types.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/MaterialTrackView.hh"
-
-#include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "physics/base/Units.hh"
-#include "../InteractorHostTestBase.hh"
+#include "physics/em/RayleighModel.hh"
+#include "physics/em/detail/RayleighInteractor.hh"
+#include "physics/material/ElementView.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "physics/material/Types.hh"
+
 #include "../InteractionIO.hh"
+#include "../InteractorHostTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::ElementId;
 using celeritas::MaterialParams;

@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <string>
 #include <unistd.h>
+
 #include "comm/Environment.hh"
 
 namespace celeritas

@@ -6,16 +6,16 @@
 //! \file demo-loop.cc
 //---------------------------------------------------------------------------//
 #include <cstddef>
-#include <iostream>
 #include <fstream>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "base/Stopwatch.hh"
 #include "celeritas_version.h"
+#include "base/Stopwatch.hh"
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
 #include "comm/DeviceIO.json.hh"

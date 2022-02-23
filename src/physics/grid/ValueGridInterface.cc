@@ -5,9 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file ValueGridInterface.cc
 //---------------------------------------------------------------------------//
-#include "ValueGridData.hh"
-
 #include "base/Assert.hh"
+
+#include "ValueGridData.hh"
 
 namespace celeritas
 {

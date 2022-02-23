@@ -11,8 +11,8 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 
-#include "SeltzerBergerData.hh"
 #include "RelativisticBremData.hh"
+#include "SeltzerBergerData.hh"
 
 namespace celeritas
 {

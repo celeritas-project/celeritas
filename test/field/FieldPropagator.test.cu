@@ -10,8 +10,8 @@
 #include <thrust/device_vector.h>
 
 #include "base/device_runtime_api.h"
-#include "comm/Device.hh"
 #include "base/KernelParamCalculator.device.hh"
+#include "comm/Device.hh"
 #include "field/FieldDriver.hh"
 #include "field/FieldParamsData.hh"
 #include "field/FieldPropagator.hh"

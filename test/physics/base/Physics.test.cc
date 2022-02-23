@@ -5,19 +5,19 @@
 //---------------------------------------------------------------------------//
 //! \file Physics.test.cc
 //---------------------------------------------------------------------------//
+#include "Physics.test.hh"
+
+#include "base/CollectionStateStore.hh"
+#include "base/Range.hh"
+#include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/base/PhysicsTrackView.hh"
-
-#include "celeritas_test.hh"
-#include "base/Range.hh"
-#include "base/CollectionStateStore.hh"
-#include "physics/base/ParticleParams.hh"
+#include "physics/em/EPlusAnnihilationProcess.hh"
 #include "physics/grid/RangeCalculator.hh"
 #include "physics/grid/XsCalculator.hh"
-#include "physics/em/EPlusAnnihilationProcess.hh"
 
 #include "PhysicsTestBase.hh"
-#include "Physics.test.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

@@ -12,9 +12,10 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/material/MaterialTrackView.hh"
+#include "sim/SimTrackView.hh"
 #include "sim/TrackData.hh"
 #include "sim/TrackInitData.hh"
-#include "sim/SimTrackView.hh"
+
 #include "Utils.hh"
 
 namespace celeritas

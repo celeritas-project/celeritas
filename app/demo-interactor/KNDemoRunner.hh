@@ -9,8 +9,9 @@
 
 #include "physics/base/ParticleParams.hh"
 #include "physics/em/detail/KleinNishinaData.hh"
-#include "KNDemoKernel.hh"
+
 #include "KNDemoIO.hh"
+#include "KNDemoKernel.hh"
 #include "XsGridParams.hh"
 
 namespace demo_interactor

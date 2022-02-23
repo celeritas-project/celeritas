@@ -8,8 +8,9 @@
 #pragma once
 
 #include <vector>
-#include "vecgeom/VecgeomData.hh"
+
 #include "base/Assert.hh"
+#include "vecgeom/VecgeomData.hh"
 
 namespace celeritas_test
 {

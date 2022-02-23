@@ -18,9 +18,10 @@
 #include "base/Macros.hh"
 #include "base/NumericLimits.hh"
 #include "base/SoftEqual.hh"
-#include "detail/VecgeomCompatibility.hh"
 #include "geometry/Types.hh"
+
 #include "VecgeomData.hh"
+#include "detail/VecgeomCompatibility.hh"
 
 #ifdef VECGEOM_USE_NAVINDEX
 #    include "detail/BVHNavigator.hh"

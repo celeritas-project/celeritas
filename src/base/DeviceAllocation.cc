@@ -7,11 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "DeviceAllocation.hh"
 
-#include "device_runtime_api.h"
+#include "comm/Device.hh"
+
 #include "Assert.hh"
 #include "Macros.hh"
 #include "Types.hh"
-#include "comm/Device.hh"
+#include "device_runtime_api.h"
 
 namespace celeritas
 {

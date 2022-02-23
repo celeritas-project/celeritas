@@ -8,9 +8,11 @@
 #include "GammaConversionProcess.hh"
 
 #include <utility>
+
 #include "base/Assert.hh"
 #include "io/ImportProcess.hh"
 #include "physics/base/PDGNumber.hh"
+
 #include "BetheHeitlerModel.hh"
 
 namespace celeritas

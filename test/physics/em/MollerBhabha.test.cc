@@ -5,17 +5,17 @@
 //---------------------------------------------------------------------------//
 //! \file MollerBhabha.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/MollerBhabhaInteractor.hh"
-
-#include "celeritas_test.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "../InteractorHostTestBase.hh"
-#include "../InteractionIO.hh"
-#include "physics/material/MaterialTrackView.hh"
 #include "physics/base/CutoffView.hh"
+#include "physics/base/Units.hh"
+#include "physics/em/detail/MollerBhabhaInteractor.hh"
+#include "physics/material/MaterialTrackView.hh"
+
+#include "../InteractionIO.hh"
+#include "../InteractorHostTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::Action;
 using celeritas::CutoffView;

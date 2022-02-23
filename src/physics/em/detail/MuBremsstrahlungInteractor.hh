@@ -11,17 +11,18 @@
 #include "base/Constants.hh"
 #include "base/Macros.hh"
 #include "base/Range.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "base/StackAllocator.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
-#include "random/distributions/UniformRealDistribution.hh"
-#include "random/distributions/ReciprocalDistribution.hh"
 #include "random/distributions/BernoulliDistribution.hh"
+#include "random/distributions/ReciprocalDistribution.hh"
+#include "random/distributions/UniformRealDistribution.hh"
+
 #include "MuBremsstrahlungData.hh"
 
 namespace celeritas

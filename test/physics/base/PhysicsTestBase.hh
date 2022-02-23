@@ -7,13 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "gtest/Test.hh"
-
 #include <random>
-#include "physics/material/MaterialParams.hh"
+
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
+#include "physics/material/MaterialParams.hh"
+
 #include "MockProcess.hh"
+#include "gtest/Test.hh"
 
 namespace celeritas_test
 {

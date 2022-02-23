@@ -9,8 +9,8 @@
 
 #include <VecGeom/base/Vector3D.h>
 
-#include "base/Macros.hh"
 #include "base/Array.hh"
+#include "base/Macros.hh"
 #include "base/Span.hh"
 
 namespace celeritas

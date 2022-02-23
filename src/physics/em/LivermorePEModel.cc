@@ -14,8 +14,8 @@
 #include "base/Array.hh"
 #include "base/Assert.hh"
 #include "base/CollectionBuilder.hh"
-#include "base/Range.hh"
 #include "base/Quantity.hh"
+#include "base/Range.hh"
 #include "base/ScopedTimeLog.hh"
 #include "comm/Logger.hh"
 #include "physics/base/Applicability.hh"
@@ -23,6 +23,7 @@
 #include "physics/grid/XsGridData.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/Types.hh"
+
 #include "detail/LivermorePEData.hh"
 #include "generated/LivermorePEInteract.hh"
 

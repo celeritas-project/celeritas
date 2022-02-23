@@ -8,6 +8,7 @@
 #pragma once
 
 #include "base/Assert.hh"
+
 #include "EnergyLossHelper.hh"
 #include "detail/EnergyLossTraits.hh"
 

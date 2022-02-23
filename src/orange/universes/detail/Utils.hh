@@ -8,9 +8,11 @@
 #pragma once
 
 #include <cmath>
+
 #include "base/Macros.hh"
-#include "Types.hh"
+
 #include "../VolumeView.hh"
+#include "Types.hh"
 
 namespace celeritas
 {

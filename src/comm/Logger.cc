@@ -10,9 +10,11 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+
 #include "base/Assert.hh"
 #include "base/ColorUtils.hh"
 #include "base/Range.hh"
+
 #include "Communicator.hh"
 #include "Environment.hh"
 #include "ScopedMpiInit.hh"

@@ -10,9 +10,11 @@
 #include <memory>
 #include <vector>
 #include <nlohmann/json.hpp>
+
 #include "base/NumericLimits.hh"
 #include "base/Types.hh"
 #include "sim/TrackInitParams.hh"
+
 #include "Transporter.hh"
 
 namespace celeritas

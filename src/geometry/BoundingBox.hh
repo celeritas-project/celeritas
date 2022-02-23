@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cmath>
+
 #include "base/Array.hh"
 #include "base/Assert.hh"
 #include "base/Macros.hh"

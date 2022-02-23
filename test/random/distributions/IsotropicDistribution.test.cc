@@ -8,10 +8,12 @@
 #include "random/distributions/IsotropicDistribution.hh"
 
 #include <random>
+
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
-#include "celeritas_test.hh"
+
 #include "../DiagnosticRngEngine.hh"
+#include "celeritas_test.hh"
 
 using celeritas::IsotropicDistribution;
 

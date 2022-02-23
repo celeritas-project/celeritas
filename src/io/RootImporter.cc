@@ -10,17 +10,17 @@
 #include <cstdlib>
 #include <iomanip>
 #include <tuple>
-
-#include <TFile.h>
-#include <TTree.h>
 #include <TBranch.h>
+#include <TFile.h>
 #include <TLeaf.h>
+#include <TTree.h>
 
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/ScopedTimeLog.hh"
 #include "comm/Logger.hh"
 #include "physics/base/Units.hh"
+
 #include "ImportParticle.hh"
 
 namespace celeritas

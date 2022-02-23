@@ -10,25 +10,27 @@
 #include <memory>
 #include <random>
 #include <vector>
+
 #include "base/Array.hh"
 #include "base/ArrayIO.hh"
 #include "base/CollectionStateStore.hh"
 #include "base/Span.hh"
 #include "base/StackAllocator.hh"
 #include "base/Types.hh"
-#include "physics/base/ModelIdGenerator.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleData.hh"
-#include "physics/base/CutoffParams.hh"
 #include "physics/base/CutoffData.hh"
+#include "physics/base/CutoffParams.hh"
+#include "physics/base/ModelIdGenerator.hh"
+#include "physics/base/ParticleData.hh"
+#include "physics/base/ParticleParams.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "physics/material/MaterialParams.hh"
 #include "physics/material/MaterialData.hh"
+#include "physics/material/MaterialParams.hh"
 
 // Test helpers
-#include "gtest/Test.hh"
 #include "random/DiagnosticRngEngine.hh"
+
+#include "gtest/Test.hh"
 
 namespace celeritas
 {

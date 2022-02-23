@@ -8,12 +8,13 @@
 #include "physics/base/PhysicsStepUtils.hh"
 
 #include "base/CollectionStateStore.hh"
-#include "random/DiagnosticRngEngine.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
-#include "celeritas_test.hh"
+#include "random/DiagnosticRngEngine.hh"
+
 #include "PhysicsTestBase.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

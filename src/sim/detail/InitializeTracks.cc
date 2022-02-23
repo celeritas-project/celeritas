@@ -8,6 +8,7 @@
 #include "InitializeTracks.hh"
 
 #include <algorithm>
+
 #include "InitTracksLauncher.hh"
 #include "LocateAliveLauncher.hh"
 #include "ProcessPrimariesLauncher.hh"

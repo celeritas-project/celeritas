@@ -8,14 +8,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
-#include "gtest/detail/Macros.hh"
-#include "celeritas_config.h"
-
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include "celeritas_config.h"
+
+#include "gtest/Main.hh"
+#include "gtest/Test.hh"
+#include "gtest/detail/Macros.hh"
 
 using std::cout;
 using std::endl;

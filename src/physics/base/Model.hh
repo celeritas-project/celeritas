@@ -9,7 +9,9 @@
 
 #include <set>
 #include <string>
+
 #include "base/Types.hh"
+
 #include "Applicability.hh"
 #include "Types.hh"
 

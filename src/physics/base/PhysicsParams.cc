@@ -10,18 +10,20 @@
 #include <algorithm>
 #include <map>
 #include <tuple>
+
 #include "base/Algorithms.hh"
 #include "base/Assert.hh"
 #include "base/Range.hh"
 #include "base/VectorUtils.hh"
 #include "comm/Logger.hh"
-#include "ParticleParams.hh"
 #include "physics/em/EPlusGGMacroXsCalculator.hh"
 #include "physics/em/EPlusGGModel.hh"
 #include "physics/em/LivermorePEModel.hh"
 #include "physics/grid/ValueGridInserter.hh"
 #include "physics/grid/XsCalculator.hh"
 #include "physics/material/MaterialParams.hh"
+
+#include "ParticleParams.hh"
 
 namespace celeritas
 {

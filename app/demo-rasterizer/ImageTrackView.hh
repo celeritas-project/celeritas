@@ -8,6 +8,7 @@
 #pragma once
 
 #include "base/Assert.hh"
+
 #include "ImageData.hh"
 
 namespace demo_rasterizer

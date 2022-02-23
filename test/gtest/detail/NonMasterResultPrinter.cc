@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <sstream>
+
 #include "base/ColorUtils.hh"
 
 namespace celeritas

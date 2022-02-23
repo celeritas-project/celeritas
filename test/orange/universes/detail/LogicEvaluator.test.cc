@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "orange/universes/detail/LogicEvaluator.hh"
 
-#include "celeritas_test.hh"
 #include <iomanip>
+
+#include "celeritas_test.hh"
 
 using celeritas::detail::LogicEvaluator;
 

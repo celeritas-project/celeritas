@@ -16,8 +16,8 @@
 #include "base/Array.hh"
 #include "base/CollectionStateStore.hh"
 #include "base/Span.hh"
-#include "orange/OrangeParams.hh"
 #include "orange/Data.hh"
+#include "orange/OrangeParams.hh"
 
 // Test dependencies
 #include "gtest/Test.hh"

@@ -10,13 +10,14 @@
 #include "base/Collection.hh"
 #include "base/CollectionAlgorithms.hh"
 #include "base/Span.hh"
+#include "base/StackAllocator.hh"
 #include "base/Types.hh"
 #include "physics/base/ParticleData.hh"
 #include "physics/base/Secondary.hh"
-#include "base/StackAllocator.hh"
 #include "physics/em/detail/KleinNishinaData.hh"
 #include "physics/grid/XsGridData.hh"
 #include "random/RngData.hh"
+
 #include "DetectorData.hh"
 
 namespace demo_interactor

@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iterator>
 #include <iosfwd>
+#include <iterator>
 #include <sstream>
 #include <string>
 

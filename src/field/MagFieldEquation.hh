@@ -12,6 +12,7 @@
 #include "base/Constants.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
+
 #include "Types.hh"
 
 namespace celeritas

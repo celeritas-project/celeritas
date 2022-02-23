@@ -7,14 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Model.hh"
-
 #include <functional>
 #include <memory>
+
 #include "base/CollectionMirror.hh"
-#include "detail/CombinedBremData.hh"
-#include "SeltzerBergerModel.hh"
+#include "physics/base/Model.hh"
+
 #include "RelativisticBremModel.hh"
+#include "SeltzerBergerModel.hh"
+#include "detail/CombinedBremData.hh"
 
 namespace celeritas
 {

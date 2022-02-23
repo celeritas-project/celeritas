@@ -8,8 +8,8 @@
 #pragma once
 
 #include "base/Macros.hh"
-#include "base/Types.hh"
 #include "base/Quantity.hh"
+#include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "physics/grid/XsGridData.hh"
 

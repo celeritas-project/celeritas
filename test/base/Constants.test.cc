@@ -6,9 +6,11 @@
 //! \file Constants.test.cc
 //---------------------------------------------------------------------------//
 #include "base/Constants.hh"
-#include "base/Units.hh"
 
 #include <cmath>
+
+#include "base/Units.hh"
+
 #include "celeritas_test.hh"
 
 using namespace celeritas::units;

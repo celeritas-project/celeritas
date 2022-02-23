@@ -8,8 +8,10 @@
 #include "../Macros.hh"
 
 #include <limits>
-#include "celeritas_test.hh"
+
 #include "base/ScopedStreamRedirect.hh"
+
+#include "celeritas_test.hh"
 
 using namespace celeritas::detail;
 

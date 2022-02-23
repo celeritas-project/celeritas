@@ -9,6 +9,7 @@
 
 #include <G4ParticleTable.hh>
 #include <G4SystemOfUnits.hh>
+
 #include "base/Assert.hh"
 
 namespace geant_exporter

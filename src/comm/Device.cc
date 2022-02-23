@@ -17,6 +17,7 @@
 #include "base/device_runtime_api.h"
 #include "base/Assert.hh"
 #include "base/Stopwatch.hh"
+
 #include "Communicator.hh"
 #include "Environment.hh"
 #include "Logger.hh"

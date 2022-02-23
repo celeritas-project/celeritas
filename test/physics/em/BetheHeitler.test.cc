@@ -5,22 +5,20 @@
 //---------------------------------------------------------------------------//
 //! \file BetheHeitlerInteractor.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/BetheHeitlerInteractor.hh"
-
-#include "physics/material/ElementView.hh"
-#include "physics/material/Types.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/BetheHeitlerModel.hh"
-#include "physics/em/GammaConversionProcess.hh"
-#include "physics/material/MaterialTrackView.hh"
-
-#include "celeritas_test.hh"
-#include "gtest/Main.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "physics/base/Units.hh"
-#include "../InteractorHostTestBase.hh"
+#include "physics/em/BetheHeitlerModel.hh"
+#include "physics/em/GammaConversionProcess.hh"
+#include "physics/em/detail/BetheHeitlerInteractor.hh"
+#include "physics/material/ElementView.hh"
+#include "physics/material/MaterialTrackView.hh"
+#include "physics/material/Types.hh"
+
 #include "../InteractionIO.hh"
+#include "../InteractorHostTestBase.hh"
+#include "celeritas_test.hh"
+#include "gtest/Main.hh"
 
 using celeritas::GammaConversionProcess;
 using celeritas::detail::BetheHeitlerInteractor;

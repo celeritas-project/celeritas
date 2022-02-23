@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <functional>
+
 #include "Assert.hh"
 #include "Macros.hh"
 #include "Types.hh"

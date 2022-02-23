@@ -6,11 +6,12 @@
 //! \file TwodGridCalculator.test.cc
 //---------------------------------------------------------------------------//
 #include "physics/grid/TwodGridCalculator.hh"
-#include "physics/grid/detail/FindInterp.hh"
 
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
 #include "physics/grid/UniformGrid.hh"
+#include "physics/grid/detail/FindInterp.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::Ownership;

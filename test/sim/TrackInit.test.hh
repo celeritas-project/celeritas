@@ -5,14 +5,15 @@
 //---------------------------------------------------------------------------//
 //! \file TrackInit.test.hh
 //---------------------------------------------------------------------------//
+#include <vector>
+
 #include "base/DeviceVector.hh"
-#include "physics/base/Interaction.hh"
 #include "base/StackAllocator.hh"
+#include "physics/base/Interaction.hh"
 #include "physics/base/Secondary.hh"
 #include "sim/SimTrackView.hh"
 #include "sim/TrackData.hh"
 #include "sim/TrackInitData.hh"
-#include <vector>
 
 namespace celeritas_test
 {

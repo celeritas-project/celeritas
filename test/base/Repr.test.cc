@@ -7,12 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "base/Repr.hh"
 
-#include <string>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <vector>
+
 #include "base/Array.hh"
 #include "base/Span.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::repr;

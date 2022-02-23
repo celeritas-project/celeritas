@@ -10,21 +10,19 @@
 #include <cmath>
 
 #include "base/Algorithms.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-
-#include "physics/base/Units.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/ParticleTrackView.hh"
-
+#include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
+#include "random/distributions/BernoulliDistribution.hh"
 
 #include "PhysicsConstants.hh"
-#include "SeltzerBergerData.hh"
 #include "SBEnergyDistHelper.hh"
 #include "SBEnergyDistribution.hh"
 #include "SBPositronXsCorrector.hh"
+#include "SeltzerBergerData.hh"
 
 namespace celeritas
 {

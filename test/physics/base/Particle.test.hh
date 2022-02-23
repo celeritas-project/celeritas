@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include <vector>
+
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/ParticleData.hh"

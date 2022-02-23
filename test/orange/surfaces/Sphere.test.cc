@@ -8,6 +8,7 @@
 #include "orange/surfaces/Sphere.hh"
 
 #include "base/Constants.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::no_intersection;

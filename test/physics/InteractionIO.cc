@@ -10,6 +10,7 @@
 #include "base/ArrayIO.hh"
 #include "base/SpanIO.hh"
 #include "physics/base/Units.hh"
+
 #include "SecondaryIO.hh"
 
 namespace celeritas

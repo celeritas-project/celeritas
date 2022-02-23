@@ -8,6 +8,7 @@
 #include "ScopedTimeAndRedirect.hh"
 
 #include <iostream>
+
 #include "base/ColorUtils.hh"
 #include "comm/Logger.hh"
 

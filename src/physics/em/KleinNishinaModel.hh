@@ -9,6 +9,7 @@
 
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleParams.hh"
+
 #include "detail/KleinNishinaData.hh"
 
 namespace celeritas

@@ -18,6 +18,7 @@
 #include "physics/em/AtomicRelaxationData.hh"
 #include "physics/material/MaterialData.hh"
 #include "random/RngData.hh"
+
 #include "SimData.hh"
 
 namespace celeritas

@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Process.hh"
-
 #include <memory>
+
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/Process.hh"
 
 namespace celeritas
 {

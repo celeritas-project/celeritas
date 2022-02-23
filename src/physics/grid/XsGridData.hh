@@ -11,6 +11,7 @@
 #include "base/Types.hh"
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
+
 #include "UniformGridData.hh"
 
 namespace celeritas

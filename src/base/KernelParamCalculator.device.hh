@@ -10,12 +10,13 @@
 #include <cstddef>
 
 #include "base/device_runtime_api.h"
+#include "comm/Device.hh"
+#include "comm/KernelDiagnostics.hh"
+
 #include "Assert.hh"
 #include "Macros.hh"
 #include "OpaqueId.hh"
 #include "Types.hh"
-#include "comm/Device.hh"
-#include "comm/KernelDiagnostics.hh"
 
 /*!
  * \def CELER_LAUNCH_KERNEL

@@ -11,6 +11,7 @@
 
 #include <iterator>
 #include <type_traits>
+
 #include "base/Macros.hh"
 
 namespace celeritas

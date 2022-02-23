@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "base/Algorithms.hh"
 #include "base/Array.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "base/Units.hh"
-#include <cmath>
 
 namespace celeritas
 {

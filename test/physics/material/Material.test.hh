@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include <vector>
+
 #include "physics/material/MaterialData.hh"
 
 namespace celeritas_test

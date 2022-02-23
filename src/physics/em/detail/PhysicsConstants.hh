@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
-#include "base/Macros.hh"
 #include "base/Constants.hh"
+#include "base/Macros.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {

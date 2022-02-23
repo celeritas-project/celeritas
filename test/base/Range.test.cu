@@ -8,10 +8,11 @@
 #include "Range.test.hh"
 
 #include <thrust/device_vector.h>
+
+#include "base/device_runtime_api.h"
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.device.hh"
 #include "base/Range.hh"
-#include "base/device_runtime_api.h"
 #include "comm/Device.hh"
 
 using celeritas::range;

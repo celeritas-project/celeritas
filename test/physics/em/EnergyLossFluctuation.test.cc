@@ -5,17 +5,17 @@
 //---------------------------------------------------------------------------//
 //! \file EnergyLossFluctuation.test.cc
 //---------------------------------------------------------------------------//
+#include "base/CollectionStateStore.hh"
+#include "physics/base/CutoffParams.hh"
+#include "physics/base/ParticleParams.hh"
+#include "physics/em/EnergyLossHelper.hh"
 #include "physics/em/detail/EnergyLossDeltaDistribution.hh"
 #include "physics/em/detail/EnergyLossGammaDistribution.hh"
 #include "physics/em/detail/EnergyLossGaussianDistribution.hh"
 #include "physics/em/detail/EnergyLossUrbanDistribution.hh"
-#include "physics/em/EnergyLossHelper.hh"
-
-#include "base/CollectionStateStore.hh"
-#include "random/DiagnosticRngEngine.hh"
-#include "physics/base/CutoffParams.hh"
-#include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
+#include "random/DiagnosticRngEngine.hh"
+
 #include "celeritas_test.hh"
 
 using namespace celeritas;

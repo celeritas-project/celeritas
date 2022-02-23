@@ -14,8 +14,8 @@
 #include "base/Range.hh"
 #include "base/ScopedTimeLog.hh"
 #include "comm/Logger.hh"
-#include "physics/base/ParticleParams.hh"
 #include "physics/base/PDGNumber.hh"
+#include "physics/base/ParticleParams.hh"
 #include "physics/material/MaterialParams.hh"
 
 #include "detail/PhysicsConstants.hh"

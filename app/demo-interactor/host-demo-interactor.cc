@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 
 #include <cstddef>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -21,9 +21,10 @@
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "physics/base/ParticleParams.hh"
-#include "LoadXs.hh"
-#include "KNDemoIO.hh"
+
 #include "HostKNDemoRunner.hh"
+#include "KNDemoIO.hh"
+#include "LoadXs.hh"
 
 using namespace celeritas;
 using namespace demo_interactor;

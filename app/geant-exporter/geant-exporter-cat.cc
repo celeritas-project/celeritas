@@ -14,12 +14,12 @@
 #include "comm/Communicator.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
+#include "io/ImportData.hh"
+#include "io/RootImporter.hh"
+#include "physics/base/CutoffParams.hh"
 #include "physics/base/ParticleData.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/base/CutoffParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "io/RootImporter.hh"
-#include "io/ImportData.hh"
 
 using namespace celeritas;
 using std::cout;

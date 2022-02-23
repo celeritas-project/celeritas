@@ -5,14 +5,10 @@
 //---------------------------------------------------------------------------//
 //! \file LivermorePE.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/LivermorePEInteractor.hh"
-#include "physics/em/LivermorePEModel.hh"
-#include "physics/em/LivermorePEMacroXsCalculator.hh"
-
 #include <cmath>
 #include <fstream>
 #include <map>
-#include "celeritas_test.hh"
+
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
 #include "comm/Device.hh"
@@ -21,14 +17,19 @@
 #include "io/LivermorePEReader.hh"
 #include "physics/base/Units.hh"
 #include "physics/em/AtomicRelaxationParams.hh"
+#include "physics/em/LivermorePEMacroXsCalculator.hh"
+#include "physics/em/LivermorePEModel.hh"
 #include "physics/em/PhotoelectricProcess.hh"
-#include "physics/grid/XsCalculator.hh"
+#include "physics/em/detail/LivermorePEInteractor.hh"
+#include "physics/em/detail/Utils.hh"
 #include "physics/grid/ValueGridBuilder.hh"
 #include "physics/grid/ValueGridInserter.hh"
+#include "physics/grid/XsCalculator.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "physics/em/detail/Utils.hh"
-#include "../InteractorHostTestBase.hh"
+
 #include "../InteractionIO.hh"
+#include "../InteractorHostTestBase.hh"
+#include "celeritas_test.hh"
 
 using celeritas::Applicability;
 using celeritas::AtomicRelaxationHelper;
