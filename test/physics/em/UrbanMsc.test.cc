@@ -244,7 +244,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         phys.step_length(step[i]);
 
         UrbanMscStepLimit step_limiter(
-            model->host_ref(), *part_view_, geo_view, phys, material_view);
+            model->host_ref(), *part_view_, &geo_view, phys, material_view);
 
         step_result = step_limiter(rng_engine);
 

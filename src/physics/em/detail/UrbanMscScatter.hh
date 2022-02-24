@@ -264,18 +264,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
     else if (tau >= params_.tau_small)
     {
         // Sample the mean distribution of the scattering angle, cos(theta)
-        real_type xmean;
-        real_type x2mean;
-        if (tau < real_type(0.01))
-        {
-            xmean  = 1 - tau * (1 - real_type(0.5) * tau);
-            x2mean = 1 - tau * (5 - real_type(6.25) * tau) / 3;
-        }
-        else
-        {
-            xmean  = std::exp(-tau);
-            x2mean = (1 + 2 * std::exp(real_type(-2.5) * tau)) / 3;
-        }
+        real_type xmean  = std::exp(-tau);
+        real_type x2mean = (1 + 2 * std::exp(real_type(-2.5) * tau)) / 3; 
 
         // Too large step of the low energy particle
         if (end_energy.value() < real_type(0.5) * inc_energy_.value())
