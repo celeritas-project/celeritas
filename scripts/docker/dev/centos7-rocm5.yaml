@@ -1,0 +1,57 @@
+spack:
+  specs:
+  - cmake
+  - hip
+  - git
+  - googletest
+  - ninja
+  - nlohmann-json
+  - python
+  concretization: together
+  compilers:
+    - compiler:
+        spec: clang@amd
+        paths:
+          cc: /opt/rocm/llvm/bin/clang
+          cxx: /opt/rocm/llvm/bin/clang++
+          f77:
+          fc:
+        flags: {}
+        operating_system: rhel7
+        target: x86_64
+  packages:
+    all:
+      target:
+      - x86_64
+      variants: cxxstd=14
+    hip:
+      externals:
+      - spec: hip@5.0.0
+        prefix: /opt/rocm/hip
+        extra_attributes:
+          compilers:
+            c: /opt/rocm/llvm/bin/clang++
+            c++: /opt/rocm/llvm/bin/clang++
+            hip: /opt/rocm/hip/bin/hipcc
+      buildable: false
+    hsa-rocr-dev:
+      externals:
+      - spec: hsa-rocr-dev@5.0.0
+        prefix: /opt/rocm
+        extra_attributes:
+          compilers:
+            c: /opt/rocm/llvm/bin/clang++
+            cxx: /opt/rocm/llvm/bin/clang++
+      buildable: false
+    llvm-amdgpu:
+      externals:
+      - spec: llvm-amdgpu@5.0.0
+        prefix: /opt/rocm/llvm
+        extra_attributes:
+          compilers:
+            c: /opt/rocm/llvm/bin/clang++
+            cxx: /opt/rocm/llvm/bin/clang++
+      buildable: false
+  config:
+    install_tree: /opt/software
+  view: /opt/view

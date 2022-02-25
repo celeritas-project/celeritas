@@ -38,21 +38,35 @@ COPY --from=builder /opt/view /opt/view
 COPY --from=builder /etc/profile.d/celeritas_spack_env.sh /etc/profile.d/celeritas_spack_env.sh
 
 # Add core files
-RUN apt-get -yqq update \
- && apt-get -yqq install --no-install-recommends \
-        build-essential \
-        ca-certificates \
-        libc6-dbg \
-        g++ \
-        gcc \
-        ssh \
-        vim \
- && rm -rf /var/lib/apt/lists/*
+RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then \
+  apt-get -yqq update \
+  && apt-get -yqq install --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    libc6-dbg \
+    g++ \
+    gcc \
+    ssh \
+    vim \
+  && rm -rf /var/lib/apt/lists/* \
+elif [ $DOCKERFILE_DISTRO == "centos" ] ; then \
+  yum update -y \
+  && yum install -y epel-release \
+  && yum update -y \
+  && yum --enablerepo epel groupinstall -y "Development Tools" \
+  && yum --enablerepo epel install -y \
+       gcc-c++ \
+       gcc \
+       vim \
+  && rm -rf /var/cache/yum \
+  && yum clean all ; \
+fi
+
 
 # Install vecgeom if requestedd
 ARG VECGEOM
-RUN test -z "${VECGEOM}" \
-  || ( . /etc/profile.d/celeritas_spack_env.sh \
+RUN if [ -n "${VECGEOM}" ] ; then \
+  . /etc/profile.d/celeritas_spack_env.sh \
   && cd /opt \
   && git clone https://gitlab.cern.ch/VecGeom/VecGeom.git vecgeom-src \
   && cd vecgeom-src \
