@@ -27,12 +27,8 @@ namespace detail
  */
 struct IsIntersectionFinite
 {
-    const TempNextFace& temp_next;
-
-    CELER_FUNCTION bool operator()(size_type isect) const
+    CELER_FUNCTION bool operator()(real_type distance) const
     {
-        CELER_ASSERT(isect < temp_next.size);
-        const real_type distance = temp_next.distance[isect];
         return distance < numeric_limits<real_type>::max();
     }
 };

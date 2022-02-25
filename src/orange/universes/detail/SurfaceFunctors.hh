@@ -96,22 +96,25 @@ struct CalcSafetyDistance
 
 //---------------------------------------------------------------------------//
 /*!
- * Fill an array with distances-to-intersection.
+ * Fill an array with valid distances-to-intersection.
  *
  * This assumes that each call is to the next face index, starting with face
  * zero.
  */
+template<class IsValid>
 class CalcIntersections
 {
   public:
     //! Construct from the particle point, direction, face ID, and temp storage
     CELER_FUNCTION CalcIntersections(const Real3&        pos,
                                      const Real3&        dir,
+                                     const IsValid&      is_valid_isect,
                                      FaceId              on_face,
                                      bool                is_simple,
                                      const TempNextFace& next_face)
         : pos_(pos)
         , dir_(dir)
+        , is_valid_isect_(is_valid_isect)
         , on_face_idx_(on_face.unchecked_get())
         , fill_isect_(!is_simple)
         , face_(next_face.face)
@@ -135,13 +138,17 @@ class CalcIntersections
         for (real_type dist : all_dist)
         {
             CELER_ASSERT(dist > 0);
-            face_[isect_idx_]     = FaceId{face_idx_};
-            distance_[isect_idx_] = dist;
-            if (fill_isect_)
+            if (is_valid_isect_(dist))
             {
-                isect_[isect_idx_] = isect_idx_;
+                // Save intersection in the list
+                face_[isect_idx_]     = FaceId{face_idx_};
+                distance_[isect_idx_] = dist;
+                if (fill_isect_)
+                {
+                    isect_[isect_idx_] = isect_idx_;
+                }
+                ++isect_idx_;
             }
-            ++isect_idx_;
         }
         // Increment to next face
         ++face_idx_;
@@ -155,6 +162,7 @@ class CalcIntersections
 
     const Real3&     pos_;
     const Real3&     dir_;
+    const IsValid    is_valid_isect_;
     const size_type  on_face_idx_;
     const bool       fill_isect_;
     FaceId* const    face_;

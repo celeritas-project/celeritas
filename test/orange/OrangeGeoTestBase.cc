@@ -126,7 +126,7 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
         {
             VolumeInput vi;
             vi.faces             = {SurfaceId{0}};
-            vi.num_intersections = 2;
+            vi.max_intersections = 2;
 
             // Outside
             vi.logic = {0};

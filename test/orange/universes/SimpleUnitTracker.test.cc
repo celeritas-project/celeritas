@@ -318,55 +318,6 @@ void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
 }
 
 //---------------------------------------------------------------------------//
-// UTILITY TESTS
-//---------------------------------------------------------------------------//
-
-class UtilsTest : public celeritas::Test
-{
-};
-
-TEST_F(UtilsTest, infinite_intersection_partitioner)
-{
-    std::vector<real_type> distance = {1.25, 3, no_intersection(), 5};
-    std::vector<FaceId>    face(distance.size(), FaceId{});
-    std::vector<size_type> isect(distance.size());
-
-    // Fill intersection IDs 0..N-1
-    std::iota(isect.begin(), isect.end(), 0);
-
-    // Construct temp next face
-    celeritas::detail::TempNextFace temp_next;
-    temp_next.face     = face.data();
-    temp_next.distance = distance.data();
-    temp_next.isect    = isect.data();
-    temp_next.size     = isect.size();
-
-    // Test on all entries
-    celeritas::detail::IsIntersectionFinite is_valid{temp_next};
-    {
-        std::vector<int> result;
-        for (size_type i : isect)
-        {
-            result.push_back(is_valid(i));
-        }
-        static const int expected_result[] = {1, 1, 0, 1};
-        EXPECT_VEC_EQ(expected_result, result);
-    }
-
-    // Partition so valid indices are first
-    {
-        auto iter = std::partition(isect.begin(), isect.end(), is_valid);
-        EXPECT_EQ(3, iter - isect.begin());
-
-        // Erase invalid and sort valid to avoid implementation dependence
-        isect.erase(iter, isect.end());
-        std::sort(isect.begin(), isect.end());
-        static const unsigned int expected_isect[] = {0, 1, 3};
-        EXPECT_VEC_EQ(expected_isect, isect);
-    }
-}
-
-//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
