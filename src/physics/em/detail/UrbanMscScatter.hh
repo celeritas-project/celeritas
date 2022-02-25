@@ -151,7 +151,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
 //---------------------------------------------------------------------------//
 /*!
  * Sample the angular distribution and the lateral displacement by multiple
- * scattering as well as covert the geometrical path length to the true path
+ * scattering as well as convert the geometrical path length to the true path
  * length based on G4VMultipleScattering::AlongStepDoIt of the Geant4 10.7
  * release.
  *
@@ -162,7 +162,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng)
 {
     MscSamplingResult result;
 
-    // Covert the geometry path length to the true path length
+    // Convert the geometry path length to the true path length
     real_type geom_path = input_.geom_path;
     real_type true_path
         = helper_.calc_true_path(input_.true_path, geom_path, input_.alpha);
@@ -246,26 +246,26 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                                                            real_type true_path,
                                                            real_type limit_min)
 {
-    real_type cth     = 1.0;
-    real_type lambda  = helper_.msc_mfp(inc_energy_);
-    real_type lambda1 = helper_.msc_mfp(end_energy);
+    real_type result = 1.0;
 
-    real_type tau = (std::abs(lambda1 - lambda) > lambda * 0.01 && lambda1 > 0)
-                        ? true_path * std::log(lambda / lambda1)
-                              / (lambda - lambda1)
-                        : true_path / lambda;
+    real_type lambda_end = helper_.msc_mfp(end_energy);
 
-    tau_ = tau;
+    tau_ = true_path
+           / ((std::fabs(lambda_ - lambda_end) > lambda_ * 0.01)
+                  ? (lambda_ - lambda_end) / std::log(lambda_ / lambda_end)
+                  : lambda_);
 
-    if (tau >= params_.tau_big)
+    if (tau_ >= params_.tau_big)
     {
-        cth = UniformRealDistribution<real_type>(-1, 1)(rng);
+        result = UniformRealDistribution<real_type>(-1, 1)(rng);
     }
-    else if (tau >= params_.tau_small)
+    else if (tau_ >= params_.tau_small)
     {
         // Sample the mean distribution of the scattering angle, cos(theta)
-        real_type xmean  = std::exp(-tau);
-        real_type x2mean = (1 + 2 * std::exp(real_type(-2.5) * tau)) / 3; 
+
+        // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
+        real_type xmean  = std::exp(-tau_);
+        real_type x2mean = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
 
         // Too large step of the low energy particle
         if (end_energy.value() < real_type(0.5) * inc_energy_.value())
@@ -276,7 +276,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         // Check for extreme small steps
         real_type tsmall     = min<real_type>(limit_min, params_.lambda_limit);
         bool      small_step = (true_path < tsmall);
-        real_type theta0     = (small_step)
+
+        real_type theta0 = (small_step)
                                ? std::sqrt(true_path / tsmall)
                                      * this->compute_theta0(tsmall, end_energy)
                                : this->compute_theta0(true_path, end_energy);
@@ -285,7 +286,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         real_type theta2 = ipow<2>(theta0);
         if (theta2 < params_.tau_small)
         {
-            return cth;
+            return result;
         }
 
         if (theta0 > constants::pi / 6)
@@ -302,13 +303,11 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         }
 
         // Evaluate parameters for the tail distribution
-        real_type lambdaeff = true_path / tau;
-        real_type ltau      = std::log(tau);
-        real_type u = small_step ? std::exp(std::log(tsmall / lambda) / 6)
-                                 : std::exp(ltau / 6);
-        real_type xx  = std::log(lambdaeff / rad_length_);
-        real_type xsi = msc_.coeffc1 + u * (msc_.coeffc2 + msc_.coeffc3 * u)
-                        + msc_.coeffc4 * xx;
+        real_type u   = small_step ? std::exp(std::log(tsmall / lambda_) / 6)
+                                   : std::exp(std::log(tau_) / 6);
+        real_type xsi = msc_.d[0] + u * (msc_.d[1] + msc_.d[2] * u)
+                        + msc_.d[3]
+                              * std::log(true_path / (tau_ * rad_length_));
 
         // The tail should not be too big
         xsi = max<real_type>(xsi, real_type(1.9));
@@ -326,30 +325,30 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
 
         real_type c1 = c - 1;
 
-        real_type ea     = std::exp(-xsi);
-        real_type eaa    = 1 - ea;
+        real_type ea  = std::exp(-xsi);
+        real_type eaa = 1 - ea;
+        // Mean of cos\theta computed from the distribution g_1(cos\theta)
         real_type xmean1 = 1 - (1 - (1 + xsi) * ea) * x / eaa;
-        real_type x0     = 1 - xsi * x;
 
         if (xmean1 <= real_type(0.999) * xmean)
         {
-            cth = this->simple_scattering(rng, xmean, x2mean);
+            result = this->simple_scattering(rng, xmean, x2mean);
         }
 
         // From continuity of derivatives
         real_type b1 = 2 + (c - xsi) * x;
         real_type bx = c * x;
+        real_type d  = std::exp(std::log(bx / b1) * c1);
+        real_type x0 = 1 - xsi * x;
 
-        real_type eb1 = std::exp(std::log(b1) * c1);
-        real_type ebx = std::exp(std::log(bx) * c1);
-        real_type d   = ebx / eb1;
-
+        // Mean of cos\theta computed from the distribution g_2(cos\theta)
         real_type xmean2 = (x0 + d - (bx - b1 * d) / (c - 2)) / (1 - d);
 
         real_type f1x0 = ea / eaa;
         real_type f2x0 = c1 / (c * (1 - d));
         real_type prob = f2x0 / (f1x0 + f2x0);
 
+        // Eq. 8.14 in the PRM: note that can be greater than 1
         real_type qprob = xmean / (prob * xmean1 + (1 - prob) * xmean2);
 
         // Sampling of cos(theta)
@@ -358,36 +357,40 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
             real_type var = 0;
             if (BernoulliDistribution(prob)(rng))
             {
-                cth = 1 + std::log(ea + generate_canonical(rng) * eaa) * x;
+                // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
+                result = 1 + std::log(ea + generate_canonical(rng) * eaa) * x;
             }
             else
             {
+                // Sample \f$ \cos\theta \f$ from \f$ g_2(\cos\theta) \f$
                 var = (1 - d) * generate_canonical(rng);
                 if (var < real_type(0.01) * d)
                 {
                     var /= (d * c1);
-                    cth = -1
-                          + var * (1 - real_type(0.5) * var * c)
-                                * (2 + (c - xsi) * x);
+                    result = -1
+                             + var * (1 - real_type(0.5) * var * c)
+                                   * (2 + (c - xsi) * x);
                 }
                 else
                 {
-                    cth = x * (c - xsi - c * std::exp(-std::log(var + d) / c1))
+                    result
+                        = x * (c - xsi - c * std::exp(-std::log(var + d) / c1))
                           + 1;
                 }
             }
         }
         else
         {
-            cth = UniformRealDistribution<real_type>(-1, 1)(rng);
+            // Sample \f$ \cos\theta \f$ from \f$ g_3(\cos\theta) \f$
+            result = UniformRealDistribution<real_type>(-1, 1)(rng);
         }
     }
-    return cth;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample the large anagle scattering using 2 model functions.
+ * Sample the large angle scattering using 2 model functions.
  *
  * @param xmean the mean of \f$\cos\theta\f$.
  * @param x2mean the mean of \f$\cos\theta^{2}\f$.
@@ -400,16 +403,16 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
     real_type prob = (a + 2) * xmean / a;
 
     // Sample cos(theta)
-    real_type cth{};
+    real_type result{};
     do
     {
         real_type rdm = generate_canonical(rng);
-        cth           = BernoulliDistribution(prob)(rng)
-                  ? -1 + 2 * std::exp(std::log(rdm) / (a + 1))
-                  : -1 + 2 * rdm;
-    } while (std::fabs(cth) > 1);
+        result        = BernoulliDistribution(prob)(rng)
+                            ? -1 + 2 * std::exp(std::log(rdm) / (a + 1))
+                            : -1 + 2 * rdm;
+    } while (std::fabs(result) > 1);
 
-    return cth;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
