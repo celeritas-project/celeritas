@@ -28,7 +28,7 @@ namespace detail
 /*!
  * Output data type of UrbanMscStepLimit (step limitation algorithm).
  */
-struct MscStepLimiterResult
+struct MscStepLimitResult
 {
     bool      is_displaced{true}; //!< flag for the lateral displacement
     real_type phys_step{};        //!< step length from physics processes
@@ -53,7 +53,7 @@ class UrbanMscStepLimit
     //!@{
     //! Type aliases
     using Energy        = units::MevEnergy;
-    using MscResult     = detail::MscStepLimiterResult;
+    using MscResult     = detail::MscStepLimitResult;
     using MscParameters = detail::UrbanMscParameters;
     using MaterialData  = detail::UrbanMscMaterialData;
     //!@}
@@ -232,7 +232,7 @@ real_type UrbanMscStepLimit::calc_geom_path(real_type true_path)
 
     if (true_path < 100 * helper_.limit_min_fix())
     {
-      // geometrical path length = true path length for a very small step
+        // geometrical path length = true path length for a very small step
         return geom_path;
     }
 

@@ -13,6 +13,7 @@
 
 #include "UrbanMscData.hh"
 #include "UrbanMscHelper.hh"
+#include "UrbanMscStepLimit.hh"
 
 namespace celeritas
 {
@@ -22,7 +23,7 @@ namespace detail
 /*!
  * Output data type of UrbanMscScatter.
  */
-struct MscSamplingResult
+struct MscScatterResult
 {
     real_type step_length;  //!< true step length
     Real3     direction;    //!< final direction by msc
@@ -38,10 +39,10 @@ class UrbanMscScatter
   public:
     //!@{
     //! Type aliases
-    using Energy            = units::MevEnergy;
-    using StepLimiterResult = detail::MscStepLimiterResult;
-    using MscParameters     = detail::UrbanMscParameters;
-    using MaterialData      = detail::UrbanMscMaterialData;
+    using Energy          = units::MevEnergy;
+    using StepLimitResult = detail::MscStepLimitResult;
+    using MscParameters   = detail::UrbanMscParameters;
+    using MaterialData    = detail::UrbanMscMaterialData;
     //!@}
 
   public:
@@ -51,11 +52,11 @@ class UrbanMscScatter
                                           const Real3&             direction,
                                           const PhysicsTrackView&  physics,
                                           const MaterialView&      material,
-                                          const StepLimiterResult& input);
+                                          const StepLimitResult&   input);
 
     // Sample the final true step length, position and direction by msc
     template<class Engine>
-    inline CELER_FUNCTION MscSamplingResult operator()(Engine& rng);
+    inline CELER_FUNCTION MscScatterResult operator()(Engine& rng);
 
   private:
     //// DATA ////
@@ -75,7 +76,7 @@ class UrbanMscScatter
     // Urban MSC helper class
     UrbanMscHelper helper_;
     // Results from UrbanMSCStepLimit
-    StepLimiterResult input_;
+    StepLimitResult input_;
 
     //// COMMON PROPERTIES ////
 
@@ -131,7 +132,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
                                  const Real3&             direction,
                                  const PhysicsTrackView&  physics,
                                  const MaterialView&      material,
-                                 const StepLimiterResult& input)
+                                 const StepLimitResult&   input)
     : inc_energy_(particle.energy())
     , inc_direction_(direction)
     , is_positron_(particle.particle_id() == shared.positron_id)
@@ -158,9 +159,9 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
  */
 template<class Engine>
 CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng)
-    -> MscSamplingResult
+    -> MscScatterResult
 {
-    MscSamplingResult result;
+    MscScatterResult result;
 
     // Convert the geometry path length to the true path length
     real_type geom_path = input_.geom_path;
