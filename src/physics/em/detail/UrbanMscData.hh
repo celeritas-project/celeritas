@@ -42,7 +42,7 @@ struct UrbanMscParameters
 struct UrbanMscMaterialData
 {
     real_type zeff;        //!< effective atomic_number
-    real_type z23;         //!< ipow<4>(log(zeff)/6)
+    real_type z23;         //!< zeff^(2/3)
     real_type coeffth1;    //!< correction in theta_0 formula
     real_type coeffth2;    //!< correction in theta_0 formula
     real_type coeffc1;     //!< coefficient of tail parameters
@@ -77,8 +77,8 @@ struct UrbanMscData
     UrbanMscParameters params;
 
     template<class T>
-    using ElementItems = celeritas::Collection<T, W, M, MaterialId>;
-    ElementItems<UrbanMscMaterialData> msc_data;
+    using MaterialItems = celeritas::Collection<T, W, M, MaterialId>;
+    MaterialItems<UrbanMscMaterialData> msc_data;
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
