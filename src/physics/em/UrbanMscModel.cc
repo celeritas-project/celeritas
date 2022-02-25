@@ -7,17 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "UrbanMscModel.hh"
 
+#include <cmath>
+
 #include "base/Algorithms.hh"
 #include "base/Assert.hh"
-#include "base/Range.hh"
 #include "base/CollectionBuilder.hh"
+#include "base/Range.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/em/detail/UrbanMscData.hh"
 #include "physics/material/MaterialParams.hh"
 #include "physics/material/MaterialView.hh"
-
-#include <cmath>
 
 namespace celeritas
 {
@@ -145,10 +145,10 @@ auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
 
     // Tail parameters
     real_type z13 = ipow<2>(z16);
-    data.coeffc1  = 2.3785 - z13 * (4.1981e-1 - z13 * 6.3100e-2);
-    data.coeffc2  = 4.7526e-1 + z13 * (1.7694 - z13 * 3.3885e-1);
-    data.coeffc3  = 2.3683e-1 - z13 * (1.8111 - z13 * 3.2774e-1);
-    data.coeffc4  = 1.7888e-2 + z13 * (1.9659e-2 - z13 * 2.6664e-3);
+    data.d[0]     = 2.3785 - z13 * (4.1981e-1 - z13 * 6.3100e-2);
+    data.d[1]     = 4.7526e-1 + z13 * (1.7694 - z13 * 3.3885e-1);
+    data.d[2]     = 2.3683e-1 - z13 * (1.8111 - z13 * 3.2774e-1);
+    data.d[3]     = 1.7888e-2 + z13 * (1.9659e-2 - z13 * 2.6664e-3);
 
     data.z23 = ipow<2>(z13);
 
