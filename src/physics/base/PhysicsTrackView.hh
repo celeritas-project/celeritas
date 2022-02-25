@@ -500,7 +500,7 @@ CELER_FUNCTION ParticleProcessId PhysicsTrackView::eloss_ppid() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Particle-process ID of the multiple scatterting process
+ * Particle-process ID of the multiple scattering process
  */
 CELER_FUNCTION ParticleProcessId PhysicsTrackView::msc_ppid() const
 {
