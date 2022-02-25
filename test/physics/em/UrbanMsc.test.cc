@@ -9,29 +9,27 @@
 
 #include "base/CollectionStateStore.hh"
 #include "base/Range.hh"
-#include "io/RootImporter.hh"
+#include "geometry/GeoData.hh"
+#include "geometry/GeoParams.hh"
+#include "geometry/GeoTestBase.hh"
+#include "geometry/GeoTrackView.hh"
 #include "io/ImportData.hh"
-#include "random/DiagnosticRngEngine.hh"
-
+#include "io/RootImporter.hh"
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/base/Model.hh"
 #include "physics/base/ParticleData.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/base/PhysicsTrackView.hh"
-#include "physics/grid/RangeCalculator.hh"
 #include "physics/em/EIonizationProcess.hh"
 #include "physics/em/MultipleScatteringProcess.hh"
 #include "physics/em/UrbanMscModel.hh"
-#include "physics/em/detail/UrbanMscStepLimit.hh"
 #include "physics/em/detail/UrbanMscScatter.hh"
-
-#include "geometry/GeoData.hh"
-#include "geometry/GeoParams.hh"
-#include "geometry/GeoTrackView.hh"
+#include "physics/em/detail/UrbanMscStepLimit.hh"
+#include "physics/grid/RangeCalculator.hh"
+#include "random/DiagnosticRngEngine.hh"
 
 #include "celeritas_test.hh"
 #include "gtest/Test.hh"
-#include "geometry/GeoTestBase.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -196,10 +194,10 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_DOUBLE_EQ(msc_.z23, 8.7313179636909233);
     EXPECT_DOUBLE_EQ(msc_.coeffth1, 0.97326969977637379);
     EXPECT_DOUBLE_EQ(msc_.coeffth2, 0.044188139325421663);
-    EXPECT_DOUBLE_EQ(msc_.coeffc1, 1.6889578380303167);
-    EXPECT_DOUBLE_EQ(msc_.coeffc2, 2.745018223507488);
-    EXPECT_DOUBLE_EQ(msc_.coeffc3, -2.2531516772497562);
-    EXPECT_DOUBLE_EQ(msc_.coeffc4, 0.052696806851297018);
+    EXPECT_DOUBLE_EQ(msc_.d[0], 1.6889578380303167);
+    EXPECT_DOUBLE_EQ(msc_.d[1], 2.745018223507488);
+    EXPECT_DOUBLE_EQ(msc_.d[2], -2.2531516772497562);
+    EXPECT_DOUBLE_EQ(msc_.d[3], 0.052696806851297018);
     EXPECT_DOUBLE_EQ(msc_.stepmin_a, 4.4449610414595817);
     EXPECT_DOUBLE_EQ(msc_.stepmin_b, 1.5922149179564158);
     EXPECT_DOUBLE_EQ(msc_.d_over_r, 0.64474963087322135);
@@ -265,8 +263,8 @@ TEST_F(UrbanMscTest, msc_scattering)
                                      0.0409943838810989,
                                      0.023815696237744,
                                      0.0357277834605262,
-                                     0.0010792292357971,
-                                     8.58868643331568e-05,
+                                     0.000860509603114591,
+                                     8.42039426529163e-05,
                                      0.000286789820693628,
                                      1.17373195131411e-05};
 
@@ -274,8 +272,8 @@ TEST_F(UrbanMscTest, msc_scattering)
                                      0.394369575335092,
                                      -0.111678511182682,
                                      -0.657415795200799,
-                                     0.11704860382104,
-                                     -0.185664470652244,
+                                     0.103369072552411,
+                                     -0.183547381906496,
                                      0.793645871128744,
                                      -0.98020130119347};
 
