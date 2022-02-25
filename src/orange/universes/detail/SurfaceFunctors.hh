@@ -134,7 +134,7 @@ class CalcIntersections
         // Copy possible intersections and this surface to the output
         for (real_type dist : all_dist)
         {
-            CELER_ASSERT(dist >= 0);
+            CELER_ASSERT(dist > 0);
             face_[isect_idx_]     = FaceId{face_idx_};
             distance_[isect_idx_] = dist;
             if (fill_isect_)

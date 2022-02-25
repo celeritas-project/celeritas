@@ -325,26 +325,9 @@ class UtilsTest : public celeritas::Test
 {
 };
 
-TEST_F(UtilsTest, closer_nonzero_distance)
+TEST_F(UtilsTest, infinite_intersection_partitioner)
 {
-    detail::CloserPositiveDistance is_closer;
-
-    // Equal
-    EXPECT_FALSE(is_closer(0.0, 0.0));
-    EXPECT_FALSE(is_closer(1.0, 1.0));
-
-    // Positive vs nonpositive
-    EXPECT_FALSE(is_closer(-0.0001, 1.0));
-    EXPECT_FALSE(is_closer(0.0, 1.0));
-    EXPECT_TRUE(is_closer(1.0, 0.0));
-
-    // Positive vs positive
-    EXPECT_TRUE(is_closer(1.0, 20.0));
-}
-
-TEST_F(UtilsTest, intersection_partitioner)
-{
-    std::vector<real_type> distance = {1.25, -1e-16, 3, 0, inf, 5};
+    std::vector<real_type> distance = {1.25, 3, no_intersection(), 5};
     std::vector<FaceId>    face(distance.size(), FaceId{});
     std::vector<size_type> isect(distance.size());
 
@@ -359,14 +342,14 @@ TEST_F(UtilsTest, intersection_partitioner)
     temp_next.size     = isect.size();
 
     // Test on all entries
-    celeritas::detail::IntersectionPartitioner is_valid{temp_next};
+    celeritas::detail::IsIntersectionFinite is_valid{temp_next};
     {
         std::vector<int> result;
         for (size_type i : isect)
         {
             result.push_back(is_valid(i));
         }
-        static const int expected_result[] = {1, 0, 1, 0, 0, 1};
+        static const int expected_result[] = {1, 1, 0, 1};
         EXPECT_VEC_EQ(expected_result, result);
     }
 
@@ -378,7 +361,7 @@ TEST_F(UtilsTest, intersection_partitioner)
         // Erase invalid and sort valid to avoid implementation dependence
         isect.erase(iter, isect.end());
         std::sort(isect.begin(), isect.end());
-        static const unsigned int expected_isect[] = {0, 2, 5};
+        static const unsigned int expected_isect[] = {0, 1, 3};
         EXPECT_VEC_EQ(expected_isect, isect);
     }
 }

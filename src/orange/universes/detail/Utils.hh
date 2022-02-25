@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "base/Macros.hh"
+#include "base/NumericLimits.hh"
 
 #include "../VolumeView.hh"
 #include "Types.hh"
@@ -22,28 +23,9 @@ namespace detail
 // FUNCTION-LIKE CLASSES
 //---------------------------------------------------------------------------//
 /*!
- * Predicate for finding the closest valid (strictly positive) distance.
- *
- * \todo Changing the QuadraticSolver class to return only positive
- * intersections should allow us to replace this with a simple less-than
- * comparator.
- */
-struct CloserPositiveDistance
-{
-    CELER_CONSTEXPR_FUNCTION bool operator()(real_type a, real_type b) const
-    {
-        return a > 0 && (b <= 0 || a < b);
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Predicate for partitioning valid (finite positive) from invalid distances.
- *
- * \todo See above, and if we add a "maximum distance" to the intersection
- * lookup, then we can perhaps change to `return distance < max_dist`.
  */
-struct IntersectionPartitioner
+struct IsIntersectionFinite
 {
     const TempNextFace& temp_next;
 
@@ -51,7 +33,7 @@ struct IntersectionPartitioner
     {
         CELER_ASSERT(isect < temp_next.size);
         const real_type distance = temp_next.distance[isect];
-        return distance > 0 && !std::isinf(distance);
+        return distance < numeric_limits<real_type>::max();
     }
 };
 

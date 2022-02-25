@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Algorithms.hh"
 #include "orange/Data.hh"
 #include "orange/surfaces/Surfaces.hh"
 
@@ -189,7 +190,7 @@ SimpleUnitTracker::simple_intersect(const LocalState& state,
         const real_type* distance_ptr = celeritas::min_element(
             state.temp_next.distance,
             state.temp_next.distance + vol.num_intersections(),
-            detail::CloserPositiveDistance{});
+            Less<real_type>{});
         CELER_ASSERT(*distance_ptr > 0);
         distance_idx = distance_ptr - state.temp_next.distance;
     }
@@ -249,11 +250,11 @@ SimpleUnitTracker::complex_intersect(const LocalState& state,
 {
     // Partition intersections (enumerated from 0 as the `idx` array) into
     // valid (finite positive) and invalid (infinite-or-negative) groups.
-    size_type num_isect = celeritas::partition(
-                              state.temp_next.isect,
-                              state.temp_next.isect + vol.num_intersections(),
-                              detail::IntersectionPartitioner{state.temp_next})
-                          - state.temp_next.isect;
+    size_type num_isect
+        = celeritas::partition(state.temp_next.isect,
+                               state.temp_next.isect + vol.num_intersections(),
+                               detail::IsIntersectionFinite{state.temp_next})
+          - state.temp_next.isect;
     CELER_ASSERT(num_isect <= vol.num_intersections());
 
     // Sort these finite distances in ascending order
