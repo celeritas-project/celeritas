@@ -44,8 +44,6 @@ class OrangeTrackView
     inline CELER_FUNCTION OrangeTrackView(const ParamsRef& params,
                                           const StateRef&  states,
                                           ThreadId         tid);
-    // Write out state on destruction
-    inline CELER_FUNCTION ~OrangeTrackView();
 
     // Initialize the state
     inline CELER_FUNCTION OrangeTrackView& operator=(const Initializer_t& init);
@@ -56,13 +54,16 @@ class OrangeTrackView
     //// ACCESSORS ////
 
     //! The current position
-    CELER_FUNCTION const Real3& pos() const { return local_.pos; }
+    CELER_FUNCTION const Real3& pos() const { return states_.pos[thread_]; }
     //! The current direction
-    CELER_FUNCTION const Real3& dir() const { return local_.dir; }
+    CELER_FUNCTION const Real3& dir() const { return states_.dir[thread_]; }
     //! The current volume ID (null if outside)
-    CELER_FUNCTION VolumeId volume_id() const { return local_.volume; }
+    CELER_FUNCTION VolumeId volume_id() const { return states_.vol[thread_]; }
     //! The current surface ID
-    CELER_FUNCTION SurfaceId surface_id() const { return local_.surface.id(); }
+    CELER_FUNCTION SurfaceId surface_id() const
+    {
+        return states_.surf[thread_];
+    }
     // Whether the track is outside the valid geometry region
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
 
@@ -96,15 +97,16 @@ class OrangeTrackView
     const StateRef&  states_;
     ThreadId         thread_;
 
-    detail::LocalState local_;          //!< Temporary local state
     real_type          next_step_{0};   //!< Temporary next step
     detail::OnSurface  next_surface_{}; //!< Temporary next surface
-    bool dirty_{false}; //!< Whether global params is updated in destructor
 
     //// HELPER FUNCTIONS ////
 
-    // Create local state
-    inline CELER_FUNCTION detail::LocalState make_local() const;
+    // Create local sense reference
+    inline CELER_FUNCTION Span<Sense> make_temp_sense() const;
+
+    // Create local distance
+    inline CELER_FUNCTION detail::TempNextFace make_temp_next() const;
 
     // Whether the next distance-to-boundary has been found
     CELER_FORCEINLINE_FUNCTION bool has_next_step() const;
@@ -129,25 +131,7 @@ OrangeTrackView::OrangeTrackView(const ParamsRef& params,
     CELER_EXPECT(states_);
     CELER_EXPECT(thread < states.size());
 
-    local_ = this->make_local();
-
     CELER_ENSURE(!this->has_next_step());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write out state on destruction.
- */
-CELER_FUNCTION OrangeTrackView::~OrangeTrackView()
-{
-    if (dirty_)
-    {
-        states_.pos[thread_]   = local_.pos;
-        states_.dir[thread_]   = local_.dir;
-        states_.vol[thread_]   = local_.volume;
-        states_.surf[thread_]  = local_.surface.id();
-        states_.sense[thread_] = local_.surface.unchecked_sense();
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -163,19 +147,31 @@ OrangeTrackView::operator=(const Initializer_t& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    local_.pos     = init.pos;
-    local_.dir     = init.dir;
-    local_.volume  = {};
-    local_.surface = {};
+    // Save known data to global memory
+    states_.pos[thread_]   = init.pos;
+    states_.dir[thread_]   = init.dir;
+    states_.surf[thread_]  = {};
+    states_.sense[thread_] = {};
+
+    // Clear local data
     this->clear_next_step();
-    dirty_ = true;
+
+    // Create local state
+    detail::LocalState local;
+    local.pos        = init.pos;
+    local.dir        = init.dir;
+    local.volume     = {};
+    local.surface    = {};
+    local.temp_sense = this->make_temp_sense();
 
     // Initialize logical state
     SimpleUnitTracker tracker(params_);
-    auto              tinit = tracker.initialize(local_);
+    auto              tinit = tracker.initialize(local);
     // TODO: error correction/graceful failure if initialiation failured
     CELER_ASSERT(tinit.volume && !tinit.surface);
-    local_.volume = tinit.volume;
+
+    // Save local data
+    states_.vol[thread_] = tinit.volume;
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -189,17 +185,17 @@ CELER_FUNCTION
 OrangeTrackView& OrangeTrackView::operator=(const DetailedInitializer& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
-    CELER_EXPECT(init.other.local_.volume);
+    CELER_EXPECT(states_.vol[init.other.thread_]);
 
-    // Copy other track's position but update the direction
-    local_.pos     = init.other.local_.pos;
-    local_.dir     = init.dir;
-    local_.volume  = init.other.local_.volume;
-    local_.surface = init.other.local_.surface;
+    // Copy init track's position but update the direction
+    states_.pos[thread_]   = states_.pos[init.other.thread_];
+    states_.dir[thread_]   = init.dir;
+    states_.vol[thread_]   = states_.vol[init.other.thread_];
+    states_.surf[thread_]  = states_.surf[init.other.thread_];
+    states_.sense[thread_] = states_.sense[init.other.thread_];
 
     // Clear step and surface info
     this->clear_next_step();
-    dirty_ = true;
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -213,8 +209,16 @@ CELER_FUNCTION real_type OrangeTrackView::find_next_step()
 {
     if (!this->has_next_step())
     {
+        detail::LocalState local;
+        local.pos        = states_.pos[thread_];
+        local.dir        = states_.dir[thread_];
+        local.volume     = states_.vol[thread_];
+        local.surface    = {states_.surf[thread_], states_.sense[thread_]};
+        local.temp_sense = this->make_temp_sense();
+        local.temp_next  = this->make_temp_next();
+
         SimpleUnitTracker tracker(params_);
-        auto              isect = tracker.intersect(local_);
+        auto              isect = tracker.intersect(local);
         next_step_              = isect.distance;
         next_surface_           = isect.surface;
     }
@@ -242,11 +246,11 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     CELER_EXPECT(next_surface_);
 
     // Physically move next step
-    axpy(next_step_, local_.dir, &local_.pos);
+    axpy(next_step_, states_.dir[thread_], &states_.pos[thread_]);
     // Move to the inside of the surface
-    local_.surface = next_surface_;
+    states_.surf[thread_]  = next_surface_.id();
+    states_.sense[thread_] = next_surface_.unchecked_sense();
     this->clear_next_step();
-    dirty_ = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -262,10 +266,9 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     CELER_EXPECT(dist > 0 && dist < next_step_);
 
     // Move and update next_step_
-    axpy(dist, local_.dir, &local_.pos);
+    axpy(dist, states_.dir[thread_], &states_.pos[thread_]);
     next_step_ -= dist;
-    local_.surface = {};
-    dirty_         = true;
+    states_.surf[thread_] = {};
 }
 
 //---------------------------------------------------------------------------//
@@ -277,10 +280,9 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
  */
 CELER_FUNCTION void OrangeTrackView::move_internal(const Real3& pos)
 {
-    local_.pos     = pos;
-    local_.surface = {};
+    states_.pos[thread_]  = pos;
+    states_.surf[thread_] = {};
     this->clear_next_step();
-    dirty_ = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -291,20 +293,25 @@ CELER_FUNCTION void OrangeTrackView::move_internal(const Real3& pos)
  */
 CELER_FUNCTION void OrangeTrackView::cross_boundary()
 {
-    CELER_EXPECT(local_.surface);
+    CELER_EXPECT(this->surface_id());
     CELER_EXPECT(!this->has_next_step());
 
     // Flip current sense from "before crossing" to "after"
-    local_.surface.flip_sense();
+    detail::LocalState local;
+    local.pos     = this->pos();
+    local.dir     = this->dir();
+    local.volume  = states_.vol[thread_];
+    local.surface = {states_.surf[thread_], flip_sense(states_.sense[thread_])};
+    local.temp_sense = this->make_temp_sense();
 
     // Update the post-crossing volume
     SimpleUnitTracker tracker(params_);
-    auto              init = tracker.initialize(local_);
+    auto              init = tracker.initialize(local);
     // TODO: error correction/graceful failure if initialization failed
     CELER_ASSERT(init.volume);
-    local_.volume  = init.volume;
-    local_.surface = init.surface;
-    dirty_         = true;
+    states_.vol[thread_]   = init.volume;
+    states_.surf[thread_]  = init.surface.id();
+    states_.sense[thread_] = init.surface.unchecked_sense();
 }
 
 //---------------------------------------------------------------------------//
@@ -317,9 +324,8 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 CELER_FUNCTION void OrangeTrackView::set_dir(const Real3& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
-    local_.dir = newdir;
+    states_.dir[thread_] = newdir;
     this->clear_next_step();
-    dirty_ = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -330,7 +336,7 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
 {
     // Zeroth volume in outermost universe is always the exterior by
     // construction in ORANGE
-    return local_.volume == VolumeId{0};
+    return states_.vol[thread_] == VolumeId{0};
 }
 
 //---------------------------------------------------------------------------//
@@ -339,46 +345,36 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
 /*!
  * Get a reference to the current volume, or to world volume if outside.
  */
-CELER_FUNCTION detail::LocalState OrangeTrackView::make_local() const
+CELER_FUNCTION Span<Sense> OrangeTrackView::make_temp_sense() const
 {
-    detail::LocalState result;
+    const auto max_faces = params_.scalars.max_faces;
+    auto       offset    = thread_.get() * max_faces;
+    return states_.temp_sense[AllItems<Sense, MemSpace::native>{}].subspan(
+        offset, max_faces);
+}
 
-    // Set up basic local data
-    result.pos     = states_.pos[thread_];
-    result.dir     = states_.dir[thread_];
-    result.volume  = states_.vol[thread_];
-    result.surface = {states_.surf[thread_], states_.sense[thread_]};
+//---------------------------------------------------------------------------//
+/*!
+ * Set up intersection scratch space.
+ */
+CELER_FUNCTION detail::TempNextFace OrangeTrackView::make_temp_next() const
+{
+    const auto max_isect = params_.scalars.max_intersections;
+    auto       offset    = thread_.get() * max_isect;
 
-    // Set up sense scratch space
-    // TODO: experiment with making this 'lazy'?
-    {
-        const auto max_faces = params_.scalars.max_faces;
-        auto       offset    = thread_.get() * max_faces;
-        result.temp_sense
-            = states_.temp_sense[AllItems<Sense, MemSpace::native>{}].subspan(
-                offset, max_faces);
-    }
-
-    // Set up intersection scratch space
-    {
-        const auto max_isect = params_.scalars.max_intersections;
-        auto       offset    = thread_.get() * max_isect;
-
-        result.temp_next.face = states_.temp_face[AllItems<FaceId>{}].data()
-                                + offset;
-        result.temp_next.distance
-            = states_.temp_distance[AllItems<real_type>{}].data() + offset;
-        result.temp_next.isect
-            = states_.temp_isect[AllItems<size_type>{}].data() + offset;
-        result.temp_next.size = max_isect;
-    }
+    detail::TempNextFace result;
+    result.face     = states_.temp_face[AllItems<FaceId>{}].data() + offset;
+    result.distance = states_.temp_distance[AllItems<real_type>{}].data()
+                      + offset;
+    result.isect = states_.temp_isect[AllItems<size_type>{}].data() + offset;
+    result.size  = max_isect;
 
     return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a reference to the current volume, or to world volume if outside.
+ * Whether the next step has been calculated.
  */
 CELER_FUNCTION bool OrangeTrackView::has_next_step() const
 {
