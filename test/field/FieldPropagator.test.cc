@@ -148,7 +148,7 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         beg_state.pos = {test.radius, -10, i * 1.0e-6};
 
         // Check GeoTrackView
-        EXPECT_SOFT_EQ(5.5, geo_track.find_next_step());
+        EXPECT_SOFT_EQ(5.5, geo_track.find_next_step().distance);
 
         // Construct FieldPropagator
         RKTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
@@ -207,7 +207,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         geo_track      = {{test.radius, 0, i * 1.0e-6}, {0, 1, 0}};
         particle_track = Initializer_t{ParticleId{0}, MevEnergy{test.energy}};
 
-        EXPECT_SOFT_EQ(0.5, geo_track.find_next_step());
+        EXPECT_SOFT_EQ(0.5, geo_track.find_next_step().distance);
 
         // Construct FieldPropagator
         RKTraits::Propagator_t propagate(particle_track, &geo_track, &driver);

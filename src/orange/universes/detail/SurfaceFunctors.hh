@@ -108,7 +108,7 @@ class CalcIntersections
     //! Construct from the particle point, direction, face ID, and temp storage
     CELER_FUNCTION CalcIntersections(const Real3&        pos,
                                      const Real3&        dir,
-                                     const IsValid&      is_valid_isect,
+                                     IsValid             is_valid_isect,
                                      FaceId              on_face,
                                      bool                is_simple,
                                      const TempNextFace& next_face)

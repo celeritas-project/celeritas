@@ -343,6 +343,10 @@ TEST_F(OneVolumeTest, intersect)
         auto isect = tracker.intersect(state);
         EXPECT_FALSE(isect);
         EXPECT_EQ(no_intersection(), isect.distance);
+
+        isect = tracker.intersect(state, 5.0);
+        EXPECT_FALSE(isect);
+        EXPECT_EQ(5.0, isect.distance);
     }
 }
 
@@ -432,6 +436,25 @@ TEST_F(TwoVolumeTest, intersect)
         EXPECT_EQ(SurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(1.0, isect.distance);
+
+        // Range limit: further than surface
+        isect = tracker.intersect(state, 10.0);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(1.0, isect.distance);
+
+        // Coincident
+        isect = tracker.intersect(state, 1.0);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(1.0, isect.distance);
+
+        // Range limit: less than
+        isect = tracker.intersect(state, 0.9);
+        EXPECT_FALSE(isect);
+        EXPECT_SOFT_EQ(0.9, isect.distance);
     }
     {
         SCOPED_TRACE("Outside");
@@ -661,6 +684,20 @@ TEST_F(FiveVolumesTest, intersect)
         EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(101.04503395088592, isect.distance);
+
+        isect = tracker.intersect(state, 105.0);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(101.04503395088592, isect.distance);
+
+        isect = tracker.intersect(state, 100.0);
+        EXPECT_FALSE(isect);
+        EXPECT_SOFT_EQ(100.0, isect.distance);
+
+        isect = tracker.intersect(state, 1e-12);
+        EXPECT_FALSE(isect);
+        EXPECT_SOFT_EQ(1e-12, isect.distance);
     }
 }
 

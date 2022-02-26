@@ -70,7 +70,10 @@ class OrangeTrackView
     //// OPERATIONS ////
 
     // Find the distance to the next boundary
-    inline CELER_FUNCTION real_type find_next_step();
+    inline CELER_FUNCTION Propagation find_next_step();
+
+    // Find the distance to the next boundary, up to and including a step
+    inline CELER_FUNCTION Propagation find_next_step(real_type max_step);
 
     // Find the nearest (any direction) boundary within the current volume
     inline CELER_FUNCTION real_type find_safety(const Real3& pos);
@@ -205,8 +208,14 @@ OrangeTrackView& OrangeTrackView::operator=(const DetailedInitializer& init)
 /*!
  * Find the distance to the next geometric boundary.
  */
-CELER_FUNCTION real_type OrangeTrackView::find_next_step()
+CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
 {
+    if (!next_surface_ && next_step_ != no_intersection())
+    {
+        // Reset a previously found truncated distance
+        this->clear_next_step();
+    }
+
     if (!this->has_next_step())
     {
         detail::LocalState local;
@@ -223,7 +232,59 @@ CELER_FUNCTION real_type OrangeTrackView::find_next_step()
         next_surface_           = isect.surface;
     }
 
-    return next_step_;
+    Propagation result;
+    result.distance = next_step_;
+    result.boundary = static_cast<bool>(next_surface_);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find a nearby distance to the next geometric boundary up to a distance.
+ *
+ * This may reduce the number of surfaces needed to check, sort, or write to
+ * temporary memory, thereby speeding up transport.
+ */
+CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
+{
+    CELER_EXPECT(max_step > 0);
+
+    if (next_step_ > max_step)
+    {
+        // Cached next step is beyond the given step
+        Propagation result;
+        result.distance = max_step;
+        result.boundary = false;
+        return result;
+    }
+    else if (!next_surface_ && next_step_ < max_step)
+    {
+        // Reset a previously found truncated distance
+        this->clear_next_step();
+    }
+
+    if (!this->has_next_step())
+    {
+        detail::LocalState local;
+        local.pos        = states_.pos[thread_];
+        local.dir        = states_.dir[thread_];
+        local.volume     = states_.vol[thread_];
+        local.surface    = {states_.surf[thread_], states_.sense[thread_]};
+        local.temp_sense = this->make_temp_sense();
+        local.temp_next  = this->make_temp_next();
+
+        SimpleUnitTracker tracker(params_);
+        auto              isect = tracker.intersect(local, max_step);
+        next_step_              = isect.distance;
+        next_surface_           = isect.surface;
+    }
+
+    Propagation result;
+    result.distance = next_step_;
+    result.boundary = static_cast<bool>(next_surface_);
+
+    CELER_ENSURE(result.distance <= max_step);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -263,7 +324,8 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
 {
     CELER_EXPECT(this->has_next_step());
-    CELER_EXPECT(dist > 0 && dist < next_step_);
+    CELER_EXPECT(dist > 0 && dist <= next_step_);
+    CELER_EXPECT(dist != next_step_ || !next_surface_);
 
     // Move and update next_step_
     axpy(dist, states_.dir[thread_], &states_.pos[thread_]);
@@ -374,7 +436,7 @@ CELER_FUNCTION detail::TempNextFace OrangeTrackView::make_temp_next() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the next step has been calculated.
+ * Whether any next step has been calculated.
  */
 CELER_FUNCTION bool OrangeTrackView::has_next_step() const
 {

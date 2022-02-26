@@ -110,7 +110,10 @@ struct Intersection
     real_type distance = no_intersection();
 
     //! Whether a next surface has been found
-    explicit operator bool() const { return static_cast<bool>(surface); }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return static_cast<bool>(surface);
+    }
 };
 
 //---------------------------------------------------------------------------//

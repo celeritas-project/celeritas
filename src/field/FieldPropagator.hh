@@ -126,6 +126,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     -> result_type
 {
     result_type result;
+    result.distance = 0;
 
     // Break the curved steps into substeps as determined by the driver *and*
     // by the proximity of geometry boundaries. Test for intersection with the
@@ -149,8 +150,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         // Do a detailed check boundary check from the start position toward
         // the substep end point.
         track_.set_dir(chord.dir);
-        real_type linear_step = track_.find_next_step();
-        if (linear_step > chord.length)
+        auto linear_step = track_.find_next_step(chord.length);
+        if (!linear_step.boundary)
         {
             // No boundary intersection along the chord: accept substep
             // movement inside the current volume and reset the remaining
@@ -161,19 +162,20 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             remaining = step - result.distance;
             track_.move_internal(state_.pos);
         }
-        else if (substep.step * linear_step
+        else if (substep.step * linear_step.distance
                  <= driver_.minimum_step() * chord.length)
         {
+            // i.e.: substep * (linear_step / chord_length) <= min_step
             // We're close enough to the boundary that the next trial step
             // would be less than the driver's minimum step. Hop to the
             // boundary without committing the substep.
             result.boundary = true;
-            result.distance += linear_step;
+            result.distance += linear_step.distance;
             remaining = 0;
         }
         else if (detail::is_intercept_close(state_.pos,
                                             chord.dir,
-                                            linear_step,
+                                            linear_step.distance,
                                             substep.state.pos,
                                             driver_.delta_intersection()))
         {
@@ -191,7 +193,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // The straight-line intercept is too far from substep's end state.
             // Decrease the allowed substep (curved path distance) by the
             // fraction along the chord, and retry the driver step.
-            remaining = substep.step * linear_step / chord.length;
+            remaining = substep.step * linear_step.distance / chord.length;
         }
     }
 

@@ -14,6 +14,7 @@
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
+#include "base/Algorithms.hh"
 #include "base/ArrayUtils.hh"
 #include "base/Macros.hh"
 #include "base/NumericLimits.hh"
@@ -68,8 +69,11 @@ class VecgeomTrackView
     inline CELER_FUNCTION VecgeomTrackView&
     operator=(const DetailedInitializer& init);
 
-    // Find the distance to the next boundary
-    inline CELER_FUNCTION real_type find_next_step();
+    // Find the distance to the next boundary (infinite max)
+    inline CELER_FUNCTION Propagation find_next_step();
+
+    // Find the distance to the next boundary, up to and including a step
+    inline CELER_FUNCTION Propagation find_next_step(real_type max_step);
 
     // Find the safety at a given position within the current volume
     inline CELER_FUNCTION real_type find_safety(const Real3& pos);
@@ -129,8 +133,8 @@ class VecgeomTrackView
 
     //// HELPER FUNCTIONS ////
 
-    //! Whether the next distance-to-boundary has been found
-    CELER_FUNCTION bool has_next_step() const { return next_step_ > 0; }
+    // Whether any next distance-to-boundary has been found
+    inline CELER_FUNCTION bool has_next_step() const;
 
     //! Get a reference to the current volume
     inline CELER_FUNCTION const Volume& volume() const;
@@ -220,19 +224,41 @@ VecgeomTrackView& VecgeomTrackView::operator=(const DetailedInitializer& init)
 /*!
  * Find the distance to the next geometric boundary.
  */
-CELER_FUNCTION real_type VecgeomTrackView::find_next_step()
+CELER_FUNCTION Propagation VecgeomTrackView::find_next_step()
 {
+    return this->find_next_step(vecgeom::kInfLength);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the distance to the next geometric boundary.
+ */
+CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
+{
+    CELER_EXPECT(max_step > 0);
+
+    if (next_step_ > max_step)
+    {
+        // Cached next step is beyond the given step
+        Propagation result;
+        result.distance = max_step;
+        result.boundary = false;
+        return result;
+    }
+    else if (!vgnext_.IsOnBoundary() && next_step_ < max_step)
+    {
+        // Reset a previously found truncated distance
+        next_step_ = 0;
+    }
+
     if (this->has_next_step())
     {
-        // Next boundary distance is cached
-        return next_step_;
+        // Already cached
     }
     else if (!this->is_outside())
     {
 #ifdef VECGEOM_USE_NAVINDEX
         // Use BVH navigator to find internal distance
-        // Note: AdePT provides max phys.length as maxStep
-        //  - if used, next state = current state
         next_step_ = detail::BVHNavigator::ComputeStepAndNextVolume(
 #else
         const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
@@ -240,26 +266,35 @@ CELER_FUNCTION real_type VecgeomTrackView::find_next_step()
 #endif
             detail::to_vector(pos_),
             detail::to_vector(dir_),
-            vecgeom::kInfLength,
+            max_step,
             vgstate_,
             vgnext_);
+        next_step_ = max(next_step_, this->extra_push());
     }
     else
     {
         // Find distance to interior from outside world volume
         auto* pplvol = params_.world_volume;
-        next_step_   = pplvol->DistanceToIn(detail::to_vector(pos_),
-                                          detail::to_vector(dir_),
-                                          vecgeom::kInfLength);
+        next_step_   = pplvol->DistanceToIn(
+            detail::to_vector(pos_), detail::to_vector(dir_), max_step);
 
         vgnext_.Clear();
-        if (next_step_ < vecgeom::kInfLength)
+        if (next_step_ <= max_step)
+        {
             vgnext_.Push(pplvol);
+            vgnext_.SetBoundaryState(true);
+        }
+        next_step_ = max(next_step_, this->extra_push());
     }
 
-    next_step_ = max(next_step_, this->extra_push());
+    Propagation result;
+    result.distance = next_step_;
+    result.boundary = vgnext_.IsOnBoundary();
+
     CELER_ENSURE(this->has_next_step());
-    return next_step_;
+    CELER_ENSURE(result.distance > 0);
+    CELER_ENSURE(result.distance <= max_step);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -287,6 +322,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(const Real3& pos)
 CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
 {
     CELER_EXPECT(this->has_next_step());
+    CELER_EXPECT(vgnext_.IsOnBoundary());
 
     // Move next step
     axpy(next_step_, dir_, &pos_);
@@ -301,6 +337,8 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
  */
 CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 {
+    CELER_EXPECT(vgnext_.IsOnBoundary());
+
     // Relocate to next tracking volume (maybe across multiple boundaries)
 #ifdef VECGEOM_USE_NAVINDEX
     if (vgnext_.Top() != nullptr)
@@ -325,7 +363,8 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
 {
     CELER_EXPECT(this->has_next_step());
-    CELER_EXPECT(dist > 0 && dist < next_step_);
+    CELER_EXPECT(dist > 0 && dist <= next_step_);
+    CELER_EXPECT(dist != next_step_ || !vgnext_.IsOnBoundary());
 
     // Move and update next_step_
     axpy(dist, dir_, &pos_);
@@ -370,14 +409,23 @@ CELER_FUNCTION VolumeId VecgeomTrackView::volume_id() const
 }
 
 //---------------------------------------------------------------------------//
-// PRIVATE MEMBER FUNCTIONS
-//---------------------------------------------------------------------------//
 /*!
  * Whether the track is outside the valid geometry region.
  */
 CELER_FUNCTION bool VecgeomTrackView::is_outside() const
 {
     return vgstate_.IsOutside();
+}
+
+//---------------------------------------------------------------------------//
+// PRIVATE MEMBER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Whether a next step has been calculated.
+ */
+CELER_FUNCTION bool VecgeomTrackView::has_next_step() const
+{
+    return next_step_ != 0;
 }
 
 //---------------------------------------------------------------------------//

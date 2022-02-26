@@ -47,9 +47,7 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
     // Start track at the leftmost point in the requested direction
     geo = GeoTrackInitializer{image.start_pos(), image.start_dir()};
 
-    int       cur_id   = geo_id(geo);
-    real_type geo_dist = std::fmin(
-        geo.find_next_step(), image_state.dims[1] * image_state.pixel_width);
+    int cur_id = geo_id(geo);
 
     // Track along each pixel
     for (unsigned int i = 0; i < image_state.dims[1]; ++i)
@@ -58,18 +56,21 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
         real_type max_dist      = 0;
         int       max_id        = cur_id;
         int       abort_counter = 32; // max number of crossings per pixel
-        while (geo_dist <= pix_dist)
+
+        auto next = geo.find_next_step(pix_dist);
+        while (next.boundary && pix_dist > 0)
         {
+            CELER_ASSERT(next.distance <= pix_dist);
             // Move to geometry boundary
-            pix_dist -= geo_dist;
+            pix_dist -= next.distance;
 
             if (max_id == cur_id)
             {
-                max_dist += geo_dist;
+                max_dist += next.distance;
             }
-            else if (geo_dist > max_dist)
+            else if (next.distance > max_dist)
             {
-                max_dist = geo_dist;
+                max_dist = next.distance;
                 max_id   = cur_id;
             }
 
@@ -77,11 +78,6 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
             geo.move_to_boundary();
             geo.cross_boundary();
             cur_id = geo_id(geo);
-            // Next movement is to end of step or end of raytrace, whichever is
-            // smaller
-            geo_dist = std::fmin(
-                geo.find_next_step(),
-                (image_state.dims[1] - i) * image_state.pixel_width);
 
             if (--abort_counter == 0)
             {
@@ -91,17 +87,24 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
                                 image.start_dir(),
                                 &new_pos);
                 geo      = GeoTrackInitializer{new_pos, image.start_dir()};
-                geo_dist = geo.find_next_step();
                 pix_dist = 0;
+            }
+            if (pix_dist > 0)
+            {
+                // Next movement is to end of geo or pixel
+                next = geo.find_next_step(pix_dist);
             }
         }
 
-        // Move to pixel boundary
-        geo_dist -= pix_dist;
-        if (pix_dist > max_dist)
+        if (pix_dist > 0)
         {
-            max_dist = pix_dist;
-            max_id   = cur_id;
+            // Move to pixel boundary
+            geo.move_internal(pix_dist);
+            if (pix_dist > max_dist)
+            {
+                max_dist = pix_dist;
+                max_id   = cur_id;
+            }
         }
         image.set_pixel(i, max_id);
     }
