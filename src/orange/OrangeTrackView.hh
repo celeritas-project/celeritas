@@ -103,6 +103,9 @@ class OrangeTrackView
 
     //// HELPER FUNCTIONS ////
 
+    // Create local state
+    inline CELER_FUNCTION detail::LocalState make_local() const;
+
     // Whether the next distance-to-boundary has been found
     CELER_FORCEINLINE_FUNCTION bool has_next_step() const;
 
@@ -126,35 +129,7 @@ OrangeTrackView::OrangeTrackView(const ParamsRef& params,
     CELER_EXPECT(states_);
     CELER_EXPECT(thread < states.size());
 
-    // Set up basic local data
-    local_.pos     = states_.pos[thread_];
-    local_.dir     = states_.dir[thread_];
-    local_.volume  = states_.vol[thread_];
-    local_.surface = {states_.surf[thread_], states_.sense[thread_]};
-
-    // Set up sense scratch space
-    // TODO: experiment with making this 'lazy'?
-    {
-        const auto max_faces = params_.scalars.max_faces;
-        auto       offset    = thread_.get() * max_faces;
-        local_.temp_sense
-            = states_.temp_sense[AllItems<Sense, MemSpace::native>{}].subspan(
-                offset, max_faces);
-    }
-
-    // Set up intersection scratch space
-    {
-        const auto max_isect = params_.scalars.max_intersections;
-        auto       offset    = thread_.get() * max_isect;
-
-        local_.temp_next.face = states_.temp_face[AllItems<FaceId>{}].data()
-                                + offset;
-        local_.temp_next.distance
-            = states_.temp_distance[AllItems<real_type>{}].data() + offset;
-        local_.temp_next.isect
-            = states_.temp_isect[AllItems<size_type>{}].data() + offset;
-        local_.temp_next.size = max_isect;
-    }
+    local_ = this->make_local();
 
     CELER_ENSURE(!this->has_next_step());
 }
@@ -360,6 +335,47 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
 
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reference to the current volume, or to world volume if outside.
+ */
+CELER_FUNCTION detail::LocalState OrangeTrackView::make_local() const
+{
+    detail::LocalState result;
+
+    // Set up basic local data
+    result.pos     = states_.pos[thread_];
+    result.dir     = states_.dir[thread_];
+    result.volume  = states_.vol[thread_];
+    result.surface = {states_.surf[thread_], states_.sense[thread_]};
+
+    // Set up sense scratch space
+    // TODO: experiment with making this 'lazy'?
+    {
+        const auto max_faces = params_.scalars.max_faces;
+        auto       offset    = thread_.get() * max_faces;
+        result.temp_sense
+            = states_.temp_sense[AllItems<Sense, MemSpace::native>{}].subspan(
+                offset, max_faces);
+    }
+
+    // Set up intersection scratch space
+    {
+        const auto max_isect = params_.scalars.max_intersections;
+        auto       offset    = thread_.get() * max_isect;
+
+        result.temp_next.face = states_.temp_face[AllItems<FaceId>{}].data()
+                                + offset;
+        result.temp_next.distance
+            = states_.temp_distance[AllItems<real_type>{}].data() + offset;
+        result.temp_next.isect
+            = states_.temp_isect[AllItems<size_type>{}].data() + offset;
+        result.temp_next.size = max_isect;
+    }
+
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get a reference to the current volume, or to world volume if outside.
