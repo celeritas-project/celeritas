@@ -31,6 +31,30 @@ Configuration utilities
   instead of ``<package>``.
 
 
+Source generation utilities
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Automatically generate headers and source files for dual CPU/GPU kernel launches.
+
+.. command:: celeritas_gen
+
+  Generate from the given class and function name::
+
+    celeritas_gen(<var> <script> <subdir> <basename> [...])
+
+      ``var``
+        Variable name to append created source file names in the parent scope.
+
+      ``script``
+        Python script name inside ``cmake/CeleritasUtils/``
+
+      ``subdir``
+        Local source subdirectory in which to generate files
+
+      ``basename``
+      Name without exension.
+
+
 Library utilities
 ~~~~~~~~~~~~~~~~~
 
@@ -140,6 +164,37 @@ macro(celeritas_optional_package package)
 
   option("${_var}" "${_docstring}" "${_val}")
 endmacro()
+
+#-----------------------------------------------------------------------------#
+# SOURCE GENERATION UTILITIES
+#-----------------------------------------------------------------------------#
+
+function(celeritas_gen var script basename)
+  set(_script "${PROJECT_SOURCE_DIR}/cmake/CeleritasUtils/${script}")
+  set(_path_noext "${CMAKE_CURRENT_SOURCE_DIR}/${basename}")
+
+  if(Python_FOUND)
+    # Regenerate files on the fly
+    add_custom_command(
+      COMMAND "$<TARGET_FILE:Python::Interpreter>" "${_script}"
+        --basename ${basename} ${ARGN}
+      OUTPUT "${_path_noext}.cc" "${_path_noext}.cu" "${_path_noext}.hh"
+      DEPENDS "${_script}"
+      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+  endif()
+
+  set(_sources ${${var}} "${_path_noext}.cc")
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    list(APPEND _sources "${_path_noext}.cu")
+  endif()
+  if(CELERITAS_USE_HIP)
+    set_source_files_properties("${_path_noext}.cu"
+      PROPERTIES LANGUAGE HIP
+    )
+  endif()
+  set(${var} "${_sources}" PARENT_SCOPE)
+endfunction()
 
 #-----------------------------------------------------------------------------#
 # LIBRARY UTILITIES

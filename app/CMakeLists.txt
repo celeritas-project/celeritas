@@ -211,10 +211,23 @@ endif()
 #-----------------------------------------------------------------------------#
 # DEMO: full physics loop
 #-----------------------------------------------------------------------------#
+set(_demo_loop_gen)
+macro(celeritas_gen_demo_loop_kernel class func threads)
+  celeritas_gen(_demo_loop_gen
+    "gen-demo-loop-kernel.py" "demo-loop/generated/${class}Kernel"
+    --class ${class}  --func ${func} --threads ${threads}
+  )
+endmacro()
+
+# Generate demo loop kernel/host loop code for host/device
+celeritas_gen_demo_loop_kernel("AlongAndPostStep" "along_and_post_step"
+  "'states.size()'")
+celeritas_gen_demo_loop_kernel("Cleanup" "cleanup" "1")
+celeritas_gen_demo_loop_kernel("PreStep" "pre_step" "'states.size()'")
+celeritas_gen_demo_loop_kernel("ProcessInteractions" "process_interactions"
+  "'states.size()'")
 
 if(CELERITAS_BUILD_DEMOS)
-  include(CeleritasGenDemoLoopKernel)
-
   set(_demo_loop_src
     demo-loop/demo-loop.cc
     demo-loop/LDemoIO.cc
@@ -223,18 +236,9 @@ if(CELERITAS_BUILD_DEMOS)
     demo-loop/diagnostic/ParticleProcessDiagnostic.cc
     demo-loop/diagnostic/StepDiagnostic.cc
     demo-loop/diagnostic/TrackDiagnostic.cc
+    ${_demo_loop_gen}
   )
   set(_demo_loop_libs)
-
-  # Generate demo loop kernel/host loop code for host/device
-  celeritas_gen_demo_loop_kernel(_demo_loop_src
-    "AlongAndPostStep" "along_and_post_step" "'states.size()'")
-  celeritas_gen_demo_loop_kernel(_demo_loop_src
-    "Cleanup" "cleanup" "1")
-  celeritas_gen_demo_loop_kernel(_demo_loop_src
-    "PreStep" "pre_step" "'states.size()'")
-  celeritas_gen_demo_loop_kernel(_demo_loop_src
-    "ProcessInteractions" "process_interactions" "'states.size()'")
 
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     list(APPEND _demo_loop_src

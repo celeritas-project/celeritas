@@ -4,8 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-include(CeleritasGenInteractor)
-
 #----------------------------------------------------------------------------#
 # CONFIGURE FILE
 #----------------------------------------------------------------------------#
@@ -35,16 +33,23 @@ list(APPEND SOURCES
 
 # Generate model launcher code for host/device
 set(_gen_sources)
-celeritas_gen_interactor(_gen_sources "BetheHeitler" "bethe_heitler")
-celeritas_gen_interactor(_gen_sources "CombinedBrem" "combined_brem")
-celeritas_gen_interactor(_gen_sources "EPlusGG" "eplusgg")
-celeritas_gen_interactor(_gen_sources "KleinNishina" "klein_nishina")
-celeritas_gen_interactor(_gen_sources "LivermorePE" "livermore_pe")
-celeritas_gen_interactor(_gen_sources "MollerBhabha" "moller_bhabha")
-celeritas_gen_interactor(_gen_sources "MuBremsstrahlung" "mu_bremsstrahlung")
-celeritas_gen_interactor(_gen_sources "Rayleigh" "rayleigh")
-celeritas_gen_interactor(_gen_sources "RelativisticBrem" "relativistic_brem")
-celeritas_gen_interactor(_gen_sources "SeltzerBerger" "seltzer_berger")
+macro(celeritas_gen_interactor class func)
+  celeritas_gen(_gen_sources
+    "gen-interactor.py" "physics/em/generated/${class}Interact"
+    --class ${class}  --func ${func}
+  )
+endmacro()
+
+celeritas_gen_interactor("BetheHeitler" "bethe_heitler")
+celeritas_gen_interactor("CombinedBrem" "combined_brem")
+celeritas_gen_interactor("EPlusGG" "eplusgg")
+celeritas_gen_interactor("KleinNishina" "klein_nishina")
+celeritas_gen_interactor("LivermorePE" "livermore_pe")
+celeritas_gen_interactor("MollerBhabha" "moller_bhabha")
+celeritas_gen_interactor("MuBremsstrahlung" "mu_bremsstrahlung")
+celeritas_gen_interactor("Rayleigh" "rayleigh")
+celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
+celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
 list(APPEND SOURCES ${_gen_sources})
 
 # Main library
