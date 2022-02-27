@@ -33,7 +33,7 @@ void to_json(nlohmann::json& j, const KernelDiagnostics& kd)
             {"max_num_threads", diag.max_num_threads},
             {"max_threads_per_block", diag.max_threads_per_block},
             {"max_blocks_per_mp", diag.max_blocks_per_mp},
-            {"max_warps_per_eu", diag.max_warps_per_eu},
+            {"max_warps_per_mp", diag.max_warps_per_mp},
             {"occupancy", diag.occupancy},
         }));
     }

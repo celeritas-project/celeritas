@@ -22,181 +22,181 @@
    {
     "max_threads_per_block": 1024,
     "max_blocks_per_mp": 8,
-    "max_warps_per_eu": 256
+    "max_warps_per_mp": 256
    },
    {
     "max_threads_per_block": 1024,
     "max_blocks_per_mp": 5,
-    "max_warps_per_eu": 20
+    "max_warps_per_mp": 20
    }
   ],
   "process_primaries": [
    {
     "max_threads_per_block": 1024,
     "max_blocks_per_mp": 8,
-    "max_warps_per_eu": 256
+    "max_warps_per_mp": 256
    },
    {
     "max_threads_per_block": 1024,
     "max_blocks_per_mp": 8,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    }
   ],
   "init_tracks": [
    {
     "max_threads_per_block": 1024,
     "max_blocks_per_mp": 6,
-    "max_warps_per_eu": 192
+    "max_warps_per_mp": 192
    },
    {
     "max_threads_per_block": 1024,
     "max_blocks_per_mp": 8,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    }
   ],
   "pre_step": [
    {
     "max_threads_per_block": 256,
     "max_blocks_per_mp": 4,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    },
    {
     "max_threads_per_block": 256,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    }
   ],
   "along_and_post_step": [
    {
     "max_threads_per_block": 256,
     "max_blocks_per_mp": 2,
-    "max_warps_per_eu": 16
+    "max_warps_per_mp": 16
    },
    {
     "max_threads_per_block": 256,
-    "max_warps_per_eu": 16
+    "max_warps_per_mp": 16
    }
   ],
   "klein_nishina_interact": [
    {
     "max_threads_per_block": 256,
     "max_blocks_per_mp": 4,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    },
    {
     "max_threads_per_block": 256,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    }
   ],
   "livermore_pe_interact": [
    {
     "max_threads_per_block": 256,
     "max_blocks_per_mp": 4,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    },
    {
     "max_threads_per_block": 256,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    }
   ],
   "rayleigh_interact": [
    {
     "max_threads_per_block": 256,
     "max_blocks_per_mp": 4,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    },
    {
     "max_threads_per_block": 256,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    }
   ],
   "bethe_heitler_interact": [
    {
     "max_threads_per_block": 256,
     "max_blocks_per_mp": 4,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    },
    {
     "max_threads_per_block": 256,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    }
   ],
   "eplusgg_interact": [
    {
     "max_threads_per_block": 256,
     "max_blocks_per_mp": 4,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    },
    {
     "max_threads_per_block": 256,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    }
   ],
   "moller_bhabha_interact": [
    {
     "max_threads_per_block": 256,
     "max_blocks_per_mp": 4,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    },
    {
     "max_threads_per_block": 256,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    }
   ],
   "combined_brem_interact": [
    {
     "max_threads_per_block": 256,
     "max_blocks_per_mp": 3,
-    "max_warps_per_eu": 24
+    "max_warps_per_mp": 24
    },
    {
     "max_threads_per_block": 256,
-    "max_warps_per_eu": 24
+    "max_warps_per_mp": 24
    }
   ],
   "process_interactions": [
    {
     "max_threads_per_block": 256,
     "max_blocks_per_mp": 8,
-    "max_warps_per_eu": 64
+    "max_warps_per_mp": 64
    },
    {
     "max_threads_per_block": 256,
-    "max_warps_per_eu": 64
+    "max_warps_per_mp": 64
    }
   ],
   "locate_alive": [
    {
     "max_threads_per_block": 1024,
     "max_blocks_per_mp": 8,
-    "max_warps_per_eu": 256
+    "max_warps_per_mp": 256
    },
    {
     "max_threads_per_block": 1024,
     "max_blocks_per_mp": 8,
-    "max_warps_per_eu": 32
+    "max_warps_per_mp": 32
    }
   ],
   "process_secondaries": [
    {
     "max_threads_per_block": 1024,
     "max_blocks_per_mp": 5,
-    "max_warps_per_eu": 160
+    "max_warps_per_mp": 160
    },
    {
     "max_threads_per_block": 1024,
     "max_blocks_per_mp": 2,
-    "max_warps_per_eu": 8
+    "max_warps_per_mp": 8
    }
   ],
   "cleanup": [
    {
     "max_threads_per_block": 256,
     "max_blocks_per_mp": 8,
-    "max_warps_per_eu": 64
+    "max_warps_per_mp": 64
    },
    {
     "max_threads_per_block": 256,
-    "max_warps_per_eu": 64
+    "max_warps_per_mp": 64
    }
   ]
  }

@@ -12,7 +12,7 @@ import json
 
 DEVICE_KEYS = ['capability_major', 'capability_minor', 'eu_per_mp', 'name',
                'platform', 'warp_size']
-KERNEL_KEYS = ['max_threads_per_block', 'max_blocks_per_mp', 'max_warps_per_eu']
+KERNEL_KEYS = ['max_threads_per_block', 'max_blocks_per_mp', 'max_warps_per_mp']
 
 def run(input, output, key):
     # Convert
