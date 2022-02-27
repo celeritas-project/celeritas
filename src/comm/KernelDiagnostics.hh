@@ -31,15 +31,21 @@ struct KernelProperties
     int         num_regs  = 0; //!< Number of 32-bit registers per thread
     std::size_t const_mem = 0; //!< Amount of constant memory (per thread) [b]
     std::size_t local_mem = 0; //!< Amount of local memory (per thread) [b]
-    double      occupancy = 0; //!< Max blocks per multiprocessor
 
     unsigned int num_launches    = 0; //!< Number of times launched
     unsigned int max_num_threads = 0; //!< Highest number of threads used
+
+    unsigned int max_threads_per_block = 0; //!< Max allowed threads per lbock
+    unsigned int max_blocks_per_mp     = 0; //!< Occupancy
+
+    // Derivative but useful occupancy information
+    unsigned int max_warps_per_eu = 0;
+    double       occupancy        = 0;
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Program diagnostics helper class.
+ * Kernel diagnostic helper class.
  *
  * There should generally be only a single instance of this, accessible through
  * the \c kernel_diagnostics helper function.
@@ -127,7 +133,13 @@ void KernelDiagnostics::launch(key_type key, unsigned int num_threads)
 /*!
  * Register the given __global__ kernel function.
  *
- * This can only be called from CUDA code.
+ * This can only be called from CUDA code. It assumes that the block size is
+ * constant across the execution of the program: the statistics it collects are
+ * just for the first call.
+ *
+ * \param func Pointer to kernel function
+ * \param name Kernel function name
+ * \param block_size Number of threads per block
  */
 template<class F>
 inline auto
@@ -155,11 +167,19 @@ KernelDiagnostics::insert(F* func, const char* name, unsigned int block_size)
         diag.num_regs  = attr.numRegs;
         diag.const_mem = attr.constSizeBytes;
         diag.local_mem = attr.localSizeBytes;
+        diag.max_threads_per_block = attr.maxThreadsPerBlock;
 
+        // Get maximum number of active blocks per SM
         std::size_t dynamic_smem_size = 0;
         int         num_blocks        = 0;
         CELER_DEVICE_CALL_PREFIX(OccupancyMaxActiveBlocksPerMultiprocessor(
             &num_blocks, func, diag.block_size, dynamic_smem_size));
+        diag.max_blocks_per_mp = num_blocks;
+
+        // Calculate occupancy statistics used for launch bounds
+        // (threads / block) * (blocks / mp) * (mp / eu) * (warp / thread)
+        diag.max_warps_per_eu = (diag.max_threads_per_block * num_blocks)
+                                / (device.eu_per_mp() * device.warp_size());
         diag.occupancy = static_cast<double>(num_blocks * diag.block_size)
                          / device.max_threads();
 
