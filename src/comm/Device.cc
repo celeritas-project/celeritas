@@ -153,9 +153,17 @@ Device::Device(int id) : id_(id)
 #    if CELERITAS_USE_HIP
     if (name_.empty())
     {
-        // HIP has an extra field that seems to be used instead of the regular
-        // props.name
-        name_ = props.gcnArchName;
+        // The name attribute may be missing? (true for ROCm 4.5.0/gfx90a), so
+        // assume the name can be extracted from the GCN arch:
+        // "gfx90a:sramecc+:xnack-" (SRAM ECC and XNACK are memory related
+        // flags )
+        std::string gcn_arch_name = props.gcnArchName;
+        auto        pos           = gcn_arch_name.find(':');
+        if (pos != std::string::npos)
+        {
+            gcn_arch_name.erase(pos);
+            name_ = std::move(gcn_arch_name);
+        }
     }
 #    endif
 
@@ -167,6 +175,8 @@ Device::Device(int id) : id_(id)
     extra_["regs_per_block"]        = props.regsPerBlock;
     extra_["shared_mem_per_block"]  = props.sharedMemPerBlock;
     extra_["total_const_mem"]       = props.totalConstMem;
+    extra_["capability_major"]      = props.major;
+    extra_["capability_minor"]      = props.minor;
 #    if CELERITAS_USE_CUDA
     extra_["max_blocks_per_multiprocessor"] = props.maxBlocksPerMultiProcessor;
     extra_["regs_per_multiprocessor"]       = props.regsPerMultiprocessor;
@@ -176,14 +186,8 @@ Device::Device(int id) : id_(id)
     max_threads_per_block = props.maxThreadsPerBlock;
 #endif
 
-#if CELERITAS_USE_HIP && defined(__HIP_PLATFORM_AMD__)
-    // AMD cards have 4 SIMD execution units per multiprocessor
-    eu_per_mp_ = 4;
-#elif CELERITAS_USE_CUDA || defined(__HIP_PLATFORM_NVIDIA__) \
-    || defined(__HIP_PLATFORM_NVCC__)
-    // CUDA: each streaming multiprocessor (MP) has one execution unit (EU)
-    eu_per_mp_ = 1;
-#endif
+    // See device_runtime_api.h
+    eu_per_mp_ = CELER_EU_PER_MP;
 
     // Set default block size from environment
     const std::string& bsize_str = celeritas::getenv("CELER_BLOCK_SIZE");

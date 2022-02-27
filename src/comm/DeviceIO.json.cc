@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "DeviceIO.json.hh"
 
+#include "celeritas_config.h"
 #include "comm/Device.hh"
 
 namespace celeritas
@@ -28,6 +29,12 @@ void to_json(nlohmann::json& j, const Device& d)
             {"warp_size", d.warp_size()},
             {"default_block_size", d.default_block_size()},
         };
+
+#if CELERITAS_USE_CUDA
+        j["platform"] = "cuda";
+#elif CELERITAS_USE_HIP
+        j["platform"] = "hip";
+#endif
 
         for (const auto& kv : d.extra())
         {
