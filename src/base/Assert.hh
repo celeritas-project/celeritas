@@ -14,16 +14,18 @@
 
 #include <stdexcept>
 #include <string>
+#if defined(__HIP_DEVICE_COMPILE__)
+#    include <assert.h>
+#    include <hip/hip_runtime.h>
+#elif defined(__CUDA_ARCH__)
+// No assert header needed for CUDA
+#else
+#    include <sstream>
+#endif
 
 #include "celeritas_config.h"
 
 #include "Macros.hh"
-#ifndef CELER_DEVICE_COMPILE
-#    include <sstream>
-#elif __HIP_DEVICE_COMPILE__
-#    include <assert.h>
-#    include <hip/hip_runtime.h>
-#endif
 
 //---------------------------------------------------------------------------//
 // MACROS
