@@ -12,8 +12,12 @@ if ! hash cloc ; then
   exit 1
 fi
 
+function run_cloc() {
+  cloc --git HEAD --fullpath --force-lang=CUDA,hip $@
+}
+
 cd $SOURCE_DIR
 echo "Source/utility code:"
-cloc --git HEAD --fullpath --not-match-d='/test/' $@
+run_cloc --not-match-d='/generated/'  --not-match-d='/test/' $@
 echo "Test code:"
-cloc --git HEAD --fullpath --match-d='/test/' $@
+run_cloc --match-d='/test/' $@
