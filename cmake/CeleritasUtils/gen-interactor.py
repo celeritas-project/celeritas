@@ -13,6 +13,7 @@ Assumptions:
 
 import os.path
 import sys
+from launchbounds import make_launch_bounds
 
 CLIKE_TOP = '''\
 //{modeline:-^75s}//
@@ -100,7 +101,7 @@ namespace generated
 {{
 namespace
 {{
-__global__ void {func}_interact_kernel(
+__global__ void{launch_bounds}{func}_interact_kernel(
     const detail::{class}DeviceRef {func}_data,
     const ModelInteractRef<MemSpace::device> model)
 {{
@@ -147,6 +148,7 @@ def generate(**subs):
     filename = "{basename}.{ext}".format(**subs)
     subs['filename'] = os.path.basename(filename)
     subs['script'] = os.path.basename(sys.argv[0])
+    subs['launch_bounds'] = make_launch_bounds(subs['func'] + '_interact')
     with open(filename, 'w') as f:
         f.write(template.format(**subs))
 

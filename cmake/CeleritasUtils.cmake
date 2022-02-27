@@ -170,16 +170,21 @@ endmacro()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_gen var script basename)
+  set(_scriptdir "${PROJECT_SOURCE_DIR}/cmake/CeleritasUtils")
   set(_script "${PROJECT_SOURCE_DIR}/cmake/CeleritasUtils/${script}")
   set(_path_noext "${CMAKE_CURRENT_SOURCE_DIR}/${basename}")
 
   if(Python_FOUND)
     # Regenerate files on the fly
     add_custom_command(
-      COMMAND "$<TARGET_FILE:Python::Interpreter>" "${_script}"
+      COMMAND "$<TARGET_FILE:Python::Interpreter>"
+        "${_scriptdir}/${script}"
         --basename ${basename} ${ARGN}
       OUTPUT "${_path_noext}.cc" "${_path_noext}.cu" "${_path_noext}.hh"
-      DEPENDS "${_script}"
+      DEPENDS
+        "${_scriptdir}/${script}"
+        "${_scriptdir}/launchbounds.py"
+        "${_scriptdir}/launch-bounds.json"
       WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     )
   endif()

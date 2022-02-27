@@ -18,5 +18,6 @@
 #cmakedefine01 CELERITAS_USE_VECGEOM
 
 #cmakedefine01 CELERITAS_DEBUG
+#cmakedefine01 CELERITAS_LAUNCH_BOUNDS
 
 #endif /* celeritas_config_h */
