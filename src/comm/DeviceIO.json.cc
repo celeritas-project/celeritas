@@ -24,10 +24,15 @@ void to_json(nlohmann::json& j, const Device& d)
             {"name", d.name()},
             {"total_global_mem", d.total_global_mem()},
             {"max_threads", d.max_threads()},
-            {"num_multi_processors", d.num_multi_processors()},
+            {"eu_per_mp", d.eu_per_mp()},
             {"warp_size", d.warp_size()},
             {"default_block_size", d.default_block_size()},
         };
+
+        for (const auto& kv : d.extra())
+        {
+            j[kv.first] = kv.second;
+        }
     }
     else
     {

@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <iosfwd>
+#include <map>
 #include <string>
 
 #include "base/Assert.hh"
@@ -23,10 +24,16 @@ class Communicator;
  * Manage attributes of the GPU.
  *
  * \todo The active CUDA device is a global property -- so this should probably
- * be a singleton.
+ * be a singleton, or we could use lower-level API calls.
  */
 class Device
 {
+  public:
+    //!@{
+    //! Type aliases
+    using MapStrInt = std::map<std::string, int>;
+    //!@}
+
   public:
     // Number of devices available on the local compute node
     static int num_devices();
@@ -44,7 +51,7 @@ class Device
 
     //// ACCESSORS ////
 
-    // Get the CUDA device ID
+    // Get the device ID
     inline int device_id() const;
 
     //! True if device is initialized
@@ -56,25 +63,29 @@ class Device
     //! Total memory capacity (bytes)
     std::size_t total_global_mem() const { return total_global_mem_; }
 
-    //! Maximum number of threads per multiprocessor
+    //! Maximum number of threads per multiprocessor (for occupancy)
     int max_threads() const { return max_threads_; }
-
-    //! Number of multiprocessors
-    int num_multi_processors() const { return num_multi_processors_; }
 
     //! Number of threads per warp
     unsigned int warp_size() const { return warp_size_; }
 
+    //! Number of execution units per multiprocessor (1 for NVIDIA, 4 for AMD)
+    unsigned int eu_per_mp() const { return eu_per_mp_; }
+
     //! Default number of threads per block (TODO: make configurable)
     unsigned int default_block_size() const { return 256u; }
 
+    //! Additional potentially interesting diagnostics
+    const MapStrInt& extra() const { return extra_; }
+
   private:
-    int          id_                   = -1;
-    std::string  name_                 = "<DISABLED>";
-    std::size_t  total_global_mem_     = 0;
-    int          max_threads_          = 0;
-    int          num_multi_processors_ = 0;
-    unsigned int warp_size_            = 0;
+    int          id_               = -1;
+    std::string  name_             = "<DISABLED>";
+    std::size_t  total_global_mem_ = 0;
+    int          max_threads_      = 0;
+    unsigned int warp_size_        = 0;
+    unsigned int eu_per_mp_        = 0;
+    MapStrInt    extra_;
 };
 
 //---------------------------------------------------------------------------//

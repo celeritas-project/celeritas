@@ -145,11 +145,10 @@ Device::Device(int id) : id_(id)
 #    endif
 
     CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
-    name_                 = props.name;
-    total_global_mem_     = props.totalGlobalMem;
-    max_threads_          = props.maxThreadsPerMultiProcessor;
-    num_multi_processors_ = props.multiProcessorCount;
-    warp_size_            = props.warpSize;
+    name_             = props.name;
+    total_global_mem_ = props.totalGlobalMem;
+    max_threads_      = props.maxThreadsPerMultiProcessor;
+    warp_size_        = props.warpSize;
 #    if CELERITAS_USE_HIP
     if (name_.empty())
     {
@@ -158,12 +157,32 @@ Device::Device(int id) : id_(id)
         name_ = props.gcnArchName;
     }
 #    endif
+
+    extra_["clock_rate"]            = props.clockRate;
+    extra_["multiprocessor_count"]  = props.multiProcessorCount;
+    extra_["max_cache_size"]        = props.l2CacheSize;
+    extra_["max_threads_per_block"] = props.maxThreadsPerBlock;
+    extra_["memory_clock_rate"]     = props.memoryClockRate;
+    extra_["regs_per_block"]        = props.regsPerBlock;
+    extra_["shared_mem_per_block"]  = props.sharedMemPerBlock;
+    extra_["total_const_mem"]       = props.totalConstMem;
+#    if CELERITAS_USE_CUDA
+    extra_["max_blocks_per_multiprocessor"] = props.maxBlocksPerMultiProcessor;
+    extra_["regs_per_multiprocessor"]       = props.regsPerMultiprocessor;
+#    endif
 #endif
 
+#if CELERITAS_USE_HIP && defined(__HIP_PLATFORM_AMD__)
+    // AMD cards have 4 SIMD execution units per multiprocessor
+    eu_per_mp_ = 4;
+#elif CELERITAS_USE_CUDA || defined(__HIP_PLATFORM_NVIDIA__) \
+    || defined(__HIP_PLATFORM_NVCC__)
+    // CUDA: each streaming multiprocessor (MP) has one execution unit (EU)
+    eu_per_mp_ = 1;
+#endif
     CELER_ENSURE(*this);
     CELER_ENSURE(!name_.empty());
     CELER_ENSURE(total_global_mem_ > 0);
-    CELER_ENSURE(max_threads_ > 0);
 }
 
 //---------------------------------------------------------------------------//
