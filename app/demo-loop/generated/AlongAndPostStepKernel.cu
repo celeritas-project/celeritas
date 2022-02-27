@@ -27,7 +27,7 @@ __global__ void
 __launch_bounds__(256, 2)
 #endif
 #if CELERITAS_USE_HIP && defined(__gfx90a__)
-__launch_bounds__(1024, 16)
+__launch_bounds__(256, 16)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 along_and_post_step_kernel(
