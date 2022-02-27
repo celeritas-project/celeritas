@@ -11,6 +11,7 @@
 #include <thrust/remove.h>
 #include <thrust/scan.h>
 
+#include "base/device_runtime_api.h"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
 
@@ -31,9 +32,18 @@ namespace
 /*!
  * Initialize the track states on device.
  */
-__global__ void init_tracks_kernel(const ParamsDeviceRef         params,
-                                   const StateDeviceRef          states,
-                                   const TrackInitStateDeviceRef data)
+__global__ void
+#if CELERITAS_LAUNCH_BOUNDS
+#    if CELERITAS_USE_CUDA && (__CUDA_ARCH__ == 700) // Tesla V100-SXM2-16GB
+    __launch_bounds__(256, 6)
+#    endif
+#    if CELERITAS_USE_HIP && defined(__gfx90a__)
+        __launch_bounds__(256, 192)
+#    endif
+#endif // CELERITAS_LAUNCH_BOUNDS
+            init_tracks_kernel(const ParamsDeviceRef         params,
+                               const StateDeviceRef          states,
+                               const TrackInitStateDeviceRef data)
 {
     // Number of vacancies, limited by the initializer size
     auto num_vacancies = min(data.vacancies.size(), data.initializers.size());
@@ -50,9 +60,18 @@ __global__ void init_tracks_kernel(const ParamsDeviceRef         params,
 /*!
  * Find empty slots in the track vector and count secondaries created.
  */
-__global__ void locate_alive_kernel(const ParamsDeviceRef         params,
-                                    const StateDeviceRef          states,
-                                    const TrackInitStateDeviceRef data)
+__global__ void
+#if CELERITAS_LAUNCH_BOUNDS
+#    if CELERITAS_USE_CUDA && (__CUDA_ARCH__ == 700) // Tesla V100-SXM2-16GB
+    __launch_bounds__(256, 8)
+#    endif
+#    if CELERITAS_USE_HIP && defined(__gfx90a__)
+        __launch_bounds__(256, 256)
+#    endif
+#endif // CELERITAS_LAUNCH_BOUNDS
+            locate_alive_kernel(const ParamsDeviceRef         params,
+                                const StateDeviceRef          states,
+                                const TrackInitStateDeviceRef data)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
@@ -66,8 +85,17 @@ __global__ void locate_alive_kernel(const ParamsDeviceRef         params,
 /*!
  * Create track initializers on device from primary particles.
  */
-__global__ void process_primaries_kernel(const Span<const Primary> primaries,
-                                         const TrackInitStateDeviceRef data)
+__global__ void
+#if CELERITAS_LAUNCH_BOUNDS
+#    if CELERITAS_USE_CUDA && (__CUDA_ARCH__ == 700) // Tesla V100-SXM2-16GB
+    __launch_bounds__(256, 8)
+#    endif
+#    if CELERITAS_USE_HIP && defined(__gfx90a__)
+        __launch_bounds__(256, 256)
+#    endif
+#endif // CELERITAS_LAUNCH_BOUNDS
+            process_primaries_kernel(const Span<const Primary>     primaries,
+                                     const TrackInitStateDeviceRef data)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < primaries.size()))
@@ -81,9 +109,18 @@ __global__ void process_primaries_kernel(const Span<const Primary> primaries,
 /*!
  * Create track initializers on device from secondary particles.
  */
-__global__ void process_secondaries_kernel(const ParamsDeviceRef params,
-                                           const StateDeviceRef  states,
-                                           const TrackInitStateDeviceRef data)
+__global__ void
+#if CELERITAS_LAUNCH_BOUNDS
+#    if CELERITAS_USE_CUDA && (__CUDA_ARCH__ == 700) // Tesla V100-SXM2-16GB
+    __launch_bounds__(256, 5)
+#    endif
+#    if CELERITAS_USE_HIP && defined(__gfx90a__)
+        __launch_bounds__(256, 160)
+#    endif
+#endif // CELERITAS_LAUNCH_BOUNDS
+            process_secondaries_kernel(const ParamsDeviceRef         params,
+                                       const StateDeviceRef          states,
+                                       const TrackInitStateDeviceRef data)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
