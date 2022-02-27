@@ -137,6 +137,7 @@ Device::Device(int id) : id_(id)
 {
     CELER_EXPECT(id >= 0 && id < Device::num_devices());
 
+    unsigned int max_threads_per_block = 0;
 #if CELER_USE_DEVICE
 #    if CELERITAS_USE_CUDA
     cudaDeviceProp props;
@@ -170,6 +171,9 @@ Device::Device(int id) : id_(id)
     extra_["max_blocks_per_multiprocessor"] = props.maxBlocksPerMultiProcessor;
     extra_["regs_per_multiprocessor"]       = props.regsPerMultiprocessor;
 #    endif
+
+    // Save for possible block size initialization
+    max_threads_per_block = props.maxThreadsPerBlock;
 #endif
 
 #if CELERITAS_USE_HIP && defined(__HIP_PLATFORM_AMD__)
@@ -180,6 +184,22 @@ Device::Device(int id) : id_(id)
     // CUDA: each streaming multiprocessor (MP) has one execution unit (EU)
     eu_per_mp_ = 1;
 #endif
+
+    // Set default block size from environment
+    const std::string& bsize_str = celeritas::getenv("CELER_BLOCK_SIZE");
+    if (!bsize_str.empty())
+    {
+        default_block_size_ = std::stoi(bsize_str);
+        CELER_VALIDATE(default_block_size_ >= warp_size_
+                           && default_block_size_ <= max_threads_per_block,
+                       << "Invalid block size: number of threads must be in ["
+                       << warp_size_ << ", " << max_threads_per_block << "]");
+        CELER_VALIDATE(default_block_size_ % warp_size_ == 0,
+                       << "Invalid block size: number of threads must be "
+                          "evenly divisible by "
+                       << warp_size_);
+    }
+
     CELER_ENSURE(*this);
     CELER_ENSURE(!name_.empty());
     CELER_ENSURE(total_global_mem_ > 0);

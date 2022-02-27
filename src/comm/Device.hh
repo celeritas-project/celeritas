@@ -72,19 +72,20 @@ class Device
     //! Number of execution units per multiprocessor (1 for NVIDIA, 4 for AMD)
     unsigned int eu_per_mp() const { return eu_per_mp_; }
 
-    //! Default number of threads per block (TODO: make configurable)
-    unsigned int default_block_size() const { return 256u; }
+    //! Default number of threads per block
+    unsigned int default_block_size() const { return default_block_size_; }
 
     //! Additional potentially interesting diagnostics
     const MapStrInt& extra() const { return extra_; }
 
   private:
-    int          id_               = -1;
-    std::string  name_             = "<DISABLED>";
-    std::size_t  total_global_mem_ = 0;
-    int          max_threads_      = 0;
-    unsigned int warp_size_        = 0;
-    unsigned int eu_per_mp_        = 0;
+    int          id_                 = -1;
+    std::string  name_               = "<DISABLED>";
+    std::size_t  total_global_mem_   = 0;
+    int          max_threads_        = 0;
+    unsigned int warp_size_          = 0;
+    unsigned int eu_per_mp_          = 0;
+    unsigned int default_block_size_ = 256u;
     MapStrInt    extra_;
 };
 
