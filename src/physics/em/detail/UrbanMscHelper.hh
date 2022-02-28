@@ -12,7 +12,9 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
+#include "physics/grid/EnergyLossCalculator.hh"
 #include "physics/grid/InverseRangeCalculator.hh"
+#include "physics/grid/RangeCalculator.hh"
 #include "physics/material/Types.hh"
 #include "random/distributions/NormalDistribution.hh"
 
@@ -65,16 +67,7 @@ class UrbanMscHelper
     }
 
     //! The range for a given particle energy
-    CELER_FUNCTION real_type range(Energy energy) const
-    {
-        return physics_.calc_xs(eloss_pid_, range_gid_, energy);
-    }
-
-    //! The energy loss per unit length for a given particle energy
-    CELER_FUNCTION real_type dedx(Energy energy) const
-    {
-        return physics_.calc_xs(eloss_pid_, eloss_gid_, energy);
-    }
+    CELER_FUNCTION real_type range() const { return range_; }
 
     // The mean free path of the multiple scattering for a given energy
     inline CELER_FUNCTION real_type msc_mfp(Energy energy) const;
@@ -115,12 +108,12 @@ class UrbanMscHelper
     const PhysicsTrackView& physics_;
     // Material dependent data
     const MaterialData& msc_;
+    // Shared value of range
+    real_type range_;
     // Shared value of small tau
     real_type tau_small_;
     // Process ID of the eletromagnetic_msc process
     ParticleProcessId msc_pid_;
-    // Process ID of the energy loss process
-    ParticleProcessId eloss_pid_;
     // Grid ID of range value of the energy loss
     ValueGridId range_gid_;
     // Grid ID of dedx value of the energy loss
@@ -149,11 +142,12 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscNativeRef& shared,
     CELER_EXPECT(particle.particle_id() == shared.electron_id
                  || particle.particle_id() == shared.positron_id);
 
-    eloss_pid_ = physics.eloss_ppid();
-    range_gid_ = physics.value_grid(ValueGridType::range, eloss_pid_);
-    eloss_gid_ = physics.value_grid(ValueGridType::energy_loss, eloss_pid_);
+    ParticleProcessId eloss_pid = physics.eloss_ppid();
+    range_gid_ = physics.value_grid(ValueGridType::range, eloss_pid);
+    eloss_gid_ = physics.value_grid(ValueGridType::energy_loss, eloss_pid);
     msc_pid_   = physics_.msc_ppid();
     mfp_gid_   = physics_.value_grid(ValueGridType::macro_xs, msc_pid_);
+    range_ = physics.make_calculator<RangeCalculator>(range_gid_)(inc_energy_);
 }
 
 //// HELPER FUNCTIONS ////
@@ -174,7 +168,7 @@ CELER_FUNCTION real_type UrbanMscHelper::msc_mfp(Energy energy) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the total energy loss over a given step lenth.
+ * Calculate the total energy loss over a given step length.
  */
 CELER_FUNCTION auto UrbanMscHelper::eloss(real_type step) const -> Energy
 {
@@ -190,13 +184,13 @@ CELER_FUNCTION auto UrbanMscHelper::eloss(real_type step) const -> Energy
  */
 CELER_FUNCTION auto UrbanMscHelper::end_energy(real_type step) const -> Energy
 {
-    real_type range = this->range(inc_energy_);
-    Energy    ke
-        = (step > range * this->dtrl())
-              ? this->eloss(range - step)
-              : Energy{inc_energy_.value() - step * this->dedx(inc_energy_)};
+    // The energy loss per unit length for a given particle energy
+    real_type dedx = physics_.make_calculator<EnergyLossCalculator>(
+        eloss_gid_)(inc_energy_);
 
-    return ke;
+    return (step > range_ * this->dtrl())
+               ? this->eloss(range_ - step)
+               : Energy{inc_energy_.value() - step * dedx};
 }
 
 //---------------------------------------------------------------------------//
@@ -263,8 +257,8 @@ CELER_FUNCTION real_type UrbanMscHelper::randomize_limit(
  * or \f$ t(z) = \frac{1}{\alpha} [ 1 - (1-\alpha w z)^{1/w}] \f$ if the
  * geom path is small, where \f$ w = 1 + \frac{1}{\alpha \lambda_{10}}\f$.
  *
- * @param true_path the proposed step before transporation.
- * @param geom_path the proposed step after transporation.
+ * @param true_path the proposed step before transportation.
+ * @param geom_path the proposed step after transportation.
  * @param alpha variable from UrbanMscStepLimit.
  */
 CELER_FUNCTION
@@ -295,7 +289,7 @@ real_type UrbanMscHelper::calc_true_path(real_type true_path,
             real_type w = 1 + 1 / (alpha * lambda);
             real_type x = alpha * w * geom_path;
             length      = (x < 1) ? (1 - std::exp(std::log(1 - x) / w)) / alpha
-                             : this->range(inc_energy_);
+                                  : range_;
         }
 
         length = min<real_type>(true_path, max<real_type>(geom_path, length));
