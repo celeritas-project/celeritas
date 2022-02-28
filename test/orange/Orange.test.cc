@@ -100,7 +100,9 @@ TEST_F(OneVolumeTest, track_view)
     EXPECT_TRUE(geo.is_outside());
 
     // Try a boundary
-    EXPECT_SOFT_EQ(inf, geo.find_next_step());
+    auto next = geo.find_next_step();
+    EXPECT_SOFT_EQ(inf, next.distance);
+    EXPECT_FALSE(next.boundary);
     geo.move_internal(2.5);
     EXPECT_VEC_SOFT_EQ(Real3({5.5, 4, 5}), geo.pos());
 
@@ -110,7 +112,9 @@ TEST_F(OneVolumeTest, track_view)
 
     // Change direction
     geo.set_dir({0, 1, 0});
-    EXPECT_SOFT_EQ(inf, geo.find_next_step());
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(inf, next.distance);
+    EXPECT_FALSE(next.boundary);
 }
 
 //---------------------------------------------------------------------------//
@@ -148,15 +152,21 @@ TEST_F(TwoVolumeTest, simple_track)
     }
 
     // Try a boundary; second call should be cached
-    EXPECT_SOFT_EQ(sqrt_two, geo.find_next_step());
-    EXPECT_SOFT_EQ(sqrt_two, geo.find_next_step());
+    auto next = geo.find_next_step();
+    EXPECT_SOFT_EQ(sqrt_two, next.distance);
+    EXPECT_TRUE(next.boundary);
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(sqrt_two, next.distance);
+    EXPECT_TRUE(next.boundary);
 
     // Advance toward the boundary
     geo.move_internal(1);
     EXPECT_VEC_SOFT_EQ(Real3({0.5, 0, 1}), geo.pos());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
     // Next step should still be cached
-    EXPECT_SOFT_EQ(sqrt_two - 1, geo.find_next_step());
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(sqrt_two - 1, next.distance);
+    EXPECT_TRUE(next.boundary);
 
     // Move to boundary
     geo.move_to_boundary();
@@ -177,7 +187,9 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
     geo.set_dir({-sqrt_two / 2, -sqrt_two / 2, 0});
 
-    EXPECT_SOFT_EQ(1.3284271247461896, geo.find_next_step());
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(1.3284271247461896, next.distance);
+    EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
     geo.cross_boundary();
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
@@ -206,7 +218,9 @@ TEST_F(TwoVolumeTest, persistence)
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.dir());
-        EXPECT_SOFT_EQ(3.0, geo.find_next_step());
+        auto next = geo.find_next_step();
+        EXPECT_SOFT_EQ(3.0, next.distance);
+        EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
         geo.cross_boundary();
         EXPECT_EQ(VolumeId{0}, geo.volume_id());
@@ -229,7 +243,9 @@ TEST_F(TwoVolumeTest, persistence)
     {
         auto geo = this->make_track_view();
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-        EXPECT_SOFT_EQ(0.17712434446770464, geo.find_next_step());
+        auto next = geo.find_next_step();
+        EXPECT_SOFT_EQ(0.17712434446770464, next.distance);
+        EXPECT_TRUE(next.boundary);
         geo.move_internal(0.1);
         EXPECT_EQ(SurfaceId{}, geo.surface_id());
     }
@@ -237,6 +253,59 @@ TEST_F(TwoVolumeTest, persistence)
         auto geo = this->make_track_view();
         EXPECT_VEC_SOFT_EQ(Real3({-1.4, .5, .5}), geo.pos());
         EXPECT_EQ(SurfaceId{}, geo.surface_id());
-        EXPECT_SOFT_EQ(0.07712434446770464, geo.find_next_step());
+        auto next = geo.find_next_step();
+        EXPECT_SOFT_EQ(0.07712434446770464, next.distance);
+        EXPECT_TRUE(next.boundary);
     }
+}
+
+TEST_F(TwoVolumeTest, intersect_limited)
+{
+    auto geo = this->make_track_view();
+
+    // Initialize
+    geo = Initializer_t{{0.0, 0, 0}, {1, 0, 0}};
+
+    // Try a boundary; second call should be cached
+    auto next = geo.find_next_step(0.5);
+    EXPECT_SOFT_EQ(0.5, next.distance);
+    EXPECT_FALSE(next.boundary);
+    next = geo.find_next_step(0.5);
+    EXPECT_SOFT_EQ(0.5, next.distance);
+    EXPECT_FALSE(next.boundary);
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(geo.move_to_boundary(), celeritas::DebugError);
+    }
+
+    // Move almost to that point, nearby step should be the same
+    geo.move_internal(0.45);
+    EXPECT_VEC_SOFT_EQ(Real3({0.45, 0, 0}), geo.pos());
+    next = geo.find_next_step(0.05);
+    EXPECT_SOFT_EQ(0.05, next.distance);
+    EXPECT_FALSE(next.boundary);
+
+    // Find the next step further away
+    next = geo.find_next_step(2.0);
+    EXPECT_SOFT_EQ(1.05, next.distance);
+    EXPECT_TRUE(next.boundary);
+    geo.move_to_boundary();
+    EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+
+    geo.cross_boundary();
+    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    for (real_type d : {10, 5, 20})
+    {
+        next = geo.find_next_step(d);
+        EXPECT_SOFT_EQ(d, next.distance);
+        EXPECT_FALSE(next.boundary);
+    }
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(inf, next.distance);
+    EXPECT_FALSE(next.boundary);
+    next = geo.find_next_step(12345.0);
+    EXPECT_SOFT_EQ(12345.0, next.distance);
+    EXPECT_FALSE(next.boundary);
 }

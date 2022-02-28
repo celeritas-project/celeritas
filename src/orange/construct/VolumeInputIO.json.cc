@@ -98,7 +98,7 @@ void from_json(const nlohmann::json& j, VolumeInput& value)
     value.logic     = parse_logic(temp_logic.c_str());
 
     // Read scalars, including optional flags
-    j.at("num_intersections").get_to(value.num_intersections);
+    j.at("num_intersections").get_to(value.max_intersections);
     auto flag_iter = j.find("flags");
     value.flags    = (flag_iter == j.end() ? 0 : flag_iter->get<int>());
 }

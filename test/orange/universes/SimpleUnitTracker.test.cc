@@ -318,72 +318,6 @@ void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
 }
 
 //---------------------------------------------------------------------------//
-// UTILITY TESTS
-//---------------------------------------------------------------------------//
-
-class UtilsTest : public celeritas::Test
-{
-};
-
-TEST_F(UtilsTest, closer_nonzero_distance)
-{
-    detail::CloserPositiveDistance is_closer;
-
-    // Equal
-    EXPECT_FALSE(is_closer(0.0, 0.0));
-    EXPECT_FALSE(is_closer(1.0, 1.0));
-
-    // Positive vs nonpositive
-    EXPECT_FALSE(is_closer(-0.0001, 1.0));
-    EXPECT_FALSE(is_closer(0.0, 1.0));
-    EXPECT_TRUE(is_closer(1.0, 0.0));
-
-    // Positive vs positive
-    EXPECT_TRUE(is_closer(1.0, 20.0));
-}
-
-TEST_F(UtilsTest, intersection_partitioner)
-{
-    std::vector<real_type> distance = {1.25, -1e-16, 3, 0, inf, 5};
-    std::vector<FaceId>    face(distance.size(), FaceId{});
-    std::vector<size_type> isect(distance.size());
-
-    // Fill intersection IDs 0..N-1
-    std::iota(isect.begin(), isect.end(), 0);
-
-    // Construct temp next face
-    celeritas::detail::TempNextFace temp_next;
-    temp_next.face     = face.data();
-    temp_next.distance = distance.data();
-    temp_next.isect    = isect.data();
-    temp_next.size     = isect.size();
-
-    // Test on all entries
-    celeritas::detail::IntersectionPartitioner is_valid{temp_next};
-    {
-        std::vector<int> result;
-        for (size_type i : isect)
-        {
-            result.push_back(is_valid(i));
-        }
-        static const int expected_result[] = {1, 0, 1, 0, 0, 1};
-        EXPECT_VEC_EQ(expected_result, result);
-    }
-
-    // Partition so valid indices are first
-    {
-        auto iter = std::partition(isect.begin(), isect.end(), is_valid);
-        EXPECT_EQ(3, iter - isect.begin());
-
-        // Erase invalid and sort valid to avoid implementation dependence
-        isect.erase(iter, isect.end());
-        std::sort(isect.begin(), isect.end());
-        static const unsigned int expected_isect[] = {0, 2, 5};
-        EXPECT_VEC_EQ(expected_isect, isect);
-    }
-}
-
-//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
@@ -409,6 +343,10 @@ TEST_F(OneVolumeTest, intersect)
         auto isect = tracker.intersect(state);
         EXPECT_FALSE(isect);
         EXPECT_EQ(no_intersection(), isect.distance);
+
+        isect = tracker.intersect(state, 5.0);
+        EXPECT_FALSE(isect);
+        EXPECT_EQ(5.0, isect.distance);
     }
 }
 
@@ -498,6 +436,25 @@ TEST_F(TwoVolumeTest, intersect)
         EXPECT_EQ(SurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(1.0, isect.distance);
+
+        // Range limit: further than surface
+        isect = tracker.intersect(state, 10.0);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(1.0, isect.distance);
+
+        // Coincident
+        isect = tracker.intersect(state, 1.0);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(1.0, isect.distance);
+
+        // Range limit: less than
+        isect = tracker.intersect(state, 0.9);
+        EXPECT_FALSE(isect);
+        EXPECT_SOFT_EQ(0.9, isect.distance);
     }
     {
         SCOPED_TRACE("Outside");
@@ -727,6 +684,20 @@ TEST_F(FiveVolumesTest, intersect)
         EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(101.04503395088592, isect.distance);
+
+        isect = tracker.intersect(state, 105.0);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(101.04503395088592, isect.distance);
+
+        isect = tracker.intersect(state, 100.0);
+        EXPECT_FALSE(isect);
+        EXPECT_SOFT_EQ(100.0, isect.distance);
+
+        isect = tracker.intersect(state, 1e-12);
+        EXPECT_FALSE(isect);
+        EXPECT_SOFT_EQ(1e-12, isect.distance);
     }
 }
 

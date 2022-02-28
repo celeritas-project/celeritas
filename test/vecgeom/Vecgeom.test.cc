@@ -83,8 +83,9 @@ auto VecgeomTest::track(const Real3& pos, const Real3& dir) -> TrackingResult
     {
         // Initial step is outside but may approach insidfe
         result.volumes.push_back("[OUTSIDE]");
-        result.distances.push_back(geo.find_next_step());
-        if (result.distances.back() < 1e20)
+        auto next = geo.find_next_step();
+        result.distances.push_back(next.distance);
+        if (next.boundary)
         {
             geo.move_to_boundary();
             geo.cross_boundary();
@@ -94,7 +95,15 @@ auto VecgeomTest::track(const Real3& pos, const Real3& dir) -> TrackingResult
     while (!geo.is_outside())
     {
         result.volumes.push_back(params.id_to_label(geo.volume_id()));
-        result.distances.push_back(geo.find_next_step());
+        auto next = geo.find_next_step();
+        result.distances.push_back(next.distance);
+        if (!next.boundary)
+        {
+            // Failure to find the next boundary while inside the geomtery
+            ADD_FAILURE();
+            result.volumes.push_back("[NO INTERCEPT]");
+            break;
+        }
         geo.move_to_boundary();
         geo.cross_boundary();
     }
@@ -134,6 +143,41 @@ TEST_F(FourLevelsTest, accessors)
     EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}));
     EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}));
     EXPECT_EQ("World", geom.id_to_label(VolumeId{3}));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(FourLevelsTest, detailed_track)
+{
+    VecgeomTrackView geo = this->make_geo_track_view();
+    geo                  = GeoTrackInitializer{{-10, -10, -10}, {1, 0, 0}};
+    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+
+    // Check for surfaces up to a distance of 4 units away
+    auto next = geo.find_next_step(4.0);
+    EXPECT_SOFT_EQ(4.0, next.distance);
+    EXPECT_FALSE(next.boundary);
+    next = geo.find_next_step(4.0);
+    EXPECT_SOFT_EQ(4.0, next.distance);
+    EXPECT_FALSE(next.boundary);
+    geo.move_internal(3.5);
+
+    // Find one a bit further, then cross it
+    next = geo.find_next_step(4.0);
+    EXPECT_SOFT_EQ(1.5, next.distance);
+    EXPECT_TRUE(next.boundary);
+    geo.move_to_boundary();
+    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    geo.cross_boundary();
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+
+    // Find the next boundary up to infinity
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(1.0, next.distance);
+    EXPECT_TRUE(next.boundary);
+    next = geo.find_next_step(0.5);
+    EXPECT_SOFT_EQ(0.5, next.distance);
+    EXPECT_FALSE(next.boundary);
 }
 
 //---------------------------------------------------------------------------//
@@ -240,6 +284,9 @@ TEST_F(FourLevelsTest, tracking)
 
 TEST_F(FourLevelsTest, safety)
 {
+#ifndef VECGEOM_USE_NAVINDEX
+    GTEST_SKIP() << "Safety distances don't work";
+#endif
     VecgeomTrackView       geo = this->make_geo_track_view();
     std::vector<real_type> safeties;
 

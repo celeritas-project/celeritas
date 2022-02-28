@@ -75,7 +75,7 @@ struct VolumeRecord
     ItemRange<SurfaceId> faces;
     ItemRange<logic_int> logic;
 
-    logic_int num_intersections{0};
+    logic_int max_intersections{0};
     logic_int flags{0};
 
     //! Flag values (bit field)

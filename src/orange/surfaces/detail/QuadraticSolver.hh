@@ -68,7 +68,7 @@ class QuadraticSolver
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Find all nonnegative roots for general quadric surfaces.
+ * Find all positive roots for general quadric surfaces.
  *
  * This is used for cones, simple quadrics, and general quadrics.
  */
@@ -112,7 +112,7 @@ CELER_FUNCTION QuadraticSolver::QuadraticSolver(real_type a, real_type half_b)
 
 //---------------------------------------------------------------------------//
 /*!
- * Find all nonnegative roots of x^2 + (b/a)*x + (c/a) = 0.
+ * Find all positive roots of x^2 + (b/a)*x + (c/a) = 0.
  *
  * In this case, the quadratic formula can be written as: \f[
    x = -b/2 \pm \sqrt{(b/2)^2 - c}.
@@ -139,15 +139,15 @@ CELER_FUNCTION auto QuadraticSolver::operator()(real_type c) const
         result[0]    = -hba_ - t2;
         result[1]    = -hba_ + t2;
 
-        if (result[1] < 0)
+        if (result[1] <= 0)
         {
-            // Both are negative
+            // Both are nonpositive
             result[0] = no_intersection();
             result[1] = no_intersection();
         }
-        else if (result[0] < 0)
+        else if (result[0] <= 0)
         {
-            // Only first is negative
+            // Only first is nonpositive
             result[0] = no_intersection();
         }
     }
@@ -157,7 +157,7 @@ CELER_FUNCTION auto QuadraticSolver::operator()(real_type c) const
         result[0] = -hba_;
         result[1] = no_intersection();
 
-        if (result[0] < 0)
+        if (result[0] <= 0)
         {
             result[0] = no_intersection();
         }
@@ -173,9 +173,10 @@ CELER_FUNCTION auto QuadraticSolver::operator()(real_type c) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Solve degenerate case (known to be on surface).
+ * Solve degenerate case (known to be "on" surface).
  *
- * Since x = 0 is a root, then c = 0 and x = -b is the other root.
+ * Since x = 0 is a root, then c = 0 and x = -b is the other root. This will be
+ * inaccurate if a particle is logically on a surface but not physically on it.
  */
 CELER_FUNCTION auto QuadraticSolver::operator()() const -> Intersections
 {

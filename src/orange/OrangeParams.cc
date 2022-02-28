@@ -167,7 +167,7 @@ OrangeParams::OrangeParams(Input input)
         const VolumeRecord& def = host_data.volumes.defs[vol_id];
         max_faces = std::max<size_type>(max_faces, def.faces.size());
         max_intersections
-            = std::max<size_type>(max_intersections, def.num_intersections);
+            = std::max<size_type>(max_intersections, def.max_intersections);
     }
     host_data.scalars.max_faces         = max_faces;
     host_data.scalars.max_intersections = max_intersections;

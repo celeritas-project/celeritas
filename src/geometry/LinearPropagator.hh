@@ -55,10 +55,12 @@ CELER_FUNCTION LinearPropagator::LinearPropagator(GeoTrackView* track)
 CELER_FUNCTION
 LinearPropagator::result_type LinearPropagator::operator()()
 {
-    result_type result;
-    result.distance = track_.find_next_step();
-    result.boundary = true;
+    CELER_EXPECT(!track_.is_outside());
+
+    result_type result = track_.find_next_step();
+    CELER_ASSERT(result.boundary);
     track_.move_to_boundary();
+
     return result;
 }
 
@@ -71,18 +73,14 @@ LinearPropagator::result_type LinearPropagator::operator()(real_type dist)
 {
     CELER_EXPECT(dist > 0);
 
-    result_type result;
-    result.boundary = true;
-    result.distance = track_.find_next_step();
+    result_type result = track_.find_next_step(dist);
 
-    if (dist >= result.distance)
+    if (result.boundary)
     {
         track_.move_to_boundary();
     }
     else
     {
-        result.boundary = false;
-        result.distance = dist;
         track_.move_internal(dist);
     }
 

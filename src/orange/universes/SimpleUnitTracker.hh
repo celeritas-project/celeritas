@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Algorithms.hh"
 #include "orange/Data.hh"
 #include "orange/surfaces/Surfaces.hh"
 
@@ -47,18 +48,28 @@ class SimpleUnitTracker
     inline CELER_FUNCTION Initialization
     initialize(const LocalState& state) const;
 
-    // Calculate the distance to an exiting face for the current volume.
+    // Calculate the distance to an exiting face for the current volume
     inline CELER_FUNCTION Intersection intersect(const LocalState& state) const;
+
+    // Calculate nearby distance to an exiting face for the current volume
+    inline CELER_FUNCTION Intersection intersect(const LocalState& state,
+                                                 real_type max_dist) const;
 
   private:
     //// DATA ////
     const ParamsRef& params_;
 
     //// METHODS ////
+
+    template<class F>
+    inline CELER_FUNCTION Intersection intersect_impl(const LocalState&,
+                                                      F) const;
+
     inline CELER_FUNCTION Intersection simple_intersect(const LocalState&,
-                                                        const VolumeView&) const;
-    inline CELER_FUNCTION Intersection
-    complex_intersect(const LocalState&, const VolumeView&) const;
+                                                        const VolumeView&,
+                                                        size_type) const;
+    inline CELER_FUNCTION Intersection complex_intersect(
+        const LocalState&, const VolumeView&, size_type num_isect) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -134,40 +145,93 @@ SimpleUnitTracker::initialize(const LocalState& state) const -> Initialization
 CELER_FUNCTION auto SimpleUnitTracker::intersect(const LocalState& state) const
     -> Intersection
 {
+    Intersection result = this->intersect_impl(state, detail::IsFinite{});
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate distance-to-intercept for the next surface.
+ */
+CELER_FUNCTION auto
+SimpleUnitTracker::intersect(const LocalState& state, real_type max_dist) const
+    -> Intersection
+{
+    CELER_EXPECT(max_dist > 0);
+    Intersection result
+        = this->intersect_impl(state, detail::IsNotFurtherThan{max_dist});
+    if (!result)
+    {
+        result.distance = max_dist;
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate distance-to-intercept for the next surface.
+ *
+ * The algorithm is:
+ * - Use the current volume to find potential intersecting surfaces and maximum
+ *   number of intersections.
+ * - Loop over all surfaces and calculate the distance to intercept based on
+ *   the given physical and logical state. Save to the thread-local buffer
+ *   *only* intersections that are valid (either finite *or* less than the
+ *   user-supplied maximum). The buffer contains the distances, the face
+ *   indices, and an index used for sorting (if the volume has internal
+ *   surfaes).
+ * - If no intersecting surfaces are found, return immediately. (Rely on the
+ *   caller to set the "maximum distance" if we're not searching to infinity.)
+ * - If the volume has no internal surfaces, find the closest one by calling \c
+ *   simple_intersect.
+ * - Otherwise, the volume has internal surfaces and we call \c
+ *   complex_intersect.
+ */
+template<class F>
+CELER_FUNCTION auto
+SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
+    -> Intersection
+{
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
 
     // Resize temporaries based on volume properties
     VolumeView vol{params_.volumes, state.volume};
-    CELER_ASSERT(state.temp_next.size >= vol.num_intersections());
+    CELER_ASSERT(state.temp_next.size >= vol.max_intersections());
     const bool is_simple = !(vol.flags() & VolumeView::internal_surfaces);
 
-    // Find all surface intersection distances inside this volume
+    // Find all valid (nearby or finite, depending on F) surface intersection
+    // distances inside this volume
+    auto calc_intersections = make_surface_action(
+        Surfaces{params_.surfaces},
+        detail::CalcIntersections<const F&>{
+            state.pos,
+            state.dir,
+            is_valid,
+            state.surface ? vol.find_face(state.surface.id()) : FaceId{},
+            is_simple,
+            state.temp_next});
+    for (SurfaceId surface : vol.faces())
     {
-        auto calc_intersections = make_surface_action(
-            Surfaces{params_.surfaces},
-            detail::CalcIntersections{
-                state.pos,
-                state.dir,
-                state.surface ? vol.find_face(state.surface.id()) : FaceId{},
-                is_simple,
-                state.temp_next});
-        for (SurfaceId surface : vol.faces())
-        {
-            calc_intersections(surface);
-        }
-        CELER_ASSERT(calc_intersections.action().face_idx() == vol.num_faces());
-        CELER_ASSERT(calc_intersections.action().isect_idx()
-                     == vol.num_intersections());
+        calc_intersections(surface);
     }
+    CELER_ASSERT(calc_intersections.action().face_idx() == vol.num_faces());
+    size_type num_isect = calc_intersections.action().isect_idx();
+    CELER_ASSERT(num_isect <= vol.max_intersections());
 
-    if (is_simple)
+    if (num_isect == 0)
+    {
+        // No intersection (no surfaces in this cell, no finite distances, or
+        // no "nearby" distances depending on F)
+        return {};
+    }
+    else if (is_simple)
     {
         // No interior surfaces: closest distance is next boundary
-        return this->simple_intersect(state, vol);
+        return this->simple_intersect(state, vol, num_isect);
     }
     else
     {
-        return this->complex_intersect(state, vol);
+        return this->complex_intersect(state, vol, num_isect);
     }
 }
 
@@ -177,25 +241,19 @@ CELER_FUNCTION auto SimpleUnitTracker::intersect(const LocalState& state) const
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::simple_intersect(const LocalState& state,
-                                    const VolumeView& vol) const
-    -> Intersection
+                                    const VolumeView& vol,
+                                    size_type num_isect) const -> Intersection
 {
-    CELER_EXPECT(state.temp_next && vol.num_intersections() > 0);
+    CELER_EXPECT(num_isect > 0);
 
     // Crossing any surface will leave the cell; perform a linear search for
     // the smallest (but positive) distance
-    size_type distance_idx;
-    {
-        const real_type* distance_ptr = celeritas::min_element(
-            state.temp_next.distance,
-            state.temp_next.distance + vol.num_intersections(),
-            detail::CloserPositiveDistance{});
-        CELER_ASSERT(*distance_ptr > 0);
-        distance_idx = distance_ptr - state.temp_next.distance;
-    }
-
-    if (state.temp_next.distance[distance_idx] == no_intersection())
-        return {};
+    size_type distance_idx
+        = celeritas::min_element(state.temp_next.distance,
+                                 state.temp_next.distance + num_isect,
+                                 Less<real_type>{})
+          - state.temp_next.distance;
+    CELER_ASSERT(distance_idx < num_isect);
 
     // Determine the crossing surface
     SurfaceId surface;
@@ -244,19 +302,12 @@ SimpleUnitTracker::simple_intersect(const LocalState& state,
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::complex_intersect(const LocalState& state,
-                                     const VolumeView& vol) const
-    -> Intersection
+                                     const VolumeView& vol,
+                                     size_type num_isect) const -> Intersection
 {
-    // Partition intersections (enumerated from 0 as the `idx` array) into
-    // valid (finite positive) and invalid (infinite-or-negative) groups.
-    size_type num_isect = celeritas::partition(
-                              state.temp_next.isect,
-                              state.temp_next.isect + vol.num_intersections(),
-                              detail::IntersectionPartitioner{state.temp_next})
-                          - state.temp_next.isect;
-    CELER_ASSERT(num_isect <= vol.num_intersections());
+    CELER_ASSERT(num_isect > 0);
 
-    // Sort these finite distances in ascending order
+    // Sort valid intersection distances in ascending order
     celeritas::sort(state.temp_next.isect,
                     state.temp_next.isect + num_isect,
                     [&state](size_type a, size_type b) {

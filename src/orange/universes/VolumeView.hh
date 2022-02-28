@@ -71,7 +71,7 @@ class VolumeView
     CELER_FORCEINLINE_FUNCTION logic_int flags() const;
 
     // Get the number of total intersections
-    CELER_FORCEINLINE_FUNCTION logic_int num_intersections() const;
+    CELER_FORCEINLINE_FUNCTION logic_int max_intersections() const;
 
   private:
     const VolumeDataRef& params_;
@@ -167,11 +167,11 @@ CELER_FUNCTION logic_int VolumeView::flags() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the number of total intersections.
+ * Get the maximum number of surface intersections.
  */
-CELER_FUNCTION logic_int VolumeView::num_intersections() const
+CELER_FUNCTION logic_int VolumeView::max_intersections() const
 {
-    return def_.num_intersections;
+    return def_.max_intersections;
 }
 
 //---------------------------------------------------------------------------//

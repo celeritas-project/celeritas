@@ -41,8 +41,8 @@ __global__ void vgg_test_kernel(const GeoParamsCRefDevice  params,
     for (int seg = 0; seg < max_segments; ++seg)
     {
         // Move next step
-        real_type dist = geo.find_next_step();
-        if (dist < 1e20)
+        auto next = geo.find_next_step();
+        if (next.boundary)
         {
             geo.move_to_boundary();
             geo.cross_boundary();
@@ -53,7 +53,7 @@ __global__ void vgg_test_kernel(const GeoParamsCRefDevice  params,
             = (geo.is_outside()
                    ? -2
                    : static_cast<int>(geo.volume_id().unchecked_get()));
-        distances[tid.get() * max_segments + seg] = dist;
+        distances[tid.get() * max_segments + seg] = next.distance;
 
         if (geo.is_outside())
             break;

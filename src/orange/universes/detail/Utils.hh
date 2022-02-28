@@ -9,7 +9,9 @@
 
 #include <cmath>
 
+#include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "base/NumericLimits.hh"
 
 #include "../VolumeView.hh"
 #include "Types.hh"
@@ -22,36 +24,54 @@ namespace detail
 // FUNCTION-LIKE CLASSES
 //---------------------------------------------------------------------------//
 /*!
- * Predicate for finding the closest valid (strictly positive) distance.
- *
- * \todo Changing the QuadraticSolver class to return only positive
- * intersections should allow us to replace this with a simple less-than
- * comparator.
+ * Predicate for partitioning valid (finite positive) from invalid distances.
  */
-struct CloserPositiveDistance
+struct IsFinite
 {
-    CELER_CONSTEXPR_FUNCTION bool operator()(real_type a, real_type b) const
+    CELER_FORCEINLINE_FUNCTION bool operator()(real_type distance) const
     {
-        return a > 0 && (b <= 0 || a < b);
+        return distance < numeric_limits<real_type>::max();
     }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Predicate for partitioning valid (finite positive) from invalid distances.
- *
- * \todo See above, and if we add a "maximum distance" to the intersection
- * lookup, then we can perhaps change to `return distance < max_dist`.
+ * Predicate for selecting distances closer to or equal to a maximum.
  */
-struct IntersectionPartitioner
+class IsNotFurtherThan
+{
+  public:
+    explicit CELER_FORCEINLINE_FUNCTION IsNotFurtherThan(real_type md)
+        : max_dist_(md)
+    {
+    }
+
+    CELER_FORCEINLINE_FUNCTION bool operator()(real_type distance) const
+    {
+        return distance <= max_dist_;
+    }
+
+  private:
+    real_type max_dist_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Predicate for partitioning allowable distances.
+ *
+ * For now we are careful to allow exact equality so that if we move *to* a
+ * distance we will *cross* any surface at that distance.
+ */
+struct IsIntersectionNotFurtherThan
 {
     const TempNextFace& temp_next;
+    real_type           max_limit;
 
     CELER_FUNCTION bool operator()(size_type isect) const
     {
         CELER_ASSERT(isect < temp_next.size);
         const real_type distance = temp_next.distance[isect];
-        return distance > 0 && !std::isinf(distance);
+        return distance <= max_limit;
     }
 };
 

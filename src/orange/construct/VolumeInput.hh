@@ -27,8 +27,8 @@ struct VolumeInput
     //! RPN region definition for this cell, using local surface index
     std::vector<logic_int> logic{};
 
-    //! Total number of surface intersections possible in this volume
-    logic_int num_intersections{0};
+    //! Maximum possible number of surface intersections in this volume
+    logic_int max_intersections{0};
     //! Special flags
     logic_int flags{0};
 
