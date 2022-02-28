@@ -50,13 +50,13 @@ where `${SOURCE}` is your local Celeritas source directory and `${DATE}` is the
 date time stamp of the desired image. If you just built locally, you can
 replace that last argument with the tag `ci-focal-cuda11`:
 ```console
-$ docker run --rm -ti -e "TERM=xterm-256color" -v /rnsdhpc/code/celeritas:/home/celeritas/src ci-focal-cuda11
+$ docker run --rm -ti -e "TERM=xterm-256color" -v /rnsdhpc/code/celeritas-docker:/home/celeritas/src ci-bionic-minimal
 ```
 
 After mounting, use the build scripts to configure and go:
 ```console
 celeritas@abcd1234:~$ cd src
-celeritas@abcd1234:~/src$ BUILD_DIR=$PWD/build-docker ./scripts/build/docker-cuda.sh
+celeritas@abcd1234:~/src$ ./scripts/docker/ci/run-ci.sh valgrind
 ```
 
 The `dev` image runs as root, but the `ci-focal-cuda11` runs as a user

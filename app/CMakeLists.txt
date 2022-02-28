@@ -68,6 +68,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
     set_tests_properties("app/geant-exporter" PROPERTIES
       ENVIRONMENT "${_geant_test_env}"
       REQUIRED_FILES "${_geant_test_inp}"
+      LABELS "app"
     )
 
     add_test(NAME "app/geant-exporter-cat"
@@ -77,6 +78,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
     set_tests_properties("app/geant-exporter-cat" PROPERTIES
       DEPENDS "app/geant-exporter"
       REQUIRED_FILES "test-data.root"
+      LABELS "app"
     )
   endif()
 endif()
@@ -134,6 +136,7 @@ if(CELERITAS_BUILD_DEMOS)
         ENVIRONMENT "${_env}"
         RESOURCE_LOCK gpu
         REQUIRED_FILES "${_driver}"
+        LABELS "app;nomemcheck;gpu"
         ${_disabled_unless_python}
       )
     endif()
@@ -163,6 +166,7 @@ if(CELERITAS_BUILD_DEMOS)
       ENVIRONMENT "${_env}"
       REQUIRED_FILES "${_driver}"
       ${_disabled_unless_python}
+      LABELS "app;nomemcheck"
     )
   endif()
 endif()
@@ -199,6 +203,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
       ENVIRONMENT "${_env}"
       RESOURCE_LOCK gpu
       REQUIRED_FILES "${_driver};${_gdml_inp}"
+      LABELS "app;nomemcheck;gpu"
     )
   endif()
 endif()
@@ -285,6 +290,7 @@ if(CELERITAS_BUILD_DEMOS)
       ENVIRONMENT "${_env};${_geant_test_env}"
       RESOURCE_LOCK gpu
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
+      LABELS "app;nomemcheck;gpu"
     )
 
     # Disable test when prereqs are not available or for debug builds
@@ -319,6 +325,7 @@ if(CELERITAS_BUILD_DEMOS)
     set_tests_properties("app/demo-loop-cpu" PROPERTIES
       ENVIRONMENT "${_env};${_geant_test_env}"
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
+      LABELS "app;nomemcheck"
     )
     if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
        OR NOT CELERITAS_USE_Geant4

@@ -9,6 +9,10 @@ if [ -z "${CONFIG}" ]; then
   CONFIG=focal-cuda11
   echo "Set default CONFIG=${CONFIG}"
 fi
+if [ -z "${BUILD}" ]; then
+  BUILD=full-novg
+  echo "Set default BUILD=${BUILD}"
+fi
 
 CONTAINER=$(docker run -t -d ci-${CONFIG})
 echo "Launched container: ${CONTAINER}"
@@ -18,7 +22,7 @@ git clone https://github.com/celeritas-project/celeritas src
 cd src
 git fetch origin pull/$1/head:mr/$1
 git checkout mr/$1
-entrypoint-shell ./scripts/docker/ci/run-ci.sh full-novg
+entrypoint-shell ./scripts/docker/ci/run-ci.sh ${BUILD}
 EOF
 docker stop --time=0 $CONTAINER
 echo "To resume: docker start $CONTAINER \\"

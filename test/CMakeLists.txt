@@ -118,9 +118,15 @@ celeritas_add_test(base/Repr.test.cc)
 celeritas_add_test(base/ScopedStreamRedirect.test.cc)
 celeritas_add_test(base/SoftEqual.test.cc)
 celeritas_add_test(base/Span.test.cc)
-celeritas_add_test(base/Stopwatch.test.cc)
 celeritas_add_test(base/TypeDemangler.test.cc)
 celeritas_add_test(base/VectorUtils.test.cc)
+
+celeritas_add_test(base/Stopwatch.test.cc ADDED_TESTS _test_name)
+set_tests_properties(${_test_name} PROPERTIES
+  ENVIRONMENT "${_geant_test_env}"
+  REQUIRED_FILES "${_geant_test_inp}"
+  LABELS "nomemcheck"
+)
 
 celeritas_device_test(base/Collection)
 celeritas_device_test(base/NumericLimits)
