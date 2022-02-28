@@ -153,9 +153,8 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
 /*!
  * Sample the angular distribution and the lateral displacement by multiple
  * scattering as well as convert the geometrical path length to the true path
- * length based on G4VMultipleScattering::AlongStepDoIt of the Geant4 10.7
- * release.
- *
+ * length based on G4VMultipleScattering::AlongStepDoIt and
+ * G4UrbanMscModel::SampleScattering of the Geant4 10.7 release.
  */
 template<class Engine>
 CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng)
@@ -174,7 +173,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng)
     result.step_length = true_path;
 
     // Do not sample scattering at the last or at a small step
-    if (true_path < helper_.range(inc_energy_) && true_path > geom_min())
+    if (true_path < helper_.range() && true_path > geom_min())
     {
         auto end_energy = helper_.end_energy(true_path);
 
@@ -420,7 +419,7 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
 /*!
  * Calculate the width of an approximate Gaussian projected angle distribution
  * using a modified Highland-Lynch-Dahl formula. All particles take the width
- * of the central part from a parametrization similar to the orginal Highland
+ * of the central part from a parameterization similar to the original Highland
  * formula, Particle Physics Booklet, July 2002, eq. 26.10.
  * \f[
  *   \theta_0 = \frac{13.6\rm{MeV}}{\beta\c\p} z_{ch} \sqrt{\ln(t/X_o)} c
