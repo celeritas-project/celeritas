@@ -87,9 +87,9 @@ class UrbanMscStepLimit
     UrbanMscHelper helper_;
 
     bool      first_{true};
-    real_type range_{0};
-    real_type lambda_{1e+8};
-    real_type limit_{1e+8}; //!< the default limit (1e+10 mm)
+    real_type range_{};
+    real_type lambda_{};
+    real_type limit_{};
     real_type alpha_{-1};
 
     //// HELPER FUNCTIONS ////
@@ -120,7 +120,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscNativeRef& shared,
     CELER_EXPECT(particle.particle_id() == shared.electron_id
                  || particle.particle_id() == shared.positron_id);
 
-    range_  = helper_.range(inc_energy_);
+    range_  = helper_.range();
     lambda_ = helper_.msc_mfp(inc_energy_);
 }
 
@@ -128,7 +128,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscNativeRef& shared,
 /*!
  * Calculate the true path length using the Urban multiple scattering model
  * as well as the geometry path length for a given proposed physics step. The
- * model is selected for the candiate process governing the step if the true
+ * model is selected for the candidate process governing the step if the true
  * path length is smaller than the current physics step length. However, the
  * geometry path length will be used for the further step length competition
  * (either with the linear or field propagator). If the geometry path length
@@ -167,7 +167,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
 
     if (first_ || on_boundary)
     {
-        if (lambda_ < params_.lambda_limit)
+        if (lambda_ > params_.lambda_limit)
         {
             range_fact *= (real_type(0.75)
                            + real_type(0.25) * lambda_ / params_.lambda_limit);
@@ -210,7 +210,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
  * \f]
  * where \f$\lambda_{1}\f$ is the first transport mean free path. Due to the
  * fact that \f$\lambda_{1}\f$ depends on the kinetic energy of the path and
- * decreases along the step, the path legnth correction is approximated as
+ * decreases along the step, the path length correction is approximated as
  * \f[
  *     \lambda_{1} (t) = \lambda_{10} (1 - \alpha t)
  * \f]
