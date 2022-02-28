@@ -180,7 +180,12 @@ SimpleUnitTracker::intersect(const LocalState& state, real_type max_dist) const
  *   user-supplied maximum). The buffer contains the distances, the face
  *   indices, and an index used for sorting (if the volume has internal
  *   surfaes).
- * - If no valid surfaces are found,
+ * - If no intersecting surfaces are found, return immediately. (Rely on the
+ *   caller to set the "maximum distance" if we're not searching to infinity.)
+ * - If the volume has no internal surfaces, find the closest one by calling \c
+ *   simple_intersect.
+ * - Otherwise, the volume has internal surfaces and we call \c
+ *   complex_intersect.
  */
 template<class F>
 CELER_FUNCTION auto
