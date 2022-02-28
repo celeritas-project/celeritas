@@ -35,6 +35,12 @@ class SimTrackView
     // Initialize the sim state
     inline CELER_FUNCTION SimTrackView& operator=(const Initializer_t& other);
 
+    // Set the total number of steps
+    CELER_FORCEINLINE_FUNCTION void steps(size_type);
+
+    // Set whether the track is alive
+    CELER_FORCEINLINE_FUNCTION void alive(bool);
+
     //// DYNAMIC PROPERTIES ////
 
     // Unique track identifier
@@ -46,11 +52,11 @@ class SimTrackView
     // Event ID
     CELER_FORCEINLINE_FUNCTION EventId event_id() const;
 
+    // Total number of steps taken by the track
+    CELER_FORCEINLINE_FUNCTION size_type steps() const;
+
     // Whether the track is alive
     CELER_FORCEINLINE_FUNCTION bool alive() const;
-
-    // Set whether the track is alive
-    CELER_FORCEINLINE_FUNCTION void alive(bool);
 
   private:
     const SimStateRef& states_;
@@ -78,6 +84,24 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(const Initializer_t& other)
 {
     states_.state[thread_] = other;
     return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the total number of steps.
+ */
+CELER_FUNCTION void SimTrackView::steps(size_type count)
+{
+    states_.state[thread_].steps = count;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set whether the track is alive.
+ */
+CELER_FUNCTION void SimTrackView::alive(bool is_alive)
+{
+    states_.state[thread_].alive = is_alive;
 }
 
 //---------------------------------------------------------------------------//
@@ -111,20 +135,20 @@ CELER_FUNCTION EventId SimTrackView::event_id() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Total number of steps taken by the track.
+ */
+CELER_FUNCTION size_type SimTrackView::steps() const
+{
+    return states_.state[thread_].steps;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Whether the track is alive.
  */
 CELER_FUNCTION bool SimTrackView::alive() const
 {
     return states_.state[thread_].alive;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set whether the track is alive.
- */
-CELER_FUNCTION void SimTrackView::alive(bool is_alive)
-{
-    states_.state[thread_].alive = is_alive;
 }
 
 //---------------------------------------------------------------------------//

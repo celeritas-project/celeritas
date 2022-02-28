@@ -97,6 +97,7 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
             init.sim.track_id         = TrackId{track_id};
             init.sim.parent_id        = parent_id;
             init.sim.event_id         = sim.event_id();
+            init.sim.steps            = 0;
             init.sim.alive            = true;
             init.geo.pos              = geo.pos();
             init.geo.dir              = secondary.direction;

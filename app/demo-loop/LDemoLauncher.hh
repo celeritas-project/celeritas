@@ -328,6 +328,10 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
     states_.energy_deposition[tid]
         += value_as<Energy>(result.energy_deposition);
 
+    // Increment the step count
+    auto num_steps = sim.steps() + 1;
+    sim.steps(num_steps);
+
     // Reset the physics state if a discrete interaction occured
     if (phys.model_id())
     {
