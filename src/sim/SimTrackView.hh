@@ -35,8 +35,8 @@ class SimTrackView
     // Initialize the sim state
     inline CELER_FUNCTION SimTrackView& operator=(const Initializer_t& other);
 
-    // Set the total number of steps
-    CELER_FORCEINLINE_FUNCTION void steps(size_type);
+    // Increment the total number of steps
+    CELER_FORCEINLINE_FUNCTION void increment_steps();
 
     // Set whether the track is alive
     CELER_FORCEINLINE_FUNCTION void alive(bool);
@@ -88,11 +88,11 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(const Initializer_t& other)
 
 //---------------------------------------------------------------------------//
 /*!
- * Set the total number of steps.
+ * Increment the total number of steps.
  */
-CELER_FUNCTION void SimTrackView::steps(size_type count)
+CELER_FUNCTION void SimTrackView::increment_steps()
 {
-    states_.state[thread_].steps = count;
+    ++states_.state[thread_].steps;
 }
 
 //---------------------------------------------------------------------------//
