@@ -147,9 +147,10 @@ ParticleProcessDiagnostic<M>::ParticleProcessDiagnostic(
 //---------------------------------------------------------------------------//
 /*!
  * Tally the particle/process combinations that occur at each step.
-
- * This must be called after the post-step kernel and before the
- * post-processing.
+ *
+ * This must be called after the post-step kernel (when the discrete
+ * interaction is sampled) and before extend_from_secondaries, which clears the
+ * physics state if a discrete interaction occurred.
  */
 template<MemSpace M>
 void ParticleProcessDiagnostic<M>::mid_step(const StateDataRef& states)

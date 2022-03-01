@@ -139,7 +139,7 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
         }
     }
 
-    // Reset the physics state if a discrete interaction occured
+    // Reset the physics state if a discrete interaction occurred
     if (phys.model_id())
     {
         phys = {};

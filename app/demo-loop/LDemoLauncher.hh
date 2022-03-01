@@ -297,9 +297,16 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
     using Energy = celeritas::ParticleTrackView::Energy;
 
     celeritas::SimTrackView sim(states_.sim, tid);
+
+    // Increment the step count before checking if the track is alive as some
+    // active tracks might have been killed earlier in the step.
+    auto num_steps = sim.steps() + 1;
+    sim.steps(num_steps);
+
     if (!sim.alive())
+    {
         return;
-    CELER_ASSERT(states_.interactions[tid]);
+    }
 
     celeritas::ParticleTrackView particle(
         params_.particles, states_.particles, tid);
@@ -308,6 +315,7 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
     // Update the track state from the interaction
     // TODO: handle recoverable errors
     const celeritas::Interaction& result = states_.interactions[tid];
+    CELER_ASSERT(result);
     if (action_killed(result.action))
     {
         sim.alive(false);
@@ -321,10 +329,6 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
     // Deposit energy from interaction
     states_.energy_deposition[tid]
         += value_as<Energy>(result.energy_deposition);
-
-    // Increment the step count
-    auto num_steps = sim.steps() + 1;
-    sim.steps(num_steps);
 }
 
 //---------------------------------------------------------------------------//
