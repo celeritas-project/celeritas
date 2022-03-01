@@ -97,13 +97,13 @@ class KernelParamCalculator
 
     // Construct with the default block size
     template<class F>
-    KernelParamCalculator(F* kernel_func_ptr, const char* name);
+    inline KernelParamCalculator(F* kernel_func_ptr, const char* name);
 
     // Construct with an explicit number of threads per block
     template<class F>
-    KernelParamCalculator(F*          kernel_func_ptr,
-                          const char* name,
-                          dim_type    block_size);
+    inline KernelParamCalculator(F*          kernel_func_ptr,
+                                 const char* name,
+                                 dim_type    block_size);
 
     // Get launch parameters
     LaunchParams operator()(size_type min_num_threads) const;

@@ -120,6 +120,10 @@ Add a CUDA/HIP/C++ GoogleTest test::
     ``GPU``
       Add a resource lock so that only one GPU test will be run at once.
 
+    ``ADDED_TESTS``
+      Output variable name for the name or list of names for added tests,
+      suitable for ``set_tests_properties``.
+
 Variables
 ^^^^^^^^^
 
@@ -244,7 +248,7 @@ endfunction()
 function(celeritas_add_test SOURCE_FILE)
   cmake_parse_arguments(PARSE
     "ISOLATE;DISABLE;DRIVER;REUSE_EXE;GPU"
-    "TIMEOUT;DEPTEST;SUFFIX"
+    "TIMEOUT;DEPTEST;SUFFIX;ADDED_TESTS"
     "LINK_LIBRARIES;ADD_DEPENDENCIES;NP;ENVIRONMENT;ARGS;INPUTS;FILTER;SOURCES"
     ${ARGN}
   )
@@ -338,6 +342,7 @@ function(celeritas_add_test SOURCE_FILE)
   endif()
 
   set(_COMMON_PROPS)
+  set(_LABELS)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     if(NOT PARSE_GPU)
       list(APPEND PARSE_ENVIRONMENT "CELER_DISABLE_DEVICE=1")
@@ -348,6 +353,7 @@ function(celeritas_add_test SOURCE_FILE)
       # To speed up overall test time, *do not* apply the resource lock when
       # we're debugging because timings don't matter.
       list(APPEND _COMMON_PROPS RESOURCE_LOCK gpu)
+      list(APPEND _LABELS gpu)
     endif()
   endif()
   if(PARSE_TIMEOUT)
@@ -361,6 +367,11 @@ function(celeritas_add_test SOURCE_FILE)
       PASS_REGULAR_EXPRESSION "tests PASSED"
       FAIL_REGULAR_EXPRESSION "tests FAILED"
     )
+  endif()
+  if(PARSE_DRIVER)
+    list(APPEND _LABELS nomemcheck)
+  else()
+    list(APPEND _LABELS unit)
   endif()
 
   if(CELERITAS_USE_MPI AND PARSE_NP STREQUAL "1")
@@ -434,9 +445,16 @@ function(celeritas_add_test SOURCE_FILE)
       endif()
     endforeach()
   endforeach()
-  if(_COMMON_PROPS AND _ADDED_TESTS)
+
+  if(_ADDED_TESTS)
     # Set common properties
-    set_tests_properties(${_ADDED_TESTS} PROPERTIES ${_COMMON_PROPS})
+    set_tests_properties(${_ADDED_TESTS}
+      PROPERTIES ${_COMMON_PROPS}
+      "LABELS" "${_LABELS}")
+  endif()
+  if(PARSE_ADDED_TESTS)
+    # Export test names
+    set(${PARSE_ADDED_TESTS} ${_ADDED_TESTS} PARENT_SCOPE)
   endif()
 endfunction()
 

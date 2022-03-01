@@ -5,7 +5,7 @@ shift
 
 _ctest_args="-j16 --timeout 180 --no-compress-output --test-output-size-passed=65536 --test-output-size-failed=1048576"
 if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
-  _ctest_args="-R '^app/' ${_ctest_args}"
+  _ctest_args="-L 'app' ${_ctest_args}"
 fi
 
 set -x
@@ -23,5 +23,7 @@ cd build
 ctest -T Test ${_ctest_args}
 # Valgrind
 if [ "${CMAKE_PRESET}" = "valgrind" ]; then
-  ctest -T MemCheck -E 'demo-' --output-on-failure ${_ctest_args}
+  # Don't run apps that are launched through python drivers
+  ctest -T MemCheck -LE nomemcheck --output-on-failure \
+    ${_ctest_args}
 fi

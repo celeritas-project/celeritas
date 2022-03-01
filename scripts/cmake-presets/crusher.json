@@ -61,6 +61,16 @@
       "cacheVariables": {
         "BUILD_SHARED_LIBS":    {"type": "BOOL",   "value": "OFF"}
       }
+    },
+    {
+      "name": "ndebug-serial",
+      "displayName": "Release mode",
+      "inherits": [".ndebug", ".base"],
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"},
+        "BUILD_SHARED_LIBS": {"type": "BOOL",   "value": "OFF"}
+      }
     }
   ],
   "buildPresets": [
