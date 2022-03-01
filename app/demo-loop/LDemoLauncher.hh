@@ -294,26 +294,27 @@ template<MemSpace M>
 CELER_FUNCTION void
 ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
 {
+    using Energy = celeritas::ParticleTrackView::Energy;
+
     celeritas::SimTrackView sim(states_.sim, tid);
+
+    // Increment the step count before checking if the track is alive as some
+    // active tracks might have been killed earlier in the step.
+    sim.increment_num_steps();
+
     if (!sim.alive())
+    {
         return;
-    CELER_ASSERT(states_.interactions[tid]);
+    }
 
     celeritas::ParticleTrackView particle(
         params_.particles, states_.particles, tid);
-    celeritas::GeoTrackView     geo(params_.geometry, states_.geometry, tid);
-    celeritas::GeoMaterialView  geo_mat(params_.geo_mats);
-    celeritas::PhysicsTrackView phys(params_.physics,
-                                     states_.physics,
-                                     particle.particle_id(),
-                                     geo_mat.material_id(geo.volume_id()),
-                                     tid);
-
-    using Energy = celeritas::ParticleTrackView::Energy;
+    celeritas::GeoTrackView geo(params_.geometry, states_.geometry, tid);
 
     // Update the track state from the interaction
     // TODO: handle recoverable errors
     const celeritas::Interaction& result = states_.interactions[tid];
+    CELER_ASSERT(result);
     if (action_killed(result.action))
     {
         sim.alive(false);
@@ -327,12 +328,6 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
     // Deposit energy from interaction
     states_.energy_deposition[tid]
         += value_as<Energy>(result.energy_deposition);
-
-    // Reset the physics state if a discrete interaction occured
-    if (phys.model_id())
-    {
-        phys = {};
-    }
 }
 
 //---------------------------------------------------------------------------//

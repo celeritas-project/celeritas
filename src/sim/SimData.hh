@@ -24,10 +24,11 @@ namespace celeritas
  */
 struct SimTrackState
 {
-    TrackId track_id;      //!< Unique ID for this track
-    TrackId parent_id;     //!< ID of parent that created it
-    EventId event_id;      //!< ID of originating event
-    bool    alive = false; //!< Whether this track is alive
+    TrackId   track_id;      //!< Unique ID for this track
+    TrackId   parent_id;     //!< ID of parent that created it
+    EventId   event_id;      //!< ID of originating event
+    size_type num_steps = 0; //!< Total number of steps taken
+    bool      alive = false; //!< Whether this track is alive
 };
 
 using SimTrackInitializer = SimTrackState;

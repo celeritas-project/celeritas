@@ -32,23 +32,20 @@ struct StepDiagnosticData
 
     using size_type = celeritas::size_type;
     template<class T>
-    using StateItems = celeritas::StateCollection<T, W, M>;
-    template<class T>
     using Items = celeritas::Collection<T, W, M>;
 
     //// DATA ////
 
-    StateItems<size_type> steps;  //!< Current step count for each track
-    Items<size_type>      counts; //!< Bin tracks by particle and step count
-    size_type             num_bins;
-    size_type             num_particles;
+    Items<size_type> counts; //!< Bin tracks by particle and step count
+    size_type        num_bins;
+    size_type        num_particles;
 
     //// METHODS ////
 
     //! Whether the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return !steps.empty() && num_bins > 0 && num_particles > 0
+        return num_bins > 0 && num_particles > 0
                && counts.size() == num_bins * num_particles;
     }
 
@@ -57,7 +54,6 @@ struct StepDiagnosticData
     StepDiagnosticData& operator=(StepDiagnosticData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        steps         = other.steps;
         counts        = other.counts;
         num_bins      = other.num_bins;
         num_particles = other.num_particles;
@@ -185,14 +181,9 @@ StepDiagnostic<M>::StepDiagnostic(const ParamsDataRef& params,
     host_data.num_bins      = max_steps + 2;
     host_data.num_particles = particles_->size();
 
-    // Initialize current number of steps in active tracks to zero
-    std::vector<size_type> zeros(num_tracks);
-    celeritas::make_builder(&host_data.steps)
-        .insert_back(zeros.begin(), zeros.end());
-
     // Tracks binned by number of steps and particle type (indexed as
     // particle_id * num_bins + num_steps). The final bin is for overflow.
-    zeros.resize(host_data.num_bins * host_data.num_particles);
+    std::vector<size_type> zeros(host_data.num_bins * host_data.num_particles);
     celeritas::make_builder(&host_data.counts)
         .insert_back(zeros.begin(), zeros.end());
 
@@ -204,8 +195,10 @@ StepDiagnostic<M>::StepDiagnostic(const ParamsDataRef& params,
 /*!
  * Get the distribution of steps per track.
  *
- * This must be called after the interactors have been launched but before the
- * post-processing.
+ * This must be called after the interactions have been processed (when the
+ * step count is incremented) and before extend_from_secondaries, which can
+ * initialize new tracks immediately in the parent track's slot and overwrite
+ * the original track data.
  */
 template<MemSpace M>
 void StepDiagnostic<M>::mid_step(const StateDataRef& states)
@@ -282,11 +275,6 @@ CELER_FUNCTION StepLauncher<M>::StepLauncher(const ParamsDataRef&     params,
 //---------------------------------------------------------------------------//
 /*!
  * Increment step count and tally number of steps for tracks that were killed.
- *
- * At this point, active tracks will either be marked "alive" in the sim state
- * or will have a killing action in their interaction result. Tracks that were
- * killed in a discrete interaction will still be marked as alive (these are
- * killed in post-processing), but their action will be killing.
  */
 template<MemSpace M>
 CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
@@ -299,12 +287,6 @@ CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
 
     const auto& interaction = states_.interactions[tid];
 
-    // Increment the step count if this is an active track
-    if (sim.alive() || celeritas::action_killed(interaction.action))
-    {
-        ++data_.steps[tid];
-    }
-
     // Tally the number of steps if the track was killed
     if (celeritas::action_killed(interaction.action))
     {
@@ -315,16 +297,13 @@ CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
             return data_.counts[BinId(index)];
         };
 
-        size_type num_steps = data_.steps[tid] < data_.num_bins
-                                  ? data_.steps[tid]
+        size_type num_steps = sim.num_steps() < data_.num_bins
+                                  ? sim.num_steps()
                                   : data_.num_bins;
 
         // Increment the bin corresponding to the given particle and step count
         auto& bin = get(particle.particle_id().get(), num_steps);
         celeritas::atomic_add(&bin, size_type{1});
-
-        // Reset the track's step counter
-        data_.steps[tid] = 0;
     }
 }
 
