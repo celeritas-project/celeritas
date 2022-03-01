@@ -36,7 +36,7 @@ class SimTrackView
     inline CELER_FUNCTION SimTrackView& operator=(const Initializer_t& other);
 
     // Increment the total number of steps
-    CELER_FORCEINLINE_FUNCTION void increment_steps();
+    CELER_FORCEINLINE_FUNCTION void increment_num_steps();
 
     // Set whether the track is alive
     CELER_FORCEINLINE_FUNCTION void alive(bool);
@@ -53,7 +53,7 @@ class SimTrackView
     CELER_FORCEINLINE_FUNCTION EventId event_id() const;
 
     // Total number of steps taken by the track
-    CELER_FORCEINLINE_FUNCTION size_type steps() const;
+    CELER_FORCEINLINE_FUNCTION size_type num_steps() const;
 
     // Whether the track is alive
     CELER_FORCEINLINE_FUNCTION bool alive() const;
@@ -90,9 +90,9 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(const Initializer_t& other)
 /*!
  * Increment the total number of steps.
  */
-CELER_FUNCTION void SimTrackView::increment_steps()
+CELER_FUNCTION void SimTrackView::increment_num_steps()
 {
-    ++states_.state[thread_].steps;
+    ++states_.state[thread_].num_steps;
 }
 
 //---------------------------------------------------------------------------//
@@ -137,9 +137,9 @@ CELER_FUNCTION EventId SimTrackView::event_id() const
 /*!
  * Total number of steps taken by the track.
  */
-CELER_FUNCTION size_type SimTrackView::steps() const
+CELER_FUNCTION size_type SimTrackView::num_steps() const
 {
-    return states_.state[thread_].steps;
+    return states_.state[thread_].num_steps;
 }
 
 //---------------------------------------------------------------------------//

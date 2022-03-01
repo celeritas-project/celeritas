@@ -297,8 +297,9 @@ CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
             return data_.counts[BinId(index)];
         };
 
-        size_type num_steps = sim.steps() < data_.num_bins ? sim.steps()
-                                                           : data_.num_bins;
+        size_type num_steps = sim.num_steps() < data_.num_bins
+                                  ? sim.num_steps()
+                                  : data_.num_bins;
 
         // Increment the bin corresponding to the given particle and step count
         auto& bin = get(particle.particle_id().get(), num_steps);

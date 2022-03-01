@@ -300,7 +300,7 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
 
     // Increment the step count before checking if the track is alive as some
     // active tracks might have been killed earlier in the step.
-    sim.increment_steps();
+    sim.increment_num_steps();
 
     if (!sim.alive())
     {
