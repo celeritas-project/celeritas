@@ -294,6 +294,8 @@ template<MemSpace M>
 CELER_FUNCTION void
 ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
 {
+    using Energy = celeritas::ParticleTrackView::Energy;
+
     celeritas::SimTrackView sim(states_.sim, tid);
     if (!sim.alive())
         return;
@@ -301,15 +303,7 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
 
     celeritas::ParticleTrackView particle(
         params_.particles, states_.particles, tid);
-    celeritas::GeoTrackView     geo(params_.geometry, states_.geometry, tid);
-    celeritas::GeoMaterialView  geo_mat(params_.geo_mats);
-    celeritas::PhysicsTrackView phys(params_.physics,
-                                     states_.physics,
-                                     particle.particle_id(),
-                                     geo_mat.material_id(geo.volume_id()),
-                                     tid);
-
-    using Energy = celeritas::ParticleTrackView::Energy;
+    celeritas::GeoTrackView geo(params_.geometry, states_.geometry, tid);
 
     // Update the track state from the interaction
     // TODO: handle recoverable errors
@@ -331,12 +325,6 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
     // Increment the step count
     auto num_steps = sim.steps() + 1;
     sim.steps(num_steps);
-
-    // Reset the physics state if a discrete interaction occured
-    if (phys.model_id())
-    {
-        phys = {};
-    }
 }
 
 //---------------------------------------------------------------------------//

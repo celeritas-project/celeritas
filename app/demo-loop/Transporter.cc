@@ -270,16 +270,16 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         launch_models(input_, params_, states_.ref());
         accum_time<M>(input_, get_time, &result.time.launch_models);
 
+        // Postprocess interaction results
+        get_time = {};
+        generated::process_interactions(params_, states_.ref());
+        accum_time<M>(input_, get_time, &result.time.process_interactions);
+
         // Mid-step diagnostics
         for (auto& diagnostic : diagnostics)
         {
             diagnostic->mid_step(states_.ref());
         }
-
-        // Postprocess interaction results
-        get_time = {};
-        generated::process_interactions(params_, states_.ref());
-        accum_time<M>(input_, get_time, &result.time.process_interactions);
 
         // Create track initializers from surviving secondaries
         get_time = {};

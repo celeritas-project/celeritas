@@ -62,8 +62,9 @@ CELER_FUNCTION void
 ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
 {
     // Construct the state accessors
-    GeoTrackView geo(params_.geometry, states_.geometry, tid);
-    SimTrackView sim(states_.sim, tid);
+    GeoTrackView     geo(params_.geometry, states_.geometry, tid);
+    SimTrackView     sim(states_.sim, tid);
+    PhysicsTrackView phys(params_.physics, states_.physics, {}, {}, tid);
 
     // Offset in the vector of track initializers
     CELER_ASSERT(data_.secondary_counts[tid] <= data_.num_secondaries);
@@ -108,8 +109,6 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
             {
                 ParticleTrackView particle(
                     params_.particles, states_.particles, tid);
-                PhysicsTrackView phys(
-                    params_.physics, states_.physics, {}, {}, tid);
 
                 // The parent was killed, so initialize the first secondary in
                 // the parent's track slot. Keep the parent's geometry state
@@ -139,6 +138,13 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
             }
         }
     }
+
+    // Reset the physics state if a discrete interaction occured
+    if (phys.model_id())
+    {
+        phys = {};
+    }
+
     // Clear the interaction
     result = initialized ? Interaction::from_spawned()
                          : Interaction::from_processed();
