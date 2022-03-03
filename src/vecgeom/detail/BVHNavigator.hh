@@ -15,7 +15,7 @@
 #include <VecGeom/base/Global.h>
 #include <VecGeom/base/Vector3D.h>
 #include <VecGeom/management/BVHManager.h>
-#include <VecGeom/navigation/NavStateIndex.h>
+#include <VecGeom/navigation/NavStateFwd.h>
 
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/backend/cuda/Interface.h>
@@ -35,7 +35,7 @@ class BVHNavigator
     CELER_FUNCTION static VPlacedVolumePtr_t
     LocatePointIn(vecgeom::VPlacedVolume const*                vol,
                   vecgeom::Vector3D<vecgeom::Precision> const& point,
-                  vecgeom::NavStateIndex&                      path,
+                  vecgeom::NavigationState&                    path,
                   bool                                         top,
                   vecgeom::VPlacedVolume const* exclude = nullptr)
     {
@@ -70,7 +70,7 @@ class BVHNavigator
 
     CELER_FUNCTION static VPlacedVolumePtr_t
     RelocatePoint(vecgeom::Vector3D<vecgeom::Precision> const& localpoint,
-                  vecgeom::NavStateIndex&                      path)
+                  vecgeom::NavigationState&                    path)
     {
         vecgeom::VPlacedVolume const*         currentmother = path.Top();
         vecgeom::Vector3D<vecgeom::Precision> transformed   = localpoint;
@@ -101,8 +101,8 @@ class BVHNavigator
     ComputeStepAndHit(vecgeom::Vector3D<vecgeom::Precision> const& localpoint,
                       vecgeom::Vector3D<vecgeom::Precision> const& localdir,
                       vecgeom::Precision                           step_limit,
-                      vecgeom::NavStateIndex const&                in_state,
-                      vecgeom::NavStateIndex&                      out_state,
+                      vecgeom::NavigationState const&              in_state,
+                      vecgeom::NavigationState&                    out_state,
                       VPlacedVolumePtr_t& hitcandidate)
     {
         vecgeom::Precision step = step_limit;
@@ -161,7 +161,7 @@ class BVHNavigator
     ApproachNextVolume(vecgeom::Vector3D<vecgeom::Precision> const& localpoint,
                        vecgeom::Vector3D<vecgeom::Precision> const& localdir,
                        vecgeom::Precision                           step_limit,
-                       vecgeom::NavStateIndex const&                in_state)
+                       vecgeom::NavigationState const&              in_state)
     {
         vecgeom::Precision step = step_limit;
         VPlacedVolumePtr_t pvol = in_state.Top();
@@ -199,7 +199,7 @@ class BVHNavigator
     // Computes the isotropic safety from the globalpoint.
     CELER_FUNCTION static double
     ComputeSafety(vecgeom::Vector3D<vecgeom::Precision> const& globalpoint,
-                  vecgeom::NavStateIndex const&                state)
+                  vecgeom::NavigationState const&              state)
     {
         VPlacedVolumePtr_t        pvol = state.Top();
         vecgeom::Transformation3D m;
@@ -228,8 +228,8 @@ class BVHNavigator
         vecgeom::Vector3D<vecgeom::Precision> const& globalpoint,
         vecgeom::Vector3D<vecgeom::Precision> const& globaldir,
         vecgeom::Precision                           step_limit,
-        vecgeom::NavStateIndex const&                in_state,
-        vecgeom::NavStateIndex&                      out_state,
+        vecgeom::NavigationState const&              in_state,
+        vecgeom::NavigationState&                    out_state,
         vecgeom::Precision                           push = 0.)
     {
         constexpr vecgeom::Precision kPush = 10. * vecgeom::kTolerance;
@@ -275,7 +275,7 @@ class BVHNavigator
             if (out_state.Top() != nullptr)
             {
                 while (out_state.Top()->IsAssembly()
-                       || out_state.GetNavIndex() == in_state.GetNavIndex())
+                       || out_state.HasSamePathAsOther(in_state))
                 {
                     out_state.Pop();
                 }
@@ -300,8 +300,8 @@ class BVHNavigator
         vecgeom::Vector3D<vecgeom::Precision> const& globalpoint,
         vecgeom::Vector3D<vecgeom::Precision> const& globaldir,
         vecgeom::Precision                           step_limit,
-        vecgeom::NavStateIndex const&                in_state,
-        vecgeom::NavStateIndex&                      out_state,
+        vecgeom::NavigationState const&              in_state,
+        vecgeom::NavigationState&                    out_state,
         vecgeom::Precision                           push = 0.)
     {
         // calculate local point/dir from global point/dir
@@ -360,7 +360,7 @@ class BVHNavigator
         vecgeom::Vector3D<vecgeom::Precision> const& globalpoint,
         vecgeom::Vector3D<vecgeom::Precision> const& globaldir,
         vecgeom::Precision                           step_limit,
-        vecgeom::NavStateIndex const&                in_state)
+        vecgeom::NavigationState const&              in_state)
     {
         // calculate local point/dir from global point/dir
         vecgeom::Vector3D<vecgeom::Precision> localpoint;
@@ -383,7 +383,7 @@ class BVHNavigator
     CELER_FUNCTION static void
     RelocateToNextVolume(vecgeom::Vector3D<vecgeom::Precision>& globalpoint,
                          vecgeom::Vector3D<vecgeom::Precision> const& globaldir,
-                         vecgeom::NavStateIndex&                      state)
+                         vecgeom::NavigationState&                    state)
     {
         // Push the point inside the next volume.
         static constexpr double kPush = 10. * vecgeom::kTolerance;

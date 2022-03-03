@@ -284,9 +284,6 @@ TEST_F(FourLevelsTest, tracking)
 
 TEST_F(FourLevelsTest, safety)
 {
-#ifndef VECGEOM_USE_NAVINDEX
-    GTEST_SKIP() << "Safety distances don't work";
-#endif
     VecgeomTrackView       geo = this->make_geo_track_view();
     std::vector<real_type> safeties;
 

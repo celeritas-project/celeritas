@@ -9,8 +9,7 @@
 
 #include <VecGeom/base/Config.h>
 #include <VecGeom/navigation/GlobalLocator.h>
-#include <VecGeom/navigation/NavigationState.h>
-#include <VecGeom/navigation/VNavigator.h>
+#include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
@@ -23,10 +22,7 @@
 
 #include "VecgeomData.hh"
 #include "detail/VecgeomCompatibility.hh"
-
-#ifdef VECGEOM_USE_NAVINDEX
-#    include "detail/BVHNavigator.hh"
-#endif
+#include "detail/BVHNavigator.hh"
 
 namespace celeritas
 {
@@ -183,11 +179,7 @@ VecgeomTrackView::operator=(const Initializer_t& init)
     // Note that LocateGlobalPoint sets `vgstate_`. If `vgstate_` is outside
     // (including possibly on the outside volume edge), the volume pointer it
     // returns would be null at this point.
-#ifdef VECGEOM_USE_NAVINDEX
     detail::BVHNavigator::LocatePointIn(
-#else
-    vecgeom::GlobalLocator::LocateGlobalPoint(
-#endif
         worldvol, detail::to_vector(pos_), vgstate_, contains_point);
 
     CELER_ENSURE(!this->has_next_step());
@@ -257,13 +249,8 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     }
     else if (!this->is_outside())
     {
-#ifdef VECGEOM_USE_NAVINDEX
         // Use BVH navigator to find internal distance
         next_step_ = detail::BVHNavigator::ComputeStepAndNextVolume(
-#else
-        const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
-        next_step_ = navigator->ComputeStepAndPropagatedState(
-#endif
             detail::to_vector(pos_),
             detail::to_vector(dir_),
             max_step,
@@ -303,15 +290,8 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
  */
 CELER_FUNCTION real_type VecgeomTrackView::find_safety(const Real3& pos)
 {
-#ifdef VECGEOM_USE_NAVINDEX
     real_type safety = detail::BVHNavigator::ComputeSafety(
         detail::to_vector(pos), vgstate_);
-#else
-    const vecgeom::VNavigator* navigator = this->volume().GetNavigator();
-    real_type                  safety
-        = navigator->GetSafetyEstimator()->ComputeSafetyForLocalPoint(
-            detail::to_vector(pos), vgstate_.Top());
-#endif
     return safety;
 }
 
@@ -340,7 +320,6 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     CELER_EXPECT(vgnext_.IsOnBoundary());
 
     // Relocate to next tracking volume (maybe across multiple boundaries)
-#ifdef VECGEOM_USE_NAVINDEX
     if (vgnext_.Top() != nullptr)
     {
         // BVH requires an lvalue temp_pos
@@ -348,7 +327,6 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
         detail::BVHNavigator::RelocateToNextVolume(
             temp_pos, detail::to_vector(this->dir_), vgnext_);
     }
-#endif
 
     vgstate_ = vgnext_;
 }
