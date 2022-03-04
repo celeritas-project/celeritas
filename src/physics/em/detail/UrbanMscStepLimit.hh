@@ -16,6 +16,7 @@
 #include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
 #include "random/Selector.hh"
+#include "sim/SimTrackView.hh"
 
 #include "UrbanMscData.hh"
 #include "UrbanMscHelper.hh"
@@ -64,7 +65,8 @@ class UrbanMscStepLimit
                                             const ParticleTrackView& particle,
                                             GeoTrackView*            geometry,
                                             const PhysicsTrackView&  physics,
-                                            const MaterialView&      material);
+                                            const MaterialView&      material,
+                                            const SimTrackView&      sim);
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
     template<class Engine>
@@ -86,7 +88,7 @@ class UrbanMscStepLimit
     // Urban MSC helper class
     UrbanMscHelper helper_;
 
-    bool      first_{true};
+    size_type num_steps_{};
     real_type range_{};
     real_type lambda_{};
     real_type limit_{};
@@ -109,13 +111,15 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscNativeRef& shared,
                                      const ParticleTrackView& particle,
                                      GeoTrackView*            geometry,
                                      const PhysicsTrackView&  physics,
-                                     const MaterialView&      material)
+                                     const MaterialView&      material,
+                                     const SimTrackView&      sim)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , safety_(geometry->find_safety(geometry->pos()))
     , params_(shared.params)
     , msc_(shared_.msc_data[material.material_id()])
     , helper_(shared, particle, physics, material)
+    , num_steps_(sim.num_steps())
 {
     CELER_EXPECT(particle.particle_id() == shared.electron_id
                  || particle.particle_id() == shared.positron_id);
@@ -165,8 +169,9 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
     // G4StepStatus = fGeomBoundary: step defined by a geometry boundary
     bool on_boundary = (safety_ == 0);
 
-    if (first_ || on_boundary)
+    if (num_steps_ == 0 || on_boundary)
     {
+        // For the first step of a track or after entering in a new volume
         if (lambda_ > params_.lambda_limit)
         {
             range_fact *= (real_type(0.75)
@@ -174,7 +179,6 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
         }
         real_type step_min = helper_.calc_step_min(inc_energy_, lambda_);
         result.limit_min   = helper_.calc_limit_min(inc_energy_, step_min);
-        first_             = false;
     }
 
     // The step limit

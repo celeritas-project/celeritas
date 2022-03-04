@@ -27,6 +27,8 @@
 #include "physics/em/detail/UrbanMscStepLimit.hh"
 #include "physics/grid/RangeCalculator.hh"
 #include "random/DiagnosticRngEngine.hh"
+#include "sim/SimData.hh"
+#include "sim/SimTrackView.hh"
 
 #include "celeritas_test.hh"
 #include "gtest/Test.hh"
@@ -45,6 +47,10 @@ using GeoParamsCRefDevice
     = celeritas::GeoParamsData<Ownership::const_reference, MemSpace::device>;
 using GeoStateRefDevice
     = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
+
+using SimStateValue = SimStateData<Ownership::value, MemSpace::host>;
+using SimStateRef   = SimStateData<Ownership::reference, MemSpace::native>;
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -208,7 +214,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     detail::MscScatterResult   sample_result;
 
     // Input
-    const int nsamples = 8;
+    const unsigned int nsamples = 8;
 
     real_type energy[nsamples] = {51.0231,
                                   10.0564,
@@ -228,6 +234,22 @@ TEST_F(UrbanMscTest, msc_scattering)
                                 0.00143809,
                                 0.105187};
 
+    // Mock SimStateData
+    SimStateValue states_ref;
+    auto          sim_state_data = make_builder(&states_ref.state);
+    sim_state_data.reserve(nsamples);
+
+    for (unsigned int i : celeritas::range(nsamples))
+    {
+        SimTrackState state = {TrackId{i}, TrackId{i}, EventId{1}, i % 2, true};
+        sim_state_data.push_back(state);
+    }
+    const SimStateRef& states = make_ref(states_ref);
+    SimTrackView       sim_track_view(states, ThreadId{0});
+
+    EXPECT_EQ(nsamples, sim_state_data.size());
+    EXPECT_EQ(0, sim_track_view.num_steps());
+
     RandomEngine&       rng_engine = this->rng();
     std::vector<double> fstep;
     std::vector<double> angle;
@@ -241,8 +263,12 @@ TEST_F(UrbanMscTest, msc_scattering)
         this->set_inc_particle(pdg::electron(), MevEnergy{energy[i]});
         phys.step_length(step[i]);
 
-        UrbanMscStepLimit step_limiter(
-            model->host_ref(), *part_view_, &geo_view, phys, material_view);
+        UrbanMscStepLimit step_limiter(model->host_ref(),
+                                       *part_view_,
+                                       &geo_view,
+                                       phys,
+                                       material_view,
+                                       sim_track_view);
 
         step_result = step_limiter(rng_engine);
 
