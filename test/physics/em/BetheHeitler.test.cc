@@ -163,10 +163,10 @@ TEST_F(BetheHeitlerInteractorTest, basic)
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy1[] = {
-        16.0614863783763, 98.7412722423312, 23.4953328454145, 94.7258588843146};
+        15.2508794873183, 98.7412722423312, 23.4953328454145, 94.7258588843146};
     const double expected_energy2[] = {
-        82.9165157294237, 0.236729865468827, 75.4826692623855, 4.25214322348543};
-    const double expected_angle[] = {0.999968990366521,
+        83.7271226204817, 0.236729865468827, 75.4826692623855, 4.25214322348543};
+    const double expected_angle[] = {0.999969298729478,
                                      0.749593336413488,
                                      0.999747408792083,
                                      0.99092640152178};
@@ -233,7 +233,7 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
     }
 
     // Gold values for average number of calls to RNG
-    const double expected_avg_engine_samples[]
-        = {19.5, 23.5, 23.3125, 23.3125, 22.5625};
+    static const double expected_avg_engine_samples[]
+        = {19.5, 25.1875, 24.0625, 23.3125, 22.75};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
