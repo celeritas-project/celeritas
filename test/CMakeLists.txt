@@ -299,6 +299,12 @@ celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
   ${_optional_geant4}
   LINK_LIBRARIES Celeritas::ROOT)
 
+if(CELERITAS_USE_VecGeom)
+  celeritas_add_test(physics/em/UrbanMsc.test.cc ${_needs_root}
+    ${_optional_geant4}
+    LINK_LIBRARIES Celeritas::ROOT)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Random
 

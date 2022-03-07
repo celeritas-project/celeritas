@@ -14,6 +14,7 @@
 #include "physics/em/EIonizationProcess.hh"
 #include "physics/em/EPlusAnnihilationProcess.hh"
 #include "physics/em/GammaConversionProcess.hh"
+#include "physics/em/MultipleScatteringProcess.hh"
 #include "physics/em/PhotoelectricProcess.hh"
 #include "physics/em/RayleighProcess.hh"
 
@@ -160,6 +161,30 @@ TEST_F(ImportedProcessesTest, gamma_conversion)
         EXPECT_TRUE(builders[VGT::macro_xs]);
         EXPECT_FALSE(builders[VGT::energy_loss]);
         EXPECT_FALSE(builders[VGT::range]);
+    }
+}
+
+TEST_F(ImportedProcessesTest, msc)
+{
+    // Create Multiple scattering process
+    auto process = std::make_shared<MultipleScatteringProcess>(
+        particles_, materials_, processes_);
+
+    // Test model
+    auto models = process->build_models(ModelIdGenerator{});
+    ASSERT_EQ(1, models.size());
+    ASSERT_TRUE(models.front());
+    EXPECT_EQ("UrbanMsc", models.front()->label());
+    auto all_applic = models.front()->applicability();
+    ASSERT_EQ(2, all_applic.size());
+    Applicability applic = *all_applic.begin();
+
+    // Test step limits
+    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    {
+        applic.material = mat_id;
+        auto builders   = process->step_limits(applic);
+        EXPECT_TRUE(builders[VGT::macro_xs]);
     }
 }
 

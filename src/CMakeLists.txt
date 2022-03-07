@@ -98,10 +98,12 @@ list(APPEND SOURCES
   physics/em/KleinNishinaModel.cc
   physics/em/MollerBhabhaModel.cc
   physics/em/MuBremsstrahlungModel.cc
+  physics/em/MultipleScatteringProcess.cc
   physics/em/RayleighModel.cc
   physics/em/RayleighProcess.cc
   physics/em/RelativisticBremModel.cc
   physics/em/SeltzerBergerModel.cc
+  physics/em/UrbanMscModel.cc
   physics/em/detail/Utils.cc
   physics/grid/ValueGridBuilder.cc
   physics/grid/ValueGridInserter.cc
