@@ -10,9 +10,14 @@
 #include "base/Algorithms.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Copier.hh"
-#include "sim/TrackData.hh"
-#include "sim/TrackInitData.hh"
-#include "sim/detail/InitializeTracks.hh"
+
+#include "TrackData.hh"
+#include "TrackInitData.hh"
+#include "detail/TrackInitAlgorithms.hh"
+#include "generated/InitTracks.hh"
+#include "generated/LocateAlive.hh"
+#include "generated/ProcessPrimaries.hh"
+#include "generated/ProcessSecondaries.hh"
 
 namespace celeritas
 {
@@ -52,8 +57,8 @@ inline void extend_from_primaries(const TrackInitParamsHostRef& params,
         data->num_primaries -= count;
 
         // Create track initializers from primaries
-        detail::process_primaries(primaries[AllItems<Primary, M>{}],
-                                  make_ref(*data));
+        generated::process_primaries(primaries[AllItems<Primary, M>{}],
+                                     make_ref(*data));
     }
 }
 
@@ -83,7 +88,9 @@ initialize_tracks(const ParamsData<Ownership::const_reference, M>& params,
     if (num_tracks > 0)
     {
         // Launch a kernel to initialize tracks on device
-        detail::init_tracks(params, states, make_ref(*data));
+        auto num_vacancies
+            = min(data->vacancies.size(), data->initializers.size());
+        generated::init_tracks(params, states, make_ref(*data), num_vacancies);
         data->initializers.resize(data->initializers.size() - num_tracks);
         data->vacancies.resize(data->vacancies.size() - num_tracks);
     }
@@ -161,7 +168,7 @@ extend_from_secondaries(const ParamsData<Ownership::const_reference, M>& params,
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
-    detail::locate_alive(params, states, make_ref(*data));
+    generated::locate_alive(params, states, make_ref(*data));
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
@@ -189,7 +196,7 @@ extend_from_secondaries(const ParamsData<Ownership::const_reference, M>& params,
     // Launch a kernel to create track initializers from secondaries
     data->initializers.resize(data->initializers.size()
                               + data->num_secondaries);
-    detail::process_secondaries(params, states, make_ref(*data));
+    generated::process_secondaries(params, states, make_ref(*data));
 }
 
 //---------------------------------------------------------------------------//

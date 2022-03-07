@@ -9,6 +9,7 @@
 
 #include "base/Assert.hh"
 #include "base/NumericLimits.hh"
+#include "base/OpaqueId.hh"
 #include "base/Types.hh"
 
 namespace celeritas

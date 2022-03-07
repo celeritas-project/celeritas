@@ -9,6 +9,7 @@
 
 #include "base/Atomics.hh"
 #include "geometry/GeoTrackView.hh"
+#include "physics/base/PhysicsTrackView.hh"
 #include "sim/SimTrackView.hh"
 #include "sim/TrackData.hh"
 #include "sim/TrackInitData.hh"

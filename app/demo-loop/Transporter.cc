@@ -22,7 +22,6 @@
 #include "sim/TrackInitParams.hh"
 #include "sim/TrackInitUtils.hh"
 
-// Local includes for now
 #include "LDemoLauncher.hh"
 #include "diagnostic/EnergyDiagnostic.hh"
 #include "diagnostic/ParticleProcessDiagnostic.hh"
@@ -257,12 +256,12 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
         // Sample mean free path and calculate step limits
         get_time = {};
-        generated::pre_step(params_, states_.ref());
+        demo_loop::generated::pre_step(params_, states_.ref());
         accum_time<M>(input_, get_time, &result.time.pre_step);
 
         // Move, calculate dE/dx, and select model for discrete interaction
         get_time = {};
-        generated::along_and_post_step(params_, states_.ref());
+        demo_loop::generated::along_and_post_step(params_, states_.ref());
         accum_time<M>(input_, get_time, &result.time.along_and_post_step);
 
         // Launch the interaction kernels for all applicable models
@@ -272,7 +271,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
         // Postprocess interaction results
         get_time = {};
-        generated::process_interactions(params_, states_.ref());
+        demo_loop::generated::process_interactions(params_, states_.ref());
         accum_time<M>(input_, get_time, &result.time.process_interactions);
 
         // Mid-step diagnostics
@@ -287,7 +286,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         accum_time<M>(input_, get_time, &result.time.extend_from_secondaries);
 
         // Clear secondaries
-        generated::cleanup(params_, states_.ref());
+        demo_loop::generated::cleanup(params_, states_.ref());
 
         // Get the number of track initializers and active tracks
         num_alive = input_.max_num_tracks - track_init_states.vacancies.size();
