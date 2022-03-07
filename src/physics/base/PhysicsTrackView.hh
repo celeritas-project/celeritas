@@ -160,7 +160,7 @@ class PhysicsTrackView
 
     // Access scratch space for particle-process cross section calculations
     inline CELER_FUNCTION real_type& per_process_xs(ParticleProcessId);
-    inline CELER_FUNCTION real_type per_process_xs(ParticleProcessId) const;
+    inline CELER_FUNCTION real_type  per_process_xs(ParticleProcessId) const;
 
     //// HACKS ////
 
@@ -211,8 +211,8 @@ PhysicsTrackView::PhysicsTrackView(const PhysicsParamsRef& params,
  *
  * \todo Add total interaction cross section to state.
  */
-CELER_FUNCTION PhysicsTrackView& PhysicsTrackView::
-                                 operator=(const Initializer_t&)
+CELER_FUNCTION PhysicsTrackView&
+PhysicsTrackView::operator=(const Initializer_t&)
 {
     this->state().interaction_mfp = -1;
     this->state().step_length     = -1;
@@ -418,7 +418,7 @@ PhysicsTrackView::use_integral_xs(ParticleProcessId ppid) const
  * this material.
  */
 CELER_FUNCTION real_type
-               PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
+PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
 
