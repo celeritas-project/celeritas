@@ -143,10 +143,10 @@ LANG = {
 
 def generate(**subs):
     ext = subs['ext']
-    subs['modeline'] = "-*-{}-*-".format(ext)
+    subs['modeline'] = "-*-{}-*-".format(LANG[ext])
     template = TEMPLATES[ext]
     filename = "{basename}.{ext}".format(**subs)
-    subs['filename'] = os.path.basename(filename)
+    subs['filename'] = filename
     subs['script'] = os.path.basename(sys.argv[0])
     subs['launch_bounds'] = make_launch_bounds(subs['func'] + '_interact')
     with open(filename, 'w') as f:
