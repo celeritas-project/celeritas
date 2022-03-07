@@ -39,7 +39,7 @@ struct KernelProperties
     unsigned int max_blocks_per_mp     = 0; //!< Occupancy
 
     // Derivative but useful occupancy information
-    unsigned int max_warps_per_mp = 0;
+    unsigned int max_warps_per_eu = 0;
     double       occupancy        = 0;
 };
 
@@ -177,9 +177,9 @@ KernelDiagnostics::insert(F* func, const char* name, unsigned int block_size)
         diag.max_blocks_per_mp = num_blocks;
 
         // Calculate occupancy statistics used for launch bounds
-        // (threads / block) * (blocks / mp) * (warp / thread)
-        diag.max_warps_per_mp = (diag.max_threads_per_block * num_blocks)
-                                / device.warp_size();
+        // (threads / block) * (blocks / mp) * (mp / eu) * (warp / thread)
+        diag.max_warps_per_eu = (diag.max_threads_per_block * num_blocks)
+                                / (device.eu_per_mp() * device.warp_size());
         diag.occupancy = static_cast<double>(num_blocks * diag.block_size)
                          / device.max_threads();
 

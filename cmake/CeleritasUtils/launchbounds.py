@@ -27,7 +27,7 @@ __launch_bounds__({opt['max_threads_per_block']}, {opt['max_blocks_per_mp']})
 def build_hip_opts(device, opt):
     return f"""\
 #if CELERITAS_USE_HIP && defined(__{device['name']}__)
-__launch_bounds__({opt['max_threads_per_block']}, {opt['max_warps_per_mp']})
+__launch_bounds__({opt['max_threads_per_block']}, {opt['max_warps_per_eu']})
 #endif"""
 
 
