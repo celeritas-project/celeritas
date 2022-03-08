@@ -23,6 +23,21 @@ class Communicator;
 /*!
  * Manage attributes of the GPU.
  *
+ * CUDA/HIP translation table:
+ *
+ * CUDA/NVIDIA    | HIP/AMD        | Description
+ * -------------- | -------------- | -----------------
+ * thread         | work item      | individual local work element
+ * warp           | wavefront      | "vectorized thread" operating in lockstep
+ * block          | workgroup      | group of threads able to sync
+ * multiprocessor | compute unit   | hardware executing one or more blocks
+ * multiprocessor | execution unit | hardware executing one or more warps
+ *
+ * Each block/workgroup operates on the same hardware (compute unit) until
+ * completion. Similarly, a warp/wavefront is tied to a single execution
+ * unit. Each compute unit can execute one or more blocks: the higher the
+ * number of blocks resident, the more latency can be hidden.
+ *
  * \todo The active CUDA device is a global property -- so this should probably
  * be a singleton, or we could use lower-level API calls.
  */
@@ -63,14 +78,14 @@ class Device
     //! Total memory capacity (bytes)
     std::size_t total_global_mem() const { return total_global_mem_; }
 
-    //! Maximum number of threads per multiprocessor (for occupancy)
+    //! Maximum number of concurrent threads per compute unit (for occupancy)
     int max_threads() const { return max_threads_; }
 
     //! Number of threads per warp
     unsigned int warp_size() const { return warp_size_; }
 
-    //! Number of execution units per multiprocessor (1 for NVIDIA, 4 for AMD)
-    unsigned int eu_per_mp() const { return eu_per_mp_; }
+    //! Number of execution units per compute unit (1 for NVIDIA, 4 for AMD)
+    unsigned int eu_per_cu() const { return eu_per_cu_; }
 
     //! Default number of threads per block
     unsigned int default_block_size() const { return default_block_size_; }
@@ -84,7 +99,7 @@ class Device
     std::size_t  total_global_mem_   = 0;
     int          max_threads_        = 0;
     unsigned int warp_size_          = 0;
-    unsigned int eu_per_mp_          = 0;
+    unsigned int eu_per_cu_          = 0;
     unsigned int default_block_size_ = 256u;
     MapStrInt    extra_;
 };

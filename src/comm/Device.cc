@@ -187,7 +187,7 @@ Device::Device(int id) : id_(id)
 #endif
 
     // See device_runtime_api.h
-    eu_per_mp_ = CELER_EU_PER_MP;
+    eu_per_cu_ = CELER_EU_PER_CU;
 
     // Set default block size from environment
     const std::string& bsize_str = celeritas::getenv("CELER_BLOCK_SIZE");

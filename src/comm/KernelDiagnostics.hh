@@ -36,11 +36,11 @@ struct KernelProperties
     unsigned int max_num_threads = 0; //!< Highest number of threads used
 
     unsigned int max_threads_per_block = 0; //!< Max allowed threads per lbock
-    unsigned int max_blocks_per_mp     = 0; //!< Occupancy
+    unsigned int max_blocks_per_cu     = 0; //!< Occupancy (compute unit)
 
     // Derivative but useful occupancy information
-    unsigned int max_warps_per_eu = 0;
-    double       occupancy        = 0;
+    unsigned int max_warps_per_eu = 0; //!< Occupancy (execution unit)
+    double       occupancy        = 0; //!< Fractional occupancy (CU)
 };
 
 //---------------------------------------------------------------------------//
@@ -49,6 +49,11 @@ struct KernelProperties
  *
  * There should generally be only a single instance of this, accessible through
  * the \c kernel_diagnostics helper function.
+ *
+ * One of the most important performance characteristics of each kernel is \em
+ * occupancy, which (as defined by CUDA) is the number of resident blocks per
+ * compute unit or (at the lower level for AMD) the number of resident warps
+ * per execution unit. Higher occupancy better hides latency.
  */
 class KernelDiagnostics
 {
@@ -174,12 +179,12 @@ KernelDiagnostics::insert(F* func, const char* name, unsigned int block_size)
         int         num_blocks        = 0;
         CELER_DEVICE_CALL_PREFIX(OccupancyMaxActiveBlocksPerMultiprocessor(
             &num_blocks, func, diag.block_size, dynamic_smem_size));
-        diag.max_blocks_per_mp = num_blocks;
+        diag.max_blocks_per_cu = num_blocks;
 
         // Calculate occupancy statistics used for launch bounds
-        // (threads / block) * (blocks / mp) * (mp / eu) * (warp / thread)
+        // (threads / block) * (blocks / cu) * (cu / eu) * (warp / thread)
         diag.max_warps_per_eu = (diag.max_threads_per_block * num_blocks)
-                                / (device.eu_per_mp() * device.warp_size());
+                                / (device.eu_per_cu() * device.warp_size());
         diag.occupancy = static_cast<double>(num_blocks * diag.block_size)
                          / device.max_threads();
 

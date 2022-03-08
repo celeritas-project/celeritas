@@ -10,9 +10,9 @@ Write kernel launch bound information to be used by the gen-kernel.py scripts.
 from collections import defaultdict
 import json
 
-DEVICE_KEYS = ['capability_major', 'capability_minor', 'eu_per_mp', 'name',
+DEVICE_KEYS = ['capability_major', 'capability_minor', 'eu_per_cu', 'name',
                'platform', 'warp_size']
-KERNEL_KEYS = ['max_threads_per_block', 'max_blocks_per_mp', 'max_warps_per_eu']
+KERNEL_KEYS = ['max_threads_per_block', 'max_blocks_per_cu', 'max_warps_per_eu']
 
 def run(input, output, key):
     # Convert

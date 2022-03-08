@@ -25,27 +25,28 @@
 #endif
 
 /*!
- * \def CELER_EU_PER_MP
+ * \def CELER_EU_PER_CU
  *
- * Execution units per multiprocessor.  AMD multiprocessors each have 4 SIMD
- * execution units per multiprocessor, but  there is no device attribute or
+ * Execution units per compute unit.  AMD multiprocessors each have 4 SIMD
+ * units per compute unit, but there is no device attribute or
  * compiler definition that provides this information.
- * For CUDA, each streaming multiprocessor (MP) is a single "execution unit".
+ * For CUDA, each streaming multiprocessor (MP) is a single "execution unit"
+ * and a "compute unit".
  */
 #if CELERITAS_USE_CUDA
-#    define CELER_EU_PER_MP 1
+#    define CELER_EU_PER_CU 1
 #elif CELERITAS_USE_HIP
 #    if defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_HCC__)
-#        define CELER_EU_PER_MP 4
+#        define CELER_EU_PER_CU 4
 #    elif defined(__HIP_PLATFORM_NVIDIA__) || defined(__HIP_PLATFORM_NVCC__)
-#        define CELER_EU_PER_MP 1
+#        define CELER_EU_PER_CU 1
 #    else
 #        warning "Unknown HIP device configuration"
-#        define CELER_EU_PER_MP 0
+#        define CELER_EU_PER_CU 0
 #    endif
 #else
 /* HIP and CUDA are disabled */
-#    define CELER_EU_PER_MP 0
+#    define CELER_EU_PER_CU 0
 #endif
 
 #endif /* CELERITAS_DEVICE_RUNTIME_API_H */
