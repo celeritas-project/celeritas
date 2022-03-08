@@ -25,7 +25,7 @@ void to_json(nlohmann::json& j, const KernelDiagnostics& kd)
         const auto& diag = kd.at(KernelDiagnostics::key_type{kernel_idx});
         j.emplace_back(nlohmann::json::object({
             {"name", diag.name},
-            {"block_size", diag.block_size},
+            {"threads_per_block", diag.threads_per_block},
             {"num_regs", diag.num_regs},
             {"const_mem", diag.const_mem},
             {"local_mem", diag.local_mem},

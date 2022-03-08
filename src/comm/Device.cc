@@ -148,8 +148,8 @@ Device::Device(int id) : id_(id)
     CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
     name_             = props.name;
     total_global_mem_ = props.totalGlobalMem;
-    max_threads_      = props.maxThreadsPerMultiProcessor;
-    warp_size_        = props.warpSize;
+    max_threads_per_cu_ = props.maxThreadsPerMultiProcessor;
+    threads_per_warp_   = props.warpSize;
 #    if CELERITAS_USE_HIP
     if (name_.empty())
     {
@@ -194,14 +194,15 @@ Device::Device(int id) : id_(id)
     if (!bsize_str.empty())
     {
         default_block_size_ = std::stoi(bsize_str);
-        CELER_VALIDATE(default_block_size_ >= warp_size_
+        CELER_VALIDATE(default_block_size_ >= threads_per_warp_
                            && default_block_size_ <= max_threads_per_block,
                        << "Invalid block size: number of threads must be in ["
-                       << warp_size_ << ", " << max_threads_per_block << "]");
-        CELER_VALIDATE(default_block_size_ % warp_size_ == 0,
+                       << threads_per_warp_ << ", " << max_threads_per_block
+                       << "]");
+        CELER_VALIDATE(default_block_size_ % threads_per_warp_ == 0,
                        << "Invalid block size: number of threads must be "
                           "evenly divisible by "
-                       << warp_size_);
+                       << threads_per_warp_);
     }
 
     CELER_ENSURE(*this);

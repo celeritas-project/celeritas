@@ -95,7 +95,7 @@ RK4TestOutput rk4_test(FieldTestParams test_param)
                                                         "rk4_test");
     auto params = calc_launch_params(test_param.nstates);
 
-    rk4_test_kernel<<<params.grid_size, params.block_size>>>(
+    rk4_test_kernel<<<params.blocks_per_grid, params.threads_per_block>>>(
         test_param,
         raw_pointer_cast(pos_x.data()),
         raw_pointer_cast(pos_z.data()),

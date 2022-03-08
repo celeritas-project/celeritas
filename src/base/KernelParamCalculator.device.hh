@@ -33,8 +33,8 @@
         auto grid_ = calc_launch_params_(THREADS);                           \
                                                                              \
         CELER_LAUNCH_KERNEL_IMPL(NAME##_kernel,                              \
-                                 grid_.grid_size,                            \
-                                 grid_.block_size,                           \
+                                 grid_.blocks_per_grid,                      \
+                                 grid_.threads_per_block,                    \
                                  0,                                          \
                                  0,                                          \
                                  __VA_ARGS__);                               \
@@ -70,8 +70,8 @@ namespace celeritas
  * \code
     static KernelParamCalculator calc_params(my_kernel, "my");
     auto params = calc_params(states.size());
-    my_kernel<<<params.grid_size, params.block_size>>>(kernel_args...);
-   \endcode
+    my_kernel<<<params.blocks_per_grid,
+ params.threads_per_block>>>(kernel_args...); \endcode
  */
 class KernelParamCalculator
 {
@@ -85,8 +85,8 @@ class KernelParamCalculator
     //! Parameters needed for a CUDA lauch call
     struct LaunchParams
     {
-        dim3 grid_size;  //!< Number of blocks for kernel grid
-        dim3 block_size; //!< Number of threads per block
+        dim3 blocks_per_grid;   //!< Number of blocks for kernel grid
+        dim3 threads_per_block; //!< Number of threads per block
     };
 
   public:
@@ -103,7 +103,7 @@ class KernelParamCalculator
     template<class F>
     inline KernelParamCalculator(F*          kernel_func_ptr,
                                  const char* name,
-                                 dim_type    block_size);
+                                 dim_type    threads_per_block);
 
     // Get launch parameters
     LaunchParams operator()(size_type min_num_threads) const;
@@ -150,12 +150,13 @@ KernelParamCalculator::KernelParamCalculator(F*          kernel_func_ptr,
 template<class F>
 KernelParamCalculator::KernelParamCalculator(F*          kernel_func_ptr,
                                              const char* name,
-                                             dim_type    block_size)
-    : block_size_(block_size)
+                                             dim_type    threads_per_block)
+    : block_size_(threads_per_block)
 {
-    CELER_EXPECT(block_size % celeritas::device().warp_size() == 0);
+    CELER_EXPECT(threads_per_block % celeritas::device().threads_per_warp()
+                 == 0);
     id_ = celeritas::kernel_diagnostics().insert<F>(
-        kernel_func_ptr, name, block_size);
+        kernel_func_ptr, name, threads_per_block);
 }
 
 //---------------------------------------------------------------------------//

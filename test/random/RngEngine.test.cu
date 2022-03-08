@@ -88,8 +88,8 @@ std::vector<T> re_test_canonical(RngDeviceRef states)
     auto grid = calc_launch_params(states.size());
 
     CELER_LAUNCH_KERNEL_IMPL(sample_canonical_kernel<T>,
-                             grid.grid_size,
-                             grid.block_size,
+                             grid.blocks_per_grid,
+                             grid.threads_per_block,
                              0,
                              0,
                              states,

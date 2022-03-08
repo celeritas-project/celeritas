@@ -46,7 +46,7 @@ void count_particle_process(
     static const KernelParamCalculator calc_launch_params(
         count_particle_process_kernel, "count_particle_process");
     auto kp = calc_launch_params(states.size());
-    count_particle_process_kernel<<<kp.grid_size, kp.block_size>>>(
+    count_particle_process_kernel<<<kp.blocks_per_grid, kp.threads_per_block>>>(
         params, states, counts);
     CELER_DEVICE_CHECK_ERROR();
 }

@@ -11,7 +11,7 @@ from collections import defaultdict
 import json
 
 DEVICE_KEYS = ['capability_major', 'capability_minor', 'eu_per_cu', 'name',
-               'platform', 'warp_size']
+               'platform', 'threads_per_warp']
 KERNEL_KEYS = ['max_threads_per_block', 'max_blocks_per_cu', 'max_warps_per_eu']
 
 def run(input, output, key):

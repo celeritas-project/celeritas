@@ -25,7 +25,7 @@ namespace celeritas
 struct KernelProperties
 {
     std::string  name;
-    unsigned int block_size = 0;
+    unsigned int threads_per_block = 0;
     unsigned int device_id  = 0;
 
     int         num_regs  = 0; //!< Number of 32-bit registers per thread
@@ -73,7 +73,7 @@ class KernelDiagnostics
     // Register a kernel, gathering diagnostics if needed
     template<class F>
     inline key_type
-    insert(F* func_ptr, const char* name, unsigned int block_size);
+    insert(F* func_ptr, const char* name, unsigned int threads_per_block);
 
     //! Number of kernel diagnostics available
     size_type size() const { return values_.size(); }
@@ -144,11 +144,12 @@ void KernelDiagnostics::launch(key_type key, unsigned int num_threads)
  *
  * \param func Pointer to kernel function
  * \param name Kernel function name
- * \param block_size Number of threads per block
+ * \param threads_per_block Number of threads per block
  */
 template<class F>
-inline auto
-KernelDiagnostics::insert(F* func, const char* name, unsigned int block_size)
+inline auto KernelDiagnostics::insert(F*           func,
+                                      const char*  name,
+                                      unsigned int threads_per_block)
     -> key_type
 {
     static_assert(std::is_function<F>::value,
@@ -164,7 +165,7 @@ KernelDiagnostics::insert(F* func, const char* name, unsigned int block_size)
         const Device& device = celeritas::device();
         diag.device_id       = device.device_id();
         diag.name            = name;
-        diag.block_size      = block_size;
+        diag.threads_per_block = threads_per_block;
 
         CELER_DEVICE_PREFIX(FuncAttributes) attr;
         CELER_DEVICE_CALL_PREFIX(
@@ -178,15 +179,17 @@ KernelDiagnostics::insert(F* func, const char* name, unsigned int block_size)
         std::size_t dynamic_smem_size = 0;
         int         num_blocks        = 0;
         CELER_DEVICE_CALL_PREFIX(OccupancyMaxActiveBlocksPerMultiprocessor(
-            &num_blocks, func, diag.block_size, dynamic_smem_size));
+            &num_blocks, func, diag.threads_per_block, dynamic_smem_size));
         diag.max_blocks_per_cu = num_blocks;
 
         // Calculate occupancy statistics used for launch bounds
         // (threads / block) * (blocks / cu) * (cu / eu) * (warp / thread)
-        diag.max_warps_per_eu = (diag.max_threads_per_block * num_blocks)
-                                / (device.eu_per_cu() * device.warp_size());
-        diag.occupancy = static_cast<double>(num_blocks * diag.block_size)
-                         / device.max_threads();
+        diag.max_warps_per_eu
+            = (diag.max_threads_per_block * num_blocks)
+              / (device.eu_per_cu() * device.threads_per_warp());
+        diag.occupancy
+            = static_cast<double>(num_blocks * diag.threads_per_block)
+              / device.max_threads_per_cu();
 
         values_.push_back(std::move(diag));
     }

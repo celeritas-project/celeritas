@@ -24,8 +24,8 @@ void to_json(nlohmann::json& j, const Device& d)
             {"device_id", d.device_id()},
             {"name", d.name()},
             {"total_global_mem", d.total_global_mem()},
-            {"max_threads", d.max_threads()},
-            {"warp_size", d.warp_size()},
+            {"max_threads_per_cu", d.max_threads_per_cu()},
+            {"threads_per_warp", d.threads_per_warp()},
             {"eu_per_cu", d.eu_per_cu()},
             {"default_block_size", d.default_block_size()},
         };

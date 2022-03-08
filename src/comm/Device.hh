@@ -79,10 +79,10 @@ class Device
     std::size_t total_global_mem() const { return total_global_mem_; }
 
     //! Maximum number of concurrent threads per compute unit (for occupancy)
-    int max_threads() const { return max_threads_; }
+    int max_threads_per_cu() const { return max_threads_per_cu_; }
 
     //! Number of threads per warp
-    unsigned int warp_size() const { return warp_size_; }
+    unsigned int threads_per_warp() const { return threads_per_warp_; }
 
     //! Number of execution units per compute unit (1 for NVIDIA, 4 for AMD)
     unsigned int eu_per_cu() const { return eu_per_cu_; }
@@ -97,8 +97,8 @@ class Device
     int          id_                 = -1;
     std::string  name_               = "<DISABLED>";
     std::size_t  total_global_mem_   = 0;
-    int          max_threads_        = 0;
-    unsigned int warp_size_          = 0;
+    int          max_threads_per_cu_ = 0;
+    unsigned int threads_per_warp_   = 0;
     unsigned int eu_per_cu_          = 0;
     unsigned int default_block_size_ = 256u;
     MapStrInt    extra_;

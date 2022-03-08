@@ -203,8 +203,12 @@ void initialize(const DeviceGridParams& opts,
 {
     CELER_EXPECT(states.alive.size() == states.size());
     CELER_EXPECT(states.rng.size() == states.size());
-    CDE_LAUNCH_KERNEL(
-        initialize, opts.block_size, states.size(), params, states, initial);
+    CDE_LAUNCH_KERNEL(initialize,
+                      opts.threads_per_block,
+                      states.size(),
+                      params,
+                      states,
+                      initial);
 }
 
 //---------------------------------------------------------------------------//
@@ -216,10 +220,12 @@ void iterate(const DeviceGridParams& opts,
              const StateDeviceRef&   states)
 {
     // Move to the collision site
-    CDE_LAUNCH_KERNEL(move, opts.block_size, states.size(), params, states);
+    CDE_LAUNCH_KERNEL(
+        move, opts.threads_per_block, states.size(), params, states);
 
     // Perform the interaction
-    CDE_LAUNCH_KERNEL(interact, opts.block_size, states.size(), params, states);
+    CDE_LAUNCH_KERNEL(
+        interact, opts.threads_per_block, states.size(), params, states);
 
     if (opts.sync)
     {
@@ -238,14 +244,14 @@ void cleanup(const DeviceGridParams& opts,
 {
     // Process hits from buffer to grid
     CDE_LAUNCH_KERNEL(process_hits,
-                      opts.block_size,
+                      opts.threads_per_block,
                       states.detector.capacity(),
                       params,
                       states);
 
     // Clear buffers
     CDE_LAUNCH_KERNEL(
-        cleanup, celeritas::device().warp_size(), 1, params, states);
+        cleanup, celeritas::device().threads_per_warp(), 1, params, states);
 
     if (opts.sync)
     {

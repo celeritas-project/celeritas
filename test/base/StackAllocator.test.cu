@@ -119,7 +119,8 @@ SATestOutput sa_test(const SATestInput& input)
 //! Clear secondaries, only a single thread needed
 void sa_clear(const SATestInput& input)
 {
-    CELER_LAUNCH_KERNEL(sa_clear, celeritas::device().warp_size(), 1, input);
+    CELER_LAUNCH_KERNEL(
+        sa_clear, celeritas::device().threads_per_warp(), 1, input);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 

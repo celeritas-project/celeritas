@@ -26,8 +26,8 @@ namespace celeritas
 void KernelDiagnostics::log_launch(value_type& diag, unsigned int num_threads)
 {
     CELER_LOG(debug) << "Launching '" << diag.name << "' on "
-                     << diag.block_size << " blocks with " << num_threads
-                     << " threads";
+                     << diag.threads_per_block << " blocks with "
+                     << num_threads << " threads";
 }
 
 //---------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ std::ostream& operator<<(std::ostream& os, const KernelDiagnostics& kd)
         // clang-format off
         os << "{\n"
             "  name: \""          << diag.name            << "\",\n"
-            "  block_size: "      << diag.block_size      << ",\n"
+            "  threads_per_block: "      << diag.threads_per_block      << ",\n"
             "  num_regs: "        << diag.num_regs        << ",\n"
             "  const_mem: "       << diag.const_mem       << ",\n"
             "  local_mem: "       << diag.local_mem       << ",\n"

@@ -47,12 +47,14 @@ KernelParamCalculator::operator()(size_type min_num_threads) const
     celeritas::kernel_diagnostics().launch(id_, min_num_threads);
 
     // Ceiling integer division
-    dim_type grid_size = ceil_div<dim_type>(min_num_threads, this->block_size_);
+    dim_type blocks_per_grid
+        = ceil_div<dim_type>(min_num_threads, this->block_size_);
 
     LaunchParams result;
-    result.grid_size.x  = grid_size;
-    result.block_size.x = this->block_size_;
-    CELER_ENSURE(result.grid_size.x * result.block_size.x >= min_num_threads);
+    result.blocks_per_grid.x   = blocks_per_grid;
+    result.threads_per_block.x = this->block_size_;
+    CELER_ENSURE(result.blocks_per_grid.x * result.threads_per_block.x
+                 >= min_num_threads);
     return result;
 }
 

@@ -55,11 +55,15 @@ NLTestOutput<T> nl_test()
     CELER_DEVICE_CALL_PREFIX(Malloc(&result_device, sizeof(NLTestOutput<T>)));
 
     static const ::celeritas::KernelParamCalculator calc_launch_params(
-        nl_test_kernel<T>, "nl_test", celeritas::device().warp_size());
+        nl_test_kernel<T>, "nl_test", celeritas::device().threads_per_warp());
     auto grid = calc_launch_params(3);
 
-    CELER_LAUNCH_KERNEL_IMPL(
-        nl_test_kernel<T>, grid.grid_size, grid.block_size, 0, 0, result_device);
+    CELER_LAUNCH_KERNEL_IMPL(nl_test_kernel<T>,
+                             grid.blocks_per_grid,
+                             grid.threads_per_block,
+                             0,
+                             0,
+                             result_device);
     CELER_DEVICE_CHECK_ERROR();
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 
