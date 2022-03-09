@@ -35,7 +35,7 @@ struct KernelProperties
     unsigned int num_launches    = 0; //!< Number of times launched
     unsigned int max_num_threads = 0; //!< Highest number of threads used
 
-    unsigned int max_threads_per_block = 0; //!< Max allowed threads per lbock
+    unsigned int max_threads_per_block = 0; //!< Max allowed threads per block
     unsigned int max_blocks_per_cu     = 0; //!< Occupancy (compute unit)
 
     // Derivative but useful occupancy information
@@ -185,7 +185,7 @@ inline auto KernelDiagnostics::insert(F*           func,
         // Calculate occupancy statistics used for launch bounds
         // (threads / block) * (blocks / cu) * (cu / eu) * (warp / thread)
         diag.max_warps_per_eu
-            = (diag.max_threads_per_block * num_blocks)
+            = (diag.threads_per_block * num_blocks)
               / (device.eu_per_cu() * device.threads_per_warp());
         diag.occupancy
             = static_cast<double>(num_blocks * diag.threads_per_block)
