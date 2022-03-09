@@ -189,13 +189,13 @@
   "process_secondaries": [
    {
     "max_threads_per_block": 256,
-    "min_blocks_per_cu": 5,
-    "min_warps_per_eu": 40
+    "min_blocks_per_cu": 6,
+    "min_warps_per_eu": 48
    },
    {
     "max_threads_per_block": 256,
-    "min_blocks_per_cu": 2,
-    "min_warps_per_eu": 2
+    "min_blocks_per_cu": 6,
+    "min_warps_per_eu": 6
    }
   ],
   "cleanup": [
