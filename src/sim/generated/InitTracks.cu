@@ -18,16 +18,7 @@ namespace generated
 {
 namespace
 {
-__global__ void
-#if CELERITAS_LAUNCH_BOUNDS
-#if CELERITAS_USE_CUDA && (__CUDA_ARCH__ == 700) // Tesla V100-SXM2-16GB
-__launch_bounds__(1024, 6)
-#endif
-#if CELERITAS_USE_HIP && defined(__gfx90a__)
-__launch_bounds__(1024, 32)
-#endif
-#endif // CELERITAS_LAUNCH_BOUNDS
-init_tracks_kernel(
+__global__ void init_tracks_kernel(
     const ParamsDeviceRef params,
     const StateDeviceRef states,
     const TrackInitStateDeviceRef data,

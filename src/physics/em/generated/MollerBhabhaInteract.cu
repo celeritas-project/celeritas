@@ -20,16 +20,7 @@ namespace generated
 {
 namespace
 {
-__global__ void
-#if CELERITAS_LAUNCH_BOUNDS
-#if CELERITAS_USE_CUDA && (__CUDA_ARCH__ == 700) // Tesla V100-SXM2-16GB
-__launch_bounds__(256, 4)
-#endif
-#if CELERITAS_USE_HIP && defined(__gfx90a__)
-__launch_bounds__(256, 32)
-#endif
-#endif // CELERITAS_LAUNCH_BOUNDS
-moller_bhabha_interact_kernel(
+__global__ void moller_bhabha_interact_kernel(
     const detail::MollerBhabhaDeviceRef moller_bhabha_data,
     const ModelInteractRef<MemSpace::device> model)
 {
