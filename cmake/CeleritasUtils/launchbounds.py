@@ -20,14 +20,14 @@ def build_cuda_opts(device, opt):
                  + device['capability_minor'] * 10)
     return f"""\
 #if CELERITAS_USE_CUDA && (__CUDA_ARCH__ == {cuda_arch}) // {device['name']}
-__launch_bounds__({opt['max_threads_per_block']}, {opt['max_blocks_per_cu']})
+__launch_bounds__({opt['max_threads_per_block']}, {opt['min_blocks_per_cu']})
 #endif"""
 
 
 def build_hip_opts(device, opt):
     return f"""\
 #if CELERITAS_USE_HIP && defined(__{device['name']}__)
-__launch_bounds__({opt['max_threads_per_block']}, {opt['max_warps_per_eu']})
+__launch_bounds__({opt['max_threads_per_block']}, {opt['min_warps_per_eu']})
 #endif"""
 
 
