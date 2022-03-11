@@ -13,7 +13,8 @@ import json
 DEVICE_KEYS = ['capability_major', 'capability_minor', 'eu_per_cu', 'name',
                'platform', 'threads_per_warp']
 KERNEL_KEY_MAP = {
-    'threads_per_block': 'max_threads_per_block',
+    #'threads_per_block': 'max_threads_per_block',
+    'max_threads_per_block': 'max_threads_per_block',
     'max_blocks_per_cu': 'min_blocks_per_cu',
     'max_warps_per_eu': 'min_warps_per_eu',
 }

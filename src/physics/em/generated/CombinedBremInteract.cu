@@ -23,10 +23,10 @@ namespace
 __global__ void
 #if CELERITAS_LAUNCH_BOUNDS
 #if CELERITAS_USE_CUDA && (__CUDA_ARCH__ == 700) // Tesla V100-SXM2-16GB
-__launch_bounds__(256, 3)
+__launch_bounds__(768, 3)
 #endif
 #if CELERITAS_USE_HIP && defined(__gfx90a__)
-__launch_bounds__(256, 5)
+__launch_bounds__(1024, 5)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 combined_brem_interact_kernel(
