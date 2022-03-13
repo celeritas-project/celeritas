@@ -31,6 +31,15 @@ class RngParams;
 class TrackInitParams;
 
 //---------------------------------------------------------------------------//
+struct EnergyDiagInput
+{
+    char      axis{'z'};
+    real_type min{-700};
+    real_type max{700};
+    size_type num_bins{1024};
+};
+
+//---------------------------------------------------------------------------//
 //! Input parameters to the transporter.
 struct TransporterInput
 {
@@ -59,7 +68,10 @@ struct TransporterInput
     size_type max_steps{};
     real_type secondary_stack_factor{};
     bool      enable_diagnostics{true};
-    bool      sync{};
+    bool      sync{false};
+
+    // Diagnostic setup
+    EnergyDiagInput energy_diag;
 
     //! True if all params are assigned
     explicit operator bool() const

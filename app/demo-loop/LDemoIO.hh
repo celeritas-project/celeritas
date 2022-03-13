@@ -48,9 +48,13 @@ struct LDemoArgs
     bool         use_device{};
     bool         sync{};
 
-    // Options for physics processes and models
-    bool combined_brem{true};
-    bool enable_lpm{true};
+    // Options for physics
+    bool eloss_fluctuation{true};
+    bool brem_combined{true};
+    bool brem_lpm{true};
+
+    // Diagnostic input
+    celeritas::EnergyDiagInput energy_diag;
 
     //! Whether the run arguments are valid
     explicit operator bool() const
