@@ -18,6 +18,10 @@
 
 #include "Utils.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "base/ArrayIO.hh"
+#endif
+
 namespace celeritas
 {
 namespace detail
@@ -108,6 +112,12 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
         {
             // Initialize it from the position (more expensive)
             geo = init.geo;
+#if !CELER_DEVICE_COMPILE
+            // TODO: kill particle with 'error' state if this happens
+            CELER_VALIDATE(!geo.is_outside(),
+                           << "track started outside the geometry at "
+                           << init.geo.pos);
+#endif
         }
 
         // Initialize the material
