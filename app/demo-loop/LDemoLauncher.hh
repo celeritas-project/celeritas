@@ -284,6 +284,7 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
     }
     phys.model_id(result_model);
     states_.interactions[tid].action = result_action;
+    states_.step_length[tid]         = step;
 }
 
 //---------------------------------------------------------------------------//

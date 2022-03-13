@@ -202,6 +202,13 @@ CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
     celeritas::NonuniformGrid<real_type> grid(pointers_.bounds);
 
     real_type pos = states_.geometry.pos[tid][static_cast<int>(pointers_.axis)];
+    {
+        // Bump particle to mid-step point to avoid grid edges coincident with
+        // geometry boundaries
+        real_type dir
+            = states_.geometry.dir[tid][static_cast<int>(pointers_.axis)];
+        pos -= real_type(0.5) * states_.step_length[tid] * dir;
+    }
     real_type energy_deposition = states_.energy_deposition[tid];
 
     using BinId = celeritas::ItemId<real_type>;
