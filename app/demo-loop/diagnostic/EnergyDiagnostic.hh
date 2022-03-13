@@ -27,19 +27,23 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 /*!
- * Diagnostic class for collecting energy deposition by z stored in device
- * memory.
+ * Diagnostic class for binning energy deposition along an axis.
  */
 template<MemSpace M>
 class EnergyDiagnostic : public Diagnostic<M>
 {
   public:
+    //!@{
+    //! Types
     using real_type    = celeritas::real_type;
     using Axis         = celeritas::Axis;
     using Items        = celeritas::Collection<real_type, Ownership::value, M>;
     using StateDataRef = celeritas::StateData<Ownership::reference, M>;
     using TransporterResult = celeritas::TransporterResult;
+    //!@}
 
+  public:
+    // Construct with grid parameters
     explicit EnergyDiagnostic(const std::vector<real_type>& bounds, Axis axis);
 
     // Number of alive tracks determined at the end of a step.
@@ -69,15 +73,13 @@ struct EnergyBinPointers
     using Items = celeritas::Collection<celeritas::real_type, W, M>;
 
     Axis                              axis = Axis::size_;
-    Items<Ownership::const_reference> bounds;   //!< z bounds
-    Items<Ownership::reference> energy_per_bin; //!< Binned energy values for
-                                                //!< each z interval
+    Items<Ownership::const_reference> bounds;
+    Items<Ownership::reference>       edep;
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return axis != Axis::size_ && !bounds.empty()
-               && !energy_per_bin.empty();
+        return axis != Axis::size_ && !bounds.empty() && !edep.empty();
     }
 };
 
@@ -104,7 +106,7 @@ class EnergyDiagnosticLauncher
     CELER_FUNCTION EnergyDiagnosticLauncher(const StateDataRef& states,
                                             const Pointers&     pointers);
 
-    //! Perform energy binning by z position
+    // Perform energy binning by position
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
@@ -124,6 +126,9 @@ void bin_energy(const celeritas::StateHostRef& states, PointersHost& pointers);
 //---------------------------------------------------------------------------//
 // EnergyDiagnostic implementation
 //---------------------------------------------------------------------------//
+/*!
+ * Construct with grid bounds and axis.
+ */
 template<MemSpace M>
 EnergyDiagnostic<M>::EnergyDiagnostic(const std::vector<real_type>& bounds,
                                       Axis                          axis)
@@ -144,7 +149,7 @@ EnergyDiagnostic<M>::EnergyDiagnostic(const std::vector<real_type>& bounds,
 
 //---------------------------------------------------------------------------//
 /*!
- * Accumulate energy deposition in diagnostic
+ * Accumulate energy deposition in diagnostic.
  */
 template<MemSpace M>
 void EnergyDiagnostic<M>::end_step(const StateDataRef& states)
@@ -153,7 +158,7 @@ void EnergyDiagnostic<M>::end_step(const StateDataRef& states)
     EnergyBinPointers<M> pointers;
     pointers.axis           = axis_;
     pointers.bounds         = bounds_;
-    pointers.energy_per_bin = energy_per_bin_;
+    pointers.edep           = energy_per_bin_;
 
     // Invoke kernel for binning energies
     demo_loop::bin_energy(states, pointers);
@@ -171,7 +176,7 @@ void EnergyDiagnostic<M>::get_result(TransporterResult* result)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get vector of binned energy deposition
+ * Get vector of binned energy deposition.
  */
 template<MemSpace M>
 std::vector<celeritas::real_type> EnergyDiagnostic<M>::energy_deposition()
@@ -219,7 +224,7 @@ CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
             // Particle might not have deposited energy (geometry step for
             // photon, not-alive track, etc.): avoid the atomic if so
             auto bin = grid.find(pos);
-            celeritas::atomic_add(&pointers_.energy_per_bin[BinId{bin}],
+            celeritas::atomic_add(&pointers_.edep[BinId{bin}],
                                   energy_deposition);
         }
     }
