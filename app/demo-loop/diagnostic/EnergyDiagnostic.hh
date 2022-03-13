@@ -209,14 +209,19 @@ CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
             = states_.geometry.dir[tid][static_cast<int>(pointers_.axis)];
         pos -= real_type(0.5) * states_.step_length[tid] * dir;
     }
-    real_type energy_deposition = states_.energy_deposition[tid];
 
     using BinId = celeritas::ItemId<real_type>;
     if (pos > grid.front() && pos < grid.back())
     {
-        auto bin = grid.find(pos);
-        celeritas::atomic_add(&pointers_.energy_per_bin[BinId{bin}],
-                              energy_deposition);
+        real_type energy_deposition = states_.energy_deposition[tid];
+        if (energy_deposition > 0)
+        {
+            // Particle might not have deposited energy (geometry step for
+            // photon, not-alive track, etc.): avoid the atomic if so
+            auto bin = grid.find(pos);
+            celeritas::atomic_add(&pointers_.energy_per_bin[BinId{bin}],
+                                  energy_deposition);
+        }
     }
 }
 
