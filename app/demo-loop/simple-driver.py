@@ -55,6 +55,7 @@ inp = {
     'enable_diagnostics': True,
     'sync': True,
     # Physics options
+    'rayleigh': True,
     'eloss_fluctuation': True,
     'brem_combined': True,
     'brem_lpm': True,

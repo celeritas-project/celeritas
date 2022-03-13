@@ -99,6 +99,7 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"enable_diagnostics", v.enable_diagnostics},
                        {"use_device", v.use_device},
                        {"sync", v.sync},
+                       {"rayleigh", v.rayleigh},
                        {"eloss_fluctuation", v.eloss_fluctuation},
                        {"brem_combined", v.brem_combined},
                        {"brem_lpm", v.brem_lpm}};
@@ -113,6 +114,7 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("geometry_filename").get_to(v.geometry_filename);
     j.at("physics_filename").get_to(v.physics_filename);
     j.at("hepmc3_filename").get_to(v.hepmc3_filename);
+    j.at("rayleigh").get_to(v.rayleigh);
     j.at("eloss_fluctuation").get_to(v.eloss_fluctuation);
     j.at("brem_combined").get_to(v.brem_combined);
     j.at("brem_lpm").get_to(v.brem_lpm);
@@ -214,8 +216,11 @@ TransporterInput load_input(const LDemoArgs& args)
             std::make_shared<ComptonProcess>(result.particles, process_data));
         input.processes.push_back(std::make_shared<PhotoelectricProcess>(
             result.particles, result.materials, process_data));
-        input.processes.push_back(std::make_shared<RayleighProcess>(
-            result.particles, result.materials, process_data));
+        if (args.rayleigh)
+        {
+            input.processes.push_back(std::make_shared<RayleighProcess>(
+                result.particles, result.materials, process_data));
+        }
         input.processes.push_back(std::make_shared<GammaConversionProcess>(
             result.particles, process_data));
         input.processes.push_back(

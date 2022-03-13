@@ -49,6 +49,7 @@ struct LDemoArgs
     bool         sync{};
 
     // Options for physics
+    bool rayleigh{true};
     bool eloss_fluctuation{true};
     bool brem_combined{true};
     bool brem_lpm{true};
