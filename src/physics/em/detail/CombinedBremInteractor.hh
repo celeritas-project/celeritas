@@ -19,6 +19,7 @@
 #include "physics/base/Secondary.hh"
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
+#include "physics/em/LPMData.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
@@ -59,12 +60,13 @@ class CombinedBremInteractor
     // Construct with shared and state data
     inline CELER_FUNCTION
     CombinedBremInteractor(const CombinedBremNativeRef& shared,
+                           const LPMDataRef&            lpm,
                            const ParticleTrackView&     particle,
                            const Real3&                 direction,
                            const CutoffView&            cutoffs,
                            StackAllocator<Secondary>&   allocate,
                            const MaterialView&          material,
-                           const ElementComponentId&    elcomp_id);
+                           ElementComponentId           elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -83,8 +85,6 @@ class CombinedBremInteractor
     const Energy gamma_cutoff_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
-    // Element in which interaction occurs
-    const ElementComponentId elcomp_id_;
     // Incident particle flag for selecting XS correction factor
     const bool is_electron_;
     // Flag for selecting the relativistic bremsstrahlung model
@@ -109,21 +109,22 @@ class CombinedBremInteractor
 CELER_FUNCTION
 CombinedBremInteractor::CombinedBremInteractor(
     const CombinedBremNativeRef& shared,
+    const LPMDataRef&            lpm,
     const ParticleTrackView&     particle,
     const Real3&                 direction,
     const CutoffView&            cutoffs,
     StackAllocator<Secondary>&   allocate,
     const MaterialView&          material,
-    const ElementComponentId&    elcomp_id)
+    ElementComponentId           elcomp_id)
     : inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())
     , inc_direction_(direction)
     , gamma_cutoff_(cutoffs.energy(shared.rb_data.ids.gamma))
     , allocate_(allocate)
-    , elcomp_id_(elcomp_id)
     , is_electron_(particle.particle_id() == shared.rb_data.ids.electron)
     , is_relativistic_(particle.energy() > seltzer_berger_limit())
-    , rb_energy_sampler_(shared.rb_data, particle, cutoffs, material, elcomp_id)
+    , rb_energy_sampler_(
+          shared.rb_data, lpm, particle, cutoffs, material, elcomp_id)
     , sb_energy_sampler_(shared.sb_differential_xs,
                          particle,
                          gamma_cutoff_,

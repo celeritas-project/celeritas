@@ -10,6 +10,7 @@
 #include "physics/base/Units.hh"
 #include "physics/em/BetheHeitlerModel.hh"
 #include "physics/em/GammaConversionProcess.hh"
+#include "physics/em/LPMParams.hh"
 #include "physics/em/detail/BetheHeitlerInteractor.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialTrackView.hh"
@@ -77,6 +78,10 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         };
         this->set_material_params(inp);
         this->set_material("Cu");
+
+        // Set up shared LPM data
+        lpm_params_
+            = std::make_shared<celeritas::LPMParams>(this->particle_params());
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -112,7 +117,8 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::BetheHeitlerData data_;
+    std::shared_ptr<const celeritas::LPMParams> lpm_params_;
+    celeritas::detail::BetheHeitlerData         data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -125,16 +131,18 @@ TEST_F(BetheHeitlerInteractorTest, basic)
     const int num_samples = 4;
     this->resize_secondaries(2 * num_samples);
 
-    // Get the ElementView
+    // Get views to the current material and element
+    const auto material = this->material_track().material_view();
     const celeritas::ElementView element(
-        this->material_track().material_view().element_view(
-            celeritas::ElementComponentId{0}));
+        material.element_view(celeritas::ElementComponentId{0}));
 
     // Create the interactor
     BetheHeitlerInteractor interact(data_,
+                                    lpm_params_->host_ref(),
                                     this->particle_track(),
                                     this->direction(),
                                     this->secondary_allocator(),
+                                    material,
                                     element);
     RandomEngine&          rng_engine = this->rng();
     // Produce four samples from the original/incident photon
@@ -205,16 +213,18 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
             this->set_inc_direction(inc_dir);
             this->resize_secondaries(2 * num_samples);
 
-            // Get the ElementView
+            // Get views to the current material and element
+            const auto material = this->material_track().material_view();
             const celeritas::ElementView element(
-                this->material_track().material_view().element_view(
-                    celeritas::ElementComponentId{0}));
+                material.element_view(celeritas::ElementComponentId{0}));
 
             // Create interactor
             BetheHeitlerInteractor interact(data_,
+                                            lpm_params_->host_ref(),
                                             this->particle_track(),
                                             this->direction(),
                                             this->secondary_allocator(),
+                                            material,
                                             element);
 
             // Loop over many particles

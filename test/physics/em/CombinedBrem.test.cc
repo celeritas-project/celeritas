@@ -13,6 +13,7 @@
 #include "physics/base/Units.hh"
 #include "physics/em/BremsstrahlungProcess.hh"
 #include "physics/em/CombinedBremModel.hh"
+#include "physics/em/LPMParams.hh"
 #include "physics/em/detail/CombinedBremInteractor.hh"
 #include "physics/em/detail/RBDiffXsCalculator.hh"
 #include "physics/em/detail/SBEnergyDistribution.hh"
@@ -121,6 +122,10 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
         input.particles = this->particle_params();
         input.cutoffs.insert({pdg::gamma(), material_cutoffs});
         this->set_cutoff_params(input);
+
+        // Set up shared LPM data
+        lpm_params_
+            = std::make_shared<celeritas::LPMParams>(this->particle_params());
     }
 
     EnergySq density_correction(MaterialId matid, Energy e) const
@@ -144,8 +149,9 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<CombinedBremModel>       model_;
-    celeritas::detail::CombinedBremNativeRef data_;
+    std::shared_ptr<const celeritas::LPMParams> lpm_params_;
+    std::shared_ptr<CombinedBremModel>          model_;
+    celeritas::detail::CombinedBremNativeRef    data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -166,6 +172,7 @@ TEST_F(CombinedBremTest, basic_seltzer_berger)
 
     // Create the interactor
     CombinedBremInteractor interact(model_->host_ref(),
+                                    lpm_params_->host_ref(),
                                     this->particle_track(),
                                     this->direction(),
                                     cutoffs,
@@ -233,6 +240,7 @@ TEST_F(CombinedBremTest, basic_relativistic_brem)
 
     // Create the interactor
     CombinedBremInteractor interact(model_->host_ref(),
+                                    lpm_params_->host_ref(),
                                     this->particle_track(),
                                     this->direction(),
                                     cutoffs,
@@ -323,6 +331,7 @@ TEST_F(CombinedBremTest, stress_test_combined)
                 // Create interactor
                 this->set_inc_particle(particle, MevEnergy{inc_e});
                 CombinedBremInteractor interact(model_->host_ref(),
+                                                lpm_params_->host_ref(),
                                                 this->particle_track(),
                                                 this->direction(),
                                                 cutoffs,

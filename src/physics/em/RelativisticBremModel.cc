@@ -107,19 +107,6 @@ void RelativisticBremModel::build_data(HostValue*            data,
                                        const MaterialParams& materials,
                                        real_type             particle_mass)
 {
-    // Build a table of LPM functions, G(s) and \phi(s) in the range
-    // s = [0, data->limit_s_lpm()] with the 1/data->inv_delta_lpm() interval
-    auto         lpm_table  = make_builder(&data->lpm_table);
-    unsigned int num_points = data->inv_delta_lpm() * data->limit_s_lpm() + 1;
-    lpm_table.reserve(num_points);
-
-    for (auto s_point : range(num_points))
-    {
-        auto shat   = static_cast<real_type>(s_point) / data->inv_delta_lpm();
-        auto s_data = compute_lpm_data(shat);
-        lpm_table.push_back(s_data);
-    }
-
     // Build element data for available elements
     unsigned int num_elements = materials.num_elements();
 
@@ -145,15 +132,11 @@ auto RelativisticBremModel::compute_element_data(const ElementView& elem,
 
     AtomicNumber iz = min(elem.atomic_number(), 120);
 
-    data.iz   = iz;
-    data.logz = elem.log_z();
-
     real_type fc      = elem.coulomb_correction();
     real_type ff_el   = 1.0;
     real_type ff_inel = 1.0;
 
-    data.logz = elem.log_z();
-    data.fz   = data.logz / 3 + fc;
+    data.fz = elem.log_z() / 3 + fc;
 
     if (iz < 5)
     {
@@ -162,8 +145,8 @@ auto RelativisticBremModel::compute_element_data(const ElementView& elem,
     }
     else
     {
-        ff_el   = std::log(184.15) - data.logz / 3;
-        ff_inel = std::log(1194.0) - 2 * data.logz / 3;
+        ff_el   = std::log(184.15) - elem.log_z() / 3;
+        ff_inel = std::log(1194.0) - 2 * elem.log_z() / 3;
     }
 
     real_type z13 = elem.cbrt_z();
@@ -171,69 +154,8 @@ auto RelativisticBremModel::compute_element_data(const ElementView& elem,
 
     data.factor1        = (ff_el - fc) + ff_inel / iz;
     data.factor2        = (1 + real_type(1) / iz) / 12;
-    data.s1             = z23 / ipow<2>(184.15);
-    data.inv_logs1      = 1 / std::log(data.s1);
-    data.inv_logs2      = 1 / (std::log(constants::sqrt_two * data.s1));
     data.gamma_factor   = 100 * electron_mass / z13;
     data.epsilon_factor = 100 * electron_mass / z23;
-
-    return data;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Compute LPM function: G4eBremsstrahlungRelModel::ComputeLPMGsPhis
- */
-auto RelativisticBremModel::compute_lpm_data(real_type x) -> MigdalData
-{
-    MigdalData data;
-
-    if (x < 0.01)
-    {
-        data.phis = 6 * x * (1 - constants::pi * x);
-        data.gs   = 12 * x - 2 * data.phis;
-    }
-    else
-    {
-        real_type x2 = ipow<2>(x);
-        real_type x3 = x * x2;
-        real_type x4 = ipow<2>(x2);
-
-        // use Stanev approximation: for \psi(s) and compute G(s)
-        if (x < 0.415827)
-        {
-            data.phis = 1
-                        - std::exp(-6 * x * (1 + x * (3 - constants::pi))
-                                   + x3 / (0.623 + 0.796 * x + 0.658 * x2));
-            real_type psi = 1
-                            - std::exp(-4 * x
-                                       - 8 * x2
-                                             / (1 + 3.936 * x + 4.97 * x2
-                                                - 0.05 * x3 + 7.5 * x4));
-            data.gs = 3 * psi - 2 * data.phis;
-        }
-        else if (x < 1.55)
-        {
-            data.phis = 1
-                        - std::exp(-6 * x * (1 + x * (3 - constants::pi))
-                                   + x3 / (0.623 + 0.796 * x + 0.658 * x2));
-            data.gs = std::tanh(-0.160723 + 3.755030 * x - 1.798138 * x2
-                                + 0.672827 * x3 - 0.120772 * x4);
-        }
-        else
-        {
-            data.phis = 1 - 0.011905 / x4;
-            if (x < 1.9156)
-            {
-                data.gs = std::tanh(-0.160723 + 3.755030 * x - 1.798138 * x2
-                                    + 0.672827 * x3 - 0.120772 * x4);
-            }
-            else
-            {
-                data.gs = 1 - 0.023065 / x4;
-            }
-        }
-    }
 
     return data;
 }

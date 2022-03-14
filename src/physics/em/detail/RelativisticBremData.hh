@@ -29,35 +29,14 @@ struct RelBremFormFactor
 
 //---------------------------------------------------------------------------//
 /*!
- * Evaluated LPM data for a single energy gridpoint.
- *
- * These are  \f$ G(s) \f$ and \f$ \phi(s) \f$ in a table in the range \f$ s =
- * [0, s_\mathrm{max}] \f$ with an interval \f$ \delta \f$ where \f$
- * s_\mathrm{max} = 2.0 \f$ and \f$ \delta = 0.01 \f$ by default.
- *
- * This is used by \c RBDiffXsCalculator.
- */
-struct RelBremMigdalData
-{
-    real_type gs;   //!< LPM \f$ G(s) \f$
-    real_type phis; //!< LPM \f$ \phi(s) \f$
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * A special metadata structure per element used in the differential cross
  * section calculation.
  */
 struct RelBremElementData
 {
-    int       iz;             //!< Atomic number
-    real_type logz;           //!< \f$ \ln(Z) \f$
     real_type fz;             //!< \f$ \ln(Z)/3 + f_c (Coulomb correction) \f$
     real_type factor1;        //!< \f$ ((Fel-fc)+Finel*invZ)\f$
     real_type factor2;        //!< \f$ (1.0+invZ)/12 \f$
-    real_type s1;             //!< LPM variables
-    real_type inv_logs1;      //!< \f$ 1/\ln(s1) \f$
-    real_type inv_logs2;      //!< \f$ 1/\ln(sqrt(2)*s1) \f$
     real_type gamma_factor;   //!< Constant for evaluating screening functions
     real_type epsilon_factor; //!< Constant for evaluating screening functions
 };
@@ -96,29 +75,21 @@ struct RelativisticBremData
     //! LPM flag
     bool enable_lpm;
 
-    //! LPM table
-    using ItemIdT = celeritas::ItemId<unsigned int>;
-
-    template<class T>
-    using Items = celeritas::Collection<T, W, M, ItemIdT>;
-    Items<RelBremMigdalData> lpm_table;
-
     //! Element data
     template<class T>
     using ElementItems = celeritas::Collection<T, W, M, ElementId>;
     ElementItems<RelBremElementData> elem_data;
 
-    //! Inverse of the interval for evaluating LPM functions
-    static CELER_CONSTEXPR_FUNCTION real_type inv_delta_lpm() { return 100.; }
-
-    //! The upper limit of the LPM variable for evaluating LPM functions
-    static CELER_CONSTEXPR_FUNCTION real_type limit_s_lpm() { return 2.0; }
+    //! Include a dielectric suppression effect in LPM functions
+    static CELER_CONSTEXPR_FUNCTION bool dielectric_suppression()
+    {
+        return true;
+    }
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > zero_quantity() && !lpm_table.empty()
-               && !elem_data.empty();
+        return ids && electron_mass > zero_quantity() && !elem_data.empty();
     }
 
     //! Assign from another set of data
@@ -129,7 +100,6 @@ struct RelativisticBremData
         ids           = other.ids;
         electron_mass = other.electron_mass;
         enable_lpm    = other.enable_lpm;
-        lpm_table     = other.lpm_table;
         elem_data     = other.elem_data;
         return *this;
     }

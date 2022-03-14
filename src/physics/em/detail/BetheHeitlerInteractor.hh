@@ -17,12 +17,14 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
+#include "physics/em/LPMData.hh"
 #include "physics/material/ElementView.hh"
 #include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 
 #include "BetheHeitlerData.hh"
+#include "LPMCalculator.hh"
 #include "TsaiUrbanDistribution.hh"
 
 namespace celeritas
@@ -31,16 +33,16 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Bethe-Heitler model for gamma -> e+e- (electron-positron pair production).
+ * Relativistic model for electron-positron pair production.
  *
- * Give an incident gamma, it adds a two pair-produced secondary electrons to
- * the secondary stack. No cutoffs are performed on the incident gamma energy.
+ * The energies of the secondary electron and positron are sampled using the
+ * Bethe-Heitler cross sections with a Coulomb correction. The LPM effect is
+ * taken into account for incident gamma energies above 100 GeV.
  *
  * \note This performs the same sampling routine as in Geant4's
- * G4BetheHeitlerModel, as documented in section 6.5 of the Geant4 Physics
- * Reference (release 10.6), applicable to incident gammas with energy
- * \f$ E_gamma \leq 100\f$ GeV . For \f$ E_gamma > 80 \f$ GeV, it is suggested
- * to use `G4PairProductionRelModel`.
+ * G4PairProductionRelModel, as documented in sections 6.5 (gamma conversion)
+ * and 10.2.2 (LPM effect) of the Geant4 Physics Reference Manual (release
+ * 10.7)
  */
 class BetheHeitlerInteractor
 {
@@ -54,9 +56,11 @@ class BetheHeitlerInteractor
     //! Construct sampler from shared and state data
     inline CELER_FUNCTION
     BetheHeitlerInteractor(const BetheHeitlerData&    shared,
+                           const LPMDataRef&          lpm,
                            const ParticleTrackView&   particle,
                            const Real3&               inc_direction,
                            StackAllocator<Secondary>& allocate,
+                           const MaterialView&        material,
                            const ElementView&         element);
 
     // Sample an interaction with the given RNG
@@ -64,9 +68,18 @@ class BetheHeitlerInteractor
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
   private:
+    //// TYPES ////
+
+    //! Screening functions \f$ \Phi_1 \f$ and \f$ \Phi_2 \f$
+    struct ScreeningFunctions
+    {
+        real_type phi1;
+        real_type phi2;
+    };
+
     //// DATA ////
 
-    // Gamma energy divided by electron mass * csquared
+    // Shared model data
     const BetheHeitlerData& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
@@ -76,21 +89,37 @@ class BetheHeitlerInteractor
     StackAllocator<Secondary>& allocate_;
     // Element properties for calculating screening functions and variables
     const ElementView& element_;
+    // Whether LPM supression is applied
+    const bool enable_lpm_;
+    // Characteristic energy for the LPM effect for this material [MeV]
+    const real_type lpm_energy_;
+    // Used to calculate the LPM suppression functions
+    LPMCalculator calc_lpm_functions_;
     // Cached minimum epsilon, m_e*c^2/E_gamma; kinematical limit for Y -> e+e-
     real_type epsilon0_;
 
     //// CONSTANTS ////
 
     //! Energy above which the Coulomb correction is applied [MeV]
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy coulomb_correction_thresh()
+    static CELER_CONSTEXPR_FUNCTION units::MevEnergy coulomb_corr_threshold()
     {
         return units::MevEnergy{50};
+    }
+
+    //! Energy above which LPM suppression is applied, if enabled [MeV]
+    static CELER_CONSTEXPR_FUNCTION units::MevEnergy lpm_threshold()
+    {
+        return units::MevEnergy{1e5};
     }
 
     //// HELPER FUNCTIONS ////
 
     // Calculates the screening variable, \f$ \delta \f$
     inline CELER_FUNCTION real_type impact_parameter(real_type eps) const;
+
+    // Calculate the screening functions \f$ \Phi_1 \f$ and \f$ \Phi_2 \f$
+    inline CELER_FUNCTION ScreeningFunctions
+    screening_phi1_phi2(real_type delta) const;
 
     // Auxiliary screening function \f$ F_1 \f$
     inline CELER_FUNCTION real_type screening_f1(real_type delta) const;
@@ -109,15 +138,22 @@ class BetheHeitlerInteractor
  */
 CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     const BetheHeitlerData&    shared,
+    const LPMDataRef&          lpm,
     const ParticleTrackView&   particle,
     const Real3&               inc_direction,
     StackAllocator<Secondary>& allocate,
+    const MaterialView&        material,
     const ElementView&         element)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , inc_direction_(inc_direction)
     , allocate_(allocate)
     , element_(element)
+    , enable_lpm_(shared.enable_lpm && inc_energy_ > lpm_threshold())
+    , lpm_energy_(material.radiation_length()
+                  * value_as<MevPerCm>(lpm_constant()))
+    , calc_lpm_functions_(
+          lpm, material, element_, shared_.dielectric_suppression(), inc_energy_)
 {
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
     CELER_EXPECT(inc_energy_.value() > 2 * shared_.electron_mass);
@@ -161,7 +197,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // 50 MeV, a Coulomb correction function is introduced.
         const real_type delta_min = 4 * 136 / element_.cbrt_z() * epsilon0_;
         const real_type f_z
-            = inc_energy_ > coulomb_correction_thresh()
+            = inc_energy_ > coulomb_corr_threshold()
                   ? 8 * element_.log_z() / 3
                   : 8 * (element_.log_z() / 3 + element_.coulomb_correction());
         const real_type delta_max
@@ -204,8 +240,20 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 real_type delta = this->impact_parameter(epsilon);
                 CELER_ASSERT(delta <= delta_max && delta >= delta_min);
 
-                // Calculate g1 "rejection" function
-                g = (this->screening_f1(delta) - f_z) / f10;
+                // Calculate g_1 rejection function
+                if (enable_lpm_)
+                {
+                    auto screening = screening_phi1_phi2(delta);
+                    auto lpm       = calc_lpm_functions_(epsilon);
+                    g              = lpm.xi
+                        * ((2 * lpm.phi + lpm.g) * screening.phi1
+                           - lpm.g * screening.phi2 - lpm.phi * f_z)
+                        / f10;
+                }
+                else
+                {
+                    g = (this->screening_f1(delta) - f_z) / f10;
+                }
                 CELER_ASSERT(g > 0 && g <= 1);
             }
             else
@@ -220,8 +268,21 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 real_type delta = this->impact_parameter(epsilon);
                 CELER_ASSERT(delta <= delta_max && delta >= delta_min);
 
-                // Calculate g2 "rejection" function
-                g = (this->screening_f2(delta) - f_z) / f20;
+                // Calculate g_2 rejection function
+                if (enable_lpm_)
+                {
+                    auto screening = screening_phi1_phi2(delta);
+                    auto lpm       = calc_lpm_functions_(epsilon);
+                    g              = lpm.xi
+                        * ((lpm.phi + half * lpm.g) * screening.phi1
+                           + half * lpm.g * screening.phi2
+                           - half * (lpm.g + lpm.phi) * f_z)
+                        / f20;
+                }
+                else
+                {
+                    g = (this->screening_f2(delta) - f_z) / f20;
+                }
                 CELER_ASSERT(g > 0 && g <= 1);
             }
         } while (!BernoulliDistribution(g)(rng));
@@ -280,6 +341,30 @@ BetheHeitlerInteractor::impact_parameter(real_type eps) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Screening functions \f$ \Phi_1(\delta) \f$ and \f$ \Phi_2(\delta) \f$.
+ */
+CELER_FUNCTION auto
+BetheHeitlerInteractor::screening_phi1_phi2(real_type delta) const
+    -> ScreeningFunctions
+{
+    using R = real_type;
+
+    ScreeningFunctions result;
+    if (delta > R(1.4))
+    {
+        result.phi1 = R(21.0190) - R(4.145) * std::log(delta + R(0.958));
+        result.phi2 = result.phi1;
+    }
+    else
+    {
+        result.phi1 = R(20.806) - delta * (R(3.190) - R(0.5710) * delta);
+        result.phi2 = R(20.234) - delta * (R(2.126) - R(0.0903) * delta);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Auxiliary screening functions \f$ F_1(\delta) \f$ and \f$ F_2(\delta) \f$.
  *
  * The functions \f$ F_1 = 3\Phi_1(\delta) - \Phi_2(\delta) \f$ and \f$ F_2 =
@@ -289,22 +374,21 @@ BetheHeitlerInteractor::impact_parameter(real_type eps) const
  * \delta_\textrm{min} = \delta(\epsilon = 1/2)\f$. They are used in the
  * composition + rejection technique for sampling \f$ \epsilon \f$.
  */
-CELER_FUNCTION real_type
-BetheHeitlerInteractor::screening_f1(real_type delta) const
+CELER_FUNCTION real_type BetheHeitlerInteractor::screening_f1(real_type delta) const
 {
     using R = real_type;
+
     return delta > R(1.4) ? R(42.038) - R(8.29) * std::log(delta + R(0.958))
                           : R(42.184) - delta * (R(7.444) - R(1.623) * delta);
 }
 
-CELER_FUNCTION real_type
-BetheHeitlerInteractor::screening_f2(real_type delta) const
+CELER_FUNCTION real_type BetheHeitlerInteractor::screening_f2(real_type delta) const
 {
     using R = real_type;
+
     return delta > R(1.4) ? R(42.038) - R(8.29) * std::log(delta + R(0.958))
                           : R(41.326) - delta * (R(5.848) - R(0.902) * delta);
 }
-
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas

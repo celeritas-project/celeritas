@@ -10,6 +10,7 @@
 #include "base/Units.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/Units.hh"
+#include "physics/em/LPMParams.hh"
 #include "physics/em/RelativisticBremModel.hh"
 #include "physics/em/detail/RBDiffXsCalculator.hh"
 #include "physics/em/detail/RelativisticBremInteractor.hh"
@@ -96,6 +97,10 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
         input.particles = this->particle_params();
         input.cutoffs.insert({pdg::gamma(), material_cutoffs});
         this->set_cutoff_params(input);
+
+        // Set up shared LPM data
+        lpm_params_
+            = std::make_shared<celeritas::LPMParams>(this->particle_params());
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -114,6 +119,7 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
+    std::shared_ptr<const celeritas::LPMParams>  lpm_params_;
     std::shared_ptr<RelativisticBremModel>       model_;
     celeritas::detail::RelativisticBremNativeRef data_;
     std::shared_ptr<RelativisticBremModel>       model_lpm_;
@@ -127,17 +133,19 @@ TEST_F(RelativisticBremTest, dxsec)
 {
     const real_type all_energy[] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
 
-    // Production cuts
+    // View to current material
     auto material_view = this->material_track().material_view();
 
     // Create the differential cross section
     RBDiffXsCalculator dxsec_lpm(model_lpm_->host_ref(),
+                                 lpm_params_->host_ref(),
                                  this->particle_track(),
                                  material_view,
                                  ElementComponentId{0});
 
     // Create the differential cross section
     RBDiffXsCalculator dxsec(model_->host_ref(),
+                             lpm_params_->host_ref(),
                              this->particle_track(),
                              material_view,
                              ElementComponentId{0});
@@ -195,6 +203,7 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
 
     // Create the interactor
     RelativisticBremInteractor interact(model_->host_ref(),
+                                        lpm_params_->host_ref(),
                                         this->particle_track(),
                                         this->direction(),
                                         cutoffs,
@@ -260,6 +269,7 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
 
     // Create the interactor
     RelativisticBremInteractor interact(model_lpm_->host_ref(),
+                                        lpm_params_->host_ref(),
                                         this->particle_track(),
                                         this->direction(),
                                         cutoffs,
@@ -317,6 +327,7 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
 
     // Create the interactor
     RelativisticBremInteractor interact(model_lpm_->host_ref(),
+                                        lpm_params_->host_ref(),
                                         this->particle_track(),
                                         this->direction(),
                                         cutoffs,

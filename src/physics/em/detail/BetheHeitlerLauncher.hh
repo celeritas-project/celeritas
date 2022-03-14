@@ -75,9 +75,11 @@ CELER_FUNCTION void BetheHeitlerLauncher<M>::operator()(ThreadId tid) const
     ElementView element
         = material_view.element_view(celeritas::ElementComponentId{0});
     BetheHeitlerInteractor interact(bh,
+                                    model.params.lpm,
                                     particle,
                                     model.states.direction[tid],
                                     allocate_secondaries,
+                                    material_view,
                                     element);
 
     RngEngine rng(model.states.rng, tid);
