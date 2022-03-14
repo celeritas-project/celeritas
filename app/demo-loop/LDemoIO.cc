@@ -8,6 +8,7 @@
 #include "LDemoIO.hh"
 
 #include <algorithm>
+#include <string>
 
 #include "comm/Logger.hh"
 #include "geometry/GeoMaterialParams.hh"
@@ -31,6 +32,33 @@
 #include "random/RngParams.hh"
 
 using namespace celeritas;
+
+namespace celeritas
+{
+//!@{
+//! I/O routines for JSON
+void to_json(nlohmann::json& j, const EnergyDiagInput& v)
+{
+    j = nlohmann::json{{"axis", std::string(1, v.axis)},
+                       {"min", v.min},
+                       {"max", v.max},
+                       {"num_bins", v.num_bins}};
+}
+
+void from_json(const nlohmann::json& j, EnergyDiagInput& v)
+{
+    std::string temp_axis;
+    j.at("axis").get_to(temp_axis);
+    CELER_VALIDATE(temp_axis.size() == 1,
+                   << "axis spec has length " << temp_axis.size()
+                   << " (must be a single character)");
+    v.axis = temp_axis.front();
+    j.at("min").get_to(v.min);
+    j.at("max").get_to(v.max);
+    j.at("num_bins").get_to(v.num_bins);
+}
+//!@}
+} // namespace celeritas
 
 namespace demo_loop
 {
@@ -70,7 +98,15 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"secondary_stack_factor", v.secondary_stack_factor},
                        {"enable_diagnostics", v.enable_diagnostics},
                        {"use_device", v.use_device},
-                       {"sync", v.sync}};
+                       {"sync", v.sync},
+                       {"rayleigh", v.rayleigh},
+                       {"eloss_fluctuation", v.eloss_fluctuation},
+                       {"brem_combined", v.brem_combined},
+                       {"brem_lpm", v.brem_lpm}};
+    if (v.enable_diagnostics)
+    {
+        j["energy_diag"] = v.energy_diag;
+    }
 }
 
 void from_json(const nlohmann::json& j, LDemoArgs& v)
@@ -78,6 +114,10 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("geometry_filename").get_to(v.geometry_filename);
     j.at("physics_filename").get_to(v.physics_filename);
     j.at("hepmc3_filename").get_to(v.hepmc3_filename);
+    j.at("rayleigh").get_to(v.rayleigh);
+    j.at("eloss_fluctuation").get_to(v.eloss_fluctuation);
+    j.at("brem_combined").get_to(v.brem_combined);
+    j.at("brem_lpm").get_to(v.brem_lpm);
     j.at("seed").get_to(v.seed);
     j.at("max_num_tracks").get_to(v.max_num_tracks);
     if (j.contains("max_steps"))
@@ -89,7 +129,13 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("enable_diagnostics").get_to(v.enable_diagnostics);
     j.at("use_device").get_to(v.use_device);
     j.at("sync").get_to(v.sync);
+
+    if (j.contains("energy_diag"))
+    {
+        j.at("energy_diag").get_to(v.energy_diag);
+    }
 }
+//!@}
 
 //---------------------------------------------------------------------------//
 TransporterInput load_input(const LDemoArgs& args)
@@ -156,12 +202,13 @@ TransporterInput load_input(const LDemoArgs& args)
     // Load physics: create individual processes with make_shared
     {
         PhysicsParams::Input input;
-        input.particles = result.particles;
-        input.materials = result.materials;
+        input.particles                  = result.particles;
+        input.materials                  = result.materials;
+        input.options.enable_fluctuation = args.eloss_fluctuation;
 
         BremsstrahlungProcess::Options brem_options;
-        brem_options.combined_model = args.combined_brem;
-        brem_options.enable_lpm     = args.enable_lpm;
+        brem_options.combined_model = args.brem_combined;
+        brem_options.enable_lpm     = args.brem_lpm;
 
         auto process_data = std::make_shared<ImportedProcesses>(
             std::move(imported_data.processes));
@@ -169,8 +216,11 @@ TransporterInput load_input(const LDemoArgs& args)
             std::make_shared<ComptonProcess>(result.particles, process_data));
         input.processes.push_back(std::make_shared<PhotoelectricProcess>(
             result.particles, result.materials, process_data));
-        input.processes.push_back(std::make_shared<RayleighProcess>(
-            result.particles, result.materials, process_data));
+        if (args.rayleigh)
+        {
+            input.processes.push_back(std::make_shared<RayleighProcess>(
+                result.particles, result.materials, process_data));
+        }
         input.processes.push_back(std::make_shared<GammaConversionProcess>(
             result.particles, process_data));
         input.processes.push_back(
@@ -194,6 +244,9 @@ TransporterInput load_input(const LDemoArgs& args)
     result.secondary_stack_factor = args.secondary_stack_factor;
     result.enable_diagnostics     = args.enable_diagnostics;
     result.sync                   = args.sync;
+
+    // Propagate diagnosics
+    result.energy_diag = args.energy_diag;
 
     CELER_ENSURE(result);
     return result;

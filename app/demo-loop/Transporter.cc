@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "Transporter.hh"
 
+#include "base/Assert.hh"
 #include "base/Stopwatch.hh"
 #include "base/VectorUtils.hh"
 #include "comm/Logger.hh"
@@ -115,8 +116,14 @@ build_diagnostics(const TransporterInput&                    inp,
             params, inp.particles, inp.max_num_tracks, 200));
         result.push_back(std::make_unique<ParticleProcessDiagnostic<M>>(
             params, inp.particles, inp.physics));
+
+        const auto& ediag = inp.energy_diag;
+        CELER_VALIDATE(ediag.axis >= 'x' && ediag.axis <= 'z',
+                       << "Invalid axis '" << ediag.axis
+                       << "' (must be x, y, or z)");
         result.push_back(std::make_unique<EnergyDiagnostic<M>>(
-            linspace(-700.0, 700.0, 1024 + 1)));
+            linspace(ediag.min, ediag.max, ediag.num_bins + 1),
+            static_cast<Axis>(ediag.axis - 'x')));
     }
     return result;
 }

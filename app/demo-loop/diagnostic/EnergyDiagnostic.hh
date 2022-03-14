@@ -17,6 +17,7 @@
 #include "base/Macros.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
+#include "geometry/Types.hh"
 #include "physics/grid/NonuniformGrid.hh"
 #include "sim/TrackData.hh"
 
@@ -26,19 +27,24 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 /*!
- * Diagnostic class for collecting energy deposition by z stored in device
- * memory.
+ * Diagnostic class for binning energy deposition along an axis.
  */
 template<MemSpace M>
 class EnergyDiagnostic : public Diagnostic<M>
 {
   public:
+    //!@{
+    //! Types
     using real_type    = celeritas::real_type;
+    using Axis         = celeritas::Axis;
     using Items        = celeritas::Collection<real_type, Ownership::value, M>;
     using StateDataRef = celeritas::StateData<Ownership::reference, M>;
     using TransporterResult = celeritas::TransporterResult;
+    //!@}
 
-    EnergyDiagnostic(const std::vector<real_type>& z_bounds);
+  public:
+    // Construct with grid parameters
+    explicit EnergyDiagnostic(const std::vector<real_type>& bounds, Axis axis);
 
     // Number of alive tracks determined at the end of a step.
     void end_step(const StateDataRef& states) final;
@@ -50,28 +56,30 @@ class EnergyDiagnostic : public Diagnostic<M>
     std::vector<real_type> energy_deposition();
 
   private:
-    Items z_bounds_;
-    Items energy_by_z_;
+    Items bounds_;
+    Items energy_per_bin_;
+    Axis  axis_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Holds pointers to z grid and binned energy values to pass to kernel
+ * Holds pointers to grid and binned energy values to pass to kernel
  */
 template<MemSpace M>
 struct EnergyBinPointers
 {
+    using Axis = celeritas::Axis;
     template<Ownership W>
     using Items = celeritas::Collection<celeritas::real_type, W, M>;
 
-    Items<Ownership::const_reference> z_bounds; //!< z bounds
-    Items<Ownership::reference> energy_by_z; //!< Binned energy values for each
-                                             //!< z interval
+    Axis                              axis = Axis::size_;
+    Items<Ownership::const_reference> bounds;
+    Items<Ownership::reference>       edep;
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return !z_bounds.empty() && !energy_by_z.empty();
+        return axis != Axis::size_ && !bounds.empty() && !edep.empty();
     }
 };
 
@@ -98,7 +106,7 @@ class EnergyDiagnosticLauncher
     CELER_FUNCTION EnergyDiagnosticLauncher(const StateDataRef& states,
                                             const Pointers&     pointers);
 
-    //! Perform energy binning by z position
+    // Perform energy binning by position
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
@@ -118,33 +126,40 @@ void bin_energy(const celeritas::StateHostRef& states, PointersHost& pointers);
 //---------------------------------------------------------------------------//
 // EnergyDiagnostic implementation
 //---------------------------------------------------------------------------//
+/*!
+ * Construct with grid bounds and axis.
+ */
 template<MemSpace M>
-EnergyDiagnostic<M>::EnergyDiagnostic(const std::vector<real_type>& z_bounds)
-    : Diagnostic<M>()
+EnergyDiagnostic<M>::EnergyDiagnostic(const std::vector<real_type>& bounds,
+                                      Axis                          axis)
+    : Diagnostic<M>(), axis_(axis)
 {
+    CELER_EXPECT(axis != Axis::size_);
     using HostItems
         = celeritas::Collection<real_type, Ownership::value, MemSpace::host>;
 
     // Create collection on host and copy to device
-    HostItems z_bounds_host;
-    make_builder(&z_bounds_host).insert_back(z_bounds.cbegin(), z_bounds.cend());
-    z_bounds_ = z_bounds_host;
+    HostItems bounds_host;
+    make_builder(&bounds_host).insert_back(bounds.cbegin(), bounds.cend());
+    bounds_ = bounds_host;
 
     // Resize bin data
-    resize(&energy_by_z_, z_bounds_.size() - 1);
+    resize(&energy_per_bin_, bounds_.size() - 1);
+    celeritas::fill(real_type(0), &energy_per_bin_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Accumulate energy deposition in diagnostic
+ * Accumulate energy deposition in diagnostic.
  */
 template<MemSpace M>
 void EnergyDiagnostic<M>::end_step(const StateDataRef& states)
 {
     // Set up pointers to pass to device
     EnergyBinPointers<M> pointers;
-    pointers.z_bounds    = z_bounds_;
-    pointers.energy_by_z = energy_by_z_;
+    pointers.axis           = axis_;
+    pointers.bounds         = bounds_;
+    pointers.edep           = energy_per_bin_;
 
     // Invoke kernel for binning energies
     demo_loop::bin_energy(states, pointers);
@@ -162,14 +177,14 @@ void EnergyDiagnostic<M>::get_result(TransporterResult* result)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get vector of binned energy deposition
+ * Get vector of binned energy deposition.
  */
 template<MemSpace M>
 std::vector<celeritas::real_type> EnergyDiagnostic<M>::energy_deposition()
 {
     // Copy binned energy deposition to host
-    std::vector<real_type> edep(energy_by_z_.size());
-    celeritas::copy_to_host(energy_by_z_, celeritas::make_span(edep));
+    std::vector<real_type> edep(energy_per_bin_.size());
+    celeritas::copy_to_host(energy_per_bin_, celeritas::make_span(edep));
     return edep;
 }
 
@@ -190,17 +205,29 @@ template<MemSpace M>
 CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
 {
     // Create grid from EnergyBinPointers
-    celeritas::NonuniformGrid<real_type> grid(pointers_.z_bounds);
+    celeritas::NonuniformGrid<real_type> grid(pointers_.bounds);
 
-    real_type z_pos             = states_.geometry.pos[tid][2];
-    real_type energy_deposition = states_.energy_deposition[tid];
+    real_type pos = states_.geometry.pos[tid][static_cast<int>(pointers_.axis)];
+    {
+        // Bump particle to mid-step point to avoid grid edges coincident with
+        // geometry boundaries
+        real_type dir
+            = states_.geometry.dir[tid][static_cast<int>(pointers_.axis)];
+        pos -= real_type(0.5) * states_.step_length[tid] * dir;
+    }
 
     using BinId = celeritas::ItemId<real_type>;
-    if (z_pos > grid.front() && z_pos < grid.back())
+    if (pos > grid.front() && pos < grid.back())
     {
-        auto bin = grid.find(z_pos);
-        celeritas::atomic_add(&pointers_.energy_by_z[BinId{bin}],
-                              energy_deposition);
+        real_type energy_deposition = states_.energy_deposition[tid];
+        if (energy_deposition > 0)
+        {
+            // Particle might not have deposited energy (geometry step for
+            // photon, not-alive track, etc.): avoid the atomic if so
+            auto bin = grid.find(pos);
+            celeritas::atomic_add(&pointers_.edep[BinId{bin}],
+                                  energy_deposition);
+        }
     }
 }
 

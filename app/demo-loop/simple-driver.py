@@ -53,7 +53,12 @@ inp = {
     'initializer_capacity': 100 * max([num_tracks, num_primaries]),
     'secondary_stack_factor': 3,
     'enable_diagnostics': True,
-    'sync': True
+    'sync': True,
+    # Physics options
+    'rayleigh': True,
+    'eloss_fluctuation': True,
+    'brem_combined': True,
+    'brem_lpm': True,
 }
 
 
