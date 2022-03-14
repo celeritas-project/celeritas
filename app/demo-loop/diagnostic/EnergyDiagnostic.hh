@@ -145,6 +145,7 @@ EnergyDiagnostic<M>::EnergyDiagnostic(const std::vector<real_type>& bounds,
 
     // Resize bin data
     resize(&energy_per_bin_, bounds_.size() - 1);
+    celeritas::fill(real_type(0), &energy_per_bin_);
 }
 
 //---------------------------------------------------------------------------//
