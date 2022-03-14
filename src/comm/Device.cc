@@ -137,6 +137,7 @@ Device::Device(int id) : id_(id)
 {
     CELER_EXPECT(id >= 0 && id < Device::num_devices());
 
+    unsigned int max_threads_per_block = 0;
 #if CELER_USE_DEVICE
 #    if CELERITAS_USE_CUDA
     cudaDeviceProp props;
@@ -145,25 +146,68 @@ Device::Device(int id) : id_(id)
 #    endif
 
     CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
-    name_                 = props.name;
-    total_global_mem_     = props.totalGlobalMem;
-    max_threads_          = props.maxThreadsPerMultiProcessor;
-    num_multi_processors_ = props.multiProcessorCount;
-    warp_size_            = props.warpSize;
+    name_             = props.name;
+    total_global_mem_ = props.totalGlobalMem;
+    max_threads_per_cu_ = props.maxThreadsPerMultiProcessor;
+    threads_per_warp_   = props.warpSize;
 #    if CELERITAS_USE_HIP
     if (name_.empty())
     {
-        // HIP has an extra field that seems to be used instead of the regular
-        // props.name
-        name_ = props.gcnArchName;
+        // The name attribute may be missing? (true for ROCm 4.5.0/gfx90a), so
+        // assume the name can be extracted from the GCN arch:
+        // "gfx90a:sramecc+:xnack-" (SRAM ECC and XNACK are memory related
+        // flags )
+        std::string gcn_arch_name = props.gcnArchName;
+        auto        pos           = gcn_arch_name.find(':');
+        if (pos != std::string::npos)
+        {
+            gcn_arch_name.erase(pos);
+            name_ = std::move(gcn_arch_name);
+        }
     }
 #    endif
+
+    extra_["clock_rate"]            = props.clockRate;
+    extra_["multiprocessor_count"]  = props.multiProcessorCount;
+    extra_["max_cache_size"]        = props.l2CacheSize;
+    extra_["max_threads_per_block"] = props.maxThreadsPerBlock;
+    extra_["memory_clock_rate"]     = props.memoryClockRate;
+    extra_["regs_per_block"]        = props.regsPerBlock;
+    extra_["shared_mem_per_block"]  = props.sharedMemPerBlock;
+    extra_["total_const_mem"]       = props.totalConstMem;
+    extra_["capability_major"]      = props.major;
+    extra_["capability_minor"]      = props.minor;
+#    if CELERITAS_USE_CUDA
+    extra_["max_blocks_per_multiprocessor"] = props.maxBlocksPerMultiProcessor;
+    extra_["regs_per_multiprocessor"]       = props.regsPerMultiprocessor;
+#    endif
+
+    // Save for possible block size initialization
+    max_threads_per_block = props.maxThreadsPerBlock;
 #endif
+
+    // See device_runtime_api.h
+    eu_per_cu_ = CELER_EU_PER_CU;
+
+    // Set default block size from environment
+    const std::string& bsize_str = celeritas::getenv("CELER_BLOCK_SIZE");
+    if (!bsize_str.empty())
+    {
+        default_block_size_ = std::stoi(bsize_str);
+        CELER_VALIDATE(default_block_size_ >= threads_per_warp_
+                           && default_block_size_ <= max_threads_per_block,
+                       << "Invalid block size: number of threads must be in ["
+                       << threads_per_warp_ << ", " << max_threads_per_block
+                       << "]");
+        CELER_VALIDATE(default_block_size_ % threads_per_warp_ == 0,
+                       << "Invalid block size: number of threads must be "
+                          "evenly divisible by "
+                       << threads_per_warp_);
+    }
 
     CELER_ENSURE(*this);
     CELER_ENSURE(!name_.empty());
     CELER_ENSURE(total_global_mem_ > 0);
-    CELER_ENSURE(max_threads_ > 0);
 }
 
 //---------------------------------------------------------------------------//

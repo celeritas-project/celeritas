@@ -124,7 +124,7 @@ void trace(const GeoParamsCRefDevice& geo_params,
                                                           "trace");
 
     auto params = calc_kernel_params(image.dims[0]);
-    trace_kernel<<<params.grid_size, params.block_size>>>(
+    trace_kernel<<<params.blocks_per_grid, params.threads_per_block>>>(
         geo_params, geo_state, image);
     CELER_DEVICE_CHECK_ERROR();
 

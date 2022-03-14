@@ -81,7 +81,7 @@ VGGTestOutput vgg_test(VGGTestInput input)
     static const celeritas::KernelParamCalculator calc_launch_params(
         vgg_test_kernel, "vgg_test");
     auto params = calc_launch_params(init.size());
-    vgg_test_kernel<<<params.grid_size, params.block_size>>>(
+    vgg_test_kernel<<<params.blocks_per_grid, params.threads_per_block>>>(
         input.params,
         input.state,
         raw_pointer_cast(init.data()),

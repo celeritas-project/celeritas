@@ -30,7 +30,7 @@ using celeritas::Ownership;
 //! Kernel thread dimensions
 struct DeviceGridParams
 {
-    unsigned int block_size = 256;   //!< Threads per block
+    unsigned int threads_per_block = 256; //!< Threads per block
     bool         sync       = false; //!< Call synchronize after every kernel
 };
 

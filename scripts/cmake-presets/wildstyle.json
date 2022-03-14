@@ -55,7 +55,10 @@
     {
       "name": "ndebug-vecgeom",
       "displayName": "Everything in release mode",
-      "inherits": [".ndebug", "vecgeom"]
+      "inherits": [".ndebug", "vecgeom"],
+      "cacheVariables": {
+        "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"}
+      }
     },
     {
       "name": "ndebug-serial",

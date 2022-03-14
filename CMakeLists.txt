@@ -21,6 +21,7 @@ endif()
 
 include(GNUInstallDirs)
 include(CeleritasUtils)
+include(CMakeDependentOption)
 
 #----------------------------------------------------------------------------#
 # OPTIONS
@@ -97,6 +98,11 @@ if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   message(STATUS "Set default CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
   unset(_default_build_type)
 endif()
+
+cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS
+  "Use kernel launch bounds generated from launch-bounds.json" "OFF"
+  "CELERITAS_USE_CUDA OR CELERITAS_USE_HIP" OFF
+)
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
   # Default CMake standard to C++14 for this directory and underneath

@@ -26,8 +26,8 @@ namespace celeritas
 void KernelDiagnostics::log_launch(value_type& diag, unsigned int num_threads)
 {
     CELER_LOG(debug) << "Launching '" << diag.name << "' on "
-                     << diag.block_size << " blocks with " << num_threads
-                     << " threads";
+                     << diag.threads_per_block << " blocks with "
+                     << num_threads << " threads";
 }
 
 //---------------------------------------------------------------------------//
@@ -57,14 +57,14 @@ std::ostream& operator<<(std::ostream& os, const KernelDiagnostics& kd)
         const auto& diag = kd.at(KernelDiagnostics::key_type{kernel_idx});
         // clang-format off
         os << "{\n"
-            "  name: \""          << diag.name            << "\",\n"
-            "  block_size: "      << diag.block_size      << ",\n"
-            "  num_regs: "        << diag.num_regs        << ",\n"
-            "  const_mem: "       << diag.const_mem       << ",\n"
-            "  local_mem: "       << diag.local_mem       << ",\n"
-            "  occupancy: "       << diag.occupancy       << ",\n"
-            "  num_launches: "    << diag.num_launches    << ",\n"
-            "  max_num_threads: " << diag.max_num_threads << "\n"
+            "  name: \""            << diag.name              << "\",\n"
+            "  threads_per_block: " << diag.threads_per_block << ",\n"
+            "  num_regs: "          << diag.num_regs          << ",\n"
+            "  const_mem: "         << diag.const_mem         << ",\n"
+            "  local_mem: "         << diag.local_mem         << ",\n"
+            "  occupancy: "         << diag.occupancy         << ",\n"
+            "  num_launches: "      << diag.num_launches      << ",\n"
+            "  max_num_threads: "   << diag.max_num_threads   << "\n"
             "}";
         // clang-format on
     }

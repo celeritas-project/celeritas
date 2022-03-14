@@ -44,7 +44,8 @@ void count_steps(const ParamsDeviceRef&                  params,
     static const KernelParamCalculator calc_launch_params(count_steps_kernel,
                                                           "count_steps");
     auto                               kp = calc_launch_params(states.size());
-    count_steps_kernel<<<kp.grid_size, kp.block_size>>>(params, states, data);
+    count_steps_kernel<<<kp.blocks_per_grid, kp.threads_per_block>>>(
+        params, states, data);
     CELER_DEVICE_CHECK_ERROR();
 }
 //---------------------------------------------------------------------------//

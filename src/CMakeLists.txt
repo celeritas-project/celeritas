@@ -4,8 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-include(CeleritasGenInteractor)
-
 #----------------------------------------------------------------------------#
 # CONFIGURE FILE
 #----------------------------------------------------------------------------#
@@ -33,18 +31,37 @@ list(APPEND SOURCES
   "${CMAKE_CURRENT_BINARY_DIR}/celeritas_version.cc"
 )
 
-# Generate model launcher code for host/device
+# Generate model launcher and track initialization code for host/device
 set(_gen_sources)
-celeritas_gen_interactor(_gen_sources "BetheHeitler" "bethe_heitler")
-celeritas_gen_interactor(_gen_sources "CombinedBrem" "combined_brem")
-celeritas_gen_interactor(_gen_sources "EPlusGG" "eplusgg")
-celeritas_gen_interactor(_gen_sources "KleinNishina" "klein_nishina")
-celeritas_gen_interactor(_gen_sources "LivermorePE" "livermore_pe")
-celeritas_gen_interactor(_gen_sources "MollerBhabha" "moller_bhabha")
-celeritas_gen_interactor(_gen_sources "MuBremsstrahlung" "mu_bremsstrahlung")
-celeritas_gen_interactor(_gen_sources "Rayleigh" "rayleigh")
-celeritas_gen_interactor(_gen_sources "RelativisticBrem" "relativistic_brem")
-celeritas_gen_interactor(_gen_sources "SeltzerBerger" "seltzer_berger")
+macro(celeritas_gen_interactor class func)
+  celeritas_gen(_gen_sources
+    "gen-interactor.py" "physics/em/generated/${class}Interact"
+    --class ${class}  --func ${func}
+  )
+endmacro()
+macro(celeritas_gen_trackinit class)
+  celeritas_gen(_gen_sources
+    "gen-trackinit.py" "sim/generated/${class}"
+    --class ${class}
+  )
+endmacro()
+
+celeritas_gen_interactor("BetheHeitler" "bethe_heitler")
+celeritas_gen_interactor("CombinedBrem" "combined_brem")
+celeritas_gen_interactor("EPlusGG" "eplusgg")
+celeritas_gen_interactor("KleinNishina" "klein_nishina")
+celeritas_gen_interactor("LivermorePE" "livermore_pe")
+celeritas_gen_interactor("MollerBhabha" "moller_bhabha")
+celeritas_gen_interactor("MuBremsstrahlung" "mu_bremsstrahlung")
+celeritas_gen_interactor("Rayleigh" "rayleigh")
+celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
+celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
+
+celeritas_gen_trackinit("InitTracks")
+celeritas_gen_trackinit("LocateAlive")
+celeritas_gen_trackinit("ProcessPrimaries")
+celeritas_gen_trackinit("ProcessSecondaries")
+
 list(APPEND SOURCES ${_gen_sources})
 
 # Main library
@@ -112,25 +129,26 @@ list(APPEND SOURCES
   physics/material/detail/Utils.cc
   random/detail/RngStateInit.cc
   sim/TrackInitParams.cc
-  sim/detail/InitializeTracks.cc
+  sim/detail/TrackInitAlgorithms.cc
 )
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     base/KernelParamCalculator.device.cc
+  )
+  set(DEVICE_SOURCES
     base/detail/Filler.cu
     random/detail/RngStateInit.cu
-    sim/detail/InitializeTracks.cu
+    sim/detail/TrackInitAlgorithms.cu
   )
 endif()
+
 if(CELERITAS_USE_CUDA)
   # TODO: CUDA RNG is included by host code
   list(APPEND PUBLIC_DEPS CUDA::cudart)
 elseif(CELERITAS_USE_HIP)
   set_source_files_properties(
-    base/detail/Filler.cu
-    random/detail/RngStateInit.cu
-    sim/detail/InitializeTracks.cu
+    ${DEVICE_SOURCES}
     PROPERTIES LANGUAGE HIP
   )
 else()
@@ -178,7 +196,7 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
 endif()
 
-celeritas_add_library(celeritas ${SOURCES})
+celeritas_add_library(celeritas ${SOURCES} ${DEVICE_SOURCES})
 celeritas_strip_alias(celeritas_target celeritas)
 add_library(Celeritas::Core ALIAS ${celeritas_target})
 

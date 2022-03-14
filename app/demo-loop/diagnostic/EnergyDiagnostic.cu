@@ -40,8 +40,8 @@ void bin_energy(const StateDeviceRef& states, PointersDevice& pointers)
     static const KernelParamCalculator calc_launch_params(bin_energy_kernel,
                                                           "bin_energy");
     auto lparams = calc_launch_params(states.size());
-    bin_energy_kernel<<<lparams.grid_size, lparams.block_size>>>(states,
-                                                                 pointers);
+    bin_energy_kernel<<<lparams.blocks_per_grid, lparams.threads_per_block>>>(
+        states, pointers);
     CELER_DEVICE_CHECK_ERROR();
 }
 

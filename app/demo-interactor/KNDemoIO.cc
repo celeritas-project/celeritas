@@ -16,12 +16,13 @@ namespace demo_interactor
 //! I/O routines for JSON
 void to_json(nlohmann::json& j, const DeviceGridParams& v)
 {
-    j = nlohmann::json{{"block_size", v.block_size}, {"sync", v.sync}};
+    j = nlohmann::json{{"threads_per_block", v.threads_per_block},
+                       {"sync", v.sync}};
 }
 
 void from_json(const nlohmann::json& j, DeviceGridParams& v)
 {
-    j.at("block_size").get_to(v.block_size);
+    j.at("threads_per_block").get_to(v.threads_per_block);
     j.at("sync").get_to(v.sync);
 }
 
