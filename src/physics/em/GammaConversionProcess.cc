@@ -22,12 +22,14 @@ namespace celeritas
  * Construct from particles and imported Geant data.
  */
 GammaConversionProcess::GammaConversionProcess(SPConstParticles particles,
-                                               SPConstImported  process_data)
+                                               SPConstImported  process_data,
+                                               Options          options)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::conversion,
                 {pdg::gamma()})
+    , options_(options)
 {
     CELER_EXPECT(particles_);
 }
@@ -39,7 +41,8 @@ GammaConversionProcess::GammaConversionProcess(SPConstParticles particles,
 auto GammaConversionProcess::build_models(ModelIdGenerator next_id) const
     -> VecModel
 {
-    return {std::make_shared<BetheHeitlerModel>(next_id(), *particles_)};
+    return {std::make_shared<BetheHeitlerModel>(
+        next_id(), *particles_, options_.enable_lpm)};
 }
 
 //---------------------------------------------------------------------------//

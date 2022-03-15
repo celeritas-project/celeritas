@@ -210,6 +210,9 @@ TransporterInput load_input(const LDemoArgs& args)
         brem_options.combined_model = args.brem_combined;
         brem_options.enable_lpm     = args.brem_lpm;
 
+        GammaConversionProcess::Options conv_options;
+        conv_options.enable_lpm = args.conv_lpm;
+
         auto process_data = std::make_shared<ImportedProcesses>(
             std::move(imported_data.processes));
         input.processes.push_back(
@@ -222,7 +225,7 @@ TransporterInput load_input(const LDemoArgs& args)
                 result.particles, result.materials, process_data));
         }
         input.processes.push_back(std::make_shared<GammaConversionProcess>(
-            result.particles, process_data));
+            result.particles, process_data, conv_options));
         input.processes.push_back(
             std::make_shared<EPlusAnnihilationProcess>(result.particles));
         input.processes.push_back(std::make_shared<EIonizationProcess>(

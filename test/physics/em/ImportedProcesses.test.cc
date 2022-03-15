@@ -140,9 +140,12 @@ TEST_F(ImportedProcessesTest, eplus_annihilation)
 
 TEST_F(ImportedProcessesTest, gamma_conversion)
 {
+    GammaConversionProcess::Options options;
+    options.enable_lpm = true;
+
     // Create gamma conversion process
-    auto process
-        = std::make_shared<GammaConversionProcess>(particles_, processes_);
+    auto process = std::make_shared<GammaConversionProcess>(
+        particles_, processes_, options);
 
     // Test model
     auto models = process->build_models(ModelIdGenerator{});
