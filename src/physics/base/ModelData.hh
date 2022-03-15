@@ -12,7 +12,6 @@
 #include "base/Types.hh"
 #include "physics/base/CutoffData.hh"
 #include "physics/em/AtomicRelaxationData.hh"
-#include "physics/em/LPMData.hh"
 #include "physics/material/MaterialData.hh"
 #include "random/RngData.hh"
 #include "sim/SimData.hh"
@@ -43,7 +42,6 @@ struct ModelInteractParamsRefs
     ParamsCRef<PhysicsParamsData>     physics;
     ParamsCRef<CutoffParamsData>      cutoffs;
     ParamsCRef<AtomicRelaxParamsData> relaxation;
-    ParamsCRef<LPMData>               lpm;
 
     //// METHODS ////
 

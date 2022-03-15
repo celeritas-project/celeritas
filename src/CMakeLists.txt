@@ -113,7 +113,6 @@ list(APPEND SOURCES
   physics/em/EPlusGGModel.cc
   physics/em/GammaConversionProcess.cc
   physics/em/KleinNishinaModel.cc
-  physics/em/LPMParams.cc
   physics/em/MollerBhabhaModel.cc
   physics/em/MuBremsstrahlungModel.cc
   physics/em/MultipleScatteringProcess.cc

@@ -10,7 +10,6 @@
 #include "physics/base/Units.hh"
 #include "physics/em/BetheHeitlerModel.hh"
 #include "physics/em/GammaConversionProcess.hh"
-#include "physics/em/LPMParams.hh"
 #include "physics/em/detail/BetheHeitlerInteractor.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialTrackView.hh"
@@ -78,10 +77,6 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         };
         this->set_material_params(inp);
         this->set_material("Cu");
-
-        // Set up shared LPM data
-        lpm_params_
-            = std::make_shared<celeritas::LPMParams>(this->particle_params());
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -117,8 +112,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<const celeritas::LPMParams> lpm_params_;
-    celeritas::detail::BetheHeitlerData         data_;
+    celeritas::detail::BetheHeitlerData data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -138,7 +132,6 @@ TEST_F(BetheHeitlerInteractorTest, basic)
 
     // Create the interactor
     BetheHeitlerInteractor interact(data_,
-                                    lpm_params_->host_ref(),
                                     this->particle_track(),
                                     this->direction(),
                                     this->secondary_allocator(),
@@ -220,7 +213,6 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
 
             // Create interactor
             BetheHeitlerInteractor interact(data_,
-                                            lpm_params_->host_ref(),
                                             this->particle_track(),
                                             this->direction(),
                                             this->secondary_allocator(),

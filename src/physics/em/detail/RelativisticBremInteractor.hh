@@ -19,7 +19,6 @@
 #include "physics/base/Secondary.hh"
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
-#include "physics/em/LPMData.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
@@ -59,13 +58,12 @@ class RelativisticBremInteractor
     // Construct with shared and state data
     inline CELER_FUNCTION
     RelativisticBremInteractor(const RelativisticBremNativeRef& shared,
-                               const LPMDataRef&                lpm,
                                const ParticleTrackView&         particle,
                                const Real3&                     direction,
                                const CutoffView&                cutoffs,
                                StackAllocator<Secondary>&       allocate,
                                const MaterialView&              material,
-                               ElementComponentId               elcomp_id);
+                               const ElementComponentId&        elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -104,20 +102,19 @@ class RelativisticBremInteractor
 CELER_FUNCTION
 RelativisticBremInteractor::RelativisticBremInteractor(
     const RelativisticBremNativeRef& shared,
-    const LPMDataRef&                lpm,
     const ParticleTrackView&         particle,
     const Real3&                     direction,
     const CutoffView&                cutoffs,
     StackAllocator<Secondary>&       allocate,
     const MaterialView&              material,
-    ElementComponentId               elcomp_id)
+    const ElementComponentId&        elcomp_id)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())
     , inc_direction_(direction)
     , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
     , allocate_(allocate)
-    , rb_energy_sampler_(shared, lpm, particle, cutoffs, material, elcomp_id)
+    , rb_energy_sampler_(shared, particle, cutoffs, material, elcomp_id)
     , final_state_interaction_(inc_energy_,
                                inc_direction_,
                                inc_momentum_,

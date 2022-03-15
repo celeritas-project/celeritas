@@ -15,7 +15,6 @@
 #include "base/Quantity.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
-#include "physics/em/LPMData.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
 
@@ -41,11 +40,6 @@ namespace detail
 class LPMCalculator
 {
   public:
-    //!@{
-    //! Type aliases
-    using LPMDataRef = LPMData<Ownership::const_reference, MemSpace::native>;
-    //!@}
-
     //! LPM suppression functions
     struct LPMFunctions
     {
@@ -55,9 +49,8 @@ class LPMCalculator
     };
 
   public:
-    // Construct with LPM data, material data, and photon energy
-    inline CELER_FUNCTION LPMCalculator(const LPMDataRef&   shared,
-                                        const MaterialView& material,
+    // Construct with material data and photon energy
+    inline CELER_FUNCTION LPMCalculator(const MaterialView& material,
                                         const ElementView&  element,
                                         bool dielectric_suppression,
                                         units::MevEnergy gamma_energy);
@@ -68,8 +61,6 @@ class LPMCalculator
   private:
     //// DATA ////
 
-    // Shared LPM data
-    const LPMDataRef& shared_;
     // Current element
     const ElementView& element_;
     // Electron density of the current material [1/cm^3]
@@ -80,6 +71,10 @@ class LPMCalculator
     const bool dielectric_suppression_;
     // Photon energy [MeV]
     const real_type gamma_energy_;
+
+    //// HELPER FUNCTIONS ////
+
+    inline CELER_FUNCTION LPMFunctions compute_g_phi(real_type s) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -89,13 +84,11 @@ class LPMCalculator
  * Construct with LPM data, material data, and photon energy.
  */
 CELER_FUNCTION
-LPMCalculator::LPMCalculator(const LPMDataRef&   shared,
-                             const MaterialView& material,
+LPMCalculator::LPMCalculator(const MaterialView& material,
                              const ElementView&  element,
                              bool                dielectric_suppression,
                              units::MevEnergy    gamma_energy)
-    : shared_(shared)
-    , element_(element)
+    : element_(element)
     , electron_density_(material.electron_density())
     , lpm_energy_(material.radiation_length()
                   * value_as<MevPerCm>(lpm_constant()))
@@ -118,8 +111,6 @@ LPMCalculator::LPMCalculator(const LPMDataRef&   shared,
  */
 CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
 {
-    LPMFunctions result;
-
     // Suppression variable \f$ s' \f$. For bremsstrahlung \f$ s' =
     // \sqrt{\frac{E_\textrm{LPM} k}{8 E (E - k)}} \f$, and for pair production
     // \f$ s' = \sqrt{\frac{E_\textrm{LPM} k}{8 E (k - E)}} \f$, where \f$ k \$
@@ -132,18 +123,18 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
     const real_type s1 = ipow<2>(element_.cbrt_z() / real_type(184.15));
 
     // Calculate \f$ \xi(s') \f$ and \f$ s = \frac{s'}{\sqrt{\xi(s')}} \f$
-    result.xi = 2;
+    real_type xi = 2;
     if (s_prime > 1)
     {
-        result.xi = 1;
+        xi = 1;
     }
     else if (s_prime > constants::sqrt_two * s1)
     {
         const real_type log_s1 = std::log(constants::sqrt_two * s1);
         const real_type h      = std::log(s_prime) / log_s1;
-        result.xi = 1 + h - real_type(0.08) * (1 - h) * h * (2 - h) / log_s1;
+        xi = 1 + h - real_type(0.08) * (1 - h) * h * (2 - h) / log_s1;
     }
-    real_type s = s_prime / std::sqrt(result.xi);
+    real_type s = s_prime / std::sqrt(xi);
 
     if (dielectric_suppression_)
     {
@@ -157,51 +148,97 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
         s *= (1 + k_p / ipow<2>(gamma_energy_));
 
         // Recalculate \f$ \xi \$ from the modified suppression variable
-        result.xi = 2;
+        xi = 2;
         if (s > 1)
         {
-            result.xi = 1;
+            xi = 1;
         }
         else if (s > s1)
         {
-            result.xi = 1 + std::log(s) / std::log(s1);
+            xi = 1 + std::log(s) / std::log(s1);
         }
     }
 
     // Calculate \f$ G(s) \f$ and \f$ \phi(s) \f$
-    if (s < shared_.s_limit())
-    {
-        real_type val = s * shared_.inv_delta();
-        CELER_ASSERT(val >= 0);
-
-        const size_type ilow = static_cast<size_type>(val);
-        CELER_ASSERT(ilow + 1 < shared_.lpm_table.size());
-
-        val -= ilow;
-
-        auto linterp = [val](real_type lo, real_type hi) {
-            return lo + (hi - lo) * val;
-        };
-
-        auto get_table = [ilow, this](size_type offset) {
-            return this->shared_.lpm_table[ItemId<MigdalData>{ilow + offset}];
-        };
-
-        result.g   = linterp(get_table(0).g, get_table(1).g);
-        result.phi = linterp(get_table(0).phi, get_table(1).phi);
-    }
-    else
-    {
-        const real_type s4 = ipow<4>(s);
-        result.g           = 1 - real_type(0.0230655) / s4;
-        result.phi         = 1 - real_type(0.01190476) / s4;
-    }
+    LPMFunctions result = this->compute_g_phi(s);
 
     // Make sure suppression is less than 1 (due to Migdal's approximation on
     // \f$ xi \f$)
-    if (result.xi * result.phi > 1 || s > real_type(0.57))
+    if (xi * result.phi > 1 || s > real_type(0.57))
     {
-        result.xi = 1 / result.phi;
+        xi = 1 / result.phi;
+    }
+    result.xi = xi;
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compute the LPM suppression functions \f$ G(s) \f$ and \f$ \phi(s) \f$.
+ *
+ * The functions are calculated using a piecewise approximation with simple
+ * analytic functions.
+ *
+ * See section 10.2.2 of the Geant4 Physics Reference Manual and
+ * ComputeLPMGsPhis in G4eBremsstrahlungRelModel and G4PairProductionRelModel.
+ * Note that in Geant4 these are precomputed and tabulated at initialization.
+ */
+auto LPMCalculator::compute_g_phi(real_type s) const -> LPMFunctions
+{
+    using R = real_type;
+
+    LPMFunctions result;
+
+    if (s < R(0.01))
+    {
+        result.phi = 6 * s * (1 - constants::pi * s);
+        result.g   = 12 * s - 2 * result.phi;
+    }
+    else
+    {
+        real_type s2 = ipow<2>(s);
+        real_type s3 = s * s2;
+        real_type s4 = ipow<2>(s2);
+
+        // use Stanev approximation: for \psi(s) and compute G(s)
+        if (s < R(0.415827))
+        {
+            result.phi
+                = 1
+                  - std::exp(-6 * s * (1 + s * (3 - constants::pi))
+                             + s3 / (R(0.623) + R(0.796) * s + R(0.658) * s2));
+            real_type psi = 1
+                            - std::exp(-4 * s
+                                       - 8 * s2
+                                             / (1 + R(3.936) * s + R(4.97) * s2
+                                                - R(0.05) * s3 + R(7.5) * s4));
+            result.g = 3 * psi - 2 * result.phi;
+        }
+        else if (s < R(1.55))
+        {
+            result.phi
+                = 1
+                  - std::exp(-6 * s * (1 + s * (3 - constants::pi))
+                             + s3 / (R(0.623) + R(0.796) * s + R(0.658) * s2));
+            result.g = std::tanh(R(-0.160723) + R(3.755030) * s
+                                 - R(1.798138) * s2 + R(0.672827) * s3
+                                 - R(0.120772) * s4);
+        }
+        else
+        {
+            result.phi = 1 - R(0.01190476) / s4;
+            if (s < R(1.9156))
+            {
+                result.g = std::tanh(R(-0.160723) + R(3.755030) * s
+                                     - R(1.798138) * s2 + R(0.672827) * s3
+                                     - R(0.120772) * s4);
+            }
+            else
+            {
+                result.g = 1 - R(0.0230655) / s4;
+            }
+        }
     }
 
     return result;

@@ -73,7 +73,6 @@ CELER_FUNCTION void RelativisticBremLauncher<M>::operator()(ThreadId tid) const
     CutoffView cutoffs(model.params.cutoffs, material.material_id());
     StackAllocator<Secondary>  allocate_secondaries(model.states.secondaries);
     RelativisticBremInteractor interact(shared,
-                                        model.params.lpm,
                                         particle,
                                         model.states.direction[tid],
                                         cutoffs,

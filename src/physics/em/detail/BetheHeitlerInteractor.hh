@@ -17,7 +17,6 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "physics/em/LPMData.hh"
 #include "physics/material/ElementView.hh"
 #include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/GenerateCanonical.hh"
@@ -56,7 +55,6 @@ class BetheHeitlerInteractor
     //! Construct sampler from shared and state data
     inline CELER_FUNCTION
     BetheHeitlerInteractor(const BetheHeitlerData&    shared,
-                           const LPMDataRef&          lpm,
                            const ParticleTrackView&   particle,
                            const Real3&               inc_direction,
                            StackAllocator<Secondary>& allocate,
@@ -138,7 +136,6 @@ class BetheHeitlerInteractor
  */
 CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     const BetheHeitlerData&    shared,
-    const LPMDataRef&          lpm,
     const ParticleTrackView&   particle,
     const Real3&               inc_direction,
     StackAllocator<Secondary>& allocate,
@@ -153,7 +150,7 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     , lpm_energy_(material.radiation_length()
                   * value_as<MevPerCm>(lpm_constant()))
     , calc_lpm_functions_(
-          lpm, material, element_, shared_.dielectric_suppression(), inc_energy_)
+          material, element_, shared_.dielectric_suppression(), inc_energy_)
 {
     CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
     CELER_EXPECT(inc_energy_.value() > 2 * shared_.electron_mass);

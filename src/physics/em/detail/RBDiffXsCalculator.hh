@@ -16,7 +16,6 @@
 #include "base/Types.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
-#include "physics/em/LPMData.hh"
 #include "physics/material/Types.hh"
 
 #include "LPMCalculator.hh"
@@ -50,7 +49,6 @@ class RBDiffXsCalculator
     // Construct with incident electron and current element
     inline CELER_FUNCTION
     RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
-                       const LPMDataRef&                lpm,
                        const ParticleTrackView&         particle,
                        const MaterialView&              material,
                        ElementComponentId               elcomp_id);
@@ -88,8 +86,6 @@ class RBDiffXsCalculator
 
     // Shared constant physics properties
     const RelativisticBremNativeRef& shared_;
-    // Shared LPM data
-    const LPMDataRef& lpm_;
     // Element data of the current material
     const ElementData& elem_data_;
     // Shared problem data for the current material
@@ -124,12 +120,10 @@ class RBDiffXsCalculator
  */
 CELER_FUNCTION
 RBDiffXsCalculator::RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
-                                       const LPMDataRef&                lpm,
                                        const ParticleTrackView& particle,
                                        const MaterialView&      material,
                                        ElementComponentId       elcomp_id)
     : shared_(shared)
-    , lpm_(lpm)
     , elem_data_(shared.elem_data[material.element_id(elcomp_id)])
     , material_(material)
     , element_(material.element_view(elcomp_id))
@@ -206,8 +200,7 @@ real_type RBDiffXsCalculator::dxsec_per_atom_lpm(real_type gamma_energy)
 {
     // Evaluate LPM functions
     real_type     epsilon = total_energy_ / gamma_energy;
-    LPMCalculator calc_lpm_functions(lpm_,
-                                     material_,
+    LPMCalculator calc_lpm_functions(material_,
                                      element_,
                                      shared_.dielectric_suppression(),
                                      Energy{gamma_energy});
