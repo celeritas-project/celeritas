@@ -61,6 +61,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         data_.positron_id   = params.find(pdg::positron());
         data_.gamma_id      = params.find(pdg::gamma());
         data_.electron_mass = params.get(data_.electron_id).mass().value();
+        data_.enable_lpm    = true;
 
         // Set default particle to photon with energy of 100 MeV
         this->set_inc_particle(pdg::gamma(), MevEnergy{100.0});
@@ -235,7 +236,7 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
 
     // Gold values for average number of calls to RNG
     static const double expected_avg_engine_samples[]
-        = {20.127, 24.5935, 24.13, 23.1985, 22.9075, 22};
+        = {20.127, 24.5935, 24.13, 23.1985, 22.9075, 22.024};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
 
@@ -296,7 +297,6 @@ TEST_F(BetheHeitlerInteractorTest, distributions)
     // 100 MeV incident photon
     {
         std::vector<int> eps_dist = bin_epsilon(100);
-        PRINT_EXPECTED(eps_dist);
         static const int expected_eps_dist[]
             = {754, 1109, 1054, 1055, 1010, 1010, 1024, 1055, 1090, 839};
         EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
@@ -306,7 +306,7 @@ TEST_F(BetheHeitlerInteractorTest, distributions)
     {
         std::vector<int> eps_dist = bin_epsilon(1e6);
         static const int expected_eps_dist[]
-            = {1235, 1044, 933, 922, 864, 887, 917, 964, 1035, 1199};
+            = {1209, 1073, 911, 912, 844, 881, 903, 992, 1066, 1209};
         EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
     }
 }
