@@ -89,8 +89,6 @@ class BetheHeitlerInteractor
     const ElementView& element_;
     // Whether LPM supression is applied
     const bool enable_lpm_;
-    // Characteristic energy for the LPM effect for this material [MeV]
-    const real_type lpm_energy_;
     // Used to calculate the LPM suppression functions
     LPMCalculator calc_lpm_functions_;
     // Cached minimum epsilon, m_e*c^2/E_gamma; kinematical limit for Y -> e+e-
@@ -112,17 +110,17 @@ class BetheHeitlerInteractor
 
     //// HELPER FUNCTIONS ////
 
-    // Calculates the screening variable, \f$ \delta \f$
+    // Calculate the screening variable \f$ \delta \f$
     inline CELER_FUNCTION real_type impact_parameter(real_type eps) const;
 
     // Calculate the screening functions \f$ \Phi_1 \f$ and \f$ \Phi_2 \f$
     inline CELER_FUNCTION ScreeningFunctions
     screening_phi1_phi2(real_type delta) const;
 
-    // Auxiliary screening function \f$ F_1 \f$
+    // Calculate the auxiliary screening function \f$ F_1 \f$
     inline CELER_FUNCTION real_type screening_f1(real_type delta) const;
 
-    // Auxiliary screening function \f$ F_2 \f$
+    // Calculate the auxiliary screening function \f$ F_2 \f$
     inline CELER_FUNCTION real_type screening_f2(real_type delta) const;
 };
 
@@ -147,8 +145,6 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     , allocate_(allocate)
     , element_(element)
     , enable_lpm_(shared.enable_lpm && inc_energy_ > lpm_threshold())
-    , lpm_energy_(material.radiation_length()
-                  * value_as<MevPerCm>(lpm_constant()))
     , calc_lpm_functions_(
           material, element_, shared_.dielectric_suppression(), inc_energy_)
 {
@@ -191,7 +187,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // Calculate the minimum (when \epsilon = 1/2) and maximum (when
         // \epsilon = \epsilon_1) values of screening variable, \delta. Above
         // 50 MeV, a Coulomb correction function is introduced.
-        const real_type delta_min = 544 / element_.cbrt_z() * epsilon0_;
+        const real_type delta_min = 4 * 136 / element_.cbrt_z() * epsilon0_;
         const real_type f_z
             = inc_energy_ > coulomb_corr_threshold()
                   ? 8 * (element_.log_z() / 3 + element_.coulomb_correction())
