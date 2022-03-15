@@ -159,7 +159,6 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     CELER_EXPECT(inc_energy_.value() > 2 * shared_.electron_mass);
 
     epsilon0_ = shared_.electron_mass / inc_energy_.value();
-    CELER_ENSURE(epsilon0_ < real_type(0.5));
 }
 
 //---------------------------------------------------------------------------//
@@ -195,11 +194,11 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // Calculate the minimum (when \epsilon = 1/2) and maximum (when
         // \epsilon = \epsilon_1) values of screening variable, \delta. Above
         // 50 MeV, a Coulomb correction function is introduced.
-        const real_type delta_min = 4 * 136 / element_.cbrt_z() * epsilon0_;
+        const real_type delta_min = 544 / element_.cbrt_z() * epsilon0_;
         const real_type f_z
             = inc_energy_ > coulomb_corr_threshold()
-                  ? 8 * element_.log_z() / 3
-                  : 8 * (element_.log_z() / 3 + element_.coulomb_correction());
+                  ? 8 * (element_.log_z() / 3 + element_.coulomb_correction())
+                  : 8 * element_.log_z() / 3;
         const real_type delta_max
             = std::exp((real_type(42.038) - f_z) / real_type(8.29))
               - real_type(0.958);
@@ -223,7 +222,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         BernoulliDistribution choose_f1g1(ipow<2>(half - epsilon_min) * f10,
                                           real_type(1.5) * f20);
 
-        // Rejection function g_1 or g_2
+        // Rejection function g_1 or g_2. Note the it's possible for g to be
+        // greater than one
         real_type g;
         do
         {
@@ -254,7 +254,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 {
                     g = (this->screening_f1(delta) - f_z) / f10;
                 }
-                CELER_ASSERT(g > 0 && g <= 1);
+                CELER_ASSERT(g > 0);
             }
             else
             {
@@ -283,9 +283,9 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 {
                     g = (this->screening_f2(delta) - f_z) / f20;
                 }
-                CELER_ASSERT(g > 0 && g <= 1);
+                CELER_ASSERT(g > 0);
             }
-        } while (!BernoulliDistribution(g)(rng));
+        } while (g < generate_canonical(rng));
     }
 
     // Construct interaction for change to primary (incident) particle (gamma)
