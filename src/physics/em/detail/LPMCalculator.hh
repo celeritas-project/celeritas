@@ -107,7 +107,9 @@ LPMCalculator::LPMCalculator(const MaterialView& material,
  *
  * See section 10.2.2 of the Geant4 Physics Reference Manual and
  * ComputeLPMfunctions and GetLPMFunctions in G4eBremsstrahlungRelModel and
- * G4PairProductionRelModel.
+ * G4PairProductionRelModel. Also see T. Stanev, Ch. Vankov, Development of
+ * ultrahigh-energy electromagnetic cascades in water and lead including the
+ * Landau-Pomeranchuk-Migdal effect, Phys. Rev. D, 25 (1982), p. 1291.
  */
 CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
 {
@@ -118,11 +120,10 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
     const real_type s_prime = std::sqrt(
         lpm_energy_ / (8 * epsilon * gamma_energy_ * std::fabs(epsilon - 1)));
 
-    // TODO: In the Geant4 relativistic pair production model the denominator
-    // is 184 instead of 184.15 -- why? Will it matter?
     const real_type s1 = ipow<2>(element_.cbrt_z() / real_type(184.15));
 
-    // Calculate \f$ \xi(s') \f$ and \f$ s = \frac{s'}{\sqrt{\xi(s')}} \f$
+    // Calculate \f$ \xi(s') \f$ and \f$ s = \frac{s'}{\sqrt{\xi(s')}} \f$ (Eq.
+    // 21 in Stanev)
     real_type xi = 2;
     if (s_prime > 1)
     {
@@ -143,11 +144,12 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
         // where the characteristic photon energy scale \f$ k_p \f$ is defined
         // in terms of the plasma frequency of the medium \f$ \omega_p \f$: \f$
         // k_p = \hbar \omega_p \frac{E}{m_e c^2} \f$
-        const real_type k_p = electron_density_ * migdal_constant()
-                              * ipow<2>(epsilon * gamma_energy_);
-        s *= (1 + k_p / ipow<2>(gamma_energy_));
+        const real_type k_p_sq = electron_density_ * migdal_constant()
+                                 * ipow<2>(epsilon * gamma_energy_);
+        s *= (1 + k_p_sq / ipow<2>(gamma_energy_));
 
-        // Recalculate \f$ \xi \$ from the modified suppression variable
+        // Recalculate \f$ \xi \$ from the modified suppression variable (Eq.
+        // 16 in Stanev)
         xi = 2;
         if (s > 1)
         {
@@ -215,19 +217,20 @@ auto LPMCalculator::compute_g_phi(real_type s) const -> LPMFunctions
                                                 - R(0.05) * s3 + R(7.5) * s4));
             result.g = 3 * psi - 2 * result.phi;
         }
-        else if (s < R(1.55))
-        {
-            result.phi
-                = 1
-                  - std::exp(-6 * s * (1 + s * (3 - constants::pi))
-                             + s3 / (R(0.623) + R(0.796) * s + R(0.658) * s2));
-            result.g = std::tanh(R(-0.160723) + R(3.755030) * s
-                                 - R(1.798138) * s2 + R(0.672827) * s3
-                                 - R(0.120772) * s4);
-        }
         else
         {
-            result.phi = 1 - R(0.01190476) / s4;
+            if (s < R(1.55))
+            {
+                result.phi
+                    = 1
+                      - std::exp(
+                          -6 * s * (1 + s * (3 - constants::pi))
+                          + s3 / (R(0.623) + R(0.796) * s + R(0.658) * s2));
+            }
+            else
+            {
+                result.phi = 1 - R(0.01190476) / s4;
+            }
             if (s < R(1.9156))
             {
                 result.g = std::tanh(R(-0.160723) + R(3.755030) * s

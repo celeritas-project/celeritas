@@ -110,7 +110,8 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
         model_ = std::make_shared<CombinedBremModel>(ModelId{0},
                                                      *this->particle_params(),
                                                      *this->material_params(),
-                                                     read_element_data);
+                                                     read_element_data,
+                                                     true);
         data_  = model_->host_ref();
 
         // Set cutoffs
