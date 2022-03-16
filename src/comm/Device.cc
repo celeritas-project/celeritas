@@ -178,8 +178,10 @@ Device::Device(int id) : id_(id)
     extra_["capability_major"]      = props.major;
     extra_["capability_minor"]      = props.minor;
 #    if CELERITAS_USE_CUDA
+#        if CUDART_VERSION >= 11000
     extra_["max_blocks_per_multiprocessor"] = props.maxBlocksPerMultiProcessor;
-    extra_["regs_per_multiprocessor"]       = props.regsPerMultiprocessor;
+#        endif
+    extra_["regs_per_multiprocessor"] = props.regsPerMultiprocessor;
 #    endif
 
     // Save for possible block size initialization

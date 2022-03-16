@@ -78,6 +78,7 @@ CELER_FUNCTION void BetheHeitlerLauncher<M>::operator()(ThreadId tid) const
                                     particle,
                                     model.states.direction[tid],
                                     allocate_secondaries,
+                                    material_view,
                                     element);
 
     RngEngine rng(model.states.rng, tid);

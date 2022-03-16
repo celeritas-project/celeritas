@@ -110,7 +110,8 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
         model_ = std::make_shared<CombinedBremModel>(ModelId{0},
                                                      *this->particle_params(),
                                                      *this->material_params(),
-                                                     read_element_data);
+                                                     read_element_data,
+                                                     true);
         data_  = model_->host_ref();
 
         // Set cutoffs
@@ -357,16 +358,16 @@ TEST_F(CombinedBremTest, stress_test_combined)
                                                   12.3433,
                                                   12.4378,
                                                   13.2556,
-                                                  15.367,
-                                                  14.1192,
-                                                  13.2432,
-                                                  12.9255,
-                                                  12.5747,
-                                                  12.5067,
-                                                  12.3345,
-                                                  12.4205,
-                                                  13.2902,
-                                                  15.3866};
+                                                  15.3633,
+                                                  14.11855,
+                                                  13.24055,
+                                                  12.9256,
+                                                  12.5745,
+                                                  12.507,
+                                                  12.3347,
+                                                  12.4201,
+                                                  13.2891,
+                                                  15.3839};
 
     const double expected_avg_energy_samples[] = {0.20338654094171,
                                                   0.531736195035071,
@@ -374,18 +375,18 @@ TEST_F(CombinedBremTest, stress_test_combined)
                                                   4.43594118671576,
                                                   8.75900725345262,
                                                   85.1851167368993,
-                                                  906.274779396939,
-                                                  10718.7588859397,
-                                                  149751.67430561,
-                                                  0.20012619581885,
-                                                  0.530399830105174,
-                                                  0.996540195643715,
-                                                  4.44236613904306,
-                                                  8.49262211238882,
-                                                  85.2456511477595,
-                                                  919.098158449066,
-                                                  10765.2921207004,
-                                                  147072.110682295};
+                                                  905.944872515143,
+                                                  10719.0818167835,
+                                                  149600.779575494,
+                                                  0.200085543874579,
+                                                  0.535651742466126,
+                                                  0.996407133973535,
+                                                  4.4451795137663,
+                                                  8.49079032065409,
+                                                  85.2309047278878,
+                                                  919.34212069212,
+                                                  10758.3248281809,
+                                                  146955.590868253};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
     EXPECT_VEC_SOFT_EQ(expected_avg_energy_samples, avg_energy_samples);

@@ -53,6 +53,7 @@ struct LDemoArgs
     bool eloss_fluctuation{true};
     bool brem_combined{true};
     bool brem_lpm{true};
+    bool conv_lpm{true};
 
     // Diagnostic input
     celeritas::EnergyDiagInput energy_diag;

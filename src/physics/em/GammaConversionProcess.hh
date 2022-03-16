@@ -28,10 +28,17 @@ class GammaConversionProcess : public Process
     using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
     //!@}
 
+    // Options for pair production
+    struct Options
+    {
+        bool enable_lpm{true}; //!< Account for LPM effect at high energies
+    };
+
   public:
     // Construct from particle data
     GammaConversionProcess(SPConstParticles particles,
-                           SPConstImported  process_data);
+                           SPConstImported  process_data,
+                           Options          options);
 
     // Construct the models associated with this process
     VecModel build_models(ModelIdGenerator next_id) const final;
@@ -48,6 +55,7 @@ class GammaConversionProcess : public Process
   private:
     SPConstParticles       particles_;
     ImportedProcessAdapter imported_;
+    Options                options_;
 };
 
 //---------------------------------------------------------------------------//

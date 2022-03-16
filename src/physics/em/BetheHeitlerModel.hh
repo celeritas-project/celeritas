@@ -22,7 +22,9 @@ class BetheHeitlerModel final : public Model
 {
   public:
     // Construct from model ID and other necessary data
-    BetheHeitlerModel(ModelId id, const ParticleParams& particles);
+    BetheHeitlerModel(ModelId               id,
+                      const ParticleParams& particles,
+                      bool                  enable_lpm);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

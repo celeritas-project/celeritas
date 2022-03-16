@@ -18,13 +18,15 @@ namespace celeritas
  * Construct from model ID and other necessary data.
  */
 BetheHeitlerModel::BetheHeitlerModel(ModelId               id,
-                                     const ParticleParams& particles)
+                                     const ParticleParams& particles,
+                                     bool                  enable_lpm)
 {
     CELER_EXPECT(id);
     interface_.model_id    = id;
     interface_.electron_id = particles.find(pdg::electron());
     interface_.positron_id = particles.find(pdg::positron());
     interface_.gamma_id    = particles.find(pdg::gamma());
+    interface_.enable_lpm  = enable_lpm;
 
     CELER_VALIDATE(interface_.electron_id && interface_.positron_id
                        && interface_.gamma_id,
@@ -45,7 +47,7 @@ auto BetheHeitlerModel::applicability() const -> SetApplicability
     Applicability photon_applic;
     photon_applic.particle = interface_.gamma_id;
     photon_applic.lower    = zero_quantity();
-    photon_applic.upper    = units::MevEnergy{1e5};
+    photon_applic.upper    = units::MevEnergy{1e8};
 
     return {photon_applic};
 }

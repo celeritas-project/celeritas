@@ -20,6 +20,7 @@
 #include "celeritas_test.hh"
 #include "gtest/Main.hh"
 
+using celeritas::ElementComponentId;
 using celeritas::GammaConversionProcess;
 using celeritas::detail::BetheHeitlerInteractor;
 using celeritas::units::AmuMass;
@@ -60,6 +61,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         data_.positron_id   = params.find(pdg::positron());
         data_.gamma_id      = params.find(pdg::gamma());
         data_.electron_mass = params.get(data_.electron_id).mass().value();
+        data_.enable_lpm    = true;
 
         // Set default particle to photon with energy of 100 MeV
         this->set_inc_particle(pdg::gamma(), MevEnergy{100.0});
@@ -125,16 +127,16 @@ TEST_F(BetheHeitlerInteractorTest, basic)
     const int num_samples = 4;
     this->resize_secondaries(2 * num_samples);
 
-    // Get the ElementView
-    const celeritas::ElementView element(
-        this->material_track().material_view().element_view(
-            celeritas::ElementComponentId{0}));
+    // Get views to the current material and element
+    const auto material = this->material_track().material_view();
+    const auto element  = material.element_view(ElementComponentId{0});
 
     // Create the interactor
     BetheHeitlerInteractor interact(data_,
                                     this->particle_track(),
                                     this->direction(),
                                     this->secondary_allocator(),
+                                    material,
                                     element);
     RandomEngine&          rng_engine = this->rng();
     // Produce four samples from the original/incident photon
@@ -163,10 +165,10 @@ TEST_F(BetheHeitlerInteractorTest, basic)
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_energy1[] = {
-        16.0614863783763, 98.7412722423312, 23.4953328454145, 94.7258588843146};
+        15.2508794873183, 98.7412722423312, 23.4953328454145, 94.7258588843146};
     const double expected_energy2[] = {
-        82.9165157294237, 0.236729865468827, 75.4826692623855, 4.25214322348543};
-    const double expected_angle[] = {0.999968990366521,
+        83.7271226204817, 0.236729865468827, 75.4826692623855, 4.25214322348543};
+    const double expected_angle[] = {0.999969298729478,
                                      0.749593336413488,
                                      0.999747408792083,
                                      0.99092640152178};
@@ -185,11 +187,11 @@ TEST_F(BetheHeitlerInteractorTest, basic)
 
 TEST_F(BetheHeitlerInteractorTest, stress_test)
 {
-    const unsigned int  num_samples = 8;
+    const unsigned int  num_samples = 1000;
     std::vector<double> avg_engine_samples;
 
     // Loop over a set of incident gamma energies
-    for (double inc_e : {1.5, 5.0, 10.0, 50.0, 100.0})
+    for (double inc_e : {1.5, 5.0, 10.0, 50.0, 100.0, 1e6})
     {
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
@@ -205,16 +207,16 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
             this->set_inc_direction(inc_dir);
             this->resize_secondaries(2 * num_samples);
 
-            // Get the ElementView
-            const celeritas::ElementView element(
-                this->material_track().material_view().element_view(
-                    celeritas::ElementComponentId{0}));
+            // Get views to the current material and element
+            const auto material = this->material_track().material_view();
+            const auto element  = material.element_view(ElementComponentId{0});
 
             // Create interactor
             BetheHeitlerInteractor interact(data_,
                                             this->particle_track(),
                                             this->direction(),
                                             this->secondary_allocator(),
+                                            material,
                                             element);
 
             // Loop over many particles
@@ -233,7 +235,78 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
     }
 
     // Gold values for average number of calls to RNG
-    const double expected_avg_engine_samples[]
-        = {19.5, 23.5, 23.3125, 23.3125, 22.5625};
+    static const double expected_avg_engine_samples[]
+        = {20.127, 24.5935, 24.13, 23.1985, 22.9075, 22.024};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+}
+
+TEST_F(BetheHeitlerInteractorTest, distributions)
+{
+    RandomEngine& rng_engine = this->rng();
+
+    const int num_samples   = 10000;
+    const int nbins         = 10;
+    Real3     inc_direction = {0, 0, 1};
+    this->set_inc_direction(inc_direction);
+
+    // Get views to the current material and element
+    const auto material = this->material_track().material_view();
+    const auto element  = material.element_view(ElementComponentId{0});
+
+    auto bin_epsilon = [&](double inc_energy) -> std::vector<int> {
+        this->set_inc_particle(pdg::gamma(), MevEnergy{inc_energy});
+        this->resize_secondaries(2 * num_samples);
+
+        // Create interactor
+        BetheHeitlerInteractor interact(data_,
+                                        this->particle_track(),
+                                        this->direction(),
+                                        this->secondary_allocator(),
+                                        material,
+                                        element);
+
+        std::vector<int> eps_dist(nbins);
+
+        // Loop over many particles
+        for (int i = 0; i < num_samples; ++i)
+        {
+            Interaction out = interact(rng_engine);
+            // Bin the electron reduced energy \epsilon = (E_e + m_e c^2 /
+            // E_{\gamma}
+            const auto electron = out.secondaries.front();
+            double     eps = (electron.energy.value() + data_.electron_mass)
+                         / inc_energy;
+            int eps_bin = eps * nbins;
+            if (eps_bin >= 0 && eps_bin < nbins)
+            {
+                ++eps_dist[eps_bin];
+            }
+        }
+        EXPECT_EQ(2 * num_samples, this->secondary_allocator().get().size());
+        return eps_dist;
+    };
+
+    // 1.5 MeV incident photon
+    {
+        std::vector<int> eps_dist = bin_epsilon(1.5);
+        static const int expected_eps_dist[]
+            = {0, 0, 0, 1911, 3054, 3142, 1893, 0, 0, 0};
+        EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
+    }
+
+    // 100 MeV incident photon
+    {
+        std::vector<int> eps_dist = bin_epsilon(100);
+        static const int expected_eps_dist[]
+            = {754, 1109, 1054, 1055, 1010, 1010, 1024, 1055, 1090, 839};
+        EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
+    }
+
+    // 1 TeV incident photon (LPM effect)
+    {
+        std::vector<int> eps_dist = bin_epsilon(1e6);
+        static const int expected_eps_dist[]
+            = {1209, 1073, 911, 912, 844, 881, 903, 992, 1066, 1209};
+        EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
+    }
 }

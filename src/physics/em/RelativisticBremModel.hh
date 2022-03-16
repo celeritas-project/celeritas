@@ -38,7 +38,7 @@ class RelativisticBremModel final : public Model
     RelativisticBremModel(ModelId               id,
                           const ParticleParams& particles,
                           const MaterialParams& materials,
-                          bool                  enable_lpm = true);
+                          bool                  enable_lpm);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -74,7 +74,6 @@ class RelativisticBremModel final : public Model
 
     using AtomicNumber = int;
     using FormFactor   = detail::RelBremFormFactor;
-    using MigdalData   = detail::RelBremMigdalData;
     using ElementData  = detail::RelBremElementData;
 
     //// HELPER FUNCTIONS ////
@@ -84,7 +83,6 @@ class RelativisticBremModel final : public Model
                     real_type             particle_mass);
 
     static const FormFactor& get_form_factor(AtomicNumber index);
-    MigdalData               compute_lpm_data(real_type shat);
     ElementData
     compute_element_data(const ElementView& elem, real_type particle_mass);
 };

@@ -47,7 +47,7 @@ class CombinedBremModel final : public Model
                       const ParticleParams& particles,
                       const MaterialParams& materials,
                       ReadData              load_sb_table,
-                      bool                  enable_lpm = true);
+                      bool                  enable_lpm);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

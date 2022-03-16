@@ -32,6 +32,15 @@ struct BetheHeitlerData
     //! ID of a gamma
     ParticleId gamma_id;
 
+    //! LPM flag
+    bool enable_lpm;
+
+    //! Include a dielectric suppression effect in LPM functions
+    static CELER_CONSTEXPR_FUNCTION bool dielectric_suppression()
+    {
+        return false;
+    }
+
     //! Check whether the view is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
