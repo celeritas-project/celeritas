@@ -23,15 +23,15 @@ class GeantPhysicsList : public G4VUserPhysicsList
     // Set up during construction
     GeantPhysicsList();
 
-    // Set up minimal E.M. particle list
+    // Set up minimal EM particle list
     void ConstructParticle() override;
     // Set up process list
     void ConstructProcess() override;
 
   private:
-    // Add E.M. processes for photons
+    // Add EM processes for photons
     void add_gamma_processes();
-    // Add E.M. processes for electrons and positrons
+    // Add EM processes for electrons and positrons
     void add_e_processes();
 };
 
