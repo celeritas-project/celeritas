@@ -24,16 +24,19 @@ use_device = not strtobool(environ.get('CELER_DISABLE_DEVICE', 'false'))
 run_name = (path.splitext(path.basename(geometry_filename))[0]
             + ('-gpu' if use_device else '-cpu'))
 
-geant_exp_exe = environ.get('CELERITAS_GEANT_EXPORTER_EXE', './geant-exporter')
-physics_filename = run_name + ".root"
+geant_exp_exe = environ.get('CELER_EXPORT_GEANT_EXE', './geant-exporter')
 
-result_ge = subprocess.run([geant_exp_exe,
-                            geometry_filename,
-                            physics_filename])
-
-if result_ge.returncode:
-    print("fatal: geant-exporter failed with error", result_ge.returncode)
-    exit(result_ge.returncode)
+if geant_exp_exe:
+    physics_filename = run_name + ".root"
+    result_ge = subprocess.run([geant_exp_exe,
+                                geometry_filename,
+                                physics_filename])
+    if result_ge.returncode:
+        print(f"fatal: {geant_exp_exe} failed with error {result_ge.returncode}")
+        exit(result_ge.returncode)
+else:
+    # Load directly from Geant4 rather than ROOT file
+    physics_filename = geometry_filename
 
 if strtobool(environ.get('CELER_DISABLE_VECGEOM', 'false')):
     print("Replacing .gdml extension since VecGeom is disabled")

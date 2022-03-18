@@ -10,11 +10,14 @@
 #include <algorithm>
 #include <string>
 
+#include "base/StringUtils.hh"
 #include "comm/Logger.hh"
 #include "geometry/GeoMaterialParams.hh"
 #include "geometry/GeoParams.hh"
 #include "io/EventReader.hh"
 #include "io/ImportData.hh"
+#include "io/GeantImporter.hh"
+#include "io/GeantSetup.hh"
 #include "io/RootImporter.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/base/ImportedProcessAdapter.hh"
@@ -143,8 +146,25 @@ TransporterInput load_input(const LDemoArgs& args)
     CELER_LOG(status) << "Loading input and initializing problem data";
     TransporterInput result;
 
-    // Load imported_data from ROOT file
-    auto imported_data = RootImporter(args.physics_filename.c_str())();
+    ImportData imported_data;
+    if (ends_with(args.physics_filename, ".root"))
+    {
+        // Load imported_data from ROOT file
+        imported_data = RootImporter(args.physics_filename.c_str())();
+    }
+    else if (ends_with(args.physics_filename, ".gdml"))
+    {
+        // Load imported_data directly from Geant4
+        imported_data = GeantImporter(GeantSetup(args.physics_filename,
+                                        GeantSetup::PhysicsList::em_basic))();
+    }
+    else
+    {
+        CELER_VALIDATE(false,
+                       << "invalid physics filename '" << args.physics_filename
+                       << "' (expected gdml or root)");
+    }
+
 
     // Load geometry
     {

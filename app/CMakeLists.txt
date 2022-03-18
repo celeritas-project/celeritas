@@ -265,9 +265,8 @@ if(CELERITAS_BUILD_DEMOS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/data/simple-cms.gdml")
     set(_hepmc3_inp "${PROJECT_SOURCE_DIR}/app/data/input.hepmc3")
-    if(TARGET celer-export-geant)
-      set(_geant_exporter_env
-        "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:celer-export-geant>")
+    if(CELERITAS_USE_ROOT)
+      set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
     endif()
     add_test(NAME "app/demo-loop"
       COMMAND "${_python_exe}"
@@ -293,7 +292,6 @@ if(CELERITAS_BUILD_DEMOS)
     # enabled)
     if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
        OR NOT CELERITAS_USE_Geant4
-       OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3
        OR NOT CELERITAS_USE_Python
        OR (CELERITAS_USE_VecGeom AND CELERITAS_DEBUG
@@ -324,7 +322,6 @@ if(CELERITAS_BUILD_DEMOS)
     )
     if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
        OR NOT CELERITAS_USE_Geant4
-       OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3)
       set_tests_properties("app/demo-loop-cpu" PROPERTIES
         DISABLED true
