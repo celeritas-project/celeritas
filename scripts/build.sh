@@ -14,8 +14,8 @@ if [ ! -e "CMakeUserPresets.json" ]; then
 fi
 
 # Check arguments and give presets
-if [ $# -ne 1 ]; then
-  echo "Usage: $0 PRESET" >&2
+if [ $# -eq 0 ]; then
+  echo "Usage: $0 PRESET [config_args...]" >&2
   if hash cmake 2>/dev/null ; then
     cmake --list-presets >&2
   else
@@ -29,8 +29,8 @@ shift
 set -x
 
 # Configure
-cmake --preset=${CMAKE_PRESET}
+cmake --preset=${CMAKE_PRESET} "$@"
 # Build
 cmake --build --preset=${CMAKE_PRESET}
 # Test
-ctest --preset=${CMAKE_PRESET}
+ctest --preset=${CMAKE_PRESET} 
