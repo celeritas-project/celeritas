@@ -15,9 +15,9 @@
 #include "geometry/GeoMaterialParams.hh"
 #include "geometry/GeoParams.hh"
 #include "io/EventReader.hh"
-#include "io/ImportData.hh"
 #include "io/GeantImporter.hh"
 #include "io/GeantSetup.hh"
+#include "io/ImportData.hh"
 #include "io/RootImporter.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/base/ImportedProcessAdapter.hh"
@@ -155,8 +155,8 @@ TransporterInput load_input(const LDemoArgs& args)
     else if (ends_with(args.physics_filename, ".gdml"))
     {
         // Load imported_data directly from Geant4
-        imported_data = GeantImporter(GeantSetup(args.physics_filename,
-                                        GeantSetup::PhysicsList::em_basic))();
+        imported_data = GeantImporter(GeantSetup(
+            args.physics_filename, GeantSetup::PhysicsList::em_basic))();
     }
     else
     {
@@ -164,7 +164,6 @@ TransporterInput load_input(const LDemoArgs& args)
                        << "invalid physics filename '" << args.physics_filename
                        << "' (expected gdml or root)");
     }
-
 
     // Load geometry
     {

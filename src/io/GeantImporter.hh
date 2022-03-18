@@ -11,7 +11,7 @@
 
 #include "GeantSetup.hh"
 #include "ImportData.hh"
-#include "celeritas_config.hh"
+#include "celeritas_config.h"
 
 // Geant4 forward declaration
 class G4VPhysicalVolume;

@@ -13,6 +13,7 @@
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
 #include "io/GeantImporter.hh"
+#include "io/GeantSetup.hh"
 #include "io/RootExporter.hh"
 
 using namespace celeritas;

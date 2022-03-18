@@ -343,7 +343,7 @@ void print_volumes(std::vector<ImportVolume>&   volumes,
 
 //---------------------------------------------------------------------------//
 /*!
- * Dump the contents of a ROOT file writen by geant-exporter.
+ * Dump the contents of a ROOT file writen by celer-export-geant.
  */
 int main(int argc, char* argv[])
 {

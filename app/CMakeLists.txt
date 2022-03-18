@@ -182,7 +182,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
 
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-rasterizer/simple-driver.py")
-    set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/demo-rasterizer/two-boxes.gdml")
+    set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/two-boxes.gdml")
     add_test(NAME "app/demo-rasterizer"
       COMMAND "$<TARGET_FILE:Python::Interpreter>" "${_driver}" "${_gdml_inp}"
     )
@@ -263,8 +263,8 @@ if(CELERITAS_BUILD_DEMOS)
 
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
-    set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/data/simple-cms.gdml")
-    set(_hepmc3_inp "${PROJECT_SOURCE_DIR}/app/data/input.hepmc3")
+    set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/simple-cms.gdml")
+    set(_hepmc3_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/input.hepmc3")
     if(CELERITAS_USE_ROOT)
       set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
     endif()
