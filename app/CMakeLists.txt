@@ -265,6 +265,7 @@ if(CELERITAS_BUILD_DEMOS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/simple-cms.gdml")
     set(_hepmc3_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/input.hepmc3")
+    set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=")
     if(CELERITAS_USE_ROOT)
       set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
     endif()
@@ -309,6 +310,7 @@ if(CELERITAS_BUILD_DEMOS)
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
       "${_geant_exporter_env}"
+      "CELER_LOG=debug"
       "CELER_DISABLE_DEVICE=1"
       "CELER_DISABLE_PARALLEL=1"
     )
