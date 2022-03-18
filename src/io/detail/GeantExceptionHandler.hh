@@ -11,6 +11,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Process Geant4 exceptions with Celeritas.
@@ -33,4 +35,5 @@ class GeantExceptionHandler final : public G4VExceptionHandler
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

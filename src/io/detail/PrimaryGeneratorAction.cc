@@ -12,7 +12,9 @@
 
 #include "base/Assert.hh"
 
-namespace geant_exporter
+namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -52,4 +54,5 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace detail
+} // namespace celeritas

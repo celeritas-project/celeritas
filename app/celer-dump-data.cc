@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geant-exporter-cat.cc
+//! \file celer-dump-data.cc
 //---------------------------------------------------------------------------//
 #include <cstdlib>
 #include <iomanip>
@@ -16,10 +16,7 @@
 #include "comm/ScopedMpiInit.hh"
 #include "io/ImportData.hh"
 #include "io/RootImporter.hh"
-#include "physics/base/CutoffParams.hh"
-#include "physics/base/ParticleData.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/material/MaterialParams.hh"
 
 using namespace celeritas;
 using std::cout;
@@ -377,8 +374,6 @@ int main(int argc, char* argv[])
                             << "': " << e.what();
         return EXIT_FAILURE;
     }
-
-    CELER_LOG(info) << "Successfully loaded ROOT file '" << argv[1] << "'";
 
     const auto particle_params = ParticleParams::from_import(data);
 

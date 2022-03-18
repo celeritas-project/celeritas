@@ -14,6 +14,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Propagate exceptions to Celeritas.
@@ -54,4 +56,5 @@ G4bool GeantExceptionHandler::Notify(const char*         origin_of_exception,
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

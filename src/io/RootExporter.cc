@@ -1,11 +1,11 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RootImporter.cc
+//! \file RootExporter.cc
 //---------------------------------------------------------------------------//
-#include "RootImporter.hh"
+#include "RootExporter.hh"
 
 #include <TBranch.h>
 #include <TFile.h>
@@ -13,6 +13,7 @@
 #include <TTree.h>
 
 #include "base/Assert.hh"
+#include "base/Range.hh"
 #include "base/ScopedTimeLog.hh"
 #include "comm/Logger.hh"
 
@@ -24,43 +25,37 @@ namespace celeritas
 /*!
  * Construct from path to ROOT file.
  */
-RootImporter::RootImporter(const char* filename)
+RootExporter::RootExporter(const char* filename)
 {
-    CELER_LOG(info) << "Opening ROOT file at " << filename;
+    CELER_LOG(info) << "Creating ROOT file at " << filename;
     ScopedTimeLog scoped_time;
-    root_input_.reset(TFile::Open(filename, "read"));
-    CELER_VALIDATE(root_input_ && !root_input_->IsZombie(),
+    root_output_.reset(TFile::Open(filename, "recreate"));
+    CELER_VALIDATE(root_output_ && !root_output_->IsZombie(),
                    << "failed to open ROOT file");
-    CELER_ENSURE(root_input_ && !root_input_->IsZombie());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Load data from the ROOT input file.
+ * Write data to the ROOT file.
  */
-ImportData RootImporter::operator()()
+void RootExporter::operator()(const ImportData& import_data)
 {
-    CELER_LOG(status) << "Reading data from ROOT";
-    ScopedTimeLog scoped_time;
+    TTree    tree_data(tree_name(), tree_name());
+    TBranch* branch = tree_data.Branch(branch_name(),
+                                       const_cast<ImportData*>(&import_data));
+    CELER_VALIDATE(branch, << "failed to initialize ROOT ImportData");
 
-    std::unique_ptr<TTree> tree_data(root_input_->Get<TTree>(tree_name()));
-    CELER_ASSERT(tree_data);
-    CELER_ASSERT(tree_data->GetEntries() == 1);
-
-    ImportData  import_data;
-    ImportData* import_data_ptr = &import_data;
-    int err_code = tree_data->SetBranchAddress(branch_name(), &import_data_ptr);
-    CELER_ASSERT(err_code >= 0);
-    tree_data->GetEntry(0);
-
-    return import_data;
+    // Write data to disk
+    tree_data.Fill();
+    int err_code = root_output_->Write();
+    CELER_ENSURE(err_code >= 0);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Hardcoded ROOT TTree name, consistent with \e app/geant-exporter.
  */
-const char* RootImporter::tree_name()
+const char* RootExporter::tree_name()
 {
     return "geant4_data";
 }
@@ -69,7 +64,7 @@ const char* RootImporter::tree_name()
 /*!
  * Hardcoded ROOT TBranch name, consistent with \e app/geant-exporter.
  */
-const char* RootImporter::branch_name()
+const char* RootExporter::branch_name()
 {
     return "ImportData";
 }

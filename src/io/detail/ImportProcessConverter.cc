@@ -35,7 +35,7 @@
 #include "io/ImportPhysicsVector.hh"
 #include "io/ImportProcess.hh"
 
-#include "CeleritasG4Version.hh"
+#include "GeantVersion.hh"
 
 using celeritas::ImportModelClass;
 using celeritas::ImportPhysicsTable;
@@ -48,7 +48,9 @@ using celeritas::ImportUnits;
 using celeritas::PDGNumber;
 using ProcessTypeDemangler = celeritas::TypeDemangler<G4VProcess>;
 
-namespace geant_exporter
+namespace celeritas
+{
+namespace detail
 {
 namespace
 {
@@ -692,4 +694,5 @@ ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace detail
+} // namespace celeritas

@@ -31,8 +31,11 @@ class G4VMultipleScattering;
 class G4ParticleDefinition;
 class G4PhysicsTable;
 
-namespace geant_exporter
+namespace celeritas
 {
+namespace detail
+{
+//---------------------------------------------------------------------------//
 enum class TableSelection
 {
     minimal, //!< Store only lambda, dedx, and range
@@ -144,4 +147,5 @@ class ImportProcessConverter
 };
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace detail
+} // namespace celeritas

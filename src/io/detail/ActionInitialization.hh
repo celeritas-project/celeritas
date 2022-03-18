@@ -3,22 +3,27 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ActionInitialization.cc
+//! \file ActionInitialization.hh
+//! Invoke UserAction type classes.
 //---------------------------------------------------------------------------//
-#include "ActionInitialization.hh"
+#pragma once
 
-#include "PrimaryGeneratorAction.hh"
+#include <G4VUserActionInitialization.hh>
 
-namespace geant_exporter
+namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct and invoke all other Geant4 classes.
+ * Initialize Geant4.
  */
-void ActionInitialization::Build() const
+class ActionInitialization : public G4VUserActionInitialization
 {
-    this->SetUserAction(new PrimaryGeneratorAction());
-}
+  public:
+    void Build() const override;
+};
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace detail
+} // namespace celeritas

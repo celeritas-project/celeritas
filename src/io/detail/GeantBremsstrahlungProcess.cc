@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BremsstrahlungProcess.cc
+//! \file GeantBremsstrahlungProcess.cc
 //---------------------------------------------------------------------------//
-#include "BremsstrahlungProcess.hh"
+#include "GeantBremsstrahlungProcess.hh"
 
 #include <G4Electron.hh>
 #include <G4EmParameters.hh>
@@ -16,13 +16,15 @@
 #include <G4SystemOfUnits.hh>
 #include <G4eBremsstrahlungRelModel.hh>
 
-namespace geant_exporter
+namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with model selection.
  */
-BremsstrahlungProcess::BremsstrahlungProcess(ModelSelection selection)
+GeantBremsstrahlungProcess::GeantBremsstrahlungProcess(ModelSelection selection)
     : G4VEnergyLossProcess("eBrem")
     , is_initialized_(false)
     , model_selection_(selection)
@@ -36,13 +38,14 @@ BremsstrahlungProcess::BremsstrahlungProcess(ModelSelection selection)
 /*!
  * Empty destructor.
  */
-BremsstrahlungProcess::~BremsstrahlungProcess() {}
+GeantBremsstrahlungProcess::~GeantBremsstrahlungProcess() {}
 
 //---------------------------------------------------------------------------//
 /*!
  * Define applicability based on particle definition.
  */
-bool BremsstrahlungProcess::IsApplicable(const G4ParticleDefinition& particle)
+bool GeantBremsstrahlungProcess::IsApplicable(
+    const G4ParticleDefinition& particle)
 {
     return (&particle == G4Electron::Electron()
             || &particle == G4Positron::Positron());
@@ -52,7 +55,7 @@ bool BremsstrahlungProcess::IsApplicable(const G4ParticleDefinition& particle)
 /*!
  * Print documentation in html format.
  */
-void BremsstrahlungProcess::ProcessDescription(std::ostream& output) const
+void GeantBremsstrahlungProcess::ProcessDescription(std::ostream& output) const
 {
     output << "  Bremsstrahlung";
     G4VEnergyLossProcess::ProcessDescription(output);
@@ -66,7 +69,7 @@ void BremsstrahlungProcess::ProcessDescription(std::ostream& output) const
 /*!
  * Initialise process by constructing models based on \c ModelSelection .
  */
-void BremsstrahlungProcess::InitialiseEnergyLossProcess(
+void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
     const G4ParticleDefinition*, const G4ParticleDefinition*)
 {
     if (is_initialized_)
@@ -130,7 +133,7 @@ void BremsstrahlungProcess::InitialiseEnergyLossProcess(
 /*!
  * Print class parameters.
  */
-void BremsstrahlungProcess::StreamProcessInfo(std::ostream& output) const
+void GeantBremsstrahlungProcess::StreamProcessInfo(std::ostream& output) const
 {
     if (EmModel(0))
     {
@@ -149,4 +152,5 @@ void BremsstrahlungProcess::StreamProcessInfo(std::ostream& output) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace detail
+} // namespace celeritas
