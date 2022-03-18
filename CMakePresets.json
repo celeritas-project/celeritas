@@ -41,6 +41,7 @@
       "displayName": "Minimal",
       "description": "Smallest capabilities for useful development",
       "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
