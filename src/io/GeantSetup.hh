@@ -29,10 +29,6 @@ namespace celeritas
 class GeantSetup
 {
   public:
-    //!@{
-    //! Type aliases
-    //!@}
-
     //! Selection of physics processes
     enum class PhysicsList
     {
@@ -48,12 +44,8 @@ class GeantSetup
     // Default constructor
     GeantSetup() = default;
 
-    //! Get world detector volume
-    const G4VPhysicalVolume* world() const
-    {
-        CELER_EXPECT(*this);
-        return world_;
-    }
+    // Get the world detector volume
+    inline const G4VPhysicalVolume* world() const;
 
     //! True if we own a run manager
     explicit operator bool() const { return static_cast<bool>(run_manager_); }
@@ -68,6 +60,18 @@ class GeantSetup
     RMUniquePtr              run_manager_{nullptr};
     const G4VPhysicalVolume* world_{nullptr};
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get the world detector volume.
+ */
+const G4VPhysicalVolume* GeantSetup::world() const
+{
+    CELER_EXPECT(*this);
+    return world_;
+}
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4

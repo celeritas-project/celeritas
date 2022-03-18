@@ -153,7 +153,7 @@ std::vector<ImportParticle> store_particles()
 
         particles.push_back(particle);
     }
-    CELER_LOG(debug) << "Added " << particles.size() << " particles";
+    CELER_LOG(debug) << "Loaded " << particles.size() << " particles";
     return particles;
 }
 
@@ -393,8 +393,6 @@ GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
  */
 ImportData GeantImporter::operator()(const DataSelection&)
 {
-    CELER_LOG(status) << "Loading data from Geant4";
-
     ImportData import_data;
     import_data.particles = store_particles();
     import_data.elements  = store_elements();

@@ -11,6 +11,7 @@
 
 #include "GeantSetup.hh"
 #include "ImportData.hh"
+#include "celeritas_config.hh"
 
 // Geant4 forward declaration
 class G4VPhysicalVolume;
@@ -68,6 +69,8 @@ class GeantImporter
     GeantSetup setup_;
 };
 
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
 inline GeantImporter::GeantImporter(const G4VPhysicalVolume*)

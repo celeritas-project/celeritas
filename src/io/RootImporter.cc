@@ -40,7 +40,7 @@ RootImporter::RootImporter(const char* filename)
  */
 ImportData RootImporter::operator()()
 {
-    CELER_LOG(status) << "Reading data from ROOT";
+    CELER_LOG(debug) << "Reading data from ROOT";
     ScopedTimeLog scoped_time;
 
     std::unique_ptr<TTree> tree_data(root_input_->Get<TTree>(tree_name()));

@@ -46,7 +46,7 @@ celeritas_target_link_libraries(celer-dump-data
   Celeritas::IO
 )
 
-if(CELERITAS_BUILD_TESTS)
+if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4 AND CELERITAS_BUILD_TESTS)
   set(_geant_test_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/four-steel-slabs.gdml")
 
   add_test(NAME "app/celer-export-geant"
@@ -263,8 +263,8 @@ if(CELERITAS_BUILD_DEMOS)
 
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
-    set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple-cms.gdml")
-    set(_hepmc3_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/input.hepmc3")
+    set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/data/simple-cms.gdml")
+    set(_hepmc3_inp "${PROJECT_SOURCE_DIR}/app/data/input.hepmc3")
     if(TARGET celer-export-geant)
       set(_geant_exporter_env
         "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:celer-export-geant>")
