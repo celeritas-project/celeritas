@@ -7,24 +7,19 @@
 //---------------------------------------------------------------------------//
 #include "ImportProcessConverter.hh"
 
-#include <fstream>
 #include <iterator>
 #include <string>
-#include <G4Material.hh>
+#include <utility>
 #include <G4NistManager.hh>
 #include <G4ParticleTable.hh>
 #include <G4PhysicsVectorType.hh>
 #include <G4ProcessType.hh>
-#include <G4ProductionCutsTable.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4VEmModel.hh>
 #include <G4VEmProcess.hh>
 #include <G4VEnergyLossProcess.hh>
 #include <G4VMultipleScattering.hh>
 #include <G4VProcess.hh>
-#include <TBranch.h>
-#include <TFile.h>
-#include <TTree.h>
 
 #include "base/Assert.hh"
 #include "base/Range.hh"
@@ -662,10 +657,12 @@ ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
     ImportPhysicsVector physics_vector;
     physics_vector.vector_type = ImportPhysicsVectorType::log;
 
+    auto cutoff_iter = material.pdg_cutoffs.find(process_.particle_pdg);
+    CELER_ASSERT(cutoff_iter != material.pdg_cutoffs.end());
+
     const double max_energy = model.HighEnergyLimit() / MeV;
-    const double min_energy = std::max(
-        material.pdg_cutoffs.find(process_.particle_pdg)->second.energy,
-        model.LowEnergyLimit() / MeV);
+    const double min_energy
+        = std::max(cutoff_iter->second.energy, model.LowEnergyLimit() / MeV);
 
     const int bins_per_decade
         = G4EmParameters::Instance()->NumberOfBinsPerDecade();
