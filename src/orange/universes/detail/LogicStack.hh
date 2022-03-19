@@ -47,7 +47,8 @@ class LogicStack
     //@}
 
   public:
-    CELER_FORCEINLINE_FUNCTION LogicStack() = default;
+    //! Default constructor
+    CELER_FORCEINLINE_FUNCTION LogicStack() {}
 
     //// ACCESSORS ////
 
