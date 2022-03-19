@@ -253,8 +253,12 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
 )
 
 #----------------------------------------------------------------------------#
-# ROOT I/O MODULE
+# GEANT/ROOT I/O MODULE
 #----------------------------------------------------------------------------#
+
+set(_IO_LIBTYPE) # empty for automatic
+set(_IO_SOURCES)
+set(_IO_PRIVATE_DEPS celeritas)
 
 if(CELERITAS_USE_ROOT)
   include(${ROOT_USE_FILE})
@@ -268,30 +272,56 @@ if(CELERITAS_USE_ROOT)
     io/ImportProcess.hh
     io/ImportVolume.hh
     io/ImportData.hh
-    io/RootImporter.hh
-    MODULE celeritas_root
+    MODULE celeritas_io
     LINKDEF io/RootInterfaceLinkDef.h
   )
-
+  list(APPEND _IO_SOURCES
+    ${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx
+    io/RootExporter.cc
+    io/RootImporter.cc
+    io/detail/TFileUniquePtr.root.cc
+  )
   # Note that ROOT requires *shared* libraries due to runtime initialization,
   # *and* it must be forcibly linked into any ROOT-using application by ensuring
   # `-Wl,--no-as-needed` for executables (on Ubuntu, which defaults to linking
   # only as needed).
-  add_library(celeritas_root SHARED
-    ${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx
-    io/RootImporter.cc
+  set(_IO_LIBTYPE SHARED)
+  list(APPEND _IO_PRIVATE_DEPS
+    ROOT::Core ROOT::Tree
   )
-  celeritas_target_link_libraries(celeritas_root
-    PRIVATE celeritas ROOT::Core ROOT::Tree
-  )
-else()
-  # ROOT is disabled: add an importer that
-  add_library(celeritas_root
-    io/RootImporter.noroot.cc
-  )
-  celeritas_target_link_libraries(celeritas_root PRIVATE celeritas)
 endif()
 
-add_library(Celeritas::ROOT ALIAS celeritas_root)
+if(CELERITAS_USE_Geant4)
+  list(APPEND _IO_SOURCES
+    io/GeantImporter.cc
+    io/GeantSetup.cc
+    io/detail/ActionInitialization.cc
+    io/detail/DetectorConstruction.cc
+    io/detail/GeantBremsstrahlungProcess.cc
+    io/detail/GeantExceptionHandler.cc
+    io/detail/GeantLoggerAdapter.cc
+    io/detail/GeantPhysicsList.cc
+    io/detail/ImportProcessConverter.cc
+    io/detail/PrimaryGeneratorAction.cc
+  )
+  list(APPEND _IO_PRIVATE_DEPS
+    XercesC::XercesC
+    ${Geant4_LIBRARIES}
+  )
+endif()
+
+if(NOT CELERITAS_USE_Geant4 AND NOT CELERITAS_USE_ROOT)
+  # No sources to compile: header only
+  set(_IO_LIBTYPE INTERFACE)
+  set(_IO_PRIVATE_DEPS)
+endif()
+
+add_library(celeritas_io ${_IO_LIBTYPE} ${_IO_SOURCES})
+if(_IO_PRIVATE_DEPS)
+  celeritas_target_link_libraries(celeritas_io
+    PRIVATE ${_IO_PRIVATE_DEPS}
+  )
+endif()
+add_library(Celeritas::IO ALIAS celeritas_io)
 
 #---------------------------------------------------------------------------##

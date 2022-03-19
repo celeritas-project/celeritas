@@ -122,11 +122,7 @@ celeritas_add_test(base/TypeDemangler.test.cc)
 celeritas_add_test(base/VectorUtils.test.cc)
 
 celeritas_add_test(base/Stopwatch.test.cc ADDED_TESTS _test_name)
-set_tests_properties(${_test_name} PROPERTIES
-  ENVIRONMENT "${_geant_test_env}"
-  REQUIRED_FILES "${_geant_test_inp}"
-  LABELS "nomemcheck"
-)
+set_tests_properties(${_test_name} PROPERTIES LABELS "nomemcheck")
 
 celeritas_device_test(base/Collection)
 celeritas_device_test(base/NumericLimits)
@@ -180,7 +176,7 @@ celeritas_setup_tests(SERIAL PREFIX geometry)
 celeritas_add_test(geometry/BoundingBox.test.cc)
 
 celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
-  LINK_LIBRARIES Celeritas::ROOT)
+  LINK_LIBRARIES Celeritas::IO)
 celeritas_add_test(geometry/LinearPropagator.test.cc)
 
 #-----------------------------------------------------------------------------#
@@ -225,7 +221,7 @@ celeritas_add_test(orange/Orange.test.cc)
 celeritas_setup_tests(SERIAL PREFIX io)
 
 celeritas_add_test(io/RootImporter.test.cc ${_needs_root}
-  LINK_LIBRARIES Celeritas::ROOT)
+  LINK_LIBRARIES Celeritas::IO)
 celeritas_add_test(io/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
@@ -247,9 +243,9 @@ celeritas_target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas Celeritas
 celeritas_setup_tests(SERIAL PREFIX physics/base
   LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_add_test(physics/base/CutoffParams.test.cc
-  LINK_LIBRARIES Celeritas::ROOT)
+  LINK_LIBRARIES Celeritas::IO)
 celeritas_device_test(physics/base/Particle
-  LINK_LIBRARIES Celeritas::ROOT)
+  LINK_LIBRARIES Celeritas::IO)
 celeritas_device_test(physics/base/Physics)
 celeritas_add_test(physics/base/PhysicsStepUtils.test.cc)
 
@@ -274,7 +270,7 @@ celeritas_setup_tests(SERIAL PREFIX physics/material
   LINK_LIBRARIES CeleritasPhysicsTest)
 celeritas_add_test(physics/material/ElementSelector.test.cc)
 celeritas_device_test(physics/material/Material
-  LINK_LIBRARIES Celeritas::ROOT)
+  LINK_LIBRARIES Celeritas::IO)
 
 #-------------------------------------#
 # Physics (EM)
@@ -297,12 +293,12 @@ celeritas_add_test(physics/em/TsaiUrbanDistribution.test.cc)
 
 celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
   ${_optional_geant4}
-  LINK_LIBRARIES Celeritas::ROOT)
+  LINK_LIBRARIES Celeritas::IO)
 
 if(CELERITAS_USE_VecGeom)
   celeritas_add_test(physics/em/UrbanMsc.test.cc ${_needs_root}
     ${_optional_geant4}
-    LINK_LIBRARIES Celeritas::ROOT)
+    LINK_LIBRARIES Celeritas::IO)
 endif()
 
 #-----------------------------------------------------------------------------#

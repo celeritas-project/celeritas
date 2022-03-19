@@ -28,60 +28,51 @@ if(CELERITAS_BUILD_TESTS)
   endif()
 endif()
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
-  # Exporter
-  add_executable(geant-exporter geant-exporter/geant-exporter.cc
-    geant-exporter/ActionInitialization.cc
-    geant-exporter/DetectorConstruction.cc
-    geant-exporter/PhysicsList.cc
-    geant-exporter/PrimaryGeneratorAction.cc
-    geant-exporter/ImportProcessConverter.cc
-    geant-exporter/BremsstrahlungProcess.cc
-    # TODO: Move these to main celeritas::geant library for use in acceleritas?
-    geant-exporter/GeantExceptionHandler.cc
-    geant-exporter/GeantLoggerAdapter.cc
+#-----------------------------------------------------------------------------#
+# Geant4/ROOT data interface
+#-----------------------------------------------------------------------------#
+
+# Exporter
+add_executable(celer-export-geant celer-export-geant.cc)
+celeritas_target_link_libraries(celer-export-geant
+  Celeritas::Core
+  Celeritas::IO
+)
+
+# Reader
+add_executable(celer-dump-data celer-dump-data.cc)
+celeritas_target_link_libraries(celer-dump-data
+  Celeritas::Core
+  Celeritas::IO
+)
+
+if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4 AND CELERITAS_BUILD_TESTS)
+  set(_geant_test_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/four-steel-slabs.gdml")
+
+  add_test(NAME "app/celer-export-geant"
+    COMMAND "$<TARGET_FILE:celer-export-geant>"
+    "${_geant_test_inp}" "test-data.root"
   )
-  celeritas_target_link_libraries(geant-exporter
-    Celeritas::Core
-    Celeritas::ROOT
-    ROOT::Core
-    ROOT::Tree
-    XercesC::XercesC
-    ${Geant4_LIBRARIES}
+  set_tests_properties("app/celer-export-geant" PROPERTIES
+    ENVIRONMENT "${_geant_test_env}"
+    REQUIRED_FILES "${_geant_test_inp}"
+    LABELS "app"
   )
 
-  # Reader
-  add_executable(geant-exporter-cat geant-exporter/geant-exporter-cat.cc)
-  celeritas_target_link_libraries(geant-exporter-cat
-    Celeritas::Core
-    Celeritas::ROOT
+  add_test(NAME "app/celer-dump-data"
+    COMMAND "$<TARGET_FILE:celer-dump-data>"
+      "test-data.root"
   )
-
-  if(CELERITAS_BUILD_TESTS)
-    set(_geant_test_inp
-      "${CMAKE_CURRENT_SOURCE_DIR}/geant-exporter/data/four-steel-slabs.gdml"
-    )
-    add_test(NAME "app/geant-exporter"
-      COMMAND "$<TARGET_FILE:geant-exporter>"
-      "${_geant_test_inp}" "test-data.root"
-    )
-    set_tests_properties("app/geant-exporter" PROPERTIES
-      ENVIRONMENT "${_geant_test_env}"
-      REQUIRED_FILES "${_geant_test_inp}"
-      LABELS "app"
-    )
-
-    add_test(NAME "app/geant-exporter-cat"
-      COMMAND "$<TARGET_FILE:geant-exporter-cat>"
-        "test-data.root"
-    )
-    set_tests_properties("app/geant-exporter-cat" PROPERTIES
-      DEPENDS "app/geant-exporter"
-      REQUIRED_FILES "test-data.root"
-      LABELS "app"
-    )
-  endif()
+  set_tests_properties("app/celer-dump-data" PROPERTIES
+    DEPENDS "app/celer-export-geant"
+    REQUIRED_FILES "test-data.root"
+    LABELS "app"
+  )
 endif()
+
+#-----------------------------------------------------------------------------#
+# Demo setup for HIP
+#-----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_HIP)
   set_source_files_properties(
@@ -191,7 +182,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
 
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-rasterizer/simple-driver.py")
-    set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/demo-rasterizer/two-boxes.gdml")
+    set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/two-boxes.gdml")
     add_test(NAME "app/demo-rasterizer"
       COMMAND "$<TARGET_FILE:Python::Interpreter>" "${_driver}" "${_gdml_inp}"
     )
@@ -252,7 +243,7 @@ if(CELERITAS_BUILD_DEMOS)
   set(_demo_loop_libs
     Celeritas::Core
     nlohmann_json::nlohmann_json
-    Celeritas::ROOT
+    Celeritas::IO
   )
   if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     list(APPEND _demo_loop_libs VecGeom::vecgeom)
@@ -272,11 +263,11 @@ if(CELERITAS_BUILD_DEMOS)
 
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
-    set(_gdml_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/simple-cms.gdml")
-    set(_hepmc3_inp "${PROJECT_SOURCE_DIR}/app/demo-loop/input.hepmc3")
-    if(TARGET geant-exporter)
-      set(_geant_exporter_env
-        "CELERITAS_GEANT_EXPORTER_EXE=$<TARGET_FILE:geant-exporter>")
+    set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/simple-cms.gdml")
+    set(_hepmc3_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/input.hepmc3")
+    set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=")
+    if(CELERITAS_USE_ROOT)
+      set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
     endif()
     add_test(NAME "app/demo-loop"
       COMMAND "${_python_exe}"
@@ -302,7 +293,6 @@ if(CELERITAS_BUILD_DEMOS)
     # enabled)
     if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
        OR NOT CELERITAS_USE_Geant4
-       OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3
        OR NOT CELERITAS_USE_Python
        OR (CELERITAS_USE_VecGeom AND CELERITAS_DEBUG
@@ -320,6 +310,7 @@ if(CELERITAS_BUILD_DEMOS)
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
       "${_geant_exporter_env}"
+      "CELER_LOG=debug"
       "CELER_DISABLE_DEVICE=1"
       "CELER_DISABLE_PARALLEL=1"
     )
@@ -333,7 +324,6 @@ if(CELERITAS_BUILD_DEMOS)
     )
     if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
        OR NOT CELERITAS_USE_Geant4
-       OR NOT CELERITAS_USE_ROOT
        OR NOT CELERITAS_USE_HepMC3)
       set_tests_properties("app/demo-loop-cpu" PROPERTIES
         DISABLED true

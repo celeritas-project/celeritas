@@ -74,4 +74,5 @@ endfunction()
 
 celeritas_swig_python_module(CeleritasPython celeritas.i)
 add_library(Celeritas::Python ALIAS CeleritasPython)
-celeritas_target_link_libraries(CeleritasPython PRIVATE Celeritas::Core Celeritas::ROOT)
+celeritas_target_link_libraries(CeleritasPython PRIVATE Celeritas::Core
+  Celeritas::IO)

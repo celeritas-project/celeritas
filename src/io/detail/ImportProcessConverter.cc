@@ -7,24 +7,19 @@
 //---------------------------------------------------------------------------//
 #include "ImportProcessConverter.hh"
 
-#include <fstream>
 #include <iterator>
 #include <string>
-#include <G4Material.hh>
+#include <utility>
 #include <G4NistManager.hh>
 #include <G4ParticleTable.hh>
 #include <G4PhysicsVectorType.hh>
 #include <G4ProcessType.hh>
-#include <G4ProductionCutsTable.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4VEmModel.hh>
 #include <G4VEmProcess.hh>
 #include <G4VEnergyLossProcess.hh>
 #include <G4VMultipleScattering.hh>
 #include <G4VProcess.hh>
-#include <TBranch.h>
-#include <TFile.h>
-#include <TTree.h>
 
 #include "base/Assert.hh"
 #include "base/Range.hh"
@@ -35,7 +30,7 @@
 #include "io/ImportPhysicsVector.hh"
 #include "io/ImportProcess.hh"
 
-#include "CeleritasG4Version.hh"
+#include "GeantVersion.hh"
 
 using celeritas::ImportModelClass;
 using celeritas::ImportPhysicsTable;
@@ -48,7 +43,9 @@ using celeritas::ImportUnits;
 using celeritas::PDGNumber;
 using ProcessTypeDemangler = celeritas::TypeDemangler<G4VProcess>;
 
-namespace geant_exporter
+namespace celeritas
+{
+namespace detail
 {
 namespace
 {
@@ -660,10 +657,12 @@ ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
     ImportPhysicsVector physics_vector;
     physics_vector.vector_type = ImportPhysicsVectorType::log;
 
+    auto cutoff_iter = material.pdg_cutoffs.find(process_.particle_pdg);
+    CELER_ASSERT(cutoff_iter != material.pdg_cutoffs.end());
+
     const double max_energy = model.HighEnergyLimit() / MeV;
-    const double min_energy = std::max(
-        material.pdg_cutoffs.find(process_.particle_pdg)->second.energy,
-        model.LowEnergyLimit() / MeV);
+    const double min_energy
+        = std::max(cutoff_iter->second.energy, model.LowEnergyLimit() / MeV);
 
     const int bins_per_decade
         = G4EmParameters::Instance()->NumberOfBinsPerDecade();
@@ -692,4 +691,5 @@ ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace detail
+} // namespace celeritas

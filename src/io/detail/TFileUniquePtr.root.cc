@@ -1,26 +1,24 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ActionInitialization.hh
-//! Invoke UserAction type classes.
+//! \file TFileUniquePtr.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "TFileUniquePtr.hh"
 
-#include <G4VUserActionInitialization.hh>
+#include <TFile.h>
 
-namespace geant_exporter
+namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
-/*!
- * Initialize Geant4.
- */
-class ActionInitialization : public G4VUserActionInitialization
+void TFileDeleter::operator()(TFile* ptr) const
 {
-  public:
-    void Build() const override;
-};
+    delete ptr;
+}
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace detail
+} // namespace celeritas

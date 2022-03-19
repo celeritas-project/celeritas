@@ -3,31 +3,35 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DetectorConstruction.hh
+//! \file PrimaryGeneratorAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
-#include <G4VUserDetectorConstruction.hh>
+#include <G4Event.hh>
+#include <G4ParticleGun.hh>
+#include <G4VUserPrimaryGeneratorAction.hh>
 
-namespace geant_exporter
+namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load the detector geometry from a GDML input file.
+ * Create a particle gun and generate one primary for a minimal simulation run.
  */
-class DetectorConstruction : public G4VUserDetectorConstruction
+class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-    explicit DetectorConstruction(G4String gdmlInput);
-    ~DetectorConstruction();
+    PrimaryGeneratorAction();
+    ~PrimaryGeneratorAction();
 
-    G4VPhysicalVolume*       Construct() override;
-    const G4VPhysicalVolume* get_world_volume() const;
+    void GeneratePrimaries(G4Event* event) override;
 
   private:
-    std::unique_ptr<G4VPhysicalVolume> phys_vol_world_;
+    std::unique_ptr<G4ParticleGun> particle_gun_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace detail
+} // namespace celeritas

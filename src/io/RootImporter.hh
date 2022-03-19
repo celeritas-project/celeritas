@@ -7,30 +7,21 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <string>
-#include <vector>
-
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "physics/base/CutoffParams.hh"
-#include "physics/base/ParticleData.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/material/MaterialParams.hh"
+#include "celeritas_config.h"
+#include "base/Assert.hh"
 
 #include "ImportData.hh"
-
-// ROOT
-class TFile;
+#include "detail/TFileUniquePtr.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Create an \c ImportData object from a ROOT data file.
+ *
  * RootImporter loads particle, element, material, process, and volume
  * information from a ROOT file that contains an \c ImportData object.
- * Currently, said ROOT file is created by the \e app/geant-exporter external
- * code.
+ * Currently, said ROOT file is created by the \c RootExporter class.
  *
  * \c RootImporter , along with all \c Import[Class] type of classes, are the
  * link between Geant4 and Celeritas. Every Celeritas' host/device class that
@@ -52,19 +43,31 @@ class RootImporter
     // Construct with ROOT file name
     explicit RootImporter(const char* filename);
 
-    // Release ROOT file on exit
-    ~RootImporter();
-
     // Load data from the ROOT files
     ImportData operator()();
 
   private:
-    std::unique_ptr<TFile> root_input_;
+    // ROOT file
+    detail::TFileUniquePtr root_input_;
+
     // ROOT TTree name
     static const char* tree_name();
     // ROOT TBranch name
     static const char* branch_name();
 };
+
+//---------------------------------------------------------------------------//
+#if !CELERITAS_USE_ROOT
+inline RootImporter::RootImporter(const char*)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+inline auto RootImporter::operator()() -> ImportData
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

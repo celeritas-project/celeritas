@@ -14,6 +14,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Assign exception handler on construction.
@@ -82,4 +84,5 @@ G4int GeantLoggerAdapter::log_impl(const G4String& str, LogLevel level)
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

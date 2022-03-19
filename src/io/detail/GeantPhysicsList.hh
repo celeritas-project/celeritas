@@ -3,37 +3,38 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsList.hh
+//! \file GeantPhysicsList.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <G4VUserPhysicsList.hh>
 
-namespace geant_exporter
+namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct a user-defined physics list of particles and physics processes.
  */
-class PhysicsList : public G4VUserPhysicsList
+class GeantPhysicsList : public G4VUserPhysicsList
 {
   public:
-    // Construct empty
-    PhysicsList();
-    // Default destructor
-    ~PhysicsList();
+    // Set up during construction
+    GeantPhysicsList();
 
-    // Set up minimal E.M. particle list
+    // Set up minimal EM particle list
     void ConstructParticle() override;
     // Set up process list
     void ConstructProcess() override;
 
   private:
-    // Add E.M. processes for photons
+    // Add EM processes for photons
     void add_gamma_processes();
-    // Add E.M. processes for electrons and positrons
+    // Add EM processes for electrons and positrons
     void add_e_processes();
 };
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace detail
+} // namespace celeritas

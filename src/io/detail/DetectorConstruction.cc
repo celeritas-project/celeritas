@@ -12,7 +12,9 @@
 #include "base/Assert.hh"
 #include "comm/Logger.hh"
 
-namespace geant_exporter
+namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -58,4 +60,5 @@ const G4VPhysicalVolume* DetectorConstruction::get_world_volume() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace detail
+} // namespace celeritas

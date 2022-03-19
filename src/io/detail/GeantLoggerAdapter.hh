@@ -13,6 +13,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Handle log messages from Geant4 while in scope.
@@ -39,4 +41,5 @@ class GeantLoggerAdapter : public G4coutDestination
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

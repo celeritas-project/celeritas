@@ -3,14 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BremsstrahlungProcess.hh
-//! \brief Bremsstrahlung process class.
+//! \file GeantBremsstrahlungProcess.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <G4VEnergyLossProcess.hh>
 
-namespace geant_exporter
+namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -18,7 +19,7 @@ namespace geant_exporter
  * \c G4eBremsstrahlung . The need for a new process class is to add the option
  * to manually select individual models.
  */
-class BremsstrahlungProcess : public G4VEnergyLossProcess
+class GeantBremsstrahlungProcess : public G4VEnergyLossProcess
 {
   public:
     enum class ModelSelection
@@ -29,9 +30,9 @@ class BremsstrahlungProcess : public G4VEnergyLossProcess
     };
 
     // Construct with model selection
-    explicit BremsstrahlungProcess(ModelSelection selection);
+    explicit GeantBremsstrahlungProcess(ModelSelection selection);
     // Empty destructor
-    ~BremsstrahlungProcess();
+    ~GeantBremsstrahlungProcess();
 
     // True for electrons and positrons
     bool IsApplicable(const G4ParticleDefinition& particle) final;
@@ -50,13 +51,15 @@ class BremsstrahlungProcess : public G4VEnergyLossProcess
 
   private:
     // Hide assignment operator
-    BremsstrahlungProcess& operator=(const BremsstrahlungProcess& right)
+    GeantBremsstrahlungProcess&
+    operator=(const GeantBremsstrahlungProcess& right)
         = delete;
-    BremsstrahlungProcess(const BremsstrahlungProcess&) = delete;
+    GeantBremsstrahlungProcess(const GeantBremsstrahlungProcess&) = delete;
 
   private:
     ModelSelection model_selection_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace geant_exporter
+} // namespace detail
+} // namespace celeritas
