@@ -14,11 +14,12 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * At end of scope, print elapsed time and captured cout/cerr.
+ *
+ * This is designed to prevent other libraries (Geant4,VecGeom) from polluting
+ * stdout and breaking JSON reading ability.
  *
  * \code
     {
@@ -27,21 +28,21 @@ namespace detail
     }
    \endcode
  *
- * During scope, you should be sure *NOT* to call the logger, which by default
- * prints to cerr.
+ * \warning During scope, you should be sure *NOT* to call the logger, which by
+ * default prints to cerr.
  */
 class ScopedTimeAndRedirect
 {
   public:
-    ScopedTimeAndRedirect();
+    explicit ScopedTimeAndRedirect(std::string label);
     ~ScopedTimeAndRedirect();
 
   private:
     std::unique_ptr<ScopedStreamRedirect> stdout_;
     std::unique_ptr<ScopedStreamRedirect> stderr_;
+    std::string label_;
     ScopedTimeLog                         scoped_time_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

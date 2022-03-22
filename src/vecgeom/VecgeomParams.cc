@@ -22,12 +22,12 @@
 
 #include "base/Join.hh"
 #include "base/Range.hh"
+#include "base/ScopedTimeAndRedirect.hh"
 #include "base/StringUtils.hh"
 #include "comm/Device.hh"
 #include "comm/Logger.hh"
 
 #include "VecgeomData.hh"
-#include "detail/ScopedTimeAndRedirect.hh"
 
 namespace celeritas
 {
@@ -44,14 +44,14 @@ VecgeomParams::VecgeomParams(const std::string& filename)
     }
 
     {
-        detail::ScopedTimeAndRedirect time_and_output_;
+        ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
         constexpr bool                validate_xml_schema = false;
         vgdml::Frontend::Load(filename, validate_xml_schema);
     }
 
     CELER_LOG(status) << "Initializing tracking information";
     {
-        detail::ScopedTimeAndRedirect time_and_output_;
+        ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
     }
 
@@ -73,7 +73,7 @@ VecgeomParams::VecgeomParams(const std::string& filename)
 
         CELER_LOG(debug) << "Converting to CUDA geometry";
         {
-            detail::ScopedTimeAndRedirect time_and_output_;
+            ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
             // cuda_manager.set_verbose(1);
             cuda_manager.LoadGeometry();
             CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
@@ -81,7 +81,7 @@ VecgeomParams::VecgeomParams(const std::string& filename)
 
         CELER_LOG(debug) << "Transferring geometry to GPU";
         {
-            detail::ScopedTimeAndRedirect time_and_output_;
+            ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
             auto world_top_devptr = cuda_manager.Synchronize();
             CELER_ASSERT(world_top_devptr != nullptr);
             device_ref_.world_volume = world_top_devptr.GetPtr();
