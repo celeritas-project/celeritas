@@ -6,7 +6,7 @@
       "name": ".base",
       "hidden": true,
       "inherits": ["full"],
-      "binaryDir": "${sourceDir}/build-${presetName}",
+      "binaryDir": "$env{PROJWORK}/csc404/celeritas/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
         "CELERITAS_USE_Doxygen": {"type": "BOOL", "value": "OFF"},
@@ -22,7 +22,8 @@
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
         "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "70"},
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -mcpu=powerpc64le -mtune=powerpc64le",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
+        "CMAKE_INSTALL_PREFIX": "$env{PROJWORK}/csc404/celeritas/install-${presetName}"
       }
     },
     {
@@ -57,6 +58,7 @@
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "BUILD_SHARED_LIBS":    {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_OpenMP":    {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_VecGeom":    {"type": "BOOL",   "value": "OFF"}
       }
@@ -66,7 +68,6 @@
       "displayName": "Summit release mode",
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":    {"type": "BOOL",   "value": "ON"}
       }
     },
     {
