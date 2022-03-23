@@ -70,6 +70,7 @@ list(APPEND SOURCES
   base/ColorUtils.cc
   base/Copier.cc
   base/DeviceAllocation.cc
+  base/ScopedTimeAndRedirect.cc
   base/StringUtils.cc
   comm/KernelDiagnostics.cc
   base/ScopedStreamRedirect.cc
@@ -186,7 +187,6 @@ endif()
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     vecgeom/VecgeomParams.cc
-    vecgeom/detail/ScopedTimeAndRedirect.cc
     vecgeom/detail/VecgeomNavCollection.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml)

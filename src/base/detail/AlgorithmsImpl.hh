@@ -19,7 +19,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // Forward declare cuda-compatible swap/move
 template<class T>
-CELER_FUNCTION void trivial_swap(T&, T&) noexcept;
+CELER_FORCEINLINE_FUNCTION void trivial_swap(T&, T&) noexcept;
 
 namespace detail
 {

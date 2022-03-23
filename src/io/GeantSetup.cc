@@ -19,7 +19,7 @@
 #include <G4UImanager.hh>
 #include <G4VModularPhysicsList.hh>
 
-#include "base/ScopedTimeLog.hh"
+#include "base/ScopedTimeAndRedirect.hh"
 
 #include "detail/ActionInitialization.hh"
 #include "detail/DetectorConstruction.hh"
@@ -35,16 +35,19 @@ namespace celeritas
  */
 GeantSetup::GeantSetup(const std::string& gdml_filename, PhysicsList physics)
 {
-    ScopedTimeLog scoped_time;
     CELER_LOG(status) << "Initializing Geant4";
 
+    {
+        // Run manager writes output that cannot be redirected...
+        ScopedTimeAndRedirect scoped_time("G4RunManager");
 #if CELERITAS_G4_V10
-    run_manager_.reset(new G4RunManager);
+        run_manager_.reset(new G4RunManager);
 #else
-    run_manager_.reset(
-        G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
+        run_manager_.reset(
+            G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
 #endif
-    CELER_ASSERT(run_manager_);
+        CELER_ASSERT(run_manager_);
+    }
 
     detail::GeantLoggerAdapter    scoped_logger;
     detail::GeantExceptionHandler scoped_exception_handler;

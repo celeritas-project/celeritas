@@ -14,15 +14,14 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Redirect cout/cerr on construction, and start timer implicitly.
  */
-ScopedTimeAndRedirect::ScopedTimeAndRedirect()
+ScopedTimeAndRedirect::ScopedTimeAndRedirect(std::string label)
     : stdout_{std::make_unique<ScopedStreamRedirect>(&std::cout)}
     , stderr_{std::make_unique<ScopedStreamRedirect>(&std::cerr)}
+    , label_{std::move(label)}
 {
 }
 
@@ -42,15 +41,14 @@ ScopedTimeAndRedirect::~ScopedTimeAndRedirect()
     Logger& celer_log = celeritas::world_logger();
     if (!sout.empty())
     {
-        celer_log({"vecgeom", 0}, LogLevel::diagnostic) << sout;
+        celer_log({label_, 0}, LogLevel::diagnostic) << sout;
     }
 
     if (!serr.empty())
     {
-        celer_log({"vecgeom", 0}, LogLevel::warning) << serr;
+        celer_log({label_, 0}, LogLevel::warning) << serr;
     }
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

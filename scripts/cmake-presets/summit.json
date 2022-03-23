@@ -6,36 +6,35 @@
       "name": ".base",
       "hidden": true,
       "inherits": ["full"],
-      "binaryDir": "${sourceDir}/build-${presetName}",
+      "binaryDir": "$env{PROJWORK}/csc404/celeritas/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
         "CELERITAS_USE_Doxygen": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_MPI":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
-        "CMAKE_HIP_ARCHITECTURES":  {"type": "STRING", "value": "gfx90a"},
-        "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics -Wno-#warnings",
-        "CMAKE_HIP_FLAGS_DEBUG": "-g -ggdb -O",
-        "CMAKE_CXX_COMPILER": "CC",
-        "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=znver3 -mtune=znver3",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
+        "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "70"},
+        "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -mcpu=powerpc64le -mtune=powerpc64le",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
+        "CMAKE_INSTALL_PREFIX": "$env{PROJWORK}/csc404/celeritas/install-${presetName}"
       }
     },
     {
       "name": "base",
-      "displayName": "Crusher default options (GCC, debug)",
+      "displayName": "Summit default options (GCC, debug)",
       "inherits": [".base"],
       "binaryDir": "${sourceDir}/build"
     },
     {
       "name": "mini",
-      "displayName": "Crusher default options (GCC, debug)",
+      "displayName": "Summit simple build (GCC, debug)",
       "inherits": [".base"],
       "binaryDir": "${sourceDir}/build-minimal",
       "cacheVariables": {
@@ -50,21 +49,30 @@
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
         "CMAKE_HIP_ARCHITECTURES":  {"type": "STRING", "value": "gfx90a"},
-        "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=znver3 -mtune=znver3",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
       }
     },
     {
-      "name": "ndebug",
-      "displayName": "Crusher release mode",
+      "name": "ndebug-novg",
+      "displayName": "Summit release mode",
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":    {"type": "BOOL",   "value": "OFF"}
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "BUILD_SHARED_LIBS":    {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_OpenMP":    {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_VecGeom":    {"type": "BOOL",   "value": "OFF"}
+      }
+    },
+    {
+      "name": "ndebug",
+      "displayName": "Summit release mode",
+      "inherits": [".ndebug", ".base"],
+      "cacheVariables": {
       }
     },
     {
       "name": "ndebug-serial",
-      "displayName": "Crusher release mode (no openmp)",
+      "displayName": "Summit release without openmp",
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
