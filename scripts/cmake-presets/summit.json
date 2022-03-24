@@ -24,6 +24,7 @@
         "CMAKE_CUDA_FLAGS": "-Werror all-warnings -Xcompiler -Wno-psabi",
         "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "70"},
         "CMAKE_CXX_STANDARD": {"type": "STRING", "value": "17"},
+        "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -mcpu=powerpc64le -mtune=powerpc64le",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
         "CMAKE_INSTALL_PREFIX": "$env{PROJWORK}/csc404/celeritas/install-${presetName}"
