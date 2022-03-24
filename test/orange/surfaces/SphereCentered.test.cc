@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Sphere.test.cc
+//! \file SphereCentered.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/surfaces/Sphere.hh"
+#include "orange/surfaces/SphereCentered.hh"
 
 #include "base/Constants.hh"
 
@@ -13,14 +13,14 @@
 
 using celeritas::no_intersection;
 using celeritas::SignedSense;
-using celeritas::Sphere;
+using celeritas::SphereCentered;
 using celeritas::SurfaceState;
 
 using celeritas::ipow;
 using celeritas::Real3;
 using celeritas::real_type;
 
-using Intersections = Sphere::Intersections;
+using Intersections = SphereCentered::Intersections;
 
 constexpr real_type sqrt_third = 1 / celeritas::constants::sqrt_three;
 
@@ -28,7 +28,7 @@ constexpr real_type sqrt_third = 1 / celeritas::constants::sqrt_three;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SphereTest : public celeritas::Test
+class SphereCenteredTest : public celeritas::Test
 {
   protected:
     void SetUp() override {}
@@ -37,25 +37,22 @@ class SphereTest : public celeritas::Test
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-TEST_F(SphereTest, all)
+TEST_F(SphereCenteredTest, all)
 {
-    EXPECT_EQ(celeritas::SurfaceType::s, Sphere::surface_type());
-    EXPECT_EQ(4, Sphere::Storage::extent);
-    EXPECT_EQ(2, Sphere::Intersections{}.size());
+    EXPECT_EQ(celeritas::SurfaceType::sc, SphereCentered::surface_type());
+    EXPECT_EQ(1, SphereCentered::Storage::extent);
+    EXPECT_EQ(2, SphereCentered::Intersections{}.size());
 
-    const Real3 origin{-1.1, 2.2, -3.3};
-    real_type   radius = 4.4;
+    real_type radius = 4.4;
 
-    Sphere s{origin, radius};
-    EXPECT_VEC_SOFT_EQ(origin, s.origin());
+    SphereCentered s{radius};
     EXPECT_SOFT_EQ(radius * radius, s.radius_sq());
 
-    EXPECT_EQ(SignedSense::outside, s.calc_sense({4, 5, 5}));
-    EXPECT_EQ(SignedSense::inside, s.calc_sense({1, 2, -3}));
+    EXPECT_EQ(SignedSense::outside, s.calc_sense({2, 3, 5}));
+    EXPECT_EQ(SignedSense::inside, s.calc_sense({2, 3, 1}));
 
-    const Real3 on_surface{origin[0] + radius * sqrt_third,
-                           origin[1] + radius * sqrt_third,
-                           origin[2] + radius * sqrt_third};
+    const Real3 on_surface{
+        radius * sqrt_third, radius * sqrt_third, radius * sqrt_third};
     const Real3 inward{-sqrt_third, -sqrt_third, -sqrt_third};
     const Real3 outward{sqrt_third, sqrt_third, sqrt_third};
 
@@ -77,13 +74,14 @@ TEST_F(SphereTest, all)
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 
     // At center
-    distances = s.calc_intersections(origin, outward, SurfaceState::off);
+    distances
+        = s.calc_intersections(Real3{0, 0, 0}, outward, SurfaceState::off);
     EXPECT_SOFT_EQ(radius, distances[1]);
     EXPECT_SOFT_EQ(no_intersection(), distances[0]);
 
     // Outside, hitting both
     distances = s.calc_intersections(
-        Real3{-6.5, 2.2, -3.3}, Real3{1, 0, 0}, SurfaceState::off);
+        Real3{-5.4, 0, 0}, Real3{1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(1.0, distances[0]);
     EXPECT_SOFT_EQ(1 + 2 * radius, distances[1]);
 }

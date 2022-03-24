@@ -21,6 +21,7 @@ template<Axis T>
 class CylCentered;
 class GeneralQuadric;
 class Sphere;
+class SphereCentered;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -43,8 +44,8 @@ ORANGE_SURFACE_TRAITS(pz,  PlaneAligned<Axis::z>);
 ORANGE_SURFACE_TRAITS(cxc, CylCentered<Axis::x>);
 ORANGE_SURFACE_TRAITS(cyc, CylCentered<Axis::y>);
 ORANGE_SURFACE_TRAITS(czc, CylCentered<Axis::z>);
+ORANGE_SURFACE_TRAITS(sc,  SphereCentered);
 #if 0
-ORANGE_SURFACE_TRAITS(sc,  CenteredSphere);
 ORANGE_SURFACE_TRAITS(cx,  CylAligned<Axis::x>);
 ORANGE_SURFACE_TRAITS(cy,  CylAligned<Axis::y>);
 ORANGE_SURFACE_TRAITS(cz,  CylAligned<Axis::z>);

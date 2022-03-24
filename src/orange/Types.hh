@@ -62,8 +62,8 @@ enum class SurfaceType : unsigned char
     cxc, //!< Cylinder centered on X axis
     cyc, //!< Cylinder centered on Y axis
     czc, //!< Cylinder centered on Z axis
-#if 0
     sc,  //!< Sphere centered at the origin
+#if 0
     cx,  //!< Cylinder parallel to X axis
     cy,  //!< Cylinder parallel to Y axis
     cz,  //!< Cylinder parallel to Z axis

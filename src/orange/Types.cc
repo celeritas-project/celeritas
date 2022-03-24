@@ -26,8 +26,8 @@ const char* to_cstring(SurfaceType value)
         "cxc",
         "cyc",
         "czc",
-#if 0
         "sc",
+#if 0
         "cx",
         "cy",
         "cz",
