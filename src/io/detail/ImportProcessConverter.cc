@@ -178,8 +178,10 @@ to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
 {
     switch (g4_vector_type)
     {
+#if CELERITAS_G4_V10
         case T_G4PhysicsVector:
             return ImportPhysicsVectorType::unknown;
+#endif
         case T_G4PhysicsLinearVector:
             return ImportPhysicsVectorType::linear;
         case T_G4PhysicsLogVector:
