@@ -81,8 +81,20 @@ struct VolumeRecord
     //! Flag values (bit field)
     enum Flags : logic_int
     {
-        internal_surfaces = 0x1
+        internal_surfaces = 0x1,
+        implicit_cell     = 0x2
     };
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Data for surface-to-volume connectivity.
+ *
+ * \sa VolumeView
+ */
+struct Connectivity
+{
+    ItemRange<VolumeId> neighbors;
 };
 
 //---------------------------------------------------------------------------//
@@ -100,10 +112,12 @@ struct VolumeData
     //// DATA ////
 
     Items<VolumeRecord> defs;
+    Collection<Connectivity, W, M, SurfaceId> connectivity;
 
     // Storage
     Collection<SurfaceId, W, M> faces;
     Collection<logic_int, W, M> logic;
+    Collection<VolumeId, W, M>  volumes;
 
     //// METHODS ////
 
@@ -119,9 +133,11 @@ struct VolumeData
     {
         CELER_EXPECT(other);
 
-        defs  = other.defs;
-        faces = other.faces;
-        logic = other.logic;
+        defs         = other.defs;
+        connectivity = other.connectivity;
+        faces        = other.faces;
+        logic        = other.logic;
+        volumes      = other.volumes;
 
         return *this;
     }

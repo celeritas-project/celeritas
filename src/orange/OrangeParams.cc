@@ -98,6 +98,35 @@ OrangeParams::Input input_from_json(std::string filename)
         uni["cell_names"].get_to(input.volume_labels);
     }
 
+    // Add connectivity
+    // TODO: calculate this on the fly using VolumeInserter
+    CELER_VALIDATE(uni["surfaces"].contains("connectivity"),
+                   << "input geometry is missing surface connectivity; "
+                      "regenerate the JSON file with orange2celeritas");
+    {
+        // Volume ID storage
+        auto volumes      = make_builder(&input.volumes.volumes);
+        auto connectivity = make_builder(&input.volumes.connectivity);
+
+        std::vector<VolumeId> temp_ids;
+        for (const auto& surf_to_vol : uni["surfaces"]["connectivity"])
+        {
+            // Convert from values to IDs: a transform iterator would be a more
+            // elegant way to do this
+            temp_ids.resize(surf_to_vol.size());
+            for (auto i : range(surf_to_vol.size()))
+            {
+                temp_ids[i] = VolumeId(surf_to_vol[i]);
+            }
+            Connectivity conn;
+            conn.neighbors
+                = volumes.insert_back(temp_ids.begin(), temp_ids.end());
+            connectivity.push_back(conn);
+        }
+        CELER_ASSERT(input.volumes.connectivity.size()
+                     == input.surfaces.size());
+    }
+
     {
         // Save bbox
         const auto& bbox = uni["bbox"];
@@ -152,6 +181,9 @@ OrangeParams::OrangeParams(Input input)
                        << iter_inserted.first->first << '\'');
     }
     bbox_ = input.bbox;
+
+    CELER_VALIDATE(input.volumes.connectivity.size() == input.surfaces.size(),
+                   << "missing connectivity information");
 
     // Construct data
     OrangeParamsData<Ownership::value, MemSpace::host> host_data;
