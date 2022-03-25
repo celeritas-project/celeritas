@@ -146,14 +146,18 @@ struct RangeTypeTraits<OpaqueId<I, T>, void>
 
 //---------------------------------------------------------------------------//
 template<class T>
-class range_iter : public std::iterator<std::input_iterator_tag, T>
+class range_iter
 {
   public:
     //!@{
     //! Type aliases
-    using TraitsT      = RangeTypeTraits<T>;
-    using value_type   = T;
-    using counter_type = typename TraitsT::counter_type;
+    using TraitsT           = RangeTypeTraits<T>;
+    using value_type        = T;
+    using counter_type      = typename TraitsT::counter_type;
+    using iterator_category = std::input_iterator_tag;
+    using difference_type   = value_type;
+    using pointer           = void;
+    using reference         = value_type;
     //!@}
 
   public:
