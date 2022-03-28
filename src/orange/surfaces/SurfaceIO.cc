@@ -16,6 +16,7 @@
 #include "GeneralQuadric.hh"
 #include "PlaneAligned.hh"
 #include "Sphere.hh"
+#include "SphereCentered.hh"
 
 namespace celeritas
 {
@@ -56,6 +57,13 @@ std::ostream& operator<<(std::ostream& os, const Sphere& s)
 {
     os << "Sphere: r=" << std::sqrt(s.radius_sq()) << " at "
        << make_span(s.origin());
+    return os;
+}
+
+//---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, const SphereCentered& s)
+{
+    os << "Sphere: r=" << std::sqrt(s.radius_sq());
     return os;
 }
 

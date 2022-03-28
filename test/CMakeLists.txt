@@ -192,6 +192,7 @@ celeritas_add_test(orange/surfaces/CylCentered.test.cc)
 celeritas_add_test(orange/surfaces/GeneralQuadric.test.cc)
 celeritas_add_test(orange/surfaces/PlaneAligned.test.cc)
 celeritas_add_test(orange/surfaces/Sphere.test.cc)
+celeritas_add_test(orange/surfaces/SphereCentered.test.cc)
 
 celeritas_device_test(orange/surfaces/SurfaceAction)
 

@@ -19,14 +19,16 @@ namespace celeritas
 //!@{
 //! Print surfaces to a stream.
 template<Axis T>
-std::ostream& operator<<(std::ostream& os, const CylCentered<T>& s);
+std::ostream& operator<<(std::ostream&, const CylCentered<T>&);
 
-std::ostream& operator<<(std::ostream& os, const GeneralQuadric& s);
+std::ostream& operator<<(std::ostream&, const GeneralQuadric&);
 
 template<Axis T>
-std::ostream& operator<<(std::ostream& os, const PlaneAligned<T>& s);
+std::ostream& operator<<(std::ostream&, const PlaneAligned<T>&);
 
-std::ostream& operator<<(std::ostream& os, const Sphere& s);
+std::ostream& operator<<(std::ostream&, const Sphere&);
+
+std::ostream& operator<<(std::ostream&, const SphereCentered&);
 //!@}
 //---------------------------------------------------------------------------//
 } // namespace celeritas

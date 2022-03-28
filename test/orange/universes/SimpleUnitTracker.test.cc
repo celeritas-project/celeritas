@@ -393,8 +393,21 @@ TEST_F(TwoVolumeTest, initialize)
         EXPECT_FALSE(init);
     }
     {
+        SCOPED_TRACE("Outside the sphere");
+        auto init
+            = tracker.initialize(this->make_state({3.0, 0, 0}, {0, 0, 1}));
+        EXPECT_EQ("outside", this->id_to_label(init.volume));
+        EXPECT_FALSE(init.surface);
+    }
+}
+
+TEST_F(TwoVolumeTest, cross_boundary)
+{
+    SimpleUnitTracker tracker(this->params().host_ref());
+
+    {
         SCOPED_TRACE("Crossing the boundary from the inside");
-        auto init = tracker.initialize(this->make_state_crossing(
+        auto init = tracker.cross_boundary(this->make_state_crossing(
             {1.5, 0, 0}, {0, 0, 1}, "inside", "sphere", '-'));
         EXPECT_EQ("outside", this->id_to_label(init.volume));
         EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
@@ -402,18 +415,11 @@ TEST_F(TwoVolumeTest, initialize)
     }
     {
         SCOPED_TRACE("Crossing the boundary from the outside");
-        auto init = tracker.initialize(this->make_state_crossing(
+        auto init = tracker.cross_boundary(this->make_state_crossing(
             {1.5, 0, 0}, {0, 0, 1}, "outside", "sphere", '+'));
         EXPECT_EQ("inside", this->id_to_label(init.volume));
         EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
-    }
-    {
-        SCOPED_TRACE("Outside the sphere");
-        auto init
-            = tracker.initialize(this->make_state({3.0, 0, 0}, {0, 0, 1}));
-        EXPECT_EQ("outside", this->id_to_label(init.volume));
-        EXPECT_FALSE(init.surface);
     }
 }
 
@@ -594,9 +600,15 @@ TEST_F(FiveVolumesTest, initialize)
             = tracker.initialize(this->make_state({0, 0.75, 0}, {1, 1, 0}));
         EXPECT_FALSE(init);
     }
+}
+
+TEST_F(FiveVolumesTest, cross_boundary)
+{
+    SimpleUnitTracker tracker(this->params().host_ref());
+
     {
         SCOPED_TRACE("Crossing the boundary from the inside of 'e'");
-        auto init = tracker.initialize(this->make_state_crossing(
+        auto init = tracker.cross_boundary(this->make_state_crossing(
             {-0.5, -0.25, 0}, {-1, 0, 0}, "e", "epsilon.s", '-'));
         EXPECT_EQ("c", this->id_to_label(init.volume));
         EXPECT_EQ("epsilon.s", this->id_to_label(init.surface.id()));
@@ -607,7 +619,7 @@ TEST_F(FiveVolumesTest, initialize)
             "Crossing the boundary from the inside of 'e' but with "
             "numerical imprecision");
         real_type eps  = 1e-10;
-        auto      init = tracker.initialize(this->make_state_crossing(
+        auto      init = tracker.cross_boundary(this->make_state_crossing(
             {eps, -0.25, 0}, {1, 0, 0}, "e", "epsilon.s", '-'));
         EXPECT_EQ("c", this->id_to_label(init.volume));
         EXPECT_EQ("epsilon.s", this->id_to_label(init.surface.id()));
@@ -615,7 +627,7 @@ TEST_F(FiveVolumesTest, initialize)
     }
     {
         SCOPED_TRACE("Crossing the boundary into a more complicated region");
-        auto init = tracker.initialize(
+        auto init = tracker.cross_boundary(
             this->make_state_crossing({-.75 * sqrt_half, 0.75 * sqrt_half, 0},
                                       {0, 1, 0},
                                       "c",
@@ -627,7 +639,7 @@ TEST_F(FiveVolumesTest, initialize)
     }
     {
         SCOPED_TRACE("Crossing back in from a complicated region");
-        auto init = tracker.initialize(
+        auto init = tracker.cross_boundary(
             this->make_state_crossing({-.75 * sqrt_half, 0.75 * sqrt_half, 0},
                                       {0, -1, 0},
                                       "a",
@@ -642,20 +654,20 @@ TEST_F(FiveVolumesTest, initialize)
         // correct when exactly on a boundary but not *known* to be on that
         // boundary. We'll either need to ensure that's ei
         SCOPED_TRACE("Crossing at triple point");
-        auto init = tracker.initialize(this->make_state_crossing(
+        auto init = tracker.cross_boundary(this->make_state_crossing(
             {0, 0.75, 0}, {0, 1, 0}, "c", "gamma.s", '-'));
         EXPECT_EQ("d", this->id_to_label(init.volume));
         EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
 
-        init = tracker.initialize(this->make_state_crossing(
+        init = tracker.cross_boundary(this->make_state_crossing(
             {0, 0.75, 0}, {-1, 0, 0}, "d", "gamma.s", '+'));
         EXPECT_EQ("c", this->id_to_label(init.volume));
         EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
 
         // Near triple point, on sphere but crossing plane edge
-        init = tracker.initialize(this->make_state_crossing(
+        init = tracker.cross_boundary(this->make_state_crossing(
             {0, 0.75, 0}, {-1, 0, 0}, "d", "alpha.px", '+'));
         EXPECT_EQ("a", this->id_to_label(init.volume));
         EXPECT_EQ("alpha.px", this->id_to_label(init.surface.id()));

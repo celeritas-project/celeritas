@@ -56,26 +56,6 @@ class IsNotFurtherThan
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Predicate for partitioning allowable distances.
- *
- * For now we are careful to allow exact equality so that if we move *to* a
- * distance we will *cross* any surface at that distance.
- */
-struct IsIntersectionNotFurtherThan
-{
-    const TempNextFace& temp_next;
-    real_type           max_limit;
-
-    CELER_FUNCTION bool operator()(size_type isect) const
-    {
-        CELER_ASSERT(isect < temp_next.size);
-        const real_type distance = temp_next.distance[isect];
-        return distance <= max_limit;
-    }
-};
-
-//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!

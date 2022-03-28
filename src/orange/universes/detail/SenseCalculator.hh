@@ -45,7 +45,7 @@ class SenseCalculator
 
     // Calculate senses for the given volume, possibly on a face
     inline CELER_FUNCTION result_type operator()(const VolumeView& vol,
-                                                 OnFace            face = {});
+                                                 OnFace face = {}) const;
 
   private:
     //! Compressed vector of surface definitions
@@ -79,7 +79,8 @@ CELER_FUNCTION SenseCalculator::SenseCalculator(const Surfaces& surfaces,
  * of the return will be set.
  */
 CELER_FUNCTION auto
-SenseCalculator::operator()(const VolumeView& vol, OnFace face) -> result_type
+SenseCalculator::operator()(const VolumeView& vol, OnFace face) const
+    -> result_type
 {
     CELER_EXPECT(vol.num_faces() <= sense_storage_.size());
     CELER_EXPECT(!face || face.id() < vol.num_faces());

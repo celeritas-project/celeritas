@@ -8,6 +8,7 @@
 #pragma once
 
 #include "base/Algorithms.hh"
+#include "base/Assert.hh"
 #include "orange/Data.hh"
 #include "orange/surfaces/Surfaces.hh"
 
@@ -44,9 +45,13 @@ class SimpleUnitTracker
     // Construct with parameters (surfaces, cells)
     inline CELER_FUNCTION SimpleUnitTracker(const ParamsRef& params);
 
-    // Find the local cell and possibly surface ID.
+    // Find the local volume from a position
     inline CELER_FUNCTION Initialization
     initialize(const LocalState& state) const;
+
+    // Find the new volume by crossing a surface
+    inline CELER_FUNCTION Initialization
+    cross_boundary(const LocalState& state) const;
 
     // Calculate the distance to an exiting face for the current volume
     inline CELER_FUNCTION Intersection intersect(const LocalState& state) const;
@@ -61,6 +66,9 @@ class SimpleUnitTracker
 
     //// METHODS ////
 
+    // Get volumes that have the given surface as a "face" (connectivity)
+    inline CELER_FUNCTION Span<const VolumeId> get_neighbors(SurfaceId) const;
+
     template<class F>
     inline CELER_FUNCTION Intersection intersect_impl(const LocalState&,
                                                       F) const;
@@ -68,8 +76,9 @@ class SimpleUnitTracker
     inline CELER_FUNCTION Intersection simple_intersect(const LocalState&,
                                                         const VolumeView&,
                                                         size_type) const;
-    inline CELER_FUNCTION Intersection complex_intersect(
-        const LocalState&, const VolumeView&, size_type num_isect) const;
+    inline CELER_FUNCTION Intersection complex_intersect(const LocalState&,
+                                                         const VolumeView&,
+                                                         size_type) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -90,47 +99,85 @@ CELER_FUNCTION SimpleUnitTracker::SimpleUnitTracker(const ParamsRef& params)
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the local cell and possibly surface ID.
+ * Find the local volume from a position.
  *
- * This function is valid for initialization from a point, *and* for
- * initialization across a boundary.
+ * To avoid edge cases and inconsistent logical/physical states, it is
+ * prohibited to initialize from an arbitrary point directly onto a surface.
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::initialize(const LocalState& state) const -> Initialization
 {
     CELER_EXPECT(params_);
+    CELER_EXPECT(!state.surface && !state.volume);
 
     detail::SenseCalculator calc_senses(
         Surfaces{params_.surfaces}, state.pos, state.temp_sense);
 
+    // Loop over all volumes (TODO: use BVH)
     for (VolumeId volid : range(VolumeId{params_.volumes.size()}))
     {
-        if (state.surface && volid == state.volume)
-        {
-            // Cannot cross surface into the same cell
-            continue;
-        }
-
         VolumeView vol{params_.volumes, volid};
 
-        // Calculate the local senses and face, and see if we're inside.
-        auto logic_state
-            = calc_senses(vol, detail::find_face(vol, state.surface));
-        bool found = detail::LogicEvaluator(vol.logic())(logic_state.senses);
-        if (!found)
+        // Calculate the local senses, and see if we're inside.
+        auto logic_state = calc_senses(vol);
+
+        // Evalulate whether the senses are "inside" the volume
+        if (!detail::LogicEvaluator(vol.logic())(logic_state.senses))
         {
-            // Try the next cell
+            // State is *not* inside this volume: try the next one
             continue;
         }
-        if (!state.surface && logic_state.face)
+        if (logic_state.face)
         {
-            // Initialized on a boundary in this cell but wasn't known
+            // Initialized on a boundary in this volume but wasn't known
             // to be crossing a surface. Fail safe by letting the multi-level
-            // tracking geometry bump and try again.
+            // tracking geometry (NOT YET IMPLEMENTED in GPU ORANGE) bump and
+            // try again.
             break;
         }
 
-        // Found and not unexpectedly on a boundary!
+        // Found and not unexpectedly on a surface!
+        return {volid, {}};
+    }
+
+    // Not found
+    return {};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the local volume on the opposite side of a surface.
+ */
+CELER_FUNCTION auto
+SimpleUnitTracker::cross_boundary(const LocalState& state) const
+    -> Initialization
+{
+    CELER_EXPECT(state.surface && state.volume);
+    detail::SenseCalculator calc_senses(
+        Surfaces{params_.surfaces}, state.pos, state.temp_sense);
+
+    // Loop over all connected surfaces (TODO: intersect with BVH)
+    for (VolumeId volid : this->get_neighbors(state.surface.id()))
+    {
+        if (volid == state.volume)
+        {
+            // Cannot cross surface into the same volume
+            continue;
+        }
+        VolumeView vol{params_.volumes, volid};
+
+        // Calculate the local senses and face
+        auto logic_state
+            = calc_senses(vol, detail::find_face(vol, state.surface));
+
+        // Evalulate whether the senses are "inside" the volume
+        if (!detail::LogicEvaluator(vol.logic())(logic_state.senses))
+        {
+            // Not inside the volume
+            continue;
+        }
+
+        // Found the volume! Convert the face to a surface ID and return
         return {volid, get_surface(vol, logic_state.face)};
     }
 
@@ -165,6 +212,23 @@ SimpleUnitTracker::intersect(const LocalState& state, real_type max_dist) const
         result.distance = max_dist;
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+// PRIVATE INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get volumes that have the given surface as a "face" (connectivity).
+ */
+CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(SurfaceId surf) const
+    -> Span<const VolumeId>
+{
+    CELER_EXPECT(surf < params_.volumes.connectivity.size());
+
+    const Connectivity& conn = params_.volumes.connectivity[surf];
+
+    CELER_ENSURE(!conn.neighbors.empty());
+    return params_.volumes.volumes[conn.neighbors];
 }
 
 //---------------------------------------------------------------------------//
@@ -224,13 +288,15 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
         // no "nearby" distances depending on F)
         return {};
     }
-    else if (is_simple)
+    else if (vol.flags() == 0)
     {
-        // No interior surfaces: closest distance is next boundary
+        // No special conditions: closest distance is next boundary
         return this->simple_intersect(state, vol, num_isect);
     }
     else
     {
+        CELER_ASSERT(!is_simple);
+        // Internal surfaces: find closest surface that puts us outside
         return this->complex_intersect(state, vol, num_isect);
     }
 }

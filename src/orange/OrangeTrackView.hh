@@ -368,7 +368,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     // Update the post-crossing volume
     SimpleUnitTracker tracker(params_);
-    auto              init = tracker.initialize(local);
+    auto              init = tracker.cross_boundary(local);
     // TODO: error correction/graceful failure if initialization failed
     CELER_ASSERT(init.volume);
     states_.vol[thread_]   = init.volume;

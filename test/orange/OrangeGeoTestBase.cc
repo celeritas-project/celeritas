@@ -137,6 +137,19 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
             insert(vi);
         }
         input.volume_labels = {"outside", "inside"};
+
+        {
+            auto volumes      = make_builder(&input.volumes.volumes);
+            auto connectivity = make_builder(&input.volumes.connectivity);
+
+            // Single surface connecting both volumes
+            const VolumeId temp_vols[] = {VolumeId{0}, VolumeId{1}};
+
+            Connectivity conn;
+            conn.neighbors = volumes.insert_back(std::begin(temp_vols),
+                                                 std::end(temp_vols));
+            connectivity.push_back(conn);
+        }
     }
 
     // Save bbox
