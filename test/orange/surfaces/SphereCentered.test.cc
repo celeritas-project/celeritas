@@ -81,7 +81,7 @@ TEST_F(SphereCenteredTest, all)
 
     // Outside, hitting both
     distances = s.calc_intersections(
-        Real3{-5.4, 0, 0}, Real3{1, 0, 0}, SurfaceState::off);
+        Real3{-(radius + 1), 0, 0}, Real3{1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(1.0, distances[0]);
     EXPECT_SOFT_EQ(1 + 2 * radius, distances[1]);
 }

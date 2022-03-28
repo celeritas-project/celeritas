@@ -131,7 +131,8 @@ SimpleUnitTracker::initialize(const LocalState& state) const -> Initialization
         {
             // Initialized on a boundary in this volume but wasn't known
             // to be crossing a surface. Fail safe by letting the multi-level
-            // tracking geometry bump and try again.
+            // tracking geometry (NOT YET IMPLEMENTED in GPU ORANGE) bump and
+            // try again.
             break;
         }
 
@@ -292,14 +293,11 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
         // No special conditions: closest distance is next boundary
         return this->simple_intersect(state, vol, num_isect);
     }
-    else if (!is_simple)
-    {
-        // Internal surfaces: find closest surface that puts us outside
-        return this->complex_intersect(state, vol, num_isect);
-    }
     else
     {
-        CELER_ASSERT_UNREACHABLE(); // Unexpected set of flags
+        CELER_ASSERT(!is_simple);
+        // Internal surfaces: find closest surface that puts us outside
+        return this->complex_intersect(state, vol, num_isect);
     }
 }
 
