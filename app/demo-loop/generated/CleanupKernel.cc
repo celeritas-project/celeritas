@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "sim/TrackLauncher.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -23,7 +24,7 @@ void cleanup(
     CELER_EXPECT(params);
     CELER_EXPECT(states);
 
-    CleanupLauncher<MemSpace::host> launch(params, states);
+    auto launch = make_track_launcher(params, states, cleanup_track);
     #pragma omp parallel for
     for (size_type i = 0; i < 1; ++i)
     {

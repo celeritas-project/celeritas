@@ -51,7 +51,7 @@ struct CoreParamsData
     ParticleParamsData<W, M>    particles;
     CutoffParamsData<W, M>      cutoffs;
     PhysicsParamsData<W, M>     physics;
-    AtomicRelaxParamsData<W, M> relaxation; // TODO: move into physics
+    AtomicRelaxParamsData<W, M> relaxation; // TODO: move into physics?
     RngParamsData<W, M>         rng;
 
     ControlOptions control;

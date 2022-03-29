@@ -11,6 +11,7 @@
 #include "base/Types.hh"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
+#include "sim/TrackLauncher.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -38,7 +39,7 @@ pre_step_kernel(
     if (!(tid < states.size()))
         return;
 
-    PreStepLauncher<MemSpace::device> launch(params, states);
+    auto launch = make_track_launcher(params, states, pre_step_track);
     launch(tid);
 }
 } // namespace

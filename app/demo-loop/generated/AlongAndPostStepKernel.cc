@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "sim/TrackLauncher.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -23,7 +24,7 @@ void along_and_post_step(
     CELER_EXPECT(params);
     CELER_EXPECT(states);
 
-    AlongAndPostStepLauncher<MemSpace::host> launch(params, states);
+    auto launch = make_track_launcher(params, states, along_and_post_step_track);
     #pragma omp parallel for
     for (size_type i = 0; i < states.size(); ++i)
     {

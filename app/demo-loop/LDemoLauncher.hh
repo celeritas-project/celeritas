@@ -27,40 +27,6 @@ using celeritas::value_as;
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-// LAUNCHERS
-//---------------------------------------------------------------------------//
-#define CDL_LAUNCHER(NAME)                                                  \
-    template<MemSpace M>                                                    \
-    class NAME##Launcher                                                    \
-    {                                                                       \
-      public:                                                               \
-        using ParamsRef                                                     \
-            = celeritas::CoreParamsData<Ownership::const_reference, M>;     \
-        using StateRef = celeritas::CoreStateData<Ownership::reference, M>; \
-        using ThreadId = celeritas::ThreadId;                               \
-                                                                            \
-      public:                                                               \
-        CELER_FUNCTION                                                      \
-        NAME##Launcher(const ParamsRef& params, const StateRef& states)     \
-            : params_(params), states_(states)                              \
-        {                                                                   \
-            CELER_EXPECT(params_);                                          \
-            CELER_EXPECT(states_);                                          \
-        }                                                                   \
-                                                                            \
-        inline CELER_FUNCTION void operator()(ThreadId tid) const;          \
-                                                                            \
-      private:                                                              \
-        const ParamsRef& params_;                                           \
-        const StateRef&  states_;                                           \
-    };
-
-CDL_LAUNCHER(PreStep)
-CDL_LAUNCHER(AlongAndPostStep)
-CDL_LAUNCHER(ProcessInteractions)
-CDL_LAUNCHER(Cleanup)
-
-//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -68,14 +34,11 @@ CDL_LAUNCHER(Cleanup)
  *
  * Sample the mean free path and calculate the physics step limits.
  */
-template<MemSpace M>
-CELER_FUNCTION void PreStepLauncher<M>::operator()(ThreadId tid) const
+inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
 {
     using celeritas::Action;
     using celeritas::ExponentialDistribution;
     using celeritas::real_type;
-
-    const celeritas::CoreTrackView track(params_, states_, tid);
 
     // Clear out energy deposition
     track.energy_deposition() = 0;
@@ -123,10 +86,9 @@ CELER_FUNCTION void PreStepLauncher<M>::operator()(ThreadId tid) const
  * Propagate and process physical changes to the track along the step and
  * select the process/model for discrete interaction.
  */
-template<MemSpace M>
-CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
+inline CELER_FUNCTION void
+along_and_post_step_track(celeritas::CoreTrackView const& track)
 {
-    const celeritas::CoreTrackView track(params_, states_, tid);
     auto                           sim = track.make_sim_view();
     if (!sim.alive())
     {
@@ -275,13 +237,11 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
 /*!
  * Postprocess secondaries and interaction results.
  */
-template<MemSpace M>
-CELER_FUNCTION void
-ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
+inline CELER_FUNCTION void
+process_interactions_track(celeritas::CoreTrackView const& track)
 {
     using Energy = celeritas::ParticleTrackView::Energy;
 
-    const celeritas::CoreTrackView track(params_, states_, tid);
     auto                           sim = track.make_sim_view();
 
     // Increment the step count before checking if the track is alive as some
@@ -318,16 +278,13 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
 /*!
  * Clear secondaries.
  */
-template<MemSpace M>
-CELER_FUNCTION void CleanupLauncher<M>::operator()(ThreadId tid) const
+inline CELER_FUNCTION void cleanup_track(celeritas::CoreTrackView const& track)
 {
-    CELER_ASSERT(tid.get() == 0);
-    const celeritas::CoreTrackView track(params_, states_, tid);
+    CELER_ASSERT(track.thread_id().get() == 0);
 
     auto alloc = track.make_secondary_allocator();
     alloc.clear();
 }
 
 //---------------------------------------------------------------------------//
-#undef CDL_LAUNCHER
 } // namespace demo_loop

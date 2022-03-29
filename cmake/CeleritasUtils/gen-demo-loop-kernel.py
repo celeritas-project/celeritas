@@ -23,7 +23,6 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = CLIKE_TOP + """\
-#include "celeritas_config.h"
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "sim/CoreTrackData.hh"
@@ -56,6 +55,7 @@ inline void {func}(
 CC_TEMPLATE = CLIKE_TOP + """\
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "sim/TrackLauncher.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -71,7 +71,7 @@ void {func}(
     CELER_EXPECT(params);
     CELER_EXPECT(states);
 
-    {class}Launcher<MemSpace::host> launch(params, states);
+    auto launch = make_track_launcher(params, states, {func}_track);
     #pragma omp parallel for
     for (size_type i = 0; i < {threads}; ++i)
     {{
@@ -89,6 +89,7 @@ CU_TEMPLATE = CLIKE_TOP + """\
 #include "base/Types.hh"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
+#include "sim/TrackLauncher.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -107,7 +108,7 @@ __global__ void{launch_bounds}{func}_kernel(
     if (!(tid < {threads}))
         return;
 
-    {class}Launcher<MemSpace::device> launch(params, states);
+    auto launch = make_track_launcher(params, states, {func}_track);
     launch(tid);
 }}
 }} // namespace
@@ -156,9 +157,6 @@ def main():
     parser.add_argument(
         '--basename',
         help='File name (without extension) of output')
-    parser.add_argument(
-        '--class',
-        help='CamelCase name of the class prefix')
     parser.add_argument(
         '--func',
         help='snake_case name of the function')

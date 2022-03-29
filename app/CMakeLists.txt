@@ -206,7 +206,7 @@ set(_demo_loop_gen)
 macro(celeritas_gen_demo_loop_kernel class func threads)
   celeritas_gen(_demo_loop_gen
     "gen-demo-loop-kernel.py" "demo-loop/generated/${class}Kernel"
-    --class ${class}  --func ${func} --threads ${threads}
+    --func ${func} --threads ${threads}
   )
 endmacro()
 

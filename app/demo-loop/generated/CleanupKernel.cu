@@ -11,6 +11,7 @@
 #include "base/Types.hh"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
+#include "sim/TrackLauncher.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -38,7 +39,7 @@ cleanup_kernel(
     if (!(tid < 1))
         return;
 
-    CleanupLauncher<MemSpace::device> launch(params, states);
+    auto launch = make_track_launcher(params, states, cleanup_track);
     launch(tid);
 }
 } // namespace
