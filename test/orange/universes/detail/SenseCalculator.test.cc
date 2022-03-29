@@ -50,14 +50,14 @@ TEST(Types, OnFace)
 class SenseCalculatorTest : public celeritas_test::OrangeGeoTestBase
 {
   protected:
-    using SurfaceDataRef = Surfaces::SurfaceDataRef;
-    using VolumeDataRef  = VolumeView::VolumeDataRef;
+    using SurfaceRef = Surfaces::SurfaceRef;
+    using VolumeRef  = VolumeView::VolumeRef;
 
-    const SurfaceDataRef& surface_ref() const
+    const SurfaceRef& surface_ref() const
     {
         return this->params().host_ref().surfaces;
     }
-    const VolumeDataRef& volume_ref() const
+    const VolumeRef& volume_ref() const
     {
         return this->params().host_ref().volumes;
     }

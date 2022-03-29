@@ -16,7 +16,7 @@
 #include "base/CollectionStateStore.hh"
 #include "base/Types.hh"
 #include "geometry/GeoParams.hh"
-#include "sim/TrackData.hh"
+#include "sim/CoreTrackData.hh"
 
 namespace celeritas
 {
@@ -163,8 +163,8 @@ class Transporter : public TransporterBase
 
   private:
     TransporterInput                          input_;
-    ParamsData<Ownership::const_reference, M> params_;
-    CollectionStateStore<StateData, M>        states_;
+    CoreParamsData<Ownership::const_reference, M> params_;
+    CollectionStateStore<CoreStateData, M>        states_;
 };
 
 //---------------------------------------------------------------------------//

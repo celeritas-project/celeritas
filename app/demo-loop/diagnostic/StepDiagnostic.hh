@@ -77,20 +77,20 @@ class StepDiagnostic : public Diagnostic<M>
     //! Type aliases
     using size_type        = celeritas::size_type;
     using SPConstParticles = std::shared_ptr<const celeritas::ParticleParams>;
-    using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
-    using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
+    using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
+    using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     using TransporterResult = celeritas::TransporterResult;
     //!@}
 
   public:
     // Construct with shared problem data and upper bound on steps per track
-    StepDiagnostic(const ParamsDataRef& params,
-                   SPConstParticles     particles,
-                   size_type            num_tracks,
-                   size_type            max_steps);
+    StepDiagnostic(const ParamsRef& params,
+                   SPConstParticles particles,
+                   size_type        num_tracks,
+                   size_type        max_steps);
 
     // Number of steps per track, tallied before post-processing
-    void mid_step(const StateDataRef& states) final;
+    void mid_step(const StateRef& states) final;
 
     // Collect diagnostic results
     void get_result(TransporterResult* result) final;
@@ -100,7 +100,7 @@ class StepDiagnostic : public Diagnostic<M>
 
   private:
     // Shared problem data
-    const ParamsDataRef& params_;
+    const ParamsRef& params_;
     // Shared particle data for getting particle name from particle ID
     SPConstParticles particles_;
     // Data for finding distribution of steps per track
@@ -121,22 +121,22 @@ class StepLauncher
     //! Type aliases
     using size_type     = celeritas::size_type;
     using ThreadId      = celeritas::ThreadId;
-    using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
-    using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
+    using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
+    using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION StepLauncher(const ParamsDataRef&     params,
-                                const StateDataRef&      states,
+    CELER_FUNCTION StepLauncher(const ParamsRef&         params,
+                                const StateRef&          states,
                                 StepDiagnosticDataRef<M> data);
 
     // Create track views and tally steps per track
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const ParamsDataRef&     params_;
-    const StateDataRef&      states_;
+    const ParamsRef&         params_;
+    const StateRef&          states_;
     StepDiagnosticDataRef<M> data_;
 };
 
@@ -164,10 +164,10 @@ inline void count_steps(const celeritas::ParamsDeviceRef&,
  * Construct from shared data.
  */
 template<MemSpace M>
-StepDiagnostic<M>::StepDiagnostic(const ParamsDataRef& params,
-                                  SPConstParticles     particles,
-                                  size_type            num_tracks,
-                                  size_type            max_steps)
+StepDiagnostic<M>::StepDiagnostic(const ParamsRef& params,
+                                  SPConstParticles particles,
+                                  size_type        num_tracks,
+                                  size_type        max_steps)
     : params_(params), particles_(particles)
 {
     CELER_EXPECT(params_);
@@ -201,7 +201,7 @@ StepDiagnostic<M>::StepDiagnostic(const ParamsDataRef& params,
  * the original track data.
  */
 template<MemSpace M>
-void StepDiagnostic<M>::mid_step(const StateDataRef& states)
+void StepDiagnostic<M>::mid_step(const StateRef& states)
 {
     StepDiagnosticDataRef<M> data_ref;
     data_ref = data_;
@@ -262,8 +262,8 @@ StepDiagnostic<M>::steps()
  * Construct with shared and state data.
  */
 template<MemSpace M>
-CELER_FUNCTION StepLauncher<M>::StepLauncher(const ParamsDataRef&     params,
-                                             const StateDataRef&      states,
+CELER_FUNCTION StepLauncher<M>::StepLauncher(const ParamsRef&         params,
+                                             const StateRef&          states,
                                              StepDiagnosticDataRef<M> data)
     : params_(params), states_(states), data_(data)
 {

@@ -10,8 +10,8 @@
 #include "base/Atomics.hh"
 #include "geometry/GeoTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
+#include "sim/CoreTrackData.hh"
 #include "sim/SimTrackView.hh"
-#include "sim/TrackData.hh"
 #include "sim/TrackInitData.hh"
 
 namespace celeritas
@@ -28,16 +28,16 @@ class ProcessSecondariesLauncher
   public:
     //!@{
     //! Type aliases
-    using ParamsDataRef         = ParamsData<Ownership::const_reference, M>;
-    using StateDataRef          = StateData<Ownership::reference, M>;
-    using TrackInitStateDataRef = TrackInitStateData<Ownership::reference, M>;
+    using ParamsRef         = CoreParamsData<Ownership::const_reference, M>;
+    using StateRef          = CoreStateData<Ownership::reference, M>;
+    using TrackInitStateRef = TrackInitStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION ProcessSecondariesLauncher(const ParamsDataRef& params,
-                                              const StateDataRef&  states,
-                                              const TrackInitStateDataRef& data)
+    CELER_FUNCTION ProcessSecondariesLauncher(const ParamsRef&         params,
+                                              const StateRef&          states,
+                                              const TrackInitStateRef& data)
         : params_(params), states_(states), data_(data)
     {
         CELER_EXPECT(params_);
@@ -49,9 +49,9 @@ class ProcessSecondariesLauncher
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const ParamsDataRef&         params_;
-    const StateDataRef&          states_;
-    const TrackInitStateDataRef& data_;
+    const ParamsRef&         params_;
+    const StateRef&          states_;
+    const TrackInitStateRef& data_;
 };
 
 //---------------------------------------------------------------------------//

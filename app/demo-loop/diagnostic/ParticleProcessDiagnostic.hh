@@ -34,8 +34,8 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
     //! Type aliases
     using size_type = celeritas::size_type;
     using Items     = celeritas::Collection<size_type, Ownership::value, M>;
-    using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
-    using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
+    using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
+    using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     using SPConstParticles  = std::shared_ptr<const celeritas::ParticleParams>;
     using SPConstPhysics    = std::shared_ptr<const celeritas::PhysicsParams>;
     using TransporterResult = celeritas::TransporterResult;
@@ -43,12 +43,12 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
 
   public:
     // Construct with shared problem data
-    ParticleProcessDiagnostic(const ParamsDataRef& params,
-                              SPConstParticles     particles,
-                              SPConstPhysics       physics);
+    ParticleProcessDiagnostic(const ParamsRef& params,
+                              SPConstParticles particles,
+                              SPConstPhysics   physics);
 
     // Particle/model tallied after sampling discrete interaction
-    void mid_step(const StateDataRef& states) final;
+    void mid_step(const StateRef& states) final;
 
     // Collect diagnostic results
     void get_result(TransporterResult* result) final;
@@ -58,7 +58,7 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
 
   private:
     // Shared problem data
-    const ParamsDataRef& params_;
+    const ParamsRef& params_;
     // Shared particle data for getting particle name from particle ID
     SPConstParticles particles_;
     // Shared physics data for getting process name from model ID
@@ -82,22 +82,22 @@ class ParticleProcessLauncher
     using size_type = celeritas::size_type;
     using ThreadId  = celeritas::ThreadId;
     using ItemsRef = celeritas::Collection<size_type, Ownership::reference, M>;
-    using ParamsDataRef = celeritas::ParamsData<Ownership::const_reference, M>;
-    using StateDataRef  = celeritas::StateData<Ownership::reference, M>;
+    using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
+    using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION ParticleProcessLauncher(const ParamsDataRef& params,
-                                           const StateDataRef&  states,
-                                           ItemsRef&            counts);
+    CELER_FUNCTION ParticleProcessLauncher(const ParamsRef& params,
+                                           const StateRef&  states,
+                                           ItemsRef&        counts);
 
     //! Create track views and tally particle/processes
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const ParamsDataRef& params_;
-    const StateDataRef&  states_;
+    const ParamsRef&     params_;
+    const StateRef&      states_;
     ItemsRef&            counts_;
 };
 
@@ -129,9 +129,7 @@ count_particle_process(const celeritas::ParamsDeviceRef&,
  */
 template<MemSpace M>
 ParticleProcessDiagnostic<M>::ParticleProcessDiagnostic(
-    const ParamsDataRef& params,
-    SPConstParticles     particles,
-    SPConstPhysics       physics)
+    const ParamsRef& params, SPConstParticles particles, SPConstPhysics physics)
     : params_(params), particles_(particles), physics_(physics)
 {
     CELER_EXPECT(params_);
@@ -153,7 +151,7 @@ ParticleProcessDiagnostic<M>::ParticleProcessDiagnostic(
  * physics state if a discrete interaction occurred.
  */
 template<MemSpace M>
-void ParticleProcessDiagnostic<M>::mid_step(const StateDataRef& states)
+void ParticleProcessDiagnostic<M>::mid_step(const StateRef& states)
 {
     using ItemsRef = celeritas::Collection<size_type, Ownership::reference, M>;
 
@@ -217,9 +215,9 @@ ParticleProcessDiagnostic<M>::particle_processes() const
  */
 template<MemSpace M>
 CELER_FUNCTION
-ParticleProcessLauncher<M>::ParticleProcessLauncher(const ParamsDataRef& params,
-                                                    const StateDataRef& states,
-                                                    ItemsRef&           counts)
+ParticleProcessLauncher<M>::ParticleProcessLauncher(const ParamsRef& params,
+                                                    const StateRef&  states,
+                                                    ItemsRef&        counts)
     : params_(params), states_(states), counts_(counts)
 {
     CELER_EXPECT(params_);

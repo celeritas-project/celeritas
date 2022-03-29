@@ -20,8 +20,8 @@
 #include "physics/material/MaterialTrackView.hh"
 #include "random/RngEngine.hh"
 #include "random/distributions/ExponentialDistribution.hh"
+#include "sim/CoreTrackData.hh"
 #include "sim/SimTrackView.hh"
-#include "sim/TrackData.hh"
 
 #ifndef CELER_DEVICE_COMPILE
 #    include "base/ArrayIO.hh"
@@ -42,14 +42,14 @@ namespace demo_loop
     class NAME##Launcher                                                    \
     {                                                                       \
       public:                                                               \
-        using ParamsDataRef                                                 \
-            = celeritas::ParamsData<Ownership::const_reference, M>;         \
-        using StateDataRef = celeritas::StateData<Ownership::reference, M>; \
-        using ThreadId     = celeritas::ThreadId;                           \
+        using ParamsRef                                                     \
+            = celeritas::CoreParamsData<Ownership::const_reference, M>;     \
+        using StateRef = celeritas::CoreStateData<Ownership::reference, M>; \
+        using ThreadId = celeritas::ThreadId;                               \
                                                                             \
       public:                                                               \
-        CELER_FUNCTION NAME##Launcher(const ParamsDataRef& params,          \
-                                      const StateDataRef&  states)          \
+        CELER_FUNCTION                                                      \
+        NAME##Launcher(const ParamsRef& params, const StateRef& states)     \
             : params_(params), states_(states)                              \
         {                                                                   \
             CELER_EXPECT(params_);                                          \
@@ -59,8 +59,8 @@ namespace demo_loop
         inline CELER_FUNCTION void operator()(ThreadId tid) const;          \
                                                                             \
       private:                                                              \
-        const ParamsDataRef& params_;                                       \
-        const StateDataRef&  states_;                                       \
+        const ParamsRef& params_;                                           \
+        const StateRef&  states_;                                           \
     };
 
 CDL_LAUNCHER(PreStep)

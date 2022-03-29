@@ -1,7 +1,7 @@
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "sim/detail/InitTracksLauncher.hh"
-#include "sim/TrackData.hh"
+#include "sim/CoreTrackData.hh"
 #include "sim/TrackInitData.hh"
 
 namespace celeritas

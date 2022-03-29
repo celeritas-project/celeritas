@@ -193,7 +193,7 @@ DEFS = {
             Param("size_type", "num_vacancies"),
         ])),
         "num_vacancies",
-        ["sim/TrackData.hh"]),
+        ["sim/CoreTrackData.hh"]),
     "LocateAlive": KernelDefinition(
         Function("locate_alive", ParamList([
             Param("Params{Memspace}Ref", "params"),
@@ -201,7 +201,7 @@ DEFS = {
             Param("TrackInitState{Memspace}Ref", "data"),
         ])),
         "states.size()",
-        ["sim/TrackData.hh"]),
+        ["sim/CoreTrackData.hh"]),
     "ProcessPrimaries": KernelDefinition(
         Function("process_primaries", ParamList([
             Param("Span<const Primary>", "primaries"),
@@ -216,7 +216,7 @@ DEFS = {
             Param("TrackInitState{Memspace}Ref", "data"),
         ])),
         "states.size()",
-        ["sim/TrackData.hh"]),
+        ["sim/CoreTrackData.hh"]),
 }
 
 def transformed_param_types(params, apply, **kwargs):

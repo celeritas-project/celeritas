@@ -11,8 +11,8 @@
 #include "base/StackAllocator.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/Secondary.hh"
+#include "sim/CoreTrackData.hh"
 #include "sim/SimTrackView.hh"
-#include "sim/TrackData.hh"
 #include "sim/TrackInitData.hh"
 
 namespace celeritas_test

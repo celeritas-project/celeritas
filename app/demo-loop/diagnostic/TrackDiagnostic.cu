@@ -52,7 +52,7 @@ size_type reduce_alive(const StateDeviceRef& states)
  * Add the current step's number of alive tracks to this diagnostic.
  */
 template<>
-void TrackDiagnostic<MemSpace::device>::end_step(const StateDataRef& states)
+void TrackDiagnostic<MemSpace::device>::end_step(const StateRef& states)
 {
     // Get the number of tracks in flight.
     num_alive_per_step_.push_back(reduce_alive(states));

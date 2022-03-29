@@ -41,14 +41,14 @@ size_type reduce_alive(const StateHostRef& states)
  * Add the current step's number of alive tracks to this diagnostic.
  */
 template<>
-void TrackDiagnostic<MemSpace::host>::end_step(const StateDataRef& states)
+void TrackDiagnostic<MemSpace::host>::end_step(const StateRef& states)
 {
     num_alive_per_step_.push_back(demo_loop::reduce_alive(states));
 }
 
 #if !CELER_USE_DEVICE
 template<>
-void TrackDiagnostic<MemSpace::device>::end_step(const StateDataRef&)
+void TrackDiagnostic<MemSpace::device>::end_step(const StateRef&)
 {
     CELER_NOT_CONFIGURED("CUDA");
 }

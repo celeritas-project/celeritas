@@ -19,7 +19,7 @@
 #include "physics/base/PhysicsParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "random/RngParams.hh"
-#include "sim/TrackData.hh"
+#include "sim/CoreTrackData.hh"
 #include "sim/TrackInitParams.hh"
 #include "sim/TrackInitUtils.hh"
 
