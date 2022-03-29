@@ -15,8 +15,8 @@ namespace celeritas
 namespace generated
 {
 void process_secondaries(
-    const ParamsHostRef& params,
-    const StateHostRef& states,
+    const CoreParamsHostRef& params,
+    const CoreStateHostRef& states,
     const TrackInitStateHostRef& data)
 {
     detail::ProcessSecondariesLauncher<MemSpace::host> launch(params, states, data);

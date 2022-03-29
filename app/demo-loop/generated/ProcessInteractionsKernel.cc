@@ -17,8 +17,8 @@ namespace demo_loop
 namespace generated
 {
 void process_interactions(
-    const ParamsHostRef& params,
-    const StateHostRef& states)
+    const CoreParamsHostRef& params,
+    const CoreStateHostRef& states)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);

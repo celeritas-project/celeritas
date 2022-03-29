@@ -137,12 +137,13 @@ struct CoreStateData
     }
 };
 
-using ParamsDeviceRef
+using CoreParamsDeviceRef
     = CoreParamsData<Ownership::const_reference, MemSpace::device>;
-using ParamsHostRef
+using CoreParamsHostRef
     = CoreParamsData<Ownership::const_reference, MemSpace::host>;
-using StateDeviceRef = CoreStateData<Ownership::reference, MemSpace::device>;
-using StateHostRef   = CoreStateData<Ownership::reference, MemSpace::host>;
+using CoreStateDeviceRef
+    = CoreStateData<Ownership::reference, MemSpace::device>;
+using CoreStateHostRef = CoreStateData<Ownership::reference, MemSpace::host>;
 
 //---------------------------------------------------------------------------//
 /*!

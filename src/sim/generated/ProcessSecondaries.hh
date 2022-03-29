@@ -10,17 +10,17 @@ namespace generated
 {
 
 void process_secondaries(
-    const ParamsHostRef& params,
-    const StateHostRef& states,
+    const CoreParamsHostRef& params,
+    const CoreStateHostRef& states,
     const TrackInitStateHostRef& data);
 
 void process_secondaries(
-    const ParamsDeviceRef& params,
-    const StateDeviceRef& states,
+    const CoreParamsDeviceRef& params,
+    const CoreStateDeviceRef& states,
     const TrackInitStateDeviceRef& data);
 
 #if !CELER_USE_DEVICE
-inline void process_secondaries(const ParamsDeviceRef&, const StateDeviceRef&, const TrackInitStateDeviceRef&)
+inline void process_secondaries(const CoreParamsDeviceRef&, const CoreStateDeviceRef&, const TrackInitStateDeviceRef&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

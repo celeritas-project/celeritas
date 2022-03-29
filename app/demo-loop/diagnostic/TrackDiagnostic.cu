@@ -33,7 +33,7 @@ namespace
  * segfault; specifying the thrust::device policy leads to compile-time errors
  * due to incompatible arguments.
  */
-size_type reduce_alive(const StateDeviceRef& states)
+size_type reduce_alive(const CoreStateDeviceRef& states)
 {
     auto sim_states = states.sim.state[AllItems<SimTrackState>{}].data();
 

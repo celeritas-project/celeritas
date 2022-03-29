@@ -23,25 +23,27 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = CLIKE_TOP + """\
+#include "celeritas_config.h"
 #include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "sim/CoreTrackData.hh"
 
 namespace demo_loop
 {{
 namespace generated
 {{
 void {func}(
-    const celeritas::ParamsHostRef&,
-    const celeritas::StateHostRef&);
+    const celeritas::CoreParamsHostRef&,
+    const celeritas::CoreStateHostRef&);
 
 void {func}(
-    const celeritas::ParamsDeviceRef&,
-    const celeritas::StateDeviceRef&);
+    const celeritas::CoreParamsDeviceRef&,
+    const celeritas::CoreStateDeviceRef&);
 
 #if !CELER_USE_DEVICE
 inline void {func}(
-    const celeritas::ParamsDeviceRef&,
-    const celeritas::StateDeviceRef&)
+    const celeritas::CoreParamsDeviceRef&,
+    const celeritas::CoreStateDeviceRef&)
 {{
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }}
@@ -63,8 +65,8 @@ namespace demo_loop
 namespace generated
 {{
 void {func}(
-    const ParamsHostRef& params,
-    const StateHostRef& states)
+    const CoreParamsHostRef& params,
+    const CoreStateHostRef& states)
 {{
     CELER_EXPECT(params);
     CELER_EXPECT(states);
@@ -98,8 +100,8 @@ namespace generated
 namespace
 {{
 __global__ void{launch_bounds}{func}_kernel(
-    ParamsDeviceRef const params,
-    StateDeviceRef const states)
+    CoreParamsDeviceRef const params,
+    CoreStateDeviceRef const states)
 {{
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < {threads}))
@@ -111,8 +113,8 @@ __global__ void{launch_bounds}{func}_kernel(
 }} // namespace
 
 void {func}(
-    const celeritas::ParamsDeviceRef& params,
-    const celeritas::StateDeviceRef& states)
+    const celeritas::CoreParamsDeviceRef& params,
+    const celeritas::CoreStateDeviceRef& states)
 {{
     CELER_EXPECT(params);
     CELER_EXPECT(states);

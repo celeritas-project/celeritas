@@ -22,7 +22,7 @@ namespace demo_loop
  * Get energy deposition from state data and accumulate in appropriate bin
  */
 __global__ void
-bin_energy_kernel(const StateDeviceRef states, PointersDevice pointers)
+bin_energy_kernel(const CoreStateDeviceRef states, PointersDevice pointers)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
@@ -35,7 +35,7 @@ bin_energy_kernel(const StateDeviceRef states, PointersDevice pointers)
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
-void bin_energy(const StateDeviceRef& states, PointersDevice& pointers)
+void bin_energy(const CoreStateDeviceRef& states, PointersDevice& pointers)
 {
     static const KernelParamCalculator calc_launch_params(bin_energy_kernel,
                                                           "bin_energy");

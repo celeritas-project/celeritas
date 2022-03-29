@@ -31,8 +31,8 @@ __launch_bounds__(1024, 4)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 along_and_post_step_kernel(
-    ParamsDeviceRef const params,
-    StateDeviceRef const states)
+    CoreParamsDeviceRef const params,
+    CoreStateDeviceRef const states)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
@@ -44,8 +44,8 @@ along_and_post_step_kernel(
 } // namespace
 
 void along_and_post_step(
-    const celeritas::ParamsDeviceRef& params,
-    const celeritas::StateDeviceRef& states)
+    const celeritas::CoreParamsDeviceRef& params,
+    const celeritas::CoreStateDeviceRef& states)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);

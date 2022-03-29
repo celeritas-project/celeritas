@@ -117,9 +117,10 @@ class EnergyDiagnosticLauncher
 using PointersDevice = EnergyBinPointers<MemSpace::device>;
 using PointersHost   = EnergyBinPointers<MemSpace::host>;
 
-void bin_energy(const celeritas::StateDeviceRef& states,
-                PointersDevice&                  pointers);
-void bin_energy(const celeritas::StateHostRef& states, PointersHost& pointers);
+void bin_energy(const celeritas::CoreStateDeviceRef& states,
+                PointersDevice&                      pointers);
+void bin_energy(const celeritas::CoreStateHostRef& states,
+                PointersHost&                      pointers);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -233,7 +234,7 @@ CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
 }
 
 #if !CELER_USE_DEVICE
-inline void bin_energy(const celeritas::StateDeviceRef&, PointersDevice&)
+inline void bin_energy(const celeritas::CoreStateDeviceRef&, PointersDevice&)
 {
     CELER_NOT_CONFIGURED("CUDA/HIP");
 }

@@ -15,8 +15,8 @@ namespace celeritas
 namespace generated
 {
 void init_tracks(
-    const ParamsHostRef& params,
-    const StateHostRef& states,
+    const CoreParamsHostRef& params,
+    const CoreStateHostRef& states,
     const TrackInitStateHostRef& data,
     const size_type num_vacancies)
 {

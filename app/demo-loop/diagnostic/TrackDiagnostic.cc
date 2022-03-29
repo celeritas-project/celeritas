@@ -22,7 +22,7 @@ namespace
  *
  * This function is nearly identical to its device-side counterpart.
  */
-size_type reduce_alive(const StateHostRef& states)
+size_type reduce_alive(const CoreStateHostRef& states)
 {
     auto sim_states = states.sim.state[AllItems<SimTrackState>{}].data();
 

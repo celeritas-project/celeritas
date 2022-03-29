@@ -140,17 +140,17 @@ class StepLauncher
     StepDiagnosticDataRef<M> data_;
 };
 
-void count_steps(const celeritas::ParamsHostRef&       params,
-                 const celeritas::StateHostRef&        states,
+void count_steps(const celeritas::CoreParamsHostRef&   params,
+                 const celeritas::CoreStateHostRef&    states,
                  StepDiagnosticDataRef<MemSpace::host> data);
 
-void count_steps(const celeritas::ParamsDeviceRef&       params,
-                 const celeritas::StateDeviceRef&        states,
+void count_steps(const celeritas::CoreParamsDeviceRef&   params,
+                 const celeritas::CoreStateDeviceRef&    states,
                  StepDiagnosticDataRef<MemSpace::device> data);
 
 #if !CELER_USE_DEVICE
-inline void count_steps(const celeritas::ParamsDeviceRef&,
-                        const celeritas::StateDeviceRef&,
+inline void count_steps(const celeritas::CoreParamsDeviceRef&,
+                        const celeritas::CoreStateDeviceRef&,
                         StepDiagnosticDataRef<MemSpace::device>)
 {
     CELER_ASSERT_UNREACHABLE();

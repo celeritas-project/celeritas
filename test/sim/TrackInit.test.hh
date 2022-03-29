@@ -107,7 +107,7 @@ using SecondaryAllocatorData
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to produce secondaries and apply cutoffs
-void interact(StateDeviceRef states, ITTestInputData input);
+void interact(CoreStateDeviceRef states, ITTestInputData input);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

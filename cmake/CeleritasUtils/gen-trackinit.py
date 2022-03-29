@@ -187,8 +187,8 @@ LANG = {
 DEFS = {
     "InitTracks": KernelDefinition(
         Function("init_tracks", ParamList([
-            Param("Params{Memspace}Ref", "params"),
-            Param("State{Memspace}Ref", "states"),
+            Param("CoreParams{Memspace}Ref", "params"),
+            Param("CoreState{Memspace}Ref", "states"),
             Param("TrackInitState{Memspace}Ref", "data"),
             Param("size_type", "num_vacancies"),
         ])),
@@ -196,8 +196,8 @@ DEFS = {
         ["sim/CoreTrackData.hh"]),
     "LocateAlive": KernelDefinition(
         Function("locate_alive", ParamList([
-            Param("Params{Memspace}Ref", "params"),
-            Param("State{Memspace}Ref", "states"),
+            Param("CoreParams{Memspace}Ref", "params"),
+            Param("CoreState{Memspace}Ref", "states"),
             Param("TrackInitState{Memspace}Ref", "data"),
         ])),
         "states.size()",
@@ -211,8 +211,8 @@ DEFS = {
         ["base/Span.hh", "physics/base/Primary.hh"]),
     "ProcessSecondaries": KernelDefinition(
         Function("process_secondaries", ParamList([
-            Param("Params{Memspace}Ref", "params"),
-            Param("State{Memspace}Ref", "states"),
+            Param("CoreParams{Memspace}Ref", "params"),
+            Param("CoreState{Memspace}Ref", "states"),
             Param("TrackInitState{Memspace}Ref", "data"),
         ])),
         "states.size()",

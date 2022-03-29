@@ -102,19 +102,19 @@ class ParticleProcessLauncher
 };
 
 void count_particle_process(
-    const celeritas::ParamsHostRef&                   params,
-    const celeritas::StateHostRef&                    states,
+    const celeritas::CoreParamsHostRef&               params,
+    const celeritas::CoreStateHostRef&                states,
     ParticleProcessLauncher<MemSpace::host>::ItemsRef counts);
 
 void count_particle_process(
-    const celeritas::ParamsDeviceRef&                   params,
-    const celeritas::StateDeviceRef&                    states,
+    const celeritas::CoreParamsDeviceRef&               params,
+    const celeritas::CoreStateDeviceRef&                states,
     ParticleProcessLauncher<MemSpace::device>::ItemsRef counts);
 
 #if !CELER_USE_DEVICE
 inline void
-count_particle_process(const celeritas::ParamsDeviceRef&,
-                       const celeritas::StateDeviceRef&,
+count_particle_process(const celeritas::CoreParamsDeviceRef&,
+                       const celeritas::CoreStateDeviceRef&,
                        ParticleProcessLauncher<MemSpace::device>::ItemsRef)
 {
     CELER_ASSERT_UNREACHABLE();
