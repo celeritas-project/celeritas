@@ -230,7 +230,7 @@ EnergyLossHelper::EnergyLossHelper(const FluctuationRef&    shared,
     // assuming implicit 1/c^2 in the formula
     bohr_var_ = 2 * constants::pi * ipow<2>(constants::r_electron)
                 * shared_.electron_mass
-                * material_.material_view().electron_density()
+                * material_.make_material_view().electron_density()
                 * ipow<2>(value_as<units::ElementaryCharge>(particle.charge()))
                 * max_energy_ * step_length * (1 / beta_sq_ - half);
 

@@ -65,7 +65,7 @@ class MaterialTrackView
     //// STATIC PROPERTIES ////
 
     // Get a view to material properties
-    CELER_FORCEINLINE_FUNCTION MaterialView material_view() const;
+    CELER_FORCEINLINE_FUNCTION MaterialView make_material_view() const;
 
     // Access scratch space with at least one real per element component
     inline CELER_FUNCTION Span<real_type> element_scratch();
@@ -118,7 +118,7 @@ CELER_FUNCTION MaterialId MaterialTrackView::material_id() const
 /*!
  * Get material properties for the current material.
  */
-CELER_FUNCTION MaterialView MaterialTrackView::material_view() const
+CELER_FUNCTION MaterialView MaterialTrackView::make_material_view() const
 {
     return MaterialView(params_, this->material_id());
 }

@@ -126,7 +126,7 @@ auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
     for (auto el_id : range(ElementComponentId{num_elements}))
     {
         real_type weight = material_view.get_element_density(el_id);
-        zeff += material_view.element_view(el_id).atomic_number() * weight;
+        zeff += material_view.make_element_view(el_id).atomic_number() * weight;
         norm += weight;
     }
     zeff /= norm;

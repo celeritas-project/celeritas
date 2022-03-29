@@ -526,7 +526,7 @@ TEST_F(LivermorePETest, macro_xs)
 {
     using celeritas::units::MevEnergy;
 
-    auto material = this->material_track().material_view();
+    auto material = this->material_track().make_material_view();
     LivermorePEMacroXsCalculator calc_macro_xs(model_->host_ref(), material);
 
     int    num_vals = 20;

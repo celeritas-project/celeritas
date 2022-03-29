@@ -118,7 +118,7 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     int num_samples = 4;
     this->resize_secondaries(num_samples);
 
-    auto material = this->material_track().material_view();
+    auto material = this->material_track().make_material_view();
 
     // Create the interactor
     MuBremsstrahlungInteractor interact(data_,
@@ -193,7 +193,7 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
                 this->set_inc_direction(inc_dir);
                 this->resize_secondaries(num_samples);
 
-                auto material = this->material_track().material_view();
+                auto material = this->material_track().make_material_view();
 
                 // Create interactor
                 MuBremsstrahlungInteractor interact(

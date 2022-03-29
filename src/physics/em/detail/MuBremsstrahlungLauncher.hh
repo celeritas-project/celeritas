@@ -57,7 +57,7 @@ CELER_FUNCTION void MuBremsstrahlungLauncher<M>::operator()(ThreadId tid) const
         model.params.material, model.states.material, tid);
     // Cache the associated MaterialView as function calls to
     // MaterialTrackView are expensive
-    MaterialView material_view = material.material_view();
+    MaterialView material_view = material.make_material_view();
 
     PhysicsTrackView physics(model.params.physics,
                              model.states.physics,

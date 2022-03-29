@@ -162,7 +162,7 @@ TEST_F(CombinedBremTest, basic_seltzer_berger)
     this->resize_secondaries(num_samples);
 
     // Production cuts
-    auto material_view = this->material_track().material_view();
+    auto material_view = this->material_track().make_material_view();
     auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
@@ -226,7 +226,7 @@ TEST_F(CombinedBremTest, basic_relativistic_brem)
     this->resize_secondaries(num_samples);
 
     // Production cuts
-    auto material_view = this->material_track().material_view();
+    auto material_view = this->material_track().make_material_view();
     auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
 
     // Set the incident particle energy
@@ -295,7 +295,7 @@ TEST_F(CombinedBremTest, stress_test_combined)
 
     // Views
     auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
-    auto material_view = this->material_track().material_view();
+    auto material_view = this->material_track().make_material_view();
 
     // Loop over a set of incident gamma energies
     const real_type test_energy[]

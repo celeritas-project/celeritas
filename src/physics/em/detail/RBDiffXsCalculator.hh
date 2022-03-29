@@ -126,7 +126,7 @@ RBDiffXsCalculator::RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
     : shared_(shared)
     , elem_data_(shared.elem_data[material.element_id(elcomp_id)])
     , material_(material)
-    , element_(material.element_view(elcomp_id))
+    , element_(material.make_element_view(elcomp_id))
     , total_energy_(value_as<units::MevEnergy>(particle.energy())
                     + value_as<units::MevMass>(shared.electron_mass))
 {

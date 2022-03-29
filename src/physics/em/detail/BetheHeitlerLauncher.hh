@@ -68,12 +68,12 @@ CELER_FUNCTION void BetheHeitlerLauncher<M>::operator()(ThreadId tid) const
 
     // Cache the associated MaterialView as function calls to
     // MaterialTrackView are expensive
-    MaterialView material_view = material.material_view();
+    MaterialView material_view = material.make_material_view();
 
     // Assume only a single element in the material, for now
     CELER_ASSERT(material_view.num_elements() == 1);
     ElementView element
-        = material_view.element_view(celeritas::ElementComponentId{0});
+        = material_view.make_element_view(celeritas::ElementComponentId{0});
     BetheHeitlerInteractor interact(bh,
                                     particle,
                                     model.states.direction[tid],

@@ -307,7 +307,7 @@ TEST_F(SeltzerBergerTest, basic)
     this->resize_secondaries(num_samples);
 
     // Production cuts
-    auto material_view = this->material_track().material_view();
+    auto material_view = this->material_track().make_material_view();
     auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
@@ -372,7 +372,7 @@ TEST_F(SeltzerBergerTest, stress_test)
 
     // Views
     auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
-    auto material_view = this->material_track().material_view();
+    auto material_view = this->material_track().make_material_view();
 
     // Loop over a set of incident gamma energies
     for (auto particle : {pdg::electron(), pdg::positron()})
