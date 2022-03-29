@@ -9,19 +9,11 @@
 
 #include "base/Assert.hh"
 #include "base/Quantity.hh"
-#include "base/StackAllocator.hh"
-#include "geometry/GeoMaterialView.hh"
-#include "geometry/GeoTrackView.hh"
 #include "geometry/LinearPropagator.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsStepUtils.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "random/RngEngine.hh"
 #include "random/distributions/ExponentialDistribution.hh"
 #include "sim/CoreTrackData.hh"
-#include "sim/SimTrackView.hh"
+#include "sim/CoreTrackView.hh"
 
 #ifndef CELER_DEVICE_COMPILE
 #    include "base/ArrayIO.hh"
@@ -83,33 +75,28 @@ CELER_FUNCTION void PreStepLauncher<M>::operator()(ThreadId tid) const
     using celeritas::ExponentialDistribution;
     using celeritas::real_type;
 
-    // Clear out energy deposition
-    states_.energy_deposition[tid] = 0;
+    const celeritas::CoreTrackView track(params_, states_, tid);
 
-    celeritas::SimTrackView sim(states_.sim, tid);
+    // Clear out energy deposition
+    track.energy_deposition() = 0;
+
+    auto sim = track.make_sim_view();
     if (!sim.alive())
         return;
 
-    celeritas::ParticleTrackView particle(
-        params_.particles, states_.particles, tid);
-    celeritas::GeoTrackView      geo(params_.geometry, states_.geometry, tid);
-    celeritas::GeoMaterialView   geo_mat(params_.geo_mats);
-    celeritas::MaterialTrackView mat(params_.materials, states_.materials, tid);
-    celeritas::PhysicsTrackView  phys(params_.physics,
-                                     states_.physics,
-                                     particle.particle_id(),
-                                     geo_mat.material_id(geo.volume_id()),
-                                     tid);
+    auto phys = track.make_physics_view();
 
     // Sample mean free path
     if (!phys.has_interaction_mfp())
     {
-        celeritas::RngEngine               rng(states_.rng, tid);
+        auto                               rng = track.make_rng_engine();
         ExponentialDistribution<real_type> sample_exponential;
         phys.interaction_mfp(sample_exponential(rng));
     }
 
     // Calculate physics step limits and total macro xs
+    auto      mat      = track.make_material_view();
+    auto      particle = track.make_particle_view();
     real_type step = calc_tabulated_physics_step(mat, particle, phys);
     if (particle.is_stopped())
     {
@@ -117,7 +104,7 @@ CELER_FUNCTION void PreStepLauncher<M>::operator()(ThreadId tid) const
         {
             // If the particle is stopped and cannot undergo a discrete
             // interaction, kill it
-            states_.interactions[tid].action = Action::cutoff_energy;
+            track.interaction().action = Action::cutoff_energy;
             sim.alive(false);
             return;
         }
@@ -139,14 +126,13 @@ CELER_FUNCTION void PreStepLauncher<M>::operator()(ThreadId tid) const
 template<MemSpace M>
 CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
 {
-    celeritas::SimTrackView sim(states_.sim, tid);
+    const celeritas::CoreTrackView track(params_, states_, tid);
+    auto                           sim = track.make_sim_view();
     if (!sim.alive())
     {
         // Clear the model ID so inactive tracks will exit the interaction
         // kernels
-        celeritas::PhysicsTrackView phys(
-            params_.physics, states_.physics, {}, {}, tid);
-        phys.model_id({});
+        track.reset_model_id();
         return;
     }
 
@@ -156,18 +142,8 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
     using LinearPropagator = celeritas::LinearPropagator;
     using ModelId          = celeritas::ModelId;
 
-    celeritas::ParticleTrackView particle(
-        params_.particles, states_.particles, tid);
-    celeritas::GeoTrackView      geo(params_.geometry, states_.geometry, tid);
-    celeritas::GeoMaterialView   geo_mat(params_.geo_mats);
-    celeritas::MaterialTrackView mat(params_.materials, states_.materials, tid);
-    celeritas::PhysicsTrackView  phys(params_.physics,
-                                     states_.physics,
-                                     particle.particle_id(),
-                                     geo_mat.material_id(geo.volume_id()),
-                                     tid);
-    celeritas::RngEngine         rng(states_.rng, tid);
-
+    auto      phys             = track.make_physics_view();
+    auto      particle         = track.make_particle_view();
     bool      crossed_boundary = false;
     real_type step             = phys.step_length();
     real_type start_energy     = value_as<Energy>(particle.energy());
@@ -178,6 +154,7 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
         // the particle is moving
         CELER_ASSERT(step > 0);
         {
+            auto geo = track.make_geo_view();
             // Propagate up to the step length or next boundary
             LinearPropagator propagate(&geo);
             auto             geo_step = propagate(step);
@@ -186,10 +163,12 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
         }
 
         // Calculate energy loss over the step length
-        celeritas::CutoffView cutoffs(params_.cutoffs, mat.material_id());
+        auto                  cutoffs = track.make_cutoff_view();
+        auto                  mat     = track.make_material_view();
+        auto                  rng     = track.make_rng_engine();
         real_type             eloss = value_as<Energy>(
             calc_energy_loss(cutoffs, mat, particle, phys, step, rng));
-        states_.energy_deposition[tid] += eloss;
+        track.energy_deposition() += eloss;
         particle.energy(Energy{start_energy - eloss});
     }
 
@@ -200,6 +179,7 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
     {
         if (CELER_UNLIKELY(crossed_boundary))
         {
+            auto geo = track.make_geo_view();
             // Particle should *not* go to zero energy at exactly the same time
             // as it crosses the volume boundary.  Back particle slightly away
             // from boundary to avoid on-surface initialization/direction
@@ -258,6 +238,7 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
 
     if (crossed_boundary)
     {
+        auto geo = track.make_geo_view();
         // Particle entered a new volume before reaching the interaction point
         geo.cross_boundary();
         if (geo.is_outside())
@@ -270,8 +251,10 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
         {
             // Update the material if it's inside
             result_action = Action::entered_volume;
+            auto geo_mat  = track.make_geo_material_view();
             auto matid    = geo_mat.material_id(geo.volume_id());
             CELER_ASSERT(matid);
+            auto mat = track.make_material_view();
             mat = {matid};
         }
     }
@@ -279,12 +262,13 @@ CELER_FUNCTION void AlongAndPostStepLauncher<M>::operator()(ThreadId tid) const
     {
         // Reached the interaction point: sample the process and determine
         // the corresponding model
+        auto rng      = track.make_rng_engine();
         auto ppid_mid = select_process_and_model(particle, phys, rng);
         result_model  = ppid_mid.model;
     }
     phys.model_id(result_model);
-    states_.interactions[tid].action = result_action;
-    states_.step_length[tid]         = step;
+    track.interaction().action = result_action;
+    track.step_length()        = step;
 }
 
 //---------------------------------------------------------------------------//
@@ -297,7 +281,8 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
 {
     using Energy = celeritas::ParticleTrackView::Energy;
 
-    celeritas::SimTrackView sim(states_.sim, tid);
+    const celeritas::CoreTrackView track(params_, states_, tid);
+    auto                           sim = track.make_sim_view();
 
     // Increment the step count before checking if the track is alive as some
     // active tracks might have been killed earlier in the step.
@@ -308,13 +293,9 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
         return;
     }
 
-    celeritas::ParticleTrackView particle(
-        params_.particles, states_.particles, tid);
-    celeritas::GeoTrackView geo(params_.geometry, states_.geometry, tid);
-
     // Update the track state from the interaction
     // TODO: handle recoverable errors
-    const celeritas::Interaction& result = states_.interactions[tid];
+    const celeritas::Interaction& result = track.interaction();
     CELER_ASSERT(result);
     if (action_killed(result.action))
     {
@@ -322,13 +303,15 @@ ProcessInteractionsLauncher<M>::operator()(ThreadId tid) const
     }
     else if (!action_unchanged(result.action))
     {
+        auto particle = track.make_particle_view();
         particle.energy(result.energy);
+
+        auto geo = track.make_geo_view();
         geo.set_dir(result.direction);
     }
 
     // Deposit energy from interaction
-    states_.energy_deposition[tid]
-        += value_as<Energy>(result.energy_deposition);
+    track.energy_deposition() += value_as<Energy>(result.energy_deposition);
 }
 
 //---------------------------------------------------------------------------//
@@ -339,9 +322,10 @@ template<MemSpace M>
 CELER_FUNCTION void CleanupLauncher<M>::operator()(ThreadId tid) const
 {
     CELER_ASSERT(tid.get() == 0);
-    celeritas::StackAllocator<celeritas::Secondary> allocate_secondaries(
-        states_.secondaries);
-    allocate_secondaries.clear();
+    const celeritas::CoreTrackView track(params_, states_, tid);
+
+    auto alloc = track.make_secondary_allocator();
+    alloc.clear();
 }
 
 //---------------------------------------------------------------------------//
