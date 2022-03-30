@@ -20,9 +20,10 @@ namespace celeritas
  */
 enum class Action
 {
-    failed,    //!< Recoverable error in sampling
-    spawned,   //!< Primary particle from an event or creation of a secondary
-    scattered, //!< Scattering interaction
+    failed,      //!< Recoverable error in sampling
+    spawned,     //!< Primary particle from an event or creation of a secondary
+    scattered,   //!< Scattering interaction
+    msc_limited, //!< Multiple scattering limited process
     entered_volume, //!< Propagated to a new region of space
     unchanged,      //!< Edge cases where an interactor returns no change
     processed,      //!< State change and secondaries have been processed
@@ -66,6 +67,15 @@ inline CELER_FUNCTION bool action_unchanged(Action a)
 {
     return a == Action::unchanged || a == Action::entered_volume
            || a == Action::spawned || a == Action::processed;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the given action returning the msc limited process
+ */
+inline CELER_FUNCTION bool action_msc(Action a)
+{
+    return a == Action::msc_limited;
 }
 
 //---------------------------------------------------------------------------//

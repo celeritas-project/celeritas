@@ -49,7 +49,7 @@ class UrbanMscScatter
     // Construct with shared and state data
     inline CELER_FUNCTION UrbanMscScatter(const UrbanMscNativeRef& shared,
                                           const ParticleTrackView& particle,
-                                          const Real3&             direction,
+                                          GeoTrackView*            geometry,
                                           const PhysicsTrackView&  physics,
                                           const MaterialView&      material,
                                           const StepLimitResult&   input);
@@ -77,6 +77,8 @@ class UrbanMscScatter
     UrbanMscHelper helper_;
     // Results from UrbanMSCStepLimit
     StepLimitResult input_;
+    // Geomtry track view
+    GeoTrackView& geometry_;
 
     //// COMMON PROPERTIES ////
 
@@ -101,11 +103,6 @@ class UrbanMscScatter
                                                      real_type true_path,
                                                      real_type limit_min);
 
-    // Sample the unit direction of the lateral displacement
-    template<class Engine>
-    inline CELER_FUNCTION Real3 dir_displacement(Engine&   rng,
-                                                 real_type phi) const;
-
     // Sample consine(theta) with a large angle scattering
     template<class Engine>
     inline CELER_FUNCTION real_type simple_scattering(Engine&   rng,
@@ -118,6 +115,12 @@ class UrbanMscScatter
 
     // Calculate the correction on theta0 for positrons
     inline CELER_FUNCTION real_type calc_correction(real_type tau) const;
+
+    // Update direction and position after the multiple scattering
+    template<class Engine>
+    inline CELER_FUNCTION Real3 sample_displacement(Engine&   rng,
+                                                    real_type cth,
+                                                    real_type rmax2);
 };
 
 //---------------------------------------------------------------------------//
@@ -129,12 +132,12 @@ class UrbanMscScatter
 CELER_FUNCTION
 UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
                                  const ParticleTrackView& particle,
-                                 const Real3&             direction,
+                                 GeoTrackView*            geometry,
                                  const PhysicsTrackView&  physics,
                                  const MaterialView&      material,
                                  const StepLimitResult&   input)
     : inc_energy_(particle.energy())
-    , inc_direction_(direction)
+    , inc_direction_(geometry->dir())
     , is_positron_(particle.particle_id() == shared.positron_id)
     , rad_length_(material.radiation_length())
     , mass_(shared.electron_mass.value())
@@ -142,6 +145,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
     , msc_(shared.msc_data[material.material_id()])
     , helper_(shared, particle, physics, material)
     , input_(input)
+    , geometry_(*geometry)
 {
     CELER_EXPECT(particle.particle_id() == shared.electron_id
                  || particle.particle_id() == shared.positron_id);
@@ -160,17 +164,16 @@ template<class Engine>
 CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng)
     -> MscScatterResult
 {
-    MscScatterResult result;
-
     // Convert the geometry path length to the true path length
     real_type geom_path = input_.geom_path;
+
     real_type true_path
         = helper_.calc_true_path(input_.true_path, geom_path, input_.alpha);
 
     // Protect against a wrong true -> geom -> true transformation
     true_path = min<real_type>(true_path, input_.phys_step);
 
-    result.step_length = true_path;
+    MscScatterResult result{true_path, inc_direction_, {0, 0, 0}};
 
     // Do not sample scattering at the last or at a small step
     if (true_path < helper_.range() && true_path > geom_min())
@@ -188,31 +191,18 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng)
 
             CELER_ENSURE(std::abs(cth) <= 1);
 
+            // Sample direction
             UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
             real_type                          phi = sample_phi(rng);
             result.direction = rotate(from_spherical(cth, phi), inc_direction_);
 
-            // Displace the lateral position by the multiple scattering
-            if (input_.is_displaced && tau_ >= params_.tau_small)
+            // Sample displacement
+            real_type rmax2 = (true_path - geom_path) * (true_path + geom_path);
+
+            if (input_.is_displaced && tau_ >= params_.tau_small && rmax2 > 0)
             {
-                real_type rmax2 = (true_path - geom_path)
-                                  * (true_path + geom_path);
-                if (rmax2 > 0)
-                {
-                    // Sample a unit direction of the displacement
-                    Real3 displacement = dir_displacement(rng, phi);
-
-                    // Rotate along the incident particle direction
-                    displacement = rotate(displacement, inc_direction_);
-
-                    // Scale with the lateral arm
-                    real_type arm = real_type(0.73) * std::sqrt(rmax2);
-                    for (auto i : range(3))
-                    {
-                        displacement[i] *= arm;
-                    }
-                    result.displacement = displacement;
-                }
+                result.displacement
+                    = this->sample_displacement(rng, phi, rmax2);
             }
         }
     }
@@ -505,7 +495,8 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
 //---------------------------------------------------------------------------//
 /*!
  * Sample the displacement direction using G4UrbanMscModel::SampleDisplacement
- * of Geant4 10.7: simple and fast sampling based on single scattering results.
+ * (simple and fast sampling based on single scattering results) and update
+ * direction and position of the particle.
  *
  * A simple distribution for the unit direction on the lateral (x-y) plane,
  * \f$ Phi = \phi \pm \psi \f$ where \f$ psi \sim \exp(-\beta*v) \f$ and
@@ -514,20 +505,57 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
  * simulation.
  *
  * @param phi the azimuthal angle of the multiple scattering.
+ * @param rmax2 the asymmetry between true path and geom path
  */
 template<class Engine>
-CELER_FUNCTION Real3 UrbanMscScatter::dir_displacement(Engine&   rng,
-                                                       real_type phi) const
+CELER_FUNCTION Real3 UrbanMscScatter::sample_displacement(Engine&   rng,
+                                                          real_type phi,
+                                                          real_type rmax2)
 {
+    // Sample a unit direction of the displacement
     constexpr real_type cbeta  = 2.160;
     real_type           cbeta1 = 1 - std::exp(-cbeta * constants::pi);
 
     real_type psi   = -std::log(1 - generate_canonical(rng) * cbeta1) / cbeta;
     real_type angle = BernoulliDistribution(0.5)(rng) ? phi + psi : phi - psi;
 
-    Real3 dir{std::cos(angle), std::sin(angle), 0};
+    Real3 displacement{std::cos(angle), std::sin(angle), 0};
 
-    return dir;
+    // Rotate along the incident particle direction
+    displacement = rotate(displacement, inc_direction_);
+
+    // Scale with the lateral arm
+    real_type arm = real_type(0.73) * std::sqrt(rmax2);
+    for (auto i : range(3))
+    {
+        displacement[i] *= arm;
+    }
+
+    // Do not sample near the boundary
+    real_type rho = norm(displacement);
+    if (rho > params_.geom_limit)
+    {
+        real_type safety = (1 - params_.safety_tol)
+                           * geometry_.find_safety(geometry_.pos());
+        real_type multiplier = 0;
+
+        if (rho <= safety)
+        {
+            multiplier = 1;
+        }
+        else if (safety > params_.geom_limit)
+        {
+            multiplier = safety / rho;
+        }
+        // Otherwise (near a volume boundary), do not change position
+
+        for (auto i : range(3))
+        {
+            displacement[i] *= multiplier;
+        }
+    }
+
+    return displacement;
 }
 
 //---------------------------------------------------------------------------//

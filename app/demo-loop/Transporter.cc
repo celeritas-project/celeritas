@@ -70,10 +70,10 @@ decltype(auto) get_ref(const P& params)
 }
 
 template<MemSpace M>
-CoreParamsData<Ownership::const_reference, M>
+ParamsData<Ownership::const_reference, M>
 build_params_refs(const TransporterInput& p)
 {
-    CoreParamsData<Ownership::const_reference, M> ref;
+    ParamsData<Ownership::const_reference, M> ref;
     ref.control.secondary_stack_factor = p.secondary_stack_factor;
     ref.geometry                       = get_ref<M>(*p.geometry);
     ref.materials                      = get_ref<M>(*p.materials);
@@ -95,7 +95,7 @@ struct ParamsShim
 {
     const TransporterInput& p;
 
-    CoreParamsData<Ownership::const_reference, MemSpace::host> host_ref() const
+    ParamsData<Ownership::const_reference, MemSpace::host> host_ref() const
     {
         return build_params_refs<MemSpace::host>(p);
     }
@@ -104,8 +104,8 @@ struct ParamsShim
 //! Create a vector of diagnostics
 template<MemSpace M>
 std::vector<std::unique_ptr<Diagnostic<M>>>
-build_diagnostics(const TransporterInput&                        inp,
-                  CoreParamsData<Ownership::const_reference, M>& params)
+build_diagnostics(const TransporterInput&                    inp,
+                  ParamsData<Ownership::const_reference, M>& params)
 {
     std::vector<std::unique_ptr<Diagnostic<M>>> result;
     if (inp.enable_diagnostics)
@@ -160,8 +160,8 @@ void accum_time<MemSpace::host>(const TransporterInput&,
  */
 template<MemSpace M>
 void launch_models(TransporterInput const& host_params,
-                   CoreParamsData<Ownership::const_reference, M> const& params,
-                   CoreStateData<Ownership::reference, M> const&        states)
+                   ParamsData<Ownership::const_reference, M> const& params,
+                   StateData<Ownership::reference, M> const&        states)
 {
     // TODO: these *should* be able to be persistent across steps, rather than
     // recreated at every step.
@@ -185,8 +185,14 @@ void launch_models(TransporterInput const& host_params,
     // Loop over physics models IDs and invoke `interact`
     for (auto model_id : range(ModelId{host_params.physics->num_models()}))
     {
-        const Model& model = host_params.physics->model(model_id);
-        model.interact(refs);
+        ProcessId      pid  = host_params.physics->process_id(model_id);
+        const Process& proc = host_params.physics->process(pid);
+        if (proc.type() != ProcessType::electromagnetic_msc)
+        {
+            // Do not launch interact if the process is electromagnetic_msc
+            const Model& model = host_params.physics->model(model_id);
+            model.interact(refs);
+        }
     }
 }
 
@@ -207,8 +213,8 @@ Transporter<M>::Transporter(TransporterInput inp) : input_(std::move(inp))
     CELER_EXPECT(input_);
     params_ = build_params_refs<M>(input_);
     CELER_ASSERT(params_);
-    states_ = CollectionStateStore<CoreStateData, M>(ParamsShim{input_},
-                                                     input_.max_num_tracks);
+    states_ = CollectionStateStore<StateData, M>(ParamsShim{input_},
+                                                 input_.max_num_tracks);
 }
 
 //---------------------------------------------------------------------------//

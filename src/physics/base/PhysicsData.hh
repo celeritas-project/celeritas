@@ -14,6 +14,7 @@
 #include "physics/em/FluctuationData.hh"
 #include "physics/em/detail/EPlusGGInteractor.hh"
 #include "physics/em/detail/LivermorePEMicroXsCalculator.hh"
+#include "physics/em/detail/UrbanMscData.hh"
 #include "physics/grid/ValueGridData.hh"
 #include "physics/grid/XsGridData.hh"
 #include "physics/material/Types.hh"
@@ -147,6 +148,11 @@ struct HardwiredModels
     ModelId             eplusgg;
     detail::EPlusGGData eplusgg_data;
 
+    // Multiple scattering (data for the mean free path)
+    ProcessId                  msc;
+    ModelId                    urban;
+    detail::UrbanMscData<W, M> urban_data;
+
     //// MEMBER FUNCTIONS ////
 
     //! Assign from another set of hardwired models
@@ -165,6 +171,15 @@ struct HardwiredModels
         positron_annihilation = other.positron_annihilation;
         eplusgg               = other.eplusgg;
         eplusgg_data          = other.eplusgg_data;
+
+        msc = other.msc;
+        if (msc)
+        {
+            // Only assign msc data if that process is present
+            urban      = other.urban;
+            urban_data = other.urban_data;
+        }
+
         return *this;
     }
 };

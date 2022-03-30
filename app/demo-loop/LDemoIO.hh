@@ -54,6 +54,7 @@ struct LDemoArgs
     bool brem_combined{true};
     bool brem_lpm{true};
     bool conv_lpm{true};
+    bool enable_msc{false};
 
     // Diagnostic input
     celeritas::EnergyDiagInput energy_diag;

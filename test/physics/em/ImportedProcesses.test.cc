@@ -187,7 +187,7 @@ TEST_F(ImportedProcessesTest, msc)
     {
         applic.material = mat_id;
         auto builders   = process->step_limits(applic);
-        EXPECT_TRUE(builders[VGT::macro_xs]);
+        EXPECT_TRUE(builders[VGT::msc_mfp]);
     }
 }
 
