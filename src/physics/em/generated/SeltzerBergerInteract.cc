@@ -10,21 +10,25 @@
 
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "physics/base/InteractionLauncher.hh"
 
 namespace celeritas
 {
 namespace generated
 {
 void seltzer_berger_interact(
-    const detail::SeltzerBergerHostRef& seltzer_berger_data,
-    const ModelInteractRef<MemSpace::host>& model)
+    const celeritas::detail::SeltzerBergerHostRef& model_data,
+    const CoreRef<MemSpace::host>& core_data)
 {
-    CELER_EXPECT(seltzer_berger_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
 
-    detail::SeltzerBergerLauncher<MemSpace::host> launch(seltzer_berger_data, model);
+    auto launch = make_interaction_launcher(
+        core_data.params, core_data.states,
+        model_data,
+        celeritas::detail::seltzer_berger_interact_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < model.states.size(); ++i)
+    for (size_type i = 0; i < core_data.states.size(); ++i)
     {
         ThreadId tid{i};
         launch(tid);

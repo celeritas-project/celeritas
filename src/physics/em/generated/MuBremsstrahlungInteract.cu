@@ -12,8 +12,6 @@
 #include "comm/Device.hh"
 #include "../detail/MuBremsstrahlungLauncher.hh"
 
-using namespace celeritas::detail;
-
 namespace celeritas
 {
 namespace generated
@@ -21,28 +19,32 @@ namespace generated
 namespace
 {
 __global__ void mu_bremsstrahlung_interact_kernel(
-    const detail::MuBremsstrahlungDeviceRef mu_bremsstrahlung_data,
-    const ModelInteractRef<MemSpace::device> model)
+    const celeritas::detail::MuBremsstrahlungDeviceRef model_data,
+    const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < model.states.size()))
+    if (!(tid < core_data.states.size()))
         return;
 
-    detail::MuBremsstrahlungLauncher<MemSpace::device> launch(mu_bremsstrahlung_data, model);
+    auto launch = make_interaction_launcher(
+        core_data.params, core_data.states,
+        model_data,
+        celeritas::detail::mu_bremsstrahlung_interact_track);
     launch(tid);
 }
 } // namespace
 
 void mu_bremsstrahlung_interact(
-    const detail::MuBremsstrahlungDeviceRef& mu_bremsstrahlung_data,
-    const ModelInteractRef<MemSpace::device>& model)
+    const celeritas::detail::MuBremsstrahlungDeviceRef& model_data,
+    const CoreRef<MemSpace::device>& core_data)
 {
-    CELER_EXPECT(mu_bremsstrahlung_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
+
     CELER_LAUNCH_KERNEL(mu_bremsstrahlung_interact,
                         celeritas::device().default_block_size(),
                         model.states.size(),
-                        mu_bremsstrahlung_data, model);
+                        core_data, model_data);
 }
 
 } // namespace generated

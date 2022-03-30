@@ -7,14 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/ModelData.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "random/RngEngine.hh"
+#include "sim/CoreTrackView.hh"
 
+#include "EPlusGGData.hh"
 #include "EPlusGGInteractor.hh"
 
 namespace celeritas
@@ -23,48 +18,18 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Model interactor kernel launcher
+ * Apply the EPlusGGInteractor to the current track.
  */
-template<MemSpace M>
-struct EPlusGGLauncher
+inline CELER_FUNCTION Interaction
+eplusgg_interact_track(EPlusGGData const& model, CoreTrackView const& track)
 {
-    CELER_FUNCTION EPlusGGLauncher(const EPlusGGData&         data,
-                                   const ModelInteractRef<M>& interaction)
-        : epgg(data), model(interaction)
-    {
-    }
+    auto        allocate_secondaries = track.make_secondary_allocator();
+    auto        particle             = track.make_particle_view();
+    const auto& dir                  = track.make_geo_view().dir();
 
-    const EPlusGGData&         epgg;  //!< Shared data for interactor
-    const ModelInteractRef<M>& model; //!< State data needed to interact
-
-    //! Create track views and launch interactor
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
-};
-
-template<MemSpace M>
-CELER_FUNCTION void EPlusGGLauncher<M>::operator()(ThreadId tid) const
-{
-    // Get views to this Secondary, Particle, and Physics
-    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
-    ParticleTrackView         particle(
-        model.params.particle, model.states.particle, tid);
-    PhysicsTrackView physics(model.params.physics,
-                             model.states.physics,
-                             particle.particle_id(),
-                             MaterialId{},
-                             tid);
-
-    // This interaction only applies if the EPlusGG model was selected
-    if (physics.model_id() != epgg.model_id)
-        return;
-
-    // Do the interaction
-    EPlusGGInteractor interact(
-        epgg, particle, model.states.direction[tid], allocate_secondaries);
-    RngEngine rng(model.states.rng, tid);
-    model.states.interactions[tid] = interact(rng);
-
-    CELER_ENSURE(model.states.interactions[tid]);
+    EPlusGGInteractor interact(model, particle, dir, allocate_secondaries);
+    auto              rng = track.make_rng_engine();
+    return interact(rng);
 }
 
 //---------------------------------------------------------------------------//

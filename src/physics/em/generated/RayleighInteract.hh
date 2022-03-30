@@ -15,17 +15,17 @@ namespace celeritas
 namespace generated
 {
 void rayleigh_interact(
-    const detail::RayleighHostRef&,
-    const ModelInteractRef<MemSpace::host>&);
+    const celeritas::detail::RayleighHostRef&,
+    const CoreRef<MemSpace::host>&);
 
 void rayleigh_interact(
-    const detail::RayleighDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&);
+    const celeritas::detail::RayleighDeviceRef&,
+    const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void rayleigh_interact(
-    const detail::RayleighDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&)
+    const celeritas::detail::RayleighDeviceRef&,
+    const CoreRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

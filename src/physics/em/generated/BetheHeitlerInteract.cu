@@ -12,8 +12,6 @@
 #include "comm/Device.hh"
 #include "../detail/BetheHeitlerLauncher.hh"
 
-using namespace celeritas::detail;
-
 namespace celeritas
 {
 namespace generated
@@ -30,28 +28,32 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 bethe_heitler_interact_kernel(
-    const detail::BetheHeitlerDeviceRef bethe_heitler_data,
-    const ModelInteractRef<MemSpace::device> model)
+    const celeritas::detail::BetheHeitlerDeviceRef model_data,
+    const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < model.states.size()))
+    if (!(tid < core_data.states.size()))
         return;
 
-    detail::BetheHeitlerLauncher<MemSpace::device> launch(bethe_heitler_data, model);
+    auto launch = make_interaction_launcher(
+        core_data.params, core_data.states,
+        model_data,
+        celeritas::detail::bethe_heitler_interact_track);
     launch(tid);
 }
 } // namespace
 
 void bethe_heitler_interact(
-    const detail::BetheHeitlerDeviceRef& bethe_heitler_data,
-    const ModelInteractRef<MemSpace::device>& model)
+    const celeritas::detail::BetheHeitlerDeviceRef& model_data,
+    const CoreRef<MemSpace::device>& core_data)
 {
-    CELER_EXPECT(bethe_heitler_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
+
     CELER_LAUNCH_KERNEL(bethe_heitler_interact,
                         celeritas::device().default_block_size(),
                         model.states.size(),
-                        bethe_heitler_data, model);
+                        core_data, model_data);
 }
 
 } // namespace generated

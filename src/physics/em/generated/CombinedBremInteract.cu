@@ -12,8 +12,6 @@
 #include "comm/Device.hh"
 #include "../detail/CombinedBremLauncher.hh"
 
-using namespace celeritas::detail;
-
 namespace celeritas
 {
 namespace generated
@@ -30,28 +28,32 @@ __launch_bounds__(1024, 5)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 combined_brem_interact_kernel(
-    const detail::CombinedBremDeviceRef combined_brem_data,
-    const ModelInteractRef<MemSpace::device> model)
+    const celeritas::detail::CombinedBremDeviceRef model_data,
+    const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < model.states.size()))
+    if (!(tid < core_data.states.size()))
         return;
 
-    detail::CombinedBremLauncher<MemSpace::device> launch(combined_brem_data, model);
+    auto launch = make_interaction_launcher(
+        core_data.params, core_data.states,
+        model_data,
+        celeritas::detail::combined_brem_interact_track);
     launch(tid);
 }
 } // namespace
 
 void combined_brem_interact(
-    const detail::CombinedBremDeviceRef& combined_brem_data,
-    const ModelInteractRef<MemSpace::device>& model)
+    const celeritas::detail::CombinedBremDeviceRef& model_data,
+    const CoreRef<MemSpace::device>& core_data)
 {
-    CELER_EXPECT(combined_brem_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
+
     CELER_LAUNCH_KERNEL(combined_brem_interact,
                         celeritas::device().default_block_size(),
                         model.states.size(),
-                        combined_brem_data, model);
+                        core_data, model_data);
 }
 
 } // namespace generated

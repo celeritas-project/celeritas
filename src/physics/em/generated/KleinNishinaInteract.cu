@@ -12,8 +12,6 @@
 #include "comm/Device.hh"
 #include "../detail/KleinNishinaLauncher.hh"
 
-using namespace celeritas::detail;
-
 namespace celeritas
 {
 namespace generated
@@ -30,28 +28,32 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 klein_nishina_interact_kernel(
-    const detail::KleinNishinaDeviceRef klein_nishina_data,
-    const ModelInteractRef<MemSpace::device> model)
+    const celeritas::detail::KleinNishinaDeviceRef model_data,
+    const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < model.states.size()))
+    if (!(tid < core_data.states.size()))
         return;
 
-    detail::KleinNishinaLauncher<MemSpace::device> launch(klein_nishina_data, model);
+    auto launch = make_interaction_launcher(
+        core_data.params, core_data.states,
+        model_data,
+        celeritas::detail::klein_nishina_interact_track);
     launch(tid);
 }
 } // namespace
 
 void klein_nishina_interact(
-    const detail::KleinNishinaDeviceRef& klein_nishina_data,
-    const ModelInteractRef<MemSpace::device>& model)
+    const celeritas::detail::KleinNishinaDeviceRef& model_data,
+    const CoreRef<MemSpace::device>& core_data)
 {
-    CELER_EXPECT(klein_nishina_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
+
     CELER_LAUNCH_KERNEL(klein_nishina_interact,
                         celeritas::device().default_block_size(),
                         model.states.size(),
-                        klein_nishina_data, model);
+                        core_data, model_data);
 }
 
 } // namespace generated

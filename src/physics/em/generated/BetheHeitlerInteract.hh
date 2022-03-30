@@ -15,17 +15,17 @@ namespace celeritas
 namespace generated
 {
 void bethe_heitler_interact(
-    const detail::BetheHeitlerHostRef&,
-    const ModelInteractRef<MemSpace::host>&);
+    const celeritas::detail::BetheHeitlerHostRef&,
+    const CoreRef<MemSpace::host>&);
 
 void bethe_heitler_interact(
-    const detail::BetheHeitlerDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&);
+    const celeritas::detail::BetheHeitlerDeviceRef&,
+    const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void bethe_heitler_interact(
-    const detail::BetheHeitlerDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&)
+    const celeritas::detail::BetheHeitlerDeviceRef&,
+    const CoreRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

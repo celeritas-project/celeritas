@@ -12,8 +12,6 @@
 #include "comm/Device.hh"
 #include "../detail/SeltzerBergerLauncher.hh"
 
-using namespace celeritas::detail;
-
 namespace celeritas
 {
 namespace generated
@@ -21,28 +19,32 @@ namespace generated
 namespace
 {
 __global__ void seltzer_berger_interact_kernel(
-    const detail::SeltzerBergerDeviceRef seltzer_berger_data,
-    const ModelInteractRef<MemSpace::device> model)
+    const celeritas::detail::SeltzerBergerDeviceRef model_data,
+    const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < model.states.size()))
+    if (!(tid < core_data.states.size()))
         return;
 
-    detail::SeltzerBergerLauncher<MemSpace::device> launch(seltzer_berger_data, model);
+    auto launch = make_interaction_launcher(
+        core_data.params, core_data.states,
+        model_data,
+        celeritas::detail::seltzer_berger_interact_track);
     launch(tid);
 }
 } // namespace
 
 void seltzer_berger_interact(
-    const detail::SeltzerBergerDeviceRef& seltzer_berger_data,
-    const ModelInteractRef<MemSpace::device>& model)
+    const celeritas::detail::SeltzerBergerDeviceRef& model_data,
+    const CoreRef<MemSpace::device>& core_data)
 {
-    CELER_EXPECT(seltzer_berger_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
+
     CELER_LAUNCH_KERNEL(seltzer_berger_interact,
                         celeritas::device().default_block_size(),
                         model.states.size(),
-                        seltzer_berger_data, model);
+                        core_data, model_data);
 }
 
 } // namespace generated

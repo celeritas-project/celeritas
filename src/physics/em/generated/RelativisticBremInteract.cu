@@ -12,8 +12,6 @@
 #include "comm/Device.hh"
 #include "../detail/RelativisticBremLauncher.hh"
 
-using namespace celeritas::detail;
-
 namespace celeritas
 {
 namespace generated
@@ -21,28 +19,32 @@ namespace generated
 namespace
 {
 __global__ void relativistic_brem_interact_kernel(
-    const detail::RelativisticBremDeviceRef relativistic_brem_data,
-    const ModelInteractRef<MemSpace::device> model)
+    const celeritas::detail::RelativisticBremDeviceRef model_data,
+    const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < model.states.size()))
+    if (!(tid < core_data.states.size()))
         return;
 
-    detail::RelativisticBremLauncher<MemSpace::device> launch(relativistic_brem_data, model);
+    auto launch = make_interaction_launcher(
+        core_data.params, core_data.states,
+        model_data,
+        celeritas::detail::relativistic_brem_interact_track);
     launch(tid);
 }
 } // namespace
 
 void relativistic_brem_interact(
-    const detail::RelativisticBremDeviceRef& relativistic_brem_data,
-    const ModelInteractRef<MemSpace::device>& model)
+    const celeritas::detail::RelativisticBremDeviceRef& model_data,
+    const CoreRef<MemSpace::device>& core_data)
 {
-    CELER_EXPECT(relativistic_brem_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
+
     CELER_LAUNCH_KERNEL(relativistic_brem_interact,
                         celeritas::device().default_block_size(),
                         model.states.size(),
-                        relativistic_brem_data, model);
+                        core_data, model_data);
 }
 
 } // namespace generated

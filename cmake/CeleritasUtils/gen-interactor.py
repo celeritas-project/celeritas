@@ -36,17 +36,17 @@ namespace celeritas
 namespace generated
 {{
 void {func}_interact(
-    const detail::{class}HostRef&,
-    const ModelInteractRef<MemSpace::host>&);
+    const celeritas::detail::{class}HostRef&,
+    const CoreRef<MemSpace::host>&);
 
 void {func}_interact(
-    const detail::{class}DeviceRef&,
-    const ModelInteractRef<MemSpace::device>&);
+    const celeritas::detail::{class}DeviceRef&,
+    const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void {func}_interact(
-    const detail::{class}DeviceRef&,
-    const ModelInteractRef<MemSpace::device>&)
+    const celeritas::detail::{class}DeviceRef&,
+    const CoreRef<MemSpace::device>&)
 {{
     CELER_ASSERT_UNREACHABLE();
 }}
@@ -61,21 +61,25 @@ CC_TEMPLATE = CLIKE_TOP + """\
 
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "physics/base/InteractionLauncher.hh"
 
 namespace celeritas
 {{
 namespace generated
 {{
 void {func}_interact(
-    const detail::{class}HostRef& {func}_data,
-    const ModelInteractRef<MemSpace::host>& model)
+    const celeritas::detail::{class}HostRef& model_data,
+    const CoreRef<MemSpace::host>& core_data)
 {{
-    CELER_EXPECT({func}_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
 
-    detail::{class}Launcher<MemSpace::host> launch({func}_data, model);
+    auto launch = make_interaction_launcher(
+        core_data.params, core_data.states,
+        model_data,
+        celeritas::detail::{func}_interact_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < model.states.size(); ++i)
+    for (size_type i = 0; i < core_data.states.size(); ++i)
     {{
         ThreadId tid{{i}};
         launch(tid);
@@ -93,8 +97,6 @@ CU_TEMPLATE = CLIKE_TOP + """\
 #include "comm/Device.hh"
 #include "../detail/{class}Launcher.hh"
 
-using namespace celeritas::detail;
-
 namespace celeritas
 {{
 namespace generated
@@ -102,28 +104,32 @@ namespace generated
 namespace
 {{
 __global__ void{launch_bounds}{func}_interact_kernel(
-    const detail::{class}DeviceRef {func}_data,
-    const ModelInteractRef<MemSpace::device> model)
+    const celeritas::detail::{class}DeviceRef model_data,
+    const CoreRef<MemSpace::device> core_data)
 {{
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < model.states.size()))
+    if (!(tid < core_data.states.size()))
         return;
 
-    detail::{class}Launcher<MemSpace::device> launch({func}_data, model);
+    auto launch = make_interaction_launcher(
+        core_data.params, core_data.states,
+        model_data,
+        celeritas::detail::{func}_interact_track);
     launch(tid);
 }}
 }} // namespace
 
 void {func}_interact(
-    const detail::{class}DeviceRef& {func}_data,
-    const ModelInteractRef<MemSpace::device>& model)
+    const celeritas::detail::{class}DeviceRef& model_data,
+    const CoreRef<MemSpace::device>& core_data)
 {{
-    CELER_EXPECT({func}_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
+
     CELER_LAUNCH_KERNEL({func}_interact,
                         celeritas::device().default_block_size(),
                         model.states.size(),
-                        {func}_data, model);
+                        core_data, model_data);
 }}
 
 }} // namespace generated

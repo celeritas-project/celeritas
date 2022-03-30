@@ -10,21 +10,25 @@
 
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "physics/base/InteractionLauncher.hh"
 
 namespace celeritas
 {
 namespace generated
 {
 void eplusgg_interact(
-    const detail::EPlusGGHostRef& eplusgg_data,
-    const ModelInteractRef<MemSpace::host>& model)
+    const celeritas::detail::EPlusGGHostRef& model_data,
+    const CoreRef<MemSpace::host>& core_data)
 {
-    CELER_EXPECT(eplusgg_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
 
-    detail::EPlusGGLauncher<MemSpace::host> launch(eplusgg_data, model);
+    auto launch = make_interaction_launcher(
+        core_data.params, core_data.states,
+        model_data,
+        celeritas::detail::eplusgg_interact_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < model.states.size(); ++i)
+    for (size_type i = 0; i < core_data.states.size(); ++i)
     {
         ThreadId tid{i};
         launch(tid);

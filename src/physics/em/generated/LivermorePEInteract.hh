@@ -15,17 +15,17 @@ namespace celeritas
 namespace generated
 {
 void livermore_pe_interact(
-    const detail::LivermorePEHostRef&,
-    const ModelInteractRef<MemSpace::host>&);
+    const celeritas::detail::LivermorePEHostRef&,
+    const CoreRef<MemSpace::host>&);
 
 void livermore_pe_interact(
-    const detail::LivermorePEDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&);
+    const celeritas::detail::LivermorePEDeviceRef&,
+    const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void livermore_pe_interact(
-    const detail::LivermorePEDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&)
+    const celeritas::detail::LivermorePEDeviceRef&,
+    const CoreRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

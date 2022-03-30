@@ -15,17 +15,17 @@ namespace celeritas
 namespace generated
 {
 void eplusgg_interact(
-    const detail::EPlusGGHostRef&,
-    const ModelInteractRef<MemSpace::host>&);
+    const celeritas::detail::EPlusGGHostRef&,
+    const CoreRef<MemSpace::host>&);
 
 void eplusgg_interact(
-    const detail::EPlusGGDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&);
+    const celeritas::detail::EPlusGGDeviceRef&,
+    const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void eplusgg_interact(
-    const detail::EPlusGGDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&)
+    const celeritas::detail::EPlusGGDeviceRef&,
+    const CoreRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
