@@ -49,10 +49,19 @@ struct AtomicRelaxElement
     size_type max_secondary; //!< Maximum number of secondaries possible
 
     //! Check whether the element is assigned (false for Z < 6).
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return !shells.empty() && max_secondary > 0;
     }
+};
+
+struct AtomicRelaxIds
+{
+    ParticleId electron;
+    ParticleId gamma;
+
+    //! Check whether IDs are assigned
+    explicit CELER_FUNCTION operator bool() const { return electron && gamma }
 };
 
 //---------------------------------------------------------------------------//
@@ -69,31 +78,29 @@ struct AtomicRelaxParamsData
 
     //// MEMBER DATA ////
 
+    AtomicRelaxIds                   ids;
     Items<AtomicRelaxTransition>     transitions;
     Items<AtomicRelaxSubshell>       shells;
     ElementItems<AtomicRelaxElement> elements;
-    ParticleId                       electron_id;
-    ParticleId                       gamma_id;
     size_type                        max_stack_size{};
 
     //// MEMBER FUNCTIONS ////
 
-    //! Check whether the interface is assigned.
-    explicit inline CELER_FUNCTION operator bool() const
+    //! Check whether the data is assigned
+    explicit CELER_FUNCTION operator bool() const
     {
-        return !transitions.empty() && !shells.empty() && !elements.empty()
-               && electron_id && gamma_id && max_stack_size > 0;
+        return ids && !transitions.empty() && !shells.empty()
+               && !elements.empty() && max_stack_size > 0;
     }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     AtomicRelaxParamsData& operator=(const AtomicRelaxParamsData<W2, M2>& other)
     {
+        ids            = other.ids;
         transitions    = other.transitions;
         shells         = other.shells;
         elements       = other.elements;
-        electron_id    = other.electron_id;
-        gamma_id       = other.gamma_id;
         max_stack_size = other.max_stack_size;
         return *this;
     }

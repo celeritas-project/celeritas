@@ -98,8 +98,8 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
 {
     CELER_EXPECT(particle_.energy() >= shared_.min_incident_energy()
                  && particle_.energy() <= shared_.max_incident_energy());
-    CELER_EXPECT(particle.particle_id() == shared_.mu_minus_id
-                 || particle.particle_id() == shared_.mu_plus_id);
+    CELER_EXPECT(particle.particle_id() == shared_.ids.mu_minus
+                 || particle.particle_id() == shared_.ids.mu_plus);
 }
 
 //---------------------------------------------------------------------------//
@@ -155,7 +155,7 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     result.secondaries = {secondaries, 1};
 
     // Save outgoing secondary data
-    secondaries[0].particle_id = shared_.gamma_id;
+    secondaries[0].particle_id = shared_.ids.gamma;
     secondaries[0].energy      = units::MevEnergy{epsilon};
     secondaries[0].direction   = gamma_dir;
 

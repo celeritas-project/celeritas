@@ -121,8 +121,8 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscNativeRef& shared,
     , helper_(shared, particle, physics, material)
     , num_steps_(sim.num_steps())
 {
-    CELER_EXPECT(particle.particle_id() == shared.electron_id
-                 || particle.particle_id() == shared.positron_id);
+    CELER_EXPECT(particle.particle_id() == shared.ids.electron
+                 || particle.particle_id() == shared.ids.positron);
 
     range_  = helper_.range();
     lambda_ = helper_.msc_mfp(inc_energy_);

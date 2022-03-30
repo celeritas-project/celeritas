@@ -47,7 +47,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         Base::set_particle_params(
             {{"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& particles = *this->particle_params();
-        model_ref_.gamma_id   = particles.find(pdg::gamma());
+        model_ref_.ids.gamma  = particles.find(pdg::gamma());
 
         // Set default particle to incident 1 MeV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{1.0});

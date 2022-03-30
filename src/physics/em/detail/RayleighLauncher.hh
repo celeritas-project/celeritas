@@ -61,7 +61,7 @@ CELER_FUNCTION void RayleighLauncher<M>::operator()(ThreadId tid) const
                              tid);
 
     // This interaction only applies if the Rayleigh model was selected
-    if (physics.model_id() != rayleigh.model_id)
+    if (physics.model_id() != rayleigh.ids.model)
         return;
 
     RngEngine rng(model.states.rng, tid);

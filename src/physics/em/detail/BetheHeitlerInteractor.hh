@@ -148,7 +148,7 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     , calc_lpm_functions_(
           material, element_, shared_.dielectric_suppression(), inc_energy_)
 {
-    CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
+    CELER_EXPECT(particle.particle_id() == shared_.ids.gamma);
     CELER_EXPECT(inc_energy_.value() > 2 * shared_.electron_mass);
 
     epsilon0_ = shared_.electron_mass / inc_energy_.value();
@@ -286,8 +286,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     result.secondaries = {secondaries, 2};
 
     // Outgoing secondaries are electron and positron
-    secondaries[0].particle_id = shared_.electron_id;
-    secondaries[1].particle_id = shared_.positron_id;
+    secondaries[0].particle_id = shared_.ids.electron;
+    secondaries[1].particle_id = shared_.ids.positron;
     secondaries[0].energy
         = Energy{(1 - epsilon) * inc_energy_.value() - shared_.electron_mass};
     secondaries[1].energy

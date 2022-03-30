@@ -16,19 +16,30 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Model and particles IDs.
+ */
+struct MollerBhabhaIds
+{
+    ModelId    model;
+    ParticleId electron;
+    ParticleId positron;
+
+    //! Check whether the data is assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return ids.model && ids.electron && ids.gamma && inv_electron_mass > 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Device data for creating an interactor.
  */
 struct MollerBhabhaData
 {
-    //! Model ID
-    ModelId model_id;
-
-    //! ID of an electron
-    ParticleId electron_id;
-    //! ID of a positron
-    ParticleId positron_id;
     //! Electron mass * c^2 [MeV]
     real_type electron_mass_c_sq;
+
     //! Model's mininum energy limit [MeV]
     static CELER_CONSTEXPR_FUNCTION real_type min_valid_energy()
     {
@@ -43,12 +54,9 @@ struct MollerBhabhaData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return electron_id && positron_id && electron_mass_c_sq > 0;
+        return ids && electron_mass_c_sq > 0;
     }
 };
-
-template<Ownership, MemSpace>
-using MBModelData = MollerBhabhaData;
 
 using MollerBhabhaHostRef   = MollerBhabhaData;
 using MollerBhabhaDeviceRef = MollerBhabhaData;

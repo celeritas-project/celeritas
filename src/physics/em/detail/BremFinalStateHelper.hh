@@ -38,7 +38,7 @@ class BremFinalStateHelper
                                                const Real3&      inc_direction,
                                                const Momentum&   inc_momentum,
                                                const Mass&       inc_mass,
-                                               const ParticleId& gamma_id);
+                                               const ParticleId& ids.gamma);
 
     // Update the final state for the given RNG and the photon energy
     template<class Engine>
@@ -56,7 +56,7 @@ class BremFinalStateHelper
     // Incident particle mass
     const Mass inc_mass_;
     // Bremsstrahlung photon id
-    const ParticleId gamma_id_;
+    const ParticleId ids.gamma_;
 };
 
 //---------------------------------------------------------------------------//
@@ -70,12 +70,12 @@ BremFinalStateHelper::BremFinalStateHelper(const Energy&     inc_energy,
                                            const Real3&      inc_direction,
                                            const Momentum&   inc_momentum,
                                            const Mass&       inc_mass,
-                                           const ParticleId& gamma_id)
+                                           const ParticleId& ids.gamma)
     : inc_energy_(inc_energy)
     , inc_direction_(inc_direction)
     , inc_momentum_(inc_momentum)
     , inc_mass_(inc_mass)
-    , gamma_id_(gamma_id)
+    , ids.gamma_(ids.gamma)
 {
 }
 
@@ -93,7 +93,7 @@ CELER_FUNCTION Interaction BremFinalStateHelper::operator()(
     result.energy
         = units::MevEnergy{inc_energy_.value() - gamma_energy.value()};
     result.secondaries         = {secondaries, 1};
-    secondaries[0].particle_id = gamma_id_;
+    secondaries[0].particle_id = ids.gamma_;
     secondaries[0].energy      = gamma_energy;
 
     // Generate exiting gamma direction from isotropic azimuthal angle and

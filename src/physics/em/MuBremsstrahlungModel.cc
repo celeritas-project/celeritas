@@ -21,16 +21,16 @@ MuBremsstrahlungModel::MuBremsstrahlungModel(ModelId               id,
                                              const ParticleParams& particles)
 {
     CELER_EXPECT(id);
-    interface_.model_id    = id;
-    interface_.gamma_id    = particles.find(pdg::gamma());
+    interface_.ids.model   = id;
+    interface_.ids.gamma   = particles.find(pdg::gamma());
     interface_.mu_minus_id = particles.find(pdg::mu_minus());
     interface_.mu_plus_id  = particles.find(pdg::mu_plus());
 
-    CELER_VALIDATE(
-        interface_.gamma_id && interface_.mu_minus_id && interface_.mu_plus_id,
-        << "missing muon and/or gamma particles "
-           "(required for "
-        << this->label() << ")");
+    CELER_VALIDATE(interface_.ids.gamma && interface_.mu_minus_id
+                       && interface_.mu_plus_id,
+                   << "missing muon and/or gamma particles "
+                      "(required for "
+                   << this->label() << ")");
 
     interface_.electron_mass
         = particles.get(particles.find(pdg::electron())).mass();
@@ -78,7 +78,7 @@ void MuBremsstrahlungModel::interact(const HostInteractRef& data) const
  */
 ModelId MuBremsstrahlungModel::model_id() const
 {
-    return interface_.model_id;
+    return interface_.ids.model;
 }
 
 //---------------------------------------------------------------------------//

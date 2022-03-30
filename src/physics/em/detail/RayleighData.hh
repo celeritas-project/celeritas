@@ -43,19 +43,19 @@ template<Ownership W, MemSpace M>
 struct RayleighData
 {
     //! Model ID
-    ModelId model_id;
+    ModelId ids.model;
 
     //! ID of a gamma
-    ParticleId gamma_id;
+    ParticleId ids.gamma;
 
     template<class T>
     using ElementItems = celeritas::Collection<T, W, M, ElementId>;
     ElementItems<RayleighParameters> params;
 
     //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
-        return model_id && gamma_id && !params.empty();
+        return ids.model && ids.gamma && !params.empty();
     }
 
     //! Assign from another set of data
@@ -63,8 +63,8 @@ struct RayleighData
     RayleighData& operator=(const RayleighData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        model_id = other.model_id;
-        gamma_id = other.gamma_id;
+        ids.model = other.ids.model;
+        ids.gamma = other.ids.gamma;
         params   = other.params;
         return *this;
     }

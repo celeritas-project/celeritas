@@ -63,7 +63,7 @@ CELER_FUNCTION void BetheHeitlerLauncher<M>::operator()(ThreadId tid) const
 
     // This interaction only applies if the Bethe-Heitler model was
     // selected
-    if (physics.model_id() != bh.model_id)
+    if (physics.model_id() != bh.ids.model)
         return;
 
     // Cache the associated MaterialView as function calls to

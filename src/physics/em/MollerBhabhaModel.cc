@@ -27,17 +27,17 @@ MollerBhabhaModel::MollerBhabhaModel(ModelId               id,
                                      const ParticleParams& particles)
 {
     CELER_EXPECT(id);
-    interface_.model_id    = id;
-    interface_.electron_id = particles.find(pdg::electron());
-    interface_.positron_id = particles.find(pdg::positron());
+    interface_.ids.model    = id;
+    interface_.ids.electron = particles.find(pdg::electron());
+    interface_.ids.positron = particles.find(pdg::positron());
 
-    CELER_VALIDATE(interface_.electron_id && interface_.positron_id,
+    CELER_VALIDATE(interface_.ids.electron && interface_.ids.positron,
                    << "missing electron and/or positron particles "
                       "(required for "
                    << this->label() << ")");
 
     interface_.electron_mass_c_sq
-        = particles.get(interface_.electron_id).mass().value(); // [MeV]
+        = particles.get(interface_.ids.electron).mass().value(); // [MeV]
 
     CELER_ENSURE(interface_);
 }
@@ -54,11 +54,11 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
     // its maximum transferable energy fraction being 0.5 (which is 1/2 the
     // positron's). This prevents it to run an infinite number of Moller
     // sampling loops.
-    electron_applic.particle = interface_.electron_id;
+    electron_applic.particle = interface_.ids.electron;
     electron_applic.lower    = zero_quantity();
     electron_applic.upper    = units::MevEnergy{interface_.max_valid_energy()};
 
-    positron_applic.particle = interface_.positron_id;
+    positron_applic.particle = interface_.ids.positron;
     positron_applic.lower    = zero_quantity();
     positron_applic.upper    = electron_applic.upper;
 
@@ -87,7 +87,7 @@ void MollerBhabhaModel::interact(const HostInteractRef& data) const
  */
 ModelId MollerBhabhaModel::model_id() const
 {
-    return interface_.model_id;
+    return interface_.ids.model;
 }
 
 //---------------------------------------------------------------------------//

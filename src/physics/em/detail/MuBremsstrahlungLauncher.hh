@@ -67,7 +67,7 @@ CELER_FUNCTION void MuBremsstrahlungLauncher<M>::operator()(ThreadId tid) const
 
     // This interaction only applies if the Muon Bremsstrahlung model was
     // selected
-    if (physics.model_id() != mb.model_id)
+    if (physics.model_id() != mb.ids.model)
         return;
 
     // TODO: sample an element. For now assume one element per material

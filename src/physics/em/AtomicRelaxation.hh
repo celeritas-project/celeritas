@@ -102,8 +102,8 @@ AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsRef& shared,
                                    Span<Secondary>             secondaries,
                                    Span<SubshellId>            vacancies)
     : shared_(shared)
-    , gamma_cutoff_(cutoffs.energy(shared_.gamma_id).value())
-    , electron_cutoff_(cutoffs.energy(shared_.electron_id).value())
+    , gamma_cutoff_(cutoffs.energy(shared_.ids.gamma).value())
+    , electron_cutoff_(cutoffs.energy(shared_.ids.electron).value())
     , el_id_(el_id)
     , shell_id_(shell_id)
     , secondaries_(secondaries)
@@ -165,7 +165,7 @@ AtomicRelaxation::operator()(Engine& rng)
                 Secondary& secondary  = secondaries_[count++];
                 secondary.direction   = sample_direction_(rng);
                 secondary.energy      = MevEnergy{transition.energy};
-                secondary.particle_id = shared_.electron_id;
+                secondary.particle_id = shared_.ids.electron;
 
                 // Accumulate the energy carried away by secondaries
                 sum_energy += transition.energy;
@@ -178,7 +178,7 @@ AtomicRelaxation::operator()(Engine& rng)
             Secondary& secondary  = secondaries_[count++];
             secondary.direction   = sample_direction_(rng);
             secondary.energy      = MevEnergy{transition.energy};
-            secondary.particle_id = shared_.gamma_id;
+            secondary.particle_id = shared_.ids.gamma;
 
             // Accumulate the energy carried away by secondaries
             sum_energy += transition.energy;

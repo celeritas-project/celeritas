@@ -17,18 +17,30 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Particle IDs used in muon brems.
+ */
+struct MuBremsstrahlungIds
+{
+    ModelId    model;
+    ParticleId gamma;
+    ParticleId mu_minus;
+    ParticleId mu_plus;
+
+    //! Check whether the IDs are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return model && electron && mu_minus && mu_plus;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Device data for creating an interactor.
  */
 struct MuBremsstrahlungData
 {
-    //! Model ID
-    ModelId model_id;
-    //! ID of a gamma
-    ParticleId gamma_id;
-    //! ID of a muon
-    ParticleId mu_minus_id;
-    //! ID of a muon
-    ParticleId mu_plus_id;
+    //! Model/particle IDs
+    MuBremsstrahlungIds ids;
     //! Electron mass [MeV / c^2]
     units::MevMass electron_mass;
 
@@ -47,8 +59,7 @@ struct MuBremsstrahlungData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return model_id && gamma_id && mu_minus_id && mu_plus_id
-               && electron_mass > zero_quantity();
+        return ids && electron_mass > zero_quantity();
     }
 };
 

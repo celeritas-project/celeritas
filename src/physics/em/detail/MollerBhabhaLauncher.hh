@@ -62,7 +62,7 @@ CELER_FUNCTION void MollerBhabhaLauncher<M>::operator()(ThreadId tid) const
                              tid);
 
     // This interaction only applies if the MB model was selected
-    if (physics.model_id() != mb.model_id)
+    if (physics.model_id() != mb.ids.model)
         return;
 
     CutoffView cutoff(model.params.cutoffs, material.material_id());

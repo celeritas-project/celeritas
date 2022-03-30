@@ -54,9 +54,9 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     HostData host_data;
 
     // Get particle IDs
-    host_data.electron_id = inp.particles->find(pdg::electron());
-    host_data.gamma_id    = inp.particles->find(pdg::gamma());
-    CELER_VALIDATE(host_data.electron_id && host_data.gamma_id,
+    host_data.ids.electron = inp.particles->find(pdg::electron());
+    host_data.ids.gamma    = inp.particles->find(pdg::gamma());
+    CELER_VALIDATE(host_data.ids.electron && host_data.ids.gamma,
                    << "missing electron and/or gamma particles "
                       "(required for atomic relaxation)");
 
@@ -74,10 +74,11 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
         for (auto comp_id : range(ElementComponentId{material.num_elements()}))
         {
             auto el_idx             = material.element_id(comp_id).get();
-            electron_cutoff[el_idx] = min(
-                electron_cutoff[el_idx], cutoffs.energy(host_data.electron_id));
+            electron_cutoff[el_idx]
+                = min(electron_cutoff[el_idx],
+                      cutoffs.energy(host_data.ids.electron));
             gamma_cutoff[el_idx] = min(gamma_cutoff[el_idx],
-                                       cutoffs.energy(host_data.gamma_id));
+                                       cutoffs.energy(host_data.ids.gamma));
         }
     }
 

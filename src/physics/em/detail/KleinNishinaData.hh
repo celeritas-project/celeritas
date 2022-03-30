@@ -16,21 +16,31 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Model and particles IDs.
+ */
+struct KleinNishinaIds
+{
+    ModelId    model;
+    ParticleId electron;
+    ParticleId gamma;
+
+    //! Check whether the data is assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return ids.model && ids.electron && ids.gamma;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Device data for creating a KleinNishinaInteractor.
  */
 struct KleinNishinaData
 {
     using Mass = units::MevMass;
 
-    struct
-    {
-        //! Model ID
-        ModelId model;
-        //! ID of an electron
-        ParticleId electron;
-        //! ID of a gamma
-        ParticleId gamma;
-    } ids;
+    //! Model and particle identifiers
+    KleinNishinaIds ids;
 
     //! 1 / electron mass [1 / MevMass]
     real_type inv_electron_mass;
@@ -38,7 +48,7 @@ struct KleinNishinaData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids.model && ids.electron && ids.gamma && inv_electron_mass > 0;
+        return ids && inv_electron_mass > 0;
     }
 };
 
