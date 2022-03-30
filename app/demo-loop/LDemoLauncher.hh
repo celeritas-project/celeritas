@@ -11,6 +11,9 @@
 #include "base/Quantity.hh"
 #include "geometry/LinearPropagator.hh"
 #include "physics/base/PhysicsStepUtils.hh"
+#include "physics/em/detail/UrbanMscData.hh"
+#include "physics/em/detail/UrbanMscScatter.hh"
+#include "physics/em/detail/UrbanMscStepLimit.hh"
 #include "random/distributions/ExponentialDistribution.hh"
 #include "sim/CoreTrackData.hh"
 #include "sim/CoreTrackView.hh"
@@ -60,7 +63,7 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
     // Calculate physics step limits and total macro xs
     auto      mat      = track.make_material_view();
     auto      particle = track.make_particle_view();
-    real_type step = calc_tabulated_physics_step(mat, particle, phys);
+    real_type step     = calc_tabulated_physics_step(mat, particle, phys);
     if (particle.is_stopped())
     {
         if (phys.macro_xs() == 0)
@@ -89,7 +92,7 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
 inline CELER_FUNCTION void
 along_and_post_step_track(celeritas::CoreTrackView const& track)
 {
-    auto                           sim = track.make_sim_view();
+    auto sim = track.make_sim_view();
     if (!sim.alive())
     {
         // Clear the model ID so inactive tracks will exit the interaction
@@ -110,13 +113,48 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
     real_type step             = phys.step_length();
     real_type start_energy     = value_as<Energy>(particle.energy());
 
+    Action result_action = Action::unchanged;
+
     if (!particle.is_stopped())
     {
+        auto geo = track.make_geo_view();
+        auto mat = track.make_material_view();
+        auto rng = track.make_rng_engine();
+
+        // Apply the msc step limitation and pass the current step to geom
+        celeritas::detail::MscStepLimitResult msc_step_result;
+        if (phys.msc_ppid())
+        {
+            const celeritas::detail::UrbanMscNativeRef& urban_data
+                = phys.urban_data();
+
+            if (step > urban_data.params.geom_limit
+                && particle.energy() > urban_data.params.energy_limit)
+            {
+                using UrbanMscStepLimit = celeritas::detail::UrbanMscStepLimit;
+                UrbanMscStepLimit msc_step_limit(urban_data,
+                                                 particle,
+                                                 &geo,
+                                                 phys,
+                                                 mat.make_material_view(),
+                                                 sim);
+                msc_step_result = msc_step_limit(rng);
+
+                // Use msc_step_result.geom_path for geometry transport
+                step = msc_step_result.geom_path;
+
+                // Test for the msc limited step
+                if (msc_step_result.true_path < msc_step_result.phys_step)
+                {
+                    result_action = Action::msc_limited;
+                }
+            }
+        }
+
         // Boundary crossings and energy loss only need to be considered when
         // the particle is moving
         CELER_ASSERT(step > 0);
         {
-            auto geo = track.make_geo_view();
             // Propagate up to the step length or next boundary
             LinearPropagator propagate(&geo);
             auto             geo_step = propagate(step);
@@ -124,18 +162,45 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
             crossed_boundary          = geo_step.boundary;
         }
 
+        // Sample the multiple scattering
+        if (phys.msc_ppid())
+        {
+            const celeritas::detail::UrbanMscNativeRef& urban_data
+                = phys.urban_data();
+
+            if (step > urban_data.params.geom_limit
+                && particle.energy() > urban_data.params.energy_limit)
+            {
+                using UrbanMscScatter = celeritas::detail::UrbanMscScatter;
+
+                msc_step_result.geom_path = step;
+                UrbanMscScatter msc_scatter(urban_data,
+                                            particle,
+                                            &geo,
+                                            phys,
+                                            mat.make_material_view(),
+                                            msc_step_result);
+                auto            msc_result = msc_scatter(rng);
+                step                       = msc_result.step_length;
+
+                // Update direction and position
+                geo.set_dir(msc_result.direction);
+                celeritas::Real3 new_pos = geo.pos();
+                celeritas::axpy(
+                    real_type(1), msc_result.displacement, &new_pos);
+                geo.move_internal(new_pos);
+            }
+        }
+
         // Calculate energy loss over the step length
-        auto                  cutoffs = track.make_cutoff_view();
-        auto                  mat     = track.make_material_view();
-        auto                  rng     = track.make_rng_engine();
-        real_type             eloss = value_as<Energy>(
+        auto      cutoffs = track.make_cutoff_view();
+        real_type eloss   = value_as<Energy>(
             calc_energy_loss(cutoffs, mat, particle, phys, step, rng));
         track.energy_deposition() += eloss;
         particle.energy(Energy{start_energy - eloss});
     }
 
     ModelId result_model{};
-    Action  result_action = Action::unchanged;
 
     if (particle.is_stopped())
     {
@@ -217,7 +282,7 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
             auto matid    = geo_mat.material_id(geo.volume_id());
             CELER_ASSERT(matid);
             auto mat = track.make_material_view();
-            mat = {matid};
+            mat      = {matid};
         }
     }
     else if (phys.interaction_mfp() <= 0)
@@ -242,13 +307,13 @@ process_interactions_track(celeritas::CoreTrackView const& track)
 {
     using Energy = celeritas::ParticleTrackView::Energy;
 
-    auto                           sim = track.make_sim_view();
+    auto sim = track.make_sim_view();
 
     // Increment the step count before checking if the track is alive as some
     // active tracks might have been killed earlier in the step.
     sim.increment_num_steps();
 
-    if (!sim.alive())
+    if (!sim.alive() || action_msc(track.interaction().action))
     {
         return;
     }
