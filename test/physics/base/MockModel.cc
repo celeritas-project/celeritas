@@ -25,6 +25,11 @@ auto MockModel::applicability() const -> SetApplicability
     return {applic_};
 }
 
+void MockModel::interact(const HostInteractRef&) const
+{
+    // Shouldn't be called?
+}
+
 void MockModel::interact(const DeviceInteractRef&) const
 {
     // Inform calling test code that we've been launched
