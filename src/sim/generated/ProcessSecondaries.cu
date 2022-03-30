@@ -28,8 +28,8 @@ __launch_bounds__(1024, 2)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 process_secondaries_kernel(
-    const ParamsDeviceRef params,
-    const StateDeviceRef states,
+    const CoreParamsDeviceRef params,
+    const CoreStateDeviceRef states,
     const TrackInitStateDeviceRef data)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -42,8 +42,8 @@ process_secondaries_kernel(
 } // namespace
 
 void process_secondaries(
-    const ParamsDeviceRef& params,
-    const StateDeviceRef& states,
+    const CoreParamsDeviceRef& params,
+    const CoreStateDeviceRef& states,
     const TrackInitStateDeviceRef& data)
 {
     CELER_LAUNCH_KERNEL(

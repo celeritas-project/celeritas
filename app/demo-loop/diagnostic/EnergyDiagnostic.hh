@@ -19,7 +19,7 @@
 #include "base/Types.hh"
 #include "geometry/Types.hh"
 #include "physics/grid/NonuniformGrid.hh"
-#include "sim/TrackData.hh"
+#include "sim/CoreTrackData.hh"
 
 #include "Diagnostic.hh"
 
@@ -38,7 +38,7 @@ class EnergyDiagnostic : public Diagnostic<M>
     using real_type    = celeritas::real_type;
     using Axis         = celeritas::Axis;
     using Items        = celeritas::Collection<real_type, Ownership::value, M>;
-    using StateDataRef = celeritas::StateData<Ownership::reference, M>;
+    using StateRef     = celeritas::CoreStateData<Ownership::reference, M>;
     using TransporterResult = celeritas::TransporterResult;
     //!@}
 
@@ -47,7 +47,7 @@ class EnergyDiagnostic : public Diagnostic<M>
     explicit EnergyDiagnostic(const std::vector<real_type>& bounds, Axis axis);
 
     // Number of alive tracks determined at the end of a step.
-    void end_step(const StateDataRef& states) final;
+    void end_step(const StateRef& states) final;
 
     // Collect diagnostic results
     void get_result(TransporterResult* result) final;
@@ -98,28 +98,29 @@ class EnergyDiagnosticLauncher
     using real_type    = celeritas::real_type;
     using ThreadId     = celeritas::ThreadId;
     using Pointers     = EnergyBinPointers<M>;
-    using StateDataRef = celeritas::StateData<Ownership::reference, M>;
+    using StateRef     = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION EnergyDiagnosticLauncher(const StateDataRef& states,
-                                            const Pointers&     pointers);
+    CELER_FUNCTION
+    EnergyDiagnosticLauncher(const StateRef& states, const Pointers& pointers);
 
     // Perform energy binning by position
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const StateDataRef& states_;
+    const StateRef&     states_;
     const Pointers&     pointers_;
 };
 
 using PointersDevice = EnergyBinPointers<MemSpace::device>;
 using PointersHost   = EnergyBinPointers<MemSpace::host>;
 
-void bin_energy(const celeritas::StateDeviceRef& states,
-                PointersDevice&                  pointers);
-void bin_energy(const celeritas::StateHostRef& states, PointersHost& pointers);
+void bin_energy(const celeritas::CoreStateDeviceRef& states,
+                PointersDevice&                      pointers);
+void bin_energy(const celeritas::CoreStateHostRef& states,
+                PointersHost&                      pointers);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -153,7 +154,7 @@ EnergyDiagnostic<M>::EnergyDiagnostic(const std::vector<real_type>& bounds,
  * Accumulate energy deposition in diagnostic.
  */
 template<MemSpace M>
-void EnergyDiagnostic<M>::end_step(const StateDataRef& states)
+void EnergyDiagnostic<M>::end_step(const StateRef& states)
 {
     // Set up pointers to pass to device
     EnergyBinPointers<M> pointers;
@@ -192,8 +193,9 @@ std::vector<celeritas::real_type> EnergyDiagnostic<M>::energy_deposition()
 // EnergyDiagnosticLauncher implementation
 //---------------------------------------------------------------------------//
 template<MemSpace M>
-CELER_FUNCTION EnergyDiagnosticLauncher<M>::EnergyDiagnosticLauncher(
-    const StateDataRef& states, const Pointers& pointers)
+CELER_FUNCTION
+EnergyDiagnosticLauncher<M>::EnergyDiagnosticLauncher(const StateRef& states,
+                                                      const Pointers& pointers)
     : states_(states), pointers_(pointers)
 {
     CELER_EXPECT(states_);
@@ -232,7 +234,7 @@ CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
 }
 
 #if !CELER_USE_DEVICE
-inline void bin_energy(const celeritas::StateDeviceRef&, PointersDevice&)
+inline void bin_energy(const celeritas::CoreStateDeviceRef&, PointersDevice&)
 {
     CELER_NOT_CONFIGURED("CUDA/HIP");
 }

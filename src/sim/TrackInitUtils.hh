@@ -11,7 +11,7 @@
 #include "base/CollectionBuilder.hh"
 #include "base/Copier.hh"
 
-#include "TrackData.hh"
+#include "CoreTrackData.hh"
 #include "TrackInitData.hh"
 #include "detail/TrackInitAlgorithms.hh"
 #include "generated/InitTracks.hh"
@@ -73,9 +73,9 @@ inline void extend_from_primaries(const TrackInitParamsHostRef& params,
  */
 template<MemSpace M>
 inline void
-initialize_tracks(const ParamsData<Ownership::const_reference, M>& params,
-                  const StateData<Ownership::reference, M>&        states,
-                  TrackInitStateData<Ownership::value, M>*         data)
+initialize_tracks(const CoreParamsData<Ownership::const_reference, M>& params,
+                  const CoreStateData<Ownership::reference, M>&        states,
+                  TrackInitStateData<Ownership::value, M>*             data)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
@@ -154,10 +154,10 @@ initialize_tracks(const ParamsData<Ownership::const_reference, M>& params,
    \endverbatim
  */
 template<MemSpace M>
-inline void
-extend_from_secondaries(const ParamsData<Ownership::const_reference, M>& params,
-                        const StateData<Ownership::reference, M>& states,
-                        TrackInitStateData<Ownership::value, M>*  data)
+inline void extend_from_secondaries(
+    const CoreParamsData<Ownership::const_reference, M>& params,
+    const CoreStateData<Ownership::reference, M>&        states,
+    TrackInitStateData<Ownership::value, M>*             data)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);

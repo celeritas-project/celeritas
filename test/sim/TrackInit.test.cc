@@ -19,7 +19,7 @@
 #include "physics/base/PhysicsParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "random/RngParams.hh"
-#include "sim/TrackData.hh"
+#include "sim/CoreTrackData.hh"
 #include "sim/TrackInitParams.hh"
 #include "sim/TrackInitUtils.hh"
 
@@ -140,7 +140,7 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         CELER_EXPECT(params);
         CELER_EXPECT(track_inits);
 
-        ParamsData<Ownership::const_reference, MemSpace::host> host_params;
+        CoreParamsData<Ownership::const_reference, MemSpace::host> host_params;
 
         host_params.geometry  = this->geometry()->host_ref();
         host_params.geo_mats  = geo_mats->host_ref();
@@ -161,8 +161,8 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
     }
 
     //! Copy results to host
-    ITTestOutput
-    get_result(StateDeviceRef& states, TrackInitDeviceValue& track_init_states)
+    ITTestOutput get_result(CoreStateDeviceRef&   states,
+                            TrackInitDeviceValue& track_init_states)
     {
         CELER_EXPECT(states);
         CELER_EXPECT(track_init_states);
@@ -204,9 +204,9 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
     std::shared_ptr<RngParams>                    rng;
     std::shared_ptr<TrackInitParams>              track_inits;
     CollectionMirror<PhysicsParamsData>           physics;
-    StateData<Ownership::value, MemSpace::device> device_states;
-    ParamsDeviceRef                               params;
-    StateDeviceRef                                states;
+    CoreStateData<Ownership::value, MemSpace::device> device_states;
+    CoreParamsDeviceRef                               params;
+    CoreStateDeviceRef                                states;
     TrackInitDeviceValue                          track_init_states;
 };
 

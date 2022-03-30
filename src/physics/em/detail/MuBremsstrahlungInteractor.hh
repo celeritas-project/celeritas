@@ -93,7 +93,7 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     : shared_(shared)
     , inc_direction_(inc_direction)
     , allocate_(allocate)
-    , element_(material.element_view(elcomp_id))
+    , element_(material.make_element_view(elcomp_id))
     , particle_(particle)
 {
     CELER_EXPECT(particle_.energy() >= shared_.min_incident_energy()

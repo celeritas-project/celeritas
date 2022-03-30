@@ -15,8 +15,8 @@ namespace celeritas
 namespace generated
 {
 void locate_alive(
-    const ParamsHostRef& params,
-    const StateHostRef& states,
+    const CoreParamsHostRef& params,
+    const CoreStateHostRef& states,
     const TrackInitStateHostRef& data)
 {
     detail::LocateAliveLauncher<MemSpace::host> launch(params, states, data);

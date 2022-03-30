@@ -28,8 +28,8 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 init_tracks_kernel(
-    const ParamsDeviceRef params,
-    const StateDeviceRef states,
+    const CoreParamsDeviceRef params,
+    const CoreStateDeviceRef states,
     const TrackInitStateDeviceRef data,
     const size_type num_vacancies)
 {
@@ -43,8 +43,8 @@ init_tracks_kernel(
 } // namespace
 
 void init_tracks(
-    const ParamsDeviceRef& params,
-    const StateDeviceRef& states,
+    const CoreParamsDeviceRef& params,
+    const CoreStateDeviceRef& states,
     const TrackInitStateDeviceRef& data,
     const size_type num_vacancies)
 {

@@ -20,8 +20,8 @@ namespace demo_loop
  * Tally the particle/process combinations that occur at each step.
  */
 __global__ void count_particle_process_kernel(
-    ParamsDeviceRef const                               params,
-    StateDeviceRef const                                states,
+    CoreParamsDeviceRef const                           params,
+    CoreStateDeviceRef const                            states,
     ParticleProcessLauncher<MemSpace::device>::ItemsRef counts)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -39,8 +39,8 @@ __global__ void count_particle_process_kernel(
  * Launch kernel to tally the particle/process combinations.
  */
 void count_particle_process(
-    const ParamsDeviceRef&                              params,
-    const StateDeviceRef&                               states,
+    const CoreParamsDeviceRef&                          params,
+    const CoreStateDeviceRef&                           states,
     ParticleProcessLauncher<MemSpace::device>::ItemsRef counts)
 {
     static const KernelParamCalculator calc_launch_params(

@@ -9,7 +9,7 @@
 
 #include "base/Macros.hh"
 #include "physics/base/ModelData.hh"
-#include "sim/TrackData.hh"
+#include "sim/CoreTrackData.hh"
 
 #include "../Transporter.hh"
 
@@ -27,7 +27,7 @@ class Diagnostic
 {
   public:
     using EventId           = celeritas::EventId;
-    using StateDataRef      = celeritas::StateData<Ownership::reference, M>;
+    using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
     using TransporterResult = celeritas::TransporterResult;
 
     // Virtual destructor for polymorphic deletion
@@ -37,19 +37,19 @@ class Diagnostic
     virtual void begin_simulation() {}
 
     // Collect diagnostic(s) before event begins
-    virtual void begin_event(EventId, const StateDataRef&) {}
+    virtual void begin_event(EventId, const StateRef&) {}
 
     // Collect diagnostic(s) before step
-    virtual void begin_step(const StateDataRef&) {}
+    virtual void begin_step(const StateRef&) {}
 
     // Collect diagnostic(s) in the middle of a step
-    virtual void mid_step(const StateDataRef&) {}
+    virtual void mid_step(const StateRef&) {}
 
     // Collect diagnostic(s) after step
-    virtual void end_step(const StateDataRef&) {}
+    virtual void end_step(const StateRef&) {}
 
     // Collect diagnostic(s) after event ends
-    virtual void end_event(EventId, const StateDataRef&) {}
+    virtual void end_event(EventId, const StateRef&) {}
 
     // Collect post-sim diagnostic(s)
     virtual void end_simulation() {}

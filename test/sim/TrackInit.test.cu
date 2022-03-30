@@ -22,7 +22,8 @@ using namespace celeritas;
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void interact_kernel(StateDeviceRef states, ITTestInputData input)
+__global__ void
+interact_kernel(CoreStateDeviceRef const states, ITTestInputData const input)
 {
     auto thread_id = celeritas::KernelParamCalculator::thread_id();
     if (thread_id < states.size())
@@ -54,7 +55,7 @@ __global__ void interact_kernel(StateDeviceRef states, ITTestInputData input)
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 
-void interact(StateDeviceRef states, ITTestInputData input)
+void interact(CoreStateDeviceRef states, ITTestInputData input)
 {
     CELER_EXPECT(states.size() > 0);
     CELER_EXPECT(states.size() == input.alloc_size.size());

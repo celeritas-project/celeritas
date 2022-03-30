@@ -44,7 +44,7 @@ __global__ void m_test_kernel(unsigned int const                  size,
     CELER_ASSERT(mat_track.material_id() == init[tid.get()].material_id);
 
     // Get material properties
-    const auto& mat         = mat_track.material_view();
+    const auto& mat         = mat_track.make_material_view();
     temperatures[tid.get()] = mat.temperature();
     rad_len[tid.get()]      = mat.radiation_length();
 
@@ -54,7 +54,7 @@ __global__ void m_test_kernel(unsigned int const                  size,
     for (auto ec : celeritas::range(mat.num_elements()))
     {
         // Pretend to calculate cross section for the ec'th element
-        const auto& element = mat.element_view(ElementComponentId{ec});
+        const auto& element = mat.make_element_view(ElementComponentId{ec});
         scratch[ec]         = static_cast<real_type>(element.atomic_number());
     }
 

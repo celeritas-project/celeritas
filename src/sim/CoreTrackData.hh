@@ -43,7 +43,7 @@ struct ControlOptions
  * Immutable problem data.
  */
 template<Ownership W, MemSpace M>
-struct ParamsData
+struct CoreParamsData
 {
     GeoParamsData<W, M>         geometry;
     GeoMaterialParamsData<W, M> geo_mats;
@@ -51,7 +51,7 @@ struct ParamsData
     ParticleParamsData<W, M>    particles;
     CutoffParamsData<W, M>      cutoffs;
     PhysicsParamsData<W, M>     physics;
-    AtomicRelaxParamsData<W, M> relaxation;
+    AtomicRelaxParamsData<W, M> relaxation; // TODO: move into physics?
     RngParamsData<W, M>         rng;
 
     ControlOptions control;
@@ -65,7 +65,7 @@ struct ParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    ParamsData& operator=(const ParamsData<W2, M2>& other)
+    CoreParamsData& operator=(const CoreParamsData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         geometry   = other.geometry;
@@ -85,7 +85,7 @@ struct ParamsData
  * Thread-local state data.
  */
 template<Ownership W, MemSpace M>
-struct StateData
+struct CoreStateData
 {
     template<class T>
     using Items = StateCollection<T, W, M>;
@@ -102,9 +102,9 @@ struct StateData
     StackAllocatorData<Secondary, W, M> secondaries;
 
     // Raw data
-    Items<real_type>   step_length;
-    Items<real_type>   energy_deposition;
-    Items<Interaction> interactions;
+    Items<real_type>   step_length;       // TODO: step limiter
+    Items<real_type>   energy_deposition; // TODO: move to physics?
+    Items<Interaction> interactions;      // TODO: to be removed
 
     //! Number of state elements
     CELER_FUNCTION size_type size() const { return particles.size(); }
@@ -119,7 +119,7 @@ struct StateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    StateData& operator=(StateData<W2, M2>& other)
+    CoreStateData& operator=(CoreStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         geometry          = other.geometry;
@@ -137,11 +137,13 @@ struct StateData
     }
 };
 
-using ParamsDeviceRef
-    = ParamsData<Ownership::const_reference, MemSpace::device>;
-using ParamsHostRef  = ParamsData<Ownership::const_reference, MemSpace::host>;
-using StateDeviceRef = StateData<Ownership::reference, MemSpace::device>;
-using StateHostRef   = StateData<Ownership::reference, MemSpace::host>;
+using CoreParamsDeviceRef
+    = CoreParamsData<Ownership::const_reference, MemSpace::device>;
+using CoreParamsHostRef
+    = CoreParamsData<Ownership::const_reference, MemSpace::host>;
+using CoreStateDeviceRef
+    = CoreStateData<Ownership::reference, MemSpace::device>;
+using CoreStateHostRef = CoreStateData<Ownership::reference, MemSpace::host>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -149,9 +151,9 @@ using StateHostRef   = StateData<Ownership::reference, MemSpace::host>;
  */
 template<MemSpace M>
 inline void
-resize(StateData<Ownership::value, M>*                               data,
-       const ParamsData<Ownership::const_reference, MemSpace::host>& params,
-       size_type                                                     size)
+resize(CoreStateData<Ownership::value, M>*                               data,
+       const CoreParamsData<Ownership::const_reference, MemSpace::host>& params,
+       size_type                                                         size)
 {
     CELER_EXPECT(data);
     CELER_EXPECT(params);

@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "sim/TrackLauncher.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -17,13 +18,13 @@ namespace demo_loop
 namespace generated
 {
 void process_interactions(
-    const ParamsHostRef& params,
-    const StateHostRef& states)
+    const CoreParamsHostRef& params,
+    const CoreStateHostRef& states)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);
 
-    ProcessInteractionsLauncher<MemSpace::host> launch(params, states);
+    auto launch = make_track_launcher(params, states, process_interactions_track);
     #pragma omp parallel for
     for (size_type i = 0; i < states.size(); ++i)
     {

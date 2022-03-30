@@ -67,7 +67,7 @@ CELER_FUNCTION void RayleighLauncher<M>::operator()(ThreadId tid) const
     RngEngine rng(model.states.rng, tid);
 
     // Assume only a single element in the material, for now
-    CELER_ASSERT(material.material_view().num_elements() == 1);
+    CELER_ASSERT(material.make_material_view().num_elements() == 1);
     ElementId el_id{0};
 
     // Do the interaction

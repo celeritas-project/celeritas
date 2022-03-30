@@ -10,8 +10,8 @@
 #include "celeritas_config.h"
 #include "base/Macros.hh"
 #include "physics/base/ModelData.hh"
+#include "sim/CoreTrackData.hh"
 #include "sim/SimTrackView.hh"
-#include "sim/TrackData.hh"
 
 #include "Diagnostic.hh"
 
@@ -43,13 +43,13 @@ class TrackDiagnostic : public Diagnostic<M>
 {
   public:
     using size_type         = celeritas::size_type;
-    using StateDataRef      = celeritas::StateData<Ownership::reference, M>;
+    using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
     using TransporterResult = celeritas::TransporterResult;
 
     TrackDiagnostic() : Diagnostic<M>() {}
 
     // Number of alive tracks determined at the end of a step.
-    void end_step(const StateDataRef& data) final;
+    void end_step(const StateRef& data) final;
 
     // Return vector consisting of the number of alive tracks at each step
     // (indexed by step number).

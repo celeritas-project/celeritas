@@ -67,11 +67,11 @@ CELER_FUNCTION void LivermorePELauncher<M>::operator()(ThreadId tid) const
 
     // Sample an element
     ElementSelector select_el(
-        material.material_view(),
+        material.make_material_view(),
         LivermorePEMicroXsCalculator{pe, particle.energy()},
         material.element_scratch());
     ElementComponentId comp_id = select_el(rng);
-    ElementId          el_id   = material.material_view().element_id(comp_id);
+    ElementId el_id = material.make_material_view().element_id(comp_id);
 
     AtomicRelaxationHelper relaxation(
         model.params.relaxation, model.states.relaxation, el_id, tid);

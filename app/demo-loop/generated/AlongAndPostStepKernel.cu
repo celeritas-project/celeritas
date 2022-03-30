@@ -11,6 +11,7 @@
 #include "base/Types.hh"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
+#include "sim/TrackLauncher.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -31,21 +32,21 @@ __launch_bounds__(1024, 4)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 along_and_post_step_kernel(
-    ParamsDeviceRef const params,
-    StateDeviceRef const states)
+    CoreParamsDeviceRef const params,
+    CoreStateDeviceRef const states)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < states.size()))
         return;
 
-    AlongAndPostStepLauncher<MemSpace::device> launch(params, states);
+    auto launch = make_track_launcher(params, states, along_and_post_step_track);
     launch(tid);
 }
 } // namespace
 
 void along_and_post_step(
-    const celeritas::ParamsDeviceRef& params,
-    const celeritas::StateDeviceRef& states)
+    const celeritas::CoreParamsDeviceRef& params,
+    const celeritas::CoreStateDeviceRef& states)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);

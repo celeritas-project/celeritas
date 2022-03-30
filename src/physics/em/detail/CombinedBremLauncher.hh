@@ -66,7 +66,7 @@ CELER_FUNCTION void CombinedBremLauncher<M>::operator()(ThreadId tid) const
         return;
 
     // Assume only a single element in the material, for now
-    MaterialView material_view = material.material_view();
+    MaterialView material_view = material.make_material_view();
     CELER_ASSERT(material_view.num_elements() == 1);
     const ElementComponentId selected_element{0};
 

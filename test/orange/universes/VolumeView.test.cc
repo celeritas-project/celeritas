@@ -22,9 +22,9 @@ using namespace celeritas;
 class VolumeViewTest : public celeritas_test::OrangeGeoTestBase
 {
   protected:
-    using VolumeDataRef = VolumeView::VolumeDataRef;
+    using VolumeRef = VolumeView::VolumeRef;
 
-    const VolumeDataRef& volume_ref() const
+    const VolumeRef& volume_ref() const
     {
         return this->params().host_ref().volumes;
     }

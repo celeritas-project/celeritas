@@ -15,8 +15,8 @@ namespace demo_loop
 /*!
  * Count the steps per track for each particle type.
  */
-void count_steps(const ParamsHostRef&                  params,
-                 const StateHostRef&                   states,
+void count_steps(const CoreParamsHostRef&              params,
+                 const CoreStateHostRef&               states,
                  StepDiagnosticDataRef<MemSpace::host> data)
 {
     StepLauncher<MemSpace::host> launch(params, states, data);

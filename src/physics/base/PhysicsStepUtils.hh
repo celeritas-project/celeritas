@@ -108,7 +108,7 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
         {
             // Calculate macroscopic cross section on the fly for special
             // hardwired processes.
-            auto material_view = material.material_view();
+            auto material_view = material.make_material_view();
             process_xs         = physics.calc_xs_otf(
                 model_id, material_view, particle.energy());
             total_macro_xs += process_xs;

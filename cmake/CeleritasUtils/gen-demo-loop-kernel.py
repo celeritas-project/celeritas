@@ -25,23 +25,24 @@ CLIKE_TOP = '''\
 HH_TEMPLATE = CLIKE_TOP + """\
 #include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "sim/CoreTrackData.hh"
 
 namespace demo_loop
 {{
 namespace generated
 {{
 void {func}(
-    const celeritas::ParamsHostRef&,
-    const celeritas::StateHostRef&);
+    const celeritas::CoreParamsHostRef&,
+    const celeritas::CoreStateHostRef&);
 
 void {func}(
-    const celeritas::ParamsDeviceRef&,
-    const celeritas::StateDeviceRef&);
+    const celeritas::CoreParamsDeviceRef&,
+    const celeritas::CoreStateDeviceRef&);
 
 #if !CELER_USE_DEVICE
 inline void {func}(
-    const celeritas::ParamsDeviceRef&,
-    const celeritas::StateDeviceRef&)
+    const celeritas::CoreParamsDeviceRef&,
+    const celeritas::CoreStateDeviceRef&)
 {{
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }}
@@ -54,6 +55,7 @@ inline void {func}(
 CC_TEMPLATE = CLIKE_TOP + """\
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "sim/TrackLauncher.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -63,13 +65,13 @@ namespace demo_loop
 namespace generated
 {{
 void {func}(
-    const ParamsHostRef& params,
-    const StateHostRef& states)
+    const CoreParamsHostRef& params,
+    const CoreStateHostRef& states)
 {{
     CELER_EXPECT(params);
     CELER_EXPECT(states);
 
-    {class}Launcher<MemSpace::host> launch(params, states);
+    auto launch = make_track_launcher(params, states, {func}_track);
     #pragma omp parallel for
     for (size_type i = 0; i < {threads}; ++i)
     {{
@@ -87,6 +89,7 @@ CU_TEMPLATE = CLIKE_TOP + """\
 #include "base/Types.hh"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
+#include "sim/TrackLauncher.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -98,21 +101,21 @@ namespace generated
 namespace
 {{
 __global__ void{launch_bounds}{func}_kernel(
-    ParamsDeviceRef const params,
-    StateDeviceRef const states)
+    CoreParamsDeviceRef const params,
+    CoreStateDeviceRef const states)
 {{
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < {threads}))
         return;
 
-    {class}Launcher<MemSpace::device> launch(params, states);
+    auto launch = make_track_launcher(params, states, {func}_track);
     launch(tid);
 }}
 }} // namespace
 
 void {func}(
-    const celeritas::ParamsDeviceRef& params,
-    const celeritas::StateDeviceRef& states)
+    const celeritas::CoreParamsDeviceRef& params,
+    const celeritas::CoreStateDeviceRef& states)
 {{
     CELER_EXPECT(params);
     CELER_EXPECT(states);
@@ -154,9 +157,6 @@ def main():
     parser.add_argument(
         '--basename',
         help='File name (without extension) of output')
-    parser.add_argument(
-        '--class',
-        help='CamelCase name of the class prefix')
     parser.add_argument(
         '--func',
         help='snake_case name of the function')

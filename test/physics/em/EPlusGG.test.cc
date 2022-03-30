@@ -264,7 +264,7 @@ TEST_F(EPlusGGInteractorTest, macro_xs)
 {
     using celeritas::units::MevEnergy;
 
-    auto                     material = this->material_track().material_view();
+    auto material = this->material_track().make_material_view();
     EPlusGGMacroXsCalculator calc_macro_xs(data_, material);
 
     int    num_vals = 20;

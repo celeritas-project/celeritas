@@ -43,7 +43,7 @@ namespace celeritas
     ElementComponentId id = select_element(rng);
     real_type selected_micro_xs =
  select_element.elemental_micro_xs()[el.get()]; ElementView el =
- mat.element_view(id);
+ mat.make_element_view(id);
     // use el.Z(), etc.
    \endcode
  *

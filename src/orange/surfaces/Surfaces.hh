@@ -22,13 +22,13 @@ class Surfaces
   public:
     //@{
     //! Type aliases
-    using SurfaceDataRef
+    using SurfaceRef
         = SurfaceData<Ownership::const_reference, MemSpace::native>;
     //@}
 
   public:
     // Construct with reference to persistent data
-    explicit inline CELER_FUNCTION Surfaces(const SurfaceDataRef&);
+    explicit inline CELER_FUNCTION Surfaces(const SurfaceRef&);
 
     // Number of surfaces
     inline CELER_FUNCTION SurfaceId::size_type num_surfaces() const;
@@ -41,7 +41,7 @@ class Surfaces
     inline CELER_FUNCTION T make_surface(SurfaceId) const;
 
   private:
-    const SurfaceDataRef& data_;
+    const SurfaceRef& data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ class Surfaces
 /*!
  * Construct with reference to persistent data.
  */
-CELER_FUNCTION Surfaces::Surfaces(const SurfaceDataRef& data) : data_(data)
+CELER_FUNCTION Surfaces::Surfaces(const SurfaceRef& data) : data_(data)
 {
     CELER_EXPECT(data_);
 }

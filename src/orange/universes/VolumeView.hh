@@ -36,8 +36,7 @@ class VolumeView
   public:
     //@{
     //! Type aliases
-    using VolumeDataRef
-        = VolumeData<Ownership::const_reference, MemSpace::native>;
+    using VolumeRef = VolumeData<Ownership::const_reference, MemSpace::native>;
     //@}
 
     //! Flags (hexidecimal non-class to indicate it's a bit field)
@@ -48,7 +47,7 @@ class VolumeView
 
   public:
     // Construct with reference to persistent data
-    inline CELER_FUNCTION VolumeView(const VolumeDataRef& params, VolumeId id);
+    inline CELER_FUNCTION VolumeView(const VolumeRef& params, VolumeId id);
 
     //// ACCESSORS ////
 
@@ -74,7 +73,7 @@ class VolumeView
     CELER_FORCEINLINE_FUNCTION logic_int max_intersections() const;
 
   private:
-    const VolumeDataRef& params_;
+    const VolumeRef&     params_;
     const VolumeRecord   def_;
 };
 
@@ -82,7 +81,7 @@ class VolumeView
 /*!
  * Construct with reference to persistent data.
  */
-CELER_FUNCTION VolumeView::VolumeView(const VolumeDataRef& params, VolumeId id)
+CELER_FUNCTION VolumeView::VolumeView(const VolumeRef& params, VolumeId id)
     : params_(params), def_(params.defs[id])
 {
     CELER_EXPECT(id < params.defs.size());

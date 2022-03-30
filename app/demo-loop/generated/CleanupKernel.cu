@@ -11,6 +11,7 @@
 #include "base/Types.hh"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
+#include "sim/TrackLauncher.hh"
 #include "../LDemoLauncher.hh"
 
 using namespace celeritas;
@@ -31,21 +32,21 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 cleanup_kernel(
-    ParamsDeviceRef const params,
-    StateDeviceRef const states)
+    CoreParamsDeviceRef const params,
+    CoreStateDeviceRef const states)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < 1))
         return;
 
-    CleanupLauncher<MemSpace::device> launch(params, states);
+    auto launch = make_track_launcher(params, states, cleanup_track);
     launch(tid);
 }
 } // namespace
 
 void cleanup(
-    const celeritas::ParamsDeviceRef& params,
-    const celeritas::StateDeviceRef& states)
+    const celeritas::CoreParamsDeviceRef& params,
+    const celeritas::CoreStateDeviceRef& states)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(states);

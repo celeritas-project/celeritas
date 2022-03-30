@@ -8,23 +8,24 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "sim/CoreTrackData.hh"
 
 namespace demo_loop
 {
 namespace generated
 {
 void process_interactions(
-    const celeritas::ParamsHostRef&,
-    const celeritas::StateHostRef&);
+    const celeritas::CoreParamsHostRef&,
+    const celeritas::CoreStateHostRef&);
 
 void process_interactions(
-    const celeritas::ParamsDeviceRef&,
-    const celeritas::StateDeviceRef&);
+    const celeritas::CoreParamsDeviceRef&,
+    const celeritas::CoreStateDeviceRef&);
 
 #if !CELER_USE_DEVICE
 inline void process_interactions(
-    const celeritas::ParamsDeviceRef&,
-    const celeritas::StateDeviceRef&)
+    const celeritas::CoreParamsDeviceRef&,
+    const celeritas::CoreStateDeviceRef&)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
