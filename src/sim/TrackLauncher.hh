@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Algorithms.hh"
 #include "sim/CoreTrackData.hh"
-#include "sim/CoreTrackView.hh"
 
 #include "detail/TrackLauncherImpl.hh"
 

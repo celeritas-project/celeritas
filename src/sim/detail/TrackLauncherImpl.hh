@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
 #include "base/Assert.hh"
 #include "sim/CoreTrackData.hh"
 #include "sim/CoreTrackView.hh"
