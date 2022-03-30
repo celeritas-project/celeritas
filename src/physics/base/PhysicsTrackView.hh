@@ -13,6 +13,7 @@
 #include "physics/base/Units.hh"
 #include "physics/em/EPlusGGMacroXsCalculator.hh"
 #include "physics/em/LivermorePEMacroXsCalculator.hh"
+#include "physics/em/detail/UrbanMscData.hh"
 #include "physics/grid/GridIdFinder.hh"
 #include "physics/grid/XsCalculator.hh"
 #include "physics/material/MaterialView.hh"
@@ -42,6 +43,8 @@ class PhysicsTrackView
         = PhysicsParamsData<Ownership::const_reference, MemSpace::native>;
     using PhysicsStateRef
         = PhysicsStateData<Ownership::reference, MemSpace::native>;
+    using UrbanMscRef
+        = detail::UrbanMscData<Ownership::const_reference, MemSpace::native>;
     using MevEnergy   = units::MevEnergy;
     using ModelFinder = GridIdFinder<MevEnergy, ModelId>;
     //!@}
@@ -143,6 +146,9 @@ class PhysicsTrackView
 
     // Energy loss fluctuation model parameters
     inline CELER_FUNCTION const FluctuationRef& fluctuation() const;
+
+    // Urban multiple scattering data
+    inline CELER_FUNCTION const UrbanMscRef& urban_data() const;
 
     // Calculate macroscopic cross section on the fly for the given model
     inline CELER_FUNCTION real_type calc_xs_otf(ModelId             model,
@@ -594,6 +600,15 @@ CELER_FUNCTION auto PhysicsTrackView::fluctuation() const
     -> const FluctuationRef&
 {
     return params_.fluctuation;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Urban multiple scattering data
+ */
+CELER_FUNCTION auto PhysicsTrackView::urban_data() const -> const UrbanMscRef&
+{
+    return params_.hardwired.urban_data;
 }
 
 //---------------------------------------------------------------------------//
