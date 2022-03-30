@@ -37,7 +37,7 @@ struct EPlusGGData
     real_type electron_mass;
 
     //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return ids.model && ids.positron && ids.gamma && electron_mass > 0;
     }

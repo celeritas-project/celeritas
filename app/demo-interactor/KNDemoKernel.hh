@@ -46,7 +46,7 @@ struct TableData
     //// MEMBER FUNCTIONS ////
 
     //! Whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return !reals.empty() && xs;
     }

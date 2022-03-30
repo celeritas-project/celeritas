@@ -70,7 +70,7 @@ struct UrbanMscIds
     ParticleId positron;
 
     //! Whether the IDs are assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return model && electron && positron;
     }
@@ -96,7 +96,7 @@ struct UrbanMscData
     MaterialItems<UrbanMscMaterialData> msc_data;
 
     //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return ids && !msc_data.empty();
     }

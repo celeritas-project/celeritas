@@ -32,7 +32,7 @@ struct CombinedBremData
     RelativisticBremData<W, M> rb_data;
 
     //! Whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         sb_differential_xs&& rb_data;
         return true;

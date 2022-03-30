@@ -41,7 +41,7 @@ struct MollerBhabhaData
     }
 
     //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return electron_id && positron_id && electron_mass_c_sq > 0;
     }

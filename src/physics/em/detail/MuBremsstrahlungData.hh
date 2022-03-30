@@ -45,7 +45,7 @@ struct MuBremsstrahlungData
     }
 
     //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return model_id && gamma_id && mu_minus_id && mu_plus_id
                && electron_mass > zero_quantity();

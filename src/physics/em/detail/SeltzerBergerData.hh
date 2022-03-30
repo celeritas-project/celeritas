@@ -40,7 +40,7 @@ struct SBElementTableData
     TwodGridData         grid;   //!< Cross section grid and data
     ItemRange<size_type> argmax; //!< Y index of the largest XS for each energy
 
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return grid && argmax.size() == grid.x.size();
     }
@@ -74,7 +74,7 @@ struct SeltzerBergerTableData
     //// MEMBER FUNCTIONS ////
 
     //! Whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return !reals.empty() && !sizes.empty() && !elements.empty();
     }
@@ -105,7 +105,7 @@ struct SeltzerBergerIds
     ParticleId gamma;
 
     //! Whether the IDs are assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return model && electron && positron && gamma;
     }
@@ -133,7 +133,7 @@ struct SeltzerBergerData
     //// MEMBER FUNCTIONS ////
 
     //! Whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return ids && electron_mass > zero_quantity() && differential_xs;
     }

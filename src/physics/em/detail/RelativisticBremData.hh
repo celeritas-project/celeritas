@@ -53,7 +53,7 @@ struct RelBremIds
     ParticleId gamma;
 
     //! Whether the IDs are assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return model && electron && positron && gamma;
     }
@@ -87,7 +87,7 @@ struct RelativisticBremData
     }
 
     //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return ids && electron_mass > zero_quantity() && !elem_data.empty();
     }

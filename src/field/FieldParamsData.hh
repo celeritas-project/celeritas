@@ -56,8 +56,8 @@ struct FieldParamsData
     //! the maximum number of steps (or trials)
     size_type max_nsteps = 100;
 
-    //! Check whether data are assigned appropriately
-    explicit inline CELER_FUNCTION operator bool() const
+    //! Whether all data are assigned and valid
+    explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
       return  (minimum_step > 0)
