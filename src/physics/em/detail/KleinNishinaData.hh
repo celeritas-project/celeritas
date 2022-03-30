@@ -22,20 +22,23 @@ struct KleinNishinaData
 {
     using Mass = units::MevMass;
 
-    //! Model ID
-    ModelId model_id;
+    struct
+    {
+        //! Model ID
+        ModelId model;
+        //! ID of an electron
+        ParticleId electron;
+        //! ID of a gamma
+        ParticleId gamma;
+    } ids;
 
     //! 1 / electron mass [1 / MevMass]
     real_type inv_electron_mass;
-    //! ID of an electron
-    ParticleId electron_id;
-    //! ID of a gamma
-    ParticleId gamma_id;
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return model_id && inv_electron_mass > 0 && electron_id && gamma_id;
+        return ids.model && ids.electron && ids.gamma && inv_electron_mass > 0;
     }
 };
 

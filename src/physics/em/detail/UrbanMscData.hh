@@ -58,6 +58,24 @@ struct UrbanMscMaterialData
     real_type d_over_r_mh; //!< the maximum distance/range for muon/h
 };
 
+struct UrbanMscIds
+{
+    //! Model ID
+    ModelId model;
+
+    //! ID of a electron
+    ParticleId electron;
+
+    //! ID of a positron
+    ParticleId positron;
+
+    //! Whether the IDs are assigned
+    explicit inline CELER_FUNCTION operator bool() const
+    {
+        return model && electron && positron;
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Device data for step limitation algorithms and angular scattering.
@@ -65,14 +83,8 @@ struct UrbanMscMaterialData
 template<Ownership W, MemSpace M>
 struct UrbanMscData
 {
-    //! Model ID
-    ModelId model_id;
-
-    //! ID of a electron
-    ParticleId electron_id;
-
-    //! ID of a positron
-    ParticleId positron_id;
+    //! Type-free IDs
+    UrbanMscIds ids;
 
     //! Mass of of electron in MeV
     units::MevMass electron_mass;
@@ -86,7 +98,7 @@ struct UrbanMscData
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const
     {
-        return model_id && electron_id && positron_id && !msc_data.empty();
+        return ids && !msc_data.empty();
     }
 
     //! Assign from another set of data
@@ -94,9 +106,7 @@ struct UrbanMscData
     UrbanMscData& operator=(const UrbanMscData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        model_id      = other.model_id;
-        electron_id   = other.electron_id;
-        positron_id   = other.positron_id;
+        ids           = other.ids;
         electron_mass = other.electron_mass;
         params        = other.params;
         msc_data      = other.msc_data;

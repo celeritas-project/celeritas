@@ -134,13 +134,13 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscNativeRef& shared,
                                const PhysicsTrackView&  physics,
                                const MaterialView&      material)
     : inc_energy_(particle.energy())
-    , is_positron_(particle.particle_id() == shared.positron_id)
+    , is_positron_(particle.particle_id() == shared.ids.positron)
     , physics_(physics)
     , msc_(shared.msc_data[material.material_id()])
     , tau_small_(shared.params.tau_small)
 {
-    CELER_EXPECT(particle.particle_id() == shared.electron_id
-                 || particle.particle_id() == shared.positron_id);
+    CELER_EXPECT(particle.particle_id() == shared.ids.electron
+                 || particle.particle_id() == shared.ids.positron);
 
     ParticleProcessId eloss_pid = physics.eloss_ppid();
     range_gid_ = physics.value_grid(ValueGridType::range, eloss_pid);

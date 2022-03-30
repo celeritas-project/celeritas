@@ -47,6 +47,9 @@ struct MollerBhabhaData
     }
 };
 
+template<Ownership, MemSpace>
+using MBModelData = MollerBhabhaData;
+
 using MollerBhabhaHostRef   = MollerBhabhaData;
 using MollerBhabhaDeviceRef = MollerBhabhaData;
 

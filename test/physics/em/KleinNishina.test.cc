@@ -43,10 +43,10 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
 
         // TODO: this should be part of the process's data storage/management
         const auto& params = *this->particle_params();
-        data_.electron_id  = params.find(pdg::electron());
-        data_.gamma_id     = params.find(pdg::gamma());
+        data_.ids.electron = params.find(pdg::electron());
+        data_.ids.gamma    = params.find(pdg::gamma());
         data_.inv_electron_mass
-            = 1 / (params.get(data_.electron_id).mass().value());
+            = 1 / (params.get(data_.ids.electron).mass().value());
 
         // Set default particle to incident 10 MeV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{10});
@@ -71,7 +71,7 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
         if (electron)
         {
             // Secondary survived cutoff
-            EXPECT_EQ(data_.electron_id, electron.particle_id);
+            EXPECT_EQ(data_.ids.electron, electron.particle_id);
             EXPECT_GT(this->particle_track().energy().value(),
                       electron.energy.value());
             EXPECT_LT(KleinNishinaInteractor::secondary_cutoff(),

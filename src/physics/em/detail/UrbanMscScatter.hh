@@ -138,7 +138,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
                                  const StepLimitResult&   input)
     : inc_energy_(particle.energy())
     , inc_direction_(geometry->dir())
-    , is_positron_(particle.particle_id() == shared.positron_id)
+    , is_positron_(particle.particle_id() == shared.ids.positron)
     , rad_length_(material.radiation_length())
     , mass_(shared.electron_mass.value())
     , params_(shared.params)
@@ -147,8 +147,8 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
     , input_(input)
     , geometry_(*geometry)
 {
-    CELER_EXPECT(particle.particle_id() == shared.electron_id
-                 || particle.particle_id() == shared.positron_id);
+    CELER_EXPECT(particle.particle_id() == shared.ids.electron
+                 || particle.particle_id() == shared.ids.positron);
 
     lambda_ = helper_.msc_mfp(inc_energy_);
 }

@@ -32,11 +32,11 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
 
     // Set up KN interactor data;
     namespace pdg        = celeritas::pdg;
-    kn_data_.model_id    = ModelId{0}; // Unused but needed for error check
-    kn_data_.electron_id = pparams_->find(pdg::electron());
-    kn_data_.gamma_id    = pparams_->find(pdg::gamma());
+    kn_data_.ids.model    = ModelId{0}; // Unused but needed for error check
+    kn_data_.ids.electron = pparams_->find(pdg::electron());
+    kn_data_.ids.gamma    = pparams_->find(pdg::gamma());
     kn_data_.inv_electron_mass
-        = 1 / pparams_->get(kn_data_.electron_id).mass().value();
+        = 1 / pparams_->get(kn_data_.ids.electron).mass().value();
     CELER_ENSURE(kn_data_);
 }
 
@@ -91,8 +91,8 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     params.detector      = detector_params;
 
     InitialData initial;
-    initial.particle
-        = ParticleTrackState{kn_data_.gamma_id, units::MevEnergy{args.energy}};
+    initial.particle = ParticleTrackState{kn_data_.ids.gamma,
+                                          units::MevEnergy{args.energy}};
 
     StateDeviceRef state;
     state.particle  = track_states;

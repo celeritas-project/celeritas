@@ -91,7 +91,7 @@ CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
     , inc_direction_(inc_direction)
     , allocate_(allocate)
 {
-    CELER_EXPECT(particle.particle_id() == shared_.gamma_id);
+    CELER_EXPECT(particle.particle_id() == shared_.ids.gamma);
     CELER_EXPECT(inc_energy_ > zero_quantity());
 }
 
@@ -185,7 +185,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     }
 
     // Outgoing secondary is an electron
-    electron_secondary->particle_id = shared_.electron_id;
+    electron_secondary->particle_id = shared_.ids.electron;
     // Calculate exiting electron direction via conservation of momentum
     for (int i = 0; i < 3; ++i)
     {

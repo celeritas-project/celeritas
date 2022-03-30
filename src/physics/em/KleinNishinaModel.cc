@@ -21,16 +21,16 @@ KleinNishinaModel::KleinNishinaModel(ModelId               id,
                                      const ParticleParams& particles)
 {
     CELER_EXPECT(id);
-    interface_.model_id    = id;
-    interface_.electron_id = particles.find(pdg::electron());
-    interface_.gamma_id    = particles.find(pdg::gamma());
+    interface_.ids.model    = id;
+    interface_.ids.electron = particles.find(pdg::electron());
+    interface_.ids.gamma    = particles.find(pdg::gamma());
 
-    CELER_VALIDATE(interface_.electron_id && interface_.gamma_id,
+    CELER_VALIDATE(interface_.ids.electron && interface_.ids.gamma,
                    << "missing electron, positron and/or gamma particles "
                       "(required for "
                    << this->label() << ")");
     interface_.inv_electron_mass
-        = 1 / particles.get(interface_.electron_id).mass().value();
+        = 1 / particles.get(interface_.ids.electron).mass().value();
     CELER_ENSURE(interface_);
 }
 
@@ -41,7 +41,7 @@ KleinNishinaModel::KleinNishinaModel(ModelId               id,
 auto KleinNishinaModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
-    photon_applic.particle = interface_.gamma_id;
+    photon_applic.particle = interface_.ids.gamma;
     photon_applic.lower    = zero_quantity();
     photon_applic.upper    = max_quantity();
 
@@ -69,7 +69,7 @@ void KleinNishinaModel::interact(const HostInteractRef& data) const
  */
 ModelId KleinNishinaModel::model_id() const
 {
-    return interface_.model_id;
+    return interface_.ids.model;
 }
 
 //!@}
