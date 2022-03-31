@@ -52,7 +52,7 @@ class UrbanMscHelper
     //! The lower bound of energy to scale the mininum true path length limit
     static CELER_CONSTEXPR_FUNCTION Energy tlow() { return Energy(5e-3); }
 
-    //! The minimum value of the true path length limit (0.01*CLHEP::nm)
+    //! The minimum value of the true path length limit: 0.01 nm
     static CELER_CONSTEXPR_FUNCTION real_type limit_min_fix()
     {
         return 1e-9 * units::centimeter;

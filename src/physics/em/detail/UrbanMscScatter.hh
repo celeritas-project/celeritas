@@ -27,7 +27,7 @@ struct MscScatterResult
 {
     real_type step_length;  //!< true step length
     Real3     direction;    //!< final direction by msc
-    Real3     displacement; //!< laterial displacement
+    Real3     displacement; //!< lateral displacement
 };
 
 //---------------------------------------------------------------------------//
@@ -412,7 +412,7 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
  * of the central part from a parameterization similar to the original Highland
  * formula, Particle Physics Booklet, July 2002, eq. 26.10.
  * \f[
- *   \theta_0 = \frac{13.6\rm{MeV}}{\beta\c\p} z_{ch} \sqrt{\ln(t/X_o)} c
+ *   \theta_0 = \frac{13.6\rm{MeV}}{\beta c p} z_{ch} \sqrt{\ln(t/X_o)} c
  * \f]
  * where \f$p, \beta\c, z_{ch}\f$, \f$t/X_0\f$ and \f$c\f$ are the momentum,
  * velocity, charge number of the incident particle, the true path length in

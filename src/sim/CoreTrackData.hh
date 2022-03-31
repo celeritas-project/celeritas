@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackData.hh
+//! \file CoreTrackData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

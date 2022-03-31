@@ -61,6 +61,7 @@ set(DOXYGEN_PROJECT_LOGO
 doxygen_add_docs(doc
   "${PROJECT_SOURCE_DIR}/src"
   "${PROJECT_SOURCE_DIR}/README.md"
+  "${PROJECT_SOURCE_DIR}/scripts/README.md"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Processing C++ documentation with Doxygen"
 )
