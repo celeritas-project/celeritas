@@ -35,7 +35,7 @@ struct MscStepLimitResult
     real_type phys_step{};        //!< step length from physics processes
     real_type true_path{};        //!< true path length due to the msc
     real_type geom_path{};        //!< geametrical path length
-    real_type limit_min{1e-8};    //!< mininum of the true path limit
+    real_type limit_min{1e-8};    //!< minimum of the true path limit
     real_type alpha{-1};          //!< an effecive mfp rate by distance
 };
 
@@ -221,7 +221,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
  * where \f$ \alpha = \frac{\lambda_{10} - \lambda_{11}}{t\lambda_{10}} \f$
  * or  \f$ \alpha = 1/r_0 \f$ in a simpler form with the range \f$ r_o \f$
  * if the kinetic energy of the particle is below its mass -
- * \f $\lambda_{10} (\lambda_{11}) \f$ denotes the value of \f$\lambda_{1}\f$
+ * \f$ \lambda_{10} (\lambda_{11}) \f$ denotes the value of \f$\lambda_{1}\f$
  * at the start (end) of the step, respectively.
  *
  * \note This performs the same method as in ComputeGeomPathLength of
