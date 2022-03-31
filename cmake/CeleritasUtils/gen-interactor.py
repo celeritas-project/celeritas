@@ -92,9 +92,13 @@ void {func}_interact(
 
 CU_TEMPLATE = CLIKE_TOP + """\
 #include "base/device_runtime_api.h"
+
 #include "base/Assert.hh"
+#include "base/Types.hh"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
+#include "physics/base/InteractionLauncher.hh"
+
 #include "../detail/{class}Launcher.hh"
 
 namespace celeritas
@@ -128,8 +132,8 @@ void {func}_interact(
 
     CELER_LAUNCH_KERNEL({func}_interact,
                         celeritas::device().default_block_size(),
-                        model.states.size(),
-                        core_data, model_data);
+                        core_data.states.size(),
+                        model_data, core_data);
 }}
 
 }} // namespace generated
