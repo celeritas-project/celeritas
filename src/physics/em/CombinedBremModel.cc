@@ -45,6 +45,7 @@ CombinedBremModel::CombinedBremModel(ModelId               id,
         id, particles, materials, enable_lpm);
 
     detail::CombinedBremData<Ownership::value, MemSpace::host> host_ref;
+    host_ref.ids.model          = id;
     host_ref.sb_differential_xs = sb_model_->host_ref().differential_xs;
     host_ref.rb_data            = rb_model_->host_ref();
 

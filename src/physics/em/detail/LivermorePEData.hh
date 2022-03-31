@@ -76,7 +76,7 @@ struct LivermoreElement
     Energy thresh_lo; //!< Use tabulated XS below this energy
     Energy thresh_hi; //!< Use lower parameterization below, upper above
 
-    //! True if assigned and valid
+    //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
         // Note: xs_lo is not present for elements with only one subshell, so
@@ -105,7 +105,7 @@ struct LivermorePEXsData
 
     //// MEMBER FUNCTIONS ////
 
-    //! Check whether the data is assigned
+    //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
         return !reals.empty() && !shells.empty() && !elements.empty();
@@ -163,7 +163,7 @@ struct LivermorePEData
 
     //// MEMBER FUNCTIONS ////
 
-    //! Check whether the data is assigned
+    //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
         return ids && inv_electron_mass > 0 && xs;

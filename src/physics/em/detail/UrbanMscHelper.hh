@@ -39,7 +39,7 @@ class UrbanMscHelper
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION UrbanMscHelper(const UrbanMscNativeRef& shared,
+    inline CELER_FUNCTION UrbanMscHelper(const UrbanMscRef&       shared,
                                          const ParticleTrackView& particle,
                                          const PhysicsTrackView&  physics,
                                          const MaterialView&      material);
@@ -129,7 +129,7 @@ class UrbanMscHelper
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-UrbanMscHelper::UrbanMscHelper(const UrbanMscNativeRef& shared,
+UrbanMscHelper::UrbanMscHelper(const UrbanMscRef&       shared,
                                const ParticleTrackView& particle,
                                const PhysicsTrackView&  physics,
                                const MaterialView&      material)

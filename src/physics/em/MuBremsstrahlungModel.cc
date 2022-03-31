@@ -23,13 +23,12 @@ MuBremsstrahlungModel::MuBremsstrahlungModel(ModelId               id,
     CELER_EXPECT(id);
     interface_.ids.model   = id;
     interface_.ids.gamma   = particles.find(pdg::gamma());
-    interface_.mu_minus_id = particles.find(pdg::mu_minus());
-    interface_.mu_plus_id  = particles.find(pdg::mu_plus());
+    interface_.ids.mu_minus = particles.find(pdg::mu_minus());
+    interface_.ids.mu_plus  = particles.find(pdg::mu_plus());
 
-    CELER_VALIDATE(interface_.ids.gamma && interface_.mu_minus_id
-                       && interface_.mu_plus_id,
-                   << "missing muon and/or gamma particles "
-                      "(required for "
+    CELER_VALIDATE(interface_.ids.gamma && interface_.ids.mu_minus
+                       && interface_.ids.mu_plus,
+                   << "missing muon and/or gamma particles (required for "
                    << this->label() << ")");
 
     interface_.electron_mass
@@ -45,11 +44,11 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
 {
     Applicability mu_minus_applic, mu_plus_applic;
 
-    mu_minus_applic.particle = interface_.mu_minus_id;
+    mu_minus_applic.particle = interface_.ids.mu_minus;
     mu_minus_applic.lower    = interface_.min_incident_energy();
     mu_minus_applic.upper    = interface_.max_incident_energy();
 
-    mu_plus_applic.particle = interface_.mu_plus_id;
+    mu_plus_applic.particle = interface_.ids.mu_plus;
     mu_plus_applic.lower    = mu_minus_applic.lower;
     mu_plus_applic.upper    = mu_minus_applic.upper;
 

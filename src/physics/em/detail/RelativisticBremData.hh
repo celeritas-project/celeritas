@@ -10,7 +10,10 @@
 #include "base/Array.hh"
 #include "base/Collection.hh"
 #include "base/Macros.hh"
+#include "base/Quantity.hh"
 #include "base/Types.hh"
+
+#include "ElectronBremsData.hh"
 
 namespace celeritas
 {
@@ -41,24 +44,6 @@ struct RelBremElementData
     real_type epsilon_factor; //!< Constant for evaluating screening functions
 };
 
-struct RelBremIds
-{
-    //! Model ID
-    ModelId model;
-    //! ID of an electron
-    ParticleId electron;
-    //! ID of an positron
-    ParticleId positron;
-    //! ID of a gamma
-    ParticleId gamma;
-
-    //! Whether the IDs are assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return model && electron && positron && gamma;
-    }
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Device data for creating an interactor.
@@ -66,19 +51,24 @@ struct RelBremIds
 template<Ownership W, MemSpace M>
 struct RelativisticBremData
 {
+    template<class T>
+    using ElementItems = celeritas::Collection<T, W, M, ElementId>;
+
+    //// MEMBER DATA ////
+
     //! IDs
-    RelBremIds ids;
+    ElectronBremIds ids;
 
     //! Electron mass [MeVMass]
     units::MevMass electron_mass;
 
     //! LPM flag
-    bool enable_lpm;
+    bool enable_lpm{};
 
     //! Element data
-    template<class T>
-    using ElementItems = celeritas::Collection<T, W, M, ElementId>;
     ElementItems<RelBremElementData> elem_data;
+
+    //// MEMBER FUNCTIONS ////
 
     //! Include a dielectric suppression effect in LPM functions
     static CELER_CONSTEXPR_FUNCTION bool dielectric_suppression()
@@ -86,7 +76,7 @@ struct RelativisticBremData
         return true;
     }
 
-    //! Check whether the data is assigned
+    //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
         return ids && electron_mass > zero_quantity() && !elem_data.empty();
@@ -109,7 +99,7 @@ using RelativisticBremDeviceRef
     = RelativisticBremData<Ownership::const_reference, MemSpace::device>;
 using RelativisticBremHostRef
     = RelativisticBremData<Ownership::const_reference, MemSpace::host>;
-using RelativisticBremNativeRef
+using RelativisticBremRef
     = RelativisticBremData<Ownership::const_reference, MemSpace::native>;
 
 } // namespace detail

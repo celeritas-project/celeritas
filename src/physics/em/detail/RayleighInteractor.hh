@@ -41,7 +41,7 @@ class RayleighInteractor
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION RayleighInteractor(const RayleighNativeRef& shared,
+    inline CELER_FUNCTION RayleighInteractor(const RayleighRef&       shared,
                                              const ParticleTrackView& particle,
                                              const Real3& inc_direction,
                                              ElementId    element_id);
@@ -54,7 +54,7 @@ class RayleighInteractor
     //// DATA ////
 
     // Shared constant physics properties
-    const RayleighNativeRef& shared_;
+    const RayleighRef& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
     // Incident direction
@@ -97,7 +97,7 @@ class RayleighInteractor
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-RayleighInteractor::RayleighInteractor(const RayleighNativeRef& shared,
+RayleighInteractor::RayleighInteractor(const RayleighRef&       shared,
                                        const ParticleTrackView& particle,
                                        const Real3&             direction,
                                        ElementId                el_id)

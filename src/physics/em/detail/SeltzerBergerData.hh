@@ -14,6 +14,8 @@
 #include "physics/base/Units.hh"
 #include "physics/grid/TwodGridData.hh"
 
+#include "ElectronBremsData.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -92,25 +94,6 @@ struct SeltzerBergerTableData
     }
 };
 
-//! Helper struct for making assignment easier
-struct SeltzerBergerIds
-{
-    //! Model ID
-    ModelId model;
-    //! ID of an electron
-    ParticleId electron;
-    //! ID of an positron
-    ParticleId positron;
-    //! ID of a gamma
-    ParticleId gamma;
-
-    //! Whether the IDs are assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return model && electron && positron && gamma;
-    }
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Device data for sampling SeltzerBergerInteractor.
@@ -119,10 +102,11 @@ template<Ownership W, MemSpace M>
 struct SeltzerBergerData
 {
     using MevMass = units::MevMass;
+
     //// MEMBER DATA ////
 
     //! IDs in a separate struct for readability/easier copying
-    SeltzerBergerIds ids;
+    ElectronBremIds ids;
 
     //! Electron mass [MeV / c^2]
     MevMass electron_mass;
@@ -154,7 +138,7 @@ using SeltzerBergerDeviceRef
     = SeltzerBergerData<Ownership::const_reference, MemSpace::device>;
 using SeltzerBergerHostRef
     = SeltzerBergerData<Ownership::const_reference, MemSpace::host>;
-using SeltzerBergerNativeRef
+using SeltzerBergerRef
     = SeltzerBergerData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//

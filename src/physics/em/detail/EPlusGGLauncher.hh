@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Macros.hh"
 #include "sim/CoreTrackView.hh"
 
 #include "EPlusGGData.hh"

@@ -57,13 +57,13 @@ class RelativisticBremInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    RelativisticBremInteractor(const RelativisticBremNativeRef& shared,
-                               const ParticleTrackView&         particle,
-                               const Real3&                     direction,
-                               const CutoffView&                cutoffs,
-                               StackAllocator<Secondary>&       allocate,
-                               const MaterialView&              material,
-                               const ElementComponentId&        elcomp_id);
+    RelativisticBremInteractor(const RelativisticBremRef& shared,
+                               const ParticleTrackView&   particle,
+                               const Real3&               direction,
+                               const CutoffView&          cutoffs,
+                               StackAllocator<Secondary>& allocate,
+                               const MaterialView&        material,
+                               const ElementComponentId&  elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -73,7 +73,7 @@ class RelativisticBremInteractor
     //// DATA ////
 
     // Shared constant physics properties
-    const RelativisticBremNativeRef& shared_;
+    const RelativisticBremRef& shared_;
     // Incident particle energy
     const Energy inc_energy_;
     // Incident particle momentum
@@ -101,13 +101,13 @@ class RelativisticBremInteractor
  */
 CELER_FUNCTION
 RelativisticBremInteractor::RelativisticBremInteractor(
-    const RelativisticBremNativeRef& shared,
-    const ParticleTrackView&         particle,
-    const Real3&                     direction,
-    const CutoffView&                cutoffs,
-    StackAllocator<Secondary>&       allocate,
-    const MaterialView&              material,
-    const ElementComponentId&        elcomp_id)
+    const RelativisticBremRef& shared,
+    const ParticleTrackView&   particle,
+    const Real3&               direction,
+    const CutoffView&          cutoffs,
+    StackAllocator<Secondary>& allocate,
+    const MaterialView&        material,
+    const ElementComponentId&  elcomp_id)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())

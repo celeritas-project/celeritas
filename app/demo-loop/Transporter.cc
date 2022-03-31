@@ -14,7 +14,6 @@
 #include "geometry/GeoMaterialParams.hh"
 #include "geometry/GeoParams.hh"
 #include "physics/base/CutoffParams.hh"
-#include "physics/base/ModelData.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/em/AtomicRelaxationParams.hh"
@@ -159,29 +158,8 @@ void accum_time<MemSpace::host>(const TransporterInput&,
  * For now, just launch *all* the models.
  */
 template<MemSpace M>
-void launch_models(TransporterInput const& host_params,
-                   CoreParamsData<Ownership::const_reference, M> const& params,
-                   CoreStateData<Ownership::reference, M> const&        states)
+void launch_models(TransporterInput const& host_params, CoreRef<M> const& data)
 {
-    // TODO: these *should* be able to be persistent across steps, rather than
-    // recreated at every step.
-    ModelInteractRef<M> refs;
-    refs.params.particle     = params.particles;
-    refs.params.material     = params.materials;
-    refs.params.physics      = params.physics;
-    refs.params.relaxation   = params.relaxation;
-    refs.params.cutoffs      = params.cutoffs;
-    refs.states.particle     = states.particles;
-    refs.states.material     = states.materials;
-    refs.states.physics      = states.physics;
-    refs.states.relaxation   = states.relaxation;
-    refs.states.rng          = states.rng;
-    refs.states.sim          = states.sim;
-    refs.states.direction    = states.geometry.dir;
-    refs.states.secondaries  = states.secondaries;
-    refs.states.interactions = states.interactions;
-    CELER_ASSERT(refs);
-
     // Loop over physics models IDs and invoke `interact`
     for (auto model_id : range(ModelId{host_params.physics->num_models()}))
     {
@@ -191,7 +169,7 @@ void launch_models(TransporterInput const& host_params,
         {
             // Do not launch interact if the process is electromagnetic_msc
             const Model& model = host_params.physics->model(model_id);
-            model.interact(refs);
+            model.interact(data);
         }
     }
 }
@@ -247,6 +225,11 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
                  <= track_init_states.initializers.capacity());
     extend_from_primaries(primaries.host_ref(), &track_init_states);
 
+    // Create data manager
+    CoreRef<M> core_ref;
+    core_ref.params = params_;
+    core_ref.states = states_.ref();
+
     CELER_LOG(status) << "Transporting";
     size_type num_alive       = 0;
     size_type num_inits       = track_init_states.initializers.size();
@@ -261,7 +244,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
         // Create new tracks from primaries or secondaries
         Stopwatch get_time;
-        initialize_tracks(params_, states_.ref(), &track_init_states);
+        initialize_tracks(core_ref.params, core_ref.states, &track_init_states);
         accum_time<M>(input_, get_time, &result.time.initialize_tracks);
 
         result.active.push_back(input_.max_num_tracks
@@ -269,37 +252,40 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
         // Sample mean free path and calculate step limits
         get_time = {};
-        demo_loop::generated::pre_step(params_, states_.ref());
+        demo_loop::generated::pre_step(core_ref.params, core_ref.states);
         accum_time<M>(input_, get_time, &result.time.pre_step);
 
         // Move, calculate dE/dx, and select model for discrete interaction
         get_time = {};
-        demo_loop::generated::along_and_post_step(params_, states_.ref());
+        demo_loop::generated::along_and_post_step(core_ref.params,
+                                                  core_ref.states);
         accum_time<M>(input_, get_time, &result.time.along_and_post_step);
 
         // Launch the interaction kernels for all applicable models
         get_time = {};
-        launch_models(input_, params_, states_.ref());
+        launch_models(input_, core_ref);
         accum_time<M>(input_, get_time, &result.time.launch_models);
 
         // Postprocess interaction results
         get_time = {};
-        demo_loop::generated::process_interactions(params_, states_.ref());
+        demo_loop::generated::process_interactions(core_ref.params,
+                                                   core_ref.states);
         accum_time<M>(input_, get_time, &result.time.process_interactions);
 
         // Mid-step diagnostics
         for (auto& diagnostic : diagnostics)
         {
-            diagnostic->mid_step(states_.ref());
+            diagnostic->mid_step(core_ref.states);
         }
 
         // Create track initializers from surviving secondaries
         get_time = {};
-        extend_from_secondaries(params_, states_.ref(), &track_init_states);
+        extend_from_secondaries(
+            core_ref.params, core_ref.states, &track_init_states);
         accum_time<M>(input_, get_time, &result.time.extend_from_secondaries);
 
         // Clear secondaries
-        demo_loop::generated::cleanup(params_, states_.ref());
+        demo_loop::generated::cleanup(core_ref.params, core_ref.states);
 
         // Get the number of track initializers and active tracks
         num_alive = input_.max_num_tracks - track_init_states.vacancies.size();
@@ -308,7 +294,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         // End-of-step diagnostics
         for (auto& diagnostic : diagnostics)
         {
-            diagnostic->end_step(states_.ref());
+            diagnostic->end_step(core_ref.states);
         }
 
         result.time.steps.push_back(get_step_time());

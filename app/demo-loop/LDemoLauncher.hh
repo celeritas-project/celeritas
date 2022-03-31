@@ -125,8 +125,7 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
         celeritas::detail::MscStepLimitResult msc_step_result;
         if (phys.msc_ppid())
         {
-            const celeritas::detail::UrbanMscNativeRef& urban_data
-                = phys.urban_data();
+            const auto& urban_data = phys.urban_data();
 
             if (step > urban_data.params.geom_limit
                 && particle.energy() > urban_data.params.energy_limit)
@@ -165,8 +164,7 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
         // Sample the multiple scattering
         if (phys.msc_ppid())
         {
-            const celeritas::detail::UrbanMscNativeRef& urban_data
-                = phys.urban_data();
+            const auto& urban_data = phys.urban_data();
 
             if (step > urban_data.params.geom_limit
                 && particle.energy() > urban_data.params.energy_limit)

@@ -16,7 +16,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Model and particles IDs.
+ * Model and particles IDs for Moller Bhabha.
  */
 struct MollerBhabhaIds
 {
@@ -24,10 +24,10 @@ struct MollerBhabhaIds
     ParticleId electron;
     ParticleId positron;
 
-    //! Check whether the data is assigned
+    //! Whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids.model && ids.electron && ids.gamma && inv_electron_mass > 0;
+        return model && electron && positron;
     }
 };
 
@@ -37,6 +37,9 @@ struct MollerBhabhaIds
  */
 struct MollerBhabhaData
 {
+    //! Model and particle IDs
+    MollerBhabhaIds ids;
+
     //! Electron mass * c^2 [MeV]
     real_type electron_mass_c_sq;
 
@@ -51,7 +54,7 @@ struct MollerBhabhaData
         return 100e6;
     }
 
-    //! Check whether the data is assigned
+    //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return ids && electron_mass_c_sq > 0;

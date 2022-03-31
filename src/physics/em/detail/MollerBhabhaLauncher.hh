@@ -9,16 +9,9 @@
 
 #include "base/Assert.hh"
 #include "base/Macros.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/ModelData.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "physics/base/Types.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "random/RngEngine.hh"
+#include "sim/CoreTrackView.hh"
 
+#include "MollerBhabhaData.hh"
 #include "MollerBhabhaInteractor.hh"
 
 namespace celeritas
@@ -27,52 +20,20 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Model interactor kernel launcher
+ * Apply MollerBhabha to the current track.
  */
-template<MemSpace M>
-struct MollerBhabhaLauncher
+inline CELER_FUNCTION Interaction moller_bhabha_interact_track(
+    MollerBhabhaData const& model, CoreTrackView const& track)
 {
-    CELER_FUNCTION MollerBhabhaLauncher(const MollerBhabhaData&    data,
-                                        const ModelInteractRef<M>& interaction)
-        : mb(data), model(interaction)
-    {
-    }
-
-    const MollerBhabhaData&    mb;    //!< Shared data for interactor
-    const ModelInteractRef<M>& model; //!< State data needed to interact
-
-    //! Create track views and launch interactor
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
-};
-
-template<MemSpace M>
-CELER_FUNCTION void MollerBhabhaLauncher<M>::operator()(ThreadId tid) const
-{
-    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
-    ParticleTrackView         particle(
-        model.params.particle, model.states.particle, tid);
-
-    MaterialTrackView material(
-        model.params.material, model.states.material, tid);
-
-    PhysicsTrackView physics(model.params.physics,
-                             model.states.physics,
-                             particle.particle_id(),
-                             material.material_id(),
-                             tid);
-
-    // This interaction only applies if the MB model was selected
-    if (physics.model_id() != mb.ids.model)
-        return;
-
-    CutoffView cutoff(model.params.cutoffs, material.material_id());
+    auto        particle             = track.make_particle_view();
+    auto        cutoff               = track.make_cutoff_view();
+    const auto& dir                  = track.make_geo_view().dir();
+    auto        allocate_secondaries = track.make_secondary_allocator();
 
     MollerBhabhaInteractor interact(
-        mb, particle, cutoff, model.states.direction[tid], allocate_secondaries);
-
-    RngEngine rng(model.states.rng, tid);
-    model.states.interactions[tid] = interact(rng);
-    CELER_ENSURE(model.states.interactions[tid]);
+        model, particle, cutoff, dir, allocate_secondaries);
+    auto rng = track.make_rng_engine();
+    return interact(rng);
 }
 
 //---------------------------------------------------------------------------//

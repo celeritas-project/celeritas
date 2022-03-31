@@ -61,7 +61,7 @@ class UrbanMscStepLimit
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION UrbanMscStepLimit(const UrbanMscNativeRef& shared,
+    inline CELER_FUNCTION UrbanMscStepLimit(const UrbanMscRef&       shared,
                                             const ParticleTrackView& particle,
                                             GeoTrackView*            geometry,
                                             const PhysicsTrackView&  physics,
@@ -76,7 +76,7 @@ class UrbanMscStepLimit
     //// DATA ////
 
     // Shared constant data
-    const UrbanMscNativeRef& shared_;
+    const UrbanMscRef& shared_;
     // Incident particle energy
     const Energy inc_energy_;
     // Incident particle safety
@@ -107,7 +107,7 @@ class UrbanMscStepLimit
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscNativeRef& shared,
+UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
                                      const ParticleTrackView& particle,
                                      GeoTrackView*            geometry,
                                      const PhysicsTrackView&  physics,

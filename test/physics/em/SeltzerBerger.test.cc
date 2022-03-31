@@ -140,7 +140,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
 
   protected:
     std::shared_ptr<SeltzerBergerModel>       model_;
-    celeritas::detail::SeltzerBergerNativeRef data_;
+    celeritas::detail::SeltzerBergerRef       data_;
 };
 
 //---------------------------------------------------------------------------//

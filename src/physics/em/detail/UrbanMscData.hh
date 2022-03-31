@@ -118,8 +118,7 @@ using UrbanMscDeviceRef
     = UrbanMscData<Ownership::const_reference, MemSpace::device>;
 using UrbanMscHostRef
     = UrbanMscData<Ownership::const_reference, MemSpace::host>;
-using UrbanMscNativeRef
-    = UrbanMscData<Ownership::const_reference, MemSpace::native>;
+using UrbanMscRef = UrbanMscData<Ownership::const_reference, MemSpace::native>;
 
 } // namespace detail
 } // namespace celeritas

@@ -9,6 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
 
 namespace celeritas
@@ -26,10 +27,10 @@ struct MuBremsstrahlungIds
     ParticleId mu_minus;
     ParticleId mu_plus;
 
-    //! Check whether the IDs are assigned
+    //! Whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return model && electron && mu_minus && mu_plus;
+        return model && gamma && mu_minus && mu_plus;
     }
 };
 
@@ -56,7 +57,7 @@ struct MuBremsstrahlungData
         return units::MevEnergy{1e7};
     }
 
-    //! Check whether the data is assigned
+    //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
         return ids && electron_mass > zero_quantity();

@@ -9,6 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
 
 namespace celeritas
 {
@@ -42,11 +43,12 @@ struct BetheHeitlerIds
  */
 struct BetheHeitlerData
 {
+    //! Model/particle IDs
+    BetheHeitlerIds ids;
     //! Electron mass [MevMass]
-    real_type electron_mass;
-
+    real_type electron_mass{0};
     //! LPM flag
-    bool enable_lpm;
+    bool enable_lpm{false};
 
     //! Include a dielectric suppression effect in LPM functions
     static CELER_CONSTEXPR_FUNCTION bool dielectric_suppression()
@@ -57,7 +59,7 @@ struct BetheHeitlerData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return id && electron_mass > 0;
+        return ids && electron_mass > 0;
     }
 };
 

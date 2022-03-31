@@ -99,8 +99,7 @@ using FieldMapDeviceRef
     = FieldMapData<Ownership::const_reference, MemSpace::device>;
 using FieldMapHostRef
     = FieldMapData<Ownership::const_reference, MemSpace::host>;
-using FieldMapNativeRef
-    = FieldMapData<Ownership::const_reference, MemSpace::native>;
+using FieldMapRef = FieldMapData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
 } // namespace detail

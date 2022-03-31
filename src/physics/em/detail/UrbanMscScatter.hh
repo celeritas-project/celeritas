@@ -47,7 +47,7 @@ class UrbanMscScatter
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION UrbanMscScatter(const UrbanMscNativeRef& shared,
+    inline CELER_FUNCTION UrbanMscScatter(const UrbanMscRef&       shared,
                                           const ParticleTrackView& particle,
                                           GeoTrackView*            geometry,
                                           const PhysicsTrackView&  physics,
@@ -130,7 +130,7 @@ class UrbanMscScatter
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-UrbanMscScatter::UrbanMscScatter(const UrbanMscNativeRef& shared,
+UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
                                  const ParticleTrackView& particle,
                                  GeoTrackView*            geometry,
                                  const PhysicsTrackView&  physics,

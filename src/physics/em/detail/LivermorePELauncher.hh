@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
+#include "base/Macros.hh"
 #include "physics/material/ElementSelector.hh"
 #include "sim/CoreTrackView.hh"
 

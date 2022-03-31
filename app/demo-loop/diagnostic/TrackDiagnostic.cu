@@ -12,7 +12,6 @@
 
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.device.hh"
-#include "physics/base/ModelData.hh"
 #include "sim/SimTrackView.hh"
 
 using namespace celeritas;

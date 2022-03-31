@@ -25,17 +25,22 @@ namespace detail
 template<Ownership W, MemSpace M>
 struct CombinedBremData
 {
+    // Hack for having an "ids" field: same as model in rb_data
+    struct
+    {
+        ModelId model;
+    } ids;
+
     // Differential cross section data for SeltzerBerger
     SeltzerBergerTableData<W, M> sb_differential_xs;
 
     // Device data for RelativisticBrem
     RelativisticBremData<W, M> rb_data;
 
-    //! Whether the data is assigned
+    //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        sb_differential_xs&& rb_data;
-        return true;
+        return ids.model && sb_differential_xs && rb_data;
     }
 
     //! Assign from another set of data
@@ -43,6 +48,7 @@ struct CombinedBremData
     CombinedBremData& operator=(const CombinedBremData<W2, M2>& other)
     {
         CELER_EXPECT(other);
+        ids.model          = other.ids.model;
         sb_differential_xs = other.sb_differential_xs;
         rb_data            = other.rb_data;
         return *this;
@@ -53,7 +59,7 @@ using CombinedBremDeviceRef
     = CombinedBremData<Ownership::const_reference, MemSpace::device>;
 using CombinedBremHostRef
     = CombinedBremData<Ownership::const_reference, MemSpace::host>;
-using CombinedBremNativeRef
+using CombinedBremRef
     = CombinedBremData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//

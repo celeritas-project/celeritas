@@ -27,7 +27,7 @@ struct KleinNishinaIds
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids.model && ids.electron && ids.gamma;
+        return model && electron && gamma;
     }
 };
 

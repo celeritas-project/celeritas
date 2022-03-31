@@ -61,7 +61,7 @@ struct AtomicRelaxIds
     ParticleId gamma;
 
     //! Check whether IDs are assigned
-    explicit CELER_FUNCTION operator bool() const { return electron && gamma }
+    explicit CELER_FUNCTION operator bool() const { return electron && gamma; }
 };
 
 //---------------------------------------------------------------------------//

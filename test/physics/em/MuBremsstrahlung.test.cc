@@ -54,9 +54,9 @@ class MuBremsstrahlungInteractorTest
                                     ElementaryCharge{-1},
                                     stable}});
         const auto& params  = this->particle_params();
-        data_.mu_minus_id   = params->find(pdg::mu_minus());
-        data_.mu_plus_id    = params->find(pdg::mu_plus());
         data_.ids.gamma     = params->find(pdg::gamma());
+        data_.ids.mu_minus  = params->find(pdg::mu_minus());
+        data_.ids.mu_plus   = params->find(pdg::mu_plus());
         data_.electron_mass = params->get(params->find(pdg::electron())).mass();
 
         MaterialParams::Input inp;
