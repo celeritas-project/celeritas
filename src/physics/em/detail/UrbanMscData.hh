@@ -25,12 +25,17 @@ namespace detail
  */
 struct UrbanMscParameters
 {
+    using Energy = units::MevEnergy;
+
     real_type tau_small{1e-16};                    //!< small value of tau
     real_type tau_big{8};                          //!< big value of tau
     real_type tau_limit{1e-6};                     //!< limit of tau
     real_type lambda_limit{1 * units::millimeter}; //!< lambda limit
     real_type range_fact{0.04}; //!< range_factor for e-/e+ (0.2 for muon/h)
     real_type safety_fact{0.6}; //!< safety factor
+    real_type safety_tol{0.01}; //!< safety tolerance
+    real_type geom_limit{5e-8 * units::millimeter}; //!< 0.05 nm
+    Energy    energy_limit{1e-5};                   //!< 10 eV
 };
 
 //---------------------------------------------------------------------------//

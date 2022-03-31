@@ -29,6 +29,7 @@
 #include "physics/em/EIonizationProcess.hh"
 #include "physics/em/EPlusAnnihilationProcess.hh"
 #include "physics/em/GammaConversionProcess.hh"
+#include "physics/em/MultipleScatteringProcess.hh"
 #include "physics/em/PhotoelectricProcess.hh"
 #include "physics/em/RayleighProcess.hh"
 #include "physics/material/MaterialParams.hh"
@@ -105,7 +106,9 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"rayleigh", v.rayleigh},
                        {"eloss_fluctuation", v.eloss_fluctuation},
                        {"brem_combined", v.brem_combined},
-                       {"brem_lpm", v.brem_lpm}};
+                       {"brem_lpm", v.brem_lpm},
+                       {"conv_lpm", v.conv_lpm},
+                       {"enable_msc", v.enable_msc}};
     if (v.enable_diagnostics)
     {
         j["energy_diag"] = v.energy_diag;
@@ -121,6 +124,8 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("eloss_fluctuation").get_to(v.eloss_fluctuation);
     j.at("brem_combined").get_to(v.brem_combined);
     j.at("brem_lpm").get_to(v.brem_lpm);
+    j.at("conv_lpm").get_to(v.conv_lpm);
+    j.at("enable_msc").get_to(v.enable_msc);
     j.at("seed").get_to(v.seed);
     j.at("max_num_tracks").get_to(v.max_num_tracks);
     if (j.contains("max_steps"))
@@ -251,7 +256,12 @@ TransporterInput load_input(const LDemoArgs& args)
             result.particles, process_data));
         input.processes.push_back(std::make_shared<BremsstrahlungProcess>(
             result.particles, result.materials, process_data, brem_options));
-
+        if (args.enable_msc)
+        {
+            input.processes.push_back(
+                std::make_shared<MultipleScatteringProcess>(
+                    result.particles, result.materials, process_data));
+        }
         result.physics = std::make_shared<PhysicsParams>(std::move(input));
     }
 

@@ -19,6 +19,7 @@
 #include "physics/em/EPlusGGMacroXsCalculator.hh"
 #include "physics/em/EPlusGGModel.hh"
 #include "physics/em/LivermorePEModel.hh"
+#include "physics/em/UrbanMscModel.hh"
 #include "physics/grid/ValueGridInserter.hh"
 #include "physics/grid/XsCalculator.hh"
 #include "physics/material/MaterialParams.hh"
@@ -263,6 +264,12 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             data->hardwired.positron_annihilation = process_id;
             data->hardwired.eplusgg               = ModelId{model_idx};
             data->hardwired.eplusgg_data          = epgg_model->device_ref();
+        }
+        else if (auto* urban_model = dynamic_cast<const UrbanMscModel*>(&model))
+        {
+            data->hardwired.msc        = process_id;
+            data->hardwired.urban      = ModelId{model_idx};
+            data->hardwired.urban_data = urban_model->host_ref();
         }
     }
 

@@ -185,8 +185,14 @@ void launch_models(TransporterInput const& host_params,
     // Loop over physics models IDs and invoke `interact`
     for (auto model_id : range(ModelId{host_params.physics->num_models()}))
     {
-        const Model& model = host_params.physics->model(model_id);
-        model.interact(refs);
+        ProcessId      pid  = host_params.physics->process_id(model_id);
+        const Process& proc = host_params.physics->process(pid);
+        if (proc.type() != ProcessType::electromagnetic_msc)
+        {
+            // Do not launch interact if the process is electromagnetic_msc
+            const Model& model = host_params.physics->model(model_id);
+            model.interact(refs);
+        }
     }
 }
 

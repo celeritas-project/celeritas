@@ -146,7 +146,7 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscNativeRef& shared,
     range_gid_ = physics.value_grid(ValueGridType::range, eloss_pid);
     eloss_gid_ = physics.value_grid(ValueGridType::energy_loss, eloss_pid);
     msc_pid_   = physics_.msc_ppid();
-    mfp_gid_   = physics_.value_grid(ValueGridType::macro_xs, msc_pid_);
+    mfp_gid_   = physics_.value_grid(ValueGridType::msc_mfp, msc_pid_);
     range_ = physics.make_calculator<RangeCalculator>(range_gid_)(inc_energy_);
 }
 

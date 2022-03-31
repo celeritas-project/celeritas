@@ -62,6 +62,8 @@ inp = {
     'eloss_fluctuation': True,
     'brem_combined': True,
     'brem_lpm': True,
+    'conv_lpm': True,
+    'enable_msc': False,
 }
 
 

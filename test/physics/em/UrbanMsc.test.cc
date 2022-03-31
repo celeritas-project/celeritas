@@ -274,7 +274,7 @@ TEST_F(UrbanMscTest, msc_scattering)
 
         UrbanMscScatter scatter(model->host_ref(),
                                 *part_view_,
-                                direction,
+                                &geo_view,
                                 phys,
                                 material_view,
                                 step_result);

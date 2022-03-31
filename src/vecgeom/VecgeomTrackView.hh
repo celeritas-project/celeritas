@@ -21,8 +21,8 @@
 #include "geometry/Types.hh"
 
 #include "VecgeomData.hh"
-#include "detail/VecgeomCompatibility.hh"
 #include "detail/BVHNavigator.hh"
+#include "detail/VecgeomCompatibility.hh"
 
 namespace celeritas
 {
@@ -105,7 +105,7 @@ class VecgeomTrackView
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
 
     //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
+    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-16; }
 
   private:
     //// TYPES ////

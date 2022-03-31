@@ -223,8 +223,13 @@ auto ImportedProcessAdapter::step_limits(Applicability range) const
         // Only low-energy cross sections are presesnt
         const auto& vec = get_vector(ids.lambda);
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-        builders[ValueGridType::macro_xs] = ValueGridLogBuilder::from_geant(
-            make_span(vec.x), make_span(vec.y));
+
+        ValueGridType vgt
+            = (import_process.process_class == ImportProcessClass::msc)
+                  ? ValueGridType::msc_mfp
+                  : ValueGridType::macro_xs;
+        builders[vgt] = ValueGridLogBuilder::from_geant(make_span(vec.x),
+                                                        make_span(vec.y));
     }
 
     // Construct slowing-down data
