@@ -78,6 +78,9 @@ endif()
 if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
+if(NOT CELERITAS_USE_VecGeom)
+  set(_needs_vecgeom DISABLE)
+endif()
 if(CELERITAS_DEBUG)
   set(_disable_if_debug DISABLE)
 endif()
@@ -296,11 +299,9 @@ celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
   ${_optional_geant4}
   LINK_LIBRARIES Celeritas::IO)
 
-if(CELERITAS_USE_VecGeom)
-  celeritas_add_test(physics/em/UrbanMsc.test.cc ${_needs_root}
-    ${_optional_geant4}
-    LINK_LIBRARIES Celeritas::IO)
-endif()
+celeritas_add_test(physics/em/UrbanMsc.test.cc ${_needs_root} ${_needs_vecgeom}
+  ${_optional_geant4}
+  LINK_LIBRARIES Celeritas::IO)
 
 #-----------------------------------------------------------------------------#
 # Random

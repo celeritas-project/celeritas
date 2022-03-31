@@ -257,7 +257,7 @@ TEST_F(UrbanMscTest, msc_scattering)
 
     for (auto i : celeritas::range(nsamples))
     {
-        real_type r = i * 2.0 - 1e-4;
+        real_type r = i * 2 - real_type(1e-4);
         geo_view    = {{r, r, r}, direction};
 
         this->set_inc_particle(pdg::electron(), MevEnergy{energy[i]});
@@ -304,5 +304,5 @@ TEST_F(UrbanMscTest, msc_scattering)
                                      -0.98020130119347};
 
     EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
-    EXPECT_VEC_SOFT_EQ(expected_angle, angle);
+    EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
 }
