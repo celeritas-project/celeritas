@@ -24,7 +24,7 @@ void moller_bhabha_interact(
     CELER_EXPECT(model_data);
 
     auto launch = make_interaction_launcher(
-        core_data.params, core_data.states,
+        core_data,
         model_data,
         celeritas::detail::moller_bhabha_interact_track);
     #pragma omp parallel for

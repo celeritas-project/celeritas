@@ -24,7 +24,7 @@ void bethe_heitler_interact(
     CELER_EXPECT(model_data);
 
     auto launch = make_interaction_launcher(
-        core_data.params, core_data.states,
+        core_data,
         model_data,
         celeritas::detail::bethe_heitler_interact_track);
     #pragma omp parallel for

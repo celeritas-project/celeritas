@@ -37,14 +37,12 @@ inline CELER_FUNCTION Interaction foo_interact(
  * filtering the tracks. We could improve this interface later.
  */
 template<class D, class F>
-CELER_FUNCTION detail::InteractionLauncherImpl<D, F> make_interaction_launcher(
-    CoreParamsData<Ownership::const_reference, MemSpace::native> const& params,
-    CoreStateData<Ownership::reference, MemSpace::native> const&        state,
-    D const& model_data,
-    F&&      call_with_track)
+CELER_FUNCTION detail::InteractionLauncherImpl<D, F>
+make_interaction_launcher(CoreRef<MemSpace::native> const& core_data,
+                          D const&                         model_data,
+                          F&&                              call_with_track)
 {
-    return {
-        params, state, model_data, ::celeritas::forward<F>(call_with_track)};
+    return {core_data, model_data, ::celeritas::forward<F>(call_with_track)};
 }
 
 //---------------------------------------------------------------------------//

@@ -15,13 +15,12 @@ namespace celeritas
 namespace generated
 {
 void process_secondaries(
-    const CoreParamsHostRef& params,
-    const CoreStateHostRef& states,
-    const TrackInitStateHostRef& data)
+    const CoreHostRef& core_data,
+    const TrackInitStateHostRef& init_data)
 {
-    detail::ProcessSecondariesLauncher<MemSpace::host> launch(params, states, data);
+    detail::ProcessSecondariesLauncher<MemSpace::host> launch(core_data, init_data);
     #pragma omp parallel for
-    for (ThreadId::size_type i = 0; i < states.size(); ++i)
+    for (ThreadId::size_type i = 0; i < core_data.states.size(); ++i)
     {
         launch(ThreadId{i});
     }

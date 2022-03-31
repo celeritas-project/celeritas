@@ -47,11 +47,10 @@ class InitTracksLauncher
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION InitTracksLauncher(const ParamsRef&         params,
-                                      const StateRef&          states,
-                                      const TrackInitStateRef& data,
+    CELER_FUNCTION InitTracksLauncher(const CoreRef<M>&        core_data,
+                                      const TrackInitStateRef& init_data,
                                       size_type /* num_vacancies */)
-        : params_(params), states_(states), data_(data)
+        : params_(core_data.params), states_(core_data.states), data_(init_data)
     {
         CELER_EXPECT(params_);
         CELER_EXPECT(states_);

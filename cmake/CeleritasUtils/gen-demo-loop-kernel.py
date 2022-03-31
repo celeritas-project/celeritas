@@ -31,18 +31,12 @@ namespace demo_loop
 {{
 namespace generated
 {{
-void {func}(
-    const celeritas::CoreParamsHostRef&,
-    const celeritas::CoreStateHostRef&);
+void {func}(celeritas::CoreHostRef const&);
 
-void {func}(
-    const celeritas::CoreParamsDeviceRef&,
-    const celeritas::CoreStateDeviceRef&);
+void {func}(celeritas::CoreDeviceRef const&);
 
 #if !CELER_USE_DEVICE
-inline void {func}(
-    const celeritas::CoreParamsDeviceRef&,
-    const celeritas::CoreStateDeviceRef&)
+inline void {func}(celeritas::CoreDeviceRef const&)
 {{
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }}
@@ -64,14 +58,11 @@ namespace demo_loop
 {{
 namespace generated
 {{
-void {func}(
-    const CoreParamsHostRef& params,
-    const CoreStateHostRef& states)
+void {func}(CoreHostRef const& data)
 {{
-    CELER_EXPECT(params);
-    CELER_EXPECT(states);
+    CELER_EXPECT(data);
 
-    auto launch = make_track_launcher(params, states, {func}_track);
+    auto launch = make_track_launcher(data, {func}_track);
     #pragma omp parallel for
     for (size_type i = 0; i < {threads}; ++i)
     {{
@@ -100,29 +91,25 @@ namespace generated
 {{
 namespace
 {{
-__global__ void{launch_bounds}{func}_kernel(
-    CoreParamsDeviceRef const params,
-    CoreStateDeviceRef const states)
+__global__ void{launch_bounds}{func}_kernel(CoreDeviceRef const data
+)
 {{
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < {threads}))
         return;
 
-    auto launch = make_track_launcher(params, states, {func}_track);
+    auto launch = make_track_launcher(data, {func}_track);
     launch(tid);
 }}
 }} // namespace
 
-void {func}(
-    const celeritas::CoreParamsDeviceRef& params,
-    const celeritas::CoreStateDeviceRef& states)
+void {func}(const CoreDeviceRef& data)
 {{
-    CELER_EXPECT(params);
-    CELER_EXPECT(states);
+    CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL({func},
                         celeritas::device().default_block_size(),
                         {threads},
-                        params, states);
+                        data);
 }}
 
 }} // namespace generated
@@ -162,7 +149,7 @@ def main():
         help='snake_case name of the function')
     parser.add_argument(
         '--threads',
-        default='states.size()',
+        default='data.states.size()',
         help='String describing the number of threads')
 
     kwargs = vars(parser.parse_args())

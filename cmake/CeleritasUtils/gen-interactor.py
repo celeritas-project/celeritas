@@ -75,7 +75,7 @@ void {func}_interact(
     CELER_EXPECT(model_data);
 
     auto launch = make_interaction_launcher(
-        core_data.params, core_data.states,
+        core_data,
         model_data,
         celeritas::detail::{func}_interact_track);
     #pragma omp parallel for
@@ -112,7 +112,7 @@ __global__ void{launch_bounds}{func}_interact_kernel(
         return;
 
     auto launch = make_interaction_launcher(
-        core_data.params, core_data.states,
+        core_data,
         model_data,
         celeritas::detail::{func}_interact_track);
     launch(tid);

@@ -14,18 +14,12 @@ namespace demo_loop
 {
 namespace generated
 {
-void cleanup(
-    const celeritas::CoreParamsHostRef&,
-    const celeritas::CoreStateHostRef&);
+void cleanup(celeritas::CoreHostRef const&);
 
-void cleanup(
-    const celeritas::CoreParamsDeviceRef&,
-    const celeritas::CoreStateDeviceRef&);
+void cleanup(celeritas::CoreDeviceRef const&);
 
 #if !CELER_USE_DEVICE
-inline void cleanup(
-    const celeritas::CoreParamsDeviceRef&,
-    const celeritas::CoreStateDeviceRef&)
+inline void cleanup(celeritas::CoreDeviceRef const&)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

@@ -27,16 +27,12 @@ struct InteractionLauncherImpl
 {
     //!@{
     //! Type aliases
-    using ParamsRef
-        = celeritas::CoreParamsData<Ownership::const_reference, MemSpace::native>;
-    using StateRef
-        = celeritas::CoreStateData<Ownership::reference, MemSpace::native>;
+    using CoreRefNative = CoreRef<MemSpace::native>;
     //!@}
 
     //// DATA ////
 
-    ParamsRef const& params;
-    StateRef const&  states;
+    CoreRefNative const& core_data;
     D const&         model_data;
     F                call_with_track;
 
@@ -55,8 +51,9 @@ template<class D, class F>
 CELER_FUNCTION void
 InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
 {
-    CELER_ASSERT(thread < this->states.size());
-    const celeritas::CoreTrackView track(this->params, this->states, thread);
+    CELER_ASSERT(thread < this->core_data.states.size());
+    const celeritas::CoreTrackView track(
+        this->core_data.params, this->core_data.states, thread);
 
     // TODO: will be replaced by action ID
     if (track.make_physics_view().model_id() != model_data.ids.model)

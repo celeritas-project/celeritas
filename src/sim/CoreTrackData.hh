@@ -162,6 +162,9 @@ struct CoreRef
     CELER_FUNCTION operator bool() const { return params && states; }
 };
 
+using CoreHostRef   = CoreRef<MemSpace::host>;
+using CoreDeviceRef = CoreRef<MemSpace::device>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Resize states in host code.

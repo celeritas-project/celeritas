@@ -244,7 +244,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
         // Create new tracks from primaries or secondaries
         Stopwatch get_time;
-        initialize_tracks(core_ref.params, core_ref.states, &track_init_states);
+        initialize_tracks(core_ref, &track_init_states);
         accum_time<M>(input_, get_time, &result.time.initialize_tracks);
 
         result.active.push_back(input_.max_num_tracks
@@ -252,13 +252,12 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
         // Sample mean free path and calculate step limits
         get_time = {};
-        demo_loop::generated::pre_step(core_ref.params, core_ref.states);
+        demo_loop::generated::pre_step(core_ref);
         accum_time<M>(input_, get_time, &result.time.pre_step);
 
         // Move, calculate dE/dx, and select model for discrete interaction
         get_time = {};
-        demo_loop::generated::along_and_post_step(core_ref.params,
-                                                  core_ref.states);
+        demo_loop::generated::along_and_post_step(core_ref);
         accum_time<M>(input_, get_time, &result.time.along_and_post_step);
 
         // Launch the interaction kernels for all applicable models
@@ -268,8 +267,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
         // Postprocess interaction results
         get_time = {};
-        demo_loop::generated::process_interactions(core_ref.params,
-                                                   core_ref.states);
+        demo_loop::generated::process_interactions(core_ref);
         accum_time<M>(input_, get_time, &result.time.process_interactions);
 
         // Mid-step diagnostics
@@ -280,12 +278,11 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
         // Create track initializers from surviving secondaries
         get_time = {};
-        extend_from_secondaries(
-            core_ref.params, core_ref.states, &track_init_states);
+        extend_from_secondaries(core_ref, &track_init_states);
         accum_time<M>(input_, get_time, &result.time.extend_from_secondaries);
 
         // Clear secondaries
-        demo_loop::generated::cleanup(core_ref.params, core_ref.states);
+        demo_loop::generated::cleanup(core_ref);
 
         // Get the number of track initializers and active tracks
         num_alive = input_.max_num_tracks - track_init_states.vacancies.size();

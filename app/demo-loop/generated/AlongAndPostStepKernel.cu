@@ -31,29 +31,25 @@ __launch_bounds__(512, 2)
 __launch_bounds__(1024, 4)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
-along_and_post_step_kernel(
-    CoreParamsDeviceRef const params,
-    CoreStateDeviceRef const states)
+along_and_post_step_kernel(CoreDeviceRef const data
+)
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < states.size()))
+    if (!(tid < data.states.size()))
         return;
 
-    auto launch = make_track_launcher(params, states, along_and_post_step_track);
+    auto launch = make_track_launcher(data, along_and_post_step_track);
     launch(tid);
 }
 } // namespace
 
-void along_and_post_step(
-    const celeritas::CoreParamsDeviceRef& params,
-    const celeritas::CoreStateDeviceRef& states)
+void along_and_post_step(const CoreDeviceRef& data)
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(states);
+    CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL(along_and_post_step,
                         celeritas::device().default_block_size(),
-                        states.size(),
-                        params, states);
+                        data.states.size(),
+                        data);
 }
 
 } // namespace generated

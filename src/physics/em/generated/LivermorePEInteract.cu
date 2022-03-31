@@ -36,7 +36,7 @@ livermore_pe_interact_kernel(
         return;
 
     auto launch = make_interaction_launcher(
-        core_data.params, core_data.states,
+        core_data,
         model_data,
         celeritas::detail::livermore_pe_interact_track);
     launch(tid);
