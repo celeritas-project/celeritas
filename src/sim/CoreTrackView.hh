@@ -103,6 +103,12 @@ class CoreTrackView
             params_.physics, states_.physics, {}, {}, thread_);
         phys.model_id({});
     }
+    CELER_FUNCTION ModelId model_id() const
+    {
+        celeritas::PhysicsTrackView phys(
+            params_.physics, states_.physics, {}, {}, thread_);
+        return phys.model_id();
+    }
     //!@}
 
   private:

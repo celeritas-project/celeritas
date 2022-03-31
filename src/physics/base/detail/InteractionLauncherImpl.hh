@@ -56,7 +56,7 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
         this->core_data.params, this->core_data.states, thread);
 
     // TODO: will be replaced by action ID
-    if (track.make_physics_view().model_id() != model_data.ids.model)
+    if (track.model_id() != model_data.ids.model)
         return;
 
     Interaction result  = this->call_with_track(model_data, track);
