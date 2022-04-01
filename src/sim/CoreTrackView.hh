@@ -226,7 +226,9 @@ CELER_FUNCTION auto CoreTrackView::make_secondary_allocator() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a secondary stack allocator view.
+ * Make an atomic relaxation helper for the given element.
+ *
+ * This should eventually be removed from the "core" view.
  */
 CELER_FUNCTION auto CoreTrackView::make_relaxation_helper(ElementId el_id) const
     -> AtomicRelaxationHelper
