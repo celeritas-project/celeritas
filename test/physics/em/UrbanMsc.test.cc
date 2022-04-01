@@ -210,8 +210,8 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_DOUBLE_EQ(msc_.d_over_r_mh, 1.1248191999999999);
 
     // Test the step limitation algorithm and the msc sample scattering
-    detail::MscStepLimitResult step_result;
-    detail::MscScatterResult   sample_result;
+    MscStep        step_result;
+    MscInteraction sample_result;
 
     // Input
     const unsigned int nsamples = 8;

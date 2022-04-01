@@ -10,6 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "geometry/GeoTrackView.hh"
+#include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
@@ -27,20 +28,6 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Output data type of UrbanMscStepLimit (step limitation algorithm).
- */
-struct MscStepLimitResult
-{
-    bool      is_displaced{true}; //!< flag for the lateral displacement
-    real_type phys_step{};        //!< step length from physics processes
-    real_type true_path{};        //!< true path length due to the msc
-    real_type geom_path{};        //!< geametrical path length
-    real_type limit_min{1e-8};    //!< minimum of the true path limit
-    real_type alpha{-1};          //!< an effecive mfp rate by distance
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * This is the step limitation algorithm of the Urban model for the e-/e+
  * multiple scattering.
 
@@ -54,7 +41,6 @@ class UrbanMscStepLimit
     //!@{
     //! Type aliases
     using Energy        = units::MevEnergy;
-    using MscResult     = detail::MscStepLimitResult;
     using MscParameters = detail::UrbanMscParameters;
     using MaterialData  = detail::UrbanMscMaterialData;
     //!@}
@@ -70,7 +56,7 @@ class UrbanMscStepLimit
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
     template<class Engine>
-    inline CELER_FUNCTION MscResult operator()(Engine& rng);
+    inline CELER_FUNCTION MscStep operator()(Engine& rng);
 
   private:
     //// DATA ////
@@ -146,9 +132,9 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
  * selected for the interaction by the multiple scattering.
  */
 template<class Engine>
-CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
+CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
 {
-    MscResult result;
+    MscStep result;
 
     result.phys_step = helper_.step_length();
     result.true_path = min<real_type>(result.phys_step, range_);

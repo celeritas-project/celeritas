@@ -13,7 +13,6 @@
 
 #include "UrbanMscData.hh"
 #include "UrbanMscHelper.hh"
-#include "UrbanMscStepLimit.hh"
 
 namespace celeritas
 {
@@ -21,18 +20,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Output data type of UrbanMscScatter.
- */
-struct MscScatterResult
-{
-    real_type step_length;  //!< true step length
-    Real3     direction;    //!< final direction by msc
-    Real3     displacement; //!< lateral displacement
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * This is a class for sampling cos(theta) of the Urban multiple scattering.
+ * Sample cos(theta) of the Urban multiple scattering model.
  */
 class UrbanMscScatter
 {
@@ -40,7 +28,6 @@ class UrbanMscScatter
     //!@{
     //! Type aliases
     using Energy          = units::MevEnergy;
-    using StepLimitResult = detail::MscStepLimitResult;
     using MscParameters   = detail::UrbanMscParameters;
     using MaterialData    = detail::UrbanMscMaterialData;
     //!@}
@@ -52,11 +39,11 @@ class UrbanMscScatter
                                           GeoTrackView*            geometry,
                                           const PhysicsTrackView&  physics,
                                           const MaterialView&      material,
-                                          const StepLimitResult&   input);
+                                          const MscStep&           input);
 
     // Sample the final true step length, position and direction by msc
     template<class Engine>
-    inline CELER_FUNCTION MscScatterResult operator()(Engine& rng);
+    inline CELER_FUNCTION MscInteraction operator()(Engine& rng);
 
   private:
     //// DATA ////
@@ -141,7 +128,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
                                  GeoTrackView*            geometry,
                                  const PhysicsTrackView&  physics,
                                  const MaterialView&      material,
-                                 const StepLimitResult&   input)
+                                 const MscStep&           input)
     : inc_energy_(particle.energy())
     , inc_direction_(geometry->dir())
     , is_positron_(particle.particle_id() == shared.ids.positron)

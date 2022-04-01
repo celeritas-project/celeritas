@@ -72,6 +72,9 @@ class PhysicsTrackView
     // Select a model for the current interaction (or {} for no interaction)
     inline CELER_FUNCTION void model_id(ModelId);
 
+    // Save MSC step data
+    inline CELER_FUNCTION void msc_step(MscStep);
+
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Whether the remaining MFP has been calculated
@@ -88,6 +91,9 @@ class PhysicsTrackView
 
     // Selected model if interacting
     CELER_FORCEINLINE_FUNCTION ModelId model_id() const;
+
+    // Retrieve MSC step data
+    inline CELER_FUNCTION MscStep msc_step() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -273,6 +279,15 @@ CELER_FUNCTION void PhysicsTrackView::model_id(ModelId id)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Save MSC step limit data.
+ */
+CELER_FUNCTION void PhysicsTrackView::msc_step(MscStep limit)
+{
+    states_.msc_step[thread_] = limit;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Whether the remaining MFP has been calculated.
  */
 CELER_FUNCTION bool PhysicsTrackView::has_interaction_mfp() const
@@ -328,6 +343,17 @@ CELER_FUNCTION ModelId PhysicsTrackView::model_id() const
     return this->state().model_id;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Access calculated MSC step data.
+ *
+ * If no model applies (e.g. if the particle has exited the geometry) the
+ * result will be the \c ModelId() which evaluates to false.
+ */
+CELER_FUNCTION MscStep PhysicsTrackView::msc_step() const
+{
+    return states_.msc_step[thread_];
+}
 //---------------------------------------------------------------------------//
 /*!
  * Number of processes that apply to this track.

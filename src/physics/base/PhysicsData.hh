@@ -329,6 +329,7 @@ struct PhysicsStateData
     //// DATA ////
 
     StateItems<PhysicsTrackState> state; //!< Track state [track]
+    StateItems<MscStep>           msc_step; //!< Internal MSC data [track]
     Items<real_type> per_process_xs;     //!< XS [track][particle process]
 
     //// METHODS ////
