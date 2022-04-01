@@ -78,9 +78,10 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
 
         // Set MollerBhabhaData
         const auto& params       = *this->particle_params();
-        data_.electron_id        = params.find(pdg::electron());
-        data_.positron_id        = params.find(pdg::positron());
-        data_.electron_mass_c_sq = params.get(data_.electron_id).mass().value();
+        data_.ids.electron       = params.find(pdg::electron());
+        data_.ids.positron       = params.find(pdg::positron());
+        data_.electron_mass_c_sq
+            = params.get(data_.ids.electron).mass().value();
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -98,7 +99,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         ASSERT_EQ(1, interaction.secondaries.size());
         const auto& electron = interaction.secondaries.front();
         EXPECT_TRUE(electron);
-        EXPECT_EQ(data_.electron_id, electron.particle_id);
+        EXPECT_EQ(data_.ids.electron, electron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   electron.energy.value());
         EXPECT_LT(0, electron.energy.value());

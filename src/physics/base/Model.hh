@@ -18,7 +18,7 @@
 namespace celeritas
 {
 template<MemSpace M>
-struct ModelInteractRef;
+struct CoreRef;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -51,8 +51,8 @@ class Model
     //@{
     //! Type aliases
     using SetApplicability  = std::set<Applicability>;
-    using HostInteractRef   = ModelInteractRef<MemSpace::host>;
-    using DeviceInteractRef = ModelInteractRef<MemSpace::device>;
+    using HostInteractRef   = CoreRef<MemSpace::host>;
+    using DeviceInteractRef = CoreRef<MemSpace::device>;
     //@}
 
   public:
@@ -62,8 +62,8 @@ class Model
     //! Get the applicable particle type and energy ranges of the model
     virtual SetApplicability applicability() const = 0;
 
-    //! Apply the interaction kernel to host data (TODO)
-    virtual void interact(const HostInteractRef&) const;
+    //! Apply the interaction kernel to host data
+    virtual void interact(const HostInteractRef&) const = 0;
 
     //! Apply the interaction kernel to device data
     virtual void interact(const DeviceInteractRef&) const = 0;

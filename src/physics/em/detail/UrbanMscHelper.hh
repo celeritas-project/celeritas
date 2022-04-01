@@ -39,7 +39,7 @@ class UrbanMscHelper
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION UrbanMscHelper(const UrbanMscNativeRef& shared,
+    inline CELER_FUNCTION UrbanMscHelper(const UrbanMscRef&       shared,
                                          const ParticleTrackView& particle,
                                          const PhysicsTrackView&  physics,
                                          const MaterialView&      material);
@@ -129,18 +129,18 @@ class UrbanMscHelper
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-UrbanMscHelper::UrbanMscHelper(const UrbanMscNativeRef& shared,
+UrbanMscHelper::UrbanMscHelper(const UrbanMscRef&       shared,
                                const ParticleTrackView& particle,
                                const PhysicsTrackView&  physics,
                                const MaterialView&      material)
     : inc_energy_(particle.energy())
-    , is_positron_(particle.particle_id() == shared.positron_id)
+    , is_positron_(particle.particle_id() == shared.ids.positron)
     , physics_(physics)
     , msc_(shared.msc_data[material.material_id()])
     , tau_small_(shared.params.tau_small)
 {
-    CELER_EXPECT(particle.particle_id() == shared.electron_id
-                 || particle.particle_id() == shared.positron_id);
+    CELER_EXPECT(particle.particle_id() == shared.ids.electron
+                 || particle.particle_id() == shared.ids.positron);
 
     ParticleProcessId eloss_pid = physics.eloss_ppid();
     range_gid_ = physics.value_grid(ValueGridType::range, eloss_pid);

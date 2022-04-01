@@ -8,7 +8,6 @@
 #pragma once
 
 #include "base/Macros.hh"
-#include "physics/base/ModelData.hh"
 #include "sim/CoreTrackData.hh"
 
 #include "../Transporter.hh"

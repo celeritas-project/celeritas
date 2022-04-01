@@ -9,16 +9,12 @@
 
 #include "base/Assert.hh"
 #include "base/Macros.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/ModelData.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsTrackView.hh"
 #include "physics/material/ElementSelector.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "random/RngEngine.hh"
+#include "sim/CoreTrackView.hh"
 
+#include "LivermorePEData.hh"
 #include "LivermorePEInteractor.hh"
+#include "LivermorePEMicroXsCalculator.hh"
 
 namespace celeritas
 {
@@ -26,65 +22,38 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Model interactor kernel launcher
+ * Apply the Livermore photoelectric interaction to the current track.
  */
-template<MemSpace M>
-struct LivermorePELauncher
+inline CELER_FUNCTION Interaction livermore_pe_interact_track(
+    LivermorePERef const& model, CoreTrackView const& track)
 {
-    CELER_FUNCTION LivermorePELauncher(const LivermorePERef&      data,
-                                       const ModelInteractRef<M>& interaction)
-        : pe(data), model(interaction)
-    {
-    }
-
-    const LivermorePERef&      pe;    //!< Shared data for interactor
-    const ModelInteractRef<M>& model; //!< State data needed to interact
-
-    //! Create track views and launch interactor
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
-};
-
-template<MemSpace M>
-CELER_FUNCTION void LivermorePELauncher<M>::operator()(ThreadId tid) const
-{
-    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
-    ParticleTrackView         particle(
-        model.params.particle, model.states.particle, tid);
-    MaterialTrackView material(
-        model.params.material, model.states.material, tid);
-    PhysicsTrackView physics(model.params.physics,
-                             model.states.physics,
-                             particle.particle_id(),
-                             material.material_id(),
-                             tid);
-
-    // This interaction only applies if the Livermore PE model was selected
-    if (physics.model_id() != pe.ids.model)
-        return;
-
-    CutoffView cutoffs(model.params.cutoffs, material.material_id());
-    RngEngine  rng(model.states.rng, tid);
-
-    // Sample an element
+    // Set up element sampler
+    auto            material = track.make_material_view();
+    auto            particle = track.make_particle_view();
     ElementSelector select_el(
         material.make_material_view(),
-        LivermorePEMicroXsCalculator{pe, particle.energy()},
+        LivermorePEMicroXsCalculator{model, particle.energy()},
         material.element_scratch());
-    ElementComponentId comp_id = select_el(rng);
-    ElementId el_id = material.make_material_view().element_id(comp_id);
 
-    AtomicRelaxationHelper relaxation(
-        model.params.relaxation, model.states.relaxation, el_id, tid);
-    LivermorePEInteractor interact(pe,
-                                   relaxation,
-                                   el_id,
-                                   particle,
-                                   cutoffs,
-                                   model.states.direction[tid],
-                                   allocate_secondaries);
+    // Sample element
+    auto      rng = track.make_rng_engine();
+    ElementId el_id;
+    {
+        ElementComponentId comp_id = select_el(rng);
+        CELER_ASSERT(comp_id);
+        el_id = material.make_material_view().element_id(comp_id);
+    }
 
-    model.states.interactions[tid] = interact(rng);
-    CELER_ENSURE(model.states.interactions[tid]);
+    // Set up photoelectric inteactor with the selected element
+    auto        relaxation           = track.make_relaxation_helper(el_id);
+    auto        cutoffs              = track.make_cutoff_view();
+    const auto& dir                  = track.make_geo_view().dir();
+    auto        allocate_secondaries = track.make_secondary_allocator();
+    LivermorePEInteractor interact(
+        model, relaxation, el_id, particle, cutoffs, dir, allocate_secondaries);
+
+    // Sample the interaction
+    return interact(rng);
 }
 
 //---------------------------------------------------------------------------//

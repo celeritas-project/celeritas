@@ -25,8 +25,8 @@ struct StackAllocatorData
     celeritas::Collection<T, W, M>         storage; //!< Allocated capacity
     celeritas::Collection<size_type, W, M> size;    //!< Stored size
 
-    // Whether the interface is initialized
-    explicit inline CELER_FUNCTION operator bool() const
+    //! Whether the data is assigned
+    explicit CELER_FUNCTION operator bool() const
     {
         return !storage.empty() && !size.empty();
     }

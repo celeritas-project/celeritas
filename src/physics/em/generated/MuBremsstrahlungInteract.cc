@@ -10,21 +10,25 @@
 
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "physics/base/InteractionLauncher.hh"
 
 namespace celeritas
 {
 namespace generated
 {
 void mu_bremsstrahlung_interact(
-    const detail::MuBremsstrahlungHostRef& mu_bremsstrahlung_data,
-    const ModelInteractRef<MemSpace::host>& model)
+    const celeritas::detail::MuBremsstrahlungHostRef& model_data,
+    const CoreRef<MemSpace::host>& core_data)
 {
-    CELER_EXPECT(mu_bremsstrahlung_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
 
-    detail::MuBremsstrahlungLauncher<MemSpace::host> launch(mu_bremsstrahlung_data, model);
+    auto launch = make_interaction_launcher(
+        core_data,
+        model_data,
+        celeritas::detail::mu_bremsstrahlung_interact_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < model.states.size(); ++i)
+    for (size_type i = 0; i < core_data.states.size(); ++i)
     {
         ThreadId tid{i};
         launch(tid);

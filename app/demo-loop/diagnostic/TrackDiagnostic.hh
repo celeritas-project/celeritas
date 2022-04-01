@@ -9,7 +9,6 @@
 
 #include "celeritas_config.h"
 #include "base/Macros.hh"
-#include "physics/base/ModelData.hh"
 #include "sim/CoreTrackData.hh"
 #include "sim/SimTrackView.hh"
 

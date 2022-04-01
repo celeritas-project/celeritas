@@ -41,12 +41,11 @@ class RBEnergySampler
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    RBEnergySampler(const RelativisticBremNativeRef& shared,
-                    const ParticleTrackView&         particle,
-                    const CutoffView&                cutoffs,
-                    const MaterialView&              material,
-                    const ElementComponentId&        elcomp_id);
+    inline CELER_FUNCTION RBEnergySampler(const RelativisticBremRef& shared,
+                                          const ParticleTrackView&   particle,
+                                          const CutoffView&          cutoffs,
+                                          const MaterialView&        material,
+                                          const ElementComponentId& elcomp_id);
 
     // Sample the bremsstrahlung photon energy with the given RNG
     template<class Engine>
@@ -55,12 +54,12 @@ class RBEnergySampler
   private:
     //// DATA ////
 
+    // Differential cross section calcuator
+    RBDiffXsCalculator calc_dxsec_;
     // Square of minimum of incident particle energy and cutoff
     real_type tmin_sq_;
     // Square of production cutoff for gammas
     real_type tmax_sq_;
-    // Differential cross section calcuator
-    RBDiffXsCalculator calc_dxsec_;
 };
 
 //---------------------------------------------------------------------------//
@@ -70,11 +69,11 @@ class RBEnergySampler
  * Construct from incident particle and energy.
  */
 CELER_FUNCTION
-RBEnergySampler::RBEnergySampler(const RelativisticBremNativeRef& shared,
-                                 const ParticleTrackView&         particle,
-                                 const CutoffView&                cutoffs,
-                                 const MaterialView&              material,
-                                 const ElementComponentId&        elcomp_id)
+RBEnergySampler::RBEnergySampler(const RelativisticBremRef& shared,
+                                 const ParticleTrackView&   particle,
+                                 const CutoffView&          cutoffs,
+                                 const MaterialView&        material,
+                                 const ElementComponentId&  elcomp_id)
     : calc_dxsec_(shared, particle, material, elcomp_id)
 {
     // Min and max kinetic energy limits for sampling the secondary photon

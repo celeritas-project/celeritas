@@ -33,6 +33,7 @@ class MockModel final : public celeritas::Model
   public:
     MockModel(ModelId id, Applicability applic, ModelCallback cb);
     SetApplicability applicability() const final;
+    void             interact(const HostInteractRef&) const final;
     void             interact(const DeviceInteractRef&) const final;
     ModelId          model_id() const final { return id_; }
     std::string      label() const final;

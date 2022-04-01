@@ -53,8 +53,8 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
              {"gamma", pdg::gamma(), zero, zero, stable}});
 
         const auto& params  = *this->particle_params();
-        data_.positron_id   = params.find(pdg::positron());
-        data_.gamma_id      = params.find(pdg::gamma());
+        data_.ids.positron  = params.find(pdg::positron());
+        data_.ids.gamma     = params.find(pdg::gamma());
         data_.electron_mass = 0.5109989461;
 
         // Set up shared material data
@@ -89,7 +89,7 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
 
         const auto& gamma1 = interaction.secondaries.front();
         EXPECT_TRUE(gamma1);
-        EXPECT_EQ(data_.gamma_id, gamma1.particle_id);
+        EXPECT_EQ(data_.ids.gamma, gamma1.particle_id);
 
         EXPECT_GT(
             this->particle_track().energy().value() + 2 * data_.electron_mass,
@@ -99,7 +99,7 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
 
         const auto& gamma2 = interaction.secondaries.back();
         EXPECT_TRUE(gamma2);
-        EXPECT_EQ(data_.gamma_id, gamma2.particle_id);
+        EXPECT_EQ(data_.ids.gamma, gamma2.particle_id);
         EXPECT_GT(
             this->particle_track().energy().value() + 2 * data_.electron_mass,
             gamma2.energy.value());

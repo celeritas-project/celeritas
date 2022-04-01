@@ -22,19 +22,18 @@ BetheHeitlerModel::BetheHeitlerModel(ModelId               id,
                                      bool                  enable_lpm)
 {
     CELER_EXPECT(id);
-    interface_.model_id    = id;
-    interface_.electron_id = particles.find(pdg::electron());
-    interface_.positron_id = particles.find(pdg::positron());
-    interface_.gamma_id    = particles.find(pdg::gamma());
+    interface_.ids.model    = id;
+    interface_.ids.electron = particles.find(pdg::electron());
+    interface_.ids.positron = particles.find(pdg::positron());
+    interface_.ids.gamma    = particles.find(pdg::gamma());
     interface_.enable_lpm  = enable_lpm;
 
-    CELER_VALIDATE(interface_.electron_id && interface_.positron_id
-                       && interface_.gamma_id,
+    CELER_VALIDATE(interface_.ids,
                    << "missing electron, positron and/or gamma particles "
                       "(required for "
                    << this->label() << ")");
     interface_.electron_mass
-        = particles.get(interface_.electron_id).mass().value();
+        = particles.get(interface_.ids.electron).mass().value();
     CELER_ENSURE(interface_);
 }
 
@@ -45,7 +44,7 @@ BetheHeitlerModel::BetheHeitlerModel(ModelId               id,
 auto BetheHeitlerModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
-    photon_applic.particle = interface_.gamma_id;
+    photon_applic.particle = interface_.ids.gamma;
     photon_applic.lower    = zero_quantity();
     photon_applic.upper    = units::MevEnergy{1e8};
 
@@ -73,7 +72,7 @@ void BetheHeitlerModel::interact(const HostInteractRef& data) const
  */
 ModelId BetheHeitlerModel::model_id() const
 {
-    return interface_.model_id;
+    return interface_.ids.model;
 }
 
 //---------------------------------------------------------------------------//

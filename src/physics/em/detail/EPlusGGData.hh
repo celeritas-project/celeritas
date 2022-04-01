@@ -23,20 +23,23 @@ struct EPlusGGData
 {
     using Mass = units::MevMass;
 
-    //! Model ID
-    ModelId model_id;
+    struct
+    {
+        //! Model ID
+        ModelId model;
+        //! ID of an positron
+        ParticleId positron;
+        //! ID of a gamma
+        ParticleId gamma;
+    } ids;
 
     //! electron mass [MevMass]
     real_type electron_mass;
-    //! ID of an positron
-    ParticleId positron_id;
-    //! ID of a gamma
-    ParticleId gamma_id;
 
     //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
-        return model_id && electron_mass > 0 && positron_id && gamma_id;
+        return ids.model && ids.positron && ids.gamma && electron_mass > 0;
     }
 };
 

@@ -17,16 +17,13 @@ namespace demo_loop
 {
 namespace generated
 {
-void process_interactions(
-    const CoreParamsHostRef& params,
-    const CoreStateHostRef& states)
+void process_interactions(CoreHostRef const& data)
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(states);
+    CELER_EXPECT(data);
 
-    auto launch = make_track_launcher(params, states, process_interactions_track);
+    auto launch = make_track_launcher(data, process_interactions_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < states.size(); ++i)
+    for (size_type i = 0; i < data.states.size(); ++i)
     {
         launch(ThreadId{i});
     }

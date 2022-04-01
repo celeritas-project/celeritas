@@ -15,17 +15,17 @@ namespace celeritas
 namespace generated
 {
 void relativistic_brem_interact(
-    const detail::RelativisticBremHostRef&,
-    const ModelInteractRef<MemSpace::host>&);
+    const celeritas::detail::RelativisticBremHostRef&,
+    const CoreRef<MemSpace::host>&);
 
 void relativistic_brem_interact(
-    const detail::RelativisticBremDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&);
+    const celeritas::detail::RelativisticBremDeviceRef&,
+    const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void relativistic_brem_interact(
-    const detail::RelativisticBremDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&)
+    const celeritas::detail::RelativisticBremDeviceRef&,
+    const CoreRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

@@ -64,7 +64,7 @@ class UserMapFieldTest : public Test
   protected:
     UserFieldTestParams                  test_param_;
     std::shared_ptr<MagFieldMap>         map_;
-    celeritas::detail::FieldMapNativeRef ref_;
+    celeritas::detail::FieldMapRef       ref_;
 };
 
 //---------------------------------------------------------------------------//

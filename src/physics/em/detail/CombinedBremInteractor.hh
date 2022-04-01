@@ -22,7 +22,6 @@
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
-#include "random/distributions/GenerateCanonical.hh"
 
 #include "BremFinalStateHelper.hh"
 #include "CombinedBremData.hh"
@@ -44,6 +43,9 @@ namespace detail
  * This is a combined bremsstrahlung interactor consisted of the Seltzer-Berger
  * interactor at the low energy (< 1 GeV) and the relativistic bremsstrahlung
  * interactor at the high energy for the e-/e+ bremsstrahlung process.
+ *
+ * \todo: see if there's any occupancy/performance difference by defining the
+ * samplers *inside* the conditional on "is_relativistic".
  */
 class CombinedBremInteractor
 {
@@ -58,13 +60,13 @@ class CombinedBremInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    CombinedBremInteractor(const CombinedBremNativeRef& shared,
-                           const ParticleTrackView&     particle,
-                           const Real3&                 direction,
-                           const CutoffView&            cutoffs,
-                           StackAllocator<Secondary>&   allocate,
-                           const MaterialView&          material,
-                           const ElementComponentId&    elcomp_id);
+    CombinedBremInteractor(const CombinedBremRef&     shared,
+                           const ParticleTrackView&   particle,
+                           const Real3&               direction,
+                           const CutoffView&          cutoffs,
+                           StackAllocator<Secondary>& allocate,
+                           const MaterialView&        material,
+                           const ElementComponentId&  elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -108,13 +110,13 @@ class CombinedBremInteractor
  */
 CELER_FUNCTION
 CombinedBremInteractor::CombinedBremInteractor(
-    const CombinedBremNativeRef& shared,
-    const ParticleTrackView&     particle,
-    const Real3&                 direction,
-    const CutoffView&            cutoffs,
-    StackAllocator<Secondary>&   allocate,
-    const MaterialView&          material,
-    const ElementComponentId&    elcomp_id)
+    const CombinedBremRef&     shared,
+    const ParticleTrackView&   particle,
+    const Real3&               direction,
+    const CutoffView&          cutoffs,
+    StackAllocator<Secondary>& allocate,
+    const MaterialView&        material,
+    const ElementComponentId&  elcomp_id)
     : inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())
     , inc_direction_(direction)

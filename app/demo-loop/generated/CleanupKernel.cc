@@ -17,14 +17,11 @@ namespace demo_loop
 {
 namespace generated
 {
-void cleanup(
-    const CoreParamsHostRef& params,
-    const CoreStateHostRef& states)
+void cleanup(CoreHostRef const& data)
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(states);
+    CELER_EXPECT(data);
 
-    auto launch = make_track_launcher(params, states, cleanup_track);
+    auto launch = make_track_launcher(data, cleanup_track);
     #pragma omp parallel for
     for (size_type i = 0; i < 1; ++i)
     {

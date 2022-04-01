@@ -57,10 +57,10 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
               stable},
              {"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& params  = *this->particle_params();
-        data_.electron_id   = params.find(pdg::electron());
-        data_.positron_id   = params.find(pdg::positron());
-        data_.gamma_id      = params.find(pdg::gamma());
-        data_.electron_mass = params.get(data_.electron_id).mass().value();
+        data_.ids.electron  = params.find(pdg::electron());
+        data_.ids.positron  = params.find(pdg::positron());
+        data_.ids.gamma     = params.find(pdg::gamma());
+        data_.electron_mass = params.get(data_.ids.electron).mass().value();
         data_.enable_lpm    = true;
 
         // Set default particle to photon with energy of 100 MeV
@@ -95,7 +95,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         // Electron
         const auto& electron = interaction.secondaries.front();
         EXPECT_TRUE(electron);
-        EXPECT_EQ(data_.electron_id, electron.particle_id);
+        EXPECT_EQ(data_.ids.electron, electron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   electron.energy.value());
         EXPECT_LT(0, electron.energy.value());
@@ -103,7 +103,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         // Positron
         const auto& positron = interaction.secondaries.back();
         EXPECT_TRUE(positron);
-        EXPECT_EQ(data_.positron_id, positron.particle_id);
+        EXPECT_EQ(data_.ids.positron, positron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   positron.energy.value());
         EXPECT_LT(0, positron.energy.value());

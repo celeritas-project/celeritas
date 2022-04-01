@@ -36,9 +36,9 @@ RayleighModel::RayleighModel(ModelId               id,
 
     HostValue host_ref;
 
-    host_ref.model_id = id;
-    host_ref.gamma_id = particles.find(pdg::gamma());
-    CELER_VALIDATE(host_ref.gamma_id,
+    host_ref.ids.model = id;
+    host_ref.ids.gamma = particles.find(pdg::gamma());
+    CELER_VALIDATE(host_ref.ids.gamma,
                    << "missing gamma particles (required for " << this->label()
                    << ")");
 
@@ -57,7 +57,7 @@ RayleighModel::RayleighModel(ModelId               id,
 auto RayleighModel::applicability() const -> SetApplicability
 {
     Applicability rayleigh_scattering;
-    rayleigh_scattering.particle = this->host_ref().gamma_id;
+    rayleigh_scattering.particle = this->host_ref().ids.gamma;
     rayleigh_scattering.lower    = zero_quantity();
     rayleigh_scattering.upper    = units::MevEnergy{1e+8};
 
@@ -86,7 +86,7 @@ void RayleighModel::interact(const HostInteractRef& data) const
  */
 ModelId RayleighModel::model_id() const
 {
-    return this->host_ref().model_id;
+    return this->host_ref().ids.model;
 }
 
 //---------------------------------------------------------------------------//

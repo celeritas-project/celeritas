@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
 #include "base/Assert.hh"
 #include "sim/CoreTrackData.hh"
 #include "sim/CoreTrackView.hh"
@@ -25,27 +24,20 @@ namespace detail
 template<class F>
 struct TrackLauncher
 {
-    //!@{
-    //! Type aliases
-    using ParamsRef
-        = celeritas::CoreParamsData<Ownership::const_reference, MemSpace::native>;
-    using StateRef
-        = celeritas::CoreStateData<Ownership::reference, MemSpace::native>;
-    //!@}
+    using CoreRefNative = celeritas::CoreRef<MemSpace::native>;
 
     //// DATA ////
 
-    ParamsRef const& params;
-    StateRef const&  states;
-    F                call_with_track;
+    CoreRefNative const& data;
+    F                    call_with_track;
 
     //// METHODS ////
 
     CELER_FUNCTION void operator()(ThreadId thread) const
     {
-        CELER_ASSERT(thread < this->states.size());
+        CELER_ASSERT(thread < this->data.states.size());
         const celeritas::CoreTrackView track(
-            this->params, this->states, thread);
+            this->data.params, this->data.states, thread);
         this->call_with_track(track);
     }
 };

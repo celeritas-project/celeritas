@@ -147,6 +147,26 @@ using CoreStateHostRef = CoreStateData<Ownership::reference, MemSpace::host>;
 
 //---------------------------------------------------------------------------//
 /*!
+ * Reference to core parameters and states.
+ *
+ * This replaces \c ModelInteractRef and may be replaced by something else
+ * (more comprehensive data management class).
+ */
+template<MemSpace M>
+struct CoreRef
+{
+    CoreParamsData<Ownership::const_reference, M> params;
+    CoreStateData<Ownership::reference, M>        states;
+
+    //! True if assigned
+    CELER_FUNCTION operator bool() const { return params && states; }
+};
+
+using CoreHostRef   = CoreRef<MemSpace::host>;
+using CoreDeviceRef = CoreRef<MemSpace::device>;
+
+//---------------------------------------------------------------------------//
+/*!
  * Resize states in host code.
  */
 template<MemSpace M>

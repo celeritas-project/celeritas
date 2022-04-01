@@ -9,15 +9,9 @@
 
 #include "base/Assert.hh"
 #include "base/Macros.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/ModelData.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "physics/base/Types.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "random/RngEngine.hh"
+#include "sim/CoreTrackView.hh"
 
+#include "MuBremsstrahlungData.hh"
 #include "MuBremsstrahlungInteractor.hh"
 
 namespace celeritas
@@ -26,62 +20,28 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Model interactor kernel launcher
+ * Apply MuBremsstrahlung to the current track.
  */
-template<MemSpace M>
-struct MuBremsstrahlungLauncher
+inline CELER_FUNCTION Interaction mu_bremsstrahlung_interact_track(
+    MuBremsstrahlungData const& model, CoreTrackView const& track)
 {
-    CELER_FUNCTION
-    MuBremsstrahlungLauncher(const MuBremsstrahlungData& data,
-                             const ModelInteractRef<M>&  interaction)
-        : mb(data), model(interaction)
-    {
-    }
+    // Select material track view
+    auto material_track = track.make_material_view();
+    auto material       = material_track.make_material_view();
 
-    const MuBremsstrahlungData& mb;    //!< Shared data for interactor
-    const ModelInteractRef<M>&  model; //!< State data needed to interact
+    // Assume only a single element in the material, for now
+    CELER_ASSERT(material.num_elements() == 1);
+    const ElementComponentId elcomp_id{0};
 
-    //! Create track views and launch interactor
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
-};
+    auto        allocate_secondaries = track.make_secondary_allocator();
+    auto        particle             = track.make_particle_view();
+    const auto& dir                  = track.make_geo_view().dir();
 
-template<MemSpace M>
-CELER_FUNCTION void MuBremsstrahlungLauncher<M>::operator()(ThreadId tid) const
-{
-    StackAllocator<Secondary> allocate_secondaries(model.states.secondaries);
-    ParticleTrackView         particle(
-        model.params.particle, model.states.particle, tid);
+    MuBremsstrahlungInteractor interact(
+        model, particle, dir, allocate_secondaries, material, elcomp_id);
 
-    // Setup for MaterialView access
-    MaterialTrackView material(
-        model.params.material, model.states.material, tid);
-    // Cache the associated MaterialView as function calls to
-    // MaterialTrackView are expensive
-    MaterialView material_view = material.make_material_view();
-
-    PhysicsTrackView physics(model.params.physics,
-                             model.states.physics,
-                             particle.particle_id(),
-                             material.material_id(),
-                             tid);
-
-    // This interaction only applies if the Muon Bremsstrahlung model was
-    // selected
-    if (physics.model_id() != mb.model_id)
-        return;
-
-    // TODO: sample an element. For now assume one element per material
-    const ElementComponentId   elcomp_id{0};
-    MuBremsstrahlungInteractor interact(mb,
-                                        particle,
-                                        model.states.direction[tid],
-                                        allocate_secondaries,
-                                        material_view,
-                                        elcomp_id);
-
-    RngEngine rng(model.states.rng, tid);
-    model.states.interactions[tid] = interact(rng);
-    CELER_ENSURE(model.states.interactions[tid]);
+    auto rng = track.make_rng_engine();
+    return interact(rng);
 }
 
 //---------------------------------------------------------------------------//

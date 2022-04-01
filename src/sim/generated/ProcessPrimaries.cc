@@ -16,9 +16,9 @@ namespace generated
 {
 void process_primaries(
     const Span<const Primary> primaries,
-    const TrackInitStateHostRef& data)
+    const TrackInitStateHostRef& init_data)
 {
-    detail::ProcessPrimariesLauncher<MemSpace::host> launch(primaries, data);
+    detail::ProcessPrimariesLauncher<MemSpace::host> launch(primaries, init_data);
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < primaries.size(); ++i)
     {

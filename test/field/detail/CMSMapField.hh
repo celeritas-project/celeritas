@@ -25,7 +25,7 @@ namespace detail
  */
 class CMSMapField
 {
-    using FieldMapRef = detail::FieldMapNativeRef;
+    using FieldMapRef = detail::FieldMapRef;
 
   public:
     // Construct with the shared map data (FieldMapData)

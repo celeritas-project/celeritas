@@ -43,7 +43,7 @@ struct LivermoreSubshell
     Array<Real6, 2> param;
 
     //! True if assigned and valid
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return binding_energy > celeritas::zero_quantity() && xs;
     }
@@ -76,8 +76,8 @@ struct LivermoreElement
     Energy thresh_lo; //!< Use tabulated XS below this energy
     Energy thresh_hi; //!< Use lower parameterization below, upper above
 
-    //! True if assigned and valid
-    explicit inline CELER_FUNCTION operator bool() const
+    //! Whether all data are assigned and valid
+    explicit CELER_FUNCTION operator bool() const
     {
         // Note: xs_lo is not present for elements with only one subshell, so
         // it's valid for xs_lo to be unassigned.
@@ -105,8 +105,8 @@ struct LivermorePEXsData
 
     //// MEMBER FUNCTIONS ////
 
-    //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    //! Whether all data are assigned and valid
+    explicit CELER_FUNCTION operator bool() const
     {
         return !reals.empty() && !shells.empty() && !elements.empty();
     }
@@ -137,7 +137,7 @@ struct LivermorePEIds
     ParticleId gamma;
 
     //! Whether the IDs are assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return model && electron && gamma;
     }
@@ -163,7 +163,7 @@ struct LivermorePEData
 
     //// MEMBER FUNCTIONS ////
 
-    //! Check whether the data is assigned
+    //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
         return ids && inv_electron_mass > 0 && xs;

@@ -13,6 +13,7 @@
 #include "physics/base/CutoffView.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsTrackView.hh"
+#include "physics/em/AtomicRelaxationHelper.hh"
 #include "physics/material/MaterialTrackView.hh"
 #include "random/RngEngine.hh"
 #include "sim/SimTrackView.hh"
@@ -30,9 +31,9 @@ class CoreTrackView
   public:
     //!@{
     //! Type aliases
-    using StateRef = CoreStateData<Ownership::reference, MemSpace::native>;
     using ParamsRef
         = CoreParamsData<Ownership::const_reference, MemSpace::native>;
+    using StateRef = CoreStateData<Ownership::reference, MemSpace::native>;
     //!@}
 
   public:
@@ -74,6 +75,10 @@ class CoreTrackView
     // Return a secondary stack allocator
     inline CELER_FUNCTION SecondaryAllocator make_secondary_allocator() const;
 
+    // TODO: don't expose relaxation helper to everyone
+    inline CELER_FUNCTION AtomicRelaxationHelper
+    make_relaxation_helper(ElementId el_id) const;
+
     //! Get the track's index among the states
     CELER_FUNCTION ThreadId thread_id() const { return thread_; }
 
@@ -97,6 +102,12 @@ class CoreTrackView
         celeritas::PhysicsTrackView phys(
             params_.physics, states_.physics, {}, {}, thread_);
         phys.model_id({});
+    }
+    CELER_FUNCTION ModelId model_id() const
+    {
+        celeritas::PhysicsTrackView phys(
+            params_.physics, states_.physics, {}, {}, thread_);
+        return phys.model_id();
     }
     //!@}
 
@@ -211,6 +222,20 @@ CELER_FUNCTION auto CoreTrackView::make_secondary_allocator() const
     -> SecondaryAllocator
 {
     return SecondaryAllocator{states_.secondaries};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Make an atomic relaxation helper for the given element.
+ *
+ * This should eventually be removed from the "core" view.
+ */
+CELER_FUNCTION auto CoreTrackView::make_relaxation_helper(ElementId el_id) const
+    -> AtomicRelaxationHelper
+{
+    CELER_ASSERT(el_id);
+    return AtomicRelaxationHelper{
+        params_.relaxation, states_.relaxation, el_id, thread_};
 }
 
 //---------------------------------------------------------------------------//

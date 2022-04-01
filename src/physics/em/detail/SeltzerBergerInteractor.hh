@@ -62,13 +62,13 @@ class SeltzerBergerInteractor
   public:
     //! Construct sampler from device/shared and state data
     inline CELER_FUNCTION
-    SeltzerBergerInteractor(const SeltzerBergerNativeRef& shared,
-                            const ParticleTrackView&      particle,
-                            const Real3&                  inc_direction,
-                            const CutoffView&             cutoffs,
-                            StackAllocator<Secondary>&    allocate,
-                            const MaterialView&           material,
-                            const ElementComponentId&     elcomp_id);
+    SeltzerBergerInteractor(const SeltzerBergerRef&    shared,
+                            const ParticleTrackView&   particle,
+                            const Real3&               inc_direction,
+                            const CutoffView&          cutoffs,
+                            StackAllocator<Secondary>& allocate,
+                            const MaterialView&        material,
+                            const ElementComponentId&  elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -77,7 +77,7 @@ class SeltzerBergerInteractor
   private:
     //// DATA ////
     // Device (host CPU or GPU device) references
-    const SeltzerBergerNativeRef& shared_;
+    const SeltzerBergerRef& shared_;
     // Incident particle energy
     const Energy inc_energy_;
     // Incident particle direction
@@ -110,13 +110,13 @@ class SeltzerBergerInteractor
  * must be handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
-    const SeltzerBergerNativeRef& shared,
-    const ParticleTrackView&      particle,
-    const Real3&                  inc_direction,
-    const CutoffView&             cutoffs,
-    StackAllocator<Secondary>&    allocate,
-    const MaterialView&           material,
-    const ElementComponentId&     elcomp_id)
+    const SeltzerBergerRef&    shared,
+    const ParticleTrackView&   particle,
+    const Real3&               inc_direction,
+    const CutoffView&          cutoffs,
+    StackAllocator<Secondary>& allocate,
+    const MaterialView&        material,
+    const ElementComponentId&  elcomp_id)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())

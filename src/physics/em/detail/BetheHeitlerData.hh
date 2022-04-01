@@ -9,6 +9,7 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
 
 namespace celeritas
 {
@@ -16,24 +17,38 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Particle IDs used in Bethe-Heitler.
+ */
+struct BetheHeitlerIds
+{
+    //! Model ID
+    ModelId model;
+    //! ID of an electron
+    ParticleId electron;
+    //! ID of an positron
+    ParticleId positron;
+    //! ID of a gamma
+    ParticleId gamma;
+
+    //! Check whether the IDs are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return model && electron && positron && gamma;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Device data for creating a BetheHeitlerInteractor.
  */
 struct BetheHeitlerData
 {
-    //! Model ID
-    ModelId model_id;
-
+    //! Model/particle IDs
+    BetheHeitlerIds ids;
     //! Electron mass [MevMass]
-    real_type electron_mass;
-    //! ID of an electron
-    ParticleId electron_id;
-    //! ID of an positron
-    ParticleId positron_id;
-    //! ID of a gamma
-    ParticleId gamma_id;
-
+    real_type electron_mass{0};
     //! LPM flag
-    bool enable_lpm;
+    bool enable_lpm{false};
 
     //! Include a dielectric suppression effect in LPM functions
     static CELER_CONSTEXPR_FUNCTION bool dielectric_suppression()
@@ -41,11 +56,10 @@ struct BetheHeitlerData
         return false;
     }
 
-    //! Check whether the view is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    //! Check whether the data is assigned
+    explicit CELER_FUNCTION operator bool() const
     {
-        return model_id && electron_mass > 0 && electron_id && positron_id
-               && gamma_id;
+        return ids && electron_mass > 0;
     }
 };
 

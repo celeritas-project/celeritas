@@ -10,21 +10,25 @@
 
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "physics/base/InteractionLauncher.hh"
 
 namespace celeritas
 {
 namespace generated
 {
 void klein_nishina_interact(
-    const detail::KleinNishinaHostRef& klein_nishina_data,
-    const ModelInteractRef<MemSpace::host>& model)
+    const celeritas::detail::KleinNishinaHostRef& model_data,
+    const CoreRef<MemSpace::host>& core_data)
 {
-    CELER_EXPECT(klein_nishina_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
 
-    detail::KleinNishinaLauncher<MemSpace::host> launch(klein_nishina_data, model);
+    auto launch = make_interaction_launcher(
+        core_data,
+        model_data,
+        celeritas::detail::klein_nishina_interact_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < model.states.size(); ++i)
+    for (size_type i = 0; i < core_data.states.size(); ++i)
     {
         ThreadId tid{i};
         launch(tid);

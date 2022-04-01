@@ -47,11 +47,10 @@ class RBDiffXsCalculator
 
   public:
     // Construct with incident electron and current element
-    inline CELER_FUNCTION
-    RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
-                       const ParticleTrackView&         particle,
-                       const MaterialView&              material,
-                       ElementComponentId               elcomp_id);
+    inline CELER_FUNCTION RBDiffXsCalculator(const RelativisticBremRef& shared,
+                                             const ParticleTrackView& particle,
+                                             const MaterialView&      material,
+                                             ElementComponentId elcomp_id);
 
     // Compute cross section of exiting gamma energy
     inline CELER_FUNCTION real_type operator()(Energy energy);
@@ -84,8 +83,6 @@ class RBDiffXsCalculator
 
     //// DATA ////
 
-    // Shared constant physics properties
-    const RelativisticBremNativeRef& shared_;
     // Element data of the current material
     const ElementData& elem_data_;
     // Shared problem data for the current material
@@ -98,6 +95,8 @@ class RBDiffXsCalculator
     real_type density_corr_;
     // Flag for the LPM effect
     bool enable_lpm_;
+    // Flag for dialectric suppression effect in LPM
+    bool dielectric_suppression_;
 
     //// HELPER FUNCTIONS ////
 
@@ -119,12 +118,11 @@ class RBDiffXsCalculator
  * Construct with incident electron and current element.
  */
 CELER_FUNCTION
-RBDiffXsCalculator::RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
-                                       const ParticleTrackView& particle,
-                                       const MaterialView&      material,
-                                       ElementComponentId       elcomp_id)
-    : shared_(shared)
-    , elem_data_(shared.elem_data[material.element_id(elcomp_id)])
+RBDiffXsCalculator::RBDiffXsCalculator(const RelativisticBremRef& shared,
+                                       const ParticleTrackView&   particle,
+                                       const MaterialView&        material,
+                                       ElementComponentId         elcomp_id)
+    : elem_data_(shared.elem_data[material.element_id(elcomp_id)])
     , material_(material)
     , element_(material.make_element_view(elcomp_id))
     , total_energy_(value_as<units::MevEnergy>(particle.energy())
@@ -136,7 +134,8 @@ RBDiffXsCalculator::RBDiffXsCalculator(const RelativisticBremNativeRef& shared,
     real_type lpm_energy = material.radiation_length()
                            * value_as<MevPerCm>(lpm_constant());
     real_type lpm_threshold = lpm_energy * std::sqrt(density_factor);
-    enable_lpm_ = (shared_.enable_lpm && (total_energy_ > lpm_threshold));
+    enable_lpm_ = (shared.enable_lpm && (total_energy_ > lpm_threshold));
+    dielectric_suppression_ = shared.dielectric_suppression();
 }
 
 //---------------------------------------------------------------------------//
@@ -200,10 +199,8 @@ real_type RBDiffXsCalculator::dxsec_per_atom_lpm(real_type gamma_energy)
 {
     // Evaluate LPM functions
     real_type     epsilon = total_energy_ / gamma_energy;
-    LPMCalculator calc_lpm_functions(material_,
-                                     element_,
-                                     shared_.dielectric_suppression(),
-                                     Energy{gamma_energy});
+    LPMCalculator calc_lpm_functions(
+        material_, element_, dielectric_suppression_, Energy{gamma_energy});
     auto          lpm = calc_lpm_functions(epsilon);
 
     real_type y     = gamma_energy / total_energy_;

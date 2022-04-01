@@ -32,7 +32,7 @@ class EnergyLossDeltaDistribution
 
   public:
     //! Construct from helper-calculated mean
-    explicit inline CELER_FUNCTION
+    explicit CELER_FUNCTION
     EnergyLossDeltaDistribution(const EnergyLossHelper& helper)
         : mean_energy_(helper.mean_loss())
     {

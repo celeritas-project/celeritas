@@ -15,17 +15,17 @@ namespace celeritas
 namespace generated
 {
 void klein_nishina_interact(
-    const detail::KleinNishinaHostRef&,
-    const ModelInteractRef<MemSpace::host>&);
+    const celeritas::detail::KleinNishinaHostRef&,
+    const CoreRef<MemSpace::host>&);
 
 void klein_nishina_interact(
-    const detail::KleinNishinaDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&);
+    const celeritas::detail::KleinNishinaDeviceRef&,
+    const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void klein_nishina_interact(
-    const detail::KleinNishinaDeviceRef&,
-    const ModelInteractRef<MemSpace::device>&)
+    const celeritas::detail::KleinNishinaDeviceRef&,
+    const CoreRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

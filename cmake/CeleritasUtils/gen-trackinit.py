@@ -187,35 +187,32 @@ LANG = {
 DEFS = {
     "InitTracks": KernelDefinition(
         Function("init_tracks", ParamList([
-            Param("CoreParams{Memspace}Ref", "params"),
-            Param("CoreState{Memspace}Ref", "states"),
-            Param("TrackInitState{Memspace}Ref", "data"),
+            Param("Core{Memspace}Ref", "core_data"),
+            Param("TrackInitState{Memspace}Ref", "init_data"),
             Param("size_type", "num_vacancies"),
         ])),
         "num_vacancies",
         ["sim/CoreTrackData.hh"]),
     "LocateAlive": KernelDefinition(
         Function("locate_alive", ParamList([
-            Param("CoreParams{Memspace}Ref", "params"),
-            Param("CoreState{Memspace}Ref", "states"),
-            Param("TrackInitState{Memspace}Ref", "data"),
+            Param("Core{Memspace}Ref", "core_data"),
+            Param("TrackInitState{Memspace}Ref", "init_data"),
         ])),
-        "states.size()",
+        "core_data.states.size()",
         ["sim/CoreTrackData.hh"]),
     "ProcessPrimaries": KernelDefinition(
         Function("process_primaries", ParamList([
             Param("Span<const Primary>", "primaries"),
-            Param("TrackInitState{Memspace}Ref", "data"),
+            Param("TrackInitState{Memspace}Ref", "init_data"),
         ])),
         "primaries.size()",
         ["base/Span.hh", "physics/base/Primary.hh"]),
     "ProcessSecondaries": KernelDefinition(
         Function("process_secondaries", ParamList([
-            Param("CoreParams{Memspace}Ref", "params"),
-            Param("CoreState{Memspace}Ref", "states"),
-            Param("TrackInitState{Memspace}Ref", "data"),
+            Param("Core{Memspace}Ref", "core_data"),
+            Param("TrackInitState{Memspace}Ref", "init_data"),
         ])),
-        "states.size()",
+        "core_data.states.size()",
         ["sim/CoreTrackData.hh"]),
 }
 

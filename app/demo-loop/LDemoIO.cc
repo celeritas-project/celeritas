@@ -21,7 +21,6 @@
 #include "io/RootImporter.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/base/ImportedProcessAdapter.hh"
-#include "physics/base/ModelData.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/em/BremsstrahlungProcess.hh"

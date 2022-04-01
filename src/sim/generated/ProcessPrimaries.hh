@@ -12,11 +12,11 @@ namespace generated
 
 void process_primaries(
     const Span<const Primary> primaries,
-    const TrackInitStateHostRef& data);
+    const TrackInitStateHostRef& init_data);
 
 void process_primaries(
     const Span<const Primary> primaries,
-    const TrackInitStateDeviceRef& data);
+    const TrackInitStateDeviceRef& init_data);
 
 #if !CELER_USE_DEVICE
 inline void process_primaries(const Span<const Primary>, const TrackInitStateDeviceRef&)

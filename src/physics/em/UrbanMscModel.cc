@@ -32,14 +32,14 @@ UrbanMscModel::UrbanMscModel(ModelId               id,
     CELER_EXPECT(id);
     HostValue host_ref;
 
-    host_ref.model_id    = id;
-    host_ref.electron_id = particles.find(pdg::electron());
-    host_ref.positron_id = particles.find(pdg::positron());
-    CELER_VALIDATE(host_ref.electron_id && host_ref.positron_id,
+    host_ref.ids.model    = id;
+    host_ref.ids.electron = particles.find(pdg::electron());
+    host_ref.ids.positron = particles.find(pdg::positron());
+    CELER_VALIDATE(host_ref.ids.electron && host_ref.ids.positron,
                    << "missing e-/e+ (required for " << this->label() << ")");
 
     // Save electron mass
-    host_ref.electron_mass = particles.get(host_ref.electron_id).mass();
+    host_ref.electron_mass = particles.get(host_ref.ids.electron).mass();
 
     // Build UrbanMsc material data
     this->build_data(&host_ref, materials);
@@ -57,12 +57,12 @@ UrbanMscModel::UrbanMscModel(ModelId               id,
 auto UrbanMscModel::applicability() const -> SetApplicability
 {
     Applicability electron_msc;
-    electron_msc.particle = this->host_ref().electron_id;
+    electron_msc.particle = this->host_ref().ids.electron;
     electron_msc.lower    = zero_quantity();
     electron_msc.upper    = units::MevEnergy{1e+8};
 
     Applicability positron_msc = electron_msc;
-    positron_msc.particle      = this->host_ref().positron_id;
+    positron_msc.particle      = this->host_ref().ids.positron;
 
     return {electron_msc, positron_msc};
 }
@@ -88,7 +88,7 @@ void UrbanMscModel::interact(const HostInteractRef&) const
  */
 ModelId UrbanMscModel::model_id() const
 {
-    return this->host_ref().model_id;
+    return this->host_ref().ids.model;
 }
 
 //---------------------------------------------------------------------------//

@@ -10,21 +10,25 @@
 
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "physics/base/InteractionLauncher.hh"
 
 namespace celeritas
 {
 namespace generated
 {
 void rayleigh_interact(
-    const detail::RayleighHostRef& rayleigh_data,
-    const ModelInteractRef<MemSpace::host>& model)
+    const celeritas::detail::RayleighHostRef& model_data,
+    const CoreRef<MemSpace::host>& core_data)
 {
-    CELER_EXPECT(rayleigh_data);
-    CELER_EXPECT(model);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(model_data);
 
-    detail::RayleighLauncher<MemSpace::host> launch(rayleigh_data, model);
+    auto launch = make_interaction_launcher(
+        core_data,
+        model_data,
+        celeritas::detail::rayleigh_interact_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < model.states.size(); ++i)
+    for (size_type i = 0; i < core_data.states.size(); ++i)
     {
         ThreadId tid{i};
         launch(tid);

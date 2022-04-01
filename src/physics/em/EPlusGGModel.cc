@@ -25,15 +25,15 @@ namespace celeritas
 EPlusGGModel::EPlusGGModel(ModelId id, const ParticleParams& particles)
 {
     CELER_EXPECT(id);
-    interface_.model_id    = id;
-    interface_.positron_id = particles.find(pdg::positron());
-    interface_.gamma_id    = particles.find(pdg::gamma());
+    interface_.ids.model    = id;
+    interface_.ids.positron = particles.find(pdg::positron());
+    interface_.ids.gamma    = particles.find(pdg::gamma());
 
-    CELER_VALIDATE(interface_.positron_id && interface_.gamma_id,
+    CELER_VALIDATE(interface_.ids.positron && interface_.ids.gamma,
                    << "missing positron and/or gamma particles (required for "
                    << this->label() << ")");
     interface_.electron_mass
-        = particles.get(interface_.positron_id).mass().value();
+        = particles.get(interface_.ids.positron).mass().value();
     CELER_ENSURE(interface_);
 }
 
@@ -49,11 +49,11 @@ EPlusGGModel::EPlusGGModel(ModelId id, const ParticleParams& particles)
 auto EPlusGGModel::applicability() const -> SetApplicability
 {
     Applicability in_flight;
-    in_flight.particle = interface_.positron_id;
+    in_flight.particle = interface_.ids.positron;
     in_flight.lower    = zero_quantity();
     in_flight.upper    = units::MevEnergy{1e8}; // 100 TeV
 
-    return {Applicability::at_rest(interface_.positron_id), in_flight};
+    return {Applicability::at_rest(interface_.ids.positron), in_flight};
 }
 
 //---------------------------------------------------------------------------//
@@ -78,7 +78,7 @@ void EPlusGGModel::interact(const HostInteractRef& data) const
  */
 ModelId EPlusGGModel::model_id() const
 {
-    return interface_.model_id;
+    return interface_.ids.model;
 }
 
 //---------------------------------------------------------------------------//

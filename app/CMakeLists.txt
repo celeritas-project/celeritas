@@ -212,11 +212,11 @@ endmacro()
 
 # Generate demo loop kernel/host loop code for host/device
 celeritas_gen_demo_loop_kernel("AlongAndPostStep" "along_and_post_step"
-  "'states.size()'")
+  "'data.states.size()'")
 celeritas_gen_demo_loop_kernel("Cleanup" "cleanup" "1")
-celeritas_gen_demo_loop_kernel("PreStep" "pre_step" "'states.size()'")
+celeritas_gen_demo_loop_kernel("PreStep" "pre_step" "'data.states.size()'")
 celeritas_gen_demo_loop_kernel("ProcessInteractions" "process_interactions"
-  "'states.size()'")
+  "'data.states.size()'")
 
 if(CELERITAS_BUILD_DEMOS)
   set(_demo_loop_src

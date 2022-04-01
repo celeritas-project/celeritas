@@ -15,12 +15,11 @@ namespace celeritas
 namespace generated
 {
 void init_tracks(
-    const CoreParamsHostRef& params,
-    const CoreStateHostRef& states,
-    const TrackInitStateHostRef& data,
+    const CoreHostRef& core_data,
+    const TrackInitStateHostRef& init_data,
     const size_type num_vacancies)
 {
-    detail::InitTracksLauncher<MemSpace::host> launch(params, states, data, num_vacancies);
+    detail::InitTracksLauncher<MemSpace::host> launch(core_data, init_data, num_vacancies);
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < num_vacancies; ++i)
     {

@@ -37,25 +37,35 @@ struct RayleighParameters
 
 //---------------------------------------------------------------------------//
 /*!
+ * Model and particles IDs.
+ */
+struct RayleighIds
+{
+    ModelId    model;
+    ParticleId gamma;
+
+    //! Check whether the data is assigned
+    explicit CELER_FUNCTION operator bool() const { return model && gamma; }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Device data for creating an interactor.
  */
 template<Ownership W, MemSpace M>
 struct RayleighData
 {
-    //! Model ID
-    ModelId model_id;
-
-    //! ID of a gamma
-    ParticleId gamma_id;
+    //! Model and particle IDs
+    RayleighIds ids;
 
     template<class T>
     using ElementItems = celeritas::Collection<T, W, M, ElementId>;
     ElementItems<RayleighParameters> params;
 
     //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
+    explicit CELER_FUNCTION operator bool() const
     {
-        return model_id && gamma_id && !params.empty();
+        return ids && !params.empty();
     }
 
     //! Assign from another set of data
@@ -63,8 +73,8 @@ struct RayleighData
     RayleighData& operator=(const RayleighData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        model_id = other.model_id;
-        gamma_id = other.gamma_id;
+        ids.model = other.ids.model;
+        ids.gamma = other.ids.gamma;
         params   = other.params;
         return *this;
     }
@@ -74,8 +84,7 @@ using RayleighDeviceRef
     = RayleighData<Ownership::const_reference, MemSpace::device>;
 using RayleighHostRef
     = RayleighData<Ownership::const_reference, MemSpace::host>;
-using RayleighNativeRef
-    = RayleighData<Ownership::const_reference, MemSpace::native>;
+using RayleighRef = RayleighData<Ownership::const_reference, MemSpace::native>;
 
 } // namespace detail
 } // namespace celeritas
