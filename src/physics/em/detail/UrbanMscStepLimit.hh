@@ -88,16 +88,22 @@ class UrbanMscStepLimit
     // Urban MSC helper class
     UrbanMscHelper helper_;
 
-    size_type num_steps_{};
+    bool      on_boundary_{};
     real_type range_{};
     real_type lambda_{};
-    real_type limit_{};
-    real_type alpha_{-1};
+
+    //// HELPER TYPES ////
+
+    struct GeomPathAlpha
+    {
+        real_type geom_path;
+        real_type alpha;
+    };
 
     //// HELPER FUNCTIONS ////
 
     // Calculate the geometry path length for a given true path length
-    inline CELER_FUNCTION real_type calc_geom_path(real_type true_path);
+    inline CELER_FUNCTION GeomPathAlpha calc_geom_path(real_type true_path) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -119,7 +125,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     , params_(shared.params)
     , msc_(shared_.msc_data[material.material_id()])
     , helper_(shared, particle, physics, material)
-    , num_steps_(sim.num_steps())
+    , on_boundary_(sim.num_steps() == 0 || safety_ == 0)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
@@ -155,7 +161,8 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
         || (safety_ > 0 && distance < safety_))
     {
         result.is_displaced = false;
-        result.geom_path    = calc_geom_path(result.true_path);
+        auto temp           = this->calc_geom_path(result.true_path);
+        result.geom_path    = temp.geom_path;
         return result;
     }
 
@@ -167,9 +174,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
     real_type range_init = max<real_type>(range_, lambda_);
 
     // G4StepStatus = fGeomBoundary: step defined by a geometry boundary
-    bool on_boundary = (safety_ == 0);
-
-    if (num_steps_ == 0 || on_boundary)
+    if (on_boundary_)
     {
         // For the first step of a track or after entering in a new volume
         if (lambda_ > params_.lambda_limit)
@@ -182,23 +187,27 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
     }
 
     // The step limit
-    limit_ = (range_ > safety_) ? max<real_type>(range_fact * range_init,
-                                                 params_.safety_fact * safety_)
-                                : range_;
+    real_type limit = range_;
+    if (limit > safety_)
+    {
+        limit = max<real_type>(range_fact * range_init,
+                               params_.safety_fact * safety_);
+    }
+    limit = max<real_type>(limit, result.limit_min);
 
-    // The lower bound for the true path length limit
-    limit_ = max<real_type>(limit_, result.limit_min);
-
-    if (limit_ < result.true_path)
+    if (limit < result.true_path)
     {
         // Randomize the limit if this step should be determined by msc
         result.true_path = min<real_type>(
             result.true_path,
-            helper_.randomize_limit(rng, limit_, result.limit_min));
+            helper_.randomize_limit(rng, limit, result.limit_min));
     }
 
-    result.geom_path = calc_geom_path(result.true_path);
-    result.alpha     = alpha_;
+    {
+        auto temp        = this->calc_geom_path(result.true_path);
+        result.geom_path = temp.geom_path;
+        result.alpha     = temp.alpha;
+    }
 
     return result;
 }
@@ -228,38 +237,42 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscResult
  * G4UrbanMscModel of the Geant4 10.7 release.
  */
 CELER_FUNCTION
-real_type UrbanMscStepLimit::calc_geom_path(real_type true_path)
+auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
+    -> GeomPathAlpha
 {
-    //  Do the true path -> geom path transformation
-    real_type geom_path = true_path;
-    alpha_              = -1;
+    // Do the true path -> geom path transformation
+    GeomPathAlpha result;
+    result.geom_path = true_path;
+    result.alpha     = -1;
 
     if (true_path < 100 * helper_.limit_min_fix())
     {
         // geometrical path length = true path length for a very small step
-        return geom_path;
+        return result;
     }
 
     real_type tau = true_path / lambda_;
     if (tau <= params_.tau_small)
     {
-        geom_path = min<real_type>(true_path, lambda_);
+        result.geom_path = min<real_type>(true_path, lambda_);
     }
     else if (true_path < range_ * helper_.dtrl())
     {
-        geom_path = (tau < params_.tau_limit) ? true_path * (1 - tau / 2)
-                                              : lambda_ * (1 - std::exp(-tau));
+        result.geom_path = (tau < params_.tau_limit)
+                               ? true_path * (1 - tau / 2)
+                               : lambda_ * (1 - std::exp(-tau));
     }
     else if (inc_energy_.value() < shared_.electron_mass.value()
              || true_path == range_)
     {
-        alpha_      = 1 / range_;
-        real_type w = 1 + 1 / (alpha_ * lambda_);
+        result.alpha = 1 / range_;
+        real_type w  = 1 + 1 / (result.alpha * lambda_);
 
-        geom_path = 1 / (alpha_ * w);
+        result.geom_path = 1 / (result.alpha * w);
         if (true_path < range_)
         {
-            geom_path *= (1 - std::exp(w * std::log(1 - true_path / range_)));
+            result.geom_path
+                *= (1 - std::exp(w * std::log(1 - true_path / range_)));
         }
     }
     else
@@ -269,13 +282,14 @@ real_type UrbanMscStepLimit::calc_geom_path(real_type true_path)
         Energy    loss    = helper_.eloss(rfinal);
         real_type lambda1 = helper_.msc_mfp(loss);
 
-        alpha_      = (lambda_ - lambda1) / (lambda_ * true_path);
-        real_type w = 1 + 1 / (alpha_ * lambda_);
-        geom_path   = (1 - std::exp(w * std::log(lambda1 / lambda_)))
-                    / (alpha_ * w);
+        result.alpha     = (lambda_ - lambda1) / (lambda_ * true_path);
+        real_type w      = 1 + 1 / (result.alpha * lambda_);
+        result.geom_path = (1 - std::exp(w * std::log(lambda1 / lambda_)))
+                           / (result.alpha * w);
     }
 
-    return min<real_type>(geom_path, lambda_);
+    result.geom_path = min<real_type>(result.geom_path, lambda_);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
