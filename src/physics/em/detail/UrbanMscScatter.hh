@@ -9,6 +9,7 @@
 #include "base/Algorithms.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
 
 #include "UrbanMscData.hh"
@@ -65,8 +66,10 @@ class UrbanMscScatter
     // Geomtry track view
     GeoTrackView& geometry_;
 
+    Energy    end_energy_;
     real_type lambda_;
     real_type true_path_;
+    bool      skip_sampling_;
 
     // Internal state
     real_type tau_{0};
@@ -110,7 +113,7 @@ class UrbanMscScatter
     // Update direction and position after the multiple scattering
     template<class Engine>
     inline CELER_FUNCTION Real3 sample_displacement(Engine&   rng,
-                                                    real_type cth) const;
+                                                    real_type phi) const;
 
     inline CELER_FUNCTION real_type
     calc_displacement_scaling(const Real3& displacement, real_type rmax2);
@@ -151,6 +154,17 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
         input_.true_path, input_.geom_path, input_.alpha);
     // Protect against a wrong true -> geom -> true transformation
     true_path_ = min<real_type>(true_path_, input_.phys_step);
+    CELER_ASSERT(true_path_ >= input_.geom_path);
+
+    skip_sampling_ = true;
+    if (true_path_ < helper_.range() && true_path_ > shared.params.geom_limit)
+    {
+        end_energy_ = helper_.end_energy(true_path_);
+        skip_sampling_
+            = (value_as<units::MevEnergy>(end_energy_) < real_type(1e-9)
+               || true_path_ <= input_.limit_min
+               || true_path_ < lambda_ * params_.tau_small);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -163,48 +177,43 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
 template<class Engine>
 CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 {
-    MscInteraction result{true_path_, inc_direction_, {0, 0, 0}};
-
-    // Do not sample scattering at the last or at a small step
-    if (true_path_ < helper_.range() && true_path_ > geom_min())
+    if (skip_sampling_)
     {
-        auto end_energy = helper_.end_energy(true_path_);
-
-        bool skip_sampling = (end_energy.value() < 1e-9
-                              || true_path_ <= input_.limit_min
-                              || true_path_ < lambda_ * params_.tau_small);
-
-        if (!skip_sampling)
-        {
-            real_type cth = this->sample_cos_theta(
-                rng, end_energy, input_.true_path, input_.limit_min);
-
-            CELER_ENSURE(std::abs(cth) <= 1);
-
-            // Sample direction
-            UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-            real_type                          phi = sample_phi(rng);
-            result.direction = rotate(from_spherical(cth, phi), inc_direction_);
-
-            // true_path^2 - geo_path^2
-            real_type rmax2 = (true_path_ - input_.geom_path)
-                              * (true_path_ + input_.geom_path);
-
-            if (input_.is_displaced && tau_ >= params_.tau_small && rmax2 > 0)
-            {
-                // Sample displacement and adjust
-                result.displacement = this->sample_displacement(rng, phi);
-                real_type scaling   = this->calc_displacement_scaling(
-                    result.displacement, rmax2);
-                for (auto i : range(3))
-                {
-                    result.displacement[i] *= scaling;
-                }
-            }
-        }
+        // Do not sample scattering at the last or at a small step
+        return {true_path_, inc_direction_, {0, 0, 0}};
     }
 
-    return result;
+    // Ssample azimuthal angle, used for displacement and exiting angle
+    real_type phi
+        = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
+
+    // Calculate displacement
+    Real3 displacement;
+    if (input_.is_displaced && tau_ >= params_.tau_small)
+    {
+        // Sample displacement and adjust
+        displacement    = this->sample_displacement(rng, phi);
+        real_type rmax2 = (true_path_ - input_.geom_path)
+                          * (true_path_ + input_.geom_path);
+        real_type scaling
+            = this->calc_displacement_scaling(displacement, rmax2);
+        for (auto i : range(3))
+        {
+            displacement[i] *= scaling;
+        }
+    }
+    else
+    {
+        displacement = {0, 0, 0};
+    }
+
+    // Sample direction
+    real_type mu = this->sample_cos_theta(
+        rng, end_energy_, input_.true_path, input_.limit_min);
+    CELER_ASSERT(std::fabs(mu) <= 1);
+
+    Real3 direction = rotate(from_spherical(mu, phi), inc_direction_);
+    return MscInteraction{true_path_, direction, displacement};
 }
 
 //---------------------------------------------------------------------------//
@@ -233,12 +242,12 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                                                            real_type true_path,
                                                            real_type limit_min)
 {
-    real_type result = 1.0;
+    real_type result = 1;
 
     real_type lambda_end = helper_.msc_mfp(end_energy);
 
     tau_ = true_path
-           / ((std::fabs(lambda_ - lambda_end) > lambda_ * 0.01)
+           / ((std::fabs(lambda_ - lambda_end) > lambda_ * real_type(0.01))
                   ? (lambda_ - lambda_end) / std::log(lambda_ / lambda_end)
                   : lambda_);
 
@@ -341,7 +350,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         // Sampling of cos(theta)
         if (generate_canonical(rng) < qprob)
         {
-            real_type var = 0;
             if (BernoulliDistribution(prob)(rng))
             {
                 // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
@@ -350,7 +358,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
             else
             {
                 // Sample \f$ \cos\theta \f$ from \f$ g_2(\cos\theta) \f$
-                var = (1 - d) * generate_canonical(rng);
+                real_type var = (1 - d) * generate_canonical(rng);
                 if (var < real_type(0.01) * d)
                 {
                     var /= (d * c1);
@@ -387,16 +395,14 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
     Engine& rng, real_type xmean, real_type x2mean) const
 {
     real_type a = (2 * xmean + 9 * x2mean - 3) / (2 * xmean - 3 * x2mean + 1);
-    real_type prob = (a + 2) * xmean / a;
+    BernoulliDistribution sample_pow{(a + 2) * xmean / a};
 
     // Sample cos(theta)
     real_type result{};
     do
     {
         real_type rdm = generate_canonical(rng);
-        result        = BernoulliDistribution(prob)(rng)
-                            ? -1 + 2 * fastpow(rdm, 1 / (a + 1))
-                            : -1 + 2 * rdm;
+        result = 2 * (sample_pow(rng) ? fastpow(rdm, 1 / (a + 1)) : rdm) - 1;
     } while (std::fabs(result) > 1);
 
     return result;
@@ -530,6 +536,7 @@ CELER_FUNCTION Real3 UrbanMscScatter::sample_displacement(Engine&   rng,
 CELER_FUNCTION real_type UrbanMscScatter::calc_displacement_scaling(
     const Real3& displacement, real_type rmax2)
 {
+    CELER_EXPECT(rmax2 >= 0);
     // Scale with the lateral arm
     real_type multiplier = real_type(0.73) * std::sqrt(rmax2);
 
