@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Algorithms.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "geometry/GeoTrackView.hh"
@@ -258,7 +259,7 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
         if (true_path < range_)
         {
             result.geom_path
-                *= (1 - std::exp(w * std::log(1 - true_path / range_)));
+                *= (1 - fastpow(1 - true_path / range_, w));
         }
     }
     else
@@ -270,7 +271,7 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
 
         result.alpha     = (lambda_ - lambda1) / (lambda_ * true_path);
         real_type w      = 1 + 1 / (result.alpha * lambda_);
-        result.geom_path = (1 - std::exp(w * std::log(lambda1 / lambda_)))
+        result.geom_path = (1 - fastpow(lambda1 / lambda_, w))
                            / (result.alpha * w);
     }
 

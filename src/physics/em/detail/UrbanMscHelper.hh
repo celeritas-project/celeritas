@@ -288,7 +288,7 @@ real_type UrbanMscHelper::calc_true_path(real_type true_path,
         {
             real_type w = 1 + 1 / (alpha * lambda);
             real_type x = alpha * w * geom_path;
-            length      = (x < 1) ? (1 - std::exp(std::log(1 - x) / w)) / alpha
+            length      = (x < 1) ? (1 - fastpow(1 - x, 1 / w)) / alpha
                                   : range_;
         }
 

@@ -290,8 +290,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         }
 
         // Evaluate parameters for the tail distribution
-        real_type u   = small_step ? std::exp(std::log(tsmall / lambda_) / 6)
-                                   : std::exp(std::log(tau_) / 6);
+        real_type u   = fastpow(small_step ? tsmall / lambda_ : tau_,
+                                 1 / real_type(6));
         real_type xsi = msc_.d[0] + u * (msc_.d[1] + msc_.d[2] * u)
                         + msc_.d[3]
                               * std::log(true_path / (tau_ * rad_length_));
@@ -325,7 +325,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         // From continuity of derivatives
         real_type b1 = 2 + (c - xsi) * x;
         real_type bx = c * x;
-        real_type d  = std::exp(std::log(bx / b1) * c1);
+        real_type d  = fastpow(bx / b1, c1);
         real_type x0 = 1 - xsi * x;
 
         // Mean of cos\theta computed from the distribution g_2(cos\theta)
@@ -361,7 +361,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                 else
                 {
                     result
-                        = x * (c - xsi - c * std::exp(-std::log(var + d) / c1))
+                        = x * (c - xsi - c * fastpow(var + d, -1 / c1))
                           + 1;
                 }
             }
@@ -395,7 +395,7 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
     {
         real_type rdm = generate_canonical(rng);
         result        = BernoulliDistribution(prob)(rng)
-                            ? -1 + 2 * std::exp(std::log(rdm) / (a + 1))
+                            ? -1 + 2 * fastpow(rdm, 1 / (a + 1))
                             : -1 + 2 * rdm;
     } while (std::fabs(result) > 1);
 
