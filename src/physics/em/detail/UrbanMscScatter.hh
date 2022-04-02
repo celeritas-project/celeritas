@@ -180,10 +180,10 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     if (skip_sampling_)
     {
         // Do not sample scattering at the last or at a small step
-        return {true_path_, inc_direction_, {0, 0, 0}};
+        return MscInteraction{true_path_, inc_direction_, {0, 0, 0}};
     }
 
-    // Ssample azimuthal angle, used for displacement and exiting angle
+    // Sample azimuthal angle, used for displacement and exiting angle
     real_type phi
         = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
 
@@ -207,12 +207,13 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
         displacement = {0, 0, 0};
     }
 
-    // Sample direction
-    real_type mu = this->sample_cos_theta(
+    // Sample polar angle
+    real_type costheta = this->sample_cos_theta(
         rng, end_energy_, input_.true_path, input_.limit_min);
-    CELER_ASSERT(std::fabs(mu) <= 1);
+    CELER_ASSERT(std::fabs(costheta) <= 1);
 
-    Real3 direction = rotate(from_spherical(mu, phi), inc_direction_);
+    // Calculate direction and return
+    Real3 direction = rotate(from_spherical(costheta, phi), inc_direction_);
     return MscInteraction{true_path_, direction, displacement};
 }
 
