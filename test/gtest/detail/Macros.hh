@@ -475,7 +475,13 @@ void print_expected(const Container& data, std::string label)
     label.insert(0, "expected_");
     VRT::print_type(std::cout, label.c_str());
     std::cout << "[] = ";
+
+    std::ios orig_state(nullptr);
+    orig_state.copyfmt(std::cout);
+    VRT::init(std::cout);
     RT::print_value(std::cout, data);
+    std::cout.copyfmt(orig_state);
+
     std::cout << ";\n";
 }
 
