@@ -181,15 +181,16 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
             const auto& urban_data = phys.urban_data();
 
             // Replace step with actual geometry distance traveled
-            auto step = phys.msc_step();
-            step.geom_path = step;
+            auto msc_step      = phys.msc_step();
+            msc_step.geom_path = step;
 
             celeritas::detail::UrbanMscScatter msc_scatter(
                 urban_data,
                 particle,
                 &geo,
                 phys,
-                mat.make_material_view(), step);
+                mat.make_material_view(),
+                msc_step);
             auto msc_result = msc_scatter(rng);
             // Restore full path length traveled along the step to
             // correctly calculate energy loss, step time, etc.
