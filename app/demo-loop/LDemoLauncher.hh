@@ -152,7 +152,7 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
                 sim);
             auto msc_step_result = msc_step_limit(rng);
 
-            // Use msc_step_result.geom_path for geometry transport
+            // Limit geometry step
             step = msc_step_result.geom_path;
 
             // Test for the msc limited step
@@ -169,9 +169,10 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
         {
             // Propagate up to the step length or next boundary
             LinearPropagator propagate(&geo);
-            auto             geo_step = propagate(step);
-            step                      = geo_step.distance;
-            crossed_boundary          = geo_step.boundary;
+
+            auto geo_step    = propagate(step);
+            step             = geo_step.distance;
+            crossed_boundary = geo_step.boundary;
         }
 
         // Sample the multiple scattering
@@ -179,13 +180,16 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
         {
             const auto& urban_data = phys.urban_data();
 
+            // Replace step with actual geometry distance traveled
+            auto step = phys.msc_step();
+            step.geom_path = step;
+
             celeritas::detail::UrbanMscScatter msc_scatter(
                 urban_data,
                 particle,
                 &geo,
                 phys,
-                mat.make_material_view(),
-                phys.msc_step());
+                mat.make_material_view(), step);
             auto msc_result = msc_scatter(rng);
             // Restore full path length traveled along the step to
             // correctly calculate energy loss, step time, etc.

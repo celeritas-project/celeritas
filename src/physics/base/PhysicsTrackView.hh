@@ -346,9 +346,6 @@ CELER_FUNCTION ModelId PhysicsTrackView::model_id() const
 //---------------------------------------------------------------------------//
 /*!
  * Access calculated MSC step data.
- *
- * If no model applies (e.g. if the particle has exited the geometry) the
- * result will be the \c ModelId() which evaluates to false.
  */
 CELER_FUNCTION MscStep PhysicsTrackView::msc_step() const
 {
