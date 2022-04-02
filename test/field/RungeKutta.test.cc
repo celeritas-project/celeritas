@@ -12,6 +12,7 @@
 #include "base/Range.hh"
 #include "base/Types.hh"
 #include "base/Units.hh"
+#include "field/DormandPrinceStepper.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
@@ -65,10 +66,9 @@ class RungeKuttaTest : public Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(RungeKuttaTest, host)
+TEST_F(RungeKuttaTest, host_classical_rk4)
 {
     // Construct the Runge-Kutta stepper
-
     UniformMagField field({0, 0, param.field_value});
 
     using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
@@ -109,12 +109,74 @@ TEST_F(RungeKuttaTest, host)
     }
 }
 
-//---------------------------------------------------------------------------//
-
-TEST_F(RungeKuttaTest, TEST_IF_CELER_DEVICE(device))
+TEST_F(RungeKuttaTest, host_dormand_prince_rk547)
 {
-    // Run kernel
+    // Construct the Dormand-Prince RK5(4)7M stepper
+    UniformMagField field({0, 0, param.field_value});
+
+    using RKTraits
+        = detail::MagTestTraits<UniformMagField, DormandPrinceStepper>;
+    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
+    RKTraits::Stepper_t  dp_rk547(equation);
+
+    // Test parameters and the sub-step size
+    real_type hstep = 2.0 * constants::pi * param.radius / param.nsteps;
+
+    // Only test every 128 states to reduce debug runtime
+    for (unsigned int i : celeritas::range(param.nstates).step(128u))
+    {
+        // Initial state and the epected state after revolutions
+        OdeState y;
+        y.pos = {param.radius, 0.0, i * 1.0e-6};
+        y.mom = {0.0, param.momentum_y, param.momentum_z};
+
+        OdeState expected_y = y;
+
+        // Try the stepper by hstep for (num_revolutions * num_steps) times
+        real_type total_err2 = 0;
+        for (int nr : range(param.revolutions))
+        {
+            // Travel hstep for num_steps times in the field
+            expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
+            for (CELER_MAYBE_UNUSED int j : celeritas::range(param.nsteps))
+            {
+                StepperResult result = dp_rk547(hstep, y);
+                y                    = result.end_state;
+                total_err2 += detail::truncation_error(
+                    hstep, 0.001, y, result.err_state);
+            }
+            // Check the state after each revolution and the total error
+            EXPECT_VEC_NEAR(expected_y.pos, y.pos, sqrt(total_err2));
+            EXPECT_VEC_NEAR(expected_y.mom, y.mom, sqrt(total_err2));
+            EXPECT_LT(total_err2, param.epsilon);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(RungeKuttaTest, TEST_IF_CELER_DEVICE(device_classical_rk4))
+{
+    // Run the classical RungeKutta kernel
     auto output = rk4_test(param);
+
+    // Check stepper results
+    real_type zstep = param.delta_z * param.revolutions;
+    for (auto i : celeritas::range(output.pos_x.size()))
+    {
+        real_type error = std::sqrt(output.error[i]);
+        EXPECT_SOFT_NEAR(output.pos_x[i], param.radius, error);
+        EXPECT_SOFT_NEAR(output.pos_z[i], zstep + i * 1.0e-6, error);
+        EXPECT_SOFT_NEAR(output.mom_y[i], param.momentum_y, error);
+        EXPECT_SOFT_NEAR(output.mom_z[i], param.momentum_z, error);
+        EXPECT_LT(output.error[i], param.epsilon);
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(RungeKuttaTest, TEST_IF_CELER_DEVICE(device_dormand_prince_rk547))
+{
+    // Run the classical RungeKutta kernel
+    auto output = dp547_test(param);
 
     // Check stepper results
     real_type zstep = param.delta_z * param.revolutions;

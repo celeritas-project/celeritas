@@ -36,9 +36,15 @@ struct RK4TestOutput
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 RK4TestOutput rk4_test(FieldTestParams test_param);
+RK4TestOutput dp547_test(FieldTestParams test_param);
 
 #if !CELER_USE_DEVICE
 inline RK4TestOutput rk4_test(FieldTestParams)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline RK4TestOutput dp754_test(FieldTestParams)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
