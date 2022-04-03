@@ -23,6 +23,38 @@ namespace celeritas
  * the coefficients to locate the mid point are taken from L. F. Shampine,
  * "Some Practical Runge-Kutta Formulas", Mathematics of * Computation,
  * volume 46, number 17, pp 147 (1986).
+ *
+ * For a given ordinary differential equation, \f$dy/dx = f(x, y)\f$, the
+ * fifth order solution, \f$ y_{n+1} \f$, an embedded fourth order solution,
+ * \f$ y^{*}_{n+1} \f$, and the error estimate as difference between them are
+ * as follows,
+ * \f[
+     y_{n+1}     = y_n + h \sum_{n=1}^{6} b_i  k_i + O(6)
+     y^{*}_{n+1} = y_n + h \sum_{n=1}^{7} b*_i k_i + O(5)
+     y_{error}   = y_{n+1} - y^{*}_{n+1} = \sum_{n=1}^{7} (b^{*}_i - b_i) k_i
+   \f]
+ * where \f$h\f$ is the step to advance and k_i is the right hand side of the
+ * function at \f$x_n + h c_i\f$, and the coefficients (The Butcher table) for
+ * Dormand-Prince RK5(4)7M are
+ * \verbatim
+   c_i | a_ij
+   0   |
+   1/5 | 1/5
+   3/10| 3/40        9/40
+   4/5 | 44/45      -56/15      32/9
+   8/9 | 19372/6561 -25360/2187 64448/6561 -212/729
+   1   | 9017/3168  -355/33     46732/5247  49/176  -5103/18656
+   1   | 35/384      0          500/1113    125/192 -2187/6784    11/84
+  ----------------------------------------------------------------------------
+   b*_i| 35/384      0          500/1113    125/192 -2187/6784    11/84    0
+   b_i | 5179/57600  0          7571/16695  393/640 -92097/339200 187/2100 1/40
+  \endverbatim
+ *
+ * The result at the mid point is computed
+ * \f[
+     y_{n+1/2}   = y_n + (h/2) \Sigma_{n=1}^{7} c^{*}_i k_i
+   \f]
+ * with the coefficients \f$c^{*}\f$ taken from L. F. Shampine (1986).
  */
 template<class EquationT>
 class DormandPrinceStepper
@@ -51,37 +83,8 @@ class DormandPrinceStepper
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * For a given ordinary differential equation, \f$d/y/dx = f(x, y)\f$, the
- * fifth order solution, \f$ y_{n+1} \f$, an embedded fourth order solution,
- * \f$ y^{*}_{n+1} \f$, and the error estimate as difference between them are
- * as follows,
- * \f[
-     y_{n+1}     = y_n + h \Sigma_{n=1}^{6} b_i  k_i + O(6)
-     y^{*}_{n+1} = y_n + h \Sigma_{n=1}^{7} b*_i k_i + O(5)
-     y_{error}   = y_{n+1} - y^{*}_{n+1} = \Sigma_{n}^{S} (b^{*}_i - b_i) k_i
-   \f]
- * where \f$h\f$ is the step to advance and k_i is the right hand side of the
- * function at \f$x_n + h c_i\f$, and the coefficients (The Butcher table) for
- * Dormand-Prince RK5(4)7M are
- *
- * c_i | a_ij
- * 0   |
- * 1/5 | 1/5
- * 3/10| 3/40        9/40
- * 4/5 | 44/45      -56/15      32/9
- * 8/9 | 19372/6561 -25360/2187 64448/6561 -212/729
- * 1   | 9017/3168  -355/33     46732/5247  49/176  -5103/18656
- * 1   | 35/384      0          500/1113    125/192 -2187/6784    11/84
- * ----------------------------------------------------------------------------
- * b*_i| 35/384      0          500/1113    125/192 -2187/6784    11/84    0
- * b_i | 5179/57600  0          7571/16695  393/640 -92097/339200 187/2100 1/40
- *
- * The result at the mid point is computed
- * \f[
-     y_{n+1/2}   = y_n + (h/2) \Sigma_{n=1}^{7} c^{*}_i k_i
-   \f]
- * with the coefficients \f$c^{*}\f$ taken from L. F. Shampine (1986).
-*/
+ * Adaptive step size control for the DormandPrince RK5(4)7M method
+ */
 template<class E>
 CELER_FUNCTION auto
 DormandPrinceStepper<E>::operator()(real_type step, const OdeState& beg_state)
