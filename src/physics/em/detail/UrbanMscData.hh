@@ -34,12 +34,14 @@ struct UrbanMscParameters
     real_type range_fact{0.04}; //!< range_factor for e-/e+ (0.2 for muon/h)
     real_type safety_fact{0.6}; //!< safety factor
     real_type safety_tol{0.01}; //!< safety tolerance
-    real_type geom_limit{5e-8 * units::millimeter}; //!< 0.05 nm
+    real_type geom_limit{5e-8 * units::millimeter}; //!< minimum step
     Energy    energy_limit{1e-5};                   //!< 10 eV
 };
 
 //---------------------------------------------------------------------------//
 /*!
+ * Material-dependent data for Urban MSC.
+ *
  * UrbanMsc material data (see G4UrbanMscModel::mscData) is a set of
  * precalculated material dependent parameters used in sampling the angular
  * distribution of MSC, \f$ \cos\theta \f$. All parameters are unitless.
@@ -47,6 +49,7 @@ struct UrbanMscParameters
 struct UrbanMscMaterialData
 {
     using Real4 = Array<real_type, 4>;
+
     real_type zeff;        //!< effective atomic_number
     real_type z23;         //!< zeff^(2/3)
     real_type coeffth1;    //!< correction in theta_0 formula
@@ -58,15 +61,14 @@ struct UrbanMscMaterialData
     real_type d_over_r_mh; //!< the maximum distance/range for muon/h
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Physics IDs for MSC
+ */
 struct UrbanMscIds
 {
-    //! Model ID
     ModelId model;
-
-    //! ID of a electron
     ParticleId electron;
-
-    //! ID of a positron
     ParticleId positron;
 
     //! Whether the IDs are assigned
@@ -83,22 +85,22 @@ struct UrbanMscIds
 template<Ownership W, MemSpace M>
 struct UrbanMscData
 {
-    //! Type-free IDs
-    UrbanMscIds ids;
-
-    //! Mass of of electron in MeV
-    units::MevMass electron_mass;
-
-    UrbanMscParameters params;
-
     template<class T>
     using MaterialItems = celeritas::Collection<T, W, M, MaterialId>;
+
+    //! Type-free IDs
+    UrbanMscIds ids;
+    //! Mass of of electron in MeV
+    units::MevMass electron_mass;
+    //! User-assignable options
+    UrbanMscParameters params;
+    //! Material-dependent data
     MaterialItems<UrbanMscMaterialData> msc_data;
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && !msc_data.empty();
+        return ids && electron_mass > zero_quantity() && !msc_data.empty();
     }
 
     //! Assign from another set of data

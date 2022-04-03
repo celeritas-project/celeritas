@@ -29,6 +29,24 @@ using celeritas::value_as;
 
 namespace demo_loop
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+inline CELER_FUNCTION bool
+use_msc_track(const celeritas::ParticleTrackView& particle,
+              const celeritas::PhysicsTrackView&  phys,
+              celeritas::real_type                step)
+{
+    if (!phys.msc_ppid())
+        return false;
+    const auto& urban_data = phys.urban_data();
+    return (step > urban_data.params.geom_limit
+            && particle.energy() > urban_data.params.energy_limit);
+}
+} // namespace
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
@@ -120,34 +138,29 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
         auto geo = track.make_geo_view();
         auto mat = track.make_material_view();
         auto rng = track.make_rng_engine();
+        bool use_msc = use_msc_track(particle, phys, step);
 
-        // Apply the msc step limitation and pass the current step to geom
-        celeritas::detail::MscStepLimitResult msc_step_result;
-        if (phys.msc_ppid())
+        if (use_msc)
         {
-            const auto& urban_data = phys.urban_data();
+            // Sample multiple scattering step length
+            celeritas::detail::UrbanMscStepLimit msc_step_limit(
+                phys.urban_data(),
+                particle,
+                &geo,
+                phys,
+                mat.make_material_view(),
+                sim);
+            auto msc_step_result = msc_step_limit(rng);
 
-            if (step > urban_data.params.geom_limit
-                && particle.energy() > urban_data.params.energy_limit)
+            // Limit geometry step
+            step = msc_step_result.geom_path;
+
+            // Test for the msc limited step
+            if (msc_step_result.true_path < msc_step_result.phys_step)
             {
-                using UrbanMscStepLimit = celeritas::detail::UrbanMscStepLimit;
-                UrbanMscStepLimit msc_step_limit(urban_data,
-                                                 particle,
-                                                 &geo,
-                                                 phys,
-                                                 mat.make_material_view(),
-                                                 sim);
-                msc_step_result = msc_step_limit(rng);
-
-                // Use msc_step_result.geom_path for geometry transport
-                step = msc_step_result.geom_path;
-
-                // Test for the msc limited step
-                if (msc_step_result.true_path < msc_step_result.phys_step)
-                {
-                    result_action = Action::msc_limited;
-                }
+                result_action = Action::msc_limited;
             }
+            phys.msc_step(msc_step_result);
         }
 
         // Boundary crossings and energy loss only need to be considered when
@@ -156,38 +169,38 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
         {
             // Propagate up to the step length or next boundary
             LinearPropagator propagate(&geo);
-            auto             geo_step = propagate(step);
-            step                      = geo_step.distance;
-            crossed_boundary          = geo_step.boundary;
+
+            auto geo_step    = propagate(step);
+            step             = geo_step.distance;
+            crossed_boundary = geo_step.boundary;
         }
 
         // Sample the multiple scattering
-        if (phys.msc_ppid())
+        if (use_msc)
         {
             const auto& urban_data = phys.urban_data();
 
-            if (step > urban_data.params.geom_limit
-                && particle.energy() > urban_data.params.energy_limit)
-            {
-                using UrbanMscScatter = celeritas::detail::UrbanMscScatter;
+            // Replace step with actual geometry distance traveled
+            auto msc_step      = phys.msc_step();
+            msc_step.geom_path = step;
 
-                msc_step_result.geom_path = step;
-                UrbanMscScatter msc_scatter(urban_data,
-                                            particle,
-                                            &geo,
-                                            phys,
-                                            mat.make_material_view(),
-                                            msc_step_result);
-                auto            msc_result = msc_scatter(rng);
-                step                       = msc_result.step_length;
+            celeritas::detail::UrbanMscScatter msc_scatter(
+                urban_data,
+                particle,
+                &geo,
+                phys,
+                mat.make_material_view(),
+                msc_step);
+            auto msc_result = msc_scatter(rng);
+            // Restore full path length traveled along the step to
+            // correctly calculate energy loss, step time, etc.
+            step = msc_result.step_length;
 
-                // Update direction and position
-                geo.set_dir(msc_result.direction);
-                celeritas::Real3 new_pos = geo.pos();
-                celeritas::axpy(
-                    real_type(1), msc_result.displacement, &new_pos);
-                geo.move_internal(new_pos);
-            }
+            // Update direction and position
+            geo.set_dir(msc_result.direction);
+            celeritas::Real3 new_pos = geo.pos();
+            celeritas::axpy(real_type(1), msc_result.displacement, &new_pos);
+            geo.move_internal(new_pos);
         }
 
         // Calculate energy loss over the step length

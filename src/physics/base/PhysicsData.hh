@@ -329,6 +329,8 @@ struct PhysicsStateData
     //// DATA ////
 
     StateItems<PhysicsTrackState> state; //!< Track state [track]
+    StateItems<MscStep>           msc_step; //!< Internal MSC data [track]
+
     Items<real_type> per_process_xs;     //!< XS [track][particle process]
 
     //// METHODS ////
@@ -345,6 +347,7 @@ struct PhysicsStateData
     {
         CELER_EXPECT(other);
         state          = other.state;
+        msc_step       = other.msc_step;
         per_process_xs = other.per_process_xs;
         return *this;
     }
@@ -363,6 +366,10 @@ inline void resize(
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params.max_particle_processes > 0);
     make_builder(&state->state).resize(size);
+    if (params.hardwired.msc)
+    {
+        make_builder(&state->msc_step).resize(size);
+    }
     make_builder(&state->per_process_xs)
         .resize(size * params.max_particle_processes);
 }

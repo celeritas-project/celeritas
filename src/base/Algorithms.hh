@@ -7,8 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
 #include <type_traits>
 
+#include "Assert.hh"
 #include "Macros.hh"
 #include "detail/AlgorithmsImpl.hh"
 
@@ -270,6 +272,24 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
     return (N == 0)       ? 1
            : (N % 2 == 0) ? ipow<N / 2>(v) * ipow<N / 2>(v)
                           : v * ipow<(N - 1) / 2>(v) * ipow<(N - 1) / 2>(v);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Raise a number to a power with simplifying assumptions.
+ *
+ * This should be faster than `std::pow` because we don't worry about
+ * exceptions for zeros, infinities, or negative values for a.
+ *
+ * Example: \code
+  assert(9.0 == fastpow(3.0, 2.0));
+ \endcode
+ */
+template<class T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
+inline CELER_FUNCTION T fastpow(T a, T b)
+{
+    CELER_EXPECT(a > 0 || (a == 0 && b != 0));
+    return std::exp(b * std::log(a));
 }
 
 //---------------------------------------------------------------------------//

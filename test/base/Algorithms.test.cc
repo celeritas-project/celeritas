@@ -185,3 +185,23 @@ TEST(MathTest, ipow)
     EXPECT_EQ(1e4, celeritas::ipow<4>(10.0));
     EXPECT_TRUE((std::is_same<int, decltype(celeritas::ipow<4>(5))>::value));
 }
+
+//---------------------------------------------------------------------------//
+
+TEST(MathTest, fastpow)
+{
+    using celeritas::fastpow;
+
+    EXPECT_DOUBLE_EQ(0.0, fastpow(0.0, 1.0));
+    EXPECT_DOUBLE_EQ(1.0, fastpow(1234.0, 0.0));
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(fastpow(0.0, 0.0), celeritas::DebugError);
+    }
+    EXPECT_DOUBLE_EQ(123.456, fastpow(123.456, 1.0));
+    EXPECT_FLOAT_EQ(0.001f, fastpow(0.1f, 3.0f));
+    EXPECT_DOUBLE_EQ(10.0, fastpow(1000.0, 1.0 / 3.0));
+    EXPECT_DOUBLE_EQ(1.0 / 32.0, fastpow(2.0, -5.0));
+
+    EXPECT_TRUE((std::is_same<float, decltype(fastpow(5.0f, 1.0f))>::value));
+}

@@ -210,8 +210,8 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_DOUBLE_EQ(msc_.d_over_r_mh, 1.1248191999999999);
 
     // Test the step limitation algorithm and the msc sample scattering
-    detail::MscStepLimitResult step_result;
-    detail::MscScatterResult   sample_result;
+    MscStep        step_result;
+    MscInteraction sample_result;
 
     // Input
     const unsigned int nsamples = 8;
@@ -257,7 +257,7 @@ TEST_F(UrbanMscTest, msc_scattering)
 
     for (auto i : celeritas::range(nsamples))
     {
-        real_type r = i * 2.0 - 1e-4;
+        real_type r = i * 2 - real_type(1e-4);
         geo_view    = {{r, r, r}, direction};
 
         this->set_inc_particle(pdg::electron(), MevEnergy{energy[i]});
@@ -285,24 +285,22 @@ TEST_F(UrbanMscTest, msc_scattering)
         angle.push_back(sample_result.direction[0]);
     }
 
-    const double expected_fstep[] = {0.0027916899999997,
-                                     0.134631648532277,
-                                     0.0376414,
-                                     0.0357277834605262,
-                                     0.00111391683751815,
-                                     0.000112053935348643,
-                                     0.000286789820693628,
-                                     1.17373195131411e-05};
-
-    const double expected_angle[] = {0.000314741326035635,
-                                     0.738624667826603,
-                                     -0.145610123961716,
-                                     -0.657415795200799,
-                                     0.119014628205848,
-                                     -0.216102964881347,
-                                     0.793645871128744,
-                                     -0.98020130119347};
-
+    static const double expected_fstep[] = {0.0027916899999997,
+                                            0.14681061896989,
+                                            0.028194652662093,
+                                            0.035727783460526,
+                                            0.0012630589956741,
+                                            9.8927866508237e-05,
+                                            0.00028678982069363,
+                                            1.1737319513141e-05};
     EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
-    EXPECT_VEC_SOFT_EQ(expected_angle, angle);
+    static const double expected_angle[] = {0.018295123575691,
+                                            0.27206685190532,
+                                            0.41125840612784,
+                                            0.73023360431147,
+                                            -0.25014464909878,
+                                            -0.16344305508081,
+                                            -0.27093903107024,
+                                            0.76465696539213};
+    EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
 }

@@ -9,11 +9,11 @@
 #include "base/Algorithms.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
 
 #include "UrbanMscData.hh"
 #include "UrbanMscHelper.hh"
-#include "UrbanMscStepLimit.hh"
 
 namespace celeritas
 {
@@ -21,18 +21,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Output data type of UrbanMscScatter.
- */
-struct MscScatterResult
-{
-    real_type step_length;  //!< true step length
-    Real3     direction;    //!< final direction by msc
-    Real3     displacement; //!< lateral displacement
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * This is a class for sampling cos(theta) of the Urban multiple scattering.
+ * Sample cos(theta) of the Urban multiple scattering model.
  */
 class UrbanMscScatter
 {
@@ -40,7 +29,6 @@ class UrbanMscScatter
     //!@{
     //! Type aliases
     using Energy          = units::MevEnergy;
-    using StepLimitResult = detail::MscStepLimitResult;
     using MscParameters   = detail::UrbanMscParameters;
     using MaterialData    = detail::UrbanMscMaterialData;
     //!@}
@@ -52,11 +40,11 @@ class UrbanMscScatter
                                           GeoTrackView*            geometry,
                                           const PhysicsTrackView&  physics,
                                           const MaterialView&      material,
-                                          const StepLimitResult&   input);
+                                          const MscStep&           input);
 
     // Sample the final true step length, position and direction by msc
     template<class Engine>
-    inline CELER_FUNCTION MscScatterResult operator()(Engine& rng);
+    inline CELER_FUNCTION MscInteraction operator()(Engine& rng);
 
   private:
     //// DATA ////
@@ -66,8 +54,6 @@ class UrbanMscScatter
     bool      is_positron_;
     real_type rad_length_;
     real_type mass_;
-    real_type lambda_;
-    real_type tau_{0};
 
     // Urban MSC parameters
     const MscParameters& params_;
@@ -76,13 +62,21 @@ class UrbanMscScatter
     // Urban MSC helper class
     UrbanMscHelper helper_;
     // Results from UrbanMSCStepLimit
-    StepLimitResult input_;
+    MscStep input_;
     // Geomtry track view
     GeoTrackView& geometry_;
 
+    Energy    end_energy_;
+    real_type lambda_;
+    real_type true_path_;
+    bool      skip_sampling_;
+
+    // Internal state
+    real_type tau_{0};
+
     //// COMMON PROPERTIES ////
 
-    //! The minimum step length for geometry ( 0.05*CLHEP::nm)
+    //! The minimum step length for geometry 0.05 nm
     static CELER_CONSTEXPR_FUNCTION real_type geom_min()
     {
         return 5e-9 * units::centimeter;
@@ -119,8 +113,10 @@ class UrbanMscScatter
     // Update direction and position after the multiple scattering
     template<class Engine>
     inline CELER_FUNCTION Real3 sample_displacement(Engine&   rng,
-                                                    real_type cth,
-                                                    real_type rmax2);
+                                                    real_type phi) const;
+
+    inline CELER_FUNCTION real_type
+    calc_displacement_scaling(const Real3& displacement, real_type rmax2);
 };
 
 //---------------------------------------------------------------------------//
@@ -135,7 +131,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
                                  GeoTrackView*            geometry,
                                  const PhysicsTrackView&  physics,
                                  const MaterialView&      material,
-                                 const StepLimitResult&   input)
+                                 const MscStep&           input)
     : inc_energy_(particle.energy())
     , inc_direction_(geometry->dir())
     , is_positron_(particle.particle_id() == shared.ids.positron)
@@ -149,8 +145,26 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
+    CELER_EXPECT(input_.geom_path > 0);
 
     lambda_ = helper_.msc_mfp(inc_energy_);
+
+    // Convert the geometry path length to the true path length
+    true_path_ = helper_.calc_true_path(
+        input_.true_path, input_.geom_path, input_.alpha);
+    // Protect against a wrong true -> geom -> true transformation
+    true_path_ = min<real_type>(true_path_, input_.phys_step);
+    CELER_ASSERT(true_path_ >= input_.geom_path);
+
+    skip_sampling_ = true;
+    if (true_path_ < helper_.range() && true_path_ > shared.params.geom_limit)
+    {
+        end_energy_ = helper_.end_energy(true_path_);
+        skip_sampling_
+            = (value_as<units::MevEnergy>(end_energy_) < real_type(1e-9)
+               || true_path_ <= input_.limit_min
+               || true_path_ < lambda_ * params_.tau_small);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -161,53 +175,46 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
  * G4UrbanMscModel::SampleScattering of the Geant4 10.7 release.
  */
 template<class Engine>
-CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng)
-    -> MscScatterResult
+CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 {
-    // Convert the geometry path length to the true path length
-    real_type geom_path = input_.geom_path;
-
-    real_type true_path
-        = helper_.calc_true_path(input_.true_path, geom_path, input_.alpha);
-
-    // Protect against a wrong true -> geom -> true transformation
-    true_path = min<real_type>(true_path, input_.phys_step);
-
-    MscScatterResult result{true_path, inc_direction_, {0, 0, 0}};
-
-    // Do not sample scattering at the last or at a small step
-    if (true_path < helper_.range() && true_path > geom_min())
+    if (skip_sampling_)
     {
-        auto end_energy = helper_.end_energy(true_path);
-
-        bool skip_sampling = (end_energy.value() < 1e-9
-                              || true_path <= input_.limit_min
-                              || true_path < lambda_ * params_.tau_small);
-
-        if (!skip_sampling)
-        {
-            real_type cth = this->sample_cos_theta(
-                rng, end_energy, input_.true_path, input_.limit_min);
-
-            CELER_ENSURE(std::abs(cth) <= 1);
-
-            // Sample direction
-            UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-            real_type                          phi = sample_phi(rng);
-            result.direction = rotate(from_spherical(cth, phi), inc_direction_);
-
-            // Sample displacement
-            real_type rmax2 = (true_path - geom_path) * (true_path + geom_path);
-
-            if (input_.is_displaced && tau_ >= params_.tau_small && rmax2 > 0)
-            {
-                result.displacement
-                    = this->sample_displacement(rng, phi, rmax2);
-            }
-        }
+        // Do not sample scattering at the last or at a small step
+        return MscInteraction{true_path_, inc_direction_, {0, 0, 0}};
     }
 
-    return result;
+    // Sample azimuthal angle, used for displacement and exiting angle
+    real_type phi
+        = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
+
+    // Calculate displacement
+    Real3 displacement;
+    if (input_.is_displaced && tau_ >= params_.tau_small)
+    {
+        // Sample displacement and adjust
+        displacement    = this->sample_displacement(rng, phi);
+        real_type rmax2 = (true_path_ - input_.geom_path)
+                          * (true_path_ + input_.geom_path);
+        real_type scaling
+            = this->calc_displacement_scaling(displacement, rmax2);
+        for (auto i : range(3))
+        {
+            displacement[i] *= scaling;
+        }
+    }
+    else
+    {
+        displacement = {0, 0, 0};
+    }
+
+    // Sample polar angle
+    real_type costheta = this->sample_cos_theta(
+        rng, end_energy_, input_.true_path, input_.limit_min);
+    CELER_ASSERT(std::fabs(costheta) <= 1);
+
+    // Calculate direction and return
+    Real3 direction = rotate(from_spherical(costheta, phi), inc_direction_);
+    return MscInteraction{true_path_, direction, displacement};
 }
 
 //---------------------------------------------------------------------------//
@@ -236,12 +243,12 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                                                            real_type true_path,
                                                            real_type limit_min)
 {
-    real_type result = 1.0;
+    real_type result = 1;
 
     real_type lambda_end = helper_.msc_mfp(end_energy);
 
     tau_ = true_path
-           / ((std::fabs(lambda_ - lambda_end) > lambda_ * 0.01)
+           / ((std::fabs(lambda_ - lambda_end) > lambda_ * real_type(0.01))
                   ? (lambda_ - lambda_end) / std::log(lambda_ / lambda_end)
                   : lambda_);
 
@@ -293,8 +300,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         }
 
         // Evaluate parameters for the tail distribution
-        real_type u   = small_step ? std::exp(std::log(tsmall / lambda_) / 6)
-                                   : std::exp(std::log(tau_) / 6);
+        real_type u   = fastpow(small_step ? tsmall / lambda_ : tau_,
+                                 1 / real_type(6));
         real_type xsi = msc_.d[0] + u * (msc_.d[1] + msc_.d[2] * u)
                         + msc_.d[3]
                               * std::log(true_path / (tau_ * rad_length_));
@@ -328,7 +335,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         // From continuity of derivatives
         real_type b1 = 2 + (c - xsi) * x;
         real_type bx = c * x;
-        real_type d  = std::exp(std::log(bx / b1) * c1);
+        real_type d  = fastpow(bx / b1, c1);
         real_type x0 = 1 - xsi * x;
 
         // Mean of cos\theta computed from the distribution g_2(cos\theta)
@@ -344,7 +351,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         // Sampling of cos(theta)
         if (generate_canonical(rng) < qprob)
         {
-            real_type var = 0;
             if (BernoulliDistribution(prob)(rng))
             {
                 // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
@@ -353,7 +359,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
             else
             {
                 // Sample \f$ \cos\theta \f$ from \f$ g_2(\cos\theta) \f$
-                var = (1 - d) * generate_canonical(rng);
+                real_type var = (1 - d) * generate_canonical(rng);
                 if (var < real_type(0.01) * d)
                 {
                     var /= (d * c1);
@@ -364,7 +370,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                 else
                 {
                     result
-                        = x * (c - xsi - c * std::exp(-std::log(var + d) / c1))
+                        = x * (c - xsi - c * fastpow(var + d, -1 / c1))
                           + 1;
                 }
             }
@@ -390,16 +396,14 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
     Engine& rng, real_type xmean, real_type x2mean) const
 {
     real_type a = (2 * xmean + 9 * x2mean - 3) / (2 * xmean - 3 * x2mean + 1);
-    real_type prob = (a + 2) * xmean / a;
+    BernoulliDistribution sample_pow{(a + 2) * xmean / a};
 
     // Sample cos(theta)
     real_type result{};
     do
     {
         real_type rdm = generate_canonical(rng);
-        result        = BernoulliDistribution(prob)(rng)
-                            ? -1 + 2 * std::exp(std::log(rdm) / (a + 1))
-                            : -1 + 2 * rdm;
+        result = 2 * (sample_pow(rng) ? fastpow(rdm, 1 / (a + 1)) : rdm) - 1;
     } while (std::fabs(result) > 1);
 
     return result;
@@ -509,53 +513,56 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
  */
 template<class Engine>
 CELER_FUNCTION Real3 UrbanMscScatter::sample_displacement(Engine&   rng,
-                                                          real_type phi,
-                                                          real_type rmax2)
+                                                          real_type phi) const
 {
     // Sample a unit direction of the displacement
     constexpr real_type cbeta  = 2.160;
-    real_type           cbeta1 = 1 - std::exp(-cbeta * constants::pi);
+    // cbeta1 = 1 - std::exp(-cbeta * constants::pi);
+    constexpr real_type cbeta1 = 0.9988703417569197;
 
-    real_type psi   = -std::log(1 - generate_canonical(rng) * cbeta1) / cbeta;
-    real_type angle = BernoulliDistribution(0.5)(rng) ? phi + psi : phi - psi;
+    real_type psi = -std::log(1 - generate_canonical(rng) * cbeta1) / cbeta;
+    phi += BernoulliDistribution(0.5)(rng) ? psi : -psi;
 
-    Real3 displacement{std::cos(angle), std::sin(angle), 0};
+    Real3 displacement{std::cos(phi), std::sin(phi), 0};
 
     // Rotate along the incident particle direction
     displacement = rotate(displacement, inc_direction_);
+    return displacement;
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Scale displacement and correct near the boundary.
+ */
+CELER_FUNCTION real_type UrbanMscScatter::calc_displacement_scaling(
+    const Real3& displacement, real_type rmax2)
+{
+    CELER_EXPECT(rmax2 >= 0);
     // Scale with the lateral arm
-    real_type arm = real_type(0.73) * std::sqrt(rmax2);
-    for (auto i : range(3))
-    {
-        displacement[i] *= arm;
-    }
+    real_type multiplier = real_type(0.73) * std::sqrt(rmax2);
 
     // Do not sample near the boundary
-    real_type rho = norm(displacement);
+    real_type rho = multiplier * norm(displacement);
     if (rho > params_.geom_limit)
     {
         real_type safety = (1 - params_.safety_tol)
                            * geometry_.find_safety(geometry_.pos());
-        real_type multiplier = 0;
-
         if (rho <= safety)
         {
-            multiplier = 1;
+            // No scaling needed
         }
         else if (safety > params_.geom_limit)
         {
-            multiplier = safety / rho;
+            multiplier *= safety / rho;
         }
-        // Otherwise (near a volume boundary), do not change position
-
-        for (auto i : range(3))
+        else
         {
-            displacement[i] *= multiplier;
+            // Otherwise (near a volume boundary), do not change position
+            multiplier = 0;
         }
     }
 
-    return displacement;
+    return multiplier;
 }
 
 //---------------------------------------------------------------------------//

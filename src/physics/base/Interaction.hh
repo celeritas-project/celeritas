@@ -52,6 +52,40 @@ struct Interaction
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Step lengths and properties needed to apply multiple scattering.
+ *
+ * \todo Document and/or refactor into a class that hides details:
+ * - alpha < 0 ? "true path is very small" (true path scaling changes)
+ * - is_displaced == false ? limit_min is unchanged and alpha < 0
+ * - true_step >= geom_path
+ */
+struct MscStep
+{
+    bool      is_displaced{true}; //!< Flag for the lateral displacement
+    real_type phys_step{};        //!< Step length from physics processes
+    real_type true_path{};        //!< True path length due to the msc
+    real_type geom_path{};        //!< Geometrical path length
+    real_type limit_min{1e-8};    //!< Minimum of the true path limit
+    real_type alpha{-1};          //!< An effecive mfp rate by distance
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Result of multiple scattering.
+ *
+ * The "true" step length is the physical path length taken along the geometric
+ * step, accounting for the extra distance taken between along-step
+ * elastic collisions.
+ */
+struct MscInteraction
+{
+    real_type step_length;  //!< True step length
+    Real3     direction;    //!< Post-step direction
+    Real3     displacement; //!< Lateral displacement
+};
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
