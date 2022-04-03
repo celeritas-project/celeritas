@@ -29,8 +29,8 @@ namespace celeritas
  * \f$ y^{*}_{n+1} \f$, and the error estimate as difference between them are
  * as follows,
  * \f[
-     y_{n+1}     = y_n + h \sum_{n=1}^{6} b_i  k_i + O(6)
-     y^{*}_{n+1} = y_n + h \sum_{n=1}^{7} b*_i k_i + O(5)
+     y_{n+1}     = y_n + h \sum_{n=1}^{6} b_i  k_i + O(h^6)
+     y^{*}_{n+1} = y_n + h \sum_{n=1}^{7} b*_i k_i + O(h^5)
      y_{error}   = y_{n+1} - y^{*}_{n+1} = \sum_{n=1}^{7} (b^{*}_i - b_i) k_i
    \f]
  * where \f$h\f$ is the step to advance and k_i is the right hand side of the
