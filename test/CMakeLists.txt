@@ -41,7 +41,7 @@ if(CELERITAS_USE_HIP)
     base/StackAllocator.test.cu
     field/FieldDriver.test.cu
     field/FieldPropagator.test.cu
-    field/RungeKutta.test.cu
+    field/Steppers.test.cu
     field/UserMapField.test.cu
     field/UserParamField.test.cu
     orange/surfaces/SurfaceAction.test.cu
@@ -148,7 +148,7 @@ celeritas_add_test(comm/Logger.test.cc)
 
 celeritas_setup_tests(SERIAL PREFIX field)
 
-celeritas_device_test(field/RungeKutta)
+celeritas_device_test(field/Steppers)
 celeritas_device_test(field/FieldDriver)
 celeritas_device_test(field/FieldPropagator)
 

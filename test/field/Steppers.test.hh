@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RungeKutta.test.hh
+//! \file Steppers.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -22,7 +22,7 @@ namespace celeritas_test
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Output results
-struct RK4TestOutput
+struct SteppersTestOutput
 {
     using real_type = celeritas::real_type;
 
@@ -35,10 +35,16 @@ struct RK4TestOutput
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-RK4TestOutput rk4_test(FieldTestParams test_param);
+SteppersTestOutput rk4_test(FieldTestParams test_param);
+SteppersTestOutput dp547_test(FieldTestParams test_param);
 
 #if !CELER_USE_DEVICE
-inline RK4TestOutput rk4_test(FieldTestParams)
+inline SteppersTestOutput rk4_test(FieldTestParams)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline SteppersTestOutput dp547_test(FieldTestParams)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
