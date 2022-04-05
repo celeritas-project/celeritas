@@ -22,6 +22,7 @@ struct NLTestOutput
     T nan;
     T inf;
     T max;
+    T inv_zero; // Test for expected infinity
 };
 
 //---------------------------------------------------------------------------//

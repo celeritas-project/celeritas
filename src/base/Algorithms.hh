@@ -97,6 +97,29 @@ struct Less<void>
 // Replace/extend <algorithm>
 //---------------------------------------------------------------------------//
 /*!
+ * Clamp the value between lo and hi values.
+ *
+ * If the value is between lo and hi, return the value. Otherwise, return lo if
+ * it's below it, or hi above it.
+ *
+ * This replaces:
+ * \code
+ *  min(hi, max(lo, v))
+ * \endcode
+ * or
+ * \code
+ *  max(v, min(v, lo))
+ * \endcode
+ */
+template<class T>
+inline CELER_FUNCTION T const& clamp(T const& v, T const& lo, T const& hi)
+{
+    CELER_EXPECT(!(hi < lo));
+    return v < lo ? lo : hi < v ? hi : v;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return the value or (if it's negative) then zero.
  *
  * This is constructed to correctly propagate NaN.
