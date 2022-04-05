@@ -16,6 +16,7 @@
 #include "physics/base/PDGNumber.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/em/detail/UrbanMscData.hh"
+#include "physics/grid/PolyEvaluator.hh"
 #include "physics/material/MaterialParams.hh"
 #include "physics/material/MaterialView.hh"
 
@@ -121,6 +122,8 @@ void UrbanMscModel::build_data(HostValue* data, const MaterialParams& materials)
 auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
     -> MaterialData
 {
+    using PolyQuad = PolyEvaluator<double, 2>;
+
     if (CELER_UNLIKELY(material_view.num_elements() == 0))
     {
         // Pure vacuum, perhaps for testing?
@@ -143,26 +146,25 @@ auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
     MaterialData data;
 
     data.zeff    = zeff;
-    double log_z = std::log(zeff);
 
     // Correction in the (modified Highland-Lynch-Dahl) theta_0 formula
-    double z16    = std::exp(log_z / 6);
-    double fz     = 0.990395 + z16 * (-0.168386 + z16 * 0.093286);
+    const double z16 = std::pow(zeff, 1.0 / 6.0);
+    double       fz  = PolyQuad(0.990395, -0.168386, 0.093286)(z16);
     data.coeffth1 = fz * (1 - 8.7780e-2 / zeff);
     data.coeffth2 = fz * (4.0780e-2 + 1.7315e-4 * zeff);
 
     // Tail parameters
     double z13 = ipow<2>(z16);
-    data.d[0]  = 2.3785 - z13 * (4.1981e-1 - z13 * 6.3100e-2);
-    data.d[1]  = 4.7526e-1 + z13 * (1.7694 - z13 * 3.3885e-1);
-    data.d[2]  = 2.3683e-1 - z13 * (1.8111 - z13 * 3.2774e-1);
-    data.d[3]  = 1.7888e-2 + z13 * (1.9659e-2 - z13 * 2.6664e-3);
+    data.d[0]  = PolyQuad(2.3785, -4.1981e-1, 6.3100e-2)(z13);
+    data.d[1]  = PolyQuad(4.7526e-1, 1.7694, -3.3885e-1)(z13);
+    data.d[2]  = PolyQuad(2.3683e-1, -1.8111, 3.2774e-1)(z13);
+    data.d[3]  = PolyQuad(1.7888e-2, 1.9659e-2, -2.6664e-3)(z13);
 
     data.z23 = ipow<2>(z13);
 
     // Parameters for the step minimum calculation
-    data.stepmin_a = 27.725 / (1 + 0.203 * zeff);
-    data.stepmin_b = 6.152 / (1 + 0.111 * zeff);
+    data.stepmin_a = 1e3 * 27.725 / (1 + 0.203 * zeff);
+    data.stepmin_b = 1e3 * 6.152 / (1 + 0.111 * zeff);
 
     // Parameters for the maximum distance that particles can travel
     data.d_over_r = 9.6280e-1 - 8.4848e-2 * std::sqrt(data.zeff)

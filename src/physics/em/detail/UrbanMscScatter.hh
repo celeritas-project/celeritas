@@ -10,6 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
+#include "physics/grid/PolyEvaluator.hh"
 #include "physics/material/Types.hh"
 
 #include "UrbanMscData.hh"
@@ -245,6 +246,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                                                            real_type true_path,
                                                            real_type limit_min)
 {
+    using PolyQuad = PolyEvaluator<real_type, 2>;
+
     real_type result = 1;
 
     real_type lambda_end = helper_.msc_mfp(end_energy_);
@@ -301,9 +304,9 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         }
 
         // Evaluate parameters for the tail distribution
-        real_type u   = fastpow(small_step ? tsmall / lambda_ : tau_,
-                                 1 / real_type(6));
-        real_type xsi = msc_.d[0] + u * (msc_.d[1] + msc_.d[2] * u)
+        real_type u
+            = fastpow(small_step ? tsmall / lambda_ : tau_, 1 / real_type(6));
+        real_type xsi = PolyQuad(msc_.d[0], msc_.d[1], msc_.d[2])(u)
                         + msc_.d[3]
                               * std::log(true_path / (tau_ * rad_length_));
 
@@ -370,9 +373,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                 }
                 else
                 {
-                    result
-                        = x * (c - xsi - c * fastpow(var + d, -1 / c1))
-                          + 1;
+                    result = x * (c - xsi - c * fastpow(var + d, -1 / c1)) + 1;
                 }
             }
         }
@@ -461,6 +462,9 @@ real_type UrbanMscScatter::compute_theta0(real_type true_path) const
  */
 CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
 {
+    using PolyLin  = PolyEvaluator<real_type, 1>;
+    using PolyQuad = PolyEvaluator<real_type, 2>;
+
     real_type corr{1.0};
 
     real_type           zeff = msc_.zeff;
@@ -469,9 +473,9 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
     constexpr real_type e    = 113;
 
     real_type x = std::sqrt(tau * (tau + 2) / ipow<2>(tau + 1));
-    real_type a = real_type(0.994) - real_type(4.08e-3) * zeff;
-    real_type b = real_type(7.16) + (real_type(52.6) + 365 / zeff) / zeff;
-    real_type c = 1 - real_type(4.47e-3) * zeff;
+    real_type a = PolyLin(0.994, -4.08e-3)(zeff);
+    real_type b = PolyQuad(7.16, 52.6, 365)(1 / zeff);
+    real_type c = PolyLin(1, -4.47e-3)(zeff);
     real_type d = real_type(1.21e-3) * zeff;
     if (x < xl)
     {
@@ -489,8 +493,8 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
         real_type y1 = yl - y0 * xl;
         corr         = y0 * x + y1;
     }
-    corr *= (zeff * (real_type(1.84035e-4) * zeff - real_type(1.86427e-2))
-             + real_type(1.41125));
+
+    corr *= PolyQuad(1.41125, -1.86427e-2, 1.84035e-4)(zeff);
 
     return corr;
 }
