@@ -46,6 +46,17 @@ if not use_vecgeom:
 num_tracks = 128*32 if use_device else 32
 num_primaries = 3 * 15 # assuming test hepmc input
 
+if use_vecgeom:
+    # More steps needed for MSC
+    max_steps = 512
+else:
+    max_steps = 128
+
+if not use_device:
+    # Way more steps are needed since we're not tracking in parallel, so
+    # shorten to an even more unreasonably small number to reduce test time.
+    max_steps = 64
+
 inp = {
     'use_device': use_device,
     'geometry_filename': geometry_filename,
@@ -53,7 +64,7 @@ inp = {
     'hepmc3_filename': hepmc3_filename,
     'seed': 12345,
     'max_num_tracks': num_tracks,
-    'max_steps': 128 if use_device else 64, # Just for sake of test time!
+    'max_steps': max_steps,
     'initializer_capacity': 100 * max([num_tracks, num_primaries]),
     'secondary_stack_factor': 3,
     'enable_diagnostics': True,
