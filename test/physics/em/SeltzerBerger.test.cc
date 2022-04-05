@@ -183,11 +183,11 @@ TEST_F(SeltzerBergerTest, sb_positron_xs_scaling)
         }
     }
     // clang-format off
-    const double expected_scaling_frac[] = {
-        0.9980342329193, 0.9800123976959, 0.8513338610609, 2.827839668085e-05,
-        0.9999449017036, 0.9993355880532, 0.9870854387438, 0.04176283721387,
-        0.9999993627271, 0.9999919054025, 0.9997522383667, 0.4174036918268,
-        0.9999999935293, 0.9999999173093, 0.9999972926228, 0.8399650995661};
+    static const double expected_scaling_frac[] = {
+        0.98771267862086, 0.88085886234621, 0.36375147691123, 2.6341925633236e-29,
+        0.99965385757708, 0.99583269657665, 0.92157316225919, 2.1585790781929e-09,
+        0.99999599590292, 0.99994914123134, 0.99844428624414, 0.0041293798201,
+        0.99999995934326, 0.99999948043882, 0.99998298916928, 0.33428689072689};
     // clang-format on
     EXPECT_VEC_SOFT_EQ(expected_scaling_frac, scaling_frac);
 }
@@ -286,10 +286,10 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
     const double expected_avg_exit_frac[] = {0.949115932248866,
         0.497486662164049, 0.082127972143285, 0.0645177016233406, 
         0.0774717918229646, 0.0891340819129683, 0.0661428500057435, 
-        0.0640038878541159};
+        0.0633342905440201};
     const double expected_avg_engine_samples[] = {4.0791015625, 4.06005859375,
 	5.134765625, 4.65625, 4.43017578125, 4.35693359375, 4.6591796875,
-        4.66845703125};
+        4.6728515625};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
@@ -420,16 +420,16 @@ TEST_F(SeltzerBergerTest, stress_test)
     }
 
     // Gold values for average number of calls to RNG
-    const double expected_avg_engine_samples[] = {14.088,
-                                                  13.2402,
-                                                  12.9641,
-                                                  12.5832,
-                                                  12.4988,
-                                                  14.10655,
-                                                  13.2396,
-                                                  12.9456,
-                                                  12.5815,
-                                                  12.4965};
+    static const double expected_avg_engine_samples[] = {14.088,
+                                                         13.2402,
+                                                         12.9641,
+                                                         12.5832,
+                                                         12.4988,
+                                                         14.2173,
+                                                         13.2544,
+                                                         12.9429,
+                                                         12.5957,
+                                                         12.4886};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

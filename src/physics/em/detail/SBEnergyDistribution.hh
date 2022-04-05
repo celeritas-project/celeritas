@@ -150,11 +150,13 @@ template<class X>
 template<class Engine>
 CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
 {
+    // Maximum number of iterations in rejection loop
+    constexpr size_type max_iter = 100;
     // Sampled energy
     Energy exit_energy;
     // Calculated cross section used inside rejection sampling
     real_type xs{};
-    do
+    for (CELER_MAYBE_UNUSED size_type i : range(max_iter))
     {
         // Sample scaled energy and subtract correction factor
         exit_energy = helper_.sample_exit_energy(rng);
@@ -162,7 +164,12 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
         // Interpolate the differential cross setion at the sampled exit energy
         xs = helper_.calc_xs(exit_energy).value() * scale_xs_(exit_energy);
         CELER_ASSERT(xs >= 0 && xs <= 1 / inv_max_xs_);
-    } while (!BernoulliDistribution(xs * inv_max_xs_)(rng));
+
+        if (BernoulliDistribution(xs * inv_max_xs_)(rng))
+        {
+            break;
+        }
+    }
     return exit_energy;
 }
 

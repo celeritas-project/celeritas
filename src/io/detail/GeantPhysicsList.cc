@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "GeantPhysicsList.hh"
 
-#include <G4BetheHeitlerModel.hh>
 #include <G4ComptonScattering.hh>
 #include <G4CoulombScattering.hh>
 #include <G4GammaConversion.hh>
@@ -15,6 +14,7 @@
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LivermoreRayleighModel.hh>
 #include <G4MollerBhabhaModel.hh>
+#include <G4PairProductionRelModel.hh>
 #include <G4PhotoElectricEffect.hh>
 #include <G4PhysicsListHelper.hh>
 #include <G4Proton.hh>
@@ -93,7 +93,7 @@ void GeantPhysicsList::ConstructProcess()
  * | Compton scattering   | G4KleinNishinaModel           |
  * | Photoelectric effect | G4LivermorePhotoElectricModel |
  * | Rayleigh scattering  | G4LivermoreRayleighModel      |
- * | Gamma conversion     | G4BetheHeitlerModel           |
+ * | Gamma conversion     | G4PairProductionRelModel      |
  */
 void GeantPhysicsList::add_gamma_processes()
 {
@@ -133,12 +133,13 @@ void GeantPhysicsList::add_gamma_processes()
 
     if (true)
     {
-        // Gamma conversion: G4BetheHeitlerModel
+        // Gamma conversion: G4PairProductionRelModel
         auto gamma_conversion = std::make_unique<G4GammaConversion>();
-        gamma_conversion->SetEmModel(new G4BetheHeitlerModel());
+        gamma_conversion->SetEmModel(new G4PairProductionRelModel());
         physics_list->RegisterProcess(gamma_conversion.release(), gamma);
 
-        CELER_LOG(debug) << "Loaded gamma conversion with G4BetheHeitlerModel";
+        CELER_LOG(debug) << "Loaded gamma conversion with "
+                            "G4PairProductionRelModel";
     }
 }
 
@@ -194,9 +195,7 @@ void GeantPhysicsList::add_e_processes()
     if (true)
     {
         // Bremsstrahlung: G4SeltzerBergerModel + G4eBremsstrahlungRelModel
-        // Currently only using Seltzer-Berger
-        auto models
-            = GeantBremsstrahlungProcess::ModelSelection::seltzer_berger;
+        auto models = GeantBremsstrahlungProcess::ModelSelection::all;
 
         auto electron_brems
             = std::make_unique<GeantBremsstrahlungProcess>(models);

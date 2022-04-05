@@ -37,7 +37,7 @@ namespace detail
  * \f$ \alpha \f$ is the fine structure constant, \f$E\f$ is the
  * incident positron kinetic energy, \f$k_c\f$ is the gamma
  * production cutoff energy, and \f$ E' \f$ is the provisionally sampled
- * exiting kinetic energy of the positron.
+ * exiting kinetic energy of the photon.
  *
  * The correction factor is described in:
  *
@@ -91,7 +91,8 @@ SBPositronXsCorrector::SBPositronXsCorrector(Mass               positron_mass,
                                              Energy min_gamma_energy,
                                              Energy inc_energy)
     : positron_mass_{positron_mass.value()}
-    , alpha_z_{celeritas::constants::alpha_fine_structure * el.atomic_number()}
+    , alpha_z_{2 * constants::pi * celeritas::constants::alpha_fine_structure
+               * el.atomic_number()}
     , inc_energy_(inc_energy.value())
     , cutoff_invbeta_{this->calc_invbeta(min_gamma_energy.value())}
 {
