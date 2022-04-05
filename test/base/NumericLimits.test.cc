@@ -35,6 +35,7 @@ TYPED_TEST(RealNumericLimitsTest, host)
     EXPECT_EQ(std_limits_t::infinity(), celer_limits_t::infinity());
     EXPECT_EQ(std_limits_t::max(), celer_limits_t::max());
     EXPECT_TRUE(std::isnan(celer_limits_t::quiet_NaN()));
+    EXPECT_EQ(std_limits_t::infinity(), TypeParam(1) / TypeParam(0));
 }
 
 #if CELER_USE_DEVICE
@@ -50,6 +51,7 @@ TYPED_TEST(RealNumericLimitsTest, DISABLED_device)
     EXPECT_TRUE(std::isnan(result.nan));
     EXPECT_EQ(celer_limits_t::infinity(), result.inf);
     EXPECT_EQ(celer_limits_t::max(), result.max);
+    EXPECT_EQ(celer_limits_t::infinity(), result.inv_zero);
 }
 
 //---------------------------------------------------------------------------//

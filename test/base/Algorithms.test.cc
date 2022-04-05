@@ -74,6 +74,17 @@ TEST(UtilityTest, trivial_swap)
 
 TEST(AlgorithmsTest, clamp)
 {
+    EXPECT_EQ(123, celeritas::clamp(123, 100, 200));
+    EXPECT_EQ(100, celeritas::clamp(99, 100, 200));
+    EXPECT_EQ(200, celeritas::clamp(999, 100, 200));
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(celeritas::clamp(150, 200, 100), celeritas::DebugError);
+    }
+}
+
+TEST(AlgorithmsTest, clamp_to_nonneg)
+{
     using celeritas::clamp_to_nonneg;
     constexpr auto nan = std::numeric_limits<double>::quiet_NaN();
 
@@ -138,7 +149,6 @@ TEST(AlgorithmsTest, sort)
         EXPECT_VEC_EQ(expected_data, data);
     }
 }
-
 TEST(AlgorithmsTest, minmax)
 {
     EXPECT_EQ(1, celeritas::min<int>(1, 2));

@@ -36,6 +36,27 @@ struct UrbanMscParameters
     real_type safety_tol{0.01}; //!< safety tolerance
     real_type geom_limit{5e-8 * units::millimeter}; //!< minimum step
     Energy    energy_limit{1e-5};                   //!< 10 eV
+
+    //! A scale factor for the range
+    static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 5e-2; }
+
+    //! The minimum value of the true path length limit: 0.01 nm
+    static CELER_CONSTEXPR_FUNCTION real_type limit_min_fix()
+    {
+        return 1e-9 * units::centimeter;
+    }
+
+    //! For steps below this value, true = geometrical (no MSC to be applied)
+    static CELER_CONSTEXPR_FUNCTION real_type min_step()
+    {
+        return 100 * limit_min_fix();
+    }
+
+    //! Below this endpoint energy, don't sample scattering
+    static CELER_CONSTEXPR_FUNCTION Energy min_sampling_energy()
+    {
+        return units::MevEnergy{1e-9};
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -50,15 +71,15 @@ struct UrbanMscMaterialData
 {
     using Real4 = Array<real_type, 4>;
 
-    real_type zeff;        //!< effective atomic_number
-    real_type z23;         //!< zeff^(2/3)
-    real_type coeffth1;    //!< correction in theta_0 formula
-    real_type coeffth2;    //!< correction in theta_0 formula
-    Real4     d;           //!< coefficients of tail parameters
-    real_type stepmin_a;   //!< coefficient of the step minimum calculation
-    real_type stepmin_b;   //!< coefficient of the step minimum calculation
-    real_type d_over_r;    //!< the maximum distance/range for e-/e+
-    real_type d_over_r_mh; //!< the maximum distance/range for muon/h
+    real_type zeff{};        //!< effective atomic_number
+    real_type z23{};         //!< zeff^(2/3)
+    real_type coeffth1{};    //!< correction in theta_0 formula
+    real_type coeffth2{};    //!< correction in theta_0 formula
+    Real4     d{0, 0, 0, 0}; //!< coefficients of tail parameters
+    real_type stepmin_a{};   //!< coefficient of the step minimum calculation
+    real_type stepmin_b{};   //!< coefficient of the step minimum calculation
+    real_type d_over_r{};    //!< the maximum distance/range for e-/e+
+    real_type d_over_r_mh{}; //!< the maximum distance/range for muon/h
 };
 
 //---------------------------------------------------------------------------//

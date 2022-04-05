@@ -149,7 +149,8 @@ along_and_post_step_track(celeritas::CoreTrackView const& track)
                 &geo,
                 phys,
                 mat.make_material_view(),
-                sim);
+                sim,
+                phys.step_length());
             auto msc_step_result = msc_step_limit(rng);
 
             // Limit geometry step
