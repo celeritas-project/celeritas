@@ -299,8 +299,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         real_type x = theta2 * (1 - theta2 / 12);
         if (theta2 > real_type(0.01))
         {
-            real_type sth = 2 * std::sin(real_type(0.5) * theta0);
-            x             = ipow<2>(sth);
+            x = ipow<2>(2 * std::sin(real_type(0.5) * theta0));
         }
 
         // Evaluate parameters for the tail distribution
@@ -314,22 +313,18 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         xsi = max<real_type>(xsi, real_type(1.9));
 
         real_type c = xsi;
-
-        if (std::abs(c - 3) < real_type(0.001))
+        if (std::fabs(xsi - 3) < real_type(0.001))
         {
             c = real_type(3.001);
         }
-        else if (std::abs(c - 2) < real_type(0.001))
+        else if (std::fabs(xsi - 2) < real_type(0.001))
         {
             c = real_type(2.001);
         }
 
-        real_type c1 = c - 1;
-
         real_type ea  = std::exp(-xsi);
-        real_type eaa = 1 - ea;
         // Mean of cos\theta computed from the distribution g_1(cos\theta)
-        real_type xmean1 = 1 - (1 - (1 + xsi) * ea) * x / eaa;
+        real_type xmean1 = 1 - (1 - (1 + xsi) * ea) * x / (1 - ea);
 
         if (xmean1 <= real_type(0.999) * xmean)
         {
@@ -338,16 +333,14 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
 
         // From continuity of derivatives
         real_type b1 = 2 + (c - xsi) * x;
-        real_type bx = c * x;
-        real_type d  = fastpow(bx / b1, c1);
+        real_type d  = fastpow(c * x / b1, c - 1);
         real_type x0 = 1 - xsi * x;
 
         // Mean of cos\theta computed from the distribution g_2(cos\theta)
-        real_type xmean2 = (x0 + d - (bx - b1 * d) / (c - 2)) / (1 - d);
+        real_type xmean2 = (x0 + d - (c * x - b1 * d) / (c - 2)) / (1 - d);
 
-        real_type f1x0 = ea / eaa;
-        real_type f2x0 = c1 / (c * (1 - d));
-        real_type prob = f2x0 / (f1x0 + f2x0);
+        real_type f2x0 = (c - 1) / (c * (1 - d));
+        real_type prob = f2x0 / (ea / (1 - ea) + f2x0);
 
         // Eq. 8.14 in the PRM: note that can be greater than 1
         real_type qprob = xmean / (prob * xmean1 + (1 - prob) * xmean2);
@@ -358,7 +351,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
             if (BernoulliDistribution(prob)(rng))
             {
                 // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
-                result = 1 + std::log(ea + generate_canonical(rng) * eaa) * x;
+                UniformRealDistribution<real_type> sample_inner(ea, 1);
+                result = 1 + std::log(sample_inner(rng)) * x;
             }
             else
             {
@@ -366,14 +360,15 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                 real_type var = (1 - d) * generate_canonical(rng);
                 if (var < real_type(0.01) * d)
                 {
-                    var /= (d * c1);
+                    var /= (d * (c - 1));
                     result = -1
                              + var * (1 - real_type(0.5) * var * c)
                                    * (2 + (c - xsi) * x);
                 }
                 else
                 {
-                    result = x * (c - xsi - c * fastpow(var + d, -1 / c1)) + 1;
+                    result = x * (c - xsi - c * fastpow(var + d, -1 / (c - 1)))
+                             + 1;
                 }
             }
         }
