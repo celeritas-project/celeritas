@@ -114,41 +114,49 @@ void UrbanMscModel::build_data(HostValue* data, const MaterialParams& materials)
 //---------------------------------------------------------------------------//
 /*!
  * Build UrbanMsc data per material.
+ *
  * Tabulated data based on G4UrbanMscModel::InitialiseModelCache() and
  * documented in section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
  */
 auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
     -> MaterialData
 {
-    real_type                     zeff{0};
-    real_type                     norm{0};
-    ElementComponentId::size_type num_elements = material_view.num_elements();
-    for (auto el_id : range(ElementComponentId{num_elements}))
+    if (CELER_UNLIKELY(material_view.num_elements() == 0))
     {
-        real_type weight = material_view.get_element_density(el_id);
+        // Pure vacuum, perhaps for testing?
+        return {};
+    }
+
+    // Use double-precision for host-side setup since all the precomputed
+    // factors are written as doubles
+    double zeff{0};
+    double norm{0};
+    for (auto el_id : range(ElementComponentId{material_view.num_elements()}))
+    {
+        double weight = material_view.get_element_density(el_id);
         zeff += material_view.make_element_view(el_id).atomic_number() * weight;
         norm += weight;
     }
     zeff /= norm;
+    CELER_ASSERT(zeff > 0);
 
-    CELER_EXPECT(zeff > 0);
     MaterialData data;
 
-    data.zeff       = zeff;
-    real_type log_z = std::log(zeff);
+    data.zeff    = zeff;
+    double log_z = std::log(zeff);
 
     // Correction in the (modified Highland-Lynch-Dahl) theta_0 formula
-    real_type z16 = std::exp(log_z / 6);
-    real_type fz  = 0.990395 + z16 * (-0.168386 + z16 * 0.093286);
+    double z16    = std::exp(log_z / 6);
+    double fz     = 0.990395 + z16 * (-0.168386 + z16 * 0.093286);
     data.coeffth1 = fz * (1 - 8.7780e-2 / zeff);
     data.coeffth2 = fz * (4.0780e-2 + 1.7315e-4 * zeff);
 
     // Tail parameters
-    real_type z13 = ipow<2>(z16);
-    data.d[0]     = 2.3785 - z13 * (4.1981e-1 - z13 * 6.3100e-2);
-    data.d[1]     = 4.7526e-1 + z13 * (1.7694 - z13 * 3.3885e-1);
-    data.d[2]     = 2.3683e-1 - z13 * (1.8111 - z13 * 3.2774e-1);
-    data.d[3]     = 1.7888e-2 + z13 * (1.9659e-2 - z13 * 2.6664e-3);
+    double z13 = ipow<2>(z16);
+    data.d[0]  = 2.3785 - z13 * (4.1981e-1 - z13 * 6.3100e-2);
+    data.d[1]  = 4.7526e-1 + z13 * (1.7694 - z13 * 3.3885e-1);
+    data.d[2]  = 2.3683e-1 - z13 * (1.8111 - z13 * 3.2774e-1);
+    data.d[3]  = 1.7888e-2 + z13 * (1.9659e-2 - z13 * 2.6664e-3);
 
     data.z23 = ipow<2>(z13);
 

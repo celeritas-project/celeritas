@@ -71,15 +71,15 @@ struct UrbanMscMaterialData
 {
     using Real4 = Array<real_type, 4>;
 
-    real_type zeff;        //!< effective atomic_number
-    real_type z23;         //!< zeff^(2/3)
-    real_type coeffth1;    //!< correction in theta_0 formula
-    real_type coeffth2;    //!< correction in theta_0 formula
-    Real4     d;           //!< coefficients of tail parameters
-    real_type stepmin_a;   //!< coefficient of the step minimum calculation
-    real_type stepmin_b;   //!< coefficient of the step minimum calculation
-    real_type d_over_r;    //!< the maximum distance/range for e-/e+
-    real_type d_over_r_mh; //!< the maximum distance/range for muon/h
+    real_type zeff{};        //!< effective atomic_number
+    real_type z23{};         //!< zeff^(2/3)
+    real_type coeffth1{};    //!< correction in theta_0 formula
+    real_type coeffth2{};    //!< correction in theta_0 formula
+    Real4     d{0, 0, 0, 0}; //!< coefficients of tail parameters
+    real_type stepmin_a{};   //!< coefficient of the step minimum calculation
+    real_type stepmin_b{};   //!< coefficient of the step minimum calculation
+    real_type d_over_r{};    //!< the maximum distance/range for e-/e+
+    real_type d_over_r_mh{}; //!< the maximum distance/range for muon/h
 };
 
 //---------------------------------------------------------------------------//
