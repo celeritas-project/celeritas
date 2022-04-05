@@ -214,25 +214,27 @@ TEST_F(UrbanMscTest, msc_scattering)
     MscInteraction sample_result;
 
     // Input
-    const unsigned int nsamples = 8;
+    static const real_type energy[] = {51.0231,
+                                       10.0564,
+                                       5.05808,
+                                       1.01162,
+                                       0.501328,
+                                       0.102364,
+                                       0.0465336,
+                                       0.00708839};
 
-    real_type energy[nsamples] = {51.0231,
-                                  10.0564,
-                                  5.05808,
-                                  1.01162,
-                                  0.501328,
-                                  0.102364,
-                                  0.0465336,
-                                  0.00708839};
+    static const real_type step[] = {0.00279169,
+                                     0.412343,
+                                     0.0376414,
+                                     0.078163296576415602,
+                                     0.031624394625545782,
+                                     0.002779271697902872,
+                                     0.00074215289000934838,
+                                     0.000031163160031423049};
 
-    real_type step[nsamples] = {0.00279169,
-                                0.412343,
-                                0.0376414,
-                                0.178529,
-                                0.0836231,
-                                0.125696,
-                                0.00143809,
-                                0.105187};
+    constexpr unsigned int nsamples = std::end(step) - std::begin(step);
+    static_assert(nsamples == std::end(energy) - std::begin(energy),
+                  "Input sizes do not match");
 
     // Mock SimStateData
     SimStateValue states_ref;
