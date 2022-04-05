@@ -49,6 +49,10 @@ class PolyEvaluator
     explicit CELER_CONSTEXPR_FUNCTION PolyEvaluator(Ts... coeffs)
         : coeffs_{static_cast<T>(coeffs)...}
     {
+        // Protect against leaving off a coefficient, e.g. PolyQuad(1, 2)
+        static_assert(sizeof...(coeffs) == N + 1,
+                      "All coefficients for PolyEvaluator must be explicitly "
+                      "specified");
     }
 
     //! Evaluate the polynomial at the given value
