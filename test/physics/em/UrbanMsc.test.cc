@@ -261,14 +261,14 @@ TEST_F(UrbanMscTest, msc_scattering)
         geo_view    = {{r, r, r}, direction};
 
         this->set_inc_particle(pdg::electron(), MevEnergy{energy[i]});
-        phys.step_length(step[i]);
 
         UrbanMscStepLimit step_limiter(model->host_ref(),
                                        *part_view_,
                                        &geo_view,
                                        phys,
                                        material_view,
-                                       sim_track_view);
+                                       sim_track_view,
+                                       step[i]);
 
         step_result = step_limiter(rng_engine);
 

@@ -36,6 +36,27 @@ struct UrbanMscParameters
     real_type safety_tol{0.01}; //!< safety tolerance
     real_type geom_limit{5e-8 * units::millimeter}; //!< minimum step
     Energy    energy_limit{1e-5};                   //!< 10 eV
+
+    //! A scale factor for the range
+    static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 5e-2; }
+
+    //! The minimum value of the true path length limit: 0.01 nm
+    static CELER_CONSTEXPR_FUNCTION real_type limit_min_fix()
+    {
+        return 1e-9 * units::centimeter;
+    }
+
+    //! For steps below this value, true = geometrical (no MSC to be applied)
+    static CELER_CONSTEXPR_FUNCTION real_type min_step()
+    {
+        return 100 * limit_min_fix();
+    }
+
+    //! Below this endpoint energy, don't sample scattering
+    static CELER_CONSTEXPR_FUNCTION Energy min_sampling_energy()
+    {
+        return units::MevEnergy{1e-9};
+    }
 };
 
 //---------------------------------------------------------------------------//

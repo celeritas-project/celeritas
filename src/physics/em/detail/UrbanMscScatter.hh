@@ -90,10 +90,14 @@ class UrbanMscScatter
 
     //// HELPER FUNCTIONS ////
 
+    // Calculate the true path length from the geom path length
+    inline CELER_FUNCTION real_type calc_true_path(real_type true_path,
+                                                   real_type geom_path,
+                                                   real_type alpha) const;
+
     // Sample the angle, cos(theta), of the multiple scattering
     template<class Engine>
     inline CELER_FUNCTION real_type sample_cos_theta(Engine&   rng,
-                                                     Energy    end_energy,
                                                      real_type true_path,
                                                      real_type limit_min);
 
@@ -104,8 +108,7 @@ class UrbanMscScatter
                                                       real_type x2mean) const;
 
     // Calculate the theta0 of the Highland formula
-    inline CELER_FUNCTION real_type compute_theta0(real_type true_path,
-                                                   Energy    end_energy) const;
+    inline CELER_FUNCTION real_type compute_theta0(real_type true_path) const;
 
     // Calculate the correction on theta0 for positrons
     inline CELER_FUNCTION real_type calc_correction(real_type tau) const;
@@ -139,7 +142,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
     , mass_(shared.electron_mass.value())
     , params_(shared.params)
     , msc_(shared.msc_data[material.material_id()])
-    , helper_(shared, particle, physics, material)
+    , helper_(shared, particle, physics)
     , input_(input)
     , geometry_(*geometry)
 {
@@ -150,20 +153,20 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
     lambda_ = helper_.msc_mfp(inc_energy_);
 
     // Convert the geometry path length to the true path length
-    true_path_ = helper_.calc_true_path(
+    true_path_ = this->calc_true_path(
         input_.true_path, input_.geom_path, input_.alpha);
+
     // Protect against a wrong true -> geom -> true transformation
     true_path_ = min<real_type>(true_path_, input_.phys_step);
     CELER_ASSERT(true_path_ >= input_.geom_path);
 
     skip_sampling_ = true;
-    if (true_path_ < helper_.range() && true_path_ > shared.params.geom_limit)
+    if (true_path_ < helper_.range() && true_path_ > params_.geom_limit)
     {
-        end_energy_ = helper_.end_energy(true_path_);
-        skip_sampling_
-            = (value_as<units::MevEnergy>(end_energy_) < real_type(1e-9)
-               || true_path_ <= input_.limit_min
-               || true_path_ < lambda_ * params_.tau_small);
+        end_energy_    = helper_.calc_end_energy(true_path_);
+        skip_sampling_ = (end_energy_ < params_.min_sampling_energy()
+                          || true_path_ <= input_.limit_min
+                          || true_path_ < lambda_ * params_.tau_small);
     }
 }
 
@@ -208,8 +211,8 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     }
 
     // Sample polar angle
-    real_type costheta = this->sample_cos_theta(
-        rng, end_energy_, input_.true_path, input_.limit_min);
+    real_type costheta
+        = this->sample_cos_theta(rng, input_.true_path, input_.limit_min);
     CELER_ASSERT(std::fabs(costheta) <= 1);
 
     // Calculate direction and return
@@ -239,13 +242,12 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
  */
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
-                                                           Energy  end_energy,
                                                            real_type true_path,
                                                            real_type limit_min)
 {
     real_type result = 1;
 
-    real_type lambda_end = helper_.msc_mfp(end_energy);
+    real_type lambda_end = helper_.msc_mfp(end_energy_);
 
     tau_ = true_path
            / ((std::fabs(lambda_ - lambda_end) > lambda_ * real_type(0.01))
@@ -265,7 +267,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         real_type x2mean = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
 
         // Too large step of the low energy particle
-        if (end_energy.value() < real_type(0.5) * inc_energy_.value())
+        if (end_energy_.value() < real_type(0.5) * inc_energy_.value())
         {
             return this->simple_scattering(rng, xmean, x2mean);
         }
@@ -274,10 +276,9 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         real_type tsmall     = min<real_type>(limit_min, params_.lambda_limit);
         bool      small_step = (true_path < tsmall);
 
-        real_type theta0 = (small_step)
-                               ? std::sqrt(true_path / tsmall)
-                                     * this->compute_theta0(tsmall, end_energy)
-                               : this->compute_theta0(true_path, end_energy);
+        real_type theta0 = (small_step) ? std::sqrt(true_path / tsmall)
+                                              * this->compute_theta0(tsmall)
+                                        : this->compute_theta0(true_path);
 
         // Protect for very small angles
         real_type theta2 = ipow<2>(theta0);
@@ -388,8 +389,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
 /*!
  * Sample the large angle scattering using 2 model functions.
  *
- * @param xmean the mean of \f$\cos\theta\f$.
- * @param x2mean the mean of \f$\cos\theta^{2}\f$.
+ * \param xmean the mean of \f$\cos\theta\f$.
+ * \param x2mean the mean of \f$\cos\theta^{2}\f$.
  */
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
@@ -423,14 +424,12 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
  * radiation length unit and the correction term, respectively. For details,
  * see the section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
  *
- * @param true_path the true step length.
- * @param end_energy the particle energy at the end of of the msc step.
+ * \param true_path the true step length.
  */
 CELER_FUNCTION
-real_type
-UrbanMscScatter::compute_theta0(real_type true_path, Energy end_energy) const
+real_type UrbanMscScatter::compute_theta0(real_type true_path) const
 {
-    real_type energy     = end_energy.value();
+    real_type energy     = end_energy_.value();
     real_type inc_energy = inc_energy_.value();
 
     real_type invbetacp = std::sqrt((inc_energy + mass_) * (energy + mass_)
@@ -458,7 +457,7 @@ UrbanMscScatter::compute_theta0(real_type true_path, Energy end_energy) const
 /*!
  * Calculate the correction on theta0 for positrons.
  *
- * @param tau (incident energy * energy at the end of step)/electron_mass.
+ * \param tau (incident energy * energy at the end of step)/electron_mass.
  */
 CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
 {
@@ -508,8 +507,8 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
  * give the same mean value that is obtained from the single scattering
  * simulation.
  *
- * @param phi the azimuthal angle of the multiple scattering.
- * @param rmax2 the asymmetry between true path and geom path
+ * \param phi the azimuthal angle of the multiple scattering.
+ * \param rmax2 the asymmetry between true path and geom path
  */
 template<class Engine>
 CELER_FUNCTION Real3 UrbanMscScatter::sample_displacement(Engine&   rng,
@@ -563,6 +562,59 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_displacement_scaling(
     }
 
     return multiplier;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compute the true path length for a given geom path (the z -> t conversion).
+ *
+ * The transformation can be written as
+ * \f[
+ *     t(z) = \langle t \rangle = -\lambda_{1} \log(1 - \frac{z}{\lambda_{1}})
+ * \f]
+ * or \f$ t(z) = \frac{1}{\alpha} [ 1 - (1-\alpha w z)^{1/w}] \f$ if the
+ * geom path is small, where \f$ w = 1 + \frac{1}{\alpha \lambda_{10}}\f$.
+ *
+ * \param true_path the proposed step before transportation.
+ * \param geom_path the proposed step after transportation.
+ * \param alpha variable from UrbanMscStepLimit.
+ */
+CELER_FUNCTION
+real_type UrbanMscScatter::calc_true_path(real_type true_path,
+                                          real_type geom_path,
+                                          real_type alpha) const
+{
+    CELER_EXPECT(geom_path <= true_path);
+    if (geom_path < params_.min_step())
+    {
+        // geometrical path length = true path length for a very small step
+        return geom_path;
+    }
+
+    // Recalculation
+    real_type length = geom_path;
+
+    // NOTE: add && !insideskin if the UseDistanceToBoundary algorithm is used
+    if (geom_path > lambda_ * params_.tau_small)
+    {
+        if (alpha < 0)
+        {
+            // For cases that the true path is very small compared to either
+            // the mean free path or the range
+            length = -lambda_ * std::log(1 - geom_path / lambda_);
+        }
+        else
+        {
+            real_type w = 1 + 1 / (alpha * lambda_);
+            real_type x = alpha * w * geom_path;
+            length      = (x < 1) ? (1 - fastpow(1 - x, 1 / w)) / alpha
+                                  : helper_.range();
+        }
+
+        length = clamp(length, geom_path, true_path);
+    }
+
+    return length;
 }
 
 //---------------------------------------------------------------------------//
