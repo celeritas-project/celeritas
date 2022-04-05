@@ -258,8 +258,9 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
         }
         else
         {
-            h = min(max(output.proposed_step, shared_.minimum_step),
-                    end_curve_length - curve_length);
+            h = clamp(output.proposed_step,
+                      shared_.minimum_step,
+                      end_curve_length - curve_length);
         }
     } while (!succeeded && --remaining_steps > 0);
 
