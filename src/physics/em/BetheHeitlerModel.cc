@@ -17,12 +17,12 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-BetheHeitlerModel::BetheHeitlerModel(ModelId               id,
+BetheHeitlerModel::BetheHeitlerModel(ActionId              id,
                                      const ParticleParams& particles,
                                      bool                  enable_lpm)
 {
     CELER_EXPECT(id);
-    interface_.ids.model    = id;
+    interface_.ids.action   = id;
     interface_.ids.electron = particles.find(pdg::electron());
     interface_.ids.positron = particles.find(pdg::positron());
     interface_.ids.gamma    = particles.find(pdg::gamma());
@@ -70,9 +70,9 @@ void BetheHeitlerModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId BetheHeitlerModel::model_id() const
+ActionId BetheHeitlerModel::action_id() const
 {
-    return interface_.ids.model;
+    return interface_.ids.action;
 }
 
 //---------------------------------------------------------------------------//

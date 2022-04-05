@@ -45,8 +45,8 @@ class PhysicsTrackView
         = PhysicsStateData<Ownership::reference, MemSpace::native>;
     using UrbanMscRef
         = detail::UrbanMscData<Ownership::const_reference, MemSpace::native>;
-    using MevEnergy   = units::MevEnergy;
-    using ModelFinder = GridIdFinder<MevEnergy, ModelId>;
+    using Energy      = units::MevEnergy;
+    using ModelFinder = GridIdFinder<Energy, ModelId>;
     //!@}
 
   public:
@@ -63,17 +63,23 @@ class PhysicsTrackView
     // Set the remaining MFP to interaction
     inline CELER_FUNCTION void interaction_mfp(real_type);
 
-    // Set the overall physics step length
-    inline CELER_FUNCTION void step_length(real_type);
+    // Reset the remaining MFP to interaction
+    inline CELER_FUNCTION void reset_interaction_mfp();
 
     // Set the total (process-integrated) macroscopic xs [cm^-1]
     inline CELER_FUNCTION void macro_xs(real_type);
 
-    // Select a model for the current interaction (or {} for no interaction)
-    inline CELER_FUNCTION void model_id(ModelId);
-
     // Save MSC step data
-    inline CELER_FUNCTION void msc_step(MscStep);
+    inline CELER_FUNCTION void msc_step(const MscStep&);
+
+    // Reset the energy deposition
+    inline CELER_FUNCTION void reset_energy_deposition();
+
+    // Accumulate into local step's energy deposition
+    inline CELER_FUNCTION void deposit_energy(Energy);
+
+    // Set secondaries during an interaction
+    inline CELER_FUNCTION void secondaries(Span<Secondary>);
 
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
@@ -83,17 +89,17 @@ class PhysicsTrackView
     // Remaining MFP to interaction [1]
     CELER_FORCEINLINE_FUNCTION real_type interaction_mfp() const;
 
-    // Maximum step length [cm]
-    CELER_FORCEINLINE_FUNCTION real_type step_length() const;
-
     // Total (process-integrated) macroscopic xs [cm^-1]
     CELER_FORCEINLINE_FUNCTION real_type macro_xs() const;
 
-    // Selected model if interacting
-    CELER_FORCEINLINE_FUNCTION ModelId model_id() const;
-
     // Retrieve MSC step data
-    inline CELER_FUNCTION MscStep msc_step() const;
+    inline CELER_FUNCTION const MscStep& msc_step() const;
+
+    // Access local energy deposition
+    inline CELER_FUNCTION Energy energy_deposition() const;
+
+    // Access secondaries created by an interaction
+    inline CELER_FUNCTION Span<Secondary> secondaries() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -117,11 +123,11 @@ class PhysicsTrackView
     // Calculate macroscopic cross section for the process
     inline CELER_FUNCTION real_type calc_xs(ParticleProcessId ppid,
                                             ValueGridId       grid_id,
-                                            MevEnergy         energy) const;
+                                            Energy            energy) const;
 
     // Get hardwired model, null if not present
     inline CELER_FUNCTION ModelId hardwired_model(ParticleProcessId ppid,
-                                                  MevEnergy energy) const;
+                                                  Energy energy) const;
 
     // Particle-process ID of the process with the de/dx and range tables
     inline CELER_FUNCTION ParticleProcessId eloss_ppid() const;
@@ -136,10 +142,19 @@ class PhysicsTrackView
     // Whether the particle can have a discrete interaction at rest
     inline CELER_FUNCTION bool has_at_rest() const;
 
-    //// STATIC FUNCTIONS (depend only on params data) ////
+    //// PARAMETER DATA ////
+
+    // Convert an action to a model ID for diagnostics, empty if not a model
+    inline CELER_FUNCTION ModelId action_to_model(ActionId) const;
+
+    // Convert a selected model ID into a simulation action ID
+    inline CELER_FUNCTION ActionId model_to_action(ModelId) const;
 
     // Calculate scaled step range
     inline CELER_FUNCTION real_type range_to_step(real_type range) const;
+
+    // Access scalar properties (TODO)
+    CELER_FORCEINLINE_FUNCTION const PhysicsParamsScalars& scalars() const;
 
     // Fractional energy loss allowed before post-step recalculation
     inline CELER_FUNCTION real_type linear_loss_limit() const;
@@ -159,7 +174,7 @@ class PhysicsTrackView
     // Calculate macroscopic cross section on the fly for the given model
     inline CELER_FUNCTION real_type calc_xs_otf(ModelId             model,
                                                 const MaterialView& material,
-                                                MevEnergy energy) const;
+                                                Energy energy) const;
 
     // Number of particle types
     inline CELER_FUNCTION size_type num_particles() const;
@@ -220,16 +235,13 @@ PhysicsTrackView::PhysicsTrackView(const PhysicsParamsRef& params,
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the track view.
- *
- * \todo Add total interaction cross section to state.
  */
 CELER_FUNCTION PhysicsTrackView&
 PhysicsTrackView::operator=(const Initializer_t&)
 {
-    this->state().interaction_mfp = -1;
-    this->state().step_length     = -1;
+    this->state().interaction_mfp   = 0;
     this->state().macro_xs        = -1;
-    this->state().model_id        = ModelId{};
+    this->state().energy_deposition = 0;
     return *this;
 }
 
@@ -241,18 +253,19 @@ PhysicsTrackView::operator=(const Initializer_t&)
  */
 CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type count)
 {
-    CELER_EXPECT(count >= 0);
+    CELER_EXPECT(count > 0);
     this->state().interaction_mfp = count;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Set the remaining physics step length.
+ * Set the distance to the next interaction, in mean free paths.
+ *
+ * This value will be decremented at each step.
  */
-CELER_FUNCTION void PhysicsTrackView::step_length(real_type distance)
+CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp()
 {
-    CELER_EXPECT(distance >= 0);
-    this->state().step_length = distance;
+    this->state().interaction_mfp = 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -267,23 +280,39 @@ CELER_FUNCTION void PhysicsTrackView::macro_xs(real_type inv_distance)
 
 //---------------------------------------------------------------------------//
 /*!
- * Select a model ID for the current track.
- *
- * An "unassigned" model ID is valid, as it might represent a special case or a
- * particle that is not undergoing an interaction.
+ * Save MSC step limit data.
  */
-CELER_FUNCTION void PhysicsTrackView::model_id(ModelId id)
+CELER_FUNCTION void PhysicsTrackView::msc_step(const MscStep& limit)
 {
-    this->state().model_id = id;
+    states_.msc_step[thread_] = limit;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Save MSC step limit data.
+ * Reset the energy deposition to zero at the beginning of a step.
  */
-CELER_FUNCTION void PhysicsTrackView::msc_step(MscStep limit)
+CELER_FUNCTION void PhysicsTrackView::reset_energy_deposition()
 {
-    states_.msc_step[thread_] = limit;
+    this->state().energy_deposition = 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Accumulate into local step's energy deposition.
+ */
+CELER_FUNCTION void PhysicsTrackView::deposit_energy(Energy energy)
+{
+    CELER_EXPECT(energy > zero_quantity());
+    this->state().energy_deposition += energy.value();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set secondaries during an interaction, or clear them with an empty span.
+ */
+CELER_FUNCTION void PhysicsTrackView::secondaries(Span<Secondary> sec)
+{
+    this->state().secondaries = sec;
 }
 
 //---------------------------------------------------------------------------//
@@ -292,7 +321,7 @@ CELER_FUNCTION void PhysicsTrackView::msc_step(MscStep limit)
  */
 CELER_FUNCTION bool PhysicsTrackView::has_interaction_mfp() const
 {
-    return this->state().interaction_mfp >= 0;
+    return this->state().interaction_mfp > 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -304,17 +333,6 @@ CELER_FUNCTION real_type PhysicsTrackView::interaction_mfp() const
     real_type mfp = this->state().interaction_mfp;
     CELER_ENSURE(mfp >= 0);
     return mfp;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Maximum step length.
- */
-CELER_FUNCTION real_type PhysicsTrackView::step_length() const
-{
-    real_type length = this->state().step_length;
-    CELER_ENSURE(length >= 0);
-    return length;
 }
 
 //---------------------------------------------------------------------------//
@@ -333,24 +351,33 @@ CELER_FUNCTION real_type PhysicsTrackView::macro_xs() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Access the model ID that has been selected for the current track.
- *
- * If no model applies (e.g. if the particle has exited the geometry) the
- * result will be the \c ModelId() which evaluates to false.
+ * Access calculated MSC step data.
  */
-CELER_FUNCTION ModelId PhysicsTrackView::model_id() const
+CELER_FUNCTION const MscStep& PhysicsTrackView::msc_step() const
 {
-    return this->state().model_id;
+    return states_.msc_step[thread_];
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Access calculated MSC step data.
+ * Access accumulated energy deposition.
  */
-CELER_FUNCTION MscStep PhysicsTrackView::msc_step() const
+CELER_FUNCTION auto PhysicsTrackView::energy_deposition() const -> Energy
 {
-    return states_.msc_step[thread_];
+    real_type result = this->state().energy_deposition;
+    CELER_ENSURE(result >= 0);
+    return Energy{result};
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access secondaries created by a discrete interaction.
+ */
+CELER_FUNCTION Span<Secondary> PhysicsTrackView::secondaries() const
+{
+    return this->state().secondaries;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Number of processes that apply to this track.
@@ -478,7 +505,7 @@ PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
  */
 CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
                                                    ValueGridId       grid_id,
-                                                   MevEnergy energy) const
+                                                   Energy energy) const
 {
     auto calc_xs = this->make_calculator<XsCalculator>(grid_id);
 
@@ -490,8 +517,8 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
     {
         real_type energy_xi = energy.value() * this->energy_fraction();
         if (energy_max_xs >= energy_xi && energy_max_xs < energy.value())
-            return calc_xs(MevEnergy{energy_max_xs});
-        return max(calc_xs(energy), calc_xs(MevEnergy{energy_xi}));
+            return calc_xs(Energy{energy_max_xs});
+        return max(calc_xs(energy), calc_xs(Energy{energy_xi}));
     }
 
     return calc_xs(energy);
@@ -504,7 +531,7 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
  * the result is null, tables should be used for this process/energy.
  */
 CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
-                                                         MevEnergy energy) const
+                                                         Energy energy) const
 {
     ProcessId process = this->process(ppid);
     if ((process == this->photoelectric_process_id()
@@ -561,6 +588,34 @@ CELER_FUNCTION bool PhysicsTrackView::has_at_rest() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Convert an action to a model ID for diagnostics, false if not a model.
+ */
+CELER_FUNCTION ModelId PhysicsTrackView::action_to_model(ActionId action) const
+{
+    if (!action)
+        return ModelId{};
+
+    // Rely on unsigned rollover if action ID is less than the first model
+    ModelId::size_type result = action.unchecked_get()
+                                - params_.scalars.model_to_action;
+    if (result >= params_.scalars.num_models)
+        return ModelId{};
+
+    return ModelId{result};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a selected model ID into a simulation action ID.
+ */
+CELER_FUNCTION ActionId PhysicsTrackView::model_to_action(ModelId model) const
+{
+    CELER_ASSERT(model < params_.scalars.num_models);
+    return ActionId{model.unchecked_get() + params_.scalars.model_to_action};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate scaled step range.
  *
  * This is the updated step function given by Eq. 7.4 of Geant4 Physics
@@ -575,14 +630,27 @@ CELER_FUNCTION bool PhysicsTrackView::has_at_rest() const
 CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 {
     CELER_ASSERT(range >= 0);
-    const real_type rho = params_.scaling_min_range;
+    const real_type rho = params_.scalars.scaling_min_range;
     if (range < rho)
         return range;
 
-    const real_type alpha = params_.scaling_fraction;
+    const real_type alpha = params_.scalars.scaling_fraction;
     range = alpha * range + rho * (1 - alpha) * (2 - rho / range);
     CELER_ENSURE(range > 0);
     return range;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access scalar properties (options, IDs).
+ *
+ * TODO should we replace loss limiters, energy fraction, etc. with a direct
+ * access to this?
+ */
+CELER_FORCEINLINE_FUNCTION const PhysicsParamsScalars&
+PhysicsTrackView::scalars() const
+{
+    return params_.scalars;
 }
 
 //---------------------------------------------------------------------------//
@@ -591,7 +659,7 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
  */
 CELER_FUNCTION real_type PhysicsTrackView::linear_loss_limit() const
 {
-    return params_.linear_loss_limit;
+    return params_.scalars.linear_loss_limit;
 }
 
 //---------------------------------------------------------------------------//
@@ -603,7 +671,7 @@ CELER_FUNCTION real_type PhysicsTrackView::linear_loss_limit() const
  */
 CELER_FUNCTION real_type PhysicsTrackView::energy_fraction() const
 {
-    return params_.energy_fraction;
+    return params_.scalars.energy_fraction;
 }
 
 //---------------------------------------------------------------------------//
@@ -612,7 +680,7 @@ CELER_FUNCTION real_type PhysicsTrackView::energy_fraction() const
  */
 CELER_FUNCTION bool PhysicsTrackView::add_fluctuation() const
 {
-    return params_.enable_fluctuation;
+    return params_.scalars.enable_fluctuation;
 }
 
 //---------------------------------------------------------------------------//
@@ -639,7 +707,7 @@ CELER_FUNCTION auto PhysicsTrackView::urban_data() const -> const UrbanMscRef&
  * Calculate macroscopic cross section on the fly.
  */
 CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(
-    ModelId model, const MaterialView& material, MevEnergy energy) const
+    ModelId model, const MaterialView& material, Energy energy) const
 {
     real_type result = 0;
     if (model == params_.hardwired.livermore_pe)
@@ -690,7 +758,8 @@ CELER_FUNCTION real_type&
 PhysicsTrackView::per_process_xs(ParticleProcessId ppid)
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    auto idx = thread_.get() * params_.max_particle_processes + ppid.get();
+    auto idx = thread_.get() * params_.scalars.max_particle_processes
+               + ppid.get();
     CELER_ENSURE(idx < states_.per_process_xs.size());
     return states_.per_process_xs[ItemId<real_type>(idx)];
 }
@@ -703,7 +772,8 @@ CELER_FUNCTION
 real_type PhysicsTrackView::per_process_xs(ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    auto idx = thread_.get() * params_.max_particle_processes + ppid.get();
+    auto idx = thread_.get() * params_.scalars.max_particle_processes
+               + ppid.get();
     CELER_ENSURE(idx < states_.per_process_xs.size());
     return states_.per_process_xs[ItemId<real_type>(idx)];
 }

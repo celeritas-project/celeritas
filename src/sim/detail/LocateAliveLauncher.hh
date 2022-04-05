@@ -68,18 +68,24 @@ class LocateAliveLauncher
 template<MemSpace M>
 CELER_FUNCTION void LocateAliveLauncher<M>::operator()(ThreadId tid) const
 {
+    SimTrackView sim(states_.sim, tid);
+
     // Count how many secondaries survived cutoffs for each track
     data_.secondary_counts[tid] = 0;
-    for (const auto& secondary : states_.interactions[tid].secondaries)
+
+    if (sim.status() != TrackStatus::inactive)
     {
-        if (secondary)
+        // XXX use track view instead of hacking into data
+        for (const auto& secondary : states_.physics.state[tid].secondaries)
         {
-            ++data_.secondary_counts[tid];
+            if (secondary)
+            {
+                ++data_.secondary_counts[tid];
+            }
         }
     }
 
-    SimTrackView sim(states_.sim, tid);
-    if (sim.alive())
+    if (sim.status() == TrackStatus::alive)
     {
         // The track is alive: mark this track slot as occupied
         data_.vacancies[tid] = flag_id();
@@ -95,9 +101,9 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(ThreadId tid) const
     }
     else
     {
-        // The track was killed and did not produce secondaries: store the
-        // index so it can be used later to initialize a new track
-        data_.vacancies[tid] = tid.get();
+        // The track is inactive/killed and did not produce secondaries: store
+        // the index so it can be used later to initialize a new track
+        data_.vacancies[tid] = tid.unchecked_get();
     }
 }
 

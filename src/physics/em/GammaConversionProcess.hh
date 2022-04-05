@@ -41,7 +41,7 @@ class GammaConversionProcess : public Process
                            Options          options);
 
     // Construct the models associated with this process
-    VecModel build_models(ModelIdGenerator next_id) const final;
+    VecModel build_models(ActionIdIter start_id) const final;
 
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability applic) const final;

@@ -30,9 +30,9 @@ ComptonProcess::ComptonProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto ComptonProcess::build_models(ModelIdGenerator next_id) const -> VecModel
+auto ComptonProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
-    return {std::make_shared<KleinNishinaModel>(next_id(), *particles_)};
+    return {std::make_shared<KleinNishinaModel>(*start_id++, *particles_)};
 }
 
 //---------------------------------------------------------------------------//

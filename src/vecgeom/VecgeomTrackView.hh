@@ -65,6 +65,30 @@ class VecgeomTrackView
     inline CELER_FUNCTION VecgeomTrackView&
     operator=(const DetailedInitializer& init);
 
+    //// STATIC ACCESSORS ////
+
+    //! A tiny push to make sure tracks do not get stuck at boundaries
+    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-16; }
+
+    //// ACCESSORS ////
+
+    //!@{
+    //! State accessors
+    CELER_FORCEINLINE_FUNCTION const Real3& pos() const { return pos_; }
+    CELER_FORCEINLINE_FUNCTION const Real3& dir() const { return dir_; }
+    //!@}
+
+    // Get the volume ID in the current cell.
+    CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
+
+    //! VecGeom states are never "on" a surface
+    CELER_FUNCTION SurfaceId surface_id() const { return {}; }
+
+    // Whether the track is outside the valid geometry region
+    CELER_FORCEINLINE_FUNCTION bool is_outside() const;
+
+    //// OPERATIONS ////
+
     // Find the distance to the next boundary (infinite max)
     inline CELER_FUNCTION Propagation find_next_step();
 
@@ -86,26 +110,8 @@ class VecgeomTrackView
     // Cross from one side of the current surface to the other
     inline CELER_FUNCTION void cross_boundary();
 
-    //!@{
-    //! State accessors
-    CELER_FORCEINLINE_FUNCTION const Real3& pos() const { return pos_; }
-    CELER_FORCEINLINE_FUNCTION const Real3& dir() const { return dir_; }
-    //!@}
-
     // Change direction
     inline CELER_FUNCTION void set_dir(const Real3& newdir);
-
-    // Get the volume ID in the current cell.
-    CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
-
-    //! VecGeom states are never "on" a surface
-    CELER_FUNCTION SurfaceId surface_id() const { return {}; }
-
-    // Whether the track is outside the valid geometry region
-    CELER_FORCEINLINE_FUNCTION bool is_outside() const;
-
-    //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-16; }
 
   private:
     //// TYPES ////
@@ -210,6 +216,25 @@ VecgeomTrackView& VecgeomTrackView::operator=(const DetailedInitializer& init)
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume ID in the current cell.
+ */
+CELER_FUNCTION VolumeId VecgeomTrackView::volume_id() const
+{
+    CELER_EXPECT(!this->is_outside());
+    return VolumeId{this->volume().id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the track is outside the valid geometry region.
+ */
+CELER_FUNCTION bool VecgeomTrackView::is_outside() const
+{
+    return vgstate_.IsOutside();
 }
 
 //---------------------------------------------------------------------------//
@@ -374,25 +399,6 @@ CELER_FUNCTION void VecgeomTrackView::set_dir(const Real3& newdir)
     CELER_EXPECT(is_soft_unit_vector(newdir));
     dir_       = newdir;
     next_step_ = 0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the volume ID in the current cell.
- */
-CELER_FUNCTION VolumeId VecgeomTrackView::volume_id() const
-{
-    CELER_EXPECT(!this->is_outside());
-    return VolumeId{this->volume().id()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the track is outside the valid geometry region.
- */
-CELER_FUNCTION bool VecgeomTrackView::is_outside() const
-{
-    return vgstate_.IsOutside();
 }
 
 //---------------------------------------------------------------------------//

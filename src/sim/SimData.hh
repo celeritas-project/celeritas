@@ -13,6 +13,7 @@
 #include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Secondary.hh"
 
 #include "Types.hh"
 
@@ -21,14 +22,18 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Simulation state of a track.
+ *
+ * TODO change to struct-of-arrays
  */
 struct SimTrackState
 {
     TrackId   track_id;      //!< Unique ID for this track
     TrackId   parent_id;     //!< ID of parent that created it
     EventId   event_id;      //!< ID of originating event
-    size_type num_steps = 0; //!< Total number of steps taken
-    bool      alive = false; //!< Whether this track is alive
+    size_type num_steps{0};  //!< Total number of steps taken
+
+    TrackStatus status{TrackStatus::inactive};
+    StepLimit   step_limit;
 };
 
 using SimTrackInitializer = SimTrackState;

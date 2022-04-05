@@ -213,15 +213,25 @@ CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
     {
         // Bump particle to mid-step point to avoid grid edges coincident with
         // geometry boundaries
+        // XXX this is not right if multiple scattering is on or for magnetic
+        // fields!!! The only way we can be really sure to deposit energy in
+        // the correct grid cell is to have the same boundary treatment as the
+        // main geometry, so that the magnetic field and multiple scattering
+        // take care to stop at the edge.
+        // Until then, this heuristic will have to do.
+        // XXX at the time being the "step" we've hacked into here may not be
+        // the same as the geometry step or the true step.
         real_type dir
             = states_.geometry.dir[tid][static_cast<int>(pointers_.axis)];
-        pos -= real_type(0.5) * states_.step_length[tid] * dir;
+
+        pos -= real_type(0.5) * states_.sim.state[tid].step_limit.step * dir;
     }
 
     using BinId = celeritas::ItemId<real_type>;
     if (pos > grid.front() && pos < grid.back())
     {
-        real_type energy_deposition = states_.energy_deposition[tid];
+        real_type energy_deposition
+            = states_.physics.state[tid].energy_deposition;
         if (energy_deposition > 0)
         {
             // Particle might not have deposited energy (geometry step for

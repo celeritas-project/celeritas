@@ -33,6 +33,7 @@
 #include "physics/em/RayleighProcess.hh"
 #include "physics/material/MaterialParams.hh"
 #include "random/RngParams.hh"
+#include "sim/ActionManager.hh"
 
 using namespace celeritas;
 
@@ -169,6 +170,11 @@ TransporterInput load_input(const LDemoArgs& args)
                        << "' (expected gdml or root)");
     }
 
+    // Create action manager
+    {
+        result.actions = std::make_shared<ActionManager>();
+    }
+
     // Load geometry
     {
         result.geometry
@@ -228,6 +234,7 @@ TransporterInput load_input(const LDemoArgs& args)
         input.particles                  = result.particles;
         input.materials                  = result.materials;
         input.options.enable_fluctuation = args.eloss_fluctuation;
+        input.action_manager             = result.actions.get();
 
         BremsstrahlungProcess::Options brem_options;
         brem_options.combined_model = args.brem_combined;

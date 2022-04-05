@@ -41,12 +41,11 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto PhotoelectricProcess::build_models(ModelIdGenerator next_id) const
-    -> VecModel
+auto PhotoelectricProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
     LivermorePEModel::ReadData load_data = LivermorePEReader();
     return {std::make_shared<LivermorePEModel>(
-        next_id(), *particles_, *materials_, load_data)};
+        *start_id++, *particles_, *materials_, load_data)};
 }
 
 //---------------------------------------------------------------------------//

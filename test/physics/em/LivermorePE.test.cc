@@ -109,7 +109,7 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
         std::string       data_path = this->test_data_path("physics/em", "");
         LivermorePEReader read_element_data(data_path.c_str());
         model_ = std::make_shared<LivermorePEModel>(
-            ModelId{0}, particles, *this->material_params(), read_element_data);
+            ActionId{0}, particles, *this->material_params(), read_element_data);
 
         // Set atomic relaxation data
         AtomicRelaxationReader read_transition_data(data_path.c_str(),
@@ -126,12 +126,10 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
 
     void sanity_check(const Interaction& interaction) const
     {
-        ASSERT_TRUE(interaction);
-
         // Check change to parent track
         EXPECT_GT(this->particle_track().energy().value(),
                   interaction.energy.value());
-        EXPECT_EQ(celeritas::Action::absorbed, interaction.action);
+        EXPECT_EQ(Action::absorbed, interaction.action);
 
         // Check secondaries
         ASSERT_GT(2, interaction.secondaries.size());
@@ -236,7 +234,7 @@ TEST_F(LivermorePETest, basic)
     {
         Interaction result = interact(rng_engine);
         EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
+        EXPECT_EQ(Action::failed, result.action);
     }
 }
 
@@ -388,8 +386,7 @@ TEST_F(LivermorePETest, distributions_all)
     for (int i = 0; i < num_samples; ++i)
     {
         Interaction out = interact(rng_engine);
-        SCOPED_TRACE(out);
-        ASSERT_TRUE(out);
+        // SCOPED_TRACE(out);
         this->check_energy_conservation(out);
         num_secondaries += out.secondaries.size();
 
@@ -483,8 +480,7 @@ TEST_F(LivermorePETest, distributions_radiative)
     for (int i = 0; i < num_samples; ++i)
     {
         Interaction out = interact(rng_engine);
-        SCOPED_TRACE(out);
-        ASSERT_TRUE(out);
+        // SCOPED_TRACE(out);
         this->check_energy_conservation(out);
         num_secondaries += out.secondaries.size();
 

@@ -27,7 +27,7 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-SeltzerBergerModel::SeltzerBergerModel(ModelId               id,
+SeltzerBergerModel::SeltzerBergerModel(ActionId              id,
                                        const ParticleParams& particles,
                                        const MaterialParams& materials,
                                        ReadData              load_sb_table)
@@ -38,7 +38,7 @@ SeltzerBergerModel::SeltzerBergerModel(ModelId               id,
     detail::SeltzerBergerData<Ownership::value, MemSpace::host> host_data;
 
     // Save IDs
-    host_data.ids.model    = id;
+    host_data.ids.action   = id;
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.positron = particles.find(pdg::positron());
     host_data.ids.gamma    = particles.find(pdg::gamma());
@@ -108,9 +108,9 @@ void SeltzerBergerModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId SeltzerBergerModel::model_id() const
+ActionId SeltzerBergerModel::action_id() const
 {
-    return this->host_ref().ids.model;
+    return this->host_ref().ids.action;
 }
 
 //---------------------------------------------------------------------------//

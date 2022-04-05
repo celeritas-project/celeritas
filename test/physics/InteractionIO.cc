@@ -22,15 +22,11 @@ namespace celeritas
 std::ostream& operator<<(std::ostream& os, const Interaction& i)
 {
     os << "Interaction{";
-    if (i)
+    os << "Action{" << static_cast<int>(i.action) << "}, " << i.energy.value()
+       << " MeV, " << i.direction << ", {" << i.secondaries << '}';
+    if (i.energy_deposition > zero_quantity())
     {
-        os << "Action{" << static_cast<int>(i.action) << "}, "
-           << i.energy.value() << " MeV, " << i.direction << ", {"
-           << i.secondaries << '}';
-        if (i.energy_deposition > zero_quantity())
-        {
-            os << " + " << i.energy_deposition.value() << " MeV";
-        }
+        os << " + " << i.energy_deposition.value() << " MeV";
     }
     os << '}';
     return os;

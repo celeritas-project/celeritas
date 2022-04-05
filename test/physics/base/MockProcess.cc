@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "physics/material/MaterialView.hh"
+#include "sim/ActionManager.hh"
 
 #include "MockModel.hh"
 
@@ -33,13 +34,13 @@ MockProcess::MockProcess(Input data) : data_(std::move(data))
 }
 
 //---------------------------------------------------------------------------//
-auto MockProcess::build_models(ModelIdGenerator next_id) const -> VecModel
+auto MockProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
     VecModel result;
     for (const Applicability& applic : data_.applic)
     {
         result.push_back(
-            std::make_shared<MockModel>(next_id(), applic, data_.interact));
+            std::make_shared<MockModel>(*start_id++, applic, data_.interact));
     }
     return result;
 }

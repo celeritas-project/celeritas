@@ -73,43 +73,19 @@ class CoreTrackView
     inline CELER_FUNCTION RngEngine make_rng_engine() const;
 
     // Return a secondary stack allocator
+    // TODO: move to physics
     inline CELER_FUNCTION SecondaryAllocator make_secondary_allocator() const;
 
-    // TODO: don't expose relaxation helper to everyone
+    // Access atomic relaxation data
+    // TODO: move to physics
     inline CELER_FUNCTION AtomicRelaxationHelper
     make_relaxation_helper(ElementId el_id) const;
 
     //! Get the track's index among the states
     CELER_FUNCTION ThreadId thread_id() const { return thread_; }
 
-    //!@{
-    //! TO BE DELETED: raw access to extra state data
-    CELER_FUNCTION real_type& energy_deposition() const
-    {
-        return states_.energy_deposition[thread_];
-    }
-    CELER_FUNCTION real_type& step_length() const
-    {
-        return states_.step_length[thread_];
-    }
-    CELER_FUNCTION Interaction& interaction() const
-    {
-        return states_.interactions[thread_];
-    }
-    CELER_FUNCTION void reset_model_id() const
-    {
-        // TODO: reset action ID (part of sim, not phys)
-        celeritas::PhysicsTrackView phys(
-            params_.physics, states_.physics, {}, {}, thread_);
-        phys.model_id({});
-    }
-    CELER_FUNCTION ModelId model_id() const
-    {
-        celeritas::PhysicsTrackView phys(
-            params_.physics, states_.physics, {}, {}, thread_);
-        return phys.model_id();
-    }
-    //!@}
+    // Action ID for encountering a geometry boundary
+    inline CELER_FUNCTION ActionId boundary_action() const;
 
   private:
     const StateRef&  states_;
@@ -227,8 +203,6 @@ CELER_FUNCTION auto CoreTrackView::make_secondary_allocator() const
 //---------------------------------------------------------------------------//
 /*!
  * Make an atomic relaxation helper for the given element.
- *
- * This should eventually be removed from the "core" view.
  */
 CELER_FUNCTION auto CoreTrackView::make_relaxation_helper(ElementId el_id) const
     -> AtomicRelaxationHelper
@@ -236,6 +210,15 @@ CELER_FUNCTION auto CoreTrackView::make_relaxation_helper(ElementId el_id) const
     CELER_ASSERT(el_id);
     return AtomicRelaxationHelper{
         params_.relaxation, states_.relaxation, el_id, thread_};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action ID for encountering a geometry boundary.
+ */
+CELER_FUNCTION ActionId CoreTrackView::boundary_action() const
+{
+    return params_.scalars.boundary_action;
 }
 
 //---------------------------------------------------------------------------//

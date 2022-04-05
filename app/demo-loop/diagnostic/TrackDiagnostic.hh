@@ -26,7 +26,7 @@ struct OneIfAlive
 
     CELER_FUNCTION size_type operator()(const celeritas::SimTrackState& sim) const
     {
-        return sim.alive ? 1 : 0;
+        return sim.status == celeritas::TrackStatus::alive ? 1 : 0;
     }
 };
 

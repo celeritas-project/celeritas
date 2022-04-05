@@ -9,12 +9,17 @@
 
 #include <random>
 
-#include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
-#include "physics/material/MaterialParams.hh"
-
 #include "MockProcess.hh"
 #include "gtest/Test.hh"
+
+namespace celeritas
+{
+class MaterialParams;
+class ParticleParams;
+class PhysicsParams;
+class ActionManager;
+}
 
 namespace celeritas_test
 {
@@ -39,36 +44,37 @@ class PhysicsTestBase : public celeritas::Test
     //!@{
     //! Type aliases
 
-    using SPConstMaterials = std::shared_ptr<celeritas::MaterialParams>;
-    using SPConstParticles = std::shared_ptr<celeritas::ParticleParams>;
-    using SPConstPhysics   = std::shared_ptr<celeritas::PhysicsParams>;
+    using SPMaterials = std::shared_ptr<celeritas::MaterialParams>;
+    using SPParticles = std::shared_ptr<celeritas::ParticleParams>;
+    using SPPhysics   = std::shared_ptr<celeritas::PhysicsParams>;
+    using SPActionManager  = std::shared_ptr<celeritas::ActionManager>;
     using PhysicsOptions   = celeritas::PhysicsParams::Options;
     using Applicability    = celeritas::Applicability;
-    using ModelId          = celeritas::ModelId;
-    using ModelCallback    = std::function<void(ModelId)>;
+    using ActionId         = celeritas::ActionId;
+    using ModelCallback    = std::function<void(ActionId)>;
+    using ModelId         = celeritas::ModelId;
     //!@}
 
   protected:
     void SetUp() override;
 
-    virtual SPConstMaterials build_materials() const;
-    virtual SPConstParticles build_particles() const;
-    virtual PhysicsOptions   build_physics_options() const;
-    virtual SPConstPhysics   build_physics() const;
+    virtual SPMaterials    build_materials() const;
+    virtual SPParticles    build_particles() const;
+    virtual PhysicsOptions build_physics_options() const;
+    virtual SPPhysics      build_physics() const;
 
-    const SPConstMaterials& materials() const { return materials_; }
-    const SPConstParticles& particles() const { return particles_; }
-    const SPConstPhysics&   physics() const { return physics_; }
+    const SPMaterials& materials() const { return materials_; }
+    const SPParticles& particles() const { return particles_; }
+    const SPPhysics&   physics() const { return physics_; }
 
   public:
+    ~PhysicsTestBase();
+
     Applicability make_applicability(const char* name,
                                      double      lo_energy,
                                      double      hi_energy) const;
 
-    ModelCallback make_model_callback() const
-    {
-        return [this](ModelId id) { interactions_.push_back(id); };
-    }
+    ModelCallback make_model_callback() const;
 
     celeritas::Span<const ModelId> called_models() const
     {
@@ -78,9 +84,10 @@ class PhysicsTestBase : public celeritas::Test
   private:
     //// DATA ////
 
-    SPConstMaterials materials_;
-    SPConstParticles particles_;
-    SPConstPhysics   physics_;
+    SPActionManager actions_;
+    SPMaterials materials_;
+    SPParticles particles_;
+    SPPhysics   physics_;
 
     mutable std::vector<ModelId> interactions_;
 };

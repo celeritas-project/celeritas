@@ -303,8 +303,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
 TEST_F(PhysicsTrackViewHostTest, calc_range)
 {
     // Default range and scaling
-    EXPECT_SOFT_EQ(0.1 * units::centimeter, params_ref.scaling_min_range);
-    EXPECT_SOFT_EQ(0.2, params_ref.scaling_fraction);
+    EXPECT_SOFT_EQ(0.1 * units::centimeter, params_ref.scalars.scaling_min_range);
+    EXPECT_SOFT_EQ(0.2, params_ref.scalars.scaling_fraction);
     std::vector<real_type> range;
     std::vector<real_type> step;
 
@@ -541,13 +541,13 @@ TEST_F(PHYS_DEVICE_TEST, all)
 class EPlusAnnihilationTest : public PhysicsTestBase
 {
   public:
-    SPConstMaterials build_materials() const override;
-    SPConstParticles build_particles() const override;
-    SPConstPhysics   build_physics() const override;
+    SPMaterials build_materials() const override;
+    SPParticles build_particles() const override;
+    SPPhysics   build_physics() const override;
 };
 
 //---------------------------------------------------------------------------//
-auto EPlusAnnihilationTest::build_materials() const -> SPConstMaterials
+auto EPlusAnnihilationTest::build_materials() const -> SPMaterials
 {
     using namespace celeritas::units;
     using namespace celeritas::constants;
@@ -564,7 +564,7 @@ auto EPlusAnnihilationTest::build_materials() const -> SPConstMaterials
 }
 
 //---------------------------------------------------------------------------//
-auto EPlusAnnihilationTest::build_particles() const -> SPConstParticles
+auto EPlusAnnihilationTest::build_particles() const -> SPParticles
 {
     using namespace celeritas::units;
     namespace pdg = celeritas::pdg;
@@ -582,7 +582,7 @@ auto EPlusAnnihilationTest::build_particles() const -> SPConstParticles
 }
 
 //---------------------------------------------------------------------------//
-auto EPlusAnnihilationTest::build_physics() const -> SPConstPhysics
+auto EPlusAnnihilationTest::build_physics() const -> SPPhysics
 {
     PhysicsParams::Input physics_inp;
     physics_inp.materials                  = this->materials();
@@ -626,6 +626,7 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
 
     // Check cross section
     MaterialView material_view = this->materials()->get(MaterialId{0});
-    EXPECT_SOFT_EQ(5.1172452607412999e-05,
-                   phys.calc_xs_otf(ModelId{0}, material_view, MevEnergy{0.1}));
+    EXPECT_SOFT_EQ(
+        5.1172452607412999e-05,
+        phys.calc_xs_otf(ModelId{0}, material_view, MevEnergy{0.1}));
 }

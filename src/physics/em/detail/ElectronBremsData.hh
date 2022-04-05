@@ -19,7 +19,7 @@ namespace detail
 struct ElectronBremIds
 {
     //! Model ID
-    ModelId model;
+    ActionId action;
     //! ID of a gamma
     ParticleId gamma;
     //! ID of an electron
@@ -30,7 +30,7 @@ struct ElectronBremIds
     //! Whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return model && gamma && electron && positron;
+        return action && gamma && electron && positron;
     }
 };
 

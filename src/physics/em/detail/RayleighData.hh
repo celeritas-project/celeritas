@@ -11,6 +11,8 @@
 #include "base/Collection.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {
@@ -41,11 +43,11 @@ struct RayleighParameters
  */
 struct RayleighIds
 {
-    ModelId    model;
+    ActionId   action;
     ParticleId gamma;
 
     //! Check whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const { return model && gamma; }
+    explicit CELER_FUNCTION operator bool() const { return action && gamma; }
 };
 
 //---------------------------------------------------------------------------//
@@ -73,7 +75,7 @@ struct RayleighData
     RayleighData& operator=(const RayleighData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        ids.model = other.ids.model;
+        ids.action = other.ids.action;
         ids.gamma = other.ids.gamma;
         params   = other.params;
         return *this;

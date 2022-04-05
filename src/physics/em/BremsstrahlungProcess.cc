@@ -43,21 +43,25 @@ BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto BremsstrahlungProcess::build_models(ModelIdGenerator next_id) const
+auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
     SeltzerBergerModel::ReadData load_data = SeltzerBergerReader();
     if (options_.combined_model)
     {
-        return {std::make_shared<CombinedBremModel>(
-            next_id(), *particles_, *materials_, load_data, options_.enable_lpm)};
+        return {std::make_shared<CombinedBremModel>(*start_id++,
+                                                    *particles_,
+                                                    *materials_,
+                                                    load_data,
+                                                    options_.enable_lpm)};
     }
     else
     {
-        return {std::make_shared<SeltzerBergerModel>(
-                    next_id(), *particles_, *materials_, load_data),
-                std::make_shared<RelativisticBremModel>(
-                    next_id(), *particles_, *materials_, options_.enable_lpm)};
+        return {
+            std::make_shared<SeltzerBergerModel>(
+                *start_id++, *particles_, *materials_, load_data),
+            std::make_shared<RelativisticBremModel>(
+                *start_id++, *particles_, *materials_, options_.enable_lpm)};
     }
 }
 

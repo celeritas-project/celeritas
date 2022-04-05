@@ -18,6 +18,7 @@
 #include "physics/grid/ValueGridData.hh"
 #include "physics/grid/XsGridData.hh"
 #include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
 #include "Types.hh"
 
@@ -186,6 +187,60 @@ struct HardwiredModels
 
 //---------------------------------------------------------------------------//
 /*!
+ * Scalar (no template needed) quantities used by physics.
+ *
+ * The user-configurable constants are described in \c PhysicsParams .
+ *
+ * The \c model_to_action value corresponds to the \c ActionId for the first \c
+ * ModelId . Additionally it implies (by construction in physics_params) the
+ * action IDs of several other physics actions.
+ */
+struct PhysicsParamsScalars
+{
+    //! Highest number of processes for any particle type
+    ProcessId::size_type max_particle_processes{};
+    //! Offset to create an ActionId from a ModelId
+    ActionId::size_type model_to_action{};
+    //! Number of physics models
+    ModelId::size_type num_models{};
+
+    // User-configurable constants
+    real_type scaling_min_range{};  //!< rho [cm]
+    real_type scaling_fraction{};   //!< alpha [unitless]
+    real_type energy_fraction{};    //!< xi [unitless]
+    real_type linear_loss_limit{};  //!< For scaled range calculation
+    bool      enable_fluctuation{}; //!< Enable energy loss fluctuations
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return max_particle_processes > 0 && model_to_action >= 3
+               && num_models > 0 && scaling_min_range > 0
+               && scaling_fraction > 0 && energy_fraction > 0
+               && linear_loss_limit > 0;
+    }
+
+    //! Stop early due to range limitation
+    CELER_FORCEINLINE_FUNCTION ActionId range_action() const
+    {
+        return ActionId{model_to_action - 3};
+    }
+
+    //! Undergo a discrete interaction
+    CELER_FORCEINLINE_FUNCTION ActionId discrete_action() const
+    {
+        return ActionId{model_to_action - 2};
+    }
+
+    //! Indicate an interaction failed to allocate memory
+    CELER_FORCEINLINE_FUNCTION ActionId failure_action() const
+    {
+        return ActionId{model_to_action - 1};
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Persistent shared physics data.
  *
  * This includes macroscopic cross section, energy loss, and range tables
@@ -226,24 +281,19 @@ struct PhysicsParamsData
     // Special data
     HardwiredModels<W, M> hardwired;
     FluctuationData<W, M> fluctuation;
-    ProcessId::size_type  max_particle_processes{};
 
-    // User-configurable constants
-    real_type scaling_min_range{};  //!< rho [cm]
-    real_type scaling_fraction{};   //!< alpha [unitless]
-    real_type energy_fraction{};    //!< xi [unitless]
-    real_type linear_loss_limit{};  //!< For scaled range calculation
-    bool      enable_fluctuation{}; //!< Enable energy loss fluctuations
+    // Non-templated data
+    PhysicsParamsScalars scalars;
 
     //// METHODS ////
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !process_groups.empty() && max_particle_processes
-               && scaling_min_range > 0 && scaling_fraction > 0
-               && energy_fraction > 0 && linear_loss_limit > 0
-               && enable_fluctuation == static_cast<bool>(fluctuation);
+        return !process_groups.empty()
+               && (static_cast<bool>(fluctuation)
+                   || !scalars.enable_fluctuation)
+               && scalars;
     }
 
     //! Assign from another set of data
@@ -262,15 +312,10 @@ struct PhysicsParamsData
         model_groups   = other.model_groups;
         process_groups = other.process_groups;
 
-        hardwired              = other.hardwired;
-        fluctuation            = other.fluctuation;
-        max_particle_processes = other.max_particle_processes;
+        hardwired   = other.hardwired;
+        fluctuation = other.fluctuation;
 
-        scaling_min_range  = other.scaling_min_range;
-        scaling_fraction   = other.scaling_fraction;
-        energy_fraction    = other.energy_fraction;
-        linear_loss_limit  = other.linear_loss_limit;
-        enable_fluctuation = other.enable_fluctuation;
+        scalars = other.scalars;
 
         return *this;
     }
@@ -283,16 +328,16 @@ struct PhysicsParamsData
  * Physics state data for a single track.
  *
  * - Remaining number of mean free paths to the next discrete interaction
- * - Maximum step length (limited by range, energy loss, and interaction)
- * - Selected model ID if undergoing an interaction
+ * - Current macroscopic cross section
  */
 struct PhysicsTrackState
 {
     real_type interaction_mfp; //!< Remaining MFP to interaction
-    real_type step_length;     //!< Overall physics step length
-    real_type macro_xs;        //!< Total cross section
+    real_type macro_xs; //!< Total cross section for discrete interactions
+    real_type energy_deposition; //!< Local energy deposition in a step [MeV]
+    Span<Secondary> secondaries; //!< Emitted secondaries
 
-    ModelId            model_id;   //!< Selected model if interacting
+    // CURRENTLY UNUSED
     ElementComponentId element_id; //!< Selected element during interaction
 };
 
@@ -364,14 +409,14 @@ inline void resize(
     size_type                                                            size)
 {
     CELER_EXPECT(size > 0);
-    CELER_EXPECT(params.max_particle_processes > 0);
+    CELER_EXPECT(params.scalars.max_particle_processes > 0);
     make_builder(&state->state).resize(size);
     if (params.hardwired.msc)
     {
         make_builder(&state->msc_step).resize(size);
     }
     make_builder(&state->per_process_xs)
-        .resize(size * params.max_particle_processes);
+        .resize(size * params.scalars.max_particle_processes);
 }
 
 //---------------------------------------------------------------------------//

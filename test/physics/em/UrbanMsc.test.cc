@@ -190,7 +190,7 @@ TEST_F(UrbanMscTest, msc_scattering)
 
     // Create the model
     std::shared_ptr<UrbanMscModel> model = std::make_shared<UrbanMscModel>(
-        ModelId{0}, *particle_params_, *material_params_);
+        ActionId{0}, *particle_params_, *material_params_);
 
     // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
     const detail::UrbanMscMaterialData& msc_
@@ -243,7 +243,12 @@ TEST_F(UrbanMscTest, msc_scattering)
 
     for (unsigned int i : celeritas::range(nsamples))
     {
-        SimTrackState state = {TrackId{i}, TrackId{i}, EventId{1}, i % 2, true};
+        SimTrackState state = {TrackId{i},
+                               TrackId{i},
+                               EventId{1},
+                               i % 2,
+                               TrackStatus::alive,
+                               StepLimit{}};
         sim_state_data.push_back(state);
     }
     const SimStateRef& states = make_ref(states_ref);

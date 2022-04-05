@@ -41,6 +41,17 @@ class ValueGridBuilder
 
     //! Construct the grid given a mutable reference to a store
     virtual ValueGridId build(ValueGridInserter) const = 0;
+
+  protected:
+    ValueGridBuilder() = default;
+
+    //!@{
+    //! Prevent copy/move except by daughters that know what they're doing
+    ValueGridBuilder(const ValueGridBuilder&) = default;
+    ValueGridBuilder& operator=(const ValueGridBuilder&) = default;
+    ValueGridBuilder(ValueGridBuilder&&)                 = default;
+    ValueGridBuilder& operator=(ValueGridBuilder&&) = default;
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

@@ -99,11 +99,15 @@ struct ParticleParamsData
  */
 struct ParticleTrackState
 {
+    ParticleId particle_id; //!< Type of particle (electron, gamma, ...)
+    real_type  energy;      //!< Kinetic energy [MeV]
+};
+
+struct ParticleTrackInitializer
+{
     ParticleId       particle_id; //!< Type of particle (electron, gamma, ...)
     units::MevEnergy energy;      //!< Kinetic energy [MeV]
 };
-
-using ParticleTrackInitializer = ParticleTrackState;
 
 //---------------------------------------------------------------------------//
 /*!

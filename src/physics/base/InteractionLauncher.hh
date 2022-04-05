@@ -33,7 +33,7 @@ inline CELER_FUNCTION Interaction foo_interact(
 }
    \endcode
  *
- * \note The model data *must* have a member data `ModelId model_id;` for
+ * \note The model data *must* have a member data `ActionId action_id;` for
  * filtering the tracks. We could improve this interface later.
  */
 template<class D, class F>

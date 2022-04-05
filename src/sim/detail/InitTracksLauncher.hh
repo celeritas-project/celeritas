@@ -131,11 +131,6 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
         PhysicsTrackView phys(params_.physics, states_.physics, {}, {}, vac_id);
         phys = {};
     }
-
-    // Interaction representing creation of a new track
-    {
-        states_.interactions[vac_id] = Interaction::from_spawned();
-    }
 }
 
 //---------------------------------------------------------------------------//

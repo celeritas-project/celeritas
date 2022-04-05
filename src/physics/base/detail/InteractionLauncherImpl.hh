@@ -55,12 +55,44 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
     const celeritas::CoreTrackView track(
         this->core_data.params, this->core_data.states, thread);
 
-    // TODO: will be replaced by action ID
-    if (track.model_id() != model_data.ids.model)
+    auto sim = track.make_sim_view();
+    if (sim.step_limit().action != model_data.ids.action)
         return;
 
     Interaction result  = this->call_with_track(model_data, track);
-    track.interaction() = result;
+
+    auto phys = track.make_physics_view();
+    if (result.changed())
+    {
+        // Scattered or absorbed
+        phys.deposit_energy(result.energy_deposition);
+        {
+            // Update post-step energy
+            auto particle = track.make_particle_view();
+            particle.energy(result.energy);
+        }
+
+        if (result.action != Interaction::Action::absorbed)
+        {
+            // Update direction
+            auto geo = track.make_geo_view();
+            geo.set_dir(result.direction);
+        }
+        else
+        {
+            // Mark particle as dead
+            sim.status(TrackStatus::killed);
+        }
+    }
+    else if (CELER_UNLIKELY(result.action == Interaction::Action::failed))
+    {
+        // Particle already moved to the collision site, but an out-of-memory
+        // (allocation failure) occurred. Someday we can add error handling,
+        // but for now use the "failure" action in the physics and set the step
+        // limit to zero since it needs to interact again at this location.
+        auto sim = track.make_sim_view();
+        sim.step_limit({0, phys.scalars().failure_action()});
+    }
 }
 
 //---------------------------------------------------------------------------//

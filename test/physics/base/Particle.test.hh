@@ -27,9 +27,10 @@ using ParticleStateRef
 //! Input data
 struct PTVTestInput
 {
-    ParticleParamsRef               params;
-    ParticleStateRef                states;
-    std::vector<ParticleTrackState> init;
+    ParticleParamsRef params;
+    ParticleStateRef  states;
+
+    std::vector<ParticleTrackInitializer> init;
 };
 
 //---------------------------------------------------------------------------//

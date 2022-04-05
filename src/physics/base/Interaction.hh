@@ -13,7 +13,6 @@
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
-#include "sim/Action.hh"
 
 #include "Secondary.hh"
 
@@ -25,11 +24,20 @@ namespace celeritas
  */
 struct Interaction
 {
-    Action           action;            //!< Failure, scatter, absorption, ...
-    units::MevEnergy energy;            //!< Post-interaction energy
-    Real3            direction;         //!< Post-interaction direction
-    Span<Secondary>  secondaries;       //!< Emitted secondaries
-    units::MevEnergy energy_deposition; //!< Energy loss locally to material
+    //! Interaction result category
+    enum class Action
+    {
+        scattered, //!< Still alive, state has changed
+        absorbed,  //!< Absorbed or transformed to another particle type
+        unchanged, //!< No state change, no secondaries
+        failed,    //!< Ran out of memory during sampling
+    };
+
+    units::MevEnergy energy;               //!< Post-interaction energy
+    Real3            direction;            //!< Post-interaction direction
+    Span<Secondary>  secondaries;          //!< Emitted secondaries
+    units::MevEnergy energy_deposition{0}; //!< Energy loss locally to material
+    Action action{Action::scattered};      //!< Flags for interaction result
 
     // Return an interaction representing a recoverable error
     static inline CELER_FUNCTION Interaction from_failure();
@@ -41,14 +49,11 @@ struct Interaction
     static inline CELER_FUNCTION Interaction
     from_unchanged(units::MevEnergy energy, const Real3& direction);
 
-    // Return an interaction indicating all state changes have been applied
-    static inline CELER_FUNCTION Interaction from_processed();
-
-    // Return an interaction representing the creation of a new track
-    static inline CELER_FUNCTION Interaction from_spawned();
-
-    // Whether the interaction succeeded
-    explicit inline CELER_FUNCTION operator bool() const;
+    //! Whether the state changed but did not fail
+    CELER_FUNCTION bool changed() const
+    {
+        return static_cast<int>(action) < static_cast<int>(Action::unchanged);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -89,7 +94,7 @@ struct MscInteraction
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with defaults.
+ * Indicate a failure to allocate memory for secondaries.
  */
 CELER_FUNCTION Interaction Interaction::from_failure()
 {
@@ -105,9 +110,8 @@ CELER_FUNCTION Interaction Interaction::from_failure()
 CELER_FUNCTION Interaction Interaction::from_absorption()
 {
     Interaction result;
-    result.action    = Action::absorbed;
-    result.energy    = zero_quantity();
-    result.direction = {0, 0, 0};
+    result.energy = zero_quantity();
+    result.action = Action::absorbed;
     return result;
 }
 
@@ -115,48 +119,12 @@ CELER_FUNCTION Interaction Interaction::from_absorption()
 /*!
  * Construct an interaction for edge cases where there is no state change.
  */
-CELER_FUNCTION Interaction Interaction::from_unchanged(units::MevEnergy energy,
-                                                       const Real3& direction)
-{
-    CELER_EXPECT(energy > zero_quantity());
-    CELER_EXPECT(is_soft_unit_vector(direction));
-
-    Interaction result;
-    result.action    = Action::unchanged;
-    result.energy    = energy;
-    result.direction = direction;
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct for end of step when all interaction data has been processed.
- */
-CELER_FUNCTION Interaction Interaction::from_processed()
+CELER_FUNCTION Interaction Interaction::from_unchanged(units::MevEnergy,
+                                                       const Real3&)
 {
     Interaction result;
-    result.action = Action::processed;
+    result.action = Action::unchanged;
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct an interaction for the creation of a new track.
- */
-CELER_FUNCTION Interaction Interaction::from_spawned()
-{
-    Interaction result;
-    result.action = Action::spawned;
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the interaction succeeded.
- */
-CELER_FUNCTION Interaction::operator bool() const
-{
-    return action_completed(this->action);
 }
 
 //---------------------------------------------------------------------------//

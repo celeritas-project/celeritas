@@ -11,14 +11,13 @@
 #include <string>
 
 #include "base/Types.hh"
+#include "sim/ActionInterface.hh"
 
 #include "Applicability.hh"
 #include "Types.hh"
 
 namespace celeritas
 {
-template<MemSpace M>
-struct CoreRef;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -28,8 +27,8 @@ struct CoreRef;
  * such as Compton scattering that is valid for one or more particle types in a
  * given range (or ranges) of energy.
  *
- * Each Model subclass is constructed with a unique ModelId by a Process, which
- * is effectively a group of Models. Once constructed, it is essentially
+ * Each Model subclass is constructed with a unique ActionId by a Process,
+ * which is effectively a group of Models. Once constructed, it is essentially
  * immutable.
  *
  * The model assumes a few responsibilities:
@@ -45,14 +44,14 @@ struct CoreRef;
  * This class is similar to Geant4's G4VContinuousDiscrete process, but more
  * limited.
  */
-class Model
+class Model : public ExplicitActionInterface
 {
   public:
     //@{
     //! Type aliases
     using SetApplicability  = std::set<Applicability>;
-    using HostInteractRef   = CoreRef<MemSpace::host>;
-    using DeviceInteractRef = CoreRef<MemSpace::device>;
+    using HostInteractRef   = ExplicitActionInterface::CoreHostRef;
+    using DeviceInteractRef = ExplicitActionInterface::CoreDeviceRef;
     //@}
 
   public:
@@ -68,11 +67,20 @@ class Model
     //! Apply the interaction kernel to device data
     virtual void interact(const DeviceInteractRef&) const = 0;
 
-    //! ID of the model (should be stored by constructor)
-    virtual ModelId model_id() const = 0;
+    //! TODO: reconcile 'label' and 'description', but for now return empty
+    std::string description() const override { return {}; }
 
-    //! Name of the model, for user interaction
-    virtual std::string label() const = 0;
+    //!@{
+    //! DEPRECATED: adapt old Model interface to new Action interface
+    void execute(CoreHostRef const& ref) const final
+    {
+        return this->interact(ref);
+    }
+    void execute(CoreDeviceRef const& ref) const final
+    {
+        return this->interact(ref);
+    }
+    //!@}
 };
 
 //---------------------------------------------------------------------------//
