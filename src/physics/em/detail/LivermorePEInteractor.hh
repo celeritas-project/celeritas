@@ -17,9 +17,9 @@
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
-#include "physics/grid/PolyEvaluator.hh"
 #include "physics/em/AtomicRelaxationHelper.hh"
 #include "physics/grid/GenericXsCalculator.hh"
+#include "physics/grid/PolyEvaluator.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 
 #include "LivermorePEData.hh"

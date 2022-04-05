@@ -18,7 +18,8 @@ namespace celeritas
 /*!
  * Functor class to evaluate a polynomial.
  *
- * This is an efficient way of storing and evaluating a polynomial expansion:
+ * This is an efficient and foolproof way of storing and evaluating a
+ * polynomial expansion:
  * \f[
   f(x) = a_0 + x * (a_1 + x * (a_2 + ...))
   \f]
@@ -32,6 +33,11 @@ namespace celeritas
  * \code
     corr = make_poly_evaluator(1.41125, -1.86427e-2, 1.84035e-4)(zeff);
    \endcode
+ * or, to use an explicit type without having to cast each coefficient:
+ * \code
+   using PolyQuad = PolyEvaluator<real_type, N>;
+   corr = PolyQuad{1.41125, -1.86427e-2, 1.84035e-4)(zeff);
+ * \endcode
  */
 template<class T, unsigned int N>
 class PolyEvaluator
