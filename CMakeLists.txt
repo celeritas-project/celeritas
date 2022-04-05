@@ -137,7 +137,12 @@ if(CELERITAS_USE_Doxygen)
 endif()
 
 if(CELERITAS_USE_Geant4)
+  # Geant4 calls `include_directories` for CLHEP :( which is not what we want!
+  # Save and restore include directories around the call -- even though as a
+  # standalone project Celeritas will never have directory-level includes
+  get_directory_property(_include_dirs INCLUDE_DIRECTORIES)
   find_package(Geant4 REQUIRED)
+  set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${_include_dirs}")
 endif()
 
 if(CELERITAS_USE_HepMC3)
