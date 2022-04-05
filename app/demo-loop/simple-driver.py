@@ -38,7 +38,8 @@ else:
     # Load directly from Geant4 rather than ROOT file
     physics_filename = geometry_filename
 
-if strtobool(environ.get('CELER_DISABLE_VECGEOM', 'false')):
+use_vecgeom = not strtobool(environ.get('CELER_DISABLE_VECGEOM', 'false'))
+if not use_vecgeom:
     print("Replacing .gdml extension since VecGeom is disabled")
     geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 
@@ -63,7 +64,7 @@ inp = {
     'brem_combined': True,
     'brem_lpm': True,
     'conv_lpm': True,
-    'enable_msc': False,
+    'enable_msc': use_vecgeom,
 }
 
 
