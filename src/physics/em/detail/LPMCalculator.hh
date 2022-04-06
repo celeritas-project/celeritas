@@ -15,6 +15,7 @@
 #include "base/Quantity.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
+#include "physics/grid/PolyEvaluator.hh"
 #include "physics/material/MaterialView.hh"
 #include "physics/material/Types.hh"
 
@@ -74,7 +75,8 @@ class LPMCalculator
 
     //// HELPER FUNCTIONS ////
 
-    inline CELER_FUNCTION LPMFunctions compute_g_phi(real_type s) const;
+    inline CELER_FUNCTION real_type calc_phi(real_type s) const;
+    inline CELER_FUNCTION real_type calc_g(real_type s, real_type phi) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -161,90 +163,82 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
         }
     }
 
-    // Calculate \f$ G(s) \f$ and \f$ \phi(s) \f$
-    LPMFunctions result = this->compute_g_phi(s);
-
     // Make sure suppression is less than 1 (due to Migdal's approximation on
     // \f$ xi \f$)
-    if (xi * result.phi > 1 || s > real_type(0.57))
+    real_type phi = this->calc_phi(s);
+    if (xi * phi > 1 || s > real_type(0.57))
     {
-        xi = 1 / result.phi;
+        xi = 1 / phi;
     }
-    result.xi = xi;
+    LPMFunctions result;
+    result.phi = phi;
+    result.xi  = xi;
+    result.g   = this->calc_g(s, phi);
 
     return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Compute the LPM suppression functions \f$ G(s) \f$ and \f$ \phi(s) \f$.
+ * Compute the LPM suppression function \f$ \phi(s) \f$.
  *
  * The functions are calculated using a piecewise approximation with simple
- * analytic functions.
+ * analytic functions. For s > 1.55 use the Stanev approximation.
  *
  * See section 10.2.2 of the Geant4 Physics Reference Manual and
  * ComputeLPMGsPhis in G4eBremsstrahlungRelModel and G4PairProductionRelModel.
  * Note that in Geant4 these are precomputed and tabulated at initialization.
  */
-auto LPMCalculator::compute_g_phi(real_type s) const -> LPMFunctions
+CELER_FUNCTION real_type LPMCalculator::calc_phi(real_type s) const
 {
-    using R = real_type;
+    using PolyLin  = PolyEvaluator<real_type, 1>;
+    using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    LPMFunctions result;
-
-    if (s < R(0.01))
+    if (s < real_type(0.01))
     {
-        result.phi = 6 * s * (1 - constants::pi * s);
-        result.g   = 12 * s - 2 * result.phi;
+        return s * PolyLin(6, -6 * constants::pi)(s);
+    }
+    else if (s < real_type(1.55))
+    {
+        real_type a = PolyQuad{0.623, 0.796, 0.658}(s);
+        real_type b = PolyQuad{-6, -6 * (3 - constants::pi), 1 / a}(s);
+        return 1 - std::exp(s * b);
     }
     else
     {
-        real_type s2 = ipow<2>(s);
-        real_type s3 = s * s2;
-        real_type s4 = ipow<2>(s2);
-
-        // use Stanev approximation: for \psi(s) and compute G(s)
-        if (s < R(0.415827))
-        {
-            result.phi
-                = 1
-                  - std::exp(-6 * s * (1 + s * (3 - constants::pi))
-                             + s3 / (R(0.623) + R(0.796) * s + R(0.658) * s2));
-            real_type psi = 1
-                            - std::exp(-4 * s
-                                       - 8 * s2
-                                             / (1 + R(3.936) * s + R(4.97) * s2
-                                                - R(0.05) * s3 + R(7.5) * s4));
-            result.g = 3 * psi - 2 * result.phi;
-        }
-        else
-        {
-            if (s < R(1.55))
-            {
-                result.phi
-                    = 1
-                      - std::exp(
-                          -6 * s * (1 + s * (3 - constants::pi))
-                          + s3 / (R(0.623) + R(0.796) * s + R(0.658) * s2));
-            }
-            else
-            {
-                result.phi = 1 - R(0.01190476) / s4;
-            }
-            if (s < R(1.9156))
-            {
-                result.g = std::tanh(R(-0.160723) + R(3.755030) * s
-                                     - R(1.798138) * s2 + R(0.672827) * s3
-                                     - R(0.120772) * s4);
-            }
-            else
-            {
-                result.g = 1 - R(0.0230655) / s4;
-            }
-        }
+        return 1 - real_type(0.01190476) / ipow<4>(s);
     }
+}
 
-    return result;
+//---------------------------------------------------------------------------//
+/*!
+ * Compute the LPM suppression function \f$ g(s) \f$.
+ */
+CELER_FUNCTION real_type LPMCalculator::calc_g(real_type s, real_type phi) const
+{
+    using PolyLin   = PolyEvaluator<real_type, 1>;
+    using PolyQuart = PolyEvaluator<real_type, 4>;
+
+    if (s < real_type(0.01))
+    {
+        return PolyLin(-2 * phi, 12)(s);
+    }
+    else if (s < real_type(0.415827))
+    {
+        real_type a   = PolyQuart{1, 3.936, 4.97, -0.05, 7.5}(s);
+        real_type b   = PolyLin{-4, -8 / a}(s);
+        real_type psi = 1 - std::exp(s * b);
+        return 3 * psi - 2 * phi;
+    }
+    else if (s < real_type(1.9156))
+    {
+        return std::tanh(
+            PolyQuart{-0.160723, 3.755030, -1.798138, 0.672827, -0.120772}(s));
+    }
+    else
+    {
+        return 1 - real_type(0.0230655) / ipow<4>(s);
+    }
 }
 
 //---------------------------------------------------------------------------//

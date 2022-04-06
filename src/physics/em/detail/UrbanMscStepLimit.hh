@@ -18,6 +18,7 @@
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
+#include "physics/grid/PolyEvaluator.hh"
 #include "physics/material/Types.hh"
 #include "random/Selector.hh"
 #include "random/distributions/NormalDistribution.hh"
@@ -323,10 +324,9 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
 CELER_FUNCTION real_type UrbanMscStepLimit::calc_step_min(Energy    energy,
                                                           real_type lambda) const
 {
-    real_type re = energy.value();
+    using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    return lambda
-           / (2 + real_type(1e3) * re * (msc_.stepmin_a + msc_.stepmin_b * re));
+    return lambda / PolyQuad(2, msc_.stepmin_a, msc_.stepmin_b)(energy.value());
 }
 
 //---------------------------------------------------------------------------//

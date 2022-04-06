@@ -19,6 +19,7 @@
 #include "physics/base/Units.hh"
 #include "physics/em/AtomicRelaxationHelper.hh"
 #include "physics/grid/GenericXsCalculator.hh"
+#include "physics/grid/PolyEvaluator.hh"
 #include "random/distributions/UniformRealDistribution.hh"
 
 #include "LivermorePEData.hh"
@@ -278,18 +279,14 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
         for (; shell_id < shell_end; ++shell_id)
         {
             const auto& param = shells[shell_id].param[pidx];
+            PolyEvaluator<real_type, 5> eval_poly(
+                param[0], param[1], param[2], param[3], param[4], param[5]);
 
             // Calculate the *cumulative* subshell cross section (this plus all
             // below) from the fit parameters and energy as
             // \sigma(E) = a_1 / E + a_2 / E^2 + a_3 / E^3
             //             + a_4 / E^4 + a_5 / E^5 + a_6 / E^6.
-            // clang-format off
-            real_type xs
-                =   inv_energy_ * (param[0] + inv_energy_ * (param[1]
-                  + inv_energy_ * (param[2] + inv_energy_ * (param[3]
-                  + inv_energy_ * (param[4] + inv_energy_ *  param[5])))));
-            // clang-format on
-
+            real_type xs = inv_energy_ * eval_poly(inv_energy_);
             if (xs > cutoff)
             {
                 break;

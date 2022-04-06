@@ -10,6 +10,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
+#include "physics/grid/PolyEvaluator.hh"
 #include "physics/material/Types.hh"
 
 #include "UrbanMscData.hh"
@@ -245,6 +246,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                                                            real_type true_path,
                                                            real_type limit_min)
 {
+    using PolyQuad = PolyEvaluator<real_type, 2>;
+
     real_type result = 1;
 
     real_type lambda_end = helper_.msc_mfp(end_energy_);
@@ -296,14 +299,13 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         real_type x = theta2 * (1 - theta2 / 12);
         if (theta2 > real_type(0.01))
         {
-            real_type sth = 2 * std::sin(real_type(0.5) * theta0);
-            x             = ipow<2>(sth);
+            x = ipow<2>(2 * std::sin(real_type(0.5) * theta0));
         }
 
         // Evaluate parameters for the tail distribution
-        real_type u   = fastpow(small_step ? tsmall / lambda_ : tau_,
-                                 1 / real_type(6));
-        real_type xsi = msc_.d[0] + u * (msc_.d[1] + msc_.d[2] * u)
+        real_type u
+            = fastpow(small_step ? tsmall / lambda_ : tau_, 1 / real_type(6));
+        real_type xsi = PolyQuad(msc_.d[0], msc_.d[1], msc_.d[2])(u)
                         + msc_.d[3]
                               * std::log(true_path / (tau_ * rad_length_));
 
@@ -311,22 +313,18 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         xsi = max<real_type>(xsi, real_type(1.9));
 
         real_type c = xsi;
-
-        if (std::abs(c - 3) < real_type(0.001))
+        if (std::fabs(xsi - 3) < real_type(0.001))
         {
             c = real_type(3.001);
         }
-        else if (std::abs(c - 2) < real_type(0.001))
+        else if (std::fabs(xsi - 2) < real_type(0.001))
         {
             c = real_type(2.001);
         }
 
-        real_type c1 = c - 1;
-
         real_type ea  = std::exp(-xsi);
-        real_type eaa = 1 - ea;
         // Mean of cos\theta computed from the distribution g_1(cos\theta)
-        real_type xmean1 = 1 - (1 - (1 + xsi) * ea) * x / eaa;
+        real_type xmean1 = 1 - (1 - (1 + xsi) * ea) * x / (1 - ea);
 
         if (xmean1 <= real_type(0.999) * xmean)
         {
@@ -335,16 +333,14 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
 
         // From continuity of derivatives
         real_type b1 = 2 + (c - xsi) * x;
-        real_type bx = c * x;
-        real_type d  = fastpow(bx / b1, c1);
+        real_type d  = fastpow(c * x / b1, c - 1);
         real_type x0 = 1 - xsi * x;
 
         // Mean of cos\theta computed from the distribution g_2(cos\theta)
-        real_type xmean2 = (x0 + d - (bx - b1 * d) / (c - 2)) / (1 - d);
+        real_type xmean2 = (x0 + d - (c * x - b1 * d) / (c - 2)) / (1 - d);
 
-        real_type f1x0 = ea / eaa;
-        real_type f2x0 = c1 / (c * (1 - d));
-        real_type prob = f2x0 / (f1x0 + f2x0);
+        real_type f2x0 = (c - 1) / (c * (1 - d));
+        real_type prob = f2x0 / (ea / (1 - ea) + f2x0);
 
         // Eq. 8.14 in the PRM: note that can be greater than 1
         real_type qprob = xmean / (prob * xmean1 + (1 - prob) * xmean2);
@@ -355,7 +351,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
             if (BernoulliDistribution(prob)(rng))
             {
                 // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
-                result = 1 + std::log(ea + generate_canonical(rng) * eaa) * x;
+                UniformRealDistribution<real_type> sample_inner(ea, 1);
+                result = 1 + std::log(sample_inner(rng)) * x;
             }
             else
             {
@@ -363,16 +360,15 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                 real_type var = (1 - d) * generate_canonical(rng);
                 if (var < real_type(0.01) * d)
                 {
-                    var /= (d * c1);
+                    var /= (d * (c - 1));
                     result = -1
                              + var * (1 - real_type(0.5) * var * c)
                                    * (2 + (c - xsi) * x);
                 }
                 else
                 {
-                    result
-                        = x * (c - xsi - c * fastpow(var + d, -1 / c1))
-                          + 1;
+                    result = x * (c - xsi - c * fastpow(var + d, -1 / (c - 1)))
+                             + 1;
                 }
             }
         }
@@ -461,6 +457,9 @@ real_type UrbanMscScatter::compute_theta0(real_type true_path) const
  */
 CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
 {
+    using PolyLin  = PolyEvaluator<real_type, 1>;
+    using PolyQuad = PolyEvaluator<real_type, 2>;
+
     real_type corr{1.0};
 
     real_type           zeff = msc_.zeff;
@@ -469,9 +468,9 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
     constexpr real_type e    = 113;
 
     real_type x = std::sqrt(tau * (tau + 2) / ipow<2>(tau + 1));
-    real_type a = real_type(0.994) - real_type(4.08e-3) * zeff;
-    real_type b = real_type(7.16) + (real_type(52.6) + 365 / zeff) / zeff;
-    real_type c = 1 - real_type(4.47e-3) * zeff;
+    real_type a = PolyLin(0.994, -4.08e-3)(zeff);
+    real_type b = PolyQuad(7.16, 52.6, 365)(1 / zeff);
+    real_type c = PolyLin(1, -4.47e-3)(zeff);
     real_type d = real_type(1.21e-3) * zeff;
     if (x < xl)
     {
@@ -489,8 +488,8 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
         real_type y1 = yl - y0 * xl;
         corr         = y0 * x + y1;
     }
-    corr *= (zeff * (real_type(1.84035e-4) * zeff - real_type(1.86427e-2))
-             + real_type(1.41125));
+
+    corr *= PolyQuad(1.41125, -1.86427e-2, 1.84035e-4)(zeff);
 
     return corr;
 }

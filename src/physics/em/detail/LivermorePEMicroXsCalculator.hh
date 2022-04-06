@@ -13,6 +13,7 @@
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "physics/grid/GenericXsCalculator.hh"
+#include "physics/grid/PolyEvaluator.hh"
 #include "physics/material/Types.hh"
 
 #include "LivermorePEData.hh"
@@ -84,14 +85,11 @@ real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
         // Fit parameters from the final shell are used to calculate the cross
         // section integrated over all subshells
         const auto& param = shells.back().param[energy < el.thresh_hi ? 0 : 1];
+        PolyEvaluator<real_type, 5> eval_poly(
+            param[0], param[1], param[2], param[3], param[4], param[5]);
 
         // Use the parameterization of the integrated subshell cross sections
-        // clang-format off
-        result
-            = inv_energy * (param[0] + inv_energy * (param[1]
-            + inv_energy * (param[2] + inv_energy * (param[3]
-            + inv_energy * (param[4] + inv_energy * param[5])))));
-        // clang-format on
+        result = inv_energy * eval_poly(inv_energy);
     }
     else if (energy >= shells.front().binding_energy)
     {
