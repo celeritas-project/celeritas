@@ -153,10 +153,10 @@ FieldDriver<StepperT>::advance(real_type step, const OdeState& state)
 
     if (rel_error > 1)
     {
-        // Advance more accurately with a newly proposed step
+        // Discard the original end state and advance more accurately with the
+        // newly proposed step
         real_type next_step = this->new_step_size(step, rel_error);
-        output.end          = this->accurate_advance(
-            output.end.step, output.end.state, next_step);
+        output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
     return output.end;
@@ -258,8 +258,9 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
         }
         else
         {
-            h = max(max(output.proposed_step, shared_.minimum_step),
-                    end_curve_length - curve_length);
+            h = clamp(output.proposed_step,
+                      shared_.minimum_step,
+                      end_curve_length - curve_length);
         }
     } while (!succeeded && --remaining_steps > 0);
 
