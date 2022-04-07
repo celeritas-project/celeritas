@@ -56,17 +56,17 @@ TEST_F(PhysicsParamsTest, accessors)
         model_names.push_back(p.model(model_id).label());
     }
     const std::string expected_model_names[]
-        = {"MockModel(0, p=0, emin=1e-06, emax=100)",
-           "MockModel(1, p=1, emin=1, emax=100)",
-           "MockModel(2, p=0, emin=1e-06, emax=100)",
-           "MockModel(3, p=1, emin=0.001, emax=1)",
-           "MockModel(4, p=1, emin=1, emax=10)",
-           "MockModel(5, p=1, emin=10, emax=100)",
-           "MockModel(6, p=2, emin=0.001, emax=1)",
-           "MockModel(7, p=2, emin=1, emax=100)",
-           "MockModel(8, p=1, emin=0.001, emax=10)",
-           "MockModel(9, p=2, emin=0.001, emax=10)",
-           "MockModel(10, p=3, emin=1e-05, emax=10)"};
+        = {"MockModel(5, p=0, emin=1e-06, emax=100)",
+           "MockModel(6, p=1, emin=1, emax=100)",
+           "MockModel(7, p=0, emin=1e-06, emax=100)",
+           "MockModel(8, p=1, emin=0.001, emax=1)",
+           "MockModel(9, p=1, emin=1, emax=10)",
+           "MockModel(10, p=1, emin=10, emax=100)",
+           "MockModel(11, p=2, emin=0.001, emax=1)",
+           "MockModel(12, p=2, emin=1, emax=100)",
+           "MockModel(13, p=1, emin=0.001, emax=10)",
+           "MockModel(14, p=2, emin=0.001, emax=10)",
+           "MockModel(15, p=3, emin=1e-05, emax=10)"};
     EXPECT_VEC_EQ(expected_model_names, model_names);
 
     // Test host-accessible process map
@@ -589,6 +589,7 @@ auto EPlusAnnihilationTest::build_physics() const -> SPPhysics
     physics_inp.particles                  = this->particles();
     physics_inp.options                    = this->build_physics_options();
     physics_inp.options.enable_fluctuation = false;
+    physics_inp.action_manager             = this->action_manager().get();
 
     physics_inp.processes.push_back(
         std::make_shared<EPlusAnnihilationProcess>(physics_inp.particles));

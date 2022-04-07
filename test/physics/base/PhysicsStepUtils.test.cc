@@ -143,7 +143,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
             &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-2});
         StepLimit step
             = celeritas::calc_physics_step_limit(material, particle, phys);
-        EXPECT_EQ(discrete_action, step.action);
+        EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(0.0016666666666666663, step.step);
     }
     {
@@ -337,7 +337,7 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
             unsigned int count = 0;
             for (unsigned int j = 0; j < num_samples; ++j)
             {
-                phys.interaction_mfp(0);
+                phys.reset_interaction_mfp();
                 phys.macro_xs(xs_max);
 
                 if (select_discrete_interaction(particle, phys, this->rng()))

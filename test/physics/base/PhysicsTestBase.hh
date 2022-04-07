@@ -66,6 +66,7 @@ class PhysicsTestBase : public celeritas::Test
     const SPMaterials& materials() const { return materials_; }
     const SPParticles& particles() const { return particles_; }
     const SPPhysics&   physics() const { return physics_; }
+    const SPActionManager& action_manager() const { return actions_; }
 
   public:
     ~PhysicsTestBase();
@@ -90,6 +91,7 @@ class PhysicsTestBase : public celeritas::Test
     SPPhysics   physics_;
 
     mutable std::vector<ModelId> interactions_;
+    ActionId::size_type          model_to_action_{0};
 };
 
 //---------------------------------------------------------------------------//

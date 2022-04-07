@@ -30,6 +30,7 @@ void PhysicsTestBase::SetUp()
     CELER_ASSERT(particles_);
     physics_ = this->build_physics();
     CELER_ASSERT(physics_);
+    model_to_action_ = this->physics()->host_ref().scalars.model_to_action;
 }
 
 //---------------------------------------------------------------------------//
@@ -184,10 +185,9 @@ auto PhysicsTestBase::make_applicability(const char* name,
 auto PhysicsTestBase::make_model_callback() const
     -> ModelCallback
 {
-    auto offset = this->physics()->host_ref().scalars.model_to_action;
-    return [this, offset](ActionId id) {
+    return [this](ActionId id) {
         CELER_ASSERT(id);
-        interactions_.push_back(ModelId{id.unchecked_get() - offset});
+        interactions_.push_back(ModelId{id.unchecked_get() - model_to_action_});
     };
 }
 
