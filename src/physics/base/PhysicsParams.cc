@@ -111,6 +111,7 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
     this->build_ids(*inp.particles, &host_data);
     this->build_xs(inp.options, *inp.materials, &host_data);
 
+    // TODO: move to diagnostic output
     CELER_LOG(debug)
         << "Constructed physics sizes:"
         << "\n  reals: " << host_data.reals.size()
@@ -512,10 +513,14 @@ void PhysicsParams::build_xs(const Options&        opts,
                                  temp_grid_ids[vgt].end(),
                                  [](ValueGridId id) { return bool(id); }))
                 {
-                    // Skip this table type since it's not present for any
-                    // material for this particle process
-                    CELER_LOG(debug) << "No " << to_cstring(ValueGridType(vgt))
-                                     << " for process " << proc.label();
+                    if (vgt == ValueGridType::macro_xs)
+                    {
+                        // Skip this table type since it's not present for any
+                        // material for this particle process
+                        CELER_LOG(debug)
+                            << "No " << to_cstring(ValueGridType(vgt))
+                            << " for process " << proc.label();
+                    }
                     continue;
                 }
 
