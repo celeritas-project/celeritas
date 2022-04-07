@@ -189,6 +189,37 @@ TEST_F(PhysicsTrackViewHostTest, accessors)
         EXPECT_DOUBLE_EQ(10.0, gamma_cref.per_process_xs(ParticleProcessId{1}));
         EXPECT_DOUBLE_EQ(100.0, celer.per_process_xs(ParticleProcessId{0}));
     }
+
+    // Energy deposition
+    {
+        using Energy = PhysicsTrackView::Energy;
+        EXPECT_DOUBLE_EQ(0.0, value_as<Energy>(gamma_cref.energy_deposition()));
+        gamma.deposit_energy(Energy(2.5));
+        EXPECT_DOUBLE_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
+        // Allow zero-energy deposition
+        EXPECT_NO_THROW(gamma.deposit_energy(zero_quantity()));
+        EXPECT_DOUBLE_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
+        gamma.reset_energy_deposition();
+        EXPECT_DOUBLE_EQ(0.0, value_as<Energy>(gamma_cref.energy_deposition()));
+    }
+
+    // Secondaries
+    {
+        EXPECT_EQ(0, gamma_cref.secondaries().size());
+        std::vector<Secondary> temp(3);
+        gamma.secondaries(make_span(temp));
+        auto actual = gamma_cref.secondaries();
+        EXPECT_EQ(3, actual.size());
+        EXPECT_EQ(temp.data(), actual.data());
+    }
+
+    // Model/action ID conversion
+    for (ModelId m : range(ModelId{this->physics()->num_models()}))
+    {
+        ActionId a = gamma_cref.model_to_action(m);
+        EXPECT_EQ(m.unchecked_get(),
+                  gamma_cref.action_to_model(a).unchecked_get());
+    }
 }
 
 TEST_F(PhysicsTrackViewHostTest, processes)

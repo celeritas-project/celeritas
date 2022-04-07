@@ -108,7 +108,7 @@ class PhysicsTrackView
     inline CELER_FUNCTION Energy energy_deposition() const;
 
     // Access secondaries created by an interaction
-    inline CELER_FUNCTION Span<Secondary> secondaries() const;
+    inline CELER_FUNCTION Span<const Secondary> secondaries() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -394,7 +394,7 @@ CELER_FUNCTION auto PhysicsTrackView::energy_deposition() const -> Energy
 /*!
  * Access secondaries created by a discrete interaction.
  */
-CELER_FUNCTION Span<Secondary> PhysicsTrackView::secondaries() const
+CELER_FUNCTION Span<const Secondary> PhysicsTrackView::secondaries() const
 {
     return this->state().secondaries;
 }
