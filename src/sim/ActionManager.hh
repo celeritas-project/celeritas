@@ -13,12 +13,17 @@
 #include <vector>
 
 #include "base/Range.hh"
+#include "base/Types.hh"
 
 #include "ActionInterface.hh"
 #include "Types.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+template<MemSpace M>
+struct CoreRef;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct and store metadata about end-of-step actions.
@@ -90,6 +95,8 @@ class ActionManager
     void insert_impl(SPConstAction&& action, PConstExplicit expl);
 };
 
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Get the next available action ID.

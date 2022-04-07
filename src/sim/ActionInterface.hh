@@ -89,8 +89,8 @@ class ExplicitActionInterface : public virtual ActionInterface
  *
  * Example:
  * \code
-  class KernellyPhysicsAction final : public virtual ExplicitActionInterface,
-                                       public ConcreteAction
+  class KernellyPhysicsAction final : public ExplicitActionInterface,
+                                      public ConcreteAction
   {
     public:
       // Construct with ID and label
@@ -100,9 +100,8 @@ class ExplicitActionInterface : public virtual ActionInterface
       void execute(CoreDeviceRef const&) const final;
   };
 
-  class PlaceholderPhysicsAction final
-    : public virtual ImplicitActionInterface,
-      public ConcreteAction
+  class PlaceholderPhysicsAction final : public ImplicitActionInterface,
+                                         public ConcreteAction
   {
     public:
       // Construct with ID and label
