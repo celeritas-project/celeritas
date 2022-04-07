@@ -91,8 +91,8 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     params.detector      = detector_params;
 
     InitialData initial;
-    initial.particle = ParticleTrackState{kn_data_.ids.gamma,
-                                          units::MevEnergy{args.energy}};
+    initial.particle = ParticleTrackInitializer{kn_data_.ids.gamma,
+                                                units::MevEnergy{args.energy}};
 
     StateDeviceRef state;
     state.particle  = track_states;

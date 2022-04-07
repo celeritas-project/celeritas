@@ -36,14 +36,17 @@ interact_kernel(CoreStateDeviceRef const states, ITTestInputData const input)
         {
             // Allow the particle to interact and create secondaries
             StackAllocator<Secondary> allocate_secondaries(states.secondaries);
+
             Interactor                interact(allocate_secondaries,
                                 input.alloc_size[thread_id.get()],
                                 input.alive[thread_id.get()]);
-            states.interactions[thread_id] = interact();
-            CELER_ASSERT(states.interactions[thread_id]);
+            auto                      result = interact();
+
+            // Save secondaries
+            states.physics.state[thread_id].secondaries = result.secondaries;
 
             // Kill the selected tracks
-            if (!input.alive[thread_id.get()])
+            if (result.action == Interaction::Action::absorbed)
             {
                 sim.status(TrackStatus::killed);
             }

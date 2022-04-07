@@ -27,6 +27,7 @@
 #include "physics/em/detail/UrbanMscStepLimit.hh"
 #include "physics/grid/RangeCalculator.hh"
 #include "random/DiagnosticRngEngine.hh"
+#include "sim/ActionManager.hh"
 #include "sim/SimData.hh"
 #include "sim/SimTrackView.hh"
 
@@ -64,6 +65,7 @@ class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
   protected:
     using RandomEngine = celeritas_test::DiagnosticRngEngine<std::mt19937>;
 
+    using SPActionManager  = std::shared_ptr<ActionManager>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     using SPConstPhysics   = std::shared_ptr<const PhysicsParams>;
@@ -100,6 +102,10 @@ class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
             particle_params_, processes_data_));
         input.processes.push_back(std::make_shared<MultipleScatteringProcess>(
             particle_params_, material_params_, processes_data_));
+
+        // Add action manager
+        actions_             = std::make_shared<ActionManager>();
+        input.action_manager = actions_.get();
 
         physics_params_ = std::make_shared<PhysicsParams>(std::move(input));
 
@@ -163,6 +169,7 @@ class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
 
     SPConstMaterials material_params_;
     SPConstParticles particle_params_;
+    SPActionManager  actions_;
     SPConstPhysics   physics_params_;
     SPConstImported  processes_data_;
 
