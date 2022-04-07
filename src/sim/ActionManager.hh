@@ -19,10 +19,6 @@
 
 namespace celeritas
 {
-// TODO: output manager
-struct JsonPimpl;
-struct ScopedActionRange;
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct and store metadata about end-of-step actions.
@@ -39,31 +35,8 @@ class ActionManager
     using SPConstExplicit = std::shared_ptr<const ExplicitActionInterface>;
     //!@}
 
-    // TODO: RAII class for grouping actions.
-    class ScopedActionRange
-    {
-      public:
-        // Construct with group label and starting ID
-        ScopedActionRange(std::string label, ActionManager* mgr);
-
-        // Save on destruction
-        ~ScopedActionRange();
-
-        // Get the current range
-        ActionRange operator()() const;
-
-      private:
-        ActionManager* mgr_;
-        ActionId       start_;
-        std::string    label_;
-    };
-
   public:
     //// CONSTRUCTION ////
-
-    // TODO: return an RAII class for setting a range of actions e.g. discrete
-    // processes during construction
-    ScopedActionRange scoped_range(std::string group_label);
 
     // Get the next action ID
     inline ActionId next_id() const;
@@ -93,9 +66,6 @@ class ActionManager
 
     // Find the action corresponding to an label
     ActionId find_action(const std::string& label) const;
-
-    // TODO: Write metadata about the actions
-    void output(JsonPimpl*) const {}
 
   private:
     //// TYPES ////
