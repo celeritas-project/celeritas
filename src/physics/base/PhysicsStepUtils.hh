@@ -292,8 +292,10 @@ CELER_FUNCTION ParticleTrackView::Energy
  *   distribution (section 7.4 of the Geant4 Physics Reference release 10.6).
  */
 template<class Engine>
-CELER_FUNCTION ActionId select_discrete_interaction(
-    const ParticleTrackView& particle, PhysicsTrackView& physics, Engine& rng)
+CELER_FUNCTION ActionId
+select_discrete_interaction(const ParticleTrackView& particle,
+                            const PhysicsTrackView&  physics,
+                            Engine&                  rng)
 {
     // Nonzero MFP to interaction -- no interaction model
     CELER_EXPECT(physics.interaction_mfp() <= 0);
@@ -324,12 +326,11 @@ CELER_FUNCTION ActionId select_discrete_interaction(
         // \sigma_{\max} \f$. Note that it's possible for \f$ \sigma(E_1) \f$
         // to be larger than the estimate of the maximum cross section over the
         // step \f$ \sigma_{\max} \f$.
-        if (generate_canonical(rng) > xs / physics.per_process_xs(ppid))
+        if (generate_canonical(rng) * physics.per_process_xs(ppid) > xs)
         {
             // No interaction occurs; reset the physics state and continue
             // tracking
-            physics = {};
-            return {};
+            return physics.scalars().integral_rejection_action();
         }
     }
 

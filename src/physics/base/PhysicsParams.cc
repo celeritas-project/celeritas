@@ -93,15 +93,23 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
         inp.action_manager->insert(discrete_action);
         discrete_action_ = std::move(discrete_action);
 
+        auto integral_action = make_shared<ImplicitPhysicsAction>(
+            action_mgr.next_id(),
+            "physics-integral-rejected",
+            "rejection by integral cross section");
+        inp.action_manager->insert(integral_action);
+        integral_rejection_action_ = std::move(integral_action);
+
+        // Emit models for associated proceses
+        models_ = this->build_models(inp.action_manager);
+
+        // Place "failure" *after* all the model IDs
         auto failure_action = make_shared<ImplicitPhysicsAction>(
             action_mgr.next_id(),
             "physics-failure",
             "interaction sampling failure");
         inp.action_manager->insert(failure_action);
         failure_action_ = std::move(failure_action);
-
-        // Emit models for associated proceses
-        models_ = this->build_models(inp.action_manager);
     }
 
     // Construct data

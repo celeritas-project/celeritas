@@ -315,6 +315,9 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
         std::vector<real_type> scaled_energy = {0.001, 0.00999, 0.001, 8};
         std::vector<real_type> acceptance_rate;
 
+        auto reject_action
+            = this->physics()->host_ref().scalars.integral_rejection_action();
+
         for (auto i : range(inc_energy.size()))
         {
             PhysicsTrackView  phys = this->init_track(&material,
@@ -340,7 +343,9 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
                 phys.reset_interaction_mfp();
                 phys.macro_xs(xs_max);
 
-                if (select_discrete_interaction(particle, phys, this->rng()))
+                auto action
+                    = select_discrete_interaction(particle, phys, this->rng());
+                if (action != reject_action)
                     ++count;
             }
             acceptance_rate.push_back(real_type(count) / num_samples);

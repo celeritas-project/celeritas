@@ -152,6 +152,7 @@ class PhysicsParams
     SPAction along_step_action_;
     SPAction range_action_;
     SPAction discrete_action_;
+    SPAction integral_rejection_action_;
     SPAction failure_action_;
 
     // Host metadata/access

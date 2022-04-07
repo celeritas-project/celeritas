@@ -232,10 +232,16 @@ struct PhysicsParamsScalars
         return ActionId{model_to_action - 2};
     }
 
+    //! Indicate a discrete interaction was rejected by the integral method
+    CELER_FORCEINLINE_FUNCTION ActionId integral_rejection_action() const
+    {
+        return ActionId{model_to_action - 1};
+    }
+
     //! Indicate an interaction failed to allocate memory
     CELER_FORCEINLINE_FUNCTION ActionId failure_action() const
     {
-        return ActionId{model_to_action - 1};
+        return ActionId{model_to_action + num_models};
     }
 };
 
