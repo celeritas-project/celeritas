@@ -25,8 +25,16 @@ namespace detail
  */
 struct SBElectronXsCorrector
 {
+    using Xs = Quantity<SBElementTableData::XsUnits>;
+
     //! No cross section scaling for any exiting energy
     CELER_FUNCTION real_type operator()(units::MevEnergy) const { return 1; }
+
+    // Calculate maximum differential cross section for the incident energy
+    CELER_FUNCTION Xs max_xs(const SBEnergyDistHelper& helper) const
+    {
+        return helper.max_xs();
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -136,8 +144,7 @@ CELER_FUNCTION
 SBEnergyDistribution<X>::SBEnergyDistribution(const SBEnergyDistHelper& helper,
                                               X scale_xs)
     : helper_(helper)
-    , inv_max_xs_{1
-                  / (helper.max_xs().value() * scale_xs(helper.max_xs_energy()))}
+    , inv_max_xs_(1 / scale_xs.max_xs(helper).value())
     , scale_xs_(::celeritas::move(scale_xs))
 {
 }
@@ -150,13 +157,11 @@ template<class X>
 template<class Engine>
 CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
 {
-    // Maximum number of iterations in rejection loop
-    constexpr size_type max_iter = 100;
     // Sampled energy
     Energy exit_energy;
     // Calculated cross section used inside rejection sampling
     real_type xs{};
-    for (CELER_MAYBE_UNUSED size_type i : range(max_iter))
+    do
     {
         // Sample scaled energy and subtract correction factor
         exit_energy = helper_.sample_exit_energy(rng);
@@ -164,12 +169,7 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
         // Interpolate the differential cross setion at the sampled exit energy
         xs = helper_.calc_xs(exit_energy).value() * scale_xs_(exit_energy);
         CELER_ASSERT(xs >= 0 && xs <= 1 / inv_max_xs_);
-
-        if (BernoulliDistribution(xs * inv_max_xs_)(rng))
-        {
-            break;
-        }
-    }
+    } while (!BernoulliDistribution(xs * inv_max_xs_)(rng));
     return exit_energy;
 }
 

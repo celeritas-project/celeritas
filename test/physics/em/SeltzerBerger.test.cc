@@ -254,9 +254,20 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         // Sample with a "correction" that's constant, which shouldn't change
         // sampling efficiency or expected value correction
         {
-            auto scale_xs = [](Energy) { return 2.0; };
-            SBEnergyDistribution<decltype(scale_xs)> sample_energy(
-                edist_helper, scale_xs);
+            struct ScaleXs
+            {
+                using Xs = celeritas::Quantity<celeritas::units::Millibarn>;
+
+                real_type operator()(Energy) const { return 0.5; }
+
+                Xs max_xs(const SBEnergyDistHelper& helper) const
+                {
+                    return helper.calc_xs(MevEnergy{0.0009});
+                }
+            };
+
+            SBEnergyDistribution<ScaleXs> sample_energy(edist_helper,
+                                                        ScaleXs{});
 
             // Loop over many particles
             sample_many(inc_energy, sample_energy);
@@ -285,11 +296,11 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         5.67e-13, 7.89e-12, 8.9e-11, 9.01e-10};
     const double expected_avg_exit_frac[] = {0.949115932248866,
         0.497486662164049, 0.082127972143285, 0.0645177016233406, 
-        0.0774717918229646, 0.0891340819129683, 0.0661428500057435, 
-        0.0633342905440201};
+        0.0774717918229646, 0.0891340819129683, 0.0639090949553034, 
+        0.064295996355125};
     const double expected_avg_engine_samples[] = {4.0791015625, 4.06005859375,
-	5.134765625, 4.65625, 4.43017578125, 4.35693359375, 4.6591796875,
-        4.6728515625};
+	5.134765625, 4.65625, 4.43017578125, 4.35693359375, 9.3681640625,
+        4.65234375};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
@@ -425,11 +436,11 @@ TEST_F(SeltzerBergerTest, stress_test)
                                                          12.9641,
                                                          12.5832,
                                                          12.4988,
-                                                         14.2173,
-                                                         13.2544,
-                                                         12.9429,
-                                                         12.5957,
-                                                         12.4886};
+                                                         13.98955,
+                                                         13.1957,
+                                                         12.9234,
+                                                         12.579,
+                                                         12.4951};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
