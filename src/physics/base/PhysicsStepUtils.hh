@@ -99,28 +99,24 @@ calc_physics_step_limit(const MaterialTrackView& material,
 
     // Determine limits from discrete interactions
     StepLimit limit;
-    if (particle.is_stopped())
+    limit.step   = 0;
+    limit.action = physics.scalars().discrete_action();
+    if (!particle.is_stopped())
     {
-        limit.step   = 0;
-        limit.action = physics.scalars().discrete_action();
-    }
-    else
-    {
-        limit.step   = physics.interaction_mfp() / total_macro_xs;
-        limit.action = physics.scalars().discrete_action();
-    }
+        limit.step = physics.interaction_mfp() / total_macro_xs;
 
-    if (auto ppid = physics.eloss_ppid())
-    {
-        auto grid_id    = physics.value_grid(VGT::range, ppid);
-        auto calc_range = physics.make_calculator<RangeCalculator>(grid_id);
-        real_type range = calc_range(particle.energy());
-        // TODO: save range ?
-        real_type eloss_step = physics.range_to_step(range);
-        if (eloss_step <= limit.step)
+        if (auto ppid = physics.eloss_ppid())
         {
-            limit.step   = eloss_step;
-            limit.action = physics.scalars().range_action();
+            auto grid_id    = physics.value_grid(VGT::range, ppid);
+            auto calc_range = physics.make_calculator<RangeCalculator>(grid_id);
+            real_type range = calc_range(particle.energy());
+            // TODO: save range ?
+            real_type eloss_step = physics.range_to_step(range);
+            if (eloss_step <= limit.step)
+            {
+                limit.step   = eloss_step;
+                limit.action = physics.scalars().range_action();
+            }
         }
     }
 

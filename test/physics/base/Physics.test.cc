@@ -350,26 +350,22 @@ TEST_F(PhysicsTrackViewHostTest, calc_range)
         auto id = phys.value_grid(ValueGridType::range, ppid);
         ASSERT_TRUE(id);
         auto calc_range = phys.make_calculator<RangeCalculator>(id);
-        for (real_type energy : {0.0, 0.01, 1.0, 1e2})
+        for (real_type energy : {0.01, 1.0, 1e2})
         {
             range.push_back(calc_range(MevEnergy{energy}));
             step.push_back(phys.range_to_step(range.back()));
         }
     }
 
-    const double expected_range[] = {0.,
-                                     0.01666666666667,
+    const double expected_range[] = {0.01666666666667,
                                      1.666666666667,
                                      166.6666666667,
-                                     0.,
                                      0.01428571428571,
                                      1.428571428571,
                                      142.8571428571};
-    const double expected_step[]  = {0.,
-                                    0.01666666666667,
+    const double expected_step[]  = {0.01666666666667,
                                     0.4885333333333,
                                     33.49328533333,
-                                    0.,
                                     0.01428571428571,
                                     0.4401142857143,
                                     28.73137257143};
