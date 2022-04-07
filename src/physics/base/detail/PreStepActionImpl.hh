@@ -35,19 +35,27 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
         alloc.clear();
     }
 
-    auto phys = track.make_physics_view();
-    {
-        // Clear out energy deposition and secondary pointers
-        phys.reset_energy_deposition();
-        phys.secondaries({});
-    }
 
     auto sim = track.make_sim_view();
     if (sim.status() == TrackStatus::inactive)
     {
+#if CELERITAS_DEBUG
+        auto phys = track.make_physics_view_inactive();
+        phys.reset_energy_deposition_debug();
+        phys.secondaries({});
+#endif
+
         // Clear step limit and associated action for an empty track slot
         sim.reset_step_limit();
         return;
+    }
+
+    auto phys = track.make_physics_view();
+    {
+        // Clear out energy deposition and secondary pointers even if the track
+        // is inactive
+        phys.reset_energy_deposition();
+        phys.secondaries({});
     }
 
     // Sample mean free path

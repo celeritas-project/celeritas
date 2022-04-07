@@ -156,11 +156,12 @@ void ParticleTrackView::energy(Energy quantity)
 /*!
  * Reduce the particle's energy without undergoing a collision [MeV].
  */
-CELER_FUNCTION void ParticleTrackView::subtract_energy(Energy energy)
+CELER_FUNCTION void ParticleTrackView::subtract_energy(Energy eloss)
 {
-    CELER_EXPECT(energy >= zero_quantity());
-    CELER_EXPECT(energy.value() <= this->energy().value());
-    states_.state[thread_].energy -= energy.value();
+    CELER_EXPECT(eloss >= zero_quantity());
+    CELER_EXPECT(eloss <= this->energy());
+    // TODO: save a read/write by only saving if eloss is positive?
+    states_.state[thread_].energy -= eloss.value();
 }
 
 //---------------------------------------------------------------------------//

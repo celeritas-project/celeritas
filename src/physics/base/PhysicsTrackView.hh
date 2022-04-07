@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
@@ -21,6 +22,9 @@
 
 #include "PhysicsData.hh"
 #include "Types.hh"
+#if CELERITAS_DEBUG
+#    include "base/NumericLimits.hh"
+#endif
 
 namespace celeritas
 {
@@ -74,6 +78,11 @@ class PhysicsTrackView
 
     // Reset the energy deposition
     inline CELER_FUNCTION void reset_energy_deposition();
+
+#if CELERITAS_DEBUG
+    // Reset the energy deposition to NaN to catch errors
+    inline CELER_FUNCTION void reset_energy_deposition_debug();
+#endif
 
     // Accumulate into local step's energy deposition
     inline CELER_FUNCTION void deposit_energy(Energy);
@@ -240,7 +249,7 @@ CELER_FUNCTION PhysicsTrackView&
 PhysicsTrackView::operator=(const Initializer_t&)
 {
     this->state().interaction_mfp   = 0;
-    this->state().macro_xs        = -1;
+    this->state().macro_xs          = -1;
     this->state().energy_deposition = 0;
     return *this;
 }
@@ -296,13 +305,25 @@ CELER_FUNCTION void PhysicsTrackView::reset_energy_deposition()
     this->state().energy_deposition = 0;
 }
 
+#if CELERITAS_DEBUG
+//---------------------------------------------------------------------------//
+/*!
+ * Set the energy deposition to NaN for inactive tracks to catch errors.
+ */
+CELER_FUNCTION void PhysicsTrackView::reset_energy_deposition_debug()
+{
+    this->state().energy_deposition = numeric_limits<real_type>::quiet_NaN();
+}
+#endif
+
 //---------------------------------------------------------------------------//
 /*!
  * Accumulate into local step's energy deposition.
  */
 CELER_FUNCTION void PhysicsTrackView::deposit_energy(Energy energy)
 {
-    CELER_EXPECT(energy > zero_quantity());
+    CELER_EXPECT(energy >= zero_quantity());
+    // TODO: save a memory read/write by skipping if energy is zero?
     this->state().energy_deposition += energy.value();
 }
 

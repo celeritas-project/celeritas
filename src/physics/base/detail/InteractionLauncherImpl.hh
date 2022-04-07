@@ -83,6 +83,8 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
             // Mark particle as dead
             sim.status(TrackStatus::killed);
         }
+
+        phys.secondaries(result.secondaries);
     }
     else if (CELER_UNLIKELY(result.action == Interaction::Action::failed))
     {

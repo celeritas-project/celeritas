@@ -23,24 +23,37 @@ inline CELER_FUNCTION void
 discrete_select_track(celeritas::CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
-
-    // Reached the interaction point: sample the process and determine
-    // the corresponding action to take.
-    auto     particle = track.make_particle_view();
-    auto     phys     = track.make_physics_view();
+    if (sim.status() != TrackStatus::alive)
     {
-        auto rng = track.make_rng_engine();
+        // TODO: this check should be redundant with the action check below,
+        // but we currently need to create the physics track view to check the
+        // scalars (and this cannot be done if the track is inactive).
+        return;
+    }
+
+    auto phys = track.make_physics_view();
+    if (sim.step_limit().action != phys.scalars().discrete_action())
+    {
+        // This kernel does not apply
+        return;
+    }
+
+    // Reset the MFP counter, to be resampled if the track survives the
+    // interaction
+    phys.reset_interaction_mfp();
+
+    auto particle = track.make_particle_view();
+    {
+        // Select the action to take
+        auto rng    = track.make_rng_engine();
         auto action = select_discrete_interaction(particle, phys, rng);
         CELER_ASSERT(action);
+        // Save it as the next kernel
         sim.force_step_limit(action);
     }
 
     // TODO: sample elements here for models that use precalculated elemental
     // cross sections
-
-    // Reset the MFP counter, to be resampled if the track survives the
-    // interaction
-    phys.reset_interaction_mfp();
 
     CELER_ENSURE(!phys.has_interaction_mfp());
 }

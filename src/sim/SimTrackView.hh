@@ -118,12 +118,14 @@ CELER_FUNCTION void SimTrackView::increment_num_steps()
 //---------------------------------------------------------------------------//
 /*!
  * Reset step limiter at the beginning of a step.
+ *
+ * The action can be unset if and only if the step is infinite.
  */
 CELER_FUNCTION void SimTrackView::reset_step_limit(const StepLimit& sl)
 {
     CELER_EXPECT(sl.step >= 0);
     CELER_EXPECT(static_cast<bool>(sl.action)
-                 == (sl.step == numeric_limits<real_type>::infinity()));
+                 != (sl.step == numeric_limits<real_type>::infinity()));
     states_.state[thread_].step_limit = sl;
 }
 
@@ -196,9 +198,9 @@ CELER_FUNCTION void SimTrackView::status(TrackStatus status)
 {
     // Status must cycle as inactive -> alive -> killed -> inactive
     using TS = TrackStatus;
-    CELER_EXPECT(status == TS::inactive ? this->status() == TS::alive
-                 : status == TS::alive  ? this->status() == TS::killed
-                 : status == TS::killed ? this->status() == TS::inactive
+    CELER_EXPECT(status == TS::inactive ? this->status() == TS::killed
+                 : status == TS::alive  ? this->status() == TS::inactive
+                 : status == TS::killed ? this->status() == TS::alive
                                         : false);
     states_.state[thread_].status = status;
 }

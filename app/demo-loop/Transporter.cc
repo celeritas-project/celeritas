@@ -70,14 +70,15 @@ template<MemSpace M>
 CoreParamsData<Ownership::const_reference, M>
 build_params_refs(const TransporterInput& p, ActionId boundary_action)
 {
+    CELER_EXPECT(boundary_action);
     CoreParamsData<Ownership::const_reference, M> ref;
     ref.scalars.boundary_action = boundary_action;
     ref.scalars.secondary_stack_factor = p.secondary_stack_factor;
     ref.geometry                       = get_ref<M>(*p.geometry);
-    ref.materials                      = get_ref<M>(*p.materials);
     ref.geo_mats                       = get_ref<M>(*p.geo_mats);
-    ref.cutoffs                        = get_ref<M>(*p.cutoffs);
+    ref.materials                      = get_ref<M>(*p.materials);
     ref.particles                      = get_ref<M>(*p.particles);
+    ref.cutoffs                        = get_ref<M>(*p.cutoffs);
     ref.physics                        = get_ref<M>(*p.physics);
     ref.rng                            = get_ref<M>(*p.rng);
     if (p.relaxation)
@@ -96,6 +97,7 @@ struct ParamsShim
 
     CoreParamsData<Ownership::const_reference, MemSpace::host> host_ref() const
     {
+        CELER_ASSERT(boundary_action);
         return build_params_refs<MemSpace::host>(p, boundary_action);
     }
 };
@@ -184,14 +186,16 @@ template<MemSpace M>
 Transporter<M>::Transporter(TransporterInput inp) : input_(std::move(inp))
 {
     CELER_EXPECT(input_);
-    params_ = build_params_refs<M>(input_, boundary_action_);
-    CELER_ASSERT(params_);
 
     // Add geometry action
     boundary_action_ = input_.actions->next_id();
     input_.actions->insert(
         std::make_shared<celeritas::generated::BoundaryAction>(
             boundary_action_, "Geometry boundary"));
+
+    // Build params
+    params_ = build_params_refs<M>(input_, boundary_action_);
+    CELER_ASSERT(params_);
 
     // TODO: add physics params accessors instead of looking these up as
     // strings

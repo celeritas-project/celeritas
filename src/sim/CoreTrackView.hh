@@ -69,6 +69,9 @@ class CoreTrackView
     // Return a physics view
     inline CELER_FUNCTION PhysicsTrackView make_physics_view() const;
 
+    // Return a physics view for an inactive track
+    inline CELER_FUNCTION PhysicsTrackView make_physics_view_inactive() const;
+
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine make_rng_engine() const;
 
@@ -179,6 +182,21 @@ CELER_FUNCTION auto CoreTrackView::make_physics_view() const -> PhysicsTrackView
     CELER_ASSERT(par_id);
     return PhysicsTrackView{
         params_.physics, states_.physics, par_id, mat_id, thread_};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a physics view suitable for inactive tracks.
+ *
+ * This is a hack for allowing secondaries and energy deposition to be cleared
+ * even when the track is inactive.
+ * TODO: remove this.
+ */
+CELER_FUNCTION auto CoreTrackView::make_physics_view_inactive() const
+    -> PhysicsTrackView
+{
+    CELER_ASSERT(this->make_sim_view().status() == TrackStatus::inactive);
+    return PhysicsTrackView{params_.physics, states_.physics, {}, {}, thread_};
 }
 
 //---------------------------------------------------------------------------//
