@@ -152,7 +152,7 @@ void InteractorHostTestBase::check_energy_conservation(
     real_type exit_energy = interaction.energy_deposition.value();
 
     // Subtract contribution from exiting particle state
-    if (interaction.action == Action::scattered)
+    if (interaction.action != Action::absorbed)
     {
         exit_energy += interaction.energy.value();
     }
@@ -192,7 +192,7 @@ void InteractorHostTestBase::check_momentum_conservation(
     Real3 exit_momentum = {0, 0, 0};
 
     // Subtract contribution from exiting particle state
-    if (interaction.action == Action::absorbed)
+    if (interaction.action != Action::absorbed)
     {
         ParticleTrackView::Initializer_t init;
         init.particle_id = parent_track.particle_id();

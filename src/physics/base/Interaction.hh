@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
 #include "base/Array.hh"
 #include "base/ArrayUtils.hh"
 #include "base/SoftEqual.hh"
@@ -15,6 +16,9 @@
 #include "physics/base/Units.hh"
 
 #include "Secondary.hh"
+#if CELERITAS_DEBUG
+#    include "base/NumericLimits.hh"
+#endif
 
 namespace celeritas
 {
@@ -111,6 +115,11 @@ CELER_FUNCTION Interaction Interaction::from_absorption()
 {
     Interaction result;
     result.energy = zero_quantity();
+#if CELERITAS_DEBUG
+    // Direction should *not* be accessed if incident particle is absorbed.
+    constexpr auto nan = numeric_limits<real_type>::quiet_NaN();
+    result.direction   = {nan, nan, nan};
+#endif
     result.action = Action::absorbed;
     return result;
 }

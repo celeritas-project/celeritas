@@ -85,7 +85,6 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
     {
         // Check change to parent (gamma) track
         EXPECT_EQ(0, interaction.energy.value());
-        EXPECT_SOFT_EQ(0, celeritas::norm(interaction.direction));
         EXPECT_EQ(Action::absorbed, interaction.action);
 
         // Check secondaries
@@ -108,6 +107,8 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_SOFT_EQ(1.0, celeritas::norm(positron.direction));
 
         // Check conservation between primary and secondaries
+        // TODO: is momentum known *not* to be conserved?
+        // this->check_conservation(interaction);
         this->check_energy_conservation(interaction);
     }
 
