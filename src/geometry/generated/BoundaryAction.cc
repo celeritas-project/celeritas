@@ -22,7 +22,7 @@ void BoundaryAction::execute(CoreHostRef const& data) const
     CELER_EXPECT(data);
 
     auto launch = make_track_launcher(data, detail::boundary_track);
-#pragma omp parallel for
+    #pragma omp parallel for
     for (size_type i = 0; i < data.states.size(); ++i)
     {
         launch(ThreadId{i});

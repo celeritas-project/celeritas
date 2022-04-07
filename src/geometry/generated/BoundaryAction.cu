@@ -10,11 +10,10 @@
 
 #include "base/device_runtime_api.h"
 #include "base/Assert.hh"
-#include "base/KernelParamCalculator.device.hh"
 #include "base/Types.hh"
+#include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
 #include "sim/TrackLauncher.hh"
-
 #include "../detail/BoundaryActionImpl.hh"
 
 namespace celeritas
@@ -23,7 +22,8 @@ namespace generated
 {
 namespace
 {
-__global__ void boundary_kernel(CoreDeviceRef const data)
+__global__ void boundary_kernel(CoreDeviceRef const data
+)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < data.states.size()))
