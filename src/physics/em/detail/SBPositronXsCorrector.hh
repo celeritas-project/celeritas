@@ -72,7 +72,7 @@ class SBPositronXsCorrector
     // Calculate cross section scaling factor for the given exiting energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
-    // Calculate maximum differential cross section for the incident energy
+    // Get the maximum differential cross section for the incident energy
     inline CELER_FUNCTION Xs max_xs(const SBEnergyDistHelper& helper) const;
 
   private:
@@ -80,7 +80,6 @@ class SBPositronXsCorrector
 
     const real_type positron_mass_;
     const real_type alpha_z_;
-    const Energy    min_gamma_energy_;
     const real_type inc_energy_;
     const real_type cutoff_invbeta_;
 
@@ -103,7 +102,6 @@ SBPositronXsCorrector::SBPositronXsCorrector(Mass               positron_mass,
     : positron_mass_{positron_mass.value()}
     , alpha_z_{2 * constants::pi * celeritas::constants::alpha_fine_structure
                * el.atomic_number()}
-    , min_gamma_energy_(min_gamma_energy)
     , inc_energy_(inc_energy.value())
     , cutoff_invbeta_{this->calc_invbeta(min_gamma_energy.value())}
 {
@@ -128,17 +126,15 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate maximum differential cross section for the given incident energy.
+ * Get the maximum differential cross section for the given incident energy.
  *
- * The positron cross section is equal to the electron cross section when the
- * ratio \f$ k / T \f$ of the gamma energy to the incident charged particle
- * energy is zero and monotonically decreases as \f$ k / T \to 1 \f$.
- * Therefore, its maximum will be at the lowest gamma energy.
+ * The positron cross section is always maximum at the first reduced photon
+ * energy grid point.
  */
 CELER_FUNCTION auto
 SBPositronXsCorrector::max_xs(const SBEnergyDistHelper& helper) const -> Xs
 {
-    return helper.calc_xs(min_gamma_energy_);
+    return helper.max_scaled_xs();
 }
 
 //---------------------------------------------------------------------------//

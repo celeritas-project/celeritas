@@ -61,7 +61,10 @@ class SBEnergyDistHelper
     inline CELER_FUNCTION Xs calc_xs(Energy energy) const;
 
     //! Maximum cross section calculated for rejection
-    CELER_FUNCTION Xs max_xs() const { return Xs{max_xs_}; }
+    CELER_FUNCTION Xs max_xs() const { return Xs{max_xs_.xs}; }
+
+    //! Cross section at the first reduced photon energy grid point
+    CELER_FUNCTION Xs max_scaled_xs() const { return Xs{max_xs_.scaled_xs}; }
 
   private:
     //// IMPLEMENTATION TYPES ////
@@ -70,10 +73,16 @@ class SBEnergyDistHelper
         = SeltzerBergerTableData<Ownership::const_reference, MemSpace::native>;
     using ReciprocalSampler = ReciprocalDistribution<real_type>;
 
+    struct MaxXs
+    {
+        real_type xs;
+        real_type scaled_xs;
+    };
+
     //// IMPLEMENTATION DATA ////
 
     const TwodSubgridCalculator calc_xs_;
-    const real_type             max_xs_;
+    const MaxXs                 max_xs_;
 
     const real_type         inv_inc_energy_;
     const real_type         dens_corr_;
@@ -84,8 +93,8 @@ class SBEnergyDistHelper
     inline CELER_FUNCTION TwodSubgridCalculator make_xs_calc(
         const SBTables&, real_type inc_energy, ElementId element) const;
 
-    inline CELER_FUNCTION real_type calc_max_xs(const SBTables& xs_params,
-                                                ElementId       element) const;
+    inline CELER_FUNCTION MaxXs calc_max_xs(const SBTables& xs_params,
+                                            ElementId       element) const;
 
     inline CELER_FUNCTION ReciprocalSampler
     make_esq_sampler(real_type inc_energy, real_type min_gamma_energy) const;
@@ -174,18 +183,24 @@ CELER_FUNCTION TwodSubgridCalculator SBEnergyDistHelper::make_xs_calc(
  * double-peaked function of brems at lower energies) an upper bound which can
  * be proven by the triangle inequality.
  *
+ * The maximum scaled cross section for positrons will always be at the first
+ * reduced photon energy grid point.
+ *
  * \note This is called during construction, so \c calc_xs_ must be initialized
  * before whatever calls this.
  */
-CELER_FUNCTION real_type SBEnergyDistHelper::calc_max_xs(
-    const SBTables& xs_params, ElementId element) const
+CELER_FUNCTION auto SBEnergyDistHelper::calc_max_xs(const SBTables& xs_params,
+                                                    ElementId element) const
+    -> MaxXs
 {
     CELER_EXPECT(element);
     const SBElementTableData& el = xs_params.elements[element];
 
     const size_type x_idx  = calc_xs_.x_index();
     const real_type x_frac = calc_xs_.x_fraction();
+    MaxXs           result;
 
+    // Calc max xs
     auto get_value = [&xs_params, &el](size_type ix) -> real_type {
         // Index of the largest xs for exiting energy for the given
         // incident grid point
@@ -193,11 +208,14 @@ CELER_FUNCTION real_type SBEnergyDistHelper::calc_max_xs(
         // Value of the maximum cross section
         return xs_params.reals[el.grid.at(ix, iy)];
     };
+    result.xs = (1 - x_frac) * get_value(x_idx) + x_frac * get_value(x_idx + 1);
 
-    real_type result = (1 - x_frac) * get_value(x_idx)
-                       + x_frac * get_value(x_idx + 1);
+    // Calc max scaled xs
+    result.scaled_xs = (1 - x_frac) * xs_params.reals[el.grid.at(x_idx, 0)]
+                       + x_frac * xs_params.reals[el.grid.at(x_idx + 1, 0)];
 
-    CELER_ENSURE(result > 0);
+    CELER_ENSURE(result.xs > 0);
+    CELER_ENSURE(result.scaled_xs > 0);
     return result;
 }
 
