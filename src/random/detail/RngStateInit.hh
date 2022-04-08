@@ -9,6 +9,7 @@
 
 #include "base/Assert.hh"
 #include "base/Collection.hh"
+
 #include "../RngData.hh"
 
 namespace celeritas
@@ -54,9 +55,9 @@ void rng_state_init(
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
-inline void rng_state_init(
-    const RngStateData<Ownership::reference, MemSpace::device>&,
-    const RngInitData<Ownership::const_reference, MemSpace::device>&)
+inline void
+rng_state_init(const RngStateData<Ownership::reference, MemSpace::device>&,
+               const RngInitData<Ownership::const_reference, MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

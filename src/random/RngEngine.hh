@@ -107,7 +107,7 @@ RngEngine::RngEngine(const StateRef& state, const ThreadId& id)
  */
 CELER_FUNCTION RngEngine& RngEngine::operator=(const Initializer_t& s)
 {
-    CELER_DEVICE_SHORT_PREFIX(rand_init)(s.seed, 0, 0, state_);
+    CELER_RNG_PREFIX(rand_init)(s.seed, 0, 0, state_);
     return *this;
 }
 
@@ -117,7 +117,7 @@ CELER_FUNCTION RngEngine& RngEngine::operator=(const Initializer_t& s)
  */
 CELER_FUNCTION auto RngEngine::operator()() -> result_type
 {
-    return CELER_DEVICE_SHORT_PREFIX(rand)(state_);
+    return CELER_RNG_PREFIX(rand)(state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -127,7 +127,7 @@ CELER_FUNCTION auto RngEngine::operator()() -> result_type
 CELER_FUNCTION float
 GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 {
-    return CELER_DEVICE_SHORT_PREFIX(rand_uniform)(rng.state_);
+    return CELER_RNG_PREFIX(rand_uniform)(rng.state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -137,7 +137,7 @@ GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
 CELER_FUNCTION double
 GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)
 {
-    return CELER_DEVICE_SHORT_PREFIX(rand_uniform_double)(rng.state_);
+    return CELER_RNG_PREFIX(rand_uniform_double)(rng.state_);
 }
 
 //---------------------------------------------------------------------------//

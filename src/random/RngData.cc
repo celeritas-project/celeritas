@@ -8,6 +8,7 @@
 #include "RngData.hh"
 
 #include <random>
+
 #include "random/detail/RngStateInit.hh"
 
 namespace celeritas
@@ -17,10 +18,10 @@ namespace celeritas
  * Resize and initialize with the seed stored in params.
  */
 template<MemSpace M>
-void
-resize(RngStateData<Ownership::value, M>*                               state,
-       const RngParamsData<Ownership::const_reference, MemSpace::host>& params,
-       size_type                                                        size)
+void resize(
+    RngStateData<Ownership::value, M>*                               state,
+    const RngParamsData<Ownership::const_reference, MemSpace::host>& params,
+    size_type                                                        size)
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(M == MemSpace::host || celeritas::device());

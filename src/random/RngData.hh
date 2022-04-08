@@ -12,26 +12,35 @@
 #include "base/device_runtime_api.h"
 #include "celeritas_config.h"
 #include "base/Assert.hh"
+#include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
+#include "base/Types.hh"
 #include "comm/Device.hh"
-#if CELERITAS_USE_CUDA
+
 /*!
- * \def QUALIFIERS
+ * \def CELER_RNG_PREFIX
  *
- * Override an undocumented CURAND API definition to enable usage in host code.
+ * Add a prefix "hip", "cu", or "mock" to a code token. This is used to
+ * toggle between the different RNG options.
  */
+#if CELERITAS_RNG == CELERITAS_RNG_BUILTIN_ROCRAND
+#    include "detail/mockrand.hh"
+#    define CELER_RNG_PREFIX(TOK) mock##TOK
+#elif CELERITAS_RNG == CELERITAS_RNG_CURAND
+// Override an undocumented cuRAND API definition to enable usage in host code.
 #    define QUALIFIERS static __forceinline__ __host__ __device__
 #    include <curand_kernel.h>
-#elif CELERITAS_USE_HIP
+#    define CELER_RNG_PREFIX(TOK) cu##TOK
+#elif CELERITAS_RNG == CELERITAS_RNG_HIPRAND
+// Override an undocumented hipRAND API definition to enable usage in host
+// code.
 #    define FQUALIFIERS __forceinline__ __host__ __device__
 #    include <hiprand_kernel.h>
+#    define CELER_RNG_PREFIX(TOK) hip##TOK
 #else
-#    include "detail/mockrand.hh"
+#    error "Invalid selection of CELERITAS_RNG"
 #endif
-
-#include "base/Collection.hh"
-#include "base/Types.hh"
 
 namespace celeritas
 {
@@ -41,7 +50,7 @@ using mockrandState_t = detail::MockRandState;
 #endif
 
 //! RNG state type: curandState_t, hiprandState_t, mockrandState_t
-using RngThreadState = CELER_DEVICE_SHORT_PREFIX(randState_t);
+using RngThreadState = CELER_RNG_PREFIX(randState_t);
 
 //---------------------------------------------------------------------------//
 /*!

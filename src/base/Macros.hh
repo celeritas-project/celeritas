@@ -155,18 +155,10 @@
  *
  * Add a prefix "hip", "cuda", or "mock" to a code token.
  */
-/*!
- * \def CELER_DEVICE_SHORT_PREFIX
- *
- * Add a prefix "hip", "cu", or "mock" to a code token.
- */
 #if CELERITAS_USE_CUDA
 #    define CELER_DEVICE_PREFIX(TOK) cuda##TOK
-#    define CELER_DEVICE_SHORT_PREFIX(TOK) cu##TOK
 #elif CELERITAS_USE_HIP
 #    define CELER_DEVICE_PREFIX(TOK) hip##TOK
-#    define CELER_DEVICE_SHORT_PREFIX(TOK) hip##TOK
 #else
 #    define CELER_DEVICE_PREFIX(TOK) mock##TOK
-#    define CELER_DEVICE_SHORT_PREFIX(TOK) mock##TOK
 #endif
