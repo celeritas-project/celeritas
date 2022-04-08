@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngData.cc
+//! \file CuHipRngData.cc
 //---------------------------------------------------------------------------//
-#include "RngData.hh"
+#include "CuHipRngData.hh"
 
 #include <random>
 
-#include "random/detail/RngStateInit.hh"
+#include "random/detail/CuHipRngStateInit.hh"
 
 namespace celeritas
 {
@@ -19,30 +19,30 @@ namespace celeritas
  */
 template<MemSpace M>
 void resize(
-    RngStateData<Ownership::value, M>*                               state,
-    const RngParamsData<Ownership::const_reference, MemSpace::host>& params,
-    size_type                                                        size)
+    CuHipRngStateData<Ownership::value, M>* state,
+    const CuHipRngParamsData<Ownership::const_reference, MemSpace::host>& params,
+    size_type                                                             size)
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
 
-    using RngInit = RngInitializer<M>;
+    using CuHipRngInit = CuHipRngInitializer<M>;
 
     // Host-side RNG for creating seeds
     std::mt19937                           host_rng(params.seed);
     std::uniform_int_distribution<ull_int> sample_uniform_int;
 
     // Create seeds for device in host memory
-    StateCollection<RngInit, Ownership::value, MemSpace::host> host_seeds;
+    StateCollection<CuHipRngInit, Ownership::value, MemSpace::host> host_seeds;
     make_builder(&host_seeds).resize(size);
-    for (RngInit& init : host_seeds[AllItems<RngInit>{}])
+    for (CuHipRngInit& init : host_seeds[AllItems<CuHipRngInit>{}])
     {
         init.seed = sample_uniform_int(host_rng);
     }
 
     // Resize state data and assign
     make_builder(&state->rng).resize(size);
-    detail::RngInitData<Ownership::value, M> init_data;
+    detail::CuHipRngInitData<Ownership::value, M> init_data;
     init_data.seeds = host_seeds;
     detail::rng_state_init(make_ref(*state), make_const_ref(init_data));
 }
@@ -50,13 +50,13 @@ void resize(
 //---------------------------------------------------------------------------//
 // Explicit instantiations
 template void
-resize(RngStateData<Ownership::value, MemSpace::host>*,
-       const RngParamsData<Ownership::const_reference, MemSpace::host>&,
+resize(CuHipRngStateData<Ownership::value, MemSpace::host>*,
+       const CuHipRngParamsData<Ownership::const_reference, MemSpace::host>&,
        size_type);
 
 template void
-resize(RngStateData<Ownership::value, MemSpace::device>*,
-       const RngParamsData<Ownership::const_reference, MemSpace::host>&,
+resize(CuHipRngStateData<Ownership::value, MemSpace::device>*,
+       const CuHipRngParamsData<Ownership::const_reference, MemSpace::host>&,
        size_type);
 
 //---------------------------------------------------------------------------//

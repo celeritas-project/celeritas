@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngParams.hh
+//! \file CuHipRngParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "RngData.hh"
+#include "CuHipRngData.hh"
 
 namespace celeritas
 {
@@ -18,19 +18,20 @@ namespace celeritas
  * Currently this just constructs a local seed number but should be extended to
  * handle RNG setup across multiple MPI processes.
  */
-class RngParams
+class CuHipRngParams
 {
   public:
     //!@{
     //! References to constructed data
-    using HostRef = RngParamsData<Ownership::const_reference, MemSpace::host>;
+    using HostRef
+        = CuHipRngParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
-        = RngParamsData<Ownership::const_reference, MemSpace::device>;
+        = CuHipRngParamsData<Ownership::const_reference, MemSpace::device>;
     //!@}
 
   public:
     // Construct with seed
-    explicit inline RngParams(unsigned int seed);
+    explicit inline CuHipRngParams(unsigned int seed);
 
     //! Access RNG properties for constructing RNG state
     const HostRef& host_ref() const { return host_ref_; }
@@ -49,7 +50,7 @@ class RngParams
 /*!
  * Construct with seed.
  */
-RngParams::RngParams(unsigned int seed)
+CuHipRngParams::CuHipRngParams(unsigned int seed)
 {
     host_ref_.seed = seed;
 }

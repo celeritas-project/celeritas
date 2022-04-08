@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngData.hh
+//! \file CuHipRngData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -50,7 +50,7 @@ using mockrandState_t = detail::MockRandState;
 #endif
 
 //! RNG state type: curandState_t, hiprandState_t, mockrandState_t
-using RngThreadState = CELER_RNG_PREFIX(randState_t);
+using CuHipRngThreadState = CELER_RNG_PREFIX(randState_t);
 
 //---------------------------------------------------------------------------//
 /*!
@@ -60,23 +60,23 @@ using RngThreadState = CELER_RNG_PREFIX(randState_t);
  * only used for construction.
  */
 template<Ownership W, MemSpace M>
-struct RngParamsData;
+struct CuHipRngParamsData;
 
 template<Ownership W>
-struct RngParamsData<W, MemSpace::device>
+struct CuHipRngParamsData<W, MemSpace::device>
 {
     /* no data on device */
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    RngParamsData& operator=(const RngParamsData<W2, M2>&)
+    CuHipRngParamsData& operator=(const CuHipRngParamsData<W2, M2>&)
     {
         return *this;
     }
 };
 
 template<Ownership W>
-struct RngParamsData<W, MemSpace::host>
+struct CuHipRngParamsData<W, MemSpace::host>
 {
     //// DATA ////
 
@@ -86,7 +86,7 @@ struct RngParamsData<W, MemSpace::host>
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    RngParamsData& operator=(const RngParamsData<W2, M2>& other)
+    CuHipRngParamsData& operator=(const CuHipRngParamsData<W2, M2>& other)
     {
         seed = other.seed;
         return *this;
@@ -98,16 +98,16 @@ struct RngParamsData<W, MemSpace::host>
  * Initialize an RNG.
  */
 template<MemSpace M>
-struct RngInitializer;
+struct CuHipRngInitializer;
 
 template<>
-struct RngInitializer<MemSpace::device>
+struct CuHipRngInitializer<MemSpace::device>
 {
     ull_int seed;
 };
 
 template<>
-struct RngInitializer<MemSpace::host>
+struct CuHipRngInitializer<MemSpace::host>
 {
     ull_int seed;
 };
@@ -117,7 +117,7 @@ struct RngInitializer<MemSpace::host>
  * RNG state data.
  */
 template<Ownership W, MemSpace M>
-struct RngStateData
+struct CuHipRngStateData
 {
     //// TYPES ////
 
@@ -126,7 +126,7 @@ struct RngStateData
 
     //// DATA ////
 
-    StateItems<RngThreadState> rng;
+    StateItems<CuHipRngThreadState> rng;
 
     //// METHODS ////
 
@@ -138,7 +138,7 @@ struct RngStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    RngStateData& operator=(RngStateData<W2, M2>& other)
+    CuHipRngStateData& operator=(CuHipRngStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         rng = other.rng;
@@ -151,9 +151,9 @@ struct RngStateData
  * Resize and initialize with the seed stored in params.
  */
 template<MemSpace M>
-inline void
-resize(RngStateData<Ownership::value, M>*                               state,
-       const RngParamsData<Ownership::const_reference, MemSpace::host>& params,
-       size_type                                                        size);
+void resize(
+    CuHipRngStateData<Ownership::value, M>* state,
+    const CuHipRngParamsData<Ownership::const_reference, MemSpace::host>& params,
+    size_type size);
 
 } // namespace celeritas

@@ -163,16 +163,15 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  # TODO: CUDA RNG is included by host code
-  list(APPEND PUBLIC_DEPS CUDA::cudart)
+  if(CELERITAS_RNG STREQUAL "CURAND")
+    list(APPEND PUBLIC_DEPS CUDA::cudart)
+  else()
+    list(APPEND PRIVATE_DEPS CUDA::cudart)
+  endif()
 elseif(CELERITAS_USE_HIP)
   set_source_files_properties(
     ${DEVICE_SOURCES}
     PROPERTIES LANGUAGE HIP
-  )
-else()
-  list(APPEND SOURCES
-    random/detail/mockrand.cc
   )
 endif()
 

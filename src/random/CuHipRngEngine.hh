@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngEngine.hh
+//! \file CuHipRngEngine.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,7 +11,7 @@
 #include "base/OpaqueId.hh"
 #include "random/distributions/GenerateCanonical.hh"
 
-#include "RngData.hh"
+#include "CuHipRngData.hh"
 
 namespace celeritas
 {
@@ -19,32 +19,33 @@ namespace celeritas
 /*!
  * Generate random data on device and host.
  *
- * The RngEngine uses a C++11-like interface to generate random data. The
+ * The CuHipRngEngine uses a C++11-like interface to generate random data. The
  * sampling of uniform floating point data is done with specializations to the
  * GenerateCanonical class.
  */
-class RngEngine
+class CuHipRngEngine
 {
   public:
     //!@{
     //! Type aliases
     using result_type   = unsigned int;
-    using Initializer_t = RngInitializer<MemSpace::native>;
-    using StateRef      = RngStateData<Ownership::reference, MemSpace::native>;
+    using Initializer_t = CuHipRngInitializer<MemSpace::native>;
+    using StateRef = CuHipRngStateData<Ownership::reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct from state
-    inline CELER_FUNCTION RngEngine(const StateRef& state, const ThreadId& id);
+    inline CELER_FUNCTION
+    CuHipRngEngine(const StateRef& state, const ThreadId& id);
 
     // Initialize state from seed
-    inline CELER_FUNCTION RngEngine& operator=(const Initializer_t& s);
+    inline CELER_FUNCTION CuHipRngEngine& operator=(const Initializer_t& s);
 
     // Sample a random number
     inline CELER_FUNCTION result_type operator()();
 
   private:
-    RngThreadState* state_;
+    CuHipRngThreadState* state_;
 
     template<class Generator, class RealType>
     friend class GenerateCanonical;
@@ -52,10 +53,10 @@ class RngEngine
 
 //---------------------------------------------------------------------------//
 /*!
- * Specialization of GenerateCanonical for RngEngine, float
+ * Specialization of GenerateCanonical for CuHipRngEngine, float
  */
 template<>
-class GenerateCanonical<RngEngine, float>
+class GenerateCanonical<CuHipRngEngine, float>
 {
   public:
     //!@{
@@ -66,15 +67,15 @@ class GenerateCanonical<RngEngine, float>
 
   public:
     // Sample a random number
-    inline CELER_FUNCTION result_type operator()(RngEngine& rng);
+    inline CELER_FUNCTION result_type operator()(CuHipRngEngine& rng);
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Specialization for RngEngine, double
+ * Specialization for CuHipRngEngine, double
  */
 template<>
-class GenerateCanonical<RngEngine, double>
+class GenerateCanonical<CuHipRngEngine, double>
 {
   public:
     //!@{
@@ -85,7 +86,7 @@ class GenerateCanonical<RngEngine, double>
 
   public:
     // Sample a random number
-    inline CELER_FUNCTION result_type operator()(RngEngine& rng);
+    inline CELER_FUNCTION result_type operator()(CuHipRngEngine& rng);
 };
 
 //---------------------------------------------------------------------------//
@@ -95,7 +96,7 @@ class GenerateCanonical<RngEngine, double>
  * Construct from state.
  */
 CELER_FUNCTION
-RngEngine::RngEngine(const StateRef& state, const ThreadId& id)
+CuHipRngEngine::CuHipRngEngine(const StateRef& state, const ThreadId& id)
 {
     CELER_EXPECT(id < state.rng.size());
     state_ = &state.rng[id];
@@ -105,7 +106,7 @@ RngEngine::RngEngine(const StateRef& state, const ThreadId& id)
 /*!
  * Initialize the RNG engine with a seed value.
  */
-CELER_FUNCTION RngEngine& RngEngine::operator=(const Initializer_t& s)
+CELER_FUNCTION CuHipRngEngine& CuHipRngEngine::operator=(const Initializer_t& s)
 {
     CELER_RNG_PREFIX(rand_init)(s.seed, 0, 0, state_);
     return *this;
@@ -115,27 +116,27 @@ CELER_FUNCTION RngEngine& RngEngine::operator=(const Initializer_t& s)
 /*!
  * Sample a random number.
  */
-CELER_FUNCTION auto RngEngine::operator()() -> result_type
+CELER_FUNCTION auto CuHipRngEngine::operator()() -> result_type
 {
     return CELER_RNG_PREFIX(rand)(state_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Specialization for RngEngine (float).
+ * Specialization for CuHipRngEngine (float).
  */
 CELER_FUNCTION float
-GenerateCanonical<RngEngine, float>::operator()(RngEngine& rng)
+GenerateCanonical<CuHipRngEngine, float>::operator()(CuHipRngEngine& rng)
 {
     return CELER_RNG_PREFIX(rand_uniform)(rng.state_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Specialization for RngEngine (double).
+ * Specialization for CuHipRngEngine (double).
  */
 CELER_FUNCTION double
-GenerateCanonical<RngEngine, double>::operator()(RngEngine& rng)
+GenerateCanonical<CuHipRngEngine, double>::operator()(CuHipRngEngine& rng)
 {
     return CELER_RNG_PREFIX(rand_uniform_double)(rng.state_);
 }
