@@ -7,16 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
 #include "base/Collection.hh"
+#include "../RngData.hh"
 
 namespace celeritas
 {
-// Forward declarations to avoid circular header dependency
-template<MemSpace M>
-struct RngInitializer;
-template<Ownership W, MemSpace M>
-struct RngStateData;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -37,9 +33,6 @@ struct RngInitData
     template<Ownership W2, MemSpace M2>
     RngInitData& operator=(const RngInitData<W2, M2>& other)
     {
-        static_assert(M == M2,
-                      "seeds state cannot be transferred between host and "
-                      "device because they use separate seeds types");
         CELER_EXPECT(other);
         seeds = other.seeds;
         return *this;
@@ -55,6 +48,19 @@ void rng_state_init(
 void rng_state_init(
     const RngStateData<Ownership::reference, MemSpace::host>&      rng,
     const RngInitData<Ownership::const_reference, MemSpace::host>& seeds);
+
+#if !CELER_USE_DEVICE
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the RNG states on device from seeds randomly generated on host.
+ */
+inline void rng_state_init(
+    const RngStateData<Ownership::reference, MemSpace::device>&,
+    const RngInitData<Ownership::const_reference, MemSpace::device>&)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace detail

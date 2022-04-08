@@ -128,6 +128,7 @@ list(APPEND SOURCES
   physics/grid/ValueGridInterface.cc
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
+  random/RngData.cc
   random/detail/RngStateInit.cc
   sim/TrackInitParams.cc
   sim/detail/TrackInitAlgorithms.cc
@@ -155,7 +156,6 @@ elseif(CELERITAS_USE_HIP)
 else()
   list(APPEND SOURCES
     random/detail/mockrand.cc
-    random/detail/RngStateInit.nocuda.cc
   )
 endif()
 
