@@ -208,6 +208,16 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
                                                         1303634785u,
                                                         964015610u,
                                                         4033624067u};
+#elif CELERITAS_RNG == CELERITAS_RNG_XORWOW
+    static const unsigned int expected_test_values[] = {492039014u,
+                                                        3443467310u,
+                                                        2732308719u,
+                                                        1725881526u,
+                                                        3375752591u,
+                                                        2072392377u,
+                                                        1525078619u,
+                                                        2145729803u,
+                                                        3489021697u};
 #else
     PRINT_EXPECTED(test_values);
     static const unsigned int expected_test_values[] = {0};
@@ -233,6 +243,9 @@ void check_expected_float_samples(const std::vector<float>& v)
 #elif CELERITAS_RNG == CELERITAS_RNG_HIPRAND
     EXPECT_FLOAT_EQ(0.51032054f, v[0]);
     EXPECT_FLOAT_EQ(0.22727294f, v[1]);
+#elif CELERITAS_RNG == CELERITAS_RNG_XORWOW
+    EXPECT_FLOAT_EQ(0.11456176f, v[0]);
+    EXPECT_FLOAT_EQ(0.71564859f, v[1]);
 #else
     FAIL() << "Unexpected RNG";
 #endif
@@ -247,6 +260,9 @@ void check_expected_float_samples(const std::vector<double>& v)
 #elif CELERITAS_RNG == CELERITAS_RNG_HIPRAND
     EXPECT_DOUBLE_EQ(0.22503638759639666, v[0]);
     EXPECT_DOUBLE_EQ(0.73006306995055248, v[1]);
+#elif CELERITAS_RNG == CELERITAS_RNG_XORWOW
+    EXPECT_DOUBLE_EQ(0.11456196010112762, v[0]);
+    EXPECT_DOUBLE_EQ(0.71564817428588867, v[1]);
 #else
     FAIL() << "Unexpected RNG";
 #endif

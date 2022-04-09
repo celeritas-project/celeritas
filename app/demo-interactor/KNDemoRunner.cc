@@ -10,6 +10,7 @@
 #include "base/Range.hh"
 #include "base/Stopwatch.hh"
 #include "physics/base/Units.hh"
+#include "random/RngParams.hh"
 
 using namespace celeritas;
 
@@ -68,10 +69,9 @@ auto KNDemoRunner::operator()(KNDemoRunArgs args) -> result_type
     ParticleStateData<Ownership::value, MemSpace::device> track_states;
     resize(&track_states, pparams_->host_ref(), args.num_tracks);
 
+    RngParams                                        rng_params(args.seed);
     RngStateData<Ownership::value, MemSpace::device> rng_states;
-    RngParamsData<Ownership::value, MemSpace::host>  rng_params;
-    rng_params.seed = args.seed;
-    resize(&rng_states, make_const_ref(rng_params), args.num_tracks);
+    resize(&rng_states, rng_params.host_ref(), args.num_tracks);
 
     // Secondary data
     StackAllocatorData<Secondary, Ownership::value, MemSpace::device> secondaries;

@@ -313,6 +313,7 @@ celeritas_device_test(random/RngEngine)
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(random/curand/CurandPerformance.test.cc GPU
     SOURCES random/curand/CurandPerformance.test.cu
+    LINK_LIBRARIES CUDA::cudart
     ${_disable_if_debug}
   )
 endif()

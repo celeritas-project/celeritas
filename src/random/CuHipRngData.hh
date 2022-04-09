@@ -23,12 +23,12 @@
  * Add a prefix "hip", "cu", or "mock" to a code token. This is used to
  * toggle between the different RNG options.
  */
-#if CELERITAS_RNG == CELERITAS_RNG_CURAND
+#if CELERITAS_USE_CUDA
 // Override an undocumented cuRAND API definition to enable usage in host code.
 #    define QUALIFIERS static __forceinline__ __host__ __device__
 #    include <curand_kernel.h>
 #    define CELER_RNG_PREFIX(TOK) cu##TOK
-#elif CELERITAS_RNG == CELERITAS_RNG_HIPRAND
+#elif CELERITAS_USE_HIP
 // Override an undocumented hipRAND API definition to enable usage in host
 // code.
 #    define FQUALIFIERS __forceinline__ __host__ __device__

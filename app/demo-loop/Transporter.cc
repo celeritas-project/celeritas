@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "Transporter.hh"
 
+#include "base/device_runtime_api.h"
 #include "base/Assert.hh"
 #include "base/Stopwatch.hh"
 #include "base/VectorUtils.hh"

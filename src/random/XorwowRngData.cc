@@ -33,9 +33,8 @@ void resize(
     // Seed sequence to generate well-distributed seed numbers
     std::seed_seq seeds(params.seed.begin(), params.seed.end());
     // 32-bit generator to fill initial states
-    std::mt19937 generate(seeds);
-    static_assert(std::is_same<std::mt19937::result_type, uint_t>::value,
-                  "Incompatible types for RNG seeding");
+    std::mt19937                          rng(seeds);
+    std::uniform_int_distribution<uint_t> sample_uniform_int;
 
     // Create seeds for device in host memory
     XorwowRngStateData<Ownership::value, MemSpace::host> host_state;
@@ -46,9 +45,9 @@ void resize(
     {
         for (uint_t& u : init.xorstate)
         {
-            u = generate();
+            u = sample_uniform_int(rng);
         }
-        init.weylstate = generate();
+        init.weylstate = sample_uniform_int(rng);
     }
 
     // Move or copy to input

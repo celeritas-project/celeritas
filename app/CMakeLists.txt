@@ -245,6 +245,10 @@ if(CELERITAS_BUILD_DEMOS)
     nlohmann_json::nlohmann_json
     Celeritas::IO
   )
+  if(CELERITAS_USE_CUDA)
+    # Transporter calls deviceSync
+    list(APPEND _demo_loop_libs CUDA::cudart)
+  endif()
   if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     list(APPEND _demo_loop_libs VecGeom::vecgeom)
   endif()

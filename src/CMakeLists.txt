@@ -159,7 +159,7 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   )
   set(DEVICE_SOURCES
     base/detail/Filler.cu
-    random/detail/RngStateInit.cu
+    random/detail/CuHipRngStateInit.cu
     sim/detail/TrackInitAlgorithms.cu
   )
 endif()
