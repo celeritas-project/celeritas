@@ -153,12 +153,12 @@
 /*!
  * \def CELER_DEVICE_PREFIX
  *
- * Add a prefix "hip", "cuda", or "mock" to a code token.
+ * Add a prefix "hip" or "cuda" to a code token.
  */
 #if CELERITAS_USE_CUDA
 #    define CELER_DEVICE_PREFIX(TOK) cuda##TOK
 #elif CELERITAS_USE_HIP
 #    define CELER_DEVICE_PREFIX(TOK) hip##TOK
 #else
-#    define CELER_DEVICE_PREFIX(TOK) mock##TOK
+#    define CELER_DEVICE_PREFIX(TOK) DEVICE_UNAVAILABLE
 #endif

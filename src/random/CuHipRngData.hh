@@ -13,7 +13,6 @@
 #include "celeritas_config.h"
 #include "base/Assert.hh"
 #include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "comm/Device.hh"
@@ -96,17 +95,7 @@ struct CuHipRngParamsData<W, MemSpace::host>
 /*!
  * Initialize an RNG.
  */
-template<MemSpace M>
-struct CuHipRngInitializer;
-
-template<>
-struct CuHipRngInitializer<MemSpace::device>
-{
-    ull_int seed;
-};
-
-template<>
-struct CuHipRngInitializer<MemSpace::host>
+struct CuHipRngInitializer
 {
     ull_int seed;
 };

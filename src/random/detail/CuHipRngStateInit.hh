@@ -20,7 +20,7 @@ namespace detail
 template<Ownership W, MemSpace M>
 struct CuHipRngInitData
 {
-    StateCollection<CuHipRngInitializer<M>, W, M> seeds;
+    StateCollection<CuHipRngInitializer, W, M> seeds;
 
     //// METHODS ////
 

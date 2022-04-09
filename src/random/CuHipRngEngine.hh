@@ -29,7 +29,7 @@ class CuHipRngEngine
     //!@{
     //! Type aliases
     using result_type   = unsigned int;
-    using Initializer_t = CuHipRngInitializer<MemSpace::native>;
+    using Initializer_t = CuHipRngInitializer;
     using StateRef = CuHipRngStateData<Ownership::reference, MemSpace::native>;
     //!@}
 

@@ -9,6 +9,7 @@
 
 #include <random>
 
+#include "base/CollectionBuilder.hh"
 #include "random/detail/CuHipRngStateInit.hh"
 
 namespace celeritas
@@ -26,16 +27,16 @@ void resize(
     CELER_EXPECT(size > 0);
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
 
-    using CuHipRngInit = CuHipRngInitializer<M>;
+    using RngInit = CuHipRngInitializer;
 
     // Host-side RNG for creating seeds
     std::mt19937                           host_rng(params.seed);
     std::uniform_int_distribution<ull_int> sample_uniform_int;
 
     // Create seeds for device in host memory
-    StateCollection<CuHipRngInit, Ownership::value, MemSpace::host> host_seeds;
+    StateCollection<RngInit, Ownership::value, MemSpace::host> host_seeds;
     make_builder(&host_seeds).resize(size);
-    for (CuHipRngInit& init : host_seeds[AllItems<CuHipRngInit>{}])
+    for (RngInit& init : host_seeds[AllItems<RngInit>{}])
     {
         init.seed = sample_uniform_int(host_rng);
     }
