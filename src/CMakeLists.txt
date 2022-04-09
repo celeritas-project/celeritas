@@ -146,6 +146,8 @@ list(APPEND SOURCES
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
   random/CuHipRngData.cc
+  random/XorwowRngData.cc
+  random/XorwowRngParams.cc
   random/detail/CuHipRngStateInit.cc
   sim/TrackInitParams.cc
   sim/detail/TrackInitAlgorithms.cc

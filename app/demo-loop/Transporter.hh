@@ -16,18 +16,18 @@
 #include "base/CollectionStateStore.hh"
 #include "base/Types.hh"
 #include "geometry/GeoParams.hh"
+#include "random/RngParams.hh"
 #include "sim/CoreTrackData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class MaterialParams;
-class GeoMaterialParams;
-class ParticleParams;
-class CutoffParams;
-class PhysicsParams;
 class AtomicRelaxationParams;
-class RngParams;
+class CutoffParams;
+class GeoMaterialParams;
+class MaterialParams;
+class ParticleParams;
+class PhysicsParams;
 class TrackInitParams;
 
 //---------------------------------------------------------------------------//

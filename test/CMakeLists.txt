@@ -317,6 +317,7 @@ if(CELERITAS_USE_CUDA)
   )
 endif()
 celeritas_add_test(random/Selector.test.cc)
+celeritas_add_test(random/XorwowRngEngine.test.cc GPU)
 
 celeritas_add_test(random/distributions/BernoulliDistribution.test.cc)
 celeritas_add_test(random/distributions/ExponentialDistribution.test.cc)

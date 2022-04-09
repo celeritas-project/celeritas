@@ -95,7 +95,8 @@ struct CollectionAssigner
     CollectionStorage<T, W, M>
     operator()(const CollectionStorage<T, W2, M2>& source)
     {
-        static_assert(W != Ownership::reference || W2 == W,
+        static_assert(W != Ownership::reference || W2 == Ownership::value
+                          || W2 == W,
                       "Can't create a reference from a const reference");
         static_assert(M == M2,
                       "Collection assignment from a different memory space");
