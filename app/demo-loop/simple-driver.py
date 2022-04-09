@@ -53,9 +53,9 @@ else:
     max_steps = 128
 
 if not use_device:
-    # Way more steps are needed since we're not tracking in parallel, so
-    # shorten to an even more unreasonably small number to reduce test time.
-    max_steps = 64
+    # Way more steps are needed since we're not tracking in parallel, but
+    # shorten to an unreasonably small number to reduce test time.
+    max_steps = 256
 
 inp = {
     'use_device': use_device,
