@@ -64,7 +64,7 @@ class SBEnergyDistHelper
     CELER_FUNCTION Xs max_xs() const { return Xs{max_xs_.xs}; }
 
     //! Cross section at the first reduced photon energy grid point
-    CELER_FUNCTION Xs max_scaled_xs() const { return Xs{max_xs_.scaled_xs}; }
+    CELER_FUNCTION Xs xs_zero() const { return Xs{max_xs_.xs_zero}; }
 
   private:
     //// IMPLEMENTATION TYPES ////
@@ -76,7 +76,7 @@ class SBEnergyDistHelper
     struct MaxXs
     {
         real_type xs;
-        real_type scaled_xs;
+        real_type xs_zero;
     };
 
     //// IMPLEMENTATION DATA ////
@@ -211,11 +211,11 @@ CELER_FUNCTION auto SBEnergyDistHelper::calc_max_xs(const SBTables& xs_params,
     result.xs = (1 - x_frac) * get_value(x_idx) + x_frac * get_value(x_idx + 1);
 
     // Calc max scaled xs
-    result.scaled_xs = (1 - x_frac) * xs_params.reals[el.grid.at(x_idx, 0)]
-                       + x_frac * xs_params.reals[el.grid.at(x_idx + 1, 0)];
+    result.xs_zero = (1 - x_frac) * xs_params.reals[el.grid.at(x_idx, 0)]
+                     + x_frac * xs_params.reals[el.grid.at(x_idx + 1, 0)];
 
     CELER_ENSURE(result.xs > 0);
-    CELER_ENSURE(result.scaled_xs > 0);
+    CELER_ENSURE(result.xs_zero > 0);
     return result;
 }
 

@@ -134,7 +134,7 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
 CELER_FUNCTION auto
 SBPositronXsCorrector::max_xs(const SBEnergyDistHelper& helper) const -> Xs
 {
-    return helper.max_scaled_xs();
+    return helper.xs_zero();
 }
 
 //---------------------------------------------------------------------------//

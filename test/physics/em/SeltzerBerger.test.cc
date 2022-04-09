@@ -198,7 +198,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
 
     const int           num_samples = 8192;
     std::vector<double> max_xs;
-    std::vector<double> max_scaled_xs;
+    std::vector<double> xs_zero;
     std::vector<double> avg_exit_frac;
     std::vector<double> avg_engine_samples;
 
@@ -233,7 +233,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
             this->density_correction(MaterialId{0}, Energy{inc_energy}),
             gamma_cutoff);
         max_xs.push_back(edist_helper.max_xs().value());
-        max_scaled_xs.push_back(edist_helper.max_scaled_xs().value());
+        xs_zero.push_back(edist_helper.xs_zero().value());
 
         SBEnergyDistribution<SBElectronXsCorrector> sample_energy(edist_helper,
                                                                   {});
@@ -292,7 +292,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
     // clang-format off
     const double expected_max_xs[] = {2.866525852195, 4.72696244794,
         12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
-    const double expected_max_scaled_xs[] = {1.98829818915769, 4.40320232447369,
+    const double expected_xs_zero[] = {1.98829818915769, 4.40320232447369,
         12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
     const double expected_avg_exit_frac[] = {0.949115932248866,
         0.497486662164049, 0.082127972143285, 0.0645177016233406, 
@@ -304,7 +304,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
-    EXPECT_VEC_SOFT_EQ(expected_max_scaled_xs, max_scaled_xs);
+    EXPECT_VEC_SOFT_EQ(expected_xs_zero, xs_zero);
     EXPECT_VEC_SOFT_EQ(expected_avg_exit_frac, avg_exit_frac);
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
