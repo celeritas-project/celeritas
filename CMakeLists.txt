@@ -107,7 +107,7 @@ elseif(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
   # TODO: allow wrapper to standard library RNG when not building for device?
   # TODO: maybe even add wrapper to Geant4 RNG??
 endif()
-list(APPEND CELERITAS_RNG_OPTIONS ROCRAND_BUILTIN)
+list(APPEND CELERITAS_RNG_OPTIONS XORWOW)
 list(GET CELERITAS_RNG_OPTIONS 0 _DEFAULT_RNG)
 set(CELERITAS_RNG "${_DEFAULT_RNG}" CACHE STRING
   "Celeritas runtime random number generator")
