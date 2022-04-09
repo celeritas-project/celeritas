@@ -32,10 +32,6 @@ namespace detail
  * The cross section units are immaterial since the cross section merely acts
  * as a shape function for rejection: the sampled energy's cross section is
  * always divided by the maximium cross section.
- *
- * Note that the *energy* of the maximum cross section is only needed for the
- * cross section scaling function used to correct the exiting energy
- * distribution for positrons.
  */
 class SBEnergyDistHelper
 {
@@ -64,14 +60,11 @@ class SBEnergyDistHelper
     // Calculate tabulated cross section for a given energy
     inline CELER_FUNCTION Xs calc_xs(Energy energy) const;
 
-    //! Energy of maximum cross section
-    CELER_FUNCTION Energy max_xs_energy() const
-    {
-        return Energy{max_xs_.energy};
-    }
-
     //! Maximum cross section calculated for rejection
     CELER_FUNCTION Xs max_xs() const { return Xs{max_xs_.xs}; }
+
+    //! Cross section at the first reduced photon energy grid point
+    CELER_FUNCTION Xs xs_zero() const { return Xs{max_xs_.xs_zero}; }
 
   private:
     //// IMPLEMENTATION TYPES ////
@@ -82,8 +75,8 @@ class SBEnergyDistHelper
 
     struct MaxXs
     {
-        real_type energy;
         real_type xs;
+        real_type xs_zero;
     };
 
     //// IMPLEMENTATION DATA ////
@@ -101,7 +94,6 @@ class SBEnergyDistHelper
         const SBTables&, real_type inc_energy, ElementId element) const;
 
     inline CELER_FUNCTION MaxXs calc_max_xs(const SBTables& xs_params,
-                                            real_type       inc_energy,
                                             ElementId       element) const;
 
     inline CELER_FUNCTION ReciprocalSampler
@@ -124,7 +116,7 @@ SBEnergyDistHelper::SBEnergyDistHelper(const SBDXsec& differential_xs,
                                        EnergySq       density_correction,
                                        Energy         min_gamma_energy)
     : calc_xs_{this->make_xs_calc(differential_xs, inc_energy.value(), element)}
-    , max_xs_{this->calc_max_xs(differential_xs, inc_energy.value(), element)}
+    , max_xs_{this->calc_max_xs(differential_xs, element)}
     , inv_inc_energy_(1 / inc_energy.value())
     , dens_corr_(density_correction.value())
     , sample_exit_esq_{
@@ -191,16 +183,13 @@ CELER_FUNCTION TwodSubgridCalculator SBEnergyDistHelper::make_xs_calc(
  * double-peaked function of brems at lower energies) an upper bound which can
  * be proven by the triangle inequality.
  *
- * The corresponding exiting energy is only needed for cross section scaling
- * (an adjustment needed for the positron emission spectrum). determined by
- * linearly interpolating along the "x" axis (which
- * is a nonuniform grid in log-energy space).
+ * The maximum scaled cross section for positrons will always be at the first
+ * reduced photon energy grid point.
  *
  * \note This is called during construction, so \c calc_xs_ must be initialized
  * before whatever calls this.
  */
 CELER_FUNCTION auto SBEnergyDistHelper::calc_max_xs(const SBTables& xs_params,
-                                                    real_type       inc_energy,
                                                     ElementId element) const
     -> MaxXs
 {
@@ -211,40 +200,22 @@ CELER_FUNCTION auto SBEnergyDistHelper::calc_max_xs(const SBTables& xs_params,
     const real_type x_frac = calc_xs_.x_fraction();
     MaxXs           result;
 
-    // Calc xs
-    {
-        auto get_value = [&xs_params, &el](size_type ix) -> real_type {
-            // Index of the largest xs for exiting energy for the given
-            // incident grid point
-            size_type iy = xs_params.sizes[el.argmax[ix]];
-            // Value of the maximum cross section
-            return xs_params.reals[el.grid.at(ix, iy)];
-        };
+    // Calc max xs
+    auto get_value = [&xs_params, &el](size_type ix) -> real_type {
+        // Index of the largest xs for exiting energy for the given
+        // incident grid point
+        size_type iy = xs_params.sizes[el.argmax[ix]];
+        // Value of the maximum cross section
+        return xs_params.reals[el.grid.at(ix, iy)];
+    };
+    result.xs = (1 - x_frac) * get_value(x_idx) + x_frac * get_value(x_idx + 1);
 
-        result.xs = (1 - x_frac) * get_value(x_idx)
-                    + x_frac * get_value(x_idx + 1);
-    }
-
-    // Calc energy
-    {
-        // The 'y' grid is fractional exiting energy
-        const NonuniformGrid<real_type> ee_grid{el.grid.y, xs_params.reals};
-
-        auto get_value = [&xs_params, &el, &ee_grid](size_type ix) -> real_type {
-            // Index of the largest xs for exiting energy for the given
-            // incident grid point
-            size_type iy = xs_params.sizes[el.argmax[ix]];
-            // Value of the exiting energy grid
-            return ee_grid[iy];
-        };
-
-        real_type efrac = (1 - x_frac) * get_value(x_idx)
-                          + x_frac * get_value(x_idx + 1);
-        result.energy = efrac * inc_energy;
-    }
+    // Calc max scaled xs
+    result.xs_zero = (1 - x_frac) * xs_params.reals[el.grid.at(x_idx, 0)]
+                     + x_frac * xs_params.reals[el.grid.at(x_idx + 1, 0)];
 
     CELER_ENSURE(result.xs > 0);
-    CELER_ENSURE(result.energy > 0);
+    CELER_ENSURE(result.xs_zero > 0);
     return result;
 }
 

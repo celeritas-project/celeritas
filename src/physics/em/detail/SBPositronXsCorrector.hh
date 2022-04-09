@@ -14,6 +14,8 @@
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
 
+#include "SBEnergyDistHelper.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -22,12 +24,13 @@ namespace detail
 /*!
  * Scale SB differential cross sections for positrons.
  *
- * This cross section correction factor appears in the bowels of \c
+ * This correction factor is the ratio of the positron to electron cross
+ * sections. It appears in the bowels of \c
  * G4SeltzerBergerModel::SampleEnergyTransfer in Geant4 and scales the SB cross
  * section by a factor
  * \f[
-   \frac{\sigma_\mathrm{corrected}}{\sigma}
-       = \exp( \alpha Z [ \beta^{-1}(E - E') - \beta^{-1}(E - k_c) ] )
+   \frac{\sigma^+}{\sigma^-}
+       = \exp( 2 \pi \alpha Z [ \beta^{-1}(E - k_c) - \beta^{-1}(E - k) ] )
  * \f]
  * where the inverse positron speed is : \f[
   \beta^{-1}(E) = \frac{c}{v} = \sqrt{1 - \left( \frac{m_e c^2}{E + m_e c^2}
@@ -36,8 +39,12 @@ namespace detail
  * \f]
  * \f$ \alpha \f$ is the fine structure constant, \f$E\f$ is the
  * incident positron kinetic energy, \f$k_c\f$ is the gamma
- * production cutoff energy, and \f$ E' \f$ is the provisionally sampled
- * exiting kinetic energy of the positron.
+ * production cutoff energy, and \f$ k \f$ is the provisionally sampled
+ * energy of the emitted photon.
+ *
+ * \f$ \frac{\sigma^+}{\sigma^-} = 1 \f$ at the low end of the spectrum (where
+ * \f$ k / E = 0 \f$) and is 0 at the tip of the spectrum where \f$ k / E \to 1
+ * \f$.
  *
  * The correction factor is described in:
  *
@@ -45,8 +52,6 @@ namespace detail
  *   Positron to Electron Bremsstrahlung Energy Loss: An Approximate Scaling
  *   Law.” Physical Review A 33, no. 5 (May 1, 1986): 3002–9.
  *   https://doi.org/10.1103/PhysRevA.33.3002.
- *
- * \todo Integrate into the actual sampling process.
  */
 class SBPositronXsCorrector
 {
@@ -54,6 +59,7 @@ class SBPositronXsCorrector
     //!@{
     using Energy = units::MevEnergy;
     using Mass   = units::MevMass;
+    using Xs     = Quantity<SBElementTableData::XsUnits>;
     //!@}
 
   public:
@@ -65,6 +71,9 @@ class SBPositronXsCorrector
 
     // Calculate cross section scaling factor for the given exiting energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
+
+    // Get the maximum differential cross section for the incident energy
+    inline CELER_FUNCTION Xs max_xs(const SBEnergyDistHelper& helper) const;
 
   private:
     //// DATA ////
@@ -91,7 +100,8 @@ SBPositronXsCorrector::SBPositronXsCorrector(Mass               positron_mass,
                                              Energy min_gamma_energy,
                                              Energy inc_energy)
     : positron_mass_{positron_mass.value()}
-    , alpha_z_{celeritas::constants::alpha_fine_structure * el.atomic_number()}
+    , alpha_z_{2 * constants::pi * celeritas::constants::alpha_fine_structure
+               * el.atomic_number()}
     , inc_energy_(inc_energy.value())
     , cutoff_invbeta_{this->calc_invbeta(min_gamma_energy.value())}
 {
@@ -101,13 +111,30 @@ SBPositronXsCorrector::SBPositronXsCorrector(Mass               positron_mass,
 //---------------------------------------------------------------------------//
 /*!
  * Calculate scaling factor for the given exiting gamma energy.
+ *
+ * Eq. 21 in Kim et al.
  */
 CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
 {
     CELER_EXPECT(energy > zero_quantity());
     CELER_EXPECT(energy.value() < inc_energy_);
     real_type delta = cutoff_invbeta_ - this->calc_invbeta(energy.value());
-    return std::exp(alpha_z_ * delta);
+    real_type result = std::exp(alpha_z_ * delta);
+    CELER_ENSURE(result <= 1);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the maximum differential cross section for the given incident energy.
+ *
+ * The positron cross section is always maximum at the first reduced photon
+ * energy grid point.
+ */
+CELER_FUNCTION auto
+SBPositronXsCorrector::max_xs(const SBEnergyDistHelper& helper) const -> Xs
+{
+    return helper.xs_zero();
 }
 
 //---------------------------------------------------------------------------//
