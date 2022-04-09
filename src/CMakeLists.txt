@@ -83,6 +83,7 @@ list(APPEND SOURCES
   comm/Logger.cc
   comm/LoggerTypes.cc
   comm/ScopedMpiInit.cc
+  comm/ScopedSignalHandler.cc
   comm/detail/LoggerMessage.cc
   geometry/GeoMaterialParams.cc
   orange/OrangeParams.cc

@@ -1,0 +1,108 @@
+//----------------------------------*-C++-*----------------------------------//
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file ScopedSignalHandler.hh
+//---------------------------------------------------------------------------//
+#pragma once
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Catch the given signal type within the scope of the handler.
+ *
+ * On instantiation with a non-empty argument, this class registers a signal
+ * handler for the given signal. A class instance is true if and only if the
+ * class is handling a signal. The instance's "call" operator will check and
+ * return whether the assigned signal has been caught. The move-assign operator
+ * can be used to unregister the handle.
+ *
+ * When the class exits scope, the signal for the active type will be cleared.
+ *
+ * Signal handling can be disabled by setting CELER_DISABLE_SIGNALS to a
+ * non-empty value, but hopefully this will not be necessary because signal
+ * handling should be used sparingly.
+ *
+ * \code
+   #include <csignal>
+
+   int main()
+   {
+      ScopedSignalHandler interrupted(SIGINT);
+
+      while (true)
+      {
+          if (interrupted())
+          {
+              CELER_LOG(error) << "Interrupted";
+              break;
+          }
+
+          if (stop_handling_for_whatever_reason())
+          {
+              // Clear handler
+              interrupted = {};
+          }
+      }
+      return interrupted() ? 1 : 0;
+   }
+   \endcode
+ */
+class ScopedSignalHandler
+{
+  public:
+    //!@{
+    //! Type aliases
+    using signal_type = int;
+    //!@}
+
+  public:
+    // Whether signals are enabled
+    static bool allow_signals();
+
+    //! Default to not handling any signals.
+    ScopedSignalHandler() = default;
+
+    // Handle the given signal type, asserting if it's already been raised
+    explicit ScopedSignalHandler(signal_type);
+
+    // Release the given signal
+    ~ScopedSignalHandler();
+
+    // Check if signal was intercepted
+    inline bool operator()() const;
+
+    //! True if handling a signal
+    explicit operator bool() const { return signal_ >= 0; }
+
+    // Move construct and assign to capture/release signal handling
+    ScopedSignalHandler(const ScopedSignalHandler&) = delete;
+    ScopedSignalHandler& operator=(const ScopedSignalHandler&) = delete;
+    ScopedSignalHandler(ScopedSignalHandler&&) noexcept;
+    ScopedSignalHandler& operator=(ScopedSignalHandler&&) noexcept;
+    void                 swap(ScopedSignalHandler& other) noexcept;
+
+  private:
+    using HandlerPtr = void (*)(int);
+
+    signal_type signal_{-1};
+    HandlerPtr  prev_handle_{nullptr};
+
+    bool check_signal() const;
+};
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Return whether a signal was intercepted.
+ */
+bool ScopedSignalHandler::operator()() const
+{
+    return *this && this->check_signal();
+}
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas
