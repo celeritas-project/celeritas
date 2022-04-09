@@ -322,9 +322,8 @@ if(CELERITAS_BUILD_DEMOS)
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
       LABELS "app;nomemcheck"
     )
-    if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-       OR NOT CELERITAS_USE_Geant4
-       OR NOT CELERITAS_USE_HepMC3)
+    if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_HepMC3
+       OR NOT CELERITAS_USE_Python)
       set_tests_properties("app/demo-loop-cpu" PROPERTIES
         DISABLED true
       )
