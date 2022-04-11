@@ -59,10 +59,8 @@ class GenerateCanonical32<double>
 template<class Generator>
 CELER_FUNCTION float GenerateCanonical32<float>::operator()(Generator& rng)
 {
-    using uint_t = typename Generator::result_type;
-    static_assert(sizeof(uint_t) == 4, "Generator value must be 32-bit");
-    static_assert(sizeof(typename Generator::result_type) == 4,
-                  "Generator must return 32-bit value");
+    static_assert(Generator::max() == 0xffffffffu,
+                  "Generator must return 32-bit sample");
 
     constexpr float norm = 2.32830643654e-10f; // 1 / 2**32
     return norm * rng();
@@ -77,8 +75,8 @@ CELER_FUNCTION float GenerateCanonical32<float>::operator()(Generator& rng)
 template<class Generator>
 CELER_FUNCTION double GenerateCanonical32<double>::operator()(Generator& rng)
 {
-    using uint_t = typename Generator::result_type;
-    static_assert(sizeof(uint_t) == 4, "Generator value must be 32-bit");
+    static_assert(Generator::max() == 0xffffffffu,
+                  "Generator must return 32-bit sample");
     static_assert(sizeof(ull_int) == 8, "Expected 64-bit UL");
 
     unsigned int upper = rng();

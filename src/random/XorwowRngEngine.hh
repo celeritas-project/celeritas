@@ -45,6 +45,11 @@ class XorwowRngEngine
     //!@}
 
   public:
+    //! Lowest value potentially generated
+    static CELER_CONSTEXPR_FUNCTION result_type min() { return 0u; }
+    //! Highest value potentially generated
+    static CELER_CONSTEXPR_FUNCTION result_type max() { return 0xffffffffu; }
+
     // Construct from state
     inline CELER_FUNCTION
     XorwowRngEngine(const StateRef& state, const ThreadId& id);
