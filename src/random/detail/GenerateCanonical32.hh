@@ -79,7 +79,7 @@ CELER_FUNCTION double GenerateCanonical32<double>::operator()(Generator& rng)
 {
     using uint_t = typename Generator::result_type;
     static_assert(sizeof(uint_t) == 4, "Generator value must be 32-bit");
-    static_assert(sizeof(unsigned long) == 8, "Expected 64-bit UL");
+    static_assert(sizeof(ull_int) == 8, "Expected 64-bit UL");
 
     unsigned int upper = rng();
     unsigned int lower = rng();
@@ -89,8 +89,8 @@ CELER_FUNCTION double GenerateCanonical32<double>::operator()(Generator& rng)
     // bits of the lower
     constexpr double norm = 1.1102230246251565e-16; // 1 / 2^53
     return norm
-           * ((static_cast<unsigned long>(upper) << (53ul - 32ul))
-              ^ static_cast<unsigned long>(lower));
+           * ((static_cast<ull_int>(upper) << (53ul - 32ul))
+              ^ static_cast<ull_int>(lower));
 }
 
 //---------------------------------------------------------------------------//

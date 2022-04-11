@@ -49,7 +49,7 @@ class XorwowRngEngine
     inline CELER_FUNCTION
     XorwowRngEngine(const StateRef& state, const ThreadId& id);
 
-    // Sample a random number
+    // Generate a 32-bit pseudorandom number
     inline CELER_FUNCTION result_type operator()();
 
   private:
@@ -66,13 +66,13 @@ class GenerateCanonical<XorwowRngEngine, RealType>
   public:
     //!@{
     //! Type aliases
-    using real_type   = float;
+    using real_type   = RealType;
     using result_type = real_type;
     //!@}
 
   public:
-    //! Sample a random number
-    inline CELER_FUNCTION result_type operator()(XorwowRngEngine& rng)
+    //! Sample a random number on [0, 1)
+    CELER_FORCEINLINE_FUNCTION result_type operator()(XorwowRngEngine& rng)
     {
         return detail::GenerateCanonical32<RealType>()(rng);
     }
@@ -93,7 +93,7 @@ XorwowRngEngine::XorwowRngEngine(const StateRef& state, const ThreadId& id)
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample a random number.
+ * Generate a 32-bit pseudorandom number using the 'xorwow' engine.
  */
 CELER_FUNCTION auto XorwowRngEngine::operator()() -> result_type
 {
