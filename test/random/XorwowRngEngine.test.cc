@@ -26,6 +26,45 @@ using celeritas_test::SequenceEngine;
 using std::nextafter;
 
 //---------------------------------------------------------------------------//
+// Helper class
+struct RngTally
+{
+    double moments[4] = {0, 0, 0, 0};
+    double min        = 1;
+    double max        = 0;
+
+    void operator()(double xi)
+    {
+        this->min = std::min(xi, this->min);
+        this->max = std::max(xi, this->max);
+
+        // Rescale to [-1, 1]
+        xi = 2 * xi - 1;
+        this->moments[0] += xi;
+        this->moments[1] += 0.5 * (3 * ipow<2>(xi) - 1);
+        this->moments[2] += 0.5 * (5 * ipow<3>(xi) - 3 * xi);
+        this->moments[3] += 0.125 * (35 * ipow<4>(xi) - 30 * ipow<2>(xi) + 3);
+    }
+
+    void check(double num_samples, double tol)
+    {
+        CELER_EXPECT(tol < 1);
+
+        EXPECT_LT(max, 1);
+        EXPECT_GE(min, 0);
+
+        for (auto& m : this->moments)
+        {
+            m /= num_samples;
+        }
+        EXPECT_SOFT_NEAR(0, moments[0], tol);
+        EXPECT_SOFT_NEAR(0, moments[1], tol);
+        EXPECT_SOFT_NEAR(0, moments[2], tol);
+        EXPECT_SOFT_NEAR(0, moments[3], tol);
+    }
+};
+
+//---------------------------------------------------------------------------//
 // Test 32-bit canonical sequence
 // NOTE: hexadecimal floating point literals are a feature of C++17, so we have
 // to work around with "stof"/"stod"
@@ -79,6 +118,21 @@ TEST(GenerateCanonical32, dbl)
     auto last = generate_canonical(rng);
     EXPECT_LT(last, 1.0);
     EXPECT_DOUBLE_EQ(nextafter(1.0, 0.0), last);
+}
+
+TEST(GenerateCanonical32, moments)
+{
+    int num_samples = 1 << 20; // ~1m
+
+    std::mt19937                rng;
+    GenerateCanonical32<double> generate_canonical;
+    RngTally                    tally;
+
+    for (int i = 0; i < num_samples; ++i)
+    {
+        tally(generate_canonical(rng));
+    }
+    tally.check(num_samples, 1e-3);
 }
 
 //---------------------------------------------------------------------------//
@@ -135,6 +189,24 @@ TEST_F(XorwowRngEngineTest, host)
            1370167352u, 1607766504u, 3084411954u, 2675509253u, 2542521715u,
            327503606u,  3527767224u, 154218656u};
     EXPECT_VEC_EQ(expected_flattened, flattened);
+}
+
+TEST_F(XorwowRngEngineTest, moments)
+{
+    unsigned int num_samples = 1 << 12;
+    unsigned int num_seeds   = 1 << 8;
+
+    HostStore states(*params, num_seeds);
+    RngTally  tally;
+
+    for (unsigned int i = 0; i < num_seeds; ++i)
+    {
+        XorwowRngEngine rng(states.ref(), ThreadId{i});
+        for (unsigned int i = 0; i < num_samples; ++i)
+        {
+            tally(celeritas::generate_canonical(rng));
+        }
+    }
 }
 
 TEST_F(XorwowRngEngineTest, TEST_IF_CELER_DEVICE(device))

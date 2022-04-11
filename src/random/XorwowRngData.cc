@@ -40,7 +40,8 @@ void resize(
     XorwowRngStateData<Ownership::value, MemSpace::host> host_state;
     make_builder(&host_state.state).resize(size);
 
-    // Fill all seeds with random data
+    // Fill all seeds with random data. The xorstate is never all
+    // zeros, with probability 2^{-320}.
     for (XorwowState& init : host_state.state[AllItems<XorwowState>{}])
     {
         for (uint_t& u : init.xorstate)
@@ -61,6 +62,7 @@ void resize(
     }
 
     CELER_ENSURE(*state);
+    CELER_ENSURE(state->size() == size);
 }
 
 //---------------------------------------------------------------------------//
