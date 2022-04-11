@@ -142,6 +142,7 @@ celeritas_add_test(comm/Environment.test.cc
   ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
 )
 celeritas_add_test(comm/Logger.test.cc)
+celeritas_add_test(comm/ScopedSignalHandler.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Field

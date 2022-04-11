@@ -183,11 +183,11 @@ TEST_F(SeltzerBergerTest, sb_positron_xs_scaling)
         }
     }
     // clang-format off
-    const double expected_scaling_frac[] = {
-        0.9980342329193, 0.9800123976959, 0.8513338610609, 2.827839668085e-05,
-        0.9999449017036, 0.9993355880532, 0.9870854387438, 0.04176283721387,
-        0.9999993627271, 0.9999919054025, 0.9997522383667, 0.4174036918268,
-        0.9999999935293, 0.9999999173093, 0.9999972926228, 0.8399650995661};
+    static const double expected_scaling_frac[] = {
+        0.98771267862086, 0.88085886234621, 0.36375147691123, 2.6341925633236e-29,
+        0.99965385757708, 0.99583269657665, 0.92157316225919, 2.1585790781929e-09,
+        0.99999599590292, 0.99994914123134, 0.99844428624414, 0.0041293798201,
+        0.99999995934326, 0.99999948043882, 0.99998298916928, 0.33428689072689};
     // clang-format on
     EXPECT_VEC_SOFT_EQ(expected_scaling_frac, scaling_frac);
 }
@@ -198,7 +198,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
 
     const int           num_samples = 8192;
     std::vector<double> max_xs;
-    std::vector<double> max_xs_energy;
+    std::vector<double> xs_zero;
     std::vector<double> avg_exit_frac;
     std::vector<double> avg_engine_samples;
 
@@ -233,7 +233,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
             this->density_correction(MaterialId{0}, Energy{inc_energy}),
             gamma_cutoff);
         max_xs.push_back(edist_helper.max_xs().value());
-        max_xs_energy.push_back(edist_helper.max_xs_energy().value());
+        xs_zero.push_back(edist_helper.xs_zero().value());
 
         SBEnergyDistribution<SBElectronXsCorrector> sample_energy(edist_helper,
                                                                   {});
@@ -254,9 +254,20 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         // Sample with a "correction" that's constant, which shouldn't change
         // sampling efficiency or expected value correction
         {
-            auto scale_xs = [](Energy) { return 2.0; };
-            SBEnergyDistribution<decltype(scale_xs)> sample_energy(
-                edist_helper, scale_xs);
+            struct ScaleXs
+            {
+                using Xs = celeritas::Quantity<celeritas::units::Millibarn>;
+
+                real_type operator()(Energy) const { return 0.5; }
+
+                Xs max_xs(const SBEnergyDistHelper& helper) const
+                {
+                    return helper.calc_xs(MevEnergy{0.0009});
+                }
+            };
+
+            SBEnergyDistribution<ScaleXs> sample_energy(edist_helper,
+                                                        ScaleXs{});
 
             // Loop over many particles
             sample_many(inc_energy, sample_energy);
@@ -281,19 +292,19 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
     // clang-format off
     const double expected_max_xs[] = {2.866525852195, 4.72696244794,
         12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
-    const double expected_max_xs_energy[] = {0.001, 0.002718394312008,
-        5.67e-13, 7.89e-12, 8.9e-11, 9.01e-10};
+    const double expected_xs_zero[] = {1.98829818915769, 4.40320232447369,
+        12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
     const double expected_avg_exit_frac[] = {0.949115932248866,
         0.497486662164049, 0.082127972143285, 0.0645177016233406, 
-        0.0774717918229646, 0.0891340819129683, 0.0661428500057435, 
-        0.0640038878541159};
+        0.0774717918229646, 0.0891340819129683, 0.0639090949553034, 
+        0.0642877319142647};
     const double expected_avg_engine_samples[] = {4.0791015625, 4.06005859375,
-	5.134765625, 4.65625, 4.43017578125, 4.35693359375, 4.6591796875,
-        4.66845703125};
+	5.134765625, 4.65625, 4.43017578125, 4.35693359375, 9.3681640625,
+        4.65478515625};
     // clang-format on
 
     EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
-    EXPECT_VEC_SOFT_EQ(expected_max_xs_energy, max_xs_energy);
+    EXPECT_VEC_SOFT_EQ(expected_xs_zero, xs_zero);
     EXPECT_VEC_SOFT_EQ(expected_avg_exit_frac, avg_exit_frac);
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
@@ -420,16 +431,16 @@ TEST_F(SeltzerBergerTest, stress_test)
     }
 
     // Gold values for average number of calls to RNG
-    const double expected_avg_engine_samples[] = {14.088,
-                                                  13.2402,
-                                                  12.9641,
-                                                  12.5832,
-                                                  12.4988,
-                                                  14.10655,
-                                                  13.2396,
-                                                  12.9456,
-                                                  12.5815,
-                                                  12.4965};
+    static const double expected_avg_engine_samples[] = {14.088,
+                                                         13.2402,
+                                                         12.9641,
+                                                         12.5832,
+                                                         12.4988,
+                                                         14.2108,
+                                                         13.254,
+                                                         12.9431,
+                                                         12.5952,
+                                                         12.4888};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

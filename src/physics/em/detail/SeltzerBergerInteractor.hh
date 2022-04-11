@@ -23,10 +23,7 @@
 
 #include "BremFinalStateHelper.hh"
 #include "PhysicsConstants.hh"
-#include "SBEnergyDistHelper.hh"
-#include "SBEnergyDistribution.hh"
 #include "SBEnergySampler.hh"
-#include "SBPositronXsCorrector.hh"
 #include "SeltzerBergerData.hh"
 
 namespace celeritas
@@ -44,7 +41,7 @@ namespace detail
  * and Berger given in Nucl. Instr. and Meth. in Phys. Research B, 12(1):95–134
  * (1985) and Atomic Data and Nuclear Data Tables, 35():345 (1986). The cross
  * sections are obtained from SBEnergyDistribution and are appropriately scaled
- * in the case of positrons via SBPositronXsCorrector (to be done).
+ * in the case of positrons via SBPositronXsCorrector.
  *
  * \note This interactor performs an analogous sampling as in Geant4's
  * G4SeltzerBergerModel, documented in 10.2.1 of the Geant Physics Reference

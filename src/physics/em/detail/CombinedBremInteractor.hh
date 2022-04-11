@@ -27,10 +27,7 @@
 #include "CombinedBremData.hh"
 #include "PhysicsConstants.hh"
 #include "RBEnergySampler.hh"
-#include "SBEnergyDistHelper.hh"
-#include "SBEnergyDistribution.hh"
 #include "SBEnergySampler.hh"
-#include "SBPositronXsCorrector.hh"
 
 namespace celeritas
 {
