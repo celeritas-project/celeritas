@@ -50,7 +50,7 @@ void celer_clr_signal(int signal)
 }
 
 //---------------------------------------------------------------------------//
-//! Set the bit corresponding to a signal
+//! Return whether the bit corresponding to a signal is set
 bool celer_chk_signal(int signal)
 {
     return celer_signal_bits & (1 << signal);
