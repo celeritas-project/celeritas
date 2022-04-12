@@ -350,6 +350,14 @@ TEST_F(OneVolumeTest, intersect)
     }
 }
 
+TEST_F(OneVolumeTest, safety)
+{
+    SimpleUnitTracker tracker(this->params().host_ref());
+
+    EXPECT_SOFT_EQ(inf,
+                   tracker.safety({1, 2, 3}, this->find_volume("infinite")));
+}
+
 TEST_F(OneVolumeTest, heuristic_init)
 {
     size_type num_tracks = 1024;
@@ -518,7 +526,8 @@ TEST_F(TwoVolumeTest, intersect)
             {0, 1.5, 0}, {0, 1, 0}, "inside", "sphere", '-');
         auto isect = tracker.intersect(state);
 #if 0
-        // "Correct" result
+        // "Correct" result when accounting for sense in distance-to-boundary
+        // calculation
         EXPECT_EQ(SurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(0.0, isect.distance);
@@ -527,6 +536,26 @@ TEST_F(TwoVolumeTest, intersect)
         EXPECT_FALSE(isect);
 #endif
     }
+}
+
+TEST_F(TwoVolumeTest, safety)
+{
+    SimpleUnitTracker tracker(this->params().host_ref());
+    VolumeId          outside = this->find_volume("outside");
+    VolumeId          inside  = this->find_volume("inside");
+
+    EXPECT_SOFT_EQ(1.9641016151377535, tracker.safety({2, 2, 2}, outside));
+    EXPECT_SOFT_EQ(1.3284271247461905, tracker.safety({2, 0, 2}, outside));
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 2}, outside));
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 1}, inside));
+    EXPECT_SOFT_EQ(1.5 - 1e-10, tracker.safety({1e-10, 0, 0}, inside));
+#if 0
+    // Correct result but there is a singularity at zero
+    EXPECT_SOFT_EQ(1.5, tracker.safety({0, 0, 0}, inside)); // degenerate!
+#else
+    // Actual result
+    EXPECT_SOFT_EQ(inf, tracker.safety({0, 0, 0}, inside)); // degenerate!
+#endif
 }
 
 TEST_F(TwoVolumeTest, heuristic_init)
@@ -652,7 +681,7 @@ TEST_F(FiveVolumesTest, cross_boundary)
     {
         // TODO: this might not be OK since intersection logic may not be
         // correct when exactly on a boundary but not *known* to be on that
-        // boundary. We'll either need to ensure that's ei
+        // boundary.
         SCOPED_TRACE("Crossing at triple point");
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {0, 0.75, 0}, {0, 1, 0}, "c", "gamma.s", '-'));
@@ -711,6 +740,19 @@ TEST_F(FiveVolumesTest, intersect)
         EXPECT_FALSE(isect);
         EXPECT_SOFT_EQ(1e-12, isect.distance);
     }
+}
+
+TEST_F(FiveVolumesTest, safety)
+{
+    SimpleUnitTracker tracker(this->params().host_ref());
+
+    VolumeId a = this->find_volume("a");
+    VolumeId d = this->find_volume("d");
+
+    EXPECT_SOFT_EQ(0.15138781886599728, tracker.safety({-0.75, 0.5, 0}, a));
+
+    // Note: distance with "d" surfaces is conservatively to internal planes
+    EXPECT_SOFT_EQ(0.5, tracker.safety({-5, 20, 0}, d));
 }
 
 TEST_F(FiveVolumesTest, heuristic_init)

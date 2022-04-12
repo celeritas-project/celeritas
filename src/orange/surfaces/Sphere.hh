@@ -38,6 +38,9 @@ class Sphere
         return SurfaceType::s;
     }
 
+    //! Safety is intersection along surface normal
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
+
   public:
     //// CONSTRUCTORS ////
 

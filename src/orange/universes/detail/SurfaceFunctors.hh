@@ -58,10 +58,9 @@ struct CalcNormal
 /*!
  * Calculate the smallest distance from a point to the surface.
  *
- * I need to check the math on this, as it assumes that the closest point is
- * the closest intersection along the surface normal. There might also be
- * easier ways to check this distance analytically. This isn't yet used
- * anywhere so I haven't made it a priority.
+ * For certain surface types (spheres, cylinders, planes), defined such that
+ * the normal is *outward* (positive when "outside", negative when "inside"),
+ * the nearest distance to the surface can be calculated quite trivially.
  */
 struct CalcSafetyDistance
 {
@@ -71,6 +70,13 @@ struct CalcSafetyDistance
     template<class S>
     real_type operator()(S&& surf)
     {
+        if (!S::simple_safety())
+        {
+            // Not a surface that satisfies our simplifying constraints: return
+            // a conservative answer.
+            return 0;
+        }
+
         // Calculate outward normal
         Real3 dir = surf.calc_normal(this->pos);
 
@@ -79,8 +85,10 @@ struct CalcSafetyDistance
         // that the vector points toward the surface
         if (sense == SignedSense::outside)
         {
-            for (int i = 0; i < 3; ++i)
-                dir[i] *= -1;
+            for (real_type& d : dir)
+            {
+                d *= -1;
+            }
         }
         else if (sense == SignedSense::on)
         {

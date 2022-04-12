@@ -60,6 +60,10 @@ class SimpleUnitTracker
     inline CELER_FUNCTION Intersection intersect(const LocalState& state,
                                                  real_type max_dist) const;
 
+    // Calculate closest distance to a surface in any direction
+    inline CELER_FUNCTION real_type safety(const Real3& pos,
+                                           VolumeId     vol) const;
+
   private:
     //// DATA ////
     const ParamsRef& params_;
@@ -211,6 +215,37 @@ SimpleUnitTracker::intersect(const LocalState& state, real_type max_dist) const
     {
         result.distance = max_dist;
     }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate nearest distance to a surface in any direction.
+ *
+ * The safety calculation uses a very limited method for calculating the safety
+ * distance: it's the nearest distance to any surface, for a certain subset of
+ * surfaces.  Other surface types will return a safety distance of zero.
+ * Complex surfaces might return the distance to internal surfaces that do not
+ * represent the edge of a cell. Such distances are conservative but will
+ * necessarily slow down the simulation.
+ */
+CELER_FUNCTION real_type SimpleUnitTracker::safety(const Real3& pos,
+                                                   VolumeId     volid) const
+{
+    CELER_EXPECT(volid);
+
+    real_type result = numeric_limits<real_type>::infinity();
+
+    // Calculate minimim distance to all local faces
+    VolumeView vol{params_.volumes, volid};
+    auto       calc_safety = make_surface_action(Surfaces{params_.surfaces},
+                                           detail::CalcSafetyDistance{pos});
+    for (SurfaceId surface : vol.faces())
+    {
+        result = celeritas::min(result, calc_safety(surface));
+    }
+
+    CELER_ENSURE(result >= 0);
     return result;
 }
 

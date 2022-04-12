@@ -47,6 +47,9 @@ class GeneralQuadric
         return SurfaceType::gq;
     }
 
+    //! Safety is intersection along surface normal
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+
   public:
     //// CONSTRUCTORS ////
 
