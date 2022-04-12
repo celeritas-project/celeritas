@@ -37,7 +37,7 @@ class ImportedProcessesTest : public celeritas::Test
     void SetUp() override
     {
         RootImporter import_from_root(
-            this->test_data_path("io", "geant-exporter-data.root").c_str());
+            this->test_data_path("io", "four-steel-slabs.root").c_str());
 
         auto data = import_from_root();
 

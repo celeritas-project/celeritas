@@ -1,0 +1,55 @@
+! Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+! See the top-level COPYRIGHT file for details.
+! SPDX-License-Identifier: (Apache-2.0 OR MIT)
+[GEOMETRY]
+global "global"
+comp       : matid
+    "G4_STAINLESS-STEEL" 0
+    "G4_Galactic" 1
+
+[UNIVERSE=general global]
+interior "World"
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+
+[UNIVERSE][SHAPE=box box]
+widths 20 20 4
+
+[UNIVERSE][SHAPE=box boxReplica]
+widths 20 20 4
+translate 0 0 6
+
+[UNIVERSE][SHAPE=box boxReplica2]
+widths 20 20 4
+translate 0 0 12
+
+[UNIVERSE][SHAPE=box boxReplica3]
+widths 20 20 4
+translate 0 0 18
+
+[UNIVERSE][SHAPE=box World]
+widths 1000 1000 1000
+
+!##############################################################################
+! CELLS ("volumes")
+!##############################################################################
+
+[UNIVERSE][CELL box]
+comp "G4_STAINLESS-STEEL"
+shapes box
+
+[UNIVERSE][CELL boxReplica]
+comp "G4_STAINLESS-STEEL"
+shapes boxReplica
+
+[UNIVERSE][CELL boxReplica2]
+comp "G4_STAINLESS-STEEL"
+shapes boxReplica2
+
+[UNIVERSE][CELL boxReplica3]
+comp "G4_STAINLESS-STEEL"
+shapes boxReplica3
+
+[UNIVERSE][CELL World]
+comp G4_Galactic
+shapes World ~box ~boxReplica ~boxReplica2 ~boxReplica3

@@ -25,7 +25,7 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 /*!
- * The \e geant-exporter-data.root is created by the \e app/geant-exporter
+ * The \e four-steel-slabs.root is created by the \e app/geant-exporter
  * using the \e four-steel-slabs.gdml example file available in
  * \e app/geant-exporter/data.
  *
@@ -39,7 +39,7 @@ class RootImporterTest : public celeritas::Test
   protected:
     void SetUp() override
     {
-        root_filename_ = this->test_data_path("io", "geant-exporter-data.root");
+        root_filename_ = this->test_data_path("io", "four-steel-slabs.root");
 
         RootImporter import_from_root(root_filename_.c_str());
         data_ = import_from_root();
