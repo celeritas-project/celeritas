@@ -115,6 +115,9 @@ TEST_F(OneVolumeTest, track_view)
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(inf, next.distance);
     EXPECT_FALSE(next.boundary);
+
+    // Get safety distance
+    EXPECT_SOFT_EQ(inf, geo.find_safety({5.6, 4.1, 5.1}));
 }
 
 //---------------------------------------------------------------------------//
@@ -146,11 +149,6 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
     EXPECT_FALSE(geo.is_outside());
 
-    if (CELERITAS_DEBUG)
-    {
-        EXPECT_THROW(geo.find_safety({0.6, 0, 0}), celeritas::DebugError);
-    }
-
     // Try a boundary; second call should be cached
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(sqrt_two, next.distance);
@@ -174,18 +172,21 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     EXPECT_FALSE(geo.is_outside());
+    EXPECT_DOUBLE_EQ(0.0, geo.find_safety(geo.pos()));
 
     // Logically flip the surface into the new volume
     geo.cross_boundary();
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
     EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     EXPECT_TRUE(geo.is_outside());
+    EXPECT_DOUBLE_EQ(0.0, geo.find_safety(geo.pos()));
 
     // Move internally to an arbitrary position
     geo.find_next_step();
     geo.move_internal({2, 2, 0});
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
     geo.set_dir({-sqrt_two / 2, -sqrt_two / 2, 0});
+    EXPECT_SOFT_EQ(1.3284271247461905, geo.find_safety(geo.pos()));
 
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(1.3284271247461896, next.distance);

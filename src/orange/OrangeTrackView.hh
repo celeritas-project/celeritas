@@ -111,6 +111,8 @@ class OrangeTrackView
     // Create local distance
     inline CELER_FUNCTION detail::TempNextFace make_temp_next() const;
 
+    inline CELER_FUNCTION detail::LocalState make_local_state() const;
+
     // Whether the next distance-to-boundary has been found
     CELER_FORCEINLINE_FUNCTION bool has_next_step() const;
 
@@ -218,18 +220,11 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
 
     if (!this->has_next_step())
     {
-        detail::LocalState local;
-        local.pos        = states_.pos[thread_];
-        local.dir        = states_.dir[thread_];
-        local.volume     = states_.vol[thread_];
-        local.surface    = {states_.surf[thread_], states_.sense[thread_]};
-        local.temp_sense = this->make_temp_sense();
-        local.temp_next  = this->make_temp_next();
-
         SimpleUnitTracker tracker(params_);
-        auto              isect = tracker.intersect(local);
-        next_step_              = isect.distance;
-        next_surface_           = isect.surface;
+
+        auto isect    = tracker.intersect(this->make_local_state());
+        next_step_    = isect.distance;
+        next_surface_ = isect.surface;
     }
 
     Propagation result;
@@ -265,18 +260,11 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 
     if (!this->has_next_step())
     {
-        detail::LocalState local;
-        local.pos        = states_.pos[thread_];
-        local.dir        = states_.dir[thread_];
-        local.volume     = states_.vol[thread_];
-        local.surface    = {states_.surf[thread_], states_.sense[thread_]};
-        local.temp_sense = this->make_temp_sense();
-        local.temp_next  = this->make_temp_next();
-
         SimpleUnitTracker tracker(params_);
-        auto              isect = tracker.intersect(local, max_step);
-        next_step_              = isect.distance;
-        next_surface_           = isect.surface;
+
+        auto isect    = tracker.intersect(this->make_local_state(), max_step);
+        next_step_    = isect.distance;
+        next_surface_ = isect.surface;
     }
 
     Propagation result;
@@ -291,10 +279,16 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 /*!
  * Find the nearest (any direction) boundary within the current volume.
  */
-CELER_FUNCTION real_type OrangeTrackView::find_safety(const Real3&)
+CELER_FUNCTION real_type OrangeTrackView::find_safety(const Real3& pos)
 {
-    CELER_NOT_IMPLEMENTED("safety distance in ORANGE");
-    return 0;
+    if (states_.surf[thread_])
+    {
+        // Zero distance to boundary on a surface
+        return real_type{0};
+    }
+
+    SimpleUnitTracker tracker(params_);
+    return tracker.safety(pos, states_.vol[thread_]);
 }
 
 //---------------------------------------------------------------------------//
@@ -432,6 +426,22 @@ CELER_FUNCTION detail::TempNextFace OrangeTrackView::make_temp_next() const
     result.size  = max_isect;
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a local state.
+ */
+CELER_FUNCTION detail::LocalState OrangeTrackView::make_local_state() const
+{
+    detail::LocalState local;
+    local.pos        = states_.pos[thread_];
+    local.dir        = states_.dir[thread_];
+    local.volume     = states_.vol[thread_];
+    local.surface    = {states_.surf[thread_], states_.sense[thread_]};
+    local.temp_sense = this->make_temp_sense();
+    local.temp_next  = this->make_temp_next();
+    return local;
 }
 
 //---------------------------------------------------------------------------//
