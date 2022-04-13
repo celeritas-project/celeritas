@@ -12,6 +12,8 @@
 #include "base/CollectionMirror.hh"
 #include "io/ImportSBTable.hh"
 #include "physics/base/Model.hh"
+#include "physics/base/Units.hh"
+#include "physics/material/ElementView.hh"
 
 #include "detail/SeltzerBergerData.hh"
 
@@ -47,6 +49,7 @@ class SeltzerBergerModel final : public Model
   public:
     //!@{
     using AtomicNumber = int;
+    using Mass         = units::MevMass;
     using ReadData     = std::function<ImportSBTable(AtomicNumber)>;
     using HostRef
         = detail::SeltzerBergerData<Ownership::const_reference, MemSpace::host>;
@@ -88,7 +91,10 @@ class SeltzerBergerModel final : public Model
 
     using HostXsTables
         = detail::SeltzerBergerTableData<Ownership::value, MemSpace::host>;
-    void append_table(const ImportSBTable& table, HostXsTables* tables) const;
+    void append_table(const ElementView&   element,
+                      const ImportSBTable& table,
+                      HostXsTables*        tables,
+                      Mass                 electron_mass) const;
 };
 
 //---------------------------------------------------------------------------//

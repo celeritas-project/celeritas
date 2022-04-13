@@ -7,11 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "Transporter.hh"
 
+#include <csignal>
 #include <memory>
+
 #include "base/Assert.hh"
 #include "base/Stopwatch.hh"
 #include "base/VectorUtils.hh"
 #include "comm/Logger.hh"
+#include "comm/ScopedSignalHandler.hh"
 #include "geometry/GeoMaterialParams.hh"
 #include "geometry/GeoParams.hh"
 #include "geometry/generated/BoundaryAction.hh"
@@ -228,6 +231,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
     core_ref.states = states_.ref();
     const ActionManager& actions = *input_.actions;
 
+    ScopedSignalHandler interrupted(SIGINT);
     CELER_LOG(status) << "Transporting";
     size_type num_alive       = 0;
     size_type num_inits       = track_init_states.initializers.size();
@@ -302,6 +306,13 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         {
             CELER_LOG(error) << "Exceeded step count of " << input_.max_steps
                              << ": aborting transport loop";
+            break;
+        }
+        if (CELER_UNLIKELY(interrupted()))
+        {
+            CELER_LOG(error) << "Caught interrupt signal: aborting transport "
+                                "loop";
+            interrupted = {};
             break;
         }
     }
