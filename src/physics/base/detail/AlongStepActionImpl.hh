@@ -138,7 +138,6 @@ along_step_track(celeritas::CoreTrackView const& track)
     // Calculate energy loss over the step length
     auto mat     = track.make_material_view();
     auto rng     = track.make_rng_engine();
-    auto cutoffs = track.make_cutoff_view();
 
     // Sample the multiple scattering
     if (use_msc)
@@ -181,8 +180,8 @@ along_step_track(celeritas::CoreTrackView const& track)
     // TODO: update track's lab-frame time here
 
     using Energy = ParticleTrackView::Energy;
-    Energy eloss
-        = calc_energy_loss(cutoffs, mat, particle, phys, step_limit.step, rng);
+    Energy eloss = calc_energy_loss(
+        track.make_cutoff_view(), mat, particle, phys, step_limit.step, rng);
     if (eloss == particle.energy())
     {
         // Particle lost all energy over the step

@@ -92,7 +92,6 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
         // (allocation failure) occurred. Someday we can add error handling,
         // but for now use the "failure" action in the physics and set the step
         // limit to zero since it needs to interact again at this location.
-        auto sim = track.make_sim_view();
         sim.step_limit({0, phys.scalars().failure_action()});
     }
 }
