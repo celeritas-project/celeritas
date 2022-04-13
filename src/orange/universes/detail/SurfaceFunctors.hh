@@ -35,7 +35,7 @@ struct CalcSense
 template<class S>
 struct NumIntersections
 {
-    constexpr size_type operator()() const noexcept
+    CELER_CONSTEXPR_FUNCTION size_type operator()() const noexcept
     {
         return typename S::Intersections{}.size();
     }
@@ -68,7 +68,7 @@ struct CalcSafetyDistance
 
     //! Operate on a surface
     template<class S>
-    real_type operator()(S&& surf)
+    CELER_FUNCTION real_type operator()(S&& surf)
     {
         if (!S::simple_safety())
         {
