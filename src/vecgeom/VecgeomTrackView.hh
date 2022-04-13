@@ -296,6 +296,15 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
             vgnext_.Push(pplvol);
             vgnext_.SetBoundaryState(true);
         }
+        else
+        {
+            // Next step is valid but beyond the requested step
+            Propagation result;
+            result.distance = max_step;
+            result.boundary = false;
+            return result;
+        }
+
         next_step_ = max(next_step_, this->extra_push());
     }
 
