@@ -137,6 +137,12 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
             }
         }
     }
+
+    if (!initialized && sim.status() == TrackStatus::killed)
+    {
+        // Track is no longer used as part of transport
+        sim.status(TrackStatus::inactive);
+    }
 }
 
 //---------------------------------------------------------------------------//

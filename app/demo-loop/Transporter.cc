@@ -278,6 +278,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         {
             actions.invoke<M>(action, core_ref);
         }
+        accum_time<M>(input_, get_time, &result.time.launch_models);
 
         // Mid-step diagnostics
         for (auto& diagnostic : diagnostics)

@@ -75,6 +75,8 @@ struct SimStateData
 //---------------------------------------------------------------------------//
 /*!
  * Resize simulation states and set \c alive to be false.
+ *
+ * TODO: replace with resize + fill
  */
 template<MemSpace M>
 void resize(SimStateData<Ownership::value, M>* data, size_type size)

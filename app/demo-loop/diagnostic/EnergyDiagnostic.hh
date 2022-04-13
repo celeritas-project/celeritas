@@ -20,6 +20,7 @@
 #include "geometry/Types.hh"
 #include "physics/grid/NonuniformGrid.hh"
 #include "sim/CoreTrackData.hh"
+#include "sim/SimTrackView.hh"
 
 #include "Diagnostic.hh"
 
@@ -47,7 +48,7 @@ class EnergyDiagnostic : public Diagnostic<M>
     explicit EnergyDiagnostic(const std::vector<real_type>& bounds, Axis axis);
 
     // Number of alive tracks determined at the end of a step.
-    void end_step(const StateRef& states) final;
+    void mid_step(const StateRef& states) final;
 
     // Collect diagnostic results
     void get_result(TransporterResult* result) final;
@@ -154,7 +155,7 @@ EnergyDiagnostic<M>::EnergyDiagnostic(const std::vector<real_type>& bounds,
  * Accumulate energy deposition in diagnostic.
  */
 template<MemSpace M>
-void EnergyDiagnostic<M>::end_step(const StateRef& states)
+void EnergyDiagnostic<M>::mid_step(const StateRef& states)
 {
     // Set up pointers to pass to device
     EnergyBinPointers<M> pointers;
@@ -206,6 +207,13 @@ EnergyDiagnosticLauncher<M>::EnergyDiagnosticLauncher(const StateRef& states,
 template<MemSpace M>
 CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
 {
+    celeritas::SimTrackView sim(states_.sim, tid);
+    if (sim.status() == celeritas::TrackStatus::inactive)
+    {
+        // Only apply to active and dying tracks
+        return;
+    }
+
     // Create grid from EnergyBinPointers
     celeritas::NonuniformGrid<real_type> grid(pointers_.bounds);
 
