@@ -162,17 +162,8 @@ class PhysicsTrackView
     // Calculate scaled step range
     inline CELER_FUNCTION real_type range_to_step(real_type range) const;
 
-    // Access scalar properties (TODO)
+    // Access scalar properties
     CELER_FORCEINLINE_FUNCTION const PhysicsParamsScalars& scalars() const;
-
-    // Fractional energy loss allowed before post-step recalculation
-    inline CELER_FUNCTION real_type linear_loss_limit() const;
-
-    // Energy scaling fraction used to estimate maximum xs over the step
-    inline CELER_FUNCTION real_type energy_fraction() const;
-
-    // Whether to simulate energy loss fluctuations
-    inline CELER_FUNCTION bool add_fluctuation() const;
 
     // Energy loss fluctuation model parameters
     inline CELER_FUNCTION const FluctuationRef& fluctuation() const;
@@ -518,7 +509,9 @@ PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
  * cross section over the step. If the energy of the global maximum of the
  * cross section (calculated at initialization) is in the interval \f$ [\xi
  * E_0, E_0) \f$, where \f$ E_0 \f$ is the pre-step energy and \f$ \xi \f$ is
- * \c energy_fraction, \f$ \sigma_{\max} \f$ is set to the global maximum.
+ * \c energy_fraction (defined by default as \f$ \xi = 1 - \alpha \f$, where
+ * \f$ \alpha \f$ is \c scaling_fraction),
+ * \f$ \sigma_{\max} \f$ is set to the global maximum.
  * Otherwise, \f$ \sigma_{\max} = \max( \sigma(E_0), \sigma(\xi E_0) ) \f$. If
  * the cross section is not monotonic in the interval \f$ [\xi E_0, E_0) \f$
  * and the interval does not contain the global maximum, the post-step cross
@@ -536,7 +529,7 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
     real_type energy_max_xs = this->energy_max_xs(ppid);
     if (energy_max_xs > 0)
     {
-        real_type energy_xi = energy.value() * this->energy_fraction();
+        real_type energy_xi = energy.value() * params_.scalars.energy_fraction;
         if (energy_max_xs >= energy_xi && energy_max_xs < energy.value())
             return calc_xs(Energy{energy_max_xs});
         return max(calc_xs(energy), calc_xs(Energy{energy_xi}));
@@ -664,44 +657,11 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 //---------------------------------------------------------------------------//
 /*!
  * Access scalar properties (options, IDs).
- *
- * TODO should we replace loss limiters, energy fraction, etc. with a direct
- * access to this?
  */
 CELER_FORCEINLINE_FUNCTION const PhysicsParamsScalars&
 PhysicsTrackView::scalars() const
 {
     return params_.scalars;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Fractional along-step energy loss allowed before recalculating from range.
- */
-CELER_FUNCTION real_type PhysicsTrackView::linear_loss_limit() const
-{
-    return params_.scalars.linear_loss_limit;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Energy scaling fraction used to estimate maximum cross section over a step.
- *
- * By default this parameter is defined as \f$ \xi = 1 - \alpha \f$, where \f$
- * \alpha \f$ is \c scaling_fraction.
- */
-CELER_FUNCTION real_type PhysicsTrackView::energy_fraction() const
-{
-    return params_.scalars.energy_fraction;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether to simulate energy loss fluctuations.
- */
-CELER_FUNCTION bool PhysicsTrackView::add_fluctuation() const
-{
-    return params_.scalars.enable_fluctuation;
 }
 
 //---------------------------------------------------------------------------//

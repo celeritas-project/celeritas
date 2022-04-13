@@ -52,8 +52,7 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
 
     auto phys = track.make_physics_view();
     {
-        // Clear out energy deposition and secondary pointers even if the track
-        // is inactive
+        // Clear out energy deposition and secondary pointers
         phys.reset_energy_deposition();
         phys.secondaries({});
     }

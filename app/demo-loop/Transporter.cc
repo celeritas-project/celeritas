@@ -154,24 +154,6 @@ void accum_time<MemSpace::host>(const TransporterInput&,
 
 //!@}
 //---------------------------------------------------------------------------//
-/*!
- * Launch interaction kernels for all applicable models.
- *
- * For now, just launch *all* the models.
- */
-template<MemSpace M>
-void launch_models(TransporterInput const& host_params, CoreRef<M> const& data)
-{
-    // Loop over physics models IDs and invoke `interact`
-    for (auto model_id : range(ModelId{host_params.physics->num_models()}))
-    {
-        // Do not launch interact if the process is electromagnetic_msc
-        const Model& model = host_params.physics->model(model_id);
-        model.interact(data);
-    }
-}
-
-//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -292,7 +274,6 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         {
             actions.invoke<M>(action, core_ref);
         }
-        accum_time<M>(input_, get_time, &result.time.launch_models);
 
         // Mid-step diagnostics
         for (auto& diagnostic : diagnostics)

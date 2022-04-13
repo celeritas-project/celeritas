@@ -137,6 +137,8 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
                  == host_ref().scalars.range_action());
     CELER_ENSURE(discrete_action_->action_id()
                  == host_ref().scalars.discrete_action());
+    CELER_ENSURE(integral_rejection_action_->action_id()
+                 == host_ref().scalars.integral_rejection_action());
     CELER_ENSURE(failure_action_->action_id()
                  == host_ref().scalars.failure_action());
 }

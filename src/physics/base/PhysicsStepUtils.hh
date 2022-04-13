@@ -211,7 +211,7 @@ CELER_FUNCTION ParticleTrackView::Energy
         eloss = step * calc_eloss_rate(Energy{pre_step_energy});
     }
 
-    if (eloss >= pre_step_energy * physics.linear_loss_limit())
+    if (eloss >= pre_step_energy * physics.scalars().linear_loss_limit)
     {
         // Enough energy is lost over this step that the dE/dx linear
         // approximation is probably wrong. Use the definition of the range as
@@ -242,7 +242,8 @@ CELER_FUNCTION ParticleTrackView::Energy
         eloss = pre_step_energy - value_as<Energy>(calc_energy(range - step));
     }
 
-    if (physics.add_fluctuation() && eloss > 0 && eloss < pre_step_energy)
+    if (physics.scalars().enable_fluctuation && eloss > 0
+        && eloss < pre_step_energy)
     {
         EnergyLossHelper loss_helper(physics.fluctuation(),
                                      cutoffs,

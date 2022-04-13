@@ -56,11 +56,14 @@ class ParticleParams;
  *
  * During construction it constructs models and their corresponding list of
  * \c ActionId values, as well as the tables of cross section data. Besides the
- * individual interaction kernels, the physics parameters have additional
- * action IDs:
- * - "range": step was limited by energy loss
- * - "discrete": step will interact with a discrete process (model will be
- *   sampled later as a second ActionId)
+ * individual interaction kernels, the physics parameters manage additional
+ * actions:
+ * - "pre-step": calculate physics step limits
+ * - "along-step": propagate, apply energy loss, multiple scatter
+ * - "range": limit step by energy loss
+ * - "discrete-select": sample a process for a discrete interaction, or reject
+ *   due to integral cross sectionl
+ * - "integral-rejected": do not apply a discrete interaction
  * - "failure": model failed to allocate secondaries
  */
 class PhysicsParams
@@ -77,7 +80,7 @@ class PhysicsParams
         = PhysicsParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = PhysicsParamsData<Ownership::const_reference, MemSpace::device>;
-    using RangeActionId = Range<ActionId>;
+    using ActionIdRange = Range<ActionId>;
     //!@}
 
     //! Global physics configuration options
@@ -130,7 +133,7 @@ class PhysicsParams
     inline ProcessId process_id(ModelId id) const;
 
     // Get the action IDs for all models
-    inline RangeActionId model_actions() const;
+    inline ActionIdRange model_actions() const;
 
     // Get the processes that apply to a particular particle
     SpanConstProcessId processes(ParticleId) const;
@@ -230,7 +233,7 @@ ProcessId PhysicsParams::process_id(ModelId id) const
 /*!
  * Get the action kernel IDs for all models.
  */
-auto PhysicsParams::model_actions() const -> RangeActionId
+auto PhysicsParams::model_actions() const -> ActionIdRange
 {
     auto offset = host_ref().scalars.model_to_action;
     return {ActionId{offset}, ActionId{offset + this->num_models()}};

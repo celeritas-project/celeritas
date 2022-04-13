@@ -215,9 +215,7 @@ along_step_track(celeritas::CoreTrackView const& track)
         else
         {
             // Particle slowed down to zero: force a discrete interaction
-            // TODO: this is the same as the "particle.is_stopped()" condition
-            // at the end of calc_physics_step_limit: should we eliminate there
-            // or here or neither?
+            step_limit.action = phys.scalars().discrete_action();
         }
     }
 
