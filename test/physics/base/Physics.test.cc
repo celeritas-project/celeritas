@@ -394,7 +394,7 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
         auto ppid = this->find_ppid(phys, "barks");
         ASSERT_TRUE(ppid);
         EXPECT_TRUE(phys.use_integral_xs(ppid));
-        EXPECT_SOFT_EQ(0.8, phys.energy_fraction());
+        EXPECT_SOFT_EQ(0.8, phys.scalars().energy_fraction);
         EXPECT_SOFT_EQ(0.1, phys.energy_max_xs(ppid));
         auto id = phys.value_grid(ValueGridType::macro_xs, ppid);
         ASSERT_TRUE(id);
