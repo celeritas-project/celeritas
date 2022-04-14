@@ -196,11 +196,11 @@ CELER_FUNCTION bool SimTrackView::step_limit(const StepLimit& sl)
  */
 CELER_FUNCTION void SimTrackView::status(TrackStatus status)
 {
-    // Status must cycle as inactive -> alive -> killed -> inactive
+    // Status must cycle as inactive -> alive -> killed -> {inactive / active}
     using TS = TrackStatus;
     CELER_EXPECT(status == TS::inactive ? this->status() == TS::killed
                  : status == TS::alive  ? this->status() == TS::inactive
-                 : status == TS::killed ? this->status() == TS::alive
+                 : status == TS::killed ? this->status() != TS::killed
                                         : false);
     states_.state[thread_].status = status;
 }

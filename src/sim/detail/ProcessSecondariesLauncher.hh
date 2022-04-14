@@ -62,9 +62,14 @@ template<MemSpace M>
 CELER_FUNCTION void
 ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
 {
-    // Construct the state accessors
+    SimTrackView sim(states_.sim, tid);
+    if (sim.status() == TrackStatus::inactive)
+    {
+        // Do not create secondaries from stale data on inactive tracks
+        return;
+    }
+
     GeoTrackView     geo(params_.geometry, states_.geometry, tid);
-    SimTrackView     sim(states_.sim, tid);
     PhysicsTrackView phys(params_.physics, states_.physics, {}, {}, tid);
 
     // Offset in the vector of track initializers
@@ -118,6 +123,9 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
                 geo = GeoTrackView::DetailedInitializer{geo, init.geo.dir};
                 particle    = init.particle;
                 initialized = true;
+
+                // TODO: make it easier to determine what states need to be
+                // reset: the physics MFP, for example, is OK to preserve
             }
             else
             {
@@ -138,10 +146,11 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
         }
     }
 
-    if (!initialized && sim.status() == TrackStatus::killed)
+    if (sim.status() == TrackStatus::killed)
     {
-        // Track is no longer used as part of transport
-        sim.status(TrackStatus::inactive);
+        // Track is alive if a secondary took the place of a dead track, or
+        // inactive if nothing replaced it
+        sim.status(initialized ? TrackStatus::alive : TrackStatus::inactive);
     }
 }
 
