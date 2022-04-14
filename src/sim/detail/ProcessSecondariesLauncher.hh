@@ -146,12 +146,13 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
         }
     }
 
-    if (sim.status() == TrackStatus::killed)
+    if (!initialized && sim.status() == TrackStatus::killed)
     {
-        // Track is alive if a secondary took the place of a dead track, or
-        // inactive if nothing replaced it
-        sim.status(initialized ? TrackStatus::alive : TrackStatus::inactive);
+        // Track is no longer used as part of transport
+        sim.status(TrackStatus::inactive);
     }
+    CELER_ENSURE(sim.status()
+                 == (initialized ? TrackStatus::alive : TrackStatus::inactive));
 }
 
 //---------------------------------------------------------------------------//
