@@ -8,11 +8,11 @@
 #include "field/FieldPropagator.hh"
 
 #include "base/CollectionStateStore.hh"
+#include "field/DormandPrinceStepper.hh"
 #include "field/FieldDriver.hh"
 #include "field/FieldParamsData.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/MagFieldTraits.hh"
-#include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
 #include "geometry/GeoData.hh"
 #include "geometry/GeoParams.hh"
@@ -127,7 +127,7 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
 
     // Construct FieldPropagator
     UniformMagField field({0, 0, test.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
+    using RKTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(field_params, &rk4);
@@ -186,7 +186,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
 
     // Construct FieldDriver
     UniformMagField field({0, 0, test.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
+    using RKTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(field_params, &rk4);
