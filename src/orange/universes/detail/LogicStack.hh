@@ -50,6 +50,12 @@ class LogicStack
     //! Default constructor
     CELER_FORCEINLINE_FUNCTION LogicStack() {}
 
+    //! Greatest number of boolean values allowed on the stack
+    static CELER_CONSTEXPR_FUNCTION size_type max_stack_depth()
+    {
+        return sizeof(size_type) * 8;
+    }
+
     //// ACCESSORS ////
 
     //! Number of elements on the stack
@@ -98,12 +104,6 @@ class LogicStack
     static CELER_CONSTEXPR_FUNCTION size_type shl(size_type val)
     {
         return val << size_type(1);
-    }
-
-    //! Greatest number of boolean values allowed on the stack
-    static CELER_CONSTEXPR_FUNCTION size_type max_stack_depth()
-    {
-        return sizeof(size_type) * 8;
     }
 
   private:

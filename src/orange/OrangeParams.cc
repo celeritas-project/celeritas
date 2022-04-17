@@ -24,6 +24,7 @@
 #include "orange/construct/SurfaceInserter.hh"
 #include "orange/construct/VolumeInput.hh"
 #include "orange/construct/VolumeInserter.hh"
+#include "orange/universes/detail/LogicStack.hh"
 
 #include "Data.hh"
 #include "Types.hh"
@@ -96,6 +97,15 @@ OrangeParams::Input input_from_json(std::string filename)
             insert(vol_inp.get<VolumeInput>());
         }
         uni["cell_names"].get_to(input.volume_labels);
+
+        CELER_VALIDATE(insert.max_logic_depth()
+                       < detail::LogicStack::max_stack_depth()
+                             << "input geometry has at least one volume with "
+                                "a logic depth of"
+                             << insert.max_logic_depth()
+                             << " (surfaces are nested too deeply); but the "
+                                "logic stack is limited to a depth of "
+                             << detail::LogicStack::max_stack_depth());
     }
 
     // Add connectivity
