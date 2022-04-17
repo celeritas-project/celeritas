@@ -81,8 +81,9 @@ struct VolumeRecord
     //! Flag values (bit field)
     enum Flags : logic_int
     {
-        internal_surfaces = 0x1,
-        implicit_cell     = 0x2
+        internal_surfaces = 0x1, //!< "Complex" distance-to-boundary
+        implicit_cell     = 0x2, //!< Background/exterior cell
+        simple_safety     = 0x4  //!< Fast safety calculation
     };
 };
 

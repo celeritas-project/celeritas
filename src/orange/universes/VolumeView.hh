@@ -37,13 +37,8 @@ class VolumeView
     //@{
     //! Type aliases
     using VolumeRef = VolumeData<Ownership::const_reference, MemSpace::native>;
+    using Flags     = VolumeRecord::Flags;
     //@}
-
-    //! Flags (hexidecimal non-class to indicate it's a bit field)
-    enum Flags : logic_int
-    {
-        internal_surfaces = 0x1
-    };
 
   public:
     // Construct with reference to persistent data
@@ -157,7 +152,9 @@ CELER_FUNCTION Span<const logic_int> VolumeView::logic() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get flags.
+ * Get boolean attributes of the volume.
+ *
+ * These flags are bitwise 'or'd values of VolumeRecord::Flags.
  */
 CELER_FUNCTION logic_int VolumeView::flags() const
 {
