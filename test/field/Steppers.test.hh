@@ -8,7 +8,6 @@
 #pragma once
 
 #include <vector>
-#include <thrust/device_vector.h>
 
 #include "celeritas_config.h"
 #include "base/Assert.hh"
@@ -57,33 +56,5 @@ inline StepperTestOutput dp547_test(FieldTestParams)
 }
 #endif
 
-//---------------------------------------------------------------------------//
-// HELP FUNCTIONS
-//---------------------------------------------------------------------------//
-using dvec = thrust::device_vector<celeritas::real_type>;
-
-inline StepperTestOutput
-copy_to_cpu(dvec pos_x, dvec pos_z, dvec mom_y, dvec mom_z, dvec error)
-{
-    // Copy result back to CPU
-    StepperTestOutput result;
-
-    result.pos_x.resize(pos_x.size());
-    thrust::copy(pos_x.begin(), pos_x.end(), result.pos_x.begin());
-
-    result.pos_z.resize(pos_z.size());
-    thrust::copy(pos_z.begin(), pos_z.end(), result.pos_z.begin());
-
-    result.mom_y.resize(mom_y.size());
-    thrust::copy(mom_y.begin(), mom_y.end(), result.mom_y.begin());
-
-    result.mom_z.resize(mom_z.size());
-    thrust::copy(mom_z.begin(), mom_z.end(), result.mom_z.begin());
-
-    result.error.resize(error.size());
-    thrust::copy(error.begin(), error.end(), result.error.begin());
-
-    return result;
-}
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test
