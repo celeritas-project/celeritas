@@ -70,6 +70,18 @@ struct SimpleSafetyGetter
 };
 
 //---------------------------------------------------------------------------//
+//! Return the number of intersections for a surface
+struct NumIntersectionGetter
+{
+    template<class S>
+    constexpr size_type operator()(const S&) const noexcept
+    {
+        using Intersections = typename S::Intersections;
+        return S::Intersections{}.size();
+    }
+};
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -112,11 +124,14 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
     Surfaces surfaces{surface_data_};
     auto     get_simple_safety
         = make_surface_action(surfaces, SimpleSafetyGetter{});
+    auto get_num_intersections
+        = make_surface_action(surfaces, NumIntersectionGetter{});
 
     for (SurfaceId sid : input.faces)
     {
         CELER_ASSERT(sid < surfaces.size());
         simple_safety = simple_safety && get_simple_safety(sid);
+        max_intersections += get_num_intersections(sid);
     }
 
     auto defs  = make_builder(&volume_data_->defs);
@@ -126,7 +141,7 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
     VolumeRecord output;
     output.faces = faces.insert_back(input.faces.begin(), input.faces.end());
     output.logic = logic.insert_back(input.logic.begin(), input.logic.end());
-    output.max_intersections = input.max_intersections;
+    output.max_intersections = max_intersections;
     output.flags             = input.flags;
     if (simple_safety)
     {
@@ -134,6 +149,9 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
     }
     defs.push_back(output);
 
+    // NOTE: input max intersections are checked but might be removed later
+    CELER_ENSURE(output.max_intersections == input.max_intersections
+                 || input.max_intersections == 0);
     CELER_ENSURE(defs.size() == new_id + 1);
     return VolumeId{new_id};
 }
