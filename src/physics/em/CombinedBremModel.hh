@@ -53,10 +53,10 @@ class CombinedBremModel final : public Model
     SetApplicability applicability() const final;
 
     // Apply the interaction kernel to host data
-    void interact(const HostInteractRef&) const final;
+    void execute(CoreHostRef const&) const final;
 
     // Apply the interaction kernel to device data
-    void interact(const DeviceInteractRef&) const final;
+    void execute(CoreDeviceRef const&) const final;
 
     // ID of the model
     ActionId action_id() const final;

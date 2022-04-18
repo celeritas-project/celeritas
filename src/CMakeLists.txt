@@ -127,7 +127,6 @@ list(APPEND SOURCES
   io/SeltzerBergerReader.cc
   physics/base/CutoffParams.cc
   physics/base/ImportedProcessAdapter.cc
-  physics/base/Model.cc
   physics/base/ParticleParams.cc
   physics/base/PhysicsParams.cc
   physics/base/Process.cc

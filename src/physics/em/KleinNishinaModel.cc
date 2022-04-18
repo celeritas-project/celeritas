@@ -53,12 +53,12 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void KleinNishinaModel::interact(const DeviceInteractRef& data) const
+void KleinNishinaModel::execute(CoreDeviceRef const& data) const
 {
     generated::klein_nishina_interact(interface_, data);
 }
 
-void KleinNishinaModel::interact(const HostInteractRef& data) const
+void KleinNishinaModel::execute(CoreHostRef const& data) const
 {
     generated::klein_nishina_interact(interface_, data);
 }

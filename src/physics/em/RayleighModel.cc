@@ -69,12 +69,12 @@ auto RayleighModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void RayleighModel::interact(const DeviceInteractRef& data) const
+void RayleighModel::execute(CoreDeviceRef const& data) const
 {
     generated::rayleigh_interact(this->device_ref(), data);
 }
 
-void RayleighModel::interact(const HostInteractRef& data) const
+void RayleighModel::execute(CoreHostRef const& data) const
 {
     generated::rayleigh_interact(this->host_ref(), data);
 }

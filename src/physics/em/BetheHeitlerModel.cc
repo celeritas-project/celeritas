@@ -56,12 +56,12 @@ auto BetheHeitlerModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void BetheHeitlerModel::interact(const DeviceInteractRef& data) const
+void BetheHeitlerModel::execute(CoreDeviceRef const& data) const
 {
     generated::bethe_heitler_interact(interface_, data);
 }
 
-void BetheHeitlerModel::interact(const HostInteractRef& data) const
+void BetheHeitlerModel::execute(CoreHostRef const& data) const
 {
     generated::bethe_heitler_interact(interface_, data);
 }

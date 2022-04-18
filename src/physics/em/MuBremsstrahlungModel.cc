@@ -60,12 +60,12 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void MuBremsstrahlungModel::interact(const DeviceInteractRef& data) const
+void MuBremsstrahlungModel::execute(CoreDeviceRef const& data) const
 {
     generated::mu_bremsstrahlung_interact(interface_, data);
 }
 
-void MuBremsstrahlungModel::interact(const HostInteractRef& data) const
+void MuBremsstrahlungModel::execute(CoreHostRef const& data) const
 {
     generated::mu_bremsstrahlung_interact(interface_, data);
 }

@@ -79,12 +79,12 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void RelativisticBremModel::interact(const DeviceInteractRef& data) const
+void RelativisticBremModel::execute(CoreDeviceRef const& data) const
 {
     generated::relativistic_brem_interact(this->device_ref(), data);
 }
 
-void RelativisticBremModel::interact(const HostInteractRef& data) const
+void RelativisticBremModel::execute(CoreHostRef const& data) const
 {
     generated::relativistic_brem_interact(this->host_ref(), data);
 }

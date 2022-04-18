@@ -98,12 +98,12 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void SeltzerBergerModel::interact(const DeviceInteractRef& data) const
+void SeltzerBergerModel::execute(CoreDeviceRef const& data) const
 {
     generated::seltzer_berger_interact(this->device_ref(), data);
 }
 
-void SeltzerBergerModel::interact(const HostInteractRef& data) const
+void SeltzerBergerModel::execute(CoreHostRef const& data) const
 {
     generated::seltzer_berger_interact(this->host_ref(), data);
 }

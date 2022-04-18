@@ -50,37 +50,14 @@ class Model : public ExplicitActionInterface
     //@{
     //! Type aliases
     using SetApplicability  = std::set<Applicability>;
-    using HostInteractRef   = ExplicitActionInterface::CoreHostRef;
-    using DeviceInteractRef = ExplicitActionInterface::CoreDeviceRef;
     //@}
 
   public:
-    // Virtual destructor for polymorphic deletion
-    virtual ~Model();
-
     //! Get the applicable particle type and energy ranges of the model
     virtual SetApplicability applicability() const = 0;
 
-    //! Apply the interaction kernel to host data
-    virtual void interact(const HostInteractRef&) const = 0;
-
-    //! Apply the interaction kernel to device data
-    virtual void interact(const DeviceInteractRef&) const = 0;
-
     //! TODO: reconcile 'label' and 'description', but for now return empty
     std::string description() const override { return {}; }
-
-    //!@{
-    //! DEPRECATED: adapt old Model interface to new Action interface
-    void execute(CoreHostRef const& ref) const final
-    {
-        return this->interact(ref);
-    }
-    void execute(CoreDeviceRef const& ref) const final
-    {
-        return this->interact(ref);
-    }
-    //!@}
 };
 
 //---------------------------------------------------------------------------//

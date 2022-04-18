@@ -73,13 +73,9 @@ auto UrbanMscModel::applicability() const -> SetApplicability
 /*!
  * No discrete interaction: it's integrated into along_step.
  */
-void UrbanMscModel::interact(const DeviceInteractRef&) const
-{
-}
+void UrbanMscModel::execute(CoreDeviceRef const&) const {}
 
-void UrbanMscModel::interact(const HostInteractRef&) const
-{
-}
+void UrbanMscModel::execute(CoreHostRef const&) const {}
 //!@}
 //---------------------------------------------------------------------------//
 /*!
