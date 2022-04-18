@@ -23,11 +23,11 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-MollerBhabhaModel::MollerBhabhaModel(ModelId               id,
+MollerBhabhaModel::MollerBhabhaModel(ActionId              id,
                                      const ParticleParams& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.model    = id;
+    interface_.ids.action   = id;
     interface_.ids.electron = particles.find(pdg::electron());
     interface_.ids.positron = particles.find(pdg::positron());
 
@@ -85,9 +85,9 @@ void MollerBhabhaModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId MollerBhabhaModel::model_id() const
+ActionId MollerBhabhaModel::action_id() const
 {
-    return interface_.ids.model;
+    return interface_.ids.action;
 }
 
 //---------------------------------------------------------------------------//

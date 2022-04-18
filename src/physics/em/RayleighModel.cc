@@ -28,7 +28,7 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-RayleighModel::RayleighModel(ModelId               id,
+RayleighModel::RayleighModel(ActionId              id,
                              const ParticleParams& particles,
                              const MaterialParams& materials)
 {
@@ -36,7 +36,7 @@ RayleighModel::RayleighModel(ModelId               id,
 
     HostValue host_ref;
 
-    host_ref.ids.model = id;
+    host_ref.ids.action = id;
     host_ref.ids.gamma = particles.find(pdg::gamma());
     CELER_VALIDATE(host_ref.ids.gamma,
                    << "missing gamma particles (required for " << this->label()
@@ -84,9 +84,9 @@ void RayleighModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId RayleighModel::model_id() const
+ActionId RayleighModel::action_id() const
 {
-    return this->host_ref().ids.model;
+    return this->host_ref().ids.action;
 }
 
 //---------------------------------------------------------------------------//

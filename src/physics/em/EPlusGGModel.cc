@@ -22,10 +22,10 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-EPlusGGModel::EPlusGGModel(ModelId id, const ParticleParams& particles)
+EPlusGGModel::EPlusGGModel(ActionId id, const ParticleParams& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.model    = id;
+    interface_.ids.action   = id;
     interface_.ids.positron = particles.find(pdg::positron());
     interface_.ids.gamma    = particles.find(pdg::gamma());
 
@@ -76,9 +76,9 @@ void EPlusGGModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId EPlusGGModel::model_id() const
+ActionId EPlusGGModel::action_id() const
 {
-    return interface_.ids.model;
+    return interface_.ids.action;
 }
 
 //---------------------------------------------------------------------------//

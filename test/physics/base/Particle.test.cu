@@ -22,11 +22,11 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void ptv_test_kernel(unsigned int              size,
-                                ParticleParamsRef         params,
-                                ParticleStateRef          states,
-                                const ParticleTrackState* init,
-                                double*                   result)
+__global__ void ptv_test_kernel(unsigned int                    size,
+                                ParticleParamsRef               params,
+                                ParticleStateRef                states,
+                                const ParticleTrackInitializer* init,
+                                double*                         result)
 {
     auto local_thread_id = celeritas::KernelParamCalculator::thread_id();
     if (!(local_thread_id < size))
@@ -57,7 +57,7 @@ __global__ void ptv_test_kernel(unsigned int              size,
 //! Run on device and return results
 PTVTestOutput ptv_test(PTVTestInput input)
 {
-    thrust::device_vector<ParticleTrackState> init = input.init;
+    thrust::device_vector<ParticleTrackInitializer> init = input.init;
 
     thrust::device_vector<double> result(init.size()
                                          * PTVTestOutput::props_per_thread());

@@ -9,6 +9,8 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {
@@ -20,14 +22,14 @@ namespace detail
  */
 struct MollerBhabhaIds
 {
-    ModelId    model;
+    ActionId   action;
     ParticleId electron;
     ParticleId positron;
 
     //! Whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return model && electron && positron;
+        return action && electron && positron;
     }
 };
 

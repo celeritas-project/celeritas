@@ -26,7 +26,7 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-RelativisticBremModel::RelativisticBremModel(ModelId               id,
+RelativisticBremModel::RelativisticBremModel(ActionId              id,
                                              const ParticleParams& particles,
                                              const MaterialParams& materials,
                                              bool                  enable_lpm)
@@ -35,7 +35,7 @@ RelativisticBremModel::RelativisticBremModel(ModelId               id,
 
     HostValue host_ref;
 
-    host_ref.ids.model    = id;
+    host_ref.ids.action   = id;
     host_ref.ids.electron = particles.find(pdg::electron());
     host_ref.ids.positron = particles.find(pdg::positron());
     host_ref.ids.gamma    = particles.find(pdg::gamma());
@@ -94,9 +94,9 @@ void RelativisticBremModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId RelativisticBremModel::model_id() const
+ActionId RelativisticBremModel::action_id() const
 {
-    return this->host_ref().ids.model;
+    return this->host_ref().ids.action;
 }
 
 //---------------------------------------------------------------------------//

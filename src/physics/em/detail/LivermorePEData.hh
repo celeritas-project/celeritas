@@ -12,6 +12,7 @@
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
 #include "physics/grid/XsGridData.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {
@@ -130,7 +131,7 @@ struct LivermorePEXsData
 struct LivermorePEIds
 {
     //! Model ID
-    ModelId model;
+    ActionId action;
     //! ID of an electron
     ParticleId electron;
     //! ID of a gamma
@@ -139,7 +140,7 @@ struct LivermorePEIds
     //! Whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return model && electron && gamma;
+        return action && electron && gamma;
     }
 };
 

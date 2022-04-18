@@ -107,7 +107,7 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
         SeltzerBergerReader read_element_data(data_path.c_str());
 
         // Construct SeltzerBergerModel and set host data
-        model_ = std::make_shared<CombinedBremModel>(ModelId{0},
+        model_ = std::make_shared<CombinedBremModel>(ActionId{0},
                                                      *this->particle_params(),
                                                      *this->material_params(),
                                                      read_element_data,
@@ -141,7 +141,7 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
 
     void sanity_check(const Interaction& interaction) const
     {
-        ASSERT_TRUE(interaction);
+        EXPECT_EQ(Action::scattered, interaction.action);
     }
 
   protected:
@@ -214,7 +214,7 @@ TEST_F(CombinedBremTest, basic_seltzer_berger)
     {
         Interaction result = interact(rng_engine);
         EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
+        EXPECT_EQ(Action::failed, result.action);
     }
 }
 
@@ -281,7 +281,7 @@ TEST_F(CombinedBremTest, basic_relativistic_brem)
     {
         Interaction result = interact(rng_engine);
         EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
+        EXPECT_EQ(Action::failed, result.action);
     }
 }
 

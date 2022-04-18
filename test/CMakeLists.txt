@@ -334,6 +334,9 @@ celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 # Sim
 
 celeritas_setup_tests(SERIAL PREFIX sim)
+
+celeritas_add_test(sim/ActionManager.test.cc)
+
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   celeritas_add_test(sim/TrackInit.test.cc GPU
     SOURCES sim/TrackInit.test.cu

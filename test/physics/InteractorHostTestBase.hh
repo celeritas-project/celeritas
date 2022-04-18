@@ -19,13 +19,14 @@
 #include "base/Types.hh"
 #include "physics/base/CutoffData.hh"
 #include "physics/base/CutoffParams.hh"
-#include "physics/base/ModelIdGenerator.hh"
+#include "physics/base/Interaction.hh"
 #include "physics/base/ParticleData.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/Secondary.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/MaterialData.hh"
 #include "physics/material/MaterialParams.hh"
+#include "sim/Types.hh"
 
 // Test helpers
 #include "random/DiagnosticRngEngine.hh"
@@ -36,7 +37,6 @@ namespace celeritas
 {
 class ParticleTrackView;
 class MaterialTrackView;
-struct Interaction;
 } // namespace celeritas
 
 namespace celeritas_test
@@ -63,12 +63,12 @@ class InteractorHostTestBase : public celeritas::Test
     using MaterialId        = celeritas::MaterialId;
     using MaterialParams    = celeritas::MaterialParams;
     using MaterialTrackView = celeritas::MaterialTrackView;
+    using ActionId          = celeritas::ActionId;
 
     using CutoffParams = celeritas::CutoffParams;
 
     using Interaction          = celeritas::Interaction;
-    using ModelIdGenerator     = celeritas::ModelIdGenerator;
-    using ModelId              = celeritas::ModelId;
+    using Action               = celeritas::Interaction::Action;
     using ParticleId           = celeritas::ParticleId;
     using ParticleParams       = celeritas::ParticleParams;
     using ParticleTrackView    = celeritas::ParticleTrackView;

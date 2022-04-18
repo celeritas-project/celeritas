@@ -83,12 +83,9 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
 
     void sanity_check(const Interaction& interaction) const
     {
-        ASSERT_TRUE(interaction);
-
         // Check change to parent (gamma) track
         EXPECT_EQ(0, interaction.energy.value());
-        EXPECT_SOFT_EQ(0, celeritas::norm(interaction.direction));
-        EXPECT_EQ(celeritas::Action::absorbed, interaction.action);
+        EXPECT_EQ(Action::absorbed, interaction.action);
 
         // Check secondaries
         ASSERT_EQ(2, interaction.secondaries.size());
@@ -110,6 +107,8 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_SOFT_EQ(1.0, celeritas::norm(positron.direction));
 
         // Check conservation between primary and secondaries
+        // TODO: is momentum known *not* to be conserved?
+        // this->check_conservation(interaction);
         this->check_energy_conservation(interaction);
     }
 
@@ -181,7 +180,7 @@ TEST_F(BetheHeitlerInteractorTest, basic)
     {
         Interaction result = interact(rng_engine);
         EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
+        EXPECT_EQ(Action::failed, result.action);
     }
 }
 

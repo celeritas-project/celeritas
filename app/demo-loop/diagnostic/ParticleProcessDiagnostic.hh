@@ -14,6 +14,7 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/base/PhysicsTrackView.hh"
+#include "sim/SimTrackView.hh"
 
 #include "Diagnostic.hh"
 
@@ -233,14 +234,17 @@ CELER_FUNCTION void ParticleProcessLauncher<M>::operator()(ThreadId tid) const
 {
     using BinId = celeritas::ItemId<size_type>;
 
+    celeritas::SimTrackView sim(states_.sim, tid);
+
     celeritas::ParticleTrackView particle(
         params_.particles, states_.particles, tid);
     celeritas::PhysicsTrackView physics(
         params_.physics, states_.physics, particle.particle_id(), {}, tid);
 
-    if (physics.model_id())
+    // Convert step action to a physics model ID
+    if (auto model_id = physics.action_to_model(sim.step_limit().action))
     {
-        size_type index = physics.model_id().get() * physics.num_particles()
+        size_type index = model_id.get() * physics.num_particles()
                           + particle.particle_id().get();
         CELER_ASSERT(index < counts_.size());
         celeritas::atomic_add(&counts_[BinId(index)], size_type{1});

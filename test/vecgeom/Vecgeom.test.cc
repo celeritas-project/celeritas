@@ -9,6 +9,7 @@
 
 #include "base/ArrayIO.hh"
 #include "base/CollectionStateStore.hh"
+#include "base/NumericLimits.hh"
 #include "base/Repr.hh"
 #include "comm/Device.hh"
 #include "geometry/GeoTestBase.hh"
@@ -171,13 +172,57 @@ TEST_F(FourLevelsTest, detailed_track)
     geo.cross_boundary();
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
 
-    // Find the next boundary up to infinity
+    // Find the next boundary and make sure that nearer distances aren't
+    // accepted
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(1.0, next.distance);
     EXPECT_TRUE(next.boundary);
     next = geo.find_next_step(0.5);
     EXPECT_SOFT_EQ(0.5, next.distance);
     EXPECT_FALSE(next.boundary);
+
+    {
+        SCOPED_TRACE("outside in");
+        geo = GeoTrackInitializer{{-25, 6.5, 6.5}, {1, 0, 0}};
+        EXPECT_TRUE(geo.is_outside());
+
+        next = geo.find_next_step(0.5);
+        EXPECT_SOFT_EQ(0.5, next.distance);
+        EXPECT_FALSE(next.boundary);
+
+        next = geo.find_next_step(2);
+        EXPECT_SOFT_EQ(1.0, next.distance);
+        EXPECT_TRUE(next.boundary);
+
+        geo.move_to_boundary();
+        EXPECT_TRUE(geo.is_outside());
+        geo.cross_boundary();
+        EXPECT_FALSE(geo.is_outside());
+        EXPECT_EQ(VolumeId{3}, geo.volume_id());
+    }
+    {
+        SCOPED_TRACE("inside out");
+        geo = GeoTrackInitializer{{-23.5, 6.5, 6.5}, {-1, 0, 0}};
+        EXPECT_FALSE(geo.is_outside());
+        EXPECT_EQ(VolumeId{3}, geo.volume_id());
+
+        next = geo.find_next_step(2);
+        EXPECT_SOFT_EQ(0.5, next.distance);
+        EXPECT_TRUE(next.boundary);
+
+        geo.move_to_boundary();
+        EXPECT_FALSE(geo.is_outside());
+        geo.cross_boundary();
+        EXPECT_TRUE(geo.is_outside());
+
+        next = geo.find_next_step(2);
+        EXPECT_SOFT_EQ(2, next.distance);
+        EXPECT_FALSE(next.boundary);
+
+        next = geo.find_next_step();
+        EXPECT_GT(next.distance, 1e10);
+        EXPECT_FALSE(next.boundary);
+    }
 }
 
 //---------------------------------------------------------------------------//

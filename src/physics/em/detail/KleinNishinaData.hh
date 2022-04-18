@@ -9,6 +9,8 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {
@@ -20,14 +22,14 @@ namespace detail
  */
 struct KleinNishinaIds
 {
-    ModelId    model;
+    ActionId   action;
     ParticleId electron;
     ParticleId gamma;
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return model && electron && gamma;
+        return action && electron && gamma;
     }
 };
 

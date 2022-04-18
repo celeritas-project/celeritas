@@ -33,6 +33,7 @@ class ImportedProcessesTest : public celeritas::Test
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
     using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
+    using ActionIdIter     = Process::ActionIdIter;
 
     void SetUp() override
     {
@@ -65,7 +66,7 @@ TEST_F(ImportedProcessesTest, compton)
     auto process = std::make_shared<ComptonProcess>(particles_, processes_);
 
     // Test model
-    auto models = process->build_models(ModelIdGenerator{});
+    auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
     EXPECT_EQ("Klein-Nishina", models.front()->label());
@@ -90,7 +91,7 @@ TEST_F(ImportedProcessesTest, e_ionization)
     auto process = std::make_shared<EIonizationProcess>(particles_, processes_);
 
     // Test model
-    auto models = process->build_models(ModelIdGenerator{});
+    auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
     EXPECT_EQ("Moller/Bhabha scattering", models.front()->label());
@@ -117,7 +118,7 @@ TEST_F(ImportedProcessesTest, eplus_annihilation)
     auto process = std::make_shared<EPlusAnnihilationProcess>(particles_);
 
     // Test model
-    auto models = process->build_models(ModelIdGenerator{});
+    auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
     EXPECT_EQ("Positron annihilation (2g)", models.front()->label());
@@ -148,7 +149,7 @@ TEST_F(ImportedProcessesTest, gamma_conversion)
         particles_, processes_, options);
 
     // Test model
-    auto models = process->build_models(ModelIdGenerator{});
+    auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
     EXPECT_EQ("Bethe-Heitler", models.front()->label());
@@ -174,7 +175,7 @@ TEST_F(ImportedProcessesTest, msc)
         particles_, materials_, processes_);
 
     // Test model
-    auto models = process->build_models(ModelIdGenerator{});
+    auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
     EXPECT_EQ("UrbanMsc", models.front()->label());
@@ -206,7 +207,7 @@ TEST_F(ImportedProcessesTest, photoelectric)
     }
 
     // Test model
-    auto models = process->build_models(ModelIdGenerator{});
+    auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
     EXPECT_EQ("Livermore photoelectric", models.front()->label());
@@ -243,7 +244,7 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
     }
 
     // Test model
-    auto models = process->build_models(ModelIdGenerator{});
+    auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(2, models.size());
     ASSERT_TRUE(models.front());
     EXPECT_EQ("Seltzer-Berger bremsstrahlung", models.front()->label());
@@ -283,7 +284,7 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
     }
 
     // Test model
-    auto models = process->build_models(ModelIdGenerator{});
+    auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
     EXPECT_EQ("Combined Bremsstrahlung", models.front()->label());
@@ -313,7 +314,7 @@ TEST_F(ImportedProcessesTest, rayleigh)
         particles_, materials_, processes_);
 
     // Test model
-    auto models = process->build_models(ModelIdGenerator{});
+    auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
     EXPECT_EQ("Rayleigh Scattering", models.front()->label());
