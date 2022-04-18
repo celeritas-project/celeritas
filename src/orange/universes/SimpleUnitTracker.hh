@@ -329,14 +329,13 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
         // no "nearby" distances depending on F)
         return {};
     }
-    else if (vol.flags() == 0)
+    else if (is_simple)
     {
         // No special conditions: closest distance is next boundary
         return this->simple_intersect(state, vol, num_isect);
     }
     else
     {
-        CELER_ASSERT(!is_simple);
         // Internal surfaces: find closest surface that puts us outside
         return this->complex_intersect(state, vol, num_isect);
     }

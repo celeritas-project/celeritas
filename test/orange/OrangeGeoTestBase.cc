@@ -89,7 +89,8 @@ void OrangeGeoTestBase::build_geometry(OneVolInput inp)
     Params::Input input;
     {
         // Insert volumes
-        VolumeInserter insert(&input.volumes);
+        auto           surface_ref = make_const_ref(input.surfaces);
+        VolumeInserter insert(surface_ref, &input.volumes);
         VolumeInput    vi;
         vi.logic = {logic::ltrue};
         vi.flags = (inp.complex_tracking ? VolumeInput::Flags::internal_surfaces
@@ -122,7 +123,8 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
     }
     {
         // Insert volumes
-        VolumeInserter insert(&input.volumes);
+        auto           surface_ref = make_const_ref(input.surfaces);
+        VolumeInserter insert(surface_ref, &input.volumes);
         {
             VolumeInput vi;
             vi.faces             = {SurfaceId{0}};

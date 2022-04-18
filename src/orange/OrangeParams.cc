@@ -91,21 +91,22 @@ OrangeParams::Input input_from_json(std::string filename)
 
     {
         // Insert volumes
-        VolumeInserter insert(&input.volumes);
+        auto           surface_ref = make_const_ref(input.surfaces);
+        VolumeInserter insert(surface_ref, &input.volumes);
         for (const auto& vol_inp : uni["cells"])
         {
             insert(vol_inp.get<VolumeInput>());
         }
         uni["cell_names"].get_to(input.volume_labels);
 
-        CELER_VALIDATE(insert.max_logic_depth()
-                       < detail::LogicStack::max_stack_depth()
-                             << "input geometry has at least one volume with "
-                                "a logic depth of"
-                             << insert.max_logic_depth()
-                             << " (surfaces are nested too deeply); but the "
-                                "logic stack is limited to a depth of "
-                             << detail::LogicStack::max_stack_depth());
+        CELER_VALIDATE(static_cast<size_type>(insert.max_logic_depth())
+                           < detail::LogicStack::max_stack_depth(),
+                       << "input geometry has at least one volume with a "
+                          "logic depth of"
+                       << insert.max_logic_depth()
+                       << " (surfaces are nested too deeply); but the logic "
+                          "stack is limited to a depth of "
+                       << detail::LogicStack::max_stack_depth());
     }
 
     // Add connectivity

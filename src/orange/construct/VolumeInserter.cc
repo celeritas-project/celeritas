@@ -18,6 +18,7 @@
 #include "orange/Data.hh"
 #include "orange/Types.hh"
 #include "orange/construct/VolumeInput.hh"
+#include "orange/surfaces/SurfaceAction.hh"
 #include "orange/surfaces/Surfaces.hh"
 
 namespace celeritas
@@ -77,7 +78,7 @@ struct NumIntersectionGetter
     constexpr size_type operator()(const S&) const noexcept
     {
         using Intersections = typename S::Intersections;
-        return S::Intersections{}.size();
+        return Intersections{}.size();
     }
 };
 
@@ -91,7 +92,6 @@ struct NumIntersectionGetter
 VolumeInserter::VolumeInserter(const SurfaceData& surfaces, Data* volumes)
     : surface_data_{surfaces}
     , volume_data_(volumes)
-    , connectivity_{surfaces.size()}
 {
     CELER_EXPECT(volume_data_ && volume_data_->defs.empty());
 }
@@ -106,7 +106,8 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
 {
     CELER_EXPECT(input);
     CELER_EXPECT(std::is_sorted(input.faces.begin(), input.faces.end()));
-    CELER_EXPECT(input.faces.empty() || input.faces.back() < surfaces_.size());
+    CELER_EXPECT(input.faces.empty()
+                 || input.faces.back() < surface_data_.size());
 
     VolumeId::size_type new_id = volume_data_->defs.size();
 
@@ -129,7 +130,7 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
 
     for (SurfaceId sid : input.faces)
     {
-        CELER_ASSERT(sid < surfaces.size());
+        CELER_ASSERT(sid < surfaces.num_surfaces());
         simple_safety = simple_safety && get_simple_safety(sid);
         max_intersections += get_num_intersections(sid);
     }
