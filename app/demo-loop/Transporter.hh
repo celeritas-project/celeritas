@@ -17,6 +17,7 @@
 #include "base/Range.hh"
 #include "base/Types.hh"
 #include "geometry/GeoParams.hh"
+#include "random/RngParams.hh"
 #include "sim/CoreTrackData.hh"
 #include "sim/Types.hh"
 
@@ -30,7 +31,6 @@ class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
 class PhysicsParams;
-class RngParams;
 class TrackInitParams;
 
 //---------------------------------------------------------------------------//

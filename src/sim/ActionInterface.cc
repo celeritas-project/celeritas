@@ -21,7 +21,8 @@ namespace celeritas
  */
 ConcreteAction::ConcreteAction(ActionId id, std::string label)
     : ConcreteAction{id, std::move(label), {}}
-{}
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!

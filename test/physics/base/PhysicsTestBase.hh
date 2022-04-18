@@ -19,7 +19,7 @@ class MaterialParams;
 class ParticleParams;
 class PhysicsParams;
 class ActionManager;
-}
+} // namespace celeritas
 
 namespace celeritas_test
 {
@@ -44,15 +44,15 @@ class PhysicsTestBase : public celeritas::Test
     //!@{
     //! Type aliases
 
-    using SPMaterials = std::shared_ptr<celeritas::MaterialParams>;
-    using SPParticles = std::shared_ptr<celeritas::ParticleParams>;
-    using SPPhysics   = std::shared_ptr<celeritas::PhysicsParams>;
+    using SPMaterials      = std::shared_ptr<celeritas::MaterialParams>;
+    using SPParticles      = std::shared_ptr<celeritas::ParticleParams>;
+    using SPPhysics        = std::shared_ptr<celeritas::PhysicsParams>;
     using SPActionManager  = std::shared_ptr<celeritas::ActionManager>;
     using PhysicsOptions   = celeritas::PhysicsParams::Options;
     using Applicability    = celeritas::Applicability;
     using ActionId         = celeritas::ActionId;
     using ModelCallback    = std::function<void(ActionId)>;
-    using ModelId         = celeritas::ModelId;
+    using ModelId          = celeritas::ModelId;
     //!@}
 
   protected:
@@ -63,9 +63,9 @@ class PhysicsTestBase : public celeritas::Test
     virtual PhysicsOptions build_physics_options() const;
     virtual SPPhysics      build_physics() const;
 
-    const SPMaterials& materials() const { return materials_; }
-    const SPParticles& particles() const { return particles_; }
-    const SPPhysics&   physics() const { return physics_; }
+    const SPMaterials&     materials() const { return materials_; }
+    const SPParticles&     particles() const { return particles_; }
+    const SPPhysics&       physics() const { return physics_; }
     const SPActionManager& action_manager() const { return actions_; }
 
   public:
@@ -86,9 +86,9 @@ class PhysicsTestBase : public celeritas::Test
     //// DATA ////
 
     SPActionManager actions_;
-    SPMaterials materials_;
-    SPParticles particles_;
-    SPPhysics   physics_;
+    SPMaterials     materials_;
+    SPParticles     particles_;
+    SPPhysics       physics_;
 
     mutable std::vector<ModelId> interactions_;
     ActionId::size_type          model_to_action_{0};

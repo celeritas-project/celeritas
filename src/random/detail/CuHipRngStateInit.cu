@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngStateInit.cu
+//! \file CuHipRngStateInit.cu
 //---------------------------------------------------------------------------//
-#include "RngStateInit.hh"
+#include "CuHipRngStateInit.hh"
 
 #include "base/device_runtime_api.h"
 #include "base/Assert.hh"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
-#include "random/RngEngine.hh"
+#include "random/CuHipRngEngine.hh"
 
 namespace celeritas
 {
@@ -26,13 +26,13 @@ namespace
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
 __global__ void rng_state_init_kernel(
-    RngStateData<Ownership::reference, MemSpace::device> const      state,
-    RngInitData<Ownership::const_reference, MemSpace::device> const init)
+    CuHipRngStateData<Ownership::reference, MemSpace::device> const      state,
+    CuHipRngInitData<Ownership::const_reference, MemSpace::device> const init)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < state.size())
     {
-        RngEngine rng(state, tid);
+        CuHipRngEngine rng(state, tid);
         rng = init.seeds[tid];
     }
 }
@@ -47,8 +47,8 @@ __global__ void rng_state_init_kernel(
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
 void rng_state_init(
-    const RngStateData<Ownership::reference, MemSpace::device>&      rng,
-    const RngInitData<Ownership::const_reference, MemSpace::device>& seeds)
+    const CuHipRngStateData<Ownership::reference, MemSpace::device>&      rng,
+    const CuHipRngInitData<Ownership::const_reference, MemSpace::device>& seeds)
 {
     CELER_EXPECT(rng.size() == seeds.size());
     CELER_LAUNCH_KERNEL(rng_state_init,

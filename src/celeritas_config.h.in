@@ -20,4 +20,6 @@
 #cmakedefine01 CELERITAS_DEBUG
 #cmakedefine01 CELERITAS_LAUNCH_BOUNDS
 
+@CELERITAS_RNG_MACROS@
+
 #endif /* celeritas_config_h */

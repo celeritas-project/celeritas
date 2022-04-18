@@ -109,8 +109,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     ActionId discrete_action;
     {
         const auto& scalars = this->physics()->host_ref().scalars;
-        range_action = scalars.range_action();
-        discrete_action = scalars.discrete_action();
+        range_action        = scalars.range_action();
+        discrete_action     = scalars.discrete_action();
     }
 
     // Test a variety of energies and multiple material IDs
@@ -170,7 +170,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
                                                  &particle,
                                                  "anti-celeriton",
                                                  MevEnergy{10});
-        StepLimit step
+        StepLimit        step
             = celeritas::calc_physics_step_limit(material, particle, phys);
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(0.014285714285714284, step.step);

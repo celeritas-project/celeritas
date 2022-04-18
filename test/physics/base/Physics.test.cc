@@ -334,7 +334,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
 TEST_F(PhysicsTrackViewHostTest, calc_range)
 {
     // Default range and scaling
-    EXPECT_SOFT_EQ(0.1 * units::centimeter, params_ref.scalars.scaling_min_range);
+    EXPECT_SOFT_EQ(0.1 * units::centimeter,
+                   params_ref.scalars.scaling_min_range);
     EXPECT_SOFT_EQ(0.2, params_ref.scalars.scaling_fraction);
     std::vector<real_type> range;
     std::vector<real_type> step;
@@ -654,7 +655,6 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
 
     // Check cross section
     MaterialView material_view = this->materials()->get(MaterialId{0});
-    EXPECT_SOFT_EQ(
-        5.1172452607412999e-05,
-        phys.calc_xs_otf(ModelId{0}, material_view, MevEnergy{0.1}));
+    EXPECT_SOFT_EQ(5.1172452607412999e-05,
+                   phys.calc_xs_otf(ModelId{0}, material_view, MevEnergy{0.1}));
 }

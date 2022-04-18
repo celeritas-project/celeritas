@@ -136,8 +136,8 @@ along_step_track(celeritas::CoreTrackView const& track)
     }
 
     // Calculate energy loss over the step length
-    auto mat     = track.make_material_view();
-    auto rng     = track.make_rng_engine();
+    auto mat = track.make_material_view();
+    auto rng = track.make_rng_engine();
 
     // Sample the multiple scattering
     if (use_msc)
@@ -154,7 +154,7 @@ along_step_track(celeritas::CoreTrackView const& track)
                                                        phys,
                                                        mat.make_material_view(),
                                                        msc_step_result);
-        auto msc_result = msc_scatter(rng);
+        auto                               msc_result = msc_scatter(rng);
 
         // Update full path length traveled along the step based on MSC to
         // correctly calculate energy loss, step time, etc.

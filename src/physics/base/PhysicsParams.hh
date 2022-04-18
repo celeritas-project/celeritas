@@ -228,7 +228,6 @@ ProcessId PhysicsParams::process_id(ModelId id) const
     return models_[id.get()].second;
 }
 
-
 //---------------------------------------------------------------------------//
 /*!
  * Get the action kernel IDs for all models.

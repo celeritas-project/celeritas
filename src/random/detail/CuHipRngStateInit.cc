@@ -3,38 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file mockrand.cc
+//! \file CuHipRngStateInit.cc
 //---------------------------------------------------------------------------//
-#include "mockrand.hh"
+#include "random/detail/CuHipRngStateInit.hh"
 
-#include "base/Assert.hh"
+#include "base/Span.hh"
+#include "random/CuHipRngData.hh"
+#include "random/CuHipRngEngine.hh"
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-void mockrand_init(unsigned long long,
-                   unsigned long long,
-                   unsigned long long,
-                   MockRandState*)
+/*!
+ * Initialize the RNG states from seeds randomly generated on host.
+ */
+void rng_state_init(
+    const CuHipRngStateData<Ownership::reference, MemSpace::host>&      rng,
+    const CuHipRngInitData<Ownership::const_reference, MemSpace::host>& seeds)
 {
-    CELER_NOT_CONFIGURED("CUDA");
-}
-
-unsigned int mockrand(MockRandState*)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
-
-float mockrand_uniform(MockRandState*)
-{
-    CELER_NOT_CONFIGURED("CUDA");
-}
-
-double mockrand_uniform_double(MockRandState*)
-{
-    CELER_NOT_CONFIGURED("CUDA");
+    for (auto tid : range(ThreadId{seeds.size()}))
+    {
+        CuHipRngEngine engine(rng, tid);
+        engine = seeds.seeds[tid];
+    }
 }
 
 //---------------------------------------------------------------------------//

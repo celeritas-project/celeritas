@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "PhysicsTestBase.hh"
 
-#include "sim/ActionManager.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/material/MaterialParams.hh"
+#include "sim/ActionManager.hh"
 
 using namespace celeritas;
 
@@ -180,10 +180,8 @@ auto PhysicsTestBase::make_applicability(const char* name,
     return result;
 }
 
-
 //---------------------------------------------------------------------------//
-auto PhysicsTestBase::make_model_callback() const
-    -> ModelCallback
+auto PhysicsTestBase::make_model_callback() const -> ModelCallback
 {
     return [this](ActionId id) {
         CELER_ASSERT(id);

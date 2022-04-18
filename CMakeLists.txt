@@ -92,11 +92,32 @@ if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   else()
     set(_default_build_type "Release")
   endif()
-  set(CMAKE_BUILD_TYPE "${_default_build_type}" CACHE STRING
-    "Build type [None Debug Release RelWithDebInfo MinSizeRel]"
-    FORCE)
+  set(CMAKE_BUILD_TYPE "${_default_build_type}" CACHE STRING "Build type" FORCE)
   message(STATUS "Set default CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
   unset(_default_build_type)
+endif()
+
+# RNG selection
+set(CELERITAS_RNG_OPTIONS)
+if(CELERITAS_USE_CUDA)
+  list(APPEND CELERITAS_RNG_OPTIONS CURAND)
+elseif(CELERITAS_USE_HIP)
+  list(APPEND CELERITAS_RNG_OPTIONS HIPRAND)
+elseif(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
+  # TODO: allow wrapper to standard library RNG when not building for device?
+  # TODO: maybe even add wrapper to Geant4 RNG??
+endif()
+list(APPEND CELERITAS_RNG_OPTIONS XORWOW)
+list(GET CELERITAS_RNG_OPTIONS 0 _DEFAULT_RNG)
+set(CELERITAS_RNG "${_DEFAULT_RNG}" CACHE STRING
+  "Celeritas runtime random number generator")
+set_property(CACHE CELERITAS_RNG PROPERTY STRINGS "${CELERITAS_RNG_OPTIONS}")
+list(FIND CELERITAS_RNG_OPTIONS "${CELERITAS_RNG}" _rng_index)
+if(_rng_index EQUAL -1)
+  message(SEND_ERROR "Invalid value CELERITAS_RNG=${CELERITAS_RNG}: must be "
+    "${CELERITAS_RNG_OPTIONS}; overriding for next configure")
+  set(CELERITAS_RNG "${_DEFAULT_RNG}" CACHE STRING
+    "Celeritas runtime random number generator" FORCE)
 endif()
 
 cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS

@@ -35,7 +35,6 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
         alloc.clear();
     }
 
-
     auto sim = track.make_sim_view();
     if (sim.status() == TrackStatus::inactive)
     {

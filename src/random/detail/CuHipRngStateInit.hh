@@ -3,27 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngStateInit.hh
+//! \file CuHipRngStateInit.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
 #include "base/Collection.hh"
+
+#include "../CuHipRngData.hh"
 
 namespace celeritas
 {
-// Forward declarations to avoid circular header dependency
-template<MemSpace M>
-struct RngInitializer;
-template<Ownership W, MemSpace M>
-struct RngStateData;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
 template<Ownership W, MemSpace M>
-struct RngInitData
+struct CuHipRngInitData
 {
-    StateCollection<RngInitializer<M>, W, M> seeds;
+    StateCollection<CuHipRngInitializer, W, M> seeds;
 
     //// METHODS ////
 
@@ -35,11 +32,8 @@ struct RngInitData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    RngInitData& operator=(const RngInitData<W2, M2>& other)
+    CuHipRngInitData& operator=(const CuHipRngInitData<W2, M2>& other)
     {
-        static_assert(M == M2,
-                      "seeds state cannot be transferred between host and "
-                      "device because they use separate seeds types");
         CELER_EXPECT(other);
         seeds = other.seeds;
         return *this;
@@ -49,12 +43,25 @@ struct RngInitData
 //---------------------------------------------------------------------------//
 // Initialize the RNG state on host/device
 void rng_state_init(
-    const RngStateData<Ownership::reference, MemSpace::device>&      rng,
-    const RngInitData<Ownership::const_reference, MemSpace::device>& seeds);
+    const CuHipRngStateData<Ownership::reference, MemSpace::device>&      rng,
+    const CuHipRngInitData<Ownership::const_reference, MemSpace::device>& seeds);
 
 void rng_state_init(
-    const RngStateData<Ownership::reference, MemSpace::host>&      rng,
-    const RngInitData<Ownership::const_reference, MemSpace::host>& seeds);
+    const CuHipRngStateData<Ownership::reference, MemSpace::host>&      rng,
+    const CuHipRngInitData<Ownership::const_reference, MemSpace::host>& seeds);
+
+#if !CELER_USE_DEVICE
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the RNG states on device from seeds randomly generated on host.
+ */
+inline void rng_state_init(
+    const CuHipRngStateData<Ownership::reference, MemSpace::device>&,
+    const CuHipRngInitData<Ownership::const_reference, MemSpace::device>&)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace detail

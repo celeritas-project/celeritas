@@ -10,6 +10,7 @@
 #include <csignal>
 #include <memory>
 
+#include "base/device_runtime_api.h"
 #include "base/Assert.hh"
 #include "base/Stopwatch.hh"
 #include "base/VectorUtils.hh"
@@ -75,7 +76,7 @@ build_params_refs(const TransporterInput& p, ActionId boundary_action)
 {
     CELER_EXPECT(boundary_action);
     CoreParamsData<Ownership::const_reference, M> ref;
-    ref.scalars.boundary_action = boundary_action;
+    ref.scalars.boundary_action        = boundary_action;
     ref.scalars.secondary_stack_factor = p.secondary_stack_factor;
     ref.geometry                       = get_ref<M>(*p.geometry);
     ref.geo_mats                       = get_ref<M>(*p.geo_mats);
@@ -96,7 +97,7 @@ build_params_refs(const TransporterInput& p, ActionId boundary_action)
 struct ParamsShim
 {
     const TransporterInput& p;
-    ActionId boundary_action;
+    ActionId                boundary_action;
 
     CoreParamsData<Ownership::const_reference, MemSpace::host> host_ref() const
     {
@@ -184,9 +185,10 @@ Transporter<M>::Transporter(TransporterInput inp) : input_(std::move(inp))
 
     // TODO: add physics params accessors instead of looking these up as
     // strings
-    pre_step_action_ = input_.actions->find_action("pre-step");
-    along_step_action_      = input_.actions->find_action("along-step");
-    discrete_select_action_ = input_.actions->find_action("physics-discrete-select");
+    pre_step_action_   = input_.actions->find_action("pre-step");
+    along_step_action_ = input_.actions->find_action("along-step");
+    discrete_select_action_
+        = input_.actions->find_action("physics-discrete-select");
     CELER_ASSERT(pre_step_action_ && along_step_action_
                  && discrete_select_action_);
 

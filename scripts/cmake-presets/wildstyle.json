@@ -57,7 +57,8 @@
       "displayName": "Everything in release mode",
       "inherits": [".ndebug", "vecgeom"],
       "cacheVariables": {
-        "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_RNG": "XORWOW"
       }
     },
     {
