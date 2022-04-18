@@ -151,8 +151,7 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
         // Track is no longer used as part of transport
         sim.status(TrackStatus::inactive);
     }
-    CELER_ENSURE(sim.status()
-                 == (initialized ? TrackStatus::alive : TrackStatus::inactive));
+    CELER_ENSURE(sim.status() != TrackStatus::killed);
 }
 
 //---------------------------------------------------------------------------//
