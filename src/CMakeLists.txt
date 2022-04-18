@@ -257,12 +257,14 @@ celeritas_target_include_directories(celeritas
 )
 
 if(CELERITAS_USE_HIP)
-  # TODO: host code includes RNG; super hacky workaround
+  # This is a hacky workaround for not having the equivalent of CUDAToolkit: it
+  # works on Crusher as of ROCm 5.1.0
+  set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
   target_include_directories(celeritas
     SYSTEM PUBLIC
-      "$ENV{ROCM_PATH}/hiprand/include"
-      "$ENV{ROCM_PATH}/rocrand/include"
-      "$ENV{ROCM_PATH}/hip/include"
+      "${ROCM_PATH}/hiprand/include"
+      "${ROCM_PATH}/rocrand/include"
+      "${ROCM_PATH}/hip/include"
   )
 endif()
 
@@ -280,7 +282,6 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
   COMPONENT development
   FILES_MATCHING PATTERN "*.hh"
-  # TODO: ignore .cuda.hh when cuda disabled; etc
 )
 
 #----------------------------------------------------------------------------#

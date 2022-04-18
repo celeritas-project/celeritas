@@ -28,6 +28,10 @@ struct ImportData;
 //---------------------------------------------------------------------------//
 /*!
  * Data management for material, element, and nuclide properties.
+ *
+ * \todo Currently, different materials sharing the same name will be
+ * "deduplicated" by adding a suffix. Instead, we should allow a "multimap" so
+ * that multiple materials can safely share a name.
  */
 class MaterialParams
 {
@@ -89,7 +93,6 @@ class MaterialParams
     inline const std::string& id_to_label(MaterialId id) const;
 
     // Find a material from a name
-    // TODO: Map different MaterialDefIds with same material name
     inline MaterialId find(const std::string& name) const;
 
     // Access material definitions on host

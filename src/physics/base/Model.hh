@@ -55,9 +55,6 @@ class Model : public ExplicitActionInterface
   public:
     //! Get the applicable particle type and energy ranges of the model
     virtual SetApplicability applicability() const = 0;
-
-    //! TODO: reconcile 'label' and 'description', but for now return empty
-    std::string description() const override { return {}; }
 };
 
 //---------------------------------------------------------------------------//
