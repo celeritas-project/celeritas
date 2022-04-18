@@ -46,7 +46,7 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId              id,
     CELER_VALIDATE(host_data.ids,
                    << "missing electron, positron, and/or gamma particles "
                       "(required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
 
     // Save particle properties
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();

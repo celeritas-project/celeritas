@@ -29,7 +29,7 @@ MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId              id,
     CELER_VALIDATE(interface_.ids.gamma && interface_.ids.mu_minus
                        && interface_.ids.mu_plus,
                    << "missing muon and/or gamma particles (required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
 
     interface_.electron_mass
         = particles.get(particles.find(pdg::electron())).mass();

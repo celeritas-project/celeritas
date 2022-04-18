@@ -31,7 +31,7 @@ BetheHeitlerModel::BetheHeitlerModel(ActionId              id,
     CELER_VALIDATE(interface_.ids,
                    << "missing electron, positron and/or gamma particles "
                       "(required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
     interface_.electron_mass
         = particles.get(interface_.ids.electron).mass().value();
     CELER_ENSURE(interface_);

@@ -28,7 +28,7 @@ KleinNishinaModel::KleinNishinaModel(ActionId              id,
     CELER_VALIDATE(interface_.ids.electron && interface_.ids.gamma,
                    << "missing electron, positron and/or gamma particles "
                       "(required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
     interface_.inv_electron_mass
         = 1 / particles.get(interface_.ids.electron).mass().value();
     CELER_ENSURE(interface_);

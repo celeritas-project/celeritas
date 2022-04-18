@@ -51,11 +51,28 @@ TEST_F(PhysicsParamsTest, accessors)
 
     // Test model names after construction
     std::vector<std::string> model_names;
+    std::vector<std::string> model_desc;
     for (auto model_id : range(ModelId{p.num_models()}))
     {
-        model_names.push_back(p.model(model_id).label());
+        const auto& m = p.model(model_id);
+        model_names.push_back(m.label());
+        model_desc.push_back(m.description());
     }
-    const std::string expected_model_names[]
+
+    static const std::string expected_model_names[] = {"mock-model-5",
+                                                       "mock-model-6",
+                                                       "mock-model-7",
+                                                       "mock-model-8",
+                                                       "mock-model-9",
+                                                       "mock-model-10",
+                                                       "mock-model-11",
+                                                       "mock-model-12",
+                                                       "mock-model-13",
+                                                       "mock-model-14",
+                                                       "mock-model-15"};
+    EXPECT_VEC_EQ(expected_model_names, model_names);
+
+    static const std::string expected_model_desc[]
         = {"MockModel(5, p=0, emin=1e-06, emax=100)",
            "MockModel(6, p=1, emin=1, emax=100)",
            "MockModel(7, p=0, emin=1e-06, emax=100)",
@@ -67,7 +84,7 @@ TEST_F(PhysicsParamsTest, accessors)
            "MockModel(13, p=1, emin=0.001, emax=10)",
            "MockModel(14, p=2, emin=0.001, emax=10)",
            "MockModel(15, p=3, emin=1e-05, emax=10)"};
-    EXPECT_VEC_EQ(expected_model_names, model_names);
+    EXPECT_VEC_EQ(expected_model_desc, model_desc);
 
     // Test host-accessible process map
     std::vector<std::string> process_map;

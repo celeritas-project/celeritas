@@ -36,8 +36,14 @@ class KleinNishinaModel final : public Model
     // ID of the model
     ActionId action_id() const final;
 
+    //! Short name for the interaction kernel
+    std::string label() const final { return "scat-klein-nishina"; }
+
     //! Name of the model, for user interaction
-    std::string label() const final { return "Klein-Nishina"; }
+    std::string description() const final
+    {
+        return "Klein-Nishina Compton scattering";
+    }
 
   private:
     detail::KleinNishinaData interface_;

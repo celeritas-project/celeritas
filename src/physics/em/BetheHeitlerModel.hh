@@ -38,8 +38,14 @@ class BetheHeitlerModel final : public Model
     // ID of the model
     ActionId action_id() const final;
 
+    //! Short name for the interaction kernel
+    std::string label() const final { return "conv-bethe-heitler"; }
+
     //! Name of the model, for user interaction
-    std::string label() const final { return "Bethe-Heitler"; }
+    std::string description() const final
+    {
+        return "Bethe-Heitler gamma conversion";
+    }
 
   private:
     detail::BetheHeitlerData interface_;

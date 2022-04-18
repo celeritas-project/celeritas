@@ -37,7 +37,8 @@ UrbanMscModel::UrbanMscModel(ActionId              id,
     host_ref.ids.electron = particles.find(pdg::electron());
     host_ref.ids.positron = particles.find(pdg::positron());
     CELER_VALIDATE(host_ref.ids.electron && host_ref.ids.positron,
-                   << "missing e-/e+ (required for " << this->label() << ")");
+                   << "missing e-/e+ (required for " << this->description()
+                   << ")");
 
     // Save electron mass
     host_ref.electron_mass = particles.get(host_ref.ids.electron).mass();

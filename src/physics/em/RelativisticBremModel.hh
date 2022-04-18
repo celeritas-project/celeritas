@@ -52,8 +52,14 @@ class RelativisticBremModel final : public Model
     // ID of the model
     ActionId action_id() const final;
 
+    //! Short name for the interaction kernel
+    std::string label() const final { return "brems-rel"; }
+
     //! Name of the model, for user interaction
-    std::string label() const final { return "Relativistic Bremsstrahlung"; }
+    std::string description() const final
+    {
+        return "Relativistic bremsstrahlung";
+    }
 
     //! Access data on the host
     const HostRef& host_ref() const { return data_.host(); }

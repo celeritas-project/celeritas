@@ -69,7 +69,7 @@ TEST_F(ImportedProcessesTest, compton)
     auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
-    EXPECT_EQ("Klein-Nishina", models.front()->label());
+    EXPECT_EQ("scat-klein-nishina", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
@@ -121,7 +121,7 @@ TEST_F(ImportedProcessesTest, eplus_annihilation)
     auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
-    EXPECT_EQ("Positron annihilation (2g)", models.front()->label());
+    EXPECT_EQ("annihil-2-gamma", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
 
@@ -152,7 +152,7 @@ TEST_F(ImportedProcessesTest, gamma_conversion)
     auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
-    EXPECT_EQ("Bethe-Heitler", models.front()->label());
+    EXPECT_EQ("conv-bethe-heitler", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
@@ -178,7 +178,7 @@ TEST_F(ImportedProcessesTest, msc)
     auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
-    EXPECT_EQ("UrbanMsc", models.front()->label());
+    EXPECT_EQ("msc-urban", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
@@ -210,7 +210,7 @@ TEST_F(ImportedProcessesTest, photoelectric)
     auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
-    EXPECT_EQ("Livermore photoelectric", models.front()->label());
+    EXPECT_EQ("photoel-livermore", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
@@ -247,7 +247,7 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
     auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(2, models.size());
     ASSERT_TRUE(models.front());
-    EXPECT_EQ("Seltzer-Berger bremsstrahlung", models.front()->label());
+    EXPECT_EQ("brems-sb", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
@@ -287,7 +287,7 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
     auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
-    EXPECT_EQ("Combined Bremsstrahlung", models.front()->label());
+    EXPECT_EQ("brems-combined", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
@@ -317,7 +317,7 @@ TEST_F(ImportedProcessesTest, rayleigh)
     auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
-    EXPECT_EQ("Rayleigh Scattering", models.front()->label());
+    EXPECT_EQ("scat-rayleigh", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();

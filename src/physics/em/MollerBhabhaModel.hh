@@ -37,8 +37,14 @@ class MollerBhabhaModel final : public Model
     // ID of the model
     ActionId action_id() const final;
 
+    //! Short name for the interaction kernel
+    std::string label() const final { return "ioni-moller-bhabha"; }
+
     //! Name of the model, for user interaction
-    std::string label() const final { return "Moller/Bhabha scattering"; }
+    std::string description() const final
+    {
+        return "Moller+Bhabha scattering";
+    }
 
   private:
     detail::MollerBhabhaData interface_;

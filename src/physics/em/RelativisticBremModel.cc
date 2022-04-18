@@ -41,7 +41,8 @@ RelativisticBremModel::RelativisticBremModel(ActionId              id,
     host_ref.ids.gamma    = particles.find(pdg::gamma());
 
     CELER_VALIDATE(host_ref.ids,
-                   << "missing IDs (required for " << this->label() << ")");
+                   << "missing IDs (required for " << this->description()
+                   << ")");
 
     // Save particle properties
     host_ref.electron_mass = particles.get(host_ref.ids.electron).mass();

@@ -39,8 +39,8 @@ RayleighModel::RayleighModel(ActionId              id,
     host_ref.ids.action = id;
     host_ref.ids.gamma = particles.find(pdg::gamma());
     CELER_VALIDATE(host_ref.ids.gamma,
-                   << "missing gamma particles (required for " << this->label()
-                   << ")");
+                   << "missing gamma particles (required for "
+                   << this->description() << ")");
 
     this->build_data(&host_ref, materials);
 

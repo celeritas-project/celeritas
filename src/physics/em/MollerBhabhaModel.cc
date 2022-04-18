@@ -34,7 +34,7 @@ MollerBhabhaModel::MollerBhabhaModel(ActionId              id,
     CELER_VALIDATE(interface_.ids.electron && interface_.ids.positron,
                    << "missing electron and/or positron particles "
                       "(required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
 
     interface_.electron_mass_c_sq
         = particles.get(interface_.ids.electron).mass().value(); // [MeV]

@@ -36,8 +36,14 @@ class EPlusGGModel final : public Model
     // ID of the model
     ActionId action_id() const final;
 
+    //! Short name for the interaction kernel
+    std::string label() const final { return "annihil-2-gamma"; }
+
     //! Name of the model, for user interaction
-    std::string label() const final { return "Positron annihilation (2g)"; }
+    std::string description() const final
+    {
+        return "Positron annihilation yielding two gammas";
+    }
 
     // Access data on device
     detail::EPlusGGData device_ref() const { return interface_; }

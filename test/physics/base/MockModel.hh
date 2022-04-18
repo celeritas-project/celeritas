@@ -39,6 +39,7 @@ class MockModel final : public celeritas::Model
     void             execute(CoreDeviceRef const&) const final;
     ActionId         action_id() const final { return id_; }
     std::string      label() const final;
+    std::string      description() const final;
 
   private:
     ActionId      id_;
